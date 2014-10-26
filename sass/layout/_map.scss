@@ -1,0 +1,186 @@
+#pf-map{
+  background-color: $gray-darker;
+  width: 1200px;
+  height: 500px;
+  margin: 10px;
+  position: relative;
+
+  @include border-radius(5px);
+  border: {
+    width: 1px;
+    style: solid;
+    color: $gray-lighter;
+  }
+
+  .pf-system{
+    position: absolute;
+    min-width: 50px;
+    height: auto;
+    background-color: $gray-dark;
+    z-index: 100;
+
+    @include border-radius(5px);
+    border: {
+      width: 2px;
+      style: solid;
+      color: $gray-light;
+    }
+
+    .pf-system-head{
+      padding: 0px 3px 2px 3px;
+    }
+
+    // System security =============================================
+
+    .pf-system-sec{
+      margin-right: 5px;
+    }
+
+    .pf-system-sec-high{
+      color: $green;
+    }
+
+    .pf-system-sec-low{
+      color: $orange;
+    }
+
+    .pf-system-sec-null{
+      color: $red;
+    }
+
+    .pf-system-sec-high{
+      color: $red;
+    }
+
+    .pf-system-sec-mid{
+      color: $orange;
+    }
+
+    .pf-system-sec-low{
+      color: $blue;
+    }
+
+    // WH effects ==================================================
+
+    .pf-system-effect{
+      margin-left: 5px;
+    }
+
+    .pf-system-effect-magnetar{
+      color: $wh-color-magnetar;
+    }
+
+    .pf-system-effect-redgiant{
+      color: $wh-color-redgiant;
+    }
+
+    .pf-system-effect-pulsar{
+      color: $wh-color-pulsar;
+    }
+
+    .pf-system-effect-wolfryet{
+      color: $wh-color-wolfryet;
+    }
+
+    .pf-system-effect-cataclysmic{
+      color: $wh-color-cataclysmic;
+    }
+
+    .pf-system-effect-blackhole{
+      color: $wh-color-blackhole;
+    }
+
+    // ===============================================================
+
+    .pf-system-body{
+      min-height: 10px;
+
+      border: {
+        top: {
+          width: 2px;
+          style: dashed;
+          color: $gray-light;
+        }
+
+      }
+    }
+
+  }
+
+  .pf-system-active{
+    @include box-shadow($yellow-lighter 0px 0px 8px 1px);
+    @include transition-duration(0.2s);
+  }
+
+  // System status ===============================================
+
+  .pf-system-status-friendly{
+    border-color: $blue;
+  }
+
+  .pf-system-status-occupied{
+    border-color: $orange;
+  }
+
+  .pf-system-status-hostile{
+    border-color: $red;
+  }
+
+  .pf-system-status-empty{
+    border-color: $green;
+  }
+
+  .pf-system-status-unscanned{
+    border-color: $teal;
+  }
+
+  // Connections ==================================================
+
+  // default hover effect for all connections
+  svg._jsPlumb_connector:hover{
+    path:first-child{
+      stroke: $gray-lighter;
+    }
+  }
+
+  svg.pf-map-connection-default  {
+
+    path:not(first-child){
+      stroke: $gray;
+    }
+
+    path:first-child{
+      stroke: $gray-light;
+    }
+
+  }
+
+  svg.pf-map-connection-frig  {
+
+    path:not(first-child){
+      stroke: $gray;
+    }
+
+    path:first-child{
+      stroke: $gray-lighter;
+    }
+  }
+
+  // Connection status ============================================
+
+  svg.pf-map-connection-eol  {
+
+    path:first-child{
+      stroke: red;
+    }
+  }
+
+}
+
+// context menu ==================================================
+#pf-map-contextmenu{
+  i{
+    width: 20px
+  }
+}
+

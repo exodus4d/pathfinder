@@ -1,0 +1,29 @@
+.page-footer {
+	height: $smart-footer-height;
+	padding: $smart-footer-padding;
+	padding-left: $asideWidth+($grid-gutter-width/2);
+	border-top: 1px solid #CECECE;
+	background: $smart-footer-background;
+	width: 100%;
+	position: absolute;
+	display: block;
+	bottom: 0px;
+	
+  .fixed-page-footer & {
+	  position: fixed;
+	  z-index: $fixed-footer-zindex;
+  }
+
+  .minified & {
+	  padding-left: 45 + ($grid-gutter-width/2);
+  }
+
+  .container.fixed-page-footer & {
+	  max-width: 1164px;
+  }
+
+  .hidden-menu & {
+	  padding-left: 20px;
+  }
+}
+

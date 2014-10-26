@@ -1,0 +1,1010 @@
+/*
+ * SMART FORMS
+ */
+
+.smart-form {
+  *, *:after, *:before {
+  	margin: 0;
+	  padding: 0;
+  	box-sizing: content-box;
+	  -moz-box-sizing: content-box;
+	}
+  .btn {
+	  box-sizing: border-box;
+	  -moz-box-sizing: border-box;
+  }
+  .radio + .radio, .checkbox + .checkbox { margin-top: 0; }
+  footer {
+    .btn {
+	    float: right;
+	    height: 31px;
+	    margin: 10px 0 0 5px;
+	    padding: 0 22px;
+	    font: 300 15px/29px 'Open Sans', Helvetica, Arial, sans-serif;
+	    cursor: pointer;
+    }  
+	  display: block;
+	  padding: 7px 14px 15px;
+	  border-top: 1px solid rgba(0,0,0,.1);
+	  background: rgba(248,248,248,.9);
+	  
+	  &:after {
+	    content: '';
+	    display: table;
+	    clear: both;
+    }
+  }
+  legend { padding-top: 15px; }
+
+	margin: 0;
+	outline: none;
+	color: #666;
+	position: relative;
+
+  header {
+	  display: block;
+	  padding: 8px 0;
+	  border-bottom: 1px dashed rgba(0, 0, 0, .2);
+	  background: white;
+	  font-size: 16px;
+	  font-weight: 300;
+	  color: #232323;
+	  margin: 10px 14px 0;
+  }
+  fieldset {
+	  display: block;
+	  padding: 25px 14px 5px;
+	  border: none;
+	  background: rgba(255,255,255,.9);
+	  position: relative;
+
+	  + fieldset { border-top: 1px solid rgba(0,0,0,.1); }
+  }
+  section {
+	  margin-bottom: 15px;
+	  position: relative;
+  }
+
+  .label {
+	  display: block;
+	  margin-bottom: 6px;
+	  line-height: 19px;
+	  font-weight: 400;
+	  font-size: 13px;
+	  color: #333;
+	  text-align: left;
+    &.col {
+	    margin: 0;
+	    padding-top: 7px;
+    }
+  }
+  .input, .select, .textarea, .radio, .checkbox, .toggle, .button {
+	  position: relative;
+	  display: block;
+	  font-weight: 400;
+  }
+  .input input, .select select, .textarea textarea {
+	  display: block;
+	  box-sizing: border-box;
+	  -moz-box-sizing: border-box;
+	  width: 100%;
+	  height: 32px;
+	  padding: 8px 10px;
+	  outline: none;
+	  border-width: 1px;
+	  border-style: solid;
+	  border-radius: 0;
+	  background: #fff;
+	  font: 13px/16px 'Open Sans', Helvetica, Arial, sans-serif;
+	  color: #404040;
+	  appearance: normal;
+	  -moz-appearance: none;
+	  -webkit-appearance: none;
+  }
+  
+}
+
+.smart-form .note, .note {
+	margin-top: 6px;
+	padding: 0 1px;
+	font-size: 11px;
+	line-height: 15px;
+	color: #999;
+}
+.note { margin-top: 2px; font-size: 10px; }
+.smart-form .note a {	font-size: 13px; }
+
+/*
+ * File inputs
+ */
+.smart-form .input-file .button {
+	position: absolute;
+	top: 4px;
+	right: 4px;
+	float: none;
+	height: 22px;
+	margin: 0;
+	padding: 0 14px;
+	font-size: 13px;
+	line-height: 22px;
+  &:hover {
+	  box-shadow: none;
+  }
+  input {
+	  position: absolute;
+	  top: 0;
+	  right: 0;
+	  padding: 0;
+	  font-size: 30px;
+	  cursor: pointer;
+	  opacity: 0;
+  }
+}
+
+/*
+ * Selects
+ */
+.smart-form .select i {
+	position: absolute;
+	top: 10px;
+	right: 11px;
+	width: 5px;
+	height: 11px;
+	background: white;
+	box-shadow: 0 0 0 9px white;
+  &:after, &:before {
+	  content: '';
+	  position: absolute;
+	  right: 0;
+	  border-right: 4px solid transparent;
+	  border-left: 4px solid transparent;
+  }
+  &:after {
+	  bottom: 0;
+	  border-top: 4px solid #404040;
+  }
+  &:before {
+	  top: 0;
+	  border-bottom: 4px solid #404040;
+  }
+}
+.smart-form .select-multiple select { height: auto; }
+
+/*
+ * Text areas
+ */
+.smart-form .textarea textarea {
+	height: auto;
+	resize: none;
+}
+.smart-form .textarea-resizable textarea { resize: vertical; }
+.smart-form .textarea-expandable textarea { height: 31px; }
+.smart-form .textarea-expandable textarea:focus { height: auto; }
+
+/*
+ * Radio and checkboxes
+ */
+.smart-form .radio, .smart-form .checkbox {
+	margin-bottom: 4px;
+	padding-left: 25px;
+	font-size: 15px;
+	line-height: 25px;
+	color: #404040;
+	cursor: pointer;
+	font-size: 13px;
+	
+	&:last-child { margin-bottom: 0; }
+
+  input {
+	  position: absolute;
+	  left: -9999px;
+    + i:after {
+	    position: absolute;
+	    opacity: 0;
+	    transition: opacity 0.1s;
+	    -o-transition: opacity 0.1s;
+	    -ms-transition: opacity 0.1s;
+	    -moz-transition: opacity 0.1s;
+	    -webkit-transition: opacity 0.1s;
+    }
+  }
+
+  i {
+	  position: absolute;
+	  top: 3px;
+	  left: 0;
+	  display: block;
+	  width: 17px;
+	  height: 17px;
+	  outline: none;
+	  border-width: 1px;
+	  border-style: solid;
+	  background: #FFF;
+  }
+}
+
+.smart-form .radio i { border-radius: 50%; }
+.smart-form .radio input + i:after {
+	content: '';
+	top: 4px;
+	left: 4px;
+	width: 9px;
+	height: 9px;
+	border-radius: 50%;
+}
+.smart-form .checkbox input + i:after {
+	content: '\f00c';
+	top: -1px;
+	left: 1px;
+	width: 15px;
+	height: 15px;
+	font: normal 16px/19px FontAwesome;
+	text-align: center;
+}
+
+.smart-form .checkbox input:checked:hover + i:after { content: '\f00d'; }
+.smart-form .checkbox input:checked:disabled:hover + i:after { content: '\f00c'; }
+.smart-form .radio input:checked + i:after, .smart-form .checkbox input:checked + i:after { opacity: 1; }
+.smart-form .inline-group { margin: 0 -15px -4px 0; }
+.smart-form .inline-group:after {
+	content: '';
+	display: table;
+	clear: both;
+}
+.smart-form .inline-group .radio, .smart-form .inline-group .checkbox {
+	float: left;
+	margin-right: 30px;
+}
+.smart-form .inline-group .radio:last-child, .smart-form .inline-group .checkbox:last-child {
+	margin-bottom: 4px;
+}
+
+/*
+ * toggles
+ */
+.smart-form .toggle {
+	margin-bottom: 4px;
+	padding-right: 61px;
+	font-size: 15px;
+	line-height: 25px;
+	color: #404040;
+	cursor: pointer;
+
+  &:last-child { margin-bottom: 0; }
+
+  input {
+	  position: absolute;
+	  left: -9999px;
+    &:checked + i:after {
+	    content: attr(data-swchon-text);
+	    text-align: right;
+    }
+    &:checked + i:before {
+	    right: 36px;
+    }
+  }
+
+  i {
+	  content: '';
+	  position: absolute;
+	  top: 4px;
+	  right: 0;
+	  display: block;
+	  width: 49px;
+	  height: 17px;
+	  border-width: 1px;
+	  border-style: solid;
+	  border-radius: 12px;
+	  background: #fff;
+    &:after {
+	    content: attr(data-swchoff-text);
+	    position: absolute;
+	    top: 2px;
+	    right: 8px;
+	    left: 8px;
+	    font-style: normal;
+	    font-size: 9px;
+	    line-height: 13px;
+	    font-weight: 700;
+	    text-align: left;
+	    color: #5f5f5f;
+    }
+    &:before {
+	    content: '';
+	    position: absolute;
+	    z-index: 1;
+	    top: 4px;
+	    right: 4px;
+	    display: block;
+	    width: 9px;
+	    height: 9px;
+	    border-radius: 50%;
+	    opacity: 1;
+	    transition: right 0.2s;
+	    -o-transition: right 0.2s;
+	    -ms-transition: right 0.2s;
+	    -moz-transition: right 0.2s;
+	    -webkit-transition: right 0.2s;
+    }
+  }
+}
+
+/*
+ * ratings
+ */
+.smart-form .rating {
+	margin-bottom: 4px;
+	font-size: 13px;
+	line-height: 25px;
+	color: #404040;
+
+  &:last-child {
+	  margin-bottom: 0;
+  }
+  input {
+	  position: absolute;
+	  left: -9999px;
+  }
+  label {
+	  display: block;
+	  float: right;
+	  height: 17px;
+	  margin-top: 5px;
+	  padding: 0 2px;
+	  font-size: 17px;
+	  line-height: 17px;
+	  cursor: pointer;
+  }
+}
+
+/*
+ * buttons
+ */
+.smart-form .button {
+	float: right;
+	height: 31px;
+	overflow: hidden;
+	margin: 10px 0 0 5px;
+	padding: 0 25px;
+	outline: none;
+	border: 0;
+	font: 300 15px/31px 'Open Sans', Helvetica, Arial, sans-serif;
+	text-decoration: none;
+	color: #fff;
+	cursor: pointer;
+}
+
+.smart-form .icon-append, .smart-form .icon-prepend {
+	position: absolute;
+	top: 5px;
+	width: 22px;
+	height: 22px;
+	font-size: 14px;
+	line-height: 22px;
+	text-align: center;
+}
+.smart-form .icon-append {
+	right: 5px;
+	padding-left: 3px;
+	border-left-width: 1px;
+	border-left-style: solid;
+}
+.smart-form .icon-prepend {
+	left: 5px;
+	padding-right: 3px;
+	border-right-width: 1px;
+	border-right-style: solid;
+}
+.smart-form .input .icon-prepend + input, .smart-form .textarea .icon-prepend + textarea { padding-left: 37px; }
+.smart-form .input .icon-append + input, .smart-form .textarea .icon-append + textarea { padding-right: 37px; }
+.smart-form .input .icon-prepend + .icon-append + input, .smart-form .textarea .icon-prepend + .icon-append + textarea { padding-left: 37px; }
+
+/*
+ * grid
+ */
+.smart-form .row { 
+	margin: 0 -15px;
+  &:after {
+	  content: '';
+	  display: table;
+	  clear: both;
+  }
+}
+.smart-form {
+	.col {
+		float: left;
+		min-height: 1px;
+		padding-right: 15px;
+		padding-left: 15px;
+		box-sizing: border-box;
+		-moz-box-sizing: border-box;
+	}
+
+	&.col-1 { width: 8.33%; }
+	&.col-2 { width: 16.66%; }
+	&.col-3 { width: 25%; }
+	&.col-4 { width: 33.33%; }
+	&.col-5 { width: 41.66%; }
+	&.col-6 { width: 50%; }
+	&.col-8 { width: 66.67%; }
+	&.col-9 { width: 75%; }
+	&.col-10 { width: 83.33%; }
+}
+
+@media screen and (max-width: 600px) {
+	.smart-form .col {
+		float: none;
+		width: 100%;
+	}
+}
+
+/*
+ * tooltips
+ */
+.smart-form .select select {
+	padding: 5px;
+}
+.smart-form .tooltip {
+	position: absolute;
+	z-index: 99999;
+	left: -9999px;
+	padding: 2px 8px 3px;
+	font-size: 11px;
+	line-height: 16px;
+	font-weight: 400;
+	background: rgba(0,0,0,0.9);
+	color: #fff;
+	opacity: 0;
+	transition: margin 0.3s, opacity 0.3s;
+	-o-transition: margin 0.3s, opacity 0.3s;
+	-ms-transition: margin 0.3s, opacity 0.3s;
+	-moz-transition: margin 0.3s, opacity 0.3s;
+	-webkit-transition: margin 0.3s, opacity 0.3s;
+
+  &:after {
+	  content: '';
+	  position: absolute;
+  }
+}
+.smart-form .input input:focus + .tooltip, .smart-form .textarea textarea:focus + .tooltip { opacity: 1; }
+
+.smart-form .tooltip-top-right {
+	bottom: 100%;
+	margin-bottom: 15px;
+
+  &:after {
+	  top: 100%;
+	  right: 11px;
+	  border-top: 4px solid rgba(0,0,0,0.9);
+	  border-right: 4px solid transparent;
+	  border-left: 4px solid transparent;
+  }
+}
+.smart-form .input input:focus + .tooltip-top-right, .smart-form .textarea textarea:focus + .tooltip-top-right {
+	right: 0;
+	left: auto;
+	margin-bottom: 5px;
+}
+
+.smart-form .tooltip-top-left {
+	bottom: 100%;
+	margin-bottom: 15px;
+	
+	&:after {
+	  top: 100%;
+	  left: 11px;
+	  border-top: 4px solid rgba(0,0,0,0.9);
+	  border-right: 4px solid transparent;
+	  border-left: 4px solid transparent;
+  }
+}
+.smart-form .input input:focus + .tooltip-top-left, .smart-form .textarea textarea:focus + .tooltip-top-left {
+	right: auto;
+	left: 0;
+	margin-bottom: 5px;
+}
+
+.smart-form .tooltip-right {
+	top: 4px;
+	white-space: nowrap;
+	margin-left: 15px;
+	
+	&:after {
+	  top: 6px;
+	  right: 100%;
+	  border-top: 4px solid transparent;
+	  border-right: 4px solid rgba(0,0,0,0.9);
+	  border-bottom: 4px solid transparent;
+  }
+}
+.smart-form .input input:focus + .tooltip-right, .smart-form .textarea textarea:focus + .tooltip-right {
+	left: 100%;
+	margin-left: 5px;
+}
+
+.smart-form .tooltip-left {
+	top: 4px;
+	white-space: nowrap;
+	margin-right: 15px;
+  &:after {
+	  top: 6px;
+	  left: 100%;
+	  border-top: 4px solid transparent;
+	  border-bottom: 4px solid transparent;
+	  border-left: 4px solid rgba(0,0,0,0.9);
+  }
+}
+.smart-form .input input:focus + .tooltip-left, .smart-form .textarea textarea:focus + .tooltip-left {
+	right: 100%;
+	left: auto;
+	margin-right: 5px;
+}
+
+.smart-form .tooltip-bottom-right {
+	top: 100%;
+	margin-top: 15px;
+  &:after {
+	  bottom: 100%;
+	  right: 11px;
+	  border-right: 4px solid transparent;
+	  border-bottom: 4px solid rgba(0,0,0,0.9);
+	  border-left: 4px solid transparent;
+  }
+}
+.smart-form .input input:focus + .tooltip-bottom-right, .smart-form .textarea textarea:focus + .tooltip-bottom-right {
+	right: 0;
+	left: auto;
+	margin-top: 5px;
+}
+
+.smart-form .tooltip-bottom-left {
+	top: 100%;
+	margin-top: 15px;
+	
+	&:after {
+	  bottom: 100%;
+	  left: 11px;
+	  border-right: 4px solid transparent;
+	  border-bottom: 4px solid rgba(0,0,0,0.9);
+	  border-left: 4px solid transparent;
+  }
+}
+.smart-form .input input:focus + .tooltip-bottom-left, .smart-form .textarea textarea:focus + .tooltip-bottom-left {
+	right: auto;
+	left: 0;
+	margin-top: 5px;
+}
+
+/*
+ * normal state
+ */
+.smart-form .input input, .smart-form .select select, .smart-form .textarea textarea, .smart-form .radio i, .smart-form .checkbox i, .smart-form .toggle i, .smart-form .icon-append, .smart-form .icon-prepend {
+	border-color: #bdbdbd;
+	transition: border-color 0.3s;
+	-o-transition: border-color 0.3s;
+	-ms-transition: border-color 0.3s;
+	-moz-transition: border-color 0.3s;
+	-webkit-transition: border-color 0.3s;
+}
+.smart-form .toggle i:before { background-color: #3276B1; }
+.smart-form .rating label {
+	color: #ccc;
+	transition: color 0.3s;
+	-o-transition: color 0.3s;
+	-ms-transition: color 0.3s;
+	-moz-transition: color 0.3s;
+	-webkit-transition: color 0.3s;
+}
+.smart-form .button {
+	background-color: #3276B1;
+	opacity: 0.8;
+	transition: opacity 0.2s;
+	-o-transition: opacity 0.2s;
+	-ms-transition: opacity 0.2s;
+	-moz-transition: opacity 0.2s;
+	-webkit-transition: opacity 0.2s;
+}
+.smart-form .button.button-secondary {
+	background-color: #b3b3b3;
+}
+.smart-form .icon-append, .smart-form .icon-prepend { color: #a2a2a2; }
+
+/*
+ * hover state
+ */
+.smart-form .input:hover input, .smart-form .select:hover select, .smart-form .textarea:hover textarea, .smart-form .radio:hover i, .smart-form .checkbox:hover i, .smart-form .toggle:hover i {
+	border-color: #5d98cc;
+}
+.smart-form .rating input + label:hover,
+.smart-form .rating input + label:hover ~
+label { color: #3276b1; }
+.smart-form .button:hover { opacity: 1; }
+.smart-form .radio:hover i, 
+.smart-form .checkbox:hover i, 
+.smart-form .toggle:hover i {
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.1);
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.1);
+}
+
+/*
+ * radio/toggle/checkbox active state
+ */
+.smart-form .radio:active i, 
+.smart-form .checkbox:active i, 
+.smart-form .toggle:active i {
+	background: #f0f0f0;
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.1);
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.1);
+}
+
+/*
+ * focus state
+ */
+.smart-form .input input:focus, .smart-form .select select:focus, .smart-form .textarea textarea:focus, .smart-form .radio input:focus + i, .smart-form .checkbox input:focus + i, .smart-form .toggle input:focus + i {
+	border-color: #3276b1;
+}
+
+/*
+ * checked state
+ */
+.smart-form .radio input + i:after {
+	background-color: #3276b1;
+}
+.smart-form .checkbox input + i:after {
+	color: #3276b1;
+}
+.smart-form .radio input:checked + i, .smart-form .checkbox input:checked + i, .smart-form .toggle input:checked + i {
+	border-color: #3276b1;
+}
+.smart-form .rating input:checked ~
+label {
+	color: #3276b1;
+}
+
+/*
+ * error state
+ */
+.smart-form .state-error input, .smart-form .state-error select, .smart-form .state-error textarea, .smart-form .radio.state-error i, .smart-form .checkbox.state-error i, .smart-form .toggle.state-error i {
+	background: #fff0f0;
+	border-color: #a90329;
+}
+
+.smart-form .toggle.state-error input:checked + i {
+	background: #fff0f0;
+}
+.smart-form .state-error + em {
+	display: block;
+	margin-top: 6px;
+	padding: 0 1px;
+	font-style: normal;
+	font-size: 11px;
+	line-height: 15px;
+	color: #D56161;
+}
+.smart-form .rating.state-error + em {
+	margin-top: -4px;
+	margin-bottom: 4px;
+}
+
+.smart-form .state-error select + i {
+	background: #fff0f0;
+	box-shadow: 0 0 0 9px #fff0f0;
+}
+
+.state-error .icon-append, .state-error .icon-prepend {
+	color: #ed1c24;
+}
+
+/*
+ * success state
+ */
+.smart-form .state-success input, .smart-form .state-success select, .smart-form .state-success textarea, .smart-form .radio.state-success i, .smart-form .checkbox.state-success i, .smart-form .toggle.state-success i {
+	background: #f0fff0;
+	border-color: #7dc27d;
+}
+
+.smart-form .toggle.state-success input:checked + i {
+	background: #f0fff0;
+}
+.smart-form .note-success {
+	color: #6fb679;
+}
+
+.smart-form .state-success select + i {
+	background: honeyDew;
+	box-shadow: 0 0 0 9px honeyDew;
+}
+
+/*
+ * disable state
+ */
+.smart-form .input.state-disabled input, .smart-form .select.state-disabled, .smart-form .textarea.state-disabled, .smart-form .radio.state-disabled, .smart-form .checkbox.state-disabled, .smart-form .toggle.state-disabled, .smart-form .button.state-disabled {
+	cursor: default !important;
+	opacity: 0.6 !important;
+}
+.smart-form .input.state-disabled:hover input, .smart-form .select.state-disabled:hover select, .smart-form .textarea.state-disabled:hover textarea, .smart-form .radio.state-disabled:hover i, .smart-form .checkbox.state-disabled:hover i, .smart-form .toggle.state-disabled:hover i {
+	border-color: #e5e5e5 !important;
+}
+
+.smart-form .state-disabled.radio input:checked + i, 
+.smart-form .state-disabled.checkbox input:checked + i, 
+.smart-form .state-disabled.toggle input:checked + i, 
+.smart-form .state-disabled.checkbox input + i:after,
+.smart-form .state-disabled.radio input + i:after {
+	border-color: #e5e5e5 !important;
+	color: #333 !important;
+
+}
+
+.smart-form .state-disabled.radio input + i:after {
+	background-color: #333;
+}
+	
+/*
+ * submit state
+ */
+.smart-form .message {
+	display: none;
+	color: #6fb679;
+}
+.smart-form .message i {
+	display: block;
+	margin: 0 auto 20px;
+	width: 81px;
+	height: 81px;
+	border: 1px solid #6fb679;
+	border-radius: 50%;
+	font-size: 30px;
+	line-height: 81px;
+}
+.smart-form.submited fieldset, .smart-form.submited footer {
+	display: none;
+}
+.smart-form.submited .message {
+	display: block;
+	padding: 25px 30px;
+	background: rgba(255,255,255,.9);
+	font: 300 18px/27px 'Open Sans', Helvetica, Arial, sans-serif;
+	text-align: center;
+}
+
+/*
+ * JQUERY UI UPDATE
+ */
+
+.smart-form .ui-widget-content .ui-spinner-input {
+	margin: 0px;
+	border: 0px;
+	box-shadow: none !important;
+	height: 29px;
+}
+
+/*
+ * date picker
+
+.ui-datepicker {
+	display: none;
+	padding: 10px 12px;
+	background: #fff;
+	box-shadow: 0 0 10px rgba(0,0,0,.3);
+	font: 13px/1.55 'Open Sans', Helvetica, Arial, sans-serif;
+	text-align: center;
+	color: #666;
+}
+.ui-datepicker a {
+	color: #404040;
+}
+.ui-datepicker-header {
+	position: relative;
+	margin: -10px -12px 10px;
+	padding: 10px;
+	border-bottom: 1px solid rgba(0,0,0,.1);
+	font-size: 15px;
+	line-height: 27px;
+}
+.ui-datepicker-prev, .ui-datepicker-next {
+	position: absolute;
+	top: 0;
+	display: block;
+	width: 47px;
+	height: 47px;
+	font-size: 15px;
+	line-height: 47px;
+	text-decoration: none;
+	cursor: pointer;
+}
+.ui-datepicker-prev {
+	left: 0;
+}
+.ui-datepicker-next {
+	right: 0;
+}
+.ui-datepicker-calendar {
+	border-collapse: collapse;
+	font-size: 13px;
+	line-height: 27px;
+}
+.ui-datepicker-calendar th {
+	color: #999;
+}
+.ui-datepicker-calendar a, .ui-datepicker-calendar span {
+	display: block;
+	width: 31px;
+	margin: auto;
+	text-decoration: none;
+	color: #404040;
+	text-align:center;
+}
+.ui-datepicker-unselectable.ui-state-disabled {
+	
+}
+.ui-datepicker-unselectable.ui-state-disabled > span {
+	color:#bfbfbf;
+	background-color: #FAFCFD;
+}
+
+.ui-datepicker-calendar a:hover {
+	background: #3276B1;
+	color:#fff;
+}
+.ui-datepicker-calendar span {
+	
+}
+.ui-datepicker-today a {
+	font-weight: 700;
+}
+.ui-datepicker-calendar .ui-state-active {
+	background: rgba(0,0,0,.05);
+	cursor: default;
+}
+.ui-datepicker-inline {
+	border: 2px solid #e5e5e5;
+	background: #fff;
+	box-shadow: none;
+}
+.ui-datepicker-inline .ui-datepicker-calendar {
+	width: 100%;
+} */
+
+/*
+ * model
+ */
+.smart-form-modal {
+	position: fixed;
+	z-index: 1;
+	display: none;
+	width: 400px;
+}
+.smart-form-modal-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	display: none;
+	width: 100%;
+	height: 100%;
+	background: rgba(0,0,0,0.7);
+}
+
+/*
+ * Time picker
+ */
+
+.ui-timepicker-div .ui-widget-header {
+	margin-bottom: 8px;
+}
+.ui-timepicker-div dl {
+	text-align: left;
+}
+.ui-timepicker-div dl dt {
+	float: left;
+	clear: left;
+	padding: 0 0 0 5px;
+}
+.ui-timepicker-div dl dd {
+	margin: 17px 10px 12px 40%;
+}
+.ui-timepicker-div td {
+	font-size: 90%;
+}
+.ui-tpicker-grid-label {
+	background: none;
+	border: none;
+	margin: 0;
+	padding: 0;
+}
+
+.ui-timepicker-rtl {
+	direction: rtl;
+}
+.ui-timepicker-rtl dl {
+	text-align: right;
+	padding: 0 5px 0 0;
+}
+.ui-timepicker-rtl dl dt {
+	float: right;
+	clear: right;
+}
+.ui-timepicker-rtl dl dd {
+	margin: 0 40% 10px 10px;
+}
+
+/*
+ * Large, small and extra small fields
+ */
+
+.smart-form input.input-lg {
+	height: 44px;
+	padding: 10px 16px;
+	font-size: 17px;
+	line-height: 1.33;
+}
+
+.smart-form input.input-sm {
+	height: 30px;
+	padding: 5px 10px;
+	font-size: 12px;
+	line-height: 1.5;
+} 
+
+.smart-form input.input-xs {
+	height: 24px;
+	padding: 2px 10px;
+	font-size: 11px;
+	line-height: 1.5;
+} 	
+
+/* SELECT */
+
+.smart-form select.input-sm {
+	height: 30px;
+	line-height: 15px;
+	font-size: 12px;
+}	
+.smart-form select.input-sm + i {
+	height: 10px;
+}
+
+.smart-form select.input-lg {
+	height: 44px;
+	line-height: 22px;
+	font-size: 17px;
+}
+.smart-form select.input-lg + i {
+	height: 11px;
+	top: 17px;
+}	
+
+/* aep fix for aspnet mvc
+   from abelepereira  */
+.smart-form .checkbox input + input[type=hidden] + i:after {
+  content: '\f00c';
+  top: -1px;
+  left: 1px;
+  width: 15px;
+  height: 15px;
+  font: normal 16px/19px FontAwesome;
+  text-align: center;
+}
+
+.smart-form .checkbox input:checked:hover + input[type=hidden] +i:after {
+  content: '\f00d';
+}
+
+.smart-form .checkbox input:checked:disabled:hover + input[type=hidden] + i:after {
+  content: '\f00c';
+}
+
+.smart-form .checkbox input:checked + input[type=hidden] + i:after {
+  opacity: 1;
+}
+
+/* toogle fix */
+.smart-form .toggle input:checked + input[type=hidden] + i:after {
+  content: attr(data-swchon-text);
+  text-align: right;
+}
+.smart-form .toggle input:checked + input[type=hidden] + i:before {
+  right: 36px;
+}
+/* end of fix */
+

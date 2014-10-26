@@ -1,0 +1,66 @@
+/*
+ * USED WITH DEMO
+ */
+.square {
+	display: block;
+	float: left;
+	margin-right: 10px;
+	height: 20px;
+	width: 20px;
+}
+
+/*
+ * RESET BOOTSTRAP DEFAULT IE FILTER
+ */
+[class^="bg-"], [class*=" bg-"] { filter:none !important; }
+
+/*
+ * TEXT COLOR
+ */
+.txt-color {
+  &.txt-color-blue       { color: $blue !important; }
+  &.txt-color-blueLight  { color:$blueLight !important; }
+  &.txt-color-blueDark   { color: $blueDark !important; }
+  &.txt-color-green      { color: $green !important; }
+  &.txt-color-greenLight { color: $greenLight !important; }
+  &.txt-color-greenDark  { color: $greenDark  !important; }
+  &.txt-color-red        { color: $red !important; }
+  &.txt-color-yellow     { color: $yellow !important; }
+  &.txt-color-orange     { color: #b19a6b !important; }
+  &.txt-color-orangeDark { color: $orangeDark !important; }
+  &.txt-color-pink       { color: $pink !important; }
+  &.txt-color-pinkDark   { color: $pinkDark !important; }
+  &.txt-color-purple     { color: $purple !important; }
+  &.txt-color-darken     { color: $darken !important; }
+  &.txt-color-lighten    { color: $lighten !important; }
+  &.txt-color-white      { color: $white !important; }
+  &.txt-color-grayDark   { color: $greyDark !important; }
+  &.txt-color-magenta    { color: $magenta !important; }
+  &.txt-color-teal       { color: $teal !important; }
+  &.txt-color-redLight   { color: $redLight !important; }
+}
+/*
+ * BACKGROUNDS
+ */
+.bg-color {
+  &.bg-color-blue       { background-color: $blue !important; }
+  &.bg-color-blueLight  { background-color: $blueLight !important; }
+  &.bg-color-blueDark   { background-color: $blueDark !important; }
+  &.bg-color-green      { background-color: $green !important; }
+  &.bg-color-greenLight { background-color: $greenLight !important; }
+  &.bg-color-greenDark  { background-color: $greenDark  !important; }
+  &.bg-color-red        { background-color: $red !important; }
+  &.bg-color-yellow     { background-color: $yellow !important; }
+  &.bg-color-orange     { background-color: $orange !important; }
+  &.bg-color-orangeDark { background-color: $orangeDark !important; }
+  &.bg-color-pink       { background-color: $pink !important; }
+  &.bg-color-pinkDark   { background-color: $pinkDark !important; }
+  &.bg-color-purple     { background-color: $purple !important; }
+  &.bg-color-darken     { background-color: $darken !important; }
+  &.bg-color-lighten    { background-color: $lighten !important; }
+  &.bg-color-white      { background-color: $white !important; }
+  &.bg-color-grayDark   { background-color: $greyDark !important; }
+  &.bg-color-magenta    { background-color: $magenta !important; }
+  &.bg-color-teal       { background-color: $teal !important; }
+  &.bg-color-redLight   { background-color: $redLight !important; }
+}

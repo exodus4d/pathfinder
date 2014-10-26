@@ -1,0 +1,435 @@
+/*
+ * INBOX
+ */
+.table-wrap { overflow: auto; }
+.inbox-body { position: relative; }
+
+.inbox-body .table-wrap {
+	background: $white;
+	padding: 10px 14px 7px; 
+	position: relative;
+	margin-left: 200px;
+	overflow-x: hidden;
+}
+.inbox-body.no-content-padding {
+	margin-top: 0;
+	background: $white;
+	overflow: hidden;
+}
+	
+.inbox-nav-bar {
+	height: 70px;
+	margin-bottom: 0;
+	/*border-bottom: 1px solid #CECECE;*/
+	padding: 20px 14px;
+	background: $white;
+		
+}
+	
+.inbox-nav-bar .page-title {
+	display: inline-block;
+	margin: 0;
+	width: 196px;
+	line-height: 33px;
+	vertical-align: middle;
+}
+	
+.inbox-footer {
+	position: absolute;
+	bottom: -53px;
+}
+.inbox-paging {
+	margin-left: 10px;
+}
+	
+.inbox-footer .btn-group {
+	margin-left: 10px;
+}
+
+#inbox-table {
+	font-size: 13px;
+	border-top: none;
+	border-left-color: transparent !important;
+	border-right-color: transparent !important;
+}
+
+	
+#inbox-table tbody tr:hover {
+	cursor: pointer;
+	background: #e4e4e4;
+}
+	
+#inbox-table tr td {
+	border-right: none;
+	border-left: none;
+	line-height: 26px;
+	padding: 6px 4px 7px !important;
+}
+	
+#inbox-table .inbox-table-icon {
+	padding-left: 15px !important;
+}
+	
+#inbox-table tbody tr th {
+	overflow: hidden;
+}
+	
+#inbox-table.table tbody>tr>td {
+	border-color: #fff !important;
+}
+	
+#inbox-table .radio, #inbox-table .checkbox {
+	margin-top: -1px;
+	margin-bottom: 0px;
+}
+	
+.inbox-table-icon, .inbox-data-attachment {
+	width: 28px;
+	text-align: left;
+	padding-left: 12px !important;
+	padding-right: 0px !important;
+}
+
+.inbox-table-icon, .inbox-data-attachment > :first-child {
+		
+}
+
+.inbox-data-from {
+	width: 200px;
+}
+	
+.inbox-data-from > :first-child {
+	width: 200px;
+	display: block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.inbox-data-date {
+	width: 80px;
+	padding-left: 7px !important;
+	padding-right: 0px !important;
+}
+.inbox-data-message > :first-child {
+	width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	height: 27px;
+	color: #8a8a8a;
+
+  > :first-child:after { content: " - "; }
+  
+  span {
+	  color: #111;
+    &.label { color: $white; }
+  }
+} 
+
+.unread td {
+	background: $white;
+}
+
+.unread .inbox-data-message > :first-child > :first-child, .unread .inbox-data-from > :first-child, .unread .inbox-data-date > :first-child {
+	font-weight: bold;
+}
+
+tr.highlight td, tr.unread.highlight td {
+	background: #ffffcc !important; /*#ffffcc;*/
+	color: $gray-dark;
+}
+	
+.inbox-checkbox-triggered {
+	display: inline-block;
+}
+	
+.inbox-checkbox-triggered > .btn-group {
+	margin-right: 10px;
+  .btn {
+	  padding-left: 14px;
+	  padding-right: 14px;
+  }
+}
+	
+	
+.inbox-side-bar {
+	height: 100%; 
+	position: absolute; 
+	background: $white; 
+	display: block; 
+	width: 200px; 
+	padding: 10px 0 10px 14px;
+	overflow-y: auto;
+	overflow-x: hidden;
+	-webkit-overflow-scrolling: touch;
+	
+}
+
+.inbox-side-bar::-webkit-scrollbar {
+    width: 0 !important;
+}
+	
+.inbox-side-bar h6 {
+	font-weight: normal;
+	font-size: 11px;
+	display: block;
+	padding: 0px 15px;
+	text-transform: uppercase;
+	color: #838383;
+}
+.inbox-side-bar h6 a {
+	font-size: $font-size-base + 1px;
+	margin-top: -2px;
+		
+}
+.inbox-side-bar h6 .tooltip {
+	text-transform: none !important;
+}
+
+.inbox-side-bar > .btn {
+	margin-bottom: 35px;
+}
+.inbox-side-bar .input-group {
+	margin-bottom: 25px;
+}
+	
+#compose-mail-mini {
+	margin-left: 4px;
+}
+	
+.inbox-space {
+	display: block;
+	width: 185px;
+}
+	
+.inbox-space > .progress {
+	margin-top: 5px;
+}
+
+.inbox-menu-lg {
+	list-style: none;
+	padding: 0;
+	margin: 0 0 20px 0;
+  li {
+	  display: block;
+	  width: 100%;
+    a {
+	    display: block;
+	    padding: 6px 15px 7px;
+	    font-size: $font-size-base;
+	    color: $gray-dark;
+      &:hover {
+	      text-decoration: none;
+	      background: $gray-lightest;
+      }
+    }
+    &.active a {
+	    font-weight: bold;
+	    background: #f0f0f0;
+	    border-bottom: 1px solid #e7e7e7;
+	    color: $blueStandard;
+    }
+  }
+}
+
+.inbox-menu-sm {
+	list-style: none;
+	padding: 0;
+	margin: 0 0 20px 0;
+  li {
+	  display: block;
+	  width: 100%;
+    a {
+	    display: block;
+	    padding: 8px 15px 10px;
+	    font-size: $font-size-base;
+	    color: $gray-dark;
+      &:hover {
+	      text-decoration: none;
+	      background: $gray-lightest;
+      }
+    }
+  }
+  &.active a {
+	  font-weight: bold;
+	  background: #f0f0f0;
+	  border-bottom: 1px solid #e7e7e7;
+	  color: $blueStandard;
+  }
+}
+	
+/*
+	* Email opened
+	*/
+	
+.email-open-header {
+	margin: -10px 0 0 0;
+	font-size: 20px;
+	border-bottom: 1px solid $gray-mid-light;
+	border-top: 1px solid $gray-lighter;
+	padding: 15px 3px;
+	> span {
+	  font-size: 10px;
+	  font-weight: normal;
+	  padding: 3px 5px;
+	  letter-spacing: normal;
+	  text-transform: uppercase;
+	  vertical-align: middle;
+	  line-height: 33px;
+	  background: #acacac;
+  }
+}
+	 
+.inbox-info-bar {
+	padding: 10px 0px;
+	border-bottom: 1px solid $gray-mid-light;
+
+  img {
+	  width: 35px;
+	  height: auto;
+	  display: inline-block;
+	  vertical-align: middle;
+	  margin-right: 7px;
+	  margin-left: 2px;
+	  border-left: 3px solid #fff;
+  }
+}
+	
+	
+.inbox-message, .inbox-download {
+	padding: 15px 4px;
+	border-bottom: 1px solid $gray-mid-light;
+}
+	
+.inbox-download-list {
+	list-style: none;
+	margin: 5px 0 0;
+	padding: 0;
+
+  .inbox-download-list li {
+	  display: inline-block;
+	  margin: 0 5px 0 0;
+	  vertical-align: top;
+	
+    >:first-child {
+	    margin-bottom: 0;
+	    width: 150px;
+	    overflow: hidden;
+	    
+	    >:first-child {
+	      text-align: center;
+	      display: block;
+	      color: #d6d6d6;
+	      > .fa { font-size: 150px; }
+        > img { max-width:120px; }
+      }
+      &:hover {
+	      background: $white;
+	      border-color: #c0c0c0;
+      }
+    }
+  }
+}
+	
+.inbox-compose-footer {
+	padding: 10px;
+	background: #f5f5f5;
+	border-bottom: 1px solid #a9a9a9;
+}
+	
+/* added space for large width devices */
+.inbox-info-bar, .inbox-message, .inbox-download, .inbox-compose-footer {
+	margin-right: 240px;
+	position: relative;
+}
+
+.email-infobox {
+	display: block;
+	width: 180px;
+	border-bottom: 1px solid $gray-mid-light;
+	padding-bottom: 0px;
+	padding-top: 15px;
+	position: absolute;
+	top: 65px;
+	right: 15px;
+}
+	
+/* compose email */
+.inbox-info-bar .form-group {
+	margin: 0;
+}
+	
+.inbox-info-bar .form-group input, .inbox-info-bar .select2-container-multi .select2-choices {
+	border-color: $white !important;
+}
+	
+.inbox-info-bar .select2-choices > div {
+	display: none;
+}
+	
+.inbox-info-bar .col-md-1, .inbox-info-bar .col-md-11 {
+	padding-left: 0px;
+	padding-right: 0px;
+}
+	
+.fileinput {
+	padding-top: 3px;
+}
+	
+.hidden {
+	display: none;
+}
+	
+.inbox-info-bar em {
+	position: absolute;
+	top: 6px;
+	right: 20px;
+	text-align: right;
+	font-style: normal;
+}
+	
+/* email reply text */
+	
+.email-reply-text > div {
+	border-left: 1px solid #D6D6D6;
+	padding-left: 10px;
+	margin-left: 50px;
+	color: #a9a9a9;
+}
+
+/* reply text area */
+	
+.inbox-body .note-editor .note-editable	{
+	height: 100% important;
+}
+	
+.email-reply-text >:first-child {
+	padding-left: 45px;
+}
+	
+@media (max-width: 1280px) {
+		
+	.inbox-info-bar, .inbox-message, .inbox-compose-footer {
+		margin-right: 0px;
+	}
+		
+	.email-infobox {
+		display: none;
+	}
+
+}
+	
+@media (max-width: 1024px) {
+	.inbox-side-bar {
+		display: none !important;
+	}
+	.inbox-body .table-wrap {
+		margin-left: 0px !important;
+	}
+		
+	.inbox-info-bar .col-md-1, .inbox-info-bar .col-md-11 {
+		padding-left: 26px;
+		padding-right: 26px;
+	}
+}

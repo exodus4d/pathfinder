@@ -1,0 +1,49 @@
+$black: black;
+$white: white;
+
+// gray
+$gray-lightest:         #eaeaea;
+$gray-lighter:          #adadad;
+$gray-light:            #63676a;
+$gray:                  #3c3f41;
+$gray-dark:             #313335;
+$gray-darker:           #2b2b2b;
+$gray-daskest:          #1d1d1d;
+
+$gray-mid-light:        lighten($black, 75%);
+
+// blue
+$blue-lighter:          #57889c;
+$blue:                  #428bca;
+
+// teal
+$teal:                  #568a89;
+
+// green
+$green:                 #5cb85c;
+
+// red
+$red:                   #d9534f;
+
+// yellow
+$yellow-lighter:        #ffffbb;
+
+// orange
+$orange:                #f0ad4e;
+
+// pink
+$pink:                  #ac5287;
+
+// WH effects
+$wh-color-magnetar:     $pink;
+$wh-color-redgiant:     $red;
+$wh-color-pulsar:       $blue;
+$wh-color-wolfryet:     $orange;
+$wh-color-cataclysmic:  $yellow-lighter;
+$wh-color-blackhole:    $gray-daskest;
+
+$brand-primary:         #428bca !default;
+$brand-success:         #5cb85c !default;
+$brand-info:            #5bc0de !default;
+$brand-warning:         #f0ad4e !default;
+$brand-danger:          #d9534f !default;

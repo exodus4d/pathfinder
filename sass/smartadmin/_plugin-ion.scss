@@ -1,0 +1,202 @@
+/*
+ * Ion Slider
+ */
+
+/* RangeSlider */
+.irs {
+  position: relative;
+  display: block;
+}
+.irs-line {
+  position: relative;
+  display: block;
+  overflow: hidden;
+}
+.irs-line-left, .irs-line-mid, .irs-line-right {
+  position: absolute;
+  display: block;
+  top: 0;
+}
+.irs-line-left {
+  left: 0;
+  width: 10%;
+}
+.irs-line-mid {
+  left: 10%;
+  width: 80%;
+}
+.irs-line-right {
+  right: 0;
+  width: 10%;
+}
+
+.irs-diapason {
+  position: absolute;
+  display: block;
+  left: 0;
+  width: 100%;
+}
+.irs-slider {
+  position: absolute;
+  display: block;
+  cursor: default;
+  z-index: 1;
+  &.single {
+    left: 10px;
+    &:before {
+      position: absolute;
+      display: block;
+      content: "";
+      top: -50%;
+      left: -150%;
+      width: 400%;
+      height: 200%;
+      background: rgba(red($black), green($black), blue($black),0.0);
+    }
+  }
+  &.from {
+    left: 100px;
+    &:before {
+      position: absolute;
+      display: block;
+      content: "";
+      top: -50%;
+      left: -300%;
+      width: 400%;
+      height: 200%;
+      background: rgba(red($black), green($black), blue($black),0.0);
+    }
+  }
+  &.to {
+    left: 300px;
+    &:before {
+      position: absolute;
+      display: block;
+      content: "";
+      top: -50%;
+      left: 0;
+      width: 400%;
+      height: 200%;
+      background: rgba(red($black), green($black), blue($black),0.0);
+    }
+  }
+  &.last {
+    z-index: 2;
+  }
+}
+
+.irs-min {
+  position: absolute;
+  display: block;
+  left: 0;
+  cursor: default;
+}
+.irs-max {
+  position: absolute;
+  display: block;
+  right: 0;
+  cursor: default;
+}
+
+.irs-from, .irs-to, .irs-single {
+  position: absolute;
+  display: block;
+  top: 0;
+  left: 0;
+  cursor: default;
+  white-space: nowrap;
+}
+
+.irs-grid {
+  position: absolute;
+  display: none;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 20px;
+}
+.irs-with-grid .irs-grid { display: block; }
+.irs-grid-pol {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 8px;
+  background: #000;
+  &.small { height: 4px; }
+}
+.irs-grid-text {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100px;
+  white-space: nowrap;
+  text-align: center;
+  font-size: 9px;
+  line-height: 9px;
+  color: #000;
+}
+
+/*
+* CUST
+*
+*/
+.irs { height: 40px; }
+.irs-with-grid { height: 60px; }
+.irs-line {
+  height: 8px;
+  top: 25px;
+  background: $gray-lighter;
+}
+.irs-line-left { height: 8px; }
+.irs-line-mid { height: 8px; }
+.irs-line-right { height: 8px; }
+
+.irs-diapason {
+  height: 8px;
+  top: 25px;
+}
+
+.irs-slider {
+  width: 10px;
+  height: 22px;
+  top: 17px;
+  border: 1px solid $white;
+  background: $handle-bg-color;
+  &:hover {
+    background: darken($handle-bg-color, 10%);
+  }
+}
+#irs-active-slider {
+  background: #686868;
+  box-shadow: rgba(red($black), green($black), blue($black), 0.3) 1px 1px 1px 0px;
+  width: 12px;
+  height: 24px;
+  top: 16px;
+}
+
+.irs-min, .irs-max {
+  color: $gray-light;
+  font-size: 12px;
+  line-height: 1.333;
+  text-shadow: none;
+  top: 0;
+  padding: 1px 3px;
+  background: rgba(red($black), green($black), blue($black),0.1);
+  border-radius: 0;
+}
+.lt-ie9 .irs-min, .lt-ie9 .irs-max { background: $gray-mid-light; }
+
+.irs-from, .irs-to, .irs-single {
+  color: $white;
+  font-size: 10px;
+  line-height: 1.333;
+  text-shadow: none;
+  padding: 1px 5px;
+  background: rgba(red($black), green($black), blue($black),0.4);
+  border-radius: 0;
+}
+.lt-ie9 .irs-from, .lt-ie9 .irs-to, .lt-ie9 .irs-single { background: $gray-light; }
+.irs-grid-pol { background: #99a4ac; }
+.irs-grid-text { color: #99a4ac; }
+.irs-diapason { background: $slider-bar-color; }

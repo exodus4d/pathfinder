@@ -1,0 +1,24 @@
+/*
+ * Error Page
+ */
+.error-box {
+	max-width: 900px;
+	margin: 0 auto;
+}
+.error-text {
+	font-weight: 400;
+	color: $white;
+	letter-spacing: -4px;
+	font-size: 700%;
+	margin-bottom: 30px;
+	text-shadow: 0 1px 0 #CCC, 0 2px 0 $gray-mid-light, 0 3px 0 #BBB, 0 4px 0 #B9B9B9, 0 5px 0 #AAA, 0 6px 1px rgba(red($black), green($black), blue($black), 0.1), 0 0 5px rgba(red($black), green($black), blue($black), 0.1), 0 1px 3px rgba(red($black), green($black), blue($black), 0.3), 0 3px 5px rgba(red($black), green($black), blue($black), 0.2), 0 5px 10px rgba(red($black), green($black), blue($black), 0.25), 0 10px 10px rgba(red($black), green($black), blue($black), 0.2), 0 20px 20px rgba(red($black), green($black), blue($black), 0.15);
+}
+.error-search {
+	width: 300px;
+	margin: 0 auto 20px;
+}
+
+.error-icon-shadow {
+	text-shadow: 0 1px 0 #803838, 0 2px 0 #A85D5D, 0 3px 0 #B86565, 0 4px 0 #D86F6F, 0 5px 0 #B3A5A5, 0 6px 1px rgba(131, 51, 51, 0.1), 0 0 5px rgba(102, 30, 30, 0.1), 0 1px 3px rgba(95, 15, 15, 0.3), 0 3px 5px rgba(100, 23, 23, 0.2), 0 5px 10px rgba(114, 30, 30, 0.25), 0 10px 10px rgba(94, 15, 15, 0.2), 0 20px 20px rgba(121, 38, 38, 0.15);
+}
+

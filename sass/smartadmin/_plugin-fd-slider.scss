@@ -1,0 +1,177 @@
+.fd-form-element-hidden { display: none; }
+.fd-slider {
+  width: 100%;
+  height: 20px;
+  margin: 0;
+}
+.fd-slider-vertical {
+  width: 20px;
+  height: 100%;
+  margin: 0 10px 10px 0;
+}
+.fd-slider, .fd-slider-vertical {
+  display: block;
+  position: relative;
+  text-decoration: none;
+  border: 0 none;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+.fd-slider-inner { display: none; }
+.fd-slider-bar {
+  position: absolute;
+  display: block;
+  z-index: 2;
+  height: 6px;
+  width: 100%;
+  border: 1px solid #bbb;
+  border-bottom: 1px solid #fff;
+  border-right: 1px solid #fff;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  line-height: 4px;
+  top: 8px;
+  -moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+  border-radius: 4px;
+  -moz-background-clip: padding;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
+  background-color: #333;
+}
+.fd-slider-range {
+  position: absolute;
+  display: block;
+  z-index: 3;
+  height: 6px;
+  margin: 0;
+  padding: 0 2px 0 0;
+  overflow: hidden;
+  top: 9px;
+  -moz-border-radius: 2px;
+  -webkit-border-radius: 2px;
+  border-radius: 2px;
+  -moz-background-clip: padding;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
+  background-color: #eee;
+}
+.fd-slider-handle {
+  position: absolute;
+  display: block;
+  padding: 0;
+  border: 0 none;
+  margin: 0 0 0 1px;
+  z-index: 3;
+  top: 5px;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  line-height: 1px !important;
+  outline: 0 none;
+  background: #eee;
+  border: 1px solid #aaa;
+  border-radius: 12px;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -moz-user-select: none;
+  -moz-user-focus: none;
+  -moz-outline: 0 none;
+  user-select: none;
+  &:focus {
+    outline: 0 none;
+    border: 0 none;
+    -moz-user-focus: normal;
+    &::-moz-focus-inner {
+      border-color: transparent;
+    }
+  }
+}
+
+body.fd-slider-drag-vertical, body.fd-slider-drag-vertical * {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+body.fd-slider-drag-horizontal, body.fd-slider-drag-horizontal * {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.fd-slider-handle:before, .fd-slider-handle:after {
+  opacity: 0;
+  /* Firefox */
+  -moz-transition-property: opacity;
+  -moz-transition-duration: 1s;
+  -moz-transition-delay: 1s;
+  /* WebKit */
+  -webkit-transition-property: opacity;
+  -webkit-transition-duration: 1s;
+  -webkit-transition-delay: 1s;
+  /* Opera */
+  -o-transition-property: opacity;
+  -o-transition-duration: 1s;
+  -o-transition-delay: 1s;
+  /* Standard */
+  transition-property: opacity;
+  transition-duration: 1s;
+  transition-delay: 1s;
+}
+.fd-slider-focused .fd-slider-handle:before, .fd-slider-hover   .fd-slider-handle:before, .fd-slider-active  .fd-slider-handle:before {
+  display: block;
+  position: absolute;
+  top: -21px;
+  left: -8px;
+  margin: 0;
+  width: 20px;
+  padding: 3px;
+  height: 14px;
+  line-height: 12px;
+  text-align: center;
+  font-size: 10px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 1px 1px 1px #1a3a95;
+  background: #2f6ee0;
+  z-index: 1;
+  content: attr(aria-valuetext);
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+  -moz-background-clip: padding;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
+  -moz-box-shadow: 0 0 4px #aaa;
+  -webkit-box-shadow: 0 0 4px #aaa;
+  box-shadow: 0px 0px 4px #999;
+  opacity: 1;
+}
+.fd-slider-focused .fd-slider-handle:after, .fd-slider-hover   .fd-slider-handle:after, .fd-slider-active  .fd-slider-handle:after {
+  outline: none;
+  content: "";
+  display: block;
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  margin: 0 0 0 -5px;
+  background: #2f6ee0;
+  z-index: 2;
+  width: 10px;
+  height: 10px;
+  overflow: hidden;
+  -webkit-transform: rotate(45deg);
+  -moz-transform: rotate(45deg);
+  -o-transform: rotate(45deg);
+  -moz-box-shadow: 0 0 4px #aaa;
+  -webkit-box-shadow: 0 0 4px #aaa;
+  box-shadow: 0 0 4px #aaa;
+  clip: rect(4px, 14px, 14px, 4px);
+  opacity: 1;
+}
+.oldie .fd-slider-handle:before, .oldie .fd-slider-handle:after {
+  display: none;
+}

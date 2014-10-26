@@ -1,0 +1,157 @@
+/*!
+ * Slider for Bootstrap
+ *
+ * Copyright 2012 Stefan Petre
+ * Licensed under the Apache License v2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ */
+.slider {
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  &.slider-horizontal {
+  	width: 100% !important;
+  	height: 20px;
+    .slider-track {
+      height: 10px;
+      width: 100%;
+      margin-top: -5px;
+      top: 50%;
+      left: 0;
+    }
+    .slider-selection {
+      height: 100%;
+      top: 0;
+      bottom: 0;
+      + .slider-handle.triangle + .slider-handle.triangle:before { content:"\f0d9"; }
+    }
+    .slider-handle {
+      margin-left: -10px;
+      margin-top: -5px;
+      &.triangle {
+      	width: 20px;
+      	height: 20px;
+      	filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+      	-webkit-transform: rotate(0deg);
+      	-moz-transform: rotate(0deg);
+      	-ms-transform: rotate(0deg);
+      	-o-transform: rotate(0deg);
+      	transform: rotate(0deg);
+      	border:none;
+      	line-height:21px;
+      	color:#797777;
+      	text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+        &:before {
+          content:"\f0da";
+          font-size:34px;
+        }
+      }
+    }
+  }
+  &.slider-vertical {
+    height: 210px;
+    width: 20px;
+    .slider-track {
+      width: 10px;
+      height: 100%;
+      margin-left: -5px;
+      left: 50%;
+      top: 0;
+    }
+    .slider-selection {
+      width: 100%;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      + .slider-handle.triangle + .slider-handle.triangle:before {
+        content:"\f0d8";
+        text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.8);
+      }
+    }
+    .slider-handle {
+      margin-left: -5px;
+      margin-top: -10px;
+      &.triangle {
+        width: 20px;
+        height: 20px;
+        filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+        -webkit-transform: rotate(0deg);
+        -moz-transform: rotate(0deg);
+        -ms-transform: rotate(0deg);
+        -o-transform: rotate(0deg);
+        transform: rotate(0deg);
+        border:none;
+        line-height:21px;
+        color:#797777;
+        text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.8);
+        &:before {
+          content: "\f0d7";
+          font-size:32px;
+          text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+      }
+    }
+  }
+  input { display: none; }
+  .tooltip-inner { white-space: nowrap; }
+}
+
+.slider-track {
+  position: absolute;
+  cursor: pointer;
+  background: #E5E5E5;
+}
+.slider-selection {
+  position: absolute;
+  background: $brand-primary;
+}
+.slider-handle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 1px solid #FFF;
+  background: #858585;
+
+  display: inline-block;
+  font-family: FontAwesome;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  line-height: 18px;
+  font-size: 10px;
+  color: #BDBDBD;
+  text-shadow: 0 1px 0 rgba(77, 77, 77, 0.5);
+
+  filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+  -webkit-transform: rotate(90deg);
+  -moz-transform: rotate(90deg);
+  -ms-transform: rotate(90deg);
+  -o-transform: rotate(90deg);
+  transform: rotate(90deg);
+  &:before {
+    content: "\f0c9";
+  }
+  &.round {
+    -webkit-border-radius: 20px;
+    -moz-border-radius: 20px;
+    border-radius: 20px;
+    width: 20px;
+    height: 20px;
+  }
+  &.triangle {
+    background: transparent none;
+  }
+}
+
+/*
+* Slider colors
+*/
+.slider-primary + .slider-track > .slider-selection {}
+.slider-danger + .slider-track > .slider-selection { background: $brand-danger; }
+.slider-warning + .slider-track > .slider-selection { background: $brand-warning; }
+.slider-info + .slider-track > .slider-selection { background: $brand-info; }
+.slider-success + .slider-track > .slider-selection { background: $brand-success; }

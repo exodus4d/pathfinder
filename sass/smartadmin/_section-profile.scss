@@ -1,0 +1,116 @@
+/*
+ * PROFILE PAGE
+ */
+.profile-pic {
+	text-align: right;
+	
+  > img {
+	  border-radius: 0%;
+	  position: relative;
+	  border: 5px solid $white;
+	  top: -30px;
+	  left: 10px;
+	  display: inline-block;
+	  text-align: right;
+	  z-index: 4;
+	  max-width: 100px;
+	  margin-bottom: -30px;
+  }
+}
+
+.profile-carousel .carousel-inner {
+	max-height: 150px;
+}
+
+.friends-list {
+  li {
+	  margin-bottom: 10px;
+	  margin-right: 3px;
+	  padding: 0;
+  }
+  img {
+	  width: 35px;
+	  border: 1px solid $white;
+	  outline: 1px solid $gray-mid-light;
+  }
+}
+
+.profile-link-btn {
+	color: $gray-light;
+	font-size: $font-size-base  + 1;
+}
+
+/*
+ * Calendar Icon
+ */
+time.icon {
+	font-size: 14px; /* change icon size */
+	display: block;
+	position: relative;
+	width: 35px;
+	height: 43px;
+	background-color: #fff;
+	margin: 3px auto;
+	border-radius: 7px;
+	box-shadow:  0 1px 0 #bdbdbd,0 2px 0 #fff,0 3px 0 #EEE9E9,0 4px 0 #fff,0 5px 0 #FFFFFF,0 0 0 1px #D3D3D3;
+	overflow: hidden;
+
+  * {
+	  display: block;
+	  width: 100%;
+	  font-size: 10px;
+	  font-weight: bold;
+	  font-style: normal;
+	  text-align: center;
+  }
+  strong {
+	  position: absolute;
+	  top: 0;
+	  padding: 2px 0;
+	  color: #fff;
+	  background-color: $asideColor-end;
+	  -webkit-box-shadow: 0 2px 0 $asideColor-end;
+	  box-shadow: 0 2px 0 $asideColor-end;
+	  border-radius: 6px 6px 0 0;
+  }
+  em {
+	  position: absolute;
+	  bottom: 3px;
+	  color: $brand-primary;
+  }
+  span {
+	  width: 100%;
+	  font-size: 15px;
+	  letter-spacing: -.05em;
+	  padding-top: 21px;
+	  color: #2f2f2f;
+  }
+}
+
+/*
+ * New users
+ */
+.user {
+  display: block;
+  float: left;
+  width: 170px;
+  margin: 0 15px 15px 0;
+  overflow: hidden;
+  -o-text-overflow: ellipsis;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+   
+  img {
+    float: left;
+    width: 35px;
+    margin-right: 5px; 
+  }
+  .email {
+    color: #999;
+    overflow: hidden;
+    -o-text-overflow: ellipsis;
+    text-overflow: ellipsis;
+    white-space: nowrap; 
+  }
+}
+

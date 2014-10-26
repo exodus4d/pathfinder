@@ -1,0 +1,69 @@
+/*
+ * TIMELINE PAGE
+ */
+
+/* Timeline */
+.smart-timeline {	position: relative; }
+
+.smart-timeline-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+
+  &:after {
+	  content: " ";
+	  background-color: $gray-lighter;
+	  position: absolute;
+	  display: block;
+	  width: 2px;
+	  top: 0;
+	  left: 95px;
+	  bottom: 0;
+	  z-index: 1;
+  }
+
+  li {
+	  position: relative;
+	  margin: 0;
+	  padding: 15px 0;
+	  &:hover { background-color: #f9f9f9; }
+
+  }
+  > li:hover { background-color: $gray-lightest; }
+}
+
+.smart-timeline-icon {
+	background: $brand-primary;
+	color: $white;
+	border-radius: 50%;
+	position: absolute;
+	width: 32px;
+	height: 32px;
+	line-height: 28px;
+	font-size: $font-size-base + 1;
+	text-align: center;
+	left: 80px;
+	top: 10px;
+	z-index: 100;
+	padding: 2px;
+
+  > img {
+	  height: 32px;
+	  width: 32px;
+	  border-radius: 50%;
+	  margin-top: -2px;
+	  margin-left: -2px;
+	  border: 2px solid $brand-primary;
+  }
+}
+
+.smart-timeline-time {
+	float: left;
+	width: 70px;
+	text-align: right;
+	
+	> small { font-style: italic; }
+}
+
+.smart-timeline-content { margin-left: 123px; }
+

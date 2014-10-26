@@ -1,0 +1,53 @@
+#speech-btn >:first-child {
+  position:relative
+}
+
+.voice-command-active #speech-btn >:first-child > a {
+  background: #0E70CA;
+  border: 1px solid #125A9C;
+  color: rgba(255,255,255,0.9);
+}
+
+.voice-command-active.service-not-allowed #speech-btn >:first-child > a{
+  background: #a90329;
+  border: 1px solid #8B0913;
+  color: rgba(255,255,255,0.9);
+}
+
+.voice-command-active.service-allowed #speech-btn >:first-child > a{
+  background: url('#{$base-url}/voicecommand/active-btn.gif') no-repeat center center #0E70CA;
+  border: 1px solid #125A9C;
+  color: rgba(255,255,255,0.9);
+}
+
+#speech-btn >:first-child > a + .popover {
+  display: none; 
+  top: 42px; 
+  left: -113px; 
+  width: 255px;
+}
+.popover .vc-title {
+  margin-bottom:10px !important; 
+  font-size:16px;
+  line-height: 20px;
+  text-align: center;
+} 
+
+.popover .vc-title-error {
+  display:none;
+}
+
+.voice-command-active.service-not-allowed .popover .vc-title,
+.voice-command-active.service-not-allowed .popover .btn,
+.service-not-allowed .popover .vc-title,
+.service-not-allowed .popover .btn {
+  display:none !important;
+}
+
+.voice-command-active.service-not-allowed .vc-title-error {
+  display:block;
+}
+
+.popover .vc-title > small {
+  font-size:80%;
+}

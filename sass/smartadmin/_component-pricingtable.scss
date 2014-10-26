@@ -1,0 +1,105 @@
+/*
+ * CSS TABLES
+ */
+.the-price {
+	background-color: rgba(220,220,220,.17);
+	box-shadow: 0 1px 0 #dcdcdc, inset 0 1px 0 #fff;
+	padding: 20px;
+	margin: 0;
+
+	h1 {
+	  line-height: 1em;
+	  padding: 0;
+	  margin: 0;
+  }
+}
+.subscript {
+	font-size: 21px;
+	color: #999;
+}
+
+/* 
+ * RIBBON
+ */
+.ribbon {
+	position: absolute;
+	right: 9px;
+	top: -4px;
+}
+
+/*
+ * Price BIG
+ */
+.pricing-big {
+	border: none !important;
+
+  .panel-heading {
+	  border-radius: 5px 5px 0 0;
+  }
+
+  .panel-title {
+	  text-transform: capitalize;
+	  font-size: 18px;
+	  padding: 20px 0;
+	  text-align: center;
+	  border-radius: 5px 5px 0 0;
+	  margin: 0;
+	  font-weight: bold;
+  }
+
+  .the-price {
+	  padding: 20px 0;
+	  background: #333;
+	  text-align: center;
+	  font-size: 24px;
+	  font-weight: bold;
+	  color: #fff;
+	  box-shadow:none !important;
+	  -moz-box-shadow:none !important;
+  }
+
+  .subscript {
+	  font-size: 18px;
+	  color: #999;
+	  margin-left: 5px;
+  }
+  
+  .panel-footer {
+	  border-radius: 0 0 5px 5px;
+	  background-color: #f2f2f2 !important;
+
+    > div {
+	    padding:15px 0 10px;
+	    display:block;
+	    font-size:13px;
+    }
+	  
+	  .btn {
+	    padding: 15px 0;
+	    border-radius:3px;
+	    font-weight:bold;
+	    font-size:14px;
+      span {
+	      font-weight:normal;
+	      font-style:italic;
+      }
+    }
+  }
+
+  table {
+	  background: #FAFAFA;
+	  padding: 20px 15px;
+	  height: 230px;
+	  text-align:left;
+  }
+}
+
+.price-features {
+	background: #fafafa;
+	padding: 20px 15px;
+	min-height: 230px;
+	font-size: 13.5px;
+	
+	li + li { margin-top: 10px; }
+}
+
