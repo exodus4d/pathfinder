@@ -1,0 +1,21 @@
+<div id="{{id}}" title="{{titel}}">
+    <form>
+        <fieldset>
+            <div>
+                <label for="system">System</label>
+                <input type="text" name="name" id="system" value="{{system}}">
+            </div>
+            <div>
+                <label for="status">Status</label>
+                <select name="status" id="status" class="text ui-widget-content ui-corner-all">
+                    {{#status}}
+                    <option value="{{status}}">{{label}}</option>
+                    {{/status}}
+                </select>
+            </div>
+
+            <!-- Allow form submission with keyboard without duplicating the dialog button -->
+            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+        </fieldset>
+    </form>
+</div>

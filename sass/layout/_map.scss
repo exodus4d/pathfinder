@@ -1,4 +1,4 @@
-#pf-map{
+.pf-map{
   background-color: $gray-darker;
   width: 1200px;
   height: 500px;
@@ -11,6 +11,7 @@
     style: solid;
     color: $gray-lighter;
   }
+
 
   .pf-system{
     position: absolute;
@@ -28,23 +29,25 @@
 
     .pf-system-head{
       padding: 0px 3px 2px 3px;
+      cursor: pointer;
     }
 
     // System security =============================================
 
     .pf-system-sec{
       margin-right: 5px;
+      cursor: help;
     }
 
-    .pf-system-sec-high{
+    .pf-system-sec-highSec{
       color: $green;
     }
 
-    .pf-system-sec-low{
+    .pf-system-sec-lowSec{
       color: $orange;
     }
 
-    .pf-system-sec-null{
+    .pf-system-sec-nullSec{
       color: $red;
     }
 
@@ -64,6 +67,7 @@
 
     .pf-system-effect{
       margin-left: 5px;
+      cursor: default;
     }
 
     .pf-system-effect-magnetar{
@@ -94,6 +98,7 @@
 
     .pf-system-body{
       min-height: 10px;
+      cursor: move;
 
       border: {
         top: {
@@ -137,22 +142,55 @@
   // Connections ==================================================
 
   // default hover effect for all connections
-  svg._jsPlumb_connector:hover{
+  svg._jsPlumb_connector{
+    cursor: pointer;
+    stroke-linecap: round; // line endings
+
+    path:not(first-child){
+      stroke: $gray; // inner line
+    }
+
     path:first-child{
-      stroke: $gray-lighter;
+      stroke: $gray-light; // outer line
+    }
+
+    &:hover{
+      path:first-child{
+        stroke: $gray-lightest; // hover style
+      }
     }
   }
 
-  svg.pf-map-connection-default  {
 
-    path:not(first-child){
-      stroke: $gray;
-    }
+  svg.pf-map-connection-wh  {
+    // special wh-connection style (
+  }
+
+  svg.pf-map-connection-wh-eol  {
 
     path:first-child{
-      stroke: $gray-light;
+      stroke: $pink-dark;
     }
 
+    &:hover{
+      path:first-child{
+        stroke: $pink;
+      }
+    }
+  }
+
+  svg.pf-map-connection-wh-reduced  {
+
+    path:not(first-child){
+      stroke: $orange;
+    }
+  }
+
+  svg.pf-map-connection-wh-critical  {
+
+    path:not(first-child){
+      stroke: $red-darker;
+    }
   }
 
   svg.pf-map-connection-frig  {
@@ -177,8 +215,15 @@
 
 }
 
+// system dialog =================================================
+#pf-system-dialog{
+  label{
+    min-width: 60px;
+  }
+}
+
 // context menu ==================================================
-#pf-map-contextmenu{
+.dropdown-menu{
   i{
     width: 20px
   }

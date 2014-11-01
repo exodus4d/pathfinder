@@ -1,5 +1,26 @@
 <ul class="dropdown-menu" id="{{id}}" role="menu" style="display: none">
     {{#items}}
-    <li><a href="#" tabindex="-1" data-action="{{action}}"><i class="fa {{icon}}"></i>{{text}}</a></li>
+        {{#text}}
+            <li {{#subitems}}class="dropdown-submenu"{{/subitems}}>
+                <a href="#" tabindex="-1" data-action="{{action}}"><i class="fa {{#icon}}{{icon}}{{/icon}}"></i>{{text}}</a>
+                <ul class="dropdown-menu">
+                    {{#subitems}}
+                        {{#subText}}
+                            <li>
+                                <a href="#" tabindex="-1" data-action="{{subAction}}"><i class="fa {{#subIcon}}{{subIcon}}{{/subIcon}}"></i>{{subText}}</a>
+                            </li>
+                        {{/subText}}
+
+                        {{#subDivider}}
+                            <li class="divider"></li>
+                        {{/subDivider}}
+                    {{/subitems}}
+                </ul>
+            </li>
+        {{/text}}
+
+        {{#divider}}
+            <li class="divider"></li>
+        {{/divider}}
     {{/items}}
 </ul>

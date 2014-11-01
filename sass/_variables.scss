@@ -36,7 +36,7 @@ $font-family-serif:       Georgia, "Times New Roman", Times, serif;
 $font-family-monospace:   Monaco, Menlo, Consolas, "Courier New", monospace;
 $font-family-base:        $font-family-sans-serif;
 
-$font-size-base:          13px;
+$font-size-base:          12px;
 $font-size-large:         ceil(($font-size-base * 1.24)); // ~16px
 $font-size-small:         ceil(($font-size-base * 0.85)); // ~11px
 
@@ -198,7 +198,7 @@ $input-group-addon-border-color: $input-border;
 $dropdown-bg:                    $gray-lighter;
 $dropdown-border:                rgba(0,0,0,.15);
 $dropdown-fallback-border:       #ccc;
-$dropdown-divider-bg:            #e5e5e5;
+$dropdown-divider-bg:            $gray-light;
 
 $dropdown-link-color:            $gray-dark;
 $dropdown-link-hover-color:      $gray-lighter;
@@ -761,7 +761,6 @@ $greenBright:				#40ac2b;
 //$red: 							#a90329;
 $yellow: 						#b09b5b;
 $orangeDark: 				#a57225;
-$pink: 							#ac5287;
 $pinkDark: 					#a8829f;
 $purple: 						#6e587a;
 $darken: 						#404040;

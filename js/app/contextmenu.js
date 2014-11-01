@@ -10,6 +10,7 @@ define(["jquery"], function($) {
             $(this).on("pf:openContextMenu", function (e, originalEvent, component) {
 
 
+
                 //open menu
                 $(settings.menuSelector)
                     .show()

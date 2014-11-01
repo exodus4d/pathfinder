@@ -3,6 +3,14 @@
  */
 
 /*	Overlay	 */
+.ui-widget{
+  font-family: 'Oxygen Bold';
+}
+
+.ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button {
+  font-family: 'Oxygen Bold';
+}
+
 .ui-widget-overlay {
 	background-image: none;
 	background: #aaa;
@@ -384,6 +392,7 @@
 	border: 1px solid $gray-light;
 	border: 1px solid rgba(red($black), green($black), blue($black), 0.2);
     color: $gray-light;
+    background-color: $gray-lighter;
 }
  
 .widget-header >:first-child {
@@ -416,6 +425,7 @@
 	font-style: normal;
 	font-weight: normal;
 	line-height: 1;
+    color: $gray-lighter;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	font-size: 13px;
@@ -428,9 +438,10 @@
 
 .ui-dialog .ui-dialog-buttonpane {
 	margin-top: 13px;
-	padding: 19px 15px 20px;
+	padding: 10px 10px 10px;
 	text-align: right;
-	border-top: 1px solid $gray-lighter;	
+	border-top: 1px solid $gray-daskest;
+    background-color: $gray-light;
 }
 
 .ui-autocomplete {

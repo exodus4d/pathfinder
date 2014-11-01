@@ -2110,13 +2110,13 @@ a:link, .btn, button {
     border-color: transparent;
     border-style: solid;
     border-width: 5px 0 5px 5px;
-    border-left-color: $gray-mid-light;
+    border-left-color: $gray-light;
     margin-top: 5px;
     margin-right: -10px;
 }
 
 .dropdown-submenu:hover>a:after {
-    border-left-color: $white;
+    border-left-color: $gray-light;
 }
 
 .dropdown-submenu.pull-left {

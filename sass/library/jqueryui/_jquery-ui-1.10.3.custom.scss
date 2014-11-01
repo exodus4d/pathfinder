@@ -1564,7 +1564,7 @@ button.ui-button::-moz-focus-inner {
 	border: 0 0 0 1px solid;
 	border-color: white;
 	padding: 5px 15px;
-	font-size: 18px;
+	font-size: 16px;
 	text-decoration: none;
 	-webkit-border-bottom-right-radius: 0; /* Safari 4 */
 	-moz-border-radius-bottomright: 0; /* Firefox 3.6 */
@@ -1642,9 +1642,11 @@ button.ui-button::-moz-focus-inner {
 	-webkit-border-radius: 0 0 6px 6px; /* Safari 4 */
 	-moz-border-radius: 0 0 6px 6px; /* Firefox 3.6 */
 	border-radius: 0 0 6px 6px;
-	-webkit-box-shadow: inset 0 1px 0 #ffffff; /* Safari 4 */
-	-moz-box-shadow: inset 0 1px 0 #ffffff; /* Firefox 3.6 */
+  /*
+	-webkit-box-shadow: inset 0 1px 0 #ffffff;
+	-moz-box-shadow: inset 0 1px 0 #ffffff;
 	box-shadow: inset 0 1px 0 #ffffff;
+  */
 	margin-bottom: 0;
 }
 
