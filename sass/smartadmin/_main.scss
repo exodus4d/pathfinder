@@ -1836,6 +1836,10 @@ input[type="text"]:focus + .input-group-addon {
 /*
  * TABS
  */
+.nav-tabs{
+  border-bottom: none;
+}
+
 .nav-tabs>li > a .badge {
 	font-size: 11px;
 	padding: 3px 5px 3px 5px;
@@ -1844,9 +1848,7 @@ input[type="text"]:focus + .input-group-addon {
 	min-width: 17px;
 	font-weight: normal;
 }
-.nav-tabs>li > a > .fa {
-	opacity: .5;
-}
+
 .tabs-left .nav-tabs>li > a .badge {
 	margin-right:5px;
 	margin-left:0px;
@@ -1857,17 +1859,20 @@ input[type="text"]:focus + .input-group-addon {
 	margin-left:5px;
 	opacity: .5;
 }
-.nav-tabs>li.active > a .badge, .nav-tabs>li.active > a .label, .nav-tabs>li.active > a > .fa{
-	opacity: 1;
-}
+
 .nav-tabs>li>a {
-	border-radius:0px;
-	color:$gray-dark;
+  @include border-top-radius(5px);
+  color: $gray-lighter;
+
+  &:hover{
+    color: $gray-darkest;
+  }
 }
 .nav-tabs > li.active > a {
-	-webkit-box-shadow: 0 -2px 0 $blue;
-	-moz-box-shadow: 0 -2px 0 $blue;
-	box-shadow: 0 -2px 0 $blue;
+    @include box-shadow($orange 0 -2px 0);
+
+    background-color: $gray-lighter;
+    color: $gray-darker;
 	border-top-width: 0px !important;
 	margin-top: 1px !important;
 	font-weight:bold;

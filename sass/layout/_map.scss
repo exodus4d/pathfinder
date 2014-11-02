@@ -2,10 +2,10 @@
   background-color: $gray-darker;
   width: 1200px;
   height: 500px;
-  margin: 10px;
   position: relative;
+  overflow: hidden;
 
-  @include border-radius(5px);
+  @include border-bottom-radius(5px);
   border: {
     width: 1px;
     style: solid;
@@ -30,6 +30,7 @@
     .pf-system-head{
       padding: 0px 3px 2px 3px;
       cursor: pointer;
+      color: $gray-lighter;
     }
 
     // System security =============================================
@@ -106,13 +107,11 @@
           style: dashed;
           color: $gray-light;
         }
-
       }
     }
-
   }
 
-  .pf-system-active{
+  .pf-system-active:not(.pf-map-endpoint-source):not(.pf-map-endpoint-target){
     @include box-shadow($yellow-lighter 0px 0px 8px 1px);
     @include transition-duration(0.2s);
   }
@@ -139,6 +138,27 @@
     border-color: $teal;
   }
 
+  // Endpoints ====================================================
+  .pf-map-endpoint-source, .pf-map-endpoint-target{
+
+    z-index: 50;
+    svg {
+      width: 10;
+      height: 10;
+
+      *{
+        stroke: $gray-light;
+        stroke-width: 2; // border width
+        fill: $gray;
+        cursor: pointer;
+
+        &:hover{
+          stroke: $gray-lightest; // hover style
+        }
+      }
+
+    }
+  }
   // Connections ==================================================
 
   // default hover effect for all connections

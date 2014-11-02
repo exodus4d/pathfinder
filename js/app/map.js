@@ -11,14 +11,18 @@ define(["jquery", "app/render", "jsPlumb", "app/contextmenu"], function($, Rende
           y: 0
         },
 
-        containerMapWrapperId: 'pf-map-wrapper',                             // wrapper for maps
-        mapClass: 'pf-map',                                             // class for a map
+        mapClass: 'pf-map',                                             // class for all maps
+        mapIdPrefix: 'pf-map-',
         systemIdPrefix: 'pf-system-',                                   // id prefix for a system
         systemClass: 'pf-system',
         systemActiveClass: 'pf-system-active',
         systemHeadClass: 'pf-system-head',
         systemBody: 'pf-system-body',
         dynamicElementWrapperId: 'pf-dialog-wrapper',                     // wrapper div for dynamic content (dialoges, context-menus,...)
+
+        // endpoint classes
+        endpointSourceClass: 'pf-map-endpoint-source',
+        endpointTargetClass: 'pf-map-endpoint-target',
 
         // context menus
         connectionContextMenuId: 'pf-map-connection-contextmenu',
@@ -72,23 +76,48 @@ define(["jquery", "app/render", "jsPlumb", "app/contextmenu"], function($, Rende
         }
     };
 
+    // active jsPlumb instances currently running
+    var activeInstances = {};
+
     // jsPlumb config
     var globalMapConfig =  {
         source: {
             filter: '.' + config.systemHeadClass,
-            anchor: "Continuous",
+            anchor: 'Continuous',
             connector: [ "Bezier", { curviness: 40, cssClass: 'pf-map-connection-wh' } ],
             maxConnections: 5,
             allowLoopback:false,
+            cssClass: config.endpointSourceClass,
             onMaxConnections:function(info, e) {
                 alert("Maximum connections (" + info.maxConnections + ") reached");
-            }
+            }/*,
+
+            overlays:[
+                [ "Label", {
+                    location:[0.5, 1.5],
+                    label:"Drag",
+                    cssClass:"endpointSourceLabel"
+                } ]
+            ] */
         },
         target: {
             filter: '.' + config.systemHeadClass,
-            anchor: "Continuous",
-            dropOptions:{ hoverClass: config.systemActiveClass },
+            anchor: 'Continuous',
             allowLoopback:false,
+            cssClass: config.endpointTargetClass,
+            dropOptions: {
+                tolerance: 'touch',
+                hoverClass: config.systemActiveClass,
+                activeClass: 'dragActive'
+            },
+            /*overlays:[
+                [ "Label", {
+                    location:[0.5, 1.5],
+                    label:"Drag",
+                    cssClass:"endpointSourceLabel"
+                } ]
+            ],*/
+
             beforeDrop: function(info){
                 // check function for new connection
 
@@ -121,13 +150,13 @@ define(["jquery", "app/render", "jsPlumb", "app/contextmenu"], function($, Rende
                         }
                     };
 
-                    var modulData = {
+                    var moduleData = {
                         id: config.errorConnectDialogId,
                         titel: 'error: Loopback',
                         content: 'Connection already exists.'
                     };
 
-                    Render.showModule(moduleConfig, modulData);
+                    Render.showModule(moduleConfig, moduleData);
 
 
                     return false;
@@ -280,7 +309,7 @@ define(["jquery", "app/render", "jsPlumb", "app/contextmenu"], function($, Rende
      * draw a new map with all systems and connections
      * @param mapConfig
      */
-    var drawMap = function(mapConfig){
+    var drawMap = function(parentElement, mapConfig){
 
         // create map body
         var mapWrapper = $('<div>', {
@@ -288,13 +317,17 @@ define(["jquery", "app/render", "jsPlumb", "app/contextmenu"], function($, Rende
         });
 
         var mapContainer = $('<div>', {
-            id: mapConfig.config.id,
+            id: config.mapIdPrefix + mapConfig.config.id,
             class: config.mapClass
         });
 
         mapWrapper.append(mapContainer);
 
-        $('#' + config.containerMapWrapperId).append(mapWrapper);
+        // append mapWrapper to parent element
+        $(parentElement).append(mapWrapper);
+
+        // set main Container for current map -> the container exists now in DOM
+        mapConfig.map.setContainer($('#' + config.mapIdPrefix + mapConfig.config.id));
 
         $.each(mapConfig.data.systems, function(i, data){
             // draw a system to a map
@@ -339,7 +372,7 @@ define(["jquery", "app/render", "jsPlumb", "app/contextmenu"], function($, Rende
      */
     var drawSystem = function(map, systemData, connectedSystems){
 
-        var mapContainer = map.Defaults.Container;
+        var mapContainer = $(map.getContainer());
 
         // TODO request missing system data
         if(!systemData.hasOwnProperty('id')){
@@ -355,9 +388,8 @@ define(["jquery", "app/render", "jsPlumb", "app/contextmenu"], function($, Rende
         // get System Element by data
         var newSystem = getSystem(systemData);
 
-        var mapElement = $('#' + mapContainer);
 
-        mapElement.append(newSystem);
+        mapContainer.append(newSystem);
 
         // make new System dragable
         makeDraggable(map, newSystem);
@@ -394,8 +426,10 @@ define(["jquery", "app/render", "jsPlumb", "app/contextmenu"], function($, Rende
      */
     var makeDraggable = function(map, systems){
 
+        var mapContainer = $(map.getContainer());
+
         map.draggable(systems, {
-            containment: 'parent',
+            containment: mapContainer,// 'parent',
             zIndex: 2000,
             start: function(){
                 // drag start
@@ -489,7 +523,7 @@ define(["jquery", "app/render", "jsPlumb", "app/contextmenu"], function($, Rende
         setConnectionObserver(map, connection);
 
         return connection;
-    }
+    };
 
     /**
      * load contextmenu template for connections
@@ -551,10 +585,10 @@ define(["jquery", "app/render", "jsPlumb", "app/contextmenu"], function($, Rende
      */
     var setSystemObserver = function(map, systems){
 
-        var mapContainer = map.Defaults.Container;
+        var mapContainer = $(map.getContainer());
 
         // trigger context menu
-        $('#' + mapContainer).find(systems).on('contextmenu', function(e){
+        $(mapContainer).find(systems).on('contextmenu', function(e){
             $(e.target).trigger('pf:openContextMenu', [e, this]);
             e.preventDefault();
             return false;
@@ -628,14 +662,14 @@ define(["jquery", "app/render", "jsPlumb", "app/contextmenu"], function($, Rende
                             systemStatus.push(statusData);
                         })
 
-                        var modulData = {
+                        var moduleData = {
                             id: config.systemDialogId,
                             titel: 'Add new system',
                             status: systemStatus,
                             content: 'system dialog :)'
                         };
 
-                        Render.showModule(moduleConfig, modulData);
+                        Render.showModule(moduleConfig, moduleData);
                         break;
                     case 'info': console.log('info')
                         break;
@@ -672,6 +706,7 @@ define(["jquery", "app/render", "jsPlumb", "app/contextmenu"], function($, Rende
             menuSelected: function (params){
 
                 var action = params.selectedMenu.attr('data-action');
+                var activeConnection = params.component;
 
                 switch(action){
                     case 'delete':
@@ -701,37 +736,37 @@ define(["jquery", "app/render", "jsPlumb", "app/contextmenu"], function($, Rende
                             }
                         };
 
-                        var modulData = {
+                        var moduleData = {
                             id: config.confirmDialogId,
                             titel: 'Delete Connection',
                             content: 'Is this connection really gone?'
                         };
 
-                        Render.showModule(moduleConfig, modulData);
+                        Render.showModule(moduleConfig, moduleData);
 
 
                         break;
                     case 'eol':
                         // toggle eol-status of a connection
-                        connection.toggleType('wh_eol');
+                        activeConnection.toggleType('wh_eol');
 
                         // for some reason  a new observer is needed ?!
-                        setConnectionObserver(map, connection);
+                        setConnectionObserver(map, activeConnection);
                         break;
                     case 'status_fresh':
-                        connection.removeType('wh_reduced');
-                        connection.removeType('wh_critical');
-                        setConnectionObserver(map, connection);
+                        activeConnection.removeType('wh_reduced');
+                        activeConnection.removeType('wh_critical');
+                        setConnectionObserver(map, activeConnection);
                         break;
                     case 'status_reduced':
-                        connection.removeType('wh_critical');
-                        connection.addType('wh_reduced');
-                        setConnectionObserver(map, connection);
+                        activeConnection.removeType('wh_critical');
+                        activeConnection.addType('wh_reduced');
+                        setConnectionObserver(map, activeConnection);
                         break;
                     case 'status_critical':
-                        connection.removeType('wh_reduced');
-                        connection.addType('wh_critical');
-                        setConnectionObserver(map, connection);
+                        activeConnection.removeType('wh_reduced');
+                        activeConnection.addType('wh_critical');
+                        setConnectionObserver(map, activeConnection);
                         break;
                     case 'info':
                         console.log('info');
@@ -747,105 +782,89 @@ define(["jquery", "app/render", "jsPlumb", "app/contextmenu"], function($, Rende
         });
 
 
-    }
+    };
 
-    var render = function(mapConfig){
+    var getMapInstance = function(mapId){
 
-        // add context menues to dom
+        if(typeof activeInstances[mapId] !== 'object'){
+            // create new instance
+            activeInstances[mapId] =  jsPlumb.getInstance({
+                Container: null, // will be set as soon as container is connected to DOM
+                PaintStyle:{
+                    lineWidth: 4, //  width of a Connector's line. An integer.
+                    strokeStyle: 'red', // color for a Connector
+                    outlineColor: 'red', // color of the outline for an Endpoint or Connector. see fillStyle examples.
+                    outlineWidth: 2 // width of the outline for an Endpoint or Connector. An integer.
+                },
+                Connector:[ 'Bezier', { curviness: 40, cssClass: 'pf-map-connection-wh' } ],
+                Endpoint : ['Dot', {radius: 6}]
+                // Endpoint: 'Blank', // does not work... :(
+                // Scope: mapConfig.config.scope
+            });
+
+            console.log('new jsPlumbInstance: ' + mapId);
+        }
+
+
+
+        return activeInstances[mapId];
+    };
+
+    /**
+     * load  system map into element
+     * @param mapConfig
+     */
+    $.fn.loadMap = function(mapConfig){
+
+        // parent element where the map will be loaded
+        var parentElement = $(this);
+
+        // add context menus to dom
         initConnectionContextMenu();
         initSystemContextMenu();
-
 
         // init jsPlumb
         jsPlumb.ready(function() {
 
-            // get new map instance add to mapConfig
-            mapConfig.map = jsPlumb.getInstance({
-                Container:  mapConfig.config.id,
-                PaintStyle:{
-                    lineWidth: 5, //  width of a Connector's line. An integer.
-                    //fillStyle: "blue", //  color for an Endpoint, eg. "blue",
-                    strokeStyle: 'red', // color for a Connector
-                    outlineColor: 'red', // color of the outline for an Endpoint or Connector. see fillStyle examples.
-                    outlineWidth: 2 // width of the outline for an Endpoint or Connector. An integer.
-                    //joinstyle:"round",
-                    //dashstyle:"2 2",
-                },
-                Connector:[ "Bezier", { curviness: 40, cssClass: 'pf-map-connection-wh' } ],
-                Anchor: "Continuous",
-                Endpoint: 'Blank',
-                Scope: mapConfig.config.scope
-            });
 
-            //  draw initial map
-            drawMap(mapConfig);
+            // get new map instance or load existing
+            mapConfig.map = getMapInstance(mapConfig.config.id);
 
-            //var systemElements = mapConfig.map.getSelector('.' + config.systemClass);
+            // check for map Container (
+            if(mapConfig.map.getContainer() === undefined){
+                // new map instance
 
-            var systemElements = $('#' + mapConfig.config.id).find('.' + config.systemClass);
+                //  draw initial map and set container
+                drawMap(parentElement, mapConfig);
 
-            var dropOptions = {
-                tolerance:"touch",
-                hoverClass:"dropHover",
-                activeClass:"dragActive"
-            };
+               // mapConfig.map.doWhileSuspended(function() {
 
+                    // register all available connection types =============================
+                    mapConfig.map.registerConnectionTypes(globalMapConfig.connectionTypes);
 
-            // endpoint (system) config
-            var endpointConfig = {
-                endpoint: 'Blank',
-                //paintStyle:{ fillStyle: "blue", opacity: 0.5 },
-                //Connector:[ "Bezier", { curviness: 40, cssClass: 'pf-map-connection-default' } ],
-                isSource: true,
-                scope: mapConfig.config.scope,
-                isTarget: true,
-                dropOptions : dropOptions
-            };
+                    // set up default connections
+                    $.each(mapConfig.data.connections, function(i, connectionData){
+                        drawConnection(mapConfig.map, connectionData);
+                    });
 
-           // mapConfig.map.doWhileSuspended(function() {
+                    mapConfig.map.fire("pf-map-loaded", mapConfig.map);
 
-                // register all available connection types =============================
-                mapConfig.map.registerConnectionTypes(globalMapConfig.connectionTypes);
+               // });
 
-
-                // ========================================================
-
-
-                var endpoints =  mapConfig.map.addEndpoint(systemElements, {
-                }, endpointConfig);
-
-
-                // set up default connections
-                $.each(mapConfig.data.connections, function(i, connectionData){
-                    drawConnection(mapConfig.map, connectionData);
+                // global  map observer for manual connections (drag & drop)
+                mapConfig.map.bind('connection', function(info, e) {
+                    setConnectionObserver(mapConfig.map, info.connection);
                 });
 
-               // mapConfig.map.fire("pf-map-loaded", mapConfig.map);
-
-           // });
-
-            // global  map observer for manual connections (drag & drop)
-            mapConfig.map.bind('connection', function(info, e) {
-
-                console.log('test')
-
-                setConnectionObserver(mapConfig.map, info.connection);
-            });
-
-           // mapConfig.map.bind("beforeDrop", function(info) {
-               // manually connect
-           // });
-
-
+                // mapConfig.map.bind("beforeDrop", function(info) {
+                // manually connect
+                // });
+            }
 
 
         });
 
 
 
-    };
-
-    return {
-        render: render
     };
 });

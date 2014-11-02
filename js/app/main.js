@@ -1,19 +1,31 @@
-define(["jquery", "app/ccp", "app/map"], function($, CCP, Map) {
+define(["jquery", "app/render", "app/ccp", "app/map"], function($, Render, CCP, Map) {
 
     "use strict";
+
+    var config = {
+      mapModuleId: 'pf-map-module',
+      mapTabBarId: 'pf-map-tabs',
+      mapTabIdPrefix: 'pf-map-tab-'
+    };
 
     $(function() {
         //$('body').alpha().beta();
 
         CCP.requestTrust();
 
+
+
+
+
+
         // Map init options
-        var mapOptions = {
+        var mapData =[{
             map: {},
             config: {
                 name: 'WH Test',
-                id: 'pf-map-1',
-                scope: 'wormhole'
+                id: 1,
+                scope: 'wormhole',
+                icon: 'fa-desktop'
             },
             data: {
                 systems: [
@@ -69,16 +81,13 @@ define(["jquery", "app/ccp", "app/map"], function($, CCP, Map) {
             }
 
 
-        }
-
-        Map.render(mapOptions);
-
-        var mapOptions = {
+        },{
             map: {},
             config: {
                 name: 'K-Space Test',
-                id: 'pf-map-2',
-                scope: 'wormhole'
+                id: 2,
+                scope: 'wormhole',
+                icon: 'fa-bookmark'
             },
             data: {
                 systems: [
@@ -107,12 +116,58 @@ define(["jquery", "app/ccp", "app/map"], function($, CCP, Map) {
                 connections: [{
                     source: 50,
                     target: 51,
-                    type: 'wormhole'
+                    type: 'wh'
                 }]
             }
-        }
+        }];
 
-     //   Map.render(mapOptions);
+
+        // load map navigation Bar and init map ==========================================
+
+        var moduleConfig = {
+            name: 'modules/tabs',
+            position: $('#' + config.mapModuleId),
+            link: 'prepend',
+            functions: {
+                after: function(){
+                    // load first map i in first tab content container
+                    var firstTabContentElement = $("div[data-map-tabs='" + config.mapTabBarId + "'] div:first-child");
+
+                    firstTabContentElement.loadMap(mapData[0]);
+
+                    // load new map right after tab-change
+                    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                        var mapIndex = $(e.target).attr('data-map-index');
+                        var mapId = mapData[mapIndex].config.id;
+                        $('#' + config.mapTabIdPrefix + mapId).loadMap(mapData[mapIndex]);
+                    });
+                }
+            }
+        };
+
+        var moduleData = {
+            id: config.mapTabBarId,
+            tabs: []
+        };
+
+        // add new tab data for each map
+        $.each(mapData, function(i, data){
+
+            var active = false;
+            if(i === 0){
+                active = true;
+            }
+
+            moduleData.tabs.push({
+                id: data.config.id,
+                index: i,
+                name: data.config.name,
+                icon: data.config.icon,
+                active: active
+            });
+        });
+
+        Render.showModule(moduleConfig, moduleData);
 
 
     });

@@ -41,6 +41,9 @@ define(["jquery", "lib/mustache", "jqueryUI"], function($, Mustache) {
 
                 // display module
                 switch(config.link){
+                    case 'prepend':
+                        config.position.prepend(content);
+                        break;
                     case 'after':
                         config.position.after(content);
                         break;

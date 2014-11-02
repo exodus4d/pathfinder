@@ -1,0 +1,11 @@
+<ul class="nav nav-tabs" role="tablist" id="{{id}}">
+    {{#tabs}}
+        <li role="presentation" class="{{#active}}active{{/active}}"><a href="#pf-map-tab-{{id}}" data-map-index="{{index}}" role="tab" data-toggle="tab"><i class="fa fa-fw {{icon}}"></i> {{name}}</a></li>
+    {{/tabs}}
+</ul>
+
+<div class="tab-content" data-map-tabs="{{id}}">
+    {{#tabs}}
+        <div role="tabpanel" class="tab-pane {{#active}}active{{/active}}" id="pf-map-tab-{{id}}"></div>
+    {{/tabs}}
+</div>
