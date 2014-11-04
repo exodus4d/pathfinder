@@ -1,6 +1,6 @@
 
 requirejs.config({
-    "baseUrl": "js", // user build_js files, change to "js" for un-compressed source
+    "baseUrl": "build_js", // user build_js files, change to "js" for un-compressed source
     "paths": {
         //"lib": "lib",
        // "app": "app",
@@ -11,7 +11,8 @@ requirejs.config({
         "bootstrap": "lib/bootstrap",
         "text": "lib/requirejs/text",
         "templates": "../templates",
-        "jsPlumb": "lib/jsPlumb-1.6.4-min"
+        "jsPlumb": "lib/jsPlumb-1.6.4-min",
+        "customScrollbar": "lib/jquery.mCustomScrollbar.concat.min"
     },
     shim: {
         "bootstrap": {
@@ -19,6 +20,9 @@ requirejs.config({
         },
         "jqueryUI": {
             export:"$",
+            deps: ["jquery"]
+        },
+        "customScrollbar": {
             deps: ["jquery"]
         }
     }

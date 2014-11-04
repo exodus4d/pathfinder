@@ -1,20 +1,14 @@
-define(["jquery", "app/render", "app/ccp", "app/map"], function($, Render, CCP, Map) {
+define(["jquery", "app/render", "app/ccp", "app/module_map", "customScrollbar"], function($, Render, CCP) {
 
     "use strict";
 
     var config = {
-      mapModuleId: 'pf-map-module',
-      mapTabBarId: 'pf-map-tabs',
-      mapTabIdPrefix: 'pf-map-tab-'
+      mapModuleId: 'pf-map-module'
     };
 
     $(function() {
-        //$('body').alpha().beta();
 
         CCP.requestTrust();
-
-
-
 
 
 
@@ -22,10 +16,11 @@ define(["jquery", "app/render", "app/ccp", "app/map"], function($, Render, CCP, 
         var mapData =[{
             map: {},
             config: {
-                name: 'WH Test',
+                name: 'Polaris',
                 id: 1,
                 scope: 'wormhole',
-                icon: 'fa-desktop'
+                icon: 'fa-desktop',
+                type: 'alliance'              // global, alliance, private
             },
             data: {
                 systems: [
@@ -84,10 +79,11 @@ define(["jquery", "app/render", "app/ccp", "app/map"], function($, Render, CCP, 
         },{
             map: {},
             config: {
-                name: 'K-Space Test',
+                name: 'Providence',
                 id: 2,
                 scope: 'wormhole',
-                icon: 'fa-bookmark'
+                icon: 'fa-bookmark',
+                type: 'global'
             },
             data: {
                 systems: [
@@ -119,56 +115,76 @@ define(["jquery", "app/render", "app/ccp", "app/map"], function($, Render, CCP, 
                     type: 'wh'
                 }]
             }
-        }];
+        },
+            {
+                map: {},
+                config: {
+                    name: 'Exodus 4D',
+                    id: 3,
+                    scope: 'wormhole',
+                    icon: 'fa-cube',
+                    type: 'private'
+                },
+                data: {
+                    systems: [],
+                    connections: []
+                }
+            }];
 
-
-        // load map navigation Bar and init map ==========================================
-
-        var moduleConfig = {
-            name: 'modules/tabs',
-            position: $('#' + config.mapModuleId),
-            link: 'prepend',
-            functions: {
-                after: function(){
-                    // load first map i in first tab content container
-                    var firstTabContentElement = $("div[data-map-tabs='" + config.mapTabBarId + "'] div:first-child");
-
-                    firstTabContentElement.loadMap(mapData[0]);
-
-                    // load new map right after tab-change
-                    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-                        var mapIndex = $(e.target).attr('data-map-index');
-                        var mapId = mapData[mapIndex].config.id;
-                        $('#' + config.mapTabIdPrefix + mapId).loadMap(mapData[mapIndex]);
-                    });
+        var userData = [
+            {
+                config: {   // map config
+                    id: 1   // map id
+                },
+                data: {
+                    systems:[   // systems in map
+                        {
+                            id: 4,  // system id
+                            user: [
+                                {
+                                    name: 'Exodus 4D',
+                                    ship: 'Legion',
+                                    status: 'corp'
+                                }
+                            ]
+                        },
+                        {
+                            id: 5,  // system id
+                            user: [
+                                {
+                                    name: 'Faye Fantastic',
+                                    ship: 'Armageddon',
+                                    status: 'ally'
+                                },{
+                                    name: 'Sibasomos',
+                                    ship: 'Proteus',
+                                    status: 'corp'
+                                },{
+                                    name: 'Xtrah gfdfgdfgfd',
+                                    ship: 'Pod',
+                                    status: 'ally'
+                                }
+                            ]
+                        }
+                    ]
                 }
             }
-        };
+        ];
 
-        var moduleData = {
-            id: config.mapTabBarId,
-            tabs: []
-        };
+        // load map module ==========================================
+        $('#' + config.mapModuleId).loadMapModule(mapData);
 
-        // add new tab data for each map
-        $.each(mapData, function(i, data){
+        // update map module ========================================
+        setTimeout(
+            function() {
+                $('#' + config.mapModuleId).updateMapModule(userData);
 
-            var active = false;
-            if(i === 0){
-                active = true;
-            }
+                console.log('update map done');
+            }, 1000);
 
-            moduleData.tabs.push({
-                id: data.config.id,
-                index: i,
-                name: data.config.name,
-                icon: data.config.icon,
-                active: active
-            });
-        });
-
-        Render.showModule(moduleConfig, moduleData);
 
 
     });
+
+
 });

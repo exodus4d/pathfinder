@@ -5,5 +5,30 @@ body{
 }
 
 #pf-map-module{
-  margin: 10px;
+  margin: 0px;
+  padding: 10px;
+  background: rgba($gray, 0.3);
+
+  // Tabs (colored)
+  #pf-map-tabs {
+    .pf-map-type-default{
+      border-top: 2px solid transparent;
+    }
+
+    .pf-map-type-global{
+      border-top: 2px solid $green;
+    }
+
+    .pf-map-type-alliance{
+      border-top: 2px solid $blue;
+    }
+
+    .pf-map-type-private{
+      border-top: 2px solid $teal;
+    }
+  }
+
+  .tab-pane{
+    background: rgba($gray-darker, 0.95);
+  }
 }

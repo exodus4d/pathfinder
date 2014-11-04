@@ -79,13 +79,13 @@
     float: left;
     // Make the list-items overlay the bottom border
     margin-bottom: -1px;
+    margin-right: 2px;
 
     // Actual tabs (as links)
     > a {
-      margin-right: 2px;
       line-height: $line-height-base;
       border: 1px solid transparent;
-      border-radius: $border-radius-base $border-radius-base 0 0;
+      //border-radius: $border-radius-base $border-radius-base 0 0;
       &:hover {
         border-color: $nav-tabs-link-hover-border-color $nav-tabs-link-hover-border-color $nav-tabs-border-color;
       }

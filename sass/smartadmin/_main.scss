@@ -1,8 +1,7 @@
 html {
 	margin: 0;
 	padding: 0;
-	min-height: 100%;
-	background:url("#{$base-url}/#{$html-background-image}") $html-background-color;
+	height: 100%;
 	position:relative;
 }
 
@@ -11,6 +10,7 @@ body {
 	padding: 0;
 	min-height: 100%;
 	background:url("#{$base-url}/#{$body-background-image}") $body-background-color;
+  background-repeat: no-repeat;
 	direction:ltr;
 }
 
@@ -1861,15 +1861,14 @@ input[type="text"]:focus + .input-group-addon {
 }
 
 .nav-tabs>li>a {
-  @include border-top-radius(5px);
   color: $gray-lighter;
 
   &:hover{
     color: $gray-darkest;
+    border-color: transparent transparent $gray-lighter transparent;
   }
 }
 .nav-tabs > li.active > a {
-    @include box-shadow($orange 0 -2px 0);
 
     background-color: $gray-lighter;
     color: $gray-darker;

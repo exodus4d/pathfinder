@@ -8,35 +8,36 @@
 
 // Plugins imported alphabatically and by order (remove if not needed)
 
-@import "smartadmin/plugin-bootstrap-markdown";
-@import "smartadmin/plugin-bootstrap-slider";
-@import "smartadmin/plugin-bootstrap-tagsinput";
-@import "smartadmin/plugin-bootstrap-timepicker";
-@import "smartadmin/plugin-clockpicker";
-@import "smartadmin/plugin-colorpicker";
-@import "smartadmin/plugin-dataTables.bootstrap";
-@import "smartadmin/plugin-dataTables.colReorder";
-@import "smartadmin/plugin-dataTables.colVis";
-@import "smartadmin/plugin-dataTables.tableTools";
-@import "smartadmin/plugin-dataTables.responsive";
-@import "smartadmin/plugin-dataTables-cust";
-@import "smartadmin/plugin-dropzone";
-@import "smartadmin/plugin-fd-slider";
-@import "smartadmin/plugin-fullcalendar";
-@import "smartadmin/plugin-ion";
-@import "smartadmin/plugin-jarviswidget";
-@import "smartadmin/plugin-jcrop";
-@import "smartadmin/plugin-jqgrid";
-@import "smartadmin/plugin-select2";
-@import "smartadmin/plugin-xeditable";
-@import "smartadmin/plugin-smart-notifications";
-@import "smartadmin/plugin-summernote";
-@import "smartadmin/plugin-superbox";
-@import "smartadmin/plugin-voicecommand";
+// @import "smartadmin/plugin-bootstrap-markdown";
+// @import "smartadmin/plugin-bootstrap-slider";
+// @import "smartadmin/plugin-bootstrap-tagsinput";
+// @import "smartadmin/plugin-bootstrap-timepicker";
+// @import "smartadmin/plugin-clockpicker";
+// @import "smartadmin/plugin-colorpicker";
+// @import "smartadmin/plugin-dataTables.bootstrap";
+// @import "smartadmin/plugin-dataTables.colReorder";
+// @import "smartadmin/plugin-dataTables.colVis";
+// @import "smartadmin/plugin-dataTables.tableTools";
+// @import "smartadmin/plugin-dataTables.responsive";
+// @import "smartadmin/plugin-dataTables-cust";
+// @import "smartadmin/plugin-dropzone";
+// @import "smartadmin/plugin-fd-slider";
+// @import "smartadmin/plugin-fullcalendar";
+// @import "smartadmin/plugin-ion";
+// @import "smartadmin/plugin-jarviswidget";
+// @import "smartadmin/plugin-jcrop";
+// @import "smartadmin/plugin-jqgrid";
+// @import "smartadmin/plugin-select2";
+// @import "smartadmin/plugin-xeditable";
+// @import "smartadmin/plugin-smart-notifications";
+// @import "smartadmin/plugin-summernote";
+// @import "smartadmin/plugin-superbox";
+// @import "smartadmin/plugin-voicecommand";
 
 // Libraries (Remove if not needed)
 @import "library/animation/animation-engine";
 @import "library/jqueryui/jquery-ui-1.10.3.custom";
+@import "library/custom-scrollbar/mCustomScrollbar"; // malihu-custom-scrollbar-plugin
 
 // Individual pages, sections, and components.  You can remove any of these sections you don't use
 

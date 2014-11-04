@@ -1,0 +1,37 @@
+<div id="{{id}}" title="{{title}}">
+    <form>
+        <fieldset>
+            <div>
+                <label for="name">Name</label>
+                <input type="text" name="name" id="name" value="{{name}}">
+            </div>
+            <div>
+                <label for="scope">Scope</label>
+                <select name="scope" id="scope" class="text ui-widget-content ui-corner-all">
+                    {{#scope}}
+                    <option value="{{scope}}">{{label}}</option>
+                    {{/scope}}
+                </select>
+            </div>
+            <div>
+                <label for="type">Type</label>
+                <select name="type" id="type" class="text ui-widget-content ui-corner-all">
+                    {{#type}}
+                    <option value="{{type}}">{{label}}</option>
+                    {{/type}}
+                </select>
+            </div>
+            <div>
+                <label for="icon">Icon</label>
+                <select name="icon" id="icon" class="text ui-widget-content ui-corner-all">
+                    {{#icon}}
+                    <option value="{{class}}">{{label}}</option>
+                    {{/icon}}
+                </select>
+            </div>
+
+            <!-- Allow form submission with keyboard without duplicating the dialog button -->
+            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+        </fieldset>
+    </form>
+</div>

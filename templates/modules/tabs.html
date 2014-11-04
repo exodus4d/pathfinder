@@ -1,6 +1,11 @@
 <ul class="nav nav-tabs" role="tablist" id="{{id}}">
     {{#tabs}}
-        <li role="presentation" class="{{#active}}active{{/active}}"><a href="#pf-map-tab-{{id}}" data-map-index="{{index}}" role="tab" data-toggle="tab"><i class="fa fa-fw {{icon}}"></i> {{name}}</a></li>
+        <li role="presentation" class="{{tabClass}} {{#pullRight}}pull-right{{/pullRight}} {{#active}}active{{/active}}">
+            <a href="#pf-map-tab-{{id}}" data-map-index="{{index}}" role="tab" data-toggle="tab">
+                <i class="fa fa-fw {{icon}}"></i>
+                <span class="nav-tabs-link">{{name}}</span>
+            </a>
+        </li>
     {{/tabs}}
 </ul>
 
