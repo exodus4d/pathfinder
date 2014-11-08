@@ -1,4 +1,4 @@
-define(["jquery", "app/render", "app/ccp", "app/module_map", "customScrollbar"], function($, Render, CCP) {
+define(["jquery", "app/render", "app/ccp", "app/module_map"], function($, Render, CCP) {
 
     "use strict";
 
@@ -7,7 +7,6 @@ define(["jquery", "app/render", "app/ccp", "app/module_map", "customScrollbar"],
     };
 
     $(function() {
-
         CCP.requestTrust();
 
 
@@ -28,6 +27,7 @@ define(["jquery", "app/render", "app/ccp", "app/module_map", "customScrollbar"],
                         id: 2,
                         name: 'J150020',
                         effect: 'magnetar',
+                        type: 'wh',
                         security: 'C6',
                         status: 'friendly',
                         position: {
@@ -38,6 +38,7 @@ define(["jquery", "app/render", "app/ccp", "app/module_map", "customScrollbar"],
                         id: 3,
                         name: 'J115844',
                         effect: 'wolfRyet',
+                        type: 'wh',
                         security: 'C6',
                         status: 'empty',
                         position: {
@@ -48,6 +49,7 @@ define(["jquery", "app/render", "app/ccp", "app/module_map", "customScrollbar"],
                         id: 4,
                         name: 'J155207',
                         effect: 'wolfRyet',
+                        type: 'wh',
                         security: 'C6',
                         status: '',
                         position: {
@@ -59,6 +61,7 @@ define(["jquery", "app/render", "app/ccp", "app/module_map", "customScrollbar"],
                         name: 'J145510',
                         effect: 'pulsar',
                         security: 'C3',
+                        type: 'wh',
                         status: 'hostile',
                         position: {
                             x: 110,
@@ -92,6 +95,7 @@ define(["jquery", "app/render", "app/ccp", "app/module_map", "customScrollbar"],
                         name: 'J150020',
                         effect: 'magnetar',
                         security: 'C6',
+                        type: 'wh',
                         status: 'friendly',
                         position: {
                             x: 5,
@@ -102,6 +106,7 @@ define(["jquery", "app/render", "app/ccp", "app/module_map", "customScrollbar"],
                         name: 'J115844',
                         effect: 'wolfRyet',
                         security: 'C6',
+                        type: 'wh',
                         status: 'empty',
                         position: {
                             x: 60,
@@ -116,21 +121,23 @@ define(["jquery", "app/render", "app/ccp", "app/module_map", "customScrollbar"],
                 }]
             }
         },
-            {
-                map: {},
-                config: {
-                    name: 'Exodus 4D',
-                    id: 3,
-                    scope: 'wormhole',
-                    icon: 'fa-cube',
-                    type: 'private'
-                },
-                data: {
-                    systems: [],
-                    connections: []
-                }
-            }];
+        {
+            map: {},
+            config: {
+                name: 'Exodus 4D',
+                id: 3,
+                scope: 'wormhole',
+                icon: 'fa-cube',
+                type: 'private'
+            },
+            data: {
+                systems: [],
+                connections: []
+            }
+        }];
 
+
+        // current user Data for a map
         var userData = [
             {
                 config: {   // map config

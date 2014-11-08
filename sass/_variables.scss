@@ -140,10 +140,10 @@ $table-border-color:            #ddd;
 $btn-font-weight:                normal;
 
 $btn-default-color:              #333;
-$btn-default-bg:                 #fff;
+$btn-default-bg:                 $gray-lightest;
 $btn-default-border:             #ccc;
 
-$btn-primary-color:              #fff;
+$btn-primary-color:              $gray-lightest;
 $btn-primary-bg:                 $brand-primary;
 $btn-primary-border:             darken($btn-primary-bg, 5%);
 
@@ -176,7 +176,7 @@ $input-bg-disabled:              $gray-lighter;
 $input-color:                    $gray;
 $input-border:                   #ccc;
 $input-border-radius:            0px;
-$input-border-focus:             #66afe9;
+$input-border-focus:             $teal;
 
 $input-color-placeholder:        $gray-light;
 
@@ -241,7 +241,7 @@ $screen-phone:               $screen-xs-min;
 
 // Small screen / tablet
 // Note: Deprecated $screen-sm and $screen-tablet as of v3.0.1
-$screen-sm:                  768px;
+$screen-sm:                  780px;
 $screen-sm-min:              $screen-sm;
 $screen-tablet:              $screen-sm-min;
 
@@ -477,7 +477,7 @@ $tooltip-arrow-color:         $tooltip-bg;
 //
 //##
 
-$popover-bg:                          #fff;
+$popover-bg:                          $gray;
 $popover-max-width:                   276px;
 $popover-border-color:                rgba(0,0,0,.2);
 $popover-fallback-border-color:       #ccc;
@@ -485,7 +485,7 @@ $popover-fallback-border-color:       #ccc;
 $popover-title-bg:                    darken($popover-bg, 3%);
 
 $popover-arrow-width:                 10px;
-$popover-arrow-color:                 #fff;
+$popover-arrow-color:                 $gray-light;
 
 $popover-arrow-outer-width:           ($popover-arrow-width + 1);
 $popover-arrow-outer-color:           rgba(0,0,0,.25);

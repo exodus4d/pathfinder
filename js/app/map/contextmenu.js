@@ -20,12 +20,13 @@ define(["jquery"], function($) {
                         top: getTopLocation(originalEvent)
                     })
                     .off('click')
-                    .on('click', {component: component}, function (e) {
+                    .on('click', {component: component, position:{x: getLeftLocation(originalEvent), y: getTopLocation(originalEvent)}}, function (e) {
                         $(this).hide();
 
                         var params = {
                             selectedMenu: $(e.target),
-                            component: e.data.component
+                            component: e.data.component,
+                            position: e.data.position
                         };
 
 

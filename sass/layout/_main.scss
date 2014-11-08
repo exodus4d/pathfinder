@@ -2,12 +2,21 @@
 
 body{
   font-family: 'Oxygen Bold';
+  color: $gray-light;
+}
+
+a{
+  color: #568a89;
+
+  &:hover{
+    color: $teal-darker;
+  }
 }
 
 #pf-map-module{
   margin: 0px;
   padding: 10px;
-  background: rgba($gray, 0.3);
+  // background: rgba($gray, 0.3); // semi transparent
 
   // Tabs (colored)
   #pf-map-tabs {
@@ -28,7 +37,5 @@ body{
     }
   }
 
-  .tab-pane{
-    background: rgba($gray-darker, 0.95);
-  }
 }
+

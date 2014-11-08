@@ -1,0 +1,21 @@
+
+// Tab Content Body Grid
+.pf-map-content-row{
+  margin: 10px 0 0 0;
+
+  // Table cell style
+  > div{
+    @include border-radius(5px);
+    background: rgba($gray, 0.3);
+    padding: 10px;
+    display: none; // triggered by JS
+  }
+
+  .pf-map-content-col-first{
+
+  }
+
+  .pf-map-content-col-second{
+
+  }
+}

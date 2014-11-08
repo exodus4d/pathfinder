@@ -11,6 +11,7 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
           y: 0
         },
 
+        mapTabContentClass: 'pf-map-tab-content',                       // Tab-Content element (parent element)
         mapWrapperClass: 'pf-map-wrapper',                              // wrapper div (scrollable)
         mapClass: 'pf-map',                                             // class for all maps
         mapIdPrefix: 'pf-map-',
@@ -18,6 +19,8 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
         systemClass: 'pf-system',
         systemActiveClass: 'pf-system-active',
         systemHeadClass: 'pf-system-head',
+        systemHeadNameClass: 'pf-system-head-name',
+        systemHeadExpandClass: 'pf-system-head-expand',
         systemBodyClass: 'pf-system-body',
         systemBodyItemClass: 'pf-system-body-item',
         systemBodyItemStatusClass: 'pf-user-status',
@@ -29,11 +32,13 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
         endpointTargetClass: 'pf-map-endpoint-target',
 
         // context menus
+        mapContextMenuId: 'pf-map-contextmenu',
         connectionContextMenuId: 'pf-map-connection-contextmenu',
         systemContextMenuId: 'pf-map-system-contextmenu',
 
         // dialogs
-        confirmDialogId: 'pf-delete-dialog',
+        confirmDeleteConnectionDialogId: 'pf-delete-dialog-connection',
+        confirmDeleteSystemDialogId: 'pf-delete-dialog-system',
         systemDialogId: 'pf-system-dialog',
         errorConnectDialogId: 'pf-error-dialog-loopback',
 
@@ -98,7 +103,7 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
     // jsPlumb config
     var globalMapConfig =  {
         source: {
-            filter: '.' + config.systemHeadClass,
+            filter: '.' + config.systemHeadNameClass,
             anchor: 'Continuous',
             connector: [ "Bezier", { curviness: 40, cssClass: 'pf-map-connection-wh' } ],
             maxConnections: 5,
@@ -117,7 +122,7 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
             ] */
         },
         target: {
-            filter: '.' + config.systemHeadClass,
+            filter: '.' + config.systemHeadNameClass,
             anchor: 'Continuous',
             allowLoopback:false,
             cssClass: config.endpointTargetClass,
@@ -300,10 +305,14 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
      * @param system
      * @param data
      */
-    var updateSystem = function(system, data){
+    var updateSystem = function(map, system, data){
 
         // find system body
         var systemBody = $( $(system).find('.' + config.systemBodyClass) );
+
+        // find expand arrow
+        var systemHeadExpand = $( $(system).find('.' + config.systemHeadExpandClass) );
+
 
         // remove tooltip
         $(system).removeAttr('title');
@@ -311,10 +320,10 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
         // remove all content
         systemBody.empty();
 
+        var userCounter = 0;
+
         // add user information
         if(data.user){
-
-            var userCounter = 0;
 
             $.each(data.user, function(i, userData){
 
@@ -322,10 +331,6 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
 
                 var statusClass = getStatusClassForUser(userData.status);
                 var userName = userData.name;
-                if(userName.length > 7){
-                   // userName = userName.substr(0,7) + '...';
-                }
-
 
                 var item = $('<div>', {
                     class: config.systemBodyItemClass
@@ -347,14 +352,44 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
                 systemBody.append(item);
             });
 
-            // show active user tooltip
-            $(system).attr('title', userCounter);
-            $(system).attr('data-placement', 'top');
-            $(system).attr('data-toggle', 'tooltip');
-            $(system).tooltip('show');
         }
 
+        $(system).removeAttr('title');
 
+        if(userCounter === 0){
+            // hide expand arrow
+            systemBody.hide();
+            systemHeadExpand.hide();
+        }else{
+            systemBody.show();
+            systemHeadExpand.show();
+
+            $(system).attr('title', userCounter);
+
+            // show active user tooltip
+            toggleSystemTooltip([system], 'show', {placement: 'top', trigger: 'manual'});
+        }
+
+        // repaint connection because of system-size change
+        map.repaint( system );
+
+    };
+
+    /**
+     * show/hide systems tooltip
+     * @param systems
+     * @param show
+     * @param options
+     */
+    var toggleSystemTooltip = function(systems, show, options){
+
+        $.each(systems, function(i, system){
+            if(options){
+                $(system).tooltip(options);
+            }
+
+            $(system).tooltip(show);
+        });
     };
 
     /**
@@ -378,12 +413,22 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
         }).append(
             // system head
             $('<div>', {
-                class: config.systemHeadClass,
-                text: data.name
+                class: config.systemHeadClass
             }).append(
+                // System effect color
+                $('<span>', {
+                    class: config.systemHeadNameClass,
+                    text: data.name
+                })
+            ).append(
                 // System effect color
                 $('<i>', {
                     class: ['fa fa-square ', config.systemEffect, effectClass].join(' ')
+                })
+            ).append(
+                // expand option
+                $('<i>', {
+                    class: ['fa fa-angle-down ', config.systemHeadExpandClass].join(' ')
                 })
             ).prepend(
                 $('<span>', {
@@ -396,12 +441,7 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
                 // system body
                 $('<div>', {
                     class: config.systemBodyClass
-                }).append(
-                    $('<div>', {
-                        class: config.systemBodyInnerClass
-                    })
-
-                )
+                })
         ).css({ "left": data.position.x + "px", 'top': data.position.y + 'px' });
 
         system.attr('data-id', data.id);
@@ -427,11 +467,16 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
 
         mapWrapper.append(mapContainer);
 
-        // append mapWrapper to parent element
-        $(parentElement).append(mapWrapper);
+        // append mapWrapper to parent element (at the top)
+        $(parentElement).prepend(mapWrapper);
 
-        // set main Container for current map -> the container exists now in DOM
+
+        // set main Container for current map -> the container exists now in DOM !! very important
         mapConfig.map.setContainer($('#' + config.mapIdPrefix + mapConfig.config.id));
+
+        // set map observer
+        setMapObserver(mapConfig.map);
+
 
         $.each(mapConfig.data.systems, function(i, data){
             // draw a system to a map
@@ -493,7 +538,7 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
         // get System Element by data
         var newSystem = getSystem(systemData);
 
-
+        // add new system to map
         mapContainer.append(newSystem);
 
         // make new System dragable
@@ -521,7 +566,28 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
                 drawConnection(map, connectionData);
             });
         }
+    };
 
+    /**
+     * delete a system with all its connections
+     * @param map
+     * @param system
+     */
+    var deleteSystem = function(map, system){
+
+        // detach all connections
+        map.detachAllConnections(system);
+
+        // delete all endpoints
+        map.removeAllEndpoints(system);
+
+        // hide tooltip
+        toggleSystemTooltip(system, 'hide');
+
+        // remove system
+        system.fadeOut(300, function(){
+            $(this).remove() ;
+        });
     };
 
     /**
@@ -536,17 +602,26 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
         map.draggable(systems, {
             containment: mapContainer,// 'parent',
             zIndex: 2000,
-            start: function(){
+            start: function(e){
                 // drag start
+
+                // hide tooltip
+                toggleSystemTooltip([e.target], 'hide');
             },
             stop: function(e, ui){
                 // drag stop
 
                 // update z-index for dragged system + connections
                 updateZIndex(map, e.target);
+
+                // rerender tooltip
+                toggleSystemTooltip([e.target], 'show');
             },
-            drag: function(){
+            drag: function(e){
                 // while drag
+
+
+
             }
         });
     };
@@ -631,6 +706,27 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
     };
 
     /**
+     * load contextmenu template for map
+     */
+    var initMapContextMenu = function(){
+
+        var moduleConfig = {
+            name: 'modules/contextmenu',
+            position: $('#' + config.dynamicElementWrapperId)
+        };
+
+        var moduleData = {
+            id: config.mapContextMenuId,
+            items: [
+                {icon: 'fa-plus', action: 'add_system', text: 'add system'},
+                {icon: 'fa-info-circle', action: 'info', text: 'info'}
+            ]
+        };
+
+        Render.showModule(moduleConfig, moduleData);
+    };
+
+    /**
      * load contextmenu template for connections
      */
     var initConnectionContextMenu = function(){
@@ -676,6 +772,7 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
             id: config.systemContextMenuId,
             items: [
                 {icon: 'fa-plus', action: 'add_system', text: 'add system'},
+                {icon: 'fa-eraser', action: 'delete_system', text: 'delete system'},
                 {icon: 'fa-info-circle', action: 'info', text: 'info'}
             ]
         };
@@ -690,16 +787,26 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
      */
     var setSystemObserver = function(map, system){
 
+        var systemHeadExpand = $( $(system).find('.' + config.systemHeadExpandClass) );
         var systemBody = $( $(system).find('.' + config.systemBodyClass) );
 
+        var bodyItemheight = 16;
+
         // init system body expand
-        $(system).hover(function(e){
+        systemHeadExpand.hover(function(e){
             // hover in
             var hoverSystem = this;
 
+            // get ship counter and calculate expand height
+            var shipCounter = parseInt( $(system).attr('data-original-title') );
+
+            var expandheight = shipCounter * bodyItemheight;
+
             systemBody.animate(
                 {
-                    height: '100px'
+                    height: expandheight + 'px',
+                    width: '100%',
+                    'min-width': '150px'
                 },
                 {
                     queue:false,
@@ -707,6 +814,9 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
                     step: function(){
                         // repaint connections of current system
                         map.repaint( hoverSystem );
+                    },
+                    complete: function(){
+                        $(this).find('.' + config.systemBodyRightClass).show();
                     }
                 }
             );
@@ -714,49 +824,18 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
             // hover out
             var hoverSystem = this;
             systemBody.animate(
-                { height: '16px' },
+                {
+                    height: '16px',
+                    width: '100%',
+                    'min-width': '80px'
+                },
                 {
                     queue:false,
                     duration: 100,
                     step: function(){
                         // repaint connections of current system
                         map.repaint( hoverSystem );
-                    }
-                }
-            );
-        });
-
-
-        // init system body item expand
-        systemBody.hover(function(){
-            $(this).animate(
-                {
-                    width: '150px'
-                },
-                {
-                    queue:false,
-                    duration: 100,
-                    step: function(){
-                        // repaint connections of current system
-                        map.repaint( system );
-                    },
-                    complete: function(){
-                        $(this).find('.' + config.systemBodyRightClass).show();
-                    }
-                }
-            );
-
-        }, function(){
-            $(this).animate(
-                {
-                    width: '80px'
-                },
-                {
-                    queue:false,
-                    duration: 100,
-                    step: function(){ console.log(system)
-                        // repaint connections of current system
-                        map.repaint( system );
+                        $(this).find('.' + config.systemBodyRightClass).hide();
                     },
                     start: function(){
                         $(this).find('.' + config.systemBodyRightClass).hide();
@@ -764,6 +843,8 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
                 }
             );
         });
+
+        // context menu ==================================================================
 
         // trigger context menu
         $(system).on('contextmenu', function(e){
@@ -786,45 +867,29 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
                 switch(action){
                     case 'add_system':
                         // add a new system
+                        showNewSystemDialog(map, {sourceSystem: currentSystem} );
+
+                        break;
+                    case 'delete_system':
 
                         // confirm dialog
                         var moduleConfig = {
-                            name: 'modules/system_dialog',
+                            name: 'modules/dialog',
                             position: $('#' + config.dynamicElementWrapperId),
                             link: 'after',
                             functions: {
                                 after: function(){
-                                    $( "#" + config.systemDialogId).dialog({
+                                    $( "#" + config.confirmDeleteSystemDialogId).dialog({
                                         modal: true,
                                         resizable: false,
                                         buttons: {
                                             'Cancel': function(){
                                                 $(this).dialog('close');
                                             },
-                                            'Add system': function(){
+                                            'Yes': function(){
+                                               // map.detach(params.component);
 
-                                                // get form Values
-                                                var form = $('#' + config.systemDialogId).find('form');
-
-                                                var  newSystemData = {};
-
-                                                $.each(form.serializeArray(), function(i, field) {
-                                                    newSystemData[field.name] = field.value;
-                                                });
-
-                                                // add new position
-                                                var currentX = currentSystem.css('left');
-                                                var currentY = currentSystem.css('top');
-
-                                                newSystemData.position = {
-                                                    x: parseInt( currentX.substring(0, currentX.length - 2) ) + config.newSystemOffset.x,
-                                                    y: parseInt( currentY.substring(0, currentY.length - 2) ) + config.newSystemOffset.y
-                                                }
-
-
-                                                // draw new system to map
-                                                drawSystem(map, newSystemData, currentSystem);
-
+                                                deleteSystem(map, currentSystem);
                                                 $(this).dialog('close');
                                             }
                                         }
@@ -833,17 +898,10 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
                             }
                         };
 
-                        // format system status for form select
-                        var systemStatus = [];
-                        $.each(config.systemStatus, function(status, statusData){
-                            statusData.status = status;
-                            systemStatus.push(statusData);
-                        });
-
                         var moduleData = {
-                            id: config.systemDialogId,
-                            titel: 'Add new system',
-                            status: systemStatus
+                            id: config.confirmDeleteSystemDialogId,
+                            titel: 'Delete System',
+                            content: 'Delete system with all its connections?'
                         };
 
                         Render.showModule(moduleConfig, moduleData);
@@ -853,6 +911,65 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
                 }
 
             }
+        });
+
+        // load system data =================================================================================
+
+        $(system).on('click', function(e){
+
+            // get current map
+            var currentSystem = $(e.target).parents('.' + config.systemClass);
+
+            // get parent Tab Content and fire update event
+            var tabContentElement = currentSystem.parents('.' + config.mapTabContentClass);
+
+            markSystemActive(map, currentSystem);
+
+            $(tabContentElement).trigger('pf:updateSystemData', [{system: currentSystem}]);
+        });
+
+
+    };
+
+    var setMapObserver = function(map){
+
+        // get map container
+        var container = map.getContainer();
+
+        $(container).on('contextmenu', function(e){
+            $(e.target).trigger('pf:openContextMenu', [e, this]);
+            e.preventDefault();
+            return false;
+        });
+
+        $(container).contextMenu({
+            menuSelector: "#" + config.mapContextMenuId,
+            menuSelected: function (params) {
+
+                // click action
+                var action = params.selectedMenu.attr('data-action');
+
+                // current map
+                var currentMapElement = $(params.component);
+
+                var currentMapId = parseInt( currentMapElement.attr('data-mapid') );
+
+                // get map instance
+               var currentMap = getMapInstance(currentMapId);
+
+                // click position
+                var position = params.position;
+
+                switch(action){
+                    case 'add_system':
+                        // add new system dialog
+                        showNewSystemDialog(currentMap, {position: position});
+                        break;
+
+                }
+
+            }
+
         });
 
 
@@ -896,7 +1013,7 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
                             link: 'after',
                             functions: {
                                 after: function(){
-                                    $( "#" + config.confirmDialogId).dialog({
+                                    $( "#" + config.confirmDeleteConnectionDialogId).dialog({
                                         modal: true,
                                         resizable: false,
                                         buttons: {
@@ -914,7 +1031,7 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
                         };
 
                         var moduleData = {
-                            id: config.confirmDialogId,
+                            id: config.confirmDeleteConnectionDialogId,
                             titel: 'Delete Connection',
                             content: 'Is this connection really gone?'
                         };
@@ -957,7 +1074,123 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
 
             }
         });
+    };
 
+    /**
+     * mark a system as active
+     * @param map
+     * @param system
+     */
+    var markSystemActive = function(map, system){
+
+        // deactivate all systems in map
+        var mapContainer = $( map.getContainer() );
+
+        mapContainer.find('.' + config.systemClass).removeClass(config.systemActiveClass);
+
+        // set current system active
+        system.addClass(config.systemActiveClass);
+    };
+
+    /**
+     * open "new system" dialog and add the system to map
+     * optional the new system is connected to "currentSystem" (if available)
+     *
+     * @param map
+     * @param options
+     */
+    var showNewSystemDialog = function(map, options){
+
+        var moduleConfig = {
+            name: 'modules/system_dialog',
+            position: $('#' + config.dynamicElementWrapperId),
+            link: 'after',
+            functions: {
+                after: function(){
+                    $( "#" + config.systemDialogId).dialog({
+                        modal: true,
+                        resizable: false,
+                        buttons: {
+                            'Cancel': function(){
+                                $(this).dialog('close');
+                            },
+                            'Add system': function(e){
+
+                                // get form Values
+                                var form = $('#' + config.systemDialogId).find('form');
+
+                                var  newSystemData = {};
+
+                                $.each(form.serializeArray(), function(i, field) {
+                                    newSystemData[field.name] = field.value;
+                                });
+
+                                var currentX = 0;
+                                var currentY = 0;
+
+                                var newPositon = {
+                                    x: 0,
+                                    y: 0
+                                };
+
+                                var sourceSystem = null;
+
+                                // add new position
+                                if(options.sourceSystem !== undefined){
+
+                                    sourceSystem = options.sourceSystem;
+
+                                    // related system is available
+                                    currentX = sourceSystem.css('left');
+                                    currentY = sourceSystem.css('top');
+
+                                    // remove "px"
+                                    currentX = parseInt( currentX.substring(0, currentX.length - 2) );
+                                    currentY = parseInt( currentY.substring(0, currentY.length - 2) );
+
+                                    newPositon = {
+                                        x: currentX + config.newSystemOffset.x,
+                                        y: currentY + config.newSystemOffset.y
+                                    };
+                                }else{
+                                    // check mouse cursor position (add system to map)
+                                    newPositon = {
+                                        x: options.position.x,
+                                        y: options.position.y
+                                    };
+
+                                    console.log(e)
+                                }
+
+
+                                newSystemData.position = newPositon;
+
+
+                                // draw new system to map
+                                drawSystem(map, newSystemData, sourceSystem);
+
+                                $(this).dialog('close');
+                            }
+                        }
+                    });
+                }
+            }
+        };
+
+        // format system status for form select
+        var systemStatus = [];
+        $.each(config.systemStatus, function(status, statusData){
+            statusData.status = status;
+            systemStatus.push(statusData);
+        });
+
+        var moduleData = {
+            id: config.systemDialogId,
+            titel: 'Add new system',
+            status: systemStatus
+        };
+
+        Render.showModule(moduleConfig, moduleData);
 
     };
 
@@ -982,8 +1215,6 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
             console.log('new jsPlumbInstance: ' + mapId);
         }
 
-
-
         return activeInstances[mapId];
     };
 
@@ -996,20 +1227,26 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
         // get all systems
         var systems = $(this).find('.' + config.systemClass);
 
-        $.each(systems, function(i, system){
-            // get user Data for System
-            var systemId = parseInt( $(system).attr('data-id') );
+        // get new map instance or load existing
+        var map = getMapInstance(userData.config.id);
 
-            var data = {};
-            $.each(userData.data.systems, function(j, systemData){
-                if(systemId === systemData.id){
-                    data = systemData;
-                }
+        // container must exist! otherwise systems cant be updated
+        if(map.getContainer() !== undefined){
+            $.each(systems, function(i, system){
+                // get user Data for System
+                var systemId = parseInt( $(system).attr('data-id') );
+
+                var data = {};
+                $.each(userData.data.systems, function(j, systemData){
+                    if(systemId === systemData.id){
+                        data = systemData;
+                    }
+                });
+
+                updateSystem(map, system, data);
+
             });
-
-            updateSystem(system, data);
-
-        });
+        }
 
     };
 
@@ -1023,6 +1260,7 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
         var parentElement = $(this);
 
         // add context menus to dom
+        initMapContextMenu();
         initConnectionContextMenu();
         initSystemContextMenu();
 

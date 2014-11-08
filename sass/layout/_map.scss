@@ -1,9 +1,43 @@
+
+// start bounce mixin ==============================================
+
+@mixin bounce-up-down{
+
+  -webkit-animation-duration: 1s;
+  animation-duration: 1s;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+  -webkit-animation-timing-function: linear;
+  animation-timing-function: linear;
+  animation-iteration-count:infinite;
+  -webkit-animation-iteration-count:infinite;
+
+  -webkit-animation-name: bounce;
+  animation-name: bounce;
+}
+
+@-webkit-keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {-webkit-transform: translateY(0);}
+  40% {-webkit-transform: translateY(-10px);}
+  60% {-webkit-transform: translateY(-5px);}
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+  40% {transform: translateY(-10px);}
+  60% {transform: translateY(-5px);}
+}
+
+// end bounce mixin ================================================
+
 .pf-map-wrapper{
   width: 100%;
   height: 530px;
   overflow: auto;
   padding: 5px;
+  background: rgba($gray-darker, 0.95);
 
+  box-shadow:inset -1px 1px 6px 0 rgba($black, 0.8);
   @include border-bottom-radius(5px);
   border: {
     width: 1px;
@@ -26,6 +60,8 @@
     background-color: $gray-dark;
     z-index: 100;
 
+    //@include bounce-up-down;
+
     @include border-radius(5px);
     border: {
       width: 2px;
@@ -37,13 +73,18 @@
       padding: 0px 3px 2px 3px;
       cursor: pointer;
       color: $gray-lighter;
+
+      .pf-system-head-expand{
+        margin-left: 5px;
+        display: none;  // triggered by JS
+      }
     }
 
     // System security =============================================
 
     .pf-system-sec{
       margin-right: 5px;
-      cursor: help;
+      cursor: move;
     }
 
     .pf-system-sec-highSec{
@@ -105,15 +146,16 @@
 
     .pf-system-body{
       height: 16px;
-      width: 80px;
+      width: 100%;
       overflow: hidden;
       cursor: move;
       padding: 0 2px;
       white-space: nowrap;
+      display: none;  // triggered by JS
 
       border: {
         top: {
-          width: 2px;
+          width: 1px;
           style: dashed;
           color: $gray-light;
         }
@@ -149,7 +191,7 @@
   }
 
   .pf-system-active:not(.pf-map-endpoint-source):not(.pf-map-endpoint-target){
-    @include box-shadow($yellow-lighter 0px 0px 8px 1px);
+    @include box-shadow($yellow-lighter 0px 0px 8px 0px);
     @include transition-duration(0.2s);
   }
 
@@ -270,9 +312,24 @@
     }
   }
 
+  // Tooltip ======================================================
+  .tooltip-inner{
+    opacity: 0.8;
+    color: $teal;
+    background-color: $gray;
+    font-family: 'Oxygen Bold';
+    padding: 5px 5px;
+    @include border-radius(5px);
+
+  }
+
+  .tooltip.top .tooltip-arrow{
+    border-top-color: $gray-light;
+  }
+
 }
 
-// dialoges =================================================
+// dialoges =======================================================
 .ui-dialog-content{
   label{
     min-width: 60px;
@@ -285,4 +342,9 @@
     width: 20px
   }
 }
+
+
+
+
+
 

@@ -37,48 +37,52 @@
 // Libraries (Remove if not needed)
 @import "library/animation/animation-engine";
 @import "library/jqueryui/jquery-ui-1.10.3.custom";
-@import "library/custom-scrollbar/mCustomScrollbar"; // malihu-custom-scrollbar-plugin
+@import "library/custom-scrollbar/_mCustomScrollbar";    // malihu-custom-scrollbar-plugin
+@import "library/data-tables/_dataTables";               // DataTables 1.10.3
+@import "library/data-tables/_dataTables-bootstrap";     // DataTables 1.10.3 bootsrap integration
+@import "library/data-tables/_dataTables-fontAwesome";     // DataTables 1.10.3 fontAwesome support (sort icons)
+@import "library/x-editable/_bootstrap-editable";     // X-editable - v1.5.0
 
 // Individual pages, sections, and components.  You can remove any of these sections you don't use
 
 // Components
-@import "smartadmin/component-fullscreen";
-@import "smartadmin/component-jqueryui"; // dependency: jquery-ui-1.10.3.custom
-@import "smartadmin/component-pricingtable";
-@import "smartadmin/component-pace";
-@import "smartadmin/component-smartchat";
-@import "smartadmin/component-smartforms";
+// @import "smartadmin/component-fullscreen";
+ @import "smartadmin/component-jqueryui"; // dependency: jquery-ui-1.10.3.custom
+// @import "smartadmin/component-pricingtable";
+// @import "smartadmin/component-pace";
+// @import "smartadmin/component-smartchat";
+// @import "smartadmin/component-smartforms";
 
 // Pages
-@import "smartadmin/page-error";
-@import "smartadmin/page-extr";
+// @import "smartadmin/page-error";
+// @import "smartadmin/page-extr";
 
 // Sections
-@import "smartadmin/section-nestables";
-@import "smartadmin/section-calendar";
-@import "smartadmin/section-inbox";
-@import "smartadmin/section-profile";
-@import "smartadmin/section-search";
-@import "smartadmin/section-todo";
-@import "smartadmin/section-timeline";
-@import "smartadmin/section-forum";
-@import "smartadmin/section-ajax-msg";
+// @import "smartadmin/section-nestables";
+// @import "smartadmin/section-calendar";
+// @import "smartadmin/section-inbox";
+// @import "smartadmin/section-profile";
+// @import "smartadmin/section-search";
+// @import "smartadmin/section-todo";
+// @import "smartadmin/section-timeline";
+// @import "smartadmin/section-forum";
+// @import "smartadmin/section-ajax-msg";
 
 // Main THEME (Imports by order - do not change order)
 @import "smartadmin/main";
-@import "smartadmin/main-container-fix";
-@import "smartadmin/main-special-class";
-@import "smartadmin/main-form-radiocheck";
-@import "smartadmin/main-animated";
-@import "smartadmin/main-colorpallet";
-@import "smartadmin/main-page-footer";
-@import "smartadmin/main-responsive";
+// @import "smartadmin/main-container-fix";
+// @import "smartadmin/main-special-class";
+// @import "smartadmin/main-form-radiocheck";
+// @import "smartadmin/main-animated";
+// @import "smartadmin/main-colorpallet";
+// @import "smartadmin/main-page-footer";
+// @import "smartadmin/main-responsive";
 
 // Patches
-@import "smartadmin/ie-fix";
+// @import "smartadmin/ie-fix";
 
 // UI (overrides and new)
-@import "smartadmin/top-menu";
+//@import "smartadmin/top-menu";
 
 
 // my modules
