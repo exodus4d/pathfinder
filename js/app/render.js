@@ -44,6 +44,9 @@ define(["jquery", "lib/mustache", "jqueryUI"], function($, Mustache) {
                     case 'prepend':
                         config.position.prepend(content);
                         break;
+                    case 'before':
+                        config.position.before(content);
+                        break;
                     case 'after':
                         config.position.after(content);
                         break;

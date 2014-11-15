@@ -22,9 +22,12 @@ $blue:                  #428bca;
 $teal:                  #568a89;
 $teal-dark:             #477372;
 $teal-darker:           #375959;
+$teal-darkest:          #212C30;
+
 
 // green
 $green:                 #5cb85c;
+$green-dark:            #4f9e4f;
 
 // red
 $red:                   #d9534f;
@@ -52,8 +55,8 @@ $wh-color-wolfryet:     $orange;
 $wh-color-cataclysmic:  $yellow-lighter;
 $wh-color-blackhole:    $gray-darkest;
 
-$brand-primary:         $teal-darker !default;
-$brand-success:         #5cb85c !default;
+$brand-primary:         $teal-dark !default;
+$brand-success:         $green-dark !default;
 $brand-info:            #5bc0de !default;
-$brand-warning:         #f0ad4e !default;
+$brand-warning:         $orange !default;
 $brand-danger:          #d9534f !default;

@@ -79,7 +79,8 @@ define(["jquery", "app/render", "app/ccp", "app/module_map"], function($, Render
             }
 
 
-        },{
+        },
+            {
             map: {},
             config: {
                 name: 'Providence',
@@ -99,7 +100,7 @@ define(["jquery", "app/render", "app/ccp", "app/module_map"], function($, Render
                         status: 'friendly',
                         position: {
                             x: 5,
-                            y: 5
+                            y: 7
                         }
                     },{
                         id: 51,
@@ -110,7 +111,7 @@ define(["jquery", "app/render", "app/ccp", "app/module_map"], function($, Render
                         status: 'empty',
                         position: {
                             x: 60,
-                            y: 60
+                            y: 65
                         }
                     }
                 ],
@@ -138,45 +139,53 @@ define(["jquery", "app/render", "app/ccp", "app/module_map"], function($, Render
 
 
         // current user Data for a map
-        var userData = [
-            {
-                config: {   // map config
-                    id: 1   // map id
-                },
-                data: {
-                    systems:[   // systems in map
-                        {
-                            id: 4,  // system id
-                            user: [
-                                {
-                                    name: 'Exodus 4D',
-                                    ship: 'Legion',
-                                    status: 'corp'
-                                }
-                            ]
-                        },
-                        {
-                            id: 5,  // system id
-                            user: [
-                                {
-                                    name: 'Faye Fantastic',
-                                    ship: 'Armageddon',
-                                    status: 'ally'
-                                },{
-                                    name: 'Sibasomos',
-                                    ship: 'Proteus',
-                                    status: 'corp'
-                                },{
-                                    name: 'Xtrah gfdfgdfgfd',
-                                    ship: 'Pod',
-                                    status: 'ally'
-                                }
-                            ]
-                        }
-                    ]
+        var userData ={
+            currentUserData: {
+                ship: 'Legion',
+                system: {
+                    name: 'J115844',
+                    id: 4
                 }
-            }
-        ];
+            },
+            mapUserData: [ // user Data for all maps
+                {
+                    config: {   // map config
+                        id: 1   // map id
+                    },
+                    data: {
+                        systems:[   // systems in map
+                            {
+                                id: 4,  // system id
+                                user: [
+                                    {
+                                        name: 'Exodus 4D',
+                                        ship: 'Legion',
+                                        status: 'corp'
+                                    }
+                                ]
+                            },
+                            {
+                                id: 5,  // system id
+                                user: [
+                                    {
+                                        name: 'Faye Fantastic',
+                                        ship: 'Armageddon',
+                                        status: 'ally'
+                                    },{
+                                        name: 'Sibasomos',
+                                        ship: 'Proteus',
+                                        status: 'corp'
+                                    },{
+                                        name: 'Xtrah gfdfgdfgfd',
+                                        ship: 'Pod',
+                                        status: 'ally'
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            ]};
 
         // load map module ==========================================
         $('#' + config.mapModuleId).loadMapModule(mapData);

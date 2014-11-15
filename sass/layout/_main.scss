@@ -6,15 +6,16 @@ body{
 }
 
 a{
-  color: #568a89;
+  color: $teal-dark;
 
   &:hover{
-    color: $teal-darker;
+    color: $teal;
   }
 }
 
+// Maps module ===================================================
 #pf-map-module{
-  margin: 0px;
+  margin: 30px 0 0 0;
   padding: 10px;
   // background: rgba($gray, 0.3); // semi transparent
 
@@ -37,5 +38,20 @@ a{
     }
   }
 
+}
+
+// Tooltip ======================================================
+.tooltip-inner{
+  opacity: 0.8;
+  color: $teal;
+  background-color: $gray;
+  font-family: 'Oxygen Bold';
+  padding: 5px 5px;
+  @include border-radius(5px);
+
+}
+
+.tooltip.top .tooltip-arrow{
+  border-top-color: $gray-light;
 }
 

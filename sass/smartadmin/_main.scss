@@ -1596,7 +1596,7 @@ input[type="text"]:focus + .input-group-addon {
 .progress .progress-bar {
   position: absolute;
   overflow: hidden;
-  line-height: 20px;
+  line-height: 18px;
 }
 
 .progress .progressbar-back-text {
@@ -1699,7 +1699,7 @@ input[type="text"]:focus + .input-group-addon {
 	position: relative;
 	margin-bottom: 20px;
 	overflow: hidden;
-	height: 22px;
+	height: 18px;
 	background: $gray-lighter;
 	box-shadow: 0 1px 0 transparent, 0 0 0 1px lighten( $gray-light, 29%) inset; 
 	-webkit-box-shadow: 0 1px 0 transparent, 0 0 0 1px lighten( $gray-light, 29%) inset;

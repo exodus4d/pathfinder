@@ -116,7 +116,7 @@
 
 /* IOS-style clear button for text inputs */
 .editable-clear-x {
-  background: url('../img/clear.png') center center no-repeat;
+  //background: url('../img/clear.png') center center no-repeat;
   display: block;
   width: 13px;
   height: 13px;
@@ -162,7 +162,7 @@
 a.editable-click,
 a.editable-click:hover {
   text-decoration: none;
-  border-bottom: dashed 1px $teal-darker;
+  border-bottom: dashed 1px $teal;
 }
 
 .editable-click.editable-disabled,
@@ -175,7 +175,7 @@ a.editable-click.editable-disabled:hover {
 
 .editable-empty, .editable-empty:hover, .editable-empty:focus{
   font-style: italic;
-  color: #DD1144;
+  color: $red;
   /* border-bottom: none; */
   text-decoration: none;
 }

@@ -302,10 +302,12 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
 
     /**
      * updates a system with current information
+     * @param map
      * @param system
      * @param data
+     * @param currentUserData // data of the user that is currently viewing this map
      */
-    var updateSystem = function(map, system, data){
+    var updateSystem = function(map, system, data, currentUserData){
 
         // find system body
         var systemBody = $( $(system).find('.' + config.systemBodyClass) );
@@ -322,8 +324,18 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
 
         var userCounter = 0;
 
+        // if current user is in THIS system trigger event
+        if(currentUserData){
+            var tabContentElement = getTabContentElementByMapElement(system);
+
+            $(tabContentElement).trigger('pf:highlightTab', [{system: system}]);
+        }
+
         // add user information
-        if(data.user){
+        if(
+            data &&
+            data.user
+        ){
 
             $.each(data.user, function(i, userData){
 
@@ -442,7 +454,7 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
                 $('<div>', {
                     class: config.systemBodyClass
                 })
-        ).css({ "left": data.position.x + "px", 'top': data.position.y + 'px' });
+            ).data('name', data.name).css({ "left": data.position.x + "px", 'top': data.position.y + 'px' });
 
         system.attr('data-id', data.id);
 
@@ -795,7 +807,7 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
         // init system body expand
         systemHeadExpand.hover(function(e){
             // hover in
-            var hoverSystem = this;
+            var hoverSystem = $(this).parents('.' + config.systemClass);
 
             // get ship counter and calculate expand height
             var shipCounter = parseInt( $(system).attr('data-original-title') );
@@ -816,13 +828,14 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
                         map.repaint( hoverSystem );
                     },
                     complete: function(){
+                        map.repaint( hoverSystem );
                         $(this).find('.' + config.systemBodyRightClass).show();
                     }
                 }
             );
         }, function(e){
             // hover out
-            var hoverSystem = this;
+            var hoverSystem = $(this).parents('.' + config.systemClass);
             systemBody.animate(
                 {
                     height: '16px',
@@ -839,6 +852,9 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
                     },
                     start: function(){
                         $(this).find('.' + config.systemBodyRightClass).hide();
+                    },
+                    complete: function(){
+                        map.repaint( hoverSystem );
                     }
                 }
             );
@@ -914,23 +930,43 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
         });
 
         // load system data =================================================================================
-
+        // trigger event for this system
         $(system).on('click', function(e){
 
             // get current map
             var currentSystem = $(e.target).parents('.' + config.systemClass);
 
-            // get parent Tab Content and fire update event
-            var tabContentElement = currentSystem.parents('.' + config.mapTabContentClass);
-
             markSystemActive(map, currentSystem);
+
+            // get parent Tab Content and fire update event
+            var tabContentElement = getTabContentElementByMapElement(currentSystem);
 
             $(tabContentElement).trigger('pf:updateSystemData', [{system: currentSystem}]);
         });
-
-
     };
 
+    /**
+     * get all TabContentElements
+     * @returns {*|HTMLElement}
+     */
+    var getTabContentElements = function(){
+        return $('.' + config.mapTabContentClass);
+    };
+
+    /**
+     * get TabContentElement by any element on a map e.g. system
+     * @param element
+     * @returns {*}
+     */
+    var getTabContentElementByMapElement = function(element){
+        var tabContentElement = $(element).parents('.' + config.mapTabContentClass);
+        return tabContentElement;
+    };
+
+    /**
+     * set observer for a map container
+     * @param map
+     */
     var setMapObserver = function(map){
 
         // get map container
@@ -939,6 +975,7 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
         $(container).on('contextmenu', function(e){
             $(e.target).trigger('pf:openContextMenu', [e, this]);
             e.preventDefault();
+            e.stopPropagation();
             return false;
         });
 
@@ -976,17 +1013,17 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
     };
 
     /**
-     * set Observer for a given connection
+     * set observer for a given connection
      * @param map
      * @param connection
      */
     var setConnectionObserver = function(map, connection){
 
-
         connection.bind('contextmenu', function(component, e) {
             // trigger menu "open
             $(e.target).trigger('pf:openContextMenu', [e, component]);
             e.preventDefault();
+            e.stopPropagation();
             return false;
         });
 
@@ -1066,11 +1103,6 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
                         console.log('info');
                         break;
                 }
-
-                // wh type:
-                console.log('is eol: ', connection.hasType('wh_eol'));
-                console.log('is reduced: ', connection.hasType('wh_reduced'));
-                console.log('is crit: ', connection.hasType('wh_critical'));
 
             }
         });
@@ -1159,7 +1191,6 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
                                         y: options.position.y
                                     };
 
-                                    console.log(e)
                                 }
 
 
@@ -1219,10 +1250,12 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
     };
 
     /**
-     * updates all systems on map with current user Data
+     * updates all systems on map with current user Data (all users on this map)
+     * update the Data of the user that is currently viewing the map (if available) -> In - game info
      * @param userData
+     * @param currentUserData
      */
-    $.fn.updateUserData = function(userData){
+    $.fn.updateUserData = function(userData, currentUserData){
 
         // get all systems
         var systems = $(this).find('.' + config.systemClass);
@@ -1230,20 +1263,34 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
         // get new map instance or load existing
         var map = getMapInstance(userData.config.id);
 
+        // trigger reset event for all Tabs
+        var tabContentElements = getTabContentElements();
+        $(tabContentElements).trigger('pf:highlightTab', [{}]);
+
         // container must exist! otherwise systems cant be updated
         if(map.getContainer() !== undefined){
             $.each(systems, function(i, system){
                 // get user Data for System
                 var systemId = parseInt( $(system).attr('data-id') );
 
-                var data = {};
+                var tempUserData = null;
                 $.each(userData.data.systems, function(j, systemData){
+                    // check if any user is in this system
                     if(systemId === systemData.id){
-                        data = systemData;
+                        tempUserData = systemData;
                     }
                 });
 
-                updateSystem(map, system, data);
+                // check if user is currently in this system
+                var tempCurrentUserData = null;
+                if(
+                    currentUserData &&
+                    currentUserData.system.id === systemId
+                ){
+                    tempCurrentUserData = currentUserData;
+                }
+
+                updateSystem(map, system, tempUserData, tempCurrentUserData);
 
             });
         }

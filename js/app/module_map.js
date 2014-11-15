@@ -1,4 +1,4 @@
-define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'customScrollbar'], function($, Render) {
+define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'customScrollbar', 'app/counter'], function($, Render) {
 
     "use strict";
 
@@ -15,14 +15,23 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
 
         // TabContentStructure
         mapTabContentRow: 'pf-map-content-row',                                 // main row for Tab content (grid)
+        mapTabContentCell: 'pf-map-content-col',                                // column
         mapTabContentCellFirst: 'pf-map-content-col-first',                     // first column
         mapTabContentCellSecond: 'pf-map-content-col-second',                   // second column
 
+        // system info
+        systemInfoElementWrapperClass: 'pf-system-info-wrapper',                // class for systeminfo Wrapper
+        systemInfoProgressScannedClass: 'pf-system-progress-scanned',           // progress bar scanned signatures
+
         // sig table
+        sigTableToolsClass: 'pf-sig-table-tools',                               // table toolbar
+        sigTableToolsActionClass: 'pf-sig-table-tools-action',                  // table toolbar action
         sigTableClass: 'pf-sig-table',                                          // Table class for all Signature Tables
         sigTableEditText: 'pf-sig-table-edit-text',                             // class for editable fields (text)
-        sigTableEditSigTypeSelect: 'pf-sig-table-edit-sig-type-select',         // class for editable fields (select)
-        sigTableEditSigNameSelect: 'pf-sig-table-edit-sig-name-select',         // class for editable fields (select)
+        sigTableEditSigNameInput: 'pf-sig-table-edit-name-input',               // class for editable fields (input)
+        sigTableEditSigTypeSelect: 'pf-sig-table-edit-type-select',             // class for editable fields (select)
+        sigTableEditSigNameSelect: 'pf-sig-table-edit-name-select',             // class for editable fields (select)
+        sigTableCounterClass: 'pf-sig-table-counter',                           // class for signature table counter
 
         // map types
         mapTypes: [
@@ -237,6 +246,15 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
         return maps;
     };
 
+
+    /**
+     * get all TabElements in this map module
+     * @returns {*}
+     */
+    var getTabElements = function(){
+        return $('#' + config.mapTabBarId).find('a[data-toggle="tab"]');
+    };
+
     /**
      * get all Tabs for a maps module
      * @param mapModule
@@ -256,14 +274,156 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
     $.fn.setTabContenteObserver = function(){
 
         return this.each(function(){
+            // update Tab Content with system data information
             $(this).on('pf:updateSystemData', function(e, data){
-                // update Tab Content with system data information
-                updateSystemInfo($( e.target ));
+                updateSystemInfoElement($( e.target ));
             });
+
+            // highlite a mapTab
+            $(this).on('pf:highlightTab', function(e, data){
+                // update Tab Content with system data information
+                highliteTab(e.target, data);
+
+            });
+
         });
     };
 
-    var updateSystemInfo = function(tabContentElement){
+    /**
+     * highlite a Tab in this module e.g. when user has an active pilot in this map
+     * @param contentElement
+     * @param data
+     */
+    var highliteTab = function(contentElement, data){
+        var tabElements = getTabElements();
+
+        contentElement = $(contentElement);
+
+        // look for related tab element
+        $.each(tabElements, function(i, tabElement){
+
+            tabElement = $(tabElement);
+
+            if(tabElement.attr('data-map-index') === contentElement.attr('data-map-index')){
+
+                tabElement.tooltip({placement: 'top', trigger: 'manual'});
+
+                tabElement.attr('title', '');
+                tabElement.tooltip('hide');
+
+                // check if this tab needs to be highlighted
+                if(data.system){
+                    // destroy empty tooltip end create new
+                    tabElement.tooltip('destroy');
+                    tabElement.attr('title', $(data.system).data('name'));
+                    tabElement.tooltip('show');
+
+                    // scroll to system
+                    contentElement.find('.' + config.mapWrapperClass).scrollTo( '#' + data.system.id );
+                }
+               return false;
+           }
+        });
+
+    };
+
+    $.fn.drawSignatureTableToolbar = function(emptySignatureData){
+
+        // add toolbar buttons for table -------------------------------------
+        var tableToolbar = $('<div>', {
+            class: config.sigTableToolsClass
+        }).append(
+                $('<a>', {
+                    class: ['btn', 'btn-primary', 'btn-sm'].join(' '),
+                    text: ' add signature'
+                }).on('click', function(e){
+
+                }).prepend(
+                        $('<i>', {
+                            class: ['fa', 'fa-plus', 'fa-fw'].join(' ')
+                        })
+                    )
+            );
+
+        $(this).append(tableToolbar);
+
+        // scanned signatures progress bar --------------------------------------
+        var moduleConfig = {
+            name: 'form/progress',
+            position: tableToolbar,
+            link: 'before',
+            functions: {
+                after: function(){
+
+                }
+            }
+        };
+
+        var moduleData = {
+            label: true,
+            class: config.systemInfoProgressScannedClass,
+            barClass: 'progress-bar-success',
+            percent: '70',
+            headline: 'System scanned',
+            headlineRight: '70%' // will be updated by js
+        };
+
+        Render.showModule(moduleConfig, moduleData);
+
+        // add toolbar action for table -------------------------------------
+        var tableToolbarAction = $('<div>', {
+            class: config.sigTableToolsActionClass
+        });
+
+        // create "empty table for new signature
+        var table = $('<table>', {
+            class: ['display', 'compact', config.sigTableClass].join(' ')
+        });
+
+        tableToolbarAction.append(table);
+
+        $(this).append(tableToolbarAction);
+
+
+        table.dataTable( {
+            data: emptySignatureData,
+            paging: false,
+            ordering: false,
+            info: false,
+            searching: false
+        } );
+
+        table.makeEditable();
+    };
+
+
+    // drawsignature table
+    $.fn.drawSignatureTable = function(signatureData){
+
+
+        // create new signature table -------------------------------------------
+
+        var table = $('<table>', {
+            class: ['display', 'compact', config.sigTableClass].join(' ')
+        });
+
+        $(this).append(table);
+
+
+        var signatureTable = table.dataTable( {
+            data: signatureData
+        } );
+
+        $(this).show();
+
+        // make Table editable
+        signatureTable.makeEditable();
+
+
+        return signatureTable;
+    };
+
+    var updateSystemInfoElement = function(tabContentElement){
 
         // get Table cell for system Info
         var systemCell = $(tabContentElement).find('.' + config.mapTabContentCellFirst);
@@ -273,55 +433,87 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
 
         // TODO replace with backend ajax request
         var systemData = tempFunctionGetSystemData();
+        var emptySystemData = $.extend({}, systemData); // copy object for manipulation
 
-        var signatureData = formatSignatureData(systemData);
+        // fake data for new signature table entry
+        emptySystemData.signatures = [
+            {
+                id: 0,
+                sig: '',
+                typeId: null,
+                sigTypeId: null,
+                created: null,
+                updated: null
+
+            }];
+
+        var signatureData = formatSignatureData(systemData, {});
+
+        var options = {
+            action: {
+                buttonClass: 'btn-default',
+                buttonIcon: 'fa-plus'
+            }
+        };
+
+        var emptySignatureData = formatSignatureData(emptySystemData, options);
 
         // check if signatures exist
         if(signatureData.length > 0){
-            var table = $('<table>', {
-                class: ['display', 'compact', config.sigTableClass].join(' '),
-                id: 'test_table'
-            });
 
-            systemCell.append(table);
-
-
-            table.dataTable( {
-                "data": signatureData,
-                "pageLength": 100,
-                "lengthMenu": [ 5, 10, 25, 50, 75, 100 ],
-                "columnDefs": [
+            // set default values for all signature "datatables"
+            $.extend( $.fn.dataTable.defaults, {
+                pageLength: 100,
+                lengthMenu: [ 5, 10, 25, 50, 75, 100 ],
+                language: {
+                    zeroRecords: 'No signatures found',
+                    lengthMenu:  'Show _MENU_ signatures',
+                    info:        'Showing _START_ to _END_ of _TOTAL_ signatures'
+                },
+                columnDefs: [
                     {
-                        "targets": 0,
+                        targets: 0,
                         //"orderData": 0,
-                        "orderable": true,
-                        "title": "sig",
-                        "width": '20px'
+                        orderable: true,
+                        title: 'sig',
+                        width: '30px'
                     },{
-                        "targets": 1,
-                        "orderable": true,
-                        "title": "type",
-                        "width": '50px'
+                        targets: 1,
+                        orderable: false,
+                        title: 'type',
+                        width: '50px'
                     },{
-                        "targets": 2,
-                        "title": "name/description"
+                        targets: 2,
+                        orderable: false,
+                        title: "name/description"
                     },{
-                        "targets": 3,
-                        "title": "created",
-                        "width": '70px'
+                        targets: 3,
+                        title: 'created',
+                        width: '90px',
+                        className: config.sigTableCounterClass
                     },{
-                        "targets": 4,
-                        "title": "updated",
-                        "width": '70px'
+                        targets: 4,
+                        title: "updated",
+                        width: '90px',
+                        className: config.sigTableCounterClass
+                    },{
+                        targets: 5,
+                        title: '',
+                        orderable: false,
+                        width: '20px',
+                        class: 'center'
                     }
                 ]
             } );
 
-            systemCell.show();
+            // draw system info Element
+            systemCell.updateSystemInfo();
 
-            // make Table editable
-            table.makeEditable();
+            // draw toolbar for signature table
+            systemCell.drawSignatureTableToolbar(emptySignatureData);
 
+            // draw signature table
+            systemCell.drawSignatureTable(signatureData);
 
         }else{
             systemCell.hide();
@@ -330,18 +522,86 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
     };
 
     /**
+     * update systeminfo
+     */
+    $.fn.updateSystemInfo = function(){
+        var systemInfoWrapper = $(this).find('.' + config.systemInfoElementWrapperClass);
+
+        if(systemInfoWrapper.length === 0){
+            // create system Info Wrapper
+            systemInfoWrapper = $('<div>', {
+                class: config.systemInfoElementWrapperClass,
+                text: 'ddd'
+            });
+
+            $(this).prepend(systemInfoWrapper);
+        }
+
+    };
+
+    $.fn.updateScannedSignaturesBar = function(){
+
+    };
+
+    /**
      * make a table editable (in-line-editor)
      */
-    $.fn.makeEditable = function(){
-        // set editor mode
-       // $.fn.editable.defaults.mode = 'inline';
+    $.fn.makeEditable = function(options){
 
-        // cach sige types
+        var table = $(this);
+
+        // default x-editable options for each field
+        //$.fn.editable.defaults.url = '/post';
+        $.fn.editable.defaults.ajaxOptions = {
+            type: 'post',
+            dataType: 'json'
+        };
+
+        // find editable fields
+        var sigIdFields = table.find('.' + config.sigTableEditSigNameInput);
+        var sigTypeFields = table.find('.' + config.sigTableEditSigTypeSelect);
+        var sigNameFields = table.find('.' + config.sigTableEditSigNameSelect);
+
+        // jump to "next" editable field on save
+        var openNextEditDialogOnSave = function(fields){
+            fields.on('save', function(){
+                var that = this;
+                setTimeout(function() {
+                    var nextField = getNextEditableField(that);
+
+                    $(nextField).editable('show');
+                }, 200);
+            });
+        };
+
+        // get the next editable field
+        var getNextEditableField = function(field){
+            return $(field).closest('td').next().find('.editable');
+        };
+
+        // sigTableEditSigNameInput
+        sigIdFields.editable({
+            mode: 'popup',
+            type: 'text',
+            title: 'signature id',
+            name: 'name',
+            validate: function(value) {
+                if($.trim(value) === '') {
+                    return 'Signature id cant be empty';
+                }
+            }
+        });
+
+
+        // cache sige types -----------------------------------------------------
         var sigTypeCache = {};
 
         // Select sig type (master)
-        $(this).find('.' + config.sigTableEditSigTypeSelect).editable({
+        sigTypeFields.editable({
             mode: 'popup',
+            type: 'select',
+            title: 'signature type',
+            name: 'typeId',
             source: function(){
 
                 var systemType = $(this).attr('data-systemtype');
@@ -391,15 +651,32 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                 }
 
                 return availableTypes;
+            },
+            success: function(response, newValue){
+
+                // find related "name" select (same row) and change options
+                var nameSelect = getNextEditableField(this);
+
+                var systemType = $(this).attr('data-systemtype');
+                var areaId = $(this).attr('data-areaid');
+
+                // set new Options
+                var newSelectOptions = getSignatureNames(systemType, areaId, newValue);
+
+                $(nameSelect).editable('option', 'source', newSelectOptions);
+
+                $(nameSelect).editable('setValue', null);
             }
         });
 
-        // cache sig names
+        // cache sig names -----------------------------------------------------------
         var sigNameCache = {};
 
         // Select sig name (slave: depends on sig type)
-        $(this).find('.' + config.sigTableEditSigNameSelect).editable({
+        sigNameFields.editable({
             mode: 'inline',
+            type: 'select',
+            name: 'sigTypeId',
             source: function(){
 
                 var systemType = $(this).attr('data-systemtype');
@@ -413,25 +690,57 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                     return sigNameCache[cacheKey];
                 }
 
-                var availableSigs = {};
-
                 // get all available Signature Names
-                if(
-                    config.signatureTypes[systemType] &&
-                    config.signatureTypes[systemType][areaId] &&
-                    config.signatureTypes[systemType][areaId][sigType]
-                ){
-                    availableSigs = sigNameCache[cacheKey] = config.signatureTypes[systemType][areaId][sigType];
-                }
+                var availableSigs = sigNameCache[cacheKey] = getSignatureNames(systemType, areaId, sigType);
 
                 return availableSigs;
             }
         });
 
-        // Textfields
-        $('.' + config.sigTableEditText).editable({
-            anim: "1000"
+        // open next field dialog
+        openNextEditDialogOnSave(sigIdFields);
+        openNextEditDialogOnSave(sigTypeFields);
+
+        // set button observer (delete sig)
+        $(this).find('.btn-danger').on('click', function(e){
+            e.preventDefault();
+
+            // get clicked dataTable object
+            var currentTable = $(e.target).parents('.' + config.sigTableClass);
+
+            currentTable = $(currentTable).dataTable();
+
+            currentTable.fnDeleteRow($(e.target).parents('tr'));
+
         });
+
+        // init signature counter
+        $(this).find('.' + config.sigTableCounterClass).initSignatureCounter();
+
+
+
+    };
+
+    /**
+     * get Signature names out of global
+     * @param systemType
+     * @param areaId
+     * @param sigType
+     * @returns {{}}
+     */
+    var getSignatureNames = function(systemType, areaId, sigType){
+
+        var signatureNames = {};
+
+        if(
+            config.signatureTypes[systemType] &&
+            config.signatureTypes[systemType][areaId] &&
+            config.signatureTypes[systemType][areaId][sigType]
+        ){
+            signatureNames =  config.signatureTypes[systemType][areaId][sigType];
+        }
+
+        return signatureNames;
     };
 
     /**
@@ -473,7 +782,7 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
      * @param systemData
      * @returns {Array}
      */
-    var formatSignatureData = function(systemData){
+    var formatSignatureData = function(systemData, options){
 
         var formattedData = [];
 
@@ -497,11 +806,19 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
 
                     var tempData = [];
 
-                    // set signature
-                    tempData.push(data.sig);
+                    // set signature name
+                    var sigName = '<a href="#" class="' + config.sigTableEditSigNameInput + '" ';
+                    if(data.id > 0){
+                        sigName += 'data-pk="' + data.id + '" ';
+                    }
+                    sigName += '>' + data.sig + '</a>';
+
+                    tempData.push(sigName);
 
                     var sigType = '<a href="#" class="' + config.sigTableEditSigTypeSelect + '" ';
-                    sigType += 'data-type="select" ';
+                    if(data.id > 0){
+                        sigType += 'data-pk="' + data.id + '" ';
+                    }
                     sigType += 'data-systemType="' + systemType + '" ';
                     sigType += 'data-areaId="' + areaId + '" ';
                     sigType += 'data-value="' + data.sigTypeId + '" ';
@@ -511,7 +828,9 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                     tempData.push( sigType );
 
                     var sigElement = '<a href="#" class="' + config.sigTableEditSigNameSelect + '" ';
-                    sigElement += 'data-type="select" ';
+                    if(data.id > 0){
+                        sigElement += 'data-pk="' + data.id + '" ';
+                    }
                     sigElement += 'data-systemType="' + systemType + '" ';
                     sigElement += 'data-areaId="' + areaId + '" ';
                     sigElement += 'data-sigTypeId="' + data.sigTypeId + '" ';
@@ -526,6 +845,21 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
 
                     // set Sig updated
                     tempData.push( data.updated );
+
+                    // action icon
+                    var actionButtonClass = 'btn-danger';
+                    var actionButtonIcon = 'fa-minus';
+                    if(options.action){
+                        actionButtonClass = options.action.buttonClass;
+                        actionButtonIcon = options.action.buttonIcon;
+                    }
+
+                    var deleteButton = '<a class="btn ' + actionButtonClass + ' btn-xs" href="#">';
+                    deleteButton += '<i class="fa ' + actionButtonIcon + '"></i>';
+                    deleteButton += '</a>';
+
+                    tempData.push( deleteButton );
+
 
                     formattedData.push(tempData);
                 });
@@ -557,7 +891,7 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                     sig: 'GDF',
                     typeId: 1,
                     sigTypeId: 2,
-                    created: 1415215936,
+                    created: 1325376000,
                     updated: 1415215936
 
                 },{
@@ -565,7 +899,7 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                     sig: 'HFS',
                     typeId: 1,
                     sigTypeId: 3,
-                    created: 1415215936,
+                    created: 1415989953,
                     updated: 1415215936
 
                 },{
@@ -577,7 +911,7 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                     updated: 1415215936
 
                 },{
-                    id: 8,
+                    id: 12,
                     sig: 'LLD',
                     typeId: 1,
                     sigTypeId: 1,
@@ -585,15 +919,15 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                     updated: 1415215936
 
                 },{
-                    id: 8,
+                    id: 13,
                     sig: 'DGE',
                     typeId: 1,
                     sigTypeId: 1,
-                    created: 1415215936,
+                    created: 1394613252,
                     updated: 1415215936
 
                 },{
-                    id: 8,
+                    id: 14,
                     sig: 'EXS',
                     typeId: 1,
                     sigTypeId: 1,
@@ -601,15 +935,15 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                     updated: 1415215936
 
                 },{
-                    id: 8,
+                    id: 15,
                     sig: 'CVS',
                     typeId: 3,
                     sigTypeId: 1,
                     created: 1415215936,
-                    updated: 1415215936
+                    updated: 1386934983
 
                 },{
-                    id: 8,
+                    id: 16,
                     sig: 'GGD',
                     typeId: 2,
                     sigTypeId: 1,
@@ -617,12 +951,12 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                     updated: 1415215936
 
                 },{
-                    id: 8,
+                    id: 18,
                     sig: 'OKD',
                     typeId: 1,
                     sigTypeId: 1,
                     created: 1415215936,
-                    updated: 1415215936
+                    updated: 1394613252
 
                 },{
                     id: 8,
@@ -633,15 +967,15 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                     updated: 1415215936
 
                 },{
-                    id: 8,
+                    id: 20,
                     sig: 'ASW',
                     typeId: 1,
                     sigTypeId: 1,
                     created: 1415215936,
-                    updated: 1415215936
+                    updated: 1386934983
 
                 },{
-                    id: 8,
+                    id: 22,
                     sig: 'NFG',
                     typeId: 2,
                     sigTypeId: 2,
@@ -667,14 +1001,21 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
         // get all active map elements for module
         var mapElements = getMaps(this);
 
+        var currentUserData = null;
+
+        // current user data
+        if(userData.currentUserData){
+            currentUserData = userData.currentUserData;
+        }
+
         // get map Data
         $.each(mapElements, function(i, mapElement){
 
             var mapId = parseInt( $(mapElement).attr('data-mapid') );
 
-            var mapUserData = {};
+            var mapUserData = null;
             // get user data for each active map
-            $.each(userData, function(j, tempMapData){
+            $.each(userData.mapUserData, function(j, tempMapData){
 
                 if(tempMapData.config.id === mapId){
                     // map userdata found
@@ -683,7 +1024,9 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
             });
 
             // update map
-            $(mapElement).updateUserData(mapUserData);
+            if(mapUserData){
+                $(mapElement).updateUserData(mapUserData, currentUserData);
+            }
         });
     };
 
@@ -698,11 +1041,11 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                 class: ['row', config.mapTabContentRow].join(' ')
             }).append(
                     $('<div>', {
-                        class: ['col-xs-12', 'col-sm-8', config.mapTabContentCellFirst].join(' ')
+                        class: ['col-xs-12', 'col-sm-8', config.mapTabContentCellFirst, config.mapTabContentCell].join(' ')
                     })
                 ).append(
                     $('<div>', {
-                        class: ['col-xs-6', 'col-sm-4', config.mapTabContentCellSecond].join(' ')
+                        class: ['col-xs-6', 'col-sm-4', config.mapTabContentCellSecond, config.mapTabContentCell].join(' ')
                     })
                 );
 
@@ -742,7 +1085,7 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                     $( tabContentElements[0] ).initMap(mapData[0]);
 
                     // check for "new map" action before tap-change
-                    $('#' + config.mapTabBarId).find('a[data-toggle="tab"]').on('show.bs.tab', function (e) {
+                    getTabElements().on('show.bs.tab', function (e) {
 
                         var mapIndex = parseInt( $(e.target).attr('data-map-index') );
 
@@ -756,16 +1099,14 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                     });
 
                     // load new map right after tab-change
-                    $('#' + config.mapTabBarId).find('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                    getTabElements().on('shown.bs.tab', function (e) {
 
                         var mapIndex = parseInt( $(e.target).attr('data-map-index') );
 
-                        if(mapIndex > 0){
-                            var mapId = mapData[mapIndex].config.id;
-                            var currentTabContentElement = $('#' + config.mapTabIdPrefix + mapId);
+                        var mapId = mapData[mapIndex].config.id;
+                        var currentTabContentElement = $('#' + config.mapTabIdPrefix + mapId);
 
-                            $( currentTabContentElement).initMap( mapData[mapIndex]);
-                        }
+                        $( currentTabContentElement).initMap( mapData[mapIndex]);
 
                     });
 
@@ -824,9 +1165,18 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
             $(this).loadMap(mapData);
 
             // init custom scrollbars
-            var scrollableElement = $(this).find('.' + config.mapWrapperClass);
-            initCutomScrollbar( scrollableElement );
+            $(this).initMapScrollbar();
+
         });
+    };
+
+    /**
+     * init scrollbar for Map element
+     */
+    $.fn.initMapScrollbar = function(){
+        // get Map Scrollbar
+        var scrollableElement = $(this).find('.' + config.mapWrapperClass);
+        initCutomScrollbar( scrollableElement );
     };
 
     /**
@@ -838,9 +1188,24 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
         // init custom scrollbars
         $(scrollableElement).mCustomScrollbar({
             axis:"x",
-            theme:"light-thick"
+            theme:"light-thick",
+            scrollButtons:{
+                enable:true
+            }
         });
+        console.log(scrollableElement)
+    };
 
+    /**
+     * scroll to a specific position in the map
+     * @returns {*} // string or id
+     */
+    $.fn.scrollTo = function(position){
+        return this.each(function(i, mapElement){
+            console.log(this)
+
+            $(this).mCustomScrollbar('scrollTo', position);
+        });
     };
 
 });

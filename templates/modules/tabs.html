@@ -9,8 +9,8 @@
     {{/tabs}}
 </ul>
 
-<div class="tab-content" data-map-tabs="{{id}}">
+<div class="tab-content" data-map-tabs="{{id}}" >
     {{#tabs}}
-        <div role="tabpanel" class="tab-pane {{contentClass}} {{#active}}active{{/active}}" id="pf-map-tab-{{id}}"></div>
+        <div role="tabpanel" class="tab-pane {{contentClass}} {{#active}}active{{/active}}" data-map-index="{{index}}" id="pf-map-tab-{{id}}"></div>
     {{/tabs}}
 </div>

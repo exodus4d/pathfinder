@@ -192,7 +192,6 @@
 
   .pf-system-active:not(.pf-map-endpoint-source):not(.pf-map-endpoint-target){
     @include box-shadow($yellow-lighter 0px 0px 8px 0px);
-    @include transition-duration(0.2s);
   }
 
   // system status ======================================================
@@ -310,21 +309,6 @@
     path:first-child{
       stroke: red;
     }
-  }
-
-  // Tooltip ======================================================
-  .tooltip-inner{
-    opacity: 0.8;
-    color: $teal;
-    background-color: $gray;
-    font-family: 'Oxygen Bold';
-    padding: 5px 5px;
-    @include border-radius(5px);
-
-  }
-
-  .tooltip.top .tooltip-arrow{
-    border-top-color: $gray-light;
   }
 
 }
