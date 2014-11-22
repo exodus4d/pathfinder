@@ -72,74 +72,16 @@
     .pf-system-head{
       padding: 0px 3px 2px 3px;
       cursor: pointer;
-      color: $gray-lighter;
+
+      .pf-system-head-name{
+        border: none;
+        color: $gray-lighter;
+      }
 
       .pf-system-head-expand{
         margin-left: 5px;
         display: none;  // triggered by JS
       }
-    }
-
-    // System security =============================================
-
-    .pf-system-sec{
-      margin-right: 5px;
-      cursor: move;
-    }
-
-    .pf-system-sec-highSec{
-      color: $green;
-    }
-
-    .pf-system-sec-lowSec{
-      color: $orange;
-    }
-
-    .pf-system-sec-nullSec{
-      color: $red;
-    }
-
-    .pf-system-sec-high{
-      color: $red;
-    }
-
-    .pf-system-sec-mid{
-      color: $orange;
-    }
-
-    .pf-system-sec-low{
-      color: $blue;
-    }
-
-    // WH effects ==================================================
-
-    .pf-system-effect{
-      margin-left: 5px;
-      cursor: default;
-    }
-
-    .pf-system-effect-magnetar{
-      color: $wh-color-magnetar;
-    }
-
-    .pf-system-effect-redgiant{
-      color: $wh-color-redgiant;
-    }
-
-    .pf-system-effect-pulsar{
-      color: $wh-color-pulsar;
-    }
-
-    .pf-system-effect-wolfryet{
-      color: $wh-color-wolfryet;
-    }
-
-    .pf-system-effect-cataclysmic{
-      color: $wh-color-cataclysmic;
-    }
-
-    .pf-system-effect-blackhole{
-      color: $wh-color-blackhole;
     }
 
     // ===============================================================
@@ -148,7 +90,9 @@
       height: 16px;
       width: 100%;
       overflow: hidden;
-      cursor: move;
+      cursor: -moz-grab;
+      cursor: -webkit-grab;
+      cursor: grab;
       padding: 0 2px;
       white-space: nowrap;
       display: none;  // triggered by JS

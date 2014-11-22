@@ -31,8 +31,8 @@ $link-hover-color:      darken($link-color, 15%);
 
 $pf-font-path:            "../fonts" !default;
 
-$font-family-sans-serif:  "Open Sans", Arial, Helvetica, sans-serif;
-$font-family-serif:       Georgia, "Times New Roman", Times, serif;
+$font-family-sans-serif:  'Oxygen Light', "Helvetica Neue", Helvetica, Arial, sans-serif !default;
+$font-family-serif:       'Oxygen Regular' Georgia, "Times New Roman", Times, serif !default;
 $font-family-monospace:   Monaco, Menlo, Consolas, "Courier New", monospace;
 $font-family-base:        $font-family-sans-serif;
 
@@ -43,7 +43,7 @@ $font-size-small:         ceil(($font-size-base * 0.85)); // ~11px
 $font-size-h1:            floor(($font-size-base * 1.85)); // ~24px
 $font-size-h2:            floor(($font-size-base * 1.7)); // ~22px
 $font-size-h3:            ceil(($font-size-base * 1.385)); // ~18px
-$font-size-h4:            ceil(($font-size-base * 1.32)); // ~17px
+$font-size-h4:            $font-size-base; //ceil(($font-size-base * 1.32)); // ~17px
 $font-size-h5:            ceil(($font-size-base * 1.24)); // ~16px
 $font-size-h6:            ceil(($font-size-base * 1.08)); // ~14px
 
@@ -103,7 +103,7 @@ $padding-xs-horizontal:     5px;
 $line-height-large:         1.33;
 $line-height-small:         1.5;
 
-$border-radius-base:        4px;
+$border-radius-base:        0px;
 $border-radius-large:       6px;
 $border-radius-small:       3px;
 
@@ -123,7 +123,7 @@ $caret-width-large:         5px;
 //## Customizes the `.table` component with basic values, each used across all table variations.
 
 $table-cell-padding:            8px;
-$table-condensed-cell-padding:  5px;
+$table-condensed-cell-padding:  2px;
 
 $table-bg:                      transparent;
 $table-bg-accent:               #f9f9f9;
@@ -222,8 +222,8 @@ $dropdown-caret-color:           #000;
 
 $zindex-navbar:            1000;
 $zindex-dropdown:          1000;
-$zindex-popover:           1010;
-$zindex-tooltip:           1030;
+$zindex-tooltip:           1010;
+$zindex-popover:           1030;
 $zindex-navbar-fixed:      1030;
 $zindex-modal-background:  1040;
 $zindex-modal:             1050;
@@ -247,7 +247,7 @@ $screen-tablet:              $screen-sm-min;
 
 // Medium screen / desktop
 // Note: Deprecated $screen-md and $screen-desktop as of v3.0.1
-$screen-md:                  992px;
+$screen-md:                  900px;
 $screen-md-min:              $screen-md;
 $screen-desktop:             $screen-md-min;
 
@@ -511,12 +511,12 @@ $label-link-hover-color:      #fff;
 //
 //##
 
-$modal-inner-padding:         20px;
+$modal-inner-padding:         14px;
 
-$modal-title-padding:         15px;
+$modal-title-padding:         14px;
 $modal-title-line-height:     $line-height-base;
 
-$modal-content-bg:                             #fff;
+$modal-content-bg:                             $gray;
 $modal-content-border-color:                   rgba(0,0,0,.2);
 $modal-content-fallback-border-color:          #999;
 
@@ -664,11 +664,11 @@ $badge-border-radius:         10px;
 //
 //##
 
-$breadcrumb-padding-vertical:   8px;
-$breadcrumb-padding-horizontal: 15px;
-$breadcrumb-bg:                 #f5f5f5;
-$breadcrumb-color:              #ccc;
-$breadcrumb-active-color:       $gray-light;
+$breadcrumb-padding-vertical:   0px;
+$breadcrumb-padding-horizontal: 0px;
+$breadcrumb-bg:                 none;
+$breadcrumb-color:              $gray-light;
+$breadcrumb-active-color:       $green;
 $breadcrumb-separator:          "/";
 
 
@@ -694,7 +694,7 @@ $carousel-caption-color:                      #fff;
 //##
 
 $close-font-weight:           bold;
-$close-color:                 #000;
+$close-color:                 $red-darker;
 $close-text-shadow:           0 1px 0 #fff;
 
 

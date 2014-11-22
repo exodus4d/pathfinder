@@ -1,4 +1,4 @@
-define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'customScrollbar', 'app/counter'], function($, Render) {
+define(['jquery', 'app/util', 'app/render', 'bootbox', 'datatables', 'xEditable', 'app/map/map', 'customScrollbar', 'app/counter'], function($, Util, Render, bootbox) {
 
     "use strict";
 
@@ -19,14 +19,24 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
         mapTabContentCellFirst: 'pf-map-content-col-first',                     // first column
         mapTabContentCellSecond: 'pf-map-content-col-second',                   // second column
 
-        // system info
-        systemInfoElementWrapperClass: 'pf-system-info-wrapper',                // class for systeminfo Wrapper
+        // module info
+        moduleClass: 'pf-module',                                               // class for each module
+
+        // system info module
+        systemInfoModuleClass: 'pf-system-info-module',                         // module wrapper
+        systemInfoRoutesClass: 'pf-system-info-routes',                         // wrapper for trade hub routes
+        systemInfoRoutesTableClass: 'pf-system-route-table',                    // class for route tables
+        systemInfoRoutesTableRowPrefix: 'pf-system-info-routes-row-',           // prefix class for a row in the route table
+        systemSecurityClassPrefix: 'pf-system-security-',                       // prefix class for system security level (color)
+
         systemInfoProgressScannedClass: 'pf-system-progress-scanned',           // progress bar scanned signatures
 
-        // sig table
+        // sig table module
+        sigTableModuleClass: 'pf-sig-table-module',                             // module wrapper
         sigTableToolsClass: 'pf-sig-table-tools',                               // table toolbar
         sigTableToolsActionClass: 'pf-sig-table-tools-action',                  // table toolbar action
         sigTableClass: 'pf-sig-table',                                          // Table class for all Signature Tables
+        sigTableMainClass: 'pf-sig-table-main',                                 // Table class for main sig table
         sigTableEditText: 'pf-sig-table-edit-text',                             // class for editable fields (text)
         sigTableEditSigNameInput: 'pf-sig-table-edit-name-input',               // class for editable fields (input)
         sigTableEditSigTypeSelect: 'pf-sig-table-edit-type-select',             // class for editable fields (select)
@@ -271,18 +281,25 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
      * set Tab Observer, events are triggered within map.js
      * @param mapContentModule
      */
-    $.fn.setTabContenteObserver = function(){
+    $.fn.setTabContentObserver = function(){
 
         return this.each(function(){
             // update Tab Content with system data information
-            $(this).on('pf:updateSystemData', function(e, data){
-                updateSystemInfoElement($( e.target ));
+            $(this).on('pf:updateSystemData', function(e, mapData){
+
+                // collect all relevant data for SystemInfoElement
+                var systemInfoData = {
+                    systemId: parseInt( $( mapData.system).attr('data-id') ),
+                    mapId: parseInt( $( mapData.system).attr('data-mapid') )
+                };
+
+                updateSystemInfoElement($( e.target ), systemInfoData);
             });
 
             // highlite a mapTab
             $(this).on('pf:highlightTab', function(e, data){
                 // update Tab Content with system data information
-                highliteTab(e.target, data);
+                highlightTab(e.target, data);
 
             });
 
@@ -290,11 +307,11 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
     };
 
     /**
-     * highlite a Tab in this module e.g. when user has an active pilot in this map
+     * highlight a Tab in this module e.g. when user has an active pilot in this map
      * @param contentElement
      * @param data
      */
-    var highliteTab = function(contentElement, data){
+    var highlightTab = function(contentElement, data){
         var tabElements = getTabElements();
 
         contentElement = $(contentElement);
@@ -327,7 +344,13 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
 
     };
 
+    /**
+     * draw signature table toolbar (add signature button, scan progress bar
+     * @param emptySignatureData
+     */
     $.fn.drawSignatureTableToolbar = function(emptySignatureData){
+
+        var systemCell = $(this);
 
         // add toolbar buttons for table -------------------------------------
         var tableToolbar = $('<div>', {
@@ -337,7 +360,9 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                     class: ['btn', 'btn-primary', 'btn-sm'].join(' '),
                     text: ' add signature'
                 }).on('click', function(e){
-
+                    // show "add sig" div
+                    var toolsElement = $(e.target).parents('.' + config.moduleClass).find('.' + config.sigTableToolsActionClass);
+                    toolsElement.slideToggle( 100 );
                 }).prepend(
                         $('<i>', {
                             class: ['fa', 'fa-plus', 'fa-fw'].join(' ')
@@ -345,30 +370,7 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                     )
             );
 
-        $(this).append(tableToolbar);
-
-        // scanned signatures progress bar --------------------------------------
-        var moduleConfig = {
-            name: 'form/progress',
-            position: tableToolbar,
-            link: 'before',
-            functions: {
-                after: function(){
-
-                }
-            }
-        };
-
-        var moduleData = {
-            label: true,
-            class: config.systemInfoProgressScannedClass,
-            barClass: 'progress-bar-success',
-            percent: '70',
-            headline: 'System scanned',
-            headlineRight: '70%' // will be updated by js
-        };
-
-        Render.showModule(moduleConfig, moduleData);
+        systemCell.prepend(tableToolbar);
 
         // add toolbar action for table -------------------------------------
         var tableToolbarAction = $('<div>', {
@@ -382,8 +384,7 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
 
         tableToolbarAction.append(table);
 
-        $(this).append(tableToolbarAction);
-
+        tableToolbar.after(tableToolbarAction);
 
         table.dataTable( {
             data: emptySignatureData,
@@ -394,36 +395,95 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
         } );
 
         table.makeEditable();
+
+        // scanned signatures progress bar --------------------------------------
+        var moduleConfig = {
+            name: 'form/progress',
+            position: tableToolbar,
+            link: 'before',
+            functions: {
+                after: function(){
+                    systemCell.updateScannedSignaturesBar();
+                }
+            }
+        };
+
+        var moduleData = {
+            label: true,
+            wrapperClass: config.systemInfoProgressScannedClass,
+            class: ['progress-bar-success'].join(' '),
+            percent: 0,
+            headline: 'System scanned',
+            headlineRight: ' ' // will be updated by js
+        };
+
+        Render.showModule(moduleConfig, moduleData);
+
+
     };
 
 
-    // drawsignature table
-    $.fn.drawSignatureTable = function(signatureData){
+    // draw signature table
+    $.fn.drawSignatureTable = function(signatureData, systemInfoData){
 
+        var moduleElement = $(this);
 
         // create new signature table -------------------------------------------
 
         var table = $('<table>', {
-            class: ['display', 'compact', config.sigTableClass].join(' ')
+            class: ['display', 'compact', config.sigTableClass, config.sigTableMainClass].join(' ')
         });
 
-        $(this).append(table);
+        moduleElement.append(table);
 
+        // set event listener
+        table.on( 'draw.dt', function () {
+            // TODO maybe needet :D
+        });
 
         var signatureTable = table.dataTable( {
             data: signatureData
         } );
 
-        $(this).show();
-
         // make Table editable
-        signatureTable.makeEditable();
-
+        signatureTable.makeEditable(systemInfoData);
 
         return signatureTable;
     };
 
-    var updateSystemInfoElement = function(tabContentElement){
+    /**
+     * collect all data of all editable fields in a signature table
+     * @returns {Array}
+     */
+    $.fn.getSignatureTableData = function(){
+
+        var tableRows = $(this).find('.' + config.sigTableMainClass + ' tbody tr');
+
+        var tableData = [];
+
+        $.each(tableRows, function(i, tableRow){
+            // get all editable fields per row
+            var editableFields = $(tableRow).find('.editable');
+
+            if(editableFields.length > 0){
+                var values = $(editableFields).editable('getValue');
+
+                // add pk for this row
+                values.id = $(editableFields[0]).data('pk');
+
+                tableData.push( values );
+            }
+        });
+
+        return tableData;
+    };
+
+    /**
+     * clears and updates the system info element (signature table, system info,...)
+     * @param tabContentElement
+     * @param systemInfoData
+     */
+    var updateSystemInfoElement = function(tabContentElement, systemInfoData){
 
         // get Table cell for system Info
         var systemCell = $(tabContentElement).find('.' + config.mapTabContentCellFirst);
@@ -431,15 +491,24 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
         // clear systemCell
         systemCell.empty();
 
+        // update signature table module
+        systemCell.updateSignatureTableModule(systemInfoData);
+
+        // update system info module
+        systemCell.updateSystemInfo(systemInfoData);
+    };
+
+    $.fn.updateSignatureTableModule = function(systemInfoData){
+
         // TODO replace with backend ajax request
-        var systemData = tempFunctionGetSystemData();
+        var systemData = tempFunctionGetSystemData(systemInfoData);
         var emptySystemData = $.extend({}, systemData); // copy object for manipulation
 
         // fake data for new signature table entry
         emptySystemData.signatures = [
             {
                 id: 0,
-                sig: '',
+                name: '',
                 typeId: null,
                 sigTypeId: null,
                 created: null,
@@ -461,10 +530,18 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
         // check if signatures exist
         if(signatureData.length > 0){
 
+            // create new module container
+            var moduleElement = $('<div>', {
+                class: [config.moduleClass, config.sigTableModuleClass].join(' ')
+            });
+
+            $(this).append(moduleElement);
+
             // set default values for all signature "datatables"
             $.extend( $.fn.dataTable.defaults, {
-                pageLength: 100,
-                lengthMenu: [ 5, 10, 25, 50, 75, 100 ],
+                pageLength: -1,
+                lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, 'All']],
+                autoWidth: false,
                 language: {
                     zeroRecords: 'No signatures found',
                     lengthMenu:  'Show _MENU_ signatures',
@@ -500,53 +577,277 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                         targets: 5,
                         title: '',
                         orderable: false,
-                        width: '20px',
-                        class: 'center'
+                        width: '10px',
+                        class: 'text-center'
                     }
                 ]
             } );
 
-            // draw system info Element
-            systemCell.updateSystemInfo();
+            // draw signature table
+            moduleElement.drawSignatureTable(signatureData, systemInfoData);
 
             // draw toolbar for signature table
-            systemCell.drawSignatureTableToolbar(emptySignatureData);
+            moduleElement.drawSignatureTableToolbar(emptySignatureData);
 
-            // draw signature table
-            systemCell.drawSignatureTable(signatureData);
 
-        }else{
-            systemCell.hide();
         }
-
     };
 
     /**
      * update systeminfo
      */
-    $.fn.updateSystemInfo = function(){
-        var systemInfoWrapper = $(this).find('.' + config.systemInfoElementWrapperClass);
+    $.fn.updateSystemInfo = function(systemInfoData){
 
-        if(systemInfoWrapper.length === 0){
-            // create system Info Wrapper
-            systemInfoWrapper = $('<div>', {
-                class: config.systemInfoElementWrapperClass,
-                text: 'ddd'
-            });
 
-            $(this).prepend(systemInfoWrapper);
+        // TODO replace by AJAX
+        if(systemInfoData.systemId === 30002979){
+            var system =  {
+                id: 30002979,
+                //name: 'J150020',
+                name: 'Tararan',
+                alias: '',
+                effect: '',
+                security: 'L',
+                trueSec: 0.3,
+                region: {
+                    id: '10000036',
+                    name: 'Devoid'
+                },
+                constellation: {
+                    id: '20000436',
+                    name: 'Jayai'
+                },
+                type: 'k-space'
+            };
+        }else{
+            var system =  {
+                id: 2,
+                name: 'J150020',
+                alias: 'Polaris',
+                effect: 'magnetar',
+                security: 'C6',
+                trueSec: -1,
+                region: {
+                    id: '12345',
+                    name: 'F-R00030'
+                },
+                constellation: {
+                    id: '678990',
+                    name: 'F-C00298'
+                },
+                static: [{
+                    security: 'C6',
+                    name: ' W237',
+                    lifetime: 24
+                }],
+                //type: 'wh'
+                type: 'wh'
+            };
         }
+
+
+
+
+        // create new module container
+        var moduleElement = $('<div>', {
+            class: [config.moduleClass, config.systemInfoModuleClass].join(' ')
+        });
+
+        $(this).prepend(moduleElement);
+
+        // confirm dialog
+        var moduleConfig = {
+            name: 'modules/system_info',
+            position: moduleElement,
+            link: 'append',
+            functions: {
+                after: function(){
+                    // init tooltips
+                    var tooltipElements = $('.' + config.systemInfoModuleClass + ' [data-toggle="tooltip"]');
+                    tooltipElements.tooltip();
+
+                    // load trade routes
+                    if(system.type !== 'wh'){
+                        $(moduleElement).find('.' + config.systemInfoRoutesClass).updateSystemInfoRoutes(system.name, ['Jita', 'Amarr', 'Rens', 'Dodixie']);
+                    }
+
+
+                }
+            }
+        };
+
+
+        // add security class for statics
+        if(system.static){
+            $.each(system.static, function(i, staticWH){
+               system['static'][i]['class'] = Util.getSecurityClassForSystem( staticWH.security );
+            });
+        }
+
+
+        var moduleData = {
+            system:  system,
+            securityClass: Util.getSecurityClassForSystem( system.security ),
+            trueSecClass: Util.getTrueSecClassForSystem( system.trueSec ),
+            effectName: Util.getEffectInfoForSystem(system.effect, 'name'),
+            effectClass: Util.getEffectInfoForSystem(system.effect, 'class')
+        };
+
+        Render.showModule(moduleConfig, moduleData);
 
     };
 
+    $.fn.updateSystemInfoRoutes = function(systemFrom, systemsTo){
+
+        // TODO get cached routes from backend
+
+        var baseUrl = 'http://api.eve-central.com/api/route/from/';
+
+        var wrapperElement = $(this);
+
+        // crate new route table
+        var table = $('<table>', {
+            class: ['compact', 'stripe', 'order-column', 'row-border', config.systemInfoRoutesTableClass].join(' ')
+        });
+
+        wrapperElement.append( $(table) );
+
+        // init empty table
+        var routesTable = table.DataTable( {
+           paging: false,
+           ordering: true,
+           info: false,
+           searching: false,
+           hover: false,
+
+           //autoWidth: false,
+           columnDefs: [
+               {
+                   targets: 0,
+                   //"orderData": 0,
+                   orderable: true,
+                   title: 'system'
+               },{
+                   targets: 1,
+                   orderable: true,
+                   title: 'jumps &nbsp;&nbsp;&nbsp',
+                   width: '40px',
+                   class: 'text-right'
+               },{
+                   targets: 2,
+                   orderable: false,
+                   title: 'route'
+               }
+           ],
+           data: [] // will be added dynamic
+        } );
+
+
+        $.each(systemsTo, function(i, systemTo){
+
+            if(systemFrom !== systemTo){
+                var url = baseUrl + systemFrom + '/to/' + systemTo;
+                $.getJSON(url, function(routeData){
+
+                    // row class
+                    var rowClass = config.systemInfoRoutesTableRowPrefix + i;
+
+                    // add row Data
+                    var rowData = [systemTo, routeData.length];
+
+                    var jumpData = [];
+                    // loop all systems on a rout
+                    $.each(routeData, function(j, systemData){
+
+                        var systemSecClass = config.systemSecurityClassPrefix;
+                        var systemSec = systemData.to.security.toFixed(1).toString();
+                        systemSecClass += systemSec.replace('.', '-');
+                        var system = '<i class="fa fa-square ' + systemSecClass + '" ';
+                        system += 'data-toggle="tooltip" data-placement="bottom" ';
+                        system += 'title="' + systemData.to.name + ' - ' + systemSec + ' [' + systemData.to.region.name  + ']"></i>';
+                        jumpData.push( system );
+
+                    });
+
+
+                    rowData.push( jumpData.join(' ') );
+
+                    // add new row
+                    routesTable.row.add( rowData ).draw().nodes().to$().addClass( rowClass );
+
+                    // init tooltips for each jump system
+                    var tooltipElements = wrapperElement.find('.' + rowClass + ' [data-toggle="tooltip"]');
+
+                    $(tooltipElements).tooltip();
+
+                });
+            }
+
+
+
+        });
+
+
+
+    };
+
+
+    /**
+     * update Progressbar for all scanned signatures in a system
+     */
     $.fn.updateScannedSignaturesBar = function(){
+
+        var systemCell = $(this);
+
+        // get progress bar
+        var progressBarWrapper = $(this).find('.' + config.systemInfoProgressScannedClass);
+        var progressBar = $(progressBarWrapper).find('.progress-bar');
+        var progressBarLabel = $(progressBarWrapper).find('.progress-label-right');
+
+        var tableData = systemCell.getSignatureTableData();
+
+        var percent = 0;
+        var progressBarType = 'progress-bar-danger';
+
+        if(tableData){
+            var sigCount = tableData.length;
+            var sigIncompleteCount = 0;
+            // check for  signatures without "type" -> these are unscanned sigs
+            $.each(tableData, function(i, data){
+                var typeId = parseInt(data.typeId);
+                if(typeId === 0){
+                    sigIncompleteCount++;
+                }
+            });
+
+            percent = 100 - Math.round( 100 / sigCount * sigIncompleteCount );
+
+            if(percent < 30){
+                progressBarType = 'progress-bar-danger' ;
+            }else if(percent < 100){
+                progressBarType = 'progress-bar-warning';
+            }else{
+                progressBarType = 'progress-bar-success';
+            }
+        }
+
+        setTimeout(
+            function() {
+                progressBarLabel.text(percent + '%');
+                progressBar.removeClass().addClass('progress-bar').addClass(progressBarType);
+                progressBar.attr('aria-valuenow', percent);
+                progressBar.css({width: percent + '%'});
+        }, 100);
+
+
 
     };
 
     /**
      * make a table editable (in-line-editor)
+     * @param systemInfoData
      */
-    $.fn.makeEditable = function(options){
+    $.fn.makeEditable = function(systemInfoData){
 
         var table = $(this);
 
@@ -563,13 +864,18 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
         var sigNameFields = table.find('.' + config.sigTableEditSigNameSelect);
 
         // jump to "next" editable field on save
-        var openNextEditDialogOnSave = function(fields){
-            fields.on('save', function(){
+        var openNextEditDialogOnSave = function(fields, updateProgressBar){
+            fields.on('save', {test: 1}, function(e, data){
                 var that = this;
                 setTimeout(function() {
                     var nextField = getNextEditableField(that);
 
                     $(nextField).editable('show');
+
+                    // update scanning progressbar if sig "type" has changed
+                    if($(e.target).hasClass(config.sigTableEditSigTypeSelect)){
+                        $(that).parents('.' + config.moduleClass).updateScannedSignaturesBar();
+                    }
                 }, 200);
             });
         };
@@ -579,17 +885,32 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
             return $(field).closest('td').next().find('.editable');
         };
 
+        /**
+         * add map/system specific data for each editable field in the sig-table
+         * @param params
+         * @returns {*}
+         */
+        var modifyFieldParamsOnSend = function(params){
+
+            params.systemId = systemInfoData.systemId;
+            params.mapId = systemInfoData.mapId;
+
+            return params;
+        };
+
         // sigTableEditSigNameInput
         sigIdFields.editable({
             mode: 'popup',
             type: 'text',
             title: 'signature id',
             name: 'name',
+            emptytext: '? ? ?',
             validate: function(value) {
                 if($.trim(value) === '') {
                     return 'Signature id cant be empty';
                 }
-            }
+            },
+            params: modifyFieldParamsOnSend
         });
 
 
@@ -602,6 +923,8 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
             type: 'select',
             title: 'signature type',
             name: 'typeId',
+            emptytext: 'unknown',
+            params: modifyFieldParamsOnSend,
             source: function(){
 
                 var systemType = $(this).attr('data-systemtype');
@@ -646,6 +969,8 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                         }
                     }
 
+                    // add empty option
+                    availableTypes[0] = '';
 
                     availableTypes = sigTypeCache[cacheKey] = availableTypes;
                 }
@@ -666,6 +991,12 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                 $(nameSelect).editable('option', 'source', newSelectOptions);
 
                 $(nameSelect).editable('setValue', null);
+
+                if(newValue > 0){
+                    $(nameSelect).editable('option', 'disabled', false);
+                }else{
+                    $(nameSelect).editable('option', 'disabled', true);
+                }
             }
         });
 
@@ -674,43 +1005,63 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
 
         // Select sig name (slave: depends on sig type)
         sigNameFields.editable({
-            mode: 'inline',
+            mode: 'popup',
             type: 'select',
+            title: 'signature name',
             name: 'sigTypeId',
+            emptytext: 'unknown',
+            params: modifyFieldParamsOnSend,
             source: function(){
 
                 var systemType = $(this).attr('data-systemtype');
                 var areaId = $(this).attr('data-areaid');
-                var sigType = $(this).attr('data-sigtypeid');
+                var typeId = $(this).attr('data-typeid');
 
-                var cacheKey = [systemType, areaId, sigType].join('_');
+                var cacheKey = [systemType, areaId, typeId].join('_');
 
                 // check for cached signature names
                 if(sigNameCache.hasOwnProperty( cacheKey )){
                     return sigNameCache[cacheKey];
                 }
 
+                var signatureNames = getSignatureNames(systemType, areaId, typeId);
+
+                // add empty option
+                signatureNames[0] = '';
+
                 // get all available Signature Names
-                var availableSigs = sigNameCache[cacheKey] = getSignatureNames(systemType, areaId, sigType);
+                var availableSigs = sigNameCache[cacheKey] = signatureNames;
 
                 return availableSigs;
             }
         });
 
         // open next field dialog
-        openNextEditDialogOnSave(sigIdFields);
-        openNextEditDialogOnSave(sigTypeFields);
+        openNextEditDialogOnSave(sigIdFields, true);
+        openNextEditDialogOnSave(sigTypeFields, false);
 
         // set button observer (delete sig)
         $(this).find('.btn-danger').on('click', function(e){
             e.preventDefault();
 
-            // get clicked dataTable object
-            var currentTable = $(e.target).parents('.' + config.sigTableClass);
+            bootbox.confirm('Delete signature?', function(result) {
+                if(result){
+                    // get module
+                    var moduleElement = $(e.target).parents('.' + config.moduleClass);
 
-            currentTable = $(currentTable).dataTable();
+                    // get clicked dataTable object
+                    var currentTable = moduleElement.find('.' + config.sigTableMainClass);
 
-            currentTable.fnDeleteRow($(e.target).parents('tr'));
+                    currentTable = $(currentTable).dataTable();
+
+                    // delete signature row
+                    currentTable.fnDeleteRow($(e.target).parents('tr'));
+
+                    // update signature bar
+                    moduleElement.updateScannedSignaturesBar();
+                }
+            });
+
 
         });
 
@@ -811,7 +1162,7 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                     if(data.id > 0){
                         sigName += 'data-pk="' + data.id + '" ';
                     }
-                    sigName += '>' + data.sig + '</a>';
+                    sigName += '>' + data.name + '</a>';
 
                     tempData.push(sigName);
 
@@ -821,7 +1172,7 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                     }
                     sigType += 'data-systemType="' + systemType + '" ';
                     sigType += 'data-areaId="' + areaId + '" ';
-                    sigType += 'data-value="' + data.sigTypeId + '" ';
+                    sigType += 'data-value="' + data.typeId + '" ';
                     sigType += '></a>';
 
                     // set Sig Id
@@ -831,10 +1182,16 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                     if(data.id > 0){
                         sigElement += 'data-pk="' + data.id + '" ';
                     }
+
+                    // set disabled if sig type is not selected
+                    if(data.typeId < 1){
+                        sigElement += 'data-disabled="1" ';
+                    }
+
                     sigElement += 'data-systemType="' + systemType + '" ';
                     sigElement += 'data-areaId="' + areaId + '" ';
-                    sigElement += 'data-sigTypeId="' + data.sigTypeId + '" ';
-                    sigElement += 'data-value="' + data.typeId + '" ';
+                    sigElement += 'data-typeId="' + data.typeId + '" ';
+                    sigElement += 'data-value="' + data.sigTypeId + '" ';
                     sigElement += '></a>';
 
                     // set Sig Id
@@ -855,7 +1212,7 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                     }
 
                     var deleteButton = '<a class="btn ' + actionButtonClass + ' btn-xs" href="#">';
-                    deleteButton += '<i class="fa ' + actionButtonIcon + '"></i>';
+                    deleteButton += '<i class="fa ' + actionButtonIcon + ' fa-fw"></i>';
                     deleteButton += '</a>';
 
                     tempData.push( deleteButton );
@@ -882,13 +1239,18 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
             config: {
                 id: 2,
                 name: 'J150020',
+                alias: 'Polaris',
+                effect: 'magnetar',
                 security: 'C6',
+                static: [{
+                    lifetime: 24
+                }],
                 type: 'wh'
             },
             signatures: [
                 {
                     id: 2,
-                    sig: 'GDF',
+                    name: 'GDF',
                     typeId: 1,
                     sigTypeId: 2,
                     created: 1325376000,
@@ -896,15 +1258,15 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
 
                 },{
                     id: 6,
-                    sig: 'HFS',
-                    typeId: 1,
-                    sigTypeId: 3,
+                    name: 'HFS',
+                    typeId: 0,
+                    sigTypeId: 1,
                     created: 1415989953,
                     updated: 1415215936
 
                 },{
                     id: 8,
-                    sig: 'HFG',
+                    name: 'HFG',
                     typeId: 1,
                     sigTypeId: 1,
                     created: 1415215936,
@@ -912,7 +1274,7 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
 
                 },{
                     id: 12,
-                    sig: 'LLD',
+                    name: 'LLD',
                     typeId: 1,
                     sigTypeId: 1,
                     created: 1415215936,
@@ -920,7 +1282,7 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
 
                 },{
                     id: 13,
-                    sig: 'DGE',
+                    name: 'DGE',
                     typeId: 1,
                     sigTypeId: 1,
                     created: 1394613252,
@@ -928,7 +1290,7 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
 
                 },{
                     id: 14,
-                    sig: 'EXS',
+                    name: 'EXS',
                     typeId: 1,
                     sigTypeId: 1,
                     created: 1415215936,
@@ -936,7 +1298,7 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
 
                 },{
                     id: 15,
-                    sig: 'CVS',
+                    name: 'CVS',
                     typeId: 3,
                     sigTypeId: 1,
                     created: 1415215936,
@@ -944,15 +1306,15 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
 
                 },{
                     id: 16,
-                    sig: 'GGD',
-                    typeId: 2,
-                    sigTypeId: 1,
+                    name: 'GGD',
+                    typeId: 0,
+                    sigTypeId: 0,
                     created: 1415215936,
                     updated: 1415215936
 
                 },{
                     id: 18,
-                    sig: 'OKD',
+                    name: 'OKD',
                     typeId: 1,
                     sigTypeId: 1,
                     created: 1415215936,
@@ -960,7 +1322,7 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
 
                 },{
                     id: 8,
-                    sig: 'DBE',
+                    name: 'DBE',
                     typeId: 3,
                     sigTypeId: 1,
                     created: 1415215936,
@@ -968,15 +1330,15 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
 
                 },{
                     id: 20,
-                    sig: 'ASW',
-                    typeId: 1,
-                    sigTypeId: 1,
+                    name: 'ASW',
+                    typeId: 0,
+                    sigTypeId: 3,
                     created: 1415215936,
                     updated: 1386934983
 
                 },{
                     id: 22,
-                    sig: 'NFG',
+                    name: 'NFG',
                     typeId: 2,
                     sigTypeId: 2,
                     created: 1415215936,
@@ -1041,11 +1403,11 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                 class: ['row', config.mapTabContentRow].join(' ')
             }).append(
                     $('<div>', {
-                        class: ['col-xs-12', 'col-sm-8', config.mapTabContentCellFirst, config.mapTabContentCell].join(' ')
+                        class: ['col-xs-12', 'col-md-8', config.mapTabContentCellFirst, config.mapTabContentCell].join(' ')
                     })
                 ).append(
                     $('<div>', {
-                        class: ['col-xs-6', 'col-sm-4', config.mapTabContentCellSecond, config.mapTabContentCell].join(' ')
+                        class: ['col-xs-6', 'col-md-4', config.mapTabContentCellSecond, config.mapTabContentCell].join(' ')
                     })
                 );
 
@@ -1076,7 +1438,7 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                     var tabContentElements = getTabContentElements(mapContentModule);
 
                     // set observer for manually triggered map events
-                    tabContentElements.setTabContenteObserver();
+                    tabContentElements.setTabContentObserver();
 
                     // load all the structure elements for ALL Tab Content Body
                     tabContentElements.initContentStructure();
@@ -1193,7 +1555,6 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
                 enable:true
             }
         });
-        console.log(scrollableElement)
     };
 
     /**
@@ -1201,10 +1562,9 @@ define(['jquery', 'app/render', 'datatables', 'xEditable', 'app/map/map', 'custo
      * @returns {*} // string or id
      */
     $.fn.scrollTo = function(position){
-        return this.each(function(i, mapElement){
-            console.log(this)
-
-            $(this).mCustomScrollbar('scrollTo', position);
+        return this.each(function(){
+            // todo re-comment
+            //$(this).mCustomScrollbar('scrollTo', position);
         });
     };
 

@@ -1,0 +1,61 @@
+
+
+<div class="row">
+    <div class="col-xs-12 col-sm-7">
+        <ol class="breadcrumb">
+            <li><span data-toggle="tooltip" data-placement="bottom" title="type">{{system.type}}</span></li>
+            <li><a href="{{system.region.id}}" data-toggle="tooltip" data-placement="bottom" title="region">{{system.region.name}}</a></li>
+            <li><a href="{{system.constellation.id}}" data-toggle="tooltip" data-placement="bottom" title="constellation">{{system.constellation.name}}</a></li>
+            <li>
+                <span data-toggle="tooltip" data-placement="bottom" title="system">{{system.name}}</span>
+                <a href="http://evemaps.dotlan.net/system/{{system.name}}" target="_blank">
+                    <div data-toggle="tooltip" data-placement="bottom" title="dotlan" class="pf-icon pf-icon-dotlan"></div>
+                </a>
+            </li>
+        </ol>
+
+
+        <div class="pf-system-info-routes"></div>
+
+
+
+    </div>
+    <div class="col-xs-12 col-sm-5">
+        <table class="table table-condensed">
+            <tbody>
+            <tr>
+                <td>Name</td>
+                <td class="text-right">
+                    {{#system.alias}}
+                        {{system.alias}}
+                    {{/system.alias}}
+                    {{^system.alias}}
+                        {{system.name}}
+                    {{/system.alias}}
+                    [ <span class="{{securityClass}}">{{system.security}}</span> ]
+                </td>
+            </tr>
+                {{#effectName}}
+                    <tr>
+                        <td>Effect</td>
+                        <td class="text-right">{{effectName}} <i class="fa fa-square pf-system-effect {{effectClass}}"></i></td>
+                    </tr>
+                {{/effectName}}
+                {{#system.static}}
+                    <tr>
+                        <td>Static</td>
+                        <td class="text-right">{{name}} [ <span class="{{class}}">{{security}}</span> ]</td>
+                    </tr>
+                {{/system.static}}
+                <tr>
+                    <td>Security</td>
+                    <td class="text-right {{trueSecClass}}">{{system.trueSec}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+

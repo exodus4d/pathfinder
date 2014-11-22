@@ -29,8 +29,8 @@ $link-hover-color:      darken($link-color, 15%) !default;
 //
 //## Font, line-height, and color for body text, headings, and more.
 
-$font-family-sans-serif:  "Helvetica Neue", Helvetica, Arial, sans-serif !default;
-$font-family-serif:       Georgia, "Times New Roman", Times, serif !default;
+$font-family-sans-serif:  'Oxygen Light', "Helvetica Neue", Helvetica, Arial, sans-serif !default;
+$font-family-serif:       'Oxygen Regular' Georgia, "Times New Roman", Times, serif !default;
 //** Default monospace fonts for `<code>`, `<kbd>`, and `<pre>`.
 $font-family-monospace:   Menlo, Monaco, Consolas, "Courier New", monospace !default;
 $font-family-base:        $font-family-sans-serif !default;

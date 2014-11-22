@@ -58,8 +58,10 @@ define(["jquery"], function($) {
         element.html(value.join(' '));
     };
 
-
-
+    /**
+     * inits a live counter based on a unix timestamp
+     * @returns {*}
+     */
     $.fn.initSignatureCounter = function(){
 
         return this.each(function(){

@@ -1,4 +1,4 @@
-define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, Render) {
+define(['jquery', 'app/init', 'app/util', 'app/render', 'jsPlumb', 'app/map/contextmenu'], function($, Init, Util, Render) {
 
     "use strict";
 
@@ -43,13 +43,7 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
         errorConnectDialogId: 'pf-error-dialog-loopback',
 
         // system effect classes
-        systemEffect: 'pf-system-effect',
-        systemEffectMagnetar: 'pf-system-effect-magnetar',
-        systemEffectRedGiant: 'pf-system-effect-redgiant',
-        systenEffectPular: 'pf-system-effect-pulsar',
-        systemEffectWolfRyet: 'pf-system-effect-wolfryet',
-        systemEffectCataclysmic: 'pf-system-effect-cataclysmic',
-        systemEffectBlackHole: 'pf-system-effect-blackhole',
+
 
         // system security classes
         systemSec: 'pf-system-sec',
@@ -205,69 +199,6 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
         }
     };
 
-
-
-
-
-    var getEffectClassForSystem = function(effect){
-
-        var effectClass = '';
-
-        switch(effect){
-            case 'magnetar':
-                effectClass = config.systemEffectMagnetar;
-                break;
-            case 'redGiant':
-                effectClass = config.systemEffectRedGiant;
-                break;
-            case 'pulsar':
-                effectClass = config.systenEffectPular;
-                break;
-            case 'wolfRyet':
-                effectClass = config.systemEffectWolfRyet;
-                break;
-            case 'cataclysmic':
-                effectClass = config.systemEffectCataclysmic;
-                break;
-            case 'blackHole':
-                effectClass = config.systemEffectBlackHole;
-                break;
-        }
-
-        return effectClass;
-    };
-
-    var getSecurityClassForSystem = function(sec){
-
-        var secClass = '';
-
-        switch(sec){
-            case 'H':
-                secClass = config.systemSecHigh;
-                break;
-            case 'L':
-                secClass = config.systemSecLow;
-                break;
-            case '0.0':
-                secClass = config.systemSecNull;
-                break;
-            case 'C6':
-            case 'C5':
-                secClass = config.systemSecWHHeigh;
-                break;
-            case 'C4':
-            case 'C3':
-                secClass = config.systemSecWHMid;
-                break;
-            case 'C2':
-            case 'C1':
-                secClass = config.systemSecWHLow;
-                break;
-        }
-
-        return secClass;
-    };
-
     /**
      * get status class for a system
      * @param status
@@ -409,13 +340,16 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
      * @param data
      * @returns {*|HTMLElement}
      */
-    var getSystem = function(data){
+    var getSystem = function(map, data){
 
         var system;
 
+        // get map container for mapId information
+        var mapContainer = $(map.getContainer());
+
         // get system info classes
-        var effectClass = getEffectClassForSystem(data.effect);
-        var secClass = getSecurityClassForSystem(data.security);
+        var effectClass = Util.getEffectInfoForSystem(data.effect, 'class');
+        var secClass = Util.getSecurityClassForSystem(data.security);
         var statusClass = getStatusClassForSystem(data.status);
 
         system = $('<div>', {
@@ -427,15 +361,15 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
             $('<div>', {
                 class: config.systemHeadClass
             }).append(
-                // System effect color
-                $('<span>', {
-                    class: config.systemHeadNameClass,
-                    text: data.name
-                })
+                // System name is editable
+                $('<a>', {
+                    href: '#',
+                    class: config.systemHeadNameClass
+                }).attr('data-value', data.name)
             ).append(
                 // System effect color
                 $('<i>', {
-                    class: ['fa fa-square ', config.systemEffect, effectClass].join(' ')
+                    class: ['fa fa-square ', Util.getEffectInfoForSystem('effect', 'class'), effectClass].join(' ')
                 })
             ).append(
                 // expand option
@@ -457,6 +391,7 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
             ).data('name', data.name).css({ "left": data.position.x + "px", 'top': data.position.y + 'px' });
 
         system.attr('data-id', data.id);
+        system.attr('data-mapid', mapContainer.attr('data-mapid'));
 
         return $(system);
     };
@@ -548,12 +483,15 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
         }
 
         // get System Element by data
-        var newSystem = getSystem(systemData);
+        var newSystem = getSystem(map, systemData);
 
         // add new system to map
         mapContainer.append(newSystem);
 
-        // make new System dragable
+        // make new system editable
+        makeEditable(newSystem);
+
+        // make new system draggable
         makeDraggable(map, newSystem);
 
         // make target
@@ -603,6 +541,20 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
     };
 
     /**
+     * make a syste name editable by x-editable
+     * @param system
+     */
+    var makeEditable = function(system){
+
+        $(system).find('.' + config.systemHeadNameClass).editable({
+            mode: 'popup',
+            type: 'text',
+            title: 'system name',
+            placement: 'top'
+        });
+    };
+
+    /**
      * make one or multiple systems draggable
      * @param map
      * @param String[] systems
@@ -621,13 +573,32 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
                 toggleSystemTooltip([e.target], 'hide');
             },
             stop: function(e, ui){
+
+                var system = $(e.target);
+
                 // drag stop
+                var mapContainer = $( system.parent() );
 
                 // update z-index for dragged system + connections
                 updateZIndex(map, e.target);
 
                 // rerender tooltip
                 toggleSystemTooltip([e.target], 'show');
+
+                // set new position for popover edit field (system name)
+                var distanceTop = ui.position.top;
+                var distanceLeft = ui.position.left;
+
+                var placement = 'top';
+                if(distanceTop < 100){
+                    placement = 'bottom';
+                }
+                if(distanceLeft < 100){
+                    placement = 'right';
+                }
+
+                $(e.target).find('.' + config.systemHeadNameClass).editable('option', 'placement', placement);
+
             },
             drag: function(e){
                 // while drag
@@ -941,7 +912,11 @@ define(["jquery", "app/render", "jsPlumb", "app/map/contextmenu"], function($, R
             // get parent Tab Content and fire update event
             var tabContentElement = getTabContentElementByMapElement(currentSystem);
 
-            $(tabContentElement).trigger('pf:updateSystemData', [{system: currentSystem}]);
+            var data = {
+                system: currentSystem
+            };
+
+            $(tabContentElement).trigger('pf:updateSystemData', [data]);
         });
     };
 

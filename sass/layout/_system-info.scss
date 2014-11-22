@@ -1,54 +1,50 @@
+// breadcrumb ============================================================
+.breadcrumb{
+  li{
+    text-transform: capitalize;
+  }
+}
 
-// Tab Content Body Grid
-.pf-map-content-row{
-  margin: 10px 0 0 0;
+// routes table ==========================================================
+.pf-system-route-table{
+  font-size: 10px;
+}
 
-  // Table cell style
-  > div{
-    @include border-radius(5px);
-    background: rgba($gray, 0.3);
-    padding: 10px;
-    display: none; // triggered by JS
+// signature table =======================================================
+
+// signature table
+.pf-sig-table{
+  font-size: 10px;
+}
+
+// table icon toolbar
+.pf-sig-table-tools{
+  height: 45px;
+}
+
+.pf-sig-table-tools-action{
+  height: 75px;
+  display: none; // triggered by js
+}
+
+// signature timer/date counter head
+th.pf-sig-table-counter{
+  padding-right: 20px !important;
+}
+
+// signature timer/date counter
+.pf-sig-table-counter{
+  text-align: right;
+
+  .pf-digit-counter-small{
+    width: 20px;
+    display: inline-block;
+    font-size: 10px;
   }
 
-  .pf-map-content-col-first{
-
+  .pf-digit-counter-large{
+    width: 26px;
+    display: inline-block;
+    font-size: 10px;
   }
-
-  .pf-map-content-col-second{
-
-  }
-  
-  // table icon toolbar
-  .pf-sig-table-tools{
-    height: 45px;
-  }
-
-  .pf-sig-table-tools-action{
-    height: 75px;
-   // display: none; // triggered by js
-  }
-
-  // signature timer/date counter head
-  th.pf-sig-table-counter{
-    padding-right: 20px !important;
-  }
-
-  // signature timer/date counter
-  .pf-sig-table-counter{
-    text-align: right;
-
-    .pf-digit-counter-small{
-      width: 20px;
-      display: inline-block;
-      font-size: 10px;
-    }
-
-    .pf-digit-counter-large{
-      width: 26px;
-      display: inline-block;
-      font-size: 10px;
-    }
-  }
-  
 }

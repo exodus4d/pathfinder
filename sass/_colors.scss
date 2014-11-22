@@ -55,8 +55,21 @@ $wh-color-wolfryet:     $orange;
 $wh-color-cataclysmic:  $yellow-lighter;
 $wh-color-blackhole:    $gray-darkest;
 
-$brand-primary:         $teal-dark !default;
+// system security status
+$system-color-sec-0-0:        #be0000;
+$system-color-sec-0-1:        #ab2600;
+$system-color-sec-0-2:        #be3900;
+$system-color-sec-0-3:        #c24e02;
+$system-color-sec-0-4:        #ab5f00;
+$system-color-sec-0-5:        #bebe00;
+$system-color-sec-0-6:        #73bf26;
+$system-color-sec-0-7:        #00bf00;
+$system-color-sec-0-8:        #00bf39;
+$system-color-sec-0-9:        #39bf99;
+$system-color-sec-1-0:        #28c0bf;
+
+$brand-primary:         $teal-darker !default;
 $brand-success:         $green-dark !default;
 $brand-info:            #5bc0de !default;
 $brand-warning:         $orange !default;
-$brand-danger:          #d9534f !default;
+$brand-danger:          $red-darker !default;

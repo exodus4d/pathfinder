@@ -13,6 +13,7 @@ a{
   }
 }
 
+
 // Maps module ===================================================
 #pf-map-module{
   margin: 30px 0 0 0;
@@ -40,9 +41,136 @@ a{
 
 }
 
+// Tab Content Body Grid ========================================
+.pf-map-content-row{
+  margin: 10px 0 0 0;
+
+  // Table cell style
+  > div{
+
+  }
+
+  // alle Module innerhalb einer row
+  .pf-module{
+    @include border-radius(5px);
+    background: rgba($gray, 0.3);
+    padding: 10px;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+}
+
+// WH effects ==================================================
+
+.pf-system-effect{
+  margin-left: 5px;
+  cursor: default;
+}
+
+.pf-system-effect-magnetar{
+  color: $wh-color-magnetar;
+}
+
+.pf-system-effect-redgiant{
+  color: $wh-color-redgiant;
+}
+
+.pf-system-effect-pulsar{
+  color: $wh-color-pulsar;
+}
+
+.pf-system-effect-wolfryet{
+  color: $wh-color-wolfryet;
+}
+
+.pf-system-effect-cataclysmic{
+  color: $wh-color-cataclysmic;
+}
+
+.pf-system-effect-blackhole{
+  color: $wh-color-blackhole;
+}
+
+// System security status ============================================
+.pf-system-security-0-0{
+  color: $system-color-sec-0-0;
+}
+
+.pf-system-security-0-1{
+  color: $system-color-sec-0-1;
+}
+
+.pf-system-security-0-2{
+  color: $system-color-sec-0-2;
+}
+
+.pf-system-security-0-3{
+  color: $system-color-sec-0-3;
+}
+
+.pf-system-security-0-4{
+  color: $system-color-sec-0-4;
+}
+
+.pf-system-security-0-5{
+  color: $system-color-sec-0-5;
+}
+
+.pf-system-security-0-6{
+  color: $system-color-sec-0-6;
+}
+
+.pf-system-security-0-7{
+  color: $system-color-sec-0-7;
+}
+
+.pf-system-security-0-8{
+  color: $system-color-sec-0-8;
+}
+
+.pf-system-security-0-9{
+  color: $system-color-sec-0-9;
+}
+
+.pf-system-security-1-0{
+  color: $system-color-sec-1-0;
+}
+
+// System security level =============================================
+
+.pf-system-sec{
+  margin-right: 5px;
+  cursor: move;
+}
+
+.pf-system-sec-highSec{
+  color: $green;
+}
+
+.pf-system-sec-lowSec{
+  color: $orange;
+}
+
+.pf-system-sec-nullSec{
+  color: $red;
+}
+
+.pf-system-sec-high{
+  color: $red;
+}
+
+.pf-system-sec-mid{
+  color: $orange;
+}
+
+.pf-system-sec-low{
+  color: $blue;
+}
+
 // Tooltip ======================================================
 .tooltip-inner{
-  opacity: 0.8;
+  opacity: 1;
   color: $teal;
   background-color: $gray;
   font-family: 'Oxygen Bold';
@@ -53,5 +181,9 @@ a{
 
 .tooltip.top .tooltip-arrow{
   border-top-color: $gray-light;
+}
+
+.tooltip.bottom .tooltip-arrow{
+  border-bottom-color: $gray-light;
 }
 

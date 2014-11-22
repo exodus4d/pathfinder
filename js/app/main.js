@@ -10,7 +10,6 @@ define(["jquery", "app/render", "app/ccp", "app/module_map"], function($, Render
         CCP.requestTrust();
 
 
-
         // Map init options
         var mapData =[{
             map: {},
@@ -67,12 +66,38 @@ define(["jquery", "app/render", "app/ccp", "app/module_map"], function($, Render
                             x: 110,
                             y: 110
                         }
+                    },{
+                        id: 30002979,
+                        name: 'Tararan',
+                        alias: '',
+                        effect: '',
+                        security: 'L',
+                        trueSec: 0.3,
+                        region: {
+                            id: '10000036',
+                            name: 'Devoid'
+                        },
+                        constellation: {
+                            id: '20000436',
+                            name: 'Jayai'
+                        },
+                        type: 'k-space',
+                        status: '',
+                        position: {
+                            x: 300,
+                            y: 250
+                        }
                     }
                 ],
                 connections: [
                     {
                         source: 3,
                         target: 4,
+                        type: 'wh'
+                    },
+                    {
+                        source: 4,
+                        target: 30002979,
                         type: 'wh'
                     }
                 ]
@@ -196,7 +221,7 @@ define(["jquery", "app/render", "app/ccp", "app/module_map"], function($, Render
                 $('#' + config.mapModuleId).updateMapModule(userData);
 
                 console.log('update map done');
-            }, 1000);
+            }, 500);
 
 
 

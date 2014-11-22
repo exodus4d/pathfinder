@@ -507,13 +507,13 @@
   &:active,
   &.active {
     color: $color;
-    background-color: darken($background, 8%);
-        border-color: darken($border, 12%);
+    background-color: lighten($background, 8%);
+        border-color: lighten($border, 12%);
   }
   .open & { &.dropdown-toggle {
     color: $color;
-    background-color: darken($background, 8%);
-        border-color: darken($border, 12%);
+    background-color: lighten($background, 8%);
+        border-color: lighten($border, 12%);
   } }
   &:active,
   &.active {
