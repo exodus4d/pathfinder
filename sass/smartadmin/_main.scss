@@ -10,7 +10,7 @@ body {
 	padding: 0;
 	min-height: 100%;
 	background:url("#{$base-url}/#{$body-background-image}") $body-background-color;
-  background-repeat: no-repeat;
+    background-repeat: no-repeat;
 	direction:ltr;
 }
 
@@ -3028,21 +3028,22 @@ img.away {
  */
 
 .morris-hover.morris-default-style {
-    border-radius: 10px;
-    padding: 6px;
+    border-radius: 5px;
+    padding: 5px;
     color: #666;
-    background: rgba(red($white), green($white), blue($white), 0.8);
-    border: solid 2px rgba(230, 230, 230, 0.8);
-    font-family: sans-serif;
-    font-size: 12px;
-    text-align: center;
+    background: rgba(red( $gray-darkest), green($gray-darkest), blue($gray-darkest), 0.9);
+    border: solid 2px $teal-darker;
+    font-family: 'Oxygen Bold';
+    font-size: 10px;
+    text-align: left;
+
     .morris-hover-row-label {
         font-weight: bold;
-        margin: 0.25em 0;
+       // margin: 0.25em 0;
     }    
     .morris-hover-point {
         white-space: nowrap;
-        margin: 0.1em 0;
+       // margin: 0.1em 0;
     }
 }
 .morris-hover {

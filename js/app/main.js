@@ -87,6 +87,27 @@ define(["jquery", "app/render", "app/ccp", "app/module_map"], function($, Render
                             x: 300,
                             y: 250
                         }
+                    },{
+                        id: 30000142,
+                        name: 'Jita',
+                        alias: '',
+                        effect: '',
+                        security: 'H',
+                        trueSec: 0.9,
+                        region: {
+                            id: '10000002',
+                            name: 'The Forge'
+                        },
+                        constellation: {
+                            id: '20000020',
+                            name: 'Kimotoro'
+                        },
+                        type: 'k-space',
+                        status: '',
+                        position: {
+                            x: 400,
+                            y: 150
+                        }
                     }
                 ],
                 connections: [
@@ -98,6 +119,11 @@ define(["jquery", "app/render", "app/ccp", "app/module_map"], function($, Render
                     {
                         source: 4,
                         target: 30002979,
+                        type: 'wh'
+                    },
+                    {
+                        source: 4,
+                        target: 30000142,
                         type: 'wh'
                     }
                 ]

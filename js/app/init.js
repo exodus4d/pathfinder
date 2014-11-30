@@ -8,7 +8,10 @@ define(["jquery"], function($) {
 
     var Config = {
         //  baseUrl: "http://localhost/exodus4d/pathfinder/" // TODO: change baseURL
-
+        url:{
+            zKillboard: 'https://zkillboard.com/api/',
+            eveCentral: 'http://api.eve-central.com/api/'
+        },
         classes: {
             // system effects
             systemEffects: {
@@ -42,6 +45,7 @@ define(["jquery"], function($) {
                     name: 'black hole'
                 }
            },
+           // system security
            systemSecurity: {
                security: {
                    class: 'pf-system-sec'
@@ -74,6 +78,7 @@ define(["jquery"], function($) {
                    class: 'pf-system-sec-low'
                }
            },
+           // true sec
            trueSec: {
                '0.0': {
                    class: 'pf-system-security-0-0'
@@ -108,7 +113,34 @@ define(["jquery"], function($) {
                '1.0': {
                    class: 'pf-system-security-1-0'
                }
-           }
+           },
+            // system status
+            systemStatus: {
+                unknown: {
+                    class: 'pf-system-status-unknown',
+                    label: 'unknown'
+                },
+                friendly: {
+                    class: 'pf-system-status-friendly',
+                    label: 'friendly'
+                },
+                occupied: {
+                    class: 'pf-system-status-occupied',
+                    label: 'occupied'
+                },
+                hostile: {
+                    class: 'pf-system-status-hostile',
+                    label: 'hostile'
+                },
+                empty: {
+                    class: 'pf-system-status-empty',
+                    label: 'empty'
+                },
+                unscanned: {
+                    class: 'pf-system-status-unscanned',
+                    label: 'unscanned'
+                }
+            }
 
         }
 

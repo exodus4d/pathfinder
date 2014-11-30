@@ -1,4 +1,16 @@
-define(['jquery', 'app/util', 'app/render', 'bootbox', 'datatables', 'xEditable', 'app/map/map', 'customScrollbar', 'app/counter'], function($, Util, Render, bootbox) {
+define([
+    'jquery',
+    'app/init',
+    'app/util',
+    'app/render',
+    'bootbox',
+    'morris',
+    'datatables',
+    'xEditable',
+    'app/map/map',
+    'customScrollbar',
+    'app/counter'
+], function($, Config, Util, Render, bootbox, Morris) {
 
     "use strict";
 
@@ -25,6 +37,8 @@ define(['jquery', 'app/util', 'app/render', 'bootbox', 'datatables', 'xEditable'
         // system info module
         systemInfoModuleClass: 'pf-system-info-module',                         // module wrapper
         systemInfoRoutesClass: 'pf-system-info-routes',                         // wrapper for trade hub routes
+        systemInfoGraphsClass: 'pf-system-info-graphs',                         // wrapper for graphs
+        systemInfoTableClass: 'pf-system-info-table',                           // class for system info table
         systemInfoRoutesTableClass: 'pf-system-route-table',                    // class for route tables
         systemInfoRoutesTableRowPrefix: 'pf-system-info-routes-row-',           // prefix class for a row in the route table
         systemSecurityClassPrefix: 'pf-system-security-',                       // prefix class for system security level (color)
@@ -167,6 +181,11 @@ define(['jquery', 'app/util', 'app/render', 'bootbox', 'datatables', 'xEditable'
         }
 
 
+    };
+
+    var cache = {
+        systemRoutes: {}, // jump information between solar systems
+        systemKillsGraphData: {} // data for system kills info graph
     };
 
     /**
@@ -619,6 +638,25 @@ define(['jquery', 'app/util', 'app/render', 'bootbox', 'datatables', 'xEditable'
                 },
                 type: 'k-space'
             };
+        }else if(systemInfoData.systemId === 30000142){
+            var system =  {
+                id: 30000142,
+                //name: 'J150020',
+                name: 'Jita',
+                alias: '',
+                effect: '',
+                security: 'H',
+                trueSec: 0.9,
+                region: {
+                    id: '10000002',
+                    name: 'The Forge'
+                },
+                constellation: {
+                    id: '20000020',
+                    name: 'Kimotoro'
+                },
+                type: 'k-space'
+            };
         }else{
             var system =  {
                 id: 2,
@@ -671,6 +709,9 @@ define(['jquery', 'app/util', 'app/render', 'bootbox', 'datatables', 'xEditable'
                         $(moduleElement).find('.' + config.systemInfoRoutesClass).updateSystemInfoRoutes(system.name, ['Jita', 'Amarr', 'Rens', 'Dodixie']);
                     }
 
+                    // load kill statistic chart
+                    $(moduleElement).find('.' + config.systemInfoGraphsClass).updateSystemInfoGraphs(system.id);
+
 
                 }
             }
@@ -686,7 +727,8 @@ define(['jquery', 'app/util', 'app/render', 'bootbox', 'datatables', 'xEditable'
 
 
         var moduleData = {
-            system:  system,
+            system: system,
+            tableClass: config.systemInfoTableClass,
             securityClass: Util.getSecurityClassForSystem( system.security ),
             trueSecClass: Util.getTrueSecClassForSystem( system.trueSec ),
             effectName: Util.getEffectInfoForSystem(system.effect, 'name'),
@@ -697,25 +739,160 @@ define(['jquery', 'app/util', 'app/render', 'bootbox', 'datatables', 'xEditable'
 
     };
 
+    $.fn.updateSystemInfoGraphs = function(systemId){
+
+        var parentElement = $(this);
+
+        parentElement.empty();
+
+        var graphElement = $('<div>');
+
+        parentElement.append(graphElement);
+
+        var showHours = 24;
+        var maxKillmailCount = 200; // limited by API
+
+        // private function draws a "system kills" graph
+        var drawGraph = function(data){
+
+            // draw chart
+            Morris.Bar({
+                element: graphElement,
+                resize: true,
+                gridTextSize: 10,
+                gridTextColor: '#3c3f41',
+                gridTextFamily: 'Oxygen Bold',
+                hideHover: true,
+                data: data,
+                xkey: 'label',
+                ykeys: ['kills'],
+                labels: ['kills'],
+                xLabelMargin: 10,
+                padding: 10,
+                parseTime: false,
+                barColors: function (row, series, type) {
+                    if (type === 'bar') {
+                        // hightlite last row -> recent kills found
+                        if(this.xmax === row.x){
+                            return '#c2760c';
+                        }
+                    }
+
+                    return     '#63676a';
+                }
+            });
+        };
+
+        // get recent KB stats (last 24h))
+        var localDate = new Date();
+
+        // cache result for 5min
+        var cacheKey = systemId + '_' + localDate.getHours() + '_' + ( Math.ceil( localDate.getMinutes() / 5 ) * 5);
+
+        if(cache.systemKillsGraphData.hasOwnProperty(cacheKey) ){
+            drawGraph( cache.systemKillsGraphData[cacheKey] );
+        }else{
+
+            // chart data
+            var chartData = [];
+
+            for(var i = 0; i < showHours; i++){
+                var tempData = {
+                    label: i + 'h',
+                    kills: 0
+                };
+
+                chartData.push(tempData);
+            }
+
+            var serverDate= new Date(
+                localDate.getUTCFullYear(),
+                localDate.getUTCMonth(),
+                localDate.getUTCDate(),
+                localDate.getUTCHours(),
+                localDate.getUTCMinutes(),
+                localDate.getUTCSeconds()
+            );
+
+            // get all kills until current server time
+            var dateStringEnd = String( serverDate.getFullYear() );
+            dateStringEnd += String( ('0' + (serverDate.getMonth() + 1)).slice(-2) );
+            dateStringEnd += String( ('0' + serverDate.getDate()).slice(-2) );
+            dateStringEnd += String( ('0' + serverDate.getHours()).slice(-2) );
+            dateStringEnd += String( ('0' + serverDate.getMinutes()).slice(-2) );
+
+            // get start Date for kills API request (last 24h)
+            var startDate = new Date( serverDate.getTime() );
+            startDate.setDate( startDate.getDate() - 1);
+            var dateStringStart = String( startDate.getFullYear() );
+            dateStringStart += String( ('0' + (startDate.getMonth() + 1)).slice(-2) );
+            dateStringStart += String( ('0' + startDate.getDate()).slice(-2) );
+            dateStringStart += String( ('0' + startDate.getHours()).slice(-2) );
+            dateStringStart += String( ('0' + startDate.getMinutes()).slice(-2) );
+
+            var url = Config.url.zKillboard;
+            url += '/no-items/no-attackers/solarSystemID/' + systemId + '/startTime/' + dateStringStart + '/endTime/' + dateStringEnd + '/';
+
+            graphElement.showLoadingAnimation();
+
+            $.getJSON(url, function(kbData){
+
+                // the API wont return more than 200KMs ! - remember last bar block with complete KM information
+                var lastCompleteDiffHourData = 0;
+
+                // loop kills and count kills by hour
+
+                for(var i = 0; i < kbData.length; i++){
+                    var match = kbData[i].killTime.match(/^(\d+)-(\d+)-(\d+) (\d+)\:(\d+)\:(\d+)$/);
+                    var killDate = new Date(match[1], match[2] - 1, match[3], match[4], match[5], match[6]);
+
+                    // get time diff
+                    var timeDiffMin = Math.round( ( serverDate - killDate ) / 1000 / 60 );
+                    var timeDiffHour = Math.round( timeDiffMin / 60 );
+
+                    // update chart data
+                    chartData[timeDiffHour].kills++;
+
+                    if(timeDiffHour > lastCompleteDiffHourData){
+                        lastCompleteDiffHourData = timeDiffHour;
+                    }
+                }
+
+                // remove empty chart Data
+                if(kbData.length >= maxKillmailCount){
+                    chartData = chartData.splice(0, lastCompleteDiffHourData + 1);
+                }
+
+                // change order
+                chartData.reverse();
+
+                cache.systemKillsGraphData[cacheKey] = chartData;
+                drawGraph( cache.systemKillsGraphData[cacheKey] );
+
+                parentElement.hideLoadingAnimation();
+            });
+        }
+
+    };
+
     $.fn.updateSystemInfoRoutes = function(systemFrom, systemsTo){
 
         // TODO get cached routes from backend
 
-        var baseUrl = 'http://api.eve-central.com/api/route/from/';
-
-        var wrapperElement = $(this);
+        var parentElement = $(this);
 
         // crate new route table
         var table = $('<table>', {
             class: ['compact', 'stripe', 'order-column', 'row-border', config.systemInfoRoutesTableClass].join(' ')
         });
 
-        wrapperElement.append( $(table) );
+        parentElement.append( $(table) );
 
         // init empty table
         var routesTable = table.DataTable( {
            paging: false,
            ordering: true,
+           order: [ 1, 'asc' ],
            info: false,
            searching: false,
            hover: false,
@@ -742,52 +919,66 @@ define(['jquery', 'app/util', 'app/render', 'bootbox', 'datatables', 'xEditable'
            data: [] // will be added dynamic
         } );
 
-
         $.each(systemsTo, function(i, systemTo){
 
             if(systemFrom !== systemTo){
-                var url = baseUrl + systemFrom + '/to/' + systemTo;
-                $.getJSON(url, function(routeData){
 
-                    // row class
-                    var rowClass = config.systemInfoRoutesTableRowPrefix + i;
+                var cacheKey = systemFrom + '_' + systemTo;
 
-                    // add row Data
-                    var rowData = [systemTo, routeData.length];
+                // row class
+                var rowClass = config.systemInfoRoutesTableRowPrefix + i;
 
-                    var jumpData = [];
-                    // loop all systems on a rout
-                    $.each(routeData, function(j, systemData){
+                if(cache.systemRoutes.hasOwnProperty(cacheKey)){
+                    // add new row from cache
+                    routesTable.row.add( cache.systemRoutes[cacheKey] ).draw().nodes().to$().addClass( rowClass );
 
-                        var systemSecClass = config.systemSecurityClassPrefix;
-                        var systemSec = systemData.to.security.toFixed(1).toString();
-                        systemSecClass += systemSec.replace('.', '-');
-                        var system = '<i class="fa fa-square ' + systemSecClass + '" ';
-                        system += 'data-toggle="tooltip" data-placement="bottom" ';
-                        system += 'title="' + systemData.to.name + ' - ' + systemSec + ' [' + systemData.to.region.name  + ']"></i>';
-                        jumpData.push( system );
+                    // init tooltips for each jump system
+                    var tooltipElements = parentElement.find('.' + rowClass + ' [data-toggle="tooltip"]');
+                    $(tooltipElements).tooltip();
+                }else{
+                    // get route from API
+                    var baseUrl = Config.url.eveCentral + 'route/from/';
+
+                    var url = baseUrl + systemFrom + '/to/' + systemTo;
+
+                    $.getJSON(url, function(routeData){
+
+                        // add row Data
+                        var rowData = [systemTo, routeData.length];
+
+                        var jumpData = [];
+                        // loop all systems on a rout
+                        $.each(routeData, function(j, systemData){
+
+                            var systemSecClass = config.systemSecurityClassPrefix;
+                            var systemSec = systemData.to.security.toFixed(1).toString();
+                            systemSecClass += systemSec.replace('.', '-');
+                            var system = '<i class="fa fa-square ' + systemSecClass + '" ';
+                            system += 'data-toggle="tooltip" data-placement="bottom" ';
+                            system += 'title="' + systemData.to.name + ' - ' + systemSec + ' [' + systemData.to.region.name  + ']"></i>';
+                            jumpData.push( system );
+
+                        });
+
+
+                        rowData.push( jumpData.join(' ') );
+
+                        cache.systemRoutes[cacheKey] = rowData;
+
+                        // add new row
+                        routesTable.row.add( cache.systemRoutes[cacheKey] ).draw().nodes().to$().addClass( rowClass );
+
+                        // init tooltips for each jump system
+                        var tooltipElements = parentElement.find('.' + rowClass + ' [data-toggle="tooltip"]');
+                        $(tooltipElements).tooltip();
 
                     });
 
+                }
 
-                    rowData.push( jumpData.join(' ') );
-
-                    // add new row
-                    routesTable.row.add( rowData ).draw().nodes().to$().addClass( rowClass );
-
-                    // init tooltips for each jump system
-                    var tooltipElements = wrapperElement.find('.' + rowClass + ' [data-toggle="tooltip"]');
-
-                    $(tooltipElements).tooltip();
-
-                });
             }
 
-
-
         });
-
-
 
     };
 

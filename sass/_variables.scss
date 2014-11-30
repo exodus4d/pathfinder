@@ -170,11 +170,11 @@ $btn-link-disabled-color:        $gray-light;
 //
 //##
 
-$input-bg:                       #fff;
+$input-bg:                       $gray-dark;
 $input-bg-disabled:              $gray-lighter;
 
-$input-color:                    $gray;
-$input-border:                   #ccc;
+$input-color:                    $gray-lighter;
+$input-border:                   $gray-light;
 $input-border-radius:            0px;
 $input-border-focus:             $teal;
 
@@ -270,7 +270,7 @@ $screen-md-max:              ($screen-lg-min - 1);
 //** Number of columns in the grid.
 $grid-columns:              12;
 //** Padding between columns. Gets divided in half for the left and right.
-$grid-gutter-width:         26px;
+$grid-gutter-width:         20px;
 // Navbar collapse
 //** Point at which the navbar becomes uncollapsed.
 $grid-float-breakpoint:     $screen-sm-min;

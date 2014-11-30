@@ -5,21 +5,64 @@ define(['jquery', 'app/init'], function($, Init) {
 
     "use strict";
 
+    var config = {
+        ajaxOverlayClass: 'pf-loading-overlay',
+        ajaxOverlayWrapperClass: 'pf-loading-overlay-wrapper',
+        ajaxOverlayVisibleClass: 'pf-loading-overlay-visible'
+    };
+
     /**
-     * get a info for a given effect string
+     * displays a loading indicator on an element
+     */
+    $.fn.showLoadingAnimation = function(){
+        var overlay = $('<div>', {
+            class: config.ajaxOverlayClass
+        }).append(
+            $('<div>', {
+                class: [config.ajaxOverlayWrapperClass].join(' ')
+            }).append(
+                $('<i>', {
+                    class: ['fa', 'fa-lg', 'fa-circle-o-notch', 'fa-spin'].join(' ')
+                })
+            )
+        );
+
+        $(this).append(overlay);
+
+        // fade in
+        setTimeout(function(){
+            $(overlay).addClass( config.ajaxOverlayVisibleClass );
+        }, 10);
+
+    };
+
+    $.fn.hideLoadingAnimation = function(){
+
+        var overlay = $(this).find('.' + config.ajaxOverlayClass );
+        $(overlay).removeClass( config.ajaxOverlayVisibleClass );
+
+        // remove overlay after fade out transition
+        setTimeout(function(){
+            $(overlay).remove();
+        }, 150);
+
+    };
+
+    /**
+     * get some info for a given effect string
      * @param effect
      * @param option
      * @returns {string}
      */
     var getEffectInfoForSystem = function(effect, option){
 
-        var effectClass = '';
+        var effectInfo = '';
 
         if( Init.classes.systemEffects.hasOwnProperty(effect) ){
-            effectClass = Init.classes.systemEffects[effect][option];
+            effectInfo = Init.classes.systemEffects[effect][option];
         }
 
-        return effectClass;
+        return effectInfo;
     };
 
     /**
@@ -58,9 +101,27 @@ define(['jquery', 'app/init'], function($, Init) {
         return trueSecClass;
     };
 
+    /**
+     * get status info
+     * @param status
+     * @param option
+     * @returns {string}
+     */
+    var getStatusInfoForSystem = function(status, option){
+
+        var statusInfo = '';
+
+        if( Init.classes.systemStatus.hasOwnProperty(status) ){
+            statusInfo = Init.classes.systemStatus[status][option];
+        }
+
+        return statusInfo;
+    };
+
     return {
         getEffectInfoForSystem: getEffectInfoForSystem,
         getSecurityClassForSystem: getSecurityClassForSystem,
-        getTrueSecClassForSystem: getTrueSecClassForSystem
+        getTrueSecClassForSystem: getTrueSecClassForSystem,
+        getStatusInfoForSystem: getStatusInfoForSystem
     };
 });

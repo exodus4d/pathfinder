@@ -1,21 +1,19 @@
-<div id="{{id}}" title="{{titel}}">
-    <form>
-        <fieldset>
-            <div>
-                <label for="system">System</label>
-                <input type="text" name="name" id="system" value="{{system}}">
+<div class="row" id="{{id}}">
+    <div class="col-sm-12">
+        <form  role="form">
+            <div class="form-group">
+                <label class="col-sm-2 control-label" for="form_system">System</label>
+                <div class="col-sm-10">
+                    <input id="form_system" name="name" type="text" placeholder="System name" class="form-control input-md">
+                    <span class="help-block">Enter system name</span>
+                </div>
             </div>
-            <div>
-                <label for="status">Status</label>
-                <select name="status" id="status" class="text ui-widget-content ui-corner-all">
-                    {{#status}}
-                    <option value="{{status}}">{{label}}</option>
-                    {{/status}}
-                </select>
+            <div class="form-group">
+                <label class="col-sm-2 control-label" for="form_status">Status</label>
+                <div class="col-sm-10">
+                    <a class="pf-editable pf-editable-system-status" href="#" id="form_status" data-type="select" data-name="status"></a>
+                </div>
             </div>
-
-            <!-- Allow form submission with keyboard without duplicating the dialog button -->
-            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
-        </fieldset>
-    </form>
+        </form>
+    </div>
 </div>

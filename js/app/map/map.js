@@ -1,4 +1,12 @@
-define(['jquery', 'app/init', 'app/util', 'app/render', 'jsPlumb', 'app/map/contextmenu'], function($, Init, Util, Render) {
+define([
+    'jquery',
+    'app/init',
+    'app/util',
+    'app/render',
+    'bootbox',
+    'jsPlumb',
+    'app/map/contextmenu'
+], function($, Init, Util, Render, bootbox) {
 
     "use strict";
 
@@ -10,14 +18,15 @@ define(['jquery', 'app/init', 'app/util', 'app/render', 'jsPlumb', 'app/map/cont
           x: 150,
           y: 0
         },
+        formEditableFieldClass: 'pf-editable',                          // Class for all xEditable fields
 
         mapTabContentClass: 'pf-map-tab-content',                       // Tab-Content element (parent element)
         mapWrapperClass: 'pf-map-wrapper',                              // wrapper div (scrollable)
         mapClass: 'pf-map',                                             // class for all maps
-        mapIdPrefix: 'pf-map-',
+        mapIdPrefix: 'pf-map-',                                         // id prefix for all maps
         systemIdPrefix: 'pf-system-',                                   // id prefix for a system
-        systemClass: 'pf-system',
-        systemActiveClass: 'pf-system-active',
+        systemClass: 'pf-system',                                       // class for all systems
+        systemActiveClass: 'pf-system-active',                          // class for an active system in a map
         systemHeadClass: 'pf-system-head',
         systemHeadNameClass: 'pf-system-head-name',
         systemHeadExpandClass: 'pf-system-head-expand',
@@ -25,7 +34,7 @@ define(['jquery', 'app/init', 'app/util', 'app/render', 'jsPlumb', 'app/map/cont
         systemBodyItemClass: 'pf-system-body-item',
         systemBodyItemStatusClass: 'pf-user-status',
         systemBodyRightClass: 'pf-system-body-right',
-        dynamicElementWrapperId: 'pf-dialog-wrapper',                     // wrapper div for dynamic content (dialoges, context-menus,...)
+        dynamicElementWrapperId: 'pf-dialog-wrapper',                     // wrapper div for dynamic content (dialogs, context-menus,...)
 
         // endpoint classes
         endpointSourceClass: 'pf-map-endpoint-source',
@@ -54,29 +63,7 @@ define(['jquery', 'app/init', 'app/util', 'app/render', 'jsPlumb', 'app/map/cont
         systemSecWHMid: 'pf-system-sec-mid',
         systemSecWHLow: 'pf-system-sec-low',
 
-        // system status
-        systemStatus: {
-            friendly: {
-                class: 'pf-system-status-friendly',
-                label: 'friendly'
-            },
-            occupied: {
-                class: 'pf-system-status-occupied',
-                label: 'occupied'
-            },
-            hostile: {
-                class: 'pf-system-status-hostile',
-                label: 'hostile'
-            },
-            empty: {
-                class: 'pf-system-status-empty',
-                label: 'empty'
-            },
-            unscanned: {
-                class: 'pf-system-status-unscanned',
-                label: 'unscanned'
-            }
-        },
+
 
         // user status
         userStatus: {
@@ -144,36 +131,7 @@ define(['jquery', 'app/init', 'app/util', 'app/render', 'jsPlumb', 'app/map/cont
                 // prevent multiple connections between same systems
                 var connections = checkForConnection(this.instance, info.source, info.target);
                 if(connections.length > 0){
-
-                    // confirm dialog
-                    var moduleConfig = {
-                        name: 'modules/dialog',
-                        position: $('#' + config.dynamicElementWrapperId),
-                        link: 'after',
-                        functions: {
-                            after: function(){
-                                $( "#" + config.errorConnectDialogId).dialog({
-                                    modal: true,
-                                    resizable: false,
-                                    buttons: {
-                                        'OK': function(){
-                                            $(this).dialog('close');
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                    };
-
-                    var moduleData = {
-                        id: config.errorConnectDialogId,
-                        titel: 'error: Loopback',
-                        content: 'Connection already exists.'
-                    };
-
-                    Render.showModule(moduleConfig, moduleData);
-
-
+                    bootbox.alert('Connection already exists.');
                     return false;
                 }
 
@@ -197,22 +155,6 @@ define(['jquery', 'app/init', 'app/util', 'app/render', 'jsPlumb', 'app/map/cont
                 cssClass: 'pf-map-connection-frig'
             }
         }
-    };
-
-    /**
-     * get status class for a system
-     * @param status
-     * @returns {string}
-     */
-    var getStatusClassForSystem = function(status){
-
-        var statusClass = '';
-
-        if(config.systemStatus[status]){
-            statusClass = config.systemStatus[status].class;
-        }
-
-        return statusClass;
     };
 
     /**
@@ -350,7 +292,7 @@ define(['jquery', 'app/init', 'app/util', 'app/render', 'jsPlumb', 'app/map/cont
         // get system info classes
         var effectClass = Util.getEffectInfoForSystem(data.effect, 'class');
         var secClass = Util.getSecurityClassForSystem(data.security);
-        var statusClass = getStatusClassForSystem(data.status);
+        var statusClass = Util.getStatusInfoForSystem(data.status, 'class');
 
         system = $('<div>', {
             // system
@@ -462,6 +404,25 @@ define(['jquery', 'app/init', 'app/util', 'app/render', 'jsPlumb', 'app/map/cont
     };
 
     /**
+     * checks if json system data is valid
+     * @param systemData
+     * @returns {boolean}
+     */
+    var isValidSystem = function(systemData){
+
+        var isValid = true;
+
+        if(
+            ! systemData.hasOwnProperty('name') ||
+            systemData.name.length === 0
+        ){
+            return false;
+        }
+
+        return isValid;
+    };
+
+    /**
      * draw a system with its data to a map
      * @param map object
      * @param systemData
@@ -469,52 +430,55 @@ define(['jquery', 'app/init', 'app/util', 'app/render', 'jsPlumb', 'app/map/cont
      */
     var drawSystem = function(map, systemData, connectedSystems){
 
-        var mapContainer = $(map.getContainer());
+        // check if systemData is valid
+        if(isValidSystem(systemData)){
+            var mapContainer = $(map.getContainer());
 
-        // TODO request missing system data
-        if(!systemData.hasOwnProperty('id')){
-            systemData.id = config.tempId++;
-        }
-        if(!systemData.hasOwnProperty('effect')){
-            systemData.effect = '';
-        }
-        if(!systemData.hasOwnProperty('security')){
-            systemData.security = 'H';
-        }
+            // TODO request missing system data
+            if(!systemData.hasOwnProperty('id')){
+                systemData.id = config.tempId++;
+            }
+            if(!systemData.hasOwnProperty('effect')){
+                systemData.effect = '';
+            }
+            if(!systemData.hasOwnProperty('security')){
+                systemData.security = 'H';
+            }
 
-        // get System Element by data
-        var newSystem = getSystem(map, systemData);
+            // get System Element by data
+            var newSystem = getSystem(map, systemData);
 
-        // add new system to map
-        mapContainer.append(newSystem);
+            // add new system to map
+            mapContainer.append(newSystem);
 
-        // make new system editable
-        makeEditable(newSystem);
+            // make new system editable
+            makeEditable(newSystem);
 
-        // make new system draggable
-        makeDraggable(map, newSystem);
+            // make new system draggable
+            makeDraggable(map, newSystem);
 
-        // make target
-        makeTarget(map, newSystem);
+            // make target
+            makeTarget(map, newSystem);
 
-        // make source
-        makeSource(map, newSystem);
+            // make source
+            makeSource(map, newSystem);
 
-        // set system observer
-        setSystemObserver(map, newSystem);
+            // set system observer
+            setSystemObserver(map, newSystem);
 
-        // connect new system (if connection data is given)
-        if(connectedSystems){
+            // connect new system (if connection data is given)
+            if(connectedSystems){
 
-            $.each(connectedSystems, function(i, connectSystem){
+                $.each(connectedSystems, function(i, connectSystem){
 
-                var connectionData = {
-                    source: $(connectSystem).attr('data-id'),
-                    target: $(newSystem).attr('data-id'),
-                    type: 'wh'
-                };
-                drawConnection(map, connectionData);
-            });
+                    var connectionData = {
+                        source: $(connectSystem).attr('data-id'),
+                        target: $(newSystem).attr('data-id'),
+                        type: 'wh'
+                    };
+                    drawConnection(map, connectionData);
+                });
+            }
         }
     };
 
@@ -546,11 +510,21 @@ define(['jquery', 'app/init', 'app/util', 'app/render', 'jsPlumb', 'app/map/cont
      */
     var makeEditable = function(system){
 
-        $(system).find('.' + config.systemHeadNameClass).editable({
+        var headElement = $(system).find('.' + config.systemHeadNameClass);
+
+        $(headElement).editable({
             mode: 'popup',
             type: 'text',
             title: 'system name',
-            placement: 'top'
+            placement: 'top',
+            onblur: 'submit',
+            showbuttons: false
+        });
+
+
+        // update z-index for system, editable field should be on top
+        $(headElement).on('shown', function(e, editable) {
+            updateZIndex(system);
         });
     };
 
@@ -580,7 +554,7 @@ define(['jquery', 'app/init', 'app/util', 'app/render', 'jsPlumb', 'app/map/cont
                 var mapContainer = $( system.parent() );
 
                 // update z-index for dragged system + connections
-                updateZIndex(map, e.target);
+                updateZIndex(e.target);
 
                 // rerender tooltip
                 toggleSystemTooltip([e.target], 'show');
@@ -611,21 +585,10 @@ define(['jquery', 'app/init', 'app/util', 'app/render', 'jsPlumb', 'app/map/cont
 
     /**
      * update z-index for a system (dragged sytems should be always on top)
-     * @param map
      * @param system
      */
-    var updateZIndex = function(map, system){
-        /* do not update connections for now
-        // get all connections
-        var connections = getConnections(map, [system]);
+    var updateZIndex = function(system){
 
-        // increase global z-Index counter
-        var newZIndexConnections = config.zIndexCounter++;
-
-        $.each(connections, function(i, connection){
-           // $(connection.canvas).css('z-index', newZIndexConnections);
-        })
-        */
         var newZIndexSystem = config.zIndexCounter++;
         $(system).css('z-index', newZIndexSystem);
     };
@@ -725,7 +688,6 @@ define(['jquery', 'app/init', 'app/util', 'app/render', 'jsPlumb', 'app/map/cont
                 {icon: 'fa-eraser', action: 'delete', text: 'delete'},
                 {icon: 'fa-info-circle', action: 'info', text: 'info'},
                 {divider: true},
-               // {icon: 'fa-bomb', action: 'eol', text: 'toggle EOL'},
                 {text: 'change status', subitems: [
                     {subIcon: 'fa-clock-o', subAction: 'eol', subText: 'toggle EOL'},
                     {subDivider: true},
@@ -746,6 +708,17 @@ define(['jquery', 'app/init', 'app/util', 'app/render', 'jsPlumb', 'app/map/cont
      */
     var initSystemContextMenu = function(){
 
+        var systemStatus = [];
+        $.each(Init.classes.systemStatus, function(status, statusData){
+            var tempStatus = {
+                subIcon: 'fa-circle',
+                subIconClass: statusData.class,
+                subAction: 'change_status_' + status,
+                subText: statusData.label
+            };
+            systemStatus.push(tempStatus);
+        });
+
         var moduleConfig = {
             name: 'modules/contextmenu',
             position: $('#' + config.dynamicElementWrapperId)
@@ -756,7 +729,9 @@ define(['jquery', 'app/init', 'app/util', 'app/render', 'jsPlumb', 'app/map/cont
             items: [
                 {icon: 'fa-plus', action: 'add_system', text: 'add system'},
                 {icon: 'fa-eraser', action: 'delete_system', text: 'delete system'},
-                {icon: 'fa-info-circle', action: 'info', text: 'info'}
+                {icon: 'fa-info-circle', action: 'info', text: 'info'},
+                {divider: true},
+                {text: 'change status', subitems: systemStatus}
             ]
         };
 
@@ -860,38 +835,30 @@ define(['jquery', 'app/init', 'app/util', 'app/render', 'jsPlumb', 'app/map/cont
                     case 'delete_system':
 
                         // confirm dialog
-                        var moduleConfig = {
-                            name: 'modules/dialog',
-                            position: $('#' + config.dynamicElementWrapperId),
-                            link: 'after',
-                            functions: {
-                                after: function(){
-                                    $( "#" + config.confirmDeleteSystemDialogId).dialog({
-                                        modal: true,
-                                        resizable: false,
-                                        buttons: {
-                                            'Cancel': function(){
-                                                $(this).dialog('close');
-                                            },
-                                            'Yes': function(){
-                                               // map.detach(params.component);
 
-                                                deleteSystem(map, currentSystem);
-                                                $(this).dialog('close');
-                                            }
-                                        }
-                                    });
-                                }
+                        bootbox.confirm('Delete system with all its connections?', function(result) {
+                            if(result){
+                                deleteSystem(map, currentSystem);
                             }
-                        };
+                        });
 
-                        var moduleData = {
-                            id: config.confirmDeleteSystemDialogId,
-                            titel: 'Delete System',
-                            content: 'Delete system with all its connections?'
-                        };
+                        break;
+                    case 'change_status_unknown':
+                    case 'change_status_friendly':
+                    case 'change_status_occupied':
+                    case 'change_status_hostile':
+                    case 'change_status_empty':
+                    case 'change_status_unscanned':
+                        // remove all status classes from system
+                        $.each(Init.classes.systemStatus, function(status, statusData){
+                            currentSystem.removeClass( statusData.class );
+                        });
 
-                        Render.showModule(moduleConfig, moduleData);
+                        // add new class
+                        var statusString = action.split('_');
+                        var statusClass = Util.getStatusInfoForSystem(statusString[2], 'class');
+
+                        currentSystem.addClass( statusClass );
                         break;
                     case 'info': console.log('info')
                         break;
@@ -1019,38 +986,11 @@ define(['jquery', 'app/init', 'app/util', 'app/render', 'jsPlumb', 'app/map/cont
                         // delete a single connection
 
                         // confirm dialog
-                        var moduleConfig = {
-                            name: 'modules/dialog',
-                            position: $('#' + config.dynamicElementWrapperId),
-                            link: 'after',
-                            functions: {
-                                after: function(){
-                                    $( "#" + config.confirmDeleteConnectionDialogId).dialog({
-                                        modal: true,
-                                        resizable: false,
-                                        buttons: {
-                                            'Cancel': function(){
-                                                $(this).dialog('close');
-                                            },
-                                            'Yes': function(){
-                                                map.detach(params.component);
-                                                $(this).dialog('close');
-                                            }
-                                        }
-                                    });
-                                }
+                        bootbox.confirm('Is this connection really gone?', function(result) {
+                            if(result){
+                                map.detach(params.component);
                             }
-                        };
-
-                        var moduleData = {
-                            id: config.confirmDeleteConnectionDialogId,
-                            titel: 'Delete Connection',
-                            content: 'Is this connection really gone?'
-                        };
-
-                        Render.showModule(moduleConfig, moduleData);
-
-
+                        });
                         break;
                     case 'eol':
                         // toggle eol-status of a connection
@@ -1108,20 +1048,41 @@ define(['jquery', 'app/init', 'app/util', 'app/render', 'jsPlumb', 'app/map/cont
      */
     var showNewSystemDialog = function(map, options){
 
-        var moduleConfig = {
-            name: 'modules/system_dialog',
-            position: $('#' + config.dynamicElementWrapperId),
-            link: 'after',
-            functions: {
-                after: function(){
-                    $( "#" + config.systemDialogId).dialog({
-                        modal: true,
-                        resizable: false,
-                        buttons: {
-                            'Cancel': function(){
-                                $(this).dialog('close');
-                            },
-                            'Add system': function(e){
+        // format system status for form select
+        var systemStatus = {};
+
+        $.each(Init.classes.systemStatus, function(status, statusData){
+            //statusData.status = status;
+            //systemStatus.push(statusData);
+            systemStatus[status] = statusData.label;
+        });
+
+
+        var data = {
+            id: config.systemDialogId,
+            system: 'lalala',
+            status: systemStatus
+        };
+
+        requirejs(['text!templates/modules/system_dialog.html', 'lib/mustache'], function(template, Mustache) {
+
+            var content = Mustache.render(template, data);
+
+            var test = bootbox.dialog({
+                    title: 'Add new system',
+                    message: content,
+                    buttons: {
+                        close: {
+                            label: 'cancel',
+                            className: 'btn-default',
+                            callback: function(){
+                                $(test).modal('hide');
+                            }
+                        },
+                        success: {
+                            label: 'Add system',
+                            className: 'btn-primary',
+                            callback: function () {
 
                                 // get form Values
                                 var form = $('#' + config.systemDialogId).find('form');
@@ -1131,6 +1092,11 @@ define(['jquery', 'app/init', 'app/util', 'app/render', 'jsPlumb', 'app/map/cont
                                 $.each(form.serializeArray(), function(i, field) {
                                     newSystemData[field.name] = field.value;
                                 });
+
+                                // add editable fields
+                                var editableValues = $('#' + config.systemDialogId).find('.' + config.formEditableFieldClass).editable('getValue');
+
+                                newSystemData = $.extend(newSystemData, editableValues);
 
                                 var currentX = 0;
                                 var currentY = 0;
@@ -1175,28 +1141,28 @@ define(['jquery', 'app/init', 'app/util', 'app/render', 'jsPlumb', 'app/map/cont
                                 // draw new system to map
                                 drawSystem(map, newSystemData, sourceSystem);
 
-                                $(this).dialog('close');
+
                             }
                         }
-                    });
-                }
-            }
-        };
 
-        // format system status for form select
-        var systemStatus = [];
-        $.each(config.systemStatus, function(status, statusData){
-            statusData.status = status;
-            systemStatus.push(statusData);
+                    }
+                }
+            );
+
+
+
+            // make editable
+            var modalFields = $('.bootbox .modal-dialog').find('.pf-editable-system-status');
+
+            modalFields.editable({
+                mode: 'inline',
+                emptytext: 'unknown',
+                onblur: 'submit',
+                source: systemStatus
+            });
+
         });
 
-        var moduleData = {
-            id: config.systemDialogId,
-            titel: 'Add new system',
-            status: systemStatus
-        };
-
-        Render.showModule(moduleConfig, moduleData);
 
     };
 

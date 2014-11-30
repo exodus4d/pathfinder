@@ -13,15 +13,47 @@ a{
   }
 }
 
+// ajax laoding indicator overlay
+
+.pf-loading-overlay{
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  background: $gray-darker;
+  @include transition(opacity, 0.15s linear);
+  @include border-radius(5px);
+
+
+  .pf-loading-overlay-wrapper{
+    width: 20px;
+    height: 20px;
+    margin: auto;
+    text-align: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+
+  }
+}
+
+
+.pf-loading-overlay-visible{
+  opacity: 0.5;
+}
 
 // Maps module ===================================================
 #pf-map-module{
   margin: 30px 0 0 0;
-  padding: 10px;
-  // background: rgba($gray, 0.3); // semi transparent
 
   // Tabs (colored)
   #pf-map-tabs {
+    margin: 0 10px;
+
     .pf-map-type-default{
       border-top: 2px solid transparent;
     }
@@ -37,6 +69,10 @@ a{
     .pf-map-type-private{
       border-top: 2px solid $teal;
     }
+  }
+
+  .tab-content{
+    width: calc(100% - 20px);
   }
 
 }
@@ -66,6 +102,7 @@ a{
 .pf-system-effect{
   margin-left: 5px;
   cursor: default;
+  color: $gray-lighter;
 }
 
 .pf-system-effect-magnetar{
@@ -166,6 +203,33 @@ a{
 
 .pf-system-sec-low{
   color: $blue;
+}
+
+// system status ======================================================
+
+.pf-system-status-friendly{
+  border-color: $blue !important;
+  color: $blue;
+}
+
+.pf-system-status-occupied{
+  border-color: $orange !important;
+  color: $orange;
+}
+
+.pf-system-status-hostile{
+  border-color: $red !important;
+  color: $red;
+}
+
+.pf-system-status-empty{
+  border-color: $green !important;
+  color: $green;
+}
+
+.pf-system-status-unscanned{
+  border-color: $teal !important;
+  color: $teal;
 }
 
 // Tooltip ======================================================

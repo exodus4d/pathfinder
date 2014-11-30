@@ -15,6 +15,8 @@ requirejs.config({
         datatables: "lib/jquery.dataTables.min",                      // tables
         datatablesBootstrap: "lib/dataTables.bootstrap",              // not used (bootstrap style)
         xEditable: "lib/bootstrap-editable.min",                      // in placed editing
+        morris: "lib/morris.min",                                     // graphs
+        raphael: "lib/raphael-min",                                     // required for morris (dependency)
         bootbox: "lib/bootbox.min"                                    // custom dialogs
     },
     shim: {
@@ -40,6 +42,10 @@ requirejs.config({
         bootbox: {
             deps: ['jquery', 'bootstrap'],
             exports: 'bootbox'
+        },
+        morris: {
+            deps: ['jquery', 'raphael'],
+            exports: 'Morris'
         }
     }
 });

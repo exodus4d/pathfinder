@@ -35,6 +35,7 @@
   height: 530px;
   overflow: auto;
   padding: 5px;
+  margin: 0 10px;
   background: rgba($gray-darker, 0.95);
 
   box-shadow:inset -1px 1px 6px 0 rgba($black, 0.8);
@@ -75,11 +76,14 @@
 
       .pf-system-head-name{
         border: none;
+        display: inline-block;
+        min-width: 41px;
         color: $gray-lighter;
       }
 
       .pf-system-head-expand{
         margin-left: 5px;
+        color: $gray-lighter;
         display: none;  // triggered by JS
       }
     }
@@ -136,28 +140,6 @@
 
   .pf-system-active:not(.pf-map-endpoint-source):not(.pf-map-endpoint-target){
     @include box-shadow($yellow-lighter 0px 0px 8px 0px);
-  }
-
-  // system status ======================================================
-
-  .pf-system-status-friendly{
-    border-color: $blue;
-  }
-
-  .pf-system-status-occupied{
-    border-color: $orange;
-  }
-
-  .pf-system-status-hostile{
-    border-color: $red;
-  }
-
-  .pf-system-status-empty{
-    border-color: $green;
-  }
-
-  .pf-system-status-unscanned{
-    border-color: $teal;
   }
 
   // Endpoints ====================================================
