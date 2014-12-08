@@ -8,7 +8,10 @@ define(['jquery', 'app/init'], function($, Init) {
     var config = {
         ajaxOverlayClass: 'pf-loading-overlay',
         ajaxOverlayWrapperClass: 'pf-loading-overlay-wrapper',
-        ajaxOverlayVisibleClass: 'pf-loading-overlay-visible'
+        ajaxOverlayVisibleClass: 'pf-loading-overlay-visible',
+
+        formEditableFieldClass: 'pf-editable'                          // Class for all xEditable fields
+
     };
 
     /**
@@ -36,6 +39,9 @@ define(['jquery', 'app/init'], function($, Init) {
 
     };
 
+    /**
+     * removes a loading indicator
+     */
     $.fn.hideLoadingAnimation = function(){
 
         var overlay = $(this).find('.' + config.ajaxOverlayClass );
@@ -47,6 +53,38 @@ define(['jquery', 'app/init'], function($, Init) {
         }, 150);
 
     };
+
+    /**
+     * get all form Values as object
+     * this incluces all xEditable fields
+     * @returns {{}}
+     */
+    $.fn.getFormValues = function(){
+
+        var formData = {};
+
+        $.each($(this).serializeArray(), function(i, field) {
+            formData[field.name] = field.value;
+        });
+
+        // get xEditable values
+        var editableValues = $(this).find('.' + config.formEditableFieldClass).editable('getValue');
+
+        // merge values
+        formData = $.extend(formData, editableValues);
+
+        return formData;
+    };
+
+    var showNotify = function(customConfig){
+
+        requirejs(['app/notification'], function(Notification) {
+            Notification.showNotify(customConfig);
+        });
+    };
+
+
+    // ==================================================================================================
 
     /**
      * get some info for a given effect string
@@ -118,10 +156,120 @@ define(['jquery', 'app/init'], function($, Init) {
         return statusInfo;
     };
 
+
+    var getSignatureGroupInfo = function(option){
+
+        var groupInfo = {};
+
+        for (var prop in Init.signatureGroups) {
+            if(Init.signatureGroups.hasOwnProperty(prop)){
+                prop = parseInt(prop);
+                groupInfo[prop] = Init.signatureGroups[prop][option];
+            }
+        }
+
+        return groupInfo;
+    };
+
+    /**
+     * get Signature names out of global
+     * @param systemType
+     * @param areaId
+     * @param sigGroupId
+     * @returns {{}}
+     */
+    var getAllSignatureNames = function(systemType, areaId, sigGroupId){
+
+        var signatureNames = {};
+
+        if(
+            Init.signatureTypes[systemType] &&
+            Init.signatureTypes[systemType][areaId] &&
+            Init.signatureTypes[systemType][areaId][sigGroupId]
+        ){
+            signatureNames =  Init.signatureTypes[systemType][areaId][sigGroupId];
+        }
+
+        return signatureNames;
+    };
+
+    /**
+     * get the typeID of a signature name
+     * @param systemData
+     * @param sigGroupId
+     * @param name
+     * @returns {number}
+     */
+    var getSignatureTypeIdByName = function(systemData, sigGroupId, name){
+
+        var signatureTypeId = 0;
+
+        name = name.toLowerCase();
+
+        var systemConfig = systemData.config;
+
+        var areaId = getAreaIdBySecurity(systemConfig.security);
+
+        var signatureNames = getAllSignatureNames(systemConfig.type, areaId, sigGroupId );
+
+        for(var prop in signatureNames) {
+
+            if(
+                signatureNames.hasOwnProperty(prop) &&
+                signatureNames[prop].toLowerCase() === name
+            ){
+                signatureTypeId = parseInt( prop );
+                break;
+            }
+        }
+
+        return signatureTypeId;
+    };
+
+    /**
+     * get Area ID by security string
+     * k-space not implemented jet
+     * @param security
+     * @returns {*}
+     */
+    var getAreaIdBySecurity = function(security){
+
+        var areaId = null;
+
+        switch(security){
+            case 'C1':
+                areaId = 1;
+                break;
+            case 'C2':
+                areaId = 2;
+                break;
+            case 'C3':
+                areaId = 3;
+                break;
+            case 'C4':
+                areaId = 4;
+                break;
+            case 'C5':
+                areaId = 5;
+                break;
+            case 'C6':
+                areaId = 6;
+                break;
+        }
+
+        return areaId;
+    };
+
     return {
+        showNotify: showNotify,
+
         getEffectInfoForSystem: getEffectInfoForSystem,
         getSecurityClassForSystem: getSecurityClassForSystem,
         getTrueSecClassForSystem: getTrueSecClassForSystem,
-        getStatusInfoForSystem: getStatusInfoForSystem
+        getStatusInfoForSystem: getStatusInfoForSystem,
+        getSignatureGroupInfo: getSignatureGroupInfo,
+        getAllSignatureNames: getAllSignatureNames,
+        getSignatureTypeIdByName: getSignatureTypeIdByName,
+        getAreaIdBySecurity: getAreaIdBySecurity
     };
 });

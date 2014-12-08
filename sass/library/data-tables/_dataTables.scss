@@ -97,10 +97,13 @@ table.dataTable.display tbody tr.even:hover {
   background-color: $orange;
   color: $gray-darker;
 
-
   a {
     color: $gray-darker !important;
     //border-bottom: dashed 1px $gray-darker !important;
+  }
+
+  td > .btn{
+    color: $gray-lightest !important;
   }
 }
 table.dataTable.hover tbody tr:hover.selected,

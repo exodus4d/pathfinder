@@ -46,15 +46,15 @@ define(["jquery"], function($) {
         ){
             value.push('<span class="' + config.counterDigitSmallClass + '">' + min + 'm' + '</span>');
         }
+
         if(
-            leftSec > 0 ||
+            leftSec >= 0 ||
             value.length > 0
         ){
             value.push('<span class="' + config.counterDigitSmallClass + '">' + leftSec + 's' + '</span>');
         }
 
 
-        //console.log(timediff.getSeconds())
         element.html(value.join(' '));
     };
 
@@ -64,17 +64,26 @@ define(["jquery"], function($) {
      */
     $.fn.initSignatureCounter = function(){
 
+
+
         return this.each(function(){
 
             var element = $(this);
 
-            var timestamp = parseInt( $(this).text() );
+            var timestamp = parseInt( element.text() );
 
+            // do not init twice
             if(timestamp > 0){
+                // mark as init
+                element.attr('data-counter', 'init');
+
                 var date = new Date( timestamp * 1000);
+
                 updateDateDiff(element, date);
 
-                window.setInterval(function(){ updateDateDiff(element, date); }, 1000);
+                var refreshIntervallId = window.setInterval(function(){
+                    updateDateDiff(element, date);
+                }, 100);
 
             }
 

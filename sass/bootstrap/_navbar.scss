@@ -12,7 +12,7 @@
   position: relative;
   min-height: $navbar-height; // Ensure a navbar always shows (e.g., without a .navbar-brand in collapsed mode)
   margin-bottom: $navbar-margin-bottom;
-  border: 1px solid transparent;
+  border-bottom: 1px solid $gray-dark;
 
   // Prevent floats from breaking the navbar
   @include clearfix();
@@ -180,12 +180,13 @@
   position: relative;
   float: right;
   margin-right: $navbar-padding-horizontal;
-  padding: 9px 10px;
+  margin-left: $navbar-padding-horizontal;
+  padding: 6px 12px;
   @include navbar-vertical-align(34px);
-  background-color: transparent;
+  background-color: $gray-lighter;
   background-image: none; // Reset unusual Firefox-on-Android default style; see https://github.com/necolas/normalize.css/issues/214
-  border: 1px solid transparent;
-  border-radius: $border-radius-base;
+  border: 1px solid darken($gray-lighter, 5%);
+  @include border-radius(2px);
 
   // We remove the `outline` here, but later compensate by attaching `:hover`
   // styles to `:focus`.
@@ -381,8 +382,8 @@
 
 // Default navbar
 .navbar-default {
-  background-color: $navbar-default-bg;
-  border-color: $navbar-default-border;
+  background: rgba( $navbar-default-bg, $navbar-default-opacity );
+  border-color:  $navbar-default-border;
 
   .navbar-brand {
     color: $navbar-default-brand-color;
@@ -427,9 +428,11 @@
 
   .navbar-toggle {
     border-color: $navbar-default-toggle-border-color;
+    color: $gray-darker;
+
     &:hover,
     &:focus {
-      background-color: $navbar-default-toggle-hover-bg;
+      background-color: lighten($gray-lighter, 5%);
     }
     .icon-bar {
       background-color: $navbar-default-toggle-icon-bar-bg;

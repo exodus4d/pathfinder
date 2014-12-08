@@ -5,6 +5,7 @@ define([
     'app/render',
     'bootbox',
     'jsPlumb',
+    'customScrollbar',
     'app/map/contextmenu'
 ], function($, Init, Util, Render, bootbox) {
 
@@ -18,7 +19,6 @@ define([
           x: 150,
           y: 0
         },
-        formEditableFieldClass: 'pf-editable',                          // Class for all xEditable fields
 
         mapTabContentClass: 'pf-map-tab-content',                       // Tab-Content element (parent element)
         mapWrapperClass: 'pf-map-wrapper',                              // wrapper div (scrollable)
@@ -27,10 +27,10 @@ define([
         systemIdPrefix: 'pf-system-',                                   // id prefix for a system
         systemClass: 'pf-system',                                       // class for all systems
         systemActiveClass: 'pf-system-active',                          // class for an active system in a map
-        systemHeadClass: 'pf-system-head',
-        systemHeadNameClass: 'pf-system-head-name',
-        systemHeadExpandClass: 'pf-system-head-expand',
-        systemBodyClass: 'pf-system-body',
+        systemHeadClass: 'pf-system-head',                              // class for system head
+        systemHeadNameClass: 'pf-system-head-name',                     // class for system name
+        systemHeadExpandClass: 'pf-system-head-expand',                 // class for system head expand arrow
+        systemBodyClass: 'pf-system-body',                              // class for system body
         systemBodyItemClass: 'pf-system-body-item',
         systemBodyItemStatusClass: 'pf-user-status',
         systemBodyRightClass: 'pf-system-body-right',
@@ -46,13 +46,7 @@ define([
         systemContextMenuId: 'pf-map-system-contextmenu',
 
         // dialogs
-        confirmDeleteConnectionDialogId: 'pf-delete-dialog-connection',
-        confirmDeleteSystemDialogId: 'pf-delete-dialog-system',
         systemDialogId: 'pf-system-dialog',
-        errorConnectDialogId: 'pf-error-dialog-loopback',
-
-        // system effect classes
-
 
         // system security classes
         systemSec: 'pf-system-sec',
@@ -62,8 +56,6 @@ define([
         systemSecWHHeigh: 'pf-system-sec-high',
         systemSecWHMid: 'pf-system-sec-mid',
         systemSecWHLow: 'pf-system-sec-low',
-
-
 
         // user status
         userStatus: {
@@ -833,12 +825,13 @@ define([
 
                         break;
                     case 'delete_system':
-
                         // confirm dialog
-
                         bootbox.confirm('Delete system with all its connections?', function(result) {
                             if(result){
+                                var systemName = currentSystem.getSystemInfo(['name']);
                                 deleteSystem(map, currentSystem);
+
+                                Util.showNotify({title: 'System deleted', text: systemName, type: 'success'});
                             }
                         });
 
@@ -1040,8 +1033,34 @@ define([
     };
 
     /**
+     * get system data out of its object
+     * @param info
+     * @returns {*}
+     */
+    $.fn.getSystemInfo = function(info){
+
+        var systemInfo = [];
+
+        for(var i = 0; i < info.length; i++){
+            switch(info[i]){
+                case 'name':
+                    systemInfo.push( $(this).find('.' + config.systemHeadNameClass).text() );
+                    break;
+            }
+
+        }
+
+        if(systemInfo.length === 1){
+            return systemInfo[0];
+        }else{
+            return systemInfo;
+        }
+
+    };
+
+    /**
      * open "new system" dialog and add the system to map
-     * optional the new system is connected to "currentSystem" (if available)
+     * optional the new system is connected to a "sourceSystem" (if available)
      *
      * @param map
      * @param options
@@ -1068,7 +1087,7 @@ define([
 
             var content = Mustache.render(template, data);
 
-            var test = bootbox.dialog({
+            var systemDialog = bootbox.dialog({
                     title: 'Add new system',
                     message: content,
                     buttons: {
@@ -1076,7 +1095,7 @@ define([
                             label: 'cancel',
                             className: 'btn-default',
                             callback: function(){
-                                $(test).modal('hide');
+                                $(systemDialog).modal('hide');
                             }
                         },
                         success: {
@@ -1087,16 +1106,7 @@ define([
                                 // get form Values
                                 var form = $('#' + config.systemDialogId).find('form');
 
-                                var  newSystemData = {};
-
-                                $.each(form.serializeArray(), function(i, field) {
-                                    newSystemData[field.name] = field.value;
-                                });
-
-                                // add editable fields
-                                var editableValues = $('#' + config.systemDialogId).find('.' + config.formEditableFieldClass).editable('getValue');
-
-                                newSystemData = $.extend(newSystemData, editableValues);
+                                var newSystemData = $(form).getFormValues();
 
                                 var currentX = 0;
                                 var currentY = 0;
@@ -1131,25 +1141,18 @@ define([
                                         x: options.position.x,
                                         y: options.position.y
                                     };
-
                                 }
-
 
                                 newSystemData.position = newPositon;
 
-
                                 // draw new system to map
                                 drawSystem(map, newSystemData, sourceSystem);
-
-
                             }
                         }
 
                     }
                 }
             );
-
-
 
             // make editable
             var modalFields = $('.bootbox .modal-dialog').find('.pf-editable-system-status');
@@ -1288,6 +1291,12 @@ define([
                 // mapConfig.map.bind("beforeDrop", function(info) {
                 // manually connect
                 // });
+
+                // init custom scrollbars
+                parentElement.initMapScrollbar()
+
+                Util.showNotify({title: 'Map initialized', text: mapConfig.config.name  + ' - loaded', type: 'success'});
+
             }
 
 
@@ -1296,4 +1305,69 @@ define([
 
 
     };
+
+    /**
+     * init scrollbar for Map element
+     */
+    $.fn.initMapScrollbar = function(){
+        // get Map Scrollbar
+        var scrollableElement = $(this).find('.' + config.mapWrapperClass);
+        initCutomScrollbar( scrollableElement );
+    };
+
+    /**
+     * init a custom scrollbar
+     * @param scrollableElement
+     */
+    var initCutomScrollbar = function( scrollableElement ){
+
+        // prevent multiple initialization
+        $(scrollableElement).mCustomScrollbar('destroy');
+
+        // init custom scrollbars
+        $(scrollableElement).mCustomScrollbar({
+            axis: 'x',
+            theme: 'light-thick',
+            scrollInertia: 300,
+            autoExpandScrollbar: false,
+            scrollButtons:{
+                scrollAmount: 30,
+                enable: true
+            },
+            callbacks:{
+                onTotalScrollOffset: 0,
+                onTotalScrollBackOffset: 0,
+                alwaysTriggerOffsets:true
+            },
+
+            advanced: {
+                updateOnBrowserResize: true,
+                updateOnContentResize: true,
+                autoExpandHorizontalScroll: true
+            },
+            mouseWheel:{
+                enable:true,
+                scrollAmount:"auto",
+                axis:"x"
+            },
+            scrollbarPosition: "inside",
+            autoDraggerLength: true
+            //autoHideScrollbar: false
+        });
+    };
+
+
+    /**
+     * scroll to a specific position in the map
+     * @returns {*} // string or id
+     */
+    $.fn.scrollTo = function(position){
+        return this.each(function(){
+            // todo re-comment
+            //$(this).mCustomScrollbar('scrollTo', position);
+        });
+    };
+
+
+
 });

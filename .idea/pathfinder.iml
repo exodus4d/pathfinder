@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="WEB_MODULE" version="4">
+  <component name="CompassSettings">
+    <option name="compassConfigPath" value="$MODULE_DIR$/config.rb" />
+    <option name="compassExecutableFilePath" value="C:/Ruby21-x64/bin/compass" />
+    <option name="compassSupportEnabled" value="true" />
+  </component>
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$" />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="jQuery-2.0.0" level="application" />
+    <orderEntry type="library" name="Node.js v0.10.32 Core Modules" level="application" />
+    <orderEntry type="library" name="compass-library" level="project" />
+    <orderEntry type="library" name="sass-stdlib" level="application" />
+  </component>
+</module>
+

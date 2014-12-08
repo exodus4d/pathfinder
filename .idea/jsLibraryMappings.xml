@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JavaScriptLibraryMappings">
+    <file url="PROJECT" libraries="{Node.js v0.10.32 Core Modules, jQuery-2.0.0}" />
+    <includedPredefinedLibrary name="Node.js Globals" />
+  </component>
+</project>
+

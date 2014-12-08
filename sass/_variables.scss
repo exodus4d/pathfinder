@@ -15,7 +15,7 @@ $bootstrap-sass-asset-helper: (twbs-font-path("") != unquote('twbs-font-path("")
 // ## Settings for some of the most global styles.
 
 //** Background color for `<body>`.
-$body-bg:               $gray-light;
+$body-bg:               $gray-dark;
 //** Global text color on `<body>`.
 $text-color:            $gray-dark;
 
@@ -147,19 +147,19 @@ $btn-primary-color:              $gray-lightest;
 $btn-primary-bg:                 $brand-primary;
 $btn-primary-border:             darken($btn-primary-bg, 5%);
 
-$btn-success-color:              #fff;
+$btn-success-color:              $gray-lightest;
 $btn-success-bg:                 $brand-success;
 $btn-success-border:             darken($btn-success-bg, 5%);
 
-$btn-info-color:                 #fff;
+$btn-info-color:                 $gray-lightest;
 $btn-info-bg:                    $brand-info;
 $btn-info-border:                darken($btn-info-bg, 5%);
 
-$btn-warning-color:              #fff;
+$btn-warning-color:              $gray-lightest;
 $btn-warning-bg:                 $brand-warning;
 $btn-warning-border:             darken($btn-warning-bg, 5%);
 
-$btn-danger-color:               #fff;
+$btn-danger-color:               $gray-lightest;
 $btn-danger-bg:                  $brand-danger;
 $btn-danger-border:              darken($btn-danger-bg, 5%);
 
@@ -303,16 +303,17 @@ $container-lg:                 $container-large-desktop;
 //##
 
 // Basics of a navbar
-$navbar-height:                    50px;
+$navbar-height:                    30px;
 $navbar-margin-bottom:             $line-height-computed;
 $navbar-border-radius:             $border-radius-base;
 $navbar-padding-horizontal:        floor(($grid-gutter-width / 2));
 $navbar-padding-vertical:          (($navbar-height - $line-height-computed) / 2);
 $navbar-collapse-max-height:       340px;
 
-$navbar-default-color:             #777;
-$navbar-default-bg:                #f8f8f8;
-$navbar-default-border:            darken($navbar-default-bg, 6.5%);
+$navbar-default-color:             $gray-light;
+$navbar-default-bg:                $gray-darker;
+$navbar-default-opacity:           0.9;
+$navbar-default-border:            none;
 
 // Navbar links
 $navbar-default-link-color:                #777;
@@ -325,13 +326,13 @@ $navbar-default-link-disabled-bg:          transparent;
 
 // Navbar brand label
 $navbar-default-brand-color:               $navbar-default-link-color;
-$navbar-default-brand-hover-color:         darken($navbar-default-link-color, 10%);
+$navbar-default-brand-hover-color:         $teal-dark;
 $navbar-default-brand-hover-bg:            transparent;
 
 // Navbar toggle
-$navbar-default-toggle-hover-bg:           #ddd;
+$navbar-default-toggle-hover-bg:           lighten($gray-lighter, 5%);
 $navbar-default-toggle-icon-bar-bg:        #ccc;
-$navbar-default-toggle-border-color:       #ddd;
+$navbar-default-toggle-border-color:       darken($gray-lighter, 5%);
 
 
 // Inverted navbar
@@ -443,21 +444,21 @@ $jumbotron-font-size:            ceil(($font-size-base * 1.5));
 //
 //## Define colors for form feedback states and, by default, alerts.
 
-$state-success-text:             #468847;
-$state-success-bg:               #dff0d8;
-$state-success-border:           #468847;
+$state-success-text:             $gray-darker;
+$state-success-bg:               lighten($brand-success, 50%);
+$state-success-border:           $brand-success;
 
-$state-info-text:                #346597;
-$state-info-bg:                  #d6dde7;
-$state-info-border:              darken(adjust-hue($state-info-bg, -10), 18%);
+$state-info-text:                $gray-darker;
+$state-info-bg:                  lighten($brand-info, 40%);
+$state-info-border:              $brand-info;
 
-$state-warning-text:             #c09853;
-$state-warning-bg:               #fcf8e3;
-$state-warning-border:           #dbab57;
+$state-warning-text:             $gray-darker;
+$state-warning-bg:               lighten($brand-warning, 50%);
+$state-warning-border:           $brand-warning;
 
-$state-danger-text:              #b94a48;
-$state-danger-bg:                #f2dede;
-$state-danger-border:            #b94a48;
+$state-danger-text:              $gray-darker;
+$state-danger-bg:                lighten($brand-danger, 50%);
+$state-danger-border:            $brand-danger;
 
 
 //== Tooltips
@@ -760,7 +761,7 @@ $greenDark: 				#496949;
 $greenBright:				#40ac2b;
 //$red: 							#a90329;
 $yellow: 						#b09b5b;
-$orangeDark: 				#a57225;
+$orangeDark: 				$orange-dark;
 $pinkDark: 					#a8829f;
 $purple: 						#6e587a;
 $darken: 						#404040;

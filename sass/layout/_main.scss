@@ -37,18 +37,20 @@ a{
     left: 0;
     bottom: 0;
     right: 0;
-
   }
 }
-
 
 .pf-loading-overlay-visible{
   opacity: 0.5;
 }
 
+// page structure ================================================
+.pf-site{
+
+}
+
 // Maps module ===================================================
 #pf-map-module{
-  margin: 30px 0 0 0;
 
   // Tabs (colored)
   #pf-map-tabs {
