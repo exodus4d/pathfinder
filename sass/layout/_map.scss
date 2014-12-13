@@ -36,7 +36,7 @@
   overflow: auto;
   padding: 5px;
   margin: 0 10px;
-  background: rgba($gray-darker, 0.95);
+  background: rgba($gray-darker, 0.93);
 
   box-shadow:inset -1px 1px 6px 0 rgba($black, 0.8);
   @include border-bottom-radius(5px);
@@ -47,9 +47,14 @@
   }
 }
 
-.pf-map{
+// 20x20px grid background
+.pf-grid-small{
+  background-image: url("#{$base-url}/grid_20x20.png") !important;
+}
 
-  width: 1200px;
+
+.pf-map{
+  width: 2000px;
   height: 500px;
   position: relative;
 
@@ -217,17 +222,6 @@
     }
   }
 
-  svg.pf-map-connection-frig  {
-
-    path:not(first-child){
-      stroke: $gray;
-    }
-
-    path:first-child{
-      stroke: $gray-lighter;
-    }
-  }
-
   // Connection status ============================================
 
   svg.pf-map-connection-eol  {
@@ -236,6 +230,24 @@
       stroke: red;
     }
   }
+
+  // Connection overlay ===========================================
+  .pf-map-connection-overlay{
+    padding: 1px 4px;
+    font-size: 10.4px;
+    @include border-radius(3px);
+  }
+
+  .frig{
+    background-color: $orange-light;
+    color: $gray-darkest;
+  }
+
+  .mass{
+    background-color: $red-darker;
+    color: #eaeaea;
+  }
+
 
 }
 

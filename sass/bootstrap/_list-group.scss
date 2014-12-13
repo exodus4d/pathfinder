@@ -21,11 +21,9 @@
 .list-group-item {
   position: relative;
   display: block;
-  padding: 10px 15px;
-  // Place the border on the list items and negative margin up for better styling
-  margin-bottom: -1px;
+  padding: 7px 15px;
   background-color: $list-group-bg;
-  border: 1px solid $list-group-border;
+  border-bottom: 1px solid $list-group-border;
 
   // Round the first and last items
   &:first-child {
@@ -63,6 +61,7 @@ a.list-group-item {
   &:focus {
     text-decoration: none;
     background-color: $list-group-hover-bg;
+    color: $gray-darkest;
   }
 
   // Active class on item itself, not parent

@@ -20,9 +20,11 @@ define([
           y: 0
         },
 
+        mapSnapToGrid: false,                                           // Snap systems to grid while dragging
         mapTabContentClass: 'pf-map-tab-content',                       // Tab-Content element (parent element)
         mapWrapperClass: 'pf-map-wrapper',                              // wrapper div (scrollable)
         mapClass: 'pf-map',                                             // class for all maps
+        mapGridClass: 'pf-grid-small',                                  // class for map grid snapping
         mapIdPrefix: 'pf-map-',                                         // id prefix for all maps
         systemIdPrefix: 'pf-system-',                                   // id prefix for a system
         systemClass: 'pf-system',                                       // class for all systems
@@ -134,7 +136,7 @@ define([
             wh: {
                 cssClass: 'pf-map-connection-wh'
             },
-            wh_eol: {
+            eol: {
                 cssClass: 'pf-map-connection-wh-eol'
             },
             wh_reduced: {
@@ -143,8 +145,27 @@ define([
             wh_critical: {
                 cssClass: 'pf-map-connection-wh-critical'
             },
-            frig: {
-                cssClass: 'pf-map-connection-frig'
+            frigate: {
+                cssClass: 'pf-map-connection-frig',
+                paintStyle: {
+                    dashstyle: '0.9'
+                },
+                overlays:[
+                    [ 'Label',
+                        {
+                            label: 'frig',
+                            cssClass: ['pf-map-connection-overlay', 'frig'].join(' ')
+                        } ]
+                ]
+            },
+            preserve_mass: {
+                overlays:[
+                    [ 'Label',
+                        {
+                            label: '<i class="fa fa-warning"></i>&nbsp;save mass',
+                            cssClass: ['pf-map-connection-overlay', 'mass'].join(' ')
+                        } ]
+                ]
             }
         }
     };
@@ -343,7 +364,7 @@ define([
 
         var mapContainer = $('<div>', {
             id: config.mapIdPrefix + mapConfig.config.id,
-            class: config.mapClass
+            class: [config.mapClass].join(' ')
         }).attr('data-mapid', mapConfig.config.id);
 
         mapWrapper.append(mapContainer);
@@ -392,7 +413,6 @@ define([
         targetConfig.scope = map.Defaults.Scope;
 
         map.makeTarget(systems, targetConfig);
-
     };
 
     /**
@@ -566,10 +586,25 @@ define([
                 $(e.target).find('.' + config.systemHeadNameClass).editable('option', 'placement', placement);
 
             },
-            drag: function(e){
-                // while drag
+            drag: function(e, ui){
 
+                // if active make system snapping to a fixed grid
+                if(config.mapSnapToGrid){
+                    var snapTolerance = $(this).draggable('option', 'snapTolerance');
+                    var topRemainder = ui.position.top % 20;
+                    var leftRemainder = ui.position.left % 20;
 
+                    if (topRemainder <= snapTolerance) {
+                        ui.position.top = ui.position.top - topRemainder;
+                    }
+
+                    if (leftRemainder <= snapTolerance) {
+                        ui.position.left = ui.position.left - leftRemainder;
+                    }
+
+                    map.repaint( e.target );
+
+                }
 
             }
         });
@@ -677,9 +712,9 @@ define([
         var moduleData = {
             id: config.connectionContextMenuId,
             items: [
-                {icon: 'fa-eraser', action: 'delete', text: 'delete'},
                 {icon: 'fa-info-circle', action: 'info', text: 'info'},
-                {divider: true},
+                {icon: 'fa-plane', action: 'frigate', text: 'frigate hole'},
+                {icon: 'fa-warning', action: 'preserve_mass', text: 'preserve mass'},
                 {text: 'change status', subitems: [
                     {subIcon: 'fa-clock-o', subAction: 'eol', subText: 'toggle EOL'},
                     {subDivider: true},
@@ -687,7 +722,9 @@ define([
                     {subIcon: 'fa-adjust', subAction: 'status_reduced', subText: 'stage 1 (reduced)'},
                     {subIcon: 'fa-circle-o', subAction: 'status_critical', subText: 'stage 2 (critical)'}
 
-                ]}
+                ]},
+                {divider: true},
+                {icon: 'fa-eraser', action: 'delete', text: 'delete'},
             ]
         };
 
@@ -944,6 +981,27 @@ define([
 
         });
 
+        // catch menu events ====================================================
+
+        // toggle "snap to grid" option
+        $(container).on('pf:menuGrid', function(e, data){
+            config.mapSnapToGrid = !config.mapSnapToGrid;
+
+            // toggle grid class
+            $(this).toggleClass(config.mapGridClass);
+
+            // toggle button class
+            $(data.button).toggleClass('active');
+
+            var notificationText = 'disabled';
+            if(config.mapSnapToGrid){
+                notificationText = 'enabled';
+            }
+
+            Util.showNotify({title: 'Grid snapping', text: notificationText, type: 'info'});
+
+        });
+
 
     };
 
@@ -985,10 +1043,10 @@ define([
                             }
                         });
                         break;
-                    case 'eol':
-                        // toggle eol-status of a connection
-                        activeConnection.toggleType('wh_eol');
-
+                    case 'frigate':         // set as frigate hole
+                    case 'preserve_mass':   // set "preserve mass
+                    case 'eol':             // set "end of life"
+                        activeConnection.toggleType( action );
                         // for some reason  a new observer is needed ?!
                         setConnectionObserver(map, activeConnection);
                         break;
@@ -1293,7 +1351,7 @@ define([
                 // });
 
                 // init custom scrollbars
-                parentElement.initMapScrollbar()
+                parentElement.initMapScrollbar();
 
                 Util.showNotify({title: 'Map initialized', text: mapConfig.config.name  + ' - loaded', type: 'success'});
 

@@ -2,14 +2,19 @@
   <dictionary name="exodus4d">
     <words>
       <w>addclass</w>
+      <w>bootbox</w>
+      <w>cytaclysmic</w>
+      <w>dashstyle</w>
       <w>fontawesome</w>
       <w>jqueryui</w>
       <w>killboard</w>
+      <w>killmail</w>
       <w>nonblock</w>
       <w>scrollbar</w>
       <w>scrollbars</w>
       <w>slidebar</w>
       <w>slidebars</w>
+      <w>tbody</w>
       <w>textarea</w>
     </words>
   </dictionary>

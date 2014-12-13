@@ -1,112 +1,21 @@
-define(['jquery', 'app/render', 'app/ccp', 'slidebars', 'app/module_map'], function($, Render, CCP) {
+/**
+ * Main Application
+ */
+
+define([
+    'jquery',
+    'app/render',
+    'app/ccp',
+    'app/page',
+    'slidebars',
+    'app/module_map'
+], function($, Render, CCP) {
 
     'use strict';
 
     var config = {
-
-        // page structure slidebars-menu classes
-        pageId: 'sb-site',
-        pageSlidebarClass: 'sb-slidebar',
-        pageSlidebarLeftClass: 'sb-left',
-        pageSlidebarRightClass: 'sb-right',
-        pageSlideLeftWidth: '150px',
-        pageSlideRightWidth: '150px',
-
-        // page structure
-        pageClass: 'pf-site',
-        pageHeaderId: 'pf-site-head',
-
-        // header
-        headClass: 'pf-head',
-        headMenuClass: 'pf-head-menu',
-        headMapClass: 'pf-head-map',
-
-        // map module
-        mapModuleId: 'pf-map-module',
-
-        // helper element
-        dynamicElementWrapperId: 'pf-dialog-wrapper'
+        mapModuleId: 'pf-map-module'
     };
-
-    /**
-     * load main page structure elements and navigation container into body
-     */
-    $.fn.loadPageStructure = function(){
-
-        // menu right
-        $(this).prepend(
-            $('<div>', {
-                class: [config.pageSlidebarClass, config.pageSlidebarRightClass, 'sb-style-push', 'sb-width-custom'].join(' ')
-            }).attr('data-sb-width', config.pageSlideRightWidth).text('right')
-        );
-
-        // menu left
-        $(this).prepend(
-            $('<div>', {
-                class: [config.pageSlidebarClass, config.pageSlidebarLeftClass, 'sb-style-push', 'sb-width-custom'].join(' ')
-            }).attr('data-sb-width', config.pageSlideLeftWidth).text('left')
-        );
-
-        // main page
-        $(this).prepend(
-            $('<div>', {
-                id: config.pageId,
-                class: config.pageClass
-            }).append(
-                $('<div>', {
-                    id: config.mapModuleId
-                })
-            ).append(
-                $('<div>', {
-                    id: config.dynamicElementWrapperId
-                })
-            )
-        );
-
-        // load header
-         $('.' + config.pageClass).loadHeader();
-
-    };
-
-    /**
-     * load page header
-     */
-    $.fn.loadHeader = function(){
-
-        var pageElement = $(this);
-
-        var moduleConfig = {
-            name: 'modules/header',
-            position: pageElement,
-            link: 'prepend',
-            functions: {
-                after: function(){
-
-                    // init slide menus
-                    var slideMenu = new $.slidebars({
-                        scrollLock: false
-                    });
-                    $('.' + config.headMenuClass).on('click', function() {
-                        slideMenu.slidebars.toggle('left');
-                    });
-
-                    $('.' + config.headMapClass).on('click', function() {
-                        slideMenu.slidebars.toggle('right');
-                    });
-                }
-            }
-        };
-
-        var moduleData = {
-            id: config.pageHeaderId,
-            userName: 'Exodus 4D'
-        };
-
-        Render.showModule(moduleConfig, moduleData);
-
-    };
-
-
 
 
     $(function() {
@@ -350,7 +259,7 @@ define(['jquery', 'app/render', 'app/ccp', 'slidebars', 'app/module_map'], funct
         // update map module ========================================
         setTimeout(
             function() {
-     //           $('#' + config.mapModuleId).updateMapModule(userData);
+                $('#' + config.mapModuleId).updateMapModule(userData);
 
                 console.log('update map done');
             }, 500);

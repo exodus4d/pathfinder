@@ -56,7 +56,7 @@ define(['jquery', 'app/init'], function($, Init) {
 
     /**
      * get all form Values as object
-     * this incluces all xEditable fields
+     * this includes all xEditable fields
      * @returns {{}}
      */
     $.fn.getFormValues = function(){
@@ -101,6 +101,55 @@ define(['jquery', 'app/init'], function($, Init) {
         }
 
         return effectInfo;
+    };
+
+    /**
+     * get system effect data by system security and system class
+     * @param secureity
+     * @param effect
+     * @returns {boolean}
+     */
+    var getSystemEffectData = function(securety, effect){
+
+        var areaId = getAreaIdBySecurity(securety);
+
+        var data = false;
+
+        if(
+            Init.systemEffects &&
+            Init.systemEffects.wh[effect] &&
+            Init.systemEffects.wh[effect][areaId]
+        ){
+            data = Init.systemEffects.wh[effect][areaId];
+        }
+
+        return data;
+    };
+
+    var getSystemEffectTable = function(data){
+
+        var table = '';
+
+        if(data.length > 0){
+
+            table += '<table>';
+
+            for(var i = 0; i < data.length; i++){
+                table += '<tr>';
+                table += '<td>';
+                table += data[i].effect;
+                table += '</td>';
+                table += '<td class="text-right">';
+                table += data[i].value;
+                table += '</td>';
+                table += '</tr>';
+            }
+
+            table += '</table>';
+        }
+
+
+        return table;
     };
 
     /**
@@ -264,6 +313,8 @@ define(['jquery', 'app/init'], function($, Init) {
         showNotify: showNotify,
 
         getEffectInfoForSystem: getEffectInfoForSystem,
+        getSystemEffectData: getSystemEffectData,
+        getSystemEffectTable: getSystemEffectTable,
         getSecurityClassForSystem: getSecurityClassForSystem,
         getTrueSecClassForSystem: getTrueSecClassForSystem,
         getStatusInfoForSystem: getStatusInfoForSystem,

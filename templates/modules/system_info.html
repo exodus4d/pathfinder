@@ -19,21 +19,23 @@
     </div>
     <div class="col-xs-12 col-sm-5">
         <table class="table table-condensed {{tableClass}}">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th class="text-right">
+                        {{#system.alias}}
+                            {{system.alias}}
+                        {{/system.alias}}
+                        {{^system.alias}}
+                            {{system.name}}
+                        {{/system.alias}}
+                        [ <span class="{{securityClass}}">{{system.security}}</span> ]
+                    </th>
+                </tr>
+            </thead>
             <tbody>
-            <tr>
-                <td>Name</td>
-                <td class="text-right">
-                    {{#system.alias}}
-                        {{system.alias}}
-                    {{/system.alias}}
-                    {{^system.alias}}
-                        {{system.name}}
-                    {{/system.alias}}
-                    [ <span class="{{securityClass}}">{{system.security}}</span> ]
-                </td>
-            </tr>
                 {{#effectName}}
-                    <tr>
+                    <tr class="pf-system-info-effect-row">
                         <td>Effect</td>
                         <td class="text-right">{{effectName}} <i class="fa fa-square pf-system-effect {{effectClass}}"></i></td>
                     </tr>

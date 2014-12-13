@@ -40,7 +40,9 @@ define([
         systemInfoModuleClass: 'pf-system-info-module',                         // module wrapper
         systemInfoRoutesClass: 'pf-system-info-routes',                         // wrapper for trade hub routes
         systemInfoGraphsClass: 'pf-system-info-graphs',                         // wrapper for graphs
+        systemInfoGraphKillsClass: 'pf-system-info-graph-kills',                // class for system kill graph
         systemInfoTableClass: 'pf-system-info-table',                           // class for system info table
+        systemInfoTableEffectRowClass: 'pf-system-info-effect-row',             // class for system info table effect row
         systemInfoRoutesTableClass: 'pf-system-route-table',                    // class for route tables
         systemInfoRoutesTableRowPrefix: 'pf-system-info-routes-row-',           // prefix class for a row in the route table
         systemSecurityClassPrefix: 'pf-system-security-',                       // prefix class for system security level (color)
@@ -171,11 +173,21 @@ define([
      * @param mapModule
      * @returns {*}
      */
-    var getMaps = function(mapModule){
+    $.fn.getMaps = function(){
 
-        var maps = $(mapModule).find('.' + config.mapClass);
+        var maps = $(this).find('.' + config.mapClass);
 
         return maps;
+    };
+
+    /**
+     * get the current active map for
+     * @returns {*}
+     */
+    $.fn.getActiveMap = function(){
+        var map = $(this).find('.active.' + config.mapTabContentClass + ' .' + config.mapClass);
+
+        return map;
     };
 
 
@@ -221,7 +233,9 @@ define([
             // highlite a mapTab
             $(this).on('pf:highlightTab', function(e, data){
                 // update Tab Content with system data information
-                highlightTab(e.target, data);
+
+                // not used jet
+                // highlightTab(e.target, data);
 
             });
 
@@ -436,6 +450,8 @@ define([
                             // clear all
                             signatureTable.clear().draw();
 
+                            moduleElement.updateScannedSignaturesBar({showNotice: false});
+
                             Util.showNotify({title: 'Signatures cleared', text: signatureCount + ' signatures deleted', type: 'success'});
                         }
                     });
@@ -647,7 +663,7 @@ define([
                 updatedBy: 'Exodus 4D' //newSignatureData[k].updatedBy
             };
 
-            row.addTooltip( tooltipData );
+            row.addRowTooltip( tooltipData );
 
             notificationCounter.added++;
         }
@@ -669,7 +685,7 @@ define([
      * adds a popup tooltip with signature information to rows
      * @param data
      */
-    $.fn.addTooltip = function(data){
+    $.fn.addRowTooltip = function(data){
 
         if(
             data.addedBy.length > 0 &&
@@ -917,6 +933,9 @@ define([
 
         $(this).prepend(moduleElement);
 
+        var effectName = Util.getEffectInfoForSystem(system.effect, 'name');
+        var effectClass = Util.getEffectInfoForSystem(system.effect, 'class');
+
         // confirm dialog
         var moduleConfig = {
             name: 'modules/system_info',
@@ -932,6 +951,27 @@ define([
                     if(system.type !== 'wh'){
                         $(moduleElement).find('.' + config.systemInfoRoutesClass).updateSystemInfoRoutes(system.name, ['Jita', 'Amarr', 'Rens', 'Dodixie']);
                     }
+
+                    // init system effect popover
+                    var systemEffectData = Util.getSystemEffectData( system.security, system.effect);
+
+                    if(systemEffectData !== false){
+
+                        var systemInfoTable = $(moduleElement).find('.' + config.systemInfoTableClass);
+
+                        // transform data into table
+                        var systemEffectTable = Util.getSystemEffectTable( systemEffectData );
+
+                        systemInfoTable.popover({
+                            html: true,
+                            trigger: 'hover',
+                            placement: 'top',
+                            delay: 200,
+                            title: 'System effects',
+                            content: systemEffectTable
+                        });
+                    }
+
 
                     // load kill statistic chart
                     $(moduleElement).find('.' + config.systemInfoGraphsClass).updateSystemInfoGraphs(system.id);
@@ -955,29 +995,67 @@ define([
             tableClass: config.systemInfoTableClass,
             securityClass: Util.getSecurityClassForSystem( system.security ),
             trueSecClass: Util.getTrueSecClassForSystem( system.trueSec ),
-            effectName: Util.getEffectInfoForSystem(system.effect, 'name'),
-            effectClass: Util.getEffectInfoForSystem(system.effect, 'class')
+            effectName: effectName,
+            effectClass: effectClass
         };
 
         Render.showModule(moduleConfig, moduleData);
 
     };
 
+    /**
+     * get label element with given content
+     * @param text
+     * @returns {*|XMLList}
+     */
+    var getLabel = function(text, options){
+        var label = $('<span>', {
+            class: ['label', options.type, options.align].join(' ')
+        }).text( text );
+
+        return label;
+    };
+
+    /**
+     * updates the system info graph
+     * @param systemId
+     */
     $.fn.updateSystemInfoGraphs = function(systemId){
 
         var parentElement = $(this);
 
         parentElement.empty();
 
-        var graphElement = $('<div>');
+        var graphElement = $('<div>', {
+            class: config.systemInfoGraphKillsClass
+        });
 
         parentElement.append(graphElement);
 
         var showHours = 24;
         var maxKillmailCount = 200; // limited by API
 
+        var labelOptions = {
+            align: 'center-block'
+        };
+
         // private function draws a "system kills" graph
         var drawGraph = function(data){
+
+            var tableData = data.tableData;
+            var label = '';
+
+            if(data.count === 0){
+                labelOptions.type = 'label-success';
+                label = getLabel( 'No kills found within 24h', labelOptions );
+                graphElement.prepend( label );
+
+                // reduce height
+                graphElement.animate({
+                    height: '30px'
+                }, 200);
+                return;
+            }
 
             // draw chart
             Morris.Bar({
@@ -987,7 +1065,7 @@ define([
                 gridTextColor: '#3c3f41',
                 gridTextFamily: 'Oxygen Bold',
                 hideHover: true,
-                data: data,
+                data: tableData,
                 xkey: 'label',
                 ykeys: ['kills'],
                 labels: ['kills'],
@@ -996,7 +1074,7 @@ define([
                 parseTime: false,
                 barColors: function (row, series, type) {
                     if (type === 'bar') {
-                        // hightlite last row -> recent kills found
+                        // highlight last row -> recent kills found
                         if(this.xmax === row.x){
                             return '#c2760c';
                         }
@@ -1007,18 +1085,10 @@ define([
             });
 
             // show hint for recent kills
-            if(data[data.length - 1].kills > 0){
-                graphElement.prepend(
-
-                    $('<h6>').append(
-                        $('<span>', {
-                            class: 'label label-warning center-block'
-                        }).text( data[data.length - 1].kills + ' kills within the last hour!')
-                    )
-
-
-                );
-
+            if(tableData[tableData.length - 1].kills > 0){
+                labelOptions.type = 'label-warning';
+                label = getLabel( tableData[tableData.length - 1].kills + ' kills within the last hour!', labelOptions );
+                graphElement.prepend( label );
             }
 
         };
@@ -1080,8 +1150,8 @@ define([
                 // the API wont return more than 200KMs ! - remember last bar block with complete KM information
                 var lastCompleteDiffHourData = 0;
 
-                // loop kills and count kills by hour
 
+                // loop kills and count kills by hour
                 for(var i = 0; i < kbData.length; i++){
                     var match = kbData[i].killTime.match(/^(\d+)-(\d+)-(\d+) (\d+)\:(\d+)\:(\d+)$/);
                     var killDate = new Date(match[1], match[2] - 1, match[3], match[4], match[5], match[6]);
@@ -1109,7 +1179,11 @@ define([
                 // change order
                 chartData.reverse();
 
-                cache.systemKillsGraphData[cacheKey] = chartData;
+                // fill cache
+                cache.systemKillsGraphData[cacheKey] = {};
+                cache.systemKillsGraphData[cacheKey].tableData = chartData;
+                cache.systemKillsGraphData[cacheKey].count = kbData.length;
+
                 drawGraph( cache.systemKillsGraphData[cacheKey] );
 
                 parentElement.hideLoadingAnimation();
@@ -1755,7 +1829,7 @@ define([
     $.fn.updateMapModule = function(userData){
 
         // get all active map elements for module
-        var mapElements = getMaps(this);
+        var mapElements = $(this).getMaps();
 
         var currentUserData = null;
 
@@ -1787,7 +1861,7 @@ define([
     };
 
     /**
-     * load all structrure elements into a TabsContent div (tab body)
+     * load all structure elements into a TabsContent div (tab body)
      */
     $.fn.initContentStructure = function(){
 

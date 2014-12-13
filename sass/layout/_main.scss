@@ -44,12 +44,21 @@ a{
   opacity: 0.5;
 }
 
-// page structure ================================================
-.pf-site{
-
+// page menu ================================================
+.sb-left{
+  .list-group-item{
+    @include box-shadow(inset -10px 0px 5px -5px rgba(0,0,0,0.4));
+  }
 }
 
-// Maps module ===================================================
+.sb-right{
+  .list-group-item{
+    @include box-shadow(inset 10px 0px 5px -5px rgba(0,0,0,0.4));
+  }
+}
+
+
+// maps module ===================================================
 #pf-map-module{
 
   // Tabs (colored)
@@ -176,7 +185,7 @@ a{
   color: $system-color-sec-1-0;
 }
 
-// System security level =============================================
+// system security level =============================================
 
 .pf-system-sec{
   margin-right: 5px;
@@ -234,7 +243,19 @@ a{
   color: $teal;
 }
 
-// Tooltip ======================================================
+// system effect info dialog
+.pf-system-effect-dialog-wrapper{
+  .table{
+    margin: 15px 0;
+    font-size: 10px;
+
+    td{
+      text-transform: capitalize;
+    }
+  }
+}
+
+// tooltip ======================================================
 .tooltip-inner{
   opacity: 1;
   color: $teal;
