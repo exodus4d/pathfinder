@@ -6,6 +6,8 @@ define([
     'bootbox',
     'jsPlumb',
     'customScrollbar',
+    'dragToSelect',
+    'hoverIntent',
     'app/map/contextmenu'
 ], function($, Init, Util, Render, bootbox) {
 
@@ -23,12 +25,15 @@ define([
         mapSnapToGrid: false,                                           // Snap systems to grid while dragging
         mapTabContentClass: 'pf-map-tab-content',                       // Tab-Content element (parent element)
         mapWrapperClass: 'pf-map-wrapper',                              // wrapper div (scrollable)
+        mapOverlayClass: 'pf-map-overlay',                              // class for map Overlay e.g. update counter
         mapClass: 'pf-map',                                             // class for all maps
         mapGridClass: 'pf-grid-small',                                  // class for map grid snapping
         mapIdPrefix: 'pf-map-',                                         // id prefix for all maps
         systemIdPrefix: 'pf-system-',                                   // id prefix for a system
         systemClass: 'pf-system',                                       // class for all systems
         systemActiveClass: 'pf-system-active',                          // class for an active system in a map
+        systemSelectedClass: 'pf-system-selected',                      // class for selected systems in a map
+        systemLockedClass: 'pf-system-locked',                          // class for locked systems in a map
         systemHeadClass: 'pf-system-head',                              // class for system head
         systemHeadNameClass: 'pf-system-head-name',                     // class for system name
         systemHeadExpandClass: 'pf-system-head-expand',                 // class for system head expand arrow
@@ -80,12 +85,12 @@ define([
         source: {
             filter: '.' + config.systemHeadNameClass,
             anchor: 'Continuous',
-            connector: [ "Bezier", { curviness: 40, cssClass: 'pf-map-connection-wh' } ],
-            maxConnections: 5,
+            connector: [ 'Bezier', { curviness: 40, cssClass: 'pf-map-connection-wh' } ],
+            maxConnections: 20,
             allowLoopback:false,
             cssClass: config.endpointSourceClass,
             onMaxConnections:function(info, e) {
-                alert("Maximum connections (" + info.maxConnections + ") reached");
+                console.log(info.maxConnections);
             }/*,
 
             overlays:[
@@ -99,21 +104,13 @@ define([
         target: {
             filter: '.' + config.systemHeadNameClass,
             anchor: 'Continuous',
-            allowLoopback:false,
+            allowLoopback: false,
             cssClass: config.endpointTargetClass,
             dropOptions: {
                 tolerance: 'touch',
                 hoverClass: config.systemActiveClass,
                 activeClass: 'dragActive'
             },
-            /*overlays:[
-                [ "Label", {
-                    location:[0.5, 1.5],
-                    label:"Drag",
-                    cssClass:"endpointSourceLabel"
-                } ]
-            ],*/
-
             beforeDrop: function(info){
                 // check function for new connection
 
@@ -281,13 +278,14 @@ define([
      */
     var toggleSystemTooltip = function(systems, show, options){
 
-        $.each(systems, function(i, system){
+        for(var i = 0; i < systems.length; i++){
             if(options){
-                $(system).tooltip(options);
+                $(systems[i]).tooltip(options);
             }
 
-            $(system).tooltip(show);
-        });
+            $(systems[i]).tooltip(show);
+        }
+
     };
 
     /**
@@ -306,10 +304,13 @@ define([
         var effectClass = Util.getEffectInfoForSystem(data.effect, 'class');
         var secClass = Util.getSecurityClassForSystem(data.security);
         var statusClass = Util.getStatusInfoForSystem(data.status, 'class');
+        var statusLabel = Util.getStatusInfoForSystem(data.status, 'label');
+
+        var systemId = config.systemIdPrefix + data.id;
 
         system = $('<div>', {
             // system
-            id: config.systemIdPrefix + data.id,
+            id: systemId,
             class: [config.systemClass, statusClass].join(' ')
         }).append(
             // system head
@@ -322,14 +323,19 @@ define([
                     class: config.systemHeadNameClass
                 }).attr('data-value', data.name)
             ).append(
+                // System locked status
+                $('<i>', {
+                    class: ['fa', 'fa-lock', 'fa-fw'].join(' ')
+                }).attr('title', 'locked')
+            ).append(
                 // System effect color
                 $('<i>', {
-                    class: ['fa fa-square ', Util.getEffectInfoForSystem('effect', 'class'), effectClass].join(' ')
-                })
+                    class: ['fa', 'fa-square ', 'fa-fw', Util.getEffectInfoForSystem('effect', 'class'), effectClass].join(' ')
+                }).attr('title', 'effect')
             ).append(
                 // expand option
                 $('<i>', {
-                    class: ['fa fa-angle-down ', config.systemHeadExpandClass].join(' ')
+                    class: ['fa', 'fa-angle-down ', config.systemHeadExpandClass].join(' ')
                 })
             ).prepend(
                 $('<span>', {
@@ -337,7 +343,6 @@ define([
                     text: data.security
                 })
             )
-
         ).append(
                 // system body
                 $('<div>', {
@@ -345,8 +350,27 @@ define([
                 })
             ).data('name', data.name).css({ "left": data.position.x + "px", 'top': data.position.y + 'px' });
 
-        system.attr('data-id', data.id);
-        system.attr('data-mapid', mapContainer.attr('data-mapid'));
+        system.data('id', data.id);
+        system.data('status', statusLabel);
+        system.attr('data-mapid', mapContainer.data('id'));
+
+        // locked system
+        if(
+            system.data( 'locked') !== true &&
+            data.locked === '1'
+        ){
+            system.toggleLockSystem(false, {hideNotification: true, hideCounter: true, map: map});
+        }
+
+        // rally system
+        if(
+            system.data( 'rally') !== true &&
+            data.rally === '1'
+        ){
+            system.toggleRallyPoint(false, {hideNotification: true, hideCounter: true});
+        }
+
+
 
         return $(system);
     };
@@ -365,7 +389,11 @@ define([
         var mapContainer = $('<div>', {
             id: config.mapIdPrefix + mapConfig.config.id,
             class: [config.mapClass].join(' ')
-        }).attr('data-mapid', mapConfig.config.id);
+        });
+
+        // add additional information
+        mapContainer.data('id', mapConfig.config.id);
+        mapContainer.data('name', mapConfig.config.name);
 
         mapWrapper.append(mapContainer);
 
@@ -467,7 +495,9 @@ define([
             makeEditable(newSystem);
 
             // make new system draggable
-            makeDraggable(map, newSystem);
+            if(! newSystem.data('locked')){
+                $(newSystem).multiDraggable({map: map, group: newSystem});
+            }
 
             // make target
             makeTarget(map, newSystem);
@@ -484,8 +514,8 @@ define([
                 $.each(connectedSystems, function(i, connectSystem){
 
                     var connectionData = {
-                        source: $(connectSystem).attr('data-id'),
-                        target: $(newSystem).attr('data-id'),
+                        source: $(connectSystem).data('id'),
+                        target: $(newSystem).data('id'),
                         type: 'wh'
                     };
                     drawConnection(map, connectionData);
@@ -500,6 +530,8 @@ define([
      * @param system
      */
     var deleteSystem = function(map, system){
+
+        system = $(system);
 
         // detach all connections
         map.detachAllConnections(system);
@@ -517,7 +549,7 @@ define([
     };
 
     /**
-     * make a syste name editable by x-editable
+     * make a system name editable by x-editable
      * @param system
      */
     var makeEditable = function(system){
@@ -530,6 +562,7 @@ define([
             title: 'system name',
             placement: 'top',
             onblur: 'submit',
+            toggle: 'dblclick',
             showbuttons: false
         });
 
@@ -541,73 +574,112 @@ define([
     };
 
     /**
-     * make one or multiple systems draggable
-     * @param map
-     * @param String[] systems
+     * get map Overlay element by any element within a specific map
+     * @returns {*}
      */
-    var makeDraggable = function(map, systems){
+    $.fn.getMapOverlay = function(){
 
-        var mapContainer = $(map.getContainer());
+        return $(this).parents('.' + config.mapWrapperClass).find('.' + config.mapOverlayClass);
+    };
 
-        map.draggable(systems, {
-            containment: mapContainer,// 'parent',
-            zIndex: 2000,
-            start: function(e){
-                // drag start
+    /**
+     * get the map counter chart by an overlay
+     * @returns {*}
+     */
+    $.fn.getMapCounter = function(){
 
-                // hide tooltip
-                toggleSystemTooltip([e.target], 'hide');
-            },
-            stop: function(e, ui){
+        var mapOverlay = $(this);
 
-                var system = $(e.target);
+        return mapOverlay.find('.' + Init.classes.pieChart.pieChartMapCounterClass);
+    };
 
-                // drag stop
-                var mapContainer = $( system.parent() );
+    /**
+     * draws the map update counter to the map overlay
+     * @param percent
+     * @returns {*}
+     */
+    $.fn.setMapUpdateCounter = function(percent, value){
 
-                // update z-index for dragged system + connections
-                updateZIndex(e.target);
+        var mapOverlay = $(this);
 
-                // rerender tooltip
-                toggleSystemTooltip([e.target], 'show');
+        // check if counter already exists
+        var counterChart = mapOverlay.getMapCounter();
 
-                // set new position for popover edit field (system name)
-                var distanceTop = ui.position.top;
-                var distanceLeft = ui.position.left;
+        if(counterChart.length === 0){
+            // create new counter
 
-                var placement = 'top';
-                if(distanceTop < 100){
-                    placement = 'bottom';
-                }
-                if(distanceLeft < 100){
-                    placement = 'right';
-                }
+            counterChart = $('<div>', {
+                class: [Init.classes.pieChart.class, Init.classes.pieChart.pieChartMapCounterClass].join(' ')
+            }).attr('data-percent', percent).append(
+                $('<span>', {
+                    text: value
+                })
+            );
 
-                $(e.target).find('.' + config.systemHeadNameClass).editable('option', 'placement', placement);
+            mapOverlay.append(counterChart);
 
-            },
-            drag: function(e, ui){
+            // init counter
+            counterChart.initMapUpdateCounter();
 
-                // if active make system snapping to a fixed grid
-                if(config.mapSnapToGrid){
-                    var snapTolerance = $(this).draggable('option', 'snapTolerance');
-                    var topRemainder = ui.position.top % 20;
-                    var leftRemainder = ui.position.left % 20;
+            // set tooltip
+            mapOverlay.attr('data-toggle', 'tooltip');
+            mapOverlay.attr('data-placement', 'left');
+            mapOverlay.attr('title', 'update counter');
+            mapOverlay.tooltip();
+        }
 
-                    if (topRemainder <= snapTolerance) {
-                        ui.position.top = ui.position.top - topRemainder;
-                    }
+        return counterChart;
+    };
 
-                    if (leftRemainder <= snapTolerance) {
-                        ui.position.left = ui.position.left - leftRemainder;
-                    }
+    /**
+     * start the map update counter or reset
+     */
+    $.fn.startMapUpdateCounter = function(){
 
-                    map.repaint( e.target );
+        var mapOverlay = $(this);
+        var counterChart = mapOverlay.getMapCounter();
 
-                }
+        var seconds = 10;
 
+        // get counter interval (in case there is an active one)
+        var interval = counterChart.data('interval');
+
+        if(interval){
+            clearInterval(interval);
+        }
+
+        mapOverlay.fadeIn(200);
+
+        var counterChartLabel = counterChart.find('span');
+
+        var percentPerCount = 100 / seconds;
+
+        var timer = function(){
+            seconds--;
+
+            counterChart.data('easyPieChart').update( percentPerCount * seconds);
+            counterChartLabel.text(seconds);
+            if(seconds <= 0){
+                clearInterval(mapUpdateCounter);
+
+
+                setTimeout(function(){
+                    mapOverlay.fadeOut(200);
+                    counterChart.data('interval', false);
+                }, 800);
+
+                return;
             }
-        });
+        };
+
+        // start timer
+        var mapUpdateCounter = setInterval(timer, 1000);
+        counterChart.data('easyPieChart').update( percentPerCount * seconds);
+        counterChartLabel.text(seconds);
+
+        // store counter
+        counterChart.data('interval', mapUpdateCounter);
+
     };
 
     /**
@@ -670,6 +742,14 @@ define([
             source: config.systemIdPrefix + connectionData.source,
             target: config.systemIdPrefix + connectionData.target,
             type: connectionData.type
+
+            /* experimental (straight connections)
+            anchors: [
+                [ "Perimeter", { shape: 'Rectangle' }],
+                [ "Perimeter", { shape: 'Rectangle' }]
+            ]
+            */
+
         });
 
         // set Observer for new Connection
@@ -679,7 +759,7 @@ define([
     };
 
     /**
-     * load contextmenu template for map
+     * load context menu template for map
      */
     var initMapContextMenu = function(){
 
@@ -692,7 +772,9 @@ define([
             id: config.mapContextMenuId,
             items: [
                 {icon: 'fa-plus', action: 'add_system', text: 'add system'},
-                {icon: 'fa-info-circle', action: 'info', text: 'info'}
+                {icon: 'fa-info', action: 'info', text: 'info'},
+                {divider: true},
+                {icon: 'fa-eraser', action: 'delete_systems', text: 'delete systems'}
             ]
         };
 
@@ -712,10 +794,10 @@ define([
         var moduleData = {
             id: config.connectionContextMenuId,
             items: [
-                {icon: 'fa-info-circle', action: 'info', text: 'info'},
+                {icon: 'fa-info', action: 'info', text: 'info'},
                 {icon: 'fa-plane', action: 'frigate', text: 'frigate hole'},
                 {icon: 'fa-warning', action: 'preserve_mass', text: 'preserve mass'},
-                {text: 'change status', subitems: [
+                {icon: 'fa-reply fa-rotate-180', text: 'change status', subitems: [
                     {subIcon: 'fa-clock-o', subAction: 'eol', subText: 'toggle EOL'},
                     {subDivider: true},
                     {subIcon: 'fa-circle', subAction: 'status_fresh', subText: 'stage 0 (fresh)'},
@@ -724,7 +806,7 @@ define([
 
                 ]},
                 {divider: true},
-                {icon: 'fa-eraser', action: 'delete', text: 'delete'},
+                {icon: 'fa-eraser', action: 'delete', text: 'delete'}
             ]
         };
 
@@ -757,10 +839,11 @@ define([
             id: config.systemContextMenuId,
             items: [
                 {icon: 'fa-plus', action: 'add_system', text: 'add system'},
-                {icon: 'fa-eraser', action: 'delete_system', text: 'delete system'},
-                {icon: 'fa-info-circle', action: 'info', text: 'info'},
+                {icon: 'fa-lock', action: 'lock_system', text: 'lock system'},
+                {icon: 'fa-users', action: 'set_rally', text: 'set rally point'},
+                {icon: 'fa-reply fa-rotate-180', text: 'change status', subitems: systemStatus},
                 {divider: true},
-                {text: 'change status', subitems: systemStatus}
+                {icon: 'fa-eraser', action: 'delete_system', text: 'delete system'}
             ]
         };
 
@@ -769,23 +852,34 @@ define([
     };
 
     /**
-     * set up contextmenu for all Systems within a given map
+     * set up context menu for all Systems within a given map
      * @param endpoints
      */
     var setSystemObserver = function(map, system){
 
-        var systemHeadExpand = $( $(system).find('.' + config.systemHeadExpandClass) );
-        var systemBody = $( $(system).find('.' + config.systemBodyClass) );
+        system = $(system);
+
+        var systemHeadExpand = $( system.find('.' + config.systemHeadExpandClass) );
+        var systemBody = $( system.find('.' + config.systemBodyClass) );
 
         var bodyItemheight = 16;
 
-        // init system body expand
-        systemHeadExpand.hover(function(e){
+        // init system tooltips ================================================================
+        var systemTooltipOptions = {
+            toggle: 'tooltip',
+            placement: 'right',
+            viewport: system.id
+        };
+
+        system.find('.fa').tooltip(systemTooltipOptions);
+
+        // init system body expand ============================================================
+        systemHeadExpand.hoverIntent(function(e){
             // hover in
             var hoverSystem = $(this).parents('.' + config.systemClass);
 
             // get ship counter and calculate expand height
-            var shipCounter = parseInt( $(system).attr('data-original-title') );
+            var shipCounter = parseInt( system.attr('data-original-title') );
 
             var expandheight = shipCounter * bodyItemheight;
 
@@ -796,7 +890,7 @@ define([
                     'min-width': '150px'
                 },
                 {
-                    queue:false,
+                   // queue:false,
                     duration: 100,
                     step: function(){
                         // repaint connections of current system
@@ -818,7 +912,7 @@ define([
                     'min-width': '80px'
                 },
                 {
-                    queue:false,
+                  //  queue:false,
                     duration: 100,
                     step: function(){
                         // repaint connections of current system
@@ -838,14 +932,17 @@ define([
         // context menu ==================================================================
 
         // trigger context menu
-        $(system).on('contextmenu', function(e){
+        system.on('contextmenu', function(e){
+
+            // hide all map tooltips
+
             $(e.target).trigger('pf:openContextMenu', [e, this]);
             e.preventDefault();
             return false;
         });
 
-        // init contextmenu
-        $(system).contextMenu({
+        // init context menu
+        system.contextMenu({
             menuSelector: "#" + config.systemContextMenuId,
             menuSelected: function (params) {
 
@@ -855,23 +952,60 @@ define([
                 // current system
                 var currentSystem = $(params.component);
 
+                // system name
+                var currentSystemName = currentSystem.getSystemInfo( ['name'] );
+
                 switch(action){
                     case 'add_system':
                         // add a new system
                         showNewSystemDialog(map, {sourceSystem: currentSystem} );
 
                         break;
-                    case 'delete_system':
-                        // confirm dialog
-                        bootbox.confirm('Delete system with all its connections?', function(result) {
-                            if(result){
-                                var systemName = currentSystem.getSystemInfo(['name']);
-                                deleteSystem(map, currentSystem);
+                    case 'lock_system':
+                        // lock system
 
-                                Util.showNotify({title: 'System deleted', text: systemName, type: 'success'});
-                            }
-                        });
+                        currentSystem.toggleLockSystem(true, {map: map});
 
+                        // repaint connections, -> system changed its size!
+                        map.repaint( currentSystem );
+                        break;
+                    case 'set_rally':
+                        // set rally point
+
+                        if( ! currentSystem.data( 'rally' ) ){
+
+                            // show confirm dialog
+                            var rallyDialog = bootbox.dialog({
+                                message: 'Do you want to poke active pilots?',
+                                title: 'Set rally point for system "' + currentSystemName + '"',
+                                buttons: {
+                                    close: {
+                                        label: 'cancel',
+                                        className: 'btn-default',
+                                        callback: function(){
+                                            $(rallyDialog).modal('hide');
+                                        }
+                                    },
+                                    setRallyPoke: {
+                                        label: '<i class="fa fa-fw fa-bullhorn"></i> Set rally and poke',
+                                        className: 'btn-info',
+                                        callback: function() {
+                                            currentSystem.toggleRallyPoint(true, {});
+                                        }
+                                    },
+                                    setRallay: {
+                                        label: '<i class="fa fa-fw fa-users"></i> Set rally',
+                                        className: 'btn-primary',
+                                        callback: function() {
+                                            currentSystem.toggleRallyPoint(false, {});
+                                        }
+                                    }
+                                }
+                            });
+                        }else{
+                            // remove rally point
+                            currentSystem.toggleRallyPoint(false, {});
+                        }
                         break;
                     case 'change_status_unknown':
                     case 'change_status_friendly':
@@ -879,6 +1013,10 @@ define([
                     case 'change_status_hostile':
                     case 'change_status_empty':
                     case 'change_status_unscanned':
+
+                        $(currentSystem).getMapOverlay().startMapUpdateCounter();
+
+
                         // remove all status classes from system
                         $.each(Init.classes.systemStatus, function(status, statusData){
                             currentSystem.removeClass( statusData.class );
@@ -887,10 +1025,25 @@ define([
                         // add new class
                         var statusString = action.split('_');
                         var statusClass = Util.getStatusInfoForSystem(statusString[2], 'class');
+                        var statusLabel = Util.getStatusInfoForSystem(statusString[2], 'label');
 
+                        currentSystem.data('status', statusLabel);
                         currentSystem.addClass( statusClass );
                         break;
-                    case 'info': console.log('info')
+                    case 'delete_system':
+                        // confirm dialog
+                        bootbox.confirm('Delete system and all its connections?', function(result) {
+                            if(result){
+                                $(currentSystem).getMapOverlay().startMapUpdateCounter();
+
+
+                                var systemName = currentSystem.getSystemInfo(['name']);
+                                deleteSystem(map, currentSystem);
+
+                                Util.showNotify({title: 'System deleted', text: systemName, type: 'success'});
+                            }
+                        });
+
                         break;
                 }
 
@@ -898,23 +1051,190 @@ define([
         });
 
         // load system data =================================================================================
-        // trigger event for this system
-        $(system).on('click', function(e){
+        system.on('click', function(e){
 
-            // get current map
-            var currentSystem = $(e.target).parents('.' + config.systemClass);
+            var system = $(this);
 
-            markSystemActive(map, currentSystem);
+            if(e.which === 1){
+                // left mouse button
 
-            // get parent Tab Content and fire update event
-            var tabContentElement = getTabContentElementByMapElement(currentSystem);
+                if(e.ctrlKey === true){
+                    // select system
+                    system.toggleSelectSystem(map);
+                }else{
+                    // activate system
+                    markSystemActive(map, system);
 
-            var data = {
-                system: currentSystem
-            };
+                    // get parent Tab Content and fire update event
+                    var tabContentElement = getTabContentElementByMapElement( system );
 
-            $(tabContentElement).trigger('pf:updateSystemData', [data]);
+                    var data = {
+                        system: system
+                    };
+
+                    $(tabContentElement).trigger('pf:updateSystemData', [data]);
+                }
+
+            }
         });
+
+
+    };
+
+    /**
+     * toggle select status of a system
+     */
+    $.fn.toggleSelectSystem = function(map){
+        var system = $(this);
+
+        var mapElement = system.parent();
+
+        if( system.data('locked') !== true ){
+
+            if( system.hasClass( config.systemSelectedClass ) ){
+                system.removeClass( config.systemSelectedClass );
+
+                // set single draggable for this system
+                system.multiDraggable({map: map, group: system});
+            }else{
+                system.addClass( config.systemSelectedClass );
+            }
+
+            // there can still be multiple selected systems :)
+            var selectedSystems = $(mapElement).getSelectedSystems();
+
+            if(selectedSystems.length > 0){
+                $(selectedSystems).multiDraggable({map: map, group: selectedSystems});
+            }
+
+        }else{
+            var systemName = system.getSystemInfo( ['name'] );
+
+            Util.showNotify({title: 'System is locked', text: systemName, type: 'error'});
+        }
+
+    };
+
+    /**
+     * get all selected (NOT active) systems in a map
+     * @returns {*}
+     */
+    $.fn.getSelectedSystems = function(){
+
+        var mapElement = $(this);
+
+        var systems = mapElement.find('.' + config.systemSelectedClass);
+
+        return systems;
+    };
+
+    /**
+     * toggle log status of a system
+     * @param poke
+     * @param options
+     */
+    $.fn.toggleLockSystem = function(poke, options){
+
+        var system = $(this);
+
+        var map = options.map;
+
+        var hideNotification = false;
+        if(options.hideNotification === true){
+            hideNotification = true;
+        }
+
+        var hideCounter = false;
+        if(options.hideCounter === true){
+            hideCounter = true;
+        }
+
+        var systemName = system.getSystemInfo( ['name'] );
+
+        if( system.data( 'locked' ) === true ){
+            system.data('locked', false);
+            system.removeClass( config.systemLockedClass );
+
+            // set draggable capability
+            system.multiDraggable({map: map, group: system});
+
+            if(! hideNotification){
+                Util.showNotify({title: 'System lock removed', text: 'System: ' + systemName, type: 'success'});
+            }
+        }else{
+            system.data('locked', true);
+            system.addClass( config.systemLockedClass );
+
+            // remove draggable capability
+            system.destroySystemDraggable();
+
+            if(! hideNotification){
+                Util.showNotify({title: 'System is locked', text: 'System: ' + systemName,  type: 'success'});
+            }
+        }
+
+        if(! hideCounter){
+            $(system).getMapOverlay().startMapUpdateCounter();
+        }
+
+    };
+
+    /**
+     * toggle a system as rally point and display notifications
+     * @param poke
+     * @param options
+     */
+    $.fn.toggleRallyPoint = function(poke, options){
+
+        var system = $(this);
+
+        var rallyClass = Util.getInfoForSystem('rally', 'class');
+
+        var hideNotification = false;
+        if(options.hideNotification === true){
+            hideNotification = true;
+        }
+
+        var hideCounter = false;
+        if(options.hideCounter === true){
+            hideCounter = true;
+        }
+
+        // check of system is already marked as rally
+        if( system.data( 'rally' ) === true ){
+            system.removeClass( rallyClass );
+            system.data( 'rally', false );
+
+            if(! hideNotification){
+                Util.showNotify({title: 'Rally point removed', type: 'success'});
+            }
+        }else{
+            system.addClass( rallyClass );
+            system.data( 'rally', true );
+
+            if(! hideNotification){
+                var systemName = system.getSystemInfo( ['name'] );
+
+                var notificationOptions = {
+                    title: 'New rally Point',
+                    text: 'System: ' + systemName,
+                    type: 'success'
+                };
+
+                if(poke === true){
+                    // desktop poke
+                    Util.showNotify(notificationOptions, {desktop: true, stack: 'barBottom'});
+                }else{
+                    Util.showNotify(notificationOptions, {stack: 'barBottom'});
+                }
+            }
+
+        }
+
+        if(! hideCounter){
+            $(system).getMapOverlay().startMapUpdateCounter();
+        }
+
     };
 
     /**
@@ -961,7 +1281,7 @@ define([
                 // current map
                 var currentMapElement = $(params.component);
 
-                var currentMapId = parseInt( currentMapElement.attr('data-mapid') );
+                var currentMapId = parseInt( currentMapElement.data('id') );
 
                 // get map instance
                var currentMap = getMapInstance(currentMapId);
@@ -974,12 +1294,61 @@ define([
                         // add new system dialog
                         showNewSystemDialog(currentMap, {position: position});
                         break;
+                    case 'delete_systems':
+                        // delete all selected systems with its connections
+                        var selectedSystems = $(currentMapElement).getSelectedSystems();
+
+                        if(selectedSystems.length > 0){
+                            bootbox.confirm('Delete ' + selectedSystems.length + ' selected systems and its connections?', function(result) {
+                                if(result){
+
+                                    for(var i = 0; i < selectedSystems.length; i++){
+                                        deleteSystem(currentMap, selectedSystems[i]);
+                                    }
+
+                                    Util.showNotify({title: selectedSystems.length + ' systems deleted', type: 'success'});
+                                }
+                            });
+                        }else{
+                            Util.showNotify({title: 'No systems selected', type: 'error'});
+                        }
+
+                        break;
 
                 }
 
             }
 
         });
+
+        // init drag-frame selection
+        $(container).dragToSelect({
+            selectables: '.' + config.systemClass,
+            onHide: function (selectBox, deselectedSystems) {
+                var selectedSystems = $(container).getSelectedSystems();
+
+                if(selectedSystems.length > 0){
+                    // make all selected systems draggable
+                    Util.showNotify({title: selectedSystems.length + ' systems selected', type: 'success'});
+
+                    $(selectedSystems).multiDraggable({map: map, group: selectedSystems});
+                }
+
+                // convert former group draggable systems so single draggable
+                for(var i = 0; i < deselectedSystems.length; i++){
+                    $(deselectedSystems[i]).multiDraggable({map: map, group: deselectedSystems[i]});
+                }
+
+
+            },
+            onShow: function(){
+            },
+            onRefresh: function(){
+            }
+        });
+
+
+
 
         // catch menu events ====================================================
 
@@ -1102,8 +1471,11 @@ define([
         for(var i = 0; i < info.length; i++){
             switch(info[i]){
                 case 'name':
+                    // get current system name/alias
                     systemInfo.push( $(this).find('.' + config.systemHeadNameClass).text() );
                     break;
+                default:
+                    systemInfo.push('bad system query');
             }
 
         }
@@ -1161,6 +1533,8 @@ define([
                             className: 'btn-primary',
                             callback: function () {
 
+                                $(options.sourceSystem).getMapOverlay().startMapUpdateCounter();
+
                                 // get form Values
                                 var form = $('#' + config.systemDialogId).find('form');
 
@@ -1212,7 +1586,7 @@ define([
                 }
             );
 
-            // make editable
+            // make dialog editable
             var modalFields = $('.bootbox .modal-dialog').find('.pf-editable-system-status');
 
             modalFields.editable({
@@ -1273,7 +1647,7 @@ define([
         if(map.getContainer() !== undefined){
             $.each(systems, function(i, system){
                 // get user Data for System
-                var systemId = parseInt( $(system).attr('data-id') );
+                var systemId = parseInt( $(system).data('id') );
 
                 var tempUserData = null;
                 $.each(userData.data.systems, function(j, systemData){
@@ -1296,7 +1670,78 @@ define([
 
             });
         }
+    };
 
+    /**
+     * collect all data for export/save for a map
+     * @returns {{}}
+     */
+    $.fn.getMapData = function(){
+
+        var mapElement = $(this);
+
+        var mapData = {};
+
+        // check if there is an active map counter that prevents collecting map data
+        var overlay = mapElement.getMapOverlay();
+        var counterChart = overlay.getMapCounter();
+
+        var interval = counterChart.data('interval');
+
+        if(! interval){
+            // map config ---------------------------------
+            var mapConfig = {};
+            mapConfig.id = mapElement.data('id');
+            mapConfig.name = mapElement.data('name');
+            mapData.config = mapConfig;
+
+            // map data -----------------------------------
+            var data = {};
+
+            // systems ------------------------------------
+            var systemsData = [];
+
+            var systems = mapElement.find('.' + config.systemClass);
+
+            for(var i = 0; i < systems.length; i++){
+
+                var tempSystem = $(systems[i]);
+                var systemData = {};
+                systemData.id = tempSystem.data('id');
+                systemData.alias = tempSystem.find('.' + config.systemHeadNameClass).editable('getValue', true);
+                systemData.status = tempSystem.data('status');
+                systemData.locked = tempSystem.data('locked');
+                systemData.rally = tempSystem.data('rally');
+
+                // position -------------------------------
+                var positionData = {};
+                var currentX = tempSystem.css('left');
+                var currentY = tempSystem.css('top');
+
+                // remove 'px'
+                positionData.x = parseInt( currentX.substring(0, currentX.length - 2) );
+                positionData.y = parseInt( currentY.substring(0, currentY.length - 2) );
+
+                systemData.position = positionData;
+
+                systemsData.push(systemData);
+            }
+
+
+            data.systems = systemsData;
+
+            // connections --------------------------------
+            var connections = [];
+
+            data.connections = connections;
+
+            mapData.data = data;
+        }else{
+            return false;
+        }
+
+
+        return mapData;
     };
 
     /**
@@ -1359,9 +1804,6 @@ define([
 
 
         });
-
-
-
     };
 
     /**
@@ -1371,6 +1813,17 @@ define([
         // get Map Scrollbar
         var scrollableElement = $(this).find('.' + config.mapWrapperClass);
         initCutomScrollbar( scrollableElement );
+
+        // add map overlay container after scrollbar is initiated
+        // because of its absolute positon
+        var mapOverlay = $('<div>', {
+            class: config.mapOverlayClass
+        });
+        scrollableElement.append(mapOverlay);
+
+
+        // reset map update timer
+        mapOverlay.setMapUpdateCounter(100, '5');
     };
 
     /**
@@ -1395,7 +1848,13 @@ define([
             callbacks:{
                 onTotalScrollOffset: 0,
                 onTotalScrollBackOffset: 0,
-                alwaysTriggerOffsets:true
+                alwaysTriggerOffsets:true,
+                whileScrolling:function(){
+                    // update scroll position for drag-frame-selection
+                    var mapElement = $(scrollableElement).find('.' + config.mapClass);
+                    $(mapElement).data('scrollLeft', this.mcs.left);
+                    $(mapElement).data('scrollTop', this.mcs.top);
+                }
             },
 
             advanced: {
@@ -1405,15 +1864,15 @@ define([
             },
             mouseWheel:{
                 enable:true,
-                scrollAmount:"auto",
-                axis:"x"
+                scrollAmount: 'auto',
+                axis: 'x',
+                preventDefault: true
             },
-            scrollbarPosition: "inside",
+            scrollbarPosition: 'inside',
             autoDraggerLength: true
             //autoHideScrollbar: false
         });
     };
-
 
     /**
      * scroll to a specific position in the map
@@ -1421,9 +1880,273 @@ define([
      */
     $.fn.scrollTo = function(position){
         return this.each(function(){
-            // todo re-comment
+            // todo re-comment not used jet
             //$(this).mCustomScrollbar('scrollTo', position);
         });
+    };
+
+    /**
+     * removes all draggable capability for a system
+     */
+    $.fn.destroySystemDraggable = function(){
+
+        var system = $(this);
+
+        if( system.data('ui-draggable') ){
+            system.draggable( 'destroy' );
+        }
+
+    };
+
+    /**
+     * drag function for single or multiple system dragging
+     * @param options
+     * @returns {*}
+     */
+    $.fn.multiDraggable = function (options) {
+
+        // offset for each system in relation to dragSystem
+        var initLeftOffset = [];
+        var initTopOffset = [];
+
+        // max drag distance for each direction. All systems should stay within map
+        var maxDragDistance = {
+            up: 0,
+            right: 0,
+            down: 0,
+            left: 0
+        };
+
+        var mapOffset = {};
+
+
+        /**
+         * function is called during dragging. Check for valid position for each dragable system
+         * @param event
+         * @param ui
+         */
+        var whileDragging = function(event, ui){
+            var dragSystem = $(event.target);
+            var dragSystemPosition = dragSystem.position();
+
+            var uiPosition = ui.position;
+
+            var offset = ui.offset;
+            var items = $(options.group);
+
+            // start map update timer
+            dragSystem.getMapOverlay().startMapUpdateCounter();
+
+            // get position movement from original position --------------------------------------------
+            var leftMove = ui.originalPosition.left - uiPosition.left;
+            var topMove = ui.originalPosition.top - uiPosition.top;
+
+            var dragDistance = {
+                up: 0,
+                right: 0,
+                down: 0,
+                left: 0
+            };
+
+            if(leftMove < 0){
+                dragDistance.right = leftMove * -1;
+            }else{
+                dragDistance.left = leftMove;
+            }
+
+            if(topMove < 0){
+                dragDistance.down = topMove * -1;
+            }else{
+                dragDistance.up = topMove;
+            }
+
+            // grid snapping ----------------------------------------------------------------------------
+            var leftPositionRemainder = 0;
+            var topPositionRemainder = 0;
+
+            // if active make system snapping to a fixed grid
+            if(config.mapSnapToGrid){
+                var snapTolerance = $(this).draggable('option', 'snapTolerance');
+                leftPositionRemainder = uiPosition.left % snapTolerance;
+                topPositionRemainder = uiPosition.top % snapTolerance;
+
+                // manipulate dragDistance
+                if (leftPositionRemainder <= snapTolerance) {
+                   // ui.position.left = ui.position.left - leftRemainder;
+                    dragDistance.left += leftPositionRemainder;
+                }
+
+                if (topPositionRemainder <= snapTolerance) {
+                   // ui.position.top = ui.position.top - topRemainder;
+                    dragDistance.up += topPositionRemainder;
+                }
+            }
+
+            // check that all systems are still inside the map -----------------------------------------
+            if(
+                dragDistance.left > maxDragDistance.left ||
+                dragDistance.right > maxDragDistance.right
+            ){
+                // stop move current system
+                ui.position.left = dragSystemPosition.left;
+                // stop move other systems
+                offset.left = dragSystemPosition.left + mapOffset.left;
+            }else{
+                offset.left -= leftPositionRemainder;
+                ui.position.left -= leftPositionRemainder;
+            }
+
+            if(
+                dragDistance.up > maxDragDistance.up ||
+                dragDistance.down > maxDragDistance.down
+            ){
+                // stop move current system
+                ui.position.top = dragSystemPosition.top;
+                // stop move other systems
+                offset.top = dragSystemPosition.top + mapOffset.top;
+            }else{
+                offset.top -= topPositionRemainder;
+                ui.position.top -= topPositionRemainder;
+            }
+
+
+
+            $.each(items || {}, function (key, tempSystem) {
+                tempSystem = $(tempSystem);
+
+                var left    = offset.left + initLeftOffset[key];
+                var top     = offset.top + initTopOffset[key];
+                var leftOffsetRemainder = 0;
+                var topOffsetRemainder = 0;
+
+                if(config.mapSnapToGrid){
+                    leftOffsetRemainder = (initLeftOffset[key] % snapTolerance);
+                    topOffsetRemainder = initTopOffset[key] % snapTolerance;
+                }
+
+                tempSystem.offset({
+                    left:   left  - leftOffsetRemainder,
+                    top:    top - topOffsetRemainder
+                });
+
+            });
+
+            options.map.repaint(items);
+        };
+
+
+        return this.each(function () {
+
+            // remove previous dragging capability
+            $(this).destroySystemDraggable();
+
+
+            $(this).draggable(options, {
+                start: function (e, ui) {
+                    // drag start
+
+                    var dragSystem = $(e.target);
+                    var position = dragSystem.position();
+                    var items = $(options.group);
+
+                    // start map update timer
+                    $(e.target).getMapOverlay().startMapUpdateCounter();
+
+                    // get map size
+                    var mapElement = dragSystem.parent();
+
+                    mapOffset = mapElement.offset();
+
+                    var mapWidth = mapElement.width();
+                    var mapHeight = mapElement.height();
+
+
+                    // calculate offset for each system to dragSystem
+                    $.each(items || {}, function (key, tempSystem) {
+                        tempSystem = $(tempSystem);
+
+                        // hide tooltip
+                        toggleSystemTooltip( tempSystem, 'hide' );
+
+                        var elemPos = tempSystem.position();
+                        initLeftOffset[key] = elemPos.left - position.left;
+                        initTopOffset[key] = elemPos.top - position.top;
+
+                        var distanceRight = mapWidth - elemPos.left - tempSystem.outerWidth();
+                        var distanceBottom = mapHeight - elemPos.top - tempSystem.outerHeight();
+
+                        // calculate max drag distance
+                        if(key === 0){
+                            maxDragDistance.left = elemPos.left;
+                            maxDragDistance.up = elemPos.top;
+                            maxDragDistance.right = distanceRight;
+                            maxDragDistance.down = distanceBottom;
+                        }
+
+                        if(elemPos.left < maxDragDistance.left){
+                            maxDragDistance.left = elemPos.left;
+                        }
+
+                        if(elemPos.top < maxDragDistance.up){
+                            maxDragDistance.up = elemPos.top;
+                        }
+
+                        if(distanceRight < maxDragDistance.right){
+                            maxDragDistance.right = distanceRight;
+                        }
+
+                        if(distanceBottom < maxDragDistance.down){
+                            maxDragDistance.down = distanceBottom;
+                        }
+
+
+                    });
+
+                },
+                drag: whileDragging,
+                stop: function(e, ui){
+                    // stop dragging
+                    whileDragging(e, ui);
+
+                    var dragSystem = $(e.target);
+                    var items = $(options.group);
+
+
+                    var distanceTop = ui.position.top;
+                    var distanceLeft = ui.position.left;
+
+                    // start map update timer
+                    dragSystem.getMapOverlay().startMapUpdateCounter();
+
+
+
+                    $.each(items || {}, function (key, tempSystem) {
+                        tempSystem = $(tempSystem);
+
+                        // update z-index for dragged system + connections
+                        updateZIndex(tempSystem);
+
+                        // render tooltip
+                        toggleSystemTooltip([tempSystem], 'show');
+
+                        // set new position for popover edit field (system name)
+                        var placement = 'top';
+                        if(distanceTop < 100){
+                            placement = 'bottom';
+                        }
+                        if(distanceLeft < 100){
+                            placement = 'right';
+                        }
+
+                        tempSystem.find('.' + config.systemHeadNameClass).editable('option', 'placement', placement);
+
+                    });
+
+                }
+            });
+        });
+
+
     };
 
 

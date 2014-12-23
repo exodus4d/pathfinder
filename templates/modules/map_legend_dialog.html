@@ -1,0 +1,324 @@
+<nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+        <div class="navbar-header pull-left">
+
+
+
+            <ul class="nav navbar-nav {{scrollspyNavClass}}">
+                <li class="{{scrollspyNavLiClass}} active"><a data-target="#pf-legend-map" href="#"><i class="fa fa-code-fork fa-lg fa-fw"></i>&nbsp;Map</a></li>
+                <li class="{{scrollspyNavLiClass}}"><a data-target="#pf-legend-system" href="#"><i class="fa fa-sun-o fa-lg fa-fw"></i>&nbsp;System</a></li>
+                <li class="{{scrollspyNavLiClass}}"><a data-target="#pf-legend-connection" href="#"><i class="fa fa-chain fa-lg fa-fw"></i>&nbsp;Connection</a></li>
+                <li class="{{scrollspyNavLiClass}}"><a data-target="#pf-legend-signature" href="#"><i class="fa fa-table fa-lg fa-fw"></i>&nbsp;Signature</a></li>
+                <li class="{{scrollspyNavLiClass}}"><a data-target="#pf-legend-chart" href="#"><i class="fa fa-bar-chart fa-lg fa-fw"></i>&nbsp;Chart</a></li>
+                <li class="{{scrollspyNavLiClass}}"><a data-target="#pf-legend-notification" href="#"><i class="fa fa-bullhorn fa-lg fa-fw"></i>&nbsp;Notification</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div id="{{scrollspyId}}">
+    <h2 id="pf-legend-map"><i class="fa fa-code-fork fa-lg fa-fw"></i>&nbsp;&nbsp;Map</h2>
+
+    <h4>Map types</h4>
+    <p>
+        <em class="pf-brand">pathfinder</em>&nbsp;&nbsp;supports 3 different map types. A map can consists of multiple systems <small>(<i class="fa fa-sun-o fa-fw"></i><a href="#" data-target="#pf-legend-system">more info</a>)</small>
+        and connections <small>(<i class="fa fa-chain fa-fw"></i><a href="#" data-target="#pf-legend-chain">more info</a>)</small>. Maps are also referred to as <em>"Chain Map"</em> or <em>"Chain"</em>.
+    </p>
+    <ul>
+        <li><span class="txt-color txt-color-blue">Alliance map</span><small> (can be seen by any alliance member)</small></li>
+        <li><span class="txt-color txt-color-green">Personal map</span><small> (only you can use this kind of maps)</small></li>
+        <li><span class="txt-color txt-color-teal">Public map</span><small> (anyone can use this kind of maps)</small></li>
+    </ul>
+    <p>
+        Up to 5 different maps can be used simultaneously. <span class="txt-color txt-color-blue">Alliance maps</span> only can be created with required rules.
+    </p>
+    <h4 id="pf-legend-scrollspy-anchor-map-contextmenu">Context Menu</h4>
+    <p>
+        <kbd>right click</kbd> somewhere on the map to open the context menu.
+    </p>
+    <ul class="list-unstyled well">
+        <li><i class="fa fa-info fa-fw"></i> Show some basic map information</li>
+        <li><i class="fa fa-plus fa-fw"></i> Open the "Add System" dialog and add a new system at the position where you right-clicked on the map</li>
+        <li><i class="fa fa-eraser fa-fw"></i> Delete all selected <small><a href="#" data-target="#pf-legend-scrollspy-anchor-map-select">more info</a></small> systems (if there are any selected systems) <small><a href="#" data-target="#pf-legend-scrollspy-anchor-system-delete">more info</a></small></li>
+    </ul>
+    <h4 id="pf-legend-scrollspy-anchor-map-select">Select methods</h4>
+    <ul>
+        <li>Drag-Select:<small> Multiple systems can be selected by </small><kbd>click</kbd> + <kbd>drag</kbd><small> somewhere on the map and drag a frame around some systems</small></li>
+        <li>Single-Select:<small> Individual systems can be selected by holding </small><kbd>ctrl</kbd> + <kbd>click</kbd></li>
+    </ul>
+    <p>
+        Locked systems <small>(<i class="fa fa-lock fa-fw"></i>)</small> can´t be selected.
+    </p>
+    <h4><i class="fa fa-th fa-fw"></i> Grid snapping</h4>
+    <p>
+        For easier system arrangement, the "grid snapping" option can be activated on the "Map Menu" <small>(<i class="fa fa-code-fork fa-fw"></i>)</small>. Dragged systems will snap then to a <samp>20x20px</samp> grid.<br>
+        A grid overlay will appear on the map.
+    </p>
+    <h4><i class="fa fa-history fa-fw"></i> Update counter</h4>
+    <div class="pf-map-overlay" style="position: initial; display: block; padding-top: 1px; float: left; margin: 0 10px 10px 0;">
+        <div class="{{pieChartClass}} {{mapCounterClass}}" data-percent="40">
+            <span style="position: absolute; line-height: 30px; margin-left: 10px;">4</span>
+        </div>
+    </div>
+
+    <p>
+        The map update counter starts counting backwards during map interaction (e.g. delete system, move system, ..). While the counter is active no data is pushed to the server.
+        When the counter hits 0 all map date will be stored and any active pilot will receive the updates.<br>
+        So there is no need for any save/edit buttons.
+    </p>
+
+    <div class="clearfix"></div>
+
+    {{! ================================================================================================================================================  }}
+
+    <h2 id="pf-legend-system"><i class="fa fa-sun-o fa-lg fa-fw"></i>&nbsp;&nbsp;System</h2>
+
+    <p>
+        Systems are represented by rectangle boxes on a map <small>(<i class="fa fa-code-fork fa-fw"></i><a href="#" data-target="#pf-legend-map">more info</a>)</small>.
+        Pilots can interact with systems like "delete systems" <small>(<i class="fa fa-eraser fa-fw"></i><a href="#" data-target="#pf-legend-scrollspy-anchor-system-delete">more info</a>)</small>,
+        "move systems around" <small>(<i class="fa fa-arrows-alt fa-fw"></i><a href="#" data-target="#pf-legend-scrollspy-anchor-system-move">more info</a>)</small>, ...
+    </p>
+    <h4>Activate</h4>
+    <p>
+        Any system in a map can be set as "active" by <kbd>click</kbd> somewhere at a system. Just one system per map can have an active state.<br>
+        The active system has <span style="-webkit-box-shadow: #ffffbb 0px 0px 8px 0px;box-shadow: #ffffbb 0px 0px 8px 0px; display: inline-block; margin: 0 5px; padding: 0 3px;">light yellow</span> shaddow.
+        Additional system information is shown below the map.
+    </p>
+    <h4>Name</h4>
+    <p>
+        Systems can be renamed with an alias by <kbd>double-click</kbd> the name. System aliases are stored server side and can be seen by any pilot with map access.
+    </p>
+    <h4 id="pf-legend-scrollspy-anchor-system-security">Security Status</h4>
+    <p>
+        Any <em>"K-Space"</em> system in <em>"New Eden"</em> has a fix <em>"Security Status"</em> between <samp>-1.0</samp> and <samp>+1.0</samp>. <em>"W-Space"</em> systems always have a Security status of <samp>-1.0</samp> but they can be
+        distinguished into <em>"Classes"</em> [C1 - C6].<br>
+        The color of the system label indicates the <em>"Security Status"</em> of a system
+    </p>
+    <ul style="list-style: none;">
+        <li><span class="pf-system-sec-highSec">H</span> high security system<small> (<samp>1.0 - 0.5</samp>)</small></li>
+        <li><span class="pf-system-sec-lowSec">L</span> low security system<small> (<samp>0.4 - 0.1</samp>)</small></li>
+        <li><span class="pf-system-sec-nullSec">0.0</span> Null security system<small> (<samp>0.0 - -1.0</samp>)</small></li>
+        <li><span class="pf-system-sec-high">C6, C5</span> heigh class wormhole <small> (<samp>-1.0</samp>)</small></li>
+        <li><span class="pf-system-sec-mid">C4, C3</span> mid class wormhole <small> (<samp>-1.0</samp>)</small></li>
+        <li><span class="pf-system-sec-low">C6, C5</span> low class wormhole <small> (<samp>-1.0</samp>)</small></li>
+    </ul>
+    <h4 id="pf-legend-scrollspy-anchor-system-status">System Status</h4>
+    <p>
+        The border color indicates the current status of a system.<br>
+        The status can be changed by using the context menu <small>(<a href="#" data-target="#pf-legend-scrollspy-anchor-system-contextmenu">more info</a>)</small>.
+    </p>
+    <ul style="list-style: none;">
+        <li><i class="fa fa-square-o fa-lg fa-fw pf-system-status-unknown"></i> no status set<small> (unknown)</small></li>
+        <li><i class="fa fa-square-o fa-lg fa-fw pf-system-status-friendly"></i> friendly<small> (in the possession of your corp/ally or allied entities)</small></li>
+        <li><i class="fa fa-square-o fa-lg fa-fw pf-system-status-occupied"></i> occupied<small> (hostiles structures found  but no activity found)</small></li>
+        <li><i class="fa fa-square-o fa-lg fa-fw pf-system-status-hostile"></i> hostile<small> (hostile activity noticed recently)</small></li>
+        <li><i class="fa fa-square-o fa-lg fa-fw pf-system-status-empty"></i> empty<small> (system is not occupied or active)</small></li>
+        <li><i class="fa fa-square-o fa-lg fa-fw pf-system-status-unscanned"></i> unscanned<small> (system has unscanned signatures)</small></li>
+    </ul>
+    <h4>System Effect</h4>
+    <p>
+        Effects of wormhole systems are shown by a <i class="fa fa-square fa-fw"></i> at the top right of a system
+    </p>
+    <ul style="list-style: none;">
+        <li><i class="fa fa-square fa-fw pf-system-effect"></i></span> No effect</li>
+        <li><i class="fa fa-square fa-fw pf-system-effect-magnetar"></i></span> Magnetar</li>
+        <li><i class="fa fa-square fa-fw pf-system-effect-redgiant"></i></span> Red Giant</li>
+        <li><i class="fa fa-square fa-fw pf-system-effect-pulsar"></i></span> Pulsar</li>
+        <li><i class="fa fa-square fa-fw pf-system-effect-wolfryet"></i></span> Wolfryet</li>
+        <li><i class="fa fa-square fa-fw pf-system-effect-cataclysmic"></i></span> Cataclysmic Variable</li>
+        <li><i class="fa fa-square fa-fw pf-system-effect-blackhole"></i></span> Blackhole</li>
+    </ul>
+    <h4>Active Pilots</h4>
+    <p>
+        If there are any active pilots in a system, there is a tooltip with the number of pilots. <br>
+        Systems with active Pilots are bigger than empty systems. The name of a pilot is shown below the system name.<br>
+        Hover the <small>(<i class="fa fa-angle-down fa-fw"></i>)</small> icon in the systems head to get more detailed information (ship type, pilot name).
+    </p>
+    <h4 id="pf-legend-scrollspy-anchor-system-move"><i class="fa fa-arrows-alt fa-fw"></i> Move</h4>
+    <p>
+        Any system that is not "Locked"  <small>(<i class="fa fa-lock fa-fw"></i><a href="#" data-target="#pf-legend-scrollspy-anchor-system-locked">more info</a>)</small> can be moved around by <kbd>click</kbd> + <kbd>drag</kbd> the systems security label (top right).<br>
+        In order to move multiple systems at once, make sure all of them are selected <small>(<a href="#" data-target="#pf-legend-scrollspy-anchor-map-select">more info</a>)</small>. Now you can move one systems and all others will follow.
+    </p>
+    <h4 id="pf-legend-scrollspy-anchor-system-contextmenu">Context Menu</h4>
+    <p>
+        <kbd>right click</kbd> a system on the map to open the context menu.
+    </p>
+    <ul class="list-unstyled well">
+        <li><i class="fa fa-plus fa-fw"></i> Open the "Add System" dialog and add a new system with a connection to this system</li>
+        <li><i class="fa fa-lock fa-fw"></i> Lock this system <small><a href="#" data-target="#pf-legend-scrollspy-anchor-system-locked">more info</a></small></li>
+        <li><i class="fa fa-users fa-fw"></i> Set "Rally Point" for this system <small><a href="#" data-target="#pf-legend-scrollspy-anchor-system-rally">more info</a></small></li>
+        <li><i class="fa fa-reply fa-rotate-180 fa-fw"></i> Changes the status of this system <small><a href="#" data-target="#pf-legend-scrollspy-anchor-system-status">more info</a></small></li>
+        <li><i class="fa fa-eraser fa-fw"></i> Delete this system and all connections <small><a href="#" data-target="#pf-legend-scrollspy-anchor-system-delete">more info</a></small></li>
+    </ul>
+    <h4 id="pf-legend-scrollspy-anchor-system-locked"><i class="fa fa-lock fa-fw"></i> Locked system</h4>
+    <p>
+        Locked systems can´t be selected, moved and deleted.
+    </p>
+    <h4 id="pf-legend-scrollspy-anchor-system-rally"><i class="fa fa-users fa-fw"></i> Rally Point</h4>
+    <p>
+        Systems can be marked as <span class="pf-system-info-rally"><span class="pf-system-head" style="padding: 0 5px;">Rally Point</span></span>.<br>
+        Any active pilot will be informed about new "Rally Points" by a notice. Optional you can poke active pilots with "desktop push notifications"
+        <small>(<i class="fa fa-bullhorn fa-fw"></i><a href="#" data-target="#pf-legend-scrollspy-anchor-notification-desktop">more info</a>)</small>.
+    </p>
+    <h4 id="pf-legend-scrollspy-anchor-system-delete"><i class="fa fa-eraser fa-fw"></i> Delete system</h4>
+    <p>
+        Any system that is not "Locked"  <small>(<i class="fa fa-lock fa-fw"></i><a href="#" data-target="#pf-legend-scrollspy-anchor-system-locked">more info</a>)</small> can be deleted from a map.
+    </p>
+
+    {{! ================================================================================================================================================  }}
+
+    <h2 id="pf-legend-connection"><i class="fa fa-chain fa-lg fa-fw"></i>&nbsp;&nbsp;Connection (Stargate / Wormhole)</h2>
+    <p>
+        Connections between systems are represented by solid lines. Any connection requires two systems that are connected. A connection can be a <em>"Stargate"</em> or <em>"Wormhole"</em>.
+    </p>
+    <h4>Connect Systems</h4>
+    <p>
+        Systems can be connected to each other by several ways
+    </p>
+    <ul>
+        <li>Drag-Connect: <kbd>click</kbd><small> a systems name and </small><kbd>drag</kbd><small> a new connection to any other system</small></li>
+        <li>New System-Connection: <small>Add a system by using the context menu of a system (<a href="#" data-target="#pf-legend-scrollspy-anchor-system-contextmenu">more info</a>)</small></li>
+    </ul>
+    <h4 id="pf-legend-scrollspy-anchor-connection-status">Connection Status</h4>
+    <p>
+        Wormholes will gain various statuses during its <em>"Lifetime"</em>.<br>
+        In addition to this, connections can get custom statuses.<br>
+        The status can be changed by using the context menu <small>(<a href="#" data-target="#pf-legend-scrollspy-anchor-connection-contextmenu">more info</a>)</small>.
+    </p>
+    <ul style="list-style: none;">
+        <li><div class="pf-connection pf-connection-eol"></div> end of life<small> (Wormhole is the end of its natural lifetime)</small></li>
+        <li><div class="pf-connection"></div> fresh<small> (Has not yet had its stability significantly disrupted)</small></li>
+        <li><div class="pf-connection pf-connection-reduced"></div> reduced<small> (Wormhole had its stability reduced, but not to a critical degree) &lt;50% mass left</small></li>
+        <li><div class="pf-connection pf-connection-critical"></div> critical<small> (Wormhole is on the verge of collapse) &lt;10% mass left</small></li>
+        <li><div class="pf-connection pf-connection-frig"></div> Frigate hole<small> (Only the smallest ships pass through)</small></li>
+    </ul>
+    <h4 id="pf-legend-scrollspy-anchor-connection-label"><i class="fa fa-tag fa-fw"></i> Connection Label</h4>
+    <p>
+        In addition to its <em>"Lifetime Status" </em><small>(<a href="#" data-target="#pf-legend-scrollspy-anchor-connection-status">more info</a>)</small>, connections can be labeled with custom labels
+        to supply further information.<br>
+        Labels can be set by using the context menu <small>(<a href="#" data-target="#pf-legend-scrollspy-anchor-connection-contextmenu">more info</a>)</small>.
+    </p>
+    </p>
+    <ul style="list-style: none;">
+        <li><span class="label label-warning" style="color: #1d1d1d">frig</span> Frigate hole<small> (Only the smallest ships pass through)</small></li>
+        <li style="margin-top: 3px;"><span class="label label-danger"><i class="fa fa-warning"></i> save mass</span> save mass<small> (Wormhole mass has to be saved)</small></li>
+    </ul>
+    <h4 id="pf-legend-scrollspy-anchor-connection-contextmenu">Context Menu</h4>
+    <p>
+        <kbd>right click</kbd> a connection on the map to open the context menu.
+    </p>
+    <ul class="list-unstyled well">
+        <li><i class="fa fa-plane fa-fw"></i> Toggles this connection as <em>"Frigate Hole"</em> <small><a href="#" data-target="#pf-legend-scrollspy-anchor-connection-frig">more info</a></small></li>
+        <li><i class="fa fa-warning fa-fw"></i> Toggles this connection as <em>"Preserve Mass"</em> <small><a href="#" data-target="#pf-legend-scrollspy-anchor-connection-mass">more info</a></small></li>
+        <li><i class="fa fa-reply fa-rotate-180 fa-fw"></i> Changes the status of this connection <small><a href="#" data-target="#pf-legend-scrollspy-anchor-connection-status">more info</a></small></li>
+        <li><i class="fa fa-eraser fa-fw"></i> Delete this connection <small><a href="#" data-target="#pf-legend-scrollspy-anchor-connection-delete">more info</a></small></li>
+    </ul>
+    <h4 id="pf-legend-scrollspy-anchor-connection-frig"><i class="fa fa-plane fa-fw"></i> Frigate Hole</h4>
+    <p>
+        Wormholes can be labeled <small>(<i class="fa fa-tag fa-fw"></i><a href="#" data-target="#pf-legend-scrollspy-anchor-connection-label">more info</a>)</small> as <em>"Frigate Hole"</em>. Only frigate-sized Spaceships can pass through a <em>"Frigate Hole"</em> <small>(<a href="#" data-target="#pf-legend-scrollspy-anchor-connection-status">more info</a>)</small>.
+    </p>
+    <h4 id="pf-legend-scrollspy-anchor-connection-mass"><i class="fa fa-warning fa-fw"></i> Preserve Mass</h4>
+    <p>
+        Wormholes can be labeled <small>(<i class="fa fa-tag fa-fw"></i><a href="#" data-target="#pf-legend-scrollspy-anchor-connection-label">more info</a>)</small> as <em>"Preserve Mass"</em>. Let your mates know about critical connections that should be mass-saved
+        (e.g. <span class="pf-system-sec-highSec">H</span> security exits) <small>(<a href="#" data-target="#pf-legend-scrollspy-anchor-system-security">more info</a>)</small>.
+    </p>
+    <h4 id="pf-legend-scrollspy-anchor-connection-delete"><i class="fa fa-eraser fa-fw"></i> Delete connection</h4>
+    <p>
+        Existing connections can be detached by several ways
+    </p>
+    <ul>
+        <li>Drag-Connection: <small> <em>"Connection Endpoints"</em> can be </small><kbd>click</kbd> + <kbd>drag</kbd><small> away from its current system</small></li>
+        <li>Delete-Connection: <small>Delete a connection by using the context menu of a connection (<a href="#" data-target="#pf-legend-scrollspy-anchor-connection-contextmenu">more info</a>)</small></li>
+        <li>Delete-System: <small>Delete a system by using the context menu of a connection (<a href="#" data-target="#pf-legend-scrollspy-anchor-system-contextmenu">more info</a>)</small></li>
+        <li>Delete-Systems: <small>Delete multiple systems by using the context menu of a map (<a href="#" data-target="#pf-legend-scrollspy-anchor-map-contextmenu">more info</a>)</small></li>
+    </ul>
+
+    {{! ================================================================================================================================================  }}
+
+    <h2 id="pf-legend-signature"><i class="fa fa-table fa-lg fa-fw"></i>&nbsp;&nbsp;Signature</h2>
+    <p>
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+    </p>
+
+    {{! ================================================================================================================================================  }}
+
+    <h2 id="pf-legend-chart"><i class="fa fa-bar-chart fa-lg fa-fw"></i>&nbsp;&nbsp;Chart</h2>
+    <p>
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+
+        Ad leggings keytar, brunch id art party dolor labore. Pitchfork yr enim lo-fi before they sold out qui. Tumblr farm-to-table bicycle rights whatever. Anim keffiyeh carles cardigan. Velit seitan mcsweeney's photo booth 3 wolf moon irure. Cosby sweater lomo jean shorts, williamsburg hoodie minim qui you probably haven't heard of them et cardigan trust fund culpa biodiesel wes anderson aesthetic. Nihil tattooed accusamus, cred irony biodiesel keffiyeh artisan ullamco consequat.
+    </p>
+
+    {{! ================================================================================================================================================  }}
+
+    <h2 id="pf-legend-notification"><i class="fa fa-bullhorn fa-lg fa-fw"></i>&nbsp;&nbsp;Notification</h2>
+
+    <h4>Types</h4>
+
+    <div class="alert alert-success"><span class="txt-color txt-color-success">Success</span><small> (success message after pilot interaction)</small></div>
+    <div class="alert alert-info"><span class="txt-color txt-color-information">Information</span><small> (non-important additional information)</small></div>
+    <div class="alert alert-warning"><span class="txt-color txt-color-warning">Warning</span><small> (important non-critical information)</small></div>
+    <div class="alert alert-danger"><span class="txt-color txt-color-danger">Danger</span><small> (very imprtant software error information)</small></div>
+
+    <h4 id="pf-legend-scrollspy-anchor-notification-desktop">Desktop push notifications</h4>
+    <p>
+        <em class="pf-brand">pathfinder</em>  supports desktop push notifications. The first time this kind of notification is send to client, a Browser security Question must be confirmed.
+        In order to test desktop push notifications <kbd>click</kbd> the "Notification test" option in the main menu <small>(<i class="fa fa-bars fa-fw"></i>)</small>.<br>
+        Events can trigger this kind of notification
+    </p>
+    <ul>
+        <li>New Rally Point</span> <small>(<i class="fa fa-users fa-fw"></i> <a href="#" data-target="#pf-legend-scrollspy-anchor-system-rally">more info</a>)</small></li>
+        <li>System found with logged of pilots</span><small> (<a href="#">coming soon™</a></small>)</li>
+    </ul>
+
+
+
+
+
+
+
+</div>

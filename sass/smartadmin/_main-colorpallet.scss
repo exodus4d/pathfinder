@@ -7,6 +7,8 @@
   &.txt-color-blueLight     { color:$blueLight !important; }
   &.txt-color-blueDark      { color: $blueDark !important; }
   &.txt-color-grayLightest  { color: $gray-lightest !important; }
+  &.txt-color-gray          { color: $gray !important; }
+  &.txt-color-grayDark      { color: $gray-dark !important; }
   &.txt-color-green         { color: $green !important; }
   &.txt-color-greenLight    { color: $greenLight !important; }
   &.txt-color-greenDark     { color: $greenDark  !important; }
@@ -20,10 +22,15 @@
   &.txt-color-darken        { color: $darken !important; }
   &.txt-color-lighten       { color: $lighten !important; }
   &.txt-color-white         { color: $white !important; }
-  &.txt-color-grayDark      { color: $greyDark !important; }
   &.txt-color-magenta       { color: $magenta !important; }
   &.txt-color-teal          { color: $teal !important; }
   &.txt-color-redLight      { color: $redLight !important; }
+
+  &.txt-color-primary       { color: $brand-primary !important; }
+  &.txt-color-success       { color: $brand-success !important; }
+  &.txt-color-information   { color: $brand-info !important; }
+  &.txt-color-warning       { color: $brand-warning !important; }
+  &.txt-color-danger        { color: $brand-danger !important; }
 }
 /*
  * BACKGROUNDS

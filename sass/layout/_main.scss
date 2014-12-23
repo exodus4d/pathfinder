@@ -13,6 +13,13 @@ a{
   }
 }
 
+// emphasized text
+em{
+  &.pf-brand{
+    text-transform: uppercase;
+  }
+}
+
 // ajax laoding indicator overlay
 
 .pf-loading-overlay{
@@ -60,10 +67,10 @@ a{
 
 // maps module ===================================================
 #pf-map-module{
+  margin: 0 10px;
 
   // Tabs (colored)
   #pf-map-tabs {
-    margin: 0 10px;
 
     .pf-map-type-default{
       border-top: 2px solid transparent;
@@ -82,20 +89,12 @@ a{
     }
   }
 
-  .tab-content{
-    width: calc(100% - 20px);
-  }
-
 }
 
 // Tab Content Body Grid ========================================
 .pf-map-content-row{
   margin: 10px 0 0 0;
-
-  // Table cell style
-  > div{
-
-  }
+  padding-bottom: 40px; // space for footer
 
   // alle Module innerhalb einer row
   .pf-module{
@@ -111,7 +110,6 @@ a{
 // WH effects ==================================================
 
 .pf-system-effect{
-  margin-left: 5px;
   cursor: default;
   color: $gray-lighter;
 }
@@ -140,7 +138,30 @@ a{
   color: $wh-color-blackhole;
 }
 
-// System security status ============================================
+// system info status ================================================
+.pf-system-info-rally{
+  .pf-system-head{
+    background-color: $pink-darker;
+
+    @include background-image(linear-gradient(-45deg,
+      $purple-dark 25%,
+      transparent 25%,
+      transparent 50%,
+      $purple-dark 50%,
+      $purple-dark 75%,
+      transparent 75%,
+      transparent));
+    background-size:25px 25px;
+    -webkit-animation:move 3s linear infinite;
+    -moz-animation:move 3s linear infinite;
+    -ms-animation:move 3s linear infinite;
+    animation:move 3s linear infinite;
+  }
+}
+
+
+// system security status ============================================
+
 .pf-system-security-0-0{
   color: $system-color-sec-0-0;
 }
@@ -189,7 +210,8 @@ a{
 
 .pf-system-sec{
   margin-right: 5px;
-  cursor: move;
+  cursor: -moz-grab;
+  cursor: -webkit-grab;
 }
 
 .pf-system-sec-highSec{
@@ -244,7 +266,7 @@ a{
 }
 
 // system effect info dialog
-.pf-system-effect-dialog-wrapper{
+.pf-system-effect-dialog-wrapper, .pf-jump-info-dialog{
   .table{
     margin: 15px 0;
     font-size: 10px;
@@ -255,22 +277,121 @@ a{
   }
 }
 
-// tooltip ======================================================
-.tooltip-inner{
-  opacity: 1;
-  color: $teal;
-  background-color: $gray;
-  font-family: 'Oxygen Bold';
-  padding: 5px 5px;
-  @include border-radius(5px);
+// "fake connection" classes for the map legend
+.pf-connection{
+  box-sizing: content-box;
+  display: inline-block;
+  width: 30px;
+  height: 4px;
+  margin-right: 5px;
+  border-top: 2px solid $gray-light;
+  border-bottom: 2px solid $gray-light;
+  background-color: #3c3f41;
+
+  &.pf-connection-eol{
+    border-color: $pink-dark;
+  }
+
+  &.pf-connection-reduced{
+    background-color: $orange;
+  }
+
+  &.pf-connection-critical{
+    background-color: $red-darker;
+  }
+  &.pf-connection-frig{
+    border-style: dashed;
+    border-left: none;
+    border-right: none;
+  }
 
 }
 
-.tooltip.top .tooltip-arrow{
+
+// global tooltip settings ======================================
+.tooltip-inner{
+  color: $green;
+  background-color: $gray;
+  font-family: 'Oxygen Bold';
+  padding: 5px 5px;
+  @include border-radius(3px);
+  @include box-shadow(0 6px 12px rgba(0,0,0,.4));
+}
+
+.tooltip.top .tooltip-arrow,{
   border-top-color: $gray-light;
+}
+
+.tooltip.right .tooltip-arrow,{
+  border-right-color: $gray-light;
 }
 
 .tooltip.bottom .tooltip-arrow{
   border-bottom-color: $gray-light;
 }
+
+.tooltip.left .tooltip-arrow{
+  border-left-color: $gray-light;
+}
+
+// footer =======================================================
+#pf-footer{
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  background: rgba($gray, 0.3);
+}
+
+/*
+Animate the stripes
+*/
+@-webkit-keyframes move{
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 50px 50px;
+  }
+}
+@-moz-keyframes move{
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 50px 50px;
+  }
+}
+@-ms-keyframes move{
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 50px 50px;
+  }
+}
+@keyframes move{
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 50px 50px;
+  }
+}
+
+
+
+// TODO move in seperate file!!! ====================================
+
+#pf-legend-scrollspy{
+  position: relative;
+  height: 500px;
+  overflow: auto;
+}
+
+
+
+
+
 

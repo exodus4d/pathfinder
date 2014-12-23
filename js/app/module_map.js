@@ -223,7 +223,7 @@ define([
 
                 // collect all relevant data for SystemInfoElement
                 var systemInfoData = {
-                    systemId: parseInt( $( mapData.system).attr('data-id') ),
+                    systemId: parseInt( $( mapData.system).data('id') ),
                     mapId: parseInt( $( mapData.system).attr('data-mapid') )
                 };
 
@@ -1841,7 +1841,7 @@ define([
         // get map Data
         $.each(mapElements, function(i, mapElement){
 
-            var mapId = parseInt( $(mapElement).attr('data-mapid') );
+            var mapId = parseInt( $(mapElement).data('id') );
 
             var mapUserData = null;
             // get user data for each active map
@@ -1953,10 +1953,6 @@ define([
                         $(scrollableElement).mCustomScrollbar( 'disable' );
 
                     });
-
-
-
-
                 }
             }
         };
@@ -1998,6 +1994,28 @@ define([
 
         Render.showModule(moduleConfig, moduleData);
 
+    };
+
+    /**
+     * collect all data for export/save from each active map in the map module
+     * @returns {Array}
+     */
+    $.fn.getMapModuleData = function(){
+
+        // get all active map elements for module
+        var mapElements = $(this).getMaps();
+
+        var data = [];
+        for(var i = 0; i < mapElements.length; i++){
+
+            var mapData = $(mapElements[i]).getMapData();
+
+            if(mapData !== false){
+                data.push(mapData);
+            }
+        }
+
+        return data;
     };
 
     /**

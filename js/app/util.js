@@ -1,7 +1,11 @@
 /**
  *  Util
  */
-define(['jquery', 'app/init'], function($, Init) {
+define([
+    'jquery',
+    'app/init',
+    'easyPieChart'
+], function($, Init) {
 
     "use strict";
 
@@ -76,15 +80,95 @@ define(['jquery', 'app/init'], function($, Init) {
         return formData;
     };
 
-    var showNotify = function(customConfig){
+
+    /**
+     * checks if an element is currently visible in viewport
+     * @returns {boolean}
+     */
+    $.fn.isInViewport = function(){
+
+        var element = $(this)[0];
+        var top = element.offsetTop;
+        var left = element.offsetLeft;
+        var width = element.offsetWidth;
+        var height = element.offsetHeight;
+
+
+        while(element.offsetParent) {
+            element = element.offsetParent;
+            top += element.offsetTop;
+            left += element.offsetLeft;
+        }
+
+        return (
+            top < (window.pageYOffset + window.innerHeight) &&
+                left < (window.pageXOffset + window.innerWidth) &&
+                (top + height) > window.pageYOffset &&
+                (left + width) > window.pageXOffset
+            );
+    };
+
+    /**
+     * trigger a notification (on screen or desktop)
+     * @param customConfig
+     * @param desktop
+     */
+    var showNotify = function(customConfig, desktop){
 
         requirejs(['app/notification'], function(Notification) {
-            Notification.showNotify(customConfig);
+            Notification.showNotify(customConfig, desktop);
         });
     };
 
 
     // ==================================================================================================
+
+    /**
+     * init the map-update-counter as "easy-pie-chart"
+     */
+    $.fn.initMapUpdateCounter = function(){
+
+        var counterChart = $(this);
+
+        counterChart.easyPieChart({
+            barColor: function(percent){
+
+                var color = '#568a89';
+                if(percent <= 30){
+                    color = '#d9534f';
+                }else if(percent <= 50){
+                    color = '#f0ad4e';
+                }
+
+                return color;
+
+            },
+            trackColor: '#2b2b2b',
+            size: 30,
+            scaleColor: false,
+            lineWidth: 2,
+            animate: 1000
+        });
+
+    };
+
+    /**
+     * get some system info for a given info string (e.g. rally class)
+     * @param info
+     * @param option
+     * @returns {string}
+     */
+    var getInfoForSystem = function(info, option){
+
+        var systemInfo = '';
+
+        if(Init.classes.systemInfo.hasOwnProperty(info)){
+            systemInfo = Init.classes.systemInfo[info][option];
+        }
+
+
+        return systemInfo;
+    };
 
     /**
      * get some info for a given effect string
@@ -311,7 +395,7 @@ define(['jquery', 'app/init'], function($, Init) {
 
     return {
         showNotify: showNotify,
-
+        getInfoForSystem: getInfoForSystem,
         getEffectInfoForSystem: getEffectInfoForSystem,
         getSystemEffectData: getSystemEffectData,
         getSystemEffectTable: getSystemEffectTable,

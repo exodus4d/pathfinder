@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="JSHintConfiguration" version="2.3.0" use-config-file="false">
+  <component name="JSHintConfiguration" version="2.5.10" use-config-file="false">
     <option bitwise="true" />
     <option camelcase="false" />
     <option curly="true" />
@@ -48,9 +48,9 @@
     <option couch="false" />
     <option devel="false" />
     <option dojo="false" />
-    <option jquery="false" />
+    <option jquery="true" />
     <option mootools="false" />
-    <option node="false" />
+    <option node="true" />
     <option nonstandard="false" />
     <option phantom="false" />
     <option prototypejs="false" />

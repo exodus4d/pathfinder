@@ -12,7 +12,6 @@
   position: relative;
   min-height: $navbar-height; // Ensure a navbar always shows (e.g., without a .navbar-brand in collapsed mode)
   margin-bottom: $navbar-margin-bottom;
-  border-bottom: 1px solid $gray-dark;
 
   // Prevent floats from breaking the navbar
   @include clearfix();
@@ -256,6 +255,7 @@
 
     > li {
       float: left;
+      margin-right: 2px;
       > a {
         padding-top:    $navbar-padding-vertical;
         padding-bottom: $navbar-padding-vertical;
@@ -384,6 +384,7 @@
 .navbar-default {
   background: rgba( $navbar-default-bg, $navbar-default-opacity );
   border-color:  $navbar-default-border;
+  @include box-shadow(0 6px 12px rgba(0,0,0,.4));
 
   .navbar-brand {
     color: $navbar-default-brand-color;

@@ -2,12 +2,15 @@
     {{#items}}
         {{#text}}
             <li {{#subitems}}class="dropdown-submenu"{{/subitems}}>
-                <a href="#" tabindex="-1" data-action="{{action}}"><i class="fa {{#icon}}{{icon}}{{/icon}}"></i>{{text}}</a>
+                <a href="#" tabindex="-1" data-action="{{action}}"><i class="fa {{#icon}}{{icon}}{{/icon}} fa-fw"></i>&nbsp;{{text}}</a>
                 <ul class="dropdown-menu">
                     {{#subitems}}
                         {{#subText}}
                             <li>
-                                <a href="#" tabindex="-1" data-action="{{subAction}}"><i class="fa {{#subIcon}}{{subIcon}}{{/subIcon}} {{#subIconClass}}{{subIconClass}}{{/subIconClass}}"></i>{{subText}}</a>
+                                <a href="#" tabindex="-1" data-action="{{subAction}}">
+                                    <i class="fa {{#subIcon}}{{subIcon}}{{/subIcon}} {{#subIconClass}}{{subIconClass}}{{/subIconClass}} fa-fw"></i>
+                                    &nbsp;{{subText}}
+                                </a>
                             </li>
                         {{/subText}}
 

@@ -17,8 +17,10 @@ $gray-mid-light:        lighten($black, 75%);
 // blue
 $blue-lighter:          #57889c;
 $blue:                  #428bca;
+$blue-dark:             #316490;
 
 // teal
+$teal-light:            #6caead;
 $teal:                  #568a89;
 $teal-dark:             #477372;
 $teal-darker:           #375959;
@@ -32,6 +34,7 @@ $green-dark:            #4f9e4f;
 // red
 $red:                   #d9534f;
 $red-darker:            #a52521;
+$red-darkest:           #58100d;
 
 // yellow
 $yellow-lighter:        #ffffbb;
@@ -42,10 +45,13 @@ $orange:                #e28a0d;
 $orange-dark:           #c2760c;
 
 // pink
-
 $pink-light:            #e88ce7;
 $pink:                  #e06fdf;
 $pink-dark:             #d747d6;
+$pink-darker:           #782d77;
+
+// purple
+$purple-dark:           #3e264e;
 
 // WH effects
 $wh-color-magnetar:     $pink;
@@ -70,6 +76,6 @@ $system-color-sec-1-0:        #28c0bf;
 
 $brand-primary:         $teal-darker !default;
 $brand-success:         $green-dark !default;
-$brand-info:            $blue !default;
+$brand-info:            $blue-dark !default;
 $brand-warning:         $orange !default;
 $brand-danger:          $red-darker !default;

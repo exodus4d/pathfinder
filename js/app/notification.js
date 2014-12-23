@@ -25,7 +25,7 @@ define([
         delay: 5000,                        // visible time for notification in browser
         mouse_reset: true,                  // Reset the hide timer if the mouse moves over the notice.
         shadow: true,
-        addclass: 'stack-bottomright',
+        addclass: 'stack-bottomright',      // class for display, must changed on stack different stacks
         width: '250px',
         // animation settings
         animation: {
@@ -51,23 +51,85 @@ define([
     };
 
     // stack container for all notifications
-    var stack_bottomright = {
-        dir1: 'up',
-        dir2: 'left',
-        firstpos1: 10,
-        firstpos2: 10,
-        spacing1: 5,
-        spacing2: 5,
-        push: 'bottom'
+    var stack = {
+        bottomRight: {
+            stack: {
+                dir1: 'up',
+                dir2: 'left',
+                firstpos1: 30,
+                firstpos2: 10,
+                spacing1: 5,
+                spacing2: 5,
+                push: 'bottom'
+            },
+            addclass: 'stack-bottomright',
+            width: '250px',
+            opacity: 0.8
+        },
+        barTop: {
+            stack: {
+                dir1: 'down',
+                dir2: 'right',
+                push: 'top',
+                spacing1: 0,
+                spacing2: 0,
+
+            },
+            addclass: 'stack-bar-top',
+            width: '80%',
+            opacity: 1
+        },
+        barBottom: {
+            stack: {
+                dir1: 'up',
+                dir2: 'right',
+                firstpos1: 30,
+                spacing1: 0,
+                spacing2: 0
+            },
+            addclass: 'stack-bar-bottom',
+            width: '100%',
+            opacity: 1
+        }
     };
 
     /**
      * show a notification in browser and/or "Web Notifications"  in OS
      * @param customConfig
      */
-    var showNotify = function(customConfig){
+    var showNotify = function(customConfig, settings){
 
         customConfig = $.extend({}, config, customConfig );
+
+        // desktop notification
+        if(
+            settings &&
+            settings.desktop === true
+        ){
+            // ask for Web Notifications permission
+            PNotify.desktop.permission();
+
+            customConfig.delay = 10000;
+            customConfig.desktop.desktop = true;
+        }else{
+            customConfig.delay = 5000;
+            customConfig.desktop.desktop = false;
+        }
+
+        // set notification stack
+        if(
+            settings &&
+            settings.stack
+        ){
+            customConfig.stack = stack[settings.stack].stack;
+            customConfig.addclass = stack[settings.stack].addclass;
+            customConfig.width = stack[settings.stack].width;
+            customConfig.opacity = stack[settings.stack].opacity;
+        }else{
+            customConfig.stack = stack.bottomRight.stack;
+            customConfig.addclass = stack.bottomRight.addclass;
+            customConfig.opacity = stack.bottomRight.opacity;
+        }
 
         switch(customConfig.type){
             case 'info':
@@ -84,15 +146,6 @@ define([
                 break;
             default:
                 customConfig.icon = false;
-        }
-        customConfig.stack = stack_bottomright;
-
-        if(
-            customConfig.desktop &&
-            customConfig.desktop.desktop === true
-        ){
-            // ask for Web Notifications permission
-            PNotify.desktop.permission();
         }
 
         new PNotify(customConfig);

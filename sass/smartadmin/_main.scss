@@ -19,15 +19,19 @@ body.mobile-view-activated.hidden-menu {
 
 body.modal-open {
 	overflow:hidden !important;
+
+  p{
+    font-family: 'Oxygen';
+  }
 }
 
 a:hover, a:active, a:focus, button, button:active, button:focus, object, embed, input::-moz-focus-inner {
   outline: 0;
 }
 	
-h1,h2,h3,h4 {
+h1,h3,h4 {
 	margin:0;
-	font-family: "Oxygen Bold", "Open Sans", Arial, Helvetica, Sans-Serif;
+	font-family: "Oxygen Bold";
 	font-weight:300;
 }
 
@@ -141,9 +145,10 @@ h1 {
 }
 
 h2 {
-	letter-spacing:-1px;
+    font-family: "Oxygen", "Open Sans", Arial, Helvetica, Sans-Serif;;
+	letter-spacing: 0px;
 	font-size: $font-size-h2;
-	margin:20px 0;
+	margin: 20px 0;
 	line-height:normal;
 }
 
@@ -157,6 +162,7 @@ h3 {
 
 h4 {
 	line-height:normal;
+    margin: 20px 0 10px 0;
 }
 
 h5 {

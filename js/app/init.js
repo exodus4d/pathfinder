@@ -7,9 +7,12 @@ define(['jquery'], function($) {
     'use strict';
 
     var Config = {
-        url:{
-            zKillboard: 'https://zkillboard.com/api/',
-            eveCentral: 'http://api.eve-central.com/api/'
+        timer: {
+            mainPing: 3000                                          // main server ping
+        },
+        url: {
+            zKillboard: 'https://zkillboard.com/api/',              // killboard api
+            eveCentral: 'http://api.eve-central.com/api/'           // jump rout api
         },
         classes: {
             // system effects
@@ -139,8 +142,19 @@ define(['jquery'], function($) {
                     class: 'pf-system-status-unscanned',
                     label: 'unscanned'
                 }
+            },
+            // system info
+            systemInfo: {
+                rally: {
+                    class: 'pf-system-info-rally',
+                    label: 'rally point'
+                }
+            },
+            // easy-pie-charts
+            pieChart: {
+                class: 'pf-pie-chart',                              // class for all pie charts
+                pieChartMapCounterClass: 'pf-pie-chart-map-timer'   // class for timer chart
             }
-
         },
         // system effects
         systemEffects:{

@@ -1,0 +1,38 @@
+// global pie chart styles
+.pf-pie-chart {
+  position: relative;
+  display:table-cell;
+  text-align: center;
+  vertical-align:middle;
+
+  span{
+    display: inline-block;
+  }
+
+  canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+}
+
+// pie chart map timer
+.pf-pie-chart-map-timer{
+  width: 36px;
+  height: 36px;
+  margin: 3px;
+
+  canvas {
+    top: 3px;
+    left: 3px;
+  }
+
+  span{
+    font-size: 10px;
+    &:after {
+      content: 's';
+      margin-left: 1px;
+    }
+  }
+
+}

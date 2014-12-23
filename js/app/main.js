@@ -4,12 +4,12 @@
 
 define([
     'jquery',
+    'app/init',
     'app/render',
     'app/ccp',
     'app/page',
-    'slidebars',
-    'app/module_map'
-], function($, Render, CCP) {
+    'app/module_map',
+], function($, Init, Render, CCP) {
 
     'use strict';
 
@@ -28,8 +28,8 @@ define([
         var mapData =[{
             map: {},
             config: {
-                name: 'Polaris',
                 id: 1,
+                name: 'Polaris',
                 scope: 'wormhole',
                 icon: 'fa-globe',
                 type: 'alliance'              // global, alliance, private
@@ -43,8 +43,10 @@ define([
                         type: 'wh',
                         security: 'C6',
                         status: 'friendly',
+                        locked: '1',
+                        rally: '0',
                         position: {
-                            x: 0,
+                            x: 8,
                             y: 0
                         }
                     },{
@@ -55,7 +57,7 @@ define([
                         security: 'C6',
                         status: 'empty',
                         position: {
-                            x: 60,
+                            x: 65,
                             y: 60
                         }
                     },{
@@ -65,8 +67,10 @@ define([
                         type: 'wh',
                         security: 'C6',
                         status: '',
+                        locked: '1',
+                        rally: '1',
                         position: {
-                            x: 200,
+                            x: 203,
                             y: 60
                         }
                     },{
@@ -98,7 +102,7 @@ define([
                         type: 'k-space',
                         status: '',
                         position: {
-                            x: 300,
+                            x: 301,
                             y: 250
                         }
                     },{
@@ -142,8 +146,6 @@ define([
                     }
                 ]
             }
-
-
         },
             {
             map: {},
@@ -242,7 +244,7 @@ define([
                                         ship: 'Proteus',
                                         status: 'corp'
                                     },{
-                                        name: 'Xtrah gfdfgdfgfd',
+                                        name: 'Xtrah',
                                         ship: 'Pod',
                                         status: 'ally'
                                     }
@@ -264,9 +266,15 @@ define([
                 console.log('update map done');
             }, 500);
 
+        // server ping
+        var triggerMainPing = function(){
+            var mapData = $('#' + config.mapModuleId).getMapModuleData();
 
+           // console.log(mapData);
+        };
+
+        setInterval(triggerMainPing, Init.timer.mainPing);
 
     });
-
 
 });
