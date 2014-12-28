@@ -21,7 +21,19 @@ define([
     /**
      * displays a loading indicator on an element
      */
-    $.fn.showLoadingAnimation = function(){
+    $.fn.showLoadingAnimation = function(options){
+
+        var iconSize = 'fa-lg';
+
+        if(options){
+            if(options.icon){
+                if(options.icon.size){
+                    iconSize = options.icon.size;
+                }
+            }
+
+        }
+
         var overlay = $('<div>', {
             class: config.ajaxOverlayClass
         }).append(
@@ -29,7 +41,7 @@ define([
                 class: [config.ajaxOverlayWrapperClass].join(' ')
             }).append(
                 $('<i>', {
-                    class: ['fa', 'fa-lg', 'fa-circle-o-notch', 'fa-spin'].join(' ')
+                    class: ['fa', iconSize, 'fa-circle-o-notch', 'fa-spin'].join(' ')
                 })
             )
         );
@@ -153,6 +165,74 @@ define([
     };
 
     /**
+     * get all available map Types
+     * @returns {Array}
+     */
+    var getMapTypes = function(){
+
+        var mapTypes = [];
+
+        $.each(Init.classes.mapTypes, function(prop, data){
+            var tempData = {
+                type: prop,
+                label: data.label
+            };
+
+            mapTypes.push(tempData);
+        });
+
+        return mapTypes;
+    };
+
+    /**
+     * get map info
+     * @param mapType
+     * @param option
+     * @returns {string}
+     */
+    var getInfoForMap = function(mapType, option){
+
+        var mapInfo = '';
+
+        if(Init.classes.mapTypes.hasOwnProperty(mapType)){
+            mapInfo = Init.classes.mapTypes[mapType][option];
+        }
+
+        return mapInfo;
+    };
+
+    /**
+     * get all available scopes for a map
+     * @returns {Array}
+     */
+    var getMapScopes = function(){
+
+        var scopes = [];
+        $.each(Init.mapScopes, function(prop, data){
+            scopes.push(prop);
+        });
+
+        return scopes;
+    };
+
+    /**
+     * get some scope info for a given info string
+     * @param info
+     * @param option
+     * @returns {string}
+     */
+    var getScopeInfoForMap = function(info, option){
+
+        var scopeInfo = '';
+
+        if(Init.mapScopes.hasOwnProperty(info)){
+            scopeInfo = Init.mapScopes[info][option];
+        }
+
+        return scopeInfo;
+    };
+
+    /**
      * get some system info for a given info string (e.g. rally class)
      * @param info
      * @param option
@@ -259,14 +339,22 @@ define([
     var getTrueSecClassForSystem = function(trueSec){
         var trueSecClass = '';
 
-        if(trueSec < 0){
-            trueSec = 0;
-        }
+        trueSec = parseFloat(trueSec);
 
-        trueSec = trueSec.toFixed(1).toString();
+        // check for valid decimal number
+        if(
+            !isNaN( trueSec ) &&
+            isFinite( trueSec )
+        ){
+            if(trueSec < 0){
+                trueSec = 0;
+            }
 
-        if( Init.classes.trueSec.hasOwnProperty(trueSec) ){
-            trueSecClass = Init.classes.trueSec[trueSec]['class'];
+            trueSec = trueSec.toFixed(1).toString();
+
+            if( Init.classes.trueSec.hasOwnProperty(trueSec) ){
+                trueSecClass = Init.classes.trueSec[trueSec]['class'];
+            }
         }
 
         return trueSecClass;
@@ -287,6 +375,22 @@ define([
         }
 
         return statusInfo;
+    };
+
+    /**
+     * get Connection Info by option
+     * @param connectionTyp
+     * @param option
+     * @returns {string}
+     */
+    var getConnectionInfo = function(connectionTyp, option){
+
+        var connectionInfo = '';
+        if(Init.connectionTypes.hasOwnProperty(connectionTyp)){
+            connectionInfo = Init.connectionTypes[connectionTyp][option];
+        }
+
+        return connectionInfo;
     };
 
 
@@ -395,6 +499,10 @@ define([
 
     return {
         showNotify: showNotify,
+        getMapTypes: getMapTypes,
+        getInfoForMap: getInfoForMap,
+        getMapScopes: getMapScopes,
+        getScopeInfoForMap: getScopeInfoForMap,
         getInfoForSystem: getInfoForSystem,
         getEffectInfoForSystem: getEffectInfoForSystem,
         getSystemEffectData: getSystemEffectData,
@@ -402,6 +510,7 @@ define([
         getSecurityClassForSystem: getSecurityClassForSystem,
         getTrueSecClassForSystem: getTrueSecClassForSystem,
         getStatusInfoForSystem: getStatusInfoForSystem,
+        getConnectionInfo: getConnectionInfo,
         getSignatureGroupInfo: getSignatureGroupInfo,
         getAllSignatureNames: getAllSignatureNames,
         getSignatureTypeIdByName: getSignatureTypeIdByName,

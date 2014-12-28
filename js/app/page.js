@@ -44,10 +44,15 @@ define([
         // jump info dialog
         jumpInfoDialogClass: 'pf-jump-info-dialog',                             // class for jump info dialog
 
-        // map legend dialog
-        mapLegendScrollspyId: 'pf-legend-scrollspy',                            // id for map legend scrollspy
-        mapLegendScrollspyNavClass: 'pf-legend-scrollspy-nav',                  // class for map legend scrollspy navigation
-        mapLegendNavigationListItemClass: 'pf-legend-navigation-list-item',     // class for map legend li main navigation elements
+        // map manual dialog
+        mapManualScrollspyId: 'pf-manual-scrollspy',                            // id for map manual scrollspy
+        mapManualScrollspyNavClass: 'pf-manual-scrollspy-nav',                  // class for map manual scrollspy navigation
+        mapManualNavigationListItemClass: 'pf-manual-navigation-list-item',     // class for map manual li main navigation elements
+
+        // map info dialog
+        mapInfoSystemsId: 'pf-map-info-systems',                                // id for map info systems box
+        mapInfoConnectionsId: 'pf-map-info-connections',                        // id for map info connections box
+        mapInfoTableClass: 'pf-map-info-table',                                 // class for data
 
         // helper element
         dynamicElementWrapperId: 'pf-dialog-wrapper'
@@ -130,6 +135,17 @@ define([
                     $('<a>', {
                         class: 'list-group-item',
                         href: '#'
+                    }).html('&nbsp;&nbsp;Manual').prepend(
+                            $('<i>',{
+                                class: 'fa fa-info fa-fw'
+                            })
+                        ).on('click', function(){
+                            $(document).triggerMenuEvent('Manual', {button: this});
+                        })
+                ).append(
+                    $('<a>', {
+                        class: 'list-group-item',
+                        href: '#'
                     }).html('&nbsp;&nbsp;Effect info').prepend(
                             $('<i>',{
                                 class: 'fa fa-cogs fa-fw'
@@ -183,23 +199,23 @@ define([
                     $('<a>', {
                         class: 'list-group-item',
                         href: '#'
+                    }).html('&nbsp;&nbsp;Info').prepend(
+                            $('<i>',{
+                                class: 'fa fa-info fa-fw'
+                            })
+                        ).on('click', function(){
+                            $(document).triggerMenuEvent('ShowMapInfo');
+                        })
+                ).append(
+                    $('<a>', {
+                        class: 'list-group-item',
+                        href: '#'
                     }).html('&nbsp;&nbsp;Grid snap').prepend(
                             $('<i>',{
                                 class: 'fa fa-th fa-fw'
                             })
                         ).on('click', function(){
                             $('#' + config.mapModuleId).getActiveMap().triggerMenuEvent('Grid', {button: this});
-                        })
-                ).append(
-                    $('<a>', {
-                        class: 'list-group-item',
-                        href: '#'
-                    }).html('&nbsp;&nbsp;Legend').prepend(
-                            $('<i>',{
-                                class: 'fa fa-info fa-fw'
-                            })
-                        ).on('click', function(){
-                            $(document).triggerMenuEvent('Legend', {button: this});
                         })
                 )
         );
@@ -239,6 +255,12 @@ define([
                     $('.' + config.headMapClass).on('click', function() {
                         slideMenu.slidebars.toggle('right');
                     });
+
+                    $(document).on('pf:closeMenu', function(e){
+                        // close all menus
+                        slideMenu.slidebars.close();
+                    });
+
                 }
             }
         };
@@ -296,34 +318,305 @@ define([
             notificationTest();
         });
 
-        $(document).on('pf:menuLegend', function(e){
-            // show map legend
-            showMaplegend();
+        $(document).on('pf:menuManual', function(e){
+            // show map manual
+            showMapManual();
         });
 
-        showMaplegend();
+        $(document).on('pf:menuShowMapInfo', function(e){
+            // show map information dialog
+            showMapInfoDialog();
+        });
+
     };
 
     /**
-     * shows the map legend modal dialog
+     * shows the map information modal dialog
+     * @param mapData
      */
-    var showMaplegend = function(){
+    var showMapInfoDialog = function(){
 
-        requirejs(['text!templates/modules/map_legend_dialog.html', 'lib/mustache'], function(template, Mustache) {
+        var mapData = $('#' + config.mapModuleId).getActiveMap().getMapData();
 
+        requirejs(['text!templates/modules/map_info_dialog.html', 'lib/mustache'], function(template, Mustache) {
+
+            console.log(mapData)
             var data = {
-                scrollspyId: config.mapLegendScrollspyId,
-                scrollspyNavClass: config.mapLegendScrollspyNavClass,
-                scrollspyNavLiClass: config.mapLegendNavigationListItemClass,
-                pieChartClass : Init.classes.pieChart.pieChartMapCounterClass,
-                mapCounterClass : Init.classes.pieChart.pieChartMapCounterClass
+                mapInfoSystemsId: config.mapInfoSystemsId,
+                mapInfoConnectionsId: config.mapInfoConnectionsId,
+                mapDataConfig: mapData.config,
+                mapName: mapData.config.name,
+                mapTypeClass: Util.getInfoForMap( mapData.config.type, 'class'),
+                mapTypeLabel: Util.getInfoForMap( mapData.config.type, 'label')
             };
 
             var content = Mustache.render(template, data);
 
+            var mapInfoDialog = bootbox.dialog({
+                title: 'Map information',
+                message: content,
+                buttons: {
+                    success: {
+                        label: 'close',
+                        className: 'btn-primary',
+                        callback: function() {
+                            $(mapInfoDialog).modal('hide');
+                        }
+                    }
+                }
+            });
+
+            mapInfoDialog.on('shown.bs.modal', function(e) {
+                // modal on open
+
+                var systemsElement = $('#' + config.mapInfoSystemsId);
+                var connectionsElement = $('#' + config.mapInfoConnectionsId);
+
+                var loadingOptions = {
+                    icon: {
+                        size: 'fa-2x'
+                    }
+                };
+
+
+                var systemTable = $('<table>', {
+                    class: ['compact', 'stripe', 'order-column', 'row-border', config.mapInfoTableClass].join(' ')
+                });
+                systemsElement.append(systemTable);
+
+                systemsElement.showLoadingAnimation(loadingOptions);
+
+                var connectionTable = $('<table>', {
+                    class: ['compact', 'stripe', 'order-column', 'row-border', config.mapInfoTableClass].join(' ')
+                });
+                connectionsElement.append(connectionTable);
+
+                connectionsElement.showLoadingAnimation(loadingOptions);
+
+                // systems table ==================================================
+
+                // prepare data for dataTables
+                var systemsData = [];
+                for(var i = 0; i < mapData.data.systems.length; i++){
+                    var tempSystemData = mapData.data.systems[i];
+
+                    var tempData = [];
+
+                    // current position
+                    if(tempSystemData.currentUser === true){
+                        tempData.push( '<i class="fa fa fa-map-marker fa-lg fa-fw"></i>' );
+                    }else{
+                        tempData.push( '' );
+                    }
+
+                    tempData.push( tempSystemData.name );
+
+                    if( tempSystemData.name !== tempSystemData.alias){
+                        tempData.push( tempSystemData.alias );
+                    }else{
+                        tempData.push( '' );
+                    }
+
+                    // status
+                    var systemStatusClass = Util.getStatusInfoForSystem(tempSystemData.status, 'class');
+                    if(systemStatusClass !== ''){
+                        tempData.push( '<i class="fa fa fa-square-o fa-lg fa-fw ' + systemStatusClass + '"></i>' );
+                    }else{
+                        tempData.push( '' );
+                    }
+
+                    // effect
+                    var systemEffectClass = Util.getEffectInfoForSystem(tempSystemData.effect, 'class');
+                    if(systemEffectClass !== ''){
+                        tempData.push( '<i class="fa fa fa-square fa-lg fa-fw ' + systemEffectClass + '"></i>' );
+                    }else{
+                        tempData.push( '' );
+                    }
+
+                    // trueSec
+                    var systemTrueSecClass = Util.getTrueSecClassForSystem(tempSystemData.trueSec);
+                    if(systemTrueSecClass !== ''){
+                        tempData.push( '<span class="' + systemTrueSecClass + '">' + tempSystemData.trueSec.toFixed(1) + '</span>' );
+                    }else{
+                        tempData.push( '' );
+                    }
+
+                    // locked
+                    if(tempSystemData.locked === true){
+                        tempData.push( '<i class="fa fa-lock fa-lg fa-fw"></i>' );
+                    }else{
+                        tempData.push( '' );
+                    }
+
+                    // rally point
+                    if(tempSystemData.rally === true){
+                        tempData.push( '<i class="fa fa-users fa-lg fa-fw"></i>' );
+                    }else{
+                        tempData.push( '' );
+                    }
+
+                    systemsData.push(tempData);
+                }
+
+                var systemsDataTable = systemTable.dataTable( {
+                    paging: false,
+                    ordering: true,
+                    order: [ 0, 'desc' ],
+                    autoWidth: false,
+                    hover: false,
+                    data: systemsData,
+                    columnDefs: [],
+                    language: {
+                        emptyTable:  'Map is empty',
+                        zeroRecords: 'No systems found',
+                        lengthMenu:  'Show _MENU_ systems',
+                        info:        'Showing _START_ to _END_ of _TOTAL_ systems'
+                    },
+                    columns: [
+                        {
+                            title: '<i class="fa fa fa-map-marker fa-lg"></i>',
+                            width: '15px',
+                            searchable: false
+                        },{
+                            title: 'system',
+                            width: '50px'
+                        },{
+                            title: 'alias'
+                        },{
+                            title: 'status',
+                            width: '30px',
+                            class: 'text-center',
+                            orderable: false,
+                            searchable: false
+                        },{
+                            title: 'effect',
+                            width: '30px',
+                            class: 'text-center',
+                            orderable: false,
+                            searchable: false
+                        },{
+                            title: 'sec.',
+                            width: '20px',
+                            class: 'text-center',
+                            orderable: false,
+                            searchable: false
+                        },{
+                            title: '<i class="fa fa-lock fa-lg fa-fw"></i>',
+                            width: '30px',
+                            class: 'text-center',
+                            searchable: false
+                        },{
+                            title: '<i class="fa fa-users fa-lg fa-fw"></i>',
+                            width: '30px',
+                            className: 'text-center',
+                            searchable: false
+                        }
+                    ]
+                });
+
+                systemsElement.hideLoadingAnimation();
+
+                // connections table ==================================================
+
+                // prepare data for dataTables
+                var connectionData = [];
+                for(var j = 0; j < mapData.data.connections.length; j++){
+                    var tempConnectionData = mapData.data.connections[j];
+
+                    var tempConData = [];
+
+                    tempConData.push( Util.getScopeInfoForMap( tempConnectionData.scope, 'label') );
+
+                    // source system name
+                    tempConData.push( tempConnectionData.sourceName );
+
+                    // connection
+                    var connectionClasses = [];
+                    for(var k = 0; k < tempConnectionData.type.length; k++){
+                        connectionClasses.push( Util.getConnectionInfo( tempConnectionData.type[k], 'cssClass') );
+
+                    }
+
+                    connectionClasses = connectionClasses.join(' ');
+
+                    tempConData.push( '<div class="pf-fake-connection ' + connectionClasses + '"></div>' );
+
+
+                    tempConData.push( tempConnectionData.targetName );
+
+                    connectionData.push(tempConData);
+                }
+
+                var connectionDataTable = connectionTable.dataTable( {
+                    paging: false,
+                    ordering: true,
+                    order: [ 0, 'desc' ],
+                    autoWidth: false,
+                    hover: false,
+                    data: connectionData,
+                    columnDefs: [],
+                    language: {
+                        emptyTable:  'No connections',
+                        zeroRecords: 'No connections found',
+                        lengthMenu:  'Show _MENU_ connections',
+                        info:        'Showing _START_ to _END_ of _TOTAL_ connections'
+                    },
+                    columns: [
+                        {
+                            title: 'scope',
+                            width: '50px',
+                            orderable: false
+                        },{
+                            title: 'source system'
+                        },{
+                            title: 'connection',
+                            width: '80px',
+                            class: 'text-center',
+                            orderable: false,
+                            searchable: false
+                        },{
+                            title: 'target system'
+                        }
+                    ]
+                });
+
+
+                connectionsElement.hideLoadingAnimation();
+
+
+            });
+
+        });
+
+    };
+
+    /**
+     * shows the map manual modal dialog
+     */
+    var showMapManual = function(){
+
+        requirejs(['text!templates/modules/map_manual_dialog.html', 'lib/mustache'], function(template, Mustache) {
+
+            var data = {
+                scrollspyId: config.mapManualScrollspyId,
+                scrollspyNavClass: config.mapManualScrollspyNavClass,
+                scrollspyNavLiClass: config.mapManualNavigationListItemClass,
+                pieChartClass : Init.classes.pieChart.pieChartMapCounterClass,
+                mapCounterClass : Init.classes.pieChart.pieChartMapCounterClass,
+
+                mapTypeGlobalClass: Util.getInfoForMap( 'global', 'class'),
+                mapTypeGlobalLabel: Util.getInfoForMap( 'global', 'label'),
+                mapTypeAllianceClass: Util.getInfoForMap( 'alliance', 'class'),
+                mapTypeAllianceLabel: Util.getInfoForMap( 'alliance', 'label'),
+                mapTypePrivateClass: Util.getInfoForMap( 'private', 'class'),
+                mapTypePrivateLabel: Util.getInfoForMap( 'private', 'label')
+            };
+
+
+            var content = Mustache.render(template, data);
             // show dialog
-            var mapLegendDialog = bootbox.dialog({
-                title: 'Map legend',
+            var mapManualDialog = bootbox.dialog({
+                title: 'Pathfinder manual',
                 message: content,
                 className: 'medium',
                 buttons: {
@@ -331,20 +624,55 @@ define([
                         label: 'close',
                         className: "btn-primary",
                         callback: function() {
-                            $(mapLegendDialog).modal('hide');
+                            $(mapManualDialog).modal('hide');
                         }
                     }
                 },
                 show: false
             });
 
-            mapLegendDialog.modal('show');
+            mapManualDialog.modal('show');
 
-            mapLegendDialog.on('shown.bs.modal', function(e) {
-                // modal os open
+            // modal offset top
+            var modalOffsetTop = 200;
+
+            // disable on scroll event
+            var disableOnScrollEvent = false;
+
+            // scroll breakpoints
+            var scrolLBreakpointElements = null;
+            // scroll navigation links
+            var scrollNavLiElements = null;
+
+            mapManualDialog.on('shown.bs.modal', function(e) {
+                // modal on open
+                scrolLBreakpointElements = $('.pf-manual-scroll-break');
+                scrollNavLiElements = $('.' + config.mapManualNavigationListItemClass);
             });
 
-            var scrollspyElement = $('#' + config.mapLegendScrollspyId);
+            var scrollspyElement = $('#' + config.mapManualScrollspyId);
+
+            var whileScrolling = function(){
+
+                if(disableOnScrollEvent === false){
+                    for(var i = 0; i < scrolLBreakpointElements.length; i++){
+                        var offset = $(scrolLBreakpointElements[i]).offset().top;
+
+                        if( (offset - modalOffsetTop) > 0){
+
+                            if(! $( scrollNavLiElements[i]).hasClass('active')){
+                                // remove all active classes
+                                scrollNavLiElements.removeClass('active');
+                                // remove focus on links
+                                scrollNavLiElements.find('a').blur();
+
+                                $( scrollNavLiElements[i]).addClass('active');
+                            }
+                            break;
+                        }
+                    }
+                }
+            };
 
             // init scrollbar
             scrollspyElement.mCustomScrollbar({
@@ -366,7 +694,7 @@ define([
                         scrollspyElement.find('.' + data.mapCounterClass).initMapUpdateCounter();
 
                         // set navigation button observer
-                        var mainNavigationLinks = $('.' + config.mapLegendScrollspyNavClass).find('a');
+                        var mainNavigationLinks = $('.' + config.mapManualScrollspyNavClass).find('a');
                         // text anchor links
                         var subNavigationLinks = scrollspyElement.find('a[data-target]');
 
@@ -375,15 +703,21 @@ define([
                         navigationLinks.on('click', function(e){
                             e.preventDefault();
 
+                            disableOnScrollEvent = true;
+
                             // scroll to anchor
                             scrollspyElement.mCustomScrollbar("scrollTo", $(this).attr('data-target'));
 
-                            var mainNavigationLiElement = $(this).parent('.' + config.mapLegendNavigationListItemClass);
+                            var mainNavigationLiElement = $(this).parent('.' + config.mapManualNavigationListItemClass);
+
+
+                            whileScrolling();
 
                             // if link is a main navigation link (not an anchor link)
+
                             if(mainNavigationLiElement.length > 0){
                                 // remove all active classes
-                                $('.' + config.mapLegendScrollspyNavClass).find('li').removeClass('active');
+                                scrollNavLiElements.removeClass('active');
 
                                 // set new active class
                                 $(this).parent().addClass('active');
@@ -391,7 +725,13 @@ define([
 
                         });
 
-                    }
+                    },
+                    onScroll: function(){
+                        disableOnScrollEvent = false;
+
+                        whileScrolling();
+                    },
+                    whileScrolling: whileScrolling
                 },
                 mouseWheel:{
                     enable: true,
@@ -403,8 +743,6 @@ define([
                 autoDraggerLength: true
             });
 
-
-
         });
 
     };
@@ -413,7 +751,14 @@ define([
      * shows a test notification for desktop messages
      */
     var notificationTest = function(){
-        Util.showNotify({title: 'Test Notification', text: 'Accept browser security question'}, {desktop: true, stack: 'barBottom'});
+        Util.showNotify({
+            title: 'Test Notification',
+            text: 'Accept browser security question'},
+            {
+                desktop: true,
+                stack: 'barBottom'
+            }
+        );
     };
 
     /**

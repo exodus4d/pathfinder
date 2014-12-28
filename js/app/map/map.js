@@ -85,7 +85,7 @@ define([
         source: {
             filter: '.' + config.systemHeadNameClass,
             anchor: 'Continuous',
-            connector: [ 'Bezier', { curviness: 40, cssClass: 'pf-map-connection-wh' } ],
+            connector: [ 'Bezier', { curviness: 40, cssClass: 'pf-map-connection-wh'} ],
             maxConnections: 20,
             allowLoopback:false,
             cssClass: config.endpointSourceClass,
@@ -129,43 +129,9 @@ define([
                 return true;
             }
         },
-        connectionTypes: {
-            wh: {
-                cssClass: 'pf-map-connection-wh'
-            },
-            eol: {
-                cssClass: 'pf-map-connection-wh-eol'
-            },
-            wh_reduced: {
-                cssClass: 'pf-map-connection-wh-reduced'
-            },
-            wh_critical: {
-                cssClass: 'pf-map-connection-wh-critical'
-            },
-            frigate: {
-                cssClass: 'pf-map-connection-frig',
-                paintStyle: {
-                    dashstyle: '0.9'
-                },
-                overlays:[
-                    [ 'Label',
-                        {
-                            label: 'frig',
-                            cssClass: ['pf-map-connection-overlay', 'frig'].join(' ')
-                        } ]
-                ]
-            },
-            preserve_mass: {
-                overlays:[
-                    [ 'Label',
-                        {
-                            label: '<i class="fa fa-warning"></i>&nbsp;save mass',
-                            cssClass: ['pf-map-connection-overlay', 'mass'].join(' ')
-                        } ]
-                ]
-            }
-        }
+        connectionTypes: Init.connectionTypes
     };
+
 
     /**
      * get status class for a user
@@ -198,20 +164,27 @@ define([
         // find expand arrow
         var systemHeadExpand = $( $(system).find('.' + config.systemHeadExpandClass) );
 
+        system = $(system);
 
         // remove tooltip
-        $(system).removeAttr('title');
+        system.removeAttr('title');
 
         // remove all content
         systemBody.empty();
 
         var userCounter = 0;
 
+        system.data('currentUser', false);
+
         // if current user is in THIS system trigger event
         if(currentUserData){
+            /* not used jet
             var tabContentElement = getTabContentElementByMapElement(system);
 
             $(tabContentElement).trigger('pf:highlightTab', [{system: system}]);
+            */
+
+            system.data('currentUser', true);
         }
 
         // add user information
@@ -249,7 +222,7 @@ define([
 
         }
 
-        $(system).removeAttr('title');
+        system.removeAttr('title');
 
         if(userCounter === 0){
             // hide expand arrow
@@ -351,7 +324,10 @@ define([
             ).data('name', data.name).css({ "left": data.position.x + "px", 'top': data.position.y + 'px' });
 
         system.data('id', data.id);
+        system.data('name', data.name);
         system.data('status', statusLabel);
+        system.data('effect', data.effect);
+        system.data('trueSec', data.trueSec);
         system.attr('data-mapid', mapContainer.data('id'));
 
         // locked system
@@ -394,6 +370,7 @@ define([
         // add additional information
         mapContainer.data('id', mapConfig.config.id);
         mapContainer.data('name', mapConfig.config.name);
+        mapContainer.data('type', mapConfig.config.type);
 
         mapWrapper.append(mapContainer);
 
@@ -424,7 +401,8 @@ define([
 
         // get scope from map defaults
         var sourceConfig = globalMapConfig.source;
-        sourceConfig.scope = map.Defaults.Scope;
+        //sourceConfig.scope = map.Defaults.Scope;
+        sourceConfig.scope = 'wh';            // set all allowed connections for this scopes
 
         map.makeSource(systems, sourceConfig);
     };
@@ -438,7 +416,8 @@ define([
 
         // get scope from map defaults
         var targetConfig = globalMapConfig.target;
-        targetConfig.scope = map.Defaults.Scope;
+        //targetConfig.scope = map.Defaults.Scope;
+        targetConfig.scope = 'wh';            // set all allowed connections for this scopes
 
         map.makeTarget(systems, targetConfig);
     };
@@ -516,7 +495,7 @@ define([
                     var connectionData = {
                         source: $(connectSystem).data('id'),
                         target: $(newSystem).data('id'),
-                        type: 'wh'
+                        type: ['wh']
                     };
                     drawConnection(map, connectionData);
                 });
@@ -693,20 +672,26 @@ define([
     };
 
     /**
-     *  get all connections of multiple systems
+     * get all connections of multiple systems
      * @param map
-     * @param systems Array of Systems objectts
-     * @returns {Array} of all connections
+     * @param systems
+     * @returns {Array}
      */
     var getConnections = function(map, systems){
 
         var connections = [];
 
+        var withBackConnection = false;
+
         $.each(systems, function(i, system){
             // get connections where system is source
             connections = connections.concat( map.getConnections({source: system}) );
-            // get connections where system is target
-            connections = connections.concat( map.getConnections({target: system}) );
+
+            if(withBackConnection === true){
+                // get connections where system is target
+                connections = connections.concat( map.getConnections({target: system}) );
+            }
+
         });
 
         return connections;
@@ -724,7 +709,7 @@ define([
         var connections = [];
 
         connections = connections.concat( map.getConnections({source: systemA, target: systemB}) );
-        // getconnections where system is target
+        // get connections where system is target
         connections = connections.concat( map.getConnections({source: systemB, target: systemA}) );
 
         return connections;
@@ -738,19 +723,32 @@ define([
      */
     var drawConnection = function(map, connectionData){
 
+        // connection have the default map Scope scope
+        var scope = map.Defaults.Scope;
+        if(connectionData.scope){
+            scope = connectionData.scope;
+        }
+
         var connection = map.connect({
             source: config.systemIdPrefix + connectionData.source,
             target: config.systemIdPrefix + connectionData.target,
-            type: connectionData.type
-
+            scope: scope
             /* experimental (straight connections)
             anchors: [
                 [ "Perimeter", { shape: 'Rectangle' }],
                 [ "Perimeter", { shape: 'Rectangle' }]
             ]
             */
-
         });
+
+        // add connection types
+        if(connectionData.type){
+            for(var i = 0; i < connectionData.type.length; i++){
+                connection.addType(connectionData.type[i]);
+            }
+        }
+
+
 
         // set Observer for new Connection
         setConnectionObserver(map, connection);
@@ -773,7 +771,12 @@ define([
             items: [
                 {icon: 'fa-plus', action: 'add_system', text: 'add system'},
                 {icon: 'fa-info', action: 'info', text: 'info'},
-                {divider: true},
+                {icon: 'fa-filter', action: 'filter_scope', text: 'filter scope', subitems: [
+                    {subIcon: '', subAction: 'filter_wh', subText: 'wormhole'},
+                    {subIcon: '', subAction: 'filter_stargate', subText: 'stargate'},
+                    {subIcon: '', subAction: 'filter_jumpbridge', subText: 'jumpbridge'}
+                ]},
+                {divider: true, action: 'delete_systems'},
                 {icon: 'fa-eraser', action: 'delete_systems', text: 'delete systems'}
             ]
         };
@@ -797,16 +800,22 @@ define([
                 {icon: 'fa-info', action: 'info', text: 'info'},
                 {icon: 'fa-plane', action: 'frigate', text: 'frigate hole'},
                 {icon: 'fa-warning', action: 'preserve_mass', text: 'preserve mass'},
-                {icon: 'fa-reply fa-rotate-180', text: 'change status', subitems: [
-                    {subIcon: 'fa-clock-o', subAction: 'eol', subText: 'toggle EOL'},
+                {icon: 'fa-reply fa-rotate-180', action: 'change_status', text: 'change status', subitems: [
+                    {subIcon: 'fa-clock-o', subAction: 'wh_eol', subText: 'toggle EOL'},
                     {subDivider: true},
                     {subIcon: 'fa-circle', subAction: 'status_fresh', subText: 'stage 0 (fresh)'},
                     {subIcon: 'fa-adjust', subAction: 'status_reduced', subText: 'stage 1 (reduced)'},
                     {subIcon: 'fa-circle-o', subAction: 'status_critical', subText: 'stage 2 (critical)'}
 
                 ]},
-                {divider: true},
-                {icon: 'fa-eraser', action: 'delete', text: 'delete'}
+                {icon: 'fa-crosshairs', action: 'change_scope', text: 'change scope', subitems: [
+                    {subIcon: '', subAction: 'scope_wh', subText: 'wormhole'},
+                    {subIcon: '', subAction: 'scope_stargate', subText: 'stargate'},
+                    {subIcon: '', subAction: 'scope_jumpbridge', subText: 'jumpbridge'}
+
+                ]},
+                {divider: true, action: 'delete_connection'},
+                {icon: 'fa-eraser', action: 'delete_connection', text: 'delete'}
             ]
         };
 
@@ -842,7 +851,7 @@ define([
                 {icon: 'fa-lock', action: 'lock_system', text: 'lock system'},
                 {icon: 'fa-users', action: 'set_rally', text: 'set rally point'},
                 {icon: 'fa-reply fa-rotate-180', text: 'change status', subitems: systemStatus},
-                {divider: true},
+                {divider: true, action: 'delete_system'},
                 {icon: 'fa-eraser', action: 'delete_system', text: 'delete system'}
             ]
         };
@@ -934,9 +943,14 @@ define([
         // trigger context menu
         system.on('contextmenu', function(e){
 
-            // hide all map tooltips
+            var systemElement = $(this);
 
-            $(e.target).trigger('pf:openContextMenu', [e, this]);
+            // hide all map tooltips
+            var hideOptions = getHiddenContextMenuOptions(systemElement);
+
+            var activeOptions = getActiveContextMenuOptions(systemElement);
+
+            $(e.target).trigger('pf:openContextMenu', [e, this, hideOptions, activeOptions]);
             e.preventDefault();
             return false;
         });
@@ -953,7 +967,7 @@ define([
                 var currentSystem = $(params.component);
 
                 // system name
-                var currentSystemName = currentSystem.getSystemInfo( ['name'] );
+                var currentSystemName = currentSystem.getSystemInfo( ['alias'] );
 
                 switch(action){
                     case 'add_system':
@@ -1037,7 +1051,7 @@ define([
                                 $(currentSystem).getMapOverlay().startMapUpdateCounter();
 
 
-                                var systemName = currentSystem.getSystemInfo(['name']);
+                                var systemName = currentSystem.getSystemInfo(['alias']);
                                 deleteSystem(map, currentSystem);
 
                                 Util.showNotify({title: 'System deleted', text: systemName, type: 'success'});
@@ -1108,7 +1122,7 @@ define([
             }
 
         }else{
-            var systemName = system.getSystemInfo( ['name'] );
+            var systemName = system.getSystemInfo( ['alias'] );
 
             Util.showNotify({title: 'System is locked', text: systemName, type: 'error'});
         }
@@ -1149,7 +1163,7 @@ define([
             hideCounter = true;
         }
 
-        var systemName = system.getSystemInfo( ['name'] );
+        var systemName = system.getSystemInfo( ['alias'] );
 
         if( system.data( 'locked' ) === true ){
             system.data('locked', false);
@@ -1213,7 +1227,7 @@ define([
             system.data( 'rally', true );
 
             if(! hideNotification){
-                var systemName = system.getSystemInfo( ['name'] );
+                var systemName = system.getSystemInfo( ['alias'] );
 
                 var notificationOptions = {
                     title: 'New rally Point',
@@ -1265,7 +1279,14 @@ define([
         var container = map.getContainer();
 
         $(container).on('contextmenu', function(e){
-            $(e.target).trigger('pf:openContextMenu', [e, this]);
+
+            var mapElement = $(this);
+
+            var hideOptions = getHiddenContextMenuOptions(mapElement);
+
+            var activeOptions = getActiveContextMenuOptions(mapElement);
+
+            $(e.target).trigger('pf:openContextMenu', [e, mapElement, hideOptions, activeOptions]);
             e.preventDefault();
             e.stopPropagation();
             return false;
@@ -1294,6 +1315,33 @@ define([
                         // add new system dialog
                         showNewSystemDialog(currentMap, {position: position});
                         break;
+                    case 'filter_wh':
+                    case 'filter_stargate':
+                    case 'filter_jumpbridge':
+                        // filter (show/hide)
+                        var filterScope = action.split('_')[1];
+
+                        // scope label
+                        var filterScopeLabel = Util.getScopeInfoForMap(filterScope, 'label');
+
+                        var showScope = true;
+                        if(currentMapElement.data('filter_scope_' + filterScope) !== true){
+                            showScope = false;
+                        }
+                        currentMapElement.data('filter_scope_' + filterScope, ! showScope);
+
+
+                        $.each(currentMap.getConnections(filterScope), function(idx, tempConnection) {
+                            var tempEndpoints = tempConnection.endpoints;
+
+                            for(var i = 0; i < tempEndpoints.length; i++){
+                                tempEndpoints[i].setVisible( showScope );
+                            }
+                        });
+
+                        Util.showNotify({title: 'Scope filter changed', text: filterScopeLabel, type: 'success'});
+
+                        break;
                     case 'delete_systems':
                         // delete all selected systems with its connections
                         var selectedSystems = $(currentMapElement).getSelectedSystems();
@@ -1313,6 +1361,10 @@ define([
                             Util.showNotify({title: 'No systems selected', type: 'error'});
                         }
 
+                        break;
+                    case 'info':
+                        // open map info dialog
+                        $(document).triggerMenuEvent('ShowMapInfo');
                         break;
 
                 }
@@ -1342,6 +1394,7 @@ define([
 
             },
             onShow: function(){
+                $(document).trigger('pf:closeMenu', [{}]);
             },
             onRefresh: function(){
             }
@@ -1370,8 +1423,100 @@ define([
             Util.showNotify({title: 'Grid snapping', text: notificationText, type: 'info'});
 
         });
+    };
 
+    /**
+     * get hidden menu entry options for a context menu
+     * @param component
+     * @returns {Array}
+     */
+    var getHiddenContextMenuOptions = function(component){
 
+        var hiddenOptions = [];
+
+        if(component instanceof jsPlumb.Connection){
+            // disable connection menu entries
+
+            var scope = component.scope;
+
+            if(scope === 'stargate'){
+                hiddenOptions.push('frigate');
+                hiddenOptions.push('preserve_mass');
+                hiddenOptions.push('change_status');
+
+                hiddenOptions.push('scope_stargate');
+            }else if(scope === 'jumpbridge'){
+                hiddenOptions.push('frigate');
+                hiddenOptions.push('change_status');
+                hiddenOptions.push('scope_jumpbridge');
+            }else if(scope === 'wh'){
+                hiddenOptions.push('scope_wh');
+            }
+
+        }else if( component.hasClass(config.systemClass) ){
+            // disable system menu entries
+            if(component.data('locked') === true){
+                hiddenOptions.push('delete_system');
+            }
+        }
+
+        return hiddenOptions;
+    };
+
+    /**
+     * get active menu entry options for a context menu
+     * @param component
+     * @returns {Array}
+     */
+    var getActiveContextMenuOptions = function(component){
+
+        var activeOptions = [];
+
+        if(component instanceof jsPlumb.Connection){
+            var scope = component.scope;
+
+            if(component.hasType('wh_eol') === true){
+                activeOptions.push('wh_eol');
+            }
+
+            if(component.hasType('frigate') === true){
+                activeOptions.push('frigate');
+            }
+            if(component.hasType('preserve_mass') === true){
+                activeOptions.push('preserve_mass');
+            }
+            if(component.hasType('wh_reduced') === true){
+                activeOptions.push('status_reduced');
+            }else if(component.hasType('wh_critical') === true){
+                activeOptions.push('status_critical');
+            }else{
+                // not reduced is default
+                activeOptions.push('status_fresh');
+
+            }
+
+        }else if( component.hasClass(config.mapClass) ){
+            // active map menu entries
+            if(component.data('filter_scope_wh') === true){
+                activeOptions.push('filter_wh');
+            }
+            if(component.data('filter_scope_stargate') === true){
+                activeOptions.push('filter_stargate');
+            }
+            if(component.data('filter_scope_jumpbridge') === true){
+                activeOptions.push('filter_jumpbridge');
+            }
+        }else if( component.hasClass(config.systemClass) ){
+            // active system menu entries
+            if(component.data('locked') === true){
+                activeOptions.push('lock_system');
+            }
+            if(component.data('rally') === true){
+                activeOptions.push('set_rally');
+            }
+        }
+
+        return activeOptions;
     };
 
     /**
@@ -1381,9 +1526,18 @@ define([
      */
     var setConnectionObserver = function(map, connection){
 
+        // get map container
+        var mapElement = $( map.getContainer() );
+
         connection.bind('contextmenu', function(component, e) {
             // trigger menu "open
-            $(e.target).trigger('pf:openContextMenu', [e, component]);
+
+            // get invisible menu entries
+            var hideOptions = getHiddenContextMenuOptions(component);
+
+            var activeOptions = getActiveContextMenuOptions(component);
+
+            $(e.target).trigger('pf:openContextMenu', [e, component, hideOptions, activeOptions]);
             e.preventDefault();
             e.stopPropagation();
             return false;
@@ -1394,45 +1548,92 @@ define([
          *  must be triggered manually on demand
          */
 
-        $('path').contextMenu({
+        $(connection.canvas).contextMenu({
             menuSelector: "#" + config.connectionContextMenuId,
             menuSelected: function (params){
 
                 var action = params.selectedMenu.attr('data-action');
                 var activeConnection = params.component;
+                var activeScope = activeConnection.scope;
+                var activeScopeName = Util.getScopeInfoForMap(activeScope, 'label');
 
                 switch(action){
-                    case 'delete':
+                    case 'delete_connection':
                         // delete a single connection
 
                         // confirm dialog
                         bootbox.confirm('Is this connection really gone?', function(result) {
                             if(result){
+                                mapElement.getMapOverlay().startMapUpdateCounter();
+
                                 map.detach(params.component);
                             }
                         });
                         break;
                     case 'frigate':         // set as frigate hole
                     case 'preserve_mass':   // set "preserve mass
-                    case 'eol':             // set "end of life"
+                    case 'wh_eol':          // set "end of life"
+
+                        mapElement.getMapOverlay().startMapUpdateCounter();
+
                         activeConnection.toggleType( action );
                         // for some reason  a new observer is needed ?!
                         setConnectionObserver(map, activeConnection);
                         break;
                     case 'status_fresh':
+
+                        mapElement.getMapOverlay().startMapUpdateCounter();
+
                         activeConnection.removeType('wh_reduced');
                         activeConnection.removeType('wh_critical');
                         setConnectionObserver(map, activeConnection);
                         break;
                     case 'status_reduced':
+
+                        mapElement.getMapOverlay().startMapUpdateCounter();
+
                         activeConnection.removeType('wh_critical');
                         activeConnection.addType('wh_reduced');
                         setConnectionObserver(map, activeConnection);
                         break;
                     case 'status_critical':
+
+                        mapElement.getMapOverlay().startMapUpdateCounter();
+
                         activeConnection.removeType('wh_reduced');
                         activeConnection.addType('wh_critical');
                         setConnectionObserver(map, activeConnection);
+                        break;
+                    case 'scope_wh':
+                    case 'scope_stargate':
+                    case 'scope_jumpbridge':
+
+                        var newScope = action.split('_')[1];
+                        var newScopeName =  Util.getScopeInfoForMap( newScope, 'label');
+
+                        bootbox.confirm('Change scope from ' + activeScopeName + ' to ' + newScopeName + '?', function(result) {
+                            if(result){
+
+                                mapElement.getMapOverlay().startMapUpdateCounter();
+
+                                // remove all connection types
+                                activeConnection.clearTypes();
+
+                                // set new new connection type
+                                activeConnection.addType(newScope);
+
+                                // change scope
+                                activeConnection.scope = newScope;
+
+                                var scopeLabel = Util.getScopeInfoForMap(newScope, 'label');
+
+                                setConnectionObserver(map, activeConnection);
+
+                                Util.showNotify({title: 'Connection scope changed', text: 'New scope: ' + scopeLabel, type: 'success'});
+
+                            }
+                        });
+
                         break;
                     case 'info':
                         console.log('info');
@@ -1441,6 +1642,7 @@ define([
 
             }
         });
+
     };
 
     /**
@@ -1470,8 +1672,8 @@ define([
 
         for(var i = 0; i < info.length; i++){
             switch(info[i]){
-                case 'name':
-                    // get current system name/alias
+                case 'alias':
+                    // get current system alias
                     systemInfo.push( $(this).find('.' + config.systemHeadNameClass).text() );
                     break;
                 default:
@@ -1496,6 +1698,8 @@ define([
      * @param options
      */
     var showNewSystemDialog = function(map, options){
+
+        var mapContainer = $(map.getContainer());
 
         // format system status for form select
         var systemStatus = {};
@@ -1533,7 +1737,7 @@ define([
                             className: 'btn-primary',
                             callback: function () {
 
-                                $(options.sourceSystem).getMapOverlay().startMapUpdateCounter();
+                                mapContainer.getMapOverlay().startMapUpdateCounter();
 
                                 // get form Values
                                 var form = $('#' + config.systemDialogId).find('form');
@@ -1606,17 +1810,17 @@ define([
         if(typeof activeInstances[mapId] !== 'object'){
             // create new instance
             activeInstances[mapId] =  jsPlumb.getInstance({
-                Container: null, // will be set as soon as container is connected to DOM
+                Container: null,                                                                // will be set as soon as container is connected to DOM
                 PaintStyle:{
-                    lineWidth: 4, //  width of a Connector's line. An integer.
-                    strokeStyle: 'red', // color for a Connector
-                    outlineColor: 'red', // color of the outline for an Endpoint or Connector. see fillStyle examples.
-                    outlineWidth: 2 // width of the outline for an Endpoint or Connector. An integer.
+                    lineWidth: 4,                                                               //  width of a Connector's line. An integer.
+                    strokeStyle: 'red',                                                         // color for a Connector
+                    outlineColor: 'red',                                                        // color of the outline for an Endpoint or Connector. see fillStyle examples.
+                    outlineWidth: 2                                                             // width of the outline for an Endpoint or Connector. An integer.
                 },
                 Connector:[ 'Bezier', { curviness: 40, cssClass: 'pf-map-connection-wh' } ],
-                Endpoint : ['Dot', {radius: 6}]
+                Endpoint : ['Dot', {radius: 6}],
                 // Endpoint: 'Blank', // does not work... :(
-                // Scope: mapConfig.config.scope
+                Scope: Init.defaultMapScope                                                     // default map scope for connections
             });
 
             console.log('new jsPlumbInstance: ' + mapId);
@@ -1680,6 +1884,8 @@ define([
 
         var mapElement = $(this);
 
+        var map = getMapInstance( mapElement.data('id') );
+
         var mapData = {};
 
         // check if there is an active map counter that prevents collecting map data
@@ -1688,30 +1894,38 @@ define([
 
         var interval = counterChart.data('interval');
 
+
         if(! interval){
             // map config ---------------------------------
             var mapConfig = {};
             mapConfig.id = mapElement.data('id');
             mapConfig.name = mapElement.data('name');
+            mapConfig.type = mapElement.data('type');
             mapData.config = mapConfig;
 
             // map data -----------------------------------
             var data = {};
 
-            // systems ------------------------------------
+
             var systemsData = [];
 
             var systems = mapElement.find('.' + config.systemClass);
 
             for(var i = 0; i < systems.length; i++){
 
+                // systems data ------------------------------------
+
                 var tempSystem = $(systems[i]);
                 var systemData = {};
                 systemData.id = tempSystem.data('id');
-                systemData.alias = tempSystem.find('.' + config.systemHeadNameClass).editable('getValue', true);
+                systemData.name = tempSystem.data('name');
+                systemData.alias = tempSystem.getSystemInfo(['alias']);
                 systemData.status = tempSystem.data('status');
+                systemData.effect = tempSystem.data('effect');
+                systemData.trueSec = tempSystem.data('trueSec');
                 systemData.locked = tempSystem.data('locked');
                 systemData.rally = tempSystem.data('rally');
+                systemData.currentUser = tempSystem.data('currentUser');
 
                 // position -------------------------------
                 var positionData = {};
@@ -1731,9 +1945,27 @@ define([
             data.systems = systemsData;
 
             // connections --------------------------------
-            var connections = [];
+            var connections = map.getAllConnections();
+            var connectionsFormatted = [];
+            // format connections
+            for(var j = 0; j < connections.length; j++){
 
-            data.connections = connections;
+                var source = $(connections[j].source);
+                var target = $(connections[j].target);
+
+                var connection = {
+                    source: source.data('id'),
+                    sourceName: source.data('name'),
+                    target: target.data('id'),
+                    targetName: target.data('name'),
+                    scope: connections[j].scope,
+                    type: connections[j].getType()
+                };
+
+                connectionsFormatted.push(connection);
+            }
+
+            data.connections = connectionsFormatted;
 
             mapData.data = data;
         }else{
@@ -2036,10 +2268,6 @@ define([
 
 
         return this.each(function () {
-
-            // remove previous dragging capability
-            $(this).destroySystemDraggable();
-
 
             $(this).draggable(options, {
                 start: function (e, ui) {

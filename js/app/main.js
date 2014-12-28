@@ -42,6 +42,7 @@ define([
                         effect: 'magnetar',
                         type: 'wh',
                         security: 'C6',
+                        trueSec: -1,
                         status: 'friendly',
                         locked: '1',
                         rally: '0',
@@ -132,17 +133,27 @@ define([
                     {
                         source: 3,
                         target: 4,
-                        type: 'wh'
+                        scope: 'stargate',
+                        type: [
+                            'stargate'
+                        ]
                     },
                     {
                         source: 4,
                         target: 30002979,
-                        type: 'wh'
+                        type: [
+                            'wh',
+                            'wh_critical'
+                        ]
                     },
                     {
                         source: 4,
                         target: 30000142,
-                        type: 'wh'
+                        type: [
+                            'wh',
+                            'wh_eol',
+                            'wh_reduced'
+                        ]
                     }
                 ]
             }
@@ -185,7 +196,9 @@ define([
                 connections: [{
                     source: 50,
                     target: 51,
-                    type: 'wh'
+                    type: [
+                        'wh'
+                    ]
                 }]
             }
         },

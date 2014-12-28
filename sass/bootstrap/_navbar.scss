@@ -155,6 +155,7 @@
   font-size: $font-size-large;
   line-height: $line-height-computed;
   height: $navbar-height;
+  font-family: $font-family-bold;
 
   &:hover,
   &:focus {
@@ -364,6 +365,7 @@
 
 .navbar-text {
   @include navbar-vertical-align($line-height-computed);
+  font-family: $font-family-bold;
 
   //@media (min-width: $grid-float-breakpoint) {
     float: left;

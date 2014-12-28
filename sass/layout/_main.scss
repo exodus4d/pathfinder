@@ -1,20 +1,17 @@
-@import "compass/css3/border-radius";
-
-body{
-  font-family: 'Oxygen Bold';
-  color: $gray-light;
-}
 
 a{
   color: $teal-dark;
 
   &:hover{
-    color: $teal;
+    color: $teal-light;
   }
 }
 
 // emphasized text
 em{
+
+  font-style: italic;
+
   &.pf-brand{
     text-transform: uppercase;
   }
@@ -35,8 +32,8 @@ em{
 
 
   .pf-loading-overlay-wrapper{
-    width: 20px;
-    height: 20px;
+    width: 25px;
+    height: 25px;
     margin: auto;
     text-align: center;
     position: absolute;
@@ -51,7 +48,7 @@ em{
   opacity: 0.5;
 }
 
-// page menu ================================================
+// page menu =====================================================
 .sb-left{
   .list-group-item{
     @include box-shadow(inset -10px 0px 5px -5px rgba(0,0,0,0.4));
@@ -64,6 +61,18 @@ em{
   }
 }
 
+// map types =====================================================
+.pf-map-type-global{
+  color: $teal;
+}
+
+.pf-map-type-alliance{
+  color: $blue;
+}
+
+.pf-map-type-private{
+  color: $green;
+}
 
 // maps module ===================================================
 #pf-map-module{
@@ -72,19 +81,19 @@ em{
   // Tabs (colored)
   #pf-map-tabs {
 
-    .pf-map-type-default{
+    .pf-map-type-tab-default{
       border-top: 2px solid transparent;
     }
 
-    .pf-map-type-global{
+    .pf-map-type-tab-global{
       border-top: 2px solid $green;
     }
 
-    .pf-map-type-alliance{
+    .pf-map-type-tab-alliance{
       border-top: 2px solid $blue;
     }
 
-    .pf-map-type-private{
+    .pf-map-type-tab-private{
       border-top: 2px solid $teal;
     }
   }
@@ -98,11 +107,12 @@ em{
 
   // alle Module innerhalb einer row
   .pf-module{
-    @include border-radius(5px);
+    font-family: $font-family-bold;
     background: rgba($gray, 0.3);
     padding: 10px;
     width: 100%;
     margin-bottom: 10px;
+    @include border-radius(5px);
   }
 
 }
@@ -277,32 +287,69 @@ em{
   }
 }
 
-// "fake connection" classes for the map legend
-.pf-connection{
+// "fake connection" classes for the map manual
+.pf-fake-connection{
   box-sizing: content-box;
   display: inline-block;
-  width: 30px;
+  width: 70px;
   height: 4px;
   margin-right: 5px;
   border-top: 2px solid $gray-light;
   border-bottom: 2px solid $gray-light;
   background-color: #3c3f41;
+  position: relative;
+  font-family: $font-family-sans-serif;
 
-  &.pf-connection-eol{
+  &.pf-map-connection-stargate{
+    background-color: $gray-light;
+    border-color: $gray-light;
+  }
+
+  &.pf-map-connection-jumpbridge{
+    background-color: $teal-light;
+    border-color: $teal-light;
+  }
+
+  &.pf-map-connection-wh-eol{
     border-color: $pink-dark;
   }
 
-  &.pf-connection-reduced{
+  &.pf-map-connection-wh-reduced{
     background-color: $orange;
   }
 
-  &.pf-connection-critical{
+  &.pf-map-connection-wh-critical{
     background-color: $red-darker;
   }
-  &.pf-connection-frig{
+
+  &.pf-map-connection-frig{
     border-style: dashed;
     border-left: none;
     border-right: none;
+
+    &:after{
+      content: 'frig';
+      background-color: $orange;
+      color: $gray-darkest;
+      padding: 0px 3px;
+      position: absolute;
+      left: 25px;
+      top: -6px;
+      @include border-radius(3px);
+    }
+  }
+
+  &.pf-map-connection-preserve-mass{
+    &:after{
+      content: 'save mass';
+      background-color: $red-darker;
+      color: $gray-lightest;
+      padding: 0px 3px;
+      position: absolute;
+      left: 9px;
+      top: -6px;
+      @include border-radius(3px);
+    }
   }
 
 }
@@ -312,7 +359,7 @@ em{
 .tooltip-inner{
   color: $green;
   background-color: $gray;
-  font-family: 'Oxygen Bold';
+  font-family: $font-family-bold;
   padding: 5px 5px;
   @include border-radius(3px);
   @include box-shadow(0 6px 12px rgba(0,0,0,.4));
@@ -379,19 +426,6 @@ Animate the stripes
     background-position: 50px 50px;
   }
 }
-
-
-
-// TODO move in seperate file!!! ====================================
-
-#pf-legend-scrollspy{
-  position: relative;
-  height: 500px;
-  overflow: auto;
-}
-
-
-
 
 
 

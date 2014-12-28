@@ -1,7 +1,10 @@
-.tab-content{
-  input, select{
-    background-color: $gray-dark;
-    color: $gray-lighter;
-    border: 1px solid $gray-light;
+input, select{
+  background-color: $gray-dark;
+  color: $gray-lighter;
+  border: 1px solid $gray-light;
+  font-family: $font-family-bold;
+
+  &:focus{
+    border-color: $teal;
   }
 }

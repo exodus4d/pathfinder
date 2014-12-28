@@ -1,0 +1,23 @@
+
+// map manual dialog ======================================
+#pf-manual-scrollspy{
+  position: relative;
+  height: 500px;
+  overflow: auto;
+}
+
+// map info dialog ========================================
+#pf-map-info-systems, #pf-map-info-connections{
+  padding: 10px;
+  min-height: 130px;
+  position: relative;
+  background-color: $gray-dark;
+  overflow: hidden;
+  @include border-radius(5px);
+
+  // data tables
+  .pf-map-info-table{
+    font-size: 10px;
+    font-family: $font-family-bold;
+  }
+}

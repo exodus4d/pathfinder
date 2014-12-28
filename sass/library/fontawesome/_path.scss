@@ -12,3 +12,14 @@
   font-weight: normal;
   font-style: normal;
 }
+
+/*
+@include font-face(
+    'FontAwesome',
+    font-files(
+        'fontawesome-webfont.woff', woff,
+        'fontawesome-webfont.ttf', truetype
+    ),
+    'fontawesome-webfont.eot'
+);
+*/

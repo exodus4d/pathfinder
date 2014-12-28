@@ -15,6 +15,24 @@ define(['jquery'], function($) {
             eveCentral: 'http://api.eve-central.com/api/'           // jump rout api
         },
         classes: {
+            // map types
+            mapTypes: {
+                global: {
+                    class: 'pf-map-type-global',
+                    classTab: 'pf-map-type-tab-global',
+                    label: 'Global'
+                },
+                alliance: {
+                    class: 'pf-map-type-alliance',
+                    classTab: 'pf-map-type-tab-alliance',
+                    label: 'Alliance'
+                },
+                private: {
+                    class: 'pf-map-type-private',
+                    classTab: 'pf-map-type-tab-private',
+                    label: 'Private'
+                }
+            },
             // system effects
             systemEffects: {
 
@@ -154,6 +172,63 @@ define(['jquery'], function($) {
             pieChart: {
                 class: 'pf-pie-chart',                              // class for all pie charts
                 pieChartMapCounterClass: 'pf-pie-chart-map-timer'   // class for timer chart
+            }
+        },
+        // map scopes
+        defaultMapScope: 'wh',                                      // default scope for connection
+        mapScopes: {                                                // available scopes for a connection
+            wh: {
+                label: 'wormhole'
+            },
+            stargate: {
+                label: 'stargate'
+            },
+            jumpbridge: {
+                label: 'jumpbridge'
+            }
+        },
+        // map connection types
+        connectionTypes: {
+            jumpbridge: {
+                cssClass: 'pf-map-connection-jumpbridge'
+            },
+            stargate: {
+                cssClass: 'pf-map-connection-stargate'
+            },
+            wh: {
+                cssClass: 'pf-map-connection-wh'
+            },
+            wh_eol: {
+                cssClass: 'pf-map-connection-wh-eol'
+            },
+            wh_reduced: {
+                cssClass: 'pf-map-connection-wh-reduced'
+            },
+            wh_critical: {
+                cssClass: 'pf-map-connection-wh-critical'
+            },
+            frigate: {
+                cssClass: 'pf-map-connection-frig',
+                paintStyle: {
+                    dashstyle: '0.9'
+                },
+                overlays:[
+                    [ 'Label',
+                        {
+                            label: 'frig',
+                            cssClass: ['pf-map-connection-overlay', 'frig'].join(' ')
+                        } ]
+                ]
+            },
+            preserve_mass: {
+                cssClass: 'pf-map-connection-preserve-mass',
+                overlays:[
+                    [ 'Label',
+                        {
+                            label: '<i class="fa fa-warning"></i>&nbsp;save mass',
+                            cssClass: ['pf-map-connection-overlay', 'mass'].join(' ')
+                        } ]
+                ]
             }
         },
         // system effects

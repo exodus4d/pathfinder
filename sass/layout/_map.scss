@@ -71,12 +71,14 @@
   width: 2000px;
   height: 500px;
   position: relative;
+  font-family: $font-family-bold;
 
   .pf-system{
     position: absolute;
     min-width: 80px;
     height: auto;
     background-color: $gray-dark;
+    font-family: $font-family-bold;
     z-index: 100;
 
     //@include bounce-up-down;
@@ -89,7 +91,7 @@
     }
 
     .pf-system-head{
-      padding: 0px 3px 2px 3px;
+      padding: 0px 3px 0px 3px;
       cursor: pointer;
 
       .pf-system-head-name{
@@ -254,6 +256,39 @@
     }
   }
 
+  svg.pf-map-connection-stargate  {
+
+    path:first-child{
+      stroke: $gray-light;
+    }
+
+    path:not(first-child){
+      stroke: $gray-light;
+    }
+
+    &:hover{
+      path:first-child{
+        stroke: $gray-lightest;
+      }
+    }
+  }
+
+  svg.pf-map-connection-jumpbridge  {
+
+    path:first-child{
+      stroke: $teal-light;
+    }
+
+    path:not(first-child){
+      stroke: $teal-light;
+    }
+
+    &:hover{
+      path:first-child{
+        stroke: $gray-lightest;
+      }
+    }
+  }
 
   svg.pf-map-connection-wh  {
     // special wh-connection style (
@@ -290,7 +325,9 @@
   .pf-map-connection-overlay{
     padding: 1px 4px;
     font-size: 10.4px;
+    z-index: 1020;
     @include border-radius(3px);
+    @include box-shadow(0 6px 12px rgba(0,0,0,.4));
   }
 
   .frig{
@@ -315,6 +352,7 @@
 
 // context menu ==================================================
 .dropdown-menu{
+  font-family: $font-family-bold;
   z-index: 1020; // over tooltips
 
   i{

@@ -17,7 +17,7 @@ $bootstrap-sass-asset-helper: (twbs-font-path("") != unquote('twbs-font-path("")
 //** Background color for `<body>`.
 $body-bg:               $gray-dark;
 //** Global text color on `<body>`.
-$text-color:            $gray-dark;
+$text-color:            $gray-light;
 
 //** Global textual link color.
 $link-color:            $brand-primary;
@@ -31,10 +31,68 @@ $link-hover-color:      darken($link-color, 15%);
 
 $pf-font-path:            "../fonts" !default;
 
-$font-family-sans-serif:  'Oxygen Light', "Helvetica Neue", Helvetica, Arial, sans-serif !default;
+@font-face {
+  font-family: 'Oxygen';
+  src: url('#{$pf-font-path}/oxygen-regular-webfont.eot');
+  src: url('#{$pf-font-path}/oxygen-regular-webfont.eot') format('embedded-opentype'),
+  url('#{$pf-font-path}/oxygen-regular-webfont.woff') format('woff'),
+  url('#{$pf-font-path}/oxygen-regular-webfont.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+/*
+@include font-face(
+    'Oxygen',
+    font-files(
+        'oxygen-regular-webfont.woff', woff,
+        'oxygen-regular-webfont.ttf', truetype
+    ),
+    'oxygen-regular-webfont.eot',
+    400
+);
+*/
+/* not used jet
+@include font-face(
+    'Oxygen Light',
+    font-files(
+        'oxygen-light-webfont.woff', woff,
+        'oxygen-light-webfont.ttf', truetype
+    ),
+    'oxygen-light-webfont.eot',
+    300
+);
+*/
+/*
+@include font-face(
+    'Oxygen Bold',
+    font-files(
+        'oxygen-bold-webfont.woff', woff,
+        'oxygen-bold-webfont.ttf', truetype
+    ),
+    'oxygen-bold-webfont.eot',
+    700
+);
+*/
+@font-face {
+  font-family: 'Oxygen Bold';
+  src: url('#{$pf-font-path}/oxygen-bold-webfont.eot');
+  src: url('#{$pf-font-path}/oxygen-bold-webfont.eot') format('embedded-opentype'),
+  url('#{$pf-font-path}/oxygen-bold-webfont.woff') format('woff'),
+  url('#{$pf-font-path}/oxygen-bold-webfont.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+
+
+
+$font-family-sans-serif:  'Oxygen', "Helvetica Neue", Helvetica, Arial, sans-serif !default;
 $font-family-serif:       'Oxygen Regular' Georgia, "Times New Roman", Times, serif !default;
 $font-family-monospace:   Monaco, Menlo, Consolas, "Courier New", monospace;
+$font-family-bold:        'Oxygen Bold', "Helvetica Neue", Helvetica, Arial, sans-serif !default;
 $font-family-base:        $font-family-sans-serif;
+$font-style-base:         normal;
+$font-weight-base:        400;
 
 $font-size-base:          12px;
 $font-size-large:         ceil(($font-size-base * 1.24)); // ~16px
@@ -47,34 +105,19 @@ $font-size-h4:            $font-size-base; //ceil(($font-size-base * 1.32)); // 
 $font-size-h5:            ceil(($font-size-base * 1.24)); // ~16px
 $font-size-h6:            ceil(($font-size-base * 1.08)); // ~14px
 
-$line-height-base:        1.428571429; // 20/14
-$line-height-computed:    floor(($font-size-base * $line-height-base)); // ~20px
+//$line-height-base:        1.428571429; // 20/14
+$line-height-base:        1.5; // 18/12
+$line-height-computed:    floor(($font-size-base * $line-height-base)); // ~18px
 
 $headings-font-family:    $font-family-base;
-$headings-font-weight:    500;
+$headings-font-weight:    700;
 $headings-line-height:    1.1;
 $headings-color:          inherit;
 
-@font-face {
-  font-family: 'Oxygen Regular';
-  src: url('#{$pf-font-path}/Oxygen-Regular.ttf');
-  font-style: normal;
-  font-weight: 400;
-}
 
-@font-face {
-  font-family: 'Oxygen Bold';
-  src: url('#{$pf-font-path}/Oxygen-Bold.ttf');
-  font-style: normal;
-  font-weight: 700;
-}
 
-@font-face {
-  font-family: 'Oxygen Light';
-  src: url('#{$pf-font-path}/Oxygen-Light.ttf');
-  font-style: normal;
-  font-weight: 300;
-}
+
+
 
 //-- Iconography
 //
@@ -203,7 +246,7 @@ $dropdown-divider-bg:            $gray-light;
 $dropdown-link-color:            $gray-dark;
 $dropdown-link-hover-color:      $gray-darkest;
 $dropdown-link-hover-bg:         $gray-light;
-$dropdown-link-active-color:     #fff;
+$dropdown-link-active-color:     $gray-lighter;
 $dropdown-link-active-bg:        $component-active-bg;
 
 $dropdown-link-disabled-color:   $gray-light;
@@ -504,7 +547,7 @@ $label-info-bg:               $brand-info;
 $label-warning-bg:            $brand-warning;
 $label-danger-bg:             $brand-danger;
 
-$label-color:                 #fff;
+$label-color:                 $gray-darkest;
 $label-link-hover-color:      #fff;
 
 

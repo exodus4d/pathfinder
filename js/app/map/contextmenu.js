@@ -7,15 +7,36 @@ define(["jquery"], function($) {
         return this.each(function () {
 
             // Open context menu
-            $(this).on("pf:openContextMenu", function (e, originalEvent, component) {
+            $(this).on("pf:openContextMenu", function (e, originalEvent, component, hiddenOptions, activeOptions) {
 
+                // hide all other open context menus
+               // $('.dropdown-menu').hide();
 
+                var contextMenu = $(settings.menuSelector);
+
+                var menuLiElements = contextMenu.find('li');
+
+                // show all menu entries
+                menuLiElements.show();
+
+                // disable specific menu entries
+                for(var i = 0; i < hiddenOptions.length; i++){
+                    contextMenu.find('li[data-action="' + hiddenOptions[i] + '"]').hide();
+                }
+
+                // un activate all menu entries
+                menuLiElements.removeClass('active');
+
+                //set active specific menu entries
+                for(var j = 0; j < activeOptions.length; j++){
+                    contextMenu.find('li[data-action="' + activeOptions[j] + '"]').addClass('active');
+                }
 
                 //open menu
-                $(settings.menuSelector)
+                contextMenu
                     .show()
                     .css({
-                        position: "absolute",
+                        position: 'absolute',
                         left: getLeftLocation(originalEvent),
                         top: getTopLocation(originalEvent)
                     })

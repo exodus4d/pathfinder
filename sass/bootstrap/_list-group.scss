@@ -21,9 +21,10 @@
 .list-group-item {
   position: relative;
   display: block;
-  padding: 7px 8px;
+  padding: 6px 8px;
   background-color: $list-group-bg;
   border-bottom: 1px solid $list-group-border;
+  font-family: $font-family-bold;
 
   // Round the first and last items
   &:first-child {

@@ -61,14 +61,6 @@ define([
         sigTableEditSigNameSelect: 'pf-sig-table-edit-name-select',             // class for editable fields (select)
         sigTableCounterClass: 'pf-sig-table-counter',                           // class for signature table counter
 
-        // map types
-        mapTypes: [
-            {type: 'default', label: 'default', class: 'pf-map-type-default'},
-            {type: 'global', label: 'global', class: 'pf-map-type-global'},
-            {type: 'alliance', label: 'alliance', class: 'pf-map-type-alliance'},
-            {type: 'private', label: 'private', class: 'pf-map-type-private'}
-        ],
-
         // map scopes
         mapScopes: [
             {scope: 'wormhole', label: 'W-Space'}
@@ -83,32 +75,11 @@ define([
             {class: 'fa-rocket', label: 'rocket'}
         ]
 
-
-
-
     };
 
     var cache = {
         systemRoutes: {}, // jump information between solar systems
         systemKillsGraphData: {} // data for system kills info graph
-    };
-
-    /**
-     * get map type class for a type
-     * @param type
-     * @returns {string}
-     */
-    var getMapTypeClassForType = function(type){
-
-        var typeClass= '';
-
-        $.each(config.mapTypes, function(i, typeData){
-            if(typeData.type === type){
-               typeClass = typeData.class;
-            }
-        });
-
-        return typeClass;
     };
 
     /**
@@ -155,7 +126,7 @@ define([
             id: config.newMapDialogId,
             title: 'Add new map',
             scope: config.mapScopes,
-            type: config.mapTypes,
+            type: Util.getMapTypes(),
             icon: config.mapIcons
         };
 
@@ -230,12 +201,11 @@ define([
                 drawSystemInfoElement($( e.target ), systemInfoData);
             });
 
-            // highlite a mapTab
+            // highlight a mapTab
             $(this).on('pf:highlightTab', function(e, data){
                 // update Tab Content with system data information
 
-                // not used jet
-                // highlightTab(e.target, data);
+                highlightTab(e.target, data);
 
             });
 
@@ -1975,7 +1945,7 @@ define([
                 index: i,
                 name: data.config.name,
                 icon: data.config.icon,
-                tabClass: [config.mapTabClass, getMapTypeClassForType( data.config.type) ].join(' '),
+                tabClass: [config.mapTabClass, Util.getInfoForMap( data.config.type, 'classTab') ].join(' '),
                 contentClass: config.mapTabContentClass,
                 active: active
             });
@@ -1987,7 +1957,7 @@ define([
             index: -1,
             name: 'add',
             icon: 'fa-plus',
-            tabClass: [config.mapTabClass, getMapTypeClassForType('default')].join(' '),
+            tabClass: [config.mapTabClass, Util.getInfoForMap( 'default', 'classTab') ].join(' '),
             contentClass: config.mapTabContentClass,
             pullRight: true
         });

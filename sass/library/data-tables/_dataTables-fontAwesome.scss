@@ -71,7 +71,7 @@ div.dataTables_paginate a.paginate_button.last {
 div.dataTables_paginate a.first:before,
 div.dataTables_paginate a.previous:before {
   position: absolute;
-  top: 5px;
+  top: 4px;
   left: 10px;
   display: block;
   font-family: FontAwesome;
@@ -80,7 +80,7 @@ div.dataTables_paginate a.previous:before {
 div.dataTables_paginate a.next:after,
 div.dataTables_paginate a.last:after {
   position: absolute;
-  top: 5px;
+  top: 4px;
   right: 10px;
   display: block;
   font-family: FontAwesome;

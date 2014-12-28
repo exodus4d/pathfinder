@@ -19,10 +19,6 @@ body.mobile-view-activated.hidden-menu {
 
 body.modal-open {
 	overflow:hidden !important;
-
-  p{
-    font-family: 'Oxygen';
-  }
 }
 
 a:hover, a:active, a:focus, button, button:active, button:focus, object, embed, input::-moz-focus-inner {
@@ -31,8 +27,7 @@ a:hover, a:active, a:focus, button, button:active, button:focus, object, embed, 
 	
 h1,h3,h4 {
 	margin:0;
-	font-family: "Oxygen Bold";
-	font-weight:300;
+	font-family: $font-family-bold;
 }
 
 .page-title {
@@ -1047,6 +1042,7 @@ input[type="text"]:focus + .input-group-addon {
 
 .nav-tabs>li>a {
   color: $gray-lighter;
+  font-family: $font-family-bold;
 
   &:hover{
     color: $gray-darkest;
@@ -1304,6 +1300,7 @@ input[type="text"]:focus + .input-group-addon {
 }
 
 .btn {
+    font-family: $font-family-bold;
 	border-radius:2px;
 	-webkit-border-radius: 2px;
 	-moz-border-radius: 2px;

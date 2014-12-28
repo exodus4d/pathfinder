@@ -1,12 +1,12 @@
 <ul class="dropdown-menu" id="{{id}}" role="menu" style="display: none">
     {{#items}}
         {{#text}}
-            <li {{#subitems}}class="dropdown-submenu"{{/subitems}}>
+            <li data-action="{{action}}" {{#subitems}}class="dropdown-submenu"{{/subitems}} >
                 <a href="#" tabindex="-1" data-action="{{action}}"><i class="fa {{#icon}}{{icon}}{{/icon}} fa-fw"></i>&nbsp;{{text}}</a>
                 <ul class="dropdown-menu">
                     {{#subitems}}
                         {{#subText}}
-                            <li>
+                            <li data-action="{{subAction}}">
                                 <a href="#" tabindex="-1" data-action="{{subAction}}">
                                     <i class="fa {{#subIcon}}{{subIcon}}{{/subIcon}} {{#subIconClass}}{{subIconClass}}{{/subIconClass}} fa-fw"></i>
                                     &nbsp;{{subText}}
@@ -23,7 +23,7 @@
         {{/text}}
 
         {{#divider}}
-            <li class="divider"></li>
+            <li class="divider" data-action="{{action}}"></li>
         {{/divider}}
     {{/items}}
 </ul>
