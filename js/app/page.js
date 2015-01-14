@@ -8,6 +8,7 @@ define([
     'app/render',
     'bootbox',
     'slidebars',
+    'fullScreen',
     'app/module_map'
 ], function($, Init, Util, Render, bootbox) {
 
@@ -22,6 +23,7 @@ define([
         pageSlidebarRightClass: 'sb-right',                                     // class for right menu
         pageSlideLeftWidth: '150px',                                            // slide distance left menu
         pageSlideRightWidth: '150px',                                           // slide distance right menu
+        fullScreenClass: 'pf-fullscreen',                                       // class for the "full screen" element
 
         // page structure
         pageClass: 'pf-site',
@@ -34,6 +36,10 @@ define([
 
         // footer
         pageFooterId: 'pf-footer',                                              // id for page footer
+
+        // menu
+        menuHeadMenuLogoClass: 'pf-head-menu-logo',                             // class for main menu logo
+        menuButtonFullScreenId: 'pf-menu-button-fullscreen',                    // id for menu button "full screen"
 
         // map module
         mapModuleId: 'pf-map-module',                                           // main map module
@@ -166,6 +172,19 @@ define([
                         })
                 ).append(
                     $('<a>', {
+                        class: 'list-group-item hide',                      // trigger by js
+                        id: config.menuButtonFullScreenId,
+                        href: '#'
+                    }).html('&nbsp;&nbsp;Full screen').prepend(
+                            $('<i>',{
+                                class: 'glyphicon glyphicon-fullscreen',
+                                css: {width: '1.23em'}
+                            })
+                        ).on('click', function(){
+                            $(document).triggerMenuEvent('FullScreen', {button: this});
+                        })
+                ).append(
+                    $('<a>', {
                         class: 'list-group-item',
                         href: '#'
                     }).html('&nbsp;&nbsp;Notification test').prepend(
@@ -186,6 +205,13 @@ define([
                         )
                 )
         );
+
+        // init menu
+        if($.fullscreen.isNativelySupported() === true){
+            $('#' + config.menuButtonFullScreenId).removeClass('hide');
+        }
+
+
     };
 
     /**
@@ -212,7 +238,7 @@ define([
                         href: '#'
                     }).html('&nbsp;&nbsp;Grid snap').prepend(
                             $('<i>',{
-                                class: 'fa fa-th fa-fw'
+                                class: 'glyphicon glyphicon-th'
                             })
                         ).on('click', function(){
                             $('#' + config.mapModuleId).getActiveMap().triggerMenuEvent('Grid', {button: this});
@@ -267,6 +293,7 @@ define([
 
         var moduleData = {
             id: config.pageHeaderId,
+            brandLogo: config.menuHeadMenuLogoClass,
             userName: 'Exodus 4D'
         };
 
@@ -303,29 +330,68 @@ define([
      * catch all global document events
      */
     var setDocumentObserver = function(){
+
+        $(document).on('fscreenchange', function(e, state, elem){
+
+            var menuButton = $('#' + config.menuButtonFullScreenId);
+
+            if(state === true){
+                // full screen active
+                menuButton.addClass('active');
+            }else{
+                menuButton.removeClass('active');
+            }
+        });
+
         $(document).on('pf:menuShowSystemEffectInfo', function(e){
             // show system effects info box
             showSystemEffectInfoDialog();
+            return false;
         });
 
         $(document).on('pf:menuShowJumpInfo', function(e){
             // show system effects info box
             showJumpInfoDialog();
+            return false;
         });
 
         $(document).on('pf:menuNotificationTest', function(e){
             // show system effects info box
             notificationTest();
+            return false;
         });
 
         $(document).on('pf:menuManual', function(e){
             // show map manual
             showMapManual();
+            return false;
         });
 
         $(document).on('pf:menuShowMapInfo', function(e){
             // show map information dialog
             showMapInfoDialog();
+            return false;
+        });
+
+        $(document).on('pf:menuFullScreen', function(e, data){
+
+            var fullScreenElement = $('body');
+
+            // close all menus
+            $(this).trigger('pf:closeMenu', [{}]);
+
+            // wait until menu is closed before switch mode (looks better)
+            setTimeout(
+                function() {
+                    if($.fullscreen.isFullScreen()){
+                        $.fullscreen.exit();
+                    }else{
+                        fullScreenElement.fullscreen({overflow: 'overflow-y', toggleClass: config.fullScreenClass});
+
+                    }
+                }, 400);
+
+            return false;
         });
 
     };
@@ -336,257 +402,266 @@ define([
      */
     var showMapInfoDialog = function(){
 
-        var mapData = $('#' + config.mapModuleId).getActiveMap().getMapData();
+        var mapData = $('#' + config.mapModuleId).getActiveMap().getMapData(true);
 
-        requirejs(['text!templates/modules/map_info_dialog.html', 'lib/mustache'], function(template, Mustache) {
+        if(mapData !== false){
+            requirejs(['text!templates/modules/map_info_dialog.html', 'lib/mustache'], function(template, Mustache) {
 
-            console.log(mapData)
-            var data = {
-                mapInfoSystemsId: config.mapInfoSystemsId,
-                mapInfoConnectionsId: config.mapInfoConnectionsId,
-                mapDataConfig: mapData.config,
-                mapName: mapData.config.name,
-                mapTypeClass: Util.getInfoForMap( mapData.config.type, 'class'),
-                mapTypeLabel: Util.getInfoForMap( mapData.config.type, 'label')
-            };
-
-            var content = Mustache.render(template, data);
-
-            var mapInfoDialog = bootbox.dialog({
-                title: 'Map information',
-                message: content,
-                buttons: {
-                    success: {
-                        label: 'close',
-                        className: 'btn-primary',
-                        callback: function() {
-                            $(mapInfoDialog).modal('hide');
-                        }
-                    }
-                }
-            });
-
-            mapInfoDialog.on('shown.bs.modal', function(e) {
-                // modal on open
-
-                var systemsElement = $('#' + config.mapInfoSystemsId);
-                var connectionsElement = $('#' + config.mapInfoConnectionsId);
-
-                var loadingOptions = {
-                    icon: {
-                        size: 'fa-2x'
-                    }
+                var data = {
+                    mapInfoSystemsId: config.mapInfoSystemsId,
+                    mapInfoConnectionsId: config.mapInfoConnectionsId,
+                    mapDataConfig: mapData.config,
+                    mapName: mapData.config.name,
+                    mapTypeClass: Util.getInfoForMap( mapData.config.type, 'class'),
+                    mapTypeLabel: Util.getInfoForMap( mapData.config.type, 'label')
                 };
 
+                var content = Mustache.render(template, data);
 
-                var systemTable = $('<table>', {
-                    class: ['compact', 'stripe', 'order-column', 'row-border', config.mapInfoTableClass].join(' ')
-                });
-                systemsElement.append(systemTable);
-
-                systemsElement.showLoadingAnimation(loadingOptions);
-
-                var connectionTable = $('<table>', {
-                    class: ['compact', 'stripe', 'order-column', 'row-border', config.mapInfoTableClass].join(' ')
-                });
-                connectionsElement.append(connectionTable);
-
-                connectionsElement.showLoadingAnimation(loadingOptions);
-
-                // systems table ==================================================
-
-                // prepare data for dataTables
-                var systemsData = [];
-                for(var i = 0; i < mapData.data.systems.length; i++){
-                    var tempSystemData = mapData.data.systems[i];
-
-                    var tempData = [];
-
-                    // current position
-                    if(tempSystemData.currentUser === true){
-                        tempData.push( '<i class="fa fa fa-map-marker fa-lg fa-fw"></i>' );
-                    }else{
-                        tempData.push( '' );
-                    }
-
-                    tempData.push( tempSystemData.name );
-
-                    if( tempSystemData.name !== tempSystemData.alias){
-                        tempData.push( tempSystemData.alias );
-                    }else{
-                        tempData.push( '' );
-                    }
-
-                    // status
-                    var systemStatusClass = Util.getStatusInfoForSystem(tempSystemData.status, 'class');
-                    if(systemStatusClass !== ''){
-                        tempData.push( '<i class="fa fa fa-square-o fa-lg fa-fw ' + systemStatusClass + '"></i>' );
-                    }else{
-                        tempData.push( '' );
-                    }
-
-                    // effect
-                    var systemEffectClass = Util.getEffectInfoForSystem(tempSystemData.effect, 'class');
-                    if(systemEffectClass !== ''){
-                        tempData.push( '<i class="fa fa fa-square fa-lg fa-fw ' + systemEffectClass + '"></i>' );
-                    }else{
-                        tempData.push( '' );
-                    }
-
-                    // trueSec
-                    var systemTrueSecClass = Util.getTrueSecClassForSystem(tempSystemData.trueSec);
-                    if(systemTrueSecClass !== ''){
-                        tempData.push( '<span class="' + systemTrueSecClass + '">' + tempSystemData.trueSec.toFixed(1) + '</span>' );
-                    }else{
-                        tempData.push( '' );
-                    }
-
-                    // locked
-                    if(tempSystemData.locked === true){
-                        tempData.push( '<i class="fa fa-lock fa-lg fa-fw"></i>' );
-                    }else{
-                        tempData.push( '' );
-                    }
-
-                    // rally point
-                    if(tempSystemData.rally === true){
-                        tempData.push( '<i class="fa fa-users fa-lg fa-fw"></i>' );
-                    }else{
-                        tempData.push( '' );
-                    }
-
-                    systemsData.push(tempData);
-                }
-
-                var systemsDataTable = systemTable.dataTable( {
-                    paging: false,
-                    ordering: true,
-                    order: [ 0, 'desc' ],
-                    autoWidth: false,
-                    hover: false,
-                    data: systemsData,
-                    columnDefs: [],
-                    language: {
-                        emptyTable:  'Map is empty',
-                        zeroRecords: 'No systems found',
-                        lengthMenu:  'Show _MENU_ systems',
-                        info:        'Showing _START_ to _END_ of _TOTAL_ systems'
-                    },
-                    columns: [
-                        {
-                            title: '<i class="fa fa fa-map-marker fa-lg"></i>',
-                            width: '15px',
-                            searchable: false
-                        },{
-                            title: 'system',
-                            width: '50px'
-                        },{
-                            title: 'alias'
-                        },{
-                            title: 'status',
-                            width: '30px',
-                            class: 'text-center',
-                            orderable: false,
-                            searchable: false
-                        },{
-                            title: 'effect',
-                            width: '30px',
-                            class: 'text-center',
-                            orderable: false,
-                            searchable: false
-                        },{
-                            title: 'sec.',
-                            width: '20px',
-                            class: 'text-center',
-                            orderable: false,
-                            searchable: false
-                        },{
-                            title: '<i class="fa fa-lock fa-lg fa-fw"></i>',
-                            width: '30px',
-                            class: 'text-center',
-                            searchable: false
-                        },{
-                            title: '<i class="fa fa-users fa-lg fa-fw"></i>',
-                            width: '30px',
-                            className: 'text-center',
-                            searchable: false
+                var mapInfoDialog = bootbox.dialog({
+                    title: 'Map information',
+                    message: content,
+                    buttons: {
+                        success: {
+                            label: 'close',
+                            className: 'btn-primary',
+                            callback: function() {
+                                $(mapInfoDialog).modal('hide');
+                            }
                         }
-                    ]
+                    }
                 });
 
-                systemsElement.hideLoadingAnimation();
+                mapInfoDialog.on('shown.bs.modal', function(e) {
+                    // modal on open
 
-                // connections table ==================================================
+                    var systemsElement = $('#' + config.mapInfoSystemsId);
+                    var connectionsElement = $('#' + config.mapInfoConnectionsId);
 
-                // prepare data for dataTables
-                var connectionData = [];
-                for(var j = 0; j < mapData.data.connections.length; j++){
-                    var tempConnectionData = mapData.data.connections[j];
+                    var loadingOptions = {
+                        icon: {
+                            size: 'fa-2x'
+                        }
+                    };
 
-                    var tempConData = [];
 
-                    tempConData.push( Util.getScopeInfoForMap( tempConnectionData.scope, 'label') );
+                    var systemTable = $('<table>', {
+                        class: ['compact', 'stripe', 'order-column', 'row-border', config.mapInfoTableClass].join(' ')
+                    });
+                    systemsElement.append(systemTable);
 
-                    // source system name
-                    tempConData.push( tempConnectionData.sourceName );
+                    systemsElement.showLoadingAnimation(loadingOptions);
 
-                    // connection
-                    var connectionClasses = [];
-                    for(var k = 0; k < tempConnectionData.type.length; k++){
-                        connectionClasses.push( Util.getConnectionInfo( tempConnectionData.type[k], 'cssClass') );
+                    var connectionTable = $('<table>', {
+                        class: ['compact', 'stripe', 'order-column', 'row-border', config.mapInfoTableClass].join(' ')
+                    });
+                    connectionsElement.append(connectionTable);
 
+                    connectionsElement.showLoadingAnimation(loadingOptions);
+
+                    // systems table ==================================================
+
+                    // prepare data for dataTables
+                    var systemsData = [];
+                    for(var i = 0; i < mapData.data.systems.length; i++){
+                        var tempSystemData = mapData.data.systems[i];
+
+                        var tempData = [];
+
+                        // current position
+                        if(tempSystemData.currentUser === true){
+                            tempData.push( '<i class="fa fa fa-map-marker fa-lg fa-fw"></i>' );
+                        }else{
+                            tempData.push( '' );
+                        }
+
+                        // type
+                        tempData.push(tempSystemData.type);
+
+                        // name
+                        tempData.push( tempSystemData.name );
+
+                        // alias
+                        if( tempSystemData.name !== tempSystemData.alias){
+                            tempData.push( tempSystemData.alias );
+                        }else{
+                            tempData.push( '' );
+                        }
+
+                        // status
+                        var systemStatusClass = Util.getStatusInfoForSystem(tempSystemData.status, 'class');
+                        if(systemStatusClass !== ''){
+                            tempData.push( '<i class="fa fa fa-square-o fa-lg fa-fw ' + systemStatusClass + '"></i>' );
+                        }else{
+                            tempData.push( '' );
+                        }
+
+                        // effect
+                        var systemEffectClass = Util.getEffectInfoForSystem(tempSystemData.effect, 'class');
+                        if(systemEffectClass !== ''){
+                            tempData.push( '<i class="fa fa fa-square fa-lg fa-fw ' + systemEffectClass + '"></i>' );
+                        }else{
+                            tempData.push( '' );
+                        }
+
+                        // trueSec
+                        var systemTrueSecClass = Util.getTrueSecClassForSystem(tempSystemData.trueSec);
+                        if(systemTrueSecClass !== ''){
+                            tempData.push( '<span class="' + systemTrueSecClass + '">' + tempSystemData.trueSec.toFixed(1) + '</span>' );
+                        }else{
+                            tempData.push( '' );
+                        }
+
+                        // locked
+                        if(tempSystemData.locked === true){
+                            tempData.push( '<i class="fa fa-lock fa-lg fa-fw"></i>' );
+                        }else{
+                            tempData.push( '' );
+                        }
+
+                        // rally point
+                        if(tempSystemData.rally === true){
+                            tempData.push( '<i class="fa fa-users fa-lg fa-fw"></i>' );
+                        }else{
+                            tempData.push( '' );
+                        }
+
+                        systemsData.push(tempData);
                     }
 
-                    connectionClasses = connectionClasses.join(' ');
+                    var systemsDataTable = systemTable.dataTable( {
+                        paging: false,
+                        ordering: true,
+                        order: [ 0, 'desc' ],
+                        autoWidth: false,
+                        hover: false,
+                        data: systemsData,
+                        columnDefs: [],
+                        language: {
+                            emptyTable:  'Map is empty',
+                            zeroRecords: 'No systems found',
+                            lengthMenu:  'Show _MENU_ systems',
+                            info:        'Showing _START_ to _END_ of _TOTAL_ systems'
+                        },
+                        columns: [
+                            {
+                                title: '<i class="fa fa fa-map-marker fa-lg"></i>',
+                                width: '15px',
+                                searchable: false
+                            },{
+                                title: 'type',
+                                width: '50px'
+                            },{
+                                title: 'system',
+                                width: '50px'
+                            },{
+                                title: 'alias'
+                            },{
+                                title: 'status',
+                                width: '30px',
+                                class: 'text-center',
+                                orderable: false,
+                                searchable: false
+                            },{
+                                title: 'effect',
+                                width: '30px',
+                                class: 'text-center',
+                                orderable: false,
+                                searchable: false
+                            },{
+                                title: 'sec.',
+                                width: '20px',
+                                class: 'text-center',
+                                orderable: false,
+                                searchable: false
+                            },{
+                                title: '<i class="fa fa-lock fa-lg fa-fw"></i>',
+                                width: '30px',
+                                class: 'text-center',
+                                searchable: false
+                            },{
+                                title: '<i class="fa fa-users fa-lg fa-fw"></i>',
+                                width: '30px',
+                                className: 'text-center',
+                                searchable: false
+                            }
+                        ]
+                    });
 
-                    tempConData.push( '<div class="pf-fake-connection ' + connectionClasses + '"></div>' );
+                    systemsElement.hideLoadingAnimation();
 
+                    // connections table ==================================================
 
-                    tempConData.push( tempConnectionData.targetName );
+                    // prepare data for dataTables
+                    var connectionData = [];
+                    for(var j = 0; j < mapData.data.connections.length; j++){
+                        var tempConnectionData = mapData.data.connections[j];
 
-                    connectionData.push(tempConData);
-                }
+                        var tempConData = [];
 
-                var connectionDataTable = connectionTable.dataTable( {
-                    paging: false,
-                    ordering: true,
-                    order: [ 0, 'desc' ],
-                    autoWidth: false,
-                    hover: false,
-                    data: connectionData,
-                    columnDefs: [],
-                    language: {
-                        emptyTable:  'No connections',
-                        zeroRecords: 'No connections found',
-                        lengthMenu:  'Show _MENU_ connections',
-                        info:        'Showing _START_ to _END_ of _TOTAL_ connections'
-                    },
-                    columns: [
-                        {
-                            title: 'scope',
-                            width: '50px',
-                            orderable: false
-                        },{
-                            title: 'source system'
-                        },{
-                            title: 'connection',
-                            width: '80px',
-                            class: 'text-center',
-                            orderable: false,
-                            searchable: false
-                        },{
-                            title: 'target system'
+                        tempConData.push( Util.getScopeInfoForMap( tempConnectionData.scope, 'label') );
+
+                        // source system name
+                        tempConData.push( tempConnectionData.sourceName );
+
+                        // connection
+                        var connectionClasses = [];
+                        for(var k = 0; k < tempConnectionData.type.length; k++){
+                            connectionClasses.push( Util.getConnectionInfo( tempConnectionData.type[k], 'cssClass') );
+
                         }
-                    ]
+
+                        connectionClasses = connectionClasses.join(' ');
+
+                        tempConData.push( '<div class="pf-fake-connection ' + connectionClasses + '"></div>' );
+
+
+                        tempConData.push( tempConnectionData.targetName );
+
+                        connectionData.push(tempConData);
+                    }
+
+                    var connectionDataTable = connectionTable.dataTable( {
+                        paging: false,
+                        ordering: true,
+                        order: [ 0, 'desc' ],
+                        autoWidth: false,
+                        hover: false,
+                        data: connectionData,
+                        columnDefs: [],
+                        language: {
+                            emptyTable:  'No connections',
+                            zeroRecords: 'No connections found',
+                            lengthMenu:  'Show _MENU_ connections',
+                            info:        'Showing _START_ to _END_ of _TOTAL_ connections'
+                        },
+                        columns: [
+                            {
+                                title: 'scope',
+                                width: '50px',
+                                orderable: false
+                            },{
+                                title: 'source system'
+                            },{
+                                title: 'connection',
+                                width: '80px',
+                                class: 'text-center',
+                                orderable: false,
+                                searchable: false
+                            },{
+                                title: 'target system'
+                            }
+                        ]
+                    });
+
+
+                    connectionsElement.hideLoadingAnimation();
+
+
                 });
-
-
-                connectionsElement.hideLoadingAnimation();
-
 
             });
-
-        });
+        }
 
     };
 

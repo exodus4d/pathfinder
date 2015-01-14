@@ -39,6 +39,7 @@ html > body > .ui-pnotify {
 }
 .ui-pnotify-text {
   display: block;
+  font-family: $font-family-bold;
 }
 .ui-pnotify-icon, .ui-pnotify-icon span {
   display: block;

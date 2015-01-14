@@ -8,7 +8,7 @@ define([
     'app/render',
     'app/ccp',
     'app/page',
-    'app/module_map',
+    'app/module_map'
 ], function($, Init, Render, CCP) {
 
     'use strict';
@@ -21,14 +21,13 @@ define([
     $(function() {
         CCP.requestTrust();
 
-
         $('body').loadPageStructure();
 
         // Map init options
         var mapData =[{
             map: {},
             config: {
-                id: 1,
+                id: 99,
                 name: 'Polaris',
                 scope: 'wormhole',
                 icon: 'fa-globe',
@@ -39,6 +38,7 @@ define([
                     {
                         id: 2,
                         name: 'J150020',
+                        alias: 'Polaris',
                         effect: 'magnetar',
                         type: 'wh',
                         security: 'C6',
@@ -48,43 +48,54 @@ define([
                         rally: '0',
                         position: {
                             x: 8,
-                            y: 0
-                        }
+                            y: 300
+                        },
+                        updated: 1420903681
                     },{
                         id: 3,
                         name: 'J115844',
+                        alias: '',
                         effect: 'wolfRyet',
                         type: 'wh',
                         security: 'C6',
+                        trueSec: -1,
                         status: 'empty',
                         position: {
-                            x: 65,
-                            y: 60
-                        }
+                            x: 25,
+                            y: 40
+                        },
+                        updated: 1420903681
+
                     },{
                         id: 4,
                         name: 'J155207',
+                        alias: '',
                         effect: 'wolfRyet',
                         type: 'wh',
                         security: 'C6',
+                        trueSec: -1,
                         status: '',
                         locked: '1',
                         rally: '1',
                         position: {
                             x: 203,
                             y: 60
-                        }
+                        },
+                        updated: 1420903681
                     },{
                         id: 5,
                         name: 'J145510',
+                        alias: '',
                         effect: 'pulsar',
                         security: 'C3',
+                        trueSec: -1,
                         type: 'wh',
                         status: 'hostile',
                         position: {
-                            x: 110,
-                            y: 110
-                        }
+                            x: 40,
+                            y: 160
+                        },
+                        updated: 1420903681
                     },{
                         id: 30002979,
                         name: 'Tararan',
@@ -103,9 +114,10 @@ define([
                         type: 'k-space',
                         status: '',
                         position: {
-                            x: 301,
+                            x: 280,
                             y: 250
-                        }
+                        },
+                        updated: 1420903681
                     },{
                         id: 30000142,
                         name: 'Jita',
@@ -126,34 +138,158 @@ define([
                         position: {
                             x: 400,
                             y: 150
-                        }
+                        },
+                        updated: 1420903681
+                    },{
+                        id: 31000152,
+                        name: 'J121418',
+                        alias: '',
+                        effect: '',
+                        security: 'C1',
+                        trueSec: -1,
+                        region: {
+                            id: '11000002',
+                            name: 'A-R00002'
+                        },
+                        constellation: {
+                            id: '21000002',
+                            name: 'A-C00002'
+                        },
+                        type: 'wh',
+                        status: 'occupied',
+                        position: {
+                            x: 600,
+                            y: 75
+                        },
+                        updated: 1420903681
+                    },{
+                        id: 30000144,
+                        name: 'Perimeter',
+                        alias: '',
+                        effect: '',
+                        security: 'H',
+                        trueSec: 0.9,
+                        region: {
+                            id: '10000002',
+                            name: 'The Forge'
+                        },
+                        constellation: {
+                            id: '20000020',
+                            name: 'Kimotoro'
+                        },
+                        type: 'k-space',
+                        status: 'unscanned',
+                        position: {
+                            x: 550,
+                            y: 200
+                        },
+                        updated: 1420903681
+                    },{
+                        id: 30001028,
+                        name: 'RMOC-W',
+                        alias: '',
+                        effect: '',
+                        security: '0.0',
+                        trueSec: -0.1,
+                        region: {
+                            id: '10000012',
+                            name: 'Curse'
+                        },
+                        constellation: {
+                            id: '20000150',
+                            name: 'Sound'
+                        },
+                        type: 'k-space',
+                        status: '',
+                        position: {
+                            x: 500,
+                            y: 300
+                        },
+                        updated: 1420903681
                     }
+
                 ],
                 connections: [
                     {
+                        id: 2,
+                        source: 2,
+                        target: 5,
+                        scope: 'wh',
+                        type: [
+                            'wh_reduced'
+                        ],
+                        updated: 1420903681
+                    },{
+                        id: 3,
+                        source: 5,
+                        target: 4,
+                        scope: 'wh',
+                        type: [
+                            'wh_fresh',
+                            'frigate'
+                        ],
+                        updated: 1420903681
+                    },{
+                        id: 5,
                         source: 3,
                         target: 4,
+                        scope: 'wh',
+                        type: [
+                            'wh_critical'
+                        ],
+                        updated: 1420903681
+                    },
+                    {
+                        id: 77,
+                        source: 4,
+                        target: 30002979,
+                        scope: 'wh',
+                        type: [
+                            'wh_critical'
+                        ],
+                        updated: 1420903681
+                    },
+                    {
+                        id: 95,
+                        source: 4,
+                        target: 30000142,
+                        scope: 'wh',
+                        type: [
+                            'wh_eol',
+                            'wh_reduced',
+                            'preserve_mass'
+                        ],
+                        updated: 1420903681
+                    },
+                    {
+                        id: 96,
+                        source: 30000142,
+                        target: 31000152,
+                        scope: 'wh',
+                        type: [
+                            'wh_fresh'
+                        ],
+                        updated: 1420903681
+                    },
+                    {
+                        id: 97,
+                        source: 30000142,
+                        target: 30000144,
                         scope: 'stargate',
                         type: [
                             'stargate'
-                        ]
+                        ],
+                        updated: 1420903681
                     },
                     {
-                        source: 4,
-                        target: 30002979,
+                        id: 98,
+                        source: 30002979,
+                        target: 30001028,
+                        scope: 'jumpbridge',
                         type: [
-                            'wh',
-                            'wh_critical'
-                        ]
-                    },
-                    {
-                        source: 4,
-                        target: 30000142,
-                        type: [
-                            'wh',
-                            'wh_eol',
-                            'wh_reduced'
-                        ]
+                            'jumpbridge'
+                        ],
+                        updated: 1420903681
                     }
                 ]
             }
@@ -172,6 +308,7 @@ define([
                     {
                         id: 50,
                         name: 'J150020',
+                        alias: '',
                         effect: 'magnetar',
                         security: 'C6',
                         type: 'wh',
@@ -179,10 +316,12 @@ define([
                         position: {
                             x: 5,
                             y: 7
-                        }
+                        },
+                        updated: 1420903681
                     },{
                         id: 51,
                         name: 'J115844',
+                        alias: '',
                         effect: 'wolfRyet',
                         security: 'C6',
                         type: 'wh',
@@ -190,15 +329,18 @@ define([
                         position: {
                             x: 60,
                             y: 65
-                        }
+                        },
+                        updated: 1420903681
                     }
                 ],
                 connections: [{
+                    id: 23,
                     source: 50,
                     target: 51,
                     type: [
-                        'wh'
-                    ]
+                        'wh_fresh'
+                    ],
+                    updated: 1420903681
                 }]
             }
         },
@@ -231,7 +373,7 @@ define([
             mapUserData: [ // user Data for all maps
                 {
                     config: {   // map config
-                        id: 1   // map id
+                        id: 99   // map id
                     },
                     data: {
                         systems:[   // systems in map
@@ -268,25 +410,35 @@ define([
                 }
             ]};
 
-        // load map module ==========================================
-        $('#' + config.mapModuleId).loadMapModule(mapData);
+
 
         // update map module ========================================
         setTimeout(
             function() {
-                $('#' + config.mapModuleId).updateMapModule(userData);
+                console.time('updateUserData')
+               // $('#' + config.mapModuleId).updateMapModuleData(userData);
+                console.timeEnd('updateUserData')
+            }, 5000);
 
-                console.log('update map done');
-            }, 500);
+
+
 
         // server ping
-        var triggerMainPing = function(){
-            var mapData = $('#' + config.mapModuleId).getMapModuleData();
+        var triggerMainPing = function(tempMapData){
+            console.time('updateMapData')
+            // load map module ==========================================
+            $('#' + config.mapModuleId).updateMapModule(tempMapData);
+            console.timeEnd('updateMapData')
 
-           // console.log(mapData);
+            console.time('getMapData')
+            var mapData = $('#' + config.mapModuleId).getMapModuleData();
+            console.timeEnd('getMapData')
+            console.log(mapData);
         };
 
-        setInterval(triggerMainPing, Init.timer.mainPing);
+        //setInterval(triggerMainPing, 5000, mapData);
+
+        setInterval(triggerMainPing, Init.timer.mainPing, mapData);
 
     });
 

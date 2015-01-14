@@ -10,6 +10,7 @@
       <w>datatables</w>
       <w>deps</w>
       <w>fontawesome</w>
+      <w>fullscreen</w>
       <w>jqueryui</w>
       <w>jumpbridge</w>
       <w>killboard</w>
@@ -17,6 +18,7 @@
       <w>mouseover</w>
       <w>nonblock</w>
       <w>pnotify</w>
+      <w>revalidate</w>
       <w>scrollbar</w>
       <w>scrollbars</w>
       <w>scrollspy</w>

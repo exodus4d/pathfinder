@@ -39,6 +39,7 @@
     <ul class="list-unstyled well" style=" margin-left: 10px;">
         <li><i class="fa fa-info fa-fw"></i> Show some basic map information</li>
         <li><i class="fa fa-plus fa-fw"></i> Add a new system at the position, you clicked at</li>
+        <li><i class="fa fa-filter fa-fw"></i> Filter map connections by a scope <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-scope">more</a></small></li>
         <li><i class="fa fa-eraser fa-fw"></i> Delete selected systems <small><a href="#" data-target="#pf-manual-scrollspy-anchor-system-delete">more</a></small></li>
     </ul>
     <h4 id="pf-manual-scrollspy-anchor-map-select">Select methods</h4>
@@ -49,7 +50,7 @@
     <p>
         Locked systems <small>(<i class="fa fa-lock fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-system-locked">more</a>)</small> can´t be selected.
     </p>
-    <h4><i class="fa fa-th fa-fw"></i> Grid snapping</h4>
+    <h4><i class="glyphicon glyphicon-th"></i> Grid snapping</h4>
     <p>
         The <em>"Grid snapping"</em> option can be activated on the "Map Menu" <small>(<i class="fa fa-code-fork fa-fw"></i>)</small>. Systems will snap to a <samp>20x20px</samp> grid.
         A grid overlay appears on the map.
@@ -188,6 +189,17 @@
         <li>Switch Connection: <kbd>click</kbd><small> a <em>"Connection Endpoints"</em> and </small><kbd>drag</kbd><small> it to any other system</small></li>
         <li>Add new System: <small>Add a system by using the context menu of a system (<a href="#" data-target="#pf-manual-scrollspy-anchor-system-contextmenu">more</a>)</small></li>
     </ul>
+    <h4 id="pf-manual-scrollspy-anchor-connection-scope"><i class="fa fa-crosshairs fa-fw"></i> Connection scope</h4>
+    <p>
+        Each connection has its own <em>"Scope"</em>. Scopes represent connection types that exist in game.<br>
+        Maps can be filtered by specific scopes <small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-map-contextmenu">more</a>)</small>.<br>
+        The <em>"Scope"</em> of a connection can be changed by using the context menu of a connection <small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-connection-contextmenu">more</a>)</small>.
+    </p>
+    <ul class="list-unstyled" style=" margin-left: 10px;">
+        <li><div class="pf-fake-connection"></div> Wormhole<small> (Wormhole has not yet had its stability significantly disrupted)</small></li>
+        <li><div class="pf-fake-connection pf-map-connection-stargate"></div> Stargate<small> (Stargates are static <em>"K-space"</em> connections)</small></li>
+        <li><div class="pf-fake-connection pf-map-connection-jumpbridge"></div> Jumpbridge<small> (Jumpbridges are Player build <em>"K-space"</em> connections)</small></li>
+    </ul>
     <h4 id="pf-manual-scrollspy-anchor-connection-status">Connection status</h4>
     <p>
         Wormholes will gain various statuses during its <em>"Lifetime"</em>.<br>
@@ -196,7 +208,6 @@
     </p>
     <ul class="list-unstyled" style=" margin-left: 10px;">
         <li><div class="pf-fake-connection pf-map-connection-wh-eol"></div> end of life<small> (Wormhole is the end of its natural lifetime)</small></li>
-        <li><div class="pf-fake-connection"></div> fresh<small> (Wormhole has not yet had its stability significantly disrupted)</small></li>
         <li><div class="pf-fake-connection pf-map-connection-wh-reduced"></div> reduced<small> (Wormhole had its stability reduced, but not to a critical degree) &lt;50% mass left</small></li>
         <li><div class="pf-fake-connection pf-map-connection-wh-critical"></div> critical<small> (Wormhole is on the verge of collapse) &lt;10% mass left</small></li>
         <li><div class="pf-fake-connection pf-map-connection-frig"></div> Frigate hole<small> (Only the smallest ships pass through)</small></li>
@@ -220,6 +231,7 @@
         <li><i class="fa fa-plane fa-fw"></i> Toggles this connection as <em>"Frigate Hole"</em> <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-frig">more</a></small></li>
         <li><i class="fa fa-warning fa-fw"></i> Toggles this connection as <em>"Preserve Mass"</em> <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-mass">more</a></small></li>
         <li><i class="fa fa-reply fa-rotate-180 fa-fw"></i> Changes the status of this connection <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-status">more</a></small></li>
+        <li><i class="fa fa-crosshairs fa-fw"></i> Changes the scope of this connection <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-scope">more</a></small></li>
         <li><i class="fa fa-eraser fa-fw"></i> Delete this connection <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-delete">more</a></small></li>
     </ul>
     <h4 id="pf-manual-scrollspy-anchor-connection-frig"><i class="fa fa-plane fa-fw"></i> Frigate hole</h4>

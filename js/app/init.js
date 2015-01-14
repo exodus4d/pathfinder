@@ -10,6 +10,9 @@ define(['jquery'], function($) {
         timer: {
             mainPing: 3000                                          // main server ping
         },
+        path: {
+          img: 'img/'
+        },
         url: {
             zKillboard: 'https://zkillboard.com/api/',              // killboard api
             eveCentral: 'http://api.eve-central.com/api/'           // jump rout api
@@ -190,16 +193,19 @@ define(['jquery'], function($) {
         // map connection types
         connectionTypes: {
             jumpbridge: {
-                cssClass: 'pf-map-connection-jumpbridge'
+                cssClass: 'pf-map-connection-jumpbridge',
+                paintStyle: {
+                    dashstyle: '2'
+                }
             },
             stargate: {
                 cssClass: 'pf-map-connection-stargate'
             },
-            wh: {
-                cssClass: 'pf-map-connection-wh'
-            },
             wh_eol: {
                 cssClass: 'pf-map-connection-wh-eol'
+            },
+            wh_fresh: {
+                cssClass: 'pf-map-connection-wh-fresh'
             },
             wh_reduced: {
                 cssClass: 'pf-map-connection-wh-reduced'
@@ -959,7 +965,7 @@ define(['jquery'], function($) {
             },
             2: {
                 name: 'relic site',
-                label: 'Relict'
+                label: 'Relic'
             },
             3: {
                 name: 'data site',

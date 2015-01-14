@@ -63,7 +63,7 @@
 
 // 20x20px grid background
 .pf-grid-small{
-  background: url("#{$base-url}/grid_20x20.png") !important;
+  background: inline-image("#{$base-url}/grid_20x20.png") !important;
 }
 
 
@@ -75,7 +75,7 @@
 
   .pf-system{
     position: absolute;
-    min-width: 80px;
+    min-width: 60px;
     height: auto;
     background-color: $gray-dark;
     font-family: $font-family-bold;
@@ -93,6 +93,8 @@
     .pf-system-head{
       padding: 0px 3px 0px 3px;
       cursor: pointer;
+      font-family: Arial; // fix for element width on custom font family
+      font-weight: bold;
 
       .pf-system-head-name{
         border: none;
@@ -241,7 +243,7 @@
     cursor: pointer;
     stroke-linecap: round; // line endings
 
-    path:not(first-child){
+    path:not(:first-child){
       stroke: $gray; // inner line
     }
 
@@ -256,13 +258,13 @@
     }
   }
 
-  svg.pf-map-connection-stargate  {
+  svg.pf-map-connection-stargate {
 
     path:first-child{
       stroke: $gray-light;
     }
 
-    path:not(first-child){
+    path:not(:first-child){
       stroke: $gray-light;
     }
 
@@ -273,14 +275,14 @@
     }
   }
 
-  svg.pf-map-connection-jumpbridge  {
+  svg.pf-map-connection-jumpbridge {
 
     path:first-child{
-      stroke: $teal-light;
+      stroke: $teal;
     }
 
-    path:not(first-child){
-      stroke: $teal-light;
+    path:not(:first-child){
+      stroke: $teal;
     }
 
     &:hover{
@@ -290,11 +292,11 @@
     }
   }
 
-  svg.pf-map-connection-wh  {
+  svg.pf-map-connection-wh-fresh {
     // special wh-connection style (
   }
 
-  svg.pf-map-connection-wh-eol  {
+  svg.pf-map-connection-wh-eol {
 
     path:first-child{
       stroke: $pink-dark;
@@ -307,16 +309,16 @@
     }
   }
 
-  svg.pf-map-connection-wh-reduced  {
+  svg.pf-map-connection-wh-reduced {
 
-    path:not(first-child){
+    path:not(:first-child){
       stroke: $orange;
     }
   }
 
-  svg.pf-map-connection-wh-critical  {
+  svg.pf-map-connection-wh-critical {
 
-    path:not(first-child){
+    path:not(:first-child){
       stroke: $red-darker;
     }
   }

@@ -2,7 +2,7 @@
  *  Render controller
  */
 
-define(['jquery', 'lib/mustache', 'jqueryUI'], function($, Mustache) {
+define(['jquery', 'lib/mustache'], function($, Mustache) {
 
     "use strict";
 

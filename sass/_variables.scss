@@ -87,7 +87,7 @@ $pf-font-path:            "../fonts" !default;
 
 
 $font-family-sans-serif:  'Oxygen', "Helvetica Neue", Helvetica, Arial, sans-serif !default;
-$font-family-serif:       'Oxygen Regular' Georgia, "Times New Roman", Times, serif !default;
+$font-family-serif:       'Oxygen' Georgia, "Times New Roman", Times, serif !default;
 $font-family-monospace:   Monaco, Menlo, Consolas, "Courier New", monospace;
 $font-family-bold:        'Oxygen Bold', "Helvetica Neue", Helvetica, Arial, sans-serif !default;
 $font-family-base:        $font-family-sans-serif;
@@ -369,7 +369,7 @@ $navbar-default-link-disabled-bg:          transparent;
 
 // Navbar brand label
 $navbar-default-brand-color:               $navbar-default-link-color;
-$navbar-default-brand-hover-color:         $teal-dark;
+$navbar-default-brand-hover-color:         $teal;
 $navbar-default-brand-hover-bg:            transparent;
 
 // Navbar toggle

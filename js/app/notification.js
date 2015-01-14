@@ -1,5 +1,6 @@
 define([
     'jquery',
+    'app/init',
     'pnotify',
     //'pnotify.buttons',
     //'pnotify.confirm',
@@ -8,24 +9,24 @@ define([
     //'pnotify.history',
     'pnotify.callbacks',
     //'pnotify.reference'
-], function($, PNotify) {
+], function($, Init, PNotify) {
 
     'use strict';
 
     var config = {
         title: '',
         text: '',
-        type: '',                           // 'info', 'success', error, 'warning'
+        type: '',                                                       // 'info', 'success', error, 'warning'
         icon: false,
         opacity: 0.8,
-        styling: 'fontawesome',             // 'fontawesome', 'bootstrap3', 'jqueryui'
-        animate_speed: 200,                 // effect animation
-        position_animate_speed: 100,        // animation speed for notifications moving up/down
-        hide: true,                         // close after few seconds
-        delay: 5000,                        // visible time for notification in browser
-        mouse_reset: true,                  // Reset the hide timer if the mouse moves over the notice.
+        styling: 'fontawesome',                                         // 'fontawesome', 'bootstrap3', 'jqueryui'
+        animate_speed: 200,                                             // effect animation
+        position_animate_speed: 100,                                    // animation speed for notifications moving up/down
+        hide: true,                                                     // close after few seconds
+        delay: 5000,                                                    // visible time for notification in browser
+        mouse_reset: true,                                              // Reset the hide timer if the mouse moves over the notice.
         shadow: true,
-        addclass: 'stack-bottomright',      // class for display, must changed on stack different stacks
+        addclass: 'stack-bottomright',                                  // class for display, must changed on stack different stacks
         width: '250px',
         // animation settings
         animation: {
@@ -45,8 +46,8 @@ define([
         },
         // desktop extension "Web Notifications"
         desktop: {
-            desktop: false,                 // change for enable
-            icon: 'http://eve.damianvila.com/images/eve-logo.png'
+            desktop: false,                                             // change for enable
+            icon: Init.path.img + 'notifications/logo.png'              // default image for desktop notifications
         }
     };
 
@@ -111,6 +112,10 @@ define([
 
             customConfig.delay = 10000;
             customConfig.desktop.desktop = true;
+console.log(customConfig.desktop)
+            // make browser tab blink
+            startTabBlink(customConfig.title);
+
         }else{
             customConfig.delay = 5000;
             customConfig.desktop.desktop = false;
@@ -151,9 +156,46 @@ define([
         new PNotify(customConfig);
     };
 
+    /**
+     * change document.title and make the browsers tab blink
+     * @param blinkTitle
+     */
+    var startTabBlink = function(blinkTitle){
+
+        var initBlink = (function(blinkTitle){
+
+            var currentTitle = document.title;
+
+            var timeoutId;
+            var blink = function(){
+                document.title = document.title === blinkTitle ? currentTitle : blinkTitle;
+                console.log(document.title)
+            };
+
+            var clear = function() {
+                clearInterval(timeoutId);
+                document.title = currentTitle;
+                window.onmousemove = null;
+                timeoutId = null;
+            };
+
+            return function () {
+                if (!timeoutId) {
+                    timeoutId = setInterval(blink, 1000);
+                    window.onmousemove = clear;
+                }
+            };
+
+        }( blinkTitle ));
+
+        initBlink();
+
+    };
+
 
     return {
-        showNotify: showNotify
+        showNotify: showNotify,
+        startTabBlink: startTabBlink
     };
 });
 

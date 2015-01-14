@@ -10,7 +10,7 @@ define(["jquery"], function($) {
             $(this).on("pf:openContextMenu", function (e, originalEvent, component, hiddenOptions, activeOptions) {
 
                 // hide all other open context menus
-               // $('.dropdown-menu').hide();
+               $('#pf-dialog-wrapper > .dropdown-menu').hide();
 
                 var contextMenu = $(settings.menuSelector);
 
@@ -24,7 +24,7 @@ define(["jquery"], function($) {
                     contextMenu.find('li[data-action="' + hiddenOptions[i] + '"]').hide();
                 }
 
-                // un activate all menu entries
+                // deactivate all menu entries
                 menuLiElements.removeClass('active');
 
                 //set active specific menu entries
