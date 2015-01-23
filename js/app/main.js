@@ -6,10 +6,12 @@ define([
     'jquery',
     'app/init',
     'app/render',
+    'velocity',
     'app/ccp',
     'app/page',
-    'app/module_map'
-], function($, Init, Render, CCP) {
+    'app/module_map',
+    'throttleDebounce'
+], function($, Init, Render, Velocity, CCP) {
 
     'use strict';
 
@@ -19,7 +21,8 @@ define([
 
 
     $(function() {
-        CCP.requestTrust();
+        //CCP.requestTrust();
+
 
         $('body').loadPageStructure();
 
@@ -381,8 +384,12 @@ define([
                                 id: 4,  // system id
                                 user: [
                                     {
+                                        id: 3,
                                         name: 'Exodus 4D',
-                                        ship: 'Legion',
+                                        ship: {
+                                            id: 55,
+                                            name: 'legion'
+                                        },
                                         status: 'corp'
                                     }
                                 ]
@@ -391,16 +398,28 @@ define([
                                 id: 5,  // system id
                                 user: [
                                     {
+                                        id: 4,
                                         name: 'Faye Fantastic',
-                                        ship: 'Armageddon',
+                                        ship: {
+                                            id: 56,
+                                            name: 'Armageddon'
+                                        },
                                         status: 'ally'
                                     },{
+                                        id: 5,
                                         name: 'Sibasomos',
-                                        ship: 'Proteus',
+                                        ship: {
+                                            id: 57,
+                                            name: 'Proteus'
+                                        },
                                         status: 'corp'
                                     },{
+                                        id: 6,
                                         name: 'Xtrah',
-                                        ship: 'Pod',
+                                        ship: {
+                                            id: 58,
+                                            name: 'Pod'
+                                        },
                                         status: 'ally'
                                     }
                                 ]
@@ -410,35 +429,64 @@ define([
                 }
             ]};
 
-
-
         // update map module ========================================
-        setTimeout(
-            function() {
-                console.time('updateUserData')
-               // $('#' + config.mapModuleId).updateMapModuleData(userData);
-                console.timeEnd('updateUserData')
-            }, 5000);
+        $('#' + config.mapModuleId).on('pf:initModule', function(){
 
+            var mapModule = $(this);
 
+            var mapDataUpdateActive = true;         // allow update "map data"
+            var userDataUpdateActive = true;        // allow update "user data"
 
+            // ping for main map update
+            var triggerMapUpdatePing = function(tempMapData){
 
-        // server ping
-        var triggerMainPing = function(tempMapData){
-            console.time('updateMapData')
-            // load map module ==========================================
-            $('#' + config.mapModuleId).updateMapModule(tempMapData);
-            console.timeEnd('updateMapData')
+                // prevent multiple requests simultaneously
+                if(mapDataUpdateActive === true){
+                    $(document).setProgramStatus('online');
 
-            console.time('getMapData')
-            var mapData = $('#' + config.mapModuleId).getMapModuleData();
-            console.timeEnd('getMapData')
-            console.log(mapData);
-        };
+                    mapDataUpdateActive = false;
+                    console.time('updateMapData')
 
-        //setInterval(triggerMainPing, 5000, mapData);
+                    // load map module ==========================================
+                    mapDataUpdateActive = mapModule.updateMapModule(tempMapData);
+                    console.timeEnd('updateMapData')
+                }else{
+                    // not finished in time -> to slow or error
+                    $(document).setProgramStatus('problem');
+                }
 
-        setInterval(triggerMainPing, Init.timer.mainPing, mapData);
+                // get updated map data
+                if(mapDataUpdateActive === true){
+                    console.time('getMapData')
+                    var mapData = mapModule.getMapModuleData();
+                    console.timeEnd('getMapData')
+                }
+            };
+
+            triggerMapUpdatePing(mapData);
+            setInterval(triggerMapUpdatePing, Init.timer.mapUpdatePing, mapData);
+
+            // ping for user data update
+            var triggerUserUpdatePing = function(tempUserData){
+
+                // prevent multiple requests simultaneously
+                if(userDataUpdateActive === true){
+                    $(document).setProgramStatus('online');
+
+                    userDataUpdateActive = false;
+                    console.time('updateUserData');
+                    userDataUpdateActive = mapModule.updateMapModuleData(userData);
+                    console.timeEnd('updateUserData');
+                }else{
+                    // not finished in time -> to slow or error
+                    $(document).setProgramStatus('problem');
+                }
+
+            };
+            setInterval(triggerUserUpdatePing, Init.timer.userUpdatePing, mapData);
+
+        });
+
 
     });
 

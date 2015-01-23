@@ -4,7 +4,7 @@
  */
 .txt-color {
   &.txt-color-blue          { color: $blue !important; }
-  &.txt-color-blueLight     { color:$blueLight !important; }
+  &.txt-color-blueLight     { color: $blueLight !important; }
   &.txt-color-blueDark      { color: $blueDark !important; }
   &.txt-color-grayLightest  { color: $gray-lightest !important; }
   &.txt-color-gray          { color: $gray !important; }
@@ -14,7 +14,7 @@
   &.txt-color-greenDark     { color: $greenDark  !important; }
   &.txt-color-red           { color: $red !important; }
   &.txt-color-yellow        { color: $yellow !important; }
-  &.txt-color-orange        { color: #b19a6b !important; }
+  &.txt-color-orange        { color: $orange !important; }
   &.txt-color-orangeDark    { color: $orangeDark !important; }
   &.txt-color-pink          { color: $pink !important; }
   &.txt-color-pinkDark      { color: $pinkDark !important; }

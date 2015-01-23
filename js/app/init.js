@@ -8,7 +8,8 @@ define(['jquery'], function($) {
 
     var Config = {
         timer: {
-            mainPing: 3000                                          // main server ping
+            mapUpdatePing: 3000,                                     // ping for map update
+            userUpdatePing: 2000                                     // ping for map user update
         },
         path: {
           img: 'img/'
@@ -17,23 +18,31 @@ define(['jquery'], function($) {
             zKillboard: 'https://zkillboard.com/api/',              // killboard api
             eveCentral: 'http://api.eve-central.com/api/'           // jump rout api
         },
+        animationSpeed: {
+            headerLink: 100                                         // links in head bar
+        },
         classes: {
             // map types
             mapTypes: {
-                global: {
-                    class: 'pf-map-type-global',
-                    classTab: 'pf-map-type-tab-global',
-                    label: 'Global'
+                standard: {
+                    class: '',
+                    classTab: 'pf-map-type-tab-default',
+                    label: ''
+                },
+                private: {
+                    class: 'pf-map-type-private',
+                    classTab: 'pf-map-type-tab-private',
+                    label: 'Private'
                 },
                 alliance: {
                     class: 'pf-map-type-alliance',
                     classTab: 'pf-map-type-tab-alliance',
                     label: 'Alliance'
                 },
-                private: {
-                    class: 'pf-map-type-private',
-                    classTab: 'pf-map-type-tab-private',
-                    label: 'Private'
+                global: {
+                    class: 'pf-map-type-global',
+                    classTab: 'pf-map-type-tab-global',
+                    label: 'Global'
                 }
             },
             // system effects
@@ -195,7 +204,8 @@ define(['jquery'], function($) {
             jumpbridge: {
                 cssClass: 'pf-map-connection-jumpbridge',
                 paintStyle: {
-                    dashstyle: '2'
+                    //dashstyle: '2',
+                    'stroke-dasharray': [15,15]
                 }
             },
             stargate: {

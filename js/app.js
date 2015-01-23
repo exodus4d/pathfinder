@@ -1,6 +1,6 @@
 
 requirejs.config({
-    baseUrl: 'js', // user build_js files, change to "js" for un-compressed source
+    baseUrl: 'build_js', // user build_js files, change to "js" for un-compressed source
     stubModules: ['text'],                                              // Exclude these modules on build
     paths: {
         layout: 'layout',
@@ -8,11 +8,11 @@ requirejs.config({
         //jquery: "lib/jquery-2.1.1.min",                               // v2.1.1 jQuery
         bootstrap: 'lib/bootstrap.min',                                 // v3.3.0 Bootstrap js code - http://getbootstrap.com/javascript/
         text: 'lib/requirejs/text',                                     // v2.0.12 A RequireJS/AMD loader plugin for loading text resources.
+        throttleDebounce: 'lib/jquery.ba-throttle-debounce.min',        // v1.1 Handle/throttle jquery events - http://benalman.com/projects/jquery-throttle-debounce-plugin/
+        velocity: 'lib/velocity.min',                                   // v1.2.1 animation engine - http://julian.com/research/velocity/
         templates: '../templates',                                      // template dir
         slidebars: 'lib/slidebars',                                     // v0.10 Slidebars - side menu plugin http://plugins.adchsm.me/slidebars/
-       // jsPlumb: 'lib/jsPlumb-1.6.4-min',                               // v1.4.6 jsPlumb - main map draw plugin http://www.jsplumb.org/
         jsPlumb: 'lib/dom.jsPlumb-1.7.2-min',                           // v1.7.2 jsPlumb (Vanilla)- main map draw plugin http://www.jsplumb.org/
-
         customScrollbar: 'lib/jquery.mCustomScrollbar.concat.min',      // v3.1.11 Custom scroll bars - http://manos.malihu.gr/
         datatables: 'lib/jquery.dataTables.min',                        // v1.10.3 DataTables - tables
         datatablesBootstrap: 'lib/dataTables.bootstrap',                // DataTables - not used (bootstrap style)
@@ -38,11 +38,13 @@ requirejs.config({
 
     },
     shim: {
-        jqueryUI: {
-            export: '$',
+        bootstrap: {
             deps: ['jquery']
         },
-        bootstrap: {
+        velocity: {
+            deps: ['jquery']
+        },
+        throttleDebounce: {
             deps: ['jquery']
         },
         slidebars: {

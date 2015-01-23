@@ -332,8 +332,7 @@ jQuery.fn.dragToSelect = function (conf) {
 		parent.disableTextSelect();
 	}
 
-	parent
-		.mousedown(function (e) {
+	parent.mousedown(function (e) {
 
             if(
                 e.which === 1 && // left mouse down
@@ -352,24 +351,27 @@ jQuery.fn.dragToSelect = function (conf) {
             }
 
 
-		})
-		.mousemove(function (e) {
+		});
 
-            refreshSelectBox(e);
+    var dragSelectMousemove = function (e) {
 
-			if (config.selectables && config.selectOnMove) {
+        refreshSelectBox(e);
 
-                selectElementsInRange();
-            }
+        if (config.selectables && config.selectOnMove) {
 
-			if (config.autoScroll) {
-				scrollPerhaps(e);
-			}
+            selectElementsInRange();
+        }
 
-			e.preventDefault();
-		})
-		.mouseup(function (e) {
+        if (config.autoScroll) {
+            scrollPerhaps(e);
+        }
 
+        e.preventDefault();
+    };
+    parent.mousemove($.throttle(30, dragSelectMousemove) );
+
+
+    parent.mouseup(function (e) {
             if (config.selectables) {
 				selectElementsInRange();
 			}

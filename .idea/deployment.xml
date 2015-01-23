@@ -14,6 +14,9 @@
             <excludedPath local="true" path="$PROJECT_DIR$/sass" />
             <excludedPath local="true" path="$PROJECT_DIR$/js" />
             <excludedPath local="true" path="$PROJECT_DIR$/usage" />
+            <excludedPath local="true" path="$PROJECT_DIR$/.gitattributes" />
+            <excludedPath local="true" path="$PROJECT_DIR$/.gitignore" />
+            <excludedPath local="true" path="$PROJECT_DIR$/config.rb" />
           </excludedPaths>
         </serverdata>
       </paths>

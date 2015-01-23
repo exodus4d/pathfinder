@@ -1,37 +1,36 @@
-<div id="{{id}}" title="{{title}}">
-    <form>
-        <fieldset>
-            <div>
-                <label for="name">Name</label>
-                <input type="text" name="name" id="name" value="{{name}}">
+<div id="{{id}}">
+    <form class="form-horizontal">
+        <div class="form-group">
+            <label for="icon" class="col-sm-2 control-label">Icon</label>
+            <div class="col-sm-2">
+                <select style="font-family: FontAwesome" name="icon" id="icon" class="form-control">
+                    {{#icon}}
+                    <option value="{{class}}">{{{unicode}}}</option>
+                    {{/icon}}
+                </select>
             </div>
-            <div>
-                <label for="scope">Scope</label>
-                <select name="scope" id="scope" class="text ui-widget-content ui-corner-all">
+            <label for="name" class="col-sm-1 control-label">Map</label>
+            <div class="col-sm-7">
+                <input name="name" type="text" class="form-control" id="name" value="{{formData.name}}" placeholder="Name">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="scope" class="col-sm-2 control-label">Scope</label>
+            <div class="col-sm-4">
+                <select name="scope" id="scope" class="form-control">
                     {{#scope}}
                     <option value="{{scope}}">{{label}}</option>
                     {{/scope}}
                 </select>
             </div>
-            <div>
-                <label for="type">Type</label>
-                <select name="type" id="type" class="text ui-widget-content ui-corner-all">
+            <label for="type" class="col-sm-1 control-label">Type</label>
+            <div class="col-sm-5">
+                <select name="type" id="type" class="form-control">
                     {{#type}}
                     <option value="{{type}}">{{label}}</option>
                     {{/type}}
                 </select>
             </div>
-            <div>
-                <label for="icon">Icon</label>
-                <select name="icon" id="icon" class="text ui-widget-content ui-corner-all">
-                    {{#icon}}
-                    <option value="{{class}}">{{label}}</option>
-                    {{/icon}}
-                </select>
-            </div>
-
-            <!-- Allow form submission with keyboard without duplicating the dialog button -->
-            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
-        </fieldset>
+        </div>
     </form>
 </div>

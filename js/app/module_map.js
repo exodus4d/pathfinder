@@ -68,15 +68,6 @@ define([
         // map scopes
         mapScopes: [
             {scope: 'wormhole', label: 'W-Space'}
-        ],
-
-        mapIcons: [
-            {class: 'fa-desktop', label: 'desktop'},
-            {class: 'fa-bookmark', label: 'bookmark'},
-            {class: 'fa-cube', label: 'cube'},
-            {class: 'fa-warning', label: 'warning'},
-            {class: 'fa-plane', label: 'plane'},
-            {class: 'fa-rocket', label: 'rocket'}
         ]
 
     };
@@ -86,56 +77,7 @@ define([
         systemKillsGraphData: {} // data for system kills info graph
     };
 
-    /**
-     * shows the add new map dialog
-     */
-    var showNewMapDialog = function(){
 
-        // confirm dialog
-        var moduleConfig = {
-            name: 'modules/map_dialog',
-            position: $('#' + config.dynamicElementWrapperId),
-            link: 'after',
-            functions: {
-                after: function(){
-                    $( "#" + config.newMapDialogId).dialog({
-                        modal: true,
-                        resizable: false,
-                        buttons: {
-                            'Cancel': function(){
-                                $(this).dialog('close');
-                            },
-                            'Add map': function(){
-
-                                // get form Values
-                                var form = $('#' + config.newMapDialogId).find('form');
-
-                                var  newMapData = {};
-
-                                $.each(form.serializeArray(), function(i, field) {
-                                    newMapData[field.name] = field.value;
-                                });
-
-                                saveMapData(newMapData);
-
-                                $(this).dialog('close');
-                            }
-                        }
-                    });
-                }
-            }
-        };
-
-        var moduleData = {
-            id: config.newMapDialogId,
-            title: 'Add new map',
-            scope: config.mapScopes,
-            type: Util.getMapTypes(),
-            icon: config.mapIcons
-        };
-
-        Render.showModule(moduleConfig, moduleData);
-    };
 
     var saveMapData = function(mapData){
 
@@ -160,7 +102,12 @@ define([
      * @returns {*}
      */
     $.fn.getActiveMap = function(){
+
         var map = $(this).find('.active.' + config.mapTabContentClass + ' .' + config.mapClass);
+
+        if(map.length === 0){
+            map = false;
+        }
 
         return map;
     };
@@ -191,11 +138,6 @@ define([
                 };
 
                 drawSystemInfoElement($( e.target ), systemInfoData);
-            });
-
-            // highlight a mapTab
-            $(this).on('pf:highlightTab', function(e, data){
-                // TODO
             });
 
         });
@@ -1745,6 +1687,7 @@ define([
     /**
      * updates complete map module (all maps)
      * @param userData
+     * @returns {boolean}
      */
     $.fn.updateMapModuleData = function(userData){
 
@@ -1759,25 +1702,29 @@ define([
         }
 
         // get map Data
-        $.each(mapElements, function(i, mapElement){
-
-            var mapId = parseInt( $(mapElement).data('id') );
+        for(var i = 0; i < mapElements.length; i++){
+            var mapElement = $(mapElements[i]);
+            var mapId = mapElement.data('id');
 
             var mapUserData = null;
             // get user data for each active map
-            $.each(userData.mapUserData, function(j, tempMapData){
 
+            for(var j = 0; j < userData.mapUserData.length; j++){
+                var tempMapData = userData.mapUserData[j];
                 if(tempMapData.config.id === mapId){
                     // map userData found
                     mapUserData = tempMapData;
+                    break;
                 }
-            });
+            }
 
             // update map
             if(mapUserData){
-                $(mapElement).updateUserData(mapUserData, currentUserData);
+                mapElement.updateUserData(mapUserData, currentUserData);
             }
-        });
+        }
+
+        return true;
     };
 
     /**
@@ -1950,6 +1897,7 @@ define([
     /**
      * load/update map module into element (all maps)
      * @param mapData
+     * @returns {boolean}
      */
     $.fn.updateMapModule = function(mapData){
 
@@ -2071,7 +2019,7 @@ define([
             // add "add" button
             var tabAddOptions = {
                 id: 0,
-                tabClasses: [config.mapTabClass, Util.getInfoForMap( 'default', 'classTab') ],
+                tabClasses: [config.mapTabClass, Util.getInfoForMap( 'standard', 'classTab') ],
                 contentClasses: [config.mapTabContentClass],
                 icon: 'fa-plus',
                 name: 'add',
@@ -2113,7 +2061,7 @@ define([
 
                 if(mapId === 0){
                     // add new Tab selected
-                    showNewMapDialog();
+                    $(document).trigger('pf:menuEditMap', {newMap: true});
                     e.preventDefault();
                 }
             });
@@ -2138,19 +2086,23 @@ define([
                 }
             });
 
-            allTabElements.on('hide.bs.tab', function (e) {
+            allTabElements.on('hide.bs.tab', function (e, a) {
 
-                var mapId = $(e.target).data('map-id');
+                var newMapId = $(e.relatedTarget).data('map-id');
+                var oldMapId = $(e.target).data('map-id');
 
-                var currentTabContentElement = $('#' + config.mapTabIdPrefix + mapId);
+                // disable map if new map is selected -> not "add button"
+                if(newMapId > 0){
+                    var currentTabContentElement = $('#' + config.mapTabIdPrefix + oldMapId);
 
-                // disable scrollbar for map that will be hidden. "freeze" current state
-                var scrollableElement = currentTabContentElement.find('.' + config.mapWrapperClass);
-                $(scrollableElement).mCustomScrollbar( 'disable' );
-
+                    // disable scrollbar for map that will be hidden. "freeze" current state
+                    var scrollableElement = currentTabContentElement.find('.' + config.mapWrapperClass);
+                    $(scrollableElement).mCustomScrollbar( 'disable' );
+                }
             });
         }
 
+        return true;
     };
 
     /**

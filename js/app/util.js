@@ -14,9 +14,40 @@ define([
         ajaxOverlayWrapperClass: 'pf-loading-overlay-wrapper',
         ajaxOverlayVisibleClass: 'pf-loading-overlay-visible',
 
-        formEditableFieldClass: 'pf-editable'                          // Class for all xEditable fields
+        formEditableFieldClass: 'pf-editable',                          // Class for all xEditable fields
+
+        // available map ions
+        mapIcons: [
+            {
+                class: 'fa-desktop',
+                label: 'desktop',
+                unicode: '&#xf108;'
+            },{
+                class: 'fa-bookmark',
+                label: 'bookmark',
+                unicode: '&#xf02e;'
+            },{
+                class: 'fa-cube',
+                label: 'cube',
+                unicode: '&#xf1b2;'
+            },{
+                class: 'fa-plane',
+                label: 'plane',
+                unicode: '&#xf072;'
+            },{
+                class: 'fa-rocket',
+                label: 'rocket',
+                unicode: '&#xf135;'
+            },{
+                class: 'fa-life-ring',
+                label: 'life ring',
+                unicode: '&#xf1cd;'
+            }
+        ]
 
     };
+
+
 
     /**
      * displays a loading indicator on an element
@@ -165,6 +196,15 @@ define([
     };
 
     /**
+     * get all available map icons
+     * @returns {*}
+     */
+    var getMapIcons = function(){
+
+        return config.mapIcons;
+    };
+
+    /**
      * get all available map Types
      * @returns {Array}
      */
@@ -173,12 +213,16 @@ define([
         var mapTypes = [];
 
         $.each(Init.classes.mapTypes, function(prop, data){
-            var tempData = {
-                type: prop,
-                label: data.label
-            };
 
-            mapTypes.push(tempData);
+            // skip "default" type -> just for 'add' icon
+            if(data.label.length > 0){
+                var tempData = {
+                    type: prop,
+                    label: data.label
+                };
+
+                mapTypes.push(tempData);
+            }
         });
 
         return mapTypes;
@@ -499,6 +543,7 @@ define([
 
     return {
         showNotify: showNotify,
+        getMapIcons: getMapIcons,
         getMapTypes: getMapTypes,
         getInfoForMap: getInfoForMap,
         getMapScopes: getMapScopes,

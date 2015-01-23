@@ -250,7 +250,7 @@
   }
 
   // Uncollapse the nav
-  @media (min-width: $grid-float-breakpoint) {
+ //  @media (min-width: $grid-float-breakpoint) {
     float: left;
     margin: 0;
 
@@ -266,7 +266,7 @@
     &.navbar-right:last-child {
       margin-right: -$navbar-padding-horizontal;
     }
-  }
+ //  }
 }
 
 

@@ -38,7 +38,8 @@ define([
         systemHeadNameClass: 'pf-system-head-name',                     // class for system name
         systemHeadExpandClass: 'pf-system-head-expand',                 // class for system head expand arrow
         systemBodyClass: 'pf-system-body',                              // class for system body
-        systemBodyItemClass: 'pf-system-body-item',
+        systemBodyItemHeight: 16,                                       // px of a system body entry
+        systemBodyItemClass: 'pf-system-body-item',                     // class for a system body entry
         systemBodyItemStatusClass: 'pf-user-status',
         systemBodyRightClass: 'pf-system-body-right',
         dynamicElementWrapperId: 'pf-dialog-wrapper',                     // wrapper div for dynamic content (dialogs, context-menus,...)
@@ -98,6 +99,11 @@ define([
             onMaxConnections:function(info, e) {
                 console.log('max connections')
                 console.log(info.maxConnections);
+            },
+            beforeDetach:function(connection) {
+                var mapElement = connection._jsPlumb.instance.getContainer();
+                $(mapElement).getMapOverlay().startMapUpdateCounter();
+                return true;
             }/*,
 
             overlays:[
@@ -156,20 +162,13 @@ define([
     $.fn.updateSystemUserData = function(map, data, currentUserData){
 
         var system = $(this);
+        var systemId = system.attr('id');
 
         // find system body
-        var systemBody = $( $(system).find('.' + config.systemBodyClass) );
+        var systemBody = $( system.find('.' + config.systemBodyClass) );
 
         // find expand arrow
-        var systemHeadExpand = $( $(system).find('.' + config.systemHeadExpandClass) );
-
-        system = $(system);
-
-        // remove tooltip
-        system.removeAttr('title');
-
-        // remove all content
-        systemBody.empty();
+        var systemHeadExpand = $( system.find('.' + config.systemHeadExpandClass) );
 
         var userCounter = 0;
 
@@ -177,78 +176,126 @@ define([
 
         // if current user is in THIS system trigger event
         if(currentUserData){
-            /* not used jet
-            var tabContentElement = getTabContentElementByMapElement(system);
-
-            $(tabContentElement).trigger('pf:highlightTab', [{system: system}]);
-            */
-
             system.data('currentUser', true);
         }
+
+        var oldCacheKey = system.data('userCache');
 
         // add user information
         if(
             data &&
             data.user
         ){
-            console.log(data.user)
-            $.each(data.user, function(i, userData){
 
-                userCounter++;
+            var cacheArray = [];
+            // loop all active pilots and build cache-key
+            for(var i = 0; i < data.user.length; i++){
+                var tempUserData = data.user[i];
+                cacheArray.push(tempUserData.id + '_' + tempUserData.ship.name);
+            }
 
-                var statusClass = getStatusClassForUser(userData.status);
-                var userName = userData.name;
+            var cacheKey = cacheArray.join('_');
 
-                var item = $('<div>', {
-                    class: config.systemBodyItemClass
-                }).append(
-                    $('<li>', {
-                        class: ['fa', 'fa-circle', config.systemBodyItemStatusClass, statusClass].join(' ')
-                    })
-                ).append(
-                    $('<span>', {
-                        text: ' ' + userName
-                    })
-                ).append(
-                        $('<span>', {
-                            text: userData.ship,
-                            class: config.systemBodyRightClass
-                        })
-                    );
+            // check for if cacheKey has changed
+            if(cacheKey !== oldCacheKey){
+                // set new CacheKey
+                system.data('userCache', cacheKey);
 
-                systemBody.append(item);
-            });
+                // remove all content
+                systemBody.empty();
 
-        }
-/*
-        var oldUserCount = system.attr('title');
+                // loop "again" and build DOM object with user information
+                for(var j = 0; j < data.user.length; j++){
+                    var userData = data.user[j];
+                    userCounter++;
 
-        system.removeAttr('title');
+                    var statusClass = getStatusClassForUser(userData.status);
+                    var userName = userData.name;
 
-        if(userCounter === 0){
-            // hide expand arrow
-            systemBody.hide(100);
-            systemHeadExpand.hide(100, function(){
-                if(oldUserCount !== userCounter){
-                    // revalidate element size and repaint
-                    map.revalidate( system.attr('id') );
+                    var item = $('<div>', {
+                        class: config.systemBodyItemClass
+                    }).append(
+                            $('<span>', {
+                                text: userData.ship.name,
+                                class: config.systemBodyRightClass
+                            })
+                        ).append(
+                            $('<li>', {
+                                class: ['fa', 'fa-circle', config.systemBodyItemStatusClass, statusClass].join(' ')
+                            })
+                        ).append(
+                            $('<span>', {
+                                text: ' ' + userName
+                            })
+                        );
+
+                    systemBody.append(item);
                 }
-            });
+
+
+                // =================================================================
+
+                // user count changed -> adapt tooltip
+                system.tooltip('destroy');
+
+                system.attr('title', userCounter);
+
+                // show system head
+                systemHeadExpand.velocity({
+                    width: '10px'
+                },{
+                    duration: 50,
+                    display: 'inline-block',
+                    progress: function(){
+                        // revalidate element size and repaint
+                        map.revalidate( systemId );
+                    },
+                    complete: function(){
+
+                        // show system body
+                        systemBody.velocity({
+                            height: config.systemBodyItemHeight + 'px'
+                        },{
+                            duration: 50,
+                            display: 'auto',
+                            progress: function(){
+                                // revalidate element size and repaint
+                                map.revalidate( systemId );
+                            }
+                        });
+
+                        // show active user tooltip
+                        toggleSystemTooltip([system], 'show', {placement: 'top', trigger: 'manual'});
+                    }
+                });
+            }
         }else{
-            systemBody.show(100);
-            systemHeadExpand.show(100, function(){
-                if(oldUserCount !== userCounter){
-                    // revalidate element size and repaint
-                    map.revalidate( system.attr('id') );
-                }
-            });
+            // no user data found for this system
+            system.data('userCache', false);
 
-            system.attr('title', userCounter);
+            if(
+                oldCacheKey &&
+                oldCacheKey.length > 0
+            ){
+                // no user -> clear SystemBody
+                systemHeadExpand.velocity('reverse',{
+                    display: 'none',
+                    complete: function(){
+                        systemBody.velocity('reverse',{
+                            display: 'none',
+                            progress: function(){
+                                // revalidate element size and repaint
+                                map.revalidate( systemId );
+                                systemBody.empty();
+                            }
+                        });
+                    }
+                });
+            }
 
-            // show active user tooltip
-            toggleSystemTooltip([system], 'show', {placement: 'top', trigger: 'manual'});
         }
-*/
+
+
 
     };
 
@@ -264,8 +311,9 @@ define([
             if(options){
                 $(systems[i]).tooltip(options);
             }
-            $(systems[i]).tooltip(show);
         }
+
+        $(systems).tooltip(show);
     };
 
     /**
@@ -287,6 +335,7 @@ define([
         // add new class
         system.data('status', statusLabel);
         system.addClass( statusClass );
+
     };
 
     /**
@@ -406,156 +455,163 @@ define([
 
         var mapContainer = mapConfig.map.getContainer();
 
-        if(mapContainer === undefined){
-            // add new map
 
-            // create map wrapper
-            var mapWrapper = $('<div>', {
-                class: config.mapWrapperClass
-            });
+        // prevent jsPlumb from re-painting during main-map update -> performance boost :)
+        mapConfig.map.doWhileSuspended(function() {
 
-            // create new map container
-            mapContainer = $('<div>', {
-                id: config.mapIdPrefix + mapConfig.config.id,
-                class: [config.mapClass].join(' ')
-            });
+            if(mapContainer === undefined){
+                // add new map
+
+                // create map wrapper
+                var mapWrapper = $('<div>', {
+                    class: config.mapWrapperClass
+                });
+
+                // create new map container
+                mapContainer = $('<div>', {
+                    id: config.mapIdPrefix + mapConfig.config.id,
+                    class: [config.mapClass].join(' ')
+                });
+
+                // add additional information
+                mapContainer.data('id', mapConfig.config.id);
+
+                mapWrapper.append(mapContainer);
+
+                // append mapWrapper to parent element (at the top)
+                $(parentElement).prepend(mapWrapper);
+
+
+                // set main Container for current map -> the container exists now in DOM !! very important
+                mapConfig.map.setContainer($('#' + config.mapIdPrefix + mapConfig.config.id));
+
+                // set map observer
+                setMapObserver(mapConfig.map);
+            }
 
             // add additional information
-            mapContainer.data('id', mapConfig.config.id);
             mapContainer.data('name', mapConfig.config.name);
+            mapContainer.data('scope', mapConfig.config.scope);
+            mapContainer.data('icon', mapConfig.config.icon);
             mapContainer.data('type', mapConfig.config.type);
 
-            mapWrapper.append(mapContainer);
+            mapContainer = $(mapContainer);
 
-            // append mapWrapper to parent element (at the top)
-            $(parentElement).prepend(mapWrapper);
+            // get map data
+            var mapData = mapContainer.getMapData();
 
+            if(mapData !== false){
+                // map data available -> map not locked by update counter :)
+                var currentSystemData = mapData.data.systems;
+                var currentConnectionData = mapData.data.connections;
 
-            // set main Container for current map -> the container exists now in DOM !! very important
-            mapConfig.map.setContainer($('#' + config.mapIdPrefix + mapConfig.config.id));
+                // update systems ===========================================================
 
-            // set map observer
-            setMapObserver(mapConfig.map);
-        }
+                for(var i = 0; i < mapConfig.data.systems.length; i++){
+                    var systemData = mapConfig.data.systems[i];
 
-        mapContainer = $(mapContainer);
+                    // add system
+                    var addNewSystem = true;
 
-        // get map data
-        var mapData = mapContainer.getMapData();
+                    for(var k = 0; k < currentSystemData.length; k++){
+                        if(currentSystemData[k].id === systemData.id){
 
-        if(mapData !== false){
-            // map data available -> map not locked by update counter :)
-            var currentSystemData = mapData.data.systems;
-            var currentConnectionData = mapData.data.connections;
+                            if( currentSystemData[k].updated < systemData.updated ){
+                                // system changed -> update
+                                mapContainer.getSystem(mapConfig.map, systemData);
+                            }
 
-            // update systems ===========================================================
-
-            for(var i = 0; i < mapConfig.data.systems.length; i++){
-                var systemData = mapConfig.data.systems[i];
-
-                // add system
-                var addNewSystem = true;
-
-                for(var k = 0; k < currentSystemData.length; k++){
-                    if(currentSystemData[k].id === systemData.id){
-
-                        if( currentSystemData[k].updated < systemData.updated ){
-                            // system changed -> update
-                            mapContainer.getSystem(mapConfig.map, systemData);
+                            addNewSystem = false;
+                            break;
                         }
+                    }
 
-                        addNewSystem = false;
-                        break;
+                    if( addNewSystem === true){
+                        drawSystem(mapConfig.map, systemData);
                     }
                 }
 
-                if( addNewSystem === true){
-                    console.log('omg')
-                    drawSystem(mapConfig.map, systemData);
-                }
-            }
+                // check for systems that are gone -> delete system
+                for(var a = 0; a < currentSystemData.length; a++){
 
-            // check for systems that are gone -> delete system
-            for(var a = 0; a < currentSystemData.length; a++){
+                    var deleteThisSystem = true;
 
-                var deleteThisSystem = true;
+                    for(var b = 0; b < mapConfig.data.systems.length; b++){
+                        var deleteSystemData = mapConfig.data.systems[b];
 
-                for(var b = 0; b < mapConfig.data.systems.length; b++){
-                    var deleteSystemData = mapConfig.data.systems[b];
-
-                    if(deleteSystemData.id === currentSystemData[a].id){
-                        deleteThisSystem = false;
-                        break;
-                    }
-                }
-
-                if(deleteThisSystem === true){
-                    // system not found -> delete system
-                    deleteSystem(mapConfig.map, $('#' + config.systemIdPrefix + currentSystemData[a].id));
-                }
-            }
-
-            // update connections =========================================================
-
-            // set up default connections
-            for(var j = 0; j < mapConfig.data.connections.length; j++){
-                var connectionData = mapConfig.data.connections[j];
-
-                // add connection
-                var addNewConnection= true;
-
-                for(var c = 0; c < currentConnectionData.length; c++){
-                    if(currentConnectionData[c].id === connectionData.id){
-                        // connection already exists -> check for updates
-
-                        if(
-                            currentConnectionData[c].updated < connectionData.updated && // has changed
-                            ativeConnections[mapData.config.id][connectionData.id] !== undefined
-                        ){
-                            // connection changed -> update
-                            var tempConnection = ativeConnections[mapData.config.id][connectionData.id];
-                            updateConnection(tempConnection, connectionData, currentConnectionData[c]);
+                        if(deleteSystemData.id === currentSystemData[a].id){
+                            deleteThisSystem = false;
+                            break;
                         }
+                    }
 
-                        addNewConnection = false;
-                        break;
+                    if(deleteThisSystem === true){
+                        // system not found -> delete system
+                        deleteSystem(mapConfig.map, $('#' + config.systemIdPrefix + currentSystemData[a].id));
                     }
                 }
 
-                if(addNewConnection === true){
-                    drawConnection(mapConfig.map, connectionData);
-                }
-            }
+                // update connections =========================================================
 
-            // check for connections that are gone -> delete connection
-            for(var d = 0; d < currentConnectionData.length; d++){
+                // set up default connections
+                for(var j = 0; j < mapConfig.data.connections.length; j++){
+                    var connectionData = mapConfig.data.connections[j];
 
-                var deleteThisConnection = true;
+                    // add connection
+                    var addNewConnection= true;
 
-                for(var e = 0; e < mapConfig.data.connections.length;e++){
-                    var deleteConnectionData = mapConfig.data.connections[e];
+                    for(var c = 0; c < currentConnectionData.length; c++){
+                        if(currentConnectionData[c].id === connectionData.id){
+                            // connection already exists -> check for updates
 
-                    if(deleteConnectionData.id === currentConnectionData[d].id){
-                        deleteThisConnection = false;
-                        break;
+                            if(
+                                currentConnectionData[c].updated < connectionData.updated && // has changed
+                                ativeConnections[mapData.config.id][connectionData.id] !== undefined
+                            ){
+                                // connection changed -> update
+                                var tempConnection = ativeConnections[mapData.config.id][connectionData.id];
+                                updateConnection(tempConnection, connectionData, currentConnectionData[c]);
+                            }
+
+                            addNewConnection = false;
+                            break;
+                        }
+                    }
+
+                    if(addNewConnection === true){
+                        drawConnection(mapConfig.map, connectionData);
                     }
                 }
-                deleteThisConnection = true;
-                if(
-                    deleteThisConnection === true &&
-                    ativeConnections[mapData.config.id][currentConnectionData.id] !== undefined
-                ){
-                    // connection not found -> delete connection
-                    var deleteConnection = ativeConnections[mapData.config.id][currentConnectionData.id];
-                    mapConfig.map.detach(deleteConnection);
+
+                // check for connections that are gone -> delete connection
+                for(var d = 0; d < currentConnectionData.length; d++){
+
+                    var deleteThisConnection = true;
+
+                    for(var e = 0; e < mapConfig.data.connections.length;e++){
+                        var deleteConnectionData = mapConfig.data.connections[e];
+
+                        if(deleteConnectionData.id === currentConnectionData[d].id){
+                            deleteThisConnection = false;
+                            break;
+                        }
+                    }
+                    deleteThisConnection = true;
+                    if(
+                        deleteThisConnection === true &&
+                        ativeConnections[mapData.config.id][currentConnectionData.id] !== undefined
+                    ){
+                        // connection not found -> delete connection
+                        var deleteConnection = ativeConnections[mapData.config.id][currentConnectionData.id];
+                        mapConfig.map.detach(deleteConnection);
+                    }
+
                 }
 
+                // repaint all connections because of some strange visual bugs -_-
+                mapConfig.map.repaintEverything();
             }
-
-            // repaint all connections because of some strange visual bugs -_-
-            mapConfig.map.repaintEverything();
-
-        }
+        });
 
     };
 
@@ -622,7 +678,7 @@ define([
 
             // get System Element by data
             var newSystem = mapContainer.getSystem(map, systemData);
-console.log('test')
+
             // add new system to map
             mapContainer.append(newSystem);
 
@@ -1152,8 +1208,6 @@ console.log('test')
         var systemHeadExpand = $( system.find('.' + config.systemHeadExpandClass) );
         var systemBody = $( system.find('.' + config.systemBodyClass) );
 
-        var bodyItemHeight = 16;
-
         // make system draggable
         map.draggable(system, {
             containment: 'parent',
@@ -1246,54 +1300,51 @@ console.log('test')
             // get ship counter and calculate expand height
             var shipCounter = parseInt( system.attr('data-original-title') );
 
-            var expandheight = shipCounter * bodyItemHeight;
+            var expandheight = shipCounter * config.systemBodyItemHeight;
 
-            systemBody.animate(
+            systemBody.velocity(
                 {
                     height: expandheight + 'px',
-                    width: '100%',
+                    width: 100,
                     'min-width': '150px'
-                },
-                {
-                   // queue:false,
+                },{
                     duration: 100,
-                    step: function(){
+                    progress: function(){
                         // repaint connections of current system
                         map.revalidate( hoverSystemId );
                     },
                     complete: function(){
                         map.revalidate( hoverSystemId );
-                        $(this).find('.' + config.systemBodyRightClass).show();
+                        $(this).find('.' + config.systemBodyRightClass).velocity({
+                            opacity: 1
+                        },{
+                            duration: 50,
+                            display: 'auto'
+                        });
                     }
                 }
             );
+
         }, function(e){
             // hover out
             var hoverSystem = $(this).parents('.' + config.systemClass);
             var hoverSystemId = hoverSystem.attr('id');
 
-            systemBody.animate(
-                {
-                    height: '16px',
-                    width: '100%',
-                    'min-width': '60px'
-                },
-                {
-                  //  queue:false,
-                    duration: 100,
-                    step: function(){
-                        // repaint connections of current system
-                        map.revalidate( hoverSystemId );
-                        $(this).find('.' + config.systemBodyRightClass).hide();
-                    },
-                    start: function(){
-                        $(this).find('.' + config.systemBodyRightClass).hide();
-                    },
-                    complete: function(){
-                        map.revalidate( hoverSystemId );
-                    }
+            systemBody.find('.' + config.systemBodyRightClass).velocity( {
+                opacity: 0
+            },{
+                duration: 100,
+                display: 'none',
+                complete: function(){
+                    systemBody.velocity('reverse', {
+                        complete: function(){
+                            // overwrite "complete" function from first "hover"-open
+                            map.revalidate( hoverSystemId );
+                        }
+                    });
                 }
-            );
+            });
+
         });
 
         // context menu ==================================================================
@@ -1415,7 +1466,6 @@ console.log('test')
 
         // load system data =================================================================================
         system.on('click', function(e){
-
             var system = $(this);
 
             // left mouse button
@@ -1426,29 +1476,31 @@ console.log('test')
                         // select system
                         system.toggleSelectSystem(map);
                     }else{
-
-                        // activate system
-                        markSystemActive(map, system);
-
-                        // get parent Tab Content and fire update event
-                        var tabContentElement = getTabContentElementByMapElement( system );
-
-                        var data = {
-                            system: system
-                        };
-
-                        $(tabContentElement).trigger('pf:updateSystemData', [data]);
+                        system.showSystemInfo(map);
                     }
                 }
-
             }
         });
+    };
 
+    $.fn.showSystemInfo = function(map){
+        var system = $(this);
 
+        // activate system
+        markSystemActive(map, system);
+
+        // get parent Tab Content and fire update event
+        var tabContentElement = getTabContentElementByMapElement( system );
+
+        var data = {
+            system: system
+        };
+
+        $(tabContentElement).trigger('pf:updateSystemData', [data]);
     };
 
     /**
-     * toggle select status of a system
+     * toggle selectable status of a system
      */
     $.fn.toggleSelectSystem = function(map){
         var system = $(this);
@@ -1790,6 +1842,23 @@ console.log('test')
             Util.showNotify({title: 'Grid snapping', text: notificationText, type: 'info'});
 
         });
+
+        $(mapContainer).on('pf:menuSelectSystem', function(e, data){
+            var tempMapContainer = $(this);
+            var systemId = config.systemIdPrefix + tempMapContainer.data('id') + '-' + data.systemId;
+            var system = $(this).find('#' + systemId);
+
+            if(system.length === 1){
+                // scroll to system
+                var tempMapWrapper = tempMapContainer.parents('.' + config.mapWrapperClass);
+                tempMapWrapper.scrollTo(system);
+
+                // select system
+                system.showSystemInfo(map);
+            }
+
+        });
+
 
     };
 
@@ -2166,21 +2235,23 @@ console.log('test')
      * update the Data of the user that is currently viewing the map (if available) -> In - game info
      * @param userData
      * @param currentUserData
+     * @returns {boolean}
      */
     $.fn.updateUserData = function(userData, currentUserData){
-
         // get all systems
         var systems = $(this).find('.' + config.systemClass);
 
         // get new map instance or load existing
         var map = getMapInstance(userData.config.id);
 
-        // trigger reset event for all Tabs
-        var tabContentElements = getTabContentElements();
-        $(tabContentElements).trigger('pf:highlightTab', [{}]);
-
         // container must exist! otherwise systems cant be updated
         if(map.getContainer() !== undefined){
+
+            // data for header update
+            var headerUpdateData = {
+                mapId: userData.config.id,
+                userCount: 0                        // active user in a map
+            };
 
             for(var i = 0; i < systems.length; i++){
                 // get user Data for System
@@ -2206,11 +2277,24 @@ console.log('test')
                     currentUserData.system.id === systemId
                 ){
                     tempCurrentUserData = currentUserData;
+
+                    // set current location data for header update
+                    headerUpdateData.currentSystemId =  systemId;
+                    headerUpdateData.currentSystemName = system.getSystemInfo(['alias']);
+                }
+
+                if(tempUserData){
+                    headerUpdateData.userCount += tempUserData.user.length;
                 }
 
                 system.updateSystemUserData(map, tempUserData, tempCurrentUserData);
             }
+
+            // trigger document event -> update header
+            $(document).trigger('pf:updateHeaderData', headerUpdateData);
         }
+
+        return true;
     };
 
     /**
@@ -2239,6 +2323,8 @@ console.log('test')
             var mapConfig = {};
             mapConfig.id = mapElement.data('id');
             mapConfig.name = mapElement.data('name');
+            mapConfig.scope = mapElement.data('scope');
+            mapConfig.icon = mapElement.data('icon');
             mapConfig.type = mapElement.data('type');
             mapData.config = mapConfig;
 
@@ -2267,6 +2353,7 @@ console.log('test')
                 systemData.rally = tempSystem.data('rally');
                 systemData.currentUser = tempSystem.data('currentUser');
                 systemData.updated = tempSystem.data('updated');
+                systemData.userCount = (tempSystem.attr('data-original-title') ? parseInt( tempSystem.attr('data-original-title') ) : 0);
 
                 // position -------------------------------
                 var positionData = {};
@@ -2356,16 +2443,23 @@ console.log('test')
                 setConnectionObserver(newJsPlumbInstance, info.connection);
             });
 
+            newJsPlumbInstance.bind('connectionDetached', function(info, e) {
+            });
+
             // event after DragStop a connection or new connection
             newJsPlumbInstance.bind('beforeDrop', function(info) {
                 var connection = info.connection;
                 var sourceSystem = $('#' + info.sourceId);
                 var returnValue = true;
 
+                var connectionId = connection.getParameter('connectionId');
+
                 sourceSystem.getMapOverlay().startMapUpdateCounter();
 
-                // set "default" connection status
-                setConnectionWHStatus(connection, 'wh_fresh');
+                // set "default" connection status only for NEW connections
+                if(!connection.suspendedElement){
+                    setConnectionWHStatus(connection, 'wh_fresh');
+                }
 
                 // prevent multiple connections between same systems
                 var connections = checkForConnection(newJsPlumbInstance, info.sourceId, info.targetId );
@@ -2381,10 +2475,22 @@ console.log('test')
 
                 // notification
                 if(returnValue === true){
-                    Util.showNotify({title: 'New Connection established', text: 'fgdgdf', type: 'success'});
+
+                    var text = 'New connection established';
+                    if(connectionId > 0){
+                        text = 'connection switched';
+                    }
+
+                    Util.showNotify({title: text, type: 'success'});
                 }
 
                 return returnValue;
+            });
+
+            // event before Detach connection
+            newJsPlumbInstance.bind('beforeDetach', function(info) {
+
+                return true;
             });
 
 
@@ -2513,8 +2619,7 @@ console.log('test')
      */
     $.fn.scrollTo = function(position){
         return this.each(function(){
-            // todo re-comment not used jet
-            //$(this).mCustomScrollbar('scrollTo', position);
+            $(this).mCustomScrollbar('scrollTo', position);
         });
     };
 

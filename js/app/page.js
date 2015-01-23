@@ -7,10 +7,10 @@ define([
     'app/util',
     'app/render',
     'bootbox',
+    'app/ccp',
     'slidebars',
-    'fullScreen',
     'app/module_map'
-], function($, Init, Util, Render, bootbox) {
+], function($, Init, Util, Render, bootbox, CCP) {
 
     'use strict';
 
@@ -33,6 +33,9 @@ define([
         headClass: 'pf-head',                                                   // class for page head
         headMenuClass: 'pf-head-menu',                                          // class for page head menu button (left)
         headMapClass: 'pf-head-map',                                            // class for page head map button (right)
+        headActiveUserClass: 'pf-head-active-user',                             // class for "active user" link
+        headCurrentLocationClass: 'pf-head-current-location',                   // class for "show current location" link
+        headProgramStatusClass: 'pf-head-program-status',                       // class for "program status" notification
 
         // footer
         pageFooterId: 'pf-footer',                                              // id for page footer
@@ -206,10 +209,17 @@ define([
                 )
         );
 
-        // init menu
-        if($.fullscreen.isNativelySupported() === true){
-            $('#' + config.menuButtonFullScreenId).removeClass('hide');
+        // init full screen -> IGB does not support full screen
+        if(CCP.isInGameBrowser() === false){
+            requirejs(['fullScreen'], function() {
+                if($.fullscreen.isNativelySupported() === true){
+                    $('#' + config.menuButtonFullScreenId).removeClass('hide');
+                }
+            });
         }
+
+
+
 
 
     };
@@ -236,12 +246,23 @@ define([
                     $('<a>', {
                         class: 'list-group-item',
                         href: '#'
-                    }).html('&nbsp;&nbsp;Grid snap').prepend(
+                    }).html('&nbsp;&nbsp;&nbsp;Grid snap').prepend(
                             $('<i>',{
                                 class: 'glyphicon glyphicon-th'
                             })
                         ).on('click', function(){
                             $('#' + config.mapModuleId).getActiveMap().triggerMenuEvent('Grid', {button: this});
+                        })
+                ).append(
+                    $('<a>', {
+                        class: 'list-group-item',
+                        href: '#'
+                    }).html('&nbsp;&nbsp;Edit').prepend(
+                            $('<i>',{
+                                class: 'fa fa-edit fa-fw'
+                            })
+                        ).on('click', function(){
+                            $(document).triggerMenuEvent('EditMap', {newMap: false});
                         })
                 )
         );
@@ -274,6 +295,8 @@ define([
                     var slideMenu = new $.slidebars({
                         scrollLock: false
                     });
+
+                    // main menus
                     $('.' + config.headMenuClass).on('click', function() {
                         slideMenu.slidebars.toggle('left');
                     });
@@ -282,10 +305,27 @@ define([
                         slideMenu.slidebars.toggle('right');
                     });
 
+                    // active pilots
+                    $('.' + config.headActiveUserClass).find('a').on('click', function(){
+                        $(document).triggerMenuEvent('ShowMapInfo');
+                    });
+
+                    // current location
+                    $('.' + config.headCurrentLocationClass).find('a').on('click', function(){
+                        $('#' + config.mapModuleId).getActiveMap().triggerMenuEvent('SelectSystem', {systemId: $(this).data('systemId') });
+                    });
+
                     $(document).on('pf:closeMenu', function(e){
                         // close all menus
                         slideMenu.slidebars.close();
                     });
+
+                    // init all tooltips
+                    var tooltipElements = $('#' + config.pageHeaderId).find('[title]');
+                    tooltipElements.tooltip({placement: 'bottom'});
+
+                    // trigger load main map module -> header is required for drag&drop position
+                    $('#' + config.mapModuleId).trigger('pf:initModule');
 
                 }
             }
@@ -373,27 +413,182 @@ define([
             return false;
         });
 
+        $(document).on('pf:menuEditMap', function(e, data){
+            // show map edit dialog or edit map
+            var mapData = false;
+
+            if(data.newMap === false){
+                var activeMap = $('#' + config.mapModuleId).getActiveMap();
+
+                if(activeMap){
+                    mapData = activeMap.getMapData(true);
+                }
+            }
+
+            showNewMapDialog(mapData);
+            return false;
+        });
+
         $(document).on('pf:menuFullScreen', function(e, data){
 
-            var fullScreenElement = $('body');
+            if(CCP.isInGameBrowser() === false){
+                var fullScreenElement = $('body');
 
-            // close all menus
-            $(this).trigger('pf:closeMenu', [{}]);
+                // close all menus
+                $(this).trigger('pf:closeMenu', [{}]);
 
-            // wait until menu is closed before switch mode (looks better)
-            setTimeout(
-                function() {
-                    if($.fullscreen.isFullScreen()){
-                        $.fullscreen.exit();
-                    }else{
-                        fullScreenElement.fullscreen({overflow: 'overflow-y', toggleClass: config.fullScreenClass});
+                // wait until menu is closed before switch mode (looks better)
+                setTimeout(
+                    function() {
+                        // fullscreen is not supported by IGB
+                        requirejs(['jquery', 'fullScreen'], function($) {
 
-                    }
-                }, 400);
+                            if($.fullscreen.isFullScreen()){
+                                $.fullscreen.exit();
+                            }else{
+                                fullScreenElement.fullscreen({overflow: 'overflow-y', toggleClass: config.fullScreenClass});
+                            }
+                        });
+                    }, 400);
+            }
+
+
 
             return false;
         });
 
+        // update header links with current map data
+        $(document).on('pf:updateHeaderData', function(e, data){
+            var activeMap = $('#' + config.mapModuleId).getActiveMap();
+
+            var userCount = 0;
+            var currentLocationData = {};
+
+            // show active user just for the current active map
+            if(
+                activeMap &&
+                activeMap.data('id') === data.mapId
+            ){
+                userCount = data.userCount;
+                currentLocationData = data;
+            }
+
+            updateHeaderActiveUserCount(userCount);
+            updateHeaderCurrentLocation(currentLocationData);
+
+        });
+    };
+
+    /**
+     * update the "active user" badge in header
+     * @param userCount
+     */
+    var updateHeaderActiveUserCount = function(userCount){
+        var activeUserElement = $('.' + config.headActiveUserClass);
+        var badge = activeUserElement.find('.badge');
+
+        if(badge.data('userCount') !== userCount){
+            badge.data('userCount', userCount);
+
+            if(userCount > 0){
+                badge.text(userCount);
+                activeUserElement.velocity('fadeIn', {duration: Init.animationSpeed.headerLink});
+            }else{
+                activeUserElement.velocity('reverse');
+            }
+        }
+    };
+
+    /**
+     * update the "current location" element in head
+     * @param locationData
+     */
+    var updateHeaderCurrentLocation = function(locationData){
+        var currentLocationElement = $('.' + config.headCurrentLocationClass);
+        var linkElement = currentLocationElement.find('a');
+        var textElement = linkElement.find('span');
+
+        if(
+            linkElement.data('systemName') !== locationData.currentSystemName
+        ){
+            var tempSystemName = locationData.currentSystemName;
+            var tempSystemId = locationData.currentSystemId;
+            if(
+                tempSystemName === undefined ||
+                tempSystemId === undefined
+            ){
+                tempSystemName = false;
+                tempSystemId = false;
+            }
+
+            linkElement.data('systemName', tempSystemName);
+            linkElement.data('systemId', tempSystemId);
+
+            if(locationData.currentSystemName){
+                textElement.text(locationData.currentSystemName);
+                currentLocationElement.velocity('fadeIn', {duration: Init.animationSpeed.headerLink});
+            }else{
+                currentLocationElement.velocity('reverse');
+            }
+        }
+    };
+
+    /**
+     * shows the add new map dialog
+     */
+    var showNewMapDialog = function(mapData){
+
+        var formData = {};
+
+        requirejs(['text!templates/modules/map_dialog.html', 'lib/mustache'], function(template, Mustache) {
+
+            var data = {
+                id: config.newMapDialogId,
+                scope: config.mapScopes,
+                type: Util.getMapTypes(),
+                icon: Util.getMapIcons(),
+                formData: formData
+            };
+
+            var content = Mustache.render(template, data);
+
+            var dialogTitle = 'New map';
+
+            if(mapData !== false){
+                dialogTitle = 'Edit map';
+                content = $(content);
+                content.find('select[name="icon"]').val( mapData.config.icon );
+                content.find('input[name="name"]').val( mapData.config.name );
+                content.find('select[name="scope"]').val( mapData.config.scope );
+                content.find('select[name="type"]').val( mapData.config.type );
+            }
+
+
+
+            var mapInfoDialog = bootbox.dialog({
+                title: dialogTitle,
+                message: content,
+                buttons: {
+                    close: {
+                        label: 'cancel',
+                        className: 'btn-default'
+                    },
+                    success: {
+                        label: '<i class="fa fa-code-fork fa-fw"></i>add map',
+                        className: 'btn-primary',
+                        callback: function() {
+
+                            // get form Values
+                            var form = $('#' + config.newMapDialogId).find('form');
+                            var newMapData = form.getFormValues();
+
+                            saveMapData(newMapData);
+                        }
+                    }
+                }
+            });
+
+        });
     };
 
     /**
@@ -475,6 +670,13 @@ define([
                             tempData.push( '' );
                         }
 
+                        // active pilots
+                        if(tempSystemData.userCount > 0){
+                            tempData.push(tempSystemData.userCount);
+                        }else{
+                            tempData.push( '' );
+                        }
+
                         // type
                         tempData.push(tempSystemData.type);
 
@@ -547,6 +749,10 @@ define([
                             {
                                 title: '<i class="fa fa fa-map-marker fa-lg"></i>',
                                 width: '15px',
+                                searchable: false
+                            },{
+                                title: '<i class="fa fa fa-plane fa-lg"></i>',
+                                width: '18px',
                                 searchable: false
                             },{
                                 title: 'type',
@@ -932,6 +1138,63 @@ define([
             title: 'System effect information',
             message: cache.systemEffectDialog
         });
+
+    };
+
+    /**
+     * trigger "program status" in head
+     * @param status
+     */
+    $.fn.setProgramStatus = function(status){
+        var statusElement = $('.' + config.headProgramStatusClass);
+        var icon = statusElement.find('i');
+        var textElement = statusElement.find('span');
+
+        var iconClass = false;
+        var textClass = false;
+        var text = '';
+
+        switch(status){
+            case 'online':
+                if( ! statusElement.hasClass('txt-color-green')){
+                    iconClass = 'fa-wifi';
+                    textClass = 'txt-color-green';
+                    text = 'online';
+                }
+                break;
+            case 'problem':
+                if( ! statusElement.hasClass('txt-color-orange')){
+                    iconClass = 'fa-warning';
+                    textClass = 'txt-color-orange';
+                    text = 'problem';
+                }
+                break;
+            case 'offline':
+                if( ! statusElement.hasClass('txt-color-red')){
+                    iconClass = 'fa-bolt';
+                    textClass = 'txt-color-red';
+                    text = 'offline';
+                }
+                break;
+        }
+
+        // change status, on status changed
+        if(iconClass !== false){
+
+            statusElement.velocity('fadeOut', {
+                duration: Init.animationSpeed.headerLink,
+                complete: function(){
+                    statusElement.removeClass('txt-color-green txt-color-orange txt-color-red');
+                    icon.removeClass('fa-wifi fa-warning fa-bolt');
+                    statusElement.addClass(textClass);
+                    icon.addClass(iconClass);
+                    textElement.text(text);
+                }
+            }).velocity('fadeIn', {
+                duration: Init.animationSpeed.headerLink
+            });
+
+        }
 
     };
 

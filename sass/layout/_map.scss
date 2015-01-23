@@ -1,10 +1,14 @@
 
+$mapHeight: 520px;
+$mapWidth: 2500px;
+
+
 // start bounce mixin ==============================================
 
 @mixin bounce-up-down{
 
-  -webkit-animation-duration: 1s;
-  animation-duration: 1s;
+  @include animation-duration( 1s);
+  @include animation-delay(1s);
   -webkit-animation-fill-mode: both;
   animation-fill-mode: both;
   -webkit-animation-timing-function: linear;
@@ -18,14 +22,14 @@
 
 @-webkit-keyframes bounce {
   0%, 20%, 50%, 80%, 100% {-webkit-transform: translateY(0);}
-  40% {-webkit-transform: translateY(-10px);}
-  60% {-webkit-transform: translateY(-5px);}
+  40% {-webkit-transform: translateY(-8px);}
+  60% {-webkit-transform: translateY(-4px);}
 }
 
 @keyframes bounce {
   0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
-  40% {transform: translateY(-10px);}
-  60% {transform: translateY(-5px);}
+  40% {transform: translateY(-8px);}
+  60% {transform: translateY(-4px);}
 }
 
 // end bounce mixin ================================================
@@ -35,7 +39,8 @@
   .pf-map-wrapper{
     position: relative;
     width: 100%;
-    height: 530px;
+    max-width: $mapWidth + 15px;
+    height: $mapHeight + 30px;
     overflow: auto;
     padding: 5px;
     background: rgba($gray-darker, 0.93);
@@ -63,15 +68,49 @@
 
 // 20x20px grid background
 .pf-grid-small{
-  background: inline-image("#{$base-url}/grid_20x20.png") !important;
+  background: inline-image("#{$base-url}/grid_40x40.png") !important;
 }
 
 
 .pf-map{
-  width: 2000px;
-  height: 500px;
+  width: $mapWidth;
+  height: $mapHeight;
   position: relative;
   font-family: $font-family-bold;
+
+  // jsPlumb classes =================================================
+  ._jsPlumb_target, ._jsPlumb_source{
+
+  }
+
+  ._jsPlumb_overlay{
+    opacity: 1;
+    @include transition-property(opacity);
+    @include transition-duration(0.1s);
+    @include transition-timing-function(ease-in);
+  }
+
+  
+
+  // hover effect for connections
+  ._jsPlumb_hover{
+
+    &._jsPlumb_overlay{      
+      opacity: 0; // hide opacity on hover
+    }    
+
+    &:not(._jsPlumb_overlay){
+      @include bounce-up-down; // label should not bounce
+    }
+  }
+
+  // hover effect for systems
+  ._jsPlumb_target_hover, ._jsPlumb_source_hover{
+    @include bounce-up-down;
+    @include box-shadow(0 6px 12px rgba(0,0,0,.3));
+  }
+
+  // =================================================================
 
   .pf-system{
     position: absolute;
@@ -81,7 +120,15 @@
     font-family: $font-family-bold;
     z-index: 100;
 
-    //@include bounce-up-down;
+    // change border color with transition
+    @include transition( border-color 0.5s ease-out, box-shadow 0.2s ease-out );
+    @include transform( translate3d(0, 0, 0) );
+
+    &:hover{
+      // makes the systems "flying" :)
+      @include box-shadow(0 6px 12px rgba(0,0,0, 0.3));
+      @include transform( translate3d(0, -2px, 0) );
+    }
 
     @include border-radius(5px);
     border: {
@@ -118,7 +165,7 @@
     // ===============================================================
 
     .pf-system-body{
-      height: 16px;
+      height: 0px;
       width: 100%;
       overflow: hidden;
       cursor: -moz-grab;
@@ -143,6 +190,7 @@
         font-size: 10px;
 
         .pf-system-body-right{
+          text-overflow: ellipsis;
           float: right;
           color: $teal;
           display: none; // hover effect
@@ -200,7 +248,6 @@
 
   // locked system
   .pf-system-locked{
-    color: $gray-light;
 
     .pf-system-sec{
       cursor: default !important;
@@ -211,6 +258,7 @@
     }
 
     .fa-lock{
+      color: $gray-light !important;
       display: inline-block !important;
     }
   }
@@ -242,6 +290,11 @@
   svg._jsPlumb_connector{
     cursor: pointer;
     stroke-linecap: round; // line endings
+
+    path{
+      transition-property: stroke;
+      transition-duration: 0.3s;
+    }
 
     path:not(:first-child){
       stroke: $gray; // inner line
@@ -278,7 +331,7 @@
   svg.pf-map-connection-jumpbridge {
 
     path:first-child{
-      stroke: $teal;
+      stroke: rgba(255,255,255,0);  // invisible border color
     }
 
     path:not(:first-child){
@@ -287,6 +340,10 @@
 
     &:hover{
       path:first-child{
+        stroke: rgba(255,255,255,0);  // invisible border color
+      }
+
+      path:not(:first-child){
         stroke: $gray-lightest;
       }
     }
@@ -304,7 +361,7 @@
 
     &:hover{
       path:first-child{
-        stroke: $pink;
+        stroke: $gray-lightest;
       }
     }
   }

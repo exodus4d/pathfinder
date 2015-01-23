@@ -1,3 +1,13 @@
+body{
+  // prevent marking text
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
 
 a{
   color: $teal-dark;
@@ -18,6 +28,7 @@ em{
 }
 
 // full screen view of an element
+/*
 .pf-fullscreen{
 
   &:fullscreen, &:-webkit-full-screen, {
@@ -33,6 +44,7 @@ em{
     background-color: green;
   }
 }
+*/
 
 // ajax laoding indicator overlay
 
@@ -331,7 +343,14 @@ em{
 
   &.pf-map-connection-jumpbridge{
     background-color: $teal-light;
-    border-color: $teal-light;
+    border-color: $gray;
+    background: repeating-linear-gradient(
+        to right,
+        $teal-light,
+        $teal-light 10px,
+        $gray 10px,
+        $gray 20px
+    );
   }
 
   &.pf-map-connection-wh-eol{
@@ -411,9 +430,22 @@ em{
 #pf-head{
 
   a{
+
+    &:focus{
+      color: $teal-dark;
+    }
+
     &:hover{
       text-decoration: none;
+
+      .badge{
+        color: $teal-light;
+      }
     }
+  }
+
+  i{
+    margin-right: 2px;
   }
 
   .pf-head-menu{
@@ -433,6 +465,15 @@ em{
       background: inline-image("#{$base-url}/icons/logo-18x18-teal.png");
     }
 
+  }
+
+  .badge{
+    background-color: $gray;
+    color: $gray-lighter;
+  }
+
+  .pf-head-active-user, .pf-head-current-location{
+    display: none; // triggered by js
   }
 
 }

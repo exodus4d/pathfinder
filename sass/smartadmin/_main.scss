@@ -1047,6 +1047,8 @@ input[type="text"]:focus + .input-group-addon {
   &:hover{
     color: $gray-darkest;
     border-color: transparent transparent $gray-lighter transparent;
+    margin-top: 1px;
+    border-top-width: 0;
   }
 }
 .nav-tabs > li.active > a {
