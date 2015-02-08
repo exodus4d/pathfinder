@@ -182,9 +182,9 @@ $table-border-color:            $gray-dark;
 
 $btn-font-weight:                normal;
 
-$btn-default-color:              #333;
-$btn-default-bg:                 $gray-lightest;
-$btn-default-border:             #ccc;
+$btn-default-color:              $gray-lightest;
+$btn-default-bg:                 $gray-light;
+$btn-default-border:             darken($gray-light, 5%);
 
 $btn-primary-color:              $gray-lightest;
 $btn-primary-bg:                 $brand-primary;
@@ -230,7 +230,7 @@ $input-height-small:             (floor($font-size-small * $line-height-small) +
 $legend-color:                   $gray-dark;
 $legend-border-color:            #e5e5e5;
 
-$input-group-addon-bg:           $gray-lighter;
+$input-group-addon-bg:           $gray-darker;
 $input-group-addon-border-color: $input-border;
 
 
@@ -290,13 +290,13 @@ $screen-tablet:              $screen-sm-min;
 
 // Medium screen / desktop
 // Note: Deprecated $screen-md and $screen-desktop as of v3.0.1
-$screen-md:                  900px;
+$screen-md:                  1200px;
 $screen-md-min:              $screen-md;
 $screen-desktop:             $screen-md-min;
 
 // Large screen / wide desktop
 // Note: Deprecated $screen-lg and $screen-lg-desktop as of v3.0.1
-$screen-lg:                  1200px;
+$screen-lg:                  1600px;
 $screen-lg-min:              $screen-lg;
 $screen-lg-desktop:          $screen-lg-min;
 
@@ -569,7 +569,7 @@ $modal-backdrop-opacity:      .5;
 $modal-header-border-color:   #e5e5e5;
 $modal-footer-border-color:   $modal-header-border-color;
 
-$modal-lg:                    900px;
+$modal-lg:                    820px;
 $modal-md:                    600px;
 $modal-sm:                    300px;
 
@@ -779,7 +779,7 @@ $page-header-border-color:    $gray-lighter;
 $hr-border:                   $gray-lighter;
 
 //** Horizontal offset for forms and lists.
-$component-offset-horizontal: 180px;
+$component-offset-horizontal: 100px;
 
 /* SMARTADMIN VARIABLES
  * All variables related specifically to the theme starts from here:

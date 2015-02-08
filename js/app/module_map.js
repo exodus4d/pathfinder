@@ -5,7 +5,8 @@ define([
     'app/render',
     'bootbox',
     'morris',
-    'datatables',
+    //'datatables',
+    'datatablesTableTools',
     'xEditable',
     'app/map/map',
     'app/counter'
@@ -18,11 +19,11 @@ define([
     var config = {
         dynamicElementWrapperId: 'pf-dialog-wrapper',                           // parent Element for dynamic content (dialogs,..)
         mapTabElementId: 'pf-map-tab-element',                                  // id for map tab element (tabs + content)
-        mapTabBarId: 'pf-map-tabs',
-        mapTabIdPrefix: 'pf-map-tab-',
-        mapTabClass: 'pf-map-tab',
+        mapTabBarId: 'pf-map-tabs',                                             // id for map tab bar
+        mapTabIdPrefix: 'pf-map-tab-',                                          // id prefix for a map tab
+        mapTabClass: 'pf-map-tab',                                              // class for a map tab
         mapTabLinkTextClass: 'nav-tabs-link',                                   // class for span elements in a tab
-        mapTabContentClass: 'pf-map-tab-content',
+        mapTabContentClass: 'pf-map-tab-content',                               // class for tab content container
         mapTabContentSystemInfoClass: 'pf-map-tab-content-system',
         mapWrapperClass: 'pf-map-wrapper',                                      // scrollable
         mapClass: 'pf-map',                                                     // class for each map
@@ -77,13 +78,7 @@ define([
         systemKillsGraphData: {} // data for system kills info graph
     };
 
-
-
-    var saveMapData = function(mapData){
-
-        // TODO: save map
-        console.log(mapData);
-    };
+    var mapTabChangeBlocked = false;                                            // flag for preventing map tab switch
 
     /**
      * get all maps for a maps module
@@ -118,7 +113,7 @@ define([
      * @returns {*}
      */
     var getTabElements = function(){
-        return $('#' + config.mapTabBarId).find('a[data-toggle="tab"]');
+        return $('#' + config.mapTabBarId).find('a');
     };
 
     /**
@@ -154,7 +149,7 @@ define([
             id: config.signatureReaderDialogId
         };
 
-        requirejs(['text!templates/modules/signature_reader_dialog.html', 'lib/mustache'], function(template, Mustache) {
+        requirejs(['text!templates/modules/signature_reader_dialog.html', 'mustache'], function(template, Mustache) {
 
             var content = Mustache.render(template, data);
 
@@ -295,7 +290,7 @@ define([
                     moduleElement.showSignatureReaderDialog(systemData);
                 }).prepend(
                         $('<i>', {
-                            class: ['fa', 'fa-copy', 'fa-fw'].join(' ')
+                            class: ['fa', 'fa-clipboard', 'fa-fw'].join(' ')
                         })
                     )
             ).append(
@@ -977,14 +972,8 @@ define([
                 chartData.push(tempData);
             }
 
-            var serverDate= new Date(
-                localDate.getUTCFullYear(),
-                localDate.getUTCMonth(),
-                localDate.getUTCDate(),
-                localDate.getUTCHours(),
-                localDate.getUTCMinutes(),
-                localDate.getUTCSeconds()
-            );
+            // get current server time
+            var serverDate= Util.getServerTime();
 
             // get all kills until current server time
             var dateStringEnd = String( serverDate.getFullYear() );
@@ -1685,14 +1674,18 @@ define([
 
 
     /**
-     * updates complete map module (all maps)
+     * updates only visible/active map module
      * @param userData
      * @returns {boolean}
      */
+    var test = 1
     $.fn.updateMapModuleData = function(userData){
 
+        var mapModule = $(this);
+
+        test++;
         // get all active map elements for module
-        var mapElements = $(this).getMaps();
+        var mapElement = mapModule.getActiveMap();
 
         var currentUserData = null;
 
@@ -1701,26 +1694,46 @@ define([
             currentUserData = userData.currentUserData;
         }
 
-        // get map Data
-        for(var i = 0; i < mapElements.length; i++){
-            var mapElement = $(mapElements[i]);
+        if(mapElement !== false){
             var mapId = mapElement.data('id');
 
-            var mapUserData = null;
+            //var tempMapUserData = null;
             // get user data for each active map
+            var tempMapUserDataClone = null;
 
             for(var j = 0; j < userData.mapUserData.length; j++){
-                var tempMapData = userData.mapUserData[j];
+                //var tempMapData = userData.mapUserData[j];
+                var tempMapData = JSON.parse(JSON.stringify(userData.mapUserData[j]));
                 if(tempMapData.config.id === mapId){
                     // map userData found
-                    mapUserData = tempMapData;
+
+                    // clone object (pass by value) due to object manipulation
+                    tempMapUserDataClone = JSON.parse(JSON.stringify(tempMapData));
+
+                    // TODO remove !!!!
+                    if( (test % 2) === 0){
+                        tempMapUserDataClone.data.systems[0].user.push({
+                            id: 7,
+                            name: 'Lijama',
+                            ship: {
+                                id: 59,
+                                name: 'Archon'
+                            },
+                            status: 'corp'
+                        })
+                    }else if((test % 3) === 0){
+                        tempMapUserDataClone.data.systems = new Array();
+
+                    }
+
                     break;
                 }
             }
 
             // update map
-            if(mapUserData){
-                mapElement.updateUserData(mapUserData, currentUserData);
+            if(tempMapUserDataClone){
+                //console.log('User: ' + tempMapUserDataClone.data.systems[0].user.length);
+                mapElement.updateUserData(tempMapUserDataClone, currentUserData);
             }
         }
 
@@ -1800,7 +1813,7 @@ define([
         // link element -------
         var linkElement = $('<a>', {
             href: '#' + config.mapTabIdPrefix + options.id
-        }).attr('role', 'tab').attr('data-toggle', 'tab').data('map-id', options.id);
+        }).attr('role', 'tab').data('map-id', options.id);
 
         // icon element ------
         var iconElement = $('<i>', {
@@ -1832,6 +1845,43 @@ define([
         }
 
         tabContent.append(contentElement);
+
+
+        // init tab =========================================================
+        linkElement.on('click', function(e){
+            e.preventDefault();
+
+            // callback function after tab switch
+            function switchTabCallback(mapElement, tabLinkElement){
+                tabLinkElement.tab('show');
+                // unfreeze map
+                mapElement.data('frozen', false);
+                return false;
+            }
+
+            if(mapTabChangeBlocked === false){
+
+                var tabLinkElement = $(this);
+                var mapId = tabLinkElement.data('map-id');
+
+                var mapElement = $('#' + config.mapTabElementId).getActiveMap();
+
+                if(mapId !== mapElement.data('id')){
+                    // block tabs until switch is done
+                    mapTabChangeBlocked = true;
+
+                    // freeze active map -> no user data update while map switch
+                    mapElement.data('frozen', true);
+
+                    // hide current map with animation
+                    mapElement.visualizeMap('hide', function(){
+                        // un-block map tabs
+                        mapTabChangeBlocked = switchTabCallback(mapElement, tabLinkElement);
+                    });
+                }
+            }
+        });
+
 
         return {
             listElement: newListElement,
@@ -1918,7 +1968,6 @@ define([
 
         if(tabMapElement.length > 0){
             // tab element already exists
-
             var tabElements = getTabElements();
 
             // mapIds that are currently active
@@ -2043,7 +2092,7 @@ define([
             tabContentElements.initContentStructure();
 
             // load first map i in first tab content container
-            $( tabContentElements[0] ).updateMapData(tempMapData[0]);
+            $( tabContentElements[0] ).loadMap( tempMapData[0] );
         }
 
         if(tabsChanged === true){
@@ -2075,7 +2124,7 @@ define([
                     // load map
                     var currentTabContentElement = $('#' + config.mapTabIdPrefix + mapId);
 
-                    $( currentTabContentElement).updateMapData( tabMapData);
+                    $( currentTabContentElement).loadMap( tabMapData );
 
                     // "wake up" scrollbar for map and get previous state back
                     var scrollableElement = currentTabContentElement.find('.' + config.mapWrapperClass);
@@ -2093,6 +2142,7 @@ define([
 
                 // disable map if new map is selected -> not "add button"
                 if(newMapId > 0){
+
                     var currentTabContentElement = $('#' + config.mapTabIdPrefix + oldMapId);
 
                     // disable scrollbar for map that will be hidden. "freeze" current state
@@ -2126,18 +2176,5 @@ define([
 
         return data;
     };
-
-    /**
-     * load OR updates a map module with its data
-     * @param mapData
-     * @returns {*}
-     */
-    $.fn.updateMapData = function(mapData){
-
-        return this.each(function(){
-            $(this).loadMap(mapData);
-        });
-    };
-
 
 });

@@ -4,12 +4,14 @@ define([
     'app/util',
     'app/render',
     'bootbox',
+    'app/ccp',
     'jsPlumb',
     'customScrollbar',
     'dragToSelect',
+    'select2',
     'hoverIntent',
     'app/map/contextmenu'
-], function($, Init, Util, Render, bootbox) {
+], function($, Init, Util, Render, bootbox, CCP) {
 
     "use strict";
 
@@ -42,7 +44,9 @@ define([
         systemBodyItemClass: 'pf-system-body-item',                     // class for a system body entry
         systemBodyItemStatusClass: 'pf-user-status',
         systemBodyRightClass: 'pf-system-body-right',
-        dynamicElementWrapperId: 'pf-dialog-wrapper',                     // wrapper div for dynamic content (dialogs, context-menus,...)
+        systemTooltipInnerClass: 'pf-system-tooltip-inner',             // class for system tooltip content
+        systemTooltipInnerIdPrefix: 'pf-system-tooltip-inner-',         // id prefix for system tooltip content
+        dynamicElementWrapperId: 'pf-dialog-wrapper',                   // wrapper div for dynamic content (dialogs, context-menus,...)
 
         // endpoint classes
         endpointSourceClass: 'pf-map-endpoint-source',
@@ -170,6 +174,9 @@ define([
         // find expand arrow
         var systemHeadExpand = $( system.find('.' + config.systemHeadExpandClass) );
 
+        var oldCacheKey = system.data('userCache');
+        var oldUserCount = system.data('userCount');
+        oldUserCount = (oldUserCount !== undefined ? oldUserCount : 0);
         var userCounter = 0;
 
         system.data('currentUser', false);
@@ -179,27 +186,25 @@ define([
             system.data('currentUser', true);
         }
 
-        var oldCacheKey = system.data('userCache');
-
         // add user information
         if(
             data &&
             data.user
         ){
-
             var cacheArray = [];
             // loop all active pilots and build cache-key
             for(var i = 0; i < data.user.length; i++){
+                userCounter++;
                 var tempUserData = data.user[i];
                 cacheArray.push(tempUserData.id + '_' + tempUserData.ship.name);
             }
-
             var cacheKey = cacheArray.join('_');
 
             // check for if cacheKey has changed
             if(cacheKey !== oldCacheKey){
                 // set new CacheKey
                 system.data('userCache', cacheKey);
+                system.data('userCount', userCounter);
 
                 // remove all content
                 systemBody.empty();
@@ -207,7 +212,6 @@ define([
                 // loop "again" and build DOM object with user information
                 for(var j = 0; j < data.user.length; j++){
                     var userData = data.user[j];
-                    userCounter++;
 
                     var statusClass = getStatusClassForUser(userData.status);
                     var userName = userData.name;
@@ -235,68 +239,119 @@ define([
 
                 // =================================================================
 
-                // user count changed -> adapt tooltip
-                system.tooltip('destroy');
+                // user count changed -> change tooltip content
+                var tooltipOptions = {placement: 'top', trigger: 'manual'};
 
-                system.attr('title', userCounter);
+                // set tooltip color
+                var highlight = false;
+                var tooltipIconClass = '';
+                if(userCounter > oldUserCount){
+                    highlight = 'good';
+                    tooltipIconClass = 'fa-caret-up';
+                }else if(userCounter < oldUserCount){
+                    highlight = 'bad';
+                    tooltipIconClass = 'fa-caret-down';
+                }
+
+                tooltipOptions.id = systemId;
+                tooltipOptions.highlight = highlight;
+                tooltipOptions.title = '<i class="fa ' + tooltipIconClass + '"></i>';
+                tooltipOptions.title += '&nbsp;' + userCounter;
 
                 // show system head
-                systemHeadExpand.velocity({
+                systemHeadExpand.velocity('stop', true).velocity({
                     width: '10px'
                 },{
                     duration: 50,
                     display: 'inline-block',
                     progress: function(){
-                        // revalidate element size and repaint
+                        //revalidate element size and repaint
                         map.revalidate( systemId );
                     },
                     complete: function(){
-
                         // show system body
-                        systemBody.velocity({
-                            height: config.systemBodyItemHeight + 'px'
-                        },{
-                            duration: 50,
-                            display: 'auto',
-                            progress: function(){
-                                // revalidate element size and repaint
-                                map.revalidate( systemId );
-                            }
-                        });
+                        system.toggleBody(true, map, {complete: function(){
+                            // complete callback function
+                            // show active user tooltip
+                            system.toggleSystemTooltip('show', tooltipOptions);
+                        }});
 
-                        // show active user tooltip
-                        toggleSystemTooltip([system], 'show', {placement: 'top', trigger: 'manual'});
+
                     }
                 });
             }
         }else{
             // no user data found for this system
             system.data('userCache', false);
+            system.data('userCount', 0);
+            systemBody.empty();
 
             if(
                 oldCacheKey &&
                 oldCacheKey.length > 0
             ){
+                // remove tooltip
+                system.toggleSystemTooltip('destroy', {});
+
                 // no user -> clear SystemBody
-                systemHeadExpand.velocity('reverse',{
+                systemHeadExpand.velocity('stop', true).velocity('reverse',{
                     display: 'none',
                     complete: function(){
-                        systemBody.velocity('reverse',{
-                            display: 'none',
-                            progress: function(){
-                                // revalidate element size and repaint
-                                map.revalidate( systemId );
-                                systemBody.empty();
-                            }
-                        });
+                        system.toggleBody(false, map, {});
                     }
                 });
             }
-
         }
+    };
+
+    $.fn.toggleBody = function(type, map, callback){
+        var system = $(this);
+        var systemBody = system.find('.' + config.systemBodyClass);
+
+        var systemDomId = system.attr('id');
+
+        if(type === true){
+            // show minimal body
+            systemBody.velocity({
+                height: config.systemBodyItemHeight + 'px'
+            },{
+                duration: 50,
+                display: 'auto',
+                progress: function(){
+                    //revalidate element size and repaint
+                    map.revalidate( systemDomId );
+                },
+                complete: function(){
+                    map.revalidate( systemDomId );
+
+                    if(callback.complete){
+                        callback.complete();
+                    }
 
 
-
+                }
+            });
+        }else if(type === false){
+            // hide body
+            // remove all inline styles -> possible relict from previous hover-extend
+            systemBody.velocity({
+                height: 0 + 'px',
+                width: '100%',
+                'min-width': 'none'
+            },{
+                duration: 50,
+                display: 'none',
+                begin: function(){
+                },
+                progress: function(){
+                    // revalidate element size and repaint
+                    map.revalidate( systemDomId );
+                },
+                complete: function(){
+                    map.revalidate( systemDomId );
+                }
+            });
+        }
     };
 
     /**
@@ -305,15 +360,107 @@ define([
      * @param show
      * @param options
      */
-    var toggleSystemTooltip = function(systems, show, options){
+    $.fn.toggleSystemTooltip = function(show, options){
 
-        for(var i = 0; i < systems.length; i++){
-            if(options){
-                $(systems[i]).tooltip(options);
+        // tooltip colors
+        var colorClasses = {
+            good: 'txt-color-green',
+            bad: 'txt-color-red'
+        };
+
+        return this.each(function(){
+            var system = $(this);
+            var tooltipId = 0;
+            var tooltipClassHighlight = false;
+
+            // do not update tooltips while a system is dragged
+            if(system.hasClass('jsPlumb_dragged')){
+                // skip system
+                return true;
             }
-        }
 
-        $(systems).tooltip(show);
+            if(show === 'destroy'){
+                system.tooltip( show );
+            }else if(show === 'hide'){
+                system.tooltip( show );
+            } else if(show === 'toggle'){
+                system.tooltip( show );
+            }else if(show === 'show'){
+
+                // check if tooltip is currently visible
+                var tooltipActive = (system.attr('aria-describedby') !== undefined ? true : false);
+
+                if(options === undefined){
+                    options = {};
+                }
+
+                // optional color highlight
+                if(colorClasses.hasOwnProperty( options.highlight )){
+                    tooltipClassHighlight = colorClasses[ options.highlight ];
+                }
+
+                if(
+                    tooltipActive === false &&
+                    options.id
+                ){
+                    // init new tooltip
+                    tooltipId = config.systemTooltipInnerIdPrefix + options.id;
+
+                    var template = '<div class="tooltip" role="tooltip">' +
+                        '<div class="tooltip-arrow"></div>' +
+                        '<div id="' + tooltipId + '" class="tooltip-inner txt-color ' + config.systemTooltipInnerClass + '"></div>' +
+                        '</div>';
+
+                    options.html = true;
+                    options.animation = true;
+                    options.template = template;
+
+                    system.attr('title', options.title);
+
+                    system.tooltip(options);
+
+                    system.tooltip(show);
+
+                    if(tooltipClassHighlight !== false){
+                        // set tooltip observer and set new class after open -> due to transition effect
+
+                        system.on('shown.bs.tooltip', function() {
+                            $('#' + tooltipId).addClass( tooltipClassHighlight );
+                            // remove observer -> color should not be changed every time a tooltip toggles e.g. dragging system
+                            $(this).off('shown.bs.tooltip');
+                        });
+                    }
+                }else{
+                    // update/change/toggle tooltip text or color without tooltip reload
+
+                    var tooltipInner = false;
+                    if(
+                        options.title ||
+                        tooltipClassHighlight !== false
+                    ){
+                        tooltipInner = system.tooltip('fixTitle')
+                            .data('bs.tooltip')
+                            .$tip.find('.tooltip-inner');
+
+                        if(options.title){
+                            tooltipInner.html( options.title );
+                        }
+
+                        if(tooltipClassHighlight !== false){
+                            tooltipInner.removeClass( colorClasses.good + ' ' + colorClasses.bad).addClass(tooltipClassHighlight);
+                        }
+                    }
+
+                    // show() can be forced
+                    if(options.show === true){
+                        system.tooltip('show');
+                    }
+
+                }
+            }
+
+
+        });
     };
 
     /**
@@ -448,13 +595,14 @@ define([
     };
 
     /**
-     * draw a new map with all systems and connections
+     * draw a new map or update an existing map with all its systems and connections
+     * @param parentElement
      * @param mapConfig
+     * @returns {*}
      */
     var updateMap = function(parentElement, mapConfig){
 
         var mapContainer = mapConfig.map.getContainer();
-
 
         // prevent jsPlumb from re-painting during main-map update -> performance boost :)
         mapConfig.map.doWhileSuspended(function() {
@@ -481,7 +629,6 @@ define([
                 // append mapWrapper to parent element (at the top)
                 $(parentElement).prepend(mapWrapper);
 
-
                 // set main Container for current map -> the container exists now in DOM !! very important
                 mapConfig.map.setContainer($('#' + config.mapIdPrefix + mapConfig.config.id));
 
@@ -489,13 +636,13 @@ define([
                 setMapObserver(mapConfig.map);
             }
 
+            mapContainer = $(mapContainer);
+
             // add additional information
             mapContainer.data('name', mapConfig.config.name);
             mapContainer.data('scope', mapConfig.config.scope);
             mapContainer.data('icon', mapConfig.config.icon);
             mapContainer.data('type', mapConfig.config.type);
-
-            mapContainer = $(mapContainer);
 
             // get map data
             var mapData = mapContainer.getMapData();
@@ -613,6 +760,117 @@ define([
             }
         });
 
+
+        return mapContainer;
+    };
+
+    /**
+     * make all systems appear visual on the map with its connections
+     * @param show
+     * @param callback
+     */
+    $.fn.visualizeMap = function(show, callback){
+        var mapElement = $(this);
+
+        // start map update counter -> prevent map updates during animations
+        mapElement.getMapOverlay().startMapUpdateCounter();
+
+        var systemElements = mapElement.find('.' + config.systemClass);
+        var endpointElements =  mapElement.find('._jsPlumb_endpoint');
+        var connectorElements = mapElement.find('._jsPlumb_connector');
+        var overlayElements = mapElement.find('._jsPlumb_overlay, .tooltip');
+
+        // if map empty (no systems), execute callback and return
+        // no visual effects in IGB (glitches)
+        if(
+            systemElements.length === 0 ||
+            CCP.isInGameBrowser() === true
+        ){
+            callback();
+            return;
+        }
+
+        // show nice animation
+        if(show === 'show'){
+            // hide elements
+            systemElements.css('opacity', 0);
+            endpointElements.css('opacity', 0);
+            connectorElements.css('opacity', 0);
+            overlayElements.css('opacity', 0);
+
+            systemElements.velocity('transition.whirlIn', {
+                stagger: 50,
+                drag: true,
+                duration: 100,
+                //display: 'auto',
+                complete: function(){
+                    // show connections
+                    endpointElements.velocity('transition.fadeIn', {
+                        stagger: 50,
+                        drag: true,
+                        duration: 50
+                    });
+
+                    connectorElements.velocity('transition.flipBounceXIn', {
+                        stagger: 50,
+                        drag: true,
+                        duration: 1000
+                    });
+
+                    overlayElements.delay(500).velocity('transition.fadeIn', {
+                        stagger: 50,
+                        drag: true,
+                        duration: 200,
+                        display: 'auto',
+                        complete: function(){
+                            callback();
+                        }
+                    });
+
+                }
+            });
+        }else if(show === 'hide'){
+
+            $('.mCSB_container').velocity('callout.shake', {
+                stagger: 0,
+                drag: false,
+                duration: 200,
+                display: 'auto'
+            });
+
+            overlayElements.velocity('transition.fadeOut', {
+                stagger: 50,
+                drag: true,
+                duration: 200,
+                display: 'auto'
+            });
+
+            endpointElements.velocity('transition.fadeOut', {
+                stagger: 0,
+                drag: true,
+                duration: 50,
+                display: 'block',
+                complete: function(){
+                    // show connections
+                    connectorElements.velocity('transition.fadeOut', {
+                        stagger: 0,
+                        drag: true,
+                        duration: 20,
+                        display: 'block'
+                    });
+
+                    systemElements.delay(100).velocity('transition.slideUpOut', {
+                        stagger: 50,
+                        drag: true,
+                        duration: 200,
+                        display: 'block',
+                        complete: function(){
+                            callback();
+                        }
+                    });
+                }
+            });
+        }
     };
 
     /**
@@ -726,11 +984,14 @@ define([
         map.removeAllEndpoints(system);
 
         // hide tooltip
-        toggleSystemTooltip(system, 'hide');
+        system.toggleSystemTooltip('hide', {});
 
         // remove system
-        system.fadeOut(300, function(){
-            $(this).remove() ;
+        system.velocity('transition.whirlOut', {
+            duration: Init.animationSpeed.mapDeleteSystem,
+            complete: function(){
+                $(this).remove() ;
+            }
         });
     };
 
@@ -826,6 +1087,7 @@ define([
         var counterChart = mapOverlay.getMapCounter();
 
         var seconds = 10;
+        var fadeEffectDuration = 200;
 
         // get counter interval (in case there is an active one)
         var interval = counterChart.data('interval');
@@ -834,7 +1096,7 @@ define([
             clearInterval(interval);
         }
 
-        mapOverlay.fadeIn(200);
+        mapOverlay.velocity('stop').velocity('transition.whirlIn', { duration: fadeEffectDuration });
 
         var counterChartLabel = counterChart.find('span');
 
@@ -848,13 +1110,12 @@ define([
             if(seconds <= 0){
                 clearInterval(mapUpdateCounter);
 
-
-                setTimeout(function(){
-                    mapOverlay.fadeOut(200);
-                    counterChart.data('interval', false);
-                }, 800);
-
-                return;
+                mapOverlay.velocity('transition.whirlOut', {
+                    duration: fadeEffectDuration,
+                    complete: function(){
+                        counterChart.data('interval', false);
+                    }
+                });
             }
         };
 
@@ -1236,7 +1497,7 @@ define([
                 selectedSystems = $.unique( selectedSystems );
 
                 // hide tooltip
-                toggleSystemTooltip( selectedSystems, 'hide' );
+                $(selectedSystems).toggleSystemTooltip('hide', {});
             },
             drag: function(){
 
@@ -1252,7 +1513,7 @@ define([
                 }, 200);
 
                 // render tooltip
-                toggleSystemTooltip([dragSystem], 'show');
+                dragSystem.toggleSystemTooltip('show', {show: true});
 
                 // drag system is not always selected
                 var selectedSystems = mapContainer.getSelectedSystems().get();
@@ -1298,27 +1559,28 @@ define([
             var hoverSystemId = hoverSystem.attr('id');
 
             // get ship counter and calculate expand height
-            var shipCounter = parseInt( system.attr('data-original-title') );
+            var userCount = parseInt( hoverSystem.data('userCount') );
 
-            var expandheight = shipCounter * config.systemBodyItemHeight;
+            var expandHeight = userCount * config.systemBodyItemHeight;
 
-            systemBody.velocity(
+            systemBody.velocity('stop').velocity(
                 {
-                    height: expandheight + 'px',
-                    width: 100,
+                    height: expandHeight + 'px',
+                    width: 150,
                     'min-width': '150px'
                 },{
-                    duration: 100,
+                    easing: 'easeInOutQuart',
+                    duration: 150,
                     progress: function(){
                         // repaint connections of current system
                         map.revalidate( hoverSystemId );
                     },
                     complete: function(){
                         map.revalidate( hoverSystemId );
-                        $(this).find('.' + config.systemBodyRightClass).velocity({
+                        $(this).find('.' + config.systemBodyRightClass).velocity('stop').velocity({
                             opacity: 1
                         },{
-                            duration: 50,
+                            duration: 150,
                             display: 'auto'
                         });
                     }
@@ -1330,13 +1592,15 @@ define([
             var hoverSystem = $(this).parents('.' + config.systemClass);
             var hoverSystemId = hoverSystem.attr('id');
 
-            systemBody.find('.' + config.systemBodyRightClass).velocity( {
-                opacity: 0
+            systemBody.find('.' + config.systemBodyRightClass).velocity('stop').velocity( {
+                opacity: 0,
+                'min-width': '0px'
             },{
-                duration: 100,
+                easing: 'easeInOutQuart',
+                duration: 150,
                 display: 'none',
                 complete: function(){
-                    systemBody.velocity('reverse', {
+                    systemBody.velocity('stop').velocity('reverse', {
                         complete: function(){
                             // overwrite "complete" function from first "hover"-open
                             map.revalidate( hoverSystemId );
@@ -1820,8 +2084,6 @@ define([
         });
 
 
-
-
         // catch menu events ====================================================
 
         // toggle "snap to grid" option
@@ -1884,6 +2146,7 @@ define([
                 hiddenOptions.push('scope_stargate');
             }else if(scope === 'jumpbridge'){
                 hiddenOptions.push('frigate');
+                hiddenOptions.push('preserve_mass');
                 hiddenOptions.push('change_status');
                 hiddenOptions.push('scope_jumpbridge');
             }else if(scope === 'wh'){
@@ -2131,9 +2394,12 @@ define([
             status: systemStatus
         };
 
-        requirejs(['text!templates/modules/system_dialog.html', 'lib/mustache'], function(template, Mustache) {
+        requirejs(['text!templates/modules/system_dialog.html', 'mustache'], function(template, Mustache) {
 
             var content = Mustache.render(template, data);
+
+            // disable modal focus event -> otherwise select2 is not working! -> quick fix
+            $.fn.modal.Constructor.prototype.enforceFocus = function() {};
 
             var systemDialog = bootbox.dialog({
                     title: 'Add new system',
@@ -2199,6 +2465,9 @@ define([
                                 if(!newSystemData.hasOwnProperty('id')){
                                     newSystemData.id = config.tempId++;
                                 }
+                                if(!newSystemData.hasOwnProperty('alias')){
+                                    newSystemData.alias = '';
+                                }
                                 if(!newSystemData.hasOwnProperty('effect')){
                                     newSystemData.effect = '';
                                 }
@@ -2215,6 +2484,39 @@ define([
                 }
             );
 
+
+            // init dialog
+            systemDialog.on('shown.bs.modal', function(e) {
+
+                var selectData = [];
+                for(var i = 0; i < 5000; i++){
+                    selectData.push({
+                        id: i,
+                        text: i + 'test'
+                    });
+                }
+
+                $.when(
+                    $(".js-example-basic-single").select2({
+                        // multiple: true,
+                        data: selectData,
+                        placeholder: 'Name',
+                        allowClear: true
+                    })
+                ).done(function(){
+                    $('#testId').css({'display': 'block'});
+                });
+
+            });
+
+
+
+
+
+
+
+
+
             // make dialog editable
             var modalFields = $('.bootbox .modal-dialog').find('.pf-editable-system-status');
 
@@ -2222,6 +2524,7 @@ define([
                 mode: 'inline',
                 emptytext: 'unknown',
                 onblur: 'submit',
+                showbuttons: false,
                 source: systemStatus
             });
 
@@ -2237,15 +2540,29 @@ define([
      * @param currentUserData
      * @returns {boolean}
      */
+
     $.fn.updateUserData = function(userData, currentUserData){
+
+        var returnStatus = true;
+
         // get all systems
         var systems = $(this).find('.' + config.systemClass);
 
         // get new map instance or load existing
         var map = getMapInstance(userData.config.id);
 
+        var mapElement = map.getContainer();
+
+
         // container must exist! otherwise systems cant be updated
-        if(map.getContainer() !== undefined){
+        if(mapElement !== undefined){
+
+            mapElement = $(mapElement);
+
+            // check if map is frozen
+            if(mapElement.data('frozen') === true){
+                return returnStatus;
+            }
 
             // data for header update
             var headerUpdateData = {
@@ -2294,7 +2611,7 @@ define([
             $(document).trigger('pf:updateHeaderData', headerUpdateData);
         }
 
-        return true;
+        return returnStatus;
     };
 
     /**
@@ -2353,7 +2670,7 @@ define([
                 systemData.rally = tempSystem.data('rally');
                 systemData.currentUser = tempSystem.data('currentUser');
                 systemData.updated = tempSystem.data('updated');
-                systemData.userCount = (tempSystem.attr('data-original-title') ? parseInt( tempSystem.attr('data-original-title') ) : 0);
+                systemData.userCount = (tempSystem.data('userCount') ? parseInt( tempSystem.data('userCount') ) : 0);
 
                 // position -------------------------------
                 var positionData = {};
@@ -2420,6 +2737,7 @@ define([
 
         if(typeof activeInstances[mapId] !== 'object'){
             // create new instance
+            jsPlumb.Defaults.LogEnabled = true;
             var newJsPlumbInstance =  jsPlumb.getInstance({
                 Container: null,                                                                // will be set as soon as container is connected to DOM
                 PaintStyle:{
@@ -2432,7 +2750,8 @@ define([
                 Endpoint : ['Dot', {radius: 6}],
                 // Endpoint: 'Blank', // does not work... :(
                 ReattachConnections: false,                                                     // re-attach connection if dragged with mouse to "nowhere"
-                Scope: Init.defaultMapScope                                                     // default map scope for connections
+                Scope: Init.defaultMapScope,                                                     // default map scope for connections
+                LogEnabled: true
             });
 
             // register all available connection types
@@ -2521,8 +2840,6 @@ define([
 
         // init jsPlumb
         jsPlumb.ready(function() {
-
-
             // get new map instance or load existing
             mapConfig.map = getMapInstance(mapConfig.config.id);
 
@@ -2533,14 +2850,24 @@ define([
             }
 
             //  draw/update map initial map and set container
-            updateMap(parentElement, mapConfig);
+            var mapContainer = updateMap(parentElement, mapConfig);
 
             if(newMap){
-                // init custom scrollbars
+                // init custom scrollbars and add overlay
                 parentElement.initMapScrollbar();
-
-                Util.showNotify({title: 'Map initialized', text: mapConfig.config.name  + ' - loaded', type: 'success'});
             }
+
+            // callback function after tab switch
+            function switchTabCallback( mapName ){
+                Util.showNotify({title: 'Map initialized', text: mapName  + ' - loaded', type: 'success'});
+
+                return false;
+            }
+
+            // show nice visualization effect
+            mapContainer.visualizeMap('show', function(){
+                switchTabCallback( mapConfig.config.name );
+            });
 
         });
     };

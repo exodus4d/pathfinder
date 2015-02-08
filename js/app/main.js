@@ -5,13 +5,15 @@
 define([
     'jquery',
     'app/init',
+    'app/util',
     'app/render',
-    'velocity',
+    'app/logging',
     'app/ccp',
+    'velocity',
+    'velocityUI',
     'app/page',
-    'app/module_map',
-    'throttleDebounce'
-], function($, Init, Render, Velocity, CCP) {
+    'app/module_map'
+], function($, Init, Util, Render, Logging, CCP) {
 
     'use strict';
 
@@ -23,7 +25,10 @@ define([
     $(function() {
         //CCP.requestTrust();
 
+        // init logging
+        Logging.init();
 
+        // load page
         $('body').loadPageStructure();
 
         // Map init options
@@ -318,7 +323,7 @@ define([
                         status: 'friendly',
                         position: {
                             x: 5,
-                            y: 7
+                            y: 200
                         },
                         updated: 1420903681
                     },{
@@ -364,7 +369,7 @@ define([
 
 
         // current user Data for a map
-        var userData ={
+        var tempUserData ={
             currentUserData: {
                 ship: 'Legion',
                 name: 'Exodus 4D',
@@ -388,7 +393,7 @@ define([
                                         name: 'Exodus 4D',
                                         ship: {
                                             id: 55,
-                                            name: 'legion'
+                                            name: 'Legion'
                                         },
                                         status: 'corp'
                                     }
@@ -426,6 +431,28 @@ define([
                             }
                         ]
                     }
+                },{
+                    config: {   // map config
+                        id: 2   // map id
+                    },
+                    data: {
+                        systems:[   // systems in map
+                            {
+                                id: 50,  // system id
+                                user: [
+                                    {
+                                        id: 6,
+                                        name: 'Schleiferius',
+                                        ship: {
+                                            id: 69,
+                                            name: 'Tengu'
+                                        },
+                                        status: 'corp'
+                                    }
+                                ]
+                            }
+                        ]
+                    }
                 }
             ]};
 
@@ -437,6 +464,14 @@ define([
             var mapDataUpdateActive = true;         // allow update "map data"
             var userDataUpdateActive = true;        // allow update "user data"
 
+            var mapUpdateKey = 'mapUpdate';
+            var mapUpdateDelay = Init.timer[mapUpdateKey].delay;
+
+            var mapModuleDatakey = 'mapModuleData';
+
+            var mapUserUpdateKey = 'userUpdate';
+            var mapUserUpdateDelay = Init.timer[mapUserUpdateKey].delay;
+
             // ping for main map update
             var triggerMapUpdatePing = function(tempMapData){
 
@@ -445,11 +480,16 @@ define([
                     $(document).setProgramStatus('online');
 
                     mapDataUpdateActive = false;
-                    console.time('updateMapData')
 
+
+                    Util.timeStart(mapUpdateKey);
                     // load map module ==========================================
                     mapDataUpdateActive = mapModule.updateMapModule(tempMapData);
-                    console.timeEnd('updateMapData')
+                    var duration = Util.timeStop(mapUpdateKey);
+
+                    // log execution time
+                    Util.log(mapUpdateKey, {duration: duration, description: 'updateMapModule'});
+
                 }else{
                     // not finished in time -> to slow or error
                     $(document).setProgramStatus('problem');
@@ -457,33 +497,45 @@ define([
 
                 // get updated map data
                 if(mapDataUpdateActive === true){
-                    console.time('getMapData')
+                    Util.timeStart(mapModuleDatakey);
                     var mapData = mapModule.getMapModuleData();
-                    console.timeEnd('getMapData')
+                    var mapDataLogDuration = Util.timeStop(mapModuleDatakey);
+
+                    // log execution time
+                    Util.log(mapModuleDatakey, {duration: mapDataLogDuration, description: 'getMapModuleData'});
+
                 }
             };
 
             triggerMapUpdatePing(mapData);
-            setInterval(triggerMapUpdatePing, Init.timer.mapUpdatePing, mapData);
+            setInterval(triggerMapUpdatePing, mapUpdateDelay, mapData);
 
-            // ping for user data update
-            var triggerUserUpdatePing = function(tempUserData){
+            // ping for user data update -------------------------------------------------------
+
+
+            var triggerUserUpdatePing = function(userData){
 
                 // prevent multiple requests simultaneously
                 if(userDataUpdateActive === true){
                     $(document).setProgramStatus('online');
 
                     userDataUpdateActive = false;
-                    console.time('updateUserData');
+
+                    Util.timeStart(mapUserUpdateKey);
                     userDataUpdateActive = mapModule.updateMapModuleData(userData);
-                    console.timeEnd('updateUserData');
+                    var duration = Util.timeStop(mapUserUpdateKey);
+
+                    // log execution time
+                    Util.log(mapUserUpdateKey, {duration: duration, description:'updateMapModuleData'});
+
+
                 }else{
                     // not finished in time -> to slow or error
                     $(document).setProgramStatus('problem');
                 }
 
             };
-            setInterval(triggerUserUpdatePing, Init.timer.userUpdatePing, mapData);
+            setInterval(triggerUserUpdatePing, mapUserUpdateDelay, tempUserData);
 
         });
 

@@ -1,23 +1,24 @@
+<nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+        <div class="navbar-header pull-left">
+            <ul class="nav navbar-nav {{dialogNavigationClass}}">
+                <li class="{{dialogNavLiClass}}"><a data-action="refresh" href="#"><i class="fa fa-refresh fa-lg fa-fw"></i>&nbsp;Refresh</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
 
-
-<p>
-    This dialog shows live data stats of a map.
-</p>
 <h4><i class="fa fa-code-fork fa-lg fa-fw"></i> Map</h4>
-<dl class="dl-horizontal">
-    <dt>Name</dt>
-    <dd>{{mapName}}</dd>
-    <dt>Type</dt>
-    <dd class="{{mapTypeClass}}">{{mapTypeLabel}}</dd>
-</dl>
+
+<div id="{{mapInfoId}}" class="pf-dialog-dynamic-area">
+</div>
+
 <h4><i class="fa fa-sun-o fa-lg fa-fw"></i> Systems</h4>
 
-<div id="{{mapInfoSystemsId}}">
-
+<div id="{{mapInfoSystemsId}}" class="pf-dialog-dynamic-area">
 </div>
 
 <h4><i class="fa fa-chain fa-lg fa-fw"></i> Connections</h4>
 
-<div id="{{mapInfoConnectionsId}}">
-
+<div id="{{mapInfoConnectionsId}}" class="pf-dialog-dynamic-area">
 </div>

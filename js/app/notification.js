@@ -112,7 +112,7 @@ define([
 
             customConfig.delay = 10000;
             customConfig.desktop.desktop = true;
-console.log(customConfig.desktop)
+
             // make browser tab blink
             startTabBlink(customConfig.title);
 

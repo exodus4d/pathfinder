@@ -8,8 +8,17 @@ define(['jquery'], function($) {
 
     var Config = {
         timer: {
-            mapUpdatePing: 3000,                                     // ping for map update
-            userUpdatePing: 2000                                     // ping for map user update
+            mapUpdate: {
+                delay: 3000,                                        // delay between ping calls
+                executionLimit: 300                                 // log timelimit: main map update ping
+            },
+            userUpdate: {
+                delay: 2000,                                        // delay between ping calls
+                executionLimit: 100                                 // log timelimit: map user update ping
+            },
+            mapModuleData: {
+                executionLimit: 100                                 // log timelimit: get all mapData
+            }
         },
         path: {
           img: 'img/'
@@ -19,9 +28,25 @@ define(['jquery'], function($) {
             eveCentral: 'http://api.eve-central.com/api/'           // jump rout api
         },
         animationSpeed: {
-            headerLink: 100                                         // links in head bar
+            headerLink: 100,                                        // links in head bar
+            mapDeleteSystem: 200                                    // remove system from map
         },
         classes: {
+            // log types
+            logTypes: {
+                info: {
+                    class: 'pf-log-info',
+                    label: 'info'
+                },
+                warning: {
+                    class: 'pf-log-warning',
+                    label: 'warning'
+                },
+                error: {
+                    class: 'pf-log-error',
+                    label: 'error'
+                }
+            },
             // map types
             mapTypes: {
                 standard: {
@@ -242,7 +267,9 @@ define(['jquery'], function($) {
                     [ 'Label',
                         {
                             label: '<i class="fa fa-warning"></i>&nbsp;save mass',
-                            cssClass: ['pf-map-connection-overlay', 'mass'].join(' ')
+                            cssClass: ['pf-map-connection-overlay', 'mass'].join(' '),
+                            width:50, length:30,
+                            location: 0.5
                         } ]
                 ]
             }

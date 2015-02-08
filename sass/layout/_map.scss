@@ -2,13 +2,12 @@
 $mapHeight: 520px;
 $mapWidth: 2500px;
 
-
 // start bounce mixin ==============================================
 
 @mixin bounce-up-down{
 
   @include animation-duration( 1s);
-  @include animation-delay(1s);
+  @include animation-delay(0.5s);
   -webkit-animation-fill-mode: both;
   animation-fill-mode: both;
   -webkit-animation-timing-function: linear;
@@ -79,22 +78,22 @@ $mapWidth: 2500px;
   font-family: $font-family-bold;
 
   // jsPlumb classes =================================================
+
   ._jsPlumb_target, ._jsPlumb_source{
 
   }
 
   ._jsPlumb_overlay{
     opacity: 1;
-    @include transition-property(opacity);
-    @include transition-duration(0.1s);
-    @include transition-timing-function(ease-in);
+    pointer-events: none; // click through overlays
+    //@include transition( opacity 0.1s ease-in);
   }
 
-  
+  // hover effects ===================================================
 
-  // hover effect for connections
   ._jsPlumb_hover{
 
+    // hover effect for connections
     &._jsPlumb_overlay{      
       opacity: 0; // hide opacity on hover
     }    
@@ -119,6 +118,13 @@ $mapWidth: 2500px;
     background-color: $gray-dark;
     font-family: $font-family-bold;
     z-index: 100;
+    //opacity: 0; // trigger by js
+    border: {
+      width: 2px;
+      style: solid;
+      color: $gray-light;
+    }
+    @include border-radius(5px);
 
     // change border color with transition
     @include transition( border-color 0.5s ease-out, box-shadow 0.2s ease-out );
@@ -128,13 +134,6 @@ $mapWidth: 2500px;
       // makes the systems "flying" :)
       @include box-shadow(0 6px 12px rgba(0,0,0, 0.3));
       @include transform( translate3d(0, -2px, 0) );
-    }
-
-    @include border-radius(5px);
-    border: {
-      width: 2px;
-      style: solid;
-      color: $gray-light;
     }
 
     .pf-system-head{
@@ -195,7 +194,7 @@ $mapWidth: 2500px;
           color: $teal;
           display: none; // hover effect
         }
-        // user status =================================================
+        // user status ===============================================
         .pf-user-status{
           font-size: 7px;
         }
@@ -212,7 +211,7 @@ $mapWidth: 2500px;
 
     }
 
-    // system specific tooltip style
+    // system head specific tooltip style
     .tooltip{
 
       &.in{
@@ -224,11 +223,8 @@ $mapWidth: 2500px;
         background-color: $gray-lighter;
         padding: 3px 3px;
       }
-      
+
     }
-
-
-
   }
 
   // active system
@@ -263,13 +259,17 @@ $mapWidth: 2500px;
     }
   }
 
-  // Endpoints ====================================================
+  // Endpoints =======================================================
   .pf-map-endpoint-source, .pf-map-endpoint-target{
 
     z-index: 50;
     svg {
       width: 10;
       height: 10;
+
+      circle{
+        @include transition( stroke 0.2s ease-out);
+      }
 
       *{
         stroke: $gray-light;
@@ -278,22 +278,29 @@ $mapWidth: 2500px;
         cursor: pointer;
 
         &:hover{
-          stroke: $gray-lightest; // hover style
+         stroke: $gray-lightest; // hover style
         }
       }
 
     }
-  }
-  // Connections ==================================================
 
-  // default hover effect for all connections
+    // hover effect for  Endpoints
+    &:hover{
+      circle{
+          stroke: $gray-lightest !important;
+      }
+    }
+
+  }
+
+  // Connections =====================================================
+
   svg._jsPlumb_connector{
     cursor: pointer;
     stroke-linecap: round; // line endings
 
     path{
-      transition-property: stroke;
-      transition-duration: 0.3s;
+      @include transition( stroke 0.2s ease-out);
     }
 
     path:not(:first-child){
@@ -306,7 +313,7 @@ $mapWidth: 2500px;
 
     &:hover{
       path:first-child{
-        stroke: $gray-lightest; // hover style
+       stroke: $gray-lightest; // hover style
       }
     }
   }
@@ -380,10 +387,10 @@ $mapWidth: 2500px;
     }
   }
 
-  // Connection overlay ===========================================
+  // Connection overlay ==============================================
   .pf-map-connection-overlay{
     padding: 1px 4px;
-    font-size: 10.4px;
+    font-size: 11px;
     z-index: 1020;
     @include border-radius(3px);
     @include box-shadow(0 6px 12px rgba(0,0,0,.4));
@@ -398,18 +405,16 @@ $mapWidth: 2500px;
     background-color: $red-darker;
     color: #eaeaea;
   }
-
-
 }
 
-// dialoges =======================================================
+// dialoges ===========================================================
 .ui-dialog-content{
   label{
     min-width: 60px;
   }
 }
 
-// context menu ==================================================
+// context menu ======================================================
 .dropdown-menu{
   font-family: $font-family-bold;
   z-index: 1020; // over tooltips
@@ -419,7 +424,11 @@ $mapWidth: 2500px;
   }
 }
 
+// tooltip for a system with active user (they are not positioned within the system element)
+.pf-system-tooltip-inner{
+  color: $gray-lighter;
+  padding: 2px 4px;
+  min-width: 25px; // make sure tooltip is not flickering on low numbers -> fix width
+  @include transition( color 0.2s ease-out );
 
-
-
-
+}

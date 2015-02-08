@@ -12,9 +12,11 @@ define([
     var config = {
         ajaxOverlayClass: 'pf-loading-overlay',
         ajaxOverlayWrapperClass: 'pf-loading-overlay-wrapper',
-        ajaxOverlayVisibleClass: 'pf-loading-overlay-visible',
 
-        formEditableFieldClass: 'pf-editable',                          // Class for all xEditable fields
+        formEditableFieldClass: 'pf-editable',                                  // Class for all xEditable fields
+
+        // map module
+        mapModuleId: 'pf-map-module',                                           // main map module
 
         // available map ions
         mapIcons: [
@@ -47,7 +49,84 @@ define([
 
     };
 
+    var stopTimerCache = {};                                                    // cache for stopwatch timer
 
+    /**
+     * get date obj with current EVE Server Time. -> Server Time === UTC time
+     * @returns {Date}
+     */
+    var getServerTime = function(){
+
+        var localDate = new Date();
+
+        var serverDate= new Date(
+            localDate.getUTCFullYear(),
+            localDate.getUTCMonth(),
+            localDate.getUTCDate(),
+            localDate.getUTCHours(),
+            localDate.getUTCMinutes(),
+            localDate.getUTCSeconds()
+        );
+
+        return serverDate;
+    };
+
+    /**
+     * start time measurement by a unique string identifier
+     * @param timerName
+     */
+    var timeStart = function(timerName){
+
+        if( !(stopTimerCache.hasOwnProperty(timerName)) ){
+
+            if(typeof performance === 'object'){
+                stopTimerCache[timerName] = performance.now();
+            }else{
+                stopTimerCache[timerName] = new Date().getTime();
+            }
+        }else{
+            console.log('nooo')
+        }
+    };
+
+    /**
+     * get time delta between timeStart() and timeStop() by a unique string identifier
+     * @param timerName
+     * @returns {number}
+     */
+    var timeStop = function(timerName){
+
+        var duration = 0;
+
+        if( stopTimerCache.hasOwnProperty(timerName) ){
+            // check browser support for performance API
+            var timeNow = 0;
+
+            if(typeof performance === 'object'){
+                timeNow = performance.now();
+            }else{
+                timeNow = new Date();
+            }
+
+            // format ms time duration
+            duration = Number( (timeNow - stopTimerCache[timerName] ).toFixed(2) );
+
+            // delete key
+            delete( stopTimerCache[timerName]);
+        }
+
+        return duration;
+    };
+
+
+    /**
+     * trigger main logging event with log information
+     * @param message
+     * @param options
+     */
+    var log = function(logKey, options){
+        $(window).trigger('pf:log', [logKey, options]);
+    };
 
     /**
      * displays a loading indicator on an element
@@ -80,10 +159,11 @@ define([
         $(this).append(overlay);
 
         // fade in
-        setTimeout(function(){
-            $(overlay).addClass( config.ajaxOverlayVisibleClass );
-        }, 10);
-
+        $(overlay).velocity({
+            opacity: 0.6
+        },{
+            duration: 200
+        });
     };
 
     /**
@@ -92,13 +172,12 @@ define([
     $.fn.hideLoadingAnimation = function(){
 
         var overlay = $(this).find('.' + config.ajaxOverlayClass );
-        $(overlay).removeClass( config.ajaxOverlayVisibleClass );
 
-        // remove overlay after fade out transition
-        setTimeout(function(){
-            $(overlay).remove();
-        }, 150);
-
+        $(overlay).velocity('reverse', {
+            complete: function(){
+                $(this).remove();
+            }
+        });
     };
 
     /**
@@ -152,6 +231,24 @@ define([
     };
 
     /**
+     * add a temporary class elements for a certain time
+     * @param className
+     * @param duration
+     * @returns {*}
+     */
+    $.fn.addTemporaryClass = function(className, duration){
+
+        var elements = this;
+        setTimeout(function() {
+            elements.removeClass(className);
+        }, duration);
+
+        return this.each(function() {
+            $(this).addClass(className);
+        });
+    };
+
+    /**
      * trigger a notification (on screen or desktop)
      * @param customConfig
      * @param desktop
@@ -163,6 +260,21 @@ define([
         });
     };
 
+    /**
+     * get log entry info
+     * @param logType
+     * @param option
+     * @returns {string}
+     */
+    var getLogInfo = function(logType, option){
+        var logInfo = '';
+
+        if(Init.classes.logTypes.hasOwnProperty(logType)){
+            logInfo = Init.classes.logTypes[logType][option];
+        }
+
+        return logInfo;
+    };
 
     // ==================================================================================================
 
@@ -193,6 +305,22 @@ define([
             animate: 1000
         });
 
+    };
+
+    /**
+     * get the map module object or create a new module
+     * @returns {*|HTMLElement}
+     */
+    var getMapModule = function(){
+
+        var mapModule = $('#' + config.mapModuleId);
+        if(mapModule.length === 0){
+            mapModule = $('<div>', {
+                id: config.mapModuleId
+            });
+        }
+
+        return mapModule;
     };
 
     /**
@@ -542,7 +670,13 @@ define([
     };
 
     return {
+        getServerTime: getServerTime,
+        timeStart: timeStart,
+        timeStop: timeStop,
+        log: log,
         showNotify: showNotify,
+        getLogInfo: getLogInfo,
+        getMapModule: getMapModule,
         getMapIcons: getMapIcons,
         getMapTypes: getMapTypes,
         getInfoForMap: getInfoForMap,

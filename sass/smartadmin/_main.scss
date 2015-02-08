@@ -1572,8 +1572,10 @@ input[type="text"]:focus + .input-group-addon {
     font-family: 'Oxygen Bold';
     font-size: 10px;
     text-align: left;
+    @include box-shadow(0 6px 12px rgba(0,0,0,.4));
 
-    .morris-hover-row-label {
+
+  .morris-hover-row-label {
         font-weight: bold;
        // margin: 0.25em 0;
     }

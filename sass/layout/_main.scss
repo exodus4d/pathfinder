@@ -46,8 +46,7 @@ em{
 }
 */
 
-// ajax laoding indicator overlay
-
+// laoding indicator overlay
 .pf-loading-overlay{
   position: absolute;
   width: 100%;
@@ -56,9 +55,7 @@ em{
   left: 0;
   opacity: 0;
   background: $gray-darker;
-  @include transition(opacity, 0.15s linear);
   @include border-radius(5px);
-
 
   .pf-loading-overlay-wrapper{
     width: 25px;
@@ -70,11 +67,11 @@ em{
     left: 0;
     bottom: 0;
     right: 0;
+    
+    i{
+      padding: 3px;
+    }
   }
-}
-
-.pf-loading-overlay-visible{
-  opacity: 0.5;
 }
 
 // page menu =====================================================
@@ -88,6 +85,19 @@ em{
   .list-group-item{
     @include box-shadow(inset 10px 0px 5px -5px rgba(0,0,0,0.4));
   }
+}
+
+// log types =====================================================
+.pf-log-info{
+  @extend .txt-color-green;
+}
+
+.pf-log-warning{
+  @extend .txt-color-warning;
+}
+
+.pf-log-error{
+  @extend .txt-color-red;
 }
 
 // map types =====================================================
@@ -315,7 +325,6 @@ em{
 .pf-system-effect-dialog-wrapper, .pf-jump-info-dialog{
   .table{
     margin: 15px 0;
-    font-size: 10px;
 
     td{
       text-transform: capitalize;
@@ -474,6 +483,14 @@ em{
 
   .pf-head-active-user, .pf-head-current-location{
     display: none; // triggered by js
+
+    .badge{
+      @include transition( color 0.3s ease-out );
+    }
+  }
+  
+  .pf-head-program-status{
+    cursor: pointer;
   }
 
 }

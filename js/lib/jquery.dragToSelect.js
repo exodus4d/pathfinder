@@ -339,7 +339,6 @@ jQuery.fn.dragToSelect = function (conf) {
                 e.target === realParent[0] // prevent while dragging a system :)
             ){
 
-
                 // Make sure user isn't clicking scrollbar (or disallow clicks far to the right actually)
                 if ((e.pageX + 20) > jQuery(document.body).width()) {
                     return;
@@ -368,7 +367,7 @@ jQuery.fn.dragToSelect = function (conf) {
 
         e.preventDefault();
     };
-    parent.mousemove($.throttle(30, dragSelectMousemove) );
+    parent.mousemove( dragSelectMousemove );
 
 
     parent.mouseup(function (e) {

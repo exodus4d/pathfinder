@@ -1,7 +1,13 @@
 
-// map add dialog =========================================
 
+.modal-content {
 
+  // data tables ===================================================
+  .dataTable, .table{
+    font-size: 10px;
+    font-family: $font-family-bold;
+  }
+}
 
 // map manual dialog ======================================
 #pf-manual-scrollspy{
@@ -11,17 +17,11 @@
 }
 
 // map info dialog ========================================
-#pf-map-info-systems, #pf-map-info-connections{
+.pf-dialog-dynamic-area{
   padding: 10px;
-  min-height: 130px;
+  min-height: 100px;
   position: relative;
   background-color: $gray-dark;
   overflow: hidden;
   @include border-radius(5px);
-
-  // data tables
-  .pf-map-info-table{
-    font-size: 10px;
-    font-family: $font-family-bold;
-  }
 }
