@@ -564,7 +564,10 @@ define([
         // set system name or alias
         var systemName = data.name;
 
-        if(data.alias !== ''){
+        if(
+            data.alias &&
+            data.alias !== ''
+        ){
             systemName = data.alias;
         }
 
@@ -573,11 +576,12 @@ define([
         // set system status
         system.setSystemStatus(data.status);
 
-        system.data('id', data.id);
+        system.data('id', parseInt(data.id));
+        system.data('systemId', parseInt(data.systemId));
         system.data('name', data.name);
         system.data('type', data.type);
         system.data('effect', data.effect);
-        system.data('trueSec', data.trueSec);
+        system.data('trueSec', parseFloat(data.trueSec));
         system.data('updated', data.updated);
         system.attr('data-mapid', mapContainer.data('id'));
 
@@ -1105,7 +1109,11 @@ define([
         var timer = function(){
             seconds--;
 
-            counterChart.data('easyPieChart').update( percentPerCount * seconds);
+            var pieChart = counterChart.data('easyPieChart');
+            // check  if chart is available
+            if(pieChart !== undefined){
+                counterChart.data('easyPieChart').update( percentPerCount * seconds);
+            }
             counterChartLabel.text(seconds);
             if(seconds <= 0){
                 clearInterval(mapUpdateCounter);
@@ -1121,7 +1129,10 @@ define([
 
         // start timer
         var mapUpdateCounter = setInterval(timer, 1000);
-        counterChart.data('easyPieChart').update( percentPerCount * seconds);
+        var pieChart = counterChart.data('easyPieChart');
+        if(pieChart !== undefined){
+            pieChart.update( percentPerCount * seconds);
+        }
         counterChartLabel.text(seconds);
 
         // store counter
@@ -2402,104 +2413,135 @@ define([
             $.fn.modal.Constructor.prototype.enforceFocus = function() {};
 
             var systemDialog = bootbox.dialog({
-                    title: 'Add new system',
-                    message: content,
-                    buttons: {
-                        close: {
-                            label: 'cancel',
-                            className: 'btn-default',
-                            callback: function(){
-                                $(systemDialog).modal('hide');
-                            }
-                        },
-                        success: {
-                            label: 'Add system',
-                            className: 'btn-primary',
-                            callback: function () {
-
-                                mapContainer.getMapOverlay().startMapUpdateCounter();
-
-                                // get form Values
-                                var form = $('#' + config.systemDialogId).find('form');
-
-                                var newSystemData = $(form).getFormValues();
-
-                                var currentX = 0;
-                                var currentY = 0;
-
-                                var newPositon = {
-                                    x: 0,
-                                    y: 0
-                                };
-
-                                var sourceSystem = null;
-
-                                // add new position
-                                if(options.sourceSystem !== undefined){
-
-                                    sourceSystem = options.sourceSystem;
-
-                                    // related system is available
-                                    currentX = sourceSystem.css('left');
-                                    currentY = sourceSystem.css('top');
-
-                                    // remove "px"
-                                    currentX = parseInt( currentX.substring(0, currentX.length - 2) );
-                                    currentY = parseInt( currentY.substring(0, currentY.length - 2) );
-
-                                    newPositon = {
-                                        x: currentX + config.newSystemOffset.x,
-                                        y: currentY + config.newSystemOffset.y
-                                    };
-                                }else{
-                                    // check mouse cursor position (add system to map)
-                                    newPositon = {
-                                        x: options.position.x,
-                                        y: options.position.y
-                                    };
-                                }
-
-                                newSystemData.position = newPositon;
-
-                                // TODO request missing system data
-                                if(!newSystemData.hasOwnProperty('id')){
-                                    newSystemData.id = config.tempId++;
-                                }
-                                if(!newSystemData.hasOwnProperty('alias')){
-                                    newSystemData.alias = '';
-                                }
-                                if(!newSystemData.hasOwnProperty('effect')){
-                                    newSystemData.effect = '';
-                                }
-                                if(!newSystemData.hasOwnProperty('security')){
-                                    newSystemData.security = 'H';
-                                }
-
-                                // draw new system to map
-                                drawSystem(map, newSystemData, sourceSystem);
-                            }
+                title: 'Add new system',
+                message: content,
+                buttons: {
+                    close: {
+                        label: 'cancel',
+                        className: 'btn-default',
+                        callback: function(){
+                            $(systemDialog).modal('hide');
                         }
+                    },
+                    success: {
+                        label: 'Add system',
+                        className: 'btn-primary',
+                        callback: function () {
+                            // get form Values
+                            var form = $('#' + config.systemDialogId).find('form');
 
+                            var systemDialogData = $(form).getFormValues();
+
+                            // get system information
+                            var requestUrl = Init.path.getSystem + '/' + parseInt( systemDialogData.systemId );
+                            $.getJSON( requestUrl, function( systemData ) {
+
+                                if(systemData.length === 1){
+
+                                    mapContainer.getMapOverlay().startMapUpdateCounter();
+
+                                    systemData = systemData.shift();
+
+                                    // merge dialog data and backend data
+                                    var newSystemData = $.extend(systemData, systemDialogData);
+
+                                    var currentX = 0;
+                                    var currentY = 0;
+
+                                    var newPositon = {
+                                        x: 0,
+                                        y: 0
+                                    };
+
+                                    var sourceSystem = null;
+
+                                    // add new position
+                                    if(options.sourceSystem !== undefined){
+
+                                        sourceSystem = options.sourceSystem;
+
+                                        // related system is available
+                                        currentX = sourceSystem.css('left');
+                                        currentY = sourceSystem.css('top');
+
+                                        // remove "px"
+                                        currentX = parseInt( currentX.substring(0, currentX.length - 2) );
+                                        currentY = parseInt( currentY.substring(0, currentY.length - 2) );
+
+                                        newPositon = {
+                                            x: currentX + config.newSystemOffset.x,
+                                            y: currentY + config.newSystemOffset.y
+                                        };
+                                    }else{
+                                        // check mouse cursor position (add system to map)
+                                        newPositon = {
+                                            x: options.position.x,
+                                            y: options.position.y
+                                        };
+                                    }
+
+                                    newSystemData.position = newPositon;
+
+                                    // draw new system to map
+                                    drawSystem(map, newSystemData, sourceSystem);
+
+                                }
+                            }).fail(function( jqXHR, status, error) {
+                                var reason = status + ': ' + error;
+                                Util.showNotify({title: jqXHR.status + ': System search failed', text: reason, type: 'warning'});
+
+                            });
+
+                        }
                     }
                 }
-            );
+            });
 
 
             // init dialog
             systemDialog.on('shown.bs.modal', function(e) {
 
-                var selectData = [];
-                for(var i = 0; i < 5000; i++){
-                    selectData.push({
-                        id: i,
-                        text: i + 'test'
-                    });
-                }
-
+                // init system select live  search
+                var selectElement = $(".js-example-basic-single");
                 $.when(
-                    $(".js-example-basic-single").select2({
-                        // multiple: true,
-                        data: selectData,
+                    selectElement.select2({
+                        ajax: {
+                            url: function(params){
+                                // add params to URL
+                              return   Init.path.searchSystems + '/' + params.term;
+                            },
+                            dataType: 'json',
+                            delay: 250,
+                            data: function(params) {
+                                // no url params here
+                                return;
+                            },
+                            processResults: function(data) {
+                                // parse the results into the format expected by Select2.
+                                return {
+                                    results: data.map( function(item){
+
+                                        var secClass = Util.getSecurityClassForSystem(item.security);
+
+                                        var systemSecurity = ' <span style="float: right;" class="' + secClass + '">';
+                                        systemSecurity += '(' + item.security + ')</span>';
+
+                                        return {
+                                            id: item.systemId,
+                                            text: item.name + systemSecurity
+                                        };
+                                    })
+                                };
+                            },
+                            error: function (jqXHR, status, error) {
+                                // close select
+                                selectElement.select2('destroy');
+
+                                var reason = status + ' ' + jqXHR.status + ': ' + error;
+                                Util.emergencyShutdown(reason);
+                            }
+                        },
+                        minimumInputLength: 2,
                         placeholder: 'Name',
                         allowClear: true
                     })
@@ -2508,12 +2550,6 @@ define([
                 });
 
             });
-
-
-
-
-
-
 
 
 
@@ -2648,7 +2684,6 @@ define([
             // map data -----------------------------------
             var data = {};
 
-
             var systemsData = [];
 
             var systems = mapElement.find('.' + config.systemClass);
@@ -2659,17 +2694,18 @@ define([
 
                 var tempSystem = $(systems[i]);
                 var systemData = {};
-                systemData.id = tempSystem.data('id');
+                systemData.id = parseInt( tempSystem.data('id') );
+                systemData.systemId = parseInt( tempSystem.data('systemId') );
                 systemData.name = tempSystem.data('name');
                 systemData.alias = tempSystem.getSystemInfo(['alias']);
                 systemData.type = tempSystem.data('type');
                 systemData.status = tempSystem.data('status');
                 systemData.effect = tempSystem.data('effect');
                 systemData.trueSec = tempSystem.data('trueSec');
-                systemData.locked = tempSystem.data('locked');
-                systemData.rally = tempSystem.data('rally');
+                systemData.locked = parseInt( tempSystem.data('locked') );
+                systemData.rally = parseInt( tempSystem.data('rally') );
                 systemData.currentUser = tempSystem.data('currentUser');
-                systemData.updated = tempSystem.data('updated');
+                systemData.updated = parseInt( tempSystem.data('updated') );
                 systemData.userCount = (tempSystem.data('userCount') ? parseInt( tempSystem.data('userCount') ) : 0);
 
                 // position -------------------------------
@@ -2685,7 +2721,6 @@ define([
 
                 systemsData.push(systemData);
             }
-
 
             data.systems = systemsData;
 
@@ -2727,7 +2762,6 @@ define([
         }else{
             return false;
         }
-
 
         return mapData;
     };

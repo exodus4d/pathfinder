@@ -4,8 +4,9 @@
 define([
     'jquery',
     'app/init',
+    'bootbox',
     'easyPieChart'
-], function($, Init) {
+], function($, Init, bootbox) {
 
     "use strict";
 
@@ -186,15 +187,16 @@ define([
      * @returns {{}}
      */
     $.fn.getFormValues = function(){
+        var form = $(this);
 
         var formData = {};
 
-        $.each($(this).serializeArray(), function(i, field) {
+        $.each(form.serializeArray(), function(i, field) {
             formData[field.name] = field.value;
         });
 
         // get xEditable values
-        var editableValues = $(this).find('.' + config.formEditableFieldClass).editable('getValue');
+        var editableValues = form.find('.' + config.formEditableFieldClass).editable('getValue');
 
         // merge values
         formData = $.extend(formData, editableValues);
@@ -669,6 +671,71 @@ define([
         return areaId;
     };
 
+    /**
+     * shut the software down e.g. on error
+     * @param reason
+     */
+    var emergencyShutdown = function(reason){
+
+        // close all open dialogs
+        bootbox.hideAll();
+
+        var content = $('<div>');
+
+        content.append(
+            $('<h2>', {
+                text: 'Sorry! Under normal circumstances that should not happen.'
+             })
+        );
+
+        content.append(
+            $('<p>', {
+                text: reason
+            })
+        );
+
+        var systemDialog = bootbox.dialog({
+            title: '<span class="txt-color txt-color-red"><i class="fa fa-fw fa-bolt"></i>Emergency shutdown</span>',
+            message: content,
+            buttons: {
+                danger: {
+                    label: 'restart',
+                    className: 'btn-danger',
+                    callback: function () {
+                        location.reload();
+                    }
+                }
+            }
+        });
+
+        $(document).setProgramStatus('offline');
+        showNotify({title: 'Emergency shutdown', text: reason, type: 'error'}, false);
+
+        // remove map
+        getMapModule().velocity('fadeOut', {
+            duration: 250,
+            complete: function(){
+                $(this).remove();
+            }
+        });
+
+    };
+
+    /**
+     * map backend systemData for frontend
+     * @param systemData
+     * @returns {Array}
+     */
+    var mapSystemData = function(systemData){
+        var data = [];
+
+        for(var i = 0;  i < systemData.length; i++){
+
+        }
+
+        return data;
+    };
+
     return {
         getServerTime: getServerTime,
         timeStart: timeStart,
@@ -693,6 +760,7 @@ define([
         getSignatureGroupInfo: getSignatureGroupInfo,
         getAllSignatureNames: getAllSignatureNames,
         getSignatureTypeIdByName: getSignatureTypeIdByName,
-        getAreaIdBySecurity: getAreaIdBySecurity
+        getAreaIdBySecurity: getAreaIdBySecurity,
+        emergencyShutdown: emergencyShutdown
     };
 });

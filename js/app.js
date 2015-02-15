@@ -11,7 +11,7 @@ requirejs.config({
         mustache: 'lib/mustache.min',                                   // v1.0.0 Javascript template engine - http://mustache.github.io/
         velocity: 'lib/velocity.min',                                   // v1.2.1 animation engine - http://julian.com/research/velocity/
         velocityUI: 'lib/velocity.ui.min',                              // v5.0.3 plugin for velocity - http://julian.com/research/velocity/#uiPack
-        templates: '../templates',                                      // template dir
+        templates: '../public/templates',                               // template dir
         slidebars: 'lib/slidebars',                                     // v0.10 Slidebars - side menu plugin http://plugins.adchsm.me/slidebars/
         jsPlumb: 'lib/dom.jsPlumb-1.7.2-min',                           // v1.7.2 jsPlumb (Vanilla)- main map draw plugin http://www.jsplumb.org/
         customScrollbar: 'lib/jquery.mCustomScrollbar.concat.min',      // v3.1.11 Custom scroll bars - http://manos.malihu.gr/

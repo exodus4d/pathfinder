@@ -1957,7 +1957,6 @@ define([
         // temp store current map data to prevent data-change while function execution!
         var tempMapData = currentMapData;
 
-
         var mapModuleElement = $(this);
 
         // check if tabs module is already loaded
@@ -2167,7 +2166,7 @@ define([
         var data = [];
         for(var i = 0; i < mapElements.length; i++){
 
-            var mapData = $(mapElements[i]).getMapData();
+            var mapData = $(mapElements[i]).getMapData(false);
 
             if(mapData !== false){
                 data.push(mapData);

@@ -1,3 +1,5 @@
+# Compass 1.0.1 (Polaris)
+
 require 'compass/import-once/activate'
 require 'bootstrap-sass'
 require 'compass/import-once/activate'
@@ -6,12 +8,12 @@ require 'compass/import-once/activate'
 
 
 http_path = "/"
-css_dir = "css"
+css_dir = "public/css"
 sass_dir = "sass"
-images_dir = "img"
+images_dir = "public/img"
 generated_images_path = "img_cache"
-javascripts_dir = "javascripts"
-fonts_dir = "fonts"
+#javascripts_dir = "javascripts"
+fonts_dir = "public/fonts"
 
 # You can select your preferred output style here (can be overridden via the command line):
 # output_style = :expanded or :nested or :compact or :compressed

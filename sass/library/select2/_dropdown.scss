@@ -1,19 +1,14 @@
 .select2-dropdown {
   background-color: $gray-dark;
-
   border: 1px solid $gray-light;
   border-radius: 4px;
-
   box-sizing: border-box;
-
   display: block;
-
   position: absolute;
   left: -100000px;
-
   width: 100%;
-
   z-index: 1500;
+  @include box-shadow(0 6px 12px rgba(0,0,0, 0.3));
 }
 
 .select2-results {
@@ -28,7 +23,8 @@
 
 .select2-results__option {
   padding: 6px;
-
+  font-family: $font-family-bold;
+  font-size: 10px;
   user-select: none;
   -webkit-user-select: none;
 

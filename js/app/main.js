@@ -45,6 +45,7 @@ define([
                 systems: [
                     {
                         id: 2,
+                        systemId: 31002378,
                         name: 'J150020',
                         alias: 'Polaris',
                         effect: 'magnetar',
@@ -61,6 +62,7 @@ define([
                         updated: 1420903681
                     },{
                         id: 3,
+                        systemId: 31002375,
                         name: 'J115844',
                         alias: '',
                         effect: 'wolfRyet',
@@ -76,6 +78,7 @@ define([
 
                     },{
                         id: 4,
+                        systemId: 31002402,
                         name: 'J155207',
                         alias: '',
                         effect: 'wolfRyet',
@@ -92,6 +95,7 @@ define([
                         updated: 1420903681
                     },{
                         id: 5,
+                        systemId: 31002416,
                         name: 'J145510',
                         alias: '',
                         effect: 'pulsar',
@@ -105,7 +109,8 @@ define([
                         },
                         updated: 1420903681
                     },{
-                        id: 30002979,
+                        id: 542,
+                        systemId: 30002979,
                         name: 'Tararan',
                         alias: '',
                         effect: '',
@@ -127,7 +132,8 @@ define([
                         },
                         updated: 1420903681
                     },{
-                        id: 30000142,
+                        id: 429,
+                        systemId: 30000142,
                         name: 'Jita',
                         alias: '',
                         effect: '',
@@ -149,7 +155,8 @@ define([
                         },
                         updated: 1420903681
                     },{
-                        id: 31000152,
+                        id: 876,
+                        systemId: 31000152,
                         name: 'J121418',
                         alias: '',
                         effect: '',
@@ -171,7 +178,8 @@ define([
                         },
                         updated: 1420903681
                     },{
-                        id: 30000144,
+                        id: 755,
+                        systemId: 30000144,
                         name: 'Perimeter',
                         alias: '',
                         effect: '',
@@ -193,7 +201,8 @@ define([
                         },
                         updated: 1420903681
                     },{
-                        id: 30001028,
+                        id: 8555,
+                        systemId: 30001028,
                         name: 'RMOC-W',
                         alias: '',
                         effect: '',
@@ -250,7 +259,7 @@ define([
                     {
                         id: 77,
                         source: 4,
-                        target: 30002979,
+                        target: 542,
                         scope: 'wh',
                         type: [
                             'wh_critical'
@@ -260,7 +269,7 @@ define([
                     {
                         id: 95,
                         source: 4,
-                        target: 30000142,
+                        target: 429,
                         scope: 'wh',
                         type: [
                             'wh_eol',
@@ -271,8 +280,8 @@ define([
                     },
                     {
                         id: 96,
-                        source: 30000142,
-                        target: 31000152,
+                        source: 429,
+                        target: 755,
                         scope: 'wh',
                         type: [
                             'wh_fresh'
@@ -281,8 +290,8 @@ define([
                     },
                     {
                         id: 97,
-                        source: 30000142,
-                        target: 30000144,
+                        source: 429,
+                        target: 876,
                         scope: 'stargate',
                         type: [
                             'stargate'
@@ -291,8 +300,8 @@ define([
                     },
                     {
                         id: 98,
-                        source: 30002979,
-                        target: 30001028,
+                        source: 542,
+                        target: 8555,
                         scope: 'jumpbridge',
                         type: [
                             'jumpbridge'
@@ -315,6 +324,7 @@ define([
                 systems: [
                     {
                         id: 50,
+                        systemId: 31002378,
                         name: 'J150020',
                         alias: '',
                         effect: 'magnetar',
@@ -328,6 +338,7 @@ define([
                         updated: 1420903681
                     },{
                         id: 51,
+                        systemId: 31002375,
                         name: 'J115844',
                         alias: '',
                         effect: 'wolfRyet',
@@ -475,44 +486,42 @@ define([
             // ping for main map update
             var triggerMapUpdatePing = function(tempMapData){
 
-                // prevent multiple requests simultaneously
-                if(mapDataUpdateActive === true){
-                    $(document).setProgramStatus('online');
+                // check each execution time if map module  is still available
+                var check = $('#' + mapModule.attr('id')).length;
 
-                    mapDataUpdateActive = false;
-
-
-                    Util.timeStart(mapUpdateKey);
-                    // load map module ==========================================
-                    mapDataUpdateActive = mapModule.updateMapModule(tempMapData);
-                    var duration = Util.timeStop(mapUpdateKey);
-
-                    // log execution time
-                    Util.log(mapUpdateKey, {duration: duration, description: 'updateMapModule'});
-
-                }else{
-                    // not finished in time -> to slow or error
-                    $(document).setProgramStatus('problem');
+                if(check === 0){
+                    // program crash stop any update
+                    return;
                 }
+
+                $(document).setProgramStatus('online');
+
+                Util.timeStart(mapUpdateKey);
+                // load map module ==========================================
+                mapModule.updateMapModule(tempMapData);
+                var duration = Util.timeStop(mapUpdateKey);
+
+                // log execution time
+                Util.log(mapUpdateKey, {duration: duration, description: 'updateMapModule'});
 
                 // get updated map data
-                if(mapDataUpdateActive === true){
-                    Util.timeStart(mapModuleDatakey);
-                    var mapData = mapModule.getMapModuleData();
-                    var mapDataLogDuration = Util.timeStop(mapModuleDatakey);
+                Util.timeStart(mapModuleDatakey);
+                var newMapData = mapModule.getMapModuleData();
+                var mapDataLogDuration = Util.timeStop(mapModuleDatakey);
+console.log(newMapData)
+                // log execution time
+                Util.log(mapModuleDatakey, {duration: mapDataLogDuration, description: 'getMapModuleData'});
 
-                    // log execution time
-                    Util.log(mapModuleDatakey, {duration: mapDataLogDuration, description: 'getMapModuleData'});
+                //
+                setTimeout(function(){
+                    triggerMapUpdatePing(mapData);
+                }, mapUpdateDelay);
 
-                }
             };
 
             triggerMapUpdatePing(mapData);
-            setInterval(triggerMapUpdatePing, mapUpdateDelay, mapData);
 
             // ping for user data update -------------------------------------------------------
-
-
             var triggerUserUpdatePing = function(userData){
 
                 // prevent multiple requests simultaneously

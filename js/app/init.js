@@ -21,7 +21,9 @@ define(['jquery'], function($) {
             }
         },
         path: {
-          img: 'img/'
+          img: 'public/img/',                                       // path for images
+          searchSystems: 'api/systems/search',                      // ajax path - search system by name
+          getSystem: 'api/systems/getDataById'                      // ajax path - get system by id
         },
         url: {
             zKillboard: 'https://zkillboard.com/api/',              // killboard api
