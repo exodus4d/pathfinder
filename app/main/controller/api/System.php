@@ -8,8 +8,9 @@
 
 namespace Controller\Api;
 use Data\Mapper as Mapper;
+use Model;
 
-class Systems extends \Controller\AccessController {
+class System extends \Controller\AccessController {
 
     private $mainQuery = "SELECT
             map_sys.constellationID connstallation_id,
@@ -87,7 +88,12 @@ class Systems extends \Controller\AccessController {
         return $query;
     }
 
-    public function getDataById($f3, $params){
+    /**
+     * get system data by systemId
+     * @param $f3
+     * @param $params
+     */
+    public function getById($f3, $params){
 
         // switch DB
         $this->setDB('CCP');
@@ -110,7 +116,15 @@ class Systems extends \Controller\AccessController {
         // format result
         $mapper = new Mapper\CcpSystemsMapper($rows);
 
-        $data = $mapper->getData();
+        $ccpData = $mapper->getData();
+
+        // switch DB
+        $this->setDB('PF');
+
+        $system = Model\BasicModel::getNew('SystemModel');
+        $system->setData(reset($ccpData));
+
+        $data = $system->getData();
 
         echo json_encode($data);
     }

@@ -563,13 +563,13 @@ define([
         requirejs(['text!templates/modules/map_dialog.html', 'mustache'], function(template, Mustache) {
 
             var data = {
-                id: config.newMapDialogId,
-                scope: config.mapScopes,
+                id: Init.newMapDialogId,
+                scope: Util.getMapScopes(),
                 type: Util.getMapTypes(),
                 icon: Util.getMapIcons(),
                 formData: formData
             };
-
+            console.log(data);
             var content = Mustache.render(template, data);
 
             var dialogTitle = 'New map';
@@ -946,9 +946,7 @@ define([
                             }).velocity('fadeIn', {
                                 duration: Init.animationSpeed.headerLink
                             });
-
                         }
-
 
                         programStatusCounter--;
 
@@ -961,21 +959,10 @@ define([
                     if(! programStatusInterval){
                         programStatusCounter = Init.timer.programStatusVisible;
                         programStatusInterval = setInterval(timer, 1000);
-
                     }
-
-
                 }
-
-
-
             }
-
-
-
-
         }
-
     };
 
 

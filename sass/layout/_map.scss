@@ -118,6 +118,8 @@ $mapWidth: 2500px;
     background-color: $gray-dark;
     font-family: $font-family-bold;
     z-index: 100;
+    will-change: all, transform;
+
     //opacity: 0; // trigger by js
     border: {
       width: 2px;

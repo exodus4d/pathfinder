@@ -37,9 +37,18 @@ define([
             config: {
                 id: 99,
                 name: 'Polaris',
-                scope: 'wormhole',
+                scope: {
+                    id: 1,
+                    name: 'wh',
+                    label: 'w-space'
+                },
                 icon: 'fa-globe',
-                type: 'alliance'              // global, alliance, private
+                type: {
+                    id: 1,
+                    name: 'alliance',
+                    label: 'Alliance'
+                },
+                updated: 1424545904
             },
             data: {
                 systems: [
@@ -49,12 +58,26 @@ define([
                         name: 'J150020',
                         alias: 'Polaris',
                         effect: 'magnetar',
-                        type: 'wh',
+                        type: {
+                            id: 1,
+                            name: 'wh'
+                        },
                         security: 'C6',
                         trueSec: -1,
-                        status: 'friendly',
-                        locked: '1',
-                        rally: '0',
+                        region: {
+                            id: '11000030',
+                            name: 'F-R00030'
+                        },
+                        constellation: {
+                            id: '21000298',
+                            name: 'F-C00298'
+                        },
+                        status: {
+                            id: 2,
+                            name: 'friendly'
+                        },
+                        locked: 1,
+                        rally: 0,
                         position: {
                             x: 8,
                             y: 300
@@ -66,10 +89,24 @@ define([
                         name: 'J115844',
                         alias: '',
                         effect: 'wolfRyet',
-                        type: 'wh',
+                        type: {
+                            id: 1,
+                            name: 'wh'
+                        },
                         security: 'C6',
                         trueSec: -1,
-                        status: 'empty',
+                        region: {
+                            id: '11000030',
+                            name: 'F-R00030'
+                        },
+                        constellation: {
+                            id: '21000298',
+                            name: 'F-C00298'
+                        },
+                        status: {
+                            id: 5,
+                            name: 'empty'
+                        },
                         position: {
                             x: 25,
                             y: 40
@@ -82,10 +119,24 @@ define([
                         name: 'J155207',
                         alias: '',
                         effect: 'wolfRyet',
-                        type: 'wh',
+                        type: {
+                            id: 1,
+                            name: 'wh'
+                        },
                         security: 'C6',
                         trueSec: -1,
-                        status: '',
+                        region: {
+                            id: '11000030',
+                            name: 'F-R00030'
+                        },
+                        constellation: {
+                            id: '21000301',
+                            name: 'F-C00301'
+                        },
+                        status: {
+                            id: 1,
+                            name: 'unknown'
+                        },
                         locked: '1',
                         rally: '1',
                         position: {
@@ -101,8 +152,22 @@ define([
                         effect: 'pulsar',
                         security: 'C3',
                         trueSec: -1,
-                        type: 'wh',
-                        status: 'hostile',
+                        region: {
+                            id: '11000030',
+                            name: 'F-R00030'
+                        },
+                        constellation: {
+                            id: '21000303',
+                            name: 'F-C00303'
+                        },
+                        type: {
+                            id: 1,
+                            name: 'wh'
+                        },
+                        status: {
+                            id: 4,
+                            name: 'hostile'
+                        },
                         position: {
                             x: 40,
                             y: 160
@@ -117,15 +182,21 @@ define([
                         security: 'L',
                         trueSec: 0.3,
                         region: {
-                            id: '10000036',
+                            id: 10000036,
                             name: 'Devoid'
                         },
                         constellation: {
-                            id: '20000436',
+                            id: 20000436,
                             name: 'Jayai'
                         },
-                        type: 'k-space',
-                        status: '',
+                        type: {
+                            id: 2,
+                            name: 'k-space'
+                        },
+                        status: {
+                            id: 1,
+                            name: 'unknown'
+                        },
                         position: {
                             x: 280,
                             y: 250
@@ -140,15 +211,21 @@ define([
                         security: 'H',
                         trueSec: 0.9,
                         region: {
-                            id: '10000002',
+                            id: 10000002,
                             name: 'The Forge'
                         },
                         constellation: {
-                            id: '20000020',
+                            id: 20000020,
                             name: 'Kimotoro'
                         },
-                        type: 'k-space',
-                        status: '',
+                        type: {
+                            id: 2,
+                            name: 'k-space'
+                        },
+                        status: {
+                            id: 1,
+                            name: 'unknown'
+                        },
                         position: {
                             x: 400,
                             y: 150
@@ -163,15 +240,21 @@ define([
                         security: 'C1',
                         trueSec: -1,
                         region: {
-                            id: '11000002',
+                            id: 11000002,
                             name: 'A-R00002'
                         },
                         constellation: {
-                            id: '21000002',
+                            id: 21000002,
                             name: 'A-C00002'
                         },
-                        type: 'wh',
-                        status: 'occupied',
+                        type: {
+                            id: 1,
+                            name: 'wh'
+                        },
+                        status: {
+                            id: 3,
+                            name: 'occupied'
+                        },
                         position: {
                             x: 600,
                             y: 75
@@ -186,15 +269,21 @@ define([
                         security: 'H',
                         trueSec: 0.9,
                         region: {
-                            id: '10000002',
+                            id: 10000002,
                             name: 'The Forge'
                         },
                         constellation: {
                             id: '20000020',
                             name: 'Kimotoro'
                         },
-                        type: 'k-space',
-                        status: 'unscanned',
+                        type: {
+                            id: 2,
+                            name: 'k-space'
+                        },
+                        status: {
+                            id: 6,
+                            name: 'unscanned'
+                        },
                         position: {
                             x: 550,
                             y: 200
@@ -209,15 +298,21 @@ define([
                         security: '0.0',
                         trueSec: -0.1,
                         region: {
-                            id: '10000012',
+                            id: 10000012,
                             name: 'Curse'
                         },
                         constellation: {
                             id: '20000150',
                             name: 'Sound'
                         },
-                        type: 'k-space',
-                        status: '',
+                        type: {
+                            id: 2,
+                            name: 'k-space'
+                        },
+                        status: {
+                            id: 1,
+                            name: 'unknown'
+                        },
                         position: {
                             x: 500,
                             y: 300
@@ -316,46 +411,85 @@ define([
             config: {
                 name: 'Providence',
                 id: 2,
-                scope: 'wormhole',
+                scope: {
+                    id: 1,
+                    name: 'wh',
+                    label: 'w-space'
+                },
                 icon: 'fa-bookmark',
-                type: 'global'
+                type: {
+                    id: 3,
+                    name: 'global',
+                    label: 'global'
+                },
+                updated: 1424545903
             },
             data: {
                 systems: [
                     {
-                        id: 50,
-                        systemId: 31002378,
-                        name: 'J150020',
+                        id: 755,
+                        systemId: 30000144,
+                        name: 'Perimeter',
                         alias: '',
-                        effect: 'magnetar',
-                        security: 'C6',
-                        type: 'wh',
-                        status: 'friendly',
+                        effect: '',
+                        security: 'H',
+                        trueSec: 0.9,
+                        region: {
+                            id: 10000002,
+                            name: 'The Forge'
+                        },
+                        constellation: {
+                            id: '20000020',
+                            name: 'Kimotoro'
+                        },
+                        type: {
+                            id: 2,
+                            name: 'k-space'
+                        },
+                        status: {
+                            id: 6,
+                            name: 'unscanned'
+                        },
                         position: {
-                            x: 5,
+                            x: 550,
                             y: 200
                         },
                         updated: 1420903681
                     },{
-                        id: 51,
-                        systemId: 31002375,
-                        name: 'J115844',
+                        id: 8555,
+                        systemId: 30001028,
+                        name: 'RMOC-W',
                         alias: '',
-                        effect: 'wolfRyet',
-                        security: 'C6',
-                        type: 'wh',
-                        status: 'empty',
+                        effect: '',
+                        security: '0.0',
+                        trueSec: -0.1,
+                        region: {
+                            id: 10000012,
+                            name: 'Curse'
+                        },
+                        constellation: {
+                            id: '20000150',
+                            name: 'Sound'
+                        },
+                        type: {
+                            id: 2,
+                            name: 'k-space'
+                        },
+                        status: {
+                            id: 1,
+                            name: 'unknown'
+                        },
                         position: {
-                            x: 60,
-                            y: 65
+                            x: 500,
+                            y: 300
                         },
                         updated: 1420903681
                     }
                 ],
                 connections: [{
                     id: 23,
-                    source: 50,
-                    target: 51,
+                    source: 755,
+                    target: 8555,
                     type: [
                         'wh_fresh'
                     ],
@@ -368,9 +502,18 @@ define([
             config: {
                 name: 'Exodus 4D',
                 id: 3,
-                scope: 'wormhole',
+                scope: {
+                    id: 1,
+                    name: 'wh',
+                    label: 'w-space'
+                },
                 icon: 'fa-sitemap',
-                type: 'private'
+                type: {
+                    id: 2,
+                    name: 'private',
+                    label: 'private'
+                },
+                updated: 1424545903
             },
             data: {
                 systems: [],
@@ -472,8 +615,34 @@ define([
 
             var mapModule = $(this);
 
-            var mapDataUpdateActive = true;         // allow update "map data"
-            var userDataUpdateActive = true;        // allow update "user data"
+            // map init load static data ==================================
+            $.getJSON( Init.path.initMap, function( initData ) {
+
+                Init.mapTypes = initData.mapTypes;
+                Init.mapScopes = initData.mapScopes;
+                Init.connectionScopes = initData.connectionScopes;
+                Init.systemStatus = initData.systemStatus;
+                Init.systemType = initData.systemType;
+
+                console.log(Init.systemType);
+                // init map module
+                mapModule.initMapModule();
+
+            }).fail(function( jqXHR, status, error) {
+                var reason = status + ' ' + jqXHR.status + ': ' + error;
+                Util.emergencyShutdown(reason);
+            });
+
+        });
+
+
+
+
+
+
+        $.fn.initMapModule = function(){
+
+            var mapModule = $(this);
 
             var mapUpdateKey = 'mapUpdate';
             var mapUpdateDelay = Init.timer[mapUpdateKey].delay;
@@ -506,17 +675,36 @@ define([
 
                 // get updated map data
                 Util.timeStart(mapModuleDatakey);
-                var newMapData = mapModule.getMapModuleData();
+                var updatedMapData = mapModule.getMapModuleData();
                 var mapDataLogDuration = Util.timeStop(mapModuleDatakey);
-console.log(newMapData)
+
                 // log execution time
                 Util.log(mapModuleDatakey, {duration: mapDataLogDuration, description: 'getMapModuleData'});
 
-                //
-                setTimeout(function(){
-                    triggerMapUpdatePing(mapData);
-                }, mapUpdateDelay);
+                // wrap array to object
+                updatedMapData = {mapData: updatedMapData};
 
+                // store updatedMapData
+                $.ajax({
+                    type: 'POST',
+                    url: Init.path.updateMapData,
+                    data: updatedMapData,
+                    dataType: 'json'
+                }).done(function(data){
+
+                    mapData = data;
+
+                    // init new trigger
+                    setTimeout(function(){
+                        triggerMapUpdatePing(mapData);
+                    }, mapUpdateDelay);
+
+                }).fail(function( jqXHR, status, error) {
+                    var reason = status + ': ' + error;
+                    console.log(error);
+                    Util.showNotify({title: jqXHR.status + ': updatedMapData', text: reason, type: 'warning'});
+                    $(document).setProgramStatus('problem');
+                });
             };
 
             triggerMapUpdatePing(mapData);
@@ -524,29 +712,28 @@ console.log(newMapData)
             // ping for user data update -------------------------------------------------------
             var triggerUserUpdatePing = function(userData){
 
-                // prevent multiple requests simultaneously
-                if(userDataUpdateActive === true){
-                    $(document).setProgramStatus('online');
+                $(document).setProgramStatus('online');
 
-                    userDataUpdateActive = false;
+                Util.timeStart(mapUserUpdateKey);
+                mapModule.updateMapModuleData(userData);
+                var duration = Util.timeStop(mapUserUpdateKey);
 
-                    Util.timeStart(mapUserUpdateKey);
-                    userDataUpdateActive = mapModule.updateMapModuleData(userData);
-                    var duration = Util.timeStop(mapUserUpdateKey);
+                // log execution time
+                Util.log(mapUserUpdateKey, {duration: duration, description:'updateMapModuleData'});
 
-                    // log execution time
-                    Util.log(mapUserUpdateKey, {duration: duration, description:'updateMapModuleData'});
-
-
-                }else{
-                    // not finished in time -> to slow or error
-                    $(document).setProgramStatus('problem');
-                }
-
+                // init new trigger
+                setTimeout(function(){
+                    triggerUserUpdatePing(tempUserData);
+                }, mapUserUpdateDelay);
             };
-            setInterval(triggerUserUpdatePing, mapUserUpdateDelay, tempUserData);
 
-        });
+            // start user update trigger after map loaded
+            setTimeout(function(){
+                triggerUserUpdatePing(tempUserData);
+            }, 2000);
+
+        };
+
 
 
     });

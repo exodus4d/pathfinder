@@ -31,14 +31,16 @@ class Controller {
 
         $f3 = \Base::instance();
         $this->f3 = $f3;
+
+        // init DB
+        $this->setDB('PF');
     }
 
     /**
      * event handler
      */
     function beforeroute() {
-        // init DB
-        $this->setDB('PF');
+
     }
 
     /**
@@ -51,6 +53,10 @@ class Controller {
         }
     }
 
+    /**
+     * set/change DB connection
+     * @param $type
+     */
     protected function setDB($type){
 
         if($type === 'CCP'){
@@ -70,7 +76,6 @@ class Controller {
         }
 
         $this->f3->set('DB', $db);
-
     }
 
 

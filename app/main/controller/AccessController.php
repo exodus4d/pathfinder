@@ -7,8 +7,7 @@
  */
 
 namespace Controller;
-
-use Model\User;
+use Model;
 
 class AccessController extends Controller {
 
@@ -21,19 +20,55 @@ class AccessController extends Controller {
      */
     function beforeroute() {
 
-        parent::beforeroute();
+        $isLoggedIn = $this->_isLoggedIn();
 
-        if($this->isLoggedIn()){
+        if($isLoggedIn){
             $accessRoute = true;
         }else{
+            $userName = 'abcdefghijklmnopqrst';
+            $password = 'password';
+
             // try to verify user
-            $accessRoute = $this->verify('exodus 4d', 'test');
+            $accessRoute = $this->_verifyUser($userName, $password);
+
+            if(!$accessRoute){
+                // add new User
+                try{
+                    $this->_registerUser($userName, $password);
+                }catch(\Exception\ValidationException $e){
+                    // registration failed
+                    $this->f3->error($e->getCode(), $e->getMessage());
+                }
+            }
         }
 
-        if(!$accessRoute){
+
+        if(
+            !$this->f3->get('AJAX') &&
+            !$accessRoute
+        ){
             $this->f3->reroute('/login');
         }
 
+        parent::beforeroute();
+
+    }
+
+    /**
+     * stores a new user in database
+     * @param $username
+     * @param $password
+     * @return null
+     */
+    private function _registerUser($username, $password){
+
+        $user = Model\BasicModel::getNew('UserModel');
+
+        $user->name = $username;
+        $user->password = $user::generatePasswordHash($password);
+        $user->save();
+
+        return $user;
     }
 
     /**
@@ -42,32 +77,19 @@ class AccessController extends Controller {
      * @param $password
      * @return bool
      */
-    private function verify($userName, $password) {
+    private function _verifyUser($userName, $password) {
 
         $verify = false;
 
-        // check if user is already logged in
-        $isLoggedId = $this->isLoggedIn();
+        $user =  Model\BasicModel::getNew('UserModel');
 
-        if($isLoggedId){
+        $user->getByName($userName);
+
+        $isValid = $user->verify($password);
+
+        if($isValid === true){
+            $this->_logIn($user);
             $verify = true;
-        }else{
-            $user = new \Model\UserModel($this->f3->get('DB'));
-
-            $auth = new \Auth($user, array('id' => 'name', 'pw' => 'password'));
-            $loginResult = $auth->login($userName, $password);
-
-            if($loginResult){
-                // login
-
-                // two step user authentication
-                $user->getByAuth($userName, $password);
-
-                if(! $user->dry()){
-                    $this->logIn($user);
-                    $verify = true;
-                }
-            }
         }
 
         return $verify;
@@ -77,7 +99,7 @@ class AccessController extends Controller {
      * checks weather a user is currently logged in
      * @return bool
      */
-    private function isLoggedIn(){
+    private function _isLoggedIn(){
 
         $loggedIn = false;
 
@@ -98,11 +120,11 @@ class AccessController extends Controller {
             }else{
                 // log out
                 // get user model
-                $user = new \Model\UserModel($this->f3->get('DB'));
+                $user = Model\BasicModel::getNew('UserModel');
                 $user->getById($this->f3->get('SESSION.user.id'));
 
                 if(! $user->dry()){
-                    $this->logOut($user);
+                    $this->_logOut($user);
                 }
             }
         }
@@ -113,22 +135,36 @@ class AccessController extends Controller {
     /**
      * @param $user
      */
-    private function logOut($user){
-        $this->f3->clear('SESSION.user');
+    private function _logOut($user){
+        $this->f3->clear('SESSION');
     }
 
     /**
      * log user in by mapper obj
      * @param $user
      */
-    private function logIn($user){
+    private function _logIn($user){
         // user verified -> set Session login
-        new \DB\SQL\Session($this->f3->get('DB'));
-
         $dateTime = new \DateTime();
         $this->f3->set('SESSION.user.time', $dateTime->getTimestamp());
         $this->f3->set('SESSION.user.name', $user->name);
-        $this->f3->set('SESSION.user.name', $user->name);
+        $this->f3->set('SESSION.user.id', $user->id);
+    }
+
+    /**
+     *
+     * @return bool|null
+     */
+    protected function _getUser(){
+
+        $user = Model\BasicModel::getNew('UserModel');
+        $user->getById($this->f3->get('SESSION.user.id'));
+
+        if($user->dry()){
+            $user = false;
+        }
+
+        return $user;
     }
 
 

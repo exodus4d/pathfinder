@@ -18,6 +18,7 @@
       <w>killmail</w>
       <w>mouseover</w>
       <w>nonblock</w>
+      <w>onerror</w>
       <w>pnotify</w>
       <w>raphaël</w>
       <w>revalidate</w>

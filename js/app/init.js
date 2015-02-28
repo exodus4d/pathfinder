@@ -22,8 +22,10 @@ define(['jquery'], function($) {
         },
         path: {
           img: 'public/img/',                                       // path for images
-          searchSystems: 'api/systems/search',                      // ajax path - search system by name
-          getSystem: 'api/systems/getDataById'                      // ajax path - get system by id
+          searchSystems: 'api/system/search',                       // ajax URL - search system by name
+          getSystem: 'api/system/getById',                          // ajax URL - get system by id
+          initMap: 'api/map/init',                                  // ajax URL - get static data
+          updateMapData: 'api/map/updateData'                       // ajax URL - main map update call
         },
         url: {
             zKillboard: 'https://zkillboard.com/api/',              // killboard api
@@ -47,29 +49,6 @@ define(['jquery'], function($) {
                 error: {
                     class: 'pf-log-error',
                     label: 'error'
-                }
-            },
-            // map types
-            mapTypes: {
-                standard: {
-                    class: '',
-                    classTab: 'pf-map-type-tab-default',
-                    label: ''
-                },
-                private: {
-                    class: 'pf-map-type-private',
-                    classTab: 'pf-map-type-tab-private',
-                    label: 'Private'
-                },
-                alliance: {
-                    class: 'pf-map-type-alliance',
-                    classTab: 'pf-map-type-tab-alliance',
-                    label: 'Alliance'
-                },
-                global: {
-                    class: 'pf-map-type-global',
-                    classTab: 'pf-map-type-tab-global',
-                    label: 'Global'
                 }
             },
             // system effects
@@ -173,33 +152,6 @@ define(['jquery'], function($) {
                     class: 'pf-system-security-1-0'
                 }
             },
-            // system status
-            systemStatus: {
-                unknown: {
-                    class: 'pf-system-status-unknown',
-                    label: 'unknown'
-                },
-                friendly: {
-                    class: 'pf-system-status-friendly',
-                    label: 'friendly'
-                },
-                occupied: {
-                    class: 'pf-system-status-occupied',
-                    label: 'occupied'
-                },
-                hostile: {
-                    class: 'pf-system-status-hostile',
-                    label: 'hostile'
-                },
-                empty: {
-                    class: 'pf-system-status-empty',
-                    label: 'empty'
-                },
-                unscanned: {
-                    class: 'pf-system-status-unscanned',
-                    label: 'unscanned'
-                }
-            },
             // system info
             systemInfo: {
                 rally: {
@@ -215,17 +167,6 @@ define(['jquery'], function($) {
         },
         // map scopes
         defaultMapScope: 'wh',                                      // default scope for connection
-        mapScopes: {                                                // available scopes for a connection
-            wh: {
-                label: 'wormhole'
-            },
-            stargate: {
-                label: 'stargate'
-            },
-            jumpbridge: {
-                label: 'jumpbridge'
-            }
-        },
         // map connection types
         connectionTypes: {
             jumpbridge: {

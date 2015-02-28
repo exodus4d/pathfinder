@@ -5,6 +5,7 @@ define([
     'app/render',
     'bootbox',
     'app/ccp',
+    'validator',
     'jsPlumb',
     'customScrollbar',
     'dragToSelect',
@@ -19,6 +20,7 @@ define([
         // TODO: remove temp ID counter
         tempId: 100,
         zIndexCounter: 110,
+        logTimerCount: 3,                                              // map log timer in seconds
         newSystemOffset: {
           x: 150,
           y: 0
@@ -58,7 +60,8 @@ define([
         systemContextMenuId: 'pf-map-system-contextmenu',
 
         // dialogs
-        systemDialogId: 'pf-system-dialog',
+        systemDialogId: 'pf-system-dialog',                             // id for system dialog
+        systemDialogSelectClass: 'pf-system-dialog-select',             // id for system select Element
 
         // system security classes
         systemSec: 'pf-system-sec',
@@ -470,19 +473,18 @@ define([
     $.fn.setSystemStatus = function(status){
         var system = $(this);
 
+        var statusId = Util.getStatusInfoForSystem(status, 'id');
         var statusClass = Util.getStatusInfoForSystem(status, 'class');
-        var statusLabel = Util.getStatusInfoForSystem(status, 'label');
 
-        for(var property in Init.classes.systemStatus) {
-            if (Init.classes.systemStatus.hasOwnProperty(property)) {
-                system.removeClass( Init.classes.systemStatus[property].class );
+        for(var property in Init.systemStatus) {
+            if (Init.systemStatus.hasOwnProperty(property)) {
+                system.removeClass( Init.systemStatus[property].class );
             }
         }
 
         // add new class
-        system.data('status', statusLabel);
+        system.data('statusId', statusId);
         system.addClass( statusClass );
-
     };
 
     /**
@@ -574,14 +576,20 @@ define([
         system.find('.' + config.systemHeadNameClass).attr('data-value', systemName);
 
         // set system status
-        system.setSystemStatus(data.status);
+        system.setSystemStatus(data.status.name);
 
         system.data('id', parseInt(data.id));
         system.data('systemId', parseInt(data.systemId));
         system.data('name', data.name);
-        system.data('type', data.type);
+        system.data('typeId', data.type.id);
         system.data('effect', data.effect);
+        system.data('security', data.security);
         system.data('trueSec', parseFloat(data.trueSec));
+        system.data('regionId', parseInt(data.region.id));
+        system.data('region', data.region.name);
+        system.data('constellationId', parseInt(data.constellation.id));
+        system.data('constellation', data.constellation.name);
+
         system.data('updated', data.updated);
         system.attr('data-mapid', mapContainer.data('id'));
 
@@ -644,9 +652,10 @@ define([
 
             // add additional information
             mapContainer.data('name', mapConfig.config.name);
-            mapContainer.data('scope', mapConfig.config.scope);
+            mapContainer.data('scopeId', mapConfig.config.scope.id);
+            mapContainer.data('typeId', mapConfig.config.type.id);
             mapContainer.data('icon', mapConfig.config.icon);
-            mapContainer.data('type', mapConfig.config.type);
+            mapContainer.data('updated', mapConfig.config.updated);
 
             // get map data
             var mapData = mapContainer.getMapData();
@@ -1090,7 +1099,7 @@ define([
         var mapOverlay = $(this);
         var counterChart = mapOverlay.getMapCounter();
 
-        var seconds = 10;
+        var seconds = config.logTimerCount;
         var fadeEffectDuration = 200;
 
         // get counter interval (in case there is an active one)
@@ -1214,7 +1223,7 @@ define([
         // connection have the default map Scope scope
         var scope = map.Defaults.Scope;
         if(connectionData.scope){
-            scope = connectionData.scope;
+            scope = connectionData.scope.name;
         }
 
         var connection = map.connect({
@@ -1222,7 +1231,8 @@ define([
             target: config.systemIdPrefix + mapId + '-' + connectionData.target,
             scope: scope,
             parameters: {
-                connectionId: connectionId
+                connectionId: connectionId,
+                updated: connectionData.updated
             }
             /* experimental (straight connections)
             anchors: [
@@ -1435,7 +1445,7 @@ define([
     var initSystemContextMenu = function(){
 
         var systemStatus = [];
-        $.each(Init.classes.systemStatus, function(status, statusData){
+        $.each(Init.systemStatus, function(status, statusData){
             var tempStatus = {
                 subIcon: 'fa-circle',
                 subIconClass: statusData.class,
@@ -2307,7 +2317,7 @@ define([
                     case 'scope_jumpbridge':
 
                         var newScope = action.split('_')[1];
-                        var newScopeName =  Util.getScopeInfoForMap( newScope, 'label');
+                        var newScopeName =  Util.getScopeInfoForConnection( newScope, 'label');
 
                         bootbox.confirm('Change scope from ' + activeScopeName + ' to ' + newScopeName + '?', function(result) {
                             if(result){
@@ -2392,7 +2402,7 @@ define([
         // format system status for form select
         var systemStatus = {};
 
-        $.each(Init.classes.systemStatus, function(status, statusData){
+        $.each(Init.systemStatus, function(status, statusData){
             //statusData.status = status;
             //systemStatus.push(statusData);
             systemStatus[status] = statusData.label;
@@ -2401,8 +2411,8 @@ define([
 
         var data = {
             id: config.systemDialogId,
-            system: 'lalala',
-            status: systemStatus
+            status: systemStatus,
+            selectClass: config.systemDialogSelectClass
         };
 
         requirejs(['text!templates/modules/system_dialog.html', 'mustache'], function(template, Mustache) {
@@ -2424,72 +2434,79 @@ define([
                         }
                     },
                     success: {
-                        label: 'Add system',
+                        label: '<i class="fa fa-fw fa-sun-o"></i> add system',
                         className: 'btn-primary',
-                        callback: function () {
+                        callback: function (e) {
                             // get form Values
                             var form = $('#' + config.systemDialogId).find('form');
 
                             var systemDialogData = $(form).getFormValues();
 
+                            // validate form
+                            form.validator('validate');
+
+                            // check weather the form is valid
+                            var formValid = form.isValidForm();
+
+                            if(formValid === false){
+                                // don't close dialog
+                                return false;
+
+                            }
+
                             // get system information
                             var requestUrl = Init.path.getSystem + '/' + parseInt( systemDialogData.systemId );
                             $.getJSON( requestUrl, function( systemData ) {
 
-                                if(systemData.length === 1){
+                                mapContainer.getMapOverlay().startMapUpdateCounter();
 
-                                    mapContainer.getMapOverlay().startMapUpdateCounter();
+                                // merge dialog data and backend data
+                                var newSystemData = $.extend(systemData, systemDialogData);
 
-                                    systemData = systemData.shift();
+                                var currentX = 0;
+                                var currentY = 0;
 
-                                    // merge dialog data and backend data
-                                    var newSystemData = $.extend(systemData, systemDialogData);
+                                var newPositon = {
+                                    x: 0,
+                                    y: 0
+                                };
 
-                                    var currentX = 0;
-                                    var currentY = 0;
+                                var sourceSystem = null;
 
-                                    var newPositon = {
-                                        x: 0,
-                                        y: 0
+                                // add new position
+                                if(options.sourceSystem !== undefined){
+
+                                    sourceSystem = options.sourceSystem;
+
+                                    // related system is available
+                                    currentX = sourceSystem.css('left');
+                                    currentY = sourceSystem.css('top');
+
+                                    // remove "px"
+                                    currentX = parseInt( currentX.substring(0, currentX.length - 2) );
+                                    currentY = parseInt( currentY.substring(0, currentY.length - 2) );
+
+                                    newPositon = {
+                                        x: currentX + config.newSystemOffset.x,
+                                        y: currentY + config.newSystemOffset.y
                                     };
-
-                                    var sourceSystem = null;
-
-                                    // add new position
-                                    if(options.sourceSystem !== undefined){
-
-                                        sourceSystem = options.sourceSystem;
-
-                                        // related system is available
-                                        currentX = sourceSystem.css('left');
-                                        currentY = sourceSystem.css('top');
-
-                                        // remove "px"
-                                        currentX = parseInt( currentX.substring(0, currentX.length - 2) );
-                                        currentY = parseInt( currentY.substring(0, currentY.length - 2) );
-
-                                        newPositon = {
-                                            x: currentX + config.newSystemOffset.x,
-                                            y: currentY + config.newSystemOffset.y
-                                        };
-                                    }else{
-                                        // check mouse cursor position (add system to map)
-                                        newPositon = {
-                                            x: options.position.x,
-                                            y: options.position.y
-                                        };
-                                    }
-
-                                    newSystemData.position = newPositon;
-
-                                    // draw new system to map
-                                    drawSystem(map, newSystemData, sourceSystem);
-
+                                }else{
+                                    // check mouse cursor position (add system to map)
+                                    newPositon = {
+                                        x: options.position.x,
+                                        y: options.position.y
+                                    };
                                 }
+
+                                newSystemData.position = newPositon;
+
+                                // draw new system to map
+                                drawSystem(map, newSystemData, sourceSystem);
+
+
                             }).fail(function( jqXHR, status, error) {
                                 var reason = status + ': ' + error;
                                 Util.showNotify({title: jqXHR.status + ': System search failed', text: reason, type: 'warning'});
-
                             });
 
                         }
@@ -2497,12 +2514,14 @@ define([
                 }
             });
 
-
             // init dialog
             systemDialog.on('shown.bs.modal', function(e) {
 
+                var modalContent = $('#' + config.systemDialogId);
+
                 // init system select live  search
-                var selectElement = $(".js-example-basic-single");
+                var selectElement = modalContent.find('.' + config.systemDialogSelectClass);
+
                 $.when(
                     selectElement.select2({
                         ajax: {
@@ -2542,11 +2561,12 @@ define([
                             }
                         },
                         minimumInputLength: 2,
-                        placeholder: 'Name',
+                        placeholder: 'Jita',
                         allowClear: true
                     })
                 ).done(function(){
-                    $('#testId').css({'display': 'block'});
+                    // open select
+                    selectElement.select2('open');
                 });
 
             });
@@ -2561,7 +2581,8 @@ define([
                 emptytext: 'unknown',
                 onblur: 'submit',
                 showbuttons: false,
-                source: systemStatus
+                source: systemStatus,
+                inputclass: config.systemDialogSelectClass
             });
 
         });
@@ -2674,11 +2695,16 @@ define([
         ){
             // map config ---------------------------------
             var mapConfig = {};
-            mapConfig.id = mapElement.data('id');
+            mapConfig.id = parseInt( mapElement.data('id') );
             mapConfig.name = mapElement.data('name');
-            mapConfig.scope = mapElement.data('scope');
+            mapConfig.scope = {
+                id: parseInt( mapElement.data('scopeId') )
+            };
             mapConfig.icon = mapElement.data('icon');
-            mapConfig.type = mapElement.data('type');
+            mapConfig.type = {
+                id: parseInt( mapElement.data('typeId') )
+            };
+            mapConfig.updated = parseInt( mapElement.data('updated') );
             mapData.config = mapConfig;
 
             // map data -----------------------------------
@@ -2691,19 +2717,31 @@ define([
             for(var i = 0; i < systems.length; i++){
 
                 // systems data ------------------------------------
-
                 var tempSystem = $(systems[i]);
                 var systemData = {};
                 systemData.id = parseInt( tempSystem.data('id') );
                 systemData.systemId = parseInt( tempSystem.data('systemId') );
                 systemData.name = tempSystem.data('name');
                 systemData.alias = tempSystem.getSystemInfo(['alias']);
-                systemData.type = tempSystem.data('type');
-                systemData.status = tempSystem.data('status');
                 systemData.effect = tempSystem.data('effect');
+                systemData.type = {
+                    id: tempSystem.data('typeId')
+                };
+                systemData.security = tempSystem.data('security');
                 systemData.trueSec = tempSystem.data('trueSec');
-                systemData.locked = parseInt( tempSystem.data('locked') );
-                systemData.rally = parseInt( tempSystem.data('rally') );
+                systemData.region = {
+                    id: tempSystem.data('regionId'),
+                    name: tempSystem.data('region')
+                };
+                systemData.constellation = {
+                    id: tempSystem.data('constellationId'),
+                    name: tempSystem.data('constellation')
+                };
+                systemData.status = {
+                    id: tempSystem.data('statusId')
+                };
+                systemData.locked = tempSystem.data('locked') ? 1 : 0;
+                systemData.rally = tempSystem.data('rally') ? 1 : 0;
                 systemData.currentUser = tempSystem.data('currentUser');
                 systemData.updated = parseInt( tempSystem.data('updated') );
                 systemData.userCount = (tempSystem.data('userCount') ? parseInt( tempSystem.data('userCount') ) : 0);
@@ -2739,6 +2777,8 @@ define([
                 var target = $(tempConnection.target);
 
                 var connectionId = tempConnection.getParameter('connectionId');
+                var updated = tempConnection.getParameter('updated');
+
 
                 var connection = {
                     id: connectionId,
@@ -2747,7 +2787,8 @@ define([
                     target: target.data('id'),
                     targetName: target.data('name'),
                     scope: tempConnection.scope,
-                    type: tempConnection.getType()
+                    type: tempConnection.getType(),
+                    updated: updated
                 };
 
                 // add to cache
@@ -2772,6 +2813,7 @@ define([
         if(typeof activeInstances[mapId] !== 'object'){
             // create new instance
             jsPlumb.Defaults.LogEnabled = true;
+
             var newJsPlumbInstance =  jsPlumb.getInstance({
                 Container: null,                                                                // will be set as soon as container is connected to DOM
                 PaintStyle:{

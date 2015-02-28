@@ -1,21 +1,57 @@
 <div class="row" id="{{id}}">
     <div class="col-sm-12">
-        <form  role="form">
-            <div class="form-group">
-                <label class="col-sm-2 control-label" for="form_system">System</label>
-                <div class="col-sm-10">
-                    <div class="input-group">
-                        <select id="form_system" name="systemId"  style="width: 200px;" class="js-example-basic-single"/>
+        <form  role="form" class="form-horizontal">
+
+            <div class="row">
+                <div class="col-sm-8">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" for="form_system">System</label>
+                        <div class="col-sm-10">
+                            <div class="input-group">
+                                <label for="form_system"></label>
+                                <select id="form_system" name="systemId" class="form-control {{selectClass}}" data-error="Choose a valid system" required/>
+                                <span class="help-block with-errors">Search system name</span>
+                            </div>
+                        </div>
                     </div>
-                    <span class="help-block">Enter system name</span>
+                </div>
+
+                <div class="col-sm-4">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <div class="checkbox">
+                                <label for="form_lock">
+                                    <input id="form_lock" name="locked" value="1" type="checkbox">
+                                    Lock System
+                                </label>
+                                <div class="help-block with-errors"></div>
+                            </div>
+
+                            <div class="checkbox">
+                                <label for="form_rally">
+                                    <input id="form_rally" name="rally" value="1" type="checkbox">
+                                    Rally pooint
+                                </label>
+                                <div class="help-block with-errors"></div>
+
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="form-group">
-                <label class="col-sm-2 control-label" for="form_status">Status</label>
-                <div class="col-sm-10">
-                    <a class="pf-editable pf-editable-system-status" href="#" id="form_status" data-type="select" data-name="status"></a>
+
+
+            <div class="row">
+                <div class="col-sm-8">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" for="form_status">Status</label>
+                        <div class="col-sm-6" style="min-height: 32px;">
+                            <a class="pf-editable pf-editable-system-status" href="#" id="form_status" data-type="select" data-name="status"></a>
+                        </div>
+                    </div>
                 </div>
             </div>
+
         </form>
     </div>
 </div>

@@ -204,6 +204,24 @@ define([
         return formData;
     };
 
+    /**
+     * checks weather a bootstrap form is valid or not
+     * validation plugin does not provide a proper function for this
+     * @returns {boolean}
+     */
+    $.fn.isValidForm = function(){
+        var form = $(this);
+        var valid = false;
+
+        var errorElements =  form.find('.has-error');
+
+        if(errorElements.length === 0){
+            valid = true;
+        }
+
+        return valid;
+    };
+
 
     /**
      * checks if an element is currently visible in viewport
@@ -342,14 +360,12 @@ define([
 
         var mapTypes = [];
 
-        $.each(Init.classes.mapTypes, function(prop, data){
+        $.each(Init.mapTypes, function(prop, data){
 
             // skip "default" type -> just for 'add' icon
             if(data.label.length > 0){
-                var tempData = {
-                    type: prop,
-                    label: data.label
-                };
+                var tempData = data;
+                tempData.name = prop;
 
                 mapTypes.push(tempData);
             }
@@ -368,8 +384,8 @@ define([
 
         var mapInfo = '';
 
-        if(Init.classes.mapTypes.hasOwnProperty(mapType)){
-            mapInfo = Init.classes.mapTypes[mapType][option];
+        if(Init.mapTypes.hasOwnProperty(mapType)){
+            mapInfo = Init.mapTypes[mapType][option];
         }
 
         return mapInfo;
@@ -383,7 +399,9 @@ define([
 
         var scopes = [];
         $.each(Init.mapScopes, function(prop, data){
-            scopes.push(prop);
+            var tempData = data;
+            tempData.name = prop;
+            scopes.push(tempData);
         });
 
         return scopes;
@@ -401,6 +419,23 @@ define([
 
         if(Init.mapScopes.hasOwnProperty(info)){
             scopeInfo = Init.mapScopes[info][option];
+        }
+
+        return scopeInfo;
+    };
+
+    /**
+     * get some scope info for a given info string
+     * @param info
+     * @param option
+     * @returns {string}
+     */
+    var getScopeInfoForConnection = function(info, option){
+
+        var scopeInfo = '';
+
+        if(Init.connectionScopes.hasOwnProperty(info)){
+            scopeInfo = Init.connectionScopes[info][option];
         }
 
         return scopeInfo;
@@ -544,8 +579,8 @@ define([
 
         var statusInfo = '';
 
-        if( Init.classes.systemStatus.hasOwnProperty(status) ){
-            statusInfo = Init.classes.systemStatus[status][option];
+        if( Init.systemStatus.hasOwnProperty(status) ){
+            statusInfo = Init.systemStatus[status][option];
         }
 
         return statusInfo;
@@ -749,6 +784,7 @@ define([
         getInfoForMap: getInfoForMap,
         getMapScopes: getMapScopes,
         getScopeInfoForMap: getScopeInfoForMap,
+        getScopeInfoForConnection: getScopeInfoForConnection,
         getInfoForSystem: getInfoForSystem,
         getEffectInfoForSystem: getEffectInfoForSystem,
         getSystemEffectData: getSystemEffectData,

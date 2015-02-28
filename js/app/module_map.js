@@ -65,12 +65,6 @@ define([
         sigTableEditSigTypeSelect: 'pf-sig-table-edit-type-select',             // class for editable fields (select)
         sigTableEditSigNameSelect: 'pf-sig-table-edit-name-select',             // class for editable fields (select)
         sigTableCounterClass: 'pf-sig-table-counter',                           // class for signature table counter
-
-        // map scopes
-        mapScopes: [
-            {scope: 'wormhole', label: 'W-Space'}
-        ]
-
     };
 
     var cache = {
@@ -498,7 +492,7 @@ define([
         var signatureTable = moduleElement.find('.' + config.sigTableMainClass);
         var signatureDataTable = $(signatureTable).DataTable();
 
-        // TODO save NEW sigantures and get them back with NEW ID :)
+        // TODO save NEW signatures and get them back with NEW ID :)
         var systemData = tempFunctionGetSystemData();
 
         // fake data for new signature table entry
@@ -2007,7 +2001,7 @@ define([
 
                     var tabOptions = {
                         id: parseInt( data.config.id ),
-                        tabClasses: [config.mapTabClass, Util.getInfoForMap( data.config.type, 'classTab') ],
+                        tabClasses: [config.mapTabClass, Util.getInfoForMap( data.config.type.name, 'classTab') ],
                         contentClasses: [config.mapTabContentClass],
                         active: false,
                         icon: data.config.icon,
@@ -2052,7 +2046,7 @@ define([
 
                 var tabOptions = {
                     id: parseInt( data.config.id ),
-                    tabClasses: [config.mapTabClass, Util.getInfoForMap( data.config.type, 'classTab') ],
+                    tabClasses: [config.mapTabClass, Util.getInfoForMap( data.config.type.name, 'classTab') ],
                     contentClasses: [config.mapTabContentClass],
                     active: activeTab,
                     icon: data.config.icon,

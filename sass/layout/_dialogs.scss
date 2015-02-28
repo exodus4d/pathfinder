@@ -2,7 +2,7 @@
 
 .modal-content {
 
-  // data tables ===================================================
+  // data tables ==========================================
   .dataTable, .table{
     font-size: 10px;
     font-family: $font-family-bold;
@@ -15,6 +15,12 @@
   height: 500px;
   overflow: auto;
 }
+
+// ad system dialog =======================================
+.pf-system-dialog-select{
+  width: 270px !important;
+}
+
 
 // map info dialog ========================================
 .pf-dialog-dynamic-area{

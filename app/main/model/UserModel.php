@@ -8,19 +8,75 @@
 
 namespace Model;
 
-class UserModel extends \DB\SQL\Mapper {
+class UserModel extends BasicModel {
 
-    private $tableName = 'user';
+    protected $table = 'user';
 
-    function __construct(\DB\SQL $db) {
-        parent::__construct($db, $this->tableName);
+    protected $validate = [
+        'name' => [
+            'length' => [
+                'min' => 5,
+                'max' => 20
+            ],
+            'regex' => '/^[ \w-_]+$/'
+        ],
+        'password' => [
+            'length' => [
+                'min' => 5,
+                'max' => 255
+            ]
+        ]
+    ];
+
+    /**
+     * generate password hash
+     * @param $password
+     * @return FALSE|string
+     */
+    public static function generatePasswordHash($password){
+        // generate random id (23 chars)
+        $salt = uniqid('', true);
+        return \Bcrypt::instance()->hash($password, $salt);
     }
 
-    public function getById($id) {
-        return $this->load( array('id=?', $id) );
+    /**
+     * search for user by unique username
+     * @param $name
+     * @return array|FALSE
+     */
+    public function getByName($name){
+        return $this->getByForeignKey('name', $name);
     }
 
-    public function getByAuth($name, $password){
-        return $this->load( array('name=? AND password=?', $name, $password) );
+    /**
+     * verify a user by his wassword
+     * @param $password
+     * @return bool
+     */
+    public function verify($password){
+        $valid = false;
+
+        if(! $this->dry()){
+            $valid = (bool) \Bcrypt::instance()->verify($password, $this->password);
+        }
+
+        return $valid;
     }
+
+    /**
+     * get all assessable map models for a single user
+     * @return array
+     */
+    public function getMaps(){
+        $userMaps = $this->getRelatedModels('UserMapModel', 'userId');
+
+        $maps = [];
+        foreach($userMaps as $userMap){
+            $maps[] = $userMap->mapId;
+        }
+
+        return $maps;
+    }
+
+
 } 

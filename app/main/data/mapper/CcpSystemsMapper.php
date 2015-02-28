@@ -57,16 +57,23 @@ class CcpSystemsMapper extends \RecursiveArrayIterator {
         // format functions
         self::$map['type'] = function($iterator){
 
+            // TODO refactore
             $type = 'wh';
+            $typeId = 1;
             if(
                 $iterator['security'] == 7 ||
                 $iterator['security'] == 8 ||
                 $iterator['security'] == 9
             ){
                 $type = 'k-space';
+                $typeId = 2;
+
             }
 
-            return $type;
+            return [
+                'id' => $typeId,
+                'name' => $type
+            ];
         };
 
         iterator_apply($this, 'self::recursiveIterator', array($this));
@@ -91,8 +98,6 @@ class CcpSystemsMapper extends \RecursiveArrayIterator {
 
                     // check for mapping key
                     if(array_key_exists($iterator->key(), self::$map)){
-
-                        $removeOldEntry = false;
 
                         if(is_array(self::$map[$iterator->key()])){
                             // a -> array mapping

@@ -27,6 +27,7 @@ requirejs.config({
         hoverIntent: 'lib/jquery.hoverIntent.minified',                 // v1.8.0 Hover intention - http://cherne.net/brian/resources/jquery.hoverIntent.html
         fullScreen: 'lib/jquery.fullscreen.min',                        // v0.5.0 Full screen mode - https://github.com/private-face/jquery.fullscreen
         select2: 'lib/select2.min',                                     // v4.0.0 Drop Down customization - https://select2.github.io/
+        validator: 'lib/validator.min',                                 // v0.7.2 Validator for Bootstrap 3 - https://github.com/1000hz/bootstrap-validator
 
 
         pnotify: 'lib/pnotify/pnotify.core',                            // v2.0.1 PNotify - notification core file
@@ -93,6 +94,9 @@ requirejs.config({
         select2: {
             deps : ['jquery'],
             exports: 'Select2'
+        },
+        validator: {
+            deps : ['jquery', 'bootstrap']
         }
     }
 });
