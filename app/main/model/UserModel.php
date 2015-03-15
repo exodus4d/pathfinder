@@ -11,6 +11,8 @@ namespace Model;
 class UserModel extends BasicModel {
 
     protected $table = 'user';
+    protected $ttl = 5;
+    protected $rel_ttl = 5;
 
     protected $validate = [
         'name' => [
@@ -68,11 +70,14 @@ class UserModel extends BasicModel {
      * @return array
      */
     public function getMaps(){
-        $userMaps = $this->getRelatedModels('UserMapModel', 'userId');
+
+        $userMaps = $this->getRelatedModels('UserMapModel', 'userId', null, 5);
 
         $maps = [];
         foreach($userMaps as $userMap){
-            $maps[] = $userMap->mapId;
+            if($userMap->mapId->isActive()){
+                $maps[] = $userMap->mapId;
+            }
         }
 
         return $maps;

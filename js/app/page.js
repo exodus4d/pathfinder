@@ -50,6 +50,9 @@ define([
         dialogNavigationClass: 'pf-dialog-navigation-list',                     // class for dialog navigation bar
         dialogNavigationListItemClass: 'pf-dialog-navigation-list-item',        // class for map manual li main navigation elements
 
+        // map dialog
+        newMapDialogId: 'pf-map-new-dialog',                                    // id for edit/update map dialog
+
         // system effect dialog
         systemEffectDialogWrapperClass: 'pf-system-effect-dialog-wrapper',      // class for system effect dialog
 
@@ -267,6 +270,17 @@ define([
                         ).on('click', function(){
                             $(document).triggerMenuEvent('ShowTaskManager');
                         })
+                ).append(
+                    $('<a>', {
+                        class: 'list-group-item',
+                        href: '#'
+                    }).html('&nbsp;&nbsp;Delete').prepend(
+                            $('<i>',{
+                                class: 'fa fa-eraser fa-fw'
+                            })
+                        ).on('click', function(){
+                            $(document).triggerMenuEvent('DeleteMap');
+                        })
                 )
         );
     };
@@ -437,6 +451,20 @@ define([
             return false;
         });
 
+        $(document).on('pf:menuDeleteMap', function(e){
+            // delete current active map
+            var mapData = false;
+
+            var activeMap = Util.getMapModule().getActiveMap();
+
+            if(activeMap){
+                mapData = activeMap.getMapData(true);
+            }
+
+            showDeleteMapDialog(mapData);
+            return false;
+        });
+
         $(document).on('pf:menuShowTaskManager', function(e, data){
             // show log dialog
             Logging.showDialog();
@@ -554,65 +582,126 @@ define([
     };
 
     /**
-     * shows the add new map dialog
+     * shows the add/edit map dialog
      */
     var showNewMapDialog = function(mapData){
 
         var formData = {};
 
-        requirejs(['text!templates/modules/map_dialog.html', 'mustache'], function(template, Mustache) {
+        // check if dialog is already open
+        var mapInfoDialogElement = $('#' + config.newMapDialogId);
+        if(!mapInfoDialogElement.is(':visible')){
 
-            var data = {
-                id: Init.newMapDialogId,
-                scope: Util.getMapScopes(),
-                type: Util.getMapTypes(),
-                icon: Util.getMapIcons(),
-                formData: formData
-            };
-            console.log(data);
-            var content = Mustache.render(template, data);
+            requirejs(['text!templates/modules/map_dialog.html', 'mustache'], function(template, Mustache) {
 
-            var dialogTitle = 'New map';
-            var dialogSaveButton = 'add map';
-            if(mapData !== false){
-                dialogTitle = 'Edit map';
-                dialogSaveButton = 'save map';
+                var data = {
+                    id: config.newMapDialogId,
+                    scope: Util.getMapScopes(),
+                    type: Util.getMapTypes(),
+                    icon: Util.getMapIcons(),
+                    formData: formData
+                };
 
-                content = $(content);
-                content.find('select[name="icon"]').val( mapData.config.icon );
-                content.find('input[name="name"]').val( mapData.config.name );
-                content.find('select[name="scope"]').val( mapData.config.scope );
-                content.find('select[name="type"]').val( mapData.config.type );
-            }
+                var content = Mustache.render(template, data);
 
+                var dialogTitle = 'Create new map';
+                var dialogSaveButton = 'add map';
+                if(mapData !== false){
+                    dialogTitle = 'Edit map';
+                    dialogSaveButton = 'save map';
+                    content = $(content);
+                    content.find('input[name="id"]').val( mapData.config.id );
+                    content.find('select[name="icon"]').val( mapData.config.icon );
+                    content.find('input[name="name"]').val( mapData.config.name );
+                    content.find('select[name="scopeId"]').val( mapData.config.scope.id );
+                    content.find('select[name="typeId"]').val( mapData.config.type.id );
+                }
 
-            var mapInfoDialog = bootbox.dialog({
-                title: dialogTitle,
-                message: content,
-                buttons: {
-                    close: {
-                        label: 'cancel',
-                        className: 'btn-default'
-                    },
-                    success: {
-                        label: '<i class="fa fa-code-fork fa-fw"></i>' + dialogSaveButton,
-                        className: 'btn-primary',
-                        callback: function() {
+                var mapInfoDialog = bootbox.dialog({
+                    title: dialogTitle,
+                    message: content,
+                    buttons: {
+                        close: {
+                            label: 'cancel',
+                            className: 'btn-default'
+                        },
+                        success: {
+                            label: '<i class="fa fa-code-fork fa-fw"></i>' + dialogSaveButton,
+                            className: 'btn-primary',
+                            callback: function() {
 
-                            // get form Values
-                            var form = $('#' + config.newMapDialogId).find('form');
-                            var newMapData = form.getFormValues();
+                                // get form Values
+                                var form = $('#' + config.newMapDialogId).find('form');
 
-                            // TODO save map data
+                                // validate form
+                                form.validator('validate');
+
+                                // check weather the form is valid
+                                var formValid = form.isValidForm();
+
+                                if(formValid === true){
+
+                                    var newMapData = {mapData: form.getFormValues()};
+
+                                    $.ajax({
+                                        type: 'POST',
+                                        url: Init.path.saveMap,
+                                        data: newMapData,
+                                        dataType: 'json'
+                                    }).done(function(data){
+                                        Util.showNotify({title: dialogTitle, text: 'Map: ' + data.name, type: 'success'});
+
+                                        $(mapInfoDialog).modal('hide');
+                                        $(document).trigger('pf:closeMenu', [{}]);
+                                    }).fail(function( jqXHR, status, error) {
+                                        var reason = status + ' ' + error;
+                                        Util.showNotify({title: jqXHR.status + ': saveMap', text: reason, type: 'warning'});
+                                        $(document).setProgramStatus('problem');
+                                    });
+                                }
+
+                                return false;
+                            }
                         }
                     }
-                }
+                });
             });
-
-        });
+        }
     };
 
+    /**
+     * shows the delete map Dialog
+     * @param mapElement
+     */
+    var showDeleteMapDialog = function(mapData){
 
+      var mapName = mapData.config.name;
+
+      var mapDeleteDialog = bootbox.confirm('Delete map "' + mapName + '"?', function(result){
+          if(result){
+
+              var data = {mapData: mapData.config};
+
+              $.ajax({
+                  type: 'POST',
+                  url: Init.path.deleteMap,
+                  data: data,
+                  dataType: 'json'
+              }).done(function(data){
+                  Util.showNotify({title: 'Map deleted', text: 'Map: ' + mapName, type: 'success'});
+
+                  $(mapDeleteDialog).modal('hide');
+              }).fail(function( jqXHR, status, error) {
+                  var reason = status + ' ' + error;
+                  Util.showNotify({title: jqXHR.status + ': deleteMap', text: reason, type: 'warning'});
+                  $(document).setProgramStatus('problem');
+              });
+
+              return false;
+          }
+      });
+
+    };
 
     /**
      * shows the map manual modal dialog
@@ -925,6 +1014,15 @@ define([
         // change status, on status changed
         if(iconClass !== false){
 
+            // "problem" and "offline" always have priority -> ignore/clear interval
+            if(
+                status === 'problem' ||
+                status === 'offline'
+            ){
+                clearInterval(programStatusInterval);
+                programStatusInterval = false;
+            }
+
             if(! statusElement.hasClass(textClass) ){
 
                 if(! programStatusInterval){
@@ -948,7 +1046,8 @@ define([
                             });
                         }
 
-                        programStatusCounter--;
+                        // decrement counter
+                        programStatusCounter -= 1000;
 
                         if(programStatusCounter <= 0){
                             clearInterval(programStatusInterval);

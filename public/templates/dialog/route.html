@@ -1,0 +1,36 @@
+<div class="row" id="{{id}}">
+    <div class="col-sm-12">
+        <form  role="form" class="form-horizontal">
+
+            <div class="row">
+                <div class="col-sm-5">
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label" for="form_system">From</label>
+                        <div class="col-sm-9">
+                                <div class=" pull-right">
+                                    <p class="form-control-static">
+                                        <i class="fa fa-arrow-right"></i>
+                                    </p>
+                                </div>
+                                <p class="form-control-static">{{systemFrom}}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-7">
+                    <div class="form-group">
+                        <label class="col-sm-1 control-label" for="form_system">To</label>
+                        <div class="col-sm-11">
+                            <div class="input-group">
+                                <label for="form_system"></label>
+                                <select id="form_system" name="systemTo" class="form-control {{selectClass}}" data-error="Choose a valid system" required/>
+                                <span class="help-block with-errors">Search system name</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>

@@ -14,6 +14,8 @@ use Exception;
 class BasicModel extends \DB\Cortex{
 
     protected $db = 'DB';
+    protected $ttl = 20;
+    protected $rel_ttl = 20;
 
     /**
      * field validation array
@@ -82,7 +84,6 @@ class BasicModel extends \DB\Cortex{
                                         }
                                         break;
                                 }
-
                                 break;
                         }
                     }
@@ -99,31 +100,46 @@ class BasicModel extends \DB\Cortex{
                 if(!$valid){
                     break;
                 }
-
             }
         }
 
         return $valid;
     }
 
-
     /**
      * get single dataSet by id
      * @param $id
-     * @return array|FALSE
+     * @param int $ttl
+     * @return \DB\Cortex
      */
-    public function getById($id) {
-        return $this->getByForeignKey('id', (int)$id, array('limit' => 1));
+    public function getById($id, $ttl = 0) {
+        return $this->getByForeignKey('id', (int)$id, array('limit' => 1), $ttl);
+    }
+
+    /**
+     * checks weather this model is active or not
+     * each model should have an "active" column
+     * @return bool
+     */
+    public function isActive(){
+        $isActive = false;
+
+        if($this->active === 1){
+            $isActive = true;
+        }
+
+        return $isActive;
     }
 
     /**
      * get dataSet by foreign column
      * @param $key
      * @param $id
-     * @param $options
-     * @return array|FALSE
+     * @param array $options
+     * @param int $ttl
+     * @return \DB\Cortex
      */
-    public function getByForeignKey($key, $id, $options = array()){
+    public function getByForeignKey($key, $id, $options = array(), $ttl = 0){
 
         $querySet = [];
         $query = [];
@@ -140,34 +156,56 @@ class BasicModel extends \DB\Cortex{
 
         array_unshift($querySet, implode(' AND ', $query));
 
-        return $this->load( $querySet, $options );
+        return $this->load( $querySet, $options, $ttl );
     }
 
     /**
      * get multiple model obj that have an 1->m relation to this model
      * @param $model
      * @param $foreignKey
+     * @param null $options
+     * @param int $ttl
      * @return mixed
      */
-    public function getRelatedModels($model, $foreignKey){
-        $model = self::getNew($model);
-        $relatedModels = $model->find(array($foreignKey . ' = ? AND active = 1', $this->id), null, 10);
+    public function getRelatedModels($model, $foreignKey, $options = null, $ttl = 0){
+        $model = self::getNew($model, $ttl);
+        $relatedModels = $model->find(array($foreignKey . ' = ? AND active = 1', $this->id), $options, $ttl);
 
         return $relatedModels;
     }
 
     /**
+     * function should be overwritten in child classes with access restriction
+     * @param $accessObject
+     * @return bool
+     */
+    public function hasAccess($accessObject){
+        return true;
+    }
+
+    /**
+     * function should be overwritten in parent classes
+     * @return bool
+     */
+    public function isValid(){
+        return true;
+    }
+
+
+    /**
      * factory for all Models
      * @param $model
+     * @param int $ttl
      * @return null
      * @throws \Exception
      */
-    public static function getNew($model){
+    public static function getNew($model, $ttl = 20){
         $class = null;
 
         $model = '\\' . __NAMESPACE__ . '\\' . $model;
         if(class_exists($model)){
-            $class = new $model();
+            $f3 = \Base::instance();
+            $class = new $model($f3->get('DB'), null, null, $ttl );
         }else{
             throw new \Exception('No model class found');
         }

@@ -3573,6 +3573,25 @@
       <column name="password_expired" sqlType="ENUM" length="2" precision="0" nullable="false" jdbcType="1" def="J04n"/>
       <primary-key name="PRIMARY" columns="Host,User"/>
     </table>
+    <table name="connection" schema="" catalog="pathfinder" type="TABLE">
+      <column name="id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="created" sqlType="TIMESTAMP" length="19" precision="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" length="19" precision="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" length="3" precision="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="mapId" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <column name="source" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <column name="target" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <column name="scope" sqlType="VARCHAR" length="255" precision="0" nullable="false" jdbcType="12"/>
+      <column name="type" sqlType="VARCHAR" length="255" precision="0" nullable="false" jdbcType="12"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="connection_ibfk_1" columns="mapId" ref-table="map" ref-schema="" ref-catalog="pathfinder" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <foreign-key name="connection_ibfk_2" columns="source" ref-table="system" ref-schema="" ref-catalog="pathfinder" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <foreign-key name="connection_ibfk_3" columns="target" ref-table="system" ref-schema="" ref-catalog="pathfinder" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="source" unique="false" columns="target,scope"/>
+      <index name="updated" unique="false" columns="updated"/>
+    </table>
     <table name="connection_scope" schema="" catalog="pathfinder" type="TABLE">
       <column name="id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" autoIncrement="true"/>
       <column name="created" sqlType="TIMESTAMP" length="19" precision="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
@@ -3590,11 +3609,16 @@
       <column name="created" sqlType="DATETIME" length="19" precision="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
       <column name="updated" sqlType="TIMESTAMP" length="19" precision="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
       <column name="active" sqlType="TINYINT" length="3" precision="0" nullable="false" jdbcType="-6" def="MQ=="/>
-      <column name="scopeId" sqlType="TINYINT" length="3" precision="0" nullable="false" jdbcType="-6"/>
-      <column name="typeId" sqlType="TINYINT" length="3" precision="0" nullable="false" jdbcType="-6"/>
+      <column name="scopeId" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <column name="typeId" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
       <column name="name" sqlType="VARCHAR" length="255" precision="0" nullable="false" jdbcType="12"/>
       <column name="icon" sqlType="VARCHAR" length="255" precision="0" nullable="false" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="map_ibfk_1" columns="typeId" ref-table="map_type" ref-schema="" ref-catalog="pathfinder" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <foreign-key name="map_ibfk_2" columns="scopeId" ref-table="map_scope" ref-schema="" ref-catalog="pathfinder" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <exported-key name="connection_ibfk_1" table="connection" schema="" catalog="pathfinder" columns="mapId"/>
+      <exported-key name="system_ibfk_1" table="system" schema="" catalog="pathfinder" columns="mapId"/>
+      <exported-key name="user_map_ibfk_1" table="user_map" schema="" catalog="pathfinder" columns="mapId"/>
       <index name="active" unique="false" columns="active"/>
       <index name="created" unique="false" columns="created"/>
       <index name="updated" unique="false" columns="updated"/>
@@ -3607,6 +3631,7 @@
       <column name="name" sqlType="VARCHAR" length="255" precision="0" nullable="false" jdbcType="12"/>
       <column name="label" sqlType="VARCHAR" length="255" precision="0" nullable="false" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="id"/>
+      <exported-key name="map_ibfk_2" table="map" schema="" catalog="pathfinder" columns="scopeId"/>
     </table>
     <table name="map_type" schema="" catalog="pathfinder" type="TABLE">
       <column name="id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" autoIncrement="true"/>
@@ -3618,6 +3643,7 @@
       <column name="class" sqlType="VARCHAR" length="255" precision="0" nullable="false" jdbcType="12"/>
       <column name="classTab" sqlType="VARCHAR" length="255" precision="0" nullable="false" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="id"/>
+      <exported-key name="map_ibfk_1" table="map" schema="" catalog="pathfinder" columns="typeId"/>
       <index name="active" unique="false" columns="active"/>
       <index name="created" unique="false" columns="created"/>
       <index name="updated" unique="false" columns="updated"/>
@@ -3640,24 +3666,69 @@
       <column name="systemId" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
       <column name="name" sqlType="VARCHAR" length="255" precision="0" nullable="false" jdbcType="12"/>
       <column name="alias" sqlType="VARCHAR" length="255" precision="0" nullable="false" jdbcType="12"/>
+      <column name="regionId" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <column name="region" sqlType="VARCHAR" length="255" precision="0" nullable="false" jdbcType="12"/>
+      <column name="constellationId" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <column name="constellation" sqlType="VARCHAR" length="255" precision="0" nullable="false" jdbcType="12"/>
       <column name="effect" sqlType="VARCHAR" length="100" precision="0" nullable="false" jdbcType="12"/>
       <column name="typeId" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
       <column name="security" sqlType="VARCHAR" length="10" precision="0" nullable="false" jdbcType="12"/>
       <column name="trueSec" sqlType="DECIMAL" length="2" precision="1" nullable="false" jdbcType="3"/>
-      <column name="statusId" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <column name="statusId" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MQ=="/>
       <column name="locked" sqlType="TINYINT" length="3" precision="0" nullable="false" jdbcType="-6" def="MA=="/>
       <column name="rally" sqlType="TINYINT" length="3" precision="0" nullable="false" jdbcType="-6" def="MA=="/>
       <column name="posX" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
       <column name="posY" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
       <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="system_ibfk_1" columns="mapId" ref-table="map" ref-schema="" ref-catalog="pathfinder" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <foreign-key name="system_ibfk_2" columns="typeId" ref-table="system_type" ref-schema="" ref-catalog="pathfinder" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <foreign-key name="system_ibfk_3" columns="statusId" ref-table="system_status" ref-schema="" ref-catalog="pathfinder" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <exported-key name="connection_ibfk_2" table="connection" schema="" catalog="pathfinder" columns="source"/>
+      <exported-key name="connection_ibfk_3" table="connection" schema="" catalog="pathfinder" columns="target"/>
+      <index name="mapId_2" unique="true" columns="mapId,systemId"/>
+      <index name="unique_system" unique="true" columns="mapId,systemId"/>
       <index name="active" unique="false" columns="active"/>
       <index name="created" unique="false" columns="created"/>
       <index name="locked" unique="false" columns="locked"/>
-      <index name="mapId" unique="false" columns="mapId"/>
       <index name="rally" unique="false" columns="rally"/>
-      <index name="statusId" unique="false" columns="statusId"/>
+      <index name="regionId" unique="false" columns="regionId"/>
       <index name="systemId" unique="false" columns="systemId"/>
-      <index name="typeId" unique="false" columns="typeId"/>
+      <index name="updated" unique="false" columns="updated"/>
+    </table>
+    <table name="system_jumps" schema="" catalog="pathfinder" type="TABLE">
+      <column name="id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="created" sqlType="TIMESTAMP" length="19" precision="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" length="19" precision="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" length="3" precision="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="systemId" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <column name="jumps1" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="jumps2" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="jumps3" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="jumps4" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="jumps5" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="jumps6" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="jumps7" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="jumps8" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="jumps9" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="jumps10" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="jumps11" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="jumps12" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="jumps13" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="jumps14" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="jumps15" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="jumps16" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="jumps17" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="jumps18" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="jumps19" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="jumps20" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="jumps21" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="jumps22" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="jumps23" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="jumps24" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" def="MA=="/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <index name="systemId" unique="true" columns="systemId"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
       <index name="updated" unique="false" columns="updated"/>
     </table>
     <table name="system_status" schema="" catalog="pathfinder" type="TABLE">
@@ -3669,6 +3740,7 @@
       <column name="label" sqlType="VARCHAR" length="255" precision="0" nullable="false" jdbcType="12"/>
       <column name="class" sqlType="VARCHAR" length="255" precision="0" nullable="false" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="id"/>
+      <exported-key name="system_ibfk_3" table="system" schema="" catalog="pathfinder" columns="statusId"/>
       <index name="active" unique="false" columns="active"/>
       <index name="created" unique="false" columns="created"/>
       <index name="updated" unique="false" columns="updated"/>
@@ -3680,6 +3752,7 @@
       <column name="active" sqlType="TINYINT" length="3" precision="0" nullable="false" jdbcType="-6" def="MQ=="/>
       <column name="name" sqlType="VARCHAR" length="255" precision="0" nullable="false" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="id"/>
+      <exported-key name="system_ibfk_2" table="system" schema="" catalog="pathfinder" columns="typeId"/>
       <index name="active" unique="false" columns="active"/>
       <index name="created" unique="false" columns="created"/>
       <index name="updated" unique="false" columns="updated"/>
@@ -3693,11 +3766,28 @@
       <column name="name" sqlType="VARCHAR" length="255" precision="0" nullable="false" jdbcType="12"/>
       <column name="password" sqlType="VARCHAR" length="255" precision="0" nullable="false" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="id"/>
+      <exported-key name="user_map_ibfk_2" table="user_map" schema="" catalog="pathfinder" columns="userId"/>
       <index name="id" unique="true" columns="id"/>
       <index name="name" unique="true" columns="name"/>
       <index name="created" unique="false" columns="created"/>
       <index name="lastLogin" unique="false" columns="lastLogin"/>
       <index name="updated" unique="false" columns="updated"/>
+    </table>
+    <table name="user_map" schema="" catalog="pathfinder" type="TABLE">
+      <column name="id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="created" sqlType="TIMESTAMP" length="19" precision="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" length="19" precision="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" length="3" precision="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="userId" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <column name="mapId" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="user_map_ibfk_1" columns="mapId" ref-table="map" ref-schema="" ref-catalog="pathfinder" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <foreign-key name="user_map_ibfk_2" columns="userId" ref-table="user" ref-schema="" ref-catalog="pathfinder" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <index name="unique_user" unique="true" columns="userId,mapId"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="updated" unique="false" columns="updated"/>
+      <index name="userId" unique="false" columns="mapId"/>
     </table>
     <table name="wh_statics" schema="" catalog="pathfinder" type="TABLE">
       <column name="id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" autoIncrement="true"/>

@@ -1,36 +1,59 @@
 <div id="{{id}}">
-    <form class="form-horizontal">
-        <div class="form-group">
-            <label for="icon" class="col-sm-2 control-label">Icon</label>
-            <div class="col-sm-2">
-                <select style="font-family: FontAwesome" name="icon" id="icon" class="form-control">
-                    {{#icon}}
-                    <option value="{{class}}">{{{unicode}}}</option>
-                    {{/icon}}
-                </select>
+    <form role="form" class="form-horizontal">
+
+        <div class="row">
+            <div class="col-sm-3">
+                <div class="form-group">
+                    <label for="icon" class="col-sm-4 control-label">Icon</label>
+                    <div class="col-sm-8">
+                        <select style="font-family: FontAwesome" name="icon" id="icon" class="form-control">
+                            {{#icon}}
+                            <option value="{{class}}">{{{unicode}}}</option>
+                            {{/icon}}
+                        </select>
+                    </div>
+                </div>
             </div>
-            <label for="name" class="col-sm-1 control-label">Map</label>
-            <div class="col-sm-7">
-                <input name="name" type="text" class="form-control" id="name" value="{{formData.name}}" placeholder="Name">
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="scope" class="col-sm-2 control-label">Scope</label>
-            <div class="col-sm-4">
-                <select name="scope" id="scope" class="form-control">
-                    {{#scope}}
-                    <option value="{{id}}">{{label}}</option>
-                    {{/scope}}
-                </select>
-            </div>
-            <label for="type" class="col-sm-1 control-label">Type</label>
-            <div class="col-sm-5">
-                <select name="type" id="type" class="form-control">
-                    {{#type}}
-                    <option value="{{id}}">{{label}}</option>
-                    {{/type}}
-                </select>
+            <div class="col-sm-9">
+                <div class="form-group">
+                    <label for="name" class="col-sm-2 control-label">Name</label>
+                    <div class="col-sm-10">
+                        <input name="name" type="text" class="form-control" id="name" value="{{formData.name}}" placeholder="My map" data-error="Name required" required>
+                        <span class="help-block with-errors">Set unique map name</span>
+
+                    </div>
+                </div>
             </div>
         </div>
+
+
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label for="scope" class="col-sm-2 control-label">Scope</label>
+                    <div class="col-sm-10">
+                        <select name="scopeId" id="scope" class="form-control">
+                            {{#scope}}
+                            <option value="{{id}}">{{label}}</option>
+                            {{/scope}}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label for="type" class="col-sm-2 control-label">Type</label>
+                    <div class="col-sm-10">
+                        <select name="typeId" id="type" class="form-control">
+                            {{#type}}
+                            <option value="{{id}}">{{label}}</option>
+                            {{/type}}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" name="id" value="0" />
     </form>
 </div>

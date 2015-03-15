@@ -4,13 +4,15 @@ define([
     'app/util',
     'app/render',
     'bootbox',
-    'morris',
-    //'datatables',
+    'app/ui/system_info',
+    'app/ui/system_graph',
+    'app/ui/system_route',
+    'app/ui/system_killboard',
     'datatablesTableTools',
     'xEditable',
     'app/map/map',
     'app/counter'
-], function($, Config, Util, Render, bootbox, Morris) {
+], function($, Config, Util, Render, bootbox) {
 
     'use strict';
 
@@ -29,8 +31,11 @@ define([
         mapClass: 'pf-map',                                                     // class for each map
 
         // dialogs
-        newMapDialogId: 'pf-map-new-dialog',                                    // id for system dialog
         signatureReaderDialogId: 'pf-signature-reader-dialog',                  // id for signature reader dialog
+
+        // tables
+        tableToolsClass: 'pf-table-tools',                                      // table toolbar
+        tableToolsActionClass: 'pf-table-tools-action',                         // table toolbar action
 
         // TabContentStructure
         mapTabContentRow: 'pf-map-content-row',                                 // main row for Tab content (grid)
@@ -42,35 +47,20 @@ define([
         moduleClass: 'pf-module',                                               // class for each module
 
         // system info module
-        systemInfoModuleClass: 'pf-system-info-module',                         // module wrapper
-        systemInfoRoutesClass: 'pf-system-info-routes',                         // wrapper for trade hub routes
-        systemInfoGraphsClass: 'pf-system-info-graphs',                         // wrapper for graphs
-        systemInfoGraphKillsClass: 'pf-system-info-graph-kills',                // class for system kill graph
-        systemInfoTableClass: 'pf-system-info-table',                           // class for system info table
-        systemInfoTableEffectRowClass: 'pf-system-info-effect-row',             // class for system info table effect row
-        systemInfoRoutesTableClass: 'pf-system-route-table',                    // class for route tables
-        systemInfoRoutesTableRowPrefix: 'pf-system-info-routes-row-',           // prefix class for a row in the route table
-        systemSecurityClassPrefix: 'pf-system-security-',                       // prefix class for system security level (color)
-
         systemInfoProgressScannedClass: 'pf-system-progress-scanned',           // progress bar scanned signatures
 
         // sig table module
         sigTableModuleClass: 'pf-sig-table-module',                             // module wrapper
-        sigTableToolsClass: 'pf-sig-table-tools',                               // table toolbar
-        sigTableToolsActionClass: 'pf-sig-table-tools-action',                  // table toolbar action
         sigTableClass: 'pf-sig-table',                                          // Table class for all Signature Tables
         sigTableMainClass: 'pf-sig-table-main',                                 // Table class for main sig table
         sigTableEditText: 'pf-sig-table-edit-text',                             // class for editable fields (text)
         sigTableEditSigNameInput: 'pf-sig-table-edit-name-input',               // class for editable fields (input)
         sigTableEditSigTypeSelect: 'pf-sig-table-edit-type-select',             // class for editable fields (select)
         sigTableEditSigNameSelect: 'pf-sig-table-edit-name-select',             // class for editable fields (select)
-        sigTableCounterClass: 'pf-sig-table-counter',                           // class for signature table counter
+        sigTableCounterClass: 'pf-sig-table-counter'                            // class for signature table counter
     };
 
-    var cache = {
-        systemRoutes: {}, // jump information between solar systems
-        systemKillsGraphData: {} // data for system kills info graph
-    };
+
 
     var mapTabChangeBlocked = false;                                            // flag for preventing map tab switch
 
@@ -122,7 +112,7 @@ define([
 
                 // collect all relevant data for SystemInfoElement
                 var systemInfoData = {
-                    systemId: parseInt( $( mapData.system).data('id') ),
+                    systemData: $( mapData.system).getSystemData(),
                     mapId: parseInt( $( mapData.system).attr('data-mapid') )
                 };
 
@@ -259,7 +249,7 @@ define([
 
         // add toolbar buttons for table -------------------------------------
         var tableToolbar = $('<div>', {
-            class: config.sigTableToolsClass
+            class: config.tableToolsClass
         }).append(
                 $('<button>', {
                     class: ['btn', 'btn-primary', 'btn-sm'].join(' '),
@@ -267,7 +257,7 @@ define([
                     type: 'button'
                 }).on('click', function(e){
                     // show "add sig" div
-                    var toolsElement = $(e.target).parents('.' + config.moduleClass).find('.' + config.sigTableToolsActionClass);
+                    var toolsElement = $(e.target).parents('.' + config.moduleClass).find('.' + config.tableToolsActionClass);
                     toolsElement.slideToggle( 100 );
                 }).prepend(
                         $('<i>', {
@@ -318,7 +308,7 @@ define([
 
         // add toolbar action for table -------------------------------------
         var tableToolbarAction = $('<div>', {
-            class: config.sigTableToolsActionClass
+            class: config.tableToolsActionClass
         });
 
         // create "empty table for new signature
@@ -593,6 +583,7 @@ define([
         return tableData;
     };
 
+
     /**
      * clears and updates the system info element (signature table, system info,...)
      * @param tabContentElement
@@ -601,16 +592,23 @@ define([
     var drawSystemInfoElement = function(tabContentElement, systemInfoData){
 
         // get Table cell for system Info
-        var systemCell = $(tabContentElement).find('.' + config.mapTabContentCellFirst);
-
-        // clear systemCell
-        systemCell.empty();
+        var firstCell = $(tabContentElement).find('.' + config.mapTabContentCellFirst);
+        var secondCell = $(tabContentElement).find('.' + config.mapTabContentCellSecond);
 
         // update signature table module
-        systemCell.drawSignatureTableModule(systemInfoData);
+        firstCell.drawSignatureTableModule(systemInfoData);
 
-        // update system info module
-        systemCell.drawSystemInfo(systemInfoData);
+        // draw system info module
+        firstCell.drawSystemInfoModule(systemInfoData.systemData);
+
+        // draw system graph module
+        firstCell.drawSystemGraphModule(systemInfoData.systemData);
+
+        // update system routes module
+        secondCell.drawSystemRouteModule(systemInfoData.systemData);
+
+        // draw system killboard module
+        secondCell.drawSystemKillboardModule(systemInfoData.systemData);
     };
 
     $.fn.drawSignatureTableModule = function(systemInfoData){
@@ -703,449 +701,6 @@ define([
         moduleElement.drawSignatureTableToolbar(systemData, emptySignatureData);
 
     };
-
-    /**
-     * update systeminfo
-     */
-    $.fn.drawSystemInfo = function(systemInfoData){
-
-
-        // TODO replace by AJAX
-        if(systemInfoData.systemId === 30002979){
-            var system =  {
-                id: 30002979,
-                //name: 'J150020',
-                name: 'Tararan',
-                alias: '',
-                effect: '',
-                security: 'L',
-                trueSec: 0.3,
-                region: {
-                    id: '10000036',
-                    name: 'Devoid'
-                },
-                constellation: {
-                    id: '20000436',
-                    name: 'Jayai'
-                },
-                type: 'k-space'
-            };
-        }else if(systemInfoData.systemId === 30000142){
-            var system =  {
-                id: 30000142,
-                //name: 'J150020',
-                name: 'Jita',
-                alias: '',
-                effect: '',
-                security: 'H',
-                trueSec: 0.9,
-                region: {
-                    id: '10000002',
-                    name: 'The Forge'
-                },
-                constellation: {
-                    id: '20000020',
-                    name: 'Kimotoro'
-                },
-                type: 'k-space'
-            };
-        }else{
-            var system =  {
-                id: 2,
-                name: 'J150020',
-                alias: 'Polaris',
-                effect: 'magnetar',
-                security: 'C6',
-                trueSec: -1,
-                region: {
-                    id: '12345',
-                    name: 'F-R00030'
-                },
-                constellation: {
-                    id: '678990',
-                    name: 'F-C00298'
-                },
-                static: [{
-                    security: 'C6',
-                    name: ' W237',
-                    lifetime: 24
-                }],
-                type: 'wh'
-            };
-        }
-
-
-
-
-        // create new module container
-        var moduleElement = $('<div>', {
-            class: [config.moduleClass, config.systemInfoModuleClass].join(' ')
-        });
-
-        $(this).prepend(moduleElement);
-
-        var effectName = Util.getEffectInfoForSystem(system.effect, 'name');
-        var effectClass = Util.getEffectInfoForSystem(system.effect, 'class');
-
-        // confirm dialog
-        var moduleConfig = {
-            name: 'modules/system_info',
-            position: moduleElement,
-            link: 'append',
-            functions: {
-                after: function(){
-                    // init tooltips
-                    var tooltipElements = $('.' + config.systemInfoModuleClass + ' [data-toggle="tooltip"]');
-                    tooltipElements.tooltip();
-
-                    // load trade routes
-                    if(system.type !== 'wh'){
-                        $(moduleElement).find('.' + config.systemInfoRoutesClass).updateSystemInfoRoutes(system.name, ['Jita', 'Amarr', 'Rens', 'Dodixie']);
-                    }
-
-                    // init system effect popover
-                    var systemEffectData = Util.getSystemEffectData( system.security, system.effect);
-
-                    if(systemEffectData !== false){
-
-                        var systemInfoTable = $(moduleElement).find('.' + config.systemInfoTableClass);
-
-                        // transform data into table
-                        var systemEffectTable = Util.getSystemEffectTable( systemEffectData );
-
-                        systemInfoTable.popover({
-                            html: true,
-                            trigger: 'hover',
-                            placement: 'top',
-                            delay: 200,
-                            title: 'System effects',
-                            content: systemEffectTable
-                        });
-                    }
-
-
-                    // load kill statistic chart
-                    $(moduleElement).find('.' + config.systemInfoGraphsClass).updateSystemInfoGraphs(system.id);
-
-
-                }
-            }
-        };
-
-
-        // add security class for statics
-        if(system.static){
-            $.each(system.static, function(i, staticWH){
-               system['static'][i]['class'] = Util.getSecurityClassForSystem( staticWH.security );
-            });
-        }
-
-
-        var moduleData = {
-            system: system,
-            tableClass: config.systemInfoTableClass,
-            securityClass: Util.getSecurityClassForSystem( system.security ),
-            trueSecClass: Util.getTrueSecClassForSystem( system.trueSec ),
-            effectName: effectName,
-            effectClass: effectClass
-        };
-
-        Render.showModule(moduleConfig, moduleData);
-
-    };
-
-    /**
-     * get label element with given content
-     * @param text
-     * @returns {*|XMLList}
-     */
-    var getLabel = function(text, options){
-        var label = $('<span>', {
-            class: ['label', options.type, options.align].join(' ')
-        }).text( text );
-
-        return label;
-    };
-
-    /**
-     * updates the system info graph
-     * @param systemId
-     */
-    $.fn.updateSystemInfoGraphs = function(systemId){
-
-        var parentElement = $(this);
-
-        parentElement.empty();
-
-        var graphElement = $('<div>', {
-            class: config.systemInfoGraphKillsClass
-        });
-
-        parentElement.append(graphElement);
-
-        var showHours = 24;
-        var maxKillmailCount = 200; // limited by API
-
-        var labelOptions = {
-            align: 'center-block'
-        };
-
-        // private function draws a "system kills" graph
-        var drawGraph = function(data){
-
-            var tableData = data.tableData;
-            var label = '';
-
-            if(data.count === 0){
-                labelOptions.type = 'label-success';
-                label = getLabel( 'No kills found within 24h', labelOptions );
-                graphElement.prepend( label );
-
-                // reduce height
-                graphElement.animate({
-                    height: '30px'
-                }, 200);
-                return;
-            }
-
-            // draw chart
-            Morris.Bar({
-                element: graphElement,
-                resize: true,
-                gridTextSize: 10,
-                gridTextColor: '#3c3f41',
-                gridTextFamily: 'Oxygen Bold',
-                hideHover: true,
-                data: tableData,
-                xkey: 'label',
-                ykeys: ['kills'],
-                labels: ['kills'],
-                xLabelMargin: 10,
-                padding: 10,
-                parseTime: false,
-                barColors: function (row, series, type) {
-                    if (type === 'bar') {
-                        // highlight last row -> recent kills found
-                        if(this.xmax === row.x){
-                            return '#c2760c';
-                        }
-                    }
-
-                    return     '#63676a';
-                }
-            });
-
-            // show hint for recent kills
-            if(tableData[tableData.length - 1].kills > 0){
-                labelOptions.type = 'label-warning';
-                label = getLabel( tableData[tableData.length - 1].kills + ' kills within the last hour!', labelOptions );
-                graphElement.prepend( label );
-            }
-
-        };
-
-        // get recent KB stats (last 24h))
-        var localDate = new Date();
-
-        // cache result for 5min
-        var cacheKey = systemId + '_' + localDate.getHours() + '_' + ( Math.ceil( localDate.getMinutes() / 5 ) * 5);
-
-        if(cache.systemKillsGraphData.hasOwnProperty(cacheKey) ){
-            drawGraph( cache.systemKillsGraphData[cacheKey] );
-        }else{
-
-            // chart data
-            var chartData = [];
-
-            for(var i = 0; i < showHours; i++){
-                var tempData = {
-                    label: i + 'h',
-                    kills: 0
-                };
-
-                chartData.push(tempData);
-            }
-
-            // get current server time
-            var serverDate= Util.getServerTime();
-
-            // get all kills until current server time
-            var dateStringEnd = String( serverDate.getFullYear() );
-            dateStringEnd += String( ('0' + (serverDate.getMonth() + 1)).slice(-2) );
-            dateStringEnd += String( ('0' + serverDate.getDate()).slice(-2) );
-            dateStringEnd += String( ('0' + serverDate.getHours()).slice(-2) );
-            dateStringEnd += String( ('0' + serverDate.getMinutes()).slice(-2) );
-
-            // get start Date for kills API request (last 24h)
-            var startDate = new Date( serverDate.getTime() );
-            startDate.setDate( startDate.getDate() - 1);
-            var dateStringStart = String( startDate.getFullYear() );
-            dateStringStart += String( ('0' + (startDate.getMonth() + 1)).slice(-2) );
-            dateStringStart += String( ('0' + startDate.getDate()).slice(-2) );
-            dateStringStart += String( ('0' + startDate.getHours()).slice(-2) );
-            dateStringStart += String( ('0' + startDate.getMinutes()).slice(-2) );
-
-            var url = Config.url.zKillboard;
-            url += '/no-items/no-attackers/solarSystemID/' + systemId + '/startTime/' + dateStringStart + '/endTime/' + dateStringEnd + '/';
-
-            graphElement.showLoadingAnimation();
-
-            $.getJSON(url, function(kbData){
-
-                // the API wont return more than 200KMs ! - remember last bar block with complete KM information
-                var lastCompleteDiffHourData = 0;
-
-
-                // loop kills and count kills by hour
-                for(var i = 0; i < kbData.length; i++){
-                    var match = kbData[i].killTime.match(/^(\d+)-(\d+)-(\d+) (\d+)\:(\d+)\:(\d+)$/);
-                    var killDate = new Date(match[1], match[2] - 1, match[3], match[4], match[5], match[6]);
-
-                    // get time diff
-                    var timeDiffMin = Math.round( ( serverDate - killDate ) / 1000 / 60 );
-                    var timeDiffHour = Math.round( timeDiffMin / 60 );
-
-                    // update chart data
-                    if(chartData[timeDiffHour]){
-                        chartData[timeDiffHour].kills++;
-
-                        if(timeDiffHour > lastCompleteDiffHourData){
-                            lastCompleteDiffHourData = timeDiffHour;
-                        }
-                    }
-
-                }
-
-                // remove empty chart Data
-                if(kbData.length >= maxKillmailCount){
-                    chartData = chartData.splice(0, lastCompleteDiffHourData + 1);
-                }
-
-                // change order
-                chartData.reverse();
-
-                // fill cache
-                cache.systemKillsGraphData[cacheKey] = {};
-                cache.systemKillsGraphData[cacheKey].tableData = chartData;
-                cache.systemKillsGraphData[cacheKey].count = kbData.length;
-
-                drawGraph( cache.systemKillsGraphData[cacheKey] );
-
-                parentElement.hideLoadingAnimation();
-            }).error(function(e){
-                Util.showNotify({title: e.status + ': Get system kills', text: 'Loading failed', type: 'error'});
-            });
-        }
-
-    };
-
-    $.fn.updateSystemInfoRoutes = function(systemFrom, systemsTo){
-
-        // TODO get cached routes from backend
-
-        var parentElement = $(this);
-
-        // crate new route table
-        var table = $('<table>', {
-            class: ['compact', 'stripe', 'order-column', 'row-border', config.systemInfoRoutesTableClass].join(' ')
-        });
-
-        parentElement.append( $(table) );
-
-        // init empty table
-        var routesTable = table.DataTable( {
-           paging: false,
-           ordering: true,
-           order: [ 1, 'asc' ],
-           info: false,
-           searching: false,
-           hover: false,
-
-           //autoWidth: false,
-           columnDefs: [
-               {
-                   targets: 0,
-                   //"orderData": 0,
-                   orderable: true,
-                   title: 'system'
-               },{
-                   targets: 1,
-                   orderable: true,
-                   title: 'jumps &nbsp;&nbsp;&nbsp',
-                   width: '40px',
-                   class: 'text-right'
-               },{
-                   targets: 2,
-                   orderable: false,
-                   title: 'route'
-               }
-           ],
-           data: [] // will be added dynamic
-        } );
-
-        $.each(systemsTo, function(i, systemTo){
-
-            if(systemFrom !== systemTo){
-
-                var cacheKey = systemFrom + '_' + systemTo;
-
-                // row class
-                var rowClass = config.systemInfoRoutesTableRowPrefix + i;
-
-                if(cache.systemRoutes.hasOwnProperty(cacheKey)){
-                    // add new row from cache
-                    routesTable.row.add( cache.systemRoutes[cacheKey] ).draw().nodes().to$().addClass( rowClass );
-
-                    // init tooltips for each jump system
-                    var tooltipElements = parentElement.find('.' + rowClass + ' [data-toggle="tooltip"]');
-                    $(tooltipElements).tooltip();
-                }else{
-                    // get route from API
-                    var baseUrl = Config.url.eveCentral + 'route/from/';
-
-                    var url = baseUrl + systemFrom + '/to/' + systemTo;
-
-                    $.getJSON(url, function(routeData){
-
-                        // add row Data
-                        var rowData = [systemTo, routeData.length];
-
-                        var jumpData = [];
-                        // loop all systems on a rout
-                        $.each(routeData, function(j, systemData){
-
-                            var systemSecClass = config.systemSecurityClassPrefix;
-                            var systemSec = systemData.to.security.toFixed(1).toString();
-                            systemSecClass += systemSec.replace('.', '-');
-                            var system = '<i class="fa fa-square ' + systemSecClass + '" ';
-                            system += 'data-toggle="tooltip" data-placement="bottom" ';
-                            system += 'title="' + systemData.to.name + ' - ' + systemSec + ' [' + systemData.to.region.name  + ']"></i>';
-                            jumpData.push( system );
-
-                        });
-
-
-                        rowData.push( jumpData.join(' ') );
-
-                        cache.systemRoutes[cacheKey] = rowData;
-
-                        // add new row
-                        routesTable.row.add( cache.systemRoutes[cacheKey] ).draw().nodes().to$().addClass( rowClass );
-
-                        // init tooltips for each jump system
-                        var tooltipElements = parentElement.find('.' + rowClass + ' [data-toggle="tooltip"]');
-                        $(tooltipElements).tooltip();
-
-                    });
-
-                }
-
-            }
-
-        });
-
-    };
-
 
     /**
      * update Progressbar for all scanned signatures in a system
@@ -1726,7 +1281,6 @@ define([
 
             // update map
             if(tempMapUserDataClone){
-                //console.log('User: ' + tempMapUserDataClone.data.systems[0].user.length);
                 mapElement.updateUserData(tempMapUserDataClone, currentUserData);
             }
         }
@@ -1749,7 +1303,7 @@ define([
                     })
                 ).append(
                     $('<div>', {
-                        class: ['col-xs-6', 'col-md-4', config.mapTabContentCellSecond, config.mapTabContentCell].join(' ')
+                        class: ['col-xs-12', 'col-md-4', config.mapTabContentCellSecond, config.mapTabContentCell].join(' ')
                     })
                 );
 
@@ -1760,7 +1314,7 @@ define([
 
     };
 
-    var getTabElementh = function(options){
+    var getTabElement = function(options){
 
         var tabElement = $('<div>', {
             id: config.mapTabElementId
@@ -1782,6 +1336,34 @@ define([
     };
 
     /**
+     * set data for a map tab, or update an existing map tab with new data
+     * @param options
+     */
+    $.fn.updateTabData = function(options){
+        var tabElement = $(this);
+
+        // set main data
+        tabElement.data('map-id', options.id).data('updated', options.updated);
+
+        // change tab link
+        tabElement.attr('href', '#' + config.mapTabIdPrefix + options.id);
+
+        // change map icon
+        tabElement.find('i').removeClass().addClass(['fa', 'fa-fw', options.icon].join(' '));
+
+        // change map name label
+        tabElement.find('.' + config.mapTabLinkTextClass).text(options.name);
+
+        // change tabClass
+        var listElement = tabElement.parent();
+       tabElement.parent().removeClass().addClass([config.mapTabClass, options.type.classTab ].join(' '));
+        if(options.right === true){
+            listElement.addClass('pull-right');
+        }
+    };
+
+
+    /**
      * add a new tab to tab-map-module end returns the new objects
      * @param options
      * @returns {{listElement: (*|void), contentElement: (*|HTMLElement)}}
@@ -1792,9 +1374,7 @@ define([
         var tabBar = tabElement.find('ul.nav-tabs');
         var tabContent = tabElement.find('div.tab-content');
 
-        var listElement = $('<li>', {
-            class: options.tabClasses.join(' ')
-        }).attr('role', 'presentation');
+        var listElement = $('<li>').attr('role', 'presentation');
 
         if(options.active === true){
             listElement.addClass('active');
@@ -1805,19 +1385,14 @@ define([
         }
 
         // link element -------
-        var linkElement = $('<a>', {
-            href: '#' + config.mapTabIdPrefix + options.id
-        }).attr('role', 'tab').data('map-id', options.id);
+        var linkElement = $('<a>').attr('role', 'tab');
 
         // icon element ------
-        var iconElement = $('<i>', {
-            class: ['fa', 'fa-fw', options.icon].join(' ')
-        });
+        var iconElement = $('<i>');
 
         // text element -----
         var textElement = $('<span>', {
-            class: config.mapTabLinkTextClass,
-            text: options.name
+            class: config.mapTabLinkTextClass
         });
 
         var newListElement = listElement.append(
@@ -1825,6 +1400,9 @@ define([
         );
 
         tabBar.append( newListElement );
+
+        // update Tab element -> set data
+        linkElement.updateTabData(options);
 
         // tabs content ====================================
         var contentElement = $('<div>', {
@@ -1858,21 +1436,27 @@ define([
                 var tabLinkElement = $(this);
                 var mapId = tabLinkElement.data('map-id');
 
-                var mapElement = $('#' + config.mapTabElementId).getActiveMap();
+                // ignore "add" tab. no need for map change
+                if(mapId > 0){
+                    var mapElement = $('#' + config.mapTabElementId).getActiveMap();
 
-                if(mapId !== mapElement.data('id')){
-                    // block tabs until switch is done
-                    mapTabChangeBlocked = true;
+                    if(mapId !== mapElement.data('id')){
+                        // block tabs until switch is done
+                        mapTabChangeBlocked = true;
 
-                    // freeze active map -> no user data update while map switch
-                    mapElement.data('frozen', true);
+                        // freeze active map -> no user data update while map switch
+                        mapElement.data('frozen', true);
 
-                    // hide current map with animation
-                    mapElement.visualizeMap('hide', function(){
-                        // un-block map tabs
-                        mapTabChangeBlocked = switchTabCallback(mapElement, tabLinkElement);
-                    });
+                        // hide current map with animation
+                        mapElement.visualizeMap('hide', function(){
+                            // un-block map tabs
+                            mapTabChangeBlocked = switchTabCallback(mapElement, tabLinkElement);
+                        });
+                    }
+                }else{
+                    tabLinkElement.tab('show');
                 }
+
             }
         });
 
@@ -1945,6 +1529,11 @@ define([
      */
     $.fn.updateMapModule = function(mapData){
 
+        if(mapData.length === 0){
+            return true;
+        }
+
+
         // update current map data
         currentMapData = mapData;
 
@@ -1968,27 +1557,30 @@ define([
 
             // check whether a tab/map is still active
             for(var i = 0; i < tabElements.length; i++){
-                var mapId = $(tabElements[i]).data('map-id');
+                var tabElement = $(tabElements[i]);
+                var mapId = tabElement.data('map-id');
 
                 if(mapId > 0){
                     var tabMapData = getMapDataById(mapId);
 
                     if(tabMapData !== false){
-                        // map data available -> update map
+                        // map data available ->
                         activeMapIds.push(mapId);
 
+                        // check for map data change and update tab
+                        if(tabMapData.config.updated !== tabElement.data('updated')){
+                            tabElement.updateTabData(tabMapData.config);
+                        }
 
                     }else{
-
-                        tabsChanged = true;
-
                         // map data not available -> remove tab
                         var deletedTabName = tabMapElement.deleteTab(mapId);
+
+                        tabsChanged = true;
 
                         if(deletedTabName.length > 0){
                             Util.showNotify({title: 'Map removed', text: deletedTabName + ' deleted', type: 'warning'});
                         }
-
                     }
                 }
             }
@@ -2001,12 +1593,13 @@ define([
 
                     var tabOptions = {
                         id: parseInt( data.config.id ),
-                        tabClasses: [config.mapTabClass, Util.getInfoForMap( data.config.type.name, 'classTab') ],
+                        type: data.config.type,
                         contentClasses: [config.mapTabContentClass],
                         active: false,
                         icon: data.config.icon,
                         name: data.config.name,
-                        right: false
+                        right: false,
+                        updated: data.config.updated
                     };
 
                     var newTabElements = tabMapElement.addTab(tabOptions);
@@ -2017,12 +1610,22 @@ define([
                     // load all the structure elements for the new tab
                     newTabElements.contentElement.initContentStructure();
 
-                    Util.showNotify({title: 'Map added', text: data.config.name + ' added', type: 'success'});
+                    tabsChanged = true;
 
+                    Util.showNotify({title: 'Map added', text: data.config.name + ' added', type: 'success'});
                 }
 
             });
 
+            // get current active map
+            var activeMapId = Util.getMapModule().getActiveMap().data('id');
+            var activeMapData = getMapDataById(activeMapId);
+
+            if(activeMapData !== false){
+                // update active map with new mapData
+                var currentTabContentElement = $('#' + config.mapTabIdPrefix + activeMapId);
+                $( currentTabContentElement).loadMap( activeMapData, {} );
+            }
         }else{
             // create Tab Element
 
@@ -2032,7 +1635,7 @@ define([
                 barId: config.mapTabBarId
             };
 
-            tabMapElement = getTabElementh(options);
+            tabMapElement = getTabElement(options);
 
             // add new tab for each map
             for(var j = 0; j < tempMapData.length; j++){
@@ -2046,12 +1649,13 @@ define([
 
                 var tabOptions = {
                     id: parseInt( data.config.id ),
-                    tabClasses: [config.mapTabClass, Util.getInfoForMap( data.config.type.name, 'classTab') ],
+                    type: data.config.type,
                     contentClasses: [config.mapTabContentClass],
                     active: activeTab,
                     icon: data.config.icon,
                     name: data.config.name,
-                    right: false
+                    right: false,
+                    updated: data.config.updated
                 };
 
                 tabMapElement.addTab(tabOptions);
@@ -2061,7 +1665,9 @@ define([
             // add "add" button
             var tabAddOptions = {
                 id: 0,
-                tabClasses: [config.mapTabClass, Util.getInfoForMap( 'standard', 'classTab') ],
+                type: {
+                    classTab: Util.getInfoForMap( 'standard', 'classTab')
+                },
                 contentClasses: [config.mapTabContentClass],
                 icon: 'fa-plus',
                 name: 'add',
@@ -2085,7 +1691,7 @@ define([
             tabContentElements.initContentStructure();
 
             // load first map i in first tab content container
-            $( tabContentElements[0] ).loadMap( tempMapData[0] );
+            $( tabContentElements[0] ).loadMap( tempMapData[0], {showAnimation: true} );
         }
 
         if(tabsChanged === true){
@@ -2117,7 +1723,7 @@ define([
                     // load map
                     var currentTabContentElement = $('#' + config.mapTabIdPrefix + mapId);
 
-                    $( currentTabContentElement).loadMap( tabMapData );
+                    $( currentTabContentElement).loadMap( tabMapData, {showAnimation: true} );
 
                     // "wake up" scrollbar for map and get previous state back
                     var scrollableElement = currentTabContentElement.find('.' + config.mapWrapperClass);

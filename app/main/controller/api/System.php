@@ -77,7 +77,7 @@ class System extends \Controller\AccessController {
      * build query
      * @return string
      */
-    private function getQuery(){
+    private function _getQuery(){
 
         $query = $this->mainQuery;
         $query .= ' ' . $this->whereQuery;
@@ -88,28 +88,24 @@ class System extends \Controller\AccessController {
         return $query;
     }
 
+
     /**
-     * get system data by systemId
-     * @param $f3
-     * @param $params
+     * get static system Data from CCPs Static DB export
+     * @param $systemId
+     * @return null
      */
-    public function getById($f3, $params){
+    protected function _getSystemModelById($systemId){
 
         // switch DB
         $this->setDB('CCP');
 
-        $systemId = '';
-        // check for search parameter
-        if( array_key_exists( 'arg1', $params) ){
-            $systemId = $params['arg1'];
-        }
 
         $this->whereQuery = "WHERE
-            map_sys.solarSystemID = " . $systemId . "";
+            map_sys.solarSystemID = " . (int)$systemId . "";
 
         $this->limitQuery = "Limit 1";
 
-        $query = $this->getQuery();
+        $query = $this->_getQuery();
 
         $rows = $this->f3->get('DB')->exec($query, null, 30);
 
@@ -120,14 +116,32 @@ class System extends \Controller\AccessController {
 
         // switch DB
         $this->setDB('PF');
-
         $system = Model\BasicModel::getNew('SystemModel');
         $system->setData(reset($ccpData));
 
-        $data = $system->getData();
-
-        echo json_encode($data);
+        return $system;
     }
+
+    /**
+     * Get all static system Data from CCP DB (long cache timer)
+     * @return array
+     */
+    public function getSystems(){
+
+        // switch DB
+        $this->setDB('CCP');
+
+        $query = $this->_getQuery();
+
+        $rows = $this->f3->get('DB')->exec($query, null, 60 * 60 * 24);
+
+
+        // format result
+        $mapper = new Mapper\CcpSystemsMapper($rows);
+
+        return $mapper->getData();
+    }
+
 
     /**
      * search systems by name
@@ -148,9 +162,9 @@ class System extends \Controller\AccessController {
         $this->whereQuery = "WHERE
             map_sys.solarSystemName LIKE '%" . $searchToken . "%'";
 
-        $query = $this->getQuery();
+        $query = $this->_getQuery();
 
-        $rows = $this->f3->get('DB')->exec($query);
+        $rows = $f3->get('DB')->exec($query);
 
         // format result
         $mapper = new Mapper\CcpSystemsMapper($rows);
@@ -160,4 +174,130 @@ class System extends \Controller\AccessController {
         echo json_encode($data);
     }
 
-} 
+    /**
+     * save a new system to a a map
+     * @param $f3
+     */
+    public function save($f3){
+
+        $newSystemData = [];
+
+        $systemData = (array)$f3->get('POST.systemData');
+        $mapData = (array)$f3->get('POST.mapData');
+
+        $map = Model\BasicModel::getNew('MapModel');
+        $map->getById($mapData['id']);
+
+        // check if map exists
+        if(!$map->dry()){
+
+            $systemData['mapId'] = $map;
+
+            // get static system data (CCP DB)
+            $system = $this->_getSystemModelById($systemData['systemId']);
+            // set rest of system data
+            $system->setData($systemData);
+            $system->save();
+
+            $newSystemData = $system->getData();
+        }
+
+        echo json_encode($newSystemData);
+    }
+
+    /**
+     * delete a system and all its connections
+     * @param $f3
+     */
+    public function delete($f3){
+        $systemIds = $f3->get('POST.systemIds');
+
+        $user = $this->_getUser();
+        $system = Model\BasicModel::getNew('SystemModel');
+
+        foreach($systemIds as $systemId){
+
+            $system->getById($systemId);
+            $system->delete($user);
+
+            $system->reset();
+        }
+
+        echo json_encode([]);
+    }
+
+    /**
+     * get system log data from CCP API import
+     * system Kills, Jumps,....
+     * @param $f3
+     */
+    public function graphData($f3){
+        $graphData = [];
+        $systemIds = $f3->get('POST.systemIds');
+
+        // number of log entries in each table per system (24 = 24h)
+        $logEntryCount = 24;
+
+        // table names with system data
+        $logTables = [
+            'jumps' => 'SystemJumpModel',
+            'shipKills' => 'SystemShipKillModel',
+            'podKills' => 'SystemPodKillModel',
+            'factionKills' => 'SystemFactionKillModel'
+        ];
+
+        foreach($systemIds as $systemId){
+
+            foreach($logTables as $label => $ModelClass){
+                $systemLogModel = Model\BasicModel::getNew($ModelClass);
+
+                // 10min cache (could be up to 1h cache time)
+                $systemLogModel->getByForeignKey('systemId', $systemId, array(), 60 * 10);
+
+                if(!$systemLogModel->dry()){
+                    $counter = 0;
+                    for( $i = $logEntryCount; $i >= 1; $i--){
+                        $column = 'value' . $i;
+
+                        // ship and pod kills should be merged into one table
+                        if($label == 'podKills'){
+                            $graphData[$systemId]['shipKills'][$counter]['z'] = $systemLogModel->$column;
+                        }else{
+                            $dataSet = [
+                                'x' => ($i - 1) . 'h',
+                                'y' => $systemLogModel->$column
+                            ];
+                            $graphData[$systemId][$label][] = $dataSet;
+                        }
+                        $counter++;
+                    }
+                }
+
+            }
+        }
+
+        echo json_encode($graphData);
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

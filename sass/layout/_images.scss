@@ -3,9 +3,25 @@
 }
 
 .pf-icon-dotlan{
-  background: url('../img/icons/dotlan_logo.png');
+  background: inline-image("#{$base-url}/icons/dotlan_logo.png");
   width: 17px;
   height: 17px;
   opacity: 0.8;
-  margin: -5px 10px 0 10px;
+  margin: -5px 0px 0 10px;
+}
+
+.pf-icon-wormhol-es{
+  background: inline-image("#{$base-url}/icons/wormhol_es_logo.png");
+  width: 17px;
+  height: 17px;
+  opacity: 0.8;
+  margin: -5px 0px 0 10px;
+}
+
+.pf-icon-zkillboard{
+  background: inline-image("#{$base-url}/icons/zkillboard_logo.png");
+  width: 16px;
+  height: 16px;
+  opacity: 0.8;
+  margin: -5px 0px 0 10px;
 }

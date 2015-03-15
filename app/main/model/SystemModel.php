@@ -12,6 +12,8 @@ namespace Model;
 class SystemModel extends BasicModel {
 
     protected $table = 'system';
+    protected $ttl = 5;
+    protected $rel_ttl = 5;
 
     protected $fieldConf = array(
         'mapId' => array(
@@ -24,7 +26,14 @@ class SystemModel extends BasicModel {
             'belongs-to-one' => 'Model\SystemStatusModel'
         )
     );
-
+/*
+    protected $validate = [
+        'statusId' => [
+            ''
+            'regex' => '/^[1-9]+$/'
+        ]
+    ];
+*/
     /**
      * set an array with all data for a system
      * @param $systemData
@@ -60,7 +69,7 @@ class SystemModel extends BasicModel {
     }
 
     /**
-     * get map data for for response
+     * get map data as array
      * @return array
      */
     public function getData(){
@@ -100,8 +109,66 @@ class SystemModel extends BasicModel {
 
         ];
 
-
         return $systemData;
     }
+
+    /**
+     * check object for model access
+     * @param $accessObject
+     * @return bool
+     */
+    public function hasAccess($accessObject){
+        return $this->mapId->hasAccess($accessObject);
+    }
+
+    /**
+     * delete a system from a map
+     * @param $accessObject
+     */
+    public function delete($accessObject){
+
+        if(!$this->dry()){
+            // check if editor has access
+            if($this->hasAccess($accessObject)){
+                // delete all system connections
+                $connections = $this->getConnections();
+
+                if(is_object($connections)){
+                    foreach($connections as $connection){
+                        $connection->erase();
+                    }
+                }
+                $this->erase();
+            }
+        }
+    }
+
+    /**
+     * get all connections for this system
+     * @return array
+     */
+    public function getConnections(){
+        $connections = false;
+
+        // connections where system is source
+        $sourceConnections = $this->getRelatedModels('ConnectionModel', 'source');
+        $targetConnections = $this->getRelatedModels('ConnectionModel', 'target');
+
+        if(is_object($sourceConnections)){
+            $connections = $sourceConnections;
+        }
+
+        if(is_object($targetConnections)){
+            if(is_object($connections)){
+                $connections->append($targetConnections);
+            }else{
+                $connections = $targetConnections;
+
+            }
+        }
+
+        return $connections;
+    }
+
 
 } 

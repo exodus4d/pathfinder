@@ -8,24 +8,31 @@ define(['jquery'], function($) {
 
     var Config = {
         timer: {
+            programStatusVisible: 5000,                             // ms: timer for status change visibility in head
             mapUpdate: {
-                delay: 3000,                                        // delay between ping calls
-                executionLimit: 300                                 // log timelimit: main map update ping
+                delay: 3000,                                        // ms: delay between ping calls
+                executionLimit: 200                                 // ms: log timelimit: main map update ping
             },
             userUpdate: {
-                delay: 2000,                                        // delay between ping calls
-                executionLimit: 100                                 // log timelimit: map user update ping
+                delay: 2000,                                        // ms: delay between ping calls
+                executionLimit: 200                                 // ms: log timelimit: map user update ping
             },
             mapModuleData: {
-                executionLimit: 100                                 // log timelimit: get all mapData
+                executionLimit: 100                                 // ms: log timelimit: get all mapData
             }
         },
         path: {
           img: 'public/img/',                                       // path for images
-          searchSystems: 'api/system/search',                       // ajax URL - search system by name
-          getSystem: 'api/system/getById',                          // ajax URL - get system by id
           initMap: 'api/map/init',                                  // ajax URL - get static data
-          updateMapData: 'api/map/updateData'                       // ajax URL - main map update call
+          updateMapData: 'api/map/updateData',                      // ajax URL - main map update call
+          saveMap: 'api/map/save',                                  // ajax URL - save/update map
+          deleteMap: 'api/map/delete',                              // ajax URL - delete map
+          searchSystem: 'api/system/search',                        // ajax URL - search system by name
+          saveSystem: 'api/system/save',                            // ajax URL - saves system to map
+          deleteSystem: 'api/system/delete',                        // ajax URL - delete system from map
+          saveConnection: 'api/connection/save',                    // ajax URL - save new connection to map
+          deleteConnection: 'api/connection/delete',                // ajax URL - delete connection from map
+          getSystemGraphData: 'api/system/graphData'                // ajax URL - get system graph data
         },
         url: {
             zKillboard: 'https://zkillboard.com/api/',              // killboard api
@@ -33,7 +40,9 @@ define(['jquery'], function($) {
         },
         animationSpeed: {
             headerLink: 100,                                        // links in head bar
-            mapDeleteSystem: 200                                    // remove system from map
+            mapMoveSystem: 300,                                     // system position has changed animation
+            mapDeleteSystem: 200,                                   // remove system from map
+            mapModule: 100                                          // show/hide of an map module
         },
         classes: {
             // log types

@@ -302,7 +302,7 @@ $mapWidth: 2500px;
     stroke-linecap: round; // line endings
 
     path{
-      @include transition( stroke 0.2s ease-out);
+      @include transition( stroke 0.2s ease-out) ;
     }
 
     path:not(:first-child){

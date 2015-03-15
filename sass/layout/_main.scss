@@ -27,6 +27,28 @@ em{
   }
 }
 
+.pf-font-capitalize{
+  text-transform: capitalize;
+}
+
+// table styles =====================================================
+
+// table icon toolbar
+.pf-table-tools{
+  height: 45px;
+
+  .btn:not(:last-child){
+    margin-right: 10px;
+  }
+}
+
+.pf-table-tools-action{
+  height: 75px;
+  display: none; // triggered by js
+}
+
+
+
 // full screen view of an element
 /*
 .pf-fullscreen{
@@ -125,7 +147,7 @@ em{
     }
 
     .pf-map-type-tab-global{
-      border-top: 2px solid $green;
+      border-top: 2px solid $teal;
     }
 
     .pf-map-type-tab-alliance{
@@ -133,7 +155,11 @@ em{
     }
 
     .pf-map-type-tab-private{
-      border-top: 2px solid $teal;
+      border-top: 2px solid $green;
+    }
+
+    .fa{
+      margin-right: 5px;
     }
   }
 
@@ -553,5 +579,9 @@ Animate the stripes
   }
 }
 
+.row{
+  will-change: all, transform;
+
+}
 
 

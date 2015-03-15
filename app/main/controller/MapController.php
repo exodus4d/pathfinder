@@ -25,7 +25,6 @@ class MapController extends Controller {
      * @param $f3
      */
     public function showError($f3){
-        print_r($f3->get('ERROR'));
 
         // set HTTP status
         if(!empty($f3->get('ERROR.code'))){
@@ -44,7 +43,7 @@ class MapController extends Controller {
 
             echo json_encode($errorData);
         }else{
-            echo 'TODO: static errors';
+            echo $f3->get('ERROR.text');
         }
 
         die();

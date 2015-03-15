@@ -157,7 +157,7 @@ class AccessController extends Controller {
      */
     protected function _getUser(){
 
-        $user = Model\BasicModel::getNew('UserModel');
+        $user = Model\BasicModel::getNew('UserModel', 5);
         $user->getById($this->f3->get('SESSION.user.id'));
 
         if($user->dry()){

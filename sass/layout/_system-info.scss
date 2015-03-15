@@ -25,20 +25,6 @@
       padding: 0 5px;
     }
   }
-
-  // system info killboard graph ===========================================
-  .pf-system-info-graph-kills{
-    width: 100%;
-    height: 150px;
-    padding: 10px 0;
-    position: relative;
-  }
-
-  // routes table ==========================================================
-  .pf-system-route-table{
-    font-size: 10px;
-  }
-
 }
 
 
@@ -104,23 +90,39 @@
       }
     }
   }
-
-  // table icon toolbar
-  .pf-sig-table-tools{
-    height: 45px;
-
-    .btn:not(:last-child){
-      margin-right: 10px;
-    }
-  }
-
-  .pf-sig-table-tools-action{
-    height: 75px;
-    display: none; // triggered by js
-  }
-
 }
 
+// system graph module ===================================================
+.pf-system-graph-module{
+
+  .pf-system-graph{
+    width: 100%;
+    height: 100px;
+  }
+}
+
+// route module ==========================================================
+.pf-system-route-module{
+
+  .pf-system-route-table{
+    width: 100%;
+    font-size: 10px;
+  }
+}
+
+// killboard module ======================================================
+.pf-system-killboard-module{
+
+  .pf-system-killboard-graphs{
+    margin-bottom: 10px;
+  }
+
+  .pf-system-killboard-graph-kills{
+    width: 100%;
+    height: 100px;
+    position: relative;
+  }
+}
 
 
 

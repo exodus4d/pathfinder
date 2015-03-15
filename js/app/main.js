@@ -11,6 +11,7 @@ define([
     'app/ccp',
     'velocity',
     'velocityUI',
+    'app/ui/form_element',
     'app/page',
     'app/module_map'
 ], function($, Init, Util, Render, Logging, CCP) {
@@ -32,6 +33,9 @@ define([
         $('body').loadPageStructure();
 
         // Map init options
+        var mapData = [];
+
+        /*
         var mapData =[{
             map: {},
             config: {
@@ -520,7 +524,7 @@ define([
                 connections: []
             }
         }];
-
+*/
 
         // current user Data for a map
         var tempUserData ={
@@ -587,16 +591,16 @@ define([
                     }
                 },{
                     config: {   // map config
-                        id: 2   // map id
+                        id: 128   // map id
                     },
                     data: {
                         systems:[   // systems in map
                             {
-                                id: 50,  // system id
+                                id: 8597,  // system id
                                 user: [
                                     {
                                         id: 6,
-                                        name: 'Schleiferius',
+                                        name: 'Exodus 6D Gidrine',
                                         ship: {
                                             id: 69,
                                             name: 'Tengu'
@@ -624,7 +628,6 @@ define([
                 Init.systemStatus = initData.systemStatus;
                 Init.systemType = initData.systemType;
 
-                console.log(Init.systemType);
                 // init map module
                 mapModule.initMapModule();
 
@@ -634,10 +637,6 @@ define([
             });
 
         });
-
-
-
-
 
 
         $.fn.initMapModule = function(){
@@ -653,7 +652,7 @@ define([
             var mapUserUpdateDelay = Init.timer[mapUserUpdateKey].delay;
 
             // ping for main map update
-            var triggerMapUpdatePing = function(tempMapData){
+            var triggerMapUpdatePing = function(){
 
                 // check each execution time if map module  is still available
                 var check = $('#' + mapModule.attr('id')).length;
@@ -662,16 +661,6 @@ define([
                     // program crash stop any update
                     return;
                 }
-
-                $(document).setProgramStatus('online');
-
-                Util.timeStart(mapUpdateKey);
-                // load map module ==========================================
-                mapModule.updateMapModule(tempMapData);
-                var duration = Util.timeStop(mapUpdateKey);
-
-                // log execution time
-                Util.log(mapUpdateKey, {duration: duration, description: 'updateMapModule'});
 
                 // get updated map data
                 Util.timeStart(mapModuleDatakey);
@@ -684,30 +673,47 @@ define([
                 // wrap array to object
                 updatedMapData = {mapData: updatedMapData};
 
+                // start log
+                Util.timeStart(mapUpdateKey);
+
                 // store updatedMapData
                 $.ajax({
                     type: 'POST',
                     url: Init.path.updateMapData,
                     data: updatedMapData,
                     dataType: 'json'
-                }).done(function(data){
+                }).done(function(mapData){
 
-                    mapData = data;
+                    $(document).setProgramStatus('online');
 
+                    if(mapData.length === 0){
+                        // no map data available -> show "new map" dialog
+                        $(document).trigger('pf:menuEditMap', {newMap: true});
+                    }else{
+                        // map data found
+
+                        // load map module
+                        mapModule.updateMapModule(mapData);
+
+                        // log execution time
+                        var duration = Util.timeStop(mapUpdateKey);
+                        Util.log(mapUpdateKey, {duration: duration, description: 'updateMapModule'});
+                    }
                     // init new trigger
                     setTimeout(function(){
-                        triggerMapUpdatePing(mapData);
+                        triggerMapUpdatePing();
                     }, mapUpdateDelay);
 
                 }).fail(function( jqXHR, status, error) {
-                    var reason = status + ': ' + error;
-                    console.log(error);
-                    Util.showNotify({title: jqXHR.status + ': updatedMapData', text: reason, type: 'warning'});
-                    $(document).setProgramStatus('problem');
+                    var reason = status + ' ' + jqXHR.status + ': ' + error;
+
+                    Util.emergencyShutdown(reason);
                 });
+
+
             };
 
-            triggerMapUpdatePing(mapData);
+            triggerMapUpdatePing([]);
 
             // ping for user data update -------------------------------------------------------
             var triggerUserUpdatePing = function(userData){
@@ -715,7 +721,7 @@ define([
                 $(document).setProgramStatus('online');
 
                 Util.timeStart(mapUserUpdateKey);
-                mapModule.updateMapModuleData(userData);
+              //  mapModule.updateMapModuleData(userData);
                 var duration = Util.timeStop(mapUserUpdateKey);
 
                 // log execution time

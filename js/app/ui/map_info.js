@@ -43,6 +43,16 @@ define([
         var countSystems = mapData.data.systems.length;
         var countConnections = mapData.data.connections.length;
 
+        // map type
+        var mapTypes = Util.getMapTypes();
+        var mapTypeName = '';
+        var mapTypeClass = '';
+        for(var i = 0; i < mapTypes.length; i++){
+            if(mapTypes[i].id === mapData.config.type.id){
+                mapTypeName = mapTypes[i].name;
+                mapTypeClass = mapTypes[i].class;
+            }
+        }
 
         var dlElementLeft = $('<dl>', {
             class: 'dl-horizontal',
@@ -63,8 +73,8 @@ define([
                 $('<dt>').text( 'Type' )
             ).append(
                 $('<dd>', {
-                    class: Util.getInfoForMap( mapData.config.type, 'class')
-                }).text( Util.getInfoForMap( mapData.config.type, 'label') )
+                    class: mapTypeClass
+                }).text( mapTypeName )
             );
 
         mapElement.append(dlElementLeft);
@@ -129,7 +139,7 @@ define([
             }
 
             // type
-            tempData.push(tempSystemData.type);
+            tempData.push(Util.getSystemTypeInfo(tempSystemData.type.id, 'name'));
 
             // name
             tempData.push( tempSystemData.name );
@@ -142,7 +152,7 @@ define([
             }
 
             // status
-            var systemStatusClass = Util.getStatusInfoForSystem(tempSystemData.status, 'class');
+            var systemStatusClass = Util.getStatusInfoForSystem(tempSystemData.status.id, 'class');
             if(systemStatusClass !== ''){
                 tempData.push( '<i class="fa fa fa-square-o fa-lg fa-fw ' + systemStatusClass + '"></i>' );
             }else{
@@ -166,14 +176,14 @@ define([
             }
 
             // locked
-            if(tempSystemData.locked === true){
+            if(tempSystemData.locked === 1){
                 tempData.push( '<i class="fa fa-lock fa-lg fa-fw"></i>' );
             }else{
                 tempData.push( '' );
             }
 
             // rally point
-            if(tempSystemData.rally === true){
+            if(tempSystemData.rally === 1){
                 tempData.push( '<i class="fa fa-users fa-lg fa-fw"></i>' );
             }else{
                 tempData.push( '' );
@@ -274,7 +284,7 @@ define([
 
             var tempConData = [];
 
-            tempConData.push( Util.getScopeInfoForMap( tempConnectionData.scope, 'label') );
+            tempConData.push( Util.getScopeInfoForConnection( tempConnectionData.scope, 'label') );
 
             // source system name
             tempConData.push( tempConnectionData.sourceName );

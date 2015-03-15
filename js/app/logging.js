@@ -216,7 +216,7 @@ define([
                         lineColors: ['#375959'],
                         pointFillColors: ['#477372'],
                         pointStrokeColors: ['#313335'],
-                        lineWidth: 3,
+                        lineWidth: 2,
                         grid: false,
                         gridTextSize: 9,
                         gridTextFamily: 'Oxygen Bold',

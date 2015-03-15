@@ -12,6 +12,8 @@ namespace Model;
 class MapModel extends BasicModel{
 
     protected $table = 'map';
+    protected $ttl = 5;
+    protected $rel_ttl = 5;
 
     protected $fieldConf = array(
         'scopeId' => array(
@@ -41,6 +43,10 @@ class MapModel extends BasicModel{
         ],
     ];
 
+    /**
+     * set map data by an associative array
+     * @param $data
+     */
     public function setData($data){
 
         foreach((array)$data as $key => $value){
@@ -77,7 +83,8 @@ class MapModel extends BasicModel{
             ],
             'type' => [
                 'id' => $this->typeId->id,
-                'name' => $this->typeId->name
+                'name' => $this->typeId->name,
+                'classTab' => $this->typeId->classTab
             ],
             'icon' => $this->icon,
             'updated' => strtotime($this->updated)
@@ -93,11 +100,13 @@ class MapModel extends BasicModel{
      * @return array
      */
     public function getSystemData(){
-        $systems = $this->getRelatedModels('SystemModel', 'mapId');
+        $systems = $this->getRelatedModels('SystemModel', 'mapId', null, 5);
 
         $systemData = [];
-        foreach($systems as $system){
-            $systemData[] = $system->getData();
+        if(is_object($systems)){
+            foreach($systems as $system){
+                $systemData[] = $system->getData();
+            }
         }
 
         return $systemData;
@@ -108,14 +117,125 @@ class MapModel extends BasicModel{
      * @return array
      */
     public function getConnectionData(){
-        $connections = $this->getRelatedModels('ConnectionModel', 'mapId');
+        $connections = $this->getRelatedModels('ConnectionModel', 'mapId', null, 5);
 
         $connectionData = [];
-        foreach($connections as $connection){
-            $connectionData[] = $connection->getData();
+        if(is_object($connections)){
+            foreach($connections as $connection){
+                $connectionData[] = $connection->getData();
+            }
         }
 
         return $connectionData;
+    }
+
+    /**
+     * set map access for an object (user or alliance)
+     * @param $obj
+     */
+    public function setAccess($obj){
+
+        if($obj instanceof UserModel){
+            // private map
+            // get all userModels who have map access
+            $userMaps = $this->getRelatedModels('UserMapModel', 'mapId');
+
+            $userFound = false;
+            if($userMaps){
+                foreach($userMaps as $userMap){
+                    if($userMap->userId->id !== $obj->id){
+                        // remove map access
+                        $userMap->erase();
+                    }else{
+                        $userFound = true;
+                    }
+                }
+            }
+
+            if(!$userFound){
+                // set user who has access to this map
+                $userMap = self::getNew('UserMapModel');
+                $userMap->userId = $obj;
+                $userMap->mapId = $this;
+                $userMap->save();
+            }
+        }
+    }
+
+    /**
+     * checks weather an object (user or alliance) has
+     * @param $accessObject
+     * @return bool
+     */
+    public function hasAccess($accessObject){
+        $hasAccess = false;
+
+        if($accessObject instanceof UserModel){
+            // get all userModels who have map access
+            $userMaps = $this->getRelatedModels('UserMapModel', 'mapId');
+            if($userMaps){
+                foreach($userMaps as $userMap){
+                    if($userMap->userId->id === $accessObject->id){
+                        $hasAccess = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return $hasAccess;
+    }
+
+    /**
+     * delete this map and all dependencies
+     */
+    public function delete($accessObject){
+
+        if(!$this->dry()){
+            // check if editor has access
+            if($this->hasAccess($accessObject)){
+                // get all userModels who have map access
+                $userMaps = $this->getRelatedModels('UserMapModel', 'mapId');
+                if(is_object($userMaps)){
+                    foreach($userMaps as $userMap){
+                        $userMap->erase();
+                    }
+                }
+
+                // get all connections
+                $connections = $this->getRelatedModels('ConnectionModel', 'mapId');
+                if(is_object($connections)){
+                    foreach($connections as $connection){
+                        $connection->erase();
+                    }
+                }
+
+                // get all systems
+                $systems = $this->getRelatedModels('SystemModel', 'mapId');
+                if(is_object($systems)){
+                    foreach($systems as $system){
+                        $system->erase();
+                    }
+                }
+
+                // delete map
+                $this->erase();
+            }
+        }
+    }
+
+    /**
+     * checks weather a map is private or not
+     * @return bool
+     */
+    public function isPrivate(){
+        $isPrivate = false;
+
+        if($this->typeId->id == 2){
+            $isPrivate = true;
+        }
+
+        return $isPrivate;
     }
 
 

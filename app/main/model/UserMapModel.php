@@ -12,8 +12,13 @@ namespace Model;
 class UserMapModel extends BasicModel {
 
     protected $table = 'user_map';
+    protected $ttl = 5;
+    protected $rel_ttl = 5;
 
     protected $fieldConf = array(
+        'userId' => array(
+            'belongs-to-one' => 'Model\UserModel'
+        ),
         'mapId' => array(
             'belongs-to-one' => 'Model\MapModel'
         )

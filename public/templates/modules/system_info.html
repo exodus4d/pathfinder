@@ -3,13 +3,19 @@
 <div class="row">
     <div class="col-xs-12 col-sm-7">
         <ol class="breadcrumb">
-            <li><span data-toggle="tooltip" data-placement="bottom" title="type">{{system.type}}</span></li>
+            <li><span data-toggle="tooltip" data-placement="bottom" title="type">{{systemTypeName}}</span></li>
             <li><a href="{{system.region.id}}" data-toggle="tooltip" data-placement="bottom" title="region">{{system.region.name}}</a></li>
             <li><a href="{{system.constellation.id}}" data-toggle="tooltip" data-placement="bottom" title="constellation">{{system.constellation.name}}</a></li>
             <li>
                 <span data-toggle="tooltip" data-placement="bottom" title="system">{{system.name}}</span>
                 <a href="http://evemaps.dotlan.net/system/{{system.name}}" target="_blank">
                     <div data-toggle="tooltip" data-placement="bottom" title="dotlan" class="pf-icon pf-icon-dotlan"></div>
+                </a>
+                <a href="http://wh.pasta.gg/{{system.name}}" target="_blank">
+                    <div data-toggle="tooltip" data-placement="bottom" title="wormhol" class="pf-icon pf-icon-wormhol-es"></div>
+                </a>
+                <a href="https://zkillboard.com/system/{{system.systemId}}" target="_blank">
+                    <div data-toggle="tooltip" data-placement="bottom" title="zKillbaord" class="pf-icon pf-icon-zkillboard"></div>
                 </a>
             </li>
         </ol>
@@ -35,9 +41,9 @@
             </thead>
             <tbody>
                 {{#effectName}}
-                    <tr class="pf-system-info-effect-row">
+                    <tr>
                         <td>Effect</td>
-                        <td class="text-right">{{effectName}} <i class="fa fa-square pf-system-effect {{effectClass}}"></i></td>
+                        <td class="text-right pf-font-capitalize">{{effectName}} <i class="fa fa-fw fa-square pf-system-effect {{effectClass}}"></i></td>
                     </tr>
                 {{/effectName}}
                 {{#system.static}}
@@ -48,12 +54,10 @@
                 {{/system.static}}
                 <tr>
                     <td>Security</td>
-                    <td class="text-right {{trueSecClass}}">{{system.trueSec}}</td>
+                    <td class="text-right {{trueSecClass}}">{{trueSec}}</td>
                 </tr>
             </tbody>
         </table>
-
-        <div class="pf-system-info-graphs"></div>
     </div>
 </div>
 

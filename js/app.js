@@ -19,7 +19,7 @@ requirejs.config({
         datatablesBootstrap: 'lib/datatables/dataTables.bootstrap',     // DataTables - not used (bootstrap style)
         datatablesTableTools: 'lib/datatables/extensions/TableTools/js/dataTables.tableTools',   // v2.2.3 TableTools (PlugIn) - https://datatables.net/extensions/tabletools/
         xEditable: 'lib/bootstrap-editable.min',                        // v1.5.1 X-editable - in placed editing
-        morris: 'lib/morris.min',                                       // v0.5.0 Morris.js - graphs and charts
+        morris: 'lib/morris.min',                                       // v0.5.1 Morris.js - graphs and charts
         raphael: 'lib/raphael-min',                                     // v2.1.2 Raphaël - required for morris (dependency)
         bootbox: 'lib/bootbox.min',                                     // v4.3.0 Bootbox.js - custom dialogs
         easyPieChart: 'lib/jquery.easypiechart.min',                    // v2.1.6 Easy Pie Chart - HTML 5 pie charts - http://rendro.github.io/easy-pie-chart/

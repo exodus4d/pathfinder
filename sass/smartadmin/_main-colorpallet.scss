@@ -13,7 +13,9 @@
   &.txt-color-green         { color: $green !important; }
   &.txt-color-greenLight    { color: $greenLight !important; }
   &.txt-color-greenDark     { color: $greenDark  !important; }
+  &.txt-color-redLight      { color: $redLight !important; }
   &.txt-color-red           { color: $red !important; }
+  &.txt-color-redDarker     { color: $red-darker !important; }
   &.txt-color-yellow        { color: $yellow !important; }
   &.txt-color-orange        { color: $orange !important; }
   &.txt-color-orangeDark    { color: $orangeDark !important; }
@@ -25,7 +27,6 @@
   &.txt-color-white         { color: $white !important; }
   &.txt-color-magenta       { color: $magenta !important; }
   &.txt-color-teal          { color: $teal !important; }
-  &.txt-color-redLight      { color: $redLight !important; }
 
   &.txt-color-primary       { color: $brand-primary !important; }
   &.txt-color-success       { color: $brand-success !important; }

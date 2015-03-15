@@ -74,8 +74,10 @@ class Controller {
                 $this->f3->get('DB_PASS')
             );
         }
-
         $this->f3->set('DB', $db);
+
+        // set DB timezone to UTC +00:00 (eve server time)
+        $this->f3->get('DB')->exec('SET @@session.time_zone = "+00:00";');
     }
 
 

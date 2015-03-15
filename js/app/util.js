@@ -38,6 +38,10 @@ define([
                 label: 'plane',
                 unicode: '&#xf072;'
             },{
+                class: 'fa-globe',
+                label: 'globe',
+                unicode: '&#xf0ac;'
+            },{
                 class: 'fa-rocket',
                 label: 'rocket',
                 unicode: '&#xf135;'
@@ -296,6 +300,22 @@ define([
         return logInfo;
     };
 
+    /**
+     * Returns true if the user hit Esc or navigated away from the
+     * current page before an AJAX call was done. (The response
+     * headers will be null or empty, depending on the browser.)
+     *
+     * NOTE: this function is only meaningful when called from
+     * inside an AJAX "error" callback!
+     * @param jqXHR XMLHttpRequest instance
+     * @returns {boolean}
+     */
+    var isXHRAborted = function(jqXHR){
+        return !jqXHR.getAllResponseHeaders();
+    };
+
+    // ==================================================================================================
+    // ==================================================================================================
     // ==================================================================================================
 
     /**
@@ -441,6 +461,26 @@ define([
         return scopeInfo;
     };
 
+
+    /**
+     * get system type information
+     * @returns {Array}
+     */
+    var getSystemTypeInfo = function(systemTypeId, option){
+
+        var systemTypeInfo = '';
+
+        $.each(Init.systemType, function(prop, data){
+
+            if(systemTypeId === data.id){
+                systemTypeInfo = data[option];
+                return;
+            }
+        });
+
+        return systemTypeInfo;
+    };
+
     /**
      * get some system info for a given info string (e.g. rally class)
      * @param info
@@ -580,7 +620,17 @@ define([
         var statusInfo = '';
 
         if( Init.systemStatus.hasOwnProperty(status) ){
+            // search by status string
             statusInfo = Init.systemStatus[status][option];
+        }else{
+            // saarch by statusID
+            $.each(Init.systemStatus, function(prop, data){
+
+                if(status === data.id){
+                    statusInfo = data[option];
+                    return;
+                }
+            });
         }
 
         return statusInfo;
@@ -756,21 +806,6 @@ define([
 
     };
 
-    /**
-     * map backend systemData for frontend
-     * @param systemData
-     * @returns {Array}
-     */
-    var mapSystemData = function(systemData){
-        var data = [];
-
-        for(var i = 0;  i < systemData.length; i++){
-
-        }
-
-        return data;
-    };
-
     return {
         getServerTime: getServerTime,
         timeStart: timeStart,
@@ -778,6 +813,7 @@ define([
         log: log,
         showNotify: showNotify,
         getLogInfo: getLogInfo,
+        isXHRAborted: isXHRAborted,
         getMapModule: getMapModule,
         getMapIcons: getMapIcons,
         getMapTypes: getMapTypes,
@@ -785,6 +821,7 @@ define([
         getMapScopes: getMapScopes,
         getScopeInfoForMap: getScopeInfoForMap,
         getScopeInfoForConnection: getScopeInfoForConnection,
+        getSystemTypeInfo: getSystemTypeInfo,
         getInfoForSystem: getInfoForSystem,
         getEffectInfoForSystem: getEffectInfoForSystem,
         getSystemEffectData: getSystemEffectData,
