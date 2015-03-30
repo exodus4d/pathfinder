@@ -103,7 +103,10 @@ define([
                 smooth: true,
                 fillOpacity: 0.2,
                 resize: true,
-                redraw: true
+                redraw: true,
+                eventStrokeWidth: 2,
+                events: [22],
+                eventLineColors: ['#5CB85C']
             });
         }
     };
@@ -133,7 +136,13 @@ define([
                     class: [config.moduleClass, config.systemGraphModuleClass].join(' '),
                     css: {opacity: 0}
                 });
-                parentElement.append(moduleElement);
+
+                // insert at the correct position
+                if($(parentElement).children().length === 1){
+                    $(parentElement).append(moduleElement);
+                }else{
+                    $(parentElement).find('>:first-child').after(moduleElement);
+                }
 
                 // row element
                 var rowElement = $('<div>', {
@@ -168,9 +177,9 @@ define([
                 }));
 
                 // show module
-                moduleElement.velocity('stop').velocity('transition.slideUpIn', {
-                    queue: false,
-                    duration: Init.animationSpeed.mapModule
+                moduleElement.velocity('transition.slideDownIn', {
+                    duration: Init.animationSpeed.mapModule,
+                    delay: Init.animationSpeed.mapModule
                 });
 
             }).fail(function( jqXHR, status, error) {
@@ -195,7 +204,8 @@ define([
         var moduleElement = parentElement.find('.' + config.systemGraphModuleClass);
 
         if(moduleElement.length > 0){
-            moduleElement.velocity('stop').velocity('reverse', {
+            moduleElement.velocity('transition.slideDownOut', {
+                duration: Init.animationSpeed.mapModule,
                 complete: function(tempElement){
                     $(tempElement).remove();
                     drawModule(parentElement, systemData);

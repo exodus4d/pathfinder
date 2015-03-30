@@ -21,6 +21,12 @@ class MapModel extends BasicModel{
         ),
         'typeId' => array(
             'belongs-to-one' => 'Model\MapTypeModel'
+        ),
+        'mapUsers' => array(
+            'has-many' => array('Model\UserMapModel', 'mapId')
+        ),
+        'systems' => array(
+            'has-many' => array('Model\SystemModel', 'mapId')
         )
     );
 
@@ -93,6 +99,21 @@ class MapModel extends BasicModel{
         ];
 
         return $mapData;
+    }
+
+    /**
+     * get all system models for this map
+     * @return array|mixed
+     */
+    public function getSystems(){
+        $this->filter('systems', array('active = ?', 1));
+
+        $systems = [];
+        if($this->systems){
+            $systems = $this->systems;
+        }
+
+        return $systems;
     }
 
     /**
@@ -187,6 +208,23 @@ class MapModel extends BasicModel{
     }
 
     /**
+     * get all user models with access to this map model
+     * @return array
+     */
+    public function getUsers(){
+        $this->filter('mapUsers', array('active = ?', 1));
+
+        $users = [];
+        if($this->mapUsers){
+            foreach($this->mapUsers as $mapUser){
+                $users[] = $mapUser->userId;
+            }
+        }
+
+        return $users;
+    }
+
+    /**
      * delete this map and all dependencies
      */
     public function delete($accessObject){
@@ -236,6 +274,58 @@ class MapModel extends BasicModel{
         }
 
         return $isPrivate;
+    }
+
+    /**
+     * get all active characters (with active log)
+     * grouped by systems
+     * @return object
+     */
+    public function getUserData(){
+
+        // get systems for this map
+        $systems = $this->getSystems();
+        // get users with map access
+        $users = $this->getUsers();
+
+        $characterLogsData = [];
+        foreach($users as $user){
+            // get all active character logs for a user
+            $activeCharacters = $user->getActiveCharacters();
+
+            foreach($activeCharacters as $activeCharacter){
+                $characterLogsData[] = $activeCharacter->getData(true);
+            }
+        }
+
+        $mapUserData = (object) [];
+        $mapUserData->config = (object) [];
+        $mapUserData->config->id = $this->id;
+        $mapUserData->data = (object) [];
+        $mapUserData->data->systems = [];
+        foreach($systems as $system){
+
+            $systemUserData = (object) [];
+            $systemUserData->id = $system->id;
+            $systemUserData->user = [];
+
+            // check if a system has active characters
+            foreach($characterLogsData as $characterLogData){
+                if($characterLogData->log->system->Id == $system->systemId){
+                    $systemUserData->user[] = $characterLogData;
+                }
+            }
+
+
+            // add system if active users were found
+            if(count($systemUserData->user) > 0){
+                $mapUserData->data->systems[] = $systemUserData;
+            }
+
+        }
+
+
+        return $mapUserData;
     }
 
 

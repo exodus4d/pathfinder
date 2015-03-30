@@ -529,6 +529,32 @@ define([
         // current user Data for a map
         var tempUserData ={
             currentUserData: {
+                id: 1262,
+                character: [{
+                    id: 12,
+                    characterId: 90581222,
+                    characterName: 'Exodus 3D Gidrine',
+                    corporationId: 423229765,
+                    corporationName: 'eXceed Inc.',
+                    allianceId: 99000210,
+                    allianceName: 'No Holes Barred',
+                    isMain: 0
+                },{
+                    id: 9,
+                    characterId: 91301110,
+                    characterName: 'Exodus 2D Gidrine',
+                    isMain: 1
+                },{
+                    id: 10,
+                    characterId: 94940499,
+                    characterName: 'Exodus 8D Gidrine',
+                    isMain: 0
+                },{
+                    id: 11,
+                    characterId: 1946320202,
+                    characterName: 'Exodus 4D',
+                    isMain: 0
+                }],
                 ship: 'Legion',
                 name: 'Exodus 4D',
                 system: {
@@ -632,6 +658,8 @@ define([
                 mapModule.initMapModule();
 
             }).fail(function( jqXHR, status, error) {
+                console.log(jqXHR);
+
                 var reason = status + ' ' + jqXHR.status + ': ' + error;
                 Util.emergencyShutdown(reason);
             });
@@ -709,29 +737,48 @@ define([
 
                     Util.emergencyShutdown(reason);
                 });
-
-
             };
 
-            triggerMapUpdatePing([]);
+            triggerMapUpdatePing();
 
             // ping for user data update -------------------------------------------------------
             var triggerUserUpdatePing = function(userData){
 
-                $(document).setProgramStatus('online');
+                var updatedUserData = {};
 
                 Util.timeStart(mapUserUpdateKey);
-              //  mapModule.updateMapModuleData(userData);
-                var duration = Util.timeStop(mapUserUpdateKey);
 
-                // log execution time
-                Util.log(mapUserUpdateKey, {duration: duration, description:'updateMapModuleData'});
+                $.ajax({
+                    type: 'POST',
+                    url: Init.path.updateUserData,
+                    data: updatedUserData,
+                    dataType: 'json'
+                }).done(function(userData){
 
-                // init new trigger
-                setTimeout(function(){
-                    triggerUserUpdatePing(tempUserData);
-                }, mapUserUpdateDelay);
+                    $(document).setProgramStatus('online');
+
+                    if(userData.length === 0){
+                        mapModule.updateMapModuleData(userData);
+                    }
+
+                    var duration = Util.timeStop(mapUserUpdateKey);
+
+                    // log execution time
+                    Util.log(mapUserUpdateKey, {duration: duration, description:'updateMapModuleData'});
+
+                    // init new trigger
+                    setTimeout(function(){
+                        triggerUserUpdatePing(tempUserData);
+                    }, mapUserUpdateDelay);
+
+                }).fail(function( jqXHR, status, error) {
+                    var reason = status + ' ' + jqXHR.status + ': ' + error;
+
+                    Util.emergencyShutdown(reason);
+                });
+
             };
+
 
             // start user update trigger after map loaded
             setTimeout(function(){

@@ -21,6 +21,7 @@
       <w>mouseover</w>
       <w>nonblock</w>
       <w>onerror</w>
+      <w>orderable</w>
       <w>pnotify</w>
       <w>raphaël</w>
       <w>revalidate</w>

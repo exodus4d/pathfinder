@@ -35,6 +35,7 @@ define([
         headClass: 'pf-head',                                                   // class for page head
         headMenuClass: 'pf-head-menu',                                          // class for page head menu button (left)
         headMapClass: 'pf-head-map',                                            // class for page head map button (right)
+        headMainCharacterClass: 'pf-head-main-character',                       // class for "main character" link
         headActiveUserClass: 'pf-head-active-user',                             // class for "active user" link
         headCurrentLocationClass: 'pf-head-current-location',                   // class for "show current location" link
         headProgramStatusClass: 'pf-head-program-status',                       // class for "program status" notification
@@ -52,6 +53,12 @@ define([
 
         // map dialog
         newMapDialogId: 'pf-map-new-dialog',                                    // id for edit/update map dialog
+
+        // select character dialog
+        characterSelectDialogId: 'pf-select-character-dialog',                  // id for "select character" dialog
+        characterSelectImageWrapperClass: 'pf-dialog-image-wrapper',            // class for image wrapper (animated)
+        characterSelectImageInfoClass: 'pf-dialog-character-info',              // class for character info layer (visible on hover)
+        characterSelectMainClass: 'pf-dialog-character-main',                   // class for main character highlighting
 
         // system effect dialog
         systemEffectDialogWrapperClass: 'pf-system-effect-dialog-wrapper',      // class for system effect dialog
@@ -323,6 +330,11 @@ define([
                     });
 
                     // active pilots
+                    $('.' + config.headMainCharacterClass).find('a').on('click', function(){
+                        $(document).triggerMenuEvent('ShowCharacterDialog');
+                    });
+
+                    // active pilots
                     $('.' + config.headActiveUserClass).find('a').on('click', function(){
                         $(document).triggerMenuEvent('ShowMapInfo');
                     });
@@ -426,6 +438,12 @@ define([
         $(document).on('pf:menuManual', function(e){
             // show map manual
             showMapManual();
+            return false;
+        });
+
+        $(document).on('pf:menuShowCharacterDialog', function(e){
+            // show character select dialog
+            showCharacterSelectDialog();
             return false;
         });
 
@@ -700,6 +718,125 @@ define([
               return false;
           }
       });
+
+    };
+
+    /**
+     * show main character select dialog
+     */
+    var showCharacterSelectDialog = function(){
+
+        if(Init.currentUserData){
+            requirejs(['text!templates/modules/character_select_dialog.html', 'mustache'], function(template, Mustache) {
+
+                // calculate grid class
+                var characterCount = Init.currentUserData.character.length;
+                var gridClass = ((12 / characterCount) < 4)? 4 : 12 / characterCount ;
+
+                var data = {
+                    id: config.characterSelectDialogId,
+                    imageWrapperClass: config.characterSelectImageWrapperClass,
+                    imageInfoClass: config.characterSelectImageInfoClass,
+                    imageWrapperMainClass: config.characterSelectMainClass,
+                    currentUserData: Init.currentUserData,
+                    gridClass: 'col-sm-' + gridClass
+                };
+
+                var content = Mustache.render(template, data);
+
+                var selectCharacterDialog = bootbox.dialog({
+                    title: 'Set main character',
+                    message: content
+
+                });
+
+                selectCharacterDialog.on('shown.bs.modal', function(e) {
+
+                    var imageWrapperElements = $(this).find('.' + config.characterSelectImageWrapperClass);
+
+                    // save event =================================================
+                    imageWrapperElements.on('click', function(e){
+
+                        var wrapperElement = $(this);
+                        var characterId = wrapperElement.data('id');
+
+                        // remove not selected characters
+                        if(characterId > 0){
+                            wrapperElement.showLoadingAnimation();
+
+                            var notClickedImageWrapperElements = imageWrapperElements.filter(':not([data-id=' + characterId + '])').parents('.col');
+
+                            notClickedImageWrapperElements.velocity('transition.whirlOut', {
+                                stagger: 60,
+                                drag: true,
+                                duration: 400,
+                                complete: function(){
+                                    // center remaining character element
+                                    wrapperElement.parents('.col').addClass('col-sm-12');
+
+                                    // save configuration
+                                    var requestData = {
+                                        configData: {
+                                            mainCharacterId: characterId
+                                        }
+                                    };
+
+                                    $.ajax({
+                                        type: 'POST',
+                                        url: Init.path.saveUserConfig,
+                                        data: requestData,
+                                        dataType: 'json'
+                                    }).done(function(responseData){
+
+
+                                        Util.showNotify({title: 'Config saved', type: 'success'});
+
+                                        $(selectCharacterDialog).modal('hide');
+                                    }).fail(function( jqXHR, status, error) {
+                                        var reason = status + ' ' + error;
+                                        Util.showNotify({title: jqXHR.status + ': saveConfig', text: reason, type: 'warning'});
+                                        $(document).setProgramStatus('problem');
+                                    });
+
+                                 }
+                            });
+
+                        }
+                    });
+
+                    // initial show effect of all chars
+                    imageWrapperElements.velocity('stop').delay(100).velocity('transition.flipBounceXIn', {
+                        display: 'inline-block',
+                        stagger: 60,
+                        drag: true,
+                        duration: 400
+                    });
+
+                    // Hover effect
+                    imageWrapperElements.hoverIntent(function(e){
+                        var characterInfoElement = $(this).find('.' + config.characterSelectImageInfoClass);
+
+                        characterInfoElement.velocity('finish').velocity({
+                            width: ['100%', [ 400, 15 ] ]
+                        },{
+                            easing: 'easeInSine'
+                        });
+                    }, function(e){
+                        var characterInfoElement = $(this).find('.' + config.characterSelectImageInfoClass);
+
+                        characterInfoElement.velocity('finish').velocity({
+                            width: 0
+                        },{
+                            duration: 150,
+                            easing: 'easeInOutSine'
+                        });
+
+                    });
+
+                });
+
+            });
+        }
 
     };
 

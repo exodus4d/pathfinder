@@ -10,8 +10,6 @@ namespace Controller\Cron;
 
 class Update extends \Controller\Controller {
 
-    protected $pathEveApi = 'https://api.eveonline.com';
-
     protected  $apiRequestOptions = [
         'timeout' => 5
     ];
@@ -95,7 +93,7 @@ class Update extends \Controller\Controller {
 
         // get current jump Data -------------------------------------------------------
         $time_start = microtime(true);
-        $apiPath = $this->pathEveApi . '/map/Jumps.xml.aspx';
+        $apiPath = $this->f3->get('api_path.CCP_XML') . '/map/Jumps.xml.aspx';
 
         $apiResponse = \Web::instance()->request($apiPath, $this->apiRequestOptions );
 
@@ -120,7 +118,7 @@ class Update extends \Controller\Controller {
 
         // get current kill Data -------------------------------------------------------
         $time_start = microtime(true);
-        $apiPath = $this->pathEveApi . '/map/Kills.xml.aspx';
+        $apiPath = $this->f3->get('api_path.CCP_XML') . '/map/Kills.xml.aspx';
 
         $apiResponse = \Web::instance()->request($apiPath, $this->apiRequestOptions );
         $killData = [];

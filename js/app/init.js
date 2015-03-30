@@ -24,15 +24,24 @@ define(['jquery'], function($) {
         path: {
           img: 'public/img/',                                       // path for images
           initMap: 'api/map/init',                                  // ajax URL - get static data
-          updateMapData: 'api/map/updateData',                      // ajax URL - main map update call
+          saveUserConfig: 'api/user/saveConfig',                    // ajax URL - saves custom configuration
+          updateMapData: 'api/map/updateData',                      // ajax URL - main map update trigger
+          updateUserData: 'api/map/updateUserData',                 // ajax URL - main map user data trigger
+          // map API
           saveMap: 'api/map/save',                                  // ajax URL - save/update map
           deleteMap: 'api/map/delete',                              // ajax URL - delete map
+          // system API
           searchSystem: 'api/system/search',                        // ajax URL - search system by name
           saveSystem: 'api/system/save',                            // ajax URL - saves system to map
           deleteSystem: 'api/system/delete',                        // ajax URL - delete system from map
+          getSystemGraphData: 'api/system/graphData',               // ajax URL - get all system graph data
+          // connection API
           saveConnection: 'api/connection/save',                    // ajax URL - save new connection to map
           deleteConnection: 'api/connection/delete',                // ajax URL - delete connection from map
-          getSystemGraphData: 'api/system/graphData'                // ajax URL - get system graph data
+          // signature API
+          getSignatures: 'api/signature/getAll',                    // ajax URL - get all signature data for system
+          saveSignatureData: 'api/signature/save',                  // ajax URL - save signature data for system
+          deleteSignatureData: 'api/signature/delete'               // ajax URL - delete signature data for system
         },
         url: {
             zKillboard: 'https://zkillboard.com/api/',              // killboard api
@@ -971,7 +980,7 @@ define(['jquery'], function($) {
         },
         // signature Type
         signatureTypes: {
-            wh: { // system type
+            1: { // system type (wh)
                 1: {    // C1 (area id)
                     1: {    // Combat
                         1: 'Perimeter Ambush Point',

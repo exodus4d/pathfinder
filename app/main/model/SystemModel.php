@@ -24,16 +24,12 @@ class SystemModel extends BasicModel {
         ),
         'statusId' => array(
             'belongs-to-one' => 'Model\SystemStatusModel'
+        ),
+        'signatures' => array(
+            'has-many' => array('Model\SystemSignatureModel', 'systemId')
         )
     );
-/*
-    protected $validate = [
-        'statusId' => [
-            ''
-            'regex' => '/^[1-9]+$/'
-        ]
-    ];
-*/
+
     /**
      * set an array with all data for a system
      * @param $systemData
@@ -123,6 +119,7 @@ class SystemModel extends BasicModel {
 
     /**
      * delete a system from a map
+     * hint: signatures will be deleted on cascade
      * @param $accessObject
      */
     public function delete($accessObject){
@@ -168,6 +165,46 @@ class SystemModel extends BasicModel {
         }
 
         return $connections;
+    }
+
+    /**
+     * get all signatures of this system
+     * @param $accessObject
+     * @return bool|mixed
+     */
+    public function getSignatures($accessObject){
+        $signatures = false;
+
+        if($this->hasAccess($accessObject)){
+            $signatures = $this->signatures;
+        }
+
+        return $signatures;
+    }
+
+    /**
+     * get Signature by id and check for access
+     * @param $accessObject
+     * @param $id
+     * @return bool|null
+     */
+    public function getSignatureById($accessObject, $id){
+        $signature = false;
+
+        if($this->hasAccess($accessObject)){
+            $signature = self::getNew('SystemSignatureModel');
+            $signature->getById($id);
+
+            if(
+                !$signature->dry() &&
+                $signature->systemId->id !== $this->id
+            ){
+                // check if signature belongs to system -> security check
+                $signature = false;
+            }
+        }
+
+        return $signature;
     }
 
 

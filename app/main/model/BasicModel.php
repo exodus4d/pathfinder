@@ -32,8 +32,10 @@ class BasicModel extends \DB\Cortex{
      */
     public function __set($col, $val){
 
-        // never set updated field
-        if($col == 'updated'){
+        if(
+            $col == 'updated' || // is set automatic
+            $col == 'active'     // prevent abuse
+        ){
             return;
         }
 
@@ -129,6 +131,14 @@ class BasicModel extends \DB\Cortex{
         }
 
         return $isActive;
+    }
+
+    /**
+     * set active state for a model
+     * @param $value
+     */
+    public function setActive($value){
+        $this->set('active', (int)$value);
     }
 
     /**

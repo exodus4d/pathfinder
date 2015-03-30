@@ -82,15 +82,10 @@ define([
      */
     var timeStart = function(timerName){
 
-        if( !(stopTimerCache.hasOwnProperty(timerName)) ){
-
-            if(typeof performance === 'object'){
-                stopTimerCache[timerName] = performance.now();
-            }else{
-                stopTimerCache[timerName] = new Date().getTime();
-            }
+        if(typeof performance === 'object'){
+            stopTimerCache[timerName] = performance.now();
         }else{
-            console.log('nooo')
+            stopTimerCache[timerName] = new Date().getTime();
         }
     };
 
@@ -137,8 +132,12 @@ define([
      * displays a loading indicator on an element
      */
     $.fn.showLoadingAnimation = function(options){
+        var loadingElement = $(this);
 
         var iconSize = 'fa-lg';
+
+        // disable all events
+        loadingElement.css('pointer-events', 'none');
 
         if(options){
             if(options.icon){
@@ -161,7 +160,7 @@ define([
             )
         );
 
-        $(this).append(overlay);
+        loadingElement.append(overlay);
 
         // fade in
         $(overlay).velocity({
@@ -175,12 +174,14 @@ define([
      * removes a loading indicator
      */
     $.fn.hideLoadingAnimation = function(){
-
-        var overlay = $(this).find('.' + config.ajaxOverlayClass );
+        var loadingElement = $(this);
+        var overlay = loadingElement.find('.' + config.ajaxOverlayClass );
 
         $(overlay).velocity('reverse', {
             complete: function(){
                 $(this).remove();
+                // enable all events
+                loadingElement.css('pointer-events', 'auto');
             }
         });
     };
@@ -652,7 +653,11 @@ define([
         return connectionInfo;
     };
 
-
+    /**
+     * get signature group information
+     * @param option
+     * @returns {{}}
+     */
     var getSignatureGroupInfo = function(option){
 
         var groupInfo = {};

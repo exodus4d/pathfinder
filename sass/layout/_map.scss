@@ -118,7 +118,7 @@ $mapWidth: 2500px;
     background-color: $gray-dark;
     font-family: $font-family-bold;
     z-index: 100;
-    will-change: all, transform;
+    will-change: top, left, opacity, transform;
 
     //opacity: 0; // trigger by js
     border: {
@@ -300,6 +300,7 @@ $mapWidth: 2500px;
   svg._jsPlumb_connector{
     cursor: pointer;
     stroke-linecap: round; // line endings
+    will-change: all;
 
     path{
       @include transition( stroke 0.2s ease-out) ;

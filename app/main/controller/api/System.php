@@ -206,7 +206,7 @@ class System extends \Controller\AccessController {
     }
 
     /**
-     * delete a system and all its connections
+     * delete  systems and all its connections
      * @param $f3
      */
     public function delete($f3){
@@ -278,6 +278,8 @@ class System extends \Controller\AccessController {
 
         echo json_encode($graphData);
     }
+
+
 
 }
 

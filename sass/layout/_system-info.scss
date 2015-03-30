@@ -15,25 +15,18 @@
     padding-right: 7px;
     font-family: $font-family-bold;
   }
-
-  // system effects popover ================================================
-  .popover table{
-    color: $gray-lighter;
-    font-size: 10px;
-
-    td{
-      padding: 0 5px;
-    }
-  }
 }
 
-
+// signature table module ===================================================
 .pf-sig-table-module{
-
-  // signature table =======================================================
 
   .pf-sig-table{
     font-size: 10px;
+
+    .fa{
+      cursor: pointer;
+      padding: 2px; // increase click area
+    }
 
     .pf-sig-table-edit-name-input{
       text-transform: uppercase;

@@ -354,9 +354,9 @@ define([
             if(moduleElement){
                 moduleElement.css({ opacity: 0 });
                 parentElement.append(moduleElement);
-                moduleElement.velocity('stop').velocity('transition.slideUpIn', {
-                    queue: false,
-                    duration: Init.animationSpeed.mapModule
+                moduleElement.velocity('transition.slideDownIn', {
+                    duration: Init.animationSpeed.mapModule,
+                    delay: Init.animationSpeed.mapModule
                 });
             }
         };
@@ -365,7 +365,8 @@ define([
         var moduleElement = parentElement.find('.' + config.systemRouteModuleClass);
 
         if(moduleElement.length > 0){
-            moduleElement.velocity('stop').velocity('reverse', {
+            moduleElement.velocity('transition.slideDownOut', {
+                duration: Init.animationSpeed.mapModule,
                 complete: function(tempElement){
                     $(tempElement).remove();
 

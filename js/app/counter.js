@@ -56,6 +56,7 @@ define(["jquery"], function($) {
 
 
         element.html(value.join(' '));
+
     };
 
     /**
@@ -82,7 +83,14 @@ define(["jquery"], function($) {
                 updateDateDiff(element, date);
 
                 var refreshIntervallId = window.setInterval(function(){
-                    updateDateDiff(element, date);
+
+                    // update element with current time
+                    if(! element.hasClass('stopCounter')){
+                        updateDateDiff(element, date);
+                    }else{
+                        clearInterval(refreshIntervallId);
+                    }
+
                 }, 100);
 
             }

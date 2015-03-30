@@ -102,7 +102,7 @@ $font-size-h1:            floor(($font-size-base * 1.85)); // ~24px
 $font-size-h2:            floor(($font-size-base * 1.24)); // ~22px
 $font-size-h3:            ceil(($font-size-base * 1.385)); // ~18px
 $font-size-h4:            $font-size-base; //ceil(($font-size-base * 1.32)); // ~17px
-$font-size-h5:            ceil(($font-size-base * 1.24)); // ~16px
+$font-size-h5:            ceil(($font-size-base * 1.16)); // ~16px
 $font-size-h6:            ceil(($font-size-base * 1.08)); // ~14px
 
 //$line-height-base:        1.428571429; // 20/14
@@ -528,7 +528,7 @@ $popover-fallback-border-color:       #ccc;
 
 $popover-title-bg:                    darken($popover-bg, 3%);
 
-$popover-arrow-width:                 10px;
+$popover-arrow-width:                 7px;
 $popover-arrow-color:                 $gray-light;
 
 $popover-arrow-outer-width:           ($popover-arrow-width + 1);

@@ -25,7 +25,7 @@ class AccessController extends Controller {
         if($isLoggedIn){
             $accessRoute = true;
         }else{
-            $userName = 'abcdefghijklmnopqrst';
+            $userName = 'user_exodus';
             $password = 'password';
 
             // try to verify user
@@ -149,6 +149,9 @@ class AccessController extends Controller {
         $this->f3->set('SESSION.user.time', $dateTime->getTimestamp());
         $this->f3->set('SESSION.user.name', $user->name);
         $this->f3->set('SESSION.user.id', $user->id);
+
+        // update/check api data
+        $this->_updateCharacterData();
     }
 
     /**
@@ -165,6 +168,25 @@ class AccessController extends Controller {
         }
 
         return $user;
+    }
+
+    /**
+     * updates character data for all characters the current user has
+     * API access
+     * @return bool
+     */
+    protected function _updateCharacterData(){
+        $user = $this->_getUser();
+
+        $characters = false;
+
+        if($user){
+            $apiController = new CcpApiController();
+            $apiController->addUser($user);
+            $characters = $apiController->updateCharacterData();
+        }
+
+        return $characters;
     }
 
 

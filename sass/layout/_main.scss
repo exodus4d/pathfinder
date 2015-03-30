@@ -43,8 +43,10 @@ em{
 }
 
 .pf-table-tools-action{
-  height: 75px;
+  will-change: height, opacity, display;
+  opacity: 0; // triggered by js
   display: none; // triggered by js
+  height: 0;
 }
 
 
@@ -96,7 +98,16 @@ em{
   }
 }
 
+
 // page menu =====================================================
+.pf-site{
+  will-change: transform;
+}
+
+.sb-slidebar{
+  will-change: transform;
+}
+
 .sb-left{
   .list-group-item{
     @include box-shadow(inset -10px 0px 5px -5px rgba(0,0,0,0.4));
@@ -107,6 +118,11 @@ em{
   .list-group-item{
     @include box-shadow(inset 10px 0px 5px -5px rgba(0,0,0,0.4));
   }
+}
+
+// custom scrollbars =============================================
+.mCSB_container, .mCSB_dragger{
+  will-change: top, left;
 }
 
 // log types =====================================================
@@ -162,7 +178,6 @@ em{
       margin-right: 5px;
     }
   }
-
 }
 
 // Tab Content Body Grid ========================================
@@ -177,7 +192,22 @@ em{
     padding: 10px;
     width: 100%;
     margin-bottom: 10px;
+    will-change: height, transform, opacity;
+    overflow: hidden;
     @include border-radius(5px);
+
+    &:after{
+      //content: "\f09b";
+      //font: normal normal normal 14px/1 FontAwesome; // shortening font declaration
+      content:'';
+      position: absolute;
+      top: 0;
+      left: 0;
+      border-style: solid;
+      border-width: 0 0 6px 6px;
+      border-color: transparent transparent transparent $gray;
+      cursor: pointer;
+    }
   }
 
 }
@@ -443,6 +473,7 @@ em{
   padding: 5px 5px;
   @include border-radius(3px);
   @include box-shadow(0 6px 12px rgba(0,0,0,.4));
+
 }
 
 .tooltip.top .tooltip-arrow,{
@@ -459,6 +490,19 @@ em{
 
 .tooltip.left .tooltip-arrow{
   border-left-color: $gray-light;
+}
+
+// global popover settings ======================================
+
+
+// table in pop popover ================================================
+.popover table{
+  color: $gray-lighter;
+  font-size: 10px;
+
+  td{
+    padding: 0 5px;
+  }
 }
 
 // header =======================================================
@@ -577,11 +621,6 @@ Animate the stripes
   100% {
     background-position: 50px 50px;
   }
-}
-
-.row{
-  will-change: all, transform;
-
 }
 
 

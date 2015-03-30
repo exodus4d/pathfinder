@@ -1,26 +1,32 @@
+{{#system.alias}}
+    <h5 class="pull-right" style="display: inline-block"><span data-toggle="tooltip" data-placement="top" data-container="body" title="alias"><i class="fa fa-fw fa-tag"></i> {{system.alias}}</span></h5>
+{{/system.alias}}
+
+<h5 style="display: inline-block">
+    <span data-toggle="tooltip" data-placement="top" data-container="body" title="system">{{system.name}}</span>
+    {{#system.locked}}
+        <i class="fa fa-fw fa-lock"></i>
+    {{/system.locked}}
+    <i class="fa fa-fw fa-angle-double-right"></i>
+</h5>
+<h5 style="display: inline-block"><a href="{{system.constellation.id}}" data-toggle="tooltip" data-placement="top" data-container="body" title="constellation">{{system.constellation.name}}</a>&nbsp;<i class="fa fa-fw fa-angle-double-right"></i></h5>
+<h5 style="display: inline-block"><a href="{{system.region.id}}" data-toggle="tooltip" data-placement="top" data-container="body" title="region">{{system.region.name}}</a>&nbsp;<i class="fa fa-fw fa-angle-double-right"></i></h5>
+<h5 style="display: inline-block"><span data-toggle="tooltip" data-placement="top" data-container="body" title="type">{{systemTypeName}}</span></h5>
+
+<a href="http://evemaps.dotlan.net/system/{{system.name}}" target="_blank">
+    <div data-toggle="tooltip" data-placement="top" data-container="body" title="dotlan" class="pf-icon pf-icon-dotlan"></div>
+</a>
+<a href="http://wh.pasta.gg/{{system.name}}" target="_blank">
+    <div data-toggle="tooltip" data-placement="top" data-container="body" title="wormhol" class="pf-icon pf-icon-wormhol-es"></div>
+</a>
+<a href="https://zkillboard.com/system/{{system.systemId}}" target="_blank">
+    <div data-toggle="tooltip" data-placement="top" data-container="body" title="zKillbaord" class="pf-icon pf-icon-zkillboard"></div>
+</a>
 
 
 <div class="row">
-    <div class="col-xs-12 col-sm-7">
-        <ol class="breadcrumb">
-            <li><span data-toggle="tooltip" data-placement="bottom" title="type">{{systemTypeName}}</span></li>
-            <li><a href="{{system.region.id}}" data-toggle="tooltip" data-placement="bottom" title="region">{{system.region.name}}</a></li>
-            <li><a href="{{system.constellation.id}}" data-toggle="tooltip" data-placement="bottom" title="constellation">{{system.constellation.name}}</a></li>
-            <li>
-                <span data-toggle="tooltip" data-placement="bottom" title="system">{{system.name}}</span>
-                <a href="http://evemaps.dotlan.net/system/{{system.name}}" target="_blank">
-                    <div data-toggle="tooltip" data-placement="bottom" title="dotlan" class="pf-icon pf-icon-dotlan"></div>
-                </a>
-                <a href="http://wh.pasta.gg/{{system.name}}" target="_blank">
-                    <div data-toggle="tooltip" data-placement="bottom" title="wormhol" class="pf-icon pf-icon-wormhol-es"></div>
-                </a>
-                <a href="https://zkillboard.com/system/{{system.systemId}}" target="_blank">
-                    <div data-toggle="tooltip" data-placement="bottom" title="zKillbaord" class="pf-icon pf-icon-zkillboard"></div>
-                </a>
-            </li>
-        </ol>
 
-        <div class="pf-system-info-routes"></div>
+    <div class="col-xs-12 col-sm-7">
 
     </div>
     <div class="col-xs-12 col-sm-5">

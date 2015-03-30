@@ -1021,6 +1021,8 @@ define([
      */
     var deleteSystems = function(map, systems, callback){
 
+        var mapContainer = $( map.getContainer() );
+
         var systemIds = [];
         // systemIds for delete request
         for(var i = 0; i < systems.length; i++){
@@ -1037,11 +1039,22 @@ define([
             data: requestData,
             dataType: 'json'
         }).done(function(data){
+            // deleted SystemIds
+            var triggerData = {
+                systemIds: []
+            };
 
             // remove systems from map
             for(var i = 0; i < systems.length; i++){
-                removeSystem(map, $(systems[i]));
+                var system = $(systems[i]);
+                triggerData.systemIds.push( system.data('id') );
+                removeSystem(map, system);
             }
+
+            // trigger "system deleted" on Tab Content Element
+            var tabContentElement = getTabContentElementByMapElement( mapContainer );
+
+            $(tabContentElement).trigger('pf:deleteSystemData', [triggerData]);
 
             callback();
         }).fail(function( jqXHR, status, error) {

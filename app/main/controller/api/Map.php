@@ -9,6 +9,11 @@
 namespace Controller\Api;
 use Model;
 
+/**
+ * Map controller
+ * Class Map
+ * @package Controller\Api
+ */
 class Map extends \Controller\AccessController {
 
     /**
@@ -29,7 +34,7 @@ class Map extends \Controller\AccessController {
     public function init($f3){
 
         // expire time in seconds
-        $expireTimeHead = 60 * 60 * 24;
+        $expireTimeHead =  60 * 60 * 24;
         $expireTimeSQL = 60 * 60 * 24;
 
         $f3->expire($expireTimeHead);
@@ -155,96 +160,93 @@ class Map extends \Controller\AccessController {
      */
     public function updateData($f3){
 
-        // cache time for response should be equal or less than this function is called
-        // security aspect
+        // cache time(s) per user should be equal or less than this function is called
+        // prevent request flooding
         $responseTTL = 3;
-
-        $mapData = (array)$f3->get('POST.mapData');
-
         $user = $this->_getUser();
 
-        $map = Model\BasicModel::getNew('MapModel');
-        $system = Model\BasicModel::getNew('SystemModel');
-        $connection = Model\BasicModel::getNew('ConnectionModel');
-
-
-        foreach($mapData as $data){
-
-            $config = $data['config'];
-            $systems = [];
-            $connections = [];
-
-            // check whether system data and/or connection data is send
-            // empty arrays are not included in ajax requests
-            if(array_key_exists('data', $data)){
-                if(array_key_exists('systems', $data['data'])){
-                    $systems = $data['data']['systems'];
-                }
-                if(array_key_exists('connections', $data['data'])){
-                    $connections = $data['data']['connections'];
-                }
-            }
-
-            // update map data ---------------------------------------------
-            $map->getById($config['id']);
-
-            if(!$map->dry()){
-                // update map on change
-                if( (int)$config['updated'] > strtotime($map->updated)){
-                    $map->setData($config);
-                    $map->save();
-                }
-            }
-
-            // get system data -----------------------------------------------
-            foreach($systems as $systemData){
-                $system->getById($systemData['id']);
-
-                if(
-                    (int)$systemData['updated'] === 0 &&
-                    !$system->dry()
-                ){
-                    $systemData['mapId'] = $map;
-                    $system->setData($systemData);
-                    $system->save();
-                }
-
-                $system->reset();
-            }
-
-            // get connection data -------------------------------------------
-            foreach($connections as $connectionData){
-                $connection->getById($connectionData['id']);
-
-                if(
-                    (int)$connectionData['updated'] === 0 &&
-                    !$connection->dry()
-                ){
-                    $connectionData['mapId'] = $map;
-                    $connection->setData($connectionData);
-                    $connection->save($user);
-                }
-
-                $connection->reset();
-            }
-
-            $map->reset();
-        }
-
-        // get map data ======================================================
         $cacheKey = 'user_map_data_' . $user->id;
-
         if($f3->exists($cacheKey) === false){
+
+            $mapData = (array)$f3->get('POST.mapData');
+
+
+            $map = Model\BasicModel::getNew('MapModel');
+            $system = Model\BasicModel::getNew('SystemModel');
+            $connection = Model\BasicModel::getNew('ConnectionModel');
+
+
+            foreach($mapData as $data){
+
+                $config = $data['config'];
+                $systems = [];
+                $connections = [];
+
+                // check whether system data and/or connection data is send
+                // empty arrays are not included in ajax requests
+                if(array_key_exists('data', $data)){
+                    if(array_key_exists('systems', $data['data'])){
+                        $systems = $data['data']['systems'];
+                    }
+                    if(array_key_exists('connections', $data['data'])){
+                        $connections = $data['data']['connections'];
+                    }
+                }
+
+                // update map data ---------------------------------------------
+                $map->getById($config['id']);
+
+                if(!$map->dry()){
+                    // update map on change
+                    if( (int)$config['updated'] > strtotime($map->updated)){
+                        $map->setData($config);
+                        $map->save();
+                    }
+                }
+
+                // get system data -----------------------------------------------
+                foreach($systems as $systemData){
+                    $system->getById($systemData['id']);
+
+                    if(
+                        (int)$systemData['updated'] === 0 &&
+                        !$system->dry()
+                    ){
+                        $systemData['mapId'] = $map;
+                        $system->setData($systemData);
+                        $system->save();
+                    }
+
+                    $system->reset();
+                }
+
+                // get connection data -------------------------------------------
+                foreach($connections as $connectionData){
+                    $connection->getById($connectionData['id']);
+
+                    if(
+                        (int)$connectionData['updated'] === 0 &&
+                        !$connection->dry()
+                    ){
+                        $connectionData['mapId'] = $map;
+                        $connection->setData($connectionData);
+                        $connection->save($user);
+                    }
+
+                    $connection->reset();
+                }
+
+                $map->reset();
+            }
+
+            // get map data ======================================================
             $activeMaps = $user->getMaps();
 
             // format map Data for return
             $newData = self::getFormattedMapData($activeMaps);
 
             $f3->set($cacheKey, $newData, $responseTTL);
-        }else{
-            // TODO log -> manipulated request
         }
-
 
         echo json_encode( $f3->get($cacheKey) );
     }
@@ -269,4 +271,47 @@ class Map extends \Controller\AccessController {
         return $mapData;
     }
 
-} 
+    /**
+     * update map data api
+     * function is called continuously
+     * @param $f3
+     */
+    public function updateUserData($f3){
+
+        // cache time(s) per user should be equal or less than request trigger
+        // prevent request flooding
+        $responseTTL = 2;
+        $user = $this->_getUser();
+
+        $cacheKey = 'user_data_' . $user->id;
+        if($f3->exists($cacheKey) === false){
+
+            $userData = (object) [];
+            $userData->currentUserData = $user->getData();
+
+            // get user Data for each map ========================================
+            $activeMaps = $user->getMaps();
+            foreach($activeMaps as $mapModel){
+                $userData->mapUserData[] = $mapModel->getUserData();
+            }
+
+            $f3->set($cacheKey, $userData, $responseTTL);
+        }
+
+        echo json_encode( $f3->get($cacheKey) );
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

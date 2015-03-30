@@ -218,7 +218,7 @@ define([
     };
 
     /**
-     * get module Element
+     * get module element
      * @param systemData
      * @returns {*|HTMLElement}
      */
@@ -262,10 +262,9 @@ define([
         // show route module
         var showModule = function(moduleElement){
             if(moduleElement){
-
-                moduleElement.velocity('stop').velocity('transition.slideUpIn', {
-                    queue: false,
-                    duration: Init.animationSpeed.mapModule
+                moduleElement.velocity('transition.slideDownIn', {
+                    duration: Init.animationSpeed.mapModule,
+                    delay: Init.animationSpeed.mapModule
                 });
             }
         };
@@ -274,7 +273,8 @@ define([
         var moduleElement = parentElement.find('.' + config.systemKillboardModuleClass);
 
         if(moduleElement.length > 0){
-            moduleElement.velocity('stop').velocity('reverse', {
+            moduleElement.velocity('transition.slideDownOut', {
+                duration: Init.animationSpeed.mapModule,
                 complete: function(tempElement){
                     $(tempElement).remove();
 

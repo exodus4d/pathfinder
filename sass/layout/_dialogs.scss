@@ -9,6 +9,97 @@
   }
 }
 
+// character select dialog ================================
+#pf-select-character-dialog{
+
+  .pf-dialog-dynamic-area{
+    display: inline-block;
+    margin: 10px 5px 20px 5px;
+    padding: 10px 10px 5px 10px;
+    @include border-radius(10px);
+
+
+    .pf-dialog-image-wrapper{
+      opacity: 0;
+      width: 128px;
+      border: 2px solid $gray-light;
+      @include border-radius(10px);
+      @include transition( border-color 0.2s ease-out, box-shadow 0.2s ease-out);
+      @include transform( translate3d(0, 0, 0) );
+      will-change: border-color, transition;
+      overflow: hidden;
+      cursor: pointer;
+      display: inline-block;
+      background-color: $gray-darker;
+
+      &.pf-dialog-character-main:before{
+        content: "\f005";
+        font-family: FontAwesome;
+        position: absolute;
+        z-index: 10;
+        left: 6px;
+        top: 4px;
+        color: $orange;
+      }
+
+      &:hover{
+        border-color: $teal-darker;
+        @include box-shadow(0 6px 12px rgba(0,0,0, 0.3));
+
+        .pf-dialog-character-name{
+          color: $teal;
+        }
+
+        .pf-dialog-character-image{
+          @include filter(grayscale(50%))
+
+        }
+      }
+
+      .pf-dialog-image{
+        overflow: hidden;
+        width: 128px;
+        height: 128px;
+        position: relative;
+
+        // info element visible on hover
+        .pf-dialog-character-info{
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 0; // trigger by js
+          height: 100%;
+          background: rgba($gray, 0.80);
+          overflow: hidden;
+          @include border-top-radius(10px);
+          will-change: width, transition;
+          padding: 10px 0;
+
+          .pf-dialog-character-info-text{
+            line-height: 25px;
+          }
+        }
+      }
+
+      .pf-dialog-character-name{
+        font-size: 12px;
+        line-height: 30px;
+        border-top: 1px solid $gray-dark;
+        font-size: small;
+        @include transition( color 0.2s ease-out );
+      }
+
+      .pf-dialog-character-image{
+        @include transition(all 0.3s ease-out);
+        @include filter(grayscale(0%));
+      }
+    }
+  }
+
+
+
+}
+
 // map manual dialog ======================================
 #pf-manual-scrollspy{
   position: relative;
