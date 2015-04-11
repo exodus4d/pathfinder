@@ -199,64 +199,33 @@ define([
      * @param userData
      * @returns {boolean}
      */
-    var test = 1
-    $.fn.updateMapModuleData = function(userData){
 
+    $.fn.updateMapModuleData = function(userData){
         var mapModule = $(this);
 
-        test++;
         // get all active map elements for module
         var mapElement = mapModule.getActiveMap();
-
-        var currentUserData = null;
-
-        // current user data
-        if(userData.currentUserData){
-            currentUserData = userData.currentUserData;
-        }
 
         if(mapElement !== false){
             var mapId = mapElement.data('id');
 
-            // save static user data
-            Config.currentUserData = userData.currentUserData;
 
-            //var tempMapUserData = null;
             // get user data for each active map
-            var tempMapUserDataClone = null;
+            var mapUserData = null;
 
             for(var j = 0; j < userData.mapUserData.length; j++){
-                //var tempMapData = userData.mapUserData[j];
-                var tempMapData = JSON.parse(JSON.stringify(userData.mapUserData[j]));
-                if(tempMapData.config.id === mapId){
+
+                var tempMapUserData = userData.mapUserData[j];
+                if(tempMapUserData.config.id === mapId){
                     // map userData found
-
-                    // clone object (pass by value) due to object manipulation
-                    tempMapUserDataClone = JSON.parse(JSON.stringify(tempMapData));
-
-                    // TODO remove !!!!
-                    if( (test % 2) === 0){
-                        tempMapUserDataClone.data.systems[0].user.push({
-                            id: 7,
-                            name: 'Lijama',
-                            ship: {
-                                id: 59,
-                                name: 'Archon'
-                            },
-                            status: 'corp'
-                        })
-                    }else if((test % 3) === 0){
-                        tempMapUserDataClone.data.systems = new Array();
-
-                    }
-
+                    mapUserData = tempMapUserData;
                     break;
                 }
             }
 
             // update map
-            if(tempMapUserDataClone){
-                mapElement.updateUserData(tempMapUserDataClone, currentUserData);
+            if(mapUserData){
+                mapElement.updateUserData(mapUserData);
             }
         }
 

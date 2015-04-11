@@ -1,0 +1,40 @@
+<div class="row text-center">
+    {{#charactersData}}
+    <div class="col {{gridClass}}">
+        <div class="pf-dialog-dynamic-area">
+            <div data-id="{{characterId}}" class="{{imageWrapperClass}}
+                                {{#isMain}}
+                                    {{imageWrapperMainClass}}
+                                {{/isMain}}
+                                ">
+                <div class="pf-dialog-image">
+                    <img class="pf-dialog-character-image" src="https://image.eveonline.com/Character/{{characterId}}_128.jpg" alt="{{characterName}}"/>
+
+                    <div class="{{imageInfoClass}}">
+                        <div style="width: 128px">
+                            {{#corporation}}
+                            <img src="https://image.eveonline.com/Corporation/{{id}}_32.png"/>
+                            <div class="pf-dialog-character-info-text"><small>{{name}}</small></div>
+                            {{/corporation}}
+                            {{#alliance}}
+                            <img src="https://image.eveonline.com/Alliance/{{id}}_32.png"/>
+                            <div class="pf-dialog-character-info-text"><small>{{name}}</small></div>
+                            {{/alliance}}
+                        </div>
+                    </div>
+                </div>
+                <div class="pf-dialog-character-name">
+                    <small>
+                        {{#status}}
+                        <i title="{{label}}" class="fa fa-fw fa-circle pf-user-status {{class}}"></i>
+                        {{/status}}
+                        {{name}}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{/charactersData}}
+</div>
+
+<input type="hidden" name="mainCharacterId" value="{{mainCharacter}}">

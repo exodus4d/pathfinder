@@ -2,23 +2,120 @@
 
 .modal-content {
 
-  // data tables ==========================================
+  // data tables ==================================================================
   .dataTable, .table{
     font-size: 10px;
     font-family: $font-family-bold;
   }
+
+  // horizontal line ==============================================================
+  hr{
+    margin: 5px 0 15px 0;
+    border-color: $gray-light;
+  }
+
+  // form wizard ==================================================================
+  .pf-wizard-navigation{
+    margin: 0;
+
+    li{
+      &:not(:last-child):before{
+        border-top: 1px solid $gray-light;
+        content: "";
+        display: block;
+        font-size: 0;
+        overflow: hidden;
+        position: relative;
+        top: 12px;
+        left: 71px;
+        right: 1px;
+        width: 100%;
+      }
+
+      &.finished{
+          &:before{
+          @include border-image( linear-gradient(to right, $teal-darker, $teal-darker) 1 1% );
+          border-bottom: 0;
+        }
+      }
+
+      &.active{
+
+        &:before{
+          @include border-image( linear-gradient(to right, $brand-success, $gray-light) 1 1% );
+          border-bottom: 0;
+        }
+      }
+
+      & > h6{
+        color: $gray-light;
+        font-size: 11px;
+        margin: 5px;
+      }
+
+      a:hover{
+        & + h6{
+          color: $gray-lighter;
+        }
+      }
+
+      &.active a:not(.btn-danger){
+        @extend .btn-success;
+
+        & + h6{
+          color: $gray-lighter;
+        }
+      }
+
+    }
+
+  }
+
+  // buttons ============================================================================
+  // hide some button until they get triggered by JS
+  .pf-dialog-finish-button, .pf-dialog-prev-button{
+    display: none;
+  }
+
+  // icon buttons within a dialog
+  .pf-dialog-icon-button{
+    cursor: pointer;
+    @include transition(color 0.15s ease-out);
+    will-change: color, transition;
+
+    &:not(.collapsed), &:hover{
+      color: $orange;
+    }
+  }
+
 }
 
-// character select dialog ================================
-#pf-select-character-dialog{
+// settings dialog ======================================================================
+#pf-settings-dialog{
 
+  // smaller buttons
+  .form-group .btn-sm{
+    padding: 4px 7px 3px;
+  }
+
+  // show clone button only on last row
+
+  .pf-dialog-api-row:not(:nth-last-child(2)) .pf-dialog-clone-button{
+    display: none;
+  }
+
+  // show delete button only on last row
+  .pf-dialog-api-row:first-of-type .pf-dialog-delete-button{
+    display: none;
+  }
+  
   .pf-dialog-dynamic-area{
     display: inline-block;
     margin: 10px 5px 20px 5px;
     padding: 10px 10px 5px 10px;
     @include border-radius(10px);
 
-
+    // character images
     .pf-dialog-image-wrapper{
       opacity: 0;
       width: 128px;
@@ -32,14 +129,29 @@
       display: inline-block;
       background-color: $gray-darker;
 
-      &.pf-dialog-character-main:before{
+      // not main character star
+      &:before{
         content: "\f005";
         font-family: FontAwesome;
         position: absolute;
         z-index: 10;
         left: 6px;
         top: 4px;
-        color: $orange;
+        color: $gray-lighter;
+        @include transition(color 0.2s ease-out);
+      }
+
+      &.pf-dialog-character-main{
+        border-color: $orange-dark;
+
+        &:hover{
+          border-color: $orange;
+        }
+
+        // mein character star
+        &:before{
+          color: $orange;
+        }
       }
 
       &:hover{
@@ -52,7 +164,10 @@
 
         .pf-dialog-character-image{
           @include filter(grayscale(50%))
+        }
 
+        &:before{
+          color: $orange;
         }
       }
 
@@ -71,7 +186,6 @@
           height: 100%;
           background: rgba($gray, 0.80);
           overflow: hidden;
-          @include border-top-radius(10px);
           will-change: width, transition;
           padding: 10px 0;
 
@@ -95,9 +209,6 @@
       }
     }
   }
-
-
-
 }
 
 // map manual dialog ======================================
@@ -121,4 +232,87 @@
   background-color: $gray-dark;
   overflow: hidden;
   @include border-radius(5px);
+
+  .dl-horizontal{
+    margin-bottom: 0;
+  }
+}
+
+// credits dialog =========================================
+
+$logo-stroke-width:            0px;
+
+.pf-credits-dialog{
+
+  .pf-credits-logo-background{
+    overflow: visible;
+    background: url("#{$base-url}/logo_bg.png");
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  #pf-credits-logo-container{
+    width: 355px;
+    height: 366px;
+    margin: 0 auto;
+
+
+    #pf-credits-logo-svg{
+      opacity: 0;
+      position: absolute;
+      z-index: 1; // over hidden logo
+      overflow: visible; // make sure shadow is visible
+
+        path{
+          will-change: fill, opacity, transform, translate, translateX, translateY;
+          cursor: pointer;
+          pointer-events: all;
+          @include transform( translate3d(0, 0, 0) );
+        }
+    }
+
+    .logo-ploygon-top-right{
+      fill: $teal-dark;
+      fill-rule: evenodd;
+      stroke: $teal-dark;
+      stroke-width: $logo-stroke-width;
+      stroke-linecap: butt;
+      stroke-linejoin: miter;
+      stroke-opacity: 1;
+      fill-opacity: 1;
+    }
+
+    .logo-ploygon-bottom-left{
+      fill: $green;
+      fill-rule: evenodd;
+      stroke: $green;
+      stroke-width: $logo-stroke-width;
+      stroke-linecap: butt;
+      stroke-linejoin: miter;
+      stroke-opacity: 1;
+      fill-opacity: 1;
+    }
+
+    .logo-ploygon-bottom-right{
+      fill: $teal-darker;
+      fill-rule: evenodd;
+      stroke: $teal-darker;
+      stroke-width: $logo-stroke-width;
+      stroke-linecap: butt;
+      stroke-linejoin: miter;
+      stroke-opacity: 1;
+      fill-opacity: 1;
+    }
+
+    .logo-ploygon-top-left{
+      fill: $gray-light;
+      fill-opacity: 1;
+      fill-rule: evenodd;
+      stroke: $gray-light;
+      stroke-width: $logo-stroke-width;
+      stroke-linecap: butt;
+      stroke-linejoin: miter;
+      stroke-opacity: 1;
+    }
+  }
 }

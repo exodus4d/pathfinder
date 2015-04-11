@@ -63,38 +63,43 @@ class Signature extends \Controller\AccessController{
         $signatureData = $f3->get('POST');
         $user = $this->_getUser();
 
-        $system = Model\BasicModel::getNew('SystemModel');
-        $system->getById($signatureData['systemId']);
-
         $newSignatureData = false;
-        if(!$system->dry()){
-            // update/save signature
 
-            $signature = $system->getSignatureById($user, $signatureData['pk']);
+        if($user){
+            $system = Model\BasicModel::getNew('SystemModel');
+            $system->getById($signatureData['systemId']);
 
-            if($signature){
-                if($signature->dry()){
-                    // new signature
-                    $signature->systemId = $system;
-                    $signature->createdUserId = $user;
-                    $signature->setData($signatureData);
-                }else{
-                    // update signature (single data)
-                    $newData = [
-                        $signatureData['name'] => $signatureData['value']
-                    ];
-                    $signature->setData($newData);
+            $activeCharacter = $user->getActiveCharacter();
+            if(!$system->dry()){
+                // update/save signature
+
+                $signature = $system->getSignatureById($user, $signatureData['pk']);
+
+                if($signature){
+                    if($signature->dry()){
+                        // new signature
+                        $signature->systemId = $system;
+                        $signature->createdCharacterId = $activeCharacter->characterId;
+                        $signature->setData($signatureData);
+                    }else{
+                        // update signature (single data)
+                        $newData = [
+                            $signatureData['name'] => $signatureData['value']
+                        ];
+                        $signature->setData($newData);
+                    }
+
+                    $signature->updatedCharacterId = $activeCharacter->characterId;
+                    $signature->save();
+                    $newSignatureData = $signature->getData();
                 }
+            }
 
-                $signature->updatedUserId = $user;
-                $signature->save();
-                $newSignatureData = $signature->getData();
+            if(!$newSignatureData){
+                $this->f3->error(401, 'Signature could not be saved.');
             }
         }
 
-        if(!$newSignatureData){
-            $this->f3->error(401, 'Signature could not be saved.');
-        }
 
         echo json_encode($newSignatureData);
     }

@@ -41,7 +41,7 @@ class Map extends \Controller\AccessController {
 
         $initData = [];
 
-        // get all available map types -------------------------------------
+        // get all available map types ----------------------------------------
         $mapType = Model\BasicModel::getNew('MapTypeModel');
         $rows = $mapType->find('active = 1', null, $expireTimeSQL);
 
@@ -58,7 +58,7 @@ class Map extends \Controller\AccessController {
         }
         $initData['mapTypes'] = $mapTypeData;
 
-        // get all available map scopes ------------------------------------
+        // get all available map scopes ---------------------------------------
         $mapScope = Model\BasicModel::getNew('MapScopeModel');
         $rows = $mapScope->find('active = 1', null, $expireTimeSQL);
         $mapScopeData = [];
@@ -98,7 +98,7 @@ class Map extends \Controller\AccessController {
         }
         $initData['systemType'] = $systemTypeData;
 
-        // get available connection scopes ---------------------------------
+        // get available connection scopes ------------------------------------
         $connectionScope = Model\BasicModel::getNew('ConnectionScopeModel');
         $rows = $connectionScope->find('active = 1', null, $expireTimeSQL);
         $connectionScopeData = [];
@@ -110,6 +110,20 @@ class Map extends \Controller\AccessController {
             $connectionScopeData[$rowData->name] = $data;
         }
         $initData['connectionScopes'] = $connectionScopeData;
+
+        // get available character status -------------------------------------
+        $characterStatus = Model\BasicModel::getNew('CharacterStatusModel');
+        $rows = $characterStatus->find('active = 1', null, $expireTimeSQL);
+        $characterStatusData = [];
+        foreach((array)$rows as $rowData){
+            $data = [
+                'id' => $rowData->id,
+                'name' => $rowData->name,
+                'class' => $rowData->class
+            ];
+            $characterStatusData[$rowData->name] = $data;
+        }
+        $initData['characterStatus'] = $characterStatusData;
 
         echo json_encode($initData);
     }
@@ -287,10 +301,11 @@ class Map extends \Controller\AccessController {
         if($f3->exists($cacheKey) === false){
 
             $userData = (object) [];
-            $userData->currentUserData = $user->getData();
+            $userData->userData = $user->getData();
 
             // get user Data for each map ========================================
             $activeMaps = $user->getMaps();
+
             foreach($activeMaps as $mapModel){
                 $userData->mapUserData[] = $mapModel->getUserData();
             }

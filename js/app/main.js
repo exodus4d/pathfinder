@@ -35,6 +35,63 @@ define([
         // Map init options
         var mapData = [];
 
+
+
+        // TEST =============================================
+
+
+        /*
+         * Lazy Line Painter - Path Object
+         * Generated using 'SVG to Lazy Line Converter'
+         *
+         * http://lazylinepainter.info
+         * Copyright 2013, Cam O'Connell
+         *
+         */
+/*
+        var pathObj = {
+            "test-line": {
+                "strokepath": [
+                    {
+                        "path": "M 393.7 195.2 442.6 649.1 643.6 756.3 394.1 195.6",
+                        "strokeColor": '#477372',
+                        "duration": 800
+                    },
+                    {
+                        "path": "M 87.1 750.5 201.1 629.8 366.3 632.7 87.9 750.6",
+                        "strokeColor": '#4f9e4f',
+                        "duration": 800
+                    },
+                    {
+                        "path": "M 389 632.7 275.8 683.1 614.2 753.9 389.7 632.7",
+                        "strokeColor": '#375959',
+                        "duration": 800
+                    },
+                    {
+                        "path": "M 404.5 404 84.7 736.7 383 181.2 404.5 403.1",
+                        "strokeColor": '#63676a',
+                        "duration": 800
+                    }
+                ],
+                "dimensions": {
+                    "width": 745,
+                    "height": 1053
+                }
+            }
+        };
+
+
+
+        $(document).ready(function(){
+            $('#test-line').lazylinepainter(
+                {
+                    "svgData": pathObj,
+                    "strokeWidth": 2,
+                    "drawSequential": false
+                }).lazylinepainter('paint');
+        });
+*/
+
         /*
         var mapData =[{
             map: {},
@@ -525,10 +582,10 @@ define([
             }
         }];
 */
-
+/*
         // current user Data for a map
         var tempUserData ={
-            currentUserData: {
+            userData: {
                 id: 1262,
                 character: [{
                     id: 12,
@@ -639,7 +696,7 @@ define([
                     }
                 }
             ]};
-
+*/
         // update map module ========================================
         $('#' + config.mapModuleId).on('pf:initModule', function(){
 
@@ -653,13 +710,12 @@ define([
                 Init.connectionScopes = initData.connectionScopes;
                 Init.systemStatus = initData.systemStatus;
                 Init.systemType = initData.systemType;
+                Init.characterStatus = initData.characterStatus;
 
                 // init map module
                 mapModule.initMapModule();
 
             }).fail(function( jqXHR, status, error) {
-                console.log(jqXHR);
-
                 var reason = status + ' ' + jqXHR.status + ': ' + error;
                 Util.emergencyShutdown(reason);
             });
@@ -742,7 +798,7 @@ define([
             triggerMapUpdatePing();
 
             // ping for user data update -------------------------------------------------------
-            var triggerUserUpdatePing = function(userData){
+            var triggerUserUpdatePing = function(){
 
                 var updatedUserData = {};
 
@@ -753,23 +809,33 @@ define([
                     url: Init.path.updateUserData,
                     data: updatedUserData,
                     dataType: 'json'
-                }).done(function(userData){
+                }).done(function(data){
 
                     $(document).setProgramStatus('online');
 
-                    if(userData.length === 0){
-                        mapModule.updateMapModuleData(userData);
+                    if(data.userData !== undefined){
+                        // store current user data global (cache)
+                        var userData = Util.setCurrentUserData(data.userData);
+
+                        if(userData.character === undefined){
+                            // no active character found -> show settings dialog
+                            $(document).triggerMenuEvent('ShowSettingsDialog');
+                        }else{
+                            // active character data found
+
+                            mapModule.updateMapModuleData(data);
+                            var duration = Util.timeStop(mapUserUpdateKey);
+
+                            // log execution time
+                            Util.log(mapUserUpdateKey, {duration: duration, description:'updateMapModuleData'});
+
+                            // init new trigger
+                            setTimeout(function(){
+                                triggerUserUpdatePing();
+                            }, mapUserUpdateDelay);
+                        }
+
                     }
-
-                    var duration = Util.timeStop(mapUserUpdateKey);
-
-                    // log execution time
-                    Util.log(mapUserUpdateKey, {duration: duration, description:'updateMapModuleData'});
-
-                    // init new trigger
-                    setTimeout(function(){
-                        triggerUserUpdatePing(tempUserData);
-                    }, mapUserUpdateDelay);
 
                 }).fail(function( jqXHR, status, error) {
                     var reason = status + ' ' + jqXHR.status + ': ' + error;
@@ -782,7 +848,7 @@ define([
 
             // start user update trigger after map loaded
             setTimeout(function(){
-                triggerUserUpdatePing(tempUserData);
+                triggerUserUpdatePing();
             }, 2000);
 
         };

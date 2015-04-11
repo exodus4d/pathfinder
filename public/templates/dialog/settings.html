@@ -1,0 +1,197 @@
+<div id="{{id}}">
+
+    <div role="tabpanel">
+        <ul class="text-center {{navigationClass}} row" role="tablist">
+            <li class="col-sm-3 active">
+                <a class="btn btn-default btn-circle btn-sm" data-toggle="tab" href="#pf-dialog-settings-account">1</a>
+                <h6>Account Setup</h6>
+            </li>
+            <li class="col-sm-3">
+                <a class="btn btn-default btn-circle btn-sm disabled" data-toggle="tab" href="#pf-dialog-settings-api">2</a>
+                <h6>API Keys</h6>
+            </li>
+            <li class="col-sm-3">
+                <a class="btn btn-default btn-circle btn-sm disabled" data-toggle="tab" href="#pf-dialog-settings-character">3</a>
+                <h6>Characters</h6>
+            </li>
+            <li class="col-sm-3">
+                <a class="btn btn-default btn-circle btn-sm disabled" data-toggle="tab" href="#pf-dialog-settings-done">4</a>
+                <h6>Done</h6>
+            </li>
+        </ul>
+
+        <hr>
+
+        <div class="tab-content">
+
+            {{! account tab ================================================================================================ }}
+            <div role="tabpanel" class="tab-pane fade in active" id="pf-dialog-settings-account">
+                <form role="form" class="form-horizontal">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Username</label>
+                                <div class="col-sm-9">
+                                    <p class="form-control-static">{{userData.name}}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Email</label>
+                                <div class="col-sm-9">
+                                    <p class="form-control-static">
+                                        <i class="fa fa-fw fa-lg fa-pencil pull-right pf-dialog-icon-button collapsed" data-toggle="collapse" data-target="#collapseEmail" aria-expanded="false" aria-controls="collapseEmail"></i>
+                                        {{userData.email}}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="collapseEmail" class="collapse">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label for="email" class="col-sm-3 control-label">New Email</label>
+                                    <div class="col-sm-6">
+                                        <div class="input-group">
+                                            <input name="email" type="email" class="form-control" id="email" value="" placeholder="my@mail.com" data-error="Email required">
+                                            <span class="input-group-addon"><i class="fa fa-envelope"></i></span>
+                                        </div>
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label for="email_confirm" class="col-sm-3 control-label">Confirm Email</label>
+                                    <div class="col-sm-6">
+                                        <div class="input-group">
+                                            <input name="email_confirm" type="email" class="form-control" id="email_confirm" value="" placeholder="my@mail.com" data-error="Email required" data-match="#email" data-match-error="Emall fields do not match">
+                                            <span class="input-group-addon"><i class="fa fa-envelope"></i></span>
+                                        </div>
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Password</label>
+                                <div class="col-sm-9">
+                                    <p class="form-control-static">
+                                        <i class="fa fa-fw fa-lg fa-pencil pull-right pf-dialog-icon-button collapsed"data-toggle="collapse" data-target="#collapsePassword" aria-expanded="false" aria-controls="collapsePassword"></i>
+                                        <i class="fa fa-fw fa-ellipsis-h"></i>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="collapsePassword" class="collapse">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label for="password" class="col-sm-3 control-label">New Password</label>
+                                    <div class="col-sm-6">
+                                        <div class="input-group">
+                                            <input name="password" type="password" class="form-control" id="password" placeholder="&middot;&middot;&middot;" data-minlength="6" data-minlength-error="Min. of 6 characters">
+                                            <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+                                        </div>
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label for="password_confirm" class="col-sm-3 control-label">Confirm Password</label>
+                                    <div class="col-sm-6">
+                                        <div class="input-group">
+                                            <input name="password_confirm" type="password" class="form-control" id="password_confirm" placeholder="&middot;&middot;&middot;" data-minlength="6" data-minlength-error="Min. of 6 characters" data-match="#password" data-match-error="Password fields do not match">
+                                            <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+                                        </div>
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            {{! api tab ================================================================================================ }}
+            <div role="tabpanel" class="tab-pane fade" id="pf-dialog-settings-api">
+                <form role="form" class="form-horizontal">
+                    {{#userData.api}}
+                        <div class="row {{cloneApiRowClass}}">
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <label for="keyId" class="col-sm-4 control-label">Key ID</label>
+                                    <div class="col-sm-8">
+                                        <input name="keyId[]" type="text" value="{{keyId}}" class="form-control" id="keyId" data-error="Field is required" data-minlength="4" data-minlength-error="Min. of 4 characters" required>
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="vCode" class="col-sm-2 control-label">vCode</label>
+                                    <div class="col-sm-10">
+                                        <input name="vCode[]" type="text" value="{{vCode}}" class="form-control" id="vCode" data-error="Field is required" data-minlength="64" data-minlength-error="Min. of 64 characters" required>
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-2">
+                                <p class="form-control-static">
+                                    <i class="fa fa-fw fa-lg fa-plus pull-left pf-dialog-icon-button collapsed {{cloneRowButtonClass}}"></i>
+
+                                    <i class="fa fa-fw fa-lg fa-close pull-right pf-dialog-icon-button collapsed txt-color txt-color-redDarker {{deleteRowButtonClass}}"></i>
+                                </p>
+                            </div>
+
+                        </div>
+                    {{/userData.api}}
+
+                    <div class="alert alert-warning" style="display: none;">
+                        <span class="txt-color txt-color-warning">Warning</span>
+                        <small> (important non-critical information)</small>
+                    </div>
+                </form>
+            </div>
+
+            {{! character tab ================================================================================================ }}
+            <div role="tabpanel" class="tab-pane fade" id="pf-dialog-settings-character">
+                <form role="form" class="form-horizontal">
+
+                </form>
+            </div>
+            {{! finish tab ================================================================================================ }}
+            <div role="tabpanel" class="tab-pane fade" id="pf-dialog-settings-done">
+                <form role="form" class="form-horizontal">
+                    <h1 style="opacity: 0;" class="text-center txt-color txt-color-green"><strong><i class="fa fa-check fa-lg"></i> Complete</strong></h1>
+                    <h5 class="text-center">Click next to finish</h5>
+                </form>
+            </div>
+
+        </div>
+
+
+    </div>
+
+</div>

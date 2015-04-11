@@ -4,6 +4,7 @@ requirejs.config({
     stubModules: ['text'],                                              // Exclude these modules on build
     paths: {
         layout: 'layout',
+        dialog: 'app/ui/dialog',
         jquery: 'lib/jquery-1.11.2.min',                                // v1.11.2 jQuery
         //jquery: "lib/jquery-2.1.1.min",                               // v2.1.1 jQuery
         bootstrap: 'lib/bootstrap.min',                                 // v3.3.0 Bootstrap js code - http://getbootstrap.com/javascript/
@@ -28,6 +29,7 @@ requirejs.config({
         fullScreen: 'lib/jquery.fullscreen.min',                        // v0.5.0 Full screen mode - https://github.com/private-face/jquery.fullscreen
         select2: 'lib/select2.min',                                     // v4.0.0 Drop Down customization - https://select2.github.io/
         validator: 'lib/validator.min',                                 // v0.7.2 Validator for Bootstrap 3 - https://github.com/1000hz/bootstrap-validator
+        lazylinepainter: 'lib/jquery.lazylinepainter-1.5.1.min',            //
 
 
         pnotify: 'lib/pnotify/pnotify.core',                            // v2.0.1 PNotify - notification core file
@@ -96,6 +98,9 @@ requirejs.config({
             exports: 'Select2'
         },
         validator: {
+            deps : ['jquery', 'bootstrap']
+        },
+        lazylinepainter: {
             deps : ['jquery', 'bootstrap']
         }
     }

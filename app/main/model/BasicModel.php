@@ -47,11 +47,12 @@ class BasicModel extends \DB\Cortex{
         $valid = $this->_validateField($col, $val);
 
         if(!$valid){
-            throw new Exception\ValidationException('Field validation: "' . $this->table . '->' . $col . '" not valid', Exception\BaseException::VALIDATION_FAILED);
+            $this->_throwValidationError($col);
         }else{
             parent::__set($col, $val);
         }
     }
+
 
     /**
      * validates a table column based on validation settings
@@ -106,6 +107,16 @@ class BasicModel extends \DB\Cortex{
         }
 
         return $valid;
+    }
+
+    /**
+     * Throws a validation error for a giben column
+     * @param $col
+     * @throws \Exception\ValidationException
+     */
+    protected function _throwValidationError($col){
+        throw new Exception\ValidationException('Field validation: "' . $this->table . '->' . $col . '" not valid', Exception\BaseException::VALIDATION_FAILED);
+
     }
 
     /**

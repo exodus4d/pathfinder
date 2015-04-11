@@ -11,6 +11,8 @@ body{
 
 a{
   color: $teal-dark;
+  will-change: color;
+  @include transition( color 0.08s ease-out );
 
   &:hover{
     color: $teal-light;
@@ -210,6 +212,19 @@ em{
     }
   }
 
+}
+
+// User status =================================================
+.pf-user-status{
+  color: $red-darker;
+}
+
+.pf-user-status-corp{
+  color: $green;
+}
+
+.pf-user-status-ally{
+  color: $blue;
 }
 
 // WH effects ==================================================
@@ -473,7 +488,16 @@ em{
   padding: 5px 5px;
   @include border-radius(3px);
   @include box-shadow(0 6px 12px rgba(0,0,0,.4));
+}
 
+// tooltips within modals
+.modal .tooltip{
+  // higher z-index
+  z-index: $zindex-modal + 10;
+
+  .tooltip-inner{
+    color: $gray-lighter;
+  }
 }
 
 .tooltip.top .tooltip-arrow,{
@@ -511,9 +535,15 @@ em{
   margin-bottom: 0px;
 
   a{
+    @include transition( color 0.15s ease-out );
+    will-change: color;
 
     &:focus{
       color: $teal-dark;
+
+      img{
+        border-color: $gray;
+      }
     }
 
     &:hover{
@@ -521,6 +551,10 @@ em{
 
       .badge{
         color: $teal-light;
+      }
+
+      img{
+        border-color: $teal;
       }
     }
   }
@@ -553,6 +587,12 @@ em{
     color: $gray-lighter;
   }
 
+
+  .pf-head-user-character{
+    opacity: 0; // triggered by js
+    visibility: 'hidden';
+  }
+
   .pf-head-active-user, .pf-head-current-location{
     display: none; // triggered by js
 
@@ -560,9 +600,27 @@ em{
       @include transition( color 0.3s ease-out );
     }
   }
-  
+
+  .pf-head-user-character-image{
+    display: inline-block;
+    margin-top: -6px;
+    margin-bottom: -6px;
+    width: 27px;
+    border: 1px solid $gray;
+    margin-right: 3px;
+    @include transition( border-color 0.15s ease-out );
+    will-change: border-color;
+  }
+
   .pf-head-program-status{
     cursor: pointer;
+  }
+
+  // tooltips header
+  .tooltip{
+    .tooltip-inner{
+      color: $gray-lighter;
+    }
   }
 
 }

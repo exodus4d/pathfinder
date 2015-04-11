@@ -1,23 +1,28 @@
 /**
  * page structure
  */
+
 define([
     'jquery',
     'app/init',
     'app/util',
     'app/render',
-    'bootbox',
     'app/ccp',
-    'app/ui/map_info',
     'app/logging',
+    'dialog/map_info',
+    'dialog/settings',
+    'dialog/manual',
+    'dialog/map',
+    'dialog/system_effects',
+    'dialog/jump_info',
+    'dialog/credit',
     'slidebars',
     'app/module_map'
-], function($, Init, Util, Render, bootbox, CCP, MapInfo, Logging) {
+], function($, Init, Util, Render, CCP, Logging) {
 
     'use strict';
 
     var config = {
-
         // page structure slidebars-menu classes
         pageId: 'sb-site',
         pageSlidebarClass: 'sb-slidebar',
@@ -35,46 +40,22 @@ define([
         headClass: 'pf-head',                                                   // class for page head
         headMenuClass: 'pf-head-menu',                                          // class for page head menu button (left)
         headMapClass: 'pf-head-map',                                            // class for page head map button (right)
-        headMainCharacterClass: 'pf-head-main-character',                       // class for "main character" link
+        headUserCharacterClass: 'pf-head-user-character',                       // class for "user settings" link
+        userCharacterImageClass: 'pf-head-user-character-image',                // class for "current user image"
         headActiveUserClass: 'pf-head-active-user',                             // class for "active user" link
         headCurrentLocationClass: 'pf-head-current-location',                   // class for "show current location" link
         headProgramStatusClass: 'pf-head-program-status',                       // class for "program status" notification
 
         // footer
         pageFooterId: 'pf-footer',                                              // id for page footer
+        footerLicenceLinkClass: 'pf-footer-licence',                            // class for "licence" link
 
         // menu
         menuHeadMenuLogoClass: 'pf-head-menu-logo',                             // class for main menu logo
         menuButtonFullScreenId: 'pf-menu-button-fullscreen',                    // id for menu button "full screen"
 
-        // global dialog
-        dialogNavigationClass: 'pf-dialog-navigation-list',                     // class for dialog navigation bar
-        dialogNavigationListItemClass: 'pf-dialog-navigation-list-item',        // class for map manual li main navigation elements
-
-        // map dialog
-        newMapDialogId: 'pf-map-new-dialog',                                    // id for edit/update map dialog
-
-        // select character dialog
-        characterSelectDialogId: 'pf-select-character-dialog',                  // id for "select character" dialog
-        characterSelectImageWrapperClass: 'pf-dialog-image-wrapper',            // class for image wrapper (animated)
-        characterSelectImageInfoClass: 'pf-dialog-character-info',              // class for character info layer (visible on hover)
-        characterSelectMainClass: 'pf-dialog-character-main',                   // class for main character highlighting
-
-        // system effect dialog
-        systemEffectDialogWrapperClass: 'pf-system-effect-dialog-wrapper',      // class for system effect dialog
-
-        // jump info dialog
-        jumpInfoDialogClass: 'pf-jump-info-dialog',                             // class for jump info dialog
-
-        // map manual dialog
-        mapManualScrollspyId: 'pf-manual-scrollspy',                            // id for map manual scrollspy
-
         // helper element
         dynamicElementWrapperId: 'pf-dialog-wrapper'
-    };
-
-    var cache = {
-        systemEffectDialog: false                                               // system effect info dialog
     };
 
     var programStatusCounter = 0;                                               // current count down in s until next status change is possible
@@ -329,9 +310,9 @@ define([
                         slideMenu.slidebars.toggle('right');
                     });
 
-                    // active pilots
-                    $('.' + config.headMainCharacterClass).find('a').on('click', function(){
-                        $(document).triggerMenuEvent('ShowCharacterDialog');
+                    // settings
+                    $('.' + config.headUserCharacterClass).find('a').on('click', function(){
+                        $(document).triggerMenuEvent('ShowSettingsDialog');
                     });
 
                     // active pilots
@@ -356,7 +337,13 @@ define([
 
                     // init all tooltips
                     var tooltipElements = $('#' + config.pageHeaderId).find('[title]');
-                    tooltipElements.tooltip({placement: 'bottom'});
+                    tooltipElements.tooltip({
+                        placement: 'bottom',
+                        delay: {
+                            show: 500,
+                            hide: 0
+                        }
+                    });
 
                     // trigger load main map module -> header is required for "System" drag&drop position
                     Util.getMapModule().trigger('pf:initModule');
@@ -368,7 +355,8 @@ define([
         var moduleData = {
             id: config.pageHeaderId,
             brandLogo: config.menuHeadMenuLogoClass,
-            userName: 'Exodus 4D'
+            userCharacterClass: config.headUserCharacterClass,
+            userCharacterImageClass: config.userCharacterImageClass
         };
 
         Render.showModule(moduleConfig, moduleData);
@@ -387,13 +375,17 @@ define([
             link: 'append',
             functions: {
                 after: function(){
-
+                    pageElement.find('.' + config.footerLicenceLinkClass).on('click', function(){
+                        //show credits info dialog
+                        $.fn.showCreditsDialog();
+                    });
                 }
             }
         };
 
         var moduleData = {
-            id: config.pageFooterId
+            id: config.pageFooterId,
+            footerLicenceLinkClass: config.footerLicenceLinkClass
         };
 
         Render.showModule(moduleConfig, moduleData);
@@ -419,13 +411,13 @@ define([
 
         $(document).on('pf:menuShowSystemEffectInfo', function(e){
             // show system effects info box
-            showSystemEffectInfoDialog();
+            $.fn.showSystemEffectInfoDialog();
             return false;
         });
 
         $(document).on('pf:menuShowJumpInfo', function(e){
             // show system effects info box
-            showJumpInfoDialog();
+            $.fn.showJumpInfoDialog();
             return false;
         });
 
@@ -437,19 +429,19 @@ define([
 
         $(document).on('pf:menuManual', function(e){
             // show map manual
-            showMapManual();
+            $.fn.showMapManual();
             return false;
         });
 
-        $(document).on('pf:menuShowCharacterDialog', function(e){
+        $(document).on('pf:menuShowSettingsDialog', function(e){
             // show character select dialog
-            showCharacterSelectDialog();
+            $.fn.showSettingsDialog();
             return false;
         });
 
         $(document).on('pf:menuShowMapInfo', function(e){
             // show map information dialog
-            MapInfo.showDialog();
+            $.fn.showMapInfoDialog();
             return false;
         });
 
@@ -465,7 +457,7 @@ define([
                 }
             }
 
-            showNewMapDialog(mapData);
+            $.fn.showNewMapDialog(mapData);
             return false;
         });
 
@@ -479,7 +471,7 @@ define([
                 mapData = activeMap.getMapData(true);
             }
 
-            showDeleteMapDialog(mapData);
+            $.fn.showDeleteMapDialog(mapData);
             return false;
         });
 
@@ -518,7 +510,7 @@ define([
         });
 
         // update header links with current map data
-        $(document).on('pf:updateHeaderData', function(e, data){
+        $(document).on('pf:updateHeaderMapData', function(e, data){
             var activeMap = Util.getMapModule().getActiveMap();
 
             var userCount = 0;
@@ -538,6 +530,42 @@ define([
     };
 
     /**
+     * updates the header with current user data
+     */
+    $.fn.updateHeaderUserData = function(){
+
+        var userData = Util.getCurrentUserData();
+
+        if(
+            userData &&
+            userData.character
+        ){
+
+            var userInfoElement = $('.' + config.headUserCharacterClass);
+
+            // hide element
+            userInfoElement.velocity('stop').velocity({
+                    opacity: 0
+                },{
+                visibility : 'hidden',
+                duration: 500,
+                    complete: function(){
+                        // set new data
+                        userInfoElement.find('span').text(userData.character.name);
+                        userInfoElement.find('img').attr('src', Init.url.ccpImageServer + '/Character/' + userData.character.characterId + '_32.jpg' );
+
+                        userInfoElement.velocity({
+                            opacity: 1
+                        }, {
+                            visibility : 'visible',
+                            duration: 500
+                        });
+                    }
+            });
+        }
+    };
+
+    /**
      * update the "active user" badge in header
      * @param userCount
      */
@@ -550,7 +578,7 @@ define([
 
             badge.text(userCount);
 
-            badge.toggleClass('txt-color-green', (userCount > 0) );
+            badge.toggleClass('txt-color-greenLight', (userCount > 0) );
             badge.toggleClass('txt-color-red', (userCount === 0) );
 
             if(! activeUserElement.is(':visible')){
@@ -599,402 +627,6 @@ define([
         }
     };
 
-    /**
-     * shows the add/edit map dialog
-     */
-    var showNewMapDialog = function(mapData){
-
-        var formData = {};
-
-        // check if dialog is already open
-        var mapInfoDialogElement = $('#' + config.newMapDialogId);
-        if(!mapInfoDialogElement.is(':visible')){
-
-            requirejs(['text!templates/modules/map_dialog.html', 'mustache'], function(template, Mustache) {
-
-                var data = {
-                    id: config.newMapDialogId,
-                    scope: Util.getMapScopes(),
-                    type: Util.getMapTypes(),
-                    icon: Util.getMapIcons(),
-                    formData: formData
-                };
-
-                var content = Mustache.render(template, data);
-
-                var dialogTitle = 'Create new map';
-                var dialogSaveButton = 'add map';
-                if(mapData !== false){
-                    dialogTitle = 'Edit map';
-                    dialogSaveButton = 'save map';
-                    content = $(content);
-                    content.find('input[name="id"]').val( mapData.config.id );
-                    content.find('select[name="icon"]').val( mapData.config.icon );
-                    content.find('input[name="name"]').val( mapData.config.name );
-                    content.find('select[name="scopeId"]').val( mapData.config.scope.id );
-                    content.find('select[name="typeId"]').val( mapData.config.type.id );
-                }
-
-                var mapInfoDialog = bootbox.dialog({
-                    title: dialogTitle,
-                    message: content,
-                    buttons: {
-                        close: {
-                            label: 'cancel',
-                            className: 'btn-default'
-                        },
-                        success: {
-                            label: '<i class="fa fa-code-fork fa-fw"></i>' + dialogSaveButton,
-                            className: 'btn-primary',
-                            callback: function() {
-
-                                // get form Values
-                                var form = $('#' + config.newMapDialogId).find('form');
-
-                                // validate form
-                                form.validator('validate');
-
-                                // check weather the form is valid
-                                var formValid = form.isValidForm();
-
-                                if(formValid === true){
-
-                                    var newMapData = {mapData: form.getFormValues()};
-
-                                    $.ajax({
-                                        type: 'POST',
-                                        url: Init.path.saveMap,
-                                        data: newMapData,
-                                        dataType: 'json'
-                                    }).done(function(data){
-                                        Util.showNotify({title: dialogTitle, text: 'Map: ' + data.name, type: 'success'});
-
-                                        $(mapInfoDialog).modal('hide');
-                                        $(document).trigger('pf:closeMenu', [{}]);
-                                    }).fail(function( jqXHR, status, error) {
-                                        var reason = status + ' ' + error;
-                                        Util.showNotify({title: jqXHR.status + ': saveMap', text: reason, type: 'warning'});
-                                        $(document).setProgramStatus('problem');
-                                    });
-                                }
-
-                                return false;
-                            }
-                        }
-                    }
-                });
-            });
-        }
-    };
-
-    /**
-     * shows the delete map Dialog
-     * @param mapElement
-     */
-    var showDeleteMapDialog = function(mapData){
-
-      var mapName = mapData.config.name;
-
-      var mapDeleteDialog = bootbox.confirm('Delete map "' + mapName + '"?', function(result){
-          if(result){
-
-              var data = {mapData: mapData.config};
-
-              $.ajax({
-                  type: 'POST',
-                  url: Init.path.deleteMap,
-                  data: data,
-                  dataType: 'json'
-              }).done(function(data){
-                  Util.showNotify({title: 'Map deleted', text: 'Map: ' + mapName, type: 'success'});
-
-                  $(mapDeleteDialog).modal('hide');
-              }).fail(function( jqXHR, status, error) {
-                  var reason = status + ' ' + error;
-                  Util.showNotify({title: jqXHR.status + ': deleteMap', text: reason, type: 'warning'});
-                  $(document).setProgramStatus('problem');
-              });
-
-              return false;
-          }
-      });
-
-    };
-
-    /**
-     * show main character select dialog
-     */
-    var showCharacterSelectDialog = function(){
-
-        if(Init.currentUserData){
-            requirejs(['text!templates/modules/character_select_dialog.html', 'mustache'], function(template, Mustache) {
-
-                // calculate grid class
-                var characterCount = Init.currentUserData.character.length;
-                var gridClass = ((12 / characterCount) < 4)? 4 : 12 / characterCount ;
-
-                var data = {
-                    id: config.characterSelectDialogId,
-                    imageWrapperClass: config.characterSelectImageWrapperClass,
-                    imageInfoClass: config.characterSelectImageInfoClass,
-                    imageWrapperMainClass: config.characterSelectMainClass,
-                    currentUserData: Init.currentUserData,
-                    gridClass: 'col-sm-' + gridClass
-                };
-
-                var content = Mustache.render(template, data);
-
-                var selectCharacterDialog = bootbox.dialog({
-                    title: 'Set main character',
-                    message: content
-
-                });
-
-                selectCharacterDialog.on('shown.bs.modal', function(e) {
-
-                    var imageWrapperElements = $(this).find('.' + config.characterSelectImageWrapperClass);
-
-                    // save event =================================================
-                    imageWrapperElements.on('click', function(e){
-
-                        var wrapperElement = $(this);
-                        var characterId = wrapperElement.data('id');
-
-                        // remove not selected characters
-                        if(characterId > 0){
-                            wrapperElement.showLoadingAnimation();
-
-                            var notClickedImageWrapperElements = imageWrapperElements.filter(':not([data-id=' + characterId + '])').parents('.col');
-
-                            notClickedImageWrapperElements.velocity('transition.whirlOut', {
-                                stagger: 60,
-                                drag: true,
-                                duration: 400,
-                                complete: function(){
-                                    // center remaining character element
-                                    wrapperElement.parents('.col').addClass('col-sm-12');
-
-                                    // save configuration
-                                    var requestData = {
-                                        configData: {
-                                            mainCharacterId: characterId
-                                        }
-                                    };
-
-                                    $.ajax({
-                                        type: 'POST',
-                                        url: Init.path.saveUserConfig,
-                                        data: requestData,
-                                        dataType: 'json'
-                                    }).done(function(responseData){
-
-
-                                        Util.showNotify({title: 'Config saved', type: 'success'});
-
-                                        $(selectCharacterDialog).modal('hide');
-                                    }).fail(function( jqXHR, status, error) {
-                                        var reason = status + ' ' + error;
-                                        Util.showNotify({title: jqXHR.status + ': saveConfig', text: reason, type: 'warning'});
-                                        $(document).setProgramStatus('problem');
-                                    });
-
-                                 }
-                            });
-
-                        }
-                    });
-
-                    // initial show effect of all chars
-                    imageWrapperElements.velocity('stop').delay(100).velocity('transition.flipBounceXIn', {
-                        display: 'inline-block',
-                        stagger: 60,
-                        drag: true,
-                        duration: 400
-                    });
-
-                    // Hover effect
-                    imageWrapperElements.hoverIntent(function(e){
-                        var characterInfoElement = $(this).find('.' + config.characterSelectImageInfoClass);
-
-                        characterInfoElement.velocity('finish').velocity({
-                            width: ['100%', [ 400, 15 ] ]
-                        },{
-                            easing: 'easeInSine'
-                        });
-                    }, function(e){
-                        var characterInfoElement = $(this).find('.' + config.characterSelectImageInfoClass);
-
-                        characterInfoElement.velocity('finish').velocity({
-                            width: 0
-                        },{
-                            duration: 150,
-                            easing: 'easeInOutSine'
-                        });
-
-                    });
-
-                });
-
-            });
-        }
-
-    };
-
-    /**
-     * shows the map manual modal dialog
-     */
-    var showMapManual = function(){
-
-        requirejs(['text!templates/modules/map_manual_dialog.html', 'mustache'], function(template, Mustache) {
-
-            var data = {
-                dialogNavigationClass: config.dialogNavigationClass,
-                dialogNavLiClass: config.dialogNavigationListItemClass,
-                scrollspyId: config.mapManualScrollspyId,
-                pieChartClass : Init.classes.pieChart.pieChartMapCounterClass,
-                mapCounterClass : Init.classes.pieChart.pieChartMapCounterClass,
-
-                mapTypeGlobalClass: Util.getInfoForMap( 'global', 'class'),
-                mapTypeGlobalLabel: Util.getInfoForMap( 'global', 'label'),
-                mapTypeAllianceClass: Util.getInfoForMap( 'alliance', 'class'),
-                mapTypeAllianceLabel: Util.getInfoForMap( 'alliance', 'label'),
-                mapTypePrivateClass: Util.getInfoForMap( 'private', 'class'),
-                mapTypePrivateLabel: Util.getInfoForMap( 'private', 'label')
-            };
-
-
-            var content = Mustache.render(template, data);
-            // show dialog
-            var mapManualDialog = bootbox.dialog({
-                title: 'Pathfinder manual',
-                message: content,
-                buttons: {
-                    success: {
-                        label: 'close',
-                        className: "btn-primary",
-                        callback: function() {
-                            $(mapManualDialog).modal('hide');
-                        }
-                    }
-                },
-                show: false
-            });
-
-            mapManualDialog.modal('show');
-
-            // modal offset top
-            var modalOffsetTop = 200;
-
-            // disable on scroll event
-            var disableOnScrollEvent = false;
-
-            // scroll breakpoints
-            var scrolLBreakpointElements = null;
-            // scroll navigation links
-            var scrollNavLiElements = null;
-
-            mapManualDialog.on('shown.bs.modal', function(e) {
-                // modal on open
-                scrolLBreakpointElements = $('.pf-manual-scroll-break');
-                scrollNavLiElements = $('.' + config.dialogNavigationListItemClass);
-            });
-
-            var scrollspyElement = $('#' + config.mapManualScrollspyId);
-
-            var whileScrolling = function(){
-
-                if(disableOnScrollEvent === false){
-                    for(var i = 0; i < scrolLBreakpointElements.length; i++){
-                        var offset = $(scrolLBreakpointElements[i]).offset().top;
-
-                        if( (offset - modalOffsetTop) > 0){
-
-                            if(! $( scrollNavLiElements[i]).hasClass('active')){
-                                // remove all active classes
-                                scrollNavLiElements.removeClass('active');
-                                // remove focus on links
-                                scrollNavLiElements.find('a').blur();
-
-                                $( scrollNavLiElements[i]).addClass('active');
-                            }
-                            break;
-                        }
-                    }
-                }
-            };
-
-            // init scrollbar
-            scrollspyElement.mCustomScrollbar({
-                axis: 'y',
-                theme: 'light-thick',
-                scrollInertia: 200,
-                autoExpandScrollbar: false,
-                scrollButtons:{
-                    scrollAmount: 30,
-                    enable: true
-                },
-                advanced: {
-                    updateOnBrowserResize: true,
-                    updateOnContentResize: true
-                },
-                callbacks:{
-                    onInit: function(){
-                        // init fake-map update counter
-                        scrollspyElement.find('.' + data.mapCounterClass).initMapUpdateCounter();
-
-                        // set navigation button observer
-                        var mainNavigationLinks = $('.' + config.dialogNavigationClass).find('a');
-                        // text anchor links
-                        var subNavigationLinks = scrollspyElement.find('a[data-target]');
-
-                        var navigationLinks = mainNavigationLinks.add(subNavigationLinks);
-
-                        navigationLinks.on('click', function(e){
-                            e.preventDefault();
-
-                            disableOnScrollEvent = true;
-
-                            // scroll to anchor
-                            scrollspyElement.mCustomScrollbar("scrollTo", $(this).attr('data-target'));
-
-                            var mainNavigationLiElement = $(this).parent('.' + config.dialogNavigationListItemClass);
-
-
-                            whileScrolling();
-
-                            // if link is a main navigation link (not an anchor link)
-
-                            if(mainNavigationLiElement.length > 0){
-                                // remove all active classes
-                                scrollNavLiElements.removeClass('active');
-
-                                // set new active class
-                                $(this).parent().addClass('active');
-                            }
-
-                        });
-
-                    },
-                    onScroll: function(){
-                        disableOnScrollEvent = false;
-
-                        whileScrolling();
-                    },
-                    whileScrolling: whileScrolling
-                },
-                mouseWheel:{
-                    enable: true,
-                    scrollAmount: 200,
-                    axis: 'y',
-                    preventDefault: true // do not scroll parent at the end
-                },
-                scrollbarPosition: 'outsite',
-                autoDraggerLength: true
-            });
-
-        });
-
-    };
 
     /**
      * shows a test notification for desktop messages
@@ -1009,107 +641,6 @@ define([
             }
         );
     };
-
-    /**
-     * show jump info dialog
-     */
-    var showJumpInfoDialog = function(){
-
-        requirejs(['text!templates/modules/jump_info_dialog.html', 'mustache'], function(template, Mustache) {
-
-            var data = {};
-
-            var content = Mustache.render(template, data);
-
-            var signatureReaderDialog = bootbox.dialog({
-                className: config.jumpInfoDialogClass,
-                title: 'Wormhole jump information',
-                message: content
-            });
-
-        });
-
-    };
-
-    /**
-     * show system effect dialog
-     */
-    var showSystemEffectInfoDialog = function(){
-
-        // cache table structure
-        if(!cache.systemEffectDialog){
-
-            var dialogWrapperElement = $('<div>', {
-                class: config.systemEffectDialogWrapperClass
-            });
-
-            $.each( Init.systemEffects.wh, function( effectName, effectData ) {
-
-                var table = $('<table>', {
-                    class: ['table', 'table-condensed'].join(' ')
-                });
-
-                var tbody = $('<tbody>');
-                var thead = $('<thead>');
-
-                var rows = [];
-
-                // get formatted system effect name
-                var systemEffectName = Util.getEffectInfoForSystem(effectName, 'name');
-                var systemEffectClass = Util.getEffectInfoForSystem(effectName, 'class');
-
-                $.each( effectData, function( areaId, areaData ) {
-
-                    if(areaId === '1'){
-                        rows.push( $('<tr>') );
-                        thead.append( rows[0] );
-
-                        rows[0].append(
-                            $('<td>').html( '&nbsp;&nbsp;' + systemEffectName).prepend(
-                                $('<i>', {
-                                    class: ['fa', 'fa-square', 'fa-fw', systemEffectClass].join(' ')
-                                })
-                            )
-                        );
-                    }
-
-                    rows[0].append( $('<td>', {
-                        class: ['text-right', 'col-xs-1'].join(' ')
-                    }).text( 'C' + areaId ));
-
-                    $.each( areaData, function( i, data ) {
-
-                        if(areaId === '1'){
-                            rows.push( $('<tr>') );
-                            tbody.append(rows[i + 1]);
-
-                            // add label
-                            rows[i + 1].append( $('<td>').text( data.effect ));
-                        }
-
-
-                        rows[i + 1].append( $('<td>', {
-                            class: 'text-right'
-                        }).text( data.value ));
-                    });
-
-
-                });
-
-                dialogWrapperElement.append( table.append( thead ).append( tbody ) );
-
-                cache.systemEffectDialog = dialogWrapperElement;
-            });
-        }
-
-        bootbox.dialog({
-            title: 'System effect information',
-            message: cache.systemEffectDialog
-        });
-
-    };
-
-
 
     /**
      * trigger "program status" in head

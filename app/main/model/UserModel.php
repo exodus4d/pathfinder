@@ -15,10 +15,10 @@ class UserModel extends BasicModel {
     protected $rel_ttl = 0;
 
     protected $fieldConf = array(
-        'api' => array(
+        'apis' => array(
             'has-many' => array('Model\UserApiModel', 'userId')
         ),
-        'characters' => array(
+        'userCharacters' => array(
             'has-many' => array('Model\UserCharacterModel', 'userId')
         )
     );
@@ -30,12 +30,6 @@ class UserModel extends BasicModel {
                 'max' => 20
             ],
             'regex' => '/^[ \w-_]+$/'
-        ],
-        'password' => [
-            'length' => [
-                'min' => 5,
-                'max' => 255
-            ]
         ]
     ];
 
@@ -47,49 +41,54 @@ class UserModel extends BasicModel {
 
         $userData = (object) [];
         $userData->id = $this->id;
+        $userData->name = $this->name;
+        $userData->email = $this->email;
 
-        // active char
-        $userData->character = null;
+        // api data
+        $APIs = $this->getAPIs();
+        foreach($APIs as $api){
+            $userData->api[] = $api->getData();
+        }
 
         // all chars
         $userData->characters = [];
-
-        $characters = $this->getCharacters();
-        $activeCharacter = null;
-        $mainCharacter = null;
-        foreach($characters as $character){
-
-            // find main
-            if($character->isMain){
-                $mainCharacter = $character;
-            }
-
-            // find active
-            // TODO replace with HTTP-HEADER IGB values
-            if($character->id == 2){
-                $activeCharacter = $character;
-            }
-            $userData->characters[] = $character->getData();
+        $userCharacters = $this->getUserCharacters();
+        foreach($userCharacters as $userCharacter){
+            $userData->characters[] = $userCharacter->getData();
         }
 
         // set active character with log data
-        if($activeCharacter){
-            $userData->character = $activeCharacter->getData(true);
-        }elseif($mainCharacter){
-            $userData->character = $mainCharacter->getData(true);
+        $activeUserCharacter = $this->getActiveUserCharacter();
+        if($activeUserCharacter){
+            $userData->character = $activeUserCharacter->getData(true);
         }
 
         return $userData;
     }
 
+    /**
+     * validate and set a email address for this user
+     * @param $email
+     * @return mixed
+     */
+    public function set_email($email){
+        if (\Audit::instance()->email($email) == false) {
+            // no valid email address
+            $this->_throwValidationError('email');
+        }
+        return $email;
+    }
 
     /**
-     * generate password hash
+     * set a password hash for this user
      * @param $password
      * @return FALSE|string
      */
-    public static function generatePasswordHash($password){
-        // generate random id (23 chars)
+    public function set_password($password){
+        if(strlen($password) < 6){
+            $this->_throwValidationError('password');
+        }
+
         $salt = uniqid('', true);
         return \Bcrypt::instance()->hash($password, $salt);
     }
@@ -140,83 +139,124 @@ class UserModel extends BasicModel {
      * @return array|mixed
      */
     public function getAPIs(){
-        $this->filter('api', array('active = ?', 1));
+        $this->filter('apis', array('active = ?', 1));
 
-        $api = [];
-        if($this->api){
-            $api = $this->api;
+        $apis = [];
+        if($this->apis){
+            $apis = $this->apis;
         }
 
-        return $api;
+        return $apis;
     }
 
     /**
      * set main character ID for this user.
      * If id does not match with his API chars -> select "random" main character
-     * @param $characterId
-     * @return null
+     * @param int $characterId
      */
-    public function setMainCharacterId($characterId){
+    public function setMainCharacterId($characterId = 0){
 
-        $mainCharacter = null;
         if(is_int($characterId)){
-            $characters = $this->getCharacters();
+            $userCharacters = $this->getUserCharacters();
 
-            if(count($characters) > 0){
-                foreach($characters as $character){
-                    $isMain = 0;
-                    if($characterId == $character->characterId){
-                        $isMain = 1;
-                        $mainCharacter = $character;
+            if(count($userCharacters) > 0){
+                $mainSet = false;
+                foreach($userCharacters as $userCharacter){
+                    if($characterId == $userCharacter->characterId->characterId){
+                        $mainSet = true;
+                        $userCharacter->setMain(1);
+                    }else{
+                        $userCharacter->setMain(0);
                     }
-                    $character->isMain = $isMain;
-                    $character->save();
+                    $userCharacter->save();
                 }
 
                 // set random main character
-                if(is_null($mainCharacter)){
-                    $characters[0]->isMain = 1;
-                    $characters[0]->save();
+                if(! $mainSet ){
+                    $userCharacters[0]->setMain(1);
+                    $userCharacters[0]->save();
                 }
             }
         }
-
-        return $mainCharacter;
     }
 
     /**
-     * get all characters for a user
+     * get all userCharacters models for a user
      * characters will be checked/updated on login by CCP API call
      * @return array|mixed
      */
-    public function getCharacters(){
-        $this->filter('characters', array('active = ?', 1));
+    public function getUserCharacters(){
+        $this->filter('userCharacters', array('active = ?', 1));
 
-        $characters = [];
-        if($this->characters){
-            $characters = $this->characters;
+        $userCharacters = [];
+        if($this->userCharacters){
+            $userCharacters = $this->userCharacters;
         }
 
-        return $characters;
+        return $userCharacters;
     }
 
     /**
-     * get all active characters (with log entry)
-     * @return array
+     * Get the main user character for this user
+     * @return null
      */
-    public function getActiveCharacters(){
-        $characters = $this->getCharacters();
+    public function getMainUserCharacter(){
+        $mainUserCharacter = null;
+        $userCharacters = $this->getUserCharacters();
 
-        $activeCharacters = [];
-        foreach($characters as $character){
-            $characterLog = $character->getLog();
-
-            if($characterLog){
-                $activeCharacters[] = $character;
+        foreach($userCharacters as $userCharacter){
+            if($userCharacter->isMain()){
+                $mainUserCharacter = $userCharacter;
+                break;
             }
         }
 
-        return $activeCharacters;
+        return $mainUserCharacter;
+    }
+
+    /**
+     * get the active user character for this user
+     * either there is an active Character (IGB) or the character labeled as "main"
+     * @return null
+     */
+    public function getActiveUserCharacter(){
+        $activeUserCharacter = null;
+        $userCharacters = $this->getUserCharacters();
+
+        foreach($userCharacters as $userCharacter){
+            // find active
+            // TODO replace with HTTP-HEADER IGB values
+            if($userCharacter->id == 2){
+                $activeUserCharacter = $userCharacter;
+                break;
+            }
+        }
+
+        // if no  active character is found -> get main Character
+        if(is_null($activeUserCharacter)){
+            $activeUserCharacter = $this->getMainUserCharacter();
+        }
+
+        return $activeUserCharacter;
+    }
+
+    /**
+     * get all active user characters (with log entry)
+     * @return array
+     */
+    public function getActiveUserCharacters(){
+        $userCharacters = $this->getUserCharacters();
+
+        $activeUserCharacters = [];
+        foreach($userCharacters as $userCharacter){
+            $characterLog = $userCharacter->getLog();
+
+            if($characterLog){
+                $activeUserCharacters[] = $userCharacter;
+            }
+        }
+
+        return $activeUserCharacters;
     }
 
 

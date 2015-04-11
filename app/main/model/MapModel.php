@@ -288,13 +288,13 @@ class MapModel extends BasicModel{
         // get users with map access
         $users = $this->getUsers();
 
-        $characterLogsData = [];
+        $activeUserCharactersData = [];
         foreach($users as $user){
             // get all active character logs for a user
-            $activeCharacters = $user->getActiveCharacters();
+            $tempActiveUserCharacters = $user->getActiveUserCharacters();
 
-            foreach($activeCharacters as $activeCharacter){
-                $characterLogsData[] = $activeCharacter->getData(true);
+            foreach($tempActiveUserCharacters as $tempActiveUserCharacter){
+                $activeUserCharactersData[] = $tempActiveUserCharacter->getData(true);
             }
         }
 
@@ -304,18 +304,20 @@ class MapModel extends BasicModel{
         $mapUserData->data = (object) [];
         $mapUserData->data->systems = [];
         foreach($systems as $system){
-
             $systemUserData = (object) [];
             $systemUserData->id = $system->id;
             $systemUserData->user = [];
 
             // check if a system has active characters
-            foreach($characterLogsData as $characterLogData){
-                if($characterLogData->log->system->Id == $system->systemId){
-                    $systemUserData->user[] = $characterLogData;
+            foreach($activeUserCharactersData as $key => $activeUserCharacterData){
+                if($activeUserCharacterData->log->system->Id == $system->systemId){
+                    $systemUserData->user[] = $activeUserCharacterData;
+
+                    // remove user from array -> speed up looping over characters.
+                    // each userCharacter can only be active in a SINGLE system
+                    unset($activeUserCharactersData[$key]);
                 }
             }
-
 
             // add system if active users were found
             if(count($systemUserData->user) > 0){
@@ -323,7 +325,6 @@ class MapModel extends BasicModel{
             }
 
         }
-
 
         return $mapUserData;
     }

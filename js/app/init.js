@@ -44,6 +44,7 @@ define(['jquery'], function($) {
           deleteSignatureData: 'api/signature/delete'               // ajax URL - delete signature data for system
         },
         url: {
+            ccpImageServer: 'https://image.eveonline.com/',         // CCP image Server
             zKillboard: 'https://zkillboard.com/api/',              // killboard api
             eveCentral: 'http://api.eve-central.com/api/'           // jump rout api
         },

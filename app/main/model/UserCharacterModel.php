@@ -15,6 +15,8 @@ class UserCharacterModel extends BasicModel {
     protected $ttl = 0;
     protected $rel_ttl = 0;
 
+    private $character = null;
+
     protected $fieldConf = array(
         'userId' => array(
             'belongs-to-one' => 'Model\UserModel'
@@ -22,9 +24,16 @@ class UserCharacterModel extends BasicModel {
         'apiId' => array(
             'belongs-to-one' => 'Model\UserApiModel'
         ),
+        'characterId' => array(
+            'belongs-to-one' => 'Model\CharacterModel'
+        )
+    /*
+    ,
         'log' => array(
             'has-one' => array('Model\CharacterLogModel', 'userCharacterId')
-        )
+        ) */
+
+
     );
 
     /**
@@ -50,23 +59,27 @@ class UserCharacterModel extends BasicModel {
      */
     public function getData($addCharacterLogData = false){
 
+
+        // get characterModel
+        $characterModel = $this->characterId;
+
         $characterData = (object) [];
-        $characterData->characterId = $this->characterId;
-        $characterData->name = $this->characterName;
+        $characterData->characterId = $characterModel->characterId;
+        $characterData->name = $characterModel->name;
         $characterData->isMain = $this->isMain;
 
         // check for corporation
-        if($this->corporationId){
-            $characterData->coorporation = (object) [];
-            $characterData->coorporation->id = $this->corporationId;
-            $characterData->coorporation->name = $this->characterName;
+        if($characterModel->corporationId){
+            $characterData->corporation = (object) [];
+            $characterData->corporation->id = $characterModel->corporationId;
+            $characterData->corporation->name = $characterModel->corporationName;
         }
 
         // check for alliance
-        if($this->allianceId){
+        if($characterModel->allianceId){
             $characterData->alliance = (object) [];
-            $characterData->alliance->id = $this->allianceId;
-            $characterData->alliance->name = $this->allianceName;
+            $characterData->alliance->id = $characterModel->allianceId;
+            $characterData->alliance->name = $characterModel->allianceName;
         }
 
         // add character Log (current pilot data)
@@ -78,8 +91,27 @@ class UserCharacterModel extends BasicModel {
 
         }
 
-
         return $characterData;
+    }
+
+    /**
+     * check if this character is Main character or not
+     * @return bool
+     */
+    public function isMain(){
+        $isMain = false;
+        if($this->isMain == 1){
+            $isMain = true;
+        }
+
+        return $isMain;
+    }
+
+    /**
+     * set this character as main character
+     */
+    public function setMain($value = 0){
+        $this->isMain = $value;
     }
 
     /**
@@ -96,5 +128,4 @@ class UserCharacterModel extends BasicModel {
 
         return $characterLog;
     }
-
 } 

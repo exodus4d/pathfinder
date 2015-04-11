@@ -17,13 +17,6 @@ use Model;
 class CcpApiController extends Controller{
 
     /**
-     * array with all user models
-     * that will be taken into account by this controller
-     * @var
-     */
-    protected $users = [];
-
-    /**
      * get a custom userAgent string for API calls
      * (recommended by CCP)
      * @return string
@@ -54,44 +47,16 @@ class CcpApiController extends Controller{
     }
 
     /**
-     * get API models for this controller
+     * request Character data for given api models
+     * @param $apiModels
      * @return array
      */
-    protected function _getApiModels(){
-
-        $apiModels = [];
-        foreach($this->users as $user){
-            $tempApiModels = $user->getAPIs();
-
-            foreach($tempApiModels as $apiModel){
-                array_push($apiModels, $apiModel);
-            }
-        }
-        return $apiModels;
-    }
-
-    /**
-     * add a user model for this controller
-     * @param $user
-     */
-    public function addUser($user){
-        if($user){
-            array_push($this->users, $user);
-        }
-    }
-
-    /**
-     * update all character data for this controller
-     */
-    public function updateCharacterData(){
+    public function getCharacters($apiModels){
 
         $apiPath = $this->f3->get('api_path.CCP_XML') . '/account/APIKeyInfo.xml.aspx';
 
-        $characterModel = Model\BasicModel::getNew('UserCharacterModel');
-
-        $apiModels = $this->_getApiModels();
+        $characters = [];
         foreach($apiModels as $apiModel){
-
             // build request URL
             $options = $this->getRequestOptions();
             $options['content'] = http_build_query( [
@@ -104,53 +69,49 @@ class CcpApiController extends Controller{
             if($apiResponse['body']){
                 $xml = simplexml_load_string($apiResponse['body']);
                 $rowApiData = $xml->result->key->rowset;
-
                 // request successful --------------------------------------------
 
-                // deactivate all chars in case one of them is removed from this API
-                $currentCharacterModels = $apiModel->getCharacters();
-
-                foreach($currentCharacterModels as $currentCharacterModel){
-                    $currentCharacterModel->setActive(false);
-                    $currentCharacterModel->save();
-                };
-
                 if($rowApiData->children()){
+                    $characterModel = Model\BasicModel::getNew('CharacterModel');
+
                     foreach($rowApiData->children() as $characterApiData){
+
                         // map attributes to array
                         $attributeData = current( $characterApiData->attributes() );
 
-                        // check if record exist -> search
-                        // load active = 0 records as well! (they have been de-activated before)
-                        $characterModel->load(array(
-                            'userId = :userId AND characterId = :characterId',
-                            ':userId' => $apiModel->userId->id,
-                            ':characterId' => $attributeData['characterID']
-                        ));
+                        // search for existing user character model
+                        $userCharacterModel = $apiModel->getUserCharacterById($attributeData['characterID']);
+                        if(is_null($userCharacterModel)){
+                            $userCharacterModel = Model\BasicModel::getNew('UserCharacterModel');
+                        }
 
-                        $characterModel->setActive(true);
-                        $characterModel->userId = $apiModel->userId;
-                        $characterModel->apiId = $apiModel;
+                        $characterModel = $characterModel->getByForeignKey( 'characterId', $attributeData['characterID']);
+
                         $characterModel->characterId = $attributeData['characterID'];
-                        $characterModel->characterName = $attributeData['characterName'];
+                        $characterModel->name = $attributeData['characterName'];
                         $characterModel->corporationId = $attributeData['corporationID'];
                         $characterModel->corporationName = $attributeData['corporationName'];
                         $characterModel->allianceId = $attributeData['allianceID'];
                         $characterModel->allianceName = $attributeData['allianceName'];
                         $characterModel->factionId = $attributeData['factionID'];
                         $characterModel->factionName = $attributeData['factionName'];
+
+                        // save/update character
                         $characterModel->save();
+
+                        // store "temp" character obj until obj is saved for the first time
+                        $userCharacterModel->characterId = $characterModel;
+
+                        $characters[] = $userCharacterModel;
 
                         $characterModel->reset();
                     }
                 }
-
-            }else{
-                print_r( 'ERROR FUFU');
-
-                var_dump($apiResponse);
             }
         }
 
+        return $characters;
     }
+
+
 } 

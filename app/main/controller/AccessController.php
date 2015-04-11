@@ -26,7 +26,7 @@ class AccessController extends Controller {
             $accessRoute = true;
         }else{
             $userName = 'user_exodus';
-            $password = 'password';
+            $password = '1234567';
 
             // try to verify user
             $accessRoute = $this->_verifyUser($userName, $password);
@@ -65,7 +65,7 @@ class AccessController extends Controller {
         $user = Model\BasicModel::getNew('UserModel');
 
         $user->name = $username;
-        $user->password = $user::generatePasswordHash($password);
+        $user->password = $password;
         $user->save();
 
         return $user;
@@ -151,7 +151,7 @@ class AccessController extends Controller {
         $this->f3->set('SESSION.user.id', $user->id);
 
         // update/check api data
-        $this->_updateCharacterData();
+       // $this->_updateCharacterData();
     }
 
     /**
@@ -169,25 +169,5 @@ class AccessController extends Controller {
 
         return $user;
     }
-
-    /**
-     * updates character data for all characters the current user has
-     * API access
-     * @return bool
-     */
-    protected function _updateCharacterData(){
-        $user = $this->_getUser();
-
-        $characters = false;
-
-        if($user){
-            $apiController = new CcpApiController();
-            $apiController->addUser($user);
-            $characters = $apiController->updateCharacterData();
-        }
-
-        return $characters;
-    }
-
 
 }

@@ -187,29 +187,6 @@ define([
     };
 
     /**
-     * get all form Values as object
-     * this includes all xEditable fields
-     * @returns {{}}
-     */
-    $.fn.getFormValues = function(){
-        var form = $(this);
-
-        var formData = {};
-
-        $.each(form.serializeArray(), function(i, field) {
-            formData[field.name] = field.value;
-        });
-
-        // get xEditable values
-        var editableValues = form.find('.' + config.formEditableFieldClass).editable('getValue');
-
-        // merge values
-        formData = $.extend(formData, editableValues);
-
-        return formData;
-    };
-
-    /**
      * checks weather a bootstrap form is valid or not
      * validation plugin does not provide a proper function for this
      * @returns {boolean}
@@ -227,6 +204,38 @@ define([
         return valid;
     };
 
+    /**
+     * get all form Values as object
+     * this includes all xEditable fields
+     * @returns {{}}
+     */
+    $.fn.getFormValues = function(){
+        var form = $(this);
+
+        var formData = {};
+
+        $.each(form.serializeArray(), function(i, field) {
+            if(field.name.indexOf('[]') !== -1){
+                // array field
+                var key = field.name.replace('[]', '');
+                if(! $.isArray(formData[key]) ){
+                    formData[key] = [];
+                }
+
+                formData[key].push( field.value);
+            }else{
+                formData[field.name] = field.value;
+            }
+        });
+
+        // get xEditable values
+        var editableValues = form.find('.' + config.formEditableFieldClass).editable('getValue');
+
+        // merge values
+        formData = $.extend(formData, editableValues);
+
+        return formData;
+    };
 
     /**
      * checks if an element is currently visible in viewport
@@ -540,6 +549,51 @@ define([
         return data;
     };
 
+    /**
+     * get status info for a character for a given status
+     * @param characterData
+     * @param option
+     * @returns {string}
+     */
+    var getStatusInfoForCharacter = function(characterData, option){
+
+        var statusInfo = '';
+
+        var corporationId = null;
+        var allianceId = null;
+
+        if(
+            Init.currentUserData &&
+            Init.currentUserData.character
+        ){
+            var tempCharacterData = Init.currentUserData.character;
+            // check if current user has a corpId
+            if(tempCharacterData.corporation){
+                corporationId = tempCharacterData.corporation.id;
+            }
+
+            // check if current user has a allianceId
+            if(tempCharacterData.alliance){
+                allianceId = tempCharacterData.alliance.id;
+            }
+        }
+
+        // compare current user data with given user data
+        if(
+            characterData.corporation &&
+            characterData.corporation.id === corporationId
+        ){
+            statusInfo = Init.characterStatus.corporation[option];
+        }else if(
+            characterData.alliance &&
+            characterData.alliance.id === allianceId
+        ){
+            statusInfo = Init.characterStatus.alliance[option];
+        }
+
+        return statusInfo;
+    };
+
     var getSystemEffectTable = function(data){
 
         var table = '';
@@ -811,8 +865,52 @@ define([
 
     };
 
+    /**
+     * set currentUserData to "global" variable
+     * @param userData
+     */
+    var setCurrentUserData = function(userData){
+
+        var currentUserData = getCurrentUserData();
+
+        // check if userData has changed
+        var changed = false;
+
+        if(
+            currentUserData === undefined &&
+            userData !== undefined
+        ){
+            changed = true;
+        }else if(userData.character
+            ){
+            if(currentUserData.character === undefined){
+                changed = true;
+            }else if( userData.character.characterId !== currentUserData.character.characterId ){
+                changed = true;
+            }
+        }
+
+        Init.currentUserData = userData;
+
+        // update head if user data has changed
+        if(changed){
+            $.fn.updateHeaderUserData();
+        }
+
+        return getCurrentUserData();
+    };
+
+    /**
+     * get currentUserData from "global" variable
+     * @returns {*}
+     */
+    var getCurrentUserData = function(){
+        return Init.currentUserData;
+    };
+
     return {
         getServerTime: getServerTime,
+        getCurrentUserData: getCurrentUserData,
         timeStart: timeStart,
         timeStop: timeStop,
         log: log,
@@ -831,6 +929,7 @@ define([
         getEffectInfoForSystem: getEffectInfoForSystem,
         getSystemEffectData: getSystemEffectData,
         getSystemEffectTable: getSystemEffectTable,
+        getStatusInfoForCharacter: getStatusInfoForCharacter,
         getSecurityClassForSystem: getSecurityClassForSystem,
         getTrueSecClassForSystem: getTrueSecClassForSystem,
         getStatusInfoForSystem: getStatusInfoForSystem,
@@ -839,6 +938,7 @@ define([
         getAllSignatureNames: getAllSignatureNames,
         getSignatureTypeIdByName: getSignatureTypeIdByName,
         getAreaIdBySecurity: getAreaIdBySecurity,
-        emergencyShutdown: emergencyShutdown
+        emergencyShutdown: emergencyShutdown,
+        setCurrentUserData: setCurrentUserData,
     };
 });

@@ -368,21 +368,61 @@ define([
      * adds a popup tooltip with signature information to a row
      * @param data
      */
-    $.fn.addRowTooltip = function(data){
+    $.fn.addRowTooltip = function(tooltipData){
         var rowElement = $(this);
 
         if(
-            data.addedBy.length > 0 &&
-            data.updatedBy.length > 0
+            tooltipData.created.characterId > 0 &&
+                tooltipData.updated.characterId > 0
         ){
-            var tooltip = '<table>' +
+
+            var data = {
+                created: tooltipData.created,
+                updated: tooltipData.updated
+            };
+
+            requirejs(['text!templates/tooltip/signature.html', 'mustache'], function(template, Mustache) {
+
+                var content = Mustache.render(template, data);
+
+                rowElement.attr('data-toggle', 'popover')
+                    .attr('data-trigger', 'hover')
+                    .attr('data-placement', 'bottom')
+                    .attr('data-html', 1)
+                    .attr('data-content', content)
+                    .attr('data-container', 'body')
+                    .popover();
+
+            });
+
+
+            /*
+            var tooltip = '';
+
+            // image
+           // tooltip += '<img class="pf-head-user-character-image" src="https://image.eveonline.com//Character/93289067_32.jpg">';
+
+            tooltip +=  '<ul class="media-list">' +
+                            '<li class="media">' +
+                                '<a class="pull-left" href="javascript:void(0);">' +
+                                    '<img class="pf-head-user-character-image" src="https://image.eveonline.com//Character/93289067_32.jpg">' +
+                                '</a>' +
+                                '<div class="media-body">' +
+                                    '<h4 class="media-heading">Media heading</h4>' +
+                                    '<p>hgfhfghfg</p>' +
+                                '</div>' +
+                            '</li>' +
+                        '</ul>';
+
+            // table
+            tooltip += '<table>' +
                 '<tr>' +
                 '<td>Added</td>' +
-                '<td>' + data.addedBy + '</td>' +
+                '<td>' + data.created.characterId + '</td>' +
                 '</tr>' +
                 '<tr>' +
                 '<td>Updated</td>' +
-                '<td>' + data.updatedBy + '</td>' +
+                '<td>' + data.updated.characterId + '</td>' +
                 '</tr>' +
                 '</table>';
 
@@ -393,6 +433,7 @@ define([
                 .attr('data-content', tooltip)
                 .attr('data-container', 'body')
                 .popover();
+                */
         }
     };
 
@@ -501,7 +542,6 @@ define([
                     }
                 }
             });
-
         });
     };
 
@@ -1319,13 +1359,13 @@ console.log('TODO')
             ],
             createdRow: function(row, data, dataIndex){
                 // callback function after new row created
-
+console.log(data);
                 if(data.id > 0){
 
                     // add row tooltip
                     var tooltipData = {
-                        addedBy: data.created.userName,
-                        updatedBy: data.updated.userName
+                        created: data.created,
+                        updated: data.updated
                     };
 
                     $(row).addRowTooltip( tooltipData );

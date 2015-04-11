@@ -26,8 +26,8 @@ $teal-dark:             #477372;
 $teal-darker:           #375959;
 $teal-darkest:          #212C30;
 
-
 // green
+$green-light:           #66c84f;
 $green:                 #5cb85c;
 $green-dark:            #4f9e4f;
 
@@ -74,6 +74,7 @@ $system-color-sec-0-8:        #00bf39;
 $system-color-sec-0-9:        #39bf99;
 $system-color-sec-1-0:        #28c0bf;
 
+// brand colors
 $brand-primary:         $teal-darker !default;
 $brand-success:         $green-dark !default;
 $brand-info:            $blue-dark !default;

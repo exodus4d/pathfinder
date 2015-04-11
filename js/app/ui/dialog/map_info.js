@@ -346,13 +346,13 @@ define([
     /**
      * shows the map information modal dialog
      */
-    var showDialog = function(){
+    $.fn.showMapInfoDialog = function(){
 
         var activeMap = Util.getMapModule().getActiveMap();
         var mapData = activeMap.getMapData(true);
 
         if(mapData !== false){
-            requirejs(['text!templates/modules/map_info_dialog.html', 'mustache'], function(template, Mustache) {
+            requirejs(['text!templates/dialog/map_info.html', 'mustache'], function(template, Mustache) {
 
                 var data = {
                     dialogNavigationClass: config.dialogNavigationClass,
@@ -415,11 +415,5 @@ define([
             });
         }
 
-    };
-
-
-
-    return {
-        showDialog: showDialog
     };
 });

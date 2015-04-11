@@ -71,18 +71,6 @@ define([
         systemSecWHHeigh: 'pf-system-sec-high',
         systemSecWHMid: 'pf-system-sec-mid',
         systemSecWHLow: 'pf-system-sec-low',
-
-        // user status
-        userStatus: {
-            'corp': {
-                class: 'pf-user-status-corp'
-            },
-            'ally': {
-                class: 'pf-user-status-ally'
-            }
-        }
-
-
     };
 
     // active jsPlumb instances currently running
@@ -141,23 +129,6 @@ define([
         connectionTypes: Init.connectionTypes
     };
 
-
-    /**
-     * get status class for a user
-     * @param status
-     * @returns {string}
-     */
-    var getStatusClassForUser = function(status){
-
-        var statusClass = '';
-
-        if(config.userStatus[status]){
-            statusClass = config.userStatus[status].class;
-        }
-
-        return statusClass;
-    };
-
     /**
      * updates a system with current information
      * @param map
@@ -197,7 +168,7 @@ define([
             for(var i = 0; i < data.user.length; i++){
                 userCounter++;
                 var tempUserData = data.user[i];
-                cacheArray.push(tempUserData.id + '_' + tempUserData.ship.name);
+                cacheArray.push(tempUserData.id + '_' + tempUserData.log.ship.name);
             }
             var cacheKey = cacheArray.join('_');
 
@@ -214,14 +185,14 @@ define([
                 for(var j = 0; j < data.user.length; j++){
                     var userData = data.user[j];
 
-                    var statusClass = getStatusClassForUser(userData.status);
+                    var statusClass = Util.getStatusInfoForCharacter(userData, 'class');
                     var userName = userData.name;
 
                     var item = $('<div>', {
                         class: config.systemBodyItemClass
                     }).append(
                             $('<span>', {
-                                text: userData.ship.name,
+                                text: userData.log.ship.name,
                                 class: config.systemBodyRightClass
                             })
                         ).append(
@@ -305,6 +276,12 @@ define([
         }
     };
 
+    /**
+     * show/hide system body element
+     * @param type
+     * @param map
+     * @param callback
+     */
     $.fn.toggleBody = function(type, map, callback){
         var system = $(this);
         var systemBody = system.find('.' + config.systemBodyClass);
@@ -2772,13 +2749,11 @@ define([
 
     /**
      * updates all systems on map with current user Data (all users on this map)
-     * update the Data of the user that is currently viewing the map (if available) -> In - game info
+     * update the Data of the user that is currently viewing the map (if available)
      * @param userData
-     * @param currentUserData
      * @returns {boolean}
      */
-
-    $.fn.updateUserData = function(userData, currentUserData){
+    $.fn.updateUserData = function(userData){
 
         var returnStatus = true;
 
@@ -2790,6 +2765,13 @@ define([
 
         var mapElement = map.getContainer();
 
+        // get global user data
+        var currentUserData = Init.currentUserData;
+
+        var currentCharacterData = null;
+        if(currentUserData.character){
+            currentCharacterData = currentUserData.character;
+        }
 
         // container must exist! otherwise systems cant be updated
         if(mapElement !== undefined){
@@ -2827,14 +2809,16 @@ define([
                 // check if user is currently in this system
                 var tempCurrentUserData = null;
                 if(
-                    currentUserData &&
-                    currentUserData.system.id === systemId
+                    currentCharacterData &&
+                    currentCharacterData.log &&
+                    currentCharacterData.log.system &&
+                    currentCharacterData.log.system.id === systemId
                 ){
                     tempCurrentUserData = currentUserData;
 
                     // set current location data for header update
-                    headerUpdateData.currentSystemId =  systemId;
-                    headerUpdateData.currentSystemName = system.getSystemInfo(['alias']);
+                    headerUpdateData.currentSystemId =  currentCharacterData.log.system.id;
+                    headerUpdateData.currentSystemName = tempCurrentUserData.system.name;
                 }
 
                 if(tempUserData){
@@ -2845,7 +2829,7 @@ define([
             }
 
             // trigger document event -> update header
-            $(document).trigger('pf:updateHeaderData', headerUpdateData);
+            $(document).trigger('pf:updateHeaderMapData', headerUpdateData);
         }
 
         return returnStatus;

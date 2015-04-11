@@ -19,11 +19,11 @@ class SystemSignatureModel extends BasicModel {
         'systemId' => array(
             'belongs-to-one' => 'Model\SystemModel'
         ),
-        'createdUserId' => array(
-            'belongs-to-one' => 'Model\UserModel'
+        'createdCharacterId' => array(
+            'belongs-to-one' => 'Model\CharacterModel'
         ),
-        'updatedUserId' => array(
-            'belongs-to-one' => 'Model\UserModel'
+        'updatedCharacterId' => array(
+            'belongs-to-one' => 'Model\CharacterModel'
         )
     );
 
@@ -63,11 +63,11 @@ class SystemSignatureModel extends BasicModel {
             'typeId' => $this->typeId,
             'name' => $this->name,
             'created' => [
-                'userName' => is_object($this->createdUserId) ? $this->createdUserId->name : '',
+                'character' => $this->createdCharacterId->getData(),
                 'created' => strtotime($this->created)
             ],
             'updated' => [
-                'userName' => is_object($this->updatedUserId) ? $this->updatedUserId->name : '',
+                'character' => $this->updatedCharacterId->getData(),
                 'updated' => strtotime($this->updated)
             ]
 
