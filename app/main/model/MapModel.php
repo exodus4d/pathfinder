@@ -117,6 +117,24 @@ class MapModel extends BasicModel{
     }
 
     /**
+     * search for a system by id
+     * @param $systemId
+     * @return null
+     */
+    public function getSystem( $systemId ){
+        $systems = $this->getSystems();
+        $searchSystem = null;
+        foreach($systems as $system){
+            if($system->id == $systemId){
+                $searchSystem = $system;
+                break;
+            }
+        }
+
+        return $searchSystem;
+    }
+
+    /**
      * get all system data for all systems in this map
      * @return array
      */

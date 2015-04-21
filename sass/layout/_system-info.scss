@@ -9,6 +9,36 @@
       text-transform: capitalize;
     }
   }
+
+  // textarea system description
+  .pf-system-info-description{
+    width: 300px;
+  }
+
+  .pf-system-info-table{
+    margin-top: 5px;
+  }
+
+}
+
+// popover
+.pf-system-info-popover{
+  display: initial;
+
+  img{
+    width: 39px
+  }
+
+  h6{
+    white-space: nowrap;
+    margin-right: 50px;
+    @include clearfix();
+  }
+
+  .well{
+    margin-top: 7px;
+    margin-bottom: 10px;
+  }
 }
 
 // signature table module ===================================================
@@ -17,9 +47,8 @@
   .pf-sig-table{
     font-size: 10px;
 
-    .fa{
+    .pf-sig-table-action-cell{
       cursor: pointer;
-      padding: 2px; // increase click area
     }
 
     .pf-sig-table-edit-name-input{

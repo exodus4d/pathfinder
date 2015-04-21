@@ -168,7 +168,7 @@ class Map extends \Controller\AccessController {
     }
 
     /**
-     * update map data api
+     * update map data
      * function is called continuously
      * @param $f3
      */
@@ -189,6 +189,7 @@ class Map extends \Controller\AccessController {
             $system = Model\BasicModel::getNew('SystemModel');
             $connection = Model\BasicModel::getNew('ConnectionModel');
 
+            $activeCharacter = $user->getActiveUserCharacter();
 
             foreach($mapData as $data){
 
@@ -223,11 +224,12 @@ class Map extends \Controller\AccessController {
                     $system->getById($systemData['id']);
 
                     if(
-                        (int)$systemData['updated'] === 0 &&
+                        (int)$systemData['updated']['updated'] === 0 &&
                         !$system->dry()
                     ){
-                        $systemData['mapId'] = $map;
                         $system->setData($systemData);
+                        $system->mapId = $map;
+                        $system->updatedCharacterId = $activeCharacter->characterId;
                         $system->save();
                     }
 
@@ -300,7 +302,11 @@ class Map extends \Controller\AccessController {
         $cacheKey = 'user_data_' . $user->id;
         if($f3->exists($cacheKey) === false){
 
+            // check if data for specific system is requested
+            $systemData = (array)$f3->get('POST.systemData');
+
             $userData = (object) [];
+            // data for the current user
             $userData->userData = $user->getData();
 
             // get user Data for each map ========================================
@@ -308,6 +314,21 @@ class Map extends \Controller\AccessController {
 
             foreach($activeMaps as $mapModel){
                 $userData->mapUserData[] = $mapModel->getUserData();
+
+                // request signature data for a system if user has map access
+                if(
+                    !empty($systemData) &&
+                    $systemData['mapId'] == $mapModel->id
+                ){
+                    $system = $mapModel->getSystem( (int)$systemData['systemData']['id']);
+
+                    if(! is_null($system)){
+                        // data for the current selected system
+                        $userData->system = $system->getData();
+                        $userData->system->signatures = $system->getSignaturesData();
+                    }
+
+                }
             }
 
             $f3->set($cacheKey, $userData, $responseTTL);

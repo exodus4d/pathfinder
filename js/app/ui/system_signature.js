@@ -10,7 +10,7 @@ define([
     'bootbox',
     'app/counter'
 ], function($, Init, Util, Render, bootbox) {
-    "use strict";
+    'use strict';
 
     var config = {
         // module info
@@ -41,8 +41,15 @@ define([
         sigTableCounterClass: 'pf-sig-table-counter',                           // class for signature table counter
         sigTableCreatedCellClass: 'pf-sig-table-created',                       // class for "created" cells
         sigTableUpdatedCellClass: 'pf-sig-table-updated',                       // class for "updated" cells
+        sigTableActionCellClass: 'pf-sig-table-action-cell',                    // class for "action" cells
         sigTableActionButtonClass: 'pf-sig-table-action-button'                 // class for row action button
     };
+
+    // disable Signature Table update temporary (until. some requests/animations) are finished
+    var disableTableUpdate = true;
+
+    // cache for dataTable object
+    var signatureTable = null;
 
     // empty signatureData object -> for "add row" table
     var emptySignatureData = {
@@ -67,156 +74,18 @@ define([
     var sigNameCache = {};                                                      // cache signature names
 
     /**
-     * TODO delete function !!!!!!!
-     */
-    var tempFunctionGetSystemData = function(){
-
-        var data = {
-            config: {
-                id: 2,
-                name: 'J150020',
-                alias: 'Polaris',
-                effect: 'magnetar',
-                security: 'C6',
-                static: [{
-                    lifetime: 24
-                }],
-                type: 'wh'
-            },
-            signatures: [
-                {
-                    id: 2,
-                    name: 'gdf',
-                    typeId: 1,
-                    groupId: 2,
-                    created: 1325376000,
-                    updated: 1415215936,
-                    createdBy: 'Exodus4D',
-                    updatedBy: 'Exodus4D'
-                },{
-                    id: 6,
-                    name: 'hfs',
-                    typeId: 0,
-                    groupId: 1,
-                    created: 1415989953,
-                    updated: 1415215936,
-                    createdBy: 'Exodus4D',
-                    updatedBy: 'Exodus4D'
-                },{
-                    id: 8,
-                    name: 'hfg',
-                    typeId: 1,
-                    groupId: 1,
-                    created: 1415215936,
-                    updated: 1415215936,
-                    createdBy: 'Exodus4D',
-                    updatedBy: 'Exodus4D'
-                },{
-                    id: 12,
-                    name: 'lld',
-                    typeId: 1,
-                    groupId: 1,
-                    created: 1415215936,
-                    updated: 1415215936,
-                    createdBy: 'Exodus4D',
-                    updatedBy: 'Exodus4D'
-                },{
-                    id: 13,
-                    name: 'dge',
-                    typeId: 1,
-                    groupId: 1,
-                    created: 1394613252,
-                    updated: 1415215936,
-                    updatedBy: 'Exodus4D'
-
-                },{
-                    id: 14,
-                    name: 'exs',
-                    typeId: 1,
-                    groupId: 1,
-                    created: 1415215936,
-                    updated: 1415215936,
-                    createdBy: 'Exodus4D',
-                    updatedBy: 'Exodus4D'
-                },{
-                    id: 15,
-                    name: 'cvs',
-                    typeId: 3,
-                    groupId: 1,
-                    created: 1415215936,
-                    updated: 1386934983,
-                    createdBy: 'Exodus4D',
-                    updatedBy: 'Exodus4D'
-                },{
-                    id: 16,
-                    name: 'ggd',
-                    typeId: 0,
-                    groupId: 0,
-                    created: 1415215936,
-                    updated: 1415215936,
-                    createdBy: 'Exodus4D',
-                    updatedBy: 'Exodus4D'
-                },{
-                    id: 18,
-                    name: 'okd',
-                    typeId: 1,
-                    groupId: 1,
-                    created: 1415215936,
-                    updated: 1394613252,
-                    createdBy: 'Exodus4D',
-                    updatedBy: 'Exodus4D'
-                },{
-                    id: 8,
-                    name: 'dbe',
-                    typeId: 3,
-                    groupId: 1,
-                    created: 1415215936,
-                    updated: 1415215936,
-                    createdBy: 'Exodus4D',
-                    updatedBy: 'Exodus4D'
-                },{
-                    id: 20,
-                    name: 'asw',
-                    typeId: 0,
-                    groupId: 3,
-                    created: 1415215936,
-                    updated: 1386934983,
-                    createdBy: 'Exodus4D',
-                    updatedBy: 'Exodus4D'
-                },{
-                    id: 22,
-                    name: 'nfg',
-                    typeId: 2,
-                    groupId: 2,
-                    created: 1415215936,
-                    updated: 1415215936,
-                    createdBy: 'Exodus4D',
-                    updatedBy: 'Exodus4D'
-                }
-            ]
-
-        };
-
-
-        return data;
-    };
-
-    /**
      * collect all data of all editable fields in a signature table
      * @returns {Array}
      */
-    $.fn.getSignatureTableData = function(){
-        var moduleElement = $(this);
+    var getSignatureTableData = function(){
 
-        var primaryTableElement = moduleElement.find('.' + config.sigTablePrimaryClass);
-        var primaryTable = primaryTableElement.DataTable();
-
+        var signatureTableApi = signatureTable.api();
 
         var tableData = [];
 
-        primaryTable.rows().eq(0).each(function(idx){
+        signatureTableApi.rows().eq(0).each(function(idx){
 
-            var row = primaryTable.row(idx);
+            var row = signatureTableApi.row(idx);
             // default row data
             var defaultRowData = row.data();
             var rowElement = row.nodes().to$();
@@ -234,6 +103,12 @@ define([
                     // add pk for this row
                     values.id = defaultRowData.id;
 
+                    // add updated for this row
+                    values.updated = defaultRowData.updated;
+
+                    // add row index
+                    values.index = idx;
+
                     tableData.push( values );
                 }
             }
@@ -250,191 +125,101 @@ define([
      */
     $.fn.updateSignatureTable = function(signatureData){
 
+        // check if table update is allowed
+        if(disableTableUpdate === true){
+            return;
+        }
+
+        // disable update until function is ready;
+        disableTableUpdate = true;
+
+
         var moduleElement = $(this);
 
-        var tableData = moduleElement.getSignatureTableData();
+        // get signature table API
+        var signatureTableApi = signatureTable.api();
+
+        // get current system data
+        var currentSystemData = Util.getCurrentSystemData();
+
+
+        var tableData = getSignatureTableData();
 
         var notificationCounter = {
             added: 0,
             changed: 0,
-            unchanged: 0
+            deleted: 0
         };
-
-        var tempGroupSelect = null;
-        var tempTypeSelect = null;
 
         for(var i = 0; i < signatureData.length; i++){
             for(var j = 0; j < tableData.length; j++){
-                if(signatureData[i].name === tableData[j].name){
+                if(signatureData[i].id === tableData[j].id){
 
-                    // update signature group
-                    if(signatureData[i].groupId !== tableData[j].groupId){
+                    // check if row has updated
+                    if(signatureData[i].updated.updated > tableData[j].updated.updated){
 
-                        tempGroupSelect = moduleElement.find('.' + config.sigTableEditSigGroupSelect + '[data-pk="' + tableData[j].id + '"]');
-                        tempTypeSelect = moduleElement.find('.' + config.sigTableEditSigTypeSelect + '[data-pk="' + tableData[j].id + '"]');
+                        // remove "old" row
+                        signatureTableApi.row(tableData[j].index).remove().draw();
 
-                        $(tempGroupSelect).editable('setValue', signatureData[i].groupId);
-
-                        // update signature name select
-                        var systemType = $(tempGroupSelect).attr('data-systemtype');
-                        var areaId = $(tempGroupSelect).attr('data-areaid');
-
-                        // set new Options
-                        var newSelectOptions = Util.getAllSignatureNames(systemType, areaId, signatureData[i].groupId);
-
-                        $(tempTypeSelect).editable('option', 'source', newSelectOptions);
-
-                        $(tempTypeSelect).editable('setValue', signatureData[i].typeId);
-
-                        if(signatureData[i].typeId > 0){
-                            $(tempTypeSelect).editable('enable');
-                        }else{
-                            $(tempTypeSelect).editable('disable');
-                        }
+                        // and add "new" row
+                        addSignatureRow(currentSystemData.systemData, signatureData[i], false);
 
                         notificationCounter.changed++;
-
-                    }else if(signatureData[i].typeId !== tableData[j].typeId){
-
-                        // update just the name
-                        $(tempTypeSelect).editable('setValue', signatureData[i].typeId);
-
-                        if(signatureData[j].typeId > 0){
-                            $(tempTypeSelect).editable('enable');
-                        }else{
-                            $(tempTypeSelect).editable('disable');
-                        }
-
-                        notificationCounter.changed++;
-                    }else{
-                        // nothing changed
-                        notificationCounter.unchanged++;
                     }
 
-                    // remove signature data -> all left signatures will be added later
+                    // remove signature data -> all left signatures will be added
                     signatureData.splice(i, 1);
-                    i--; // decrement
+                    i--;
+
+                    // remove signature data -> all left signatures will be deleted
+                    tableData.splice(j, 1);
+                    j--;
 
                     break;
                 }
             }
         }
 
+        // delete signatures ====================================================
+        for(var l = 0; l < tableData.length; l++){
+
+            var rowElement = signatureTableApi.row(tableData[l].index).nodes().to$();
+
+            rowElement.toggleTableRow(function(){
+                // delete signature row
+                signatureTableApi.row(rowElement).remove().draw();
+            });
+
+            notificationCounter.deleted++;
+
+        }
+
         // add new signatures ===================================================
-        var signatureTable = moduleElement.find('.' + config.sigTablePrimaryClass);
-        var signatureDataTable = $(signatureTable).DataTable();
-
-        // TODO save NEW signatures and get them back with NEW ID :)
-        var systemData = tempFunctionGetSystemData();
-
-        // fake data for new signature table entry
-        systemData.signatures = signatureData;
-
-        var options = {
-            action: {
-                buttonClass: 'btn-danger',
-                buttonIcon: 'fa-close'
-            }
-        };
-
-        var newSignatureData = formatSignatureData(systemData, options);
-
-        for(var k = 0; k < newSignatureData.length; k++){
-            var row = signatureDataTable.row.add( newSignatureData[k] ).draw().nodes().to$();
-
-            var tooltipData = {
-                addedBy: 'Exodus 4D', //newSignatureData[k].addedBy,
-                updatedBy: 'Exodus 4D' //newSignatureData[k].updatedBy
-            };
-
-            row.addRowTooltip( tooltipData );
+        for(var k = 0; k < signatureData.length; k++){
+            // and add "new" row
+            addSignatureRow(currentSystemData.systemData, signatureData[k], true);
 
             notificationCounter.added++;
         }
 
-        signatureTable.makeEditable();
-
-        // update signature bar
-        moduleElement.updateScannedSignaturesBar({showNotice: true});
-
-        // show Notification
-        var notification = notificationCounter.added + ' added<br>';
-        notification += notificationCounter.changed + ' changed<br>';
-        notification += notificationCounter.unchanged + ' unchanged';
-        Util.showNotify({title: 'Signatures updated', text: notification, type: 'success'});
-    };
-
-    /**
-     * adds a popup tooltip with signature information to a row
-     * @param data
-     */
-    $.fn.addRowTooltip = function(tooltipData){
-        var rowElement = $(this);
 
         if(
-            tooltipData.created.characterId > 0 &&
-                tooltipData.updated.characterId > 0
+            notificationCounter.added > 0 ||
+            notificationCounter.changed > 0 ||
+            notificationCounter.deleted
         ){
+            // update signature bar
+            moduleElement.updateScannedSignaturesBar({showNotice: true});
 
-            var data = {
-                created: tooltipData.created,
-                updated: tooltipData.updated
-            };
-
-            requirejs(['text!templates/tooltip/signature.html', 'mustache'], function(template, Mustache) {
-
-                var content = Mustache.render(template, data);
-
-                rowElement.attr('data-toggle', 'popover')
-                    .attr('data-trigger', 'hover')
-                    .attr('data-placement', 'bottom')
-                    .attr('data-html', 1)
-                    .attr('data-content', content)
-                    .attr('data-container', 'body')
-                    .popover();
-
-            });
-
-
-            /*
-            var tooltip = '';
-
-            // image
-           // tooltip += '<img class="pf-head-user-character-image" src="https://image.eveonline.com//Character/93289067_32.jpg">';
-
-            tooltip +=  '<ul class="media-list">' +
-                            '<li class="media">' +
-                                '<a class="pull-left" href="javascript:void(0);">' +
-                                    '<img class="pf-head-user-character-image" src="https://image.eveonline.com//Character/93289067_32.jpg">' +
-                                '</a>' +
-                                '<div class="media-body">' +
-                                    '<h4 class="media-heading">Media heading</h4>' +
-                                    '<p>hgfhfghfg</p>' +
-                                '</div>' +
-                            '</li>' +
-                        '</ul>';
-
-            // table
-            tooltip += '<table>' +
-                '<tr>' +
-                '<td>Added</td>' +
-                '<td>' + data.created.characterId + '</td>' +
-                '</tr>' +
-                '<tr>' +
-                '<td>Updated</td>' +
-                '<td>' + data.updated.characterId + '</td>' +
-                '</tr>' +
-                '</table>';
-
-            rowElement.attr('data-toggle', 'popover')
-                .attr('data-trigger', 'hover')
-                .attr('data-placement', 'bottom')
-                .attr('data-html', 1)
-                .attr('data-content', tooltip)
-                .attr('data-container', 'body')
-                .popover();
-                */
+            // show Notification
+            var notification = notificationCounter.added + ' added<br>';
+            notification += notificationCounter.changed + ' changed<br>';
+            notification += notificationCounter.deleted + ' deleted<br>';
+            Util.showNotify({title: 'Signatures updated', text: notification, type: 'success'});
         }
+
+        // enable table update
+        disableTableUpdate = false;
     };
 
     /**
@@ -450,7 +235,7 @@ define([
         var progressBar = $(progressBarWrapper).find('.progress-bar');
         var progressBarLabel = $(progressBarWrapper).find('.progress-label-right');
 
-        var tableData = moduleElement.getSignatureTableData();
+        var tableData = getSignatureTableData();
 
         var percent = 0;
         var progressBarType = 'progress-bar-danger';
@@ -459,6 +244,7 @@ define([
             var sigCount = tableData.length;
             var sigIncompleteCount = 0;
             // check for  signatures without "groupId" -> these are un scanned signatures
+
             for(var i = 0; i < tableData.length; i++){
                 var groupId = parseInt(tableData[i].groupId);
                 if(groupId === 0){
@@ -646,7 +432,8 @@ define([
                             height: '75px'
                         },{
                             duration: 150,
-                            display: 'block'
+                            display: 'block',
+                            visibility: 'visible'
                         });
                     }
 
@@ -677,15 +464,11 @@ define([
                     // delete all rows
                     bootbox.confirm('Delete all signature?', function(result) {
                         if(result){
-                            var signatureTable = moduleElement.find('.' + config.sigTablePrimaryClass);
-                            signatureTable = $(signatureTable).DataTable();
-                            var signatureCount = signatureTable.rows().data().length;
-                            // clear all
-                            signatureTable.clear().draw();
+                            var signatureTableApi = signatureTable.api();
 
-                            moduleElement.updateScannedSignaturesBar({showNotice: false});
+                            var rows = signatureTableApi.rows();
 
-                            Util.showNotify({title: 'Signatures cleared', text: signatureCount + ' signatures deleted', type: 'success'});
+                            deleteSignatures(rows);
                         }
                     });
                 }).prepend(
@@ -747,8 +530,8 @@ define([
             // do not read clipboard if pasting into form elements
             if(
                 $(e.target).prop('tagName').toLowerCase() !== 'input' &&
-                $(e.target).prop('tagName').toLowerCase() !== 'textarea'
-            ){
+                    $(e.target).prop('tagName').toLowerCase() !== 'textarea'
+                ){
                 var clipboard = (e.originalEvent || e).clipboardData.getData('text/plain');
                 moduleElement.updateSignatureTableByClipboard(systemData, clipboard);
             }
@@ -806,7 +589,6 @@ define([
         // set xEditable options for all following fields
         $.extend($.fn.editable.defaults, {
             url: Init.path.saveSignatureData,
-            type: 'post',
             dataType: 'json',
             mode: 'popup',
             container: 'body',
@@ -875,8 +657,8 @@ define([
                 // get all available Signature Types
                 if(
                     Init.signatureTypes[systemTypeId] &&
-                    Init.signatureTypes[systemTypeId][areaId]
-                ){
+                        Init.signatureTypes[systemTypeId][areaId]
+                    ){
                     // json object -> "translate" keys to names
                     availableTypes = Util.getSignatureGroupInfo('label');
 
@@ -973,22 +755,10 @@ define([
                 error: $.fn.editable.defaults.error, // user default xEditable error function
                 success: function(data, editableConfig){
 
-                    var newSignatureData = formatSignatureData(systemData, [data], {});
+                    addSignatureRow(systemData, data, true);
 
-                    // insert new row in main signature table
-                    var tablePrimaryElement = $('.' + config.sigTablePrimaryClass);
-                    var dataTablePrimary = tablePrimaryElement.DataTable();
-                    var newRowNode = dataTablePrimary.row.add(newSignatureData.shift()).draw().nodes();
-
-                    var newRowElement = newRowNode.to$().hide();
-
-                    newRowElement.toggleTableRow(function(){
-                        // make new row editable
-                        newRowElement.makeEditable(tempSystemData);
-                    });
 
                     // prepare "add signature" table for new entry -> reset --------------------------------------------
-
                     var signatureData = formatSignatureData(systemData, [emptySignatureData], emptySignatureOptions);
 
                     var dataSecondaryElement = $('.' + config.sigTableSecondaryClass);
@@ -997,67 +767,109 @@ define([
 
                     newAddRowElement.to$().makeEditable(tempSystemData);
 
-
                     Util.showNotify({title: 'Signature added', text: 'Name: ' + data.name, type: 'success'});
-
-                }
-            });
-        });
-
-        // set button observer (delete signature) ======================================================================
-        tableElement.find('.fa-close').on('click', function(e){
-            e.preventDefault();
-
-            bootbox.confirm('Delete signature?', function(result) {
-                if(result){
-
-                    // row that will deleted
-                    var rowElement = $(e.target).parents('tr');
-console.log('TODO')
-                    var signatureId = getSignatureIdByRowId(rowElement.attr('id'));
-
-                    var requestData = {
-                        signatureIds: [signatureId]
-                    };
-
-                    $.ajax({
-                        type: 'POST',
-                        url: Init.path.deleteSignatureData,
-                        data: requestData,
-                        dataType: 'json'
-                    }).done(function(data){
-
-                        // get module
-                        var moduleElement = rowElement.parents('.' + config.moduleClass);
-
-                        // get clicked dataTable object
-                        var currentTable = moduleElement.find('.' + config.sigTablePrimaryClass);
-
-                        currentTable = $(currentTable).DataTable();
-
-                        // removeRow
-                        rowElement.toggleTableRow(function(){
-                            // delete signature row
-                            currentTable.row(rowElement).remove().draw();
-                            // update signature bar
-                            moduleElement.updateScannedSignaturesBar({showNotice: false});
-
-                            Util.showNotify({title: 'Signature deleted', type: 'success'});
-                        });
-
-
-                    }).fail(function( jqXHR, status, error) {
-                        var reason = status + ' ' + error;
-                        Util.showNotify({title: jqXHR.status + ': Delete signature', text: reason, type: 'warning'});
-                        $(document).setProgramStatus('problem');
-                    });
-
                 }
             });
         });
 
         // init signature counter
         tableElement.find('.' + config.sigTableCounterClass + '[data-counter!="init"]').initSignatureCounter();
+    };
+
+    /**
+     * deletes signature rows from signature table
+     * @param rows
+     */
+    var deleteSignatures = function(rows){
+        // disable Table update during delete process
+        disableTableUpdate = true;
+        var deletedSignatures = 0;
+
+        var moduleElement = $('.' + config.systemSigModuleClass);
+        var data = rows.data();
+        var signatureTableApi = signatureTable.api();
+        var rowElements = rows.nodes().to$();
+        var signatureCount = data.length;
+
+        var signatureIds = [];
+        for(var i = 0; i < data.length; i++){
+            signatureIds.push(data[i].id);
+        }
+
+        var requestData = {
+            signatureIds: signatureIds
+        };
+
+        // animation callback function
+        var removeCallback = function(rowElement){
+            // delete signature row
+            signatureTableApi.row(rowElement).remove().draw();
+
+            deletedSignatures++;
+
+            if(deletedSignatures === signatureCount){
+                // all animations finished
+
+                // update signature bar
+                moduleElement.updateScannedSignaturesBar({showNotice: false});
+
+                Util.showNotify({title: 'Signature deleted', text: signatureCount + ' signatures deleted', type: 'success'});
+
+                // enable signature Table update
+                disableTableUpdate = false;
+            }
+
+
+
+        };
+
+        $.ajax({
+            type: 'POST',
+            url: Init.path.deleteSignatureData,
+            data: requestData,
+            dataType: 'json'
+        }).done(function(data){
+
+            for(var j = 0; j < rowElements.length; j++){
+                // removeRow
+                $(rowElements[j]).toggleTableRow(removeCallback);
+            }
+
+        }).fail(function( jqXHR, status, error) {
+            var reason = status + ' ' + error;
+            Util.showNotify({title: jqXHR.status + ': Delete signature', text: reason, type: 'warning'});
+            $(document).setProgramStatus('problem');
+        });
+
+    };
+
+
+    /**
+     * adds a new row to signature Table
+     * @param systemData
+     * @param signatureData
+     */
+    var addSignatureRow = function(systemData, signatureData, animate){
+
+        var newSignatureData = formatSignatureData(systemData, [signatureData], {});
+
+        // insert new row in main signature table
+        var tablePrimaryElement = $('.' + config.sigTablePrimaryClass);
+        var dataTablePrimary = tablePrimaryElement.DataTable();
+        var newRowNode = dataTablePrimary.row.add(newSignatureData.shift()).draw().nodes();
+        var newRowElement = newRowNode.to$();
+
+        if(animate === true){
+            newRowElement.hide();
+
+            newRowElement.toggleTableRow(function(){
+                // make new row editable
+                newRowElement.makeEditable(systemData);
+            });
+        }else{
+            newRowElement.makeEditable(systemData);
+        }
+
 
     };
 
@@ -1069,13 +881,12 @@ console.log('TODO')
         var rowElement = $(this);
         var cellElements = rowElement.children('td');
 
-        var duration = 300;
+        var duration = 100;
         var tdCounter = 0;
 
 
         // wrap each <td> into a container (for better animation performance)
         // slideUp new wrapper divs
-
         if(rowElement.is(':visible')){
             // hide row
 
@@ -1100,7 +911,7 @@ console.log('TODO')
                             $(animationElements).children().unwrap();
 
                             if(callback !== undefined){
-                                callback();
+                                callback(rowElement);
                             }
                         }
                     }
@@ -1133,30 +944,30 @@ console.log('TODO')
                         .css({
                             'willChange': 'height'
                         }).velocity('slideDown', {
-                        duration: duration,
-                        complete: function(animationElements){
-                            tdCounter++;
-                            // execute callback when last <td> animation finished
-                            if(tdCounter === animationElements.length){
+                            duration: duration,
+                            complete: function(animationElements){
+                                tdCounter++;
+                                // execute callback when last <td> animation finished
+                                if(tdCounter === animationElements.length){
 
-                                // remove wrapper
-                                var wrapperElements = cellElements.children();
-                                for(var i = 0; i < wrapperElements.length; i++){
-                                    var currentWrapper = $(wrapperElements[i]);
-                                    if(currentWrapper.children().length > 0){
-                                        currentWrapper.children().unwrap();
-                                    }else{
-                                        currentWrapper.parent().html( currentWrapper.html() );
+                                    // remove wrapper
+                                    var wrapperElements = cellElements.children();
+                                    for(var i = 0; i < wrapperElements.length; i++){
+                                        var currentWrapper = $(wrapperElements[i]);
+                                        if(currentWrapper.children().length > 0){
+                                            currentWrapper.children().unwrap();
+                                        }else{
+                                            currentWrapper.parent().html( currentWrapper.html() );
+                                        }
                                     }
-                                }
 
-                                if(callback !== undefined){
-                                    callback();
-                                }
+                                    if(callback !== undefined){
+                                        callback();
+                                    }
 
+                                }
                             }
-                        }
-                    });
+                        });
                 }
             });
         }
@@ -1179,7 +990,8 @@ console.log('TODO')
 
         moduleElement.append(table);
 
-        var signatureTable = table.dataTable( {
+        // create signature table and store the jquery object global for this module
+        signatureTable = table.dataTable( {
             data: signatureData
         } );
 
@@ -1269,12 +1081,30 @@ console.log('TODO')
 
                     tempData.type = sigType;
 
+                    // status ------------------------------------------------------------------------------------------
+                    var status = '';
+                    if(data.updated.character !== undefined){
+                        var statusClass = Util.getStatusInfoForCharacter(data.updated.character, 'class');
+                        status =  '<i class="fa fa-fw fa-circle pf-user-status ' + statusClass + '"></i>';
+                    }
+
+                    tempData.status = {
+                        status: status,
+                        status_sort: statusClass
+                    };
+
                     // set Sig created ---------------------------------------------------------------------------------
                     tempData.created = data.created;
 
                     // set Sig updated ---------------------------------------------------------------------------------
                     tempData.updated = data.updated;
 
+                    // info icon ---------------------------------------------------------------------------------------
+                    var infoButton = '';
+                    if(data.id > 0){
+                        infoButton = '<i class="fa fa-fw fa-question-circle"></i>';
+                    }
+                    tempData.info = infoButton;
 
                     // action icon -------------------------------------------------------------------------------------
                     if(options.actionClass){
@@ -1282,8 +1112,8 @@ console.log('TODO')
                     }
 
                     var actionButton = '<i class="fa ' + actionButtonClass + ' ' + config.sigTableActionButtonClass + '"></i>';
+                    tempData.action = actionButton;
 
-                    tempData.action =actionButton;
 
                     formattedData.push(tempData);
 
@@ -1302,6 +1132,7 @@ console.log('TODO')
         $.extend( $.fn.dataTable.defaults, {
             pageLength: -1,
             lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, 'All']],
+            order: [1, 'asc'],
             autoWidth: false,
             language: {
                 emptyTable:  'No signatures added',
@@ -1312,36 +1143,53 @@ console.log('TODO')
             columnDefs: [
                 {
                     targets: 0,
-                    //"orderData": 0,
                     orderable: true,
+                    searchable: false,
+                    title: '',
+                    width: '10px',
+                    class: 'text-center',
+                    data: 'status',
+                    type: 'html',
+                    render: {
+                        _: 'status',
+                        sort: 'status_sort'
+                    }
+                },{
+                    targets: 1,
+                    orderable: true,
+                    searchable: true,
                     title: 'id',
                     width: '30px',
                     data: 'name'
                 },{
-                    targets: 1,
+                    targets: 2,
                     orderable: false,
+                    searchable: false,
                     title: 'group',
                     width: '50px',
                     data: 'group'
                 },{
-                    targets: 2,
+                    targets: 3,
                     orderable: false,
+                    searchable: false,
                     title: 'type/description',
                     data: 'type'
                 },{
-                    targets: 3,
+                    targets: 4,
                     title: 'created',
                     width: '90px',
+                    searchable: false,
                     className: [config.sigTableCounterClass, config.sigTableCreatedCellClass].join(' '),
                     data: 'created',
                     render: {
                         _: 'created',
-                        sort: 'updated'
+                        sort: 'created'
                     }
                 },{
-                    targets: 4,
+                    targets: 5,
                     title: 'updated',
                     width: '90px',
+                    searchable: false,
                     className: [config.sigTableCounterClass, config.sigTableUpdatedCellClass].join(' '),
                     data: 'updated',
                     render: {
@@ -1349,30 +1197,71 @@ console.log('TODO')
                         sort: 'updated'
                     }
                 },{
-                    targets: 5,
+                    targets: 6,
                     title: '',
                     orderable: false,
+                    searchable: false,
                     width: '10px',
-                    class: 'text-center',
-                    data: 'action'
+                    class: 'pf-help text-center',
+                    data: 'info',
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+
+                        if(rowData.id > 0){
+
+                            // add row tooltip
+                            var tooltipData = {
+                                created: rowData.created,
+                                updated: rowData.updated
+                            };
+
+                            $(cell).addCharacterInfoTooltip( tooltipData );
+                        }
+                    }
+                },{
+                    targets: 7,
+                    title: '',
+                    orderable: false,
+                    searchable: false,
+                    width: '10px',
+                    class: ['text-center', config.sigTableActionCellClass].join(' '),
+                    data: 'action',
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+
+                        var tempTableElement = this;
+                        $(cell).on('click', function(e){
+                            e.preventDefault();
+
+                            bootbox.confirm('Delete signature?', function(result) {
+                                if(result){
+                                    var rowElement = $(cell).parents('tr');
+                                    var row = tempTableElement.DataTable().rows(rowElement);
+                                    deleteSignatures(row);
+                                }
+                            });
+                        });
+                    }
                 }
             ],
             createdRow: function(row, data, dataIndex){
-                // callback function after new row created
-console.log(data);
-                if(data.id > 0){
 
-                    // add row tooltip
-                    var tooltipData = {
-                        created: data.created,
-                        updated: data.updated
-                    };
+            },
+            initComplete: function(settings, json){
+                // table init complete
 
-                    $(row).addRowTooltip( tooltipData );
-
-                }
             }
-        } );
+        });
+    };
+
+    /**
+     * set module observer and look for relevant signature data to update
+     */
+    var setModuleObserver = function(moduleElement){
+        $(document).off('pf:updateSystemModules').on('pf:updateSystemModules', function(e, data){
+            if(data.signatures){
+                moduleElement.updateSignatureTable(data.signatures);
+            }
+
+        });
     };
 
     /**
@@ -1422,6 +1311,9 @@ console.log(data);
 
             // draw signature table
             moduleElement.drawSignatureTable(signatureTableData, systemData);
+
+            // set module observer
+            setModuleObserver(moduleElement);
         }).fail(function( jqXHR, status, error) {
             var reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': Get signatures', text: reason, type: 'warning'});
@@ -1444,8 +1336,12 @@ console.log(data);
             if(moduleElement){
                 moduleElement.velocity('transition.slideDownIn', {
                     duration: Init.animationSpeed.mapModule,
-                    delay: Init.animationSpeed.mapModule
+                    delay: Init.animationSpeed.mapModule,
+                    complete: function(){
+                        disableTableUpdate = false;
+                    }
                 });
+
             }
         };
 
@@ -1453,17 +1349,22 @@ console.log(data);
         var moduleElement = parentElement.find('.' + config.systemSigModuleClass);
 
         if(moduleElement.length > 0){
+
+            // disable update
+            disableTableUpdate = true;
+
             moduleElement.velocity('transition.slideDownOut', {
                 duration: Init.animationSpeed.mapModule,
                 complete: function(tempElement){
-                    // save remove of all dataTables
-                    var dataTableElements = $(tempElement).find('.' + config.sigTableClass);
-                    var dataTables = $(dataTableElements).DataTable();
-                    dataTables.destroy();
+                     // Destroying the data tables throws
+                     // save remove of all dataTables
+                     signatureTable.api().destroy();
 
                     $(tempElement).remove();
 
                     moduleElement = getModule(parentElement, systemData);
+                    // make modules appear "nice"
+                    moduleElement.delay(150);
                     showModule(moduleElement);
                 }
             });

@@ -16,7 +16,7 @@ requirejs.config({
         slidebars: 'lib/slidebars',                                     // v0.10 Slidebars - side menu plugin http://plugins.adchsm.me/slidebars/
         jsPlumb: 'lib/dom.jsPlumb-1.7.2-min',                           // v1.7.2 jsPlumb (Vanilla)- main map draw plugin http://www.jsplumb.org/
         customScrollbar: 'lib/jquery.mCustomScrollbar.concat.min',      // v3.1.11 Custom scroll bars - http://manos.malihu.gr/
-        datatables: 'lib/datatables/jquery.dataTables.min',             // v1.10.3 DataTables - https://datatables.net/
+        datatables: 'lib/datatables/jquery.dataTables.min',             // v1.10.6 DataTables - https://datatables.net/
         datatablesBootstrap: 'lib/datatables/dataTables.bootstrap',     // DataTables - not used (bootstrap style)
         datatablesTableTools: 'lib/datatables/extensions/TableTools/js/dataTables.tableTools',   // v2.2.3 TableTools (PlugIn) - https://datatables.net/extensions/tabletools/
         xEditable: 'lib/bootstrap-editable.min',                        // v1.5.1 X-editable - in placed editing

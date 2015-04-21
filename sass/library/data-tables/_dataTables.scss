@@ -342,7 +342,7 @@ table.dataTable td {
   text-decoration: none !important;
   cursor: pointer;
   *cursor: hand;
-  color: #333333 !important;
+  color: lighten($gray-light, 5%) !important;
   border: 1px solid transparent;
 }
 .dataTables_wrapper .dataTables_paginate .paginate_button.current, .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
@@ -364,7 +364,7 @@ table.dataTable td {
 }
 .dataTables_wrapper .dataTables_paginate .paginate_button.disabled, .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover, .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:active {
   cursor: default;
-  color: #666 !important;
+  color: darken($gray-light, 8%) !important;
   border: 1px solid transparent;
   background: transparent;
   box-shadow: none;

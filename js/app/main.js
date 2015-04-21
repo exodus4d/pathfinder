@@ -735,7 +735,7 @@ define([
             var mapUserUpdateKey = 'userUpdate';
             var mapUserUpdateDelay = Init.timer[mapUserUpdateKey].delay;
 
-            // ping for main map update
+            // ping for main map update ========================================================
             var triggerMapUpdatePing = function(){
 
                 // check each execution time if map module  is still available
@@ -797,10 +797,12 @@ define([
 
             triggerMapUpdatePing();
 
-            // ping for user data update -------------------------------------------------------
+            // ping for user data update =======================================================
             var triggerUserUpdatePing = function(){
 
-                var updatedUserData = {};
+                var updatedUserData = {
+                    systemData: Util.getCurrentSystemData()
+                };
 
                 Util.timeStart(mapUserUpdateKey);
 
@@ -828,6 +830,7 @@ define([
 
                             // log execution time
                             Util.log(mapUserUpdateKey, {duration: duration, description:'updateMapModuleData'});
+
 
                             // init new trigger
                             setTimeout(function(){

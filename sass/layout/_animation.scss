@@ -1,0 +1,44 @@
+// keyframes mixin
+@mixin keyframes($name) {
+  @-webkit-keyframes #{$name} {
+    @content;
+  }
+  @-moz-keyframes #{$name} {
+    @content;
+  }
+  @-ms-keyframes #{$name} {
+    @content;
+  }
+  @keyframes #{$name} {
+    @content;
+  }
+}
+
+
+// slide in and show ==================================
+/*
+tr{
+  @extend .pf-animation-slide-in;
+}
+*/
+
+
+.pf-animation-slide-in {
+  -moz-animation-duration: 1.2s;
+  -webkit-animation-duration: 1.2s;
+  -moz-animation-name: pfSlideIn;
+  -webkit-animation-name: pfSlideIn;
+  position:relative;
+}
+
+@include keyframes(pfSlideIn){
+  from {
+    opacity: 0;
+    top: -20px;
+  }
+
+  to {
+    opacity: 1;
+    top:0px;
+  }
+};

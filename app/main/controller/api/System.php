@@ -184,22 +184,53 @@ class System extends \Controller\AccessController {
 
         $systemData = (array)$f3->get('POST.systemData');
         $mapData = (array)$f3->get('POST.mapData');
+        $user = $this->_getUser();
+        $activeCharacter = $user->getActiveUserCharacter();
 
-        $map = Model\BasicModel::getNew('MapModel');
-        $map->getById($mapData['id']);
+        $systemModel = null;
 
-        // check if map exists
-        if(!$map->dry()){
+        if(array_key_exists('id', $systemData)){
+            // update existing system
 
-            $systemData['mapId'] = $map;
+            $system = Model\BasicModel::getNew('SystemModel');
+            $system->getById($systemData['id']);
 
-            // get static system data (CCP DB)
-            $system = $this->_getSystemModelById($systemData['systemId']);
-            // set rest of system data
-            $system->setData($systemData);
-            $system->save();
+            if(! $system->dry()){
+                if( $system->hasAccess($user) ){
+                    // system model found
+                    $systemModel = $system;
+                }
+            }
 
-            $newSystemData = $system->getData();
+
+        }elseif(array_key_exists('id', $mapData)){
+            // save NEW system
+
+            $map = Model\BasicModel::getNew('MapModel');
+            $map->getById($mapData['id']);
+
+            if(! $map->dry()){
+                if( $map->hasAccess($user) ){
+
+                    $systemData['mapId'] = $map;
+
+                    // get static system data (CCP DB)
+                    $systemModel = $this->_getSystemModelById($systemData['systemId']);
+
+                    $systemModel->createdCharacterId = $activeCharacter->characterId;
+
+                }
+            }
+        }
+
+        if(! is_null($systemModel)){
+            // set/update system
+
+            $systemModel->setData($systemData);
+            $systemModel->updatedCharacterId = $activeCharacter->characterId;
+            $systemModel->save();
+
+            $newSystemData = $systemModel->getData();
         }
 
         echo json_encode($newSystemData);

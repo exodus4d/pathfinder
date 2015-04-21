@@ -39,16 +39,12 @@ class Signature extends \Controller\AccessController{
             $system->getById($systemId);
 
             if(!$system->dry()){
-                $signatures = $system->getSignatures($user);
 
-                if($signatures){
-                    foreach($signatures as $signature){
-                        $signatureData[] = $signature->getData();
-                    }
+                // check access
+                if($system->hasAccess($user)){
+                    $signatureData = $system->getSignaturesData();
                 }
-
             }
-
         }
 
         echo json_encode($signatureData);
@@ -69,7 +65,7 @@ class Signature extends \Controller\AccessController{
             $system = Model\BasicModel::getNew('SystemModel');
             $system->getById($signatureData['systemId']);
 
-            $activeCharacter = $user->getActiveCharacter();
+            $activeCharacter = $user->getActiveUserCharacter();
             if(!$system->dry()){
                 // update/save signature
 

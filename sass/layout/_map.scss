@@ -86,7 +86,8 @@ $mapWidth: 2500px;
   ._jsPlumb_overlay{
     opacity: 1;
     pointer-events: none; // click through overlays
-    //@include transition( opacity 0.1s ease-in);
+    will-change: opacity;
+    @include transition( opacity 0.18s ease-out);
   }
 
   // hover effects ===================================================
@@ -95,7 +96,7 @@ $mapWidth: 2500px;
 
     // hover effect for connections
     &._jsPlumb_overlay{      
-      opacity: 0; // hide opacity on hover
+      opacity: 0 !important; // hide opacity on hover
     }    
 
     &:not(._jsPlumb_overlay){

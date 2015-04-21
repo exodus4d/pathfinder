@@ -33,6 +33,20 @@ em{
   text-transform: capitalize;
 }
 
+// help elements ====================================================
+.pf-help{
+  cursor: pointer; // fallback
+  cursor: help;
+  @extend .txt-color;
+  @extend .txt-color-gray;
+  @include transition( color 0.08s ease-out );
+
+
+  &:hover{
+    @extend .txt-color-blue;
+  }
+}
+
 // table styles =====================================================
 
 // table icon toolbar
@@ -49,6 +63,7 @@ em{
   opacity: 0; // triggered by js
   display: none; // triggered by js
   height: 0;
+  visibility: hidden;
 }
 
 
@@ -210,6 +225,13 @@ em{
       border-color: transparent transparent transparent $gray;
       cursor: pointer;
     }
+
+
+    // dynamic areas as child of a module
+    .pf-dynamic-area{
+      background: rgba($gray-darker, 0.6);
+    }
+
   }
 
 }
@@ -392,7 +414,35 @@ em{
   color: $teal;
 }
 
-// system effect info dialog
+// system status within label
+.pf-system-info-status-label{
+  background-color: $gray-light;
+  color: $black;
+  will-change: background-color;
+  @include transition( background-color 0.5s ease-out );
+
+  &.pf-system-status-friendly{
+    background-color: $blue;
+  }
+
+  &.pf-system-status-occupied{
+    background-color: $orange;
+  }
+
+  &.pf-system-status-hostile{
+    background-color: $red;
+  }
+
+  &.pf-system-status-empty{
+    background-color: $green;
+  }
+
+  &.pf-system-status-unscanned{
+    background-color: $teal;
+  }
+}
+
+// system effect info dialog ==========================================
 .pf-system-effect-dialog-wrapper, .pf-jump-info-dialog{
   .table{
     margin: 15px 0;
@@ -517,15 +567,39 @@ em{
 }
 
 // global popover settings ======================================
+.popover{
 
+  // image in popover
+  img{
+    @include border-radius(5px);
+  }
 
-// table in pop popover ================================================
-.popover table{
-  color: $gray-lighter;
-  font-size: 10px;
+  h4{
+    color: $gray-lighter;
+  }
 
-  td{
-    padding: 0 5px;
+  // table in pop popover
+  table{
+    color: $gray-lighter;
+    font-size: 10px;
+
+    td{
+      padding: 0 5px;
+    }
+  }
+}
+
+// dynamic area (e.g. for loading animation =====================
+.pf-dynamic-area{
+  padding: 10px;
+  min-height: 105px;
+  position: relative;
+  background-color: $gray-dark;
+  overflow: hidden;
+  @include border-radius(5px);
+
+  .dl-horizontal{
+    margin-bottom: 0;
   }
 }
 
@@ -680,5 +754,7 @@ Animate the stripes
     background-position: 50px 50px;
   }
 }
+
+
 
 

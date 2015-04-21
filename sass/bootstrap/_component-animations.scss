@@ -10,6 +10,7 @@
 .fade {
   opacity: 0;
   @include transition(opacity .15s linear);
+  will-change: opacity;
   &.in {
     opacity: 1;
   }
@@ -25,5 +26,6 @@
   position: relative;
   height: 0;
   overflow: hidden;
+  will-change: height;
   @include transition(height .35s ease);
 }

@@ -42,7 +42,7 @@ class CcpSystemsMapper extends \RecursiveArrayIterator {
             ){
                 if($iterator['trueSec'] <= 0){
                     $security = '0.0';
-                }elseif($iterator['trueSec'] <= 0.5){
+                }elseif($iterator['trueSec'] < 0.5){
                     $security = 'L';
                 }else{
                     $security = 'H';

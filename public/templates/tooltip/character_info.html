@@ -1,0 +1,31 @@
+<div class="pf-system-info-popover">
+
+    <img class="pull-right" src="https://image.eveonline.com//Character/{{created.character.characterId}}_64.jpg">
+
+    <h6>
+        <small>
+            <i class="fa fa-fw fa-circle pf-user-status {{createdStatusClass}}"></i>
+        </small> {{created.character.name}}
+    </h6>
+
+
+    <div class="well well-sm text-center">
+        {{createdTime}}
+    </div>
+
+    <div style="height: 1px">&nbsp;</div>
+
+    <img class="pull-right" src="https://image.eveonline.com//Character/{{updated.character.characterId}}_64.jpg">
+
+    <h6>
+        <small>
+            <i class="fa fa-fw fa-circle pf-user-status {{updatedStatusClass}}"></i>
+        </small> {{updated.character.name}}
+    </h6>
+
+
+    <div class="well well-sm text-center">
+        {{updatedTime}}
+    </div>
+</div>
+

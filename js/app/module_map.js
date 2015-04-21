@@ -88,15 +88,18 @@ define([
 
         return this.each(function(){
             // update Tab Content with system data information
-            $(this).on('pf:updateSystemData', function(e, mapData){
+            $(this).on('pf:drawSystemModules', function(e, mapData){
 
-                // collect all relevant data for SystemInfoElement
-                var systemInfoData = {
+                // collect all required data from map module to update the info element
+                // store them global and assessable for each module
+                var currentSystemData = {
                     systemData: $( mapData.system).getSystemData(),
                     mapId: parseInt( $( mapData.system).attr('data-mapid') )
                 };
 
-                drawSystemInfoElement($( e.target ), systemInfoData);
+                Util.setCurrentSystemData(currentSystemData);
+
+                drawSystemModules($( e.target ));
             });
 
             $(this).on('pf:deleteSystemData', function(e, systemData){
@@ -110,28 +113,29 @@ define([
     /**
      * clears and updates the system info element (signature table, system info,...)
      * @param tabContentElement
-     * @param systemInfoData
      */
-    var drawSystemInfoElement = function(tabContentElement, systemInfoData){
+    var drawSystemModules = function(tabContentElement){
+
+        var currentSystemData = Util.getCurrentSystemData();
 
         // get Table cell for system Info
         var firstCell = $(tabContentElement).find('.' + config.mapTabContentCellFirst);
         var secondCell = $(tabContentElement).find('.' + config.mapTabContentCellSecond);
 
         // draw system info module
-        firstCell.drawSystemInfoModule(systemInfoData.systemData);
+        firstCell.drawSystemInfoModule(currentSystemData.systemData);
 
         // draw system graph module
-        firstCell.drawSystemGraphModule(systemInfoData.systemData);
+        firstCell.drawSystemGraphModule(currentSystemData.systemData);
 
         // draw signature table module
-        firstCell.drawSignatureTableModule(systemInfoData.systemData);
+        firstCell.drawSignatureTableModule(currentSystemData.systemData);
 
         // draw system routes module
-        secondCell.drawSystemRouteModule(systemInfoData.systemData);
+        secondCell.drawSystemRouteModule(currentSystemData.systemData);
 
         // draw system killboard module
-        secondCell.drawSystemKillboardModule(systemInfoData.systemData);
+        secondCell.drawSystemKillboardModule(currentSystemData.systemData);
 
 
 
@@ -200,7 +204,7 @@ define([
      * @returns {boolean}
      */
 
-    $.fn.updateMapModuleData = function(userData){
+    $.fn.updateMapModuleData = function(mapModuleData){
         var mapModule = $(this);
 
         // get all active map elements for module
@@ -213,9 +217,9 @@ define([
             // get user data for each active map
             var mapUserData = null;
 
-            for(var j = 0; j < userData.mapUserData.length; j++){
+            for(var j = 0; j < mapModuleData.mapUserData.length; j++){
 
-                var tempMapUserData = userData.mapUserData[j];
+                var tempMapUserData = mapModuleData.mapUserData[j];
                 if(tempMapUserData.config.id === mapId){
                     // map userData found
                     mapUserData = tempMapUserData;
@@ -223,10 +227,22 @@ define([
                 }
             }
 
-            // update map
+            // update map with current user data
             if(mapUserData){
                 mapElement.updateUserData(mapUserData);
             }
+
+            // check if current open system is still the requested info system
+            var currentSystemData = Util.getCurrentSystemData();
+            if(
+                currentSystemData &&
+                mapModuleData.system &&
+                mapModuleData.system.id === currentSystemData.systemData.id
+            ){
+                // trigger system update event
+                $(document).trigger('pf:updateSystemModules', [mapModuleData.system]);
+            }
+
         }
 
         return true;
@@ -678,7 +694,7 @@ define([
                 }
             });
 
-            allTabElements.on('hide.bs.tab', function (e, a) {
+            allTabElements.on('hide.bs.tab', function (e) {
 
                 var newMapId = $(e.relatedTarget).data('map-id');
                 var oldMapId = $(e.target).data('map-id');

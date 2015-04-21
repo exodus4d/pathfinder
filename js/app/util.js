@@ -57,21 +57,13 @@ define([
     var stopTimerCache = {};                                                    // cache for stopwatch timer
 
     /**
-     * get date obj with current EVE Server Time. -> Server Time === UTC time
+     * get date obj with current EVE Server Time.
      * @returns {Date}
      */
     var getServerTime = function(){
 
-        var localDate = new Date();
-
-        var serverDate= new Date(
-            localDate.getUTCFullYear(),
-            localDate.getUTCMonth(),
-            localDate.getUTCDate(),
-            localDate.getUTCHours(),
-            localDate.getUTCMinutes(),
-            localDate.getUTCSeconds()
-        );
+        // Server is running with GMT/UTC (EVE Time)
+        var serverDate = new Date();
 
         return serverDate;
     };
@@ -562,11 +554,13 @@ define([
         var corporationId = null;
         var allianceId = null;
 
+        var currentUserData = getCurrentUserData();
+
         if(
-            Init.currentUserData &&
-            Init.currentUserData.character
+            currentUserData &&
+            currentUserData.character
         ){
-            var tempCharacterData = Init.currentUserData.character;
+            var tempCharacterData = currentUserData.character;
             // check if current user has a corpId
             if(tempCharacterData.corporation){
                 corporationId = tempCharacterData.corporation.id;
@@ -791,25 +785,11 @@ define([
 
         var areaId = null;
 
-        switch(security){
-            case 'C1':
-                areaId = 1;
+        for(var i = 1; i <= 6; i++){
+            if(security === 'C' + i){
+                areaId = i;
                 break;
-            case 'C2':
-                areaId = 2;
-                break;
-            case 'C3':
-                areaId = 3;
-                break;
-            case 'C4':
-                areaId = 4;
-                break;
-            case 'C5':
-                areaId = 5;
-                break;
-            case 'C6':
-                areaId = 6;
-                break;
+            }
         }
 
         return areaId;
@@ -857,7 +837,7 @@ define([
 
         // remove map
         getMapModule().velocity('fadeOut', {
-            duration: 250,
+            duration: 300,
             complete: function(){
                 $(this).remove();
             }
@@ -866,7 +846,7 @@ define([
     };
 
     /**
-     * set currentUserData to "global" variable
+     * set currentUserData as "global" variable
      * @param userData
      */
     var setCurrentUserData = function(userData){
@@ -908,9 +888,123 @@ define([
         return Init.currentUserData;
     };
 
+    /**
+     * set currentSystemData as "global" variable
+     * @param systemData
+     */
+    var setCurrentSystemData = function(systemData){
+        Init.currentSystemData = systemData;
+    };
+
+    /**
+     * get currentSystemData from "global" variables
+     * @returns {*}
+     */
+    var getCurrentSystemData = function(){
+        return Init.currentSystemData;
+    };
+
+    /**
+     * Create Date as UTC
+     * @param date
+     * @returns {Date}
+     */
+    var createDateAsUTC = function(date) {
+        return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()));
+    };
+
+    /**
+     * Convert Date to UTC (!important function!)
+     * @param date
+     * @returns {Date}
+     */
+    var convertDateToUTC = function(date) {
+        return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
+    };
+
+    /**
+     * Convert Date to Time String
+     * @param date
+     * @returns {string}
+     */
+    var convertDateToString = function(date){
+        var dateString = ('0'+date.getDate()).slice(-2) + '.' + ('0'+date.getMonth()).slice(-2) + '.' + date.getFullYear();
+        var timeString = ('0'+date.getHours()).slice(-2) + ':' + ('0'+date.getMinutes()).slice(-2);
+        return   dateString + ' ' + timeString;
+    };
+
+    /**
+     * adds a popup tooltip with character information (created/updated)
+     * @param tooltipData
+     */
+    $.fn.addCharacterInfoTooltip = function(tooltipData){
+        var element = $(this);
+
+        if(
+            tooltipData.created.character &&
+            tooltipData.updated.character
+        ){
+
+            var createdData = tooltipData.created;
+            var updatedData = tooltipData.updated;
+
+            // check if data has changed
+            if(
+                element.data('created') !== createdData.created ||
+                element.data('updated') !== updatedData.updated
+            ){
+                // data changed
+                // set new data for next check
+                element.data('created', createdData.created);
+                element.data('updated', updatedData.updated);
+
+                var statusCreatedClass = getStatusInfoForCharacter(createdData.character, 'class');
+                var statusUpdatedClass = getStatusInfoForCharacter(updatedData.character, 'class');
+
+                // convert timestamps                v
+                var dateCreated = new Date(createdData.created * 1000);
+                var dateUpdated = new Date(updatedData.updated * 1000);
+                var dateCreatedUTC = convertDateToUTC(dateCreated);
+                var dateUpdatedUTC = convertDateToUTC(dateUpdated);
+
+                var data = {
+                    created: createdData,
+                    updated: updatedData,
+                    createdTime: convertDateToString(dateCreatedUTC),
+                    updatedTime: convertDateToString(dateUpdatedUTC),
+                    createdStatusClass: statusCreatedClass,
+                    updatedStatusClass: statusUpdatedClass
+                };
+
+                requirejs(['text!templates/tooltip/character_info.html', 'mustache'], function(template, Mustache) {
+
+                    var content = Mustache.render(template, data);
+
+                        element.popover({
+                            placement: 'top',
+                            html: true,
+                            trigger: 'hover',
+                            content: '',
+                            container: 'body',
+                            title: 'Created / Updated',
+                            delay: {
+                                show: 250,
+                                hide: 0
+                            }
+                        });
+
+                    // set new popover content
+                    var popover = element.data('bs.popover');
+                    popover.options.content = content;
+
+                });
+
+            }
+        }
+    };
+
     return {
         getServerTime: getServerTime,
-        getCurrentUserData: getCurrentUserData,
         timeStart: timeStart,
         timeStop: timeStop,
         log: log,
@@ -940,5 +1034,8 @@ define([
         getAreaIdBySecurity: getAreaIdBySecurity,
         emergencyShutdown: emergencyShutdown,
         setCurrentUserData: setCurrentUserData,
+        getCurrentUserData: getCurrentUserData,
+        setCurrentSystemData: setCurrentSystemData,
+        getCurrentSystemData: getCurrentSystemData
     };
 });

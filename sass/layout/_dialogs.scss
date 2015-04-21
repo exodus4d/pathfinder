@@ -109,7 +109,7 @@
     display: none;
   }
   
-  .pf-dialog-dynamic-area{
+  .pf-dynamic-area{
     display: inline-block;
     margin: 10px 5px 20px 5px;
     padding: 10px 10px 5px 10px;
@@ -221,21 +221,6 @@
 // ad system dialog =======================================
 .pf-system-dialog-select{
   width: 270px !important;
-}
-
-
-// map info dialog ========================================
-.pf-dialog-dynamic-area{
-  padding: 10px;
-  min-height: 100px;
-  position: relative;
-  background-color: $gray-dark;
-  overflow: hidden;
-  @include border-radius(5px);
-
-  .dl-horizontal{
-    margin-bottom: 0;
-  }
 }
 
 // credits dialog =========================================

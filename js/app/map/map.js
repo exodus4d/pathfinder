@@ -594,7 +594,7 @@ define([
         system.data('region', data.region.name);
         system.data('constellationId', parseInt(data.constellation.id));
         system.data('constellation', data.constellation.name);
-        system.data('updated', parseInt(data.updated));
+        system.data('updated', parseInt(data.updated.updated));
         system.attr('data-mapid', parseInt(mapContainer.data('id')));
 
         // locked system
@@ -682,7 +682,7 @@ define([
 
                     for(var k = 0; k < currentSystemData.length; k++){
                         if(currentSystemData[k].id === systemData.id){
-                            if( currentSystemData[k].updated < systemData.updated ){
+                            if( currentSystemData[k].updated.updated < systemData.updated.updated ){
                                 // system changed -> update
                                 mapContainer.getSystem(mapConfig.map, systemData);
                             }
@@ -1973,7 +1973,7 @@ define([
             system: system
         };
 
-        $(tabContentElement).trigger('pf:updateSystemData', [data]);
+        $(tabContentElement).trigger('pf:drawSystemModules', [data]);
     };
 
     /**
@@ -2946,7 +2946,9 @@ define([
         systemData.locked = system.data('locked') ? 1 : 0;
         systemData.rally = system.data('rally') ? 1 : 0;
         systemData.currentUser = system.data('currentUser');
-        systemData.updated = parseInt( system.data('updated') );
+        systemData.updated = {
+            updated: parseInt( system.data('updated') )
+        };
         systemData.userCount = (system.data('userCount') ? parseInt( system.data('userCount') ) : 0);
 
         // position -------------------------------

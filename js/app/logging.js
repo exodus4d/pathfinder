@@ -19,7 +19,7 @@ define([
     var chartData = {};                                             // chart Data object for all Morris Log graphs
 
     var config = {
-        dialogDynamicAreaClass: 'pf-dialog-dynamic-area',           // class for dynamic dialog area
+        dialogDynamicAreaClass: 'pf-dynamic-area',                  // class for dynamic areas
         logGraphClass: 'pf-log-graph'                               // class for all log Morris graphs
     };
 
@@ -94,34 +94,50 @@ define([
                 lengthMenu:  'Show _MENU_ entries',
                 info:        'Showing _START_ to _END_ of _TOTAL_ entries'
             },
-            columns: [
+            columnDefs: [
                 {
+                    targets: 0,
                     title: '<i class="fa fa-lg fa-tag"></i>',
                     width: '18px',
-                    searchable: false
+                    searchable: false,
+                    data: 'type'
                 },{
+                    targets: 1,
                     title: '<i class="fa fa-lg fa-fw fa-clock-o"></i>&nbsp;&nbsp;',
                     width: '80px',
-                    class: 'text-right'
+                    searchable: true,
+                    class: 'text-right',
+                    data: 'time'
                 },{
+                    targets: 2,
                     title: '<i class="fa fa-lg fa-fw fa-history"></i>&nbsp;&nbsp;',
                     width: '35px',
+                    searchable: false,
                     class: 'text-right',
                     sType: 'html',
-                    searchable: false
+                    data: 'duration'
                 },{
+                    targets: 3,
                     title: 'description',
-                    searchable: true
+                    searchable: true,
+                    data: 'description'
                 },{
+                    targets: 4,
                     title: '<i class="fa fa-lg fa-code-fork"></i>&nbsp;&nbsp;&nbsp;',
                     width: '18px',
-                    class: 'text-right'
-                },{
-                    title: 'Prozess-ID&nbsp;&nbsp;&nbsp;',
+                    searchable: true,
                     class: 'text-right',
-                    width: '80px'
+                    data: 'test'
+                },{
+                    targets: 5,
+                    title: 'Prozess-ID&nbsp;&nbsp;&nbsp;',
+                    width: '80px',
+                    searchable: false,
+                    class: 'text-right',
+                    data: 'key'
                 }
             ]
+
         });
 
         // open dialog
@@ -136,7 +152,6 @@ define([
                 }
             }
         });
-
 
         // modal dialog is shown
         logDialog.on('shown.bs.modal', function(e) {
@@ -218,11 +233,13 @@ define([
                         pointStrokeColors: ['#313335'],
                         lineWidth: 2,
                         grid: false,
+                        gridStrokeWidth: 0.3,
                         gridTextSize: 9,
                         gridTextFamily: 'Oxygen Bold',
+                        gridTextColor: '#63676a',
                         behaveLikeLine: true,
                         goals: [],
-                        goalLineColors: ['#5cb85c'],
+                        goalLineColors: ['#66c84f'],
                         smooth: false,
                         fillOpacity: 0.3,
                         resize: true
@@ -235,7 +252,6 @@ define([
 
             // ------------------------------------------------------------------------------
             // add TableTool Buttons
-
             var tt = new $.fn.DataTable.TableTools( logDataTable, {
                 sSwfPath: 'js/lib/datatables/extensions/TableTools/swf/copy_csv_xls.swf',
                 aButtons: [ 'copy', 'csv', 'print' ]
@@ -410,22 +426,33 @@ define([
                 var logDuration = options.duration;
 
                 // add new row to log table (time and message)
-                var logRowData = ['', getLogTime(), '', logDescription, '', ''];
+   //             var logRowData = ['', getLogTime(), '', logDescription, '', ''];
 
                 // check log type by duration
                 var logType = getLogTypeByDuration(logKey, logDuration);
 
                 var typeClass = Util.getLogInfo( logType, 'class' );
-
+/*
                 logRowData[0] = '<i class="fa fa-fw fa-circle txt-color ' + typeClass + '"></i>';
 
                 logRowData[2] = '<span class="txt-color ' + typeClass + '">' + logDuration + '<small>ms</small></span>';
-
+*/
                 // update graph data
                 updateLogGraph(logKey, logDuration);
-
+/*
                 logRowData[4] = '123';
                 logRowData[5] = logKey;
+*/
+
+                var logRowData = {
+                    type:  '<i class="fa fa-fw fa-circle txt-color ' + typeClass + '"></i>',
+                    time: getLogTime(),
+                    duration: '<span class="txt-color ' + typeClass + '">' + logDuration + '<small>ms</small></span>',
+                    description: logDescription,
+                    test: '123',
+                    key: logKey
+                };
+
 
                 if(logDataTable){
                     // add row if dataTable is initialized before new log

@@ -25,9 +25,15 @@ class SystemModel extends BasicModel {
         'statusId' => array(
             'belongs-to-one' => 'Model\SystemStatusModel'
         ),
+        'createdCharacterId' => array(
+            'belongs-to-one' => 'Model\CharacterModel'
+        ),
+        'updatedCharacterId' => array(
+            'belongs-to-one' => 'Model\CharacterModel'
+        ),
         'signatures' => array(
             'has-many' => array('Model\SystemSignatureModel', 'systemId')
-        )
+        ),
     );
 
     /**
@@ -70,40 +76,47 @@ class SystemModel extends BasicModel {
      */
     public function getData(){
 
-        $systemData = [
-            'id' => $this->id,
-            'mapId' => is_object($this->mapId) ? $this->mapId->id : 0,
-            'systemId' => $this->systemId,
-            'name' => $this->name,
-            'alias' => $this->alias,
-            'effect' => $this->effect,
-            'security' => $this->security,
-            'trueSec' => $this->trueSec,
-            'region' => [
-                'id' => $this->regionId,
-                'name' => $this->region
-            ],
-            'constellation' => [
-                'id' => $this->constellationId,
-                'name' => $this->constellation
-            ],
-            'type' => [
-                'id' => $this->typeId->id,
-                'name' => $this->typeId->name
-            ],
-            'status' => [
-                'id' => is_object($this->statusId) ? $this->statusId->id : 0,
-                'name' => is_object($this->statusId) ? $this->statusId->name : ''
-            ],
-            'locked' => $this->locked,
-            'rally' => $this->rally,
-            'position' => [
-                'x' => $this->posX,
-                'y' => $this->posY
-            ],
-            'updated' => strtotime($this->updated)
+        $systemData = (object) [];
+        $systemData->id = $this->id;
+        $systemData->mapId = is_object($this->mapId) ? $this->mapId->id : 0;
+        $systemData->systemId = $this->systemId;
+        $systemData->name = $this->name;
+        $systemData->alias = $this->alias;
+        $systemData->effect = $this->effect;
+        $systemData->security = $this->security;
+        $systemData->trueSec = $this->trueSec;
 
-        ];
+        $systemData->region = (object) [];
+        $systemData->region->id = $this->regionId;
+        $systemData->region->name = $this->region;
+
+        $systemData->constellation = (object) [];
+        $systemData->constellation->id = $this->constellationId;
+        $systemData->constellation->name = $this->constellation;
+
+        $systemData->type = (object) [];
+        $systemData->type->id = $this->typeId->id;
+        $systemData->type->name = $this->typeId->name;
+
+        $systemData->status = (object) [];
+        $systemData->status->id = is_object($this->statusId) ? $this->statusId->id : 0;
+        $systemData->status->name = is_object($this->statusId) ? $this->statusId->name : '';
+
+        $systemData->locked = $this->locked;
+        $systemData->rally = $this->rally;
+        $systemData->description = $this->description;
+
+        $systemData->position = (object) [];
+        $systemData->position->x = $this->posX;
+        $systemData->position->y = $this->posY;
+
+        $systemData->created = (object) [];
+        $systemData->created->character = $this->createdCharacterId->getData();
+        $systemData->created->created = strtotime($this->created);
+
+        $systemData->updated = (object) [];
+        $systemData->updated->character = $this->updatedCharacterId->getData();
+        $systemData->updated->updated = strtotime($this->updated);
 
         return $systemData;
     }
@@ -124,8 +137,8 @@ class SystemModel extends BasicModel {
      */
     public function delete($accessObject){
 
-        if(!$this->dry()){
-            // check if editor has access
+        if(! $this->dry()){
+            // check if user has access
             if($this->hasAccess($accessObject)){
                 // delete all system connections
                 $connections = $this->getConnections();
@@ -169,17 +182,32 @@ class SystemModel extends BasicModel {
 
     /**
      * get all signatures of this system
-     * @param $accessObject
-     * @return bool|mixed
+     * @return array
      */
-    public function getSignatures($accessObject){
-        $signatures = false;
+    public function getSignatures(){
+        $this->filter('signatures', array('active = ?', 1));
 
-        if($this->hasAccess($accessObject)){
+        $signatures = [];
+        if($this->signatures){
             $signatures = $this->signatures;
         }
 
         return $signatures;
+    }
+
+    /**
+     * get all data for all Signatures in this system
+     * @return array
+     */
+    public function getSignaturesData(){
+        $signatures = $this->getSignatures();
+
+        $signaturesData = [];
+        foreach($signatures as $signature){
+            $signaturesData[] = $signature->getData();
+        }
+
+        return $signaturesData;
     }
 
     /**

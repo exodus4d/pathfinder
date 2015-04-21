@@ -2,7 +2,6 @@
  *  map module dialogs
  */
 
-
 define([
     'jquery',
     'app/init',

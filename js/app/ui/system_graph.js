@@ -69,14 +69,14 @@ define([
      * @param graphKey
      * @param graphData
      */
-    var initGraph = function(graphElement, graphKey, graphData){
+    var initGraph = function(graphElement, graphKey, graphData, eventLine){
 
         if(graphData.length > 0){
             var labelYFormat = function(y){
                 return Math.round(y);
             };
 
-            Morris.Area({
+            var graphConfig = {
                 element: graphElement,
                 data: graphData,
                 xkey: 'x',
@@ -105,9 +105,14 @@ define([
                 resize: true,
                 redraw: true,
                 eventStrokeWidth: 2,
-                events: [22],
                 eventLineColors: ['#5CB85C']
-            });
+            };
+
+            if(eventLine >= 0){
+                graphConfig.events = [eventLine];
+            }
+
+            Morris.Area(graphConfig);
         }
     };
 
@@ -123,6 +128,20 @@ define([
             var requestData = {
                 systemIds: [systemData.systemId]
             };
+
+            // calculate time offset until system created
+            var serverData = Util.getServerTime();
+
+            var timestampNow = Math.floor(serverData.getTime() / 1000);
+            var timeSinceUpdate = timestampNow - systemData.updated;
+
+            var timeInHours = Math.floor(timeSinceUpdate / 3600);
+            var timeInMinutes = Math.floor((timeSinceUpdate % 3600) / 60);
+            var timeInMinutesPercent = ( timeInMinutes / 60 ).toFixed(2);
+            var eventLine = timeInHours + timeInMinutesPercent;
+
+            // graph is from right to left -> convert event line
+            eventLine = 23 - eventLine;
 
             $.ajax({
                 type: 'POST',
@@ -168,7 +187,7 @@ define([
                         colElement.append(graphElement);
 
                         rowElement.append(colElement);
-                        initGraph(graphElement, graphKey, graphData);
+                        initGraph(graphElement, graphKey, graphData, eventLine);
                     });
                 });
 

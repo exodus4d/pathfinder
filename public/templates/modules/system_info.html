@@ -1,6 +1,11 @@
 {{#system.alias}}
-    <h5 class="pull-right" style="display: inline-block"><span data-toggle="tooltip" data-placement="top" data-container="body" title="alias"><i class="fa fa-fw fa-tag"></i> {{system.alias}}</span></h5>
+    <h5 class="pull-right" style="display: inline-block">
+        <span data-toggle="tooltip" data-placement="top" data-container="body" title="alias">
+            {{system.alias}}
+        </span>
+    </h5>
 {{/system.alias}}
+
 
 <h5 style="display: inline-block">
     <span data-toggle="tooltip" data-placement="top" data-container="body" title="system">{{system.name}}</span>
@@ -26,44 +31,79 @@
 
 <div class="row">
 
+    {{! info text ================================================================================================ }}
     <div class="col-xs-12 col-sm-7">
-
+        <div class="pf-dynamic-area">
+            <div class="{{moduleToolbarClass}}">
+                <button class="btn btn-primary btn-sm {{descriptionButtonClass}}" type="button"><i class="fa fa-plus fa-fw"></i> add description</button>
+            </div>
+            <div id="{{moduleToolbarActionId}}" class="pf-table-tools-action">
+                <span data-toggle="tooltip" data-placement="bottom" data-container="body" title="System description">
+                    <a style="width: 200px" href="#" class="{{descriptionTextareaClass}}" data-title="Enter username"></a>
+                </span>
+            </div>
+        </div>
     </div>
+
+    {{! info table ================================================================================================ }}
     <div class="col-xs-12 col-sm-5">
-        <table class="table table-condensed {{tableClass}}">
-            <thead>
+        <div class="pf-dynamic-area">
+
+            <span data-status="{{systemStatusId}}" class="label center-block {{statusInfoClass}} {{systemStatusClass}}">
+                {{systemStatusLabel}}
+            </span>
+
+            <table class="table table-condensed {{tableClass}}">
+                <colgroup>
+                    <col class="col-sm-1">
+                    <col class="col-sm-4">
+                    <col class="col-sm-7">
+                </colgroup>
+                <thead>
                 <tr>
+                    <th class="text-right pf-help {{nameInfoClass}}">
+                        <i class="fa fa-fw fa-question-circle"></i>
+                    </th>
                     <th>Name</th>
                     <th class="text-right">
                         {{#system.alias}}
-                            {{system.alias}}
+                        {{system.alias}}
                         {{/system.alias}}
                         {{^system.alias}}
-                            {{system.name}}
+                        {{system.name}}
                         {{/system.alias}}
                         [ <span class="{{securityClass}}">{{system.security}}</span> ]
                     </th>
                 </tr>
-            </thead>
-            <tbody>
+                </thead>
+                <tbody>
                 {{#effectName}}
-                    <tr>
-                        <td>Effect</td>
-                        <td class="text-right pf-font-capitalize">{{effectName}} <i class="fa fa-fw fa-square pf-system-effect {{effectClass}}"></i></td>
-                    </tr>
+                <tr>
+                    <td class="text-right pf-help {{effectInfoClass}}">
+                        <i class="fa fa-fw fa-question-circle"></i>
+                    </td>
+                    <td>Effect</td>
+                    <td class="text-right pf-font-capitalize">{{effectName}} <i class="fa fa-fw fa-square pf-system-effect {{effectClass}}"></i></td>
+                </tr>
                 {{/effectName}}
                 {{#system.static}}
-                    <tr>
-                        <td>Static</td>
-                        <td class="text-right">{{name}} [ <span class="{{class}}">{{security}}</span> ]</td>
-                    </tr>
+                <tr>
+                    <td class="text-right pf-help">
+                        <i class="fa fa-fw fa-question-circle"></i>
+                    </td>
+                    <td>Static</td>
+                    <td class="text-right">{{name}} [ <span class="{{class}}">{{security}}</span> ]</td>
+                </tr>
                 {{/system.static}}
                 <tr>
+                    <td class="text-right">
+                    </td>
                     <td>Security</td>
                     <td class="text-right {{trueSecClass}}">{{trueSec}}</td>
                 </tr>
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
