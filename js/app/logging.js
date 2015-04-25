@@ -410,7 +410,6 @@ define([
      */
     var init = function(){
 
-
         var maxEntries = 150;
 
         // set global logging listener
@@ -425,24 +424,13 @@ define([
                 var logDescription = options.description;
                 var logDuration = options.duration;
 
-                // add new row to log table (time and message)
-   //             var logRowData = ['', getLogTime(), '', logDescription, '', ''];
-
                 // check log type by duration
                 var logType = getLogTypeByDuration(logKey, logDuration);
 
                 var typeClass = Util.getLogInfo( logType, 'class' );
-/*
-                logRowData[0] = '<i class="fa fa-fw fa-circle txt-color ' + typeClass + '"></i>';
 
-                logRowData[2] = '<span class="txt-color ' + typeClass + '">' + logDuration + '<small>ms</small></span>';
-*/
                 // update graph data
                 updateLogGraph(logKey, logDuration);
-/*
-                logRowData[4] = '123';
-                logRowData[5] = logKey;
-*/
 
                 var logRowData = {
                     type:  '<i class="fa fa-fw fa-circle txt-color ' + typeClass + '"></i>',
@@ -462,7 +450,6 @@ define([
                     logData.push(logRowData);
                 }
             }
-
 
             // delete old log entries from table ---------------------------------
             var rowCount = logData.length;

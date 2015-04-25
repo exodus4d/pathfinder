@@ -9,6 +9,8 @@ define([
     'app/render',
     'app/ccp',
     'app/logging',
+    'dialog/shutdown',
+    'dialog/trust',
     'dialog/map_info',
     'dialog/settings',
     'dialog/manual',
@@ -42,6 +44,9 @@ define([
         headMapClass: 'pf-head-map',                                            // class for page head map button (right)
         headUserCharacterClass: 'pf-head-user-character',                       // class for "user settings" link
         userCharacterImageClass: 'pf-head-user-character-image',                // class for "current user image"
+
+        headUserShipClass: 'pf-head-user-ship',                                 // class for "user settings" link
+        userShipImageClass: 'pf-head-user-ship-image',                          // class for "current user ship image"
         headActiveUserClass: 'pf-head-active-user',                             // class for "active user" link
         headCurrentLocationClass: 'pf-head-current-location',                   // class for "show current location" link
         headProgramStatusClass: 'pf-head-program-status',                       // class for "program status" notification
@@ -193,7 +198,9 @@ define([
                             $('<i>',{
                                 class: 'fa fa-power-off fa-fw'
                             })
-                        )
+                        ).on('click', function(){
+                            $(document).triggerMenuEvent('Logout');
+                        })
                 )
         );
 
@@ -356,7 +363,9 @@ define([
             id: config.pageHeaderId,
             brandLogo: config.menuHeadMenuLogoClass,
             userCharacterClass: config.headUserCharacterClass,
-            userCharacterImageClass: config.userCharacterImageClass
+            userCharacterImageClass: config.userCharacterImageClass,
+            userShipClass: config.headUserShipClass,
+            userShipImageClass: config.userShipImageClass
         };
 
         Render.showModule(moduleConfig, moduleData);
@@ -509,6 +518,15 @@ define([
             return false;
         });
 
+        $(document).on('pf:menuLogout', function(e, data){
+            // logout
+            console.log('! LOGOUT !');
+            return false;
+        });
+
+        // END menu events =============================================================================
+
+
         // update header links with current map data
         $(document).on('pf:updateHeaderMapData', function(e, data){
             var activeMap = Util.getMapModule().getActiveMap();
@@ -527,6 +545,32 @@ define([
             updateHeaderActiveUserCount(userCount);
             updateHeaderCurrentLocation(currentLocationData);
         });
+
+        $(document).on('pf:showTrustDialog', function(e){
+            // show trust dialog
+            $.fn.showTrustDialog();
+            return false;
+        });
+
+        $(document).on('pf:shutdown', function(e, data){
+            // show shutdown dialog
+            $.fn.showShutdownDialog(data);
+
+            $(document).setProgramStatus('offline');
+
+            Util.showNotify({title: 'Emergency shutdown', text: data.reason, type: 'error'}, false);
+
+            // remove map
+            Util.getMapModule().velocity('fadeOut', {
+                duration: 300,
+                complete: function(){
+                    $(this).remove();
+                }
+            });
+
+            return false;
+        });
+
     };
 
     /**
@@ -536,33 +580,99 @@ define([
 
         var userData = Util.getCurrentUserData();
 
-        if(
-            userData &&
-            userData.character
-        ){
+        var userInfoElement = $('.' + config.headUserCharacterClass);
+        var currentCharacterId = userInfoElement.data('characterId');
+        var newCharacterId = 0;
+        var newCharacterName = '';
 
-            var userInfoElement = $('.' + config.headUserCharacterClass);
+        var userShipElement = $('.' + config.headUserShipClass);
+        var currentShipId = userShipElement.data('shipId');
+        var newShipId = 0;
+        var newShipName = '';
 
-            // hide element
-            userInfoElement.velocity('stop').velocity({
-                    opacity: 0
-                },{
+        // function for header element toggle animation
+        var animateHeaderElement = function(element, callback, triggerShow){
+
+            element.show().velocity('stop').velocity({
+                opacity: 0
+            },{
                 visibility : 'hidden',
                 duration: 500,
-                    complete: function(){
-                        // set new data
-                        userInfoElement.find('span').text(userData.character.name);
-                        userInfoElement.find('img').attr('src', Init.url.ccpImageServer + '/Character/' + userData.character.characterId + '_32.jpg' );
+                complete: function(){
 
-                        userInfoElement.velocity({
+                    // callback
+                    callback();
+
+                    // show element
+                    if(triggerShow === true){
+                        element.velocity({
                             opacity: 1
                         }, {
                             visibility : 'visible',
                             duration: 500
                         });
+                    }else{
+                        // hide element
+                        element.hide();
                     }
+
+                }
             });
+
+        };
+
+        // check for changees
+        if(
+            userData &&
+            userData.character
+        ){
+            newCharacterId = userData.character.characterId;
+            newCharacterName = userData.character.name;
+
+            if(userData.character.log){
+                newShipId = userData.character.log.ship.id;
+                newShipName = userData.character.log.ship.typeName;
+            }
         }
+
+        // update user character data ---------------------------------------------------
+        if(currentCharacterId !== newCharacterId){
+
+            var showCharacterElement = true;
+            if(newCharacterId === 0){
+                showCharacterElement = false;
+            }
+
+            // toggle element
+            animateHeaderElement(userInfoElement, function(){
+                userInfoElement.find('span').text( newCharacterName );
+                userInfoElement.find('img').attr('src', Init.url.ccpImageServer + 'Character/' + newCharacterId + '_32.jpg' );
+            }, showCharacterElement);
+
+            // set new id for next check
+            userInfoElement.data('characterId', newCharacterId);
+        }
+
+        // update user ship data --------------------------------------------------------
+        if(currentShipId !== newShipId){ console.log('update ship ');
+
+            var showShipElement = true;
+            if(newShipId === 0){
+                showShipElement = false;
+            }
+
+            // toggle element
+            animateHeaderElement(userShipElement, function(){
+                userShipElement.find('span').text( newShipName );
+                userShipElement.find('img').attr('src', Init.url.ccpImageServer + 'Render/' + newShipId + '_32.png' );
+            }, showShipElement);
+
+            // set new id for next check
+            userShipElement.data('shipId', newShipId);
+        }
+
+
+
     };
 
     /**

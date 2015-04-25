@@ -52,7 +52,8 @@ define(['jquery'], function($) {
             headerLink: 100,                                        // links in head bar
             mapMoveSystem: 300,                                     // system position has changed animation
             mapDeleteSystem: 200,                                   // remove system from map
-            mapModule: 200                                          // show/hide of an map module
+            mapModule: 200,                                         // show/hide of an map module
+            dialogEvents: 180                                       // dialog events /slide/show/...
         },
         classes: {
             // log types

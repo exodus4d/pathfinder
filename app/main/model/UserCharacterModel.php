@@ -119,9 +119,10 @@ class UserCharacterModel extends BasicModel {
      * @return bool|mixed
      */
     public function getLog(){
-        $this->filter('log', array('active = ?', 1));
+        //$this->filter('log', array('active = ?', 1));
 
-        $characterLog = false;
+
+        $characterLog = $this->characterId->getLog();
         if($this->log){
             $characterLog = $this->log;
         }

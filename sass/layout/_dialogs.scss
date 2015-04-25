@@ -77,17 +77,6 @@
     display: none;
   }
 
-  // icon buttons within a dialog
-  .pf-dialog-icon-button{
-    cursor: pointer;
-    @include transition(color 0.15s ease-out);
-    will-change: color, transition;
-
-    &:not(.collapsed), &:hover{
-      color: $orange;
-    }
-  }
-
 }
 
 // settings dialog ======================================================================

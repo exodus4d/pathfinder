@@ -163,12 +163,13 @@ define([
             data &&
             data.user
         ){
+
             var cacheArray = [];
             // loop all active pilots and build cache-key
             for(var i = 0; i < data.user.length; i++){
                 userCounter++;
                 var tempUserData = data.user[i];
-                cacheArray.push(tempUserData.id + '_' + tempUserData.log.ship.name);
+                cacheArray.push(tempUserData.id + '_' + tempUserData.log.ship.typeName);
             }
             var cacheKey = cacheArray.join('_');
 
@@ -192,7 +193,7 @@ define([
                         class: config.systemBodyItemClass
                     }).append(
                             $('<span>', {
-                                text: userData.log.ship.name,
+                                text: userData.log.ship.typeName,
                                 class: config.systemBodyRightClass
                             })
                         ).append(

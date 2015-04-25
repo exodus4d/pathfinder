@@ -8,7 +8,7 @@
 
 namespace Controller;
 
-class MapController extends Controller {
+class MapController extends \Controller\AccessController {
 
     function __construct() {
         parent::__construct();
@@ -16,8 +16,11 @@ class MapController extends Controller {
 
 
     public function showMap() {
-        $this->setTemplate('templates/view/map.html');
 
+        // set trust attribute to template
+        $this->f3->set('trusted', (int)self::isIGBTrusted());
+
+        $this->setTemplate('templates/view/map.html');
     }
 
     /**

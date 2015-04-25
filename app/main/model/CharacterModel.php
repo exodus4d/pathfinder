@@ -16,11 +16,7 @@ class CharacterModel extends BasicModel {
     protected $rel_ttl = 0;
 
     protected $fieldConf = array(
-        /* wirft fehler
-        'characterId' => array(
-            'has-one' => array('Model\CharacterLogModel', 'characterId')
-        )
-        */
+
     );
 
     /**
@@ -48,6 +44,22 @@ class CharacterModel extends BasicModel {
         }
 
         return $characterData;
+    }
+
+    /**
+     * get the character log entry for this character
+     * @return bool|null
+     */
+    public function getLog(){
+        $characterLog = self::getNew('CharacterLogModel');
+        $characterLog->getByForeignKey('characterId', $this->characterId);
+
+        $characterLogReturn = false;
+        if(! $characterLog->dry() ){
+            $characterLogReturn = $characterLog;
+        }
+
+        return $characterLogReturn;
     }
 
 } 

@@ -8,14 +8,20 @@ body{
   user-select: none;
 }
 
+.pf-body{
+  overflow: hidden;
+}
+
 
 a{
   color: $teal-dark;
   will-change: color;
+  text-decoration: none;
   @include transition( color 0.08s ease-out );
 
   &:hover{
     color: $teal-light;
+    text-decoration: none;
   }
 }
 
@@ -45,6 +51,26 @@ em{
   &:hover{
     @extend .txt-color-blue;
   }
+}
+
+// icon buttons =====================================================
+.pf-dialog-icon-button{
+  cursor: pointer;
+  @include transition(color 0.15s ease-out);
+
+  &:not(.collapsed), &:hover{
+    color: $orange;
+  }
+}
+
+.pf-module-icon-button{
+  cursor: pointer;
+  @include transition(color 0.15s ease-out);
+
+  &:hover{
+    color: $orange;
+  }
+
 }
 
 // table styles =====================================================
@@ -226,10 +252,14 @@ em{
       cursor: pointer;
     }
 
+    // all labels in a module
+    .label{
+      margin-bottom: 10px;
+    }
 
     // dynamic areas as child of a module
     .pf-dynamic-area{
-      background: rgba($gray-darker, 0.6);
+      background: rgba($gray-darker, 0.4);
     }
 
   }
@@ -592,7 +622,7 @@ em{
 // dynamic area (e.g. for loading animation =====================
 .pf-dynamic-area{
   padding: 10px;
-  min-height: 105px;
+  min-height: 100px;
   position: relative;
   background-color: $gray-dark;
   overflow: hidden;
@@ -662,7 +692,7 @@ em{
   }
 
 
-  .pf-head-user-character{
+  .pf-head-user-character, .pf-head-user-ship{
     opacity: 0; // triggered by js
     visibility: 'hidden';
   }
@@ -675,7 +705,7 @@ em{
     }
   }
 
-  .pf-head-user-character-image{
+  .pf-head-user-character-image, .pf-head-user-ship-image{
     display: inline-block;
     margin-top: -6px;
     margin-bottom: -6px;
@@ -709,7 +739,7 @@ em{
   background: rgba($gray, 0.3);
 
   a{
-    font-family: $font-family-serif;
+    font-family: $font-family-bold;
     color: $teal-darker;
 
     &:hover{

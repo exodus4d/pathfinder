@@ -341,7 +341,6 @@ class MapModel extends BasicModel{
             if(count($systemUserData->user) > 0){
                 $mapUserData->data->systems[] = $systemUserData;
             }
-
         }
 
         return $mapUserData;

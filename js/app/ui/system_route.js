@@ -15,10 +15,10 @@ define([
         moduleClass: 'pf-module',                                               // class for each module
 
         // system route module
-        systemRouteModuleClass: 'pf-system-route-module',                      // class  for this module
+        systemRouteModuleClass: 'pf-system-route-module',                       // class  for this module
 
-        // tables
-        tableToolsClass: 'pf-table-tools',                                      // table toolbar
+        // headline toolbar
+        systemModuleHeadlineIcon: 'pf-module-icon-button',                      // class for toolbar icons in the head
 
         systemSecurityClassPrefix: 'pf-system-security-',                       // prefix class for system security level (color)
 
@@ -30,10 +30,10 @@ define([
 
     };
 
+    // cache for system routes
     var cache = {
         systemRoutes: {}                                                        // jump information between solar systems
     };
-
 
     /**
      * callback function, adds new row to a dataTable with jump information for a route
@@ -193,7 +193,7 @@ define([
 
             systemSecClass += tempSystemSec.replace('.', '-');
             var system = '<i class="fa fa-square ' + systemSecClass + '" ';
-            system += 'data-toggle="tooltip" data-placement="bottom" ';
+            system += 'data-toggle="tooltip" data-placement="bottom" data-container="body" ';
             system += 'title="' + systemData.to.name + ' [' + systemSec + '] ' + systemData.to.region.name  + '"></i>';
             jumpData.push( system );
 
@@ -217,6 +217,30 @@ define([
                 class: [config.moduleClass, config.systemRouteModuleClass].join(' ')
             });
 
+
+            // headline toolbar icons
+            var headlineToolbar  = $('<h5>', {
+                class: 'pull-right'
+            }).append(
+                    $('<i>', {
+                        class: ['fa', 'fa-fw', 'fa-search', config.systemModuleHeadlineIcon].join(' '),
+                        title: 'find route'
+                    }).on('click', function(e){
+                        // show "find route" dialog
+
+                        var dialogData = {
+                            moduleElement: moduleElement,
+                            systemFrom: systemFrom,
+                            dataTable: routesTable
+                        };
+
+                        showFindRouteDialog(dialogData);
+                    }).attr('data-toggle', 'tooltip')
+                );
+
+            moduleElement.append(headlineToolbar);
+
+
             // headline
             var headline = $('<h5>', {
                 class: 'pull-left',
@@ -224,6 +248,13 @@ define([
             });
 
             moduleElement.append(headline);
+
+            // init tooltips
+            var tooltipElements = moduleElement.find('[data-toggle="tooltip"]');
+            tooltipElements.tooltip({
+                container: 'body'
+            });
+
 
             var systemFrom = systemData.name;
             var systemsTo = ['Jita', 'Amarr', 'Rens', 'Dodixie'];
@@ -264,34 +295,6 @@ define([
                 ],
                 data: [] // will be added dynamic
             });
-
-            // add toolbar buttons for table -------------------------------------
-            var tableToolbar = $('<div>', {
-                class: [config.tableToolsClass, 'pull-right'].join(' ')
-            }).append(
-                    $('<button>', {
-                        class: ['btn', 'btn-primary', 'btn-sm'].join(' '),
-                        text: ' search route',
-                        type: 'button'
-                    }).on('click', function(e){
-                        // show "find route" dialog
-
-                        var dialogData = {
-                            moduleElement: moduleElement,
-                            systemFrom: systemFrom,
-                            dataTable: routesTable
-                        };
-
-                        showFindRouteDialog(dialogData);
-                    }).prepend(
-                            $('<i>', {
-                                class: ['fa', 'fa-search', 'fa-fw'].join(' ')
-                            })
-                        )
-
-                );
-
-            headline.after(tableToolbar);
 
 
             // fill routesTable with data -------------------------------------------

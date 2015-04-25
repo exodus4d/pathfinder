@@ -63,7 +63,16 @@ define([
     var getServerTime = function(){
 
         // Server is running with GMT/UTC (EVE Time)
-        var serverDate = new Date();
+        var localDate = new Date();
+
+        var serverDate= new Date(
+            localDate.getUTCFullYear(),
+            localDate.getUTCMonth(),
+            localDate.getUTCDate(),
+            localDate.getUTCHours(),
+            localDate.getUTCMinutes(),
+            localDate.getUTCSeconds()
+        );
 
         return serverDate;
     };
@@ -796,86 +805,14 @@ define([
     };
 
     /**
-     * shut the software down e.g. on error
-     * @param reason
-     */
-    var emergencyShutdown = function(reason){
-
-        // close all open dialogs
-        bootbox.hideAll();
-
-        var content = $('<div>');
-
-        content.append(
-            $('<h2>', {
-                text: 'Sorry! Under normal circumstances that should not happen.'
-             })
-        );
-
-        content.append(
-            $('<p>', {
-                text: reason
-            })
-        );
-
-        var systemDialog = bootbox.dialog({
-            title: '<span class="txt-color txt-color-red"><i class="fa fa-fw fa-bolt"></i>Emergency shutdown</span>',
-            message: content,
-            buttons: {
-                danger: {
-                    label: 'restart',
-                    className: 'btn-danger',
-                    callback: function () {
-                        location.reload();
-                    }
-                }
-            }
-        });
-
-        $(document).setProgramStatus('offline');
-        showNotify({title: 'Emergency shutdown', text: reason, type: 'error'}, false);
-
-        // remove map
-        getMapModule().velocity('fadeOut', {
-            duration: 300,
-            complete: function(){
-                $(this).remove();
-            }
-        });
-
-    };
-
-    /**
      * set currentUserData as "global" variable
      * @param userData
      */
     var setCurrentUserData = function(userData){
 
-        var currentUserData = getCurrentUserData();
-
-        // check if userData has changed
-        var changed = false;
-
-        if(
-            currentUserData === undefined &&
-            userData !== undefined
-        ){
-            changed = true;
-        }else if(userData.character
-            ){
-            if(currentUserData.character === undefined){
-                changed = true;
-            }else if( userData.character.characterId !== currentUserData.character.characterId ){
-                changed = true;
-            }
-        }
-
         Init.currentUserData = userData;
 
-        // update head if user data has changed
-        if(changed){
-            $.fn.updateHeaderUserData();
-        }
+        $.fn.updateHeaderUserData();
 
         return getCurrentUserData();
     };
@@ -902,6 +839,20 @@ define([
      */
     var getCurrentSystemData = function(){
         return Init.currentSystemData;
+    };
+
+    /**
+     * formats a price string into an ISK Price
+     * @param price
+     * @returns {string}
+     */
+    var formatPrice = function(price){
+        price = Number( price ).toFixed(2);
+
+        var parts = price.toString().split('.');
+        price = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (parts[1] ? '.' + parts[1] : '');
+
+        return price + ' ISK';
     };
 
     /**
@@ -1032,10 +983,11 @@ define([
         getAllSignatureNames: getAllSignatureNames,
         getSignatureTypeIdByName: getSignatureTypeIdByName,
         getAreaIdBySecurity: getAreaIdBySecurity,
-        emergencyShutdown: emergencyShutdown,
         setCurrentUserData: setCurrentUserData,
         getCurrentUserData: getCurrentUserData,
         setCurrentSystemData: setCurrentSystemData,
-        getCurrentSystemData: getCurrentSystemData
+        getCurrentSystemData: getCurrentSystemData,
+        convertDateToString: convertDateToString,
+        formatPrice: formatPrice
     };
 });

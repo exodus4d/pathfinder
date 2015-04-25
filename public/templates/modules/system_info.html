@@ -1,8 +1,6 @@
 {{#system.alias}}
-    <h5 class="pull-right" style="display: inline-block">
-        <span data-toggle="tooltip" data-placement="top" data-container="body" title="alias">
-            {{system.alias}}
-        </span>
+    <h5 class="pull-right" data-toggle="tooltip" data-placement="top" data-container="body" title="system alias">
+        {{system.alias}}
     </h5>
 {{/system.alias}}
 
@@ -24,22 +22,18 @@
 <a href="http://wh.pasta.gg/{{system.name}}" target="_blank">
     <div data-toggle="tooltip" data-placement="top" data-container="body" title="wormhol" class="pf-icon pf-icon-wormhol-es"></div>
 </a>
-<a href="https://zkillboard.com/system/{{system.systemId}}" target="_blank">
-    <div data-toggle="tooltip" data-placement="top" data-container="body" title="zKillbaord" class="pf-icon pf-icon-zkillboard"></div>
-</a>
-
 
 <div class="row">
 
     {{! info text ================================================================================================ }}
     <div class="col-xs-12 col-sm-7">
-        <div class="pf-dynamic-area">
-            <div class="{{moduleToolbarClass}}">
-                <button class="btn btn-primary btn-sm {{descriptionButtonClass}}" type="button"><i class="fa fa-plus fa-fw"></i> add description</button>
-            </div>
+        <div class="pf-dynamic-area pf-system-info-description-area">
+            <i class="fa fa-fw fa-lg fa-pencil pull-right pf-module-icon-button {{descriptionButtonClass}}" data-toggle="tooltip" data-container="body" title="edit description"></i>
+
             <div id="{{moduleToolbarActionId}}" class="pf-table-tools-action">
-                <span data-toggle="tooltip" data-placement="bottom" data-container="body" title="System description">
+                <span class="{{descriptionTooltipClass}}" data-toggle="tooltip" data-placement="bottom" data-container="body" title="System description">
                     <a style="width: 200px" href="#" class="{{descriptionTextareaClass}}" data-title="Enter username"></a>
+
                 </span>
             </div>
         </div>
@@ -47,12 +41,13 @@
 
     {{! info table ================================================================================================ }}
     <div class="col-xs-12 col-sm-5">
+
+        <span data-toggle="tooltip" data-placement="top" data-container="body" title="system status" data-status="{{systemStatusId}}" class="label center-block {{statusInfoClass}} {{systemStatusClass}}">
+            {{systemStatusLabel}}
+        </span>
+
+
         <div class="pf-dynamic-area">
-
-            <span data-status="{{systemStatusId}}" class="label center-block {{statusInfoClass}} {{systemStatusClass}}">
-                {{systemStatusLabel}}
-            </span>
-
             <table class="table table-condensed {{tableClass}}">
                 <colgroup>
                     <col class="col-sm-1">

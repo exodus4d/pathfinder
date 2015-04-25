@@ -85,5 +85,44 @@ class Controller {
         $this->setTemplate('templates/view/login.html');
     }
 
+    /**
+     * check weather the page is IGB trusted or not
+     * @return mixed
+     */
+    static function isIGBTrusted(){
+
+        $igbHeaderData = self::getIGBHeaderData();
+
+        return $igbHeaderData->trusted;
+    }
+
+    /**
+     * extract all eve IGB specific header data
+     * @return object
+     */
+    static function getIGBHeaderData(){
+        $data = (object) [];
+        $data->trusted = false;
+        $data->values = [];
+        $headerData = apache_request_headers();
+
+        foreach($headerData as $key => $value){
+            if (strpos($key, 'EVE_') === 0) {
+                $key = str_replace('EVE_', '', $key);
+                $key = strtolower($key);
+
+                if (
+                    $key === 'trusted' &&
+                    $value === 'Yes'
+                ) {
+                    $data->trusted = true;
+                }
+
+                $data->values[$key] = $value;
+            }
+        }
+
+        return $data;
+    }
 
 } 

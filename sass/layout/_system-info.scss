@@ -10,13 +10,14 @@
     }
   }
 
-  // textarea system description
-  .pf-system-info-description{
-    width: 300px;
-  }
+  // dynamic area specific for the description field
+  .pf-system-info-description-area{
+    min-height: 123px;
 
-  .pf-system-info-table{
-    margin-top: 5px;
+    // textarea system description
+    .pf-system-info-description{
+      width: 330px;
+    }
   }
 
 }
@@ -129,14 +130,81 @@
 // killboard module ======================================================
 .pf-system-killboard-module{
 
-  .pf-system-killboard-graphs{
-    margin-bottom: 10px;
-  }
-
   .pf-system-killboard-graph-kills{
     width: 100%;
     height: 100px;
     position: relative;
+    margin-bottom: 30px;
+  }
+
+  .pf-system-killboard-list{
+    padding-bottom: 10px;
+    border-bottom: 1px solid $gray-darker;
+
+
+    li{
+      margin-left: 0;
+      overflow: visible;
+      min-height: 50px;
+      will-change: margin-left;
+      @include transition( margin-left 0.12s cubic-bezier(0.30, 0.80, 0.80, 1.70));
+
+      // character headline
+      h5{
+        white-space: nowrap;
+      }
+
+      // ISK headline
+      h3{
+        width: 120px;
+        display: inline-block;
+      }
+
+      .pf-system-killboard-img-corp{
+        margin-right: 10px;
+        width: 16px;
+      }
+
+      .pf-system-killboard-img-ship{
+        width: 50px;
+        margin-right: 10px;
+        border: 1px solid $gray-darker;
+        transform: translateZ(1px);
+        will-change: border-color;
+        @include border-radius(25px);
+        @include transition( border-color 0.12s ease-out);
+      }
+
+      &:before{
+        content: "\f054";
+        font-family: FontAwesome;
+        position: absolute;
+        z-index: 10;
+        left: -25px;
+        top: 15px;
+        color: $teal-dark;
+        opacity: 0;
+        will-change: opacity, left;
+        @include transition(all 0.12s ease-out);
+      }
+
+      &:hover{
+        margin-left: 20px;
+
+        .pf-system-killboard-img-ship{
+          border-color: $teal;
+        }
+
+        &:before{
+          opacity: 1;
+          left: -20px;
+        }
+      }
+
+
+    }
+
+
   }
 }
 

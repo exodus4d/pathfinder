@@ -55,7 +55,7 @@ define([
                             selectElement.select2('destroy');
 
                             var reason = status + ' ' + jqXHR.status + ': ' + error;
-                            Util.emergencyShutdown(reason);
+                            $(document).trigger('pf:shutdown', {reason: reason});
                         }
 
                     }

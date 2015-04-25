@@ -7,6 +7,7 @@
  */
 
 namespace Model;
+use Controller;
 
 class UserModel extends BasicModel {
 
@@ -257,6 +258,41 @@ class UserModel extends BasicModel {
         }
 
         return $activeUserCharacters;
+    }
+
+    /**
+     * updated the character log entry for a user character by IGB Header data
+     */
+    public function updateCharacterLog(){
+        $apiController = Controller\CcpApiController::getIGBHeaderData();
+
+        // check if IGB Data is available
+        if(! empty($apiController->values)){
+            $userCharacters = $this->getUserCharacters();
+
+            foreach($userCharacters as $userCharacter){
+                if( $userCharacter->characterId->characterId == $apiController->values['charid']){
+
+                    // check for existing character log entry
+                    $characterLog = self::getNew('CharacterLogModel');
+                    $characterLog->getByForeignKey('characterId', $apiController->values['charid']);
+
+                    $characterLog->characterId = $apiController->values['charid'];
+                    $characterLog->systemId = $apiController->values['solarsystemid'];
+                    $characterLog->systemName = $apiController->values['solarsystemname'];
+                    $characterLog->shipId = $apiController->values['shiptypeid'];
+                    $characterLog->shipName = $apiController->values['shipname'];
+                    $characterLog->shipTypeName = $apiController->values['shiptypename'];
+
+                    $characterLog->save();
+                    break;
+                }
+
+            }
+        }
+
+
+
     }
 
 

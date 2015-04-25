@@ -36,8 +36,9 @@ class CharacterLogModel extends BasicModel {
         $logData->system->name = $this->systemName;
 
         $logData->ship = (object) [];
-        $logData->ship->Id = $this->shipId;
+        $logData->ship->id = $this->shipId;
         $logData->ship->name = $this->shipName;
+        $logData->ship->typeName = $this->shipTypeName;
 
         return $logData;
     }

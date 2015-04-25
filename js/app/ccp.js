@@ -4,7 +4,40 @@
 
 define(['jquery'], function($) {
 
-    "use strict";
+    'use strict';
+
+    /**
+     * checks weather the program URL is IGB trusted or not
+     * @returns {boolean}
+     */
+    var isTrusted = function(){
+        var isPageTrusted = false;
+
+        if(isInGameBrowser()){
+            var trustedAttribute = $('body').attr('data-trusted');
+            if(trustedAttribute === '1'){
+                isPageTrusted = true;
+            }
+        }else{
+            // out of game browser is always trusted
+            isPageTrusted = true;
+        }
+
+        return isPageTrusted;
+    };
+
+    /**
+     * show IGB trust message
+     */
+    var requestTrust = function(){
+
+      if(
+          isInGameBrowser() &&
+          ! isTrusted()
+      ){
+        CCPEVE.requestTrust( location.protocol + '//' + location.host );
+      }
+    };
 
     /**
      * in-game or out-of-game browser
@@ -20,6 +53,8 @@ define(['jquery'], function($) {
     };
 
     return {
-        isInGameBrowser: isInGameBrowser
+        isInGameBrowser: isInGameBrowser,
+        isTrusted: isTrusted,
+        requestTrust: requestTrust
     };
 });

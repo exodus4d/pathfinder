@@ -28,7 +28,8 @@ define([
         addDescriptionButtonClass: 'pf-system-info-description-button',         // class for "add description" button
         moduleElementToolbarClass: 'pf-table-tools',                            // class for "module toolbar" element
         moduleToolbarActionId: 'pf-system-info-collapse-container',             // id for "module toolbar action" element
-        descriptionTextareaElementClass: 'pf-system-info-description'           // class for "description" textarea element (xEditable)
+        descriptionTextareaElementClass: 'pf-system-info-description',          // class for "description" textarea element (xEditable)
+        descriptionTextareaTooltipClass: 'pf-system-info-description-tooltip'   // class for "description" tooltip
     };
 
     // disable Module update temporary (until. some requests/animations) are finished
@@ -127,8 +128,8 @@ define([
             if(description !== systemData.description){
                 // description changed
 
-                // toolbar element
-                var toolbarElement = moduleElement.find('.' + config.moduleElementToolbarClass);
+                // description button
+                var descriptionButton = moduleElement.find('.' + config.addDescriptionButtonClass);
 
                 // set new value
                 descriptionTextareaElement.editable('setValue', systemData.description);
@@ -137,9 +138,7 @@ define([
                     // show/activate description field
 
                     // show button if value is empty
-                    toolbarElement.velocity('slideDown',{
-                        duration: animationSpeedToolbar
-                    });
+                    descriptionButton.show();
 
 
                     hideToolsActionElement();
@@ -147,10 +146,8 @@ define([
                 }else{
                     // hide/disable description field
 
-                    // hide tool buttons
-                    toolbarElement.velocity('slideUp',{
-                        duration: animationSpeedToolbar
-                    });
+                    // hide tool button
+                    descriptionButton.hide()
 
                     showToolsActionElement();
                 }
@@ -204,7 +201,7 @@ define([
                     var descriptionButton = tempModuleElement.find('.' + config.addDescriptionButtonClass);
 
                     // toolbar element
-                    var toolbarElement = tempModuleElement.find('.' + config.moduleElementToolbarClass);
+                    //var toolbarElement = tempModuleElement.find('.' + config.moduleElementToolbarClass);
 
                     // description textarea element
                     var descriptionTextareaElement =  tempModuleElement.find('.' + config.descriptionTextareaElementClass);
@@ -221,7 +218,7 @@ define([
                         onblur: 'cancel',
                         showbuttons: true,
                         value: '',  // value is set by trigger function updateSystemInfoModule()
-                        rows: 2,
+                        rows: 5,
                         name: 'description',
                         inputclass: config.descriptionTextareaElementClass,
                         params: function(params){
@@ -268,6 +265,9 @@ define([
                     descriptionTextareaElement.on('shown', function(e){
                         // disable module update until description field is open
                         disableModuleUpdate = true;
+
+                        // disable tooltip
+                        tempModuleElement.find('.' + config.descriptionTextareaTooltipClass).tooltip('disable');
                     });
 
                     // on xEditable close
@@ -275,13 +275,14 @@ define([
                         var value = $(this).editable('getValue', true);
 
                         if(value.length === 0){
-                            // show button if value is empty
 
+                            // show button if value is empty
                             hideToolsActionElement();
 
-                            toolbarElement.velocity('slideDown',{
-                                duration: animationSpeedToolbar
-                            });
+                            descriptionButton.show();
+                        }else{
+                            // enable tooltip
+                            tempModuleElement.find('.' + config.descriptionTextareaTooltipClass).tooltip('enable');
                         }
 
                         // enable module update
@@ -293,9 +294,7 @@ define([
                         e.stopPropagation();
 
                         // hide tool buttons
-                        toolbarElement.velocity('slideUp',{
-                            duration: animationSpeedToolbar
-                        });
+                        descriptionButton.hide();
 
                         // show field *before* showing the element
                         descriptionTextareaElement.editable('show');
@@ -359,7 +358,8 @@ define([
             moduleToolbarClass: config.moduleElementToolbarClass,
             descriptionButtonClass: config.addDescriptionButtonClass,
             moduleToolbarActionId: config.moduleToolbarActionId,
-            descriptionTextareaClass: config.descriptionTextareaElementClass
+            descriptionTextareaClass: config.descriptionTextareaElementClass,
+            descriptionTooltipClass: config.descriptionTextareaTooltipClass
         };
 
         Render.showModule(moduleConfig, moduleData);

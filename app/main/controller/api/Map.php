@@ -305,6 +305,9 @@ class Map extends \Controller\AccessController {
             // check if data for specific system is requested
             $systemData = (array)$f3->get('POST.systemData');
 
+            // update current location (IGB data)
+            $user->updateCharacterLog();
+
             $userData = (object) [];
             // data for the current user
             $userData->userData = $user->getData();

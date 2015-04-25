@@ -144,13 +144,6 @@ define([
             // name
             tempData.push( tempSystemData.name );
 
-            // alias
-            if( tempSystemData.name !== tempSystemData.alias){
-                tempData.push( tempSystemData.alias );
-            }else{
-                tempData.push( '' );
-            }
-
             // status
             var systemStatusClass = Util.getStatusInfoForSystem(tempSystemData.status.id, 'class');
             if(systemStatusClass !== ''){
@@ -219,10 +212,7 @@ define([
                     title: 'type',
                     width: '50px'
                 },{
-                    title: 'system',
-                    width: '50px'
-                },{
-                    title: 'alias'
+                    title: 'system'
                 },{
                     title: 'status',
                     width: '30px',
