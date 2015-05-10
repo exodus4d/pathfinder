@@ -1,3 +1,7 @@
+/**
+ * context menu
+ */
+
 define(["jquery"], function($) {
 
     "use strict";

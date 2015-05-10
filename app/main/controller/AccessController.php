@@ -20,11 +20,9 @@ class AccessController extends Controller {
      */
     function beforeroute() {
 
-        $isLoggedIn = $this->_isLoggedIn();
+        $accessRoute = $this->_isLoggedIn();
 
-        if($isLoggedIn){
-            $accessRoute = true;
-        }else{
+            /*
             $userName = 'user_exodus';
             $password = '1234567';
 
@@ -40,14 +38,14 @@ class AccessController extends Controller {
                     $this->f3->error($e->getCode(), $e->getMessage());
                 }
             }
-        }
+        */
 
 
         if(
             !$this->f3->get('AJAX') &&
             !$accessRoute
         ){
-            $this->f3->reroute('/login');
+            $this->f3->reroute('@landing');
         }
 
         parent::beforeroute();
@@ -71,29 +69,7 @@ class AccessController extends Controller {
         return $user;
     }
 
-    /**
-     * verifies weather a given username and password is valid
-     * @param $userName
-     * @param $password
-     * @return bool
-     */
-    private function _verifyUser($userName, $password) {
 
-        $verify = false;
-
-        $user =  Model\BasicModel::getNew('UserModel');
-
-        $user->getByName($userName);
-
-        $isValid = $user->verify($password);
-
-        if($isValid === true){
-            $this->_logIn($user);
-            $verify = true;
-        }
-
-        return $verify;
-    }
 
     /**
      * checks weather a user is currently logged in
@@ -124,7 +100,7 @@ class AccessController extends Controller {
                 $user->getById($this->f3->get('SESSION.user.id'));
 
                 if(! $user->dry()){
-                    $this->_logOut($user);
+                    $this->logOut();
                 }
             }
         }
@@ -132,43 +108,8 @@ class AccessController extends Controller {
         return $loggedIn;
     }
 
-    /**
-     * @param $user
-     */
-    private function _logOut($user){
-        $this->f3->clear('SESSION');
-    }
 
-    /**
-     * log user in by mapper obj
-     * @param $user
-     */
-    private function _logIn($user){
-        // user verified -> set Session login
-        $dateTime = new \DateTime();
-        $this->f3->set('SESSION.user.time', $dateTime->getTimestamp());
-        $this->f3->set('SESSION.user.name', $user->name);
-        $this->f3->set('SESSION.user.id', $user->id);
 
-        // update/check api data
-       // $this->_updateCharacterData();
-    }
-
-    /**
-     *
-     * @return bool|null
-     */
-    protected function _getUser(){
-
-        $user = Model\BasicModel::getNew('UserModel', 5);
-        $user->getById($this->f3->get('SESSION.user.id'));
-
-        if($user->dry()){
-            $user = false;
-        }
-
-        return $user;
-    }
 
 
 }

@@ -1,0 +1,60 @@
+
+$logo-stroke-width:            0px;
+
+#pf-static-logo-svg{
+  opacity: 0;
+  position: absolute;
+  z-index: 105; // over hidden logo
+  overflow: visible; // make sure shadow is visible
+
+  path{
+    will-change: fill, opacity, transform, translateZ, translateX, translateY;
+    cursor: pointer;
+    pointer-events: all;
+    @include transform( translate3d(0, 0, 0) );
+  }
+}
+
+.logo-ploygon-top-right{
+  fill: $teal-dark;
+  fill-rule: evenodd;
+  stroke: $teal-dark;
+  stroke-width: $logo-stroke-width;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+  stroke-opacity: 1;
+  fill-opacity: 1;
+}
+
+.logo-ploygon-bottom-left{
+  fill: $green;
+  fill-rule: evenodd;
+  stroke: $green;
+  stroke-width: $logo-stroke-width;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+  stroke-opacity: 1;
+  fill-opacity: 1;
+}
+
+.logo-ploygon-bottom-right{
+  fill: $teal-darker;
+  fill-rule: evenodd;
+  stroke: $teal-darker;
+  stroke-width: $logo-stroke-width;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+  stroke-opacity: 1;
+  fill-opacity: 1;
+}
+
+.logo-ploygon-top-left{
+  fill: $gray-light;
+  fill-opacity: 1;
+  fill-rule: evenodd;
+  stroke: $gray-light;
+  stroke-width: $logo-stroke-width;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+  stroke-opacity: 1;
+}

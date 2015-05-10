@@ -1,5 +1,5 @@
 /**
- * Main Application
+ * Main map application
  */
 
 define([
@@ -9,8 +9,6 @@ define([
     'app/render',
     'app/logging',
     'app/ccp',
-    'velocity',
-    'velocityUI',
     'app/ui/form_element',
     'app/page',
     'app/module_map'

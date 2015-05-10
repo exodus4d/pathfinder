@@ -1,5 +1,5 @@
 /**
- *  user settings dialog
+ *  user register/settings dialog
  */
 
 define([
@@ -25,7 +25,10 @@ define([
         settingsNextButtonClass: 'pf-dialog-next-button',                       // class for "next" button
         settingsCloneApiRowClass: 'pf-dialog-api-row',                          // class for form row with API data (will be cloned)
         settingsCloneRowButtonClass: 'pf-dialog-clone-button',                  // class for clone button (api row)
-        settingsDeleteRowButtonClass: 'pf-dialog-delete-button'                 // class for delete button (api row)
+        settingsDeleteRowButtonClass: 'pf-dialog-delete-button',                // class for delete button (api row)
+
+        // captcha
+        captchaImageId: 'pf-dialog-captcha-image'                               // id for "captcha image"
 
     };
 
@@ -42,9 +45,31 @@ define([
     };
 
     /**
-     * show "settings" dialog
+     * generates a captcha image and return as base64 image/png
+     * @param callback
      */
-    $.fn.showSettingsDialog = function(){
+    var getCaptchaImage = function(callback){
+
+        $.ajax({
+            type: 'POST',
+            url: Init.path.getCaptcha,
+            data: {},
+            dataType: 'text'
+        }).done(function(base64Image){
+
+            callback(base64Image);
+        }).fail(function( jqXHR, status, error) {
+            console.log(status)
+            console.log(error)
+            var reason = status + ' ' + error;
+            Util.showNotify({title: jqXHR.status + ': saveConfig', text: reason, type: 'warning'});
+        });
+    };
+
+    /**
+     * show "register/settings" dialog
+     */
+    $.fn.showSettingsDialog = function(register){
 
         // check navigation buttons and show/hide them
         var checkNavigationButton = function(dialog){
@@ -72,6 +97,7 @@ define([
 
             var data = {
                 id: config.settingsDialogId,
+                register: register,
                 navigationClass: config.dialogWizardNavigationClass,
                 userData: Init.currentUserData,
                 cloneApiRowClass: config.settingsCloneApiRowClass,
@@ -82,7 +108,7 @@ define([
             var content = Mustache.render(template, data);
 
             var selectCharacterDialog = bootbox.dialog({
-                title: 'Account settings',
+                title: register ? 'Register' : 'Account settings',
                 message: content,
                 buttons: {
                     close: {
@@ -139,6 +165,9 @@ define([
                                     };
 
                                     selectCharacterDialog.find('.modal-content').showLoadingAnimation();
+
+
+
                                     $.ajax({
                                         type: 'POST',
                                         url: Init.path.saveUserConfig,
@@ -146,7 +175,7 @@ define([
                                         dataType: 'json'
                                     }).done(function(responseData){
                                         selectCharacterDialog.find('.modal-content').hideLoadingAnimation();
-
+console.log(responseData)
                                         if(responseData.error){
                                             var errorAlert = form.find('.alert');
                                             for(var i = 0; i < responseData.error.length; i++){
@@ -161,7 +190,9 @@ define([
                                             });
                                         }else{
                                             // store new/updated user data -> update head
-                                            Util.setCurrentUserData(responseData.userData);
+                                            if(!register){
+                                                Util.setCurrentUserData(responseData.userData);
+                                            }
 
                                             dialogElement.find('.alert').velocity('transition.slideDownOut',{
                                                 duration: 500,
@@ -178,7 +209,10 @@ define([
                                     }).fail(function( jqXHR, status, error) {
                                         var reason = status + ' ' + error;
                                         Util.showNotify({title: jqXHR.status + ': saveConfig', text: reason, type: 'warning'});
-                                        $(document).setProgramStatus('problem');
+
+                                        if(!register){
+                                            $(document).setProgramStatus('problem');
+                                        }
 
                                         // close dialog
                                         selectCharacterDialog.modal('hide');
@@ -206,6 +240,12 @@ define([
 
                 var dialogElement = $(this);
                 var tabLinkElements = dialogElement.find('a[data-toggle="tab"]');
+
+                // request captcha image
+                getCaptchaImage(function(base64Image){
+
+                    $('#' + config.captchaImageId).attr('src', base64Image).show();
+                });
 
                 // on Tab switch ======================================================================
                 tabLinkElements.on('shown.bs.tab', function (e) {

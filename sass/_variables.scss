@@ -15,7 +15,7 @@ $bootstrap-sass-asset-helper: (twbs-font-path("") != unquote('twbs-font-path("")
 // ## Settings for some of the most global styles.
 
 //** Background color for `<body>`.
-$body-bg:               $gray-dark;
+$body-bg:               $gray-darkest;
 //** Global text color on `<body>`.
 $text-color:            $gray-light;
 

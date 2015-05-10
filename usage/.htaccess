@@ -1,0 +1,5 @@
+AuthUserFile /www/htdocs/w0128162/pathfinder.exodus4d.de/usage/.htpasswd
+AuthGroupFile /dev/null
+AuthName 'ByPassword'
+AuthType Basic
+require valid-user

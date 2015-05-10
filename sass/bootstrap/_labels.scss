@@ -12,7 +12,8 @@
   text-align: center;
   white-space: nowrap;
   vertical-align: baseline;
-  border-radius: 3px;
+  @include border-radius(3px);
+
 
   // Add hover effects, but only for links
   &[href] {

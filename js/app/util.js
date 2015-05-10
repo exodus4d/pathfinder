@@ -5,10 +5,14 @@ define([
     'jquery',
     'app/init',
     'bootbox',
+    'velocity',
+    'velocityUI',
+    'validator',
+    'xEditable',
     'easyPieChart'
 ], function($, Init, bootbox) {
 
-    "use strict";
+    'use strict';
 
     var config = {
         ajaxOverlayClass: 'pf-loading-overlay',
@@ -119,6 +123,14 @@ define([
         return duration;
     };
 
+    /**
+     * build a program URL by a given path
+     * @param path
+     * @returns {string}
+     */
+    var buildUrl = function(path){
+        return document.location.protocol + '//' + document.location.host + path;
+    };
 
     /**
      * trigger main logging event with log information
@@ -184,6 +196,35 @@ define([
                 // enable all events
                 loadingElement.css('pointer-events', 'auto');
             }
+        });
+    };
+
+    /**
+     * show "splash" loading overlay
+     * @param callback
+     */
+    $.fn.showSplashOverlay = function(callback){
+        var splashOverlay = $(this);
+
+        splashOverlay.velocity('fadeIn', {
+            duration: Init.animationSpeed.splashOverlay,
+            complete: function(){
+                // execute callback function if given
+                if(callback !== undefined){
+                    callback();
+                }
+            }
+        });
+    };
+
+    /**
+     * hide "splash" loading overlay
+     */
+    $.fn.hideSplashOverlay = function(){
+        var splashOverlay = $(this);
+
+        splashOverlay.velocity('fadeOut', {
+            duration: Init.animationSpeed.splashOverlay
         });
     };
 
@@ -954,10 +995,54 @@ define([
         }
     };
 
+    /**
+     * display a custom message (info/warning/error) to a container element
+     * @param config
+     */
+    $.fn.showMessage = function(config){
+        var containerElement = $(this);
+
+        requirejs(['text!templates/form/message.html', 'mustache'], function(template, Mustache) {
+
+            var messageTypeClass = 'alert-danger';
+            var messageTextClass = 'txt-color-danger';
+
+            switch(config.type){
+                case 'info':
+                    messageTypeClass = 'alert-info';
+                    messageTextClass = 'txt-color-information';
+                    break;
+                case 'success':
+                    messageTypeClass = 'alert-success';
+                    messageTextClass = 'txt-color-success';
+                    break;
+                case 'warning':
+                    messageTypeClass = 'alert-warning';
+                    messageTextClass = 'txt-color-warning';
+                    break;
+            }
+
+            var data = {
+                title: config.title,
+                text: config.text,
+                messageTypeClass: messageTypeClass,
+                messageTextClass: messageTextClass
+            };
+
+            var content = Mustache.render(template, data);
+
+            containerElement.html(content);
+
+            containerElement.children().first().velocity('stop').velocity('fadeIn');
+
+        });
+    };
+
     return {
         getServerTime: getServerTime,
         timeStart: timeStart,
         timeStop: timeStop,
+        buildUrl: buildUrl,
         log: log,
         showNotify: showNotify,
         getLogInfo: getLogInfo,

@@ -27,39 +27,41 @@
             {{! account tab ================================================================================================ }}
             <div role="tabpanel" class="tab-pane fade in active" id="pf-dialog-settings-account">
                 <form role="form" class="form-horizontal">
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <div class="form-group">
-                                <label class="col-sm-3 control-label">Username</label>
-                                <div class="col-sm-9">
-                                    <p class="form-control-static">{{userData.name}}</p>
+                    {{^register}}
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">Username</label>
+                                    <div class="col-sm-9">
+                                        <p class="form-control-static">{{userData.name}}</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <div class="form-group">
-                                <label class="col-sm-3 control-label">Email</label>
-                                <div class="col-sm-9">
-                                    <p class="form-control-static">
-                                        <i class="fa fa-fw fa-lg fa-pencil pull-right pf-dialog-icon-button collapsed" data-toggle="collapse" data-target="#collapseEmail" aria-expanded="false" aria-controls="collapseEmail"></i>
-                                        {{userData.email}}
-                                    </p>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">Email</label>
+                                    <div class="col-sm-9">
+                                        <p class="form-control-static">
+                                            <i class="fa fa-fw fa-lg fa-pencil pull-right pf-dialog-icon-button collapsed" data-toggle="collapse" data-target="#collapseEmail" aria-expanded="false" aria-controls="collapseEmail"></i>
+                                            {{userData.email}}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    {{/register}}
 
-                    <div id="collapseEmail" class="collapse">
+                    <div id="collapseEmail" class="{{^register}}collapse{{/register}}">
                         <div class="row">
                             <div class="col-sm-12">
                                 <div class="form-group">
                                     <label for="email" class="col-sm-3 control-label">New Email</label>
                                     <div class="col-sm-6">
                                         <div class="input-group">
-                                            <input name="email" type="email" class="form-control" id="email" value="" placeholder="my@mail.com" data-error="Email required">
+                                            <input name="email" type="email" class="form-control" id="email" value="" placeholder="my@mail.com" data-error="Email required" {{#register}}required{{/register}} >
                                             <span class="input-group-addon"><i class="fa fa-envelope"></i></span>
                                         </div>
                                         <div class="help-block with-errors"></div>
@@ -74,7 +76,7 @@
                                     <label for="email_confirm" class="col-sm-3 control-label">Confirm Email</label>
                                     <div class="col-sm-6">
                                         <div class="input-group">
-                                            <input name="email_confirm" type="email" class="form-control" id="email_confirm" value="" placeholder="my@mail.com" data-error="Email required" data-match="#email" data-match-error="Emall fields do not match">
+                                            <input name="email_confirm" type="email" class="form-control" id="email_confirm" value="" placeholder="my@mail.com" data-error="Email required" data-match="#email" data-match-error="Email fields do not match" {{#register}}required{{/register}}>
                                             <span class="input-group-addon"><i class="fa fa-envelope"></i></span>
                                         </div>
                                         <div class="help-block with-errors"></div>
@@ -84,28 +86,30 @@
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <div class="form-group">
-                                <label class="col-sm-3 control-label">Password</label>
-                                <div class="col-sm-9">
-                                    <p class="form-control-static">
-                                        <i class="fa fa-fw fa-lg fa-pencil pull-right pf-dialog-icon-button collapsed"data-toggle="collapse" data-target="#collapsePassword" aria-expanded="false" aria-controls="collapsePassword"></i>
-                                        <i class="fa fa-fw fa-ellipsis-h"></i>
-                                    </p>
+                    {{^register}}
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">Password</label>
+                                    <div class="col-sm-9">
+                                        <p class="form-control-static">
+                                            <i class="fa fa-fw fa-lg fa-pencil pull-right pf-dialog-icon-button collapsed"data-toggle="collapse" data-target="#collapsePassword" aria-expanded="false" aria-controls="collapsePassword"></i>
+                                            <i class="fa fa-fw fa-ellipsis-h"></i>
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    {{/register}}
 
-                    <div id="collapsePassword" class="collapse">
+                    <div id="collapsePassword" class="{{^register}}collapse{{/register}}">
                         <div class="row">
                             <div class="col-sm-12">
                                 <div class="form-group">
                                     <label for="password" class="col-sm-3 control-label">New Password</label>
                                     <div class="col-sm-6">
                                         <div class="input-group">
-                                            <input name="password" type="password" class="form-control" id="password" placeholder="&middot;&middot;&middot;" data-minlength="6" data-minlength-error="Min. of 6 characters">
+                                            <input name="password" type="password" class="form-control" id="password" placeholder="&middot;&middot;&middot;" data-minlength="6" data-minlength-error="Min. of 6 characters" {{#register}}required{{/register}}>
                                             <span class="input-group-addon"><i class="fa fa-lock"></i></span>
                                         </div>
                                         <div class="help-block with-errors"></div>
@@ -120,7 +124,7 @@
                                     <label for="password_confirm" class="col-sm-3 control-label">Confirm Password</label>
                                     <div class="col-sm-6">
                                         <div class="input-group">
-                                            <input name="password_confirm" type="password" class="form-control" id="password_confirm" placeholder="&middot;&middot;&middot;" data-minlength="6" data-minlength-error="Min. of 6 characters" data-match="#password" data-match-error="Password fields do not match">
+                                            <input name="password_confirm" type="password" class="form-control" id="password_confirm" placeholder="&middot;&middot;&middot;" data-minlength="6" data-minlength-error="Min. of 6 characters" data-match="#password" data-match-error="Password fields do not match" {{#register}}required{{/register}}>
                                             <span class="input-group-addon"><i class="fa fa-lock"></i></span>
                                         </div>
                                         <div class="help-block with-errors"></div>
@@ -129,6 +133,37 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label"></label>
+                                <div class="col-sm-9">
+                                    <p class="form-control-static">
+                                        <img id="pf-dialog-captcha-image" src="">
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label for="captcha" class="col-sm-3 control-label">Captcha</label>
+                                    <div class="col-sm-6">
+                                        <div class="input-group">
+                                            <input name="captcha" type="text" class="form-control" id="captcha" placeholder="" data-minlength="6" data-minlength-error="Min. of 6 characters" required>
+                                            <span class="input-group-addon"><i class="fa fa-refresh"></i></span>
+                                        </div>
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </form>
             </div>
 

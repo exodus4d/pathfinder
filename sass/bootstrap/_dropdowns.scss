@@ -41,10 +41,9 @@
   background-color: $dropdown-bg;
   border: 1px solid $dropdown-fallback-border; // IE8 fallback
   border: 1px solid $dropdown-border;
-  border-radius: $border-radius-base;
+  @include border-radius(5px);
   @include box-shadow(0 6px 12px rgba(0,0,0,.4));
   background-clip: padding-box;
-  border-radius: 5px;
 
   // Aligns the dropdown menu to right
   //

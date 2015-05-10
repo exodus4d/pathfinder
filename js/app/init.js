@@ -23,8 +23,12 @@ define(['jquery'], function($) {
         },
         path: {
           img: 'public/img/',                                       // path for images
-          initMap: 'api/map/init',                                  // ajax URL - get static data
+          // map init and trigger
+          getCaptcha: 'api/user/getCaptcha',                        // ajax URL - get captcha image
+          logIn: 'api/user/logIn',                                  // ajax URL - login
+          logOut: 'api/user/logOut',                                // ajax URL - logout
           saveUserConfig: 'api/user/saveConfig',                    // ajax URL - saves custom configuration
+          initMap: 'api/map/init',                                  // ajax URL - get static data
           updateMapData: 'api/map/updateData',                      // ajax URL - main map update trigger
           updateUserData: 'api/map/updateUserData',                 // ajax URL - main map user data trigger
           // map API
@@ -49,6 +53,7 @@ define(['jquery'], function($) {
             eveCentral: 'http://api.eve-central.com/api/'           // jump rout api
         },
         animationSpeed: {
+            splashOverlay: 300,                                     // "splash" loading overlay
             headerLink: 100,                                        // links in head bar
             mapMoveSystem: 300,                                     // system position has changed animation
             mapDeleteSystem: 200,                                   // remove system from map

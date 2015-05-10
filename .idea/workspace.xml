@@ -1,0 +1,1548 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AnalysisUIOptions">
+    <option name="SCOPE_TYPE" value="3" />
+    <option name="ANALYSIS_IN_BACKGROUND" value="true" />
+  </component>
+  <component name="BookmarkManager">
+    <bookmark url="file://$PROJECT_DIR$/app/lib/db/cortex.php" mnemonic="8" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="910fc076-a5b3-46d4-aef4-821103026334" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/img/landing/data.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/img/landing/gameplay.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/img/header_bg.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/img/landing/intel.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/img/landing/map.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/img/landing/scope.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/img/landing/signature.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/js/lib/EasePack.min.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/js/lib/TweenLite.min.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/sass/library/blue-imp-gallery/_blueimp-gallery.scss" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/sass/library/blue-imp-gallery/_bootstrap-image-gallery.scss" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/sass/layout/_landing.scss" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/sass/layout/_logo.scss" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/main/controller/appcontroller.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/js/lib/blueimp-gallery.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/js/lib/blueimp-helper.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/js/lib/bootstrap-image-gallery.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/js/app/ui/demo_map.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/templates/dialog/gallery.html" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/js/app/ui/header.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/templates/ui/header_bg.html" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/templates/view/parts/landingpage.html" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/js/app/landingpage.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/img/loading-bars.svg" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/templates/ui/logo.html" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/templates/form/message.html" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\annotated.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\arrowdown.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\arrowright.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\bc_s.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\bdwn.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classAudit-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classAudit.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classAudit.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classAuth-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classAuth.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classBase-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classBase.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classBase.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classBasket-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classBasket.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classBasket.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classBcrypt-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classBcrypt.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classBcrypt.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classCache-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classCache.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classCache.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1Cursor-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1Cursor.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1Cursor.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1Jig-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1Jig.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1Jig_1_1Mapper-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1Jig_1_1Mapper.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1Jig_1_1Mapper.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1Jig_1_1Session-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1Jig_1_1Session.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1Jig_1_1Session.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1Mongo-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1Mongo.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1Mongo.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1Mongo_1_1Mapper-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1Mongo_1_1Mapper.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1Mongo_1_1Mapper.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1Mongo_1_1Session-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1Mongo_1_1Session.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1Mongo_1_1Session.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1SQL-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1SQL.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1SQL.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1SQL_1_1Mapper-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1SQL_1_1Mapper.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1SQL_1_1Mapper.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1SQL_1_1Session-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1SQL_1_1Session.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classDB_1_1SQL_1_1Session.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classF3-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classF3.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classISO-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classISO.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classISO.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classImage-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classImage.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classLog-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classLog.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classMagic-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classMagic.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classMagic.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classMarkdown-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classMarkdown.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classMarkdown.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classMatrix-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classMatrix.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classMatrix.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classPrefab-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classPrefab.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classPrefab.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classPreview-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classPreview.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classPreview.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classRegistry-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classRegistry.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classSMTP-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classSMTP.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classSMTP.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classSession-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classSession.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classTemplate-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classTemplate.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classTemplate.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classTest-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classTest.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classUTF-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classUTF.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classUTF.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classView-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classView.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classView.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classWeb-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classWeb.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classWeb.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classWeb_1_1Geo-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classWeb_1_1Geo.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classWeb_1_1Geo.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classWeb_1_1Google_1_1StaticMap-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classWeb_1_1Google_1_1StaticMap.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classWeb_1_1OpenID-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classWeb_1_1OpenID.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classWeb_1_1OpenID.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classWeb_1_1Pingback-members.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classWeb_1_1Pingback.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classWeb_1_1Pingback.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\classes.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\closed.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\dir_3a960e52dd9a2c9686c19ff6ef19d5fb.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\dir_562abdcd8625d4bf7bad2fe6fe01354c.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\dir_60985a986063d10a97c0bb7f42d76d6f.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\dir_826b1e4cd13f4e7f528ca52e638927e5.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\dir_9d4753e6cb22f68b75f0462ac2496f38.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\dir_ce5981f09099a3fa6071b9eb8fe67a2c.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\doc.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\doxygen.css" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\doxygen.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\doxygen_8h_source.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\dynsections.js" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\folderclosed.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\folderopen.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\ftv2blank.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\ftv2cl.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\ftv2doc.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\ftv2folderclosed.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\ftv2folderopen.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\ftv2lastnode.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\ftv2link.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\ftv2mlastnode.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\ftv2mnode.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\ftv2mo.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\ftv2node.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\ftv2ns.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\ftv2plastnode.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\ftv2pnode.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\ftv2splitbar.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\ftv2vertline.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_0x5f.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_0x61.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_0x62.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_0x63.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_0x64.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_0x65.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_0x66.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_0x67.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_0x68.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_0x69.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_0x6a.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_0x6c.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_0x6d.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_0x6e.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_0x6f.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_0x70.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_0x71.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_0x72.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_0x73.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_0x74.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_0x75.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_0x76.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_0x77.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_0x78.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions__.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_a.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_b.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_c.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_d.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_e.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_f.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_0x61.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_0x62.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_0x63.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_0x64.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_0x65.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_0x66.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_0x67.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_0x68.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_0x69.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_0x6a.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_0x6c.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_0x6d.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_0x6e.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_0x6f.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_0x70.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_0x71.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_0x72.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_0x73.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_0x74.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_0x75.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_0x76.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_0x77.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_0x78.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_a.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_b.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_c.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_d.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_e.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_f.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_g.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_h.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_i.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_j.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_k.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_l.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_m.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_n.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_o.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_p.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_q.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_r.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_s.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_t.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_u.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_v.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_func_w.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_g.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_h.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_i.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_j.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_k.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_l.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_m.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_n.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_o.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_p.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_q.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_r.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_s.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_t.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_u.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_v.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_vars.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\functions_w.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\hierarchy.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\index.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\jquery.js" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\nav_f.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\nav_g.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\nav_h.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\open.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\splitbar.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\sync_off.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\sync_on.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\tab_a.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\tab_b.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\tab_h.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\tab_s.png" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\app\lib\api\tabs.css" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\public\templates\view\login.html" afterPath="" />
+      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\public\templates\view\map.html" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.htaccess" afterPath="$PROJECT_DIR$/.htaccess" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/layout/_all.scss" afterPath="$PROJECT_DIR$/sass/layout/_all.scss" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/layout/_dialogs.scss" afterPath="$PROJECT_DIR$/sass/layout/_dialogs.scss" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/bootstrap/_dropdowns.scss" afterPath="$PROJECT_DIR$/sass/bootstrap/_dropdowns.scss" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/bootstrap/_labels.scss" afterPath="$PROJECT_DIR$/sass/bootstrap/_labels.scss" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/layout/_main.scss" afterPath="$PROJECT_DIR$/sass/layout/_main.scss" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/bootstrap/_modals.scss" afterPath="$PROJECT_DIR$/sass/bootstrap/_modals.scss" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/_variables.scss" afterPath="$PROJECT_DIR$/sass/_variables.scss" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app.js" afterPath="$PROJECT_DIR$/js/app.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/node_modules/.bin/build.js" afterPath="$PROJECT_DIR$/node_modules/.bin/build.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/config.cfg" afterPath="$PROJECT_DIR$/app/config.cfg" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/map/contextmenu.js" afterPath="$PROJECT_DIR$/js/app/map/contextmenu.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/templates/dialog/credit.html" afterPath="$PROJECT_DIR$/public/templates/dialog/credit.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/dialog/credit.js" afterPath="$PROJECT_DIR$/js/app/ui/dialog/credit.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/deployment.xml" afterPath="$PROJECT_DIR$/.idea/deployment.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/dictionaries/exodus4d.xml" afterPath="$PROJECT_DIR$/.idea/dictionaries/exodus4d.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.php" afterPath="$PROJECT_DIR$/index.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/init.js" afterPath="$PROJECT_DIR$/js/app/init.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/lib/jquery.dragToSelect.js" afterPath="$PROJECT_DIR$/js/lib/jquery.dragToSelect.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/logo.js" afterPath="$PROJECT_DIR$/js/app/ui/logo.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/main.js" afterPath="$PROJECT_DIR$/js/app/main.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/map/map.js" afterPath="$PROJECT_DIR$/js/app/map/map.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/module_map.js" afterPath="$PROJECT_DIR$/js/app/module_map.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/page.js" afterPath="$PROJECT_DIR$/js/app/page.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/css/pathfinder.css" afterPath="$PROJECT_DIR$/public/css/pathfinder.css" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/pathfinder.scss" afterPath="$PROJECT_DIR$/sass/pathfinder.scss" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/routes.cfg" afterPath="$PROJECT_DIR$/app/routes.cfg" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/templates/dialog/settings.html" afterPath="$PROJECT_DIR$/public/templates/dialog/settings.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/dialog/settings.js" afterPath="$PROJECT_DIR$/js/app/ui/dialog/settings.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/util.js" afterPath="$PROJECT_DIR$/js/app/util.js" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/app/main/controller/accesscontroller.php" afterPath="$PROJECT_DIR$/app/main/controller/accesscontroller.php" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/app/main/controller/api/user.php" afterPath="$PROJECT_DIR$/app/main/controller/api/user.php" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/app/main/controller/controller.php" afterPath="$PROJECT_DIR$/app/main/controller/controller.php" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/app/main/controller/mapcontroller.php" afterPath="$PROJECT_DIR$/app/main/controller/mapcontroller.php" />
+    </list>
+    <ignored path="pathfinder.iws" />
+    <ignored path=".idea/workspace.xml" />
+    <option name="TRACKING_ENABLED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ChangesViewManager" flattened_view="false" show_ignored="false" />
+  <component name="CreatePatchCommitExecutor">
+    <option name="PATCH_PATH" value="" />
+  </component>
+  <component name="DaemonCodeAnalyzer">
+    <disable_hints />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
+  <component name="FavoritesManager">
+    <favorites_list name="pathfinder">
+      <favorite_root url="file://$PROJECT_DIR$/js/app/map/map.js" type="psiFile" klass="com.intellij.ide.projectView.impl.nodes.PsiFileNode" />
+      <favorite_root url="file://$PROJECT_DIR$/js/app/main.js" type="psiFile" klass="com.intellij.ide.projectView.impl.nodes.PsiFileNode" />
+      <favorite_root url="file://$PROJECT_DIR$/js/app/module_map.js" type="psiFile" klass="com.intellij.ide.projectView.impl.nodes.PsiFileNode" />
+      <favorite_root url="file://$PROJECT_DIR$/js/app/page.js" type="psiFile" klass="com.intellij.ide.projectView.impl.nodes.PsiFileNode" />
+      <favorite_root url="file://$PROJECT_DIR$/js/app/init.js" type="psiFile" klass="com.intellij.ide.projectView.impl.nodes.PsiFileNode" />
+      <favorite_root url="file://$PROJECT_DIR$/js/app/util.js" type="psiFile" klass="com.intellij.ide.projectView.impl.nodes.PsiFileNode" />
+      <favorite_root url="file://$PROJECT_DIR$/js/app.js" type="psiFile" klass="com.intellij.ide.projectView.impl.nodes.PsiFileNode" />
+    </favorites_list>
+  </component>
+  <component name="FileEditorManager">
+    <splitter split-orientation="horizontal" split-proportion="0.40114874">
+      <split-first>
+        <leaf>
+          <file leaf-file-name="landingpage.html" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/public/templates/view/parts/landingpage.html">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="170" column="76" selection-start="7606" selection-end="7606" vertical-scroll-proportion="-42.25926" vertical-offset="1919" max-vertical-offset="4644">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="index.html" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/public/templates/view/index.html">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="49" column="23" selection-start="2570" selection-end="2570" vertical-scroll-proportion="-32.666668" vertical-offset="0" max-vertical-offset="1062">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name=".gitignore" pinned="false" current="true" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/.gitignore">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="48" column="11" selection-start="664" selection-end="664" vertical-scroll-proportion="0.647191" vertical-offset="0" max-vertical-offset="1335">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="map.js" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/js/app/ui/dialog/map.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="20" column="21" selection-start="413" selection-end="413" vertical-scroll-proportion="0.0" vertical-offset="360" max-vertical-offset="2682">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="config.rb" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/config.rb">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="33" column="0" selection-start="1029" selection-end="1029" vertical-scroll-proportion="0.0" vertical-offset="594" max-vertical-offset="702">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name=".htaccess" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/.htaccess">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="26" column="81" selection-start="842" selection-end="842" vertical-scroll-proportion="0.0" vertical-offset="468" max-vertical-offset="576">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="index.php" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/index.php">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="6" column="0" selection-start="114" selection-end="114" vertical-scroll-proportion="0.0" vertical-offset="108" max-vertical-offset="360">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="appcontroller.php" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/app/main/controller/appcontroller.php">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="648">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="app.js" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/js/app.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="2" column="14" selection-start="34" selection-end="34" vertical-scroll-proportion="0.0" vertical-offset="36" max-vertical-offset="2304">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="mapcontroller.php" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/app/main/controller/mapcontroller.php">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1224">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+        </leaf>
+      </split-first>
+      <split-second>
+        <splitter split-orientation="horizontal" split-proportion="0.50877964">
+          <split-first>
+            <leaf>
+              <file leaf-file-name="landingpage.js" pinned="false" current="false" current-in-tab="true">
+                <entry file="file://$PROJECT_DIR$/js/app/landingpage.js">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state line="212" column="16" selection-start="6906" selection-end="6906" vertical-scroll-proportion="1.2669231" vertical-offset="2169" max-vertical-offset="4032">
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="usercharactermodel.php" pinned="false" current="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/app/main/model/usercharactermodel.php">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2466">
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="usermapmodel.php" pinned="false" current="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/app/main/model/usermapmodel.php">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="612">
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="usermodel.php" pinned="false" current="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/app/main/model/usermodel.php">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state line="37" column="33" selection-start="745" selection-end="745" vertical-scroll-proportion="0.0" vertical-offset="666" max-vertical-offset="5472">
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="system_info.js" pinned="false" current="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/js/app/ui/system_info.js">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="7596">
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="systemstatusmodel.php" pinned="false" current="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/app/main/model/systemstatusmodel.php">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="360">
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="logo.js" pinned="false" current="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/js/app/ui/logo.js">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state line="104" column="54" selection-start="3726" selection-end="3726" vertical-scroll-proportion="0.0" vertical-offset="1872" max-vertical-offset="2754">
+                      <folding>
+                        <marker date="1431030062530" expanded="true" signature="77:5911" placeholder="{...}" />
+                        <marker date="1431030062530" expanded="true" signature="805:5907" placeholder="{...}" />
+                        <marker date="1431030062530" expanded="true" signature="2036:5899" placeholder="{...}" />
+                      </folding>
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="_logo.scss" pinned="false" current="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/sass/layout/_logo.scss">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state line="11" column="20" selection-start="291" selection-end="291" vertical-scroll-proportion="0.0" vertical-offset="198" max-vertical-offset="1170">
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="logo.html" pinned="false" current="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/public/templates/ui/logo.html">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state line="12" column="66" selection-start="932" selection-end="932" vertical-scroll-proportion="0.0" vertical-offset="216" max-vertical-offset="360">
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="header.js" pinned="false" current="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/js/app/ui/header.js">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state line="129" column="38" selection-start="3790" selection-end="3790" vertical-scroll-proportion="0.0" vertical-offset="2322" max-vertical-offset="4338">
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+            </leaf>
+          </split-first>
+          <split-second>
+            <leaf>
+              <file leaf-file-name="_main.scss" pinned="false" current="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/sass/layout/_main.scss">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state line="67" column="2" selection-start="1103" selection-end="1145" vertical-scroll-proportion="0.0" vertical-offset="4536" max-vertical-offset="14436">
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="_map.scss" pinned="false" current="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/sass/layout/_map.scss">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state line="137" column="6" selection-start="3207" selection-end="3256" vertical-scroll-proportion="0.0" vertical-offset="1512" max-vertical-offset="7830">
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="init.js" pinned="false" current="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/js/app/init.js">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state line="27" column="87" selection-start="1212" selection-end="1212" vertical-scroll-proportion="0.0" vertical-offset="486" max-vertical-offset="20070">
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="config.rb" pinned="false" current="false" current-in-tab="true">
+                <entry file="file://$PROJECT_DIR$/config.rb">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state line="33" column="0" selection-start="1029" selection-end="1029" vertical-scroll-proportion="0.45239908" vertical-offset="0" max-vertical-offset="1313">
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="mapmodel.php" pinned="false" current="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/app/main/model/mapmodel.php">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state line="342" column="13" selection-start="9249" selection-end="9249" vertical-scroll-proportion="0.0" vertical-offset="6156" max-vertical-offset="6408">
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="usercharactermodel.php" pinned="false" current="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/app/main/model/usercharactermodel.php">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state line="51" column="9" selection-start="1087" selection-end="1087" vertical-scroll-proportion="0.0" vertical-offset="918" max-vertical-offset="2466">
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="_colors.scss" pinned="false" current="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/sass/_colors.scss">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state line="9" column="31" selection-start="197" selection-end="203" vertical-scroll-proportion="0.0" vertical-offset="162" max-vertical-offset="1566">
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="_landing.scss" pinned="false" current="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/sass/layout/_landing.scss">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state line="190" column="3" selection-start="3783" selection-end="3783" vertical-scroll-proportion="0.0" vertical-offset="3420" max-vertical-offset="5094">
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="map.php" pinned="false" current="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/app/main/controller/api/map.php">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state line="44" column="8" selection-start="840" selection-end="892" vertical-scroll-proportion="0.0" vertical-offset="792" max-vertical-offset="6516">
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+            </leaf>
+          </split-second>
+        </splitter>
+      </split-second>
+    </splitter>
+  </component>
+  <component name="FindManager">
+    <FindUsagesManager>
+      <setting name="OPEN_NEW_TAB" value="false" />
+    </FindUsagesManager>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GithubProjectSettings">
+    <option name="CREATE_PULL_REQUEST_DEFAULT_REPO_USER" value="exodus4d" />
+    <option name="CREATE_PULL_REQUEST_DEFAULT_REPO_NAME" value="pathfinder" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="changedFiles">
+      <list>
+        <option value="$PROJECT_DIR$/public/img/loading-bars.svg" />
+        <option value="$PROJECT_DIR$/js/app/main.js" />
+        <option value="$PROJECT_DIR$/sass/layout/_main.scss" />
+        <option value="$PROJECT_DIR$/app/main/controller/MapController.php" />
+        <option value="$PROJECT_DIR$/sass/_variables.scss" />
+        <option value="$PROJECT_DIR$/public/templates/dialog/credit.html" />
+        <option value="$PROJECT_DIR$/js/app/ui/dialog/credit.js" />
+        <option value="$PROJECT_DIR$/sass/layout/_dialogs.scss" />
+        <option value="$PROJECT_DIR$/sass/_colors.scss" />
+        <option value="$PROJECT_DIR$/public/templates/ui/header_bg.html" />
+        <option value="$PROJECT_DIR$/sass/layout/_splash.scss" />
+        <option value="$PROJECT_DIR$/public/templates/view/parts/splash.html" />
+        <option value="$PROJECT_DIR$/sass/layout/_all.scss" />
+        <option value="$PROJECT_DIR$/js/app/splash.js" />
+        <option value="$PROJECT_DIR$/js/app/map/map.js" />
+        <option value="$PROJECT_DIR$/js/app/module_map.js" />
+        <option value="$PROJECT_DIR$/public/templates/form/message.html" />
+        <option value="$PROJECT_DIR$/app/main/controller/AppController.php" />
+        <option value="$PROJECT_DIR$/js/app/util.js" />
+        <option value="$PROJECT_DIR$/js/app/page.js" />
+        <option value="$PROJECT_DIR$/app/main/controller/AccessController.php" />
+        <option value="$PROJECT_DIR$/app/routes.cfg" />
+        <option value="$PROJECT_DIR$/app/main/controller/Controller.php" />
+        <option value="$PROJECT_DIR$/js/app/ui/demo_map.js" />
+        <option value="$PROJECT_DIR$/js/lib/blueimp-helper.js" />
+        <option value="$PROJECT_DIR$/js/lib/bootstrap-image-gallery.js" />
+        <option value="$PROJECT_DIR$/js/lib/blueimp-gallery.js" />
+        <option value="$PROJECT_DIR$/public/templates/modules/gallery.html" />
+        <option value="$PROJECT_DIR$/sass/bootstrap/_modals.scss" />
+        <option value="$PROJECT_DIR$/js/lib/bootstrap-image-gallery.min.js" />
+        <option value="$PROJECT_DIR$/sass/pathfinder.scss" />
+        <option value="$PROJECT_DIR$/sass/library/blue-imp-gallery/_blueimp-gallery.scss" />
+        <option value="$PROJECT_DIR$/public/templates/dialog/gallery.html" />
+        <option value="$PROJECT_DIR$/js/lib/jquery.dragToSelect.js" />
+        <option value="$PROJECT_DIR$/sass/layout/_landing.scss" />
+        <option value="$PROJECT_DIR$/js/app/init.js" />
+        <option value="$PROJECT_DIR$/js/app/ui/dialog/settings.js" />
+        <option value="$PROJECT_DIR$/app/main/controller/api/User.php" />
+        <option value="$PROJECT_DIR$/public/templates/dialog/settings.html" />
+        <option value="$PROJECT_DIR$/node_modules/.bin/build.js" />
+        <option value="$PROJECT_DIR$/.htaccess" />
+        <option value="$PROJECT_DIR$/app/config.cfg" />
+        <option value="$PROJECT_DIR$/public/templates/view/index.html" />
+        <option value="$PROJECT_DIR$/js/app.js" />
+        <option value="$PROJECT_DIR$/sass/layout/_logo.scss" />
+        <option value="$PROJECT_DIR$/public/templates/ui/logo.html" />
+        <option value="$PROJECT_DIR$/js/app/ui/logo.js" />
+        <option value="$PROJECT_DIR$/js/app/landingpage.js" />
+        <option value="$PROJECT_DIR$/js/app/ui/header.js" />
+        <option value="$PROJECT_DIR$/public/templates/view/parts/landingpage.html" />
+        <option value="$PROJECT_DIR$/.gitignore" />
+      </list>
+    </option>
+  </component>
+  <component name="PhpWorkspaceProjectConfiguration" backward_compatibility_performed="true" />
+  <component name="ProjectFrameBounds">
+    <option name="x" value="-2" />
+    <option name="y" value="10" />
+    <option name="width" value="3786" />
+    <option name="height" value="2058" />
+  </component>
+  <component name="ProjectInspectionProfilesVisibleTreeState">
+    <entry key="Project Default">
+      <profile-state>
+        <expanded-state>
+          <State>
+            <id />
+          </State>
+          <State>
+            <id>DOM issuesJavaScript</id>
+          </State>
+          <State>
+            <id>Data flow issuesJavaScript</id>
+          </State>
+          <State>
+            <id>GeneralJavaScript</id>
+          </State>
+          <State>
+            <id>HTML</id>
+          </State>
+          <State>
+            <id>JavaScript</id>
+          </State>
+          <State>
+            <id>Potentially confusing code constructsJavaScript</id>
+          </State>
+          <State>
+            <id>SQL</id>
+          </State>
+        </expanded-state>
+        <selected-state>
+          <State>
+            <id>CoffeeScript</id>
+          </State>
+        </selected-state>
+      </profile-state>
+    </entry>
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <OptionsSetting value="true" id="Add" />
+    <OptionsSetting value="true" id="Remove" />
+    <OptionsSetting value="true" id="Checkout" />
+    <OptionsSetting value="true" id="Update" />
+    <OptionsSetting value="true" id="Status" />
+    <OptionsSetting value="true" id="Edit" />
+    <ConfirmationsSetting value="0" id="Add" />
+    <ConfirmationsSetting value="0" id="Remove" />
+  </component>
+  <component name="ProjectReloadState">
+    <option name="STATE" value="0" />
+  </component>
+  <component name="ProjectView">
+    <navigator currentView="ProjectPane" proportions="" version="1" splitterProportion="0.5">
+      <flattenPackages />
+      <showMembers ProjectPane="false" />
+      <showModules />
+      <showLibraryContents />
+      <hideEmptyPackages />
+      <abbreviatePackageNames />
+      <autoscrollToSource ProjectPane="true" />
+      <autoscrollFromSource ProjectPane="false" />
+      <sortByType />
+    </navigator>
+    <panes>
+      <pane id="Scope">
+        <subPane subId="Project Files">
+          <PATH>
+            <PATH_ELEMENT USER_OBJECT="Root">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="pathfinder">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT USER_OBJECT="Root">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="pathfinder">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="app">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT USER_OBJECT="Root">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="pathfinder">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="app">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="main">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT USER_OBJECT="Root">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="pathfinder">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="app">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="main">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="controller">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT USER_OBJECT="Root">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="pathfinder">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="app">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="main">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="controller">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="api">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
+      <pane id="ProjectPane">
+        <subPane>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pathfinder" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pathfinder" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pathfinder" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="options.lastSelected" value="vcs.Git" />
+    <property name="options.splitter.main.proportions" value="0.3" />
+    <property name="options.splitter.details.proportions" value="0.2" />
+    <property name="options.searchVisible" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/tmp" />
+    <property name="WebServerToolWindowFactoryState" value="true" />
+    <property name="FullScreen" value="false" />
+    <property name="recentsLimit" value="5" />
+    <property name="restartRequiresConfirmation" value="true" />
+    <property name="DefaultHtmlFileTemplate" value="Html5" />
+    <property name="SearchEverywhereHistory" value="Galler&#10;'&#10;$&#10;," />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth0" value="137" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder0" value="0" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth1" value="140" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder1" value="1" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth2" value="145" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder2" value="2" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth3" value="815" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder3" value="3" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth0" value="147" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder0" value="0" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth1" value="136" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder1" value="1" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth2" value="142" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder2" value="2" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth3" value="812" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder3" value="3" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
+    <property name="WebServerToolWindowPanel.toolwindow.highlight.symlinks" value="true" />
+    <property name="WebServerToolWindowPanel.toolwindow.highlight.mappings" value="true" />
+    <property name="dynamic.classpath" value="false" />
+    <property name="LayoutCode.rearrangeEntriesPHP" value="false" />
+    <property name="JavaScriptLanguageLevel" value="JS_1_8_5" />
+    <property name="JavaScriptPreferStrict" value="true" />
+    <property name="JavaScriptWeakerCompletionTypeGuess" value="true" />
+    <property name="LayoutCode.rearrangeEntriesJavaScript 1.8" value="false" />
+    <property name="LayoutCode.rearrangeEntriesHTML" value="false" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="F:\webpages\exodus4d\pathfinder\js\lib" />
+      <recent name="F:\webpages\exodus4d\pathfinder\sass\library\blue-imp-gallery" />
+      <recent name="F:\webpages\exodus4d\pathfinder\js\lib\datatables" />
+      <recent name="F:\webpages\exodus4d\pathfinder\js\lib\datatables\extensions" />
+      <recent name="F:\webpages\exodus4d\pathfinder\public\img" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="F:\webpages\exodus4d\pathfinder\public\templates\dialog" />
+      <recent name="F:\webpages\exodus4d\pathfinder\js\lib" />
+      <recent name="F:\webpages\exodus4d\pathfinder\public\img" />
+      <recent name="F:\webpages\exodus4d\pathfinder\js\app\ui\dialog" />
+      <recent name="F:\webpages\exodus4d\pathfinder\app\main\controller" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Node.js.pathfinder">
+    <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
+      <TestRunner />
+      <method />
+    </configuration>
+    <configuration default="true" type="PhpLocalRunConfigurationType" factoryName="PHP Console">
+      <method />
+    </configuration>
+    <configuration default="true" type="JavascriptDebugType" factoryName="JavaScript Debug" singleton="true">
+      <method />
+    </configuration>
+    <configuration default="true" type="NodeJSConfigurationType" factoryName="Node.js" working-dir="">
+      <browser start="false" url="" with-js-debugger="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="PhpUnitRemoteRunConfigurationType" factoryName="PHPUnit on Server" server_id="f216e6fb-f4a4-4dfb-9ca5-7327f48a8c7a" server_name="pathfinder.exodus4d.de">
+      <method />
+    </configuration>
+    <configuration default="true" type="com.intellij.persistence.run.ConsoleRunConfigurationType" factoryName="Query Language Console">
+      <option name="VM_PARAMETERS" value="" />
+      <option name="USER_CFG_CLASS" />
+      <option name="CONTEXT_PROVIDER" />
+      <method />
+    </configuration>
+    <configuration default="false" name="pathfinder" type="NodeJSConfigurationType" factoryName="Node.js" path-to-node="C:/Program Files/nodejs/node" path-to-js-file=".bin/r.js" node-parameters=" -o build.js" working-dir="$PROJECT_DIR$/node_modules">
+      <browser start="false" url="" with-js-debugger="false" />
+      <RunnerSettings RunnerId="NodeJS.run" />
+      <ConfigurationWrapper RunnerId="NodeJS.run" />
+      <method />
+    </configuration>
+    <list size="1">
+      <item index="0" class="java.lang.String" itemvalue="Node.js.pathfinder" />
+    </list>
+  </component>
+  <component name="ShelveChangesManager" show_recycled="false" />
+  <component name="StructureViewFactory">
+    <option name="ACTIVE_ACTIONS" value="Show Constants,,VISIBILITY_SORTER,Show Fields" />
+    <option name="SHOW_TOOLBAR" value="true" />
+  </component>
+  <component name="SvnConfiguration" maxAnnotateRevisions="500" myUseAcceleration="nothing" myAutoUpdateAfterCommit="false" cleanupOnStartRun="false" SSL_PROTOCOLS="all">
+    <option name="USER" value="" />
+    <option name="PASSWORD" value="" />
+    <option name="mySSHConnectionTimeout" value="30000" />
+    <option name="mySSHReadTimeout" value="30000" />
+    <option name="LAST_MERGED_REVISION" />
+    <option name="MERGE_DRY_RUN" value="false" />
+    <option name="MERGE_DIFF_USE_ANCESTRY" value="true" />
+    <option name="UPDATE_LOCK_ON_DEMAND" value="false" />
+    <option name="IGNORE_SPACES_IN_MERGE" value="false" />
+    <option name="CHECK_NESTED_FOR_QUICK_MERGE" value="false" />
+    <option name="IGNORE_SPACES_IN_ANNOTATE" value="true" />
+    <option name="SHOW_MERGE_SOURCES_IN_ANNOTATE" value="true" />
+    <option name="FORCE_UPDATE" value="false" />
+    <option name="IGNORE_EXTERNALS" value="false" />
+    <myIsUseDefaultProxy>false</myIsUseDefaultProxy>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="910fc076-a5b3-46d4-aef4-821103026334" name="Default" comment="" />
+      <created>1414352777170</created>
+      <updated>1414352777170</updated>
+    </task>
+    <task id="LOCAL-00001" summary="project structure">
+      <created>1414356205511</created>
+      <updated>1414356205511</updated>
+    </task>
+    <task id="LOCAL-00002" summary="project structure">
+      <created>1414356664702</created>
+      <updated>1414356664702</updated>
+    </task>
+    <task id="LOCAL-00003" summary="project structure">
+      <created>1414357670855</created>
+      <updated>1414357670855</updated>
+    </task>
+    <task id="LOCAL-00004" summary="new ma functions">
+      <created>1414883951634</created>
+      <updated>1414883951634</updated>
+    </task>
+    <task id="LOCAL-00005" summary="multiple map instances support added">
+      <created>1414967051717</created>
+      <updated>1414967051717</updated>
+    </task>
+    <task id="LOCAL-00006" summary="multiple map instances support added">
+      <created>1415116090865</created>
+      <updated>1415116090865</updated>
+    </task>
+    <task id="LOCAL-00007" summary="multiple bug fixes and improvements. 1st sig-table iteration.">
+      <created>1415456761835</created>
+      <updated>1415456761835</updated>
+    </task>
+    <task id="LOCAL-00008" summary="system signature table update">
+      <created>1416065112231</created>
+      <updated>1416065112231</updated>
+    </task>
+    <task id="LOCAL-00009" summary="update system-info module">
+      <created>1416676794838</created>
+      <updated>1416676794838</updated>
+    </task>
+    <task id="LOCAL-00010" summary="update system-info module">
+      <created>1417364769008</created>
+      <updated>1417364769008</updated>
+    </task>
+    <task id="LOCAL-00011" summary="update system-info module">
+      <created>1418080204363</created>
+      <updated>1418080204363</updated>
+    </task>
+    <task id="LOCAL-00012" summary="page structure (navigation) + small stuff">
+      <created>1418488601648</created>
+      <updated>1418488601648</updated>
+    </task>
+    <task id="LOCAL-00013" summary="map legend dialog">
+      <created>1419316629324</created>
+      <updated>1419316629324</updated>
+    </task>
+    <task id="LOCAL-00014" summary="map connection scopes">
+      <created>1419784347066</created>
+      <updated>1419784347066</updated>
+    </task>
+    <task id="LOCAL-00015" summary="map update logic">
+      <created>1421274127102</created>
+      <updated>1421274127102</updated>
+    </task>
+    <task id="LOCAL-00016" summary="map update logic">
+      <created>1422032464059</created>
+      <updated>1422032464059</updated>
+    </task>
+    <task id="LOCAL-00017" summary="added &quot;task manager&quot; and map animations">
+      <created>1423404408325</created>
+      <updated>1423404408325</updated>
+    </task>
+    <task id="LOCAL-00018" summary="F3 PHP framework integration, Ajax API for &quot;add new system&quot;">
+      <created>1424039465620</created>
+      <updated>1424039465620</updated>
+    </task>
+    <task id="LOCAL-00019" summary="map/system/connection update functionality (backend)">
+      <created>1425128904362</created>
+      <updated>1425128904362</updated>
+    </task>
+    <task id="LOCAL-00020" summary="map info module improvements, new system graph module, map info module refactoring, new CCP API Cronjob (jumps, kills,...)">
+      <created>1426449356582</created>
+      <updated>1426449356582</updated>
+    </task>
+    <task id="LOCAL-00021" summary="userData implementation">
+      <created>1427751868535</created>
+      <updated>1427751868535</updated>
+    </task>
+    <task id="LOCAL-00022" summary="userData implementation">
+      <created>1428770815133</created>
+      <updated>1428770815133</updated>
+    </task>
+    <task id="LOCAL-00023" summary="map info element improvements">
+      <created>1429649920521</created>
+      <updated>1429649920521</updated>
+    </task>
+    <task id="LOCAL-00024" summary="IGB Header support implemented">
+      <created>1429976622675</created>
+      <updated>1429976622675</updated>
+    </task>
+    <task id="LOCAL-00025" summary="splashpage fixes and UNIX lowercase PHP files">
+      <created>1431273951153</created>
+      <updated>1431273951153</updated>
+    </task>
+    <task id="LOCAL-00026" summary="splashpage fixes and UNIX lowercase PHP files">
+      <created>1431274534954</created>
+      <updated>1431274534954</updated>
+    </task>
+    <option name="localTasksCounter" value="27" />
+    <servers />
+  </component>
+  <component name="TodoView" selected-index="0">
+    <todo-panel id="selected-file">
+      <are-packages-shown value="false" />
+      <are-modules-shown value="false" />
+      <flatten-packages value="false" />
+      <is-autoscroll-to-source value="false" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="false" />
+      <are-modules-shown value="false" />
+      <flatten-packages value="false" />
+      <is-autoscroll-to-source value="false" />
+    </todo-panel>
+    <todo-panel id="default-changelist">
+      <are-packages-shown value="false" />
+      <are-modules-shown value="false" />
+      <flatten-packages value="false" />
+      <is-autoscroll-to-source value="false" />
+    </todo-panel>
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="-2" y="10" width="3786" height="2058" extended-state="0" />
+    <editor active="false" />
+    <layout>
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.22373949" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Changes" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.28466386" sideWeight="0.45581114" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.28466386" sideWeight="0.54418886" order="12" side_tool="true" content_ui="tabs" x="945" y="556" width="1373" height="181" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.14708835" sideWeight="0.41469195" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.06424434" sideWeight="0.50251" order="4" side_tool="true" content_ui="tabs" x="1667" y="651" width="475" height="815" />
+      <window_info id="Structure" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.06424434" sideWeight="0.49748996" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Remote Host" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.061468866" sideWeight="0.45030737" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.1137339" sideWeight="0.5808685" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.063717745" sideWeight="0.50100404" order="3" side_tool="true" content_ui="tabs" x="2380" y="542" width="342" height="659" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32949877" sideWeight="0.5002055" order="6" side_tool="true" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.12184874" sideWeight="0.326284" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.20080322" sideWeight="0.4011901" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="File Transfer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3277311" sideWeight="0.49848944" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.1880252" sideWeight="0.46072507" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.15712851" sideWeight="0.49984515" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+    </layout>
+    <layout-to-restore>
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="File Transfer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3281787" sideWeight="0.49871793" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.14981855" sideWeight="0.45715195" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.120983936" sideWeight="0.6690363" order="12" side_tool="true" content_ui="tabs" x="945" y="556" width="1373" height="181" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.1746988" sideWeight="0.4641403" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.06424434" sideWeight="0.50251" order="4" side_tool="true" content_ui="tabs" x="1667" y="651" width="475" height="815" />
+      <window_info id="Remote Host" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.061468866" sideWeight="0.45030737" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32949877" sideWeight="0.5002055" order="6" side_tool="true" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.063717745" sideWeight="0.50100404" order="3" side_tool="true" content_ui="tabs" x="2380" y="542" width="342" height="659" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.20080322" sideWeight="0.4011901" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3298969" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.14708835" sideWeight="0.41469195" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.06424434" sideWeight="0.49748996" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.09505003" sideWeight="0.5808685" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.120983936" sideWeight="0.33096367" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.15712851" sideWeight="0.49984515" order="4" side_tool="false" content_ui="tabs" />
+    </layout-to-restore>
+  </component>
+  <component name="Vcs.Log.UiProperties">
+    <option name="RECENTLY_FILTERED_USER_GROUPS">
+      <collection />
+    </option>
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="myTodoPanelSettings">
+      <TodoPanelSettings />
+    </option>
+    <MESSAGE value="project structure" />
+    <MESSAGE value="new ma functions" />
+    <MESSAGE value="multiple map instances support added" />
+    <MESSAGE value="multiple bug fixes and improvements. 1st sig-table iteration." />
+    <MESSAGE value="system signature table update" />
+    <MESSAGE value="update system-info module" />
+    <MESSAGE value="page structure (navigation) + small stuff" />
+    <MESSAGE value="map legend dialog" />
+    <MESSAGE value="map connection scopes" />
+    <MESSAGE value="map update logic" />
+    <MESSAGE value="added &quot;task manager&quot; and map animations" />
+    <MESSAGE value="F3 PHP framework integration, Ajax API for &quot;add new system&quot;" />
+    <MESSAGE value="map/system/connection update functionality (backend)" />
+    <MESSAGE value="map info module improvements, new system graph module, map info module refactoring, new CCP API Cronjob (jumps, kills,...)" />
+    <MESSAGE value="userData implementation" />
+    <MESSAGE value="map info element improvements" />
+    <MESSAGE value="IGB Header support implemented" />
+    <MESSAGE value="splashpage fixes and UNIX lowercase PHP files" />
+    <option name="LAST_COMMIT_MESSAGE" value="splashpage fixes and UNIX lowercase PHP files" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <option name="time" value="5" />
+    </breakpoint-manager>
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/app/main/controller/ccpapicontroller.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2106" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/controller/mapcontroller.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1253">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/data/mapper/ccpsystemsmapper.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2808" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/controller/api/connection.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1497" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/controller/api/map.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="44" column="8" selection-start="840" selection-end="892" vertical-scroll-proportion="0.0" vertical-offset="792" max-vertical-offset="6516">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/controller/api/signature.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2232" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/controller/api/system.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="6048" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/controller/api/user.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="60" column="0" selection-start="1311" selection-end="1311" vertical-scroll-proportion="20.0" vertical-offset="1512" max-vertical-offset="3888" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/controller/cron/update.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="4140" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/exception/baseexception.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1497" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/exception/validationexception.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1497" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/basicmodel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="4266" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/characterlogmodel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1497" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/charactermodel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1497" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/characterstatusmodel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1497" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/connectionmodel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2142" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/connectionscopemodel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1497" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/mapmodel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="342" column="13" selection-start="9249" selection-end="9249" vertical-scroll-proportion="0.0" vertical-offset="6156" max-vertical-offset="6408">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/mapscopemodel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1497" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/maptypemodel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1497" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/systemfactionkillmodel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1497" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/systemjumpmodel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1497" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/SystemModel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="4302" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/systempodkillmodel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1497" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/systemshipkillmodel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1497" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/systemsignaturemodel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1746" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/systemtypemodel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1497" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/userapimodel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2160" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/usercharactermodel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2466">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/usermapmodel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1497">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/lib/jquery.mCustomScrollbar.concat.min.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1506" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/usermodel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="37" column="33" selection-start="745" selection-end="745" vertical-scroll-proportion="0.0" vertical-offset="666" max-vertical-offset="5472">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/app/ui/system_info.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="7596">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/systemstatusmodel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1497">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/sass/layout/_logo.scss">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="11" column="20" selection-start="291" selection-end="291" vertical-scroll-proportion="0.0" vertical-offset="198" max-vertical-offset="1170">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/templates/ui/logo.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="12" column="66" selection-start="932" selection-end="932" vertical-scroll-proportion="0.0" vertical-offset="216" max-vertical-offset="360">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/app/ui/logo.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="104" column="54" selection-start="3726" selection-end="3726" vertical-scroll-proportion="0.0" vertical-offset="1059" max-vertical-offset="2754">
+          <folding>
+            <marker date="1431030062530" expanded="true" signature="77:5911" placeholder="{...}" />
+            <marker date="1431030062530" expanded="true" signature="805:5907" placeholder="{...}" />
+            <marker date="1431030062530" expanded="true" signature="2036:5899" placeholder="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/app/ui/header.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="129" column="38" selection-start="3790" selection-end="3790" vertical-scroll-proportion="0.0" vertical-offset="2268" max-vertical-offset="4338">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/app/landingpage.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="212" column="16" selection-start="6906" selection-end="6906" vertical-scroll-proportion="1.2669231" vertical-offset="2169" max-vertical-offset="4032">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/app.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="2" column="14" selection-start="34" selection-end="34" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2304">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/config.cfg">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="28" column="11" selection-start="927" selection-end="936" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1296" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.htaccess">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="26" column="81" selection-start="842" selection-end="842" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="576">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/controller/controller.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="-0.0" vertical-offset="0" max-vertical-offset="3726" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/app/init.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="27" column="87" selection-start="1212" selection-end="1212" vertical-scroll-proportion="0.0" vertical-offset="486" max-vertical-offset="20070">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/app/ui/dialog/map.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="20" column="21" selection-start="413" selection-end="413" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2682">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/controller/appcontroller.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1253">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/templates/view/parts/landingpage.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="170" column="76" selection-start="7606" selection-end="7606" vertical-scroll-proportion="-42.25926" vertical-offset="1919" max-vertical-offset="4644">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/sass/layout/_landing.scss">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="190" column="3" selection-start="3783" selection-end="3783" vertical-scroll-proportion="0.0" vertical-offset="3420" max-vertical-offset="5094">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/config.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="33" column="0" selection-start="1029" selection-end="1029" vertical-scroll-proportion="0.0" vertical-offset="594" max-vertical-offset="702">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/templates/view/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="49" column="23" selection-start="2570" selection-end="2570" vertical-scroll-proportion="-32.666668" vertical-offset="0" max-vertical-offset="1062">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="48" column="11" selection-start="664" selection-end="664" vertical-scroll-proportion="0.647191" vertical-offset="0" max-vertical-offset="1335">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+  </component>
+  <component name="masterDetails">
+    <states>
+      <state key="ScopeChooserConfigurable.UI">
+        <settings>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+    </states>
+  </component>
+</project>
+

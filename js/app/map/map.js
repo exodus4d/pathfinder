@@ -5,7 +5,6 @@ define([
     'app/render',
     'bootbox',
     'app/ccp',
-    'validator',
     'jsPlumb',
     'customScrollbar',
     'dragToSelect',
@@ -1629,6 +1628,13 @@ define([
                 {icon: 'fa-lock', action: 'lock_system', text: 'lock system'},
                 {icon: 'fa-users', action: 'set_rally', text: 'set rally point'},
                 {icon: 'fa-reply fa-rotate-180', text: 'change status', subitems: systemStatus},
+                {divider: true, action: 'ingame'},
+                {icon: 'fa-reply fa-rotate-180', action: 'ingame', text: 'ingame actions', subitems: [
+                    {subIcon: 'fa-info', subAction: 'ingame_show_info', subText: 'show info'},
+                    {subDivider: true, action: 'ingame'},
+                    {subIcon: 'fa-flag', subAction: 'ingame_add_waypoint', subText: 'add waypoint'},
+                    {subIcon: 'fa-flag-checkered', subAction: 'ingame_set_destination', subText: 'set destination'},
+                ]},
                 {divider: true, action: 'delete_system'},
                 {icon: 'fa-eraser', action: 'delete_system', text: 'delete system'}
             ]
@@ -1915,6 +1921,21 @@ define([
                                 return false;
                             }
                         });
+                        break;
+                    case 'ingame_show_info':
+                        var systemData = system.getSystemData();
+
+                        CCPEVE.showInfo(5, systemData.systemId );
+                        break;
+                    case 'ingame_set_destination':
+                        var systemData = system.getSystemData();
+
+                        CCPEVE.setDestination( systemData.systemId );
+                        break;
+                    case 'ingame_add_waypoint':
+                        var systemData = system.getSystemData();
+
+                        CCPEVE.addWaypoint( systemData.systemId );
                         break;
                 }
             }
@@ -2372,6 +2393,11 @@ define([
             // disable system menu entries
             if(component.data('locked') === true){
                 hiddenOptions.push('delete_system');
+            }
+
+            // disable ingame options if not IGB browser
+            if(! CCP.isInGameBrowser() ){
+                hiddenOptions.push('ingame');
             }
         }
 

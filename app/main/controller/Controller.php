@@ -7,6 +7,7 @@
  */
 
 namespace Controller;
+use Model;
 
 class Controller {
 
@@ -80,9 +81,20 @@ class Controller {
         $this->f3->get('DB')->exec('SET @@session.time_zone = "+00:00";');
     }
 
+    /**
+     * get current user model
+     * @return bool|null
+     */
+    protected function _getUser(){
 
-    public function showLogin(){
-        $this->setTemplate('templates/view/login.html');
+        $user = Model\BasicModel::getNew('UserModel', 5);
+        $user->getById($this->f3->get('SESSION.user.id'));
+
+        if($user->dry()){
+            $user = false;
+        }
+
+        return $user;
     }
 
     /**
@@ -125,4 +137,71 @@ class Controller {
         return $data;
     }
 
+    /**
+     * verifies weather a given username and password is valid
+     * @param $userName
+     * @param $password
+     * @return bool user object if valid
+     */
+    protected function _verifyUser($userName, $password) {
+
+        $validUser = false;
+
+        $user =  Model\BasicModel::getNew('UserModel');
+
+        $user->getByName($userName);
+
+        // check userName is valid
+        if(! $user->dry() ){
+            // check if password is valid
+            $isValid = $user->verify($password);
+
+            if($isValid === true){
+                $validUser = $user;
+            }
+        }
+
+        return $validUser;
+    }
+
+    /**
+     * @param $user
+     * @return bool
+     */
+    protected function _logIn($user){
+
+        $loginSuccess = false;
+
+        if(! $user->dry() ){
+            // set Session login
+            $dateTime = new \DateTime();
+            $this->f3->set('SESSION.user.time', $dateTime->getTimestamp());
+            $this->f3->set('SESSION.user.name', $user->name);
+            $this->f3->set('SESSION.user.id', $user->id);
+
+            // update/check api data
+            // $this->_updateCharacterData();
+            $loginSuccess = true;
+        }
+
+        return $loginSuccess;
+    }
+
+    /**
+     * logout function
+     */
+    public function logOut(){
+
+        // destroy session
+        $this->f3->clear('SESSION');
+
+        if( !$this->f3->get('AJAX') ){
+            // redirect to landing page
+            $this->f3->reroute('@landing');
+        }else{
+            $return = new \stdClass();
+            $return->reroute = $this->f3->get('BASE') . $this->f3->alias('landing');
+            echo json_encode($return);
+        }
+    }
 } 

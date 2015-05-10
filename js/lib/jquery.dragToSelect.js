@@ -1,4 +1,4 @@
-/***
+/**
 @title:
 Drag to Select
 
@@ -45,7 +45,7 @@ $('#jquery-drag-to-select-example').dragToSelect({
 		alert($('#jquery-drag-to-select-example li.selected').length + ' selected');
 	}
 });
-***/
+**/
 jQuery.fn.dragToSelect = function (conf) {
 	var c = typeof(conf) == 'object' ? conf : {};
 

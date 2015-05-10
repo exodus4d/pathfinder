@@ -444,7 +444,7 @@ define([
 
         $(document).on('pf:menuShowSettingsDialog', function(e){
             // show character select dialog
-            $.fn.showSettingsDialog();
+            $.fn.showSettingsDialog(false);
             return false;
         });
 
@@ -520,7 +520,7 @@ define([
 
         $(document).on('pf:menuLogout', function(e, data){
             // logout
-            console.log('! LOGOUT !');
+            logout();
             return false;
         });
 
@@ -670,9 +670,29 @@ define([
             // set new id for next check
             userShipElement.data('shipId', newShipId);
         }
+    };
 
+    /**
+     * send logout request
+     */
+    var logout = function(){
 
+        $.ajax({
+            type: 'POST',
+            url: Init.path.logOut,
+            data: {},
+            dataType: 'json'
+        }).done(function(data){
 
+            if(data.reroute !== undefined){
+                window.location = Util.buildUrl(data.reroute);
+            }
+
+        }).fail(function( jqXHR, status, error) {
+
+            var reason = status + ' ' + error;
+            Util.showNotify({title: jqXHR.status + ': logout', text: reason, type: 'error'});
+        });
     };
 
     /**

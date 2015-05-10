@@ -10,7 +10,6 @@ define([
     'app/ui/system_route',
     'app/ui/system_killboard',
     'datatablesTableTools',
-    'xEditable',
     'app/map/map'
 ], function($, Config, Util, Render, bootbox) {
 
@@ -314,7 +313,20 @@ define([
 
         // change tabClass
         var listElement = tabElement.parent();
-       tabElement.parent().removeClass().addClass([config.mapTabClass, options.type.classTab ].join(' '));
+        listElement.removeClass().addClass([config.mapTabClass, options.type.classTab ].join(' '));
+
+        // set title for tooltip
+        if(options.type.name !== undefined){
+            listElement.attr('title', options.type.name + ' map');
+            var mapTooltipOptions = {
+                toggle: 'tooltip',
+                placement: 'bottom',
+                delay: 200
+            };
+
+            listElement.tooltip(mapTooltipOptions);
+        }
+
         if(options.right === true){
             listElement.addClass('pull-right');
         }
@@ -333,10 +345,6 @@ define([
         var tabContent = tabElement.find('div.tab-content');
 
         var listElement = $('<li>').attr('role', 'presentation');
-
-        if(options.active === true){
-            listElement.addClass('active');
-        }
 
         if(options.right === true){
             listElement.addClass('pull-right');
@@ -369,10 +377,6 @@ define([
         });
 
         contentElement.addClass('tab-pane');
-
-        if(options.active === true){
-            contentElement.addClass('active');
-        }
 
         tabContent.append(contentElement);
 
@@ -600,16 +604,10 @@ define([
 
                 var data = tempMapData[j];
 
-                var activeTab = false;
-                if(j === 0){
-                    activeTab = true;
-                }
-
                 var tabOptions = {
                     id: parseInt( data.config.id ),
                     type: data.config.type,
                     contentClasses: [config.mapTabContentClass],
-                    active: activeTab,
                     icon: data.config.icon,
                     name: data.config.name,
                     right: false,
@@ -636,6 +634,9 @@ define([
 
 
             mapModuleElement.prepend(tabMapElement);
+
+            // set first Tab active
+            tabMapElement.find('.' + config.mapTabClass + ':first a').tab('show');
 
             // ==============================================================
 

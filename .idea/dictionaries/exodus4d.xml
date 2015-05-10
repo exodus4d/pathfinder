@@ -13,6 +13,7 @@
       <w>fontawesome</w>
       <w>fullscreen</w>
       <w>ifnull</w>
+      <w>ingame</w>
       <w>inputclass</w>
       <w>jqueryui</w>
       <w>jumpbridge</w>
@@ -21,12 +22,14 @@
       <w>malihu</w>
       <w>minify</w>
       <w>mouseover</w>
+      <w>navbar</w>
       <w>nonblock</w>
       <w>onerror</w>
       <w>orderable</w>
       <w>pnotify</w>
       <w>raphaël</w>
       <w>revalidate</w>
+      <w>screenshots</w>
       <w>scrollbar</w>
       <w>scrollbars</w>
       <w>scrollspy</w>
@@ -36,6 +39,7 @@
       <w>tbody</w>
       <w>textarea</w>
       <w>timelimit</w>
+      <w>waypoint</w>
     </words>
   </dictionary>
 </component>

@@ -21,3 +21,7 @@ php_value max_input_vars 5000
 php_value suhosin.get.max_vars 5000
 php_value suhosin.post.max_vars 5000
 php_value suhosin.request.max_vars 5000
+
+# PHP error logs
+php_flag log_errors on
+php_value error_log "/www/htdocs/w0128162/pathfinder.exodus4d.de/php_errors.html"
