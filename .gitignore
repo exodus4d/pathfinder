@@ -49,3 +49,5 @@ Temporary Items
 .sass-cache
 .build_js
 .css
+.tmp
+.usage
