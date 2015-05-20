@@ -7,4 +7,17 @@ input, select{
   &:focus{
     border-color: $teal;
   }
+
+  &:-webkit-autofill {
+    background-color: $gray-dark !important;
+    @include box-shadow(0 0 0 50px $gray-dark inset !important);
+    -webkit-text-fill-color: $gray-lighter;
+  }
+
+  &:-webkit-autofill:focus {
+    @include box-shadow(0 0 0 50px $gray-dark inset !important);
+    -webkit-text-fill-color: $gray-lighter;
+  }
+
+
 }

@@ -26,7 +26,7 @@ class MapController extends \Controller\AccessController {
         $this->f3->set('trusted', (int)self::isIGBTrusted());
 
         // JS main file
-        $this->f3->set('jsView', 'app/main');
+        $this->f3->set('jsView', 'main');
 
         $this->setTemplate('templates/view/index.html');
     }

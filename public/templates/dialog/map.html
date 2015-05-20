@@ -1,58 +1,25 @@
-<div id="{{id}}">
-    <form role="form" class="form-horizontal">
+<div id="{{id}}" role="tabpanel">
 
-        <div class="row">
-            <div class="col-sm-3">
-                <div class="form-group">
-                    <label for="icon" class="col-sm-4 control-label">Icon</label>
-                    <div class="col-sm-8">
-                        <select style="font-family: FontAwesome" name="icon" id="icon" class="form-control">
-                            {{#icon}}
-                            <option value="{{class}}">{{{unicode}}}</option>
-                            {{/icon}}
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-9">
-                <div class="form-group">
-                    <label for="name" class="col-sm-2 control-label">Name</label>
-                    <div class="col-sm-10">
-                        <input name="name" type="text" class="form-control" id="name" value="{{formData.name}}" placeholder="My map" data-error="Name required" required>
-                        <span class="help-block with-errors">Set unique map name</span>
-                    </div>
-                </div>
-            </div>
+    <nav class="navbar navbar-default" role="navigation">
+        <div class="navbar-header pull-left">
+            <ul class="nav navbar-nav {{dialogNavigationClass}}" role="tablist">
+                <li class="active"><a role="tab" data-toggle="tab" href="#{{dialogMapCreateContainerId}}"><i class="fa fa-plus fa-lg fa-fw"></i>&nbsp;New map</a></li>
+                {{^hideEditTab}}
+                    <li class=""><a role="tab" data-toggle="tab" href="#{{dialogMapEditContainerId}}"><i class="fa fa-edit fa-lg fa-fw"></i>&nbsp;Edit map</a></li>
+                {{/hideEditTab}}
+                {{^hideSettingsTab}}
+                    <li class=""><a role="tab" data-toggle="tab" href="#{{dialogMapSettingsContainerId}}"><i class="fa fa-gears fa-lg fa-fw"></i>&nbsp;Settings</a></li>
+                {{/hideSettingsTab}}
+            </ul>
         </div>
+    </nav>
 
+    <div id="{{dialogMessageContainerId}}"></div>
 
-        <div class="row">
-            <div class="col-sm-6">
-                <div class="form-group">
-                    <label for="scope" class="col-sm-2 control-label">Scope</label>
-                    <div class="col-sm-10">
-                        <select name="scopeId" id="scope" class="form-control">
-                            {{#scope}}
-                            <option value="{{id}}">{{label}}</option>
-                            {{/scope}}
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6">
-                <div class="form-group">
-                    <label for="type" class="col-sm-2 control-label">Type</label>
-                    <div class="col-sm-10">
-                        <select name="typeId" id="type" class="form-control">
-                            {{#type}}
-                            <option value="{{id}}">{{label}}</option>
-                            {{/type}}
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane fade in active" id="{{dialogMapCreateContainerId}}"></div>
+        <div role="tabpanel" class="tab-pane fade" id="{{dialogMapEditContainerId}}"></div>
+        <div role="tabpanel" class="tab-pane fade" id="{{dialogMapSettingsContainerId}}">sett</div>
+    </div>
 
-        <input type="hidden" name="id" value="0" />
-    </form>
 </div>

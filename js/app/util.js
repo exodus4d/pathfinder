@@ -9,7 +9,9 @@ define([
     'velocityUI',
     'validator',
     'xEditable',
-    'easyPieChart'
+    'easyPieChart',
+    'hoverIntent',
+    'bootstrapConfirmation'
 ], function($, Init, bootbox) {
 
     'use strict';
@@ -307,24 +309,6 @@ define([
     };
 
     /**
-     * add a temporary class elements for a certain time
-     * @param className
-     * @param duration
-     * @returns {*}
-     */
-    $.fn.addTemporaryClass = function(className, duration){
-
-        var elements = this;
-        setTimeout(function() {
-            elements.removeClass(className);
-        }, duration);
-
-        return this.each(function() {
-            $(this).addClass(className);
-        });
-    };
-
-    /**
      * trigger a notification (on screen or desktop)
      * @param customConfig
      * @param desktop
@@ -426,9 +410,11 @@ define([
 
     /**
      * get all available map Types
+     * optional they can be filtered by current access level of a user
+     * @param filterByUser
      * @returns {Array}
      */
-    var getMapTypes = function(){
+    var getMapTypes = function(filterByUser){
 
         var mapTypes = [];
 
@@ -442,6 +428,39 @@ define([
                 mapTypes.push(tempData);
             }
         });
+
+        if(filterByUser === true){
+
+            var corporationId = getCurrentUserInfo('corporationId');
+            var allianceId = getCurrentUserInfo('allianceId');
+
+            var authorizedMapTypes = [];
+            // check if character data exists
+            if(corporationId > 0) {
+                authorizedMapTypes.push('corporation');
+            }
+            if(allianceId > 0){
+                authorizedMapTypes.push('alliance');
+            }
+
+            // private maps are always allowed
+            authorizedMapTypes.push('private');
+
+            // compare "all" map types with "authorized" types
+            var tempMapTypes = [];
+            for(var i = 0; i < mapTypes.length; i++){
+                for(var j = 0; j < authorizedMapTypes.length; j++){
+                    if(mapTypes[i].name === authorizedMapTypes[j]){
+                        console.log('OK')
+                        tempMapTypes.push(mapTypes[i]);
+                        break;
+                    }
+
+                }
+            }
+
+            mapTypes = tempMapTypes;
+        }
 
         return mapTypes;
     };
@@ -601,38 +620,24 @@ define([
 
         var statusInfo = '';
 
-        var corporationId = null;
-        var allianceId = null;
+        // character status can not be checked if there are no reference data
+        // e.g. during registration process (landing page)
+        if(Init.characterStatus){
+            var corporationId = getCurrentUserInfo('corporationId');
+            var allianceId = getCurrentUserInfo('allianceId');
 
-        var currentUserData = getCurrentUserData();
-
-        if(
-            currentUserData &&
-            currentUserData.character
-        ){
-            var tempCharacterData = currentUserData.character;
-            // check if current user has a corpId
-            if(tempCharacterData.corporation){
-                corporationId = tempCharacterData.corporation.id;
+            // compare current user data with given user data
+            if(
+                characterData.corporation &&
+                characterData.corporation.id === corporationId
+            ){
+                statusInfo = Init.characterStatus.corporation[option];
+            }else if(
+                characterData.alliance &&
+                characterData.alliance.id === allianceId
+            ){
+                statusInfo = Init.characterStatus.alliance[option];
             }
-
-            // check if current user has a allianceId
-            if(tempCharacterData.alliance){
-                allianceId = tempCharacterData.alliance.id;
-            }
-        }
-
-        // compare current user data with given user data
-        if(
-            characterData.corporation &&
-            characterData.corporation.id === corporationId
-        ){
-            statusInfo = Init.characterStatus.corporation[option];
-        }else if(
-            characterData.alliance &&
-            characterData.alliance.id === allianceId
-        ){
-            statusInfo = Init.characterStatus.alliance[option];
         }
 
         return statusInfo;
@@ -853,7 +858,11 @@ define([
 
         Init.currentUserData = userData;
 
-        $.fn.updateHeaderUserData();
+        // check if function is available
+        // this is not the case for "landing" page
+        if( $.fn.updateHeaderUserData ){
+            $.fn.updateHeaderUserData();
+        }
 
         return getCurrentUserData();
     };
@@ -864,6 +873,40 @@ define([
      */
     var getCurrentUserData = function(){
         return Init.currentUserData;
+    };
+
+    /**
+     * get information for the current mail user
+     * @param option
+     * @returns {boolean}
+     */
+    var getCurrentUserInfo = function(option){
+        var currentUserData = getCurrentUserData();
+
+        var userInfo = false;
+
+        if(currentUserData){
+            // user data is set -> user data will be set AFTER the main init request!
+            var characterData = currentUserData.character;
+
+            if(
+                option === 'allianceId' &&
+                characterData.alliance
+            ){
+                userInfo = characterData.alliance.id;
+            }
+
+            if(
+                option === 'corporationId' &&
+                characterData.corporation
+            ){
+                userInfo = characterData.corporation.id;
+            }
+
+        }
+
+
+        return userInfo;
     };
 
     /**
@@ -926,6 +969,23 @@ define([
     };
 
     /**
+     * init tooltips on an element
+     * @returns {any|JQuery|*}
+     */
+    $.fn.initTooltips = function(){
+
+        return this.each(function(){
+
+            var tooltipElements = $(this).find('[title]');
+            tooltipElements.tooltip({
+                container:  this,
+                delay: 100
+            });
+        });
+
+    };
+
+    /**
      * adds a popup tooltip with character information (created/updated)
      * @param tooltipData
      */
@@ -953,7 +1013,7 @@ define([
                 var statusCreatedClass = getStatusInfoForCharacter(createdData.character, 'class');
                 var statusUpdatedClass = getStatusInfoForCharacter(updatedData.character, 'class');
 
-                // convert timestamps                v
+                // convert timestamps
                 var dateCreated = new Date(createdData.created * 1000);
                 var dateUpdated = new Date(updatedData.updated * 1000);
                 var dateCreatedUTC = convertDateToUTC(dateCreated);
@@ -1072,6 +1132,7 @@ define([
         getCurrentUserData: getCurrentUserData,
         setCurrentSystemData: setCurrentSystemData,
         getCurrentSystemData: getCurrentSystemData,
+        getCurrentUserInfo: getCurrentUserInfo,
         convertDateToString: convertDateToString,
         formatPrice: formatPrice
     };

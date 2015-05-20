@@ -1,0 +1,56 @@
+<form role="form" class="form-horizontal">
+
+    <div class="row">
+        <div class="col-sm-3">
+            <div class="form-group">
+                <label for="icon" class="col-sm-4 control-label">Icon</label>
+                <div class="col-sm-8">
+                    <select style="font-family: FontAwesome" name="icon" id="icon" class="form-control" title="Icons make the distinction easear" data-placement="top">
+                        {{#icon}}
+                        <option value="{{class}}">{{{unicode}}}</option>
+                        {{/icon}}
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-9">
+            <div class="form-group">
+                <label for="name" class="col-sm-2 control-label">Name</label>
+                <div class="col-sm-10">
+                    <input name="name" type="text" class="form-control" id="name" value="" placeholder="Map name" data-error="Name required" required>
+                    <span class="help-block with-errors">Set unique map name</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label for="scope" class="col-sm-2 control-label">Scope</label>
+                <div class="col-sm-10">
+                    <select name="scopeId" id="scope" class="form-control">
+                        {{#scope}}
+                        <option value="{{id}}">{{label}}</option>
+                        {{/scope}}
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label for="type" class="col-sm-2 control-label">Type</label>
+                <div class="col-sm-10">
+                    <select name="typeId" id="type" class="form-control" title="Alliance/Corporation maps require character authorisation" data-placement="top">
+                        {{#type}}
+                        <option value="{{id}}">{{label}}</option>
+                        {{/type}}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" name="id" value="0" />
+</form>

@@ -7,8 +7,7 @@ define([
     'pnotify.nonblock',
     'pnotify.desktop',
     //'pnotify.history',
-    'pnotify.callbacks',
-    //'pnotify.reference'
+    'pnotify.callbacks'
 ], function($, Init, PNotify) {
 
     'use strict';

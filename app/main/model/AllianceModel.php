@@ -1,0 +1,57 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: exodus4d
+ * Date: 17.05.15
+ * Time: 20:43
+ */
+
+namespace Model;
+
+class AllianceModel extends BasicModel {
+
+    protected $table = 'alliance';
+    protected $ttl = 0;
+    protected $rel_ttl = 0;
+
+    protected $fieldConf = array(
+        'allianceCharacters' => array(
+            'has-many' => array('Model\CharacterModel', 'allianceId')
+        ),
+        'mapAlliances' => array(
+            'has-many' => array('Model\AllianceMapModel', 'allianceId')
+        )
+    );
+
+    /**
+     * get all alliance data
+     * @return array
+     */
+    public function getData(){
+        $allianceData = (object) [];
+
+        $allianceData->id = $this->id;
+        $allianceData->name = $this->name;
+
+        return $allianceData;
+    }
+
+    /**
+     * get all maps for this alliance
+     * @return array|mixed
+     */
+    public function getMaps(){
+        $maps = [];
+
+        if($this->mapAlliances){
+            foreach($this->mapAlliances as $mapAlliance){
+                if($mapAlliance->mapId->isActive()){
+                    $maps[] = $mapAlliance->mapId;
+                }
+            }
+        }
+
+        return $maps;
+    }
+
+}

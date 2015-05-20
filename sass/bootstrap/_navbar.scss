@@ -152,7 +152,7 @@
 .navbar-brand {
   float: left;
   padding: $navbar-padding-vertical $navbar-padding-horizontal;
-  font-size: $font-size-large;
+  font-size: 1.2em;
   line-height: $line-height-computed;
   height: $navbar-height;
   font-family: $font-family-bold;
@@ -386,7 +386,6 @@
 .navbar-default {
   background: rgba( $navbar-default-bg, $navbar-default-opacity );
   border-color:  $navbar-default-border;
-  @include box-shadow(0 6px 12px rgba(0,0,0,.4));
 
   .navbar-brand {
     color: $navbar-default-brand-color;
@@ -413,10 +412,12 @@
     }
     > .active > a {
       &,
-      &:hover,
       &:focus {
         color: $navbar-default-link-active-color;
         background-color: $navbar-default-link-active-bg;
+      }
+      &:hover{
+        color: $navbar-default-link-hover-color;
       }
     }
     > .disabled > a {

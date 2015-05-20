@@ -9,7 +9,6 @@ define([
     'customScrollbar',
     'dragToSelect',
     'select2',
-    'hoverIntent',
     'app/map/contextmenu'
 ], function($, Init, Util, Render, bootbox, CCP) {
 
@@ -3065,8 +3064,6 @@ define([
                     setConnectionWHStatus(connection, 'wh_fresh');
                 }
 
-                var sourceSystem = $('#' + info.sourceId);
-
                 // prevent multiple connections between same systems ----------------------------
                 var connections = checkForConnection(newJsPlumbInstance, info.sourceId, info.targetId );
 
@@ -3083,7 +3080,6 @@ define([
                 // -----------------------------------------------------------------------------
 
                 return true;
-
             });
 
             // event before Detach connection

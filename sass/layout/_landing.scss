@@ -224,6 +224,8 @@ a[data-gallery] {
       style: solid;
       color: $gray-darker
     }
+    width: 90px;
+    height: 90px;
     will-change: all;
     @include border-radius(4px);
     @include filter(brightness( 100% ));
@@ -244,7 +246,7 @@ a[data-gallery] {
     margin-top: 35px;
     z-index: 10;
     text-align: center;
-    @include transition(transform 0.1s 0.06s ease-in, opacity 0.1s ease-in-out);
+    @include transition(transform 0.1s 0.06s ease-in, opacity 0.1s ease-out);
     will-change: transform, opacity;
     transform: scale(0,0);
     opacity: 0;

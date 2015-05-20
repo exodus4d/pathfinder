@@ -49,7 +49,6 @@ define([
 
 
     var showKillmails = function(moduleElement, killboardData){
-console.log(killboardData)
 
         // change order (show right to left)
         killboardData.tableData.reverse();

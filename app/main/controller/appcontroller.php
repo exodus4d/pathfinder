@@ -23,7 +23,7 @@ class AppController extends Controller {
         $f3->set('trusted', 1);
 
         // JS main file
-        $f3->set('jsView', 'app/landingpage');
+        $f3->set('jsView', 'landingpage');
 
         $this->setTemplate('templates/view/index.html');
     }

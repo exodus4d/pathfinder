@@ -73,6 +73,11 @@ em{
 
 }
 
+// alert messages ===================================================
+.alert{
+  will-change: opacity, transform;
+}
+
 // table styles =====================================================
 
 // table icon toolbar
@@ -113,7 +118,7 @@ em{
 }
 */
 
-// laoding indicator overlay
+// laoding indicator overlay =====================================
 .pf-loading-overlay{
   position: absolute;
   width: 100%;
@@ -141,6 +146,32 @@ em{
   }
 }
 
+//  navbar li ====================================================
+.navbar-nav li{
+
+  &:hover, &.active{
+
+    &:before{
+      top: -4px;
+      opacity: 1;
+    }
+
+  }
+
+  &:before{
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background-color: $green;
+    top: 0;
+    opacity: 0;
+    will-change: opacity, top;
+    @include transition( top 0.15s ease-out, opacity 0.15s ease-out );
+
+  }
+
+}
 
 // page menu =====================================================
 .pf-site{
@@ -182,16 +213,20 @@ em{
 }
 
 // map types =====================================================
-.pf-map-type-global{
-  color: $teal;
+.pf-map-type-private{
+  color: $indigo;
+}
+
+.pf-map-type-corporation{
+  color: $green;
 }
 
 .pf-map-type-alliance{
   color: $blue;
 }
 
-.pf-map-type-private{
-  color: $green;
+.pf-map-type-global{
+  color: $teal;
 }
 
 // maps module ===================================================
@@ -205,16 +240,20 @@ em{
       border-top: 2px solid transparent;
     }
 
-    .pf-map-type-tab-global{
-      border-top: 2px solid $teal;
+    .pf-map-type-tab-private{
+      border-top: 2px solid $indigo;
+    }
+
+    .pf-map-type-tab-corporation{
+      border-top: 2px solid $green;
     }
 
     .pf-map-type-tab-alliance{
       border-top: 2px solid $blue;
     }
 
-    .pf-map-type-tab-private{
-      border-top: 2px solid $green;
+    .pf-map-type-tab-global{
+      border-top: 2px solid $teal;
     }
 
     .fa{
@@ -576,7 +615,8 @@ em{
   z-index: $zindex-modal + 10;
 
   .tooltip-inner{
-    color: $gray-lighter;
+    color: $gray-dark;
+    background-color: $gray-lighter;
   }
 }
 
@@ -597,6 +637,12 @@ em{
 }
 
 // global popover settings ======================================
+
+.popover{
+  // on top of modals even if they are attached to <body>
+  z-index: $zindex-modal + 10;
+}
+
 .popover{
 
   // image in popover

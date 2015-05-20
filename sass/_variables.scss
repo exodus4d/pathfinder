@@ -35,6 +35,7 @@ $pf-font-path:            "../fonts" !default;
   font-family: 'Oxygen';
   src: url('#{$pf-font-path}/oxygen-regular-webfont.eot');
   src: url('#{$pf-font-path}/oxygen-regular-webfont.eot') format('embedded-opentype'),
+  url('#{$pf-font-path}/oxygen-regular-webfont.woff2') format('woff2'),
   url('#{$pf-font-path}/oxygen-regular-webfont.woff') format('woff'),
   url('#{$pf-font-path}/oxygen-regular-webfont.ttf') format('truetype');
   font-weight: 400;
@@ -77,6 +78,7 @@ $pf-font-path:            "../fonts" !default;
   font-family: 'Oxygen Bold';
   src: url('#{$pf-font-path}/oxygen-bold-webfont.eot');
   src: url('#{$pf-font-path}/oxygen-bold-webfont.eot') format('embedded-opentype'),
+  url('#{$pf-font-path}/oxygen-bold-webfont.woff2') format('woff2'),
   url('#{$pf-font-path}/oxygen-bold-webfont.woff') format('woff'),
   url('#{$pf-font-path}/oxygen-bold-webfont.ttf') format('truetype');
   font-weight: 700;
@@ -263,13 +265,13 @@ $dropdown-caret-color:           #000;
 //
 // Note: These variables are not generated into the Customizer.
 
-$zindex-navbar:            1000;
-$zindex-dropdown:          1000;
-$zindex-tooltip:           1010;
-$zindex-popover:           1030;
-$zindex-navbar-fixed:      1030;
-$zindex-modal-background:  1040;
-$zindex-modal:             1050;
+$zindex-navbar:               1000;
+$zindex-dropdown:             1000;
+$zindex-tooltip:              1010;
+$zindex-popover:              1030;
+$zindex-navbar-fixed:         1030;
+$zindex-modal-background:     1040;
+$zindex-modal:                1050;
 
 
 //== Media queries breakpoints
@@ -360,10 +362,10 @@ $navbar-default-border:            none;
 
 // Navbar links
 $navbar-default-link-color:                #777;
-$navbar-default-link-hover-color:          #1d1d1d;
-$navbar-default-link-hover-bg:             $gray-light;
-$navbar-default-link-active-color:         $gray-darker;
-$navbar-default-link-active-bg:            $gray-lighter;
+$navbar-default-link-hover-color:          $teal-light;
+$navbar-default-link-hover-bg:             transparent;
+$navbar-default-link-active-color:         $teal;
+$navbar-default-link-active-bg:            transparent;
 $navbar-default-link-disabled-color:       #ccc;
 $navbar-default-link-disabled-bg:          transparent;
 

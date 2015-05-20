@@ -133,8 +133,9 @@ class Map extends \Controller\AccessController {
      * @param $f3
      */
     public function save($f3){
-
         $mapData = (array)$f3->get('POST.mapData');
+
+        $user = $this->_getUser();
 
         $map = Model\BasicModel::getNew('MapModel');
         $map->getById($mapData['id']);
@@ -142,8 +143,30 @@ class Map extends \Controller\AccessController {
         $map->save();
 
         if($map->isPrivate()){
-            $user = $this->_getUser();
+            $map->clearAccess(['corporation', 'alliance']);
             $map->setAccess($user);
+        }elseif($map->isCorporation()){
+            $activeCharacter = $user->getActiveUserCharacter();
+
+            if($activeCharacter){
+                $corporation = $activeCharacter->getCharacter()->getCorporation();
+
+                if($corporation){
+                    $map->clearAccess(['user', 'alliance']);
+                    $map->setAccess($corporation);
+                }
+            }
+        }elseif($map->isAlliance()){
+            $activeCharacter = $user->getActiveUserCharacter();
+
+            if($activeCharacter){
+                $alliance = $activeCharacter->getCharacter()->getAlliance();
+
+                if($alliance){
+                    $map->clearAccess(['user', 'corporation']);
+                    $map->setAccess($alliance);
+                }
+            }
         }
 
         $mapData = $map->getData();

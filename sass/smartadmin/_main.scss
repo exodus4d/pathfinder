@@ -533,14 +533,10 @@ h6 {
 }
 
 .input-group-addon {
-	padding: 6px 10px;
-	border-radius: 0;
-	-moz-border-radius: 0;
-	-webkit-border-radius: 0;
-}
-
-.input-group-addon {
-  @include transition(border-color ease-in-out .15s, color ease-in-out .15s);
+  padding: 6px 10px;
+  will-change: all;
+  @include border-radius(0);
+  @include transition(all ease-out .15s);
 }
 
 .input-group-addon .fa {
@@ -556,10 +552,14 @@ h6 {
 }
 
 
-input[type="text"]:focus + .input-group-addon {
-	border-color: $teal;
-	//background-color: lighten($state-info-text, 23%);
-	color: $teal;
+input[type="text"],
+input[type="password"],
+input[type="email"]{
+  &:focus + .input-group-addon {
+    border-color: $teal;
+    //background-color: lighten($state-info-text, 23%);
+    color: $teal;
+  }
 }
 
 .has-warning input[type="text"], .has-warning input[type="text"] + .input-group-addon {
@@ -576,28 +576,15 @@ input[type="text"]:focus + .input-group-addon {
 }
 
 .has-error .input-group-addon {
-	border-color: $red;
-	background:$red;
-	color:$state-danger-text;
-}
-.has-error input[type="text"], .has-error input[type="text"] + .input-group-addon {
-	border-color: $state-danger-border;
-}.has-error input[type="text"] + .input-group-addon {
-	background-color: $state-danger-bg;
-	color:$state-danger-text;
-}
-.has-error input[type="text"]:focus, .has-error input[type="text"]:focus + .input-group-addon {
-		border-color: darken($state-danger-bg, 35%);
-}.has-error input[type="text"]:focus + .input-group-addon {
-	background-color: darken($state-danger-bg, 35%);
-	color:$white;
+	border-color: $red !important;
+	background:$red !important;
+	color:$state-danger-text !important;
 }
 
-
-.has-success input[type="text"]:focus + .input-group-addon {
-	border-color:$state-success-border;
-	background-color:$state-success-border;
-	color:$white;
+.has-success .input-group-addon {
+	border-color: $state-success-border !important;
+	background-color:$state-success-text !important;
+	color: $state-success-border !important;
 }
 
 .form fieldset .form-group:last-child, .form fieldset .form-group:last-child .note,
@@ -626,12 +613,12 @@ input[type="text"]:focus + .input-group-addon {
 		font-size:16px;
 		color:$gray-mid-light;
 	}
-	
+
 	.input-icon-left > i {
 		right:auto;
 		left:24px;
 	}
-	
+
 	.input-icon-right .form-control {
 		padding-right:27px;
 	}
@@ -640,39 +627,39 @@ input[type="text"]:focus + .input-group-addon {
 		padding-left:29px;
 	}
 
-	input[type="text"].ui-autocomplete-loading, 
-	input[type="password"].ui-autocomplete-loading, 
-	input[type="datetime"].ui-autocomplete-loading, 
-	input[type="datetime-local"].ui-autocomplete-loading, 
-	input[type="date"].ui-autocomplete-loading, 
-	input[type="month"].ui-autocomplete-loading, 
-	input[type="time"].ui-autocomplete-loading, 
-	input[type="week"].ui-autocomplete-loading, 
-	input[type="number"].ui-autocomplete-loading, 
-	input[type="email"].ui-autocomplete-loading, 
-	input[type="url"].ui-autocomplete-loading, 
-	input[type="search"].ui-autocomplete-loading, 
-	input[type="tel"].ui-autocomplete-loading, 
+	input[type="text"].ui-autocomplete-loading,
+	input[type="password"].ui-autocomplete-loading,
+	input[type="datetime"].ui-autocomplete-loading,
+	input[type="datetime-local"].ui-autocomplete-loading,
+	input[type="date"].ui-autocomplete-loading,
+	input[type="month"].ui-autocomplete-loading,
+	input[type="time"].ui-autocomplete-loading,
+	input[type="week"].ui-autocomplete-loading,
+	input[type="number"].ui-autocomplete-loading,
+	input[type="email"].ui-autocomplete-loading,
+	input[type="url"].ui-autocomplete-loading,
+	input[type="search"].ui-autocomplete-loading,
+	input[type="tel"].ui-autocomplete-loading,
 	input[type="color"].ui-autocomplete-loading {
 		background-image: url("#{$base-url}/select2-spinner.gif") !important;
 		background-repeat: no-repeat;
 		background-position: 99% 50%;
 		padding-right:27px
 	}
-	
+
 	.input-group-addon .checkbox, .input-group-addon .radio {
 		min-height: 0px;
 		margin-right:0px !important;
 		padding-top:0;
 	}
-	
-	.input-group-addon label input[type="checkbox"].checkbox + span, 
-	.input-group-addon label input[type="radio"].radiobox + span, 
-	.input-group-addon label input[type="radio"].radiobox + span:before, 
+
+	.input-group-addon label input[type="checkbox"].checkbox + span,
+	.input-group-addon label input[type="radio"].radiobox + span,
+	.input-group-addon label input[type="radio"].radiobox + span:before,
 	.input-group-addon label input[type="checkbox"].checkbox + span:before {
 		margin-right:0px;
 	}
-	
+
 	.input-group-addon .onoffswitch , .input-group-addon .onoffswitch-label{
 		margin:0;
 	}
@@ -768,7 +755,7 @@ input[type="text"]:focus + .input-group-addon {
 
 .progress-sm {
 	height: $progressbar-sm !important;
-	line-height:$progressbar-sm !important;	 	
+	line-height:$progressbar-sm !important;
 }
 
 .progress-lg {
@@ -884,10 +871,10 @@ input[type="text"]:focus + .input-group-addon {
 	overflow: hidden;
 	height: 18px;
 	background: $gray-lighter;
-	box-shadow: 0 1px 0 transparent, 0 0 0 1px lighten( $gray-light, 29%) inset; 
+	box-shadow: 0 1px 0 transparent, 0 0 0 1px lighten( $gray-light, 29%) inset;
 	-webkit-box-shadow: 0 1px 0 transparent, 0 0 0 1px lighten( $gray-light, 29%) inset;
 	-moz-box-shadow: 0 1px 0 transparent, 0 0 0 1px lighten( $gray-light, 29%) inset;
-	
+
 	border-radius:$progressbar-radius;
 	-moz-border-radius:$progressbar-radius;
 	-webkit-border-radius:$progressbar-radius;
@@ -904,7 +891,7 @@ input[type="text"]:focus + .input-group-addon {
   -webkit-box-shadow: inset 0 -1px 0 rgba(red($black), green($black), blue($black), 0.15);
           box-shadow: inset 0 -1px 0 rgba(red($black), green($black), blue($black), 0.15);
   font-weight:bold;
-  text-shadow: 0 -1px 0 rgba(red($black), green($black), blue($black), 0.25);         
+  text-shadow: 0 -1px 0 rgba(red($black), green($black), blue($black), 0.25);
   //background-image:url("#{$base-url}/overlay-pattern.png");
   -webkit-transition: width 1.5s ease-in-out;
   transition: width 1.5s ease-in-out;
@@ -969,7 +956,7 @@ input[type="text"]:focus + .input-group-addon {
   background-image: -moz-linear-gradient(45deg, rgba(red($white), green($white), blue($white), 0.15) 25%, transparent 25%, transparent 50%, rgba(red($white), green($white), blue($white), 0.15) 50%, rgba(red($white), green($white), blue($white), 0.15) 75%, transparent 75%, transparent);
   background-image: linear-gradient(45deg, rgba(red($white), green($white), blue($white), 0.15) 25%, transparent 25%, transparent 50%, rgba(red($white), green($white), blue($white), 0.15) 50%, rgba(red($white), green($white), blue($white), 0.15) 75%, transparent 75%, transparent);
 }
-	
+
 
 .progress-info .bar, .progress .bar-info {
 	background:  $brand-info;
@@ -1468,7 +1455,7 @@ input[type="text"]:focus + .input-group-addon {
         border-color: $blue;
     }
 }
-	
+
 
 .panel-footer > .btn-block {
 	border-radius:0px;
@@ -1548,7 +1535,7 @@ input[type="text"]:focus + .input-group-addon {
 	position: absolute;
 	top:0px;
 	right:0px;
-} 
+}
 
 /*
  * buttons with labels

@@ -14,7 +14,7 @@ define([
     'dialog/map_info',
     'dialog/settings',
     'dialog/manual',
-    'dialog/map',
+    'dialog/map_settings',
     'dialog/system_effects',
     'dialog/jump_info',
     'dialog/credit',
@@ -150,7 +150,7 @@ define([
                         href: '#'
                     }).html('&nbsp;&nbsp;Effect info').prepend(
                             $('<i>',{
-                                class: 'fa fa-cogs fa-fw'
+                                class: 'fa fa-crosshairs fa-fw'
                             })
                         ).on('click', function(){
                             $(document).triggerMenuEvent('ShowSystemEffectInfo');
@@ -247,12 +247,12 @@ define([
                     $('<a>', {
                         class: 'list-group-item',
                         href: '#'
-                    }).html('&nbsp;&nbsp;Edit').prepend(
+                    }).html('&nbsp;&nbsp;Settings').prepend(
                             $('<i>',{
-                                class: 'fa fa-edit fa-fw'
+                                class: 'fa fa-gears fa-fw'
                             })
                         ).on('click', function(){
-                            $(document).triggerMenuEvent('EditMap', {newMap: false});
+                            $(document).triggerMenuEvent('ShowMapSettings', {newMap: false});
                         })
                 ).append(
                     $('<a>', {
@@ -454,19 +454,17 @@ define([
             return false;
         });
 
-        $(document).on('pf:menuEditMap', function(e, data){
+        $(document).on('pf:menuShowMapSettings', function(e){
             // show map edit dialog or edit map
             var mapData = false;
 
-            if(data.newMap === false){
-                var activeMap = Util.getMapModule().getActiveMap();
+            var activeMap = Util.getMapModule().getActiveMap();
 
-                if(activeMap){
-                    mapData = activeMap.getMapData(true);
-                }
+            if(activeMap){
+                mapData = activeMap.getMapData(true);
             }
 
-            $.fn.showNewMapDialog(mapData);
+            $.fn.showMapSettingsDialog(mapData);
             return false;
         });
 

@@ -35,12 +35,14 @@ define([
                 pieChartClass : Init.classes.pieChart.pieChartMapCounterClass,
                 mapCounterClass : Init.classes.pieChart.pieChartMapCounterClass,
 
-                mapTypeGlobalClass: Util.getInfoForMap( 'global', 'class'),
-                mapTypeGlobalLabel: Util.getInfoForMap( 'global', 'label'),
+                mapTypePrivateClass: Util.getInfoForMap( 'private', 'class'),
+                mapTypePrivateLabel: Util.getInfoForMap( 'private', 'label'),
+                mapTypeCorporationClass: Util.getInfoForMap( 'corporation', 'class'),
+                mapTypeCorporationLabel: Util.getInfoForMap( 'corporation', 'label'),
                 mapTypeAllianceClass: Util.getInfoForMap( 'alliance', 'class'),
                 mapTypeAllianceLabel: Util.getInfoForMap( 'alliance', 'label'),
-                mapTypePrivateClass: Util.getInfoForMap( 'private', 'class'),
-                mapTypePrivateLabel: Util.getInfoForMap( 'private', 'label')
+                mapTypeGlobalClass: Util.getInfoForMap( 'global', 'class'),
+                mapTypeGlobalLabel: Util.getInfoForMap( 'global', 'label')
             };
 
 

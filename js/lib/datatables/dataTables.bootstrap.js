@@ -1,6 +1,4 @@
-/*! DataTables Bootstrap integration
- * ©2011-2014 SpryMedia Ltd - datatables.net/license
- */
+
 
 /**
  * DataTables integration for Bootstrap 3. This requires Bootstrap 3 and

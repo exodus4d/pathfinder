@@ -1,11 +1,10 @@
 
 requirejs.config({
     baseUrl: 'js', // user build_js files, change to "js" for un-compressed source
-    stubModules: ['text'],                                              // Exclude these modules on build
     paths: {
         layout: 'layout',
         dialog: 'app/ui/dialog',
-        jquery: 'lib/jquery-1.11.2.min',                                // v1.11.2 jQuery
+        jquery: 'lib/jquery-1.11.3.min',                                // v1.11.3 jQuery
         //jquery: "lib/jquery-2.1.1.min",                               // v2.1.1 jQuery
         bootstrap: 'lib/bootstrap.min',                                 // v3.3.0 Bootstrap js code - http://getbootstrap.com/javascript/
         text: 'lib/requirejs/text',                                     // v2.0.12 A RequireJS/AMD loader plugin for loading text resources.
@@ -16,7 +15,7 @@ requirejs.config({
         slidebars: 'lib/slidebars',                                     // v0.10 Slidebars - side menu plugin http://plugins.adchsm.me/slidebars/
         jsPlumb: 'lib/dom.jsPlumb-1.7.2-min',                           // v1.7.2 jsPlumb (Vanilla)- main map draw plugin http://www.jsplumb.org/
         customScrollbar: 'lib/jquery.mCustomScrollbar.concat.min',      // v3.1.11 Custom scroll bars - http://manos.malihu.gr/
-        datatables: 'lib/datatables/jquery.dataTables.min',             // v1.10.6 DataTables - https://datatables.net/
+        datatables: 'lib/datatables/jquery.dataTables.min',             // v1.10.7 DataTables - https://datatables.net/
         datatablesBootstrap: 'lib/datatables/dataTables.bootstrap',     // DataTables - not used (bootstrap style)
         datatablesTableTools: 'lib/datatables/extensions/TableTools/js/dataTables.tableTools',   // v2.2.3 TableTools (PlugIn) - https://datatables.net/extensions/tabletools/
         xEditable: 'lib/bootstrap-editable.min',                        // v1.5.1 X-editable - in placed editing
@@ -32,21 +31,22 @@ requirejs.config({
         lazylinepainter: 'lib/jquery.lazylinepainter-1.5.1.min',        // v1.5.1 SVG line animation plugin - http://lazylinepainter.info/
         blueImpGallery: 'lib/blueimp-gallery',                          // v2.15.2 Image Gallery - https://blueimp.github.io/Bootstrap-Image-Gallery/
         blueImpGalleryHelper: 'lib/blueimp-helper',                     // helper function for Blue Imp Gallery
-        blueImpGalleryBootstrap: 'lib/bootstrap-image-gallery',         // v3.1.1 Bootstrap Extension for Blue Imp Gallery - https://blueimp.github.io/Bootstrap-Image-Gallery/
+        blueImpGalleryBootstrap: 'lib/bootstrap-image-gallery',         // v3.1.1 Bootstrap extension for Blue Imp Gallery - https://blueimp.github.io/Bootstrap-Image-Gallery/
+        bootstrapConfirmation: 'lib/bootstrap-confirmation',            // v1.0.1 Bootstrap extension for inline confirm dialog - https://github.com/tavicu/bs-confirmation
 
         // header animation
         easePack: 'lib/EasePack.min',
         tweenLite: 'lib/TweenLite.min',
 
-
+        // notification plugin
         pnotify: 'lib/pnotify/pnotify.core',                            // v2.0.1 PNotify - notification core file
-        //'pnotify.buttons': 'lib/pnotify/pnotify.buttons',             // PNotify - buttons notification extension
-        //'pnotify.confirm': 'lib/pnotify/pnotify.confirm',             // PNotify - confirmation notification extension
+        'pnotify.buttons': 'lib/pnotify/pnotify.buttons',               // PNotify - buttons notification extension
+        'pnotify.confirm': 'lib/pnotify/pnotify.confirm',               // PNotify - confirmation notification extension
         'pnotify.nonblock': 'lib/pnotify/pnotify.nonblock',             // PNotify - notification non-block extension (hover effect)
         'pnotify.desktop': 'lib/pnotify/pnotify.desktop',               // PNotify - desktop push notification extension
-        //'pnotify.history': 'lib/pnotify/pnotify.history',             // PNotify - history push notification history extension
-        'pnotify.callbacks': 'lib/pnotify/pnotify.callbacks'            // PNotify - callbacks push notification extension
-        // 'pnotify.reference': 'lib/pnotify/pnotify.reference'         // PNotify - reference push notification extension
+        'pnotify.history': 'lib/pnotify/pnotify.history',               // PNotify - history push notification history extension
+        'pnotify.callbacks': 'lib/pnotify/pnotify.callbacks',           // PNotify - callbacks push notification extension
+        'pnotify.reference': 'lib/pnotify/pnotify.reference'            // PNotify - reference push notification extension
 
     },
     shim: {
@@ -112,6 +112,9 @@ requirejs.config({
         },
         blueImpGallery: {
             deps : ['jquery']
+        },
+        bootstrapConfirmation: {
+            deps : ['bootstrap']
         }
     }
 });

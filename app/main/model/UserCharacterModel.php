@@ -27,13 +27,6 @@ class UserCharacterModel extends BasicModel {
         'characterId' => array(
             'belongs-to-one' => 'Model\CharacterModel'
         )
-    /*
-    ,
-        'log' => array(
-            'has-one' => array('Model\CharacterLogModel', 'userCharacterId')
-        ) */
-
-
     );
 
     /**
@@ -69,17 +62,13 @@ class UserCharacterModel extends BasicModel {
         $characterData->isMain = $this->isMain;
 
         // check for corporation
-        if($characterModel->corporationId){
-            $characterData->corporation = (object) [];
-            $characterData->corporation->id = $characterModel->corporationId;
-            $characterData->corporation->name = $characterModel->corporationName;
+        if( is_object( $characterModel->corporationId ) ){
+            $characterData->corporation = $characterModel->corporationId->getData();
         }
 
         // check for alliance
-        if($characterModel->allianceId){
-            $characterData->alliance = (object) [];
-            $characterData->alliance->id = $characterModel->allianceId;
-            $characterData->alliance->name = $characterModel->allianceName;
+        if( is_object( $characterModel->allianceId ) ){
+            $characterData->alliance = $characterModel->allianceId->getData();
         }
 
         // add character Log (current pilot data)
@@ -115,18 +104,22 @@ class UserCharacterModel extends BasicModel {
     }
 
     /**
+     * get the character model of this character
+     * @return mixed
+     */
+    public function getCharacter(){
+        return $this->characterId;
+    }
+
+    /**
      * get character log model (if exists)
      * @return bool|mixed
      */
     public function getLog(){
-        //$this->filter('log', array('active = ?', 1));
 
-
-        $characterLog = $this->characterId->getLog();
-        if($this->log){
-            $characterLog = $this->log;
-        }
+        $characterLog = $this->getCharacter()->getLog();
 
         return $characterLog;
     }
+
 } 

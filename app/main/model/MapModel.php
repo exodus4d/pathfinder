@@ -22,11 +22,17 @@ class MapModel extends BasicModel{
         'typeId' => array(
             'belongs-to-one' => 'Model\MapTypeModel'
         ),
+        'systems' => array(
+            'has-many' => array('Model\SystemModel', 'mapId')
+        ),
         'mapUsers' => array(
             'has-many' => array('Model\UserMapModel', 'mapId')
         ),
-        'systems' => array(
-            'has-many' => array('Model\SystemModel', 'mapId')
+        'mapCorporations' => array(
+            'has-many' => array('Model\CorporationMapModel', 'mapId')
+        ),
+        'mapAlliances' => array(
+            'has-many' => array('Model\AllianceMapModel', 'mapId')
         )
     );
 
@@ -169,7 +175,7 @@ class MapModel extends BasicModel{
     }
 
     /**
-     * set map access for an object (user or alliance)
+     * set map access for an object (user, corporation or alliance)
      * @param $obj
      */
     public function setAccess($obj){
@@ -197,6 +203,43 @@ class MapModel extends BasicModel{
                 $userMap->userId = $obj;
                 $userMap->mapId = $this;
                 $userMap->save();
+            }
+        }elseif($obj instanceof CorporationModel){
+            $corporationMap = self::getNew('CorporationMapModel');
+            $corporationMap->corporationId = $obj;
+            $corporationMap->mapId = $this;
+            $corporationMap->save();
+        }elseif($obj instanceof AllianceModel){
+            $allianceMap = self::getNew('AllianceMapModel');
+            $allianceMap->allianceId = $obj;
+            $allianceMap->mapId = $this;
+            $allianceMap->save();
+        }
+    }
+
+    /**
+     * clear access for a given type of objects
+     * @param $clearKeys
+     */
+    public function clearAccess($clearKeys){
+
+        foreach($clearKeys as $key){
+            switch($key){
+                case 'user':
+                    foreach((array)$this->mapUsers as $obj){
+                        $obj->erase();
+                    };
+                    break;
+                case 'corporation':
+                    foreach((array)$this->mapCorporations as $obj){
+                        $obj->erase();
+                    };
+                    break;
+                case 'alliance':
+                    foreach((array)$this->mapAlliances as $obj){
+                        $obj->erase();
+                    };
+                    break;
             }
         }
     }
@@ -281,7 +324,7 @@ class MapModel extends BasicModel{
     }
 
     /**
-     * checks weather a map is private or not
+     * checks weather a map is private map or not
      * @return bool
      */
     public function isPrivate(){
@@ -292,6 +335,34 @@ class MapModel extends BasicModel{
         }
 
         return $isPrivate;
+    }
+
+    /**
+     * checks weather a map is corporation map or not
+     * @return bool
+     */
+    public function isCorporation(){
+        $isCorporation = false;
+
+        if($this->typeId->id == 3){
+            $isCorporation = true;
+        }
+
+        return $isCorporation;
+    }
+
+    /**
+     * checks weather a map is alliance map or not
+     * @return bool
+     */
+    public function isAlliance(){
+        $isAlliance = false;
+
+        if($this->typeId->id == 4){
+            $isAlliance = true;
+        }
+
+        return $isAlliance;
     }
 
     /**

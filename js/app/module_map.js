@@ -214,15 +214,18 @@ define([
             // get user data for each active map
             var mapUserData = null;
 
-            for(var j = 0; j < mapModuleData.mapUserData.length; j++){
+            if(mapModuleData.mapUserData){
+                for(var j = 0; j < mapModuleData.mapUserData.length; j++){
 
-                var tempMapUserData = mapModuleData.mapUserData[j];
-                if(tempMapUserData.config.id === mapId){
-                    // map userData found
-                    mapUserData = tempMapUserData;
-                    break;
+                    var tempMapUserData = mapModuleData.mapUserData[j];
+                    if(tempMapUserData.config.id === mapId){
+                        // map userData found
+                        mapUserData = tempMapUserData;
+                        break;
+                    }
                 }
             }
+
 
             // update map with current user data
             if(mapUserData){
@@ -313,18 +316,23 @@ define([
 
         // change tabClass
         var listElement = tabElement.parent();
+
         listElement.removeClass().addClass([config.mapTabClass, options.type.classTab ].join(' '));
 
         // set title for tooltip
-        if(options.type.name !== undefined){
-            listElement.attr('title', options.type.name + ' map');
+        if(options.type.name !== undefined){ console.log(options.type.name)
+
+            listElement.tooltip('destroy');
+
             var mapTooltipOptions = {
-                toggle: 'tooltip',
                 placement: 'bottom',
+                container: 'body',
+                title: options.type.name + ' map',
+                trigger: 'hover',
                 delay: 200
             };
 
-            listElement.tooltip(mapTooltipOptions);
+            $(listElement).tooltip(mapTooltipOptions);
         }
 
         if(options.right === true){
@@ -668,7 +676,7 @@ define([
 
                 if(mapId === 0){
                     // add new Tab selected
-                    $(document).trigger('pf:menuEditMap', {newMap: true});
+                    $(document).trigger('pf:menuShowMapSettings');
                     e.preventDefault();
                 }
             });

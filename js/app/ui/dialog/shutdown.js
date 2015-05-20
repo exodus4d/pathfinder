@@ -14,7 +14,8 @@ define([
     var config = {
 
         // shutdown dialog
-        shutdownDialogId: 'pf-shutdown-dialog'                                              // id for "trust" dialog
+        shutdownDialogId: 'pf-shutdown-dialog',                                     // id for "shutdown" dialog
+        shutdownDialogClass: 'pf-shutdown-dialog'                                   // class for "shutdown" dialog
 
     };
 
@@ -41,52 +42,55 @@ define([
      */
     $.fn.showShutdownDialog = function(dialogData){
 
-        requirejs(['text!templates/dialog/shutdown.html', 'mustache'], function(template, Mustache) {
+        // check if there is already a shutdown dialog open
+        var $shutdownDialoges = $('.' + config.shutdownDialogClass);
 
-            var data = {
-                id: config.shutdownDialogId,
-                reason: dialogData.reason
-            };
+        if($shutdownDialoges.length === 0){
 
-            var content = Mustache.render(template, data);
+            // close all modals
+            $('.modal').modal('hide');
 
-            // show dialog
-            var shutdownDialog = bootbox.dialog({
-                title: 'Shutdown',
-                message: content,
-                buttons: {
-                    logout: {
-                        label: '<i class="fa fa-fw fa-power-off"></i> logout',
-                        className: ['btn-default', 'pull-left'].join(' '),
-                        callback: function() {
+            requirejs(['text!templates/dialog/shutdown.html', 'mustache'], function(template, Mustache) {
 
-                            $(document).trigger('pf:menuLogout');
-                        }
-                    },
-                    refresh: {
-                        label: '<i class="fa fa-fw fa-repeat"></i> reload',
-                        className: ['btn-danger'].join(' '),
-                        callback: function(){
-                            // refresh page
-                            location.reload();
-                            return false;
+                var data = {
+                    id: config.shutdownDialogId,
+                    reason: dialogData.reason
+                };
+
+                var content = Mustache.render(template, data);
+
+                // show dialog
+                var shutdownDialog = bootbox.dialog({
+                    title: 'Shutdown',
+                    message: content,
+                    className: config.shutdownDialogClass,
+                    buttons: {
+                        logout: {
+                            label: '<i class="fa fa-fw fa-refresh"></i> restart',
+                            className: ['btn-primary'].join(' '),
+                            callback: function() {
+
+                                $(document).trigger('pf:menuLogout');
+                            }
                         }
                     }
-                }
+                });
+
+
+                shutdownDialog.on('shown.bs.modal', function(e) {
+                    // remove close button
+                    var dialog = $(this);
+
+                    dialog.find('.bootbox-close-button').remove();
+                    dialog.find('button').blur();
+
+                    // show error message
+                    showPageContent(dialog);
+                });
             });
+        }
 
 
-            shutdownDialog.on('shown.bs.modal', function(e) {
-                // remove close button
-                var dialog = $(this);
-
-                dialog.find('.bootbox-close-button').remove();
-                dialog.find('button').blur();
-
-                // show error message
-                showPageContent(dialog);
-            });
-        });
     };
 
 

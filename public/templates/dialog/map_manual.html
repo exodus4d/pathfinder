@@ -1,15 +1,13 @@
 <nav class="navbar navbar-default" role="navigation">
-    <div class="container-fluid">
-        <div class="navbar-header pull-left">
-            <ul class="nav navbar-nav {{dialogNavigationClass}}">
-                <li class="{{dialogNavLiClass}} active"><a data-target="#pf-manual-map" href="#"><i class="fa fa-code-fork fa-lg fa-fw"></i>&nbsp;Map</a></li>
-                <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-system" href="#"><i class="fa fa-sun-o fa-lg fa-fw"></i>&nbsp;System</a></li>
-                <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-connection" href="#"><i class="fa fa-chain fa-lg fa-fw"></i>&nbsp;Connection</a></li>
-                <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-signature" href="#"><i class="fa fa-table fa-lg fa-fw"></i>&nbsp;Signature</a></li>
-                <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-chart" href="#"><i class="fa fa-bar-chart fa-lg fa-fw"></i>&nbsp;Chart</a></li>
-                <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-notification" href="#"><i class="fa fa-bullhorn fa-lg fa-fw"></i>&nbsp;Notification</a></li>
-            </ul>
-        </div>
+    <div class="navbar-header pull-left">
+        <ul class="nav navbar-nav {{dialogNavigationClass}}">
+            <li class="{{dialogNavLiClass}} active"><a data-target="#pf-manual-map" href="#"><i class="fa fa-code-fork fa-lg fa-fw"></i>&nbsp;Map</a></li>
+            <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-system" href="#"><i class="fa fa-sun-o fa-lg fa-fw"></i>&nbsp;System</a></li>
+            <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-connection" href="#"><i class="fa fa-chain fa-lg fa-fw"></i>&nbsp;Connection</a></li>
+            <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-signature" href="#"><i class="fa fa-table fa-lg fa-fw"></i>&nbsp;Signature</a></li>
+            <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-chart" href="#"><i class="fa fa-bar-chart fa-lg fa-fw"></i>&nbsp;Chart</a></li>
+            <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-notification" href="#"><i class="fa fa-bullhorn fa-lg fa-fw"></i>&nbsp;Notification</a></li>
+        </ul>
     </div>
 </nav>
 
@@ -21,10 +19,11 @@
         <em class="pf-brand">pathfinder</em>&nbsp;&nbsp;supports 3 different types of maps. Each map contains several systems <small>(<i class="fa fa-sun-o fa-fw"></i><a href="#" data-target="#pf-manual-system">more</a>)</small>
         and connections <small>(<i class="fa fa-chain fa-fw"></i><a href="#" data-target="#pf-manual-connection">more</a>)</small>. Maps are also referred to as <em>"Chain Map"</em> or <em>"Chain"</em>.
     </p>
-    <ul class="list-unstyled" style=" margin-left: 10px;">
-        <li><span class="{{mapTypeGlobalClass}}">{{mapTypeGlobalLabel}} map</span><small> (anyone can use this kind of maps)</small></li>
-        <li><span class="{{mapTypeAllianceClass}}">{{mapTypeAllianceLabel}} map</span><small> (is not visible for other pilots)</small></li>
-        <li><span class="{{mapTypePrivateClass}}">{{mapTypePrivateLabel}} map</span><small> (can be used by any alliance member)</small></li>
+    <ul class="fa-ul">
+        <li><i class="fa-li fa fa-circle fa-fw {{mapTypePrivateClass}}"></i>{{mapTypePrivateLabel}} map<small> (is not visible for other pilots, unless you invite them)</small></li>
+        <li><i class="fa-li fa fa-circle fa-fw {{mapTypeCorporationClass}}"></i>{{mapTypeCorporationLabel}} map<small> (can be used by any corporation member)</small></li>
+        <li><i class="fa-li fa fa-circle fa-fw {{mapTypeAllianceClass}}"></i>{{mapTypeAllianceLabel}} map<small> (can be used by any alliance member)</small></li>
+        <li><i class="fa-li fa fa-circle fa-fw {{mapTypeGlobalClass}}"></i>{{mapTypeGlobalLabel}} map<small> (this maps are static and can´t be created by users)</small></li>
     </ul>
     <p>
         Up to 5 different maps can be used simultaneously. <span class="txt-color txt-color-blue">Alliance maps</span> require appropriate rules to be created.
@@ -121,13 +120,13 @@
         Effects of wormhole systems are shown by a <i class="fa fa-square fa-fw"></i> at the top right of a system.
     </p>
     <ul class="fa-ul">
-        <li><i class="fa-li fa fa-square fa-fw pf-system-effect"></i></span> No effect</li>
-        <li><i class="fa-li fa fa-square fa-fw pf-system-effect-magnetar"></i></span> Magnetar</li>
-        <li><i class="fa-li fa fa-square fa-fw pf-system-effect-redgiant"></i></span> Red Giant</li>
-        <li><i class="fa-li fa fa-square fa-fw pf-system-effect-pulsar"></i></span> Pulsar</li>
-        <li><i class="fa-li fa fa-square fa-fw pf-system-effect-wolfryet"></i></span> Wolfryet</li>
-        <li><i class="fa-li fa fa-square fa-fw pf-system-effect-cataclysmic"></i></span> Cataclysmic Variable</li>
-        <li><i class="fa-li fa fa-square fa-fw pf-system-effect-blackhole"></i></span> Blackhole</li>
+        <li><i class="fa-li fa fa-square fa-fw pf-system-effect"></i> No effect</li>
+        <li><i class="fa-li fa fa-square fa-fw pf-system-effect-magnetar"></i> Magnetar</li>
+        <li><i class="fa-li fa fa-square fa-fw pf-system-effect-redgiant"></i> Red Giant</li>
+        <li><i class="fa-li fa fa-square fa-fw pf-system-effect-pulsar"></i> Pulsar</li>
+        <li><i class="fa-li fa fa-square fa-fw pf-system-effect-wolfryet"></i> Wolfryet</li>
+        <li><i class="fa-li fa fa-square fa-fw pf-system-effect-cataclysmic"></i> Cataclysmic Variable</li>
+        <li><i class="fa-li fa fa-square fa-fw pf-system-effect-blackhole"></i> Blackhole</li>
     </ul>
     <h4>Active pilots</h4>
     <p>

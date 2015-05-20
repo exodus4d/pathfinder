@@ -62,7 +62,9 @@ define([
 
         });
 
-
+        /**
+         * main function for init all map relevant trigger calls
+         */
         $.fn.initMapModule = function(){
 
             var mapModule = $(this);
@@ -112,7 +114,7 @@ define([
 
                     if(mapData.length === 0){
                         // no map data available -> show "new map" dialog
-                        $(document).trigger('pf:menuEditMap', {newMap: true});
+                        $(document).trigger('pf:menuShowMapSettings');
                     }else{
                         // map data found
 

@@ -73,11 +73,38 @@ class CcpApiController extends Controller{
 
                 if($rowApiData->children()){
                     $characterModel = Model\BasicModel::getNew('CharacterModel');
+                    $corporationModel = Model\BasicModel::getNew('CorporationModel');
+                    $allianceModel = Model\BasicModel::getNew('AllianceModel');
 
                     foreach($rowApiData->children() as $characterApiData){
 
                         // map attributes to array
                         $attributeData = current( $characterApiData->attributes() );
+
+                        $corporationModelTemp = null;
+                        $allianceModelTemp = null;
+
+                        // check if corporation already exists
+                        if($attributeData['corporationID'] > 0){
+                            $corporationModel->getById($attributeData['corporationID']);
+                            if( $corporationModel->dry() ){
+                                $corporationModel->id = $attributeData['corporationID'];
+                                $corporationModel->name = $attributeData['corporationName'];
+                                $corporationModel->save();
+                            }
+                            $corporationModelTemp = $corporationModel;
+                        }
+
+                        // check if alliance already exists
+                        if($attributeData['allianceID'] > 0){
+                            $allianceModel->getById($attributeData['allianceID']);
+                            if( $allianceModel->dry() ){
+                                $allianceModel->id = $attributeData['allianceID'];
+                                $allianceModel->name = $attributeData['allianceName'];
+                                $allianceModel->save();
+                            }
+                            $allianceModelTemp = $allianceModel;
+                        }
 
                         // search for existing user character model
                         $userCharacterModel = $apiModel->getUserCharacterById($attributeData['characterID']);
@@ -89,10 +116,8 @@ class CcpApiController extends Controller{
 
                         $characterModel->characterId = $attributeData['characterID'];
                         $characterModel->name = $attributeData['characterName'];
-                        $characterModel->corporationId = $attributeData['corporationID'];
-                        $characterModel->corporationName = $attributeData['corporationName'];
-                        $characterModel->allianceId = $attributeData['allianceID'];
-                        $characterModel->allianceName = $attributeData['allianceName'];
+                        $characterModel->corporationId = $corporationModelTemp;
+                        $characterModel->allianceId = $allianceModelTemp;
                         $characterModel->factionId = $attributeData['factionID'];
                         $characterModel->factionName = $attributeData['factionName'];
 
@@ -104,6 +129,8 @@ class CcpApiController extends Controller{
 
                         $characters[] = $userCharacterModel;
 
+                        $corporationModel->reset();
+                        $allianceModel->reset();
                         $characterModel->reset();
                     }
                 }

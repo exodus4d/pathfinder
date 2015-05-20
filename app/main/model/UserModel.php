@@ -29,8 +29,17 @@ class UserModel extends BasicModel {
             'length' => [
                 'min' => 5,
                 'max' => 20
-            ],
-            'regex' => '/^[ \w-_]+$/'
+            ]
+        ],
+        'email' => [
+            'length' => [
+                'min' => 5
+            ]
+        ],
+        'password' => [
+            'length' => [
+                'min' => 6
+            ]
         ]
     ];
 
@@ -119,16 +128,37 @@ class UserModel extends BasicModel {
     }
 
     /**
-     * get all assessable map models for this user
+     * get all accessible map models for this user
      * @return array
      */
     public function getMaps(){
-        $userMaps = $this->getRelatedModels('UserMapModel', 'userId', null, 5);
-
+        $mapCache = 5;
         $maps = [];
-        foreach($userMaps as $userMap){
-            if($userMap->mapId->isActive()){
-                $maps[] = $userMap->mapId;
+        $userMaps = $this->getRelatedModels('UserMapModel', 'userId', null, $mapCache);
+        $activeUserCharacter = $this->getActiveUserCharacter();
+
+        if(is_object($userMaps)){
+            foreach($userMaps as $userMap){
+                if($userMap->mapId->isActive()){
+                    $maps[] = $userMap->mapId;
+                }
+            }
+        }
+
+        if($activeUserCharacter){
+            $character = $activeUserCharacter->getCharacter();
+            $corporation = $character->getCorporation();
+            $alliance = $character->getAlliance();
+
+            if($alliance){
+                $allianceMaps = $alliance->getMaps();
+                $maps = array_merge($maps, $allianceMaps);
+            }
+
+            if($corporation){
+                $corporationMaps = $corporation->getMaps();
+                $maps = array_merge($maps, $corporationMaps);
+
             }
         }
 

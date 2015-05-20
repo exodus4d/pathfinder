@@ -16,7 +16,12 @@ class CharacterModel extends BasicModel {
     protected $rel_ttl = 0;
 
     protected $fieldConf = array(
-
+        'corporationId' => array(
+            'belongs-to-one' => 'Model\CorporationModel'
+        ),
+        'allianceId' => array(
+            'belongs-to-one' => 'Model\AllianceModel'
+        )
     );
 
     /**
@@ -30,20 +35,72 @@ class CharacterModel extends BasicModel {
         $characterData->name = $this->name;
 
         // check for corporation
-        if($this->corporationId){
-            $characterData->corporation = (object) [];
-            $characterData->corporation->id = $this->corporationId;
-            $characterData->corporation->name = $this->corporationName;
+        if($this->hasCorporation()){
+            $characterData->corporation = $this->getCorporation()->getData();
         }
 
         // check for alliance
         if($this->allianceId){
-            $characterData->alliance = (object) [];
-            $characterData->alliance->id = $this->allianceId;
-            $characterData->alliance->name = $this->allianceName;
+            $characterData->alliance = $this->allianceId->getData();
         }
 
         return $characterData;
+    }
+
+    /**
+     * check whether this character has a corporation
+     * @return bool
+     */
+    public function hasCorporation(){
+        $hasCorporation = false;
+
+        if($this->corporationId){
+            $hasCorporation = true;
+        }
+
+        return $hasCorporation;
+    }
+
+    /**
+     * check whether this character has an alliance
+     * @return bool
+     */
+    public function hasAlliance(){
+        $hasAlliance = false;
+
+        if($this->allianceId){
+            $hasAlliance = true;
+        }
+
+        return $hasAlliance;
+    }
+
+    /**
+     * get the corporation for this user
+     * @return mixed|null
+     */
+    public function getCorporation(){
+        $corporation = null;
+
+        if($this->hasCorporation()){
+            $corporation = $this->corporationId;
+        }
+
+        return $corporation;
+    }
+
+    /**
+     * get the alliance of this user
+     * @return mixed|null
+     */
+    public function getAlliance(){
+        $alliance = null;
+
+        if($this->hasAlliance()){
+            $alliance = $this->allianceId;
+        }
+
+        return $alliance;
     }
 
     /**

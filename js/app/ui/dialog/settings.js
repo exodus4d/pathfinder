@@ -27,8 +27,22 @@ define([
         settingsCloneRowButtonClass: 'pf-dialog-clone-button',                  // class for clone button (api row)
         settingsDeleteRowButtonClass: 'pf-dialog-delete-button',                // class for delete button (api row)
 
+        // form messages
+        settingsErrorId: 'pf-dialog-error-id',                                  // id for "error" form element
+        settingsWarningId: 'pf-dialog-warning-id',                              // id for "warning" form element
+        settingsMessageVelocityOptions: {
+            duration: 180
+        },
+
         // captcha
-        captchaImageId: 'pf-dialog-captcha-image'                               // id for "captcha image"
+        captchaImageWrapperId: 'pf-dialog-captcha-wrapper',                     // id for "captcha image" wrapper
+        captchaImageId: 'pf-dialog-captcha-image',                              // id for "captcha image"
+
+        loadingOptions: {                                                       // config for loading overlay
+            icon: {
+                size: 'fa-2x'
+            }
+        }
 
     };
 
@@ -59,17 +73,172 @@ define([
 
             callback(base64Image);
         }).fail(function( jqXHR, status, error) {
-            console.log(status)
-            console.log(error)
             var reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': saveConfig', text: reason, type: 'warning'});
         });
     };
 
     /**
+     * clear a field and reset success/error classes
+     * @param fieldId
+     */
+    var resetFormField = function(fieldId){
+        var field = $('#' + fieldId);
+        field.val('');
+        field.parents('.form-group').removeClass('has-error has-success');
+    }
+
+    /**
+     * request captcha image and show in form
+     */
+    var showCaptchaImage = function(){
+
+        var captchaWrapper = $('#' + config.captchaImageWrapperId);
+        var captchaImage = $('#' + config.captchaImageId);
+
+        captchaWrapper.showLoadingAnimation(config.loadingOptions);
+        getCaptchaImage(function(base64Image){
+
+            captchaImage.attr('src', base64Image).show();
+            captchaWrapper.hideLoadingAnimation();
+
+            // reset captcha field
+            resetFormField('captcha');
+        });
+    };
+
+    /**
+     * show form messages
+     * @param errors
+     */
+    var showFormMessage = function(errors){
+
+        var errorMessage = [];
+        var warningMessage = [];
+        for(var i = 0; i < errors.length; i++){
+            if(errors[i].type === 'error'){
+                errorMessage.push( errors[i].message );
+            }else if(errors[i].type === 'warning'){
+                warningMessage.push( errors[i].message );
+            }
+        }
+
+        if(errorMessage.length > 0){
+            hideFormMessage('error', function(element){
+                $(element).find('small').text( errorMessage.join('<br>') );
+                $(element).velocity('transition.slideUpIn', config.settingsMessageVelocityOptions);
+            });
+        }
+
+        if(warningMessage.length > 0){
+            hideFormMessage('warning', function(element){
+                $(element).find('small').text( warningMessage.join('<br>') );
+                $(element).velocity('transition.slideUpIn', config.settingsMessageVelocityOptions);
+            });
+        }
+    };
+
+    /**
+     * ide all form messages
+     * @param type
+     * @param callback
+     */
+    var hideFormMessage = function(type, callback){
+
+        var settingsMessageVelocityOptions = $.extend({}, config.settingsMessageVelocityOptions);
+
+
+        // check if callback exists
+        if(callback !== undefined){
+            settingsMessageVelocityOptions.complete = callback;
+
+            // new error will be shown afterwards -> keep display
+            settingsMessageVelocityOptions.display = 'block';
+        }
+
+        if(type === 'error'){
+            var errorMessageElement = $('#' + config.settingsErrorId);
+
+            // check if element is visible
+            if(errorMessageElement.is(':visible')){
+                errorMessageElement.velocity('transition.slideDownOut', settingsMessageVelocityOptions);
+            }else if(callback){
+                // skip hide animation
+                callback(errorMessageElement);
+            }
+        }
+
+        if(type === 'warning'){
+            var warningMessageElement = $('#' + config.settingsWarningId);
+
+            // check if element is visible
+            if(warningMessageElement.is(':visible')){
+                warningMessageElement.velocity('transition.slideDownOut', settingsMessageVelocityOptions);
+            }else if(callback){
+                // skip hide animation
+                callback(warningMessageElement);
+            }
+        }
+    };
+
+    /**
+     * init popovers in dialog
+     * @param dialogElement
+     */
+    var initPopover = function(dialogElement){
+
+        var apiCloneButtons = dialogElement.find('.' + config.settingsCloneRowButtonClass);
+        var apiDeleteButtons = dialogElement.find('.' + config.settingsDeleteRowButtonClass);
+
+        var confirmationSettings = {
+            container: 'body',
+            placement: 'left',
+            btnCancelClass: 'btn btn-sm btn-default',
+            btnCancelLabel: 'cancel',
+            btnCancelIcon: 'fa fa-fw fa-ban'
+        };
+
+        // add API key row
+        var cloneConfirmationSettings = $.extend({
+            title: 'Add additional key',
+            btnOkClass: 'btn btn-sm btn-success',
+            btnOkLabel: 'confirm',
+            btnOkIcon: 'fa fa-fw fa-check',
+            onConfirm: function(e) {
+                var cloneRow = dialogElement.find('.' + config.settingsCloneApiRowClass).last();
+                var newApiRow = cloneRow.clone();
+
+                newApiRow.find('.form-group').removeClass('has-success has-error')
+                newApiRow.find('input').val('');
+                cloneRow.after(newApiRow);
+
+                // init new row with popups
+                initPopover(dialogElement);
+            }
+        }, confirmationSettings);
+
+        // delete API key row
+        var deleteConfirmationSettings = $.extend({
+            title: 'Delete key',
+            btnOkClass: 'btn btn-sm btn-danger',
+            btnOkLabel: 'delete',
+            btnOkIcon: 'fa fa-fw fa-close',
+            onConfirm: function(e, target) {
+                $(target).parents('.row').remove();
+            }
+        }, confirmationSettings);
+
+        $(apiCloneButtons).confirmation(cloneConfirmationSettings);
+        $(apiDeleteButtons).confirmation(deleteConfirmationSettings);
+    };
+
+
+    /**
      * show "register/settings" dialog
      */
     $.fn.showSettingsDialog = function(register){
+
+        var reroutePath = '';
 
         // check navigation buttons and show/hide them
         var checkNavigationButton = function(dialog){
@@ -92,8 +261,17 @@ define([
             }
         };
 
-
         requirejs(['text!templates/dialog/settings.html', 'mustache'], function(template, Mustache) {
+
+            // if this is a new registration there is no API key -> fake an empty API to make fields visible
+            if(register){
+                Init.currentUserData = {};
+                Init.currentUserData.api = [{
+                    keyId: '',
+                    vCode: ''
+                }];
+            }
+
 
             var data = {
                 id: config.settingsDialogId,
@@ -102,18 +280,34 @@ define([
                 userData: Init.currentUserData,
                 cloneApiRowClass: config.settingsCloneApiRowClass,
                 cloneRowButtonClass: config.settingsCloneRowButtonClass,
-                deleteRowButtonClass: config.settingsDeleteRowButtonClass
+                deleteRowButtonClass: config.settingsDeleteRowButtonClass,
+                captchaImageWrapperId: config.captchaImageWrapperId,
+                captchaImageId: config.captchaImageId,
+                settingsErrorId: config.settingsErrorId,
+                settingsWarningId: config.settingsWarningId
             };
 
             var content = Mustache.render(template, data);
 
             var selectCharacterDialog = bootbox.dialog({
-                title: register ? 'Register' : 'Account settings',
+                title: register ? 'Registration' : 'Account settings',
                 message: content,
                 buttons: {
                     close: {
                         label: 'finish',
-                        className: ['btn-success', 'pull-right', config.settingsFinishButtonClass].join(' ')
+                        className: ['btn-success', 'pull-right', config.settingsFinishButtonClass].join(' '),
+                        callback: function(e){
+
+                            if(register){
+                                if(reroutePath !== undefined){
+                                    // root user to main app
+                                    window.location = Util.buildUrl(reroutePath);
+                                }
+                            }else{
+                                // close dialog
+                                return true;
+                            }
+                        }
                     },
                     prev: {
                         label: '<i class="fa fa-fw fa-angle-left"></i>back',
@@ -134,6 +328,7 @@ define([
                             var currentActiveTab = getActiveTabElement(dialogElement);
                             var currentActiveLink = currentActiveTab.find('a');
                             var tabContentElement = $(currentActiveLink.attr('href'));
+                            var form = tabContentElement.find('form');
 
                             var changeTab = function(){
                                 currentActiveTab.addClass('finished');
@@ -145,9 +340,9 @@ define([
                             };
 
                             // validate form
-                            var form = tabContentElement.find('form');
                             form.validator('validate');
                             var formValid = form.isValidForm();
+
 
                             if(!formValid){
                                 currentActiveTab.removeClass('disabled');
@@ -166,8 +361,6 @@ define([
 
                                     selectCharacterDialog.find('.modal-content').showLoadingAnimation();
 
-
-
                                     $.ajax({
                                         type: 'POST',
                                         url: Init.path.saveUserConfig,
@@ -175,23 +368,26 @@ define([
                                         dataType: 'json'
                                     }).done(function(responseData){
                                         selectCharacterDialog.find('.modal-content').hideLoadingAnimation();
-console.log(responseData)
-                                        if(responseData.error){
-                                            var errorAlert = form.find('.alert');
-                                            for(var i = 0; i < responseData.error.length; i++){
-                                                var errorData = responseData.error[i];
 
-                                                if(errorData.type === 'api'){
-                                                    errorAlert.find('small').text(errorData.message + '. Key ID: ' + errorData.keyId);
-                                                }
-                                            }
-                                            errorAlert.velocity('transition.slideUpIn',{
-                                                duration: 500
-                                            });
+                                        // set new captcha for any request
+                                        // captcha is required for sensitive data (not for all data)
+
+                                        if(
+                                            responseData.error &&
+                                            responseData.error.length > 0
+                                        ){
+                                            showFormMessage(responseData.error);
+
+                                            showCaptchaImage();
                                         }else{
                                             // store new/updated user data -> update head
-                                            if(!register){
+                                            if(responseData.userData){
                                                 Util.setCurrentUserData(responseData.userData);
+                                            }
+
+                                            // store reroute path after registration  finished
+                                            if(responseData.reroute){
+                                                reroutePath = responseData.reroute;
                                             }
 
                                             dialogElement.find('.alert').velocity('transition.slideDownOut',{
@@ -199,35 +395,66 @@ console.log(responseData)
                                                 complete: function(){
                                                     // switch tab
                                                     changeTab();
+
+                                                    showCaptchaImage();
                                                 }
                                             });
 
-
+                                            Util.showNotify({title: 'Account data saved', type: 'success'});
                                         }
 
-                                        Util.showNotify({title: 'Account data saved', type: 'success'});
                                     }).fail(function( jqXHR, status, error) {
+                                        selectCharacterDialog.find('.modal-content').hideLoadingAnimation();
+
                                         var reason = status + ' ' + error;
-                                        Util.showNotify({title: jqXHR.status + ': saveConfig', text: reason, type: 'warning'});
+                                        Util.showNotify({title: jqXHR.status + ': saveConfig', text: reason, type: 'error'});
+
+                                        // set new captcha for any request
+                                        // captcha is required for sensitive data (not for all)
+                                        showCaptchaImage();
+
+                                        // check for DB errors
+                                        if(jqXHR.status === 500){
+
+                                            if(jqXHR.responseText){
+                                                var errorObj = $.parseJSON(jqXHR.responseText);
+
+                                                if(errorObj.text !== undefined){
+                                                    // DB error
+
+                                                    if(errorObj.text.match('Duplicate')){
+                                                        // duplicate DB key
+
+                                                        var fieldName = 'name';
+                                                        if(errorObj.text.match( fieldName )){
+                                                            // name exist
+                                                            showFormMessage([{type: 'error', message: 'Username already exists'}]);
+                                                            resetFormField( fieldName );
+                                                        }
+
+                                                        fieldName = 'email';
+                                                        if(errorObj.text.match( fieldName )){
+                                                            // name exist
+                                                            showFormMessage([{type: 'error', message: 'Email already exists'}]);
+                                                            resetFormField( fieldName );
+                                                            resetFormField( fieldName + '_confirm');
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
 
                                         if(!register){
                                             $(document).setProgramStatus('problem');
                                         }
 
-                                        // close dialog
-                                        selectCharacterDialog.modal('hide');
                                     });
-
 
                                 }else{
                                     // no request required -> change tab
                                     changeTab();
                                 }
-
-
-
                             }
-
 
                             return false;
                         }
@@ -240,11 +467,30 @@ console.log(responseData)
 
                 var dialogElement = $(this);
                 var tabLinkElements = dialogElement.find('a[data-toggle="tab"]');
+                var form = dialogElement.find('form');
 
-                // request captcha image
-                getCaptchaImage(function(base64Image){
+                // request captcha image and show
+                showCaptchaImage();
 
-                    $('#' + config.captchaImageId).attr('src', base64Image).show();
+                // init dialog tooltips
+                dialogElement.initTooltips();
+
+                // init popups
+                initPopover( dialogElement );
+
+                // init form validation
+                form.validator();
+
+                // validation event listener
+                form.on('valid.bs.validator', function(validatorObj){
+                    var inputGroup = $(validatorObj.relatedTarget).parents('.form-group');
+                    inputGroup.removeClass('has-error').addClass('has-success');
+                });
+
+                form.on('invalid.bs.validator', function(validatorObj){
+                    var field = $(validatorObj.relatedTarget);
+                    var inputGroup = field.parents('.form-group');
+                    inputGroup.removeClass('has-success').addClass('has-error');
                 });
 
                 // on Tab switch ======================================================================
@@ -305,10 +551,12 @@ console.log(responseData)
 
                             var content = Mustache.render(template, characterTemplateData);
 
-                            dialogElement.find('#pf-dialog-settings-character form').html(content);
+                            var characterForm = dialogElement.find('#pf-dialog-settings-character form');
+
+                            // add form HTML
+                            characterForm.html(content);
 
                             var imageWrapperElements = dialogElement.find('.' + config.settingsImageWrapperClass);
-
 
                             // special effects :)
                             imageWrapperElements.velocity('stop').delay(100).velocity('transition.flipBounceXIn', {
@@ -317,12 +565,8 @@ console.log(responseData)
                                 drag: true,
                                 duration: 400,
                                 complete: function(){
-                                    // init all tooltips
-                                    var tooltipElements = dialogElement.find('[title]');
-                                    tooltipElements.tooltip({
-                                        placement: 'top',
-                                        container:  dialogElement
-                                    });
+                                    // init new character tooltips
+                                    dialogElement.initTooltips();
                                 }
                             });
 
@@ -375,20 +619,6 @@ console.log(responseData)
                         }).delay(100).velocity('callout.pulse');
                     }
 
-                });
-
-
-                // API Tab ================================================================================
-                dialogElement.find('.' + config.settingsCloneRowButtonClass).on('click', function(){
-                    var cloneRow = dialogElement.find('.' + config.settingsCloneApiRowClass).last();
-                    var newApiRow = cloneRow.clone(true);
-
-                    newApiRow.find('input').val('');
-                    cloneRow.after(newApiRow);
-                });
-
-                dialogElement.find('.' + config.settingsDeleteRowButtonClass).on('click', function(){
-                   $(this).parents('.row').remove();
                 });
 
             });

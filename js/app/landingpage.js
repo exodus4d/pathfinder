@@ -11,7 +11,7 @@ define([
     'app/ui/header',
     'app/ui/logo',
     'app/ui/demo_map',
-    'dialog/settings',
+    'dialog/settings'
 ], function($, Init, Util, Gallery) {
 
     'use strict';
@@ -144,7 +144,8 @@ define([
                 var options = {
                     index: link,
                     event: e,
-                    container: '#' + config.galleryId
+                    container: '#' + config.galleryId,
+                    titleProperty: 'description'
                 };
 
 
