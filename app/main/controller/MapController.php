@@ -52,6 +52,11 @@ class MapController extends \Controller\AccessController {
                 'text' => $f3->get('ERROR.text')
             ];
 
+            // append stack trace for greater debug level
+            if( $f3->get('DEBUG') === 3){
+                $errorData['trace'] = $f3->get('ERROR.trace');
+            }
+
             echo json_encode($errorData);
         }else{
             echo $f3->get('ERROR.text');

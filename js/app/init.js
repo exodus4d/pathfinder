@@ -8,6 +8,7 @@ define(['jquery'], function($) {
 
     var Config = {
         timer: {
+            dblClickTimer: 250,                                     // ms: double click timer
             programStatusVisible: 5000,                             // ms: timer for status change visibility in head
             mapUpdate: {
                 delay: 3000,                                        // ms: delay between ping calls
@@ -23,11 +24,14 @@ define(['jquery'], function($) {
         },
         path: {
           img: 'public/img/',                                       // path for images
-          // map init and trigger
+          // user API
           getCaptcha: 'api/user/getCaptcha',                        // ajax URL - get captcha image
           logIn: 'api/user/logIn',                                  // ajax URL - login
           logOut: 'api/user/logOut',                                // ajax URL - logout
           saveUserConfig: 'api/user/saveConfig',                    // ajax URL - saves custom configuration
+          // access API
+          searchAccess: 'api/access/search',                        // ajax URL - search corporation by name
+          // main config/map ping API
           initMap: 'api/map/init',                                  // ajax URL - get static data
           updateMapData: 'api/map/updateData',                      // ajax URL - main map update trigger
           updateUserData: 'api/map/updateUserData',                 // ajax URL - main map user data trigger

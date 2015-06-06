@@ -45,8 +45,29 @@
 // signature table module ===================================================
 .pf-sig-table-module{
 
+  // delete signature button
+  .pf-sig-table-clear-button{
+    will-change: opacity, transform;
+    display: none;
+  }
+
   .pf-sig-table{
     font-size: 10px;
+
+    .pf-sig-table-edit-desc-text{
+      white-space: normal;
+
+      &.editable-empty{
+        border-bottom: none;
+        @extend .pf-dialog-icon-button;
+      }
+    }
+
+    // textarea field
+    .pf-editable-description{
+      background-color: $gray-darker;
+      max-height: 50px;
+    }
 
     .pf-sig-table-action-cell{
       cursor: pointer;
@@ -182,7 +203,7 @@
         z-index: 10;
         left: -25px;
         top: 15px;
-        color: $teal-dark;
+        color: $teal;
         opacity: 0;
         will-change: opacity, left;
         @include transition(all 0.12s ease-out);
@@ -192,7 +213,7 @@
         margin-left: 20px;
 
         .pf-system-killboard-img-ship{
-          border-color: $teal;
+          border-color: $teal-lighter;
         }
 
         &:before{

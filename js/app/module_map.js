@@ -15,8 +15,6 @@ define([
 
     'use strict';
 
-    var currentMapData = [];                                                    // current map data
-
     var config = {
         dynamicElementWrapperId: 'pf-dialog-wrapper',                           // parent Element for dynamic content (dialogs,..)
         mapTabElementId: 'pf-map-tab-element',                                  // id for map tab element (tabs + content)
@@ -24,6 +22,8 @@ define([
         mapTabIdPrefix: 'pf-map-tab-',                                          // id prefix for a map tab
         mapTabClass: 'pf-map-tab',                                              // class for a map tab
         mapTabLinkTextClass: 'nav-tabs-link',                                   // class for span elements in a tab
+        mapTabIconClass: 'pf-map-tab-icon',                                     // class for map icon
+        mapTabSharedIconClass: 'pf-map-tab-shared-icon',                        // class for map shared icon
         mapTabContentClass: 'pf-map-tab-content',                               // class for tab content container
         mapTabContentSystemInfoClass: 'pf-map-tab-content-system',
         mapWrapperClass: 'pf-map-wrapper',                                      // scrollable
@@ -100,11 +100,6 @@ define([
 
                 drawSystemModules($( e.target ));
             });
-
-            $(this).on('pf:deleteSystemData', function(e, systemData){
-                console.log(systemData);
-            });
-
 
         });
     };
@@ -302,38 +297,62 @@ define([
     $.fn.updateTabData = function(options){
         var tabElement = $(this);
 
-        // set main data
+        // set "main" data
         tabElement.data('map-id', options.id).data('updated', options.updated);
 
-        // change tab link
+        // change "tab" link
         tabElement.attr('href', '#' + config.mapTabIdPrefix + options.id);
 
-        // change map icon
-        tabElement.find('i').removeClass().addClass(['fa', 'fa-fw', options.icon].join(' '));
+        // change "map" icon
+        var mapIconElement = tabElement.find('.' + config.mapTabIconClass);
+        mapIconElement.removeClass().addClass([config.mapTabIconClass, 'fa', 'fa-fw', options.icon].join(' '));
+
+        // change "shared" icon
+        var mapSharedIconElement = tabElement.find('.' + config.mapTabSharedIconClass);
+        mapSharedIconElement.hide();
+
+        // check if the map is a "shared" map
+        if(options.access){
+            if(
+                options.access.user.length > 1 ||
+                options.access.corporation.length > 1 ||
+                options.access.alliance.length > 1
+            ){
+                mapSharedIconElement.show();
+            }
+        }
 
         // change map name label
-        tabElement.find('.' + config.mapTabLinkTextClass).text(options.name);
+        var tabLinkTextElement = tabElement.find('.' + config.mapTabLinkTextClass);
+        tabLinkTextElement.text(options.name);
 
         // change tabClass
         var listElement = tabElement.parent();
 
-        listElement.removeClass().addClass([config.mapTabClass, options.type.classTab ].join(' '));
+        // new tab classes
+        var tabClasses = [config.mapTabClass, options.type.classTab ];
+
+        // check if tab was "active" before
+        if( listElement.hasClass('active') ){
+            tabClasses.push('active');
+        }
+
+        listElement.removeClass().addClass( tabClasses.join(' ') );
 
         // set title for tooltip
-        if(options.type.name !== undefined){ console.log(options.type.name)
+        if(options.type.name !== undefined){
 
-            listElement.tooltip('destroy');
-
-            var mapTooltipOptions = {
-                placement: 'bottom',
-                container: 'body',
-                title: options.type.name + ' map',
-                trigger: 'hover',
-                delay: 200
-            };
-
-            $(listElement).tooltip(mapTooltipOptions);
+            tabLinkTextElement.attr('title', options.type.name + ' map');
         }
+
+        var mapTooltipOptions = {
+            placement: 'bottom',
+            container: 'body',
+            trigger: 'hover',
+            delay: 150
+        };
+
+        listElement.find('[title]').tooltip(mapTooltipOptions).tooltip('fixTitle');
 
         if(options.right === true){
             listElement.addClass('pull-right');
@@ -358,19 +377,27 @@ define([
             listElement.addClass('pull-right');
         }
 
-        // link element -------
+        // link element
         var linkElement = $('<a>').attr('role', 'tab');
 
-        // icon element ------
-        var iconElement = $('<i>');
+        // map icon element
+        var mapIconElement = $('<i>', {
+            class: config.mapTabIconClass
+        });
 
-        // text element -----
+        // map shared icon element
+        var mapSharedIconElement = $('<i>', {
+            class: [config.mapTabSharedIconClass, 'fa', 'fa-fw', 'fa-share-alt'].join(' '),
+            title: 'shared map'
+        });
+
+        // text element
         var textElement = $('<span>', {
             class: config.mapTabLinkTextClass
         });
 
         var newListElement = listElement.append(
-            linkElement.append(iconElement).append(textElement)
+            linkElement.append(mapIconElement).append(textElement).append(mapSharedIconElement)
         );
 
         tabBar.append( newListElement );
@@ -380,9 +407,9 @@ define([
 
         // tabs content ====================================
         var contentElement = $('<div>', {
-            id: config.mapTabIdPrefix + options.id,
-            class: options.contentClasses.join(' ')
-        });
+            id: config.mapTabIdPrefix + parseInt( options.id ),
+            class: [config.mapTabContentClass].join(' ')
+        })
 
         contentElement.addClass('tab-pane');
 
@@ -474,25 +501,6 @@ define([
     };
 
     /**
-     * get current map data for a map id
-     * @param mapId
-     * @returns {boolean}
-     */
-    var getMapDataById = function(mapId){
-
-        var mapData = false;
-
-        for(var i = 0; i < currentMapData.length; i++){
-            if(currentMapData[i].config.id === mapId){
-                mapData = currentMapData[i];
-                break;
-            }
-        }
-
-        return mapData;
-    };
-
-    /**
      * load/update map module into element (all maps)
      * @param mapData
      * @returns {boolean}
@@ -503,12 +511,9 @@ define([
             return true;
         }
 
-
-        // update current map data
-        currentMapData = mapData;
-
+        // store current map data global (cache)
         // temp store current map data to prevent data-change while function execution!
-        var tempMapData = currentMapData;
+        var tempMapData = Util.setCurrentMapData(mapData);
 
         var mapModuleElement = $(this);
 
@@ -531,7 +536,7 @@ define([
                 var mapId = tabElement.data('map-id');
 
                 if(mapId > 0){
-                    var tabMapData = getMapDataById(mapId);
+                    var tabMapData = Util.getCurrentMapData(mapId);
 
                     if(tabMapData !== false){
                         // map data available ->
@@ -561,18 +566,7 @@ define([
                 if( activeMapIds.indexOf( data.config.id ) === -1 ){
                     // add new map tab
 
-                    var tabOptions = {
-                        id: parseInt( data.config.id ),
-                        type: data.config.type,
-                        contentClasses: [config.mapTabContentClass],
-                        active: false,
-                        icon: data.config.icon,
-                        name: data.config.name,
-                        right: false,
-                        updated: data.config.updated
-                    };
-
-                    var newTabElements = tabMapElement.addTab(tabOptions);
+                    var newTabElements = tabMapElement.addTab(data.config);
 
                     // set observer for manually triggered map events
                     newTabElements.contentElement.setTabContentObserver();
@@ -589,7 +583,7 @@ define([
 
             // get current active map
             var activeMapId = Util.getMapModule().getActiveMap().data('id');
-            var activeMapData = getMapDataById(activeMapId);
+            var activeMapData = Util.getCurrentMapData(activeMapId);
 
             if(activeMapData !== false){
                 // update active map with new mapData
@@ -611,19 +605,7 @@ define([
             for(var j = 0; j < tempMapData.length; j++){
 
                 var data = tempMapData[j];
-
-                var tabOptions = {
-                    id: parseInt( data.config.id ),
-                    type: data.config.type,
-                    contentClasses: [config.mapTabContentClass],
-                    icon: data.config.icon,
-                    name: data.config.name,
-                    right: false,
-                    updated: data.config.updated
-                };
-
-                tabMapElement.addTab(tabOptions);
-
+                tabMapElement.addTab(data.config);
             }
 
             // add "add" button
@@ -632,7 +614,6 @@ define([
                 type: {
                     classTab: Util.getInfoForMap( 'standard', 'classTab')
                 },
-                contentClasses: [config.mapTabContentClass],
                 icon: 'fa-plus',
                 name: 'add',
                 right: true
@@ -676,15 +657,15 @@ define([
 
                 if(mapId === 0){
                     // add new Tab selected
-                    $(document).trigger('pf:menuShowMapSettings');
+                    $(document).trigger('pf:menuShowMapSettings', {tab: 'new'});
                     e.preventDefault();
                 }
             });
 
             // load new map right after tab-change
-            allTabElements.on('shown.bs.tab', function (e) {
+            allTabElements.on('shown.bs.tab', function (e) { console.log('switch')
                 var mapId = $(e.target).data('map-id');
-                var tabMapData = getMapDataById(mapId);
+                var tabMapData = Util.getCurrentMapData(mapId);
 
                 if(tabMapData !== false){
                     // load map
@@ -733,7 +714,7 @@ define([
         var data = [];
         for(var i = 0; i < mapElements.length; i++){
 
-            var mapData = $(mapElements[i]).getMapData(false);
+            var mapData = $(mapElements[i]).getMapDataFromClient(false);
 
             if(mapData !== false){
                 data.push(mapData);

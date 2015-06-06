@@ -14,13 +14,13 @@ body{
 
 
 a{
-  color: $teal-dark;
+  color: $teal;
   will-change: color;
   text-decoration: none;
   @include transition( color 0.08s ease-out );
 
   &:hover{
-    color: $teal-light;
+    color: $teal-lightest;
     text-decoration: none;
   }
 }
@@ -37,6 +37,10 @@ em{
 
 .pf-font-capitalize{
   text-transform: capitalize;
+}
+
+.no-padding{
+  padding: 0 !important;
 }
 
 // help elements ====================================================
@@ -77,6 +81,35 @@ em{
 .alert{
   will-change: opacity, transform;
 }
+
+// select2 custom template ==========================================
+
+.select2-results{
+  [class*="col-"]{
+    line-height: 22px;
+  }
+}
+
+.select2{
+  ::-webkit-search-cancel-button{
+    -webkit-appearance: none !important;
+  }
+
+  .select2-selection__choice__remove{
+    float: left;
+  }
+
+  .select2-selection--multiple{
+    input{
+      box-shadow: none !important;
+    }
+  }
+}
+
+::-moz-placeholder           { color: $gray-light;   // Firefox
+  opacity: 1; } // See https://github.com/twbs/bootstrap/pull/11526
+:-ms-input-placeholder       { color: $gray-light; } // Internet Explorer 10+
+::-webkit-input-placeholder  { color: $gray-light; } // Safari and Chrome
 
 // table styles =====================================================
 
@@ -226,7 +259,7 @@ em{
 }
 
 .pf-map-type-global{
-  color: $teal;
+  color: $teal-lighter;
 }
 
 // maps module ===================================================
@@ -253,11 +286,15 @@ em{
     }
 
     .pf-map-type-tab-global{
-      border-top: 2px solid $teal;
+      border-top: 2px solid $teal-lighter;
     }
 
-    .fa{
+    .pf-map-tab-icon{
       margin-right: 5px;
+    }
+
+    .pf-map-tab-shared-icon{
+      margin-left: 5px;
     }
   }
 }
@@ -479,8 +516,8 @@ em{
 }
 
 .pf-system-status-unscanned{
-  border-color: $teal !important;
-  color: $teal;
+  border-color: $teal-lighter !important;
+  color: $teal-lighter;
 }
 
 // system status within label
@@ -507,7 +544,7 @@ em{
   }
 
   &.pf-system-status-unscanned{
-    background-color: $teal;
+    background-color: $teal-lighter;
   }
 }
 
@@ -541,12 +578,12 @@ em{
   }
 
   &.pf-map-connection-jumpbridge{
-    background-color: $teal-light;
+    background-color: $teal-lightest;
     border-color: $gray;
     background: repeating-linear-gradient(
         to right,
-        $teal-light,
-        $teal-light 10px,
+        $teal-lightest,
+        $teal-lightest 10px,
         $gray 10px,
         $gray 20px
     );
@@ -689,7 +726,7 @@ em{
     will-change: color;
 
     &:focus{
-      color: $teal-dark;
+      color: $teal;
 
       img{
         border-color: $gray;
@@ -700,11 +737,11 @@ em{
       text-decoration: none;
 
       .badge{
-        color: $teal-light;
+        color: $teal-lightest;
       }
 
       img{
-        border-color: $teal;
+        border-color: $teal-lighter;
       }
     }
   }
@@ -792,10 +829,10 @@ em{
 
   a{
     font-family: $font-family-bold;
-    color: $teal-darker;
+    color: $teal-dark;
 
     &:hover{
-      color: $teal-dark;
+      color: $teal;
       text-decoration: none;
     }
   }

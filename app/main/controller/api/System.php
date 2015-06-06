@@ -135,13 +135,11 @@ class System extends \Controller\AccessController {
 
         $rows = $this->f3->get('DB')->exec($query, null, 60 * 60 * 24);
 
-
         // format result
         $mapper = new Mapper\CcpSystemsMapper($rows);
 
         return $mapper->getData();
     }
-
 
     /**
      * search systems by name
@@ -244,14 +242,17 @@ class System extends \Controller\AccessController {
         $systemIds = $f3->get('POST.systemIds');
 
         $user = $this->_getUser();
-        $system = Model\BasicModel::getNew('SystemModel');
 
-        foreach($systemIds as $systemId){
+        if($user){
+            $system = Model\BasicModel::getNew('SystemModel');
 
-            $system->getById($systemId);
-            $system->delete($user);
+            foreach((array)$systemIds as $systemId){
 
-            $system->reset();
+                $system->getById($systemId);
+                $system->delete($user);
+
+                $system->reset();
+            }
         }
 
         echo json_encode([]);

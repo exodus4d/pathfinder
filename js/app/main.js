@@ -16,11 +16,6 @@ define([
 
     'use strict';
 
-    var config = {
-        mapModuleId: 'pf-map-module'
-    };
-
-
     $(function(){
         // load page
         $('body').loadPageStructure();
@@ -29,7 +24,7 @@ define([
         Logging.init();
 
         // page initialized event ==============================================================
-        $('#' + config.mapModuleId).on('pf:initModule', function(){
+        $('#' + Util.config.mapModuleId).on('pf:initModule', function(){
 
             if(! CCP.isTrusted()){
                 // show trust message
@@ -50,6 +45,7 @@ define([
                 Init.systemStatus = initData.systemStatus;
                 Init.systemType = initData.systemType;
                 Init.characterStatus = initData.characterStatus;
+                Init.maxSharedCount = initData.maxSharedCount;
 
                 // init map module
                 mapModule.initMapModule();
@@ -110,25 +106,35 @@ define([
                     dataType: 'json'
                 }).done(function(mapData){
 
-                    $(document).setProgramStatus('online');
-
-                    if(mapData.length === 0){
-                        // no map data available -> show "new map" dialog
-                        $(document).trigger('pf:menuShowMapSettings');
+                    if(
+                        mapData.error &&
+                        mapData.error.length > 0
+                    ){
+                        // anny error in the main trigger functions result in a user log-off
+                        $(document).trigger('pf:menuLogout');
                     }else{
-                        // map data found
 
-                        // load map module
-                        mapModule.updateMapModule(mapData);
+                        $(document).setProgramStatus('online');
 
-                        // log execution time
-                        var duration = Util.timeStop(mapUpdateKey);
-                        Util.log(mapUpdateKey, {duration: duration, description: 'updateMapModule'});
+                        if(mapData.length === 0){
+                            // no map data available -> show "new map" dialog
+                            $(document).trigger('pf:menuShowMapSettings', {tab: 'new'});
+                        }else{
+                            // map data found
+
+                            // load map module
+                            mapModule.updateMapModule(mapData);
+
+                            // log execution time
+                            var duration = Util.timeStop(mapUpdateKey);
+                            Util.log(mapUpdateKey, {duration: duration, description: 'updateMapModule'});
+                        }
+                        // init new trigger
+                        setTimeout(function(){
+                            triggerMapUpdatePing();
+                        }, mapUpdateDelay);
                     }
-                    // init new trigger
-                    setTimeout(function(){
-                        triggerMapUpdatePing();
-                    }, mapUpdateDelay);
+
 
                 }).fail(function( jqXHR, status, error) {
                     var reason = status + ' ' + jqXHR.status + ': ' + error;
@@ -155,31 +161,36 @@ define([
                     dataType: 'json'
                 }).done(function(data){
 
-                    $(document).setProgramStatus('online');
+                    if(data.error.length > 0){
+                        // anny error in the main trigger functions result in a user log-off
+                        $(document).trigger('pf:menuLogout');
+                    }else{
 
-                    if(data.userData !== undefined){
-                        // store current user data global (cache)
-                        var userData = Util.setCurrentUserData(data.userData);
+                        $(document).setProgramStatus('online');
 
-                        if(userData.character === undefined){
-                            // no active character found -> show settings dialog
-                            $(document).triggerMenuEvent('ShowSettingsDialog');
-                        }else{
-                            // active character data found
+                        if(data.userData !== undefined){
+                            // store current user data global (cache)
+                            var userData = Util.setCurrentUserData(data.userData);
 
-                            mapModule.updateMapModuleData(data);
-                            var duration = Util.timeStop(mapUserUpdateKey);
+                            if(userData.character === undefined){
+                                // no active character found -> show settings dialog
+                                $(document).triggerMenuEvent('ShowSettingsDialog');
+                            }else{
+                                // active character data found
 
-                            // log execution time
-                            Util.log(mapUserUpdateKey, {duration: duration, description:'updateMapModuleData'});
+                                mapModule.updateMapModuleData(data);
+                                var duration = Util.timeStop(mapUserUpdateKey);
+
+                                // log execution time
+                                Util.log(mapUserUpdateKey, {duration: duration, description:'updateMapModuleData'});
 
 
-                            // init new trigger
-                            setTimeout(function(){
-                                triggerUserUpdatePing();
-                            }, mapUserUpdateDelay);
+                                // init new trigger
+                                setTimeout(function(){
+                                    triggerUserUpdatePing();
+                                }, mapUserUpdateDelay);
+                            }
                         }
-
                     }
 
                 }).fail(function( jqXHR, status, error) {

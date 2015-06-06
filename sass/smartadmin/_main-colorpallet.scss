@@ -27,7 +27,7 @@
   &.txt-color-lighten       { color: $lighten !important; }
   &.txt-color-white         { color: $white !important; }
   &.txt-color-magenta       { color: $magenta !important; }
-  &.txt-color-teal          { color: $teal !important; }
+  &.txt-color-tealLighter   { color: $teal-lighter !important; }
 
   &.txt-color-primary       { color: $brand-primary !important; }
   &.txt-color-success       { color: $brand-success !important; }
@@ -57,6 +57,6 @@
   &.bg-color-white      { background-color: $white !important; }
   &.bg-color-grayDark   { background-color: $greyDark !important; }
   &.bg-color-magenta    { background-color: $magenta !important; }
-  &.bg-color-teal       { background-color: $teal !important; }
+  &.bg-color-tealLighter{ background-color: $teal-lighter !important; }
   &.bg-color-redLight   { background-color: $redLight !important; }
 }

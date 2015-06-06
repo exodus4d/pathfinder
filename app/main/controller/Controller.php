@@ -58,7 +58,7 @@ class Controller {
      * set/change DB connection
      * @param $type
      */
-    protected function setDB($type){
+    protected function setDB($type = ''){
 
         if($type === 'CCP'){
             // CCP DB
@@ -84,14 +84,20 @@ class Controller {
     /**
      * get current user model
      * @return bool|null
+     * @throws \Exception
      */
     protected function _getUser(){
 
-        $user = Model\BasicModel::getNew('UserModel', 5);
-        $user->getById($this->f3->get('SESSION.user.id'));
+        $user = false;
+        $userId = $this->f3->get('SESSION.user.id');
 
-        if($user->dry()){
-            $user = false;
+        if($userId > 0){
+            $userModel = Model\BasicModel::getNew('UserModel', 5);
+            $userModel->getById($userId);
+
+            if( !$userModel->dry() ){
+                $user = $userModel;
+            }
         }
 
         return $user;

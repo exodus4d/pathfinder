@@ -8,7 +8,8 @@ define([
     'app/util',
     'app/render',
     'bootbox',
-    'app/counter'
+    'app/counter',
+    'datatablesResponsive'
 ], function($, Init, Util, Render, bootbox) {
     'use strict';
 
@@ -29,6 +30,9 @@ define([
         // signature progress bar
         signatureScannedProgressBarClass: 'pf-system-progress-scanned',         // class for signature progress bar
 
+        // toolbar
+        sigTableClearButtonClass: 'pf-sig-table-clear-button',                  // class for "clear" signatures button
+
         // signature table
         sigTableClass: 'pf-sig-table',                                          // Table class for all Signature Tables
         sigTablePrimaryClass: 'pf-sig-table-primary',                           // class for primary sig table
@@ -38,11 +42,15 @@ define([
         sigTableEditSigNameInput: 'pf-sig-table-edit-name-input',               // class for editable fields (input)
         sigTableEditSigGroupSelect: 'pf-sig-table-edit-group-select',           // class for editable fields (sig group)
         sigTableEditSigTypeSelect: 'pf-sig-table-edit-type-select',             // class for editable fields (sig type)
+        sigTableEditSigDescriptionTextarea: 'pf-sig-table-edit-desc-text',      // class for editable fields (sig description)
         sigTableCounterClass: 'pf-sig-table-counter',                           // class for signature table counter
         sigTableCreatedCellClass: 'pf-sig-table-created',                       // class for "created" cells
         sigTableUpdatedCellClass: 'pf-sig-table-updated',                       // class for "updated" cells
         sigTableActionCellClass: 'pf-sig-table-action-cell',                    // class for "action" cells
-        sigTableActionButtonClass: 'pf-sig-table-action-button'                 // class for row action button
+        sigTableActionButtonClass: 'pf-sig-table-action-button',                // class for row action button
+
+        // xEditable
+        editableDiscriptionInputClass: 'pf-editable-description'                // class for "description" textarea
     };
 
     // disable Signature Table update temporary (until. some requests/animations) are finished
@@ -55,8 +63,9 @@ define([
     var emptySignatureData = {
         id: 0,
         name: '',
-        typeId: 0,
         groupId: 0,
+        typeId: 0,
+        description: '',
         created: {
             created: null
         },
@@ -65,8 +74,14 @@ define([
         }
     };
 
+    var fullSignatureOptions = {
+        action: 'delete',
+        actionClass: ['fa-close', 'txt-color', 'txt-color-redDarker'].join(' ')
+    };
+
     // empty signatureData row Options
     var emptySignatureOptions = {
+        action: 'add',
         actionClass: ['fa-plus', 'txt-color', 'txt-color-grayLighter'].join(' ')
     };
 
@@ -404,6 +419,62 @@ define([
     };
 
     /**
+     * get a labeled button
+     * @param options
+     * @returns {*|jQuery}
+     */
+    var getLabledButton = function(options){
+
+        var buttonClasses = ['btn', 'btn-sm', 'btn-labeled'];
+
+        switch(options.type){
+            case 'default':
+                buttonClasses.push('btn-default');
+                break;
+            case 'primary':
+                buttonClasses.push('btn-primary');
+                break;
+            case 'danger':
+                buttonClasses.push('btn-danger');
+                break;
+        }
+
+        // add optional classes
+        if(options.classes){
+            buttonClasses = buttonClasses.concat(options.classes);
+        }
+
+
+        var buttonElement = $('<button>', {
+            class: buttonClasses.join(' '),
+            type: 'button',
+            html: '&nbsp;' + options.label + '&nbsp;&nbsp;'
+        }).on('click', function(e){
+            options.onClick(e);
+        }).prepend(
+            $('<span>', {
+                class: 'btn-label'
+            }).prepend(
+                $('<i>', {
+                    class: ['fa', options.icon, 'fa-fw'].join(' ')
+                })
+            )
+        );
+
+        // add optional badge
+        if(options.badge){
+            buttonElement.append(
+                $('<span>', {
+                    class: ['badge'].join(' '),
+                    text: options.badge.label
+                })
+            );
+        }
+
+        return buttonElement;
+    };
+
+    /**
      * draw signature table toolbar (add signature button, scan progress bar
      * @param systemData
      */
@@ -415,11 +486,11 @@ define([
         var tableToolbar = $('<div>', {
             class: config.tableToolsClass
         }).append(
-                $('<button>', {
-                    class: ['btn', 'btn-primary', 'btn-sm'].join(' '),
-                    text: ' add signature',
-                    type: 'button'
-                }).on('click', function(e){
+            getLabledButton({
+                type: 'primary',
+                label: 'add',
+                icon: 'fa-plus',
+                onClick: function(e){
                     // show "add sig" div
                     var toolsElement = $(e.target).parents('.' + config.moduleClass).find('.' + config.tableToolsActionClass);
 
@@ -436,47 +507,59 @@ define([
                             visibility: 'visible'
                         });
                     }
-
-                }).prepend(
-                        $('<i>', {
-                            class: ['fa', 'fa-plus', 'fa-fw'].join(' ')
-                        })
-                    )
-            ).append(
-                $('<button>', {
-                    class: ['btn', 'btn-primary', 'btn-sm'].join(' '),
-                    text: ' signature reader',
-                    type: 'button'
-                }).on('click', function(){
-                    // show signature reader dialog
+                }
+            })
+        ).append(
+            getLabledButton({
+                type: 'primary',
+                label: 'signature reader',
+                icon: 'fa-clipboard',
+                onClick: function(){
                     moduleElement.showSignatureReaderDialog(systemData);
-                }).prepend(
-                        $('<i>', {
-                            class: ['fa', 'fa-clipboard', 'fa-fw'].join(' ')
-                        })
-                    )
-            ).append(
-                $('<button>', {
-                    class: ['btn', 'btn-danger', 'btn-sm', 'pull-right'].join(' '),
-                    text: ' clear signatures',
-                    type: 'button'
-                }).on('click', function(){
+                }
+            })
+        ).append(
+            getLabledButton({
+                type: 'default',
+                label: 'select all',
+                icon: 'fa-check-square-o',
+                onClick: function(){
+                    var allRows = getRows(signatureTable);
+                    var selectedRows = getSelectedRows(signatureTable);
+                    var allRowElements = allRows.nodes().to$();
+
+                    if(allRows.data().length === selectedRows.data().length){
+                        allRowElements.removeClass('selected');
+                    }else{
+                        allRowElements.addClass('selected');
+                    }
+
+                    // check delete button
+                    checkDeleteSignaturesButton();
+                }
+            })
+        ).append(
+            getLabledButton({
+                type: 'danger',
+                classes: [config.sigTableClearButtonClass, 'pull-right'],
+                label: 'delete',
+                icon: 'fa-close',
+                badge: {
+                    label: '0'
+                },
+                onClick: function(){
                     // delete all rows
-                    bootbox.confirm('Delete all signature?', function(result) {
+
+                    var selectedRows = getSelectedRows(signatureTable);
+
+                    bootbox.confirm('Delete ' + selectedRows.length + ' signature?', function(result) {
                         if(result){
-                            var signatureTableApi = signatureTable.api();
-
-                            var rows = signatureTableApi.rows();
-
-                            deleteSignatures(rows);
+                            deleteSignatures(selectedRows);
                         }
                     });
-                }).prepend(
-                        $('<i>', {
-                            class: ['fa', 'fa-close', 'fa-fw'].join(' ')
-                        })
-                    )
-            );
+                }
+            })
+        );
 
         moduleElement.append(tableToolbar);
 
@@ -487,7 +570,7 @@ define([
 
         // create "empty table for new signature
         var table = $('<table>', {
-            class: ['display', 'compact', config.sigTableClass, config.sigTableSecondaryClass].join(' ')
+            class: ['display', 'compact', 'nowrap', config.sigTableClass, config.sigTableSecondaryClass].join(' ')
         });
 
         tableToolbarAction.append(table);
@@ -495,7 +578,6 @@ define([
         tableToolbar.after(tableToolbarAction);
 
         var signatureData = formatSignatureData(systemData, [emptySignatureData], emptySignatureOptions);
-
         table.dataTable( {
             data: signatureData,
             paging: false,
@@ -503,7 +585,6 @@ define([
             info: false,
             searching: false
         } );
-
         table.makeEditable(systemData);
 
         // scanned signatures progress bar =============================================================================
@@ -551,6 +632,7 @@ define([
         var sigNameFields = tableElement.find('.' + config.sigTableEditSigNameInput);
         var sigGroupFields = tableElement.find('.' + config.sigTableEditSigGroupSelect);
         var sigTypeFields = tableElement.find('.' + config.sigTableEditSigTypeSelect);
+        var sigDescriptionFields = tableElement.find('.' + config.sigTableEditSigDescriptionTextarea);
 
         // jump to "next" editable field on save
         var openNextEditDialogOnSave = function(fields){
@@ -586,7 +668,7 @@ define([
             return params;
         };
 
-        // set xEditable options for all following fields
+        // set global xEditable options for all table fields
         $.extend($.fn.editable.defaults, {
             url: Init.path.saveSignatureData,
             dataType: 'json',
@@ -730,49 +812,24 @@ define([
             }
         });
 
-        // open next field dialog
+        // Textarea sig description -------------------------------------------------------------
+        sigDescriptionFields.editable({
+            type: 'textarea',
+            title: 'description',
+            name: 'description',
+            emptytext: '<i class="fa fa-fw fa-lg fa-pencil"></i>',
+            onblur: 'submit',
+            mode: 'inline',
+            showbuttons: false,
+            inputclass: config.editableDiscriptionInputClass,
+            params: modifyFieldParamsOnSend
+        });
+
+        // open next field dialog ---------------------------------------------------------------
         openNextEditDialogOnSave(sigNameFields);
         openNextEditDialogOnSave(sigGroupFields);
 
-        // set save button observer (new signature) ====================================================================
-        tableElement.find('.fa-plus').on('click', {systemData: systemData}, function(e){
-            // submit all fields within a table row
-            var addRowElement = $(e.target).parents('tr');
-            var formFields = addRowElement.find('.editable');
-
-            var tempSystemData = e.data.systemData;
-
-            // submit all xEditable fields
-            formFields.editable('submit', {
-                url: Init.path.saveSignatureData,
-                ajaxOptions: {
-                    dataType: 'json' //assuming json response
-                },
-                data: {
-                    systemId: tempSystemData.id, // additional data to submit
-                    pk: 0 // new data no primary key
-                },
-                error: $.fn.editable.defaults.error, // user default xEditable error function
-                success: function(data, editableConfig){
-
-                    addSignatureRow(systemData, data, true);
-
-
-                    // prepare "add signature" table for new entry -> reset --------------------------------------------
-                    var signatureData = formatSignatureData(systemData, [emptySignatureData], emptySignatureOptions);
-
-                    var dataSecondaryElement = $('.' + config.sigTableSecondaryClass);
-                    var dataTableSecondary = dataSecondaryElement.DataTable();
-                    var newAddRowElement = dataTableSecondary.clear().row.add(signatureData.shift()).draw().nodes();
-
-                    newAddRowElement.to$().makeEditable(tempSystemData);
-
-                    Util.showNotify({title: 'Signature added', text: 'Name: ' + data.name, type: 'success'});
-                }
-            });
-        });
-
-        // init signature counter
+        // init signature counter ---------------------------------------------------------------
         tableElement.find('.' + config.sigTableCounterClass + '[data-counter!="init"]').initSignatureCounter();
     };
 
@@ -818,9 +875,6 @@ define([
                 // enable signature Table update
                 disableTableUpdate = false;
             }
-
-
-
         };
 
         $.ajax({
@@ -851,7 +905,7 @@ define([
      */
     var addSignatureRow = function(systemData, signatureData, animate){
 
-        var newSignatureData = formatSignatureData(systemData, [signatureData], {});
+        var newSignatureData = formatSignatureData(systemData, [signatureData], fullSignatureOptions);
 
         // insert new row in main signature table
         var tablePrimaryElement = $('.' + config.sigTablePrimaryClass);
@@ -985,7 +1039,7 @@ define([
 
         // create new signature table -------------------------------------------
         var table = $('<table>', {
-            class: ['display', 'compact', config.sigTableClass, config.sigTablePrimaryClass].join(' ')
+            class: ['display', 'compact', 'nowrap', config.sigTableClass, config.sigTablePrimaryClass].join(' ')
         });
 
         moduleElement.append(table);
@@ -1026,22 +1080,32 @@ define([
             // areaId is required as a key for signature names
             if(areaId){
 
-                // action button class
-                var actionButtonClass = ['fa-close', 'txt-color', 'txt-color-redDarker'].join(' ');
-
                 for(var i = 0; i < signatureData.length; i++){
                     var data = signatureData[i];
 
                     var tempData = {};
 
-                    // set signature id --------------------------------------------------------------------------------
+                    // set id ------------------------------------------------------------------------------------------
                     var sigId = 0;
                     if(data.id > 0){
                         sigId = data.id;
                     }
                     tempData.id = sigId;
 
-                    // set signature name ------------------------------------------------------------------------------
+                    // set status --------------------------------------------------------------------------------------
+                    var status = '';
+                    var statusClass = '';
+                    if(data.updated.character !== undefined){
+                        statusClass = Util.getStatusInfoForCharacter(data.updated.character, 'class');
+                        status =  '<i class="fa fa-fw fa-circle pf-user-status ' + statusClass + '"></i>';
+                    }
+
+                    tempData.status = {
+                        status: status,
+                        status_sort: statusClass
+                    };
+
+                    // set name ----------------------------------------------------------------------------------------
                     var sigName = '<a href="#" class="' + config.sigTableEditSigNameInput + '" ';
                     if(data.id > 0){
                         sigName += 'data-pk="' + data.id + '" ';
@@ -1050,7 +1114,7 @@ define([
 
                     tempData.name = sigName;
 
-                    // set signature group id --------------------------------------------------------------------------
+                    // set group id ------------------------------------------------------------------------------------
                     var sigGroup = '<a href="#" class="' + config.sigTableEditSigGroupSelect + '" ';
                     if(data.id > 0){
                         sigGroup += 'data-pk="' + data.id + '" ';
@@ -1062,7 +1126,7 @@ define([
 
                     tempData.group = sigGroup;
 
-                    // set signature type id ---------------------------------------------------------------------------
+                    // set type id -------------------------------------------------------------------------------------
                     var sigType = '<a href="#" class="' + config.sigTableEditSigTypeSelect + '" ';
                     if(data.id > 0){
                         sigType += 'data-pk="' + data.id + '" ';
@@ -1081,22 +1145,19 @@ define([
 
                     tempData.type = sigType;
 
-                    // status ------------------------------------------------------------------------------------------
-                    var status = '';
-                    if(data.updated.character !== undefined){
-                        var statusClass = Util.getStatusInfoForCharacter(data.updated.character, 'class');
-                        status =  '<i class="fa fa-fw fa-circle pf-user-status ' + statusClass + '"></i>';
+                    // set description ---------------------------------------------------------------------------------
+                    var sigDescription = '<a href="#" class="' + config.sigTableEditSigDescriptionTextarea + '" ';
+                    if(data.id > 0){
+                        sigDescription += 'data-pk="' + data.id + '" ';
                     }
+                    sigDescription += '>' + data.description + '</a>';
 
-                    tempData.status = {
-                        status: status,
-                        status_sort: statusClass
-                    };
+                    tempData.description = sigDescription;
 
-                    // set Sig created ---------------------------------------------------------------------------------
+                    // set created -------------------------------------------------------------------------------------
                     tempData.created = data.created;
 
-                    // set Sig updated ---------------------------------------------------------------------------------
+                    // set updated -------------------------------------------------------------------------------------
                     tempData.updated = data.updated;
 
                     // info icon ---------------------------------------------------------------------------------------
@@ -1107,13 +1168,12 @@ define([
                     tempData.info = infoButton;
 
                     // action icon -------------------------------------------------------------------------------------
-                    if(options.actionClass){
-                        actionButtonClass = options.actionClass;
-                    }
 
-                    var actionButton = '<i class="fa ' + actionButtonClass + ' ' + config.sigTableActionButtonClass + '"></i>';
-                    tempData.action = actionButton;
-
+                    var actionButton = '<i class="fa ' + options.actionClass + ' ' + config.sigTableActionButtonClass + '"></i>';
+                    tempData.action = {
+                        action: options.action,
+                        button: actionButton
+                    };
 
                     formattedData.push(tempData);
 
@@ -1126,14 +1186,18 @@ define([
 
     /**
      * setup dataTable options for all signatureTables
+     * @param systemData
      */
-    var initSignatureDataTable = function(){
+    var initSignatureDataTable = function(systemData){
 
         $.extend( $.fn.dataTable.defaults, {
             pageLength: -1,
             lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, 'All']],
             order: [1, 'asc'],
             autoWidth: false,
+            responsive: {
+                details: false
+            },
             language: {
                 emptyTable:  'No signatures added',
                 zeroRecords: 'No signatures found',
@@ -1147,7 +1211,7 @@ define([
                     searchable: false,
                     title: '',
                     width: '10px',
-                    class: 'text-center',
+                    class: ['text-center', 'min-tablet-l'].join(' '),
                     data: 'status',
                     type: 'html',
                     render: {
@@ -1159,6 +1223,7 @@ define([
                     orderable: true,
                     searchable: true,
                     title: 'id',
+                    type: 'html',
                     width: '30px',
                     data: 'name'
                 },{
@@ -1166,38 +1231,48 @@ define([
                     orderable: false,
                     searchable: false,
                     title: 'group',
+                    type: 'html',
                     width: '50px',
                     data: 'group'
                 },{
                     targets: 3,
                     orderable: false,
                     searchable: false,
-                    title: 'type/description',
+                    title: 'type',
+                    type: 'html',
+                    width: '180px',
                     data: 'type'
                 },{
                     targets: 4,
+                    orderable: false,
+                    searchable: false,
+                    title: 'description',
+                    type: 'html',
+                    data: 'description'
+                },{
+                    targets: 5,
                     title: 'created',
                     width: '90px',
                     searchable: false,
-                    className: [config.sigTableCounterClass, config.sigTableCreatedCellClass].join(' '),
+                    className: [config.sigTableCounterClass, config.sigTableCreatedCellClass, 'min-tablet-l'].join(' '),
                     data: 'created',
                     render: {
                         _: 'created',
                         sort: 'created'
                     }
                 },{
-                    targets: 5,
+                    targets: 6,
                     title: 'updated',
                     width: '90px',
                     searchable: false,
-                    className: [config.sigTableCounterClass, config.sigTableUpdatedCellClass].join(' '),
+                    className: [config.sigTableCounterClass, config.sigTableUpdatedCellClass, 'min-tablet-l'].join(' '),
                     data: 'updated',
                     render: {
                         _: 'updated',
                         sort: 'updated'
                     }
                 },{
-                    targets: 6,
+                    targets: 7,
                     title: '',
                     orderable: false,
                     searchable: false,
@@ -1218,27 +1293,89 @@ define([
                         }
                     }
                 },{
-                    targets: 7,
+                    targets: 8,
                     title: '',
                     orderable: false,
                     searchable: false,
                     width: '10px',
                     class: ['text-center', config.sigTableActionCellClass].join(' '),
                     data: 'action',
+                    render: {
+                        _: 'button',
+                        sort: 'action'
+                    },
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
 
                         var tempTableElement = this;
-                        $(cell).on('click', function(e){
-                            e.preventDefault();
+                        var rowElement = $(cell).parents('tr');
 
-                            bootbox.confirm('Delete signature?', function(result) {
-                                if(result){
-                                    var rowElement = $(cell).parents('tr');
-                                    var row = tempTableElement.DataTable().rows(rowElement);
-                                    deleteSignatures(row);
-                                }
-                            });
-                        });
+                            switch(cellData.action){
+                                case 'add':
+                                    // add new signature ---------------------------------------------------------------
+                                    $(cell).on('click', function(e) {
+                                        // submit all fields within a table row
+                                        var formFields = rowElement.find('.editable');
+
+                                        // submit all xEditable fields
+                                        formFields.editable('submit', {
+                                            url: Init.path.saveSignatureData,
+                                            ajaxOptions: {
+                                                dataType: 'json' //assuming json response
+                                            },
+                                            data: {
+                                                systemId: systemData.id, // additional data to submit
+                                                pk: 0 // new data no primary key
+                                            },
+                                            error: $.fn.editable.defaults.error, // user default xEditable error function
+                                            success: function (data, editableConfig) {
+
+                                                addSignatureRow(systemData, data, true);
+
+
+                                                // prepare "add signature" table for new entry -> reset --------------------------------------------
+                                                var signatureData = formatSignatureData(systemData, [emptySignatureData], emptySignatureOptions);
+
+                                                var dataSecondaryElement = $('.' + config.sigTableSecondaryClass);
+                                                var dataTableSecondary = dataSecondaryElement.DataTable();
+                                                var newAddRowElement = dataTableSecondary.clear().row.add(signatureData.shift()).draw().nodes();
+
+                                                newAddRowElement.to$().makeEditable(systemData);
+
+                                                Util.showNotify({
+                                                    title: 'Signature added',
+                                                    text: 'Name: ' + data.name,
+                                                    type: 'success'
+                                                });
+                                            }
+                                        });
+                                    });
+                                    break;
+                                case 'delete':
+                                    // delete signature ----------------------------------------------------------------
+                                    var confirmationSettings = {
+                                        container: 'body',
+                                        placement: 'left',
+                                        btnCancelClass: 'btn btn-sm btn-default',
+                                        btnCancelLabel: 'cancel',
+                                        btnCancelIcon: 'fa fa-fw fa-ban',
+                                        title: 'Delete signature',
+                                        btnOkClass: 'btn btn-sm btn-danger',
+                                        btnOkLabel: 'delete',
+                                        btnOkIcon: 'fa fa-fw fa-close',
+                                        onConfirm : function(e, target){
+                                            var deleteRowElement = $(target).parents('tr');
+                                            var row = tempTableElement.DataTable().rows(deleteRowElement);
+                                            deleteSignatures(row);
+                                        }
+                                    };
+
+                                    // init confirmation dialog
+                                    $(cell).confirmation(confirmationSettings);
+
+
+                                    break;
+                            }
+
                     }
                 }
             ],
@@ -1254,14 +1391,101 @@ define([
 
     /**
      * set module observer and look for relevant signature data to update
+     * @param moduleElement
      */
     var setModuleObserver = function(moduleElement){
+        var tablePrimaryElement = $('.' + config.sigTablePrimaryClass);
+        var dataTablePrimary = signatureTable.DataTable();
+        var signatureTableApi = signatureTable.api();
+
         $(document).off('pf:updateSystemModules').on('pf:updateSystemModules', function(e, data){
             if(data.signatures){
                 moduleElement.updateSignatureTable(data.signatures);
             }
 
         });
+
+        // set multi row select -----------------------------------------------------------------
+        tablePrimaryElement.on('click', 'tr', function(e){
+            if(event.ctrlKey) {
+                $(this).toggleClass('selected');
+
+                // check delete button
+                checkDeleteSignaturesButton();
+            }
+        });
+
+        // draw event for signature table -------------------------------------------------------
+        signatureTableApi.on('draw.dt', function(){
+            // check delete button
+            checkDeleteSignaturesButton();
+        });
+    };
+
+    /**
+     * check the "delete signature" button. show/hide the button if a signature is selected
+     */
+    var checkDeleteSignaturesButton = function(){
+
+        var selectedRows = getSelectedRows(signatureTable);
+        var selectedRowCount = selectedRows.data().length;
+        var clearButton = $('.' + config.sigTableClearButtonClass);
+
+
+        if(selectedRowCount > 0){
+            var allRows = getRows(signatureTable);
+            var rowCount = allRows.data().length;
+
+            var badgetText = selectedRowCount;
+            if(selectedRowCount >= rowCount){
+                badgetText = 'all';
+            }
+            clearButton.find('.badge').text( badgetText );
+
+            // update clear signatures button text
+            clearButton.velocity('stop');
+
+            if( clearButton.is(':hidden') ){
+                // show button
+                clearButton.velocity('transition.bounceIn', {
+                    duration: 200
+                });
+            }else{
+                // highlight button
+                clearButton.velocity('callout.pulse', {
+                    duration: 250
+                });
+            }
+        }else{
+            // hide button
+            clearButton.velocity('transition.bounceOut', {
+                duration: 200
+            });
+        }
+    };
+
+    /**
+     * get all rows of a table
+     * @param table
+     * @returns {*}
+     */
+    var getRows = function(table){
+        var tableApi = table.api();
+        var rows = tableApi.rows();
+
+        return rows;
+    };
+
+    /**
+     * get all selected rows of a table
+     * @param table
+     * @returns {*}
+     */
+    var getSelectedRows = function(table){
+        var tableApi = table.api();
+        var selectedRows = tableApi.rows('.selected');
+
+        return selectedRows;
     };
 
     /**
@@ -1288,7 +1512,7 @@ define([
         $(parentElement).append(moduleElement);
 
         // init dataTables
-        initSignatureDataTable();
+        initSignatureDataTable(systemData);
 
         // draw "new signature" add table --------------------------------------------
 
@@ -1307,7 +1531,7 @@ define([
             dataType: 'json'
         }).done(function(signatureData){
 
-            var signatureTableData = formatSignatureData(systemData, signatureData, {});
+            var signatureTableData = formatSignatureData(systemData, signatureData, fullSignatureOptions);
 
             // draw signature table
             moduleElement.drawSignatureTable(signatureTableData, systemData);

@@ -13,20 +13,25 @@ define([
 
     var config = {
         // map dialog
-        newMapDialogId: 'pf-map-new-dialog',                                            // id for edit/update map dialog
+        newMapDialogId: 'pf-map-dialog',                                                // id for map settings dialog
         dialogMapCreateContainerId: 'pf-map-dialog-create',                             // id for the "new map" container
         dialogMapEditContainerId: 'pf-map-dialog-edit',                                 // id for the "edit" container
         dialogMapSettingsContainerId: 'pf-map-dialog-settings',                         // id for the "settings" container
 
-        dialogMessageContainerId: 'pf-map-dialog-message-container'                     // id for dialog form message container
+        dialogMessageContainerId: 'pf-map-dialog-message-container',                    // id for dialog form message container
+
+        userSelectId: 'pf-map-dialog-user-select',                                      // id for "user" select
+        corporationSelectId: 'pf-map-dialog-corporation-select',                        // id for "corporation" select
+        allianceSelectId: 'pf-map-dialog-alliance-select'                               // id for "alliance" select
 
     };
 
     /**
      * shows the add/edit map dialog
      * @param mapData
+     * @param options
      */
-    $.fn.showMapSettingsDialog = function(mapData){
+    $.fn.showMapSettingsDialog = function(mapData, options){
 
         // check if dialog is already open
         var mapInfoDialogElement = $('#' + config.newMapDialogId);
@@ -52,7 +57,9 @@ define([
                 var data = {
                     scope: Util.getMapScopes(),
                     type: Util.getMapTypes(true),
-                    icon: Util.getMapIcons()
+                    icon: Util.getMapIcons(),
+                    formErrorContainerClass: Util.config.formErrorContainerClass,
+                    formWarningContainerClass: Util.config.formWarningContainerClass
                 };
 
                 // render "new map" tab content -------------------------------------------
@@ -62,31 +69,72 @@ define([
                 var contentEditMap = Mustache.render(templateMapSettings, data);
                 contentEditMap = $(contentEditMap);
 
+                // current map access info
+                var accessUser = [];
+                var accessCorporation = [];
+                var accessAlliance = [];
+
                 if(mapData !== false){
+                    // set current map information
                     contentEditMap.find('input[name="id"]').val( mapData.config.id );
                     contentEditMap.find('select[name="icon"]').val( mapData.config.icon );
                     contentEditMap.find('input[name="name"]').val( mapData.config.name );
                     contentEditMap.find('select[name="scopeId"]').val( mapData.config.scope.id );
                     contentEditMap.find('select[name="typeId"]').val( mapData.config.type.id );
+
+                    accessUser = mapData.config.access.user;
+                    accessCorporation = mapData.config.access.corporation;
+                    accessAlliance = mapData.config.access.alliance;
                 }
 
                 // render main dialog -----------------------------------------------------
                 data = {
                     id: config.newMapDialogId,
+
+                    // default open tab ----------
+                    openTabNew: options.tab === 'new',
+                    openTabEdit: options.tab === 'edit',
+                    openTabSettings: options.tab === 'settings',
+
                     dialogMapCreateContainerId: config.dialogMapCreateContainerId,
                     dialogMapEditContainerId: config.dialogMapEditContainerId,
                     dialogMapSettingsContainerId: config.dialogMapSettingsContainerId,
                     dialogMessageContainerId: config.dialogMessageContainerId,
+
                     hideEditTab: hideEditTab,
-                    hideSettingsTab: hideSettingsTab
+                    hideSettingsTab: hideSettingsTab,
+
+                    // settings tab --------------
+                    userSelectId: config.userSelectId,
+                    corporationSelectId: config.corporationSelectId,
+                    allianceSelectId: config.allianceSelectId,
+
+                    // map access objects --------
+                    accessUser: accessUser,
+                    accessCorporation: accessCorporation,
+                    accessAlliance: accessAlliance,
+
+                    // access limitations --------
+                    maxUser: Init.maxSharedCount.user,
+                    maxCorporation: Init.maxSharedCount.corporation,
+                    maxAlliance: Init.maxSharedCount.alliance
                 };
 
                 var contentDialog = Mustache.render(templateMapDialog, data);
                 contentDialog = $(contentDialog);
 
+                // set mapId for "settings" tab
+                if(mapData !== false){
+                    contentDialog.find('input[name="id"]').val( mapData.config.id );
+                }
+
+
                 // set tab content
                 $('#' + config.dialogMapCreateContainerId, contentDialog).html(contentNewMap);
                 $('#' + config.dialogMapEditContainerId, contentDialog).html(contentEditMap);
+
+                // disable modal focus event -> otherwise select2 is not working! -> quick fix
+                $.fn.modal.Constructor.prototype.enforceFocus = function() {};
 
                 var mapInfoDialog = bootbox.dialog({
                     title: dialogTitle,
@@ -103,33 +151,58 @@ define([
 
                                 // get the current active form
                                 var form = $('#' + config.newMapDialogId).find('form').filter(':visible');
-console.log(form)
+
                                 // validate form
                                 form.validator('validate');
+
+                                // validate select2 fields (settings tab)
+                                form.find('select').each(function(){
+                                    var selectField = $(this);
+                                    var selectValues = selectField.val();
+
+                                    if(selectValues === null){
+                                        selectField.parents('.form-group').addClass('has-error');
+                                    }else{
+                                        selectField.parents('.form-group').removeClass('has-error');
+                                    }
+                                });
 
                                 // check weather the form is valid
                                 var formValid = form.isValidForm();
 
                                 if(formValid === true){
 
-                                    var newMapData = {mapData: form.getFormValues()};
+                                    // lock dialog
+                                    var dialogContent = mapInfoDialog.find('.modal-content');
+                                    dialogContent.showLoadingAnimation();
+
+                                    var newMapData = {formData: form.getFormValues()};
 
                                     $.ajax({
                                         type: 'POST',
                                         url: Init.path.saveMap,
                                         data: newMapData,
                                         dataType: 'json'
-                                    }).done(function(data){
-                                        Util.showNotify({title: dialogTitle, text: 'Map: ' + data.name, type: 'success'});
+                                    }).done(function(responseData){
 
-                                        $(mapInfoDialog).modal('hide');
-                                        $(document).trigger('pf:closeMenu', [{}]);
+                                        dialogContent.hideLoadingAnimation();
+
+                                        if(responseData.error.length > 0){
+                                            form.showFormMessage(responseData.error);
+                                        }else{
+                                            // success
+                                            Util.showNotify({title: dialogTitle, text: 'Map: ' + responseData.name, type: 'success'});
+
+                                            $(mapInfoDialog).modal('hide');
+                                            $(document).trigger('pf:closeMenu', [{}]);
+                                        }
+
                                     }).fail(function( jqXHR, status, error) {
                                         var reason = status + ' ' + error;
                                         Util.showNotify({title: jqXHR.status + ': saveMap', text: reason, type: 'warning'});
                                         $(document).setProgramStatus('problem');
-                                    });
 
+                                    });
                                 }
 
                                 return false;
@@ -145,7 +218,37 @@ console.log(form)
                     mapInfoDialog.initTooltips();
 
                     // set form validator
-                    mapInfoDialog.find('form').validator();
+                    mapInfoDialog.find('form').initFormValidation();
+
+                    // events for tab change
+                    mapInfoDialog.find('.navbar a').on('shown.bs.tab', function (e) {
+
+                        var selectElementUser = mapInfoDialog.find('#' + config.userSelectId);
+                        var selectElementCorporation = mapInfoDialog.find('#' + config.corporationSelectId);
+                        var selectElementAlliance = mapInfoDialog.find('#' + config.allianceSelectId);
+
+                        if($(e.target).attr('href') === '#' + config.dialogMapSettingsContainerId){
+                            // "settings" tab
+
+                            initSettingsSelectFields(mapInfoDialog);
+                        }else{
+
+                            if( $(selectElementUser).data('select2') !== undefined ){
+                                $(selectElementUser).select2('destroy');
+                            }
+
+                            if( $(selectElementCorporation).data('select2') !== undefined ){
+                                $(selectElementCorporation).select2('destroy');
+                            }
+
+                            if( $(selectElementAlliance).data('select2') !== undefined ){
+                                $(selectElementAlliance).select2('destroy');
+                            }
+                        }
+                    });
+
+                    // show form messages -------------------------------------
+                    $('#' + config.dialogMessageContainerId).showMessage({type: 'info', title: 'Hint', text: 'Creating new maps or change settings may take a few seconds'});
 
                     if(mapData === false){
                         // no map data found (probably new user
@@ -153,10 +256,44 @@ console.log(form)
                     }
                 });
 
+                // init select fields in case "settings" tab is open by default
+                if(options.tab === 'settings'){
+                    initSettingsSelectFields(mapInfoDialog);
+                }
+
             });
         }
     };
 
+
+    /**
+     * init select2 fields within the settings dialog
+     * @param mapInfoDialog
+     */
+    var initSettingsSelectFields = function(mapInfoDialog){
+
+        var selectElementUser = mapInfoDialog.find('#' + config.userSelectId);
+        var selectElementCorporation = mapInfoDialog.find('#' + config.corporationSelectId);
+        var selectElementAlliance = mapInfoDialog.find('#' + config.allianceSelectId);
+
+        // init corporation select live search
+        selectElementUser.initAccessSelect({
+            type: 'user',
+            maxSelectionLength: Init.maxSharedCount.user
+        });
+
+        // init corporation select live search
+        selectElementCorporation.initAccessSelect({
+            type: 'corporation',
+            maxSelectionLength: Init.maxSharedCount.corporation
+        });
+
+        // init alliance select live search
+        selectElementAlliance.initAccessSelect({
+            type: 'alliance',
+            maxSelectionLength: Init.maxSharedCount.alliance
+        });
+    };
 
     /**
      * shows the delete map Dialog

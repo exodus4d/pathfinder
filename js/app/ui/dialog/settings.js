@@ -27,13 +27,6 @@ define([
         settingsCloneRowButtonClass: 'pf-dialog-clone-button',                  // class for clone button (api row)
         settingsDeleteRowButtonClass: 'pf-dialog-delete-button',                // class for delete button (api row)
 
-        // form messages
-        settingsErrorId: 'pf-dialog-error-id',                                  // id for "error" form element
-        settingsWarningId: 'pf-dialog-warning-id',                              // id for "warning" form element
-        settingsMessageVelocityOptions: {
-            duration: 180
-        },
-
         // captcha
         captchaImageWrapperId: 'pf-dialog-captcha-wrapper',                     // id for "captcha image" wrapper
         captchaImageId: 'pf-dialog-captcha-image',                              // id for "captcha image"
@@ -105,80 +98,6 @@ define([
             // reset captcha field
             resetFormField('captcha');
         });
-    };
-
-    /**
-     * show form messages
-     * @param errors
-     */
-    var showFormMessage = function(errors){
-
-        var errorMessage = [];
-        var warningMessage = [];
-        for(var i = 0; i < errors.length; i++){
-            if(errors[i].type === 'error'){
-                errorMessage.push( errors[i].message );
-            }else if(errors[i].type === 'warning'){
-                warningMessage.push( errors[i].message );
-            }
-        }
-
-        if(errorMessage.length > 0){
-            hideFormMessage('error', function(element){
-                $(element).find('small').text( errorMessage.join('<br>') );
-                $(element).velocity('transition.slideUpIn', config.settingsMessageVelocityOptions);
-            });
-        }
-
-        if(warningMessage.length > 0){
-            hideFormMessage('warning', function(element){
-                $(element).find('small').text( warningMessage.join('<br>') );
-                $(element).velocity('transition.slideUpIn', config.settingsMessageVelocityOptions);
-            });
-        }
-    };
-
-    /**
-     * ide all form messages
-     * @param type
-     * @param callback
-     */
-    var hideFormMessage = function(type, callback){
-
-        var settingsMessageVelocityOptions = $.extend({}, config.settingsMessageVelocityOptions);
-
-
-        // check if callback exists
-        if(callback !== undefined){
-            settingsMessageVelocityOptions.complete = callback;
-
-            // new error will be shown afterwards -> keep display
-            settingsMessageVelocityOptions.display = 'block';
-        }
-
-        if(type === 'error'){
-            var errorMessageElement = $('#' + config.settingsErrorId);
-
-            // check if element is visible
-            if(errorMessageElement.is(':visible')){
-                errorMessageElement.velocity('transition.slideDownOut', settingsMessageVelocityOptions);
-            }else if(callback){
-                // skip hide animation
-                callback(errorMessageElement);
-            }
-        }
-
-        if(type === 'warning'){
-            var warningMessageElement = $('#' + config.settingsWarningId);
-
-            // check if element is visible
-            if(warningMessageElement.is(':visible')){
-                warningMessageElement.velocity('transition.slideDownOut', settingsMessageVelocityOptions);
-            }else if(callback){
-                // skip hide animation
-                callback(warningMessageElement);
-            }
-        }
     };
 
     /**
@@ -272,7 +191,6 @@ define([
                 }];
             }
 
-
             var data = {
                 id: config.settingsDialogId,
                 register: register,
@@ -283,8 +201,8 @@ define([
                 deleteRowButtonClass: config.settingsDeleteRowButtonClass,
                 captchaImageWrapperId: config.captchaImageWrapperId,
                 captchaImageId: config.captchaImageId,
-                settingsErrorId: config.settingsErrorId,
-                settingsWarningId: config.settingsWarningId
+                formErrorContainerClass: Util.config.formErrorContainerClass,
+                formWarningContainerClass: Util.config.formWarningContainerClass
             };
 
             var content = Mustache.render(template, data);
@@ -376,7 +294,7 @@ define([
                                             responseData.error &&
                                             responseData.error.length > 0
                                         ){
-                                            showFormMessage(responseData.error);
+                                            form.showFormMessage(responseData.error);
 
                                             showCaptchaImage();
                                         }else{
@@ -479,19 +397,7 @@ define([
                 initPopover( dialogElement );
 
                 // init form validation
-                form.validator();
-
-                // validation event listener
-                form.on('valid.bs.validator', function(validatorObj){
-                    var inputGroup = $(validatorObj.relatedTarget).parents('.form-group');
-                    inputGroup.removeClass('has-error').addClass('has-success');
-                });
-
-                form.on('invalid.bs.validator', function(validatorObj){
-                    var field = $(validatorObj.relatedTarget);
-                    var inputGroup = field.parents('.form-group');
-                    inputGroup.removeClass('has-success').addClass('has-error');
-                });
+                form.initFormValidation();
 
                 // on Tab switch ======================================================================
                 tabLinkElements.on('shown.bs.tab', function (e) {

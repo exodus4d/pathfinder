@@ -556,9 +556,9 @@ input[type="text"],
 input[type="password"],
 input[type="email"]{
   &:focus + .input-group-addon {
-    border-color: $teal;
+    border-color: $teal-lighter;
     //background-color: lighten($state-info-text, 23%);
-    color: $teal;
+    color: $teal-lighter;
   }
 }
 
@@ -1288,13 +1288,13 @@ input[type="email"]{
   */
   will-change: all;
   @include border-radius(2px);
-  @include transition( all 0.06s ease-out );
-  @include box-shadow(0 1px 3px 0 rgba(red($black), green($black), blue($black), 0.12), 0 1px 2px 0 rgba(red($black), green($black), blue($black), 0.24));
+  @include transition( all 0.06s linear );
+  //@include box-shadow(0 1px 3px 0 rgba(red($black), green($black), blue($black), 0.12), 0 1px 2px 0 rgba(red($black), green($black), blue($black), 0.24));
 }
 .btn:active {
 	position:relative;
-	top:1px;
-	left:1px;
+	//top:1px;
+	//left:1px;
 }
 
 .btn.btn-ribbon {
@@ -1416,11 +1416,11 @@ input[type="email"]{
     }
 }
 .panel-teal {
-    border-color: $teal;
+    border-color: $teal-lighter;
     & > .panel-heading {
         color: $white;
-        background-color: $teal;
-        border-color: $teal;
+        background-color: $teal-lighter;
+        border-color: $teal-lighter;
     }
 }
 .panel-orange {
@@ -1480,7 +1480,7 @@ input[type="email"]{
   border-radius: 50%;
   -moz-border-radius: 50%;
   -webkit-border-radius: 50%;
-  @include box-shadow(none !important);
+  @include box-shadow(0 1px 6px 0 rgba(0, 0, 0, 0.12),0 1px 6px 0 rgba(0, 0, 0, 0.12));
 }
 .btn-circle.btn-sm {
   width: 22px;
@@ -1541,8 +1541,19 @@ input[type="email"]{
  * buttons with labels
  */
 
-.btn-label {position: relative;left: -12px;display: inline-block;padding: 6px 12px;background: rgba(red($black), green($black), blue($black),0.15);border-radius: 3px 0 0 3px;}
-.btn-labeled {padding-top: 0;padding-bottom: 0;}
+.btn-label {
+  position: relative;
+  left: -8px;
+  display: inline-block;
+  padding: 5px 8px;
+  background: rgba(red($black), green($black), blue($black), 0.15);
+  border-radius: 3px 0 0 3px;
+}
+
+.btn-labeled {
+  padding-top: 0;
+  padding-bottom: 0;
+}
 
 .btn-link {
 	box-shadow: none;
@@ -1560,7 +1571,7 @@ input[type="email"]{
     padding: 5px;
     color: #666;
     background: rgba(red( $gray-darkest), green($gray-darkest), blue($gray-darkest), 0.9);
-    border: solid 2px $teal-darker;
+    border: solid 2px $teal-dark;
     font-family: 'Oxygen Bold';
     font-size: 10px;
     text-align: left;

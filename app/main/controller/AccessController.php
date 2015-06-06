@@ -22,25 +22,6 @@ class AccessController extends Controller {
 
         $accessRoute = $this->_isLoggedIn();
 
-            /*
-            $userName = 'user_exodus';
-            $password = '1234567';
-
-            // try to verify user
-            $accessRoute = $this->_verifyUser($userName, $password);
-
-            if(!$accessRoute){
-                // add new User
-                try{
-                    $this->_registerUser($userName, $password);
-                }catch(\Exception\ValidationException $e){
-                    // registration failed
-                    $this->f3->error($e->getCode(), $e->getMessage());
-                }
-            }
-        */
-
-
         if(
             !$this->f3->get('AJAX') &&
             !$accessRoute
@@ -108,6 +89,17 @@ class AccessController extends Controller {
         return $loggedIn;
     }
 
+    /**
+     * get error object is a user is not found/logged of
+     * @return object
+     */
+    protected function getUserLoggedOffError(){
+        $userError = (object) [];
+        $userError->type = 'error';
+        $userError->message = 'User not found';
+
+        return $userError;
+    }
 
 
 

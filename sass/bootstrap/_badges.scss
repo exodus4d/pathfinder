@@ -27,7 +27,7 @@
   // Quick fix for badges in buttons
   .btn & {
     position: relative;
-    top: -1px;
+    top: 1px;
   }
   .btn-xs & {
     top: 0;

@@ -5,7 +5,7 @@ input, select{
   font-family: $font-family-bold;
 
   &:focus{
-    border-color: $teal;
+    border-color: $teal-lighter;
   }
 
   &:-webkit-autofill {

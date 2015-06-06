@@ -1,51 +1,48 @@
 .select2-selection--single {
   background-color: $gray-dark;
-
   border: 1px solid $border-color;
   border-radius: $border-radius;
-
   outline: 0;
 
-  @include gradient-vertical($selection-bg-top-color, $selection-bg-bottom-color, 50%, 100%);
 
   &:focus {
     border: 1px solid $focus-border-color;
   }
 
   .select2-selection__rendered {
-    color: #444;
+    color: $gray-lighter;
     line-height: 28px;
   }
 
   .select2-selection__clear {
+    color: $remove-color;
     cursor: pointer;
     float: right;
     font-weight: bold;
-    margin-right: 10px;
+    margin-right: 3px;
+    margin-left: 10px;
+
+    &:hover {
+      color: $remove-hover-color;
+    }
   }
 
   .select2-selection__placeholder {
-    color: $gray-light;
+    color: #999;
   }
 
   .select2-selection__arrow {
-    background-color: #ddd;
-
+    background-color: $gray-dark;
     border: none;
-    border-left: 1px solid $border-color;
+    border-left: none;
     border-top-right-radius: $border-radius;
     border-bottom-right-radius: $border-radius;
-
     height: 26px;
-
     position: absolute;
-
     top: 1px;
     right: 1px;
-
     width: 20px;
 
-    @include gradient-vertical(#eeeeee, #cccccc, 50%, 100%);
 
     b {
       border-color: #888 transparent transparent transparent;
@@ -107,8 +104,6 @@
       border-top: none;
       border-top-left-radius: 0;
       border-top-right-radius: 0;
-
-      @include gradient-vertical($selection-opened-bg-bottom-color, $selection-opened-bg-top-color, 0%, 50%);
     }
   }
 
@@ -117,8 +112,6 @@
       border-bottom: none;
       border-bottom-left-radius: 0;
       border-bottom-right-radius: 0;
-
-      @include gradient-vertical($selection-opened-bg-top-color, $selection-opened-bg-bottom-color, 50%, 100%);
     }
   }
 }

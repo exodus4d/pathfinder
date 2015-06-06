@@ -80,7 +80,7 @@
                                     <label for="email" class="col-sm-3 control-label">New Email</label>
                                     <div class="col-sm-6">
                                         <div class="input-group" title="Enter your email. It will be kept private!" data-placement="right">
-                                            <input name="email" type="email" class="form-control" id="email" value="" placeholder="my@mail.com" data-error="Email required" autocomplete="off" {{#register}}required{{/register}} >
+                                            <input name="email" type="email" class="form-control" id="email" value="" placeholder="your@email.com" data-error="Email required" autocomplete="off" {{#register}}required{{/register}} >
                                             <span class="input-group-addon"><i class="fa fa-envelope"></i></span>
                                         </div>
                                         <div class="help-block with-errors"></div>
@@ -95,7 +95,7 @@
                                     <label for="email_confirm" class="col-sm-3 control-label">Confirm Email</label>
                                     <div class="col-sm-6">
                                         <div class="input-group" title="Confirm your email" data-placement="right">
-                                            <input name="email_confirm" type="email" class="form-control" id="email_confirm" value="" placeholder="my@mail.com" data-error="Email required" data-match="#email" data-match-error="Email fields do not match" autocomplete="off" {{#register}}required{{/register}}>
+                                            <input name="email_confirm" type="email" class="form-control" id="email_confirm" value="" placeholder="your@email.com" data-error="Email required" data-match="#email" data-match-error="Email fields do not match" autocomplete="off" {{#register}}required{{/register}}>
                                             <span class="input-group-addon"><i class="fa fa-envelope"></i></span>
                                         </div>
                                         <div class="help-block with-errors"></div>
@@ -183,6 +183,11 @@
                         </div>
                     </div>
 
+                    <div class="{{formErrorContainerClass}} alert alert-danger" style="display: none;">
+                        <span class="txt-color txt-color-danger">Error</span>
+                        <small> (important non-critical information)</small>
+                    </div>
+
                 </form>
             </div>
 
@@ -192,7 +197,6 @@
 
                     <div class="row">
                         <div class="col-sm-11">
-
                             <blockquote>
                                 <p>
                                     API Key(s) are required to use <em class="pf-brand">pathfinder</em>.
@@ -206,7 +210,6 @@
 
                         </div>
                     </div>
-
 
                     {{#userData.api}}
                         <div class="row {{cloneApiRowClass}}">
@@ -260,15 +263,9 @@
                 </form>
             </div>
 
-            <div id="{{settingsErrorId}}" class="alert alert-danger" style="display: none;">
-                <span class="txt-color txt-color-danger">Error</span>
-                <small> (important non-critical information)</small>
-            </div>
 
-            <div id="{{settingsWarningId}}" class="alert alert-warning" style="display: none;">
-                <span class="txt-color txt-color-warning">Warning</span>
-                <small> (important non-critical information)</small>
-            </div>
+
+
         </div>
 
 

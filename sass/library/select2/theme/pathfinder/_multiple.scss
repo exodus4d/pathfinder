@@ -1,64 +1,52 @@
 .select2-selection--multiple {
   background-color: $gray-dark;
-  border: 1px solid $gray-light;
-  border-radius: 4px;
+  color: $gray-dark;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
   cursor: text;
+  outline: 0;
+
+  &:focus {
+    border: 1px solid $focus-border-color;
+  }
 
   .select2-selection__rendered {
     list-style: none;
     margin: 0;
     padding: 0 5px;
-    width: 100%;
-  }
-
-  .select2-selection__placeholder {
-    color: $gray-light;
-
-    margin-top: 5px;
-
-    float: left;
   }
 
   .select2-selection__clear {
-    cursor: pointer;
-    float: right;
-    font-weight: bold;
-    margin-top: 5px;
-    margin-right: 10px;
+    display: none;
   }
 
   .select2-selection__choice {
     background-color: $gray-lighter;
-    color: $gray-darker;
-    border: 1px solid #aaa;
-    border-radius: 4px;
+    border: 1px solid $border-color;
+    border-radius: $border-radius-choice;
     cursor: default;
-
     float: left;
-
     margin-right: 5px;
     margin-top: 5px;
     padding: 0 5px;
   }
 
   .select2-selection__choice__remove {
-    color: $red-darker;
+    color: $remove-color;
     cursor: pointer;
-
     display: inline-block;
     font-weight: bold;
-
     margin-right: 2px;
 
     &:hover {
-      color: #333;
+      color: $remove-hover-color;
     }
   }
 }
 
 &[dir="rtl"] {
   .select2-selection--multiple {
-    .select2-selection__choice, .select2-selection__placeholder {
+    .select2-selection__choice {
       float: right;
     }
 
@@ -74,15 +62,24 @@
   }
 }
 
-&.select2-container--disabled {
+&.select2-container--open {
   .select2-selection--multiple {
-    background-color: #eee;
-    cursor: default;
+    border: 1px solid $focus-border-color;
   }
 
+  &.select2-container--above {
+    .select2-selection--multiple {
+      border-top: none;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+    }
+  }
 
-
-  .select2-selection__choice__remove {
-    display: none;
+  &.select2-container--below {
+    .select2-selection--multiple {
+      border-bottom: none;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
   }
 }

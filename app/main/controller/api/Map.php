@@ -125,6 +125,14 @@ class Map extends \Controller\AccessController {
         }
         $initData['characterStatus'] = $characterStatusData;
 
+        // get max number of shared entities per map --------------------------
+        $maxSharedCount = [
+            'user' => $f3->get('PATHFINDER.MAX_SHARED_USER'),
+            'corporation' => $f3->get('PATHFINDER.MAX_SHARED_CORPORATION'),
+            'alliance' => $f3->get('PATHFINDER.MAX_SHARED_ALLIANCE'),
+        ];
+        $initData['maxSharedCount'] = $maxSharedCount;
+
         echo json_encode($initData);
     }
 
@@ -133,45 +141,138 @@ class Map extends \Controller\AccessController {
      * @param $f3
      */
     public function save($f3){
-        $mapData = (array)$f3->get('POST.mapData');
+        $formData = (array)$f3->get('POST.formData');
 
-        $user = $this->_getUser();
+        $return = (object) [];
+        $return->error = [];
 
-        $map = Model\BasicModel::getNew('MapModel');
-        $map->getById($mapData['id']);
-        $map->setData($mapData);
-        $map->save();
+        if(array_key_exists( 'id', $formData)){
 
-        if($map->isPrivate()){
-            $map->clearAccess(['corporation', 'alliance']);
-            $map->setAccess($user);
-        }elseif($map->isCorporation()){
-            $activeCharacter = $user->getActiveUserCharacter();
+            $user = $this->_getUser();
 
-            if($activeCharacter){
-                $corporation = $activeCharacter->getCharacter()->getCorporation();
+            $map = Model\BasicModel::getNew('MapModel');
+            $map->getById($formData['id']);
 
-                if($corporation){
-                    $map->clearAccess(['user', 'alliance']);
-                    $map->setAccess($corporation);
-                }
+            // check if the user has access to this map
+            $mapAccess = true;
+            if(! $map->dry() ){
+                $mapAccess = $map->hasAccess($user);
             }
-        }elseif($map->isAlliance()){
-            $activeCharacter = $user->getActiveUserCharacter();
 
-            if($activeCharacter){
-                $alliance = $activeCharacter->getCharacter()->getAlliance();
+            if($mapAccess){
+                $map->setData($formData);
+                $map = $map->save();
 
-                if($alliance){
-                    $map->clearAccess(['user', 'corporation']);
-                    $map->setAccess($alliance);
+                // save global map access. Depends on map "type"
+                if($map->isPrivate()){
+
+                    // share map between users -> set access
+                    if(array_key_exists('mapUsers', $formData)){
+                        // clear map access. In case something has removed from access list
+                        $map->clearAccess();
+
+                        $tempUser = Model\BasicModel::getNew('UserModel');
+
+                        foreach((array)$formData['mapUsers'] as $userId){
+                            $tempUser->getById( $userId );
+
+                            if( !$tempUser->dry() ){
+                                $map->setAccess($tempUser);
+                            }
+
+                            $tempUser->reset();
+                        }
+                    }
+
+                    // the current user itself should always have access
+                    // just in case he removed himself :)
+                    $map->setAccess($user);
+                }elseif($map->isCorporation()){
+                    $activeCharacter = $user->getActiveUserCharacter();
+
+                    if($activeCharacter){
+                        $corporation = $activeCharacter->getCharacter()->getCorporation();
+
+                        if($corporation){
+                            // the current user has to have a corporation when
+                            // working on corporation maps!
+
+                            // share map between corporations -> set access
+                            if(array_key_exists('mapCorporations', $formData)){
+                                // clear map access. In case something has removed from access list
+                                $map->clearAccess();
+
+                                $tempCorporation = Model\BasicModel::getNew('CorporationModel');
+
+                                foreach((array)$formData['mapCorporations'] as $corporationId){
+                                    $tempCorporation->getById( $corporationId );
+
+                                    if( !$tempCorporation->dry() ){
+                                        $map->setAccess($tempCorporation);
+                                    }
+
+                                    $tempCorporation->reset();
+                                }
+                            }
+
+                            // the corporation of the current user should always have access
+                            $map->setAccess($corporation);
+                        }
+                    }
+                }elseif($map->isAlliance()){
+                    $activeCharacter = $user->getActiveUserCharacter();
+
+                    if($activeCharacter){
+                        $alliance = $activeCharacter->getCharacter()->getAlliance();
+
+                        if($alliance){
+                            // the current user has to have a alliance when
+                            // working on alliance maps!
+
+                            // share map between alliances -> set access
+                            if(array_key_exists('mapAlliances', $formData)){
+                                // clear map access. In case something has removed from access list
+                                $map->clearAccess();
+
+                                $tempAlliance = Model\BasicModel::getNew('AllianceModel');
+
+                                foreach((array)$formData['mapAlliances'] as $allianceId){
+                                    $tempAlliance->getById( $allianceId );
+
+                                    if( !$tempAlliance->dry() ){
+                                        $map->setAccess($tempAlliance);
+                                    }
+
+                                    $tempAlliance->reset();
+                                }
+
+                            }
+
+                            // the alliance of the current user should always have access
+                            $map->setAccess($alliance);
+                        }
+                    }
                 }
+
+                $return->mapData = $map->getData();
+            }else{
+                // map access denied
+                $captchaError = new \stdClass();
+                $captchaError->type = 'error';
+                $captchaError->message = 'Access denied';
+                $return->error[] = $captchaError;
             }
+        }else{
+            // map id field missing
+            $idError = new \stdClass();
+            $idError->type = 'error';
+            $idError->message = 'Map id missing';
+            $return->error[] = $idError;
         }
 
-        $mapData = $map->getData();
 
-        echo json_encode($mapData);
+
+        echo json_encode($return);
     }
 
     /**
@@ -202,92 +303,102 @@ class Map extends \Controller\AccessController {
         $responseTTL = 3;
         $user = $this->_getUser();
 
-        $cacheKey = 'user_map_data_' . $user->id;
-        if($f3->exists($cacheKey) === false){
+        $return = (object) [];
+        $return->error = [];
 
-            $mapData = (array)$f3->get('POST.mapData');
+        if($user){
+            $cacheKey = 'user_map_data_' . $user->id;
+            if($f3->exists($cacheKey) === false){
+
+                $mapData = (array)$f3->get('POST.mapData');
 
 
-            $map = Model\BasicModel::getNew('MapModel');
-            $system = Model\BasicModel::getNew('SystemModel');
-            $connection = Model\BasicModel::getNew('ConnectionModel');
+                $map = Model\BasicModel::getNew('MapModel');
+                $system = Model\BasicModel::getNew('SystemModel');
+                $connection = Model\BasicModel::getNew('ConnectionModel');
 
-            $activeCharacter = $user->getActiveUserCharacter();
+                $activeCharacter = $user->getActiveUserCharacter();
 
-            foreach($mapData as $data){
+                foreach($mapData as $data){
 
-                $config = $data['config'];
-                $systems = [];
-                $connections = [];
+                    $config = $data['config'];
+                    $systems = [];
+                    $connections = [];
 
-                // check whether system data and/or connection data is send
-                // empty arrays are not included in ajax requests
-                if(array_key_exists('data', $data)){
-                    if(array_key_exists('systems', $data['data'])){
-                        $systems = $data['data']['systems'];
+                    // check whether system data and/or connection data is send
+                    // empty arrays are not included in ajax requests
+                    if(array_key_exists('data', $data)){
+                        if(array_key_exists('systems', $data['data'])){
+                            $systems = $data['data']['systems'];
+                        }
+                        if(array_key_exists('connections', $data['data'])){
+                            $connections = $data['data']['connections'];
+                        }
                     }
-                    if(array_key_exists('connections', $data['data'])){
-                        $connections = $data['data']['connections'];
+
+                    // update map data ---------------------------------------------
+                    $map->getById($config['id']);
+
+                    if(!$map->dry()){
+                        // update map on change
+                        if( (int)$config['updated'] > strtotime($map->updated)){
+                            $map->setData($config);
+                            $map->save();
+                        }
                     }
+
+                    // get system data -----------------------------------------------
+                    foreach($systems as $systemData){
+                        $system->getById($systemData['id']);
+
+                        if(
+                            (int)$systemData['updated']['updated'] === 0 &&
+                            !$system->dry()
+                        ){
+                            $system->setData($systemData);
+                            $system->mapId = $map;
+                            $system->updatedCharacterId = $activeCharacter->characterId;
+                            $system->save();
+                        }
+
+                        $system->reset();
+                    }
+
+                    // get connection data -------------------------------------------
+                    foreach($connections as $connectionData){
+                        $connection->getById($connectionData['id']);
+
+                        if(
+                            (int)$connectionData['updated'] === 0 &&
+                            !$connection->dry()
+                        ){
+                            $connectionData['mapId'] = $map;
+                            $connection->setData($connectionData);
+                            $connection->save($user);
+                        }
+
+                        $connection->reset();
+                    }
+
+                    $map->reset();
                 }
 
-                // update map data ---------------------------------------------
-                $map->getById($config['id']);
+                // get map data ======================================================
+                $activeMaps = $user->getMaps();
 
-                if(!$map->dry()){
-                    // update map on change
-                    if( (int)$config['updated'] > strtotime($map->updated)){
-                        $map->setData($config);
-                        $map->save();
-                    }
-                }
+                // format map Data for return
+                $newData = self::getFormattedMapData($activeMaps);
 
-                // get system data -----------------------------------------------
-                foreach($systems as $systemData){
-                    $system->getById($systemData['id']);
-
-                    if(
-                        (int)$systemData['updated']['updated'] === 0 &&
-                        !$system->dry()
-                    ){
-                        $system->setData($systemData);
-                        $system->mapId = $map;
-                        $system->updatedCharacterId = $activeCharacter->characterId;
-                        $system->save();
-                    }
-
-                    $system->reset();
-                }
-
-                // get connection data -------------------------------------------
-                foreach($connections as $connectionData){
-                    $connection->getById($connectionData['id']);
-
-                    if(
-                        (int)$connectionData['updated'] === 0 &&
-                        !$connection->dry()
-                    ){
-                        $connectionData['mapId'] = $map;
-                        $connection->setData($connectionData);
-                        $connection->save($user);
-                    }
-
-                    $connection->reset();
-                }
-
-                $map->reset();
+                $f3->set($cacheKey, $newData, $responseTTL);
             }
 
-            // get map data ======================================================
-            $activeMaps = $user->getMaps();
-
-            // format map Data for return
-            $newData = self::getFormattedMapData($activeMaps);
-
-            $f3->set($cacheKey, $newData, $responseTTL);
+            $return = $f3->get($cacheKey);
+        }else{
+            // user logged of
+            $return->error[] = $this->getUserLoggedOffError();
         }
 
-        echo json_encode( $f3->get($cacheKey) );
+        echo json_encode( $return );
     }
 
     /**
@@ -322,45 +433,55 @@ class Map extends \Controller\AccessController {
         $responseTTL = 2;
         $user = $this->_getUser();
 
-        $cacheKey = 'user_data_' . $user->id;
-        if($f3->exists($cacheKey) === false){
+        $return = (object) [];
+        $return->error = [];
 
-            // check if data for specific system is requested
-            $systemData = (array)$f3->get('POST.systemData');
+        if($user){
+            $cacheKey = 'user_data_' . $user->id;
+            if($f3->exists($cacheKey) === false){
 
-            // update current location (IGB data)
-            $user->updateCharacterLog();
+                // check if data for specific system is requested
+                $systemData = (array)$f3->get('POST.systemData');
 
-            $userData = (object) [];
-            // data for the current user
-            $userData->userData = $user->getData();
+                // update current location (IGB data)
+                $user->updateCharacterLog();
 
-            // get user Data for each map ========================================
-            $activeMaps = $user->getMaps();
+                // data for the current user
+                $return->userData = $user->getData();
 
-            foreach($activeMaps as $mapModel){
-                $userData->mapUserData[] = $mapModel->getUserData();
+                // get user Data for each map ========================================
+                $activeMaps = $user->getMaps();
 
-                // request signature data for a system if user has map access
-                if(
-                    !empty($systemData) &&
-                    $systemData['mapId'] == $mapModel->id
-                ){
-                    $system = $mapModel->getSystem( (int)$systemData['systemData']['id']);
+                foreach($activeMaps as $mapModel){
+                    $return->mapUserData[] = $mapModel->getUserData();
 
-                    if(! is_null($system)){
-                        // data for the current selected system
-                        $userData->system = $system->getData();
-                        $userData->system->signatures = $system->getSignaturesData();
+                    // request signature data for a system if user has map access
+                    if(
+                        !empty($systemData) &&
+                        $systemData['mapId'] == $mapModel->id
+                    ){
+                        $system = $mapModel->getSystem( (int)$systemData['systemData']['id']);
+
+                        if(! is_null($system)){
+                            // data for the current selected system
+                            $return->system = $system->getData();
+                            $return->system->signatures = $system->getSignaturesData();
+                        }
+
                     }
-
                 }
+
+                $f3->set($cacheKey, $return, $responseTTL);
             }
 
-            $f3->set($cacheKey, $userData, $responseTTL);
+            $return = $f3->get($cacheKey);
+        }else{
+            // user logged of
+            $return->error[] = $this->getUserLoggedOffError();
         }
 
-        echo json_encode( $f3->get($cacheKey) );
+
+        echo json_encode( $return );
     }
 
 }

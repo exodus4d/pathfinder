@@ -1,0 +1,58 @@
+
+.ribbon-wrapper {
+  width: 72px;
+  height: 88px;
+  overflow: hidden;
+  position: absolute;
+  top: -3px;
+  right: 7px;
+}
+
+.ribbon {
+  font: bold 12px $font-family-bold;
+  color: $gray-darker;
+  text-align: center;
+  text-shadow: rgba(255,255,255,0.2) 0px 1px 0px;
+  position: relative;
+  padding: 3px 0;
+  left: -4px;
+  top: 16px;
+  width: 99px;
+  @include box-shadow(2px 3px 3px rgba(0,0,0,0.2));
+  @include transform(rotate(45deg));
+
+
+  &:before, &:after{
+    content: "";
+    border-left:  3px solid transparent;
+    border-right: 3px solid transparent;
+    position:absolute;
+    bottom: -3px;
+  }
+
+
+  &.ribbon-green{
+    background-color: $green;
+    @include background-image(linear-gradient(top, darken($green, 3%), darken($green-dark, 3%)));
+
+    &:before, &:after{
+      border-top:   3px solid darken($green-dark, 23%);
+    }
+  }
+
+  &.ribbon-orange{
+    background-color: $orange;
+    @include background-image(linear-gradient(top, darken($orange, 3%), darken($orange-dark, 3%)));
+
+    &:before, &:after{
+      border-top:   3px solid darken($orange-dark, 18%);
+    }
+  }
+}
+
+.ribbon:before {
+  left: 0;
+}
+.ribbon:after {
+  right: 0;
+}

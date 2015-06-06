@@ -150,11 +150,11 @@
       }
 
       &:hover{
-        border-color: $teal-darker;
+        border-color: $teal-dark;
         @include box-shadow(0 6px 12px rgba(0,0,0, 0.3));
 
         .pf-dialog-character-name{
-          color: $teal;
+          color: $teal-lighter;
         }
 
         .pf-dialog-character-image{
@@ -203,6 +203,16 @@
         @include filter(grayscale(0%));
       }
     }
+  }
+}
+
+// map settings dialog ====================================
+#pf-map-dialog{
+
+  #pf-map-dialog-user-select,
+  #pf-map-dialog-corporation-select,
+  #pf-map-dialog-alliance-select,{
+    width: 300px;
   }
 }
 

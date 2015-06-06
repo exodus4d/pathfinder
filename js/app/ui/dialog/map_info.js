@@ -339,7 +339,7 @@ define([
     $.fn.showMapInfoDialog = function(){
 
         var activeMap = Util.getMapModule().getActiveMap();
-        var mapData = activeMap.getMapData(true);
+        var mapData = activeMap.getMapDataFromClient(true);
 
         if(mapData !== false){
             requirejs(['text!templates/dialog/map_info.html', 'mustache'], function(template, Mustache) {
@@ -384,7 +384,7 @@ define([
 
                         if(menuAction === 'refresh'){
                             // get new map data
-                            var mapData = activeMap.getMapData(true);
+                            var mapData = activeMap.getMapDataFromClient(true);
 
                             mapElement.loadMapInfoData(mapData);
                             systemsElement.loadSystemInfoTable(mapData);

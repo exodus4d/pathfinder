@@ -20,7 +20,14 @@ define([
         ajaxOverlayClass: 'pf-loading-overlay',
         ajaxOverlayWrapperClass: 'pf-loading-overlay-wrapper',
 
-        formEditableFieldClass: 'pf-editable',                                  // Class for all xEditable fields
+        // form
+        formEditableFieldClass: 'pf-editable',                                  // class for all xEditable fields
+        formErrorContainerClass: 'pf-dialog-error-container',                   // class for "error" containers in dialogs
+        formWarningContainerClass: 'pf-dialog-warning-container',               // class for "warning" containers in dialogs
+
+        settingsMessageVelocityOptions: {
+            duration: 180
+        },
 
         // map module
         mapModuleId: 'pf-map-module',                                           // main map module
@@ -62,86 +69,12 @@ define([
 
     var stopTimerCache = {};                                                    // cache for stopwatch timer
 
-    /**
-     * get date obj with current EVE Server Time.
-     * @returns {Date}
+
+    /*
+     *  ===========================================================================================================
+     *   Global jQuery plugins for some common and frequently used functions
+     *   ==========================================================================================================
      */
-    var getServerTime = function(){
-
-        // Server is running with GMT/UTC (EVE Time)
-        var localDate = new Date();
-
-        var serverDate= new Date(
-            localDate.getUTCFullYear(),
-            localDate.getUTCMonth(),
-            localDate.getUTCDate(),
-            localDate.getUTCHours(),
-            localDate.getUTCMinutes(),
-            localDate.getUTCSeconds()
-        );
-
-        return serverDate;
-    };
-
-    /**
-     * start time measurement by a unique string identifier
-     * @param timerName
-     */
-    var timeStart = function(timerName){
-
-        if(typeof performance === 'object'){
-            stopTimerCache[timerName] = performance.now();
-        }else{
-            stopTimerCache[timerName] = new Date().getTime();
-        }
-    };
-
-    /**
-     * get time delta between timeStart() and timeStop() by a unique string identifier
-     * @param timerName
-     * @returns {number}
-     */
-    var timeStop = function(timerName){
-
-        var duration = 0;
-
-        if( stopTimerCache.hasOwnProperty(timerName) ){
-            // check browser support for performance API
-            var timeNow = 0;
-
-            if(typeof performance === 'object'){
-                timeNow = performance.now();
-            }else{
-                timeNow = new Date();
-            }
-
-            // format ms time duration
-            duration = Number( (timeNow - stopTimerCache[timerName] ).toFixed(2) );
-
-            // delete key
-            delete( stopTimerCache[timerName]);
-        }
-
-        return duration;
-    };
-
-    /**
-     * build a program URL by a given path
-     * @param path
-     * @returns {string}
-     */
-    var buildUrl = function(path){
-        return document.location.protocol + '//' + document.location.host + path;
-    };
-
-    /**
-     * trigger main logging event with log information
-     * @param message
-     * @param options
-     */
-    var log = function(logKey, options){
-        $(window).trigger('pf:log', [logKey, options]);
-    };
 
     /**
      * displays a loading indicator on an element
@@ -231,6 +164,116 @@ define([
     };
 
     /**
+     * show form messages
+     * check: showMessage() for en other way of showing messages
+     * @param errors
+     */
+    $.fn.showFormMessage = function(errors){
+
+        var formElement = $(this);
+
+        var errorMessage = [];
+        var warningMessage = [];
+        for(var i = 0; i < errors.length; i++){
+            if(errors[i].type === 'error'){
+                errorMessage.push( errors[i].message );
+            }else if(errors[i].type === 'warning'){
+                warningMessage.push( errors[i].message );
+            }
+        }
+
+        if(errorMessage.length > 0){
+            formElement.hideFormMessage('error', function(element){
+                $(element).find('small').text( errorMessage.join('<br>') );
+                $(element).velocity('transition.slideUpIn', config.settingsMessageVelocityOptions);
+            });
+        }
+
+        if(warningMessage.length > 0){
+            formElement.hideFormMessage('warning', function(element){
+                $(element).find('small').text( warningMessage.join('<br>') );
+                $(element).velocity('transition.slideUpIn', config.settingsMessageVelocityOptions);
+            });
+        }
+    };
+
+    /**
+     * hide all form messages
+     * @param type
+     * @param callback
+     */
+    $.fn.hideFormMessage = function(type, callback){
+
+        var formElement = $(this);
+
+        var settingsMessageVelocityOptions = $.extend({}, config.settingsMessageVelocityOptions);
+
+        // check if callback exists
+        if(callback !== undefined){
+            settingsMessageVelocityOptions.complete = callback;
+
+            // new error will be shown afterwards -> keep display
+            settingsMessageVelocityOptions.display = 'block';
+        }
+
+        if(type === 'error'){
+            // find error container
+            var errorMessageElement = formElement.find('.' + config.formErrorContainerClass);
+
+            // check if element is visible
+            if(errorMessageElement.is(':visible')){
+                errorMessageElement.velocity('transition.slideDownOut', settingsMessageVelocityOptions);
+            }else if(callback){
+                // skip hide animation
+                callback(errorMessageElement);
+            }
+        }
+
+        if(type === 'warning'){
+            var warningMessageElement = formElement.find('.' + config.formWarningContainerClass);
+
+            // check if element is visible
+            if(warningMessageElement.is(':visible')){
+                warningMessageElement.velocity('transition.slideDownOut', settingsMessageVelocityOptions);
+            }else if(callback){
+                // skip hide animation
+                callback(warningMessageElement);
+            }
+        }
+    };
+
+    /**
+     * init form elements for validation (bootstrap3 validation)
+     * @returns {any|JQuery|*}
+     */
+    $.fn.initFormValidation = function(){
+
+        return this.each(function(){
+            var form = $(this);
+
+            // init form validation
+            form.validator();
+
+            // validation event listener
+            form.on('valid.bs.validator', function(validatorObj){
+                var inputGroup = $(validatorObj.relatedTarget).parents('.form-group');
+                if(inputGroup){
+                    inputGroup.removeClass('has-error').addClass('has-success');
+                }
+            });
+
+            form.on('invalid.bs.validator', function(validatorObj){
+                var field = $(validatorObj.relatedTarget);
+                var inputGroup = field.parents('.form-group');
+                if(inputGroup){
+                    inputGroup.removeClass('has-success').addClass('has-error');
+                }
+            });
+
+        });
+    };
+
+    /**
      * checks weather a bootstrap form is valid or not
      * validation plugin does not provide a proper function for this
      * @returns {boolean}
@@ -282,30 +325,311 @@ define([
     };
 
     /**
-     * checks if an element is currently visible in viewport
-     * @returns {boolean}
+     * check multiple element if they arecurrently visible in viewport
+     * @returns {Array}
      */
     $.fn.isInViewport = function(){
 
-        var element = $(this)[0];
-        var top = element.offsetTop;
-        var left = element.offsetLeft;
-        var width = element.offsetWidth;
-        var height = element.offsetHeight;
+        var visibleElement = [];
 
+        this.each(function(){
+            var element = $(this)[0];
 
-        while(element.offsetParent) {
-            element = element.offsetParent;
-            top += element.offsetTop;
-            left += element.offsetLeft;
-        }
+            var top = element.offsetTop;
+            var left = element.offsetLeft;
+            var width = element.offsetWidth;
+            var height = element.offsetHeight;
 
-        return (
-            top < (window.pageYOffset + window.innerHeight) &&
+            while(element.offsetParent) {
+                element = element.offsetParent;
+                top += element.offsetTop;
+                left += element.offsetLeft;
+            }
+
+            if(
+                top < (window.pageYOffset + window.innerHeight) &&
                 left < (window.pageXOffset + window.innerWidth) &&
                 (top + height) > window.pageYOffset &&
                 (left + width) > window.pageXOffset
-            );
+            ){
+                visibleElement.push( this );
+            }
+        });
+
+        return visibleElement;
+    };
+
+    /**
+     * init the map-update-counter as "easy-pie-chart"
+     */
+    $.fn.initMapUpdateCounter = function(){
+
+        var counterChart = $(this);
+
+        counterChart.easyPieChart({
+            barColor: function(percent){
+
+                var color = '#568a89';
+                if(percent <= 30){
+                    color = '#d9534f';
+                }else if(percent <= 50){
+                    color = '#f0ad4e';
+                }
+
+                return color;
+
+            },
+            trackColor: '#2b2b2b',
+            size: 30,
+            scaleColor: false,
+            lineWidth: 2,
+            animate: 1000
+        });
+
+    };
+
+    /**
+     * init tooltips on an element
+     * @returns {any|JQuery|*}
+     */
+    $.fn.initTooltips = function(){
+
+        return this.each(function(){
+
+            var tooltipElements = $(this).find('[title]');
+            tooltipElements.tooltip({
+                container:  this,
+                delay: 100
+            });
+        });
+
+    };
+
+    /**
+     * adds a popup tooltip with character information (created/updated)
+     * @param tooltipData
+     */
+    $.fn.addCharacterInfoTooltip = function(tooltipData){
+        var element = $(this);
+
+        if(
+            tooltipData.created.character &&
+            tooltipData.updated.character
+        ){
+
+            var createdData = tooltipData.created;
+            var updatedData = tooltipData.updated;
+
+            // check if data has changed
+            if(
+                element.data('created') !== createdData.created ||
+                element.data('updated') !== updatedData.updated
+            ){
+                // data changed
+                // set new data for next check
+                element.data('created', createdData.created);
+                element.data('updated', updatedData.updated);
+
+                var statusCreatedClass = getStatusInfoForCharacter(createdData.character, 'class');
+                var statusUpdatedClass = getStatusInfoForCharacter(updatedData.character, 'class');
+
+                // convert timestamps
+                var dateCreated = new Date(createdData.created * 1000);
+                var dateUpdated = new Date(updatedData.updated * 1000);
+                var dateCreatedUTC = convertDateToUTC(dateCreated);
+                var dateUpdatedUTC = convertDateToUTC(dateUpdated);
+
+                var data = {
+                    created: createdData,
+                    updated: updatedData,
+                    createdTime: convertDateToString(dateCreatedUTC),
+                    updatedTime: convertDateToString(dateUpdatedUTC),
+                    createdStatusClass: statusCreatedClass,
+                    updatedStatusClass: statusUpdatedClass
+                };
+
+                requirejs(['text!templates/tooltip/character_info.html', 'mustache'], function(template, Mustache) {
+
+                    var content = Mustache.render(template, data);
+
+                    element.popover({
+                        placement: 'top',
+                        html: true,
+                        trigger: 'hover',
+                        content: '',
+                        container: 'body',
+                        title: 'Created / Updated',
+                        delay: {
+                            show: 250,
+                            hide: 0
+                        }
+                    });
+
+                    // set new popover content
+                    var popover = element.data('bs.popover');
+                    popover.options.content = content;
+
+                });
+
+            }
+        }
+    };
+
+    /**
+     * display a custom message (info/warning/error) to a container element
+     * check: $.fn.showFormMessage() for an other way of showing messages
+     * @param config
+     */
+    $.fn.showMessage = function(config){
+        var containerElement = $(this);
+
+        requirejs(['text!templates/form/message.html', 'mustache'], function(template, Mustache) {
+
+            var messageTypeClass = 'alert-danger';
+            var messageTextClass = 'txt-color-danger';
+
+            switch(config.type){
+                case 'info':
+                    messageTypeClass = 'alert-info';
+                    messageTextClass = 'txt-color-information';
+                    break;
+                case 'success':
+                    messageTypeClass = 'alert-success';
+                    messageTextClass = 'txt-color-success';
+                    break;
+                case 'warning':
+                    messageTypeClass = 'alert-warning';
+                    messageTextClass = 'txt-color-warning';
+                    break;
+            }
+
+            var data = {
+                title: config.title,
+                text: config.text,
+                messageTypeClass: messageTypeClass,
+                messageTextClass: messageTextClass
+            };
+
+            var content = Mustache.render(template, data);
+
+            containerElement.html(content);
+
+            containerElement.children().first().velocity('stop').velocity('fadeIn');
+
+        });
+    };
+
+    /**
+     * wrapper function for onClick() || onDblClick() events in order to distinguish between this two types of events
+     * @param singleClickCallback
+     * @param doubleClickCallback
+     * @param timeout
+     * @returns {any|JQuery|*}
+     */
+    $.fn.singleDoubleClick = function(singleClickCallback, doubleClickCallback, timeout) {
+        return this.each(function(){
+            var clicks = 0, self = this;
+            $(this).on('mouseup', function(e){
+                clicks++;
+                if (clicks === 1) {
+                    setTimeout(function(){
+                        if(clicks === 1) {
+                            singleClickCallback.call(self, e);
+                        } else {
+                            doubleClickCallback.call(self, e);
+                        }
+                        clicks = 0;
+                    }, timeout || Init.timer.dblClickTimer);
+                }
+            });
+        });
+    };
+
+    /*
+     *  ===========================================================================================================
+     *   Util functions that are global available for all modules
+     *   ==========================================================================================================
+     */
+
+    /**
+     * get date obj with current EVE Server Time.
+     * @returns {Date}
+     */
+    var getServerTime = function(){
+
+        // Server is running with GMT/UTC (EVE Time)
+        var localDate = new Date();
+
+        var serverDate= new Date(
+            localDate.getUTCFullYear(),
+            localDate.getUTCMonth(),
+            localDate.getUTCDate(),
+            localDate.getUTCHours(),
+            localDate.getUTCMinutes(),
+            localDate.getUTCSeconds()
+        );
+
+        return serverDate;
+    };
+
+    /**
+     * start time measurement by a unique string identifier
+     * @param timerName
+     */
+    var timeStart = function(timerName){
+
+        if(typeof performance === 'object'){
+            stopTimerCache[timerName] = performance.now();
+        }else{
+            stopTimerCache[timerName] = new Date().getTime();
+        }
+    };
+
+    /**
+     * get time delta between timeStart() and timeStop() by a unique string identifier
+     * @param timerName
+     * @returns {number}
+     */
+    var timeStop = function(timerName){
+
+        var duration = 0;
+
+        if( stopTimerCache.hasOwnProperty(timerName) ){
+            // check browser support for performance API
+            var timeNow = 0;
+
+            if(typeof performance === 'object'){
+                timeNow = performance.now();
+            }else{
+                timeNow = new Date();
+            }
+
+            // format ms time duration
+            duration = Number( (timeNow - stopTimerCache[timerName] ).toFixed(2) );
+
+            // delete key
+            delete( stopTimerCache[timerName]);
+        }
+
+        return duration;
+    };
+
+    /**
+     * build a program URL by a given path
+     * @param path
+     * @returns {string}
+     */
+    var buildUrl = function(path){
+        return document.location.protocol + '//' + document.location.host + path;
+    };
+
+    /**
+     * trigger main logging event with log information
+     * @param message
+     * @param options
+     */
+    var log = function(logKey, options){
+        $(window).trigger('pf:log', [logKey, options]);
     };
 
     /**
@@ -348,39 +672,6 @@ define([
      */
     var isXHRAborted = function(jqXHR){
         return !jqXHR.getAllResponseHeaders();
-    };
-
-    // ==================================================================================================
-    // ==================================================================================================
-    // ==================================================================================================
-
-    /**
-     * init the map-update-counter as "easy-pie-chart"
-     */
-    $.fn.initMapUpdateCounter = function(){
-
-        var counterChart = $(this);
-
-        counterChart.easyPieChart({
-            barColor: function(percent){
-
-                var color = '#568a89';
-                if(percent <= 30){
-                    color = '#d9534f';
-                }else if(percent <= 50){
-                    color = '#f0ad4e';
-                }
-
-                return color;
-
-            },
-            trackColor: '#2b2b2b',
-            size: 30,
-            scaleColor: false,
-            lineWidth: 2,
-            animate: 1000
-        });
-
     };
 
     /**
@@ -451,7 +742,6 @@ define([
             for(var i = 0; i < mapTypes.length; i++){
                 for(var j = 0; j < authorizedMapTypes.length; j++){
                     if(mapTypes[i].name === authorizedMapTypes[j]){
-                        console.log('OK')
                         tempMapTypes.push(mapTypes[i]);
                         break;
                     }
@@ -851,7 +1141,46 @@ define([
     };
 
     /**
+     * set currentMapData as "global" variable
+     * this function should be called continuously after data change
+     * to keep the data always up2data
+     * @param mapData
+     */
+    var setCurrentMapData = function(mapData){
+        Init.currentMapData = mapData;
+
+        return getCurrentMapData();
+    };
+
+    /**
+     * get currentMapData from "global" variable for a specific map or all maps
+     * @param mapId
+     * @returns {boolean}
+     */
+    var getCurrentMapData = function(mapId){
+
+        var currentMapData = false;
+
+        if( mapId === parseInt(mapId, 10) ){
+            // search for a specific map
+            for(var i = 0; i < Init.currentMapData.length; i++){
+                if(Init.currentMapData[i].config.id === mapId){
+                    currentMapData = Init.currentMapData[i];
+                    break;
+                }
+            }
+        }else{
+            // get data for all maps
+            currentMapData = Init.currentMapData;
+        }
+
+        return currentMapData;
+    };
+
+    /**
      * set currentUserData as "global" variable
+     * this function should be called continuously after data change
+     * to keep the data always up2data
      * @param userData
      */
     var setCurrentUserData = function(userData){
@@ -968,137 +1297,8 @@ define([
         return   dateString + ' ' + timeString;
     };
 
-    /**
-     * init tooltips on an element
-     * @returns {any|JQuery|*}
-     */
-    $.fn.initTooltips = function(){
-
-        return this.each(function(){
-
-            var tooltipElements = $(this).find('[title]');
-            tooltipElements.tooltip({
-                container:  this,
-                delay: 100
-            });
-        });
-
-    };
-
-    /**
-     * adds a popup tooltip with character information (created/updated)
-     * @param tooltipData
-     */
-    $.fn.addCharacterInfoTooltip = function(tooltipData){
-        var element = $(this);
-
-        if(
-            tooltipData.created.character &&
-            tooltipData.updated.character
-        ){
-
-            var createdData = tooltipData.created;
-            var updatedData = tooltipData.updated;
-
-            // check if data has changed
-            if(
-                element.data('created') !== createdData.created ||
-                element.data('updated') !== updatedData.updated
-            ){
-                // data changed
-                // set new data for next check
-                element.data('created', createdData.created);
-                element.data('updated', updatedData.updated);
-
-                var statusCreatedClass = getStatusInfoForCharacter(createdData.character, 'class');
-                var statusUpdatedClass = getStatusInfoForCharacter(updatedData.character, 'class');
-
-                // convert timestamps
-                var dateCreated = new Date(createdData.created * 1000);
-                var dateUpdated = new Date(updatedData.updated * 1000);
-                var dateCreatedUTC = convertDateToUTC(dateCreated);
-                var dateUpdatedUTC = convertDateToUTC(dateUpdated);
-
-                var data = {
-                    created: createdData,
-                    updated: updatedData,
-                    createdTime: convertDateToString(dateCreatedUTC),
-                    updatedTime: convertDateToString(dateUpdatedUTC),
-                    createdStatusClass: statusCreatedClass,
-                    updatedStatusClass: statusUpdatedClass
-                };
-
-                requirejs(['text!templates/tooltip/character_info.html', 'mustache'], function(template, Mustache) {
-
-                    var content = Mustache.render(template, data);
-
-                        element.popover({
-                            placement: 'top',
-                            html: true,
-                            trigger: 'hover',
-                            content: '',
-                            container: 'body',
-                            title: 'Created / Updated',
-                            delay: {
-                                show: 250,
-                                hide: 0
-                            }
-                        });
-
-                    // set new popover content
-                    var popover = element.data('bs.popover');
-                    popover.options.content = content;
-
-                });
-
-            }
-        }
-    };
-
-    /**
-     * display a custom message (info/warning/error) to a container element
-     * @param config
-     */
-    $.fn.showMessage = function(config){
-        var containerElement = $(this);
-
-        requirejs(['text!templates/form/message.html', 'mustache'], function(template, Mustache) {
-
-            var messageTypeClass = 'alert-danger';
-            var messageTextClass = 'txt-color-danger';
-
-            switch(config.type){
-                case 'info':
-                    messageTypeClass = 'alert-info';
-                    messageTextClass = 'txt-color-information';
-                    break;
-                case 'success':
-                    messageTypeClass = 'alert-success';
-                    messageTextClass = 'txt-color-success';
-                    break;
-                case 'warning':
-                    messageTypeClass = 'alert-warning';
-                    messageTextClass = 'txt-color-warning';
-                    break;
-            }
-
-            var data = {
-                title: config.title,
-                text: config.text,
-                messageTypeClass: messageTypeClass,
-                messageTextClass: messageTextClass
-            };
-
-            var content = Mustache.render(template, data);
-
-            containerElement.html(content);
-
-            containerElement.children().first().velocity('stop').velocity('fadeIn');
-
-        });
-    };
-
     return {
+        config: config,
         getServerTime: getServerTime,
         timeStart: timeStart,
         timeStop: timeStop,
@@ -1128,6 +1328,8 @@ define([
         getAllSignatureNames: getAllSignatureNames,
         getSignatureTypeIdByName: getSignatureTypeIdByName,
         getAreaIdBySecurity: getAreaIdBySecurity,
+        setCurrentMapData: setCurrentMapData,
+        getCurrentMapData: getCurrentMapData,
         setCurrentUserData: setCurrentUserData,
         getCurrentUserData: getCurrentUserData,
         setCurrentSystemData: setCurrentSystemData,

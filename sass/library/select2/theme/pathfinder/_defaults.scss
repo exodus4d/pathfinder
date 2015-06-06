@@ -1,17 +1,18 @@
-$remove-color: #888 !default;
-$remove-hover-color: #555 !default;
+$remove-color: $red-darker !default;
+$remove-hover-color: $red-darkest !default;
 $remove-width: 20px !default;
 
 $selection-color: #444 !default;
 
-$border-color: #aaa !default;
-$border-radius: 4px !default;
+$border-color: $gray-light !default;
+$border-radius: 0px !default;
+$border-radius-choice: 4px !default;
 
-$focus-border-color: $gray-lighter !default;
+$focus-border-color: $teal-lighter !default;
 
 $container-height: 28px !default;
 
-$selection-bg-top-color: white !default;
+$selection-bg-top-color: $gray-dark !default;
 $selection-bg-bottom-color: #eeeeee !default;
 
 $container-placeholder-color: #999 !default;
@@ -28,7 +29,7 @@ $dropdown-bg-color: $selection-bg-top-color !default;
 $results-max-height: 200px !default;
 $results-nested-padding: 20px !default;
 
-$results-choice-bg-hover-color: #3875d7 !default;
-$results-choice-fg-hover-color: $gray-darker !default;
+$results-choice-bg-hover-color: $gray-lighter !default;
+$results-choice-fg-hover-color: $gray-dark !default;
 
 $results-choice-fg-unselectable-color: grey !default;

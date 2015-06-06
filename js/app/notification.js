@@ -168,7 +168,6 @@ define([
             var timeoutId;
             var blink = function(){
                 document.title = document.title === blinkTitle ? currentTitle : blinkTitle;
-                console.log(document.title)
             };
 
             var clear = function() {

@@ -252,7 +252,7 @@ define([
                                 class: 'fa fa-gears fa-fw'
                             })
                         ).on('click', function(){
-                            $(document).triggerMenuEvent('ShowMapSettings', {newMap: false});
+                            $(document).triggerMenuEvent('ShowMapSettings', {tab: 'settings'});
                         })
                 ).append(
                     $('<a>', {
@@ -454,17 +454,17 @@ define([
             return false;
         });
 
-        $(document).on('pf:menuShowMapSettings', function(e){
+        $(document).on('pf:menuShowMapSettings', function(e, data){
             // show map edit dialog or edit map
             var mapData = false;
 
             var activeMap = Util.getMapModule().getActiveMap();
 
             if(activeMap){
-                mapData = activeMap.getMapData(true);
+                mapData = Util.getCurrentMapData( activeMap.data('id') );
             }
 
-            $.fn.showMapSettingsDialog(mapData);
+            $.fn.showMapSettingsDialog(mapData, data);
             return false;
         });
 
@@ -475,7 +475,7 @@ define([
             var activeMap = Util.getMapModule().getActiveMap();
 
             if(activeMap){
-                mapData = activeMap.getMapData(true);
+                mapData = activeMap.getMapDataFromClient(true);
             }
 
             $.fn.showDeleteMapDialog(mapData);
@@ -652,7 +652,7 @@ define([
         }
 
         // update user ship data --------------------------------------------------------
-        if(currentShipId !== newShipId){ console.log('update ship ');
+        if(currentShipId !== newShipId){
 
             var showShipElement = true;
             if(newShipId === 0){
@@ -683,7 +683,7 @@ define([
         }).done(function(data){
 
             if(data.reroute !== undefined){
-                window.location = Util.buildUrl(data.reroute);
+                window.location = Util.buildUrl(data.reroute) + '?logout';
             }
 
         }).fail(function( jqXHR, status, error) {

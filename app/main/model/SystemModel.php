@@ -132,7 +132,7 @@ class SystemModel extends BasicModel {
 
     /**
      * delete a system from a map
-     * hint: signatures will be deleted on cascade
+     * hint: signatures and connections will be deleted on cascade
      * @param $accessObject
      */
     public function delete($accessObject){
@@ -140,44 +140,9 @@ class SystemModel extends BasicModel {
         if(! $this->dry()){
             // check if user has access
             if($this->hasAccess($accessObject)){
-                // delete all system connections
-                $connections = $this->getConnections();
-
-                if(is_object($connections)){
-                    foreach($connections as $connection){
-                        $connection->erase();
-                    }
-                }
                 $this->erase();
             }
         }
-    }
-
-    /**
-     * get all connections for this system
-     * @return array
-     */
-    public function getConnections(){
-        $connections = false;
-
-        // connections where system is source
-        $sourceConnections = $this->getRelatedModels('ConnectionModel', 'source');
-        $targetConnections = $this->getRelatedModels('ConnectionModel', 'target');
-
-        if(is_object($sourceConnections)){
-            $connections = $sourceConnections;
-        }
-
-        if(is_object($targetConnections)){
-            if(is_object($connections)){
-                $connections->append($targetConnections);
-            }else{
-                $connections = $targetConnections;
-
-            }
-        }
-
-        return $connections;
     }
 
     /**

@@ -34,7 +34,10 @@ define([
 
         // gallery
         galleryId: 'pf-gallery',                                                // id for gallery container
-        galleryThumbContainerId: 'pf-landing-gallery-thumb-container'           // id for gallery thumb images
+        galleryThumbContainerId: 'pf-landing-gallery-thumb-container',          // id for gallery thumb images
+
+        // animation
+        animateElementClass: 'pf-animate-on-visible'                            // class for elements that will be animated to show
     };
 
 
@@ -164,7 +167,7 @@ define([
     var showGallery = function(){
         // thumb links
         var thumbLinks = $('#' + config.galleryThumbContainerId + ' a');
-
+/*
         // show thumbs
         thumbLinks.velocity('transition.slideRightBigIn', {
             duration: 1200,
@@ -173,6 +176,7 @@ define([
             visibility: 'visible'
 
         });
+        */
     };
 
     /**
@@ -180,12 +184,36 @@ define([
      */
     var initScrollspy = function(){
         // init scrollspy
-        $('body').scrollspy({ target: '#' + config.navigationElementId });
 
-        $('#' + config.navigationElementId).on('activate.bs.scrollspy', function (e) {
+        $( window ).scroll(function() {
 
-            var ancorTag = $(e.target).find('a').attr('href');
-           console.log(ancorTag);
+            // find all elements that should be animated
+            var visibleElements = $('.' + config.animateElementClass).isInViewport();
+
+            $(visibleElements).removeClass( config.animateElementClass );
+
+            $(visibleElements).velocity('transition.flipXIn', {
+                duration: 600,
+                stagger: 60,
+                delay: 500,
+                complete: function(element){
+                    $(element).find('.fade').addClass('in');
+                },
+                visibility: 'visible'
+            });
+
+        });
+
+        // event listener for navigation links
+        $('.page-scroll').on('click', function(){
+            // get element to scroll
+            var anchorTag = $(this).attr('data-anchor');
+
+            // scroll to container
+            $(anchorTag).velocity('scroll', {
+                duration: 300,
+                easing: 'swing'
+            });
         });
     };
 

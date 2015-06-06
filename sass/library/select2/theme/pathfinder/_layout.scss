@@ -1,7 +1,7 @@
 @import "defaults";
 @import "../../mixins/gradients";
 
-.select2-container--classic {
+.select2-container--pathfinder {
   @import "single";
   @import "multiple";
 
@@ -21,6 +21,8 @@
   .select2-dropdown {
     background-color: $dropdown-bg-color;
     border: 1px solid transparent;
+    overflow: hidden;
+    @include box-shadow(0 6px 12px rgba(0,0,0, 0.3));
   }
 
   .select2-dropdown--above {
@@ -60,4 +62,9 @@
   &.select2-container--open .select2-dropdown {
     border-color: $focus-border-color;
   }
+}
+
+// hide small "arrow" for hidden select elements
+select.select2-hidden-accessible{
+  @include appearance( none );
 }

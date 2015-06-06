@@ -194,7 +194,7 @@ $mapWidth: 2500px ;
         .pf-system-body-right{
           text-overflow: ellipsis;
           float: right;
-          color: $teal;
+          color: $teal-lighter;
           display: none; // hover effect
         }
         // user status ===============================================
@@ -337,7 +337,7 @@ $mapWidth: 2500px ;
     }
 
     path:not(:first-child){
-      stroke: $teal;
+      stroke: $teal-lighter;
     }
 
     &:hover{

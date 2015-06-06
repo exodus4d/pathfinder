@@ -62,6 +62,7 @@ class SystemSignatureModel extends BasicModel {
             'groupId' => $this->groupId,
             'typeId' => $this->typeId,
             'name' => $this->name,
+            'description' => $this->description,
             'created' => [
                 'character' => $this->createdCharacterId->getData(),
                 'created' => strtotime($this->created)

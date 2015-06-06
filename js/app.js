@@ -13,11 +13,13 @@ requirejs.config({
         velocityUI: 'lib/velocity.ui.min',                              // v5.0.3 plugin for velocity - http://julian.com/research/velocity/#uiPack
         templates: '../public/templates',                               // template dir
         slidebars: 'lib/slidebars',                                     // v0.10 Slidebars - side menu plugin http://plugins.adchsm.me/slidebars/
-        jsPlumb: 'lib/dom.jsPlumb-1.7.2-min',                           // v1.7.2 jsPlumb (Vanilla)- main map draw plugin http://www.jsplumb.org/
+        jsPlumb: 'lib/dom.jsPlumb-1.7.5-min',                           // v1.7.5 jsPlumb (Vanilla)- main map draw plugin http://www.jsplumb.org/
         customScrollbar: 'lib/jquery.mCustomScrollbar.concat.min',      // v3.1.11 Custom scroll bars - http://manos.malihu.gr/
         datatables: 'lib/datatables/jquery.dataTables.min',             // v1.10.7 DataTables - https://datatables.net/
         datatablesBootstrap: 'lib/datatables/dataTables.bootstrap',     // DataTables - not used (bootstrap style)
-        datatablesTableTools: 'lib/datatables/extensions/TableTools/js/dataTables.tableTools',   // v2.2.3 TableTools (PlugIn) - https://datatables.net/extensions/tabletools/
+        datatablesResponsive: 'lib/datatables/extensions/responsive/dataTables.responsive',   // v1.0.6 TableTools (PlugIn) - https://datatables.net/extensions/responsive/
+
+        datatablesTableTools: 'lib/datatables/extensions/tabletools/js/dataTables.tableTools',   // v2.2.3 TableTools (PlugIn) - https://datatables.net/extensions/tabletools/
         xEditable: 'lib/bootstrap-editable.min',                        // v1.5.1 X-editable - in placed editing
         morris: 'lib/morris.min',                                       // v0.5.1 Morris.js - graphs and charts
         raphael: 'lib/raphael-min',                                     // v2.1.2 Raphaël - required for morris (dependency)
@@ -68,10 +70,13 @@ requirejs.config({
         datatables: {
             deps: ['jquery']
         },
-        datatablesTableTools: {
+        datatablesBootstrap: {
             deps: ['datatables']
         },
-        datatablesBootstrap: {
+        datatablesResponsive: {
+            deps: ['datatables']
+        },
+        datatablesTableTools: {
             deps: ['datatables']
         },
         xEditable: {

@@ -120,6 +120,22 @@ class BasicModel extends \DB\Cortex{
     }
 
     /**
+     * set "updated" field to current timestamp
+     * this is useful to mark a row as "changed"
+     */
+    protected function setUpdated(){
+        if($this->_id > 0){
+            $f3 = \Base::instance();
+            $f3->get('DB')->exec(
+                ["UPDATE " . $this->table . " SET updated=NOW() WHERE id=:id"],
+                [
+                    [':id' => $this->_id]
+                ]
+            );
+        }
+    }
+
+    /**
      * get single dataSet by id
      * @param $id
      * @param int $ttl

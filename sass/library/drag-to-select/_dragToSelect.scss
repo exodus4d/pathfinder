@@ -2,14 +2,19 @@
 // styles for drag-select
 
 div.pf-map-drag-to-select {
-  background: $teal-darker;
-  display: none; // triggered by js
-  opacity: 0.3;
+  background: $teal-dark !important;
+  display: block;
+  visibility: hidden; // triggered by js
+  opacity: 0; // triggered by js
   z-index: 9000;
   border: 1px dashed $gray-lighter;
+  will-change: opacity, visibility;
   @include border-radius(5px);
+  @include transition(opacity 0.15s linear, visibility 0.15s linear);
 
   &.active {
-    display: block;
+    visibility: visible;
+    opacity: 0.3;
+
   }
 }

@@ -20,11 +20,12 @@ $blue:                  #428bca;
 $blue-dark:             #316490;
 
 // teal
-$teal-light:            #6caead;
-$teal:                  #568a89;
-$teal-dark:             #477372;
-$teal-darker:           #375959;
-$teal-darkest:          #212C30;
+$teal-lightest:         #6caead;
+$teal-lighter:          #568a89;
+$teal:                  #477372;
+$teal-dark:             #375959;
+$teal-darker:           #212C30;
+$teal-darkest:          #1b2326;
 
 // green
 $green-light:           #66c84f;
@@ -80,7 +81,7 @@ $system-color-sec-0-9:        #39bf99;
 $system-color-sec-1-0:        #28c0bf;
 
 // brand colors
-$brand-primary:         $teal-darker !default;
+$brand-primary:         $teal-dark !default;
 $brand-success:         $green-dark !default;
 $brand-info:            $blue-dark !default;
 $brand-warning:         $orange !default;

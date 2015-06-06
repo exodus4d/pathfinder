@@ -45,13 +45,16 @@ class UserModel extends BasicModel {
 
     /**
      * get all data for this user
+     * ! caution ! this function returns sensitive data!
+     * -> user getSimpleData() for faster performance and public user data
      * @return object
      */
     public function getData(){
 
-        $userData = (object) [];
-        $userData->id = $this->id;
-        $userData->name = $this->name;
+        // get public user data for this user
+        $userData = $this->getSimpleData();
+
+        // add sensitive user data
         $userData->email = $this->email;
 
         // api data
@@ -72,6 +75,19 @@ class UserModel extends BasicModel {
         if($activeUserCharacter){
             $userData->character = $activeUserCharacter->getData(true);
         }
+
+        return $userData;
+    }
+
+    /**
+     * get public user data
+     * - check out getData() for all user data
+     * @return object
+     */
+    public function getSimpleData(){
+        $userData = (object) [];
+        $userData->id = $this->id;
+        $userData->name = $this->name;
 
         return $userData;
     }
