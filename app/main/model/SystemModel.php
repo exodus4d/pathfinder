@@ -12,8 +12,6 @@ namespace Model;
 class SystemModel extends BasicModel {
 
     protected $table = 'system';
-    protected $ttl = 5;
-    protected $rel_ttl = 5;
 
     protected $fieldConf = array(
         'mapId' => array(
@@ -50,9 +48,7 @@ class SystemModel extends BasicModel {
                 }
             }else{
                 // special array data
-                if($key == 'type'){
-                    $this->typeId = $value['id'];
-                }elseif($key == 'constellation'){
+                if($key == 'constellation'){
                     $this->constellationId = $value['id'];
                     $this->constellation = $value['name'];
                 }elseif($key == 'region'){
@@ -71,8 +67,8 @@ class SystemModel extends BasicModel {
     }
 
     /**
-     * get map data as array
-     * @return array
+     * get map data as object
+     * @return object
      */
     public function getData(){
 
@@ -105,6 +101,8 @@ class SystemModel extends BasicModel {
         $systemData->locked = $this->locked;
         $systemData->rally = $this->rally;
         $systemData->description = $this->description;
+
+        $systemData->statics = $this->getStaticWormholeData();
 
         $systemData->position = (object) [];
         $systemData->position->x = $this->posX;
@@ -200,5 +198,56 @@ class SystemModel extends BasicModel {
         return $signature;
     }
 
+    /**
+     * checks weather this system is a wormhole
+     * @return bool
+     */
+    protected function isWormhole(){
+        $isWormhole = false;
+
+        if($this->typeId->id == 1){
+            $isWormhole = true;
+        }
+
+        return $isWormhole;
+    }
+
+    /**
+     * get static WH data for this system
+     * -> any WH system has at least one static WH
+     * @return array
+     * @throws \Exception
+     */
+    protected function getStaticWormholeData(){
+        $wormholeData = [];
+
+        // check if this system is a wormhole
+        if($this->isWormhole()){
+            $systemStaticModel = self::getNew('SystemStaticModel');
+            $systemStatics = $systemStaticModel->find([
+                'constellationId = :constellationId',
+                ':constellationId' => $this->constellationId
+            ]);
+
+            if( is_object($systemStatics) ){
+                foreach($systemStatics as $systemStatic){
+                    $wormholeData[] = $systemStatic->getData();
+                }
+            }
+        }
+
+        return $wormholeData;
+    }
+
+    /**
+     * see parent
+     */
+    public function clearCacheData(){
+        parent::clearCacheData();
+
+        // clear map cache as well
+        $this->mapId->clearCacheData();
+
+    }
 
 } 

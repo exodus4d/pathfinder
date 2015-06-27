@@ -15,21 +15,21 @@ define(['jquery', 'mustache'], function($, Mustache) {
 
         if(
             typeof config.functions === 'object' &&
-                typeof config.functions[functionName] === 'function'
+            typeof config.functions[functionName] === 'function'
         ){
             config.functions[functionName]();
         }
     };
 
     /**
-     * load a template and render is with Mustache and/or Bootstrap
+     * load a template and render is with Mustache
      * @param config
      * @param data
      */
     var showModule = function(config, data){
 
         // require module template
-        requirejs(['text!templates/' + config.name + '.html', "bootstrap"], function(template) {
+        requirejs(['text!templates/' + config.name + '.html'], function(template) {
 
             // check for an id, if module already exists, do not insert again
             if(

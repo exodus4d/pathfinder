@@ -12,8 +12,6 @@ namespace Model;
 class SystemSignatureModel extends BasicModel {
 
     protected $table = 'system_signature';
-    protected $ttl = 0;
-    protected $rel_ttl = 0;
 
     protected $fieldConf = array(
         'systemId' => array(

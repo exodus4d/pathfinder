@@ -12,8 +12,14 @@ namespace Model;
 class UserMapModel extends BasicModel {
 
     protected $table = 'user_map';
-    protected $ttl = 5;
-    protected $rel_ttl = 5;
+
+    protected $ttl = 0;
+
+    /**
+     * caching for relational data
+     * @var int
+     */
+    protected $rel_ttl = 0;
 
     protected $fieldConf = array(
         'userId' => array(

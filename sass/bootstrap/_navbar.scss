@@ -183,7 +183,7 @@
   margin-left: $navbar-padding-horizontal;
   padding: 6px 12px;
   @include navbar-vertical-align(34px);
-  background-color: $gray-lighter;
+  background-color: $gray-dark;
   background-image: none; // Reset unusual Firefox-on-Android default style; see https://github.com/necolas/normalize.css/issues/214
   border: 1px solid darken($gray-lighter, 5%);
   @include border-radius(2px);
@@ -433,10 +433,16 @@
   .navbar-toggle {
     border-color: $navbar-default-toggle-border-color;
     color: $gray-darker;
+    cursor: pointer;
 
     &:hover,
     &:focus {
-      background-color: lighten($gray-lighter, 5%);
+      border-color: lighten($teal, 5%);
+      background-color: lighten($gray-dark, 5%);
+
+      .icon-bar{
+        background-color: $teal-lighter;
+      }
     }
     .icon-bar {
       background-color: $navbar-default-toggle-icon-bar-bg;

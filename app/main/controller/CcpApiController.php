@@ -112,9 +112,9 @@ class CcpApiController extends Controller{
                             $userCharacterModel = Model\BasicModel::getNew('UserCharacterModel');
                         }
 
-                        $characterModel = $characterModel->getByForeignKey( 'characterId', $attributeData['characterID']);
+                        $characterModel->getById($attributeData['characterID']);
 
-                        $characterModel->characterId = $attributeData['characterID'];
+                        $characterModel->id = $attributeData['characterID'];
                         $characterModel->name = $attributeData['characterName'];
                         $characterModel->corporationId = $corporationModelTemp;
                         $characterModel->allianceId = $allianceModelTemp;

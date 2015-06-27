@@ -30,7 +30,6 @@ class AccessController extends Controller {
         }
 
         parent::beforeroute();
-
     }
 
     /**
@@ -49,8 +48,6 @@ class AccessController extends Controller {
 
         return $user;
     }
-
-
 
     /**
      * checks weather a user is currently logged in
@@ -72,7 +69,7 @@ class AccessController extends Controller {
             $minutes += $timeDiff->h * 60;
             $minutes += $timeDiff->i;
 
-            if($minutes <= $this->f3->get('LOGIN_TIME')){
+            if($minutes <= $this->f3->get('PATHFINDER.TIMER.LOGGED')){
                 $loggedIn = true;
             }else{
                 // log out
@@ -100,8 +97,5 @@ class AccessController extends Controller {
 
         return $userError;
     }
-
-
-
 
 }

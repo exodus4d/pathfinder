@@ -845,11 +845,10 @@
       <index name="updated" unique="false" columns="updated"/>
     </table>
     <table name="character" schema="" catalog="pathfinder" type="TABLE">
-      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="created" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
       <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
       <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
-      <column name="characterId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="name" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
       <column name="corporationId" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="allianceId" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
@@ -864,7 +863,6 @@
       <exported-key name="system_signature_ibfk_2" table="system_signature" schema="" catalog="pathfinder" columns="createdCharacterId"/>
       <exported-key name="system_signature_ibfk_3" table="system_signature" schema="" catalog="pathfinder" columns="updatedCharacterId"/>
       <exported-key name="user_character_ibfk_3" table="user_character" schema="" catalog="pathfinder" columns="characterId"/>
-      <index name="characterId" unique="true" columns="characterId"/>
       <index name="active" unique="false" columns="active"/>
       <index name="created" unique="false" columns="created"/>
       <index name="factionId" unique="false" columns="factionId"/>
@@ -882,7 +880,7 @@
       <column name="shipName" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
       <column name="shipTypeName" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="id"/>
-      <foreign-key name="character_log_ibfk_1" columns="characterId" ref-table="character" ref-schema="" ref-catalog="pathfinder" ref-columns="characterId" update-rule="0" delete-rule="0" deferrability="2"/>
+      <foreign-key name="character_log_ibfk_1" columns="characterId" ref-table="character" ref-schema="" ref-catalog="pathfinder" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
       <index name="active" unique="false" columns="active"/>
       <index name="created" unique="false" columns="created"/>
       <index name="shipId" unique="false" columns="shipId"/>
@@ -960,16 +958,6 @@
       <index name="active" unique="false" columns="active"/>
       <index name="created" unique="false" columns="created"/>
       <index name="updated" unique="false" columns="updated"/>
-    </table>
-    <table name="e_systems" schema="" catalog="pathfinder" type="TABLE">
-      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
-      <column name="regionId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
-      <column name="constellationId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
-      <column name="systemName" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
-      <column name="systemId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
-      <column name="jumpNodes" sqlType="TEXT" precision="65535" scale="0" nullable="false" jdbcType="-1"/>
-      <column name="trueSec" sqlType="DECIMAL" precision="6" scale="5" nullable="false" jdbcType="3"/>
-      <primary-key name="PRIMARY" columns="id"/>
     </table>
     <table name="map" schema="" catalog="pathfinder" type="TABLE">
       <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
@@ -1214,6 +1202,20 @@
       <index name="created" unique="false" columns="created"/>
       <index name="updated" unique="false" columns="updated"/>
     </table>
+    <table name="system_neighbour" schema="" catalog="pathfinder" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="regionId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="constellationId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="systemName" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="systemId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="jumpNodes" sqlType="TEXT" precision="65535" scale="0" nullable="false" jdbcType="-1"/>
+      <column name="trueSec" sqlType="DECIMAL" precision="6" scale="5" nullable="false" jdbcType="3"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <index name="systemId_2" unique="true" columns="systemId"/>
+      <index name="constellationId" unique="false" columns="constellationId"/>
+      <index name="regionId" unique="false" columns="regionId"/>
+      <index name="systemId" unique="false" columns="systemId"/>
+    </table>
     <table name="system_signature" schema="" catalog="pathfinder" type="TABLE">
       <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
       <column name="created" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
@@ -1234,6 +1236,14 @@
       <index name="created" unique="false" columns="created"/>
       <index name="systemId" unique="false" columns="typeId,groupId"/>
       <index name="updated" unique="false" columns="updated"/>
+    </table>
+    <table name="system_static" schema="" catalog="pathfinder" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="constellationId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="security" sqlType="VARCHAR" precision="5" scale="0" nullable="false" jdbcType="12"/>
+      <column name="name" sqlType="VARCHAR" precision="10" scale="0" nullable="false" jdbcType="12"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <index name="constellation_id" unique="false" columns="constellationId"/>
     </table>
     <table name="system_status" schema="" catalog="pathfinder" type="TABLE">
       <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
@@ -1332,14 +1342,6 @@
       <index name="created" unique="false" columns="created"/>
       <index name="updated" unique="false" columns="updated"/>
       <index name="userId" unique="false" columns="mapId"/>
-    </table>
-    <table name="wh_statics" schema="" catalog="pathfinder" type="TABLE">
-      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
-      <column name="constellation_id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
-      <column name="static_wh" sqlType="VARCHAR" precision="5" scale="0" nullable="false" jdbcType="12"/>
-      <column name="static_name" sqlType="VARCHAR" precision="10" scale="0" nullable="false" jdbcType="12"/>
-      <primary-key name="PRIMARY" columns="id"/>
-      <index name="constellation_id" unique="false" columns="constellation_id"/>
     </table>
   </data-source>
 </component>

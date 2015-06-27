@@ -11,8 +11,6 @@ namespace Model;
 class CorporationModel extends BasicModel {
 
     protected $table = 'corporation';
-    protected $ttl = 0;
-    protected $rel_ttl = 0;
 
     protected $fieldConf = array(
         'corporationCharacters' => array(
@@ -37,14 +35,13 @@ class CorporationModel extends BasicModel {
     }
 
     /**
-     * get all  maps for this corporation
+     * get all maps for this corporation
      * @return array|mixed
      */
     public function getMaps(){
         $maps = [];
 
         if($this->mapCorporations){
-
             foreach($this->mapCorporations as $mapCorporation){
                 if($mapCorporation->mapId->isActive()){
                     $maps[] = $mapCorporation->mapId;
@@ -53,5 +50,23 @@ class CorporationModel extends BasicModel {
         }
 
         return $maps;
+    }
+
+    /**
+     * get all characters in this corporation
+     * @return array
+     */
+    public function getCharacters(){
+        $characters = [];
+
+        $this->filter('corporationCharacters', array('active = ?', 1));
+
+        if($this->corporationCharacters){
+            foreach($this->corporationCharacters as $character){
+                $characters[] = $character;
+            }
+        }
+
+        return $characters;
     }
 } 

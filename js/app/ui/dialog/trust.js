@@ -10,6 +10,7 @@ define([
     'bootbox',
     'app/ccp'
 ], function($, Init, Util, Render, bootbox, CCP) {
+
     'use strict';
 
     var config = {
@@ -71,7 +72,7 @@ define([
                         }
                     },
                     trust: {
-                        label: '<i class="fa fa-fw fa-lock"></i> trust',
+                        label: '<i class="fa fa-fw fa-lock"></i> trust set',
                         className: 'btn-primary',
                         callback: function(){
                             var dialog = $(this);
@@ -100,7 +101,6 @@ define([
 
                             // show reload button
                             showPageContent(secondPageElement);
-
 
                             return false;
                         }

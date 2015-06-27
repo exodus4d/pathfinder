@@ -7,6 +7,7 @@ define([
     'app/init',
     'app/util'
 ], function($, Init, Util) {
+
     'use strict';
 
     /**
@@ -16,6 +17,29 @@ define([
     $.fn.initSystemSelect = function(options){
         var selectElement = $(this);
 
+        // format result data
+        function formatResultData (data) {
+
+            if (data.loading){
+                return data.text;
+            }
+
+            // show effect info just for wormholes
+            var hideEffectClass = '';
+            if(data.effect === ''){
+                hideEffectClass = 'hide';
+            }
+
+            var markup = '<div class="clearfix">';
+            markup += '<div class="col-sm-6 pf-select-item-anchor">' + data.text + '</div>';
+            markup += '<div class="col-sm-2 text-right ' + data.effectClass + '">';
+            markup += '<i class="fa fa-fw fa-square ' + hideEffectClass + '"></i>';
+            markup += '</div>';
+            markup += '<div class="col-sm-2 text-right ' + data.secClass + '">' + data.security + '</div>';
+            markup += '<div class="col-sm-2 text-right ' + data.trueSecClass + '">' + data.trueSec + '</div></div>';
+
+            return markup;
+        }
 
         $.when(
             selectElement.select2({
@@ -37,37 +61,59 @@ define([
                         return {
                             results: data.map( function(item){
 
+                                // "systemId" is the system name!
+                                var systemId = item[options.key];
+                                var disabled = false;
+                                var trueSec = parseFloat(item.trueSec);
                                 var secClass = Util.getSecurityClassForSystem(item.security);
+                                var trueSecClass = Util.getTrueSecClassForSystem( trueSec );
+                                var effectClass = Util.getEffectInfoForSystem(item.effect, 'class');
 
-                                var systemSecurity = ' <span style="float: right;" class="' + secClass + '">';
-                                systemSecurity += '(' + item.security + ')</span>';
+                                // check if system is dialed
+                                if(
+                                    options.disabledOptions &&
+                                    options.disabledOptions.indexOf(systemId) !== -1
+                                ){
+                                    disabled = true;
+                                }
 
                                 return {
-                                    id: item[options.key],
-                                    text: item.name + systemSecurity
+                                    id: systemId,
+                                    text: item.name,
+                                    security: item.security,
+                                    secClass: secClass,
+                                    trueSec: trueSec.toFixed(1),
+                                    trueSecClass: trueSecClass,
+                                    effect: item.effect,
+                                    effectClass: effectClass,
+                                    disabled: disabled
                                 };
                             })
                         };
                     },
                     error: function (jqXHR, status, error) {
                         if( !Util.isXHRAborted(jqXHR) ){
-                            // close select
-                            selectElement.select2('destroy');
 
                             var reason = status + ' ' + jqXHR.status + ': ' + error;
-                            $(document).trigger('pf:shutdown', {reason: reason});
+                            Util.showNotify({title: 'System select warning', text: reason + ' deleted', type: 'warning'});
                         }
 
                     }
                 },
                 theme: 'pathfinder',
                 minimumInputLength: 2,
-                placeholder: 'Jita',
+                templateResult: formatResultData,
+                placeholder: 'Systemname',
                 allowClear: true,
                 escapeMarkup: function (markup) {
                     // let our custom formatter work
                     return markup;
                 }
+            }).on('change', function(e){
+                // select changed
+                console.log(e);
+                console.log(selectElement.val())
+
             })
         ).done(function(){
             // open select
@@ -171,13 +217,13 @@ define([
                             if( !Util.isXHRAborted(jqXHR) ){
 
                                 var reason = status + ' ' + jqXHR.status + ': ' + error;
-                                Util.showNotify({title: 'Access select error', text: reason + ' deleted', type: 'warning'});
+                                Util.showNotify({title: 'Access select warning', text: reason + ' deleted', type: 'warning'});
                             }
 
                         }
                     },
                     theme: 'pathfinder',
-                    minimumInputLength: 2,
+                    minimumInputLength: 3,
                     placeholder: '',
                     allowClear: false,
                     maximumSelectionLength: options.maxSelectionLength,

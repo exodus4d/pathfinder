@@ -12,8 +12,6 @@ namespace Model;
 class UserCharacterModel extends BasicModel {
 
     protected $table = 'user_character';
-    protected $ttl = 0;
-    protected $rel_ttl = 0;
 
     private $character = null;
 
@@ -52,13 +50,13 @@ class UserCharacterModel extends BasicModel {
      */
     public function getData($addCharacterLogData = false){
 
-
         // get characterModel
-        $characterModel = $this->characterId;
+        $characterModel = $this->getCharacter();
 
-        $characterData = (object) [];
-        $characterData->characterId = $characterModel->characterId;
-        $characterData->name = $characterModel->name;
+        // get static character data
+        $characterData = $characterModel->getData($addCharacterLogData);
+
+        // add user specific character data
         $characterData->isMain = $this->isMain;
 
         // check for corporation
@@ -69,15 +67,6 @@ class UserCharacterModel extends BasicModel {
         // check for alliance
         if( is_object( $characterModel->allianceId ) ){
             $characterData->alliance = $characterModel->allianceId->getData();
-        }
-
-        // add character Log (current pilot data)
-        if($addCharacterLogData){
-            $characterLog = $this->getLog();
-            if($characterLog){
-                $characterData->log = $characterLog->getData();
-            }
-
         }
 
         return $characterData;
@@ -109,17 +98,6 @@ class UserCharacterModel extends BasicModel {
      */
     public function getCharacter(){
         return $this->characterId;
-    }
-
-    /**
-     * get character log model (if exists)
-     * @return bool|mixed
-     */
-    public function getLog(){
-
-        $characterLog = $this->getCharacter()->getLog();
-
-        return $characterLog;
     }
 
 } 

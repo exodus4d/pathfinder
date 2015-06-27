@@ -6,10 +6,13 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'app/render',
     'app/ccp',
     'app/logging',
-    'dialog/shutdown',
+    'mustache',
+    'text!img/logo.svg!strip',
+    'text!templates/modules/header.html',
+    'text!templates/modules/footer.html',
+    'dialog/notification',
     'dialog/trust',
     'dialog/map_info',
     'dialog/settings',
@@ -20,7 +23,7 @@ define([
     'dialog/credit',
     'slidebars',
     'app/module_map'
-], function($, Init, Util, Render, CCP, Logging) {
+], function($, Init, Util, CCP, Logging, Mustache, TplLogo, TplHead, TplFooter) {
 
     'use strict';
 
@@ -296,71 +299,12 @@ define([
 
         var pageElement = $(this);
 
-        var moduleConfig = {
-            name: 'modules/header',
-            position: pageElement,
-            link: 'prepend',
-            functions: {
-                after: function(){
-
-                    // init slide menus
-                    var slideMenu = new $.slidebars({
-                        scrollLock: false
-                    });
-
-                    // main menus
-                    $('.' + config.headMenuClass).on('click', function() {
-                        slideMenu.slidebars.toggle('left');
-                    });
-
-                    $('.' + config.headMapClass).on('click', function() {
-                        slideMenu.slidebars.toggle('right');
-                    });
-
-                    // settings
-                    $('.' + config.headUserCharacterClass).find('a').on('click', function(){
-                        $(document).triggerMenuEvent('ShowSettingsDialog');
-                    });
-
-                    // active pilots
-                    $('.' + config.headActiveUserClass).find('a').on('click', function(){
-                        $(document).triggerMenuEvent('ShowMapInfo');
-                    });
-
-                    // current location
-                    $('.' + config.headCurrentLocationClass).find('a').on('click', function(){
-                        Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: $(this).data('systemId') });
-                    });
-
-                    // program status
-                    $('.' + config.headProgramStatusClass).on('click', function(){
-                        $(document).triggerMenuEvent('ShowTaskManager');
-                    });
-
-                    $(document).on('pf:closeMenu', function(e){
-                        // close all menus
-                        slideMenu.slidebars.close();
-                    });
-
-                    // init all tooltips
-                    var tooltipElements = $('#' + config.pageHeaderId).find('[title]');
-                    tooltipElements.tooltip({
-                        placement: 'bottom',
-                        delay: {
-                            show: 500,
-                            hide: 0
-                        }
-                    });
-
-                    // trigger load main map module -> header is required for "System" drag&drop position
-                    Util.getMapModule().trigger('pf:initModule');
-
-                }
-            }
-        };
-
         var moduleData = {
             id: config.pageHeaderId,
+            logo: function(){
+                // render svg logo
+                return Mustache.render(TplLogo, {});
+            },
             brandLogo: config.menuHeadMenuLogoClass,
             userCharacterClass: config.headUserCharacterClass,
             userCharacterImageClass: config.userCharacterImageClass,
@@ -368,7 +312,61 @@ define([
             userShipImageClass: config.userShipImageClass
         };
 
-        Render.showModule(moduleConfig, moduleData);
+        var headRendered = Mustache.render(TplHead, moduleData);
+
+        pageElement.prepend(headRendered);
+
+        // init heaser =====================================================================
+
+        // init slide menus
+        var slideMenu = new $.slidebars({
+            scrollLock: false
+        });
+
+        // main menus
+        $('.' + config.headMenuClass).on('click', function() {
+            slideMenu.slidebars.toggle('left');
+        });
+
+        $('.' + config.headMapClass).on('click', function() {
+            slideMenu.slidebars.toggle('right');
+        });
+
+        // settings
+        $('.' + config.headUserCharacterClass).find('a').on('click', function(){
+            $(document).triggerMenuEvent('ShowSettingsDialog');
+        });
+
+        // active pilots
+        $('.' + config.headActiveUserClass).find('a').on('click', function(){
+            $(document).triggerMenuEvent('ShowMapInfo');
+        });
+
+        // current location
+        $('.' + config.headCurrentLocationClass).find('a').on('click', function(){
+            Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: $(this).data('systemId') });
+        });
+
+        // program status
+        $('.' + config.headProgramStatusClass).on('click', function(){
+            $(document).triggerMenuEvent('ShowTaskManager');
+        });
+
+        $(document).on('pf:closeMenu', function(e){
+            // close all menus
+            slideMenu.slidebars.close();
+        });
+
+        // init all tooltips
+        var tooltipElements = $('#' + config.pageHeaderId).find('[title]');
+        tooltipElements.tooltip({
+            placement: 'bottom',
+            delay: {
+                show: 500,
+                hide: 0
+            }
+        });
+
     };
 
     /**
@@ -378,27 +376,21 @@ define([
 
         var pageElement = $(this);
 
-        var moduleConfig = {
-            name: 'modules/footer',
-            position: pageElement,
-            link: 'append',
-            functions: {
-                after: function(){
-                    pageElement.find('.' + config.footerLicenceLinkClass).on('click', function(){
-                        //show credits info dialog
-                        $.fn.showCreditsDialog();
-                    });
-                }
-            }
-        };
-
         var moduleData = {
             id: config.pageFooterId,
             footerLicenceLinkClass: config.footerLicenceLinkClass
         };
 
-        Render.showModule(moduleConfig, moduleData);
+        var headRendered = Mustache.render(TplFooter, moduleData);
 
+        pageElement.prepend(headRendered);
+
+        // init footer ==================================================
+
+        pageElement.find('.' + config.footerLicenceLinkClass).on('click', function(){
+            //show credits info dialog
+            $.fn.showCreditsDialog();
+        });
     };
 
     /**
@@ -475,7 +467,7 @@ define([
             var activeMap = Util.getMapModule().getActiveMap();
 
             if(activeMap){
-                mapData = activeMap.getMapDataFromClient(true);
+                mapData = activeMap.getMapDataFromClient({forceData: true});
             }
 
             $.fn.showDeleteMapDialog(mapData);
@@ -544,15 +536,40 @@ define([
             updateHeaderCurrentLocation(currentLocationData);
         });
 
+        // show the "trust" IGB dialog
         $(document).on('pf:showTrustDialog', function(e){
             // show trust dialog
             $.fn.showTrustDialog();
             return false;
         });
 
+        // shutdown the program -> show dialog
         $(document).on('pf:shutdown', function(e, data){
             // show shutdown dialog
-            $.fn.showShutdownDialog(data);
+            var options = {
+                buttons: {
+                    logout: {
+                        label: '<i class="fa fa-fw fa-refresh"></i> restart',
+                        className: ['btn-primary'].join(' '),
+                        callback: function() {
+
+                            $(document).trigger('pf:menuLogout');
+                        }
+                    }
+                },
+                content: {
+                    icon: 'fa-bolt',
+                    class: 'txt-color-danger',
+                    title: 'Shutdown',
+                    headline: 'Emergency shutdown',
+                    text: [
+                        'Sorry! Under normal circumstances that should not happen',
+                        data.reason
+                    ]
+                }
+            };
+
+            $.fn.showNotificationDialog(options);
 
             $(document).setProgramStatus('offline');
 
@@ -619,12 +636,12 @@ define([
 
         };
 
-        // check for changees
+        // check for changes
         if(
             userData &&
             userData.character
         ){
-            newCharacterId = userData.character.characterId;
+            newCharacterId = userData.character.id;
             newCharacterName = userData.character.name;
 
             if(userData.character.log){
@@ -724,9 +741,7 @@ define([
         var linkElement = currentLocationElement.find('a');
         var textElement = linkElement.find('span');
 
-        if(
-            linkElement.data('systemName') !== locationData.currentSystemName
-        ){
+        if( linkElement.data('systemName') !== locationData.currentSystemName ){
             var tempSystemName = locationData.currentSystemName;
             var tempSystemId = locationData.currentSystemId;
 
@@ -768,6 +783,64 @@ define([
                 stack: 'barBottom'
             }
         );
+    };
+
+    /**
+     *  set event listener if the program tab is active or not
+     *  this is used to lower the update ping cycle to reduce server load
+     */
+    var initTabChangeObserver = function(){
+
+        // increase the timer if a user is inactive
+        var increaseTimer = 10000;
+
+        // timer keys
+        var mapUpdateKey = 'MAP_UPDATE';
+        var mapUserUpdateKey = 'USER_UPDATE'
+
+        // Set the name of the hidden property and the change event for visibility
+        var hidden, visibilityChange;
+        if (typeof document.hidden !== 'undefined') { // Opera 12.10 and Firefox 18 and later support
+            hidden = 'hidden';
+            visibilityChange = 'visibilitychange';
+        } else if (typeof document.mozHidden !== 'undefined') {
+            hidden = 'mozHidden';
+            visibilityChange = 'mozvisibilitychange';
+        } else if (typeof document.msHidden !== 'undefined') {
+            hidden = 'msHidden';
+            visibilityChange = 'msvisibilitychange';
+        } else if (typeof document.webkitHidden !== 'undefined') {
+            hidden = 'webkitHidden';
+            visibilityChange = 'webkitvisibilitychange';
+        }
+
+        // function is called if the tab becomes active/inactive
+        function handleVisibilityChange() {
+            if (document[hidden]) {
+                // tab is invisible
+                Util.getCurrentTriggerDelay( mapUpdateKey, increaseTimer );
+                Util.getCurrentTriggerDelay( mapUserUpdateKey, increaseTimer );
+            } else {
+                // tab is visible
+                Util.getCurrentTriggerDelay( mapUpdateKey, -increaseTimer );
+                Util.getCurrentTriggerDelay( mapUserUpdateKey, -increaseTimer );
+            }
+        }
+
+        if (
+            typeof document.addEventListener === 'undefined' ||
+            typeof document[hidden] === 'undefined'
+        ){
+            // the current browser does not support this feature
+        }else{
+            // Handle page visibility change
+
+            // check once initial -> in case the tab is hidden on page load
+            handleVisibilityChange();
+
+            document.addEventListener(visibilityChange, handleVisibilityChange, false);
+        }
+
     };
 
     /**
@@ -826,7 +899,7 @@ define([
                     var timer = function(){
 
                         // change status on first timer iteration
-                        if(programStatusCounter === Init.timer.programStatusVisible){
+                        if(programStatusCounter === Init.timer['PROGRAM_STATUS_VISIBLE']){
 
                             statusElement.velocity('stop').velocity('fadeOut', {
                                 duration: Init.animationSpeed.headerLink,
@@ -852,12 +925,17 @@ define([
                     };
 
                     if(! programStatusInterval){
-                        programStatusCounter = Init.timer.programStatusVisible;
+                        programStatusCounter = Init.timer['PROGRAM_STATUS_VISIBLE'];
                         programStatusInterval = setInterval(timer, 1000);
                     }
                 }
             }
         }
+    };
+
+
+    return {
+        initTabChangeObserver: initTabChangeObserver
     };
 
 

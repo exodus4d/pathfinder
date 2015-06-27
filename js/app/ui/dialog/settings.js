@@ -189,6 +189,11 @@ define([
                     keyId: '',
                     vCode: ''
                 }];
+            }else if(Init.currentUserData.api === undefined){
+                Init.currentUserData.api = [{
+                    keyId: '',
+                    vCode: ''
+                }];
             }
 
             var data = {
@@ -442,7 +447,7 @@ define([
                                 characters[i].status =statusInfo;
 
                                 if(characters[i].isMain === 1){
-                                    mainCharacter = characters[i].characterId;
+                                    mainCharacter = characters[i].id;
                                 }
                             }
 

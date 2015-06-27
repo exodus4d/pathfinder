@@ -6,13 +6,17 @@ define([
     'jquery',
     'app/init',
     'app/util',
+    'app/render',
+    'app/ccp',
     'blueImpGallery',
-    'blueImpGalleryBootstrap',
+    'bootbox',
     'app/ui/header',
     'app/ui/logo',
     'app/ui/demo_map',
-    'dialog/settings'
-], function($, Init, Util, Gallery) {
+    'dialog/settings',
+    'dialog/notification',
+    'dialog/manual'
+], function($, Init, Util, Render, CCP, Gallery, bootbox) {
 
     'use strict';
 
@@ -25,6 +29,7 @@ define([
 
         // navigation
         navigationElementId: 'pf-navbar',                                       // id for navbar element
+        navigationLinkManualClass: 'pf-navbar-manual',                          // class for the "manual" trigger link
 
         // login form
         loginFormId: 'pf-login-form',                                           // id for login form
@@ -35,6 +40,7 @@ define([
         // gallery
         galleryId: 'pf-gallery',                                                // id for gallery container
         galleryThumbContainerId: 'pf-landing-gallery-thumb-container',          // id for gallery thumb images
+        galleryCarouselId: 'pf-landing-gallery-carousel',                       // id for "carousel" element
 
         // animation
         animateElementClass: 'pf-animate-on-visible'                            // class for elements that will be animated to show
@@ -98,16 +104,18 @@ define([
                         // show Form message
                         loginFormMessageContainer.showMessage({title: 'Login failed', text: ' internal server error', type: 'error'});
                     });
-
-
                 });
-
-
             }
-
         });
 
-        // tooltips --------------------------------------------------
+        // manual -------------------------------------------------------
+        $('.' + config.navigationLinkManualClass).on('click', function(){
+            $.fn.showMapManual();
+        });
+
+
+        // tooltips -----------------------------------------------------
+        /*
         var mapTooltipOptions = {
             toggle: 'tooltip',
             placement: 'top',
@@ -116,20 +124,104 @@ define([
         };
 
         $('[title]').tooltip(mapTooltipOptions);
-
+        */
     };
 
-    // =============================================================================================
+
+    /**
+     * init image carousel
+     */
+    var initCarousel = function(){
+
+        // extent "blueimp" gallery for a textFactory method to show HTML templates
+        Gallery.prototype.textFactory = function (obj, callback) {
+            var newSlideContent = $('<div>')
+                .addClass('text-content');
+
+            var moduleConfig = {
+                name: obj.href, // template name
+                position: newSlideContent,
+                functions: {
+                    after: function(){
+                        // element inserted -> load complete
+                        callback({
+                            type: 'complete',
+                            target: newSlideContent[0]
+                        });
+                    }
+                }
+            };
+
+            // render HTML file (template)
+            var moduleData = {
+                id: config.headHeaderMapId
+            };
+
+            Render.showModule(moduleConfig, moduleData);
+
+            return newSlideContent[0];
+        };
+
+        // initialize carousel ------------------------------------------
+        var carousel = Gallery([
+            {
+                title: 'Map',
+                href: 'ui/map',
+                type: 'text/html'
+            },
+            {
+                href: 'public/img/landing/responsive.jpg',
+                title: 'Image 1',
+                type: 'image/jpg',
+                thumbnail: ''
+            },
+            {
+                href: 'public/img/landing/pathfinder_1.jpg',
+                title: 'Image 1',
+                type: 'image/jpg',
+                thumbnail: ''
+            },
+            {
+                href: 'public/img/landing/pathfinder_2.jpg',
+                title: 'Image 1',
+                type: 'image/jpg',
+                thumbnail: ''
+            }, {
+                href: 'http://img5.fotos-hochladen.net/uploads/s51600x1200a2j7rqp4ig.jpg',
+                title: 'Image 2',
+                type: 'image/jpg',
+                thumbnail: ''
+            }
+        ], {
+            container: '#' + config.galleryCarouselId,
+            carousel: true,
+            startSlideshow: false,
+            titleProperty: 'img-title', // attr renamed to prevent bootstrap tooltips for images
+            transitionSpeed: 400,
+            slideshowInterval: 5000,
+            onopened: function () {
+                // Callback function executed when the Gallery has been initialized
+                // and the initialization transition has been completed.
+                // -> show "demo" map
+
+                $('#' + config.headHeaderMapId).drawDemoMap(function(){
+                    // when map is shown -> start carousel looping
+                    carousel.play();
+                });
+
+            }
+        });
+    };
 
     /**
      * init image gallery
      */
     var initGallery = function(){
 
-        // thumb links
-        var thumbLinks = $('#' + config.galleryThumbContainerId + ' a');
+        requirejs(['blueImpGalleryBootstrap'], function() {
+            // thumb links
+            var thumbLinks = $('#' + config.galleryThumbContainerId + ' a');
 
-      //  requirejs(['blueImpGalleryBootstrap'], function() {
             var borderless = false;
 
             var galleryElement = $('#' + config.galleryId);
@@ -151,33 +243,11 @@ define([
                     titleProperty: 'description'
                 };
 
-
                 Gallery(thumbLinks, options);
             });
-
-
-            // show gallery thumb images
-            showGallery();
-      //  });
-    };
-
-    /**
-     * show gallery thumb images
-     */
-    var showGallery = function(){
-        // thumb links
-        var thumbLinks = $('#' + config.galleryThumbContainerId + ' a');
-/*
-        // show thumbs
-        thumbLinks.velocity('transition.slideRightBigIn', {
-            duration: 1200,
-            stagger: 120,
-            //delay: 2000,
-            visibility: 'visible'
-
         });
-        */
     };
+
 
     /**
      * init scrollspy for navigation bar
@@ -185,8 +255,8 @@ define([
     var initScrollspy = function(){
         // init scrollspy
 
-        $( window ).scroll(function() {
-
+        // show elements that are currently in the viewport
+        var showVisibleElements = function(){
             // find all elements that should be animated
             var visibleElements = $('.' + config.animateElementClass).isInViewport();
 
@@ -201,8 +271,15 @@ define([
                 },
                 visibility: 'visible'
             });
+        };
 
+        $( window ).scroll(function() {
+            // check for new visible elements
+            showVisibleElements();
         });
+
+        // initial check for visible elements
+        showVisibleElements();
 
         // event listener for navigation links
         $('.page-scroll').on('click', function(){
@@ -217,8 +294,34 @@ define([
         });
     };
 
-    // document ready
+    /**
+     * main init landing page
+     */
     $(function(){
+
+        // show log off message
+        var isLogOut = location.search.split('logout')[1];
+
+        if(isLogOut !== undefined){
+            // show logout dialog
+            var options = {
+                buttons: {
+                    close: {
+                        label: 'close',
+                        className: ['btn-default'].join(' ')
+                    }
+                },
+                content: {
+                    icon: 'fa-sign-out',
+                    class: 'txt-color-warning',
+                    title: 'Log off',
+                    headline: 'Logged off',
+                    text: ['You are automatically logged off']
+                }
+            };
+
+            $.fn.showNotificationDialog(options);
+        }
 
         // init scrollspy
         initScrollspy();
@@ -226,20 +329,21 @@ define([
         // hide splash loading animation
         $('.' + config.splashOverlayClass).hideSplashOverlay();
 
+        // init carousel
+        initCarousel();
+
         // init gallery
         initGallery();
 
-        // show logo
-        $('#' + config.logoContainerId).drawLogo(function(){
+        // show logo -> hide animation in IGB
+        if( !CCP.isInGameBrowser() ){
+            $('#' + config.logoContainerId).drawLogo(function(){
 
-            // init header animation
-            $('#' + config.headerContainerId).initHeader(function(){
-                // draw demo map
-                $('#' + config.headHeaderMapId).drawDemoMap();
+                // init header animation
+                $('#' + config.headerContainerId).initHeader();
+            }, false);
+        }
 
-
-            });
-        }, false);
 
         setPageObserver();
 

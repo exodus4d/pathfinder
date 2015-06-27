@@ -60,6 +60,17 @@ define([
 
         content.append(rowElementGraphs);
 
+
+
+        var tableHeadline = $('<h4>', {
+            text: ' Processes'
+        }).prepend( $('<i>', {
+            class: ['fa', 'fa-fw', 'fa-lg', 'fa-list-alt'].join(' ')
+        }));
+
+        // add content Structure to dome before table initialization
+        content.append(tableHeadline);
+
         // log table area --------------------------------------------------
         var logTableArea = $('<div>', {
             class: config.dialogDynamicAreaClass
@@ -68,13 +79,6 @@ define([
         var logTable = $('<table>', {
             class: ['compact', 'stripe', 'order-column', 'row-border'].join(' ')
         });
-
-        var tableHeadline = $('<h4>', {
-            text: 'Log table'
-        });
-
-        // add content Structure to dome before table initialization
-        content.append(tableHeadline);
 
         logTableArea.append(logTable);
         content.append(logTableArea);
@@ -148,7 +152,7 @@ define([
             buttons: {
                 close: {
                     label: 'close',
-                    className: 'btn-primary'
+                    className: 'btn-default'
                 }
             }
         });
@@ -186,11 +190,11 @@ define([
                     var headline = $('<h4>', {
                         text: key
                     }).prepend(
-                            $('<span>', {
-                                class: ['txt-color', 'txt-color-grayLight'].join(' '),
-                                text: 'Prozess-ID: '
-                            })
-                        );
+                        $('<span>', {
+                            class: ['txt-color', 'txt-color-grayLight'].join(' '),
+                            text: 'Prozess-ID: '
+                        })
+                    );
 
                     // show update ping between function calls
                     var updateElement = $('<small>', {
@@ -351,7 +355,7 @@ define([
             var avgElement = chartData[key].averageElement;
             var updateElement = chartData[key].updateElement;
 
-            var delay = Init.timer[key].delay;
+            var delay = Util.getCurrentTriggerDelay( key, 0 );
 
             if(delay){
                 updateElement[0].textContent = ' delay: ' + delay + 'ms ';
@@ -399,7 +403,7 @@ define([
     var getLogTypeByDuration = function(logKey, logDuration){
 
         var logType = 'info';
-        if( logDuration > Init.timer[logKey].executionLimit ){
+        if( logDuration > Init.timer[logKey].EXECUTION_LIMIT ){
             logType = 'warning';
         }
         return logType;

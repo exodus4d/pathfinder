@@ -339,7 +339,7 @@ define([
     $.fn.showMapInfoDialog = function(){
 
         var activeMap = Util.getMapModule().getActiveMap();
-        var mapData = activeMap.getMapDataFromClient(true);
+        var mapData = activeMap.getMapDataFromClient({forceData: true});
 
         if(mapData !== false){
             requirejs(['text!templates/dialog/map_info.html', 'mustache'], function(template, Mustache) {
@@ -353,8 +353,6 @@ define([
                 };
 
                 var content = Mustache.render(template, data);
-
-
 
                 var mapInfoDialog = bootbox.dialog({
                     title: 'Map information',
@@ -384,7 +382,7 @@ define([
 
                         if(menuAction === 'refresh'){
                             // get new map data
-                            var mapData = activeMap.getMapDataFromClient(true);
+                            var mapData = activeMap.getMapDataFromClient({forceData: true});
 
                             mapElement.loadMapInfoData(mapData);
                             systemsElement.loadSystemInfoTable(mapData);

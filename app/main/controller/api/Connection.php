@@ -27,22 +27,54 @@ class Connection extends \Controller\AccessController{
      * @param $f3
      */
     public function save($f3){
-
-        $connectionData = (array)$f3->get('POST.connectionData');
-
-        $user = $this->_getUser();
-
-        $connection = Model\BasicModel::getNew('ConnectionModel');
-        $connection->getById($connectionData['id']);
-        $connection->setData($connectionData);
-
+        $postData = (array)$f3->get('POST');
         $newConnectionData = [];
+
         if(
-            $connection->isValid() &&
-            $connection->hasAccess($user)
+            isset($postData['connectionData']) &&
+            isset($postData['mapData'])
         ){
-            $connection->save();
-            $newConnectionData = $connection->getData();
+            $mapData = (array)$postData['mapData'];
+            $connectionData = (array)$postData['connectionData'];
+
+            $user = $this->_getUser();
+
+            if($user){
+                // get map model
+                $map = Model\BasicModel::getNew('MapModel');
+                $map->getById( (int)$mapData['id'] );
+
+                // get source model (system)
+                $source = Model\BasicModel::getNew('SystemModel');
+                $source->getById( (int)$connectionData['source'] );
+
+                // get target model (system)
+                $target = Model\BasicModel::getNew('SystemModel');
+                $target->getById( (int)$connectionData['target'] );
+
+                // map model and systeme are required for a new connection!
+                if(
+                    !$map->dry() &&
+                    !$source->dry() &&
+                    !$target->dry()
+                ){
+                    $connection = Model\BasicModel::getNew('ConnectionModel');
+                    $connection->getById( (int)$connectionData['id'] );
+                    $connection->mapId = $map;
+                    $connection->source = $source;
+                    $connection->target = $target;
+
+                    if(
+                        $connection->isValid() &&
+                        $connection->hasAccess($user)
+                    ){
+                        $connection->save();
+                        $newConnectionData = $connection->getData();
+                    }
+                }
+
+
+            }
         }
 
         echo json_encode($newConnectionData);

@@ -9,7 +9,11 @@
                         <div class="col-sm-10">
                             <div class="input-group">
                                 <label for="form_system"></label>
-                                <select id="form_system" name="systemId" class="{{selectClass}}" data-error="Choose a valid system" required/>
+                                <select id="form_system" name="systemId" class="{{selectClass}}" data-error="Choose a valid system" required>
+                                    {{#currentSystem}}
+                                    <option value="{{id}}">{{name}}</option>
+                                    {{/currentSystem}}
+                                </select>
                                 <span class="help-block with-errors">Search system name</span>
                             </div>
                         </div>

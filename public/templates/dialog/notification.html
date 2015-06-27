@@ -1,0 +1,14 @@
+<div id="{{id}}" class="txt-center">
+    {{#content}}
+        <h1 style="opacity: 0;" class="text-center txt-color {{class}}">
+            <strong>
+                <i class="fa {{icon}} fa-fw"></i>{{headline}}
+            </strong>
+        </h1>
+        {{#text}}
+            {{#.}}
+                <h5 class="text-center">{{.}}</h5>
+            {{/.}}
+        {{/text}}
+    {{/content}}
+</div>

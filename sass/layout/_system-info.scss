@@ -1,28 +1,7 @@
-.pf-system-info-module{
 
-  // breadcrumb ============================================================
-  .breadcrumb{
 
-    font-family: $font-family-bold;
 
-    li{
-      text-transform: capitalize;
-    }
-  }
-
-  // dynamic area specific for the description field
-  .pf-system-info-description-area{
-    min-height: 123px;
-
-    // textarea system description
-    .pf-system-info-description{
-      width: 330px;
-    }
-  }
-
-}
-
-// popover
+// popover =================================================================
 .pf-system-info-popover{
   display: initial;
 
@@ -42,7 +21,39 @@
   }
 }
 
-// signature table module ===================================================
+// system info module ======================================================
+.pf-system-info-module{
+
+  // breadcrumb
+  .breadcrumb{
+
+    font-family: $font-family-bold;
+
+    li{
+      text-transform: capitalize;
+    }
+  }
+
+  // dynamic area specific for the description field
+  .pf-system-info-description-area{
+    min-height: 123px;
+
+    // textarea system description
+    .pf-system-info-description{
+      width: 330px;
+    }
+  }
+
+  // system info table
+  .pf-system-info-table{
+    font-size: 11px;
+    white-space: nowrap
+  }
+
+}
+
+
+// signature table module ==================================================
 .pf-sig-table-module{
 
   // delete signature button
@@ -61,6 +72,10 @@
         border-bottom: none;
         @extend .pf-dialog-icon-button;
       }
+    }
+
+    .fa-plus{
+       @extend .pf-dialog-icon-button;
     }
 
     // textarea field
@@ -130,7 +145,7 @@
   }
 }
 
-// system graph module ===================================================
+// system graph module =====================================================
 .pf-system-graph-module{
 
   .pf-system-graph{
@@ -139,16 +154,20 @@
   }
 }
 
-// route module ==========================================================
+// route module ============================================================
 .pf-system-route-module{
 
   .pf-system-route-table{
     width: 100%;
     font-size: 10px;
+
+    td{
+      text-transform: capitalize;
+    }
   }
 }
 
-// killboard module ======================================================
+// killboard module ========================================================
 .pf-system-killboard-module{
 
   .pf-system-killboard-graph-kills{

@@ -12,8 +12,6 @@ namespace Model;
 class CharacterModel extends BasicModel {
 
     protected $table = 'character';
-    protected $ttl = 0;
-    protected $rel_ttl = 0;
 
     protected $fieldConf = array(
         'corporationId' => array(
@@ -21,6 +19,9 @@ class CharacterModel extends BasicModel {
         ),
         'allianceId' => array(
             'belongs-to-one' => 'Model\AllianceModel'
+        ),
+        'characterLog' => array(
+            'has-one' => array('Model\CharacterLogModel', 'characterId')
         )
     );
 
@@ -28,11 +29,18 @@ class CharacterModel extends BasicModel {
      * get character data
      * @return object
      */
-    public function getData(){
+    public function getData($addCharacterLogData = false){
         $characterData = (object) [];
 
-        $characterData->characterId = $this->characterId;
+        $characterData->id = $this->id;
         $characterData->name = $this->name;
+
+        if($addCharacterLogData){
+            $logModel = $this->getLog();
+            if($logModel){
+                $characterData->log = $logModel->getData();
+            }
+        }
 
         // check for corporation
         if($this->hasCorporation()){
@@ -108,15 +116,16 @@ class CharacterModel extends BasicModel {
      * @return bool|null
      */
     public function getLog(){
-        $characterLog = self::getNew('CharacterLogModel');
-        $characterLog->getByForeignKey('characterId', $this->characterId);
 
-        $characterLogReturn = false;
-        if(! $characterLog->dry() ){
-            $characterLogReturn = $characterLog;
+        $characterLog = false;
+        if(
+            is_object($this->characterLog) &&
+            !$this->characterLog->dry()
+        ){
+            $characterLog = $this->characterLog;
         }
 
-        return $characterLogReturn;
+        return $characterLog;
     }
 
 } 

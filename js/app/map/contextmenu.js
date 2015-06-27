@@ -2,16 +2,16 @@
  * context menu
  */
 
-define(["jquery"], function($) {
+define(['jquery'], function($) {
 
-    "use strict";
+    'use strict';
 
     $.fn.contextMenu = function (settings) {
 
         return this.each(function () {
 
             // Open context menu
-            $(this).on("pf:openContextMenu", function (e, originalEvent, component, hiddenOptions, activeOptions) {
+            $(this).on('pf:openContextMenu', function (e, originalEvent, component, hiddenOptions, activeOptions) {
 
                 // hide all other open context menus
                $('#pf-dialog-wrapper > .dropdown-menu').hide();

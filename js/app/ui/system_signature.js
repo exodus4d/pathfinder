@@ -82,7 +82,7 @@ define([
     // empty signatureData row Options
     var emptySignatureOptions = {
         action: 'add',
-        actionClass: ['fa-plus', 'txt-color', 'txt-color-grayLighter'].join(' ')
+        actionClass: ['fa-plus'].join(' ')
     };
 
     var sigTypeCache = {};                                                      // cache signature groups
@@ -330,8 +330,8 @@ define([
                         }
                     },
                     success: {
-                        label: 'update signatures',
-                        className: 'btn-primary',
+                        label: '<i class="fa fa-clipboard fa-fw"></i>&nbsp;update signatures',
+                        className: 'btn-success',
                         callback: function () {
                             // get form Values
                             var form = $('#' + config.signatureReaderDialogId).find('form');
@@ -522,7 +522,7 @@ define([
             getLabledButton({
                 type: 'default',
                 label: 'select all',
-                icon: 'fa-check-square-o',
+                icon: 'fa-check-square',
                 onClick: function(){
                     var allRows = getRows(signatureTable);
                     var selectedRows = getSelectedRows(signatureTable);
@@ -823,6 +823,18 @@ define([
             showbuttons: false,
             inputclass: config.editableDiscriptionInputClass,
             params: modifyFieldParamsOnSend
+        });
+
+        // open even
+        sigDescriptionFields.on('shown', function(e, editable) {
+            // enlarge the tools-action container because the tables gets bigger
+            tableElement.parents('.' + config.tableToolsActionClass).css( 'height', '+=35px' );
+        });
+
+        // close event
+        sigDescriptionFields.on('hidden', function(e, editable) {
+            // enlarge the tools-action container because the tables gets bigger
+            tableElement.parents('.' + config.tableToolsActionClass).css( 'height', '-=35px' );
         });
 
         // open next field dialog ---------------------------------------------------------------

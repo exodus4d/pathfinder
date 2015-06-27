@@ -45,6 +45,18 @@
 
     &[aria-disabled=true] {
       color: $results-choice-fg-unselectable-color;
+      background-color:  $results-choice-bg-unselectable-color;
+
+      // add a icon to all "disabled" options
+      .pf-select-item-anchor:before{
+        content: "\f023";
+        font-family: FontAwesome;
+        font-size: 9px;
+        position: absolute;
+        left: 0;
+        top: 0;
+        color: $gray-light;
+      }
     }
   }
 

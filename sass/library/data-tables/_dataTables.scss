@@ -102,8 +102,8 @@ table.dataTable.display tbody tr.even:hover {
     //border-bottom: dashed 1px $gray-darker !important;
   }
 
-  td > .btn{
-    color: $gray-lightest !important;
+  td > .fa-plus{
+    color: $gray-darker !important;
   }
 }
 table.dataTable.hover tbody tr:hover.selected,

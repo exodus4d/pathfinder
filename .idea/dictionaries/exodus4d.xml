@@ -3,11 +3,13 @@
     <words>
       <w>addclass</w>
       <w>bootbox</w>
+      <w>cacheable</w>
       <w>contextmenu</w>
       <w>cronjob</w>
       <w>crosshairs</w>
       <w>cytaclysmic</w>
       <w>dashstyle</w>
+      <w>datacache</w>
       <w>datatables</w>
       <w>deps</w>
       <w>fontawesome</w>
@@ -35,6 +37,7 @@
       <w>scrollspy</w>
       <w>slidebar</w>
       <w>slidebars</w>
+      <w>smartphone</w>
       <w>stargate</w>
       <w>tbody</w>
       <w>textarea</w>

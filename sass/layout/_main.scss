@@ -301,7 +301,7 @@ em{
 
 // Tab Content Body Grid ========================================
 .pf-map-content-row{
-  margin: 10px 0 0 0;
+  margin-top: 10px;
   padding-bottom: 40px; // space for footer
 
   // all modules within a row
@@ -378,8 +378,8 @@ em{
   display: inline-block;
 }
 
-.pf-system-effect-wolfryet{
-  color: $wh-color-wolfryet;
+.pf-system-effect-wolfrayet{
+  color: $wh-color-wolfrayet;
   display: inline-block;
 }
 
@@ -646,15 +646,21 @@ em{
   @include box-shadow(0 6px 12px rgba(0,0,0,.4));
 }
 
-// tooltips within modals
-.modal .tooltip{
-  // higher z-index
-  z-index: $zindex-modal + 10;
 
-  .tooltip-inner{
-    color: $gray-dark;
-    background-color: $gray-lighter;
+.modal{
+
+  // tooltips within modals
+  .tooltip{
+    // higher z-index
+    z-index: $zindex-modal + 10;
+
+    .tooltip-inner{
+      color: $gray-dark;
+      background-color: $gray-lighter;
+    }
   }
+
+
 }
 
 .tooltip.top .tooltip-arrow,{
@@ -716,9 +722,13 @@ em{
   }
 }
 
+// svg logo =====================================================
+#pf-logo-wrapper{
+  display: block; // remove default height
+}
+
 // header =======================================================
 #pf-head{
-
   margin-bottom: 0px;
 
   a{
@@ -757,20 +767,16 @@ em{
   }
 
   .pf-head-menu{
+
+    //overwrite some default styles
+    padding: 3px 10px;
+    line-height: 24px;
+
     .pf-head-menu-logo{
-      width: 18px;
-      height: 18px;
+      width: 24px;
+      height: 24px;
       display: inline-block;
       float: left;
-      background: inline-image("#{$base-url}/icons/logo-18x18-gray.png");
-    }
-
-    &:hover .pf-head-menu-logo{
-      background: inline-image("#{$base-url}/icons/logo-18x18-teal.png");
-    }
-
-    &:focus .pf-head-menu-logo{
-      background: inline-image("#{$base-url}/icons/logo-18x18-teal.png");
     }
 
   }
@@ -783,7 +789,7 @@ em{
 
   .pf-head-user-character, .pf-head-user-ship{
     opacity: 0; // triggered by js
-    visibility: 'hidden';
+    visibility: hidden;
   }
 
   .pf-head-active-user, .pf-head-current-location{
@@ -816,6 +822,10 @@ em{
     }
   }
 
+}
+
+.pf-head{
+  @include box-shadow(0 6px 12px rgba(0,0,0,.4));
 }
 
 // footer =======================================================

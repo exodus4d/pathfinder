@@ -11,8 +11,6 @@ namespace Model;
 class AllianceModel extends BasicModel {
 
     protected $table = 'alliance';
-    protected $ttl = 0;
-    protected $rel_ttl = 0;
 
     protected $fieldConf = array(
         'allianceCharacters' => array(
@@ -54,4 +52,21 @@ class AllianceModel extends BasicModel {
         return $maps;
     }
 
+    /**
+     * get all characters in this alliance
+     * @return array
+     */
+    public function getCharacters(){
+        $characters = [];
+
+        $this->filter('allianceCharacters', array('active = ?', 1));
+
+        if($this->allianceCharacters){
+            foreach($this->allianceCharacters as $character){
+                $characters[] = $character;
+            }
+        }
+
+        return $characters;
+    }
 }

@@ -1,5 +1,5 @@
 {{#system.alias}}
-    <h5 class="pull-right" data-toggle="tooltip" data-placement="top" data-container="body" title="system alias">
+    <h5 class="pull-right" data-toggle="tooltip" data-placement="top" data-container="body" title="alias">
         {{system.alias}}
     </h5>
 {{/system.alias}}
@@ -33,7 +33,6 @@
             <div id="{{moduleToolbarActionId}}" class="pf-table-tools-action">
                 <span class="{{descriptionTooltipClass}}" data-toggle="tooltip" data-placement="bottom" data-container="body" title="System description">
                     <a style="width: 200px" href="#" class="{{descriptionTextareaClass}}" data-title="Enter username"></a>
-
                 </span>
             </div>
         </div>
@@ -42,7 +41,7 @@
     {{! info table ================================================================================================ }}
     <div class="col-xs-12 col-sm-5">
 
-        <span data-toggle="tooltip" data-placement="top" data-container="body" title="system status" data-status="{{systemStatusId}}" class="label center-block {{statusInfoClass}} {{systemStatusClass}}">
+        <span data-toggle="tooltip" data-placement="top" data-container="body" title="status" data-status="{{systemStatusId}}" class="label center-block {{statusInfoClass}} {{systemStatusClass}}">
             {{systemStatusLabel}}
         </span>
 
@@ -52,7 +51,8 @@
                 <colgroup>
                     <col class="col-sm-1">
                     <col class="col-sm-4">
-                    <col class="col-sm-7">
+                    <col class="col-sm-6">
+                    <col class="col-sm-1">
                 </colgroup>
                 <thead>
                 <tr>
@@ -62,40 +62,40 @@
                     <th>Name</th>
                     <th class="text-right">
                         {{#system.alias}}
-                        {{system.alias}}
+                            {{system.alias}}
                         {{/system.alias}}
                         {{^system.alias}}
-                        {{system.name}}
+                            {{system.name}}
                         {{/system.alias}}
-                        [ <span class="{{securityClass}}">{{system.security}}</span> ]
                     </th>
+                    <th class="text-right {{securityClass}}">{{system.security}}</th>
                 </tr>
                 </thead>
                 <tbody>
+                <tr>
+                    <td></td>
+                    <td>Security</td>
+                    <td></td>
+                    <td class="text-right {{trueSecClass}}">{{trueSec}}</td>
+                </tr>
                 {{#effectName}}
                 <tr>
                     <td class="text-right pf-help {{effectInfoClass}}">
                         <i class="fa fa-fw fa-question-circle"></i>
                     </td>
                     <td>Effect</td>
-                    <td class="text-right pf-font-capitalize">{{effectName}} <i class="fa fa-fw fa-square pf-system-effect {{effectClass}}"></i></td>
+                    <td class="text-right pf-font-capitalize">{{effectName}}</td>
+                    <td class="text-right"><i class="fa fa-fw fa-square pf-system-effect {{effectClass}}"></i></td>
                 </tr>
                 {{/effectName}}
-                {{#system.static}}
+                {{#system.statics}}
                 <tr>
-                    <td class="text-right pf-help">
-                        <i class="fa fa-fw fa-question-circle"></i>
-                    </td>
+                    <td></td>
                     <td>Static</td>
-                    <td class="text-right">{{name}} [ <span class="{{class}}">{{security}}</span> ]</td>
+                    <td class="text-right">{{name}}</td>
+                    <td class="text-right {{class}}">{{security}}</td>
                 </tr>
-                {{/system.static}}
-                <tr>
-                    <td class="text-right">
-                    </td>
-                    <td>Security</td>
-                    <td class="text-right {{trueSecClass}}">{{trueSec}}</td>
-                </tr>
+                {{/system.statics}}
                 </tbody>
             </table>
         </div>

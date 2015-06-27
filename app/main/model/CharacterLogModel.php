@@ -12,15 +12,10 @@ namespace Model;
 class CharacterLogModel extends BasicModel {
 
     protected $table = 'character_log';
-    protected $ttl = 0;
-    protected $rel_ttl = 0;
 
     protected $fieldConf = array(
-        'userId' => array(
-            'belongs-to-one' => 'Model\UserModel'
-        ),
-        'userCharacterId' => array(
-            'belongs-to-one' =>'Model\UserCharacterModel'
+        'characterId' => array(
+            'belongs-to-one' => 'Model\CharacterModel'
         )
     );
 
@@ -32,7 +27,7 @@ class CharacterLogModel extends BasicModel {
 
         $logData = (object) [];
         $logData->system = (object) [];
-        $logData->system->Id = $this->systemId;
+        $logData->system->id = $this->systemId;
         $logData->system->name = $this->systemName;
 
         $logData->ship = (object) [];

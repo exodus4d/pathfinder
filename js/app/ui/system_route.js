@@ -38,20 +38,40 @@ define([
     /**
      * callback function, adds new row to a dataTable with jump information for a route
      * @param context
-     * @param routeData
+     * @param routesData
      */
-    var callbackAddRouteRow = function(context, routeData){
-        // format routeData
-        var rowData = formatRouteData(context, routeData);
+    var callbackAddRouteRow = function(context, routesData){
 
-        cache.systemRoutes[context.cacheKey] = rowData;
+        for(var i = 0; i < routesData.length; i++){
+            var routeData = routesData[i];
+
+            // format routeData
+            var rowData = formatRouteData(routeData);
+
+            if(rowData){
+                var cacheKey = routeData.route[0].system + '_' + routeData.route[ routeData.route.length - 1 ].system;
+
+                // update route cache
+                cache.systemRoutes[cacheKey] = rowData;
+
+                addRow(context.dataTable, rowData);
+            }
+        }
+    };
+
+    /**
+     * add a new dataTable row to the jump table
+     * @param dataTable
+     * @param rowData
+     */
+    var addRow = function(dataTable, rowData){
+        var rowClass = config.systemInfoRoutesTableRowPrefix + dataTable.rows().data().length;
 
         // add new row
-        context.dataTable.row.add( cache.systemRoutes[context.cacheKey] ).draw().nodes().to$().addClass( context.rowClass );
+        var rowElement = dataTable.row.add( rowData ).draw().nodes().to$();
+        rowElement.addClass( rowClass );
 
-        // init tooltips for each jump system
-        var tooltipElements = context.moduleElement.find('.' + context.rowClass + ' [data-toggle="tooltip"]');
-        $(tooltipElements).tooltip();
+        rowElement.find('i').tooltip();
     };
 
 
@@ -107,22 +127,18 @@ define([
                                 return false;
                             }
 
-                            // get route Data
-                            var requestData = {
+
+                            var requestRouteData = [{
                                 systemFrom: dialogData.systemFrom,
                                 systemTo: routeDialogData.systemTo
-                            };
+                            }];
 
-                            // data passed into callback
+
                             var contextData = {
-                                moduleElement: dialogData.moduleElement,
-                                systemTo: routeDialogData.systemTo,
-                                dataTable: dialogData.dataTable,
-                                rowClass: config.systemInfoRoutesTableRowPrefix + dialogData.dataTable.rows().data().length,
-                                cacheKey: dialogData.systemFrom + '_' + routeDialogData.systemTo
+                                dataTable: dialogData.dataTable
                             };
 
-                           getRouteData(requestData, contextData, callbackAddRouteRow);
+                            getRouteData(requestRouteData, contextData, callbackAddRouteRow);
                         }
                     }
                 }
@@ -136,75 +152,83 @@ define([
 
                 // init system select live  search
                 var selectElement = modalContent.find('.' + config.systemDialogSelectClass);
+
                 selectElement.initSystemSelect({key: 'name'});
             });
-
-
         });
-
     };
 
     /**
      * requests route data from eveCentral API and execute callback
-     * @param systemFrom
-     * @param systemTo
+     * @param requestRouteData
+     * @param contextData
      * @param callback
      */
-    var getRouteData = function(requestData, contextData, callback){
+    var getRouteData = function(requestRouteData, contextData, callback){
 
-        // get route from API
-        var baseUrl = Init.url.eveCentral + 'route/from/';
-
-        var url = baseUrl + requestData.systemFrom + '/to/' + requestData.systemTo;
+        var requestData = {routeData: requestRouteData};
 
         $.ajax({
-            url: url,
+            url: Init.path.searchRoute,
+            type: 'POST',
             dataType: 'json',
+            data: requestData,
             context: contextData
-        }).done(function(routeData){
+        }).done(function(routesData){
             // execute callback
-            callback(this, routeData);
+            callback(this, routesData.routesData);
         });
 
     };
 
     /**
      * format route data from API request into dataTable row format
-     * @param context
      * @param routeData
      * @returns {*[]}
      */
-    var formatRouteData = function(context, routeData){
+    var formatRouteData = function(routeData){
 
-        // add row Data
-        var rowData = [context.systemTo, routeData.length];
+        var rowData = false;
+        if(routeData.routePossible === true){
+            // route data available
 
-        var jumpData = [];
-        // loop all systems on a rout
-        $.each(routeData, function(j, systemData){
+            // add route Data
+            rowData = [routeData.route[ routeData.route.length - 1 ].system.toLowerCase(), routeData.routeJumps];
 
-            var systemSecClass = config.systemSecurityClassPrefix;
-            var systemSec = systemData.to.security.toFixed(1).toString();
-            var tempSystemSec = systemSec;
+            var jumpData = [];
 
-            if(tempSystemSec < 0){
-                tempSystemSec = '0-0';
+            // loop all systems on this route
+            for(var i = 0; i < routeData.route.length; i++){
+                var routeNodeData = routeData.route[i];
+
+                var systemSec = Number(routeNodeData.security).toFixed(1).toString();
+                var tempSystemSec = systemSec;
+
+                if(tempSystemSec <= 0){
+                    tempSystemSec = '0-0';
+                }
+
+                var systemSecClass = config.systemSecurityClassPrefix + tempSystemSec.replace('.', '-');
+
+                var system = '<i class="fa fa-square ' + systemSecClass + '" ';
+                system += 'data-toggle="tooltip" data-placement="bottom" data-container="body" ';
+                system += 'title="' + routeNodeData.system + ' [' + systemSec + '] "></i>';
+                jumpData.push( system );
+
             }
 
-            systemSecClass += tempSystemSec.replace('.', '-');
-            var system = '<i class="fa fa-square ' + systemSecClass + '" ';
-            system += 'data-toggle="tooltip" data-placement="bottom" data-container="body" ';
-            system += 'title="' + systemData.to.name + ' [' + systemSec + '] ' + systemData.to.region.name  + '"></i>';
-            jumpData.push( system );
+            rowData.push( jumpData.join(' ') );
+        }
 
-        });
-
-
-        rowData.push( jumpData.join(' ') );
 
         return rowData;
     };
 
+    /**
+     * get the route finder moduleElement
+     * @param systemData
+     * @returns {*}
+     */
     var getModule = function(systemData){
 
         var moduleElement = null;
@@ -225,21 +249,10 @@ define([
                     $('<i>', {
                         class: ['fa', 'fa-fw', 'fa-search', config.systemModuleHeadlineIcon].join(' '),
                         title: 'find route'
-                    }).on('click', function(e){
-                        // show "find route" dialog
-
-                        var dialogData = {
-                            moduleElement: moduleElement,
-                            systemFrom: systemFrom,
-                            dataTable: routesTable
-                        };
-
-                        showFindRouteDialog(dialogData);
                     }).attr('data-toggle', 'tooltip')
                 );
 
             moduleElement.append(headlineToolbar);
-
 
             // headline
             var headline = $('<h5>', {
@@ -254,10 +267,6 @@ define([
             tooltipElements.tooltip({
                 container: 'body'
             });
-
-
-            var systemFrom = systemData.name;
-            var systemsTo = ['Jita', 'Amarr', 'Rens', 'Dodixie'];
 
             // crate new route table
             var table = $('<table>', {
@@ -274,8 +283,10 @@ define([
                 info: false,
                 searching: false,
                 hover: false,
-
                 autoWidth: false,
+                language: {
+                    emptyTable:  'No routes added'
+                },
                 columnDefs: [
                     {
                         targets: 0,
@@ -296,53 +307,65 @@ define([
                 data: [] // will be added dynamic
             });
 
-
-            // fill routesTable with data -------------------------------------------
-            for(var i = 0; i < systemsTo.length; i++){
-
-                var systemTo = systemsTo[i];
-
-                if(systemFrom !== systemTo){
-
-                    var cacheKey = systemFrom + '_' + systemTo;
-
-                    // row class
-                    var rowClass = config.systemInfoRoutesTableRowPrefix + i;
-
-                    if(cache.systemRoutes.hasOwnProperty(cacheKey)){
-                        // add new row from cache
-                        routesTable.row.add( cache.systemRoutes[cacheKey] ).draw().nodes().to$().addClass( rowClass );
-
-                        // init tooltips for each jump system
-                        var tooltipElements = moduleElement.find('.' + rowClass + ' [data-toggle="tooltip"]');
-                        $(tooltipElements).tooltip();
-                    }else{
-                        // get route Data
-                        var requestData = {
-                            systemFrom: systemFrom,
-                            systemTo: systemTo
-                        };
-
-                        // data passed into callback
-                        var contextData = {
-                            moduleElement: moduleElement,
-                            rowClass: rowClass,
-                            systemTo: systemTo,
-                            dataTable: routesTable,
-                            cacheKey: cacheKey
-                        };
-
-                        getRouteData(requestData, contextData, callbackAddRouteRow);
-
-                    }
-
-                }
-            }
-
         }
 
         return moduleElement;
     };
+
+    var initModule = function(moduleElement, systemData){
+
+        var systemFrom = systemData.name;
+        var systemsTo = ['Jita', 'Amarr', 'Rens', 'Dodixie'];
+
+        var routesTableElement =  moduleElement.find('.' + config.systemInfoRoutesTableClass);
+
+        var routesTable = routesTableElement.DataTable();
+
+        // init system search dialog -------------------------------------------------------------------------------
+
+        moduleElement.find('.' + config.systemModuleHeadlineIcon).on('click', function(e){
+            // show "find route" dialog
+
+            var dialogData = {
+                moduleElement: moduleElement,
+                systemFrom: systemFrom,
+                dataTable: routesTable
+            };
+
+            showFindRouteDialog(dialogData);
+        })
+
+        // fill routesTable with data ------------------------------------------------------------------------------
+        var requestRouteData = [];
+
+        for(var i = 0; i < systemsTo.length; i++){
+            var systemTo = systemsTo[i];
+
+            if(systemFrom !== systemTo){
+                var cacheKey = systemFrom.toUpperCase() + '_' + systemTo.toUpperCase();
+
+                if(cache.systemRoutes.hasOwnProperty(cacheKey)){
+                    addRow(routesTable, cache.systemRoutes[cacheKey]);
+                }else{
+                    // get route data
+
+                    requestRouteData.push({
+                        systemFrom: systemFrom,
+                        systemTo: systemTo
+                    });
+                }
+            }
+        }
+
+        // check if routes data is not cached and is requested
+        if(requestRouteData.length > 0){
+            var contextData = {
+                dataTable: routesTable
+            };
+            getRouteData(requestRouteData, contextData, callbackAddRouteRow);
+        }
+    };
+
 
     /**
      * updates an dom element with the system route module
@@ -357,9 +380,13 @@ define([
             if(moduleElement){
                 moduleElement.css({ opacity: 0 });
                 parentElement.append(moduleElement);
+
                 moduleElement.velocity('transition.slideDownIn', {
                     duration: Init.animationSpeed.mapModule,
-                    delay: Init.animationSpeed.mapModule
+                    delay: Init.animationSpeed.mapModule,
+                    complete: function(){
+                        initModule(moduleElement, systemData);
+                    }
                 });
             }
         };

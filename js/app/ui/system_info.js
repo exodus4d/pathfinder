@@ -36,7 +36,6 @@ define([
     var disableModuleUpdate = true;
 
     // animation speed values
-    var animationSpeedToolbar = 150;
     var animationSpeedToolbarAction = 200;
 
     /**
@@ -333,10 +332,10 @@ define([
         };
 
         // add security class for statics
-        if(systemData.static){
-            $.each(systemData.static, function(i, staticWH){
-                system['static'][i]['class'] = Util.getSecurityClassForSystem( staticWH.security );
-            });
+        if(systemData.statics){
+            for(var i = 0; i < systemData.statics.length; i++){
+                systemData.statics[i].class = Util.getSecurityClassForSystem( systemData.statics[i].security );
+            }
         }
 
         var moduleData = {

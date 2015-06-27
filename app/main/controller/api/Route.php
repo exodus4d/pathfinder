@@ -11,10 +11,10 @@ use Model;
 
 /**
  * Routes controller
- * Class Routes
+ * Class Route
  * @package Controller\Api
  */
-class Routes extends \Controller\AccessController {
+class Route extends \Controller\AccessController {
 
     /**
      * cache time for static jump data
@@ -46,6 +46,9 @@ class Routes extends \Controller\AccessController {
 
         // set cache time for static jump data
         $this->jumpDataCacheTime = 60 * 60 * 24;
+
+        // set static system jump data
+        $this->setSystemJumpData();
     }
 
     /**
@@ -53,27 +56,50 @@ class Routes extends \Controller\AccessController {
      * the data is fixed and should not change
      */
     private function setSystemJumpData(){
-        $query = "SELECT * FROM system_neighbour";
+        $cacheKey = 'staticJumpData';
 
-        $rows = $this->f3->get('DB')->exec($query, null, $this->jumpDataCacheTime);
+        $cacheKeyNamedArray = $cacheKey . '.nameArray';
+        $cacheKeyJumpArray = $cacheKey . '.jumpArray';
+        $cacheKeyIdArray = $cacheKey . '.idArray';
+
+        if(
+            $this->f3->exists($cacheKeyNamedArray) &&
+            $this->f3->exists($cacheKeyJumpArray) &&
+            $this->f3->exists($cacheKeyIdArray)
+        ){
+            // get cached values
+            $this->nameArray = $this->f3->get($cacheKeyNamedArray);
+            $this->jumpArray = $this->f3->get($cacheKeyJumpArray);
+            $this->idArray = $this->f3->get($cacheKeyIdArray);
+        }else{
+            // nothing cached
+
+            $query = "SELECT * FROM system_neighbour";
+
+            $rows = $this->f3->get('DB')->exec($query, null, $this->jumpDataCacheTime);
 
 
-        foreach($rows as $row){
-            $regionId = trim($row['regionId']);
-            $constId = trim($row['constellationId']);
-            $systemName = strtoupper(trim($row['systemName']));
-            $systemId = trim($row['systemId']);
-            $secStatus = trim($row['trueSec']);
+            foreach($rows as $row){
+                $regionId = $row['regionId'];
+                $constId = $row['constellationId'];
+                $systemName = strtoupper($row['systemName']);
+                $systemId = $row['systemId'];
+                $secStatus = $row['trueSec'];
 
-            $this->nameArray[$systemId][0] = $systemName;
-            $this->nameArray[$systemId][1] = $regionId;
-            $this->nameArray[$systemId][2] = $constId;
-            $this->nameArray[$systemId][3] = $secStatus;
+                $this->nameArray[$systemId][0] = $systemName;
+                $this->nameArray[$systemId][1] = $regionId;
+                $this->nameArray[$systemId][2] = $constId;
+                $this->nameArray[$systemId][3] = $secStatus;
 
-            $this->idArray[strtoupper($systemName)] = $systemId;
+                $this->idArray[strtoupper($systemName)] = $systemId;
 
-            $this->jumpArray[$systemName]= explode(":", strtoupper($row['jumpNodes']));
-            array_push($this->jumpArray[$systemName],$systemId);
+                $this->jumpArray[$systemName]= explode(":", strtoupper($row['jumpNodes']));
+                array_push($this->jumpArray[$systemName],$systemId);
+            }
+
+            $this->f3->set($cacheKeyNamedArray, $this->nameArray, $this->jumpDataCacheTime);
+            $this->f3->set($cacheKeyJumpArray, $this->jumpArray, $this->jumpDataCacheTime);
+            $this->f3->set($cacheKeyIdArray, $this->idArray, $this->jumpDataCacheTime);
         }
     }
 
@@ -103,88 +129,6 @@ class Routes extends \Controller\AccessController {
         }
 
         return $info;
-    }
-
-    /**
-     * find a route between two systems
-     * @param $f3
-     * @return array
-     */
-    public function findRoute($f3){
-        $parameter = $f3->get('GET');
-
-        $routeData = [
-            'routePossible' => false,
-            'routeJumps' => 0,
-            'route' => []
-        ];
-
-        if(
-            array_key_exists('from', $parameter) &&
-            array_key_exists('to', $parameter)
-        ){
-            $from = strtoupper( $parameter['from'] );
-            $to = strtoupper( $parameter['to'] );
-
-            // set static system jump data
-            $this->setSystemJumpData();
-
-            // jump counter
-            $jumpNum = 0;
-
-            // check if the system we are looking for is a direct neighbour
-            foreach( $this->jumpArray[$from] as $n ) {
-
-                if ($n == $to) {
-                    $jumpNum = 2;
-
-                    $jumpNode = [
-                        'system' => $n,
-                        'security' => $this->getSystemInfoBySystemId($this->idArray[$n], 'trueSec')
-                    ];
-
-                    $routeData['route'][] = $jumpNode;
-                    break;
-                }
-            }
-
-            // system is not a direct neighbour -> search recursive its neighbours
-            if ($jumpNum == 0) {
-                foreach( $this->graph_find_path( $this->jumpArray, $from, $to ) as $n ) {
-                    if ($jumpNum > 0) {
-
-                        $jumpNode = [
-                            'system' => $n,
-                            'security' => $this->getSystemInfoBySystemId($this->idArray[$n], 'trueSec')
-                        ];
-
-                        $routeData['route'][] = $jumpNode;
-                    }
-                    $jumpNum++;
-                }
-            }
-
-            if ($jumpNum > 0) {
-                // route found
-                $routeData['routePossible'] = true;
-
-                $jumpNode = [
-                    'system' => $from,
-                    'security' => $this->getSystemInfoBySystemId($this->idArray[$from], 'trueSec')
-                ];
-
-                // insert "from" system on top
-                array_unshift($routeData['route'], $jumpNode);
-            } else {
-                // route not found
-                $routeData['routePossible'] = true;
-            }
-
-            // route jumps
-            $routeData['routeJumps'] = $jumpNum - 1;
-        }
-
-        return $routeData;
     }
 
     /**
@@ -250,7 +194,7 @@ class Routes extends \Controller\AccessController {
     }
 
     /**
-     * this funcion is just for setting up the cache table 'system_neighbour' which is used
+     * This function is just for setting up the cache table 'system_neighbour' which is used
      * for system jump calculation. Call this function manually if CCP adds Systems/Stargates
      */
     private function setupSystemJumpTable(){
@@ -321,6 +265,118 @@ class Routes extends \Controller\AccessController {
             }
         }
     }
+
+    /**
+     * find a route between two systems (system names)
+     * @param $systemFrom
+     * @param $systemTo
+     * @return array
+     */
+    private function findRoute($systemFrom, $systemTo){
+
+        $routeData = [
+            'routePossible' => false,
+            'routeJumps' => 0,
+            'route' => []
+        ];
+
+        if(
+            !empty($systemFrom) &&
+            !empty($systemTo)
+        ){
+            $from = strtoupper( $systemFrom );
+            $to = strtoupper( $systemTo );
+
+            // jump counter
+            $jumpNum = 0;
+
+            // check if the system we are looking for is a direct neighbour
+            foreach( $this->jumpArray[$from] as $n ) {
+
+                if ($n == $to) {
+                    $jumpNum = 2;
+
+                    $jumpNode = [
+                        'system' => $n,
+                        'security' => $this->getSystemInfoBySystemId($this->idArray[$n], 'trueSec')
+                    ];
+
+                    $routeData['route'][] = $jumpNode;
+                    break;
+                }
+            }
+
+            // system is not a direct neighbour -> search recursive its neighbours
+            if ($jumpNum == 0) {
+                foreach( $this->graph_find_path( $this->jumpArray, $from, $to ) as $n ) {
+
+                    if ($jumpNum > 0) {
+
+                        $jumpNode = [
+                            'system' => $n,
+                            'security' => $this->getSystemInfoBySystemId($this->idArray[$n], 'trueSec')
+                        ];
+
+                        $routeData['route'][] = $jumpNode;
+                    }
+                    $jumpNum++;
+                }
+            }
+
+            if ($jumpNum > 0) {
+                // route found
+                $routeData['routePossible'] = true;
+
+                $jumpNode = [
+                    'system' => $from,
+                    'security' => $this->getSystemInfoBySystemId($this->idArray[$from], 'trueSec')
+                ];
+
+                // insert "from" system on top
+                array_unshift($routeData['route'], $jumpNode);
+            } else {
+                // route not found
+                $routeData['routePossible'] = true;
+            }
+
+            // route jumps
+            $routeData['routeJumps'] = $jumpNum - 1;
+        }
+
+        return $routeData;
+    }
+
+    /**
+     * search multiple route between two systems
+     * @param $f3
+     */
+    public function search($f3){
+        $routesData = $data = (array)$f3->get('POST.routeData');
+
+        $return = (object) [];
+        $return->error = [];
+        $return->routesData = [];
+
+        foreach($routesData as $routeData){
+            $cacheKey = self::formatHiveKey($routeData['systemFrom']) . '_' . self::formatHiveKey($routeData['systemTo']);
+
+            if($f3->exists($cacheKey)){
+                // get data from cache
+                $return->routesData[] = $f3->get($cacheKey);
+            }else{
+                // no cached route data found
+                $foundRoutData = $this->findRoute($routeData['systemFrom'], $routeData['systemTo']);
+                $f3->set($cacheKey, $foundRoutData, $this->jumpDataCacheTime);
+
+                $return->routesData[] = $foundRoutData;
+            }
+
+        }
+
+        echo json_encode($return);
+    }
+
+
 
 }
 

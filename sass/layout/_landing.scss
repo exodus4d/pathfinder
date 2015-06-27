@@ -48,8 +48,30 @@
   }
 
 }
- // header -----------------------------------------
-#page-top{
+
+
+// content
+.pf-landing{
+  section{
+    min-height: 200px;
+    padding: 20px 0 40px 0;
+    border-bottom: 1px solid $gray-darker;
+  }
+
+  .alert {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  }
+
+  h4{
+    font-size: 18px;
+    font-family: $font-family-sans-serif;
+    margin: 5px 0 10px 0;
+    border-bottom: 1px solid $gray-darker;
+    line-height: 34px;
+  }
+}
+ // header --------------------------------------------------------------------
+#pf-landing-top{
   height: 450px;
   border-bottom: 1px solid $gray-dark;
   position: relative;
@@ -79,6 +101,11 @@
 
     #pf-logo-container{
       z-index: 110;
+    }
+
+    // fallback logo -> IGB
+    .pf-logo-fallback{
+      margin-top: 30px;
     }
 
     #pf-header-preview-container{
@@ -172,16 +199,12 @@
 }
 
 // demo map -------------------------------------------------------------------
-#pf-landing-map{
-  padding-top: 10;
-  padding-bottom: 0;
-  background-image: url("#{$base-url}/header_bg.png");
-  height: 460px;
-}
-
 #pf-header-map{
+  // the size matches the size of the svg-map
   position: relative;
-  height: 430px;
+  margin: 0 auto;
+  height: 380px;
+  width: 600px;
 
   .pf-header-svg-layer{
     position: absolute;
@@ -216,61 +239,89 @@
   }
 }
 
-// Gallery --------------------------------------------------------------------
-a[data-gallery] {
-  position: relative;
+// carousel -------------------------------------------------------------------
+#pf-landing-gallery-carousel{
+  background-image: url("#{$base-url}/pf-header-bg.jpg");
 
-  img{
-    border: {
-      width: 1px;
-      style: solid;
-      color: $gray-darker
+  .slide-content{
+    border-radius: 5px;
+  }
+}
+
+// gallery --------------------------------------------------------------------
+#pf-landing-gallery{
+
+  #pf-landing-gallery-thumb-container{
+
+    .row{
+      margin-bottom: 30px;
     }
-    margin: 5px;
-    display: inline-block;
-    height: 90px;
-    will-change: all;
-    @include border-radius(4px);
-    @include filter(brightness( 100% ));
-    @include transition(all 0.2s ease-out);
   }
 
-  &:before{
-    content: '\f002';
-    font-family: 'FontAwesome';
-    font-size: 18px;
-    line-height: 18px;
-    color: $orange;
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 18px;
-    width: 92px;
-    margin-top: 45px;
-    z-index: 10;
-    text-align: center;
-    @include transition(transform 0.1s 0.06s ease-in, opacity 0.1s ease-out);
-    will-change: transform, opacity;
-    transform: scale(0,0);
-    opacity: 0;
-  }
+  a[data-gallery] {
+    position: relative;
 
-  &:hover{
     img{
-      border-color: $teal-lightest;
-      @include filter(brightness( 50% ));
-      @include box-shadow(0 6px 12px rgba(0,0,0, 0.3));
+      border: {
+        width: 1px;
+        style: solid;
+        color: $gray-darker
+      }
+      margin: 5px;
+      display: inline-block;
+      height: 160px;
+      will-change: all;
+      @include border-radius(5px);
+      @include filter(brightness( 100% ));
+      @include transition(all 0.2s ease-out);
     }
 
     &:before{
-      @include transition-delay( 0.1s );
-      transform: scale(1,1);
-      opacity: 1;
+      content: '\f002';
+      font-family: 'FontAwesome';
+      font-size: 20px;
+      line-height: 20px;
+      color: $orange;
+      position: absolute;
+      top: 9px;
+      left: 8px;
+      height: 20px;
+      width: 154px;
+      margin-top: 70px;
+      z-index: 10;
+      text-align: center;
+      @include transition(transform 0.1s 0.06s ease-in, opacity 0.1s ease-out);
+      will-change: transform, opacity;
+      transform: scale(0,0);
+      opacity: 0;
     }
 
+    &:hover{
+      img{
+        border-color: $teal-lightest;
+        @include filter(brightness( 50% ));
+        @include box-shadow(0 6px 12px rgba(0,0,0, 0.3));
+      }
 
+      &:before{
+        @include transition-delay( 0.1s );
+        transform: scale(1,1);
+        opacity: 1;
+      }
+    }
+  }
+
+  // feature list points
+  li i{
+    @extend .fa-li;
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .fa-angle-right;
+    @extend .txt-color;
+    @extend .txt-color-tealLighter;
   }
 }
+
 
 // pricing --------------------------------------------------------------------
 .pf-landing-pricing-panel{
@@ -278,7 +329,7 @@ a[data-gallery] {
 }
 
 .pricing-big{
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  @include box-shadow(0 4px 10px rgba(0,0,0, 0.4));
 
   .panel-heading{
     border-color: $gray;
@@ -303,19 +354,28 @@ a[data-gallery] {
   }
 }
 
-// content
-.pf-landing{
-  section{
-    min-height: 200px;
-    padding: 20px 0 40px 0;
-    border-bottom: 1px solid $gray-darker;
+
+// footer ---------------------------------------------------------------------
+.pf-landing-footer{
+  padding: 30px 0;
+  font-family: $font-family-bold;
+  background-color: darken($gray-darker, 8%);
+
+  .pf-social-networks > li{
+    display: inline-block;
+    line-height: 1;
+
+    a {
+      display: inline-block;
+      background: rgba(red($gray-light), green($gray-light), blue($gray-light), 0.5);
+      line-height: 24px;
+      text-align: center;
+      font-size: 12px;
+      margin-right: 5px;
+      width: 28px;
+      height: 24px;
+    }
   }
-
-  .alert {
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-  }
-
-
 }
 
 // TEST ---

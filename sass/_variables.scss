@@ -41,17 +41,7 @@ $pf-font-path:            "../fonts" !default;
   font-weight: 400;
   font-style: normal;
 }
-/*
-@include font-face(
-    'Oxygen',
-    font-files(
-        'oxygen-regular-webfont.woff', woff,
-        'oxygen-regular-webfont.ttf', truetype
-    ),
-    'oxygen-regular-webfont.eot',
-    400
-);
-*/
+
 /* not used jet
 @include font-face(
     'Oxygen Light',
@@ -63,17 +53,7 @@ $pf-font-path:            "../fonts" !default;
     300
 );
 */
-/*
-@include font-face(
-    'Oxygen Bold',
-    font-files(
-        'oxygen-bold-webfont.woff', woff,
-        'oxygen-bold-webfont.ttf', truetype
-    ),
-    'oxygen-bold-webfont.eot',
-    700
-);
-*/
+
 @font-face {
   font-family: 'Oxygen Bold';
   src: url('#{$pf-font-path}/oxygen-bold-webfont.eot');
@@ -101,7 +81,7 @@ $font-size-large:         ceil(($font-size-base * 1.24)); // ~16px
 $font-size-small:         ceil(($font-size-base * 0.85)); // ~11px
 
 $font-size-h1:            floor(($font-size-base * 1.85)); // ~24px
-$font-size-h2:            floor(($font-size-base * 1.24)); // ~22px
+$font-size-h2:            20px; //floor(($font-size-base * 1.24)); // ~22px
 $font-size-h3:            ceil(($font-size-base * 1.385)); // ~18px
 $font-size-h4:            $font-size-base; //ceil(($font-size-base * 1.32)); // ~17px
 $font-size-h5:            ceil(($font-size-base * 1.16)); // ~16px
@@ -376,8 +356,8 @@ $navbar-default-brand-hover-bg:            transparent;
 
 // Navbar toggle
 $navbar-default-toggle-hover-bg:           lighten($gray-lighter, 5%);
-$navbar-default-toggle-icon-bar-bg:        #ccc;
-$navbar-default-toggle-border-color:       darken($gray-lighter, 5%);
+$navbar-default-toggle-icon-bar-bg:        $teal;
+$navbar-default-toggle-border-color:       $teal;
 
 
 // Inverted navbar
@@ -498,7 +478,7 @@ $state-info-bg:                  lighten($brand-info, 40%);
 $state-info-border:              $brand-info;
 
 $state-warning-text:             $gray-darker;
-$state-warning-bg:               lighten($brand-warning, 50%);
+$state-warning-bg:               lighten($brand-warning, 45%);
 $state-warning-border:           $brand-warning;
 
 $state-danger-text:              $gray-darker;
@@ -796,53 +776,53 @@ $component-offset-horizontal: 100px;
 //== Color Pallet
 //
 //##
-$blueStandard:			#3276b1;
-$blueSky:						#0091d9;
-$blueLight: 				#92a2a8;
-$blueDark: 					#4c4f53;
+$blueStandard:                  #3276b1;
+$blueSky:                       #0091d9;
+$blueLight:                     #92a2a8;
+$blueDark:                      #4c4f53;
 //$green: 						#356e35;
-$greenLight: 				#71843f;
-$greenDark: 				#496949;
-$greenBright:				#40ac2b;
+$greenLight:                    #71843f;
+$greenDark:                     #496949;
+$greenBright:                   #40ac2b;
 //$red: 							#a90329;
-$yellow: 						#b09b5b;
-$orangeDark: 				$orange-dark;
-$pinkDark: 					#a8829f;
-$purple: 						#6e587a;
-$darken: 						#404040;
-$lighten: 					#d5e7ec;
-$white: 						#ffffff;
-$greyDark: 					#525252;
-$magenta: 					#6e3671;
-$redLight: 					#a65858;
-$redBright:					#ed1c24;
-$tealLight:					#0aa66e;
+$yellow:                        #b09b5b;
+$orangeDark:                    $orange-dark;
+$pinkDark:                      #a8829f;
+$purple:                        #6e587a;
+$darken:                        #404040;
+$lighten:                       #d5e7ec;
+$white:                         #ffffff;
+$greyDark:                      #525252;
+$magenta:                       #6e3671;
+$redLight:                      #a65858;
+$redBright:                     #ed1c24;
+$tealLight:                     #0aa66e;
 
 //== DROPDOWN ANIMATIONS (GLOBAL)
 // for full animation list go to: http://daneden.github.io/animate.css/
 //##
-$animation-type:				  "flipInX";
-$animation-ajax-dropdown:	"flipInY";
+$animation-type: "flipInX";
+$animation-ajax-dropdown: "flipInY";
 
 //== IMAGE PATH & BACKGROUNDS
 //
 //##
 
-$base-url: 						      "../img";
+$base-url: "../img";
 //urage: background-image: url("#{$base-url}/images/bg.png");
 
-$html-background-image:			"";
-$html-background-color:			$bg-color;
+$html-background-image: "";
+$html-background-color: $bg-color;
 
-$body-background-image:			"pf-bg.jpg";
-$body-background-color:			$bg-color;
+$body-background-image: "pf-bg.jpg";
+$body-background-color: $bg-color;
 
 //== HEADER
 //
 //##
-$smart-navbar-height:			  49px;
-$smart-navbar-color-start:	#f3f3f3;
-$smart-navbar-color-end:		#e2e2e2;
+$smart-navbar-height: 49px;
+$smart-navbar-color-start: #f3f3f3;
+$smart-navbar-color-end: #e2e2e2;
 
 //== ASIDE WIDTH (NAVIGATION WIDTH & COLOR)
 //

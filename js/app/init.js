@@ -7,21 +7,6 @@ define(['jquery'], function($) {
     'use strict';
 
     var Config = {
-        timer: {
-            dblClickTimer: 250,                                     // ms: double click timer
-            programStatusVisible: 5000,                             // ms: timer for status change visibility in head
-            mapUpdate: {
-                delay: 3000,                                        // ms: delay between ping calls
-                executionLimit: 200                                 // ms: log timelimit: main map update ping
-            },
-            userUpdate: {
-                delay: 2000,                                        // ms: delay between ping calls
-                executionLimit: 200                                 // ms: log timelimit: map user update ping
-            },
-            mapModuleData: {
-                executionLimit: 100                                 // ms: log timelimit: get all mapData
-            }
-        },
         path: {
           img: 'public/img/',                                       // path for images
           // user API
@@ -30,7 +15,7 @@ define(['jquery'], function($) {
           logOut: 'api/user/logOut',                                // ajax URL - logout
           saveUserConfig: 'api/user/saveConfig',                    // ajax URL - saves custom configuration
           // access API
-          searchAccess: 'api/access/search',                        // ajax URL - search corporation by name
+          searchAccess: 'api/access/search',                        // ajax URL - search user/corporation/ally by name
           // main config/map ping API
           initMap: 'api/map/init',                                  // ajax URL - get static data
           updateMapData: 'api/map/updateData',                      // ajax URL - main map update trigger
@@ -44,21 +29,23 @@ define(['jquery'], function($) {
           deleteSystem: 'api/system/delete',                        // ajax URL - delete system from map
           getSystemGraphData: 'api/system/graphData',               // ajax URL - get all system graph data
           // connection API
-          saveConnection: 'api/connection/save',                    // ajax URL - save new connection to map
+            saveConnection: 'api/connection/save',                    // ajax URL - save new connection to map
           deleteConnection: 'api/connection/delete',                // ajax URL - delete connection from map
           // signature API
           getSignatures: 'api/signature/getAll',                    // ajax URL - get all signature data for system
           saveSignatureData: 'api/signature/save',                  // ajax URL - save signature data for system
-          deleteSignatureData: 'api/signature/delete'               // ajax URL - delete signature data for system
+          deleteSignatureData: 'api/signature/delete',              // ajax URL - delete signature data for system
+          // route API
+          searchRoute: 'api/route/search'                           // ajax URL - search system routes
         },
         url: {
             ccpImageServer: 'https://image.eveonline.com/',         // CCP image Server
-            zKillboard: 'https://zkillboard.com/api/',              // killboard api
-            eveCentral: 'http://api.eve-central.com/api/'           // jump rout api
+            zKillboard: 'https://zkillboard.com/api/'               // killboard api
         },
         animationSpeed: {
             splashOverlay: 300,                                     // "splash" loading overlay
             headerLink: 100,                                        // links in head bar
+            mapOverlay: 200,                                        // show/hide duration for map overlays
             mapMoveSystem: 300,                                     // system position has changed animation
             mapDeleteSystem: 200,                                   // remove system from map
             mapModule: 200,                                         // show/hide of an map module
@@ -99,9 +86,9 @@ define(['jquery'], function($) {
                     class: 'pf-system-effect-pulsar',
                     name: 'pulsar'
                 },
-                wolfRyet: {
-                    class: 'pf-system-effect-wolfryet',
-                    name: 'wolf ryet'
+                wolfRayet: {
+                    class: 'pf-system-effect-wolfrayet',
+                    name: 'wolf rayet'
                 },
                 cataclysmic: {
                     class: 'pf-system-effect-cataclysmic',

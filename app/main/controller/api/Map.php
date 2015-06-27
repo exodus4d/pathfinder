@@ -41,6 +41,9 @@ class Map extends \Controller\AccessController {
 
         $initData = [];
 
+        // static program data ------------------------------------------------
+        $initData['timer'] = $f3->get('PATHFINDER.TIMER');
+
         // get all available map types ----------------------------------------
         $mapType = Model\BasicModel::getNew('MapTypeModel');
         $rows = $mapType->find('active = 1', null, $expireTimeSQL);
@@ -146,12 +149,12 @@ class Map extends \Controller\AccessController {
         $return = (object) [];
         $return->error = [];
 
-        if(array_key_exists( 'id', $formData)){
+        if( isset($formData['id']) ){
 
             $user = $this->_getUser();
 
             $map = Model\BasicModel::getNew('MapModel');
-            $map->getById($formData['id']);
+            $map->getById( (int)$formData['id'] );
 
             // check if the user has access to this map
             $mapAccess = true;
@@ -257,14 +260,14 @@ class Map extends \Controller\AccessController {
                 $return->mapData = $map->getData();
             }else{
                 // map access denied
-                $captchaError = new \stdClass();
+                $captchaError = (object) [];
                 $captchaError->type = 'error';
                 $captchaError->message = 'Access denied';
                 $return->error[] = $captchaError;
             }
         }else{
             // map id field missing
-            $idError = new \stdClass();
+            $idError = (object) [];
             $idError->type = 'error';
             $idError->message = 'Map id missing';
             $return->error[] = $idError;
@@ -284,9 +287,11 @@ class Map extends \Controller\AccessController {
 
         $user = $this->_getUser();
 
-        $map = Model\BasicModel::getNew('MapModel');
-        $map->getById($mapData['id']);
-        $map->delete($user);
+        if($user){
+            $map = Model\BasicModel::getNew('MapModel');
+            $map->getById($mapData['id']);
+            $map->delete($user);
+        }
 
         echo json_encode([]);
     }
@@ -300,7 +305,7 @@ class Map extends \Controller\AccessController {
 
         // cache time(s) per user should be equal or less than this function is called
         // prevent request flooding
-        $responseTTL = 3;
+        $responseTTL = $f3->get('PATHFINDER.TIMER.MAP_UPDATE.DELAY') / 1000;
         $user = $this->_getUser();
 
         $return = (object) [];
@@ -308,16 +313,9 @@ class Map extends \Controller\AccessController {
 
         if($user){
             $cacheKey = 'user_map_data_' . $user->id;
-            if($f3->exists($cacheKey) === false){
+            if($f3->exists($cacheKey) === false ){
 
                 $mapData = (array)$f3->get('POST.mapData');
-
-
-                $map = Model\BasicModel::getNew('MapModel');
-                $system = Model\BasicModel::getNew('SystemModel');
-                $connection = Model\BasicModel::getNew('ConnectionModel');
-
-                $activeCharacter = $user->getActiveUserCharacter();
 
                 foreach($mapData as $data){
 
@@ -327,72 +325,97 @@ class Map extends \Controller\AccessController {
 
                     // check whether system data and/or connection data is send
                     // empty arrays are not included in ajax requests
-                    if(array_key_exists('data', $data)){
-                        if(array_key_exists('systems', $data['data'])){
-                            $systems = $data['data']['systems'];
-                        }
-                        if(array_key_exists('connections', $data['data'])){
-                            $connections = $data['data']['connections'];
-                        }
+                    if(  isset($data['data']['systems']) ){
+                        $systems = (array)$data['data']['systems'];
                     }
 
-                    // update map data ---------------------------------------------
-                    $map->getById($config['id']);
-
-                    if(!$map->dry()){
-                        // update map on change
-                        if( (int)$config['updated'] > strtotime($map->updated)){
-                            $map->setData($config);
-                            $map->save();
-                        }
+                    if( isset($data['data']['connections']) ){
+                        $connections = (array)$data['data']['connections'];
                     }
 
-                    // get system data -----------------------------------------------
-                    foreach($systems as $systemData){
-                        $system->getById($systemData['id']);
+                    // check if system data or connection data is send
+                    if(
+                        count($systems) > 0 ||
+                        count($connections) > 0
+                    ){
 
-                        if(
-                            (int)$systemData['updated']['updated'] === 0 &&
-                            !$system->dry()
-                        ){
-                            $system->setData($systemData);
-                            $system->mapId = $map;
-                            $system->updatedCharacterId = $activeCharacter->characterId;
-                            $system->save();
+                        $map = Model\BasicModel::getNew('MapModel');
+                        $map->getById( (int)$config['id'] );
+
+                        if( $map->hasAccess($user) ){
+
+                            // map changes expected =============================================
+                            // -> get active user object
+                            $activeCharacter = $user->getActiveUserCharacter();
+
+                            // empty system model for changes
+                            $system = Model\BasicModel::getNew('SystemModel');
+                            // empty connection model for changes
+                            $connection = Model\BasicModel::getNew('ConnectionModel');
+
+                            // clear map cache on change
+                            $clearMapCache = false;
+
+                            // update system data -----------------------------------------------
+                            foreach($systems as $systemData){
+
+                                // get object
+                                $system->getById($systemData['id']);
+
+                                // check if system exists and is part of the current map (security)
+                                if( $system->mapId->id === $map->id ){
+                                    // update
+                                    $system->setData($systemData);
+                                    $system->updatedCharacterId = $activeCharacter->characterId;
+                                    $system->save();
+
+                                    $clearMapCache = true;
+                                }
+
+                                $system->reset();
+                            }
+
+                            // update connection data -------------------------------------------
+                            foreach($connections as $connectionData){
+                                // get object
+                                $connection->getById($connectionData['id']);
+
+                                // check if object exists
+                                if( $connection->mapId->id === $map->id ){
+                                    // update
+                                    $connectionData['mapId'] = $map;
+                                    $connection->setData($connectionData);
+                                    $connection->save($user);
+
+                                    $clearMapCache = true;
+                                }
+                                $connection->reset();
+                            }
                         }
 
-                        $system->reset();
-                    }
-
-                    // get connection data -------------------------------------------
-                    foreach($connections as $connectionData){
-                        $connection->getById($connectionData['id']);
-
-                        if(
-                            (int)$connectionData['updated'] === 0 &&
-                            !$connection->dry()
-                        ){
-                            $connectionData['mapId'] = $map;
-                            $connection->setData($connectionData);
-                            $connection->save($user);
+                        // map data has changed -> clear map cache
+                        if($clearMapCache){
+                            $map->clearCacheData();
                         }
 
-                        $connection->reset();
+
+                        $map->reset();
                     }
 
-                    $map->reset();
                 }
 
                 // get map data ======================================================
-                $activeMaps = $user->getMaps();
+                $activeMaps = $user->getMaps($responseTTL);
 
                 // format map Data for return
-                $newData = self::getFormattedMapData($activeMaps);
+                $return->mapData = self::getFormattedMapData($activeMaps);
 
-                $f3->set($cacheKey, $newData, $responseTTL);
+                $f3->set($cacheKey, $return, $responseTTL);
+            }else{
+                // get from cache
+                $return = $f3->get($cacheKey);
             }
 
-            $return = $f3->get($cacheKey);
         }else{
             // user logged of
             $return->error[] = $this->getUserLoggedOffError();
@@ -409,11 +432,13 @@ class Map extends \Controller\AccessController {
 
         $mapData = [];
         foreach($mapModels as $mapModel){
+            $allMapData = $mapModel->getData();
+
             $mapData[] = [
-                'config' => $mapModel->getData(),
+                'config' => $allMapData->mapData,
                 'data' => [
-                    'systems' => $mapModel->getSystemData(),
-                    'connections' => $mapModel->getConnectionData(),
+                    'systems' => $allMapData->systems,
+                    'connections' => $allMapData->connections,
                 ]
             ];
         }
@@ -428,53 +453,73 @@ class Map extends \Controller\AccessController {
      */
     public function updateUserData($f3){
 
-        // cache time(s) per user should be equal or less than request trigger
+        // cache time(s) should be equal or less than request trigger time
         // prevent request flooding
-        $responseTTL = 2;
-        $user = $this->_getUser();
+        $responseTTL = $f3->get('PATHFINDER.TIMER.USER_UPDATE.DELAY') / 1000;
+
+        // if the cache key will be set -> cache request
+        $cacheKey = null;
 
         $return = (object) [];
+
+        $user = $this->_getUser();
+
         $return->error = [];
 
         if($user){
-            $cacheKey = 'user_data_' . $user->id;
-            if($f3->exists($cacheKey) === false){
 
-                // check if data for specific system is requested
-                $systemData = (array)$f3->get('POST.systemData');
+            // update current location (IGB data)
+            $user->updateCharacterLog();
 
-                // update current location (IGB data)
-                $user->updateCharacterLog();
+            // check if data for specific system is requested
+            $systemData = (array)$f3->get('POST.systemData');
 
-                // data for the current user
-                $return->userData = $user->getData();
+            // if data is requested extend the cache key in order to get new data
+            $requestSystemData = (object) [];
+            $requestSystemData->mapId = isset($systemData['mapId']) ? (int) $systemData['mapId'] : 0;
+            $requestSystemData->systemId = isset($systemData['systemData']['id']) ? (int) $systemData['systemData']['id'] : 0;
 
-                // get user Data for each map ========================================
-                $activeMaps = $user->getMaps();
+            // the maps are cached per user
+            $cacheKey = 'user_data_' . $user->id . '_' . $requestSystemData->systemId;
+
+            if( $f3->exists($cacheKey) === false ){
+
+                // get user Data for each map
+                $activeMaps = $user->getMaps(5);
 
                 foreach($activeMaps as $mapModel){
                     $return->mapUserData[] = $mapModel->getUserData();
 
-                    // request signature data for a system if user has map access
-                    if(
-                        !empty($systemData) &&
-                        $systemData['mapId'] == $mapModel->id
-                    ){
-                        $system = $mapModel->getSystem( (int)$systemData['systemData']['id']);
+                    // request signature data for a system if user has map access!
+                    if( $mapModel->id === $requestSystemData->mapId ){
+                        $system = $mapModel->getSystem( $requestSystemData->systemId );
 
-                        if(! is_null($system)){
+                        if( !is_null($system) ){
                             // data for the current selected system
                             $return->system = $system->getData();
                             $return->system->signatures = $system->getSignaturesData();
                         }
-
                     }
                 }
 
-                $f3->set($cacheKey, $return, $responseTTL);
+                // cache response
+                if( !is_null($cacheKey) ){
+                    $f3->set($cacheKey, $return, $responseTTL);
+                }
+
+            }else{
+                // get from cache
+                // this should happen if a user has multiple program instances running
+                // with the same main char
+                $return = $f3->get($cacheKey);
             }
 
-            $return = $f3->get($cacheKey);
+            // add data that is not cacheable -----------------------------------------
+
+            // get current user data -> this should not be cached because each user has different personal data
+            // even if they have multiple characters using the same map!
+            $return->userData = $user->getData();
+
         }else{
             // user logged of
             $return->error[] = $this->getUserLoggedOffError();

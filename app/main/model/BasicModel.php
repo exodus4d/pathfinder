@@ -11,17 +11,58 @@ namespace Model;
 
 use Exception;
 
-class BasicModel extends \DB\Cortex{
+class BasicModel extends \DB\Cortex {
 
     protected $db = 'DB';
-    protected $ttl = 20;
-    protected $rel_ttl = 20;
+
+    /**
+     * caching time of field schema - seconds
+     * as long as we don´t expect any field changes
+     * -> leave this at a higher value
+     * @var int
+     */
+    protected $ttl = 86400;
+
+    /**
+     * caching for relational data
+     * @var int
+     */
+    protected $rel_ttl = 0;
 
     /**
      * field validation array
      * @var array
      */
     protected $validate = [];
+
+    /**
+     * if the getData() function should be cached or not
+     * if set to "0" no data is cached
+     * cache will be updated on save/update
+     * @var int (seconds)
+     */
+    protected $data_ttl = 0;
+
+    /**
+     * getData() cache key prefix
+     * -> do not change, otherwise cached data is lost
+     * @var string
+     */
+    private $dataCacheKeyPrefix = 'DATACACHE';
+
+
+    public function __construct($db = NULL, $table = NULL, $fluid = NULL, $ttl = 0){
+        parent::__construct($db, $table, $fluid, $ttl);
+
+        // events -----------------------------------------
+        $this->afterinsert(function($self){
+            $self->clearCacheData();
+        });
+        // model updated
+        $this->afterupdate( function($self){
+            $self->clearCacheData();
+        });
+    }
 
     /**
      * overwrites magic __set() mainly used for validation
@@ -110,6 +151,36 @@ class BasicModel extends \DB\Cortex{
     }
 
     /**
+     * get the cache key for this model
+     * ->do not set a key if the model is not saved!
+     * @param string $dataCacheTableKeyPrefix
+     * @return null|string
+     */
+    protected function getCacheKey($dataCacheTableKeyPrefix = ''){
+        $cacheKey = null;
+
+        // set a model unique cache key if the model is saved
+        if( $this->_id > 0){
+            // check if there is a given key prefix
+            // -> if not, use the standard key.
+            // this is useful for caching multiple data sets according to one row entry
+
+            $cacheKey = $this->dataCacheKeyPrefix;
+            $cacheKey .= '.' . strtoupper($this->table);
+
+            if($dataCacheTableKeyPrefix){
+                $cacheKey .= '.' . $dataCacheTableKeyPrefix . '_';
+            }else{
+                $cacheKey .= '.ID_';
+            }
+            $cacheKey .= (string) $this->_id;
+
+        }
+
+        return $cacheKey;
+    }
+
+    /**
      * Throws a validation error for a giben column
      * @param $col
      * @throws \Exception\ValidationException
@@ -125,7 +196,7 @@ class BasicModel extends \DB\Cortex{
      */
     protected function setUpdated(){
         if($this->_id > 0){
-            $f3 = \Base::instance();
+            $f3 = self::getF3();
             $f3->get('DB')->exec(
                 ["UPDATE " . $this->table . " SET updated=NOW() WHERE id=:id"],
                 [
@@ -142,6 +213,7 @@ class BasicModel extends \DB\Cortex{
      * @return \DB\Cortex
      */
     public function getById($id, $ttl = 0) {
+        $ttl = $ttl ? : $this->ttl;
         return $this->getByForeignKey('id', (int)$id, array('limit' => 1), $ttl);
     }
 
@@ -169,7 +241,7 @@ class BasicModel extends \DB\Cortex{
     }
 
     /**
-     * get dataSet by foreign column
+     * get dataSet by foreign column (single result)
      * @param $key
      * @param $id
      * @param array $options
@@ -193,6 +265,8 @@ class BasicModel extends \DB\Cortex{
 
         array_unshift($querySet, implode(' AND ', $query));
 
+        $ttl = $ttl ? : $this->ttl;
+
         return $this->load( $querySet, $options, $ttl );
     }
 
@@ -205,6 +279,9 @@ class BasicModel extends \DB\Cortex{
      * @return mixed
      */
     public function getRelatedModels($model, $foreignKey, $options = null, $ttl = 0){
+
+        $ttl = $ttl ? : $this->ttl;
+
         $model = self::getNew($model, $ttl);
         $relatedModels = $model->find(array($foreignKey . ' = ? AND active = 1', $this->id), $options, $ttl);
 
@@ -228,6 +305,61 @@ class BasicModel extends \DB\Cortex{
         return true;
     }
 
+    /**
+     * get cached data from this model
+     * @param string $dataCacheKeyPrefix - optional key prefix
+     * @return mixed|null
+     */
+    protected function getCacheData($dataCacheKeyPrefix = ''){
+
+        $cacheKey = $this->getCacheKey($dataCacheKeyPrefix);
+        $cacheData = null;
+
+        $f3 = self::getF3();
+        if( $f3->exists($cacheKey) ){
+            $cacheData = $f3->get( $cacheKey );
+        }
+
+        return $cacheData;
+    }
+
+    /**
+     * update/set the getData() cache for this object
+     * @param $cacheData
+     * @param string $dataCacheKeyPrefix
+     */
+    public function updateCacheData($cacheData, $dataCacheKeyPrefix = ''){
+
+        // check if model is allowed to be cached
+        // and cacheData is not empty
+        if(
+            $this->data_ttl > 0 &&
+            !empty( (array)$cacheData )
+        ){
+            $cacheKey = $this->getCacheKey($dataCacheKeyPrefix);
+
+            if( !is_null($cacheKey) ){
+                self::getF3()->set($cacheKey, $cacheData, $this->data_ttl);
+            }
+        }
+    }
+
+    /**
+     * unset the getData() cache for this object
+     */
+    public function clearCacheData(){
+        $cacheKey = $this->getCacheKey();
+
+        if( !is_null($cacheKey) ){
+            $f3 = self::getF3();
+
+            if( $f3->exists($cacheKey) ){
+                $f3->clear($cacheKey);
+            }
+
+        }
+
+    }
 
     /**
      * factory for all Models
@@ -236,18 +368,26 @@ class BasicModel extends \DB\Cortex{
      * @return null
      * @throws \Exception
      */
-    public static function getNew($model, $ttl = 20){
+    public static function getNew($model, $ttl = 86400){
         $class = null;
 
         $model = '\\' . __NAMESPACE__ . '\\' . $model;
         if(class_exists($model)){
-            $f3 = \Base::instance();
-            $class = new $model($f3->get('DB'), null, null, $ttl );
+            $class = new $model( self::getF3()->get('DB'), null, null, $ttl );
         }else{
             throw new \Exception('No model class found');
         }
 
         return $class;
     }
+
+    /**
+     * get the framework instance (singleton)
+     * @return static
+     */
+    public static function getF3(){
+        return \Base::instance();
+    }
+
 
 } 

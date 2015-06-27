@@ -33,7 +33,7 @@ class System extends \Controller\AccessController {
                     system_effect.groupID = 995 AND
                     map_norm.solarSystemID = map_sys.solarSystemID
                 LIMIT 1
-              ), '') system_effect,
+              ), '') effect,
             IFNULL(
               (
                 SELECT
@@ -180,48 +180,59 @@ class System extends \Controller\AccessController {
 
         $newSystemData = [];
 
-        $systemData = (array)$f3->get('POST.systemData');
-        $mapData = (array)$f3->get('POST.mapData');
-        $user = $this->_getUser();
-        $activeCharacter = $user->getActiveUserCharacter();
+        $postData = (array)$f3->get('POST');
 
+        // system to be saved
         $systemModel = null;
 
-        if(array_key_exists('id', $systemData)){
-            // update existing system
+        if(
+            isset($postData['systemData']) &&
+            isset($postData['mapData'])
+        ){
+            $user = $this->_getUser();
 
-            $system = Model\BasicModel::getNew('SystemModel');
-            $system->getById($systemData['id']);
+            if($user){
+                $systemData = (array)$postData['systemData'];
+                $mapData = (array)$postData['mapData'];
 
-            if(! $system->dry()){
-                if( $system->hasAccess($user) ){
-                    // system model found
-                    $systemModel = $system;
-                }
-            }
+                $activeCharacter = $user->getActiveUserCharacter();
 
+                if( isset($systemData['id']) ){
+                    // update existing system
 
-        }elseif(array_key_exists('id', $mapData)){
-            // save NEW system
+                    $system = Model\BasicModel::getNew('SystemModel');
+                    $system->getById($systemData['id']);
 
-            $map = Model\BasicModel::getNew('MapModel');
-            $map->getById($mapData['id']);
+                    if( !$system->dry() ){
+                        if( $system->hasAccess($user) ){
+                            // system model found
+                            $systemModel = $system;
+                        }
+                    }
+                }elseif( isset($mapData['id']) ){
+                    // save NEW system
 
-            if(! $map->dry()){
-                if( $map->hasAccess($user) ){
+                    $map = Model\BasicModel::getNew('MapModel');
+                    $map->getById($mapData['id']);
 
-                    $systemData['mapId'] = $map;
+                    if( !$map->dry() ){
+                        if( $map->hasAccess($user) ){
 
-                    // get static system data (CCP DB)
-                    $systemModel = $this->_getSystemModelById($systemData['systemId']);
+                            $systemData['mapId'] = $map;
 
-                    $systemModel->createdCharacterId = $activeCharacter->characterId;
+                            // get static system data (CCP DB)
+                            $systemModel = $this->_getSystemModelById($systemData['systemId']);
 
+                            $systemModel->createdCharacterId = $activeCharacter->characterId;
+
+                        }
+                    }
                 }
             }
         }
 
-        if(! is_null($systemModel)){
+
+        if( !is_null($systemModel) ){
             // set/update system
 
             $systemModel->setData($systemData);

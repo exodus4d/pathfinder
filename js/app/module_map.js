@@ -2,8 +2,6 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'app/render',
-    'bootbox',
     'app/ui/system_info',
     'app/ui/system_graph',
     'app/ui/system_signature',
@@ -11,7 +9,7 @@ define([
     'app/ui/system_killboard',
     'datatablesTableTools',
     'app/map/map'
-], function($, Config, Util, Render, bootbox) {
+], function($, Config, Util) {
 
     'use strict';
 
@@ -87,16 +85,7 @@ define([
 
         return this.each(function(){
             // update Tab Content with system data information
-            $(this).on('pf:drawSystemModules', function(e, mapData){
-
-                // collect all required data from map module to update the info element
-                // store them global and assessable for each module
-                var currentSystemData = {
-                    systemData: $( mapData.system).getSystemData(),
-                    mapId: parseInt( $( mapData.system).attr('data-mapid') )
-                };
-
-                Util.setCurrentSystemData(currentSystemData);
+            $(this).on('pf:drawSystemModules', function(e){
 
                 drawSystemModules($( e.target ));
             });
@@ -131,11 +120,8 @@ define([
         // draw system killboard module
         secondCell.drawSystemKillboardModule(currentSystemData.systemData);
 
-
-
         // set Module Observer
         setModuleObserver();
-
     };
 
     /**
@@ -204,7 +190,6 @@ define([
 
         if(mapElement !== false){
             var mapId = mapElement.data('id');
-
 
             // get user data for each active map
             var mapUserData = null;
@@ -536,6 +521,7 @@ define([
                 var mapId = tabElement.data('map-id');
 
                 if(mapId > 0){
+
                     var tabMapData = Util.getCurrentMapData(mapId);
 
                     if(tabMapData !== false){
@@ -663,7 +649,7 @@ define([
             });
 
             // load new map right after tab-change
-            allTabElements.on('shown.bs.tab', function (e) { console.log('switch')
+            allTabElements.on('shown.bs.tab', function (e) {
                 var mapId = $(e.target).data('map-id');
                 var tabMapData = Util.getCurrentMapData(mapId);
 
@@ -713,8 +699,8 @@ define([
 
         var data = [];
         for(var i = 0; i < mapElements.length; i++){
-
-            var mapData = $(mapElements[i]).getMapDataFromClient(false);
+            // get all changed (system / connection) data from this map
+            var mapData = $(mapElements[i]).getMapDataFromClient({forceData: false, checkForChange: true});
 
             if(mapData !== false){
                 data.push(mapData);

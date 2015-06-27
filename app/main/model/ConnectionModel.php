@@ -12,12 +12,16 @@ namespace Model;
 class ConnectionModel extends BasicModel{
 
     protected $table = 'connection';
-    protected $ttl = 5;
-    protected $rel_ttl = 5;
 
     protected $fieldConf = array(
         'mapId' => array(
             'belongs-to-one' => 'Model\MapModel'
+        ),
+        'source' => array(
+            'belongs-to-one' => 'Model\SystemModel'
+        ),
+        'target' => array(
+            'belongs-to-one' => 'Model\SystemModel'
         ),
         'type' => array(
             'type' => self::DT_JSON
@@ -32,16 +36,9 @@ class ConnectionModel extends BasicModel{
 
         foreach((array)$systemData as $key => $value){
 
-            if(!is_array($value)){
-                if($this->exists($key)){
+            if( !is_array($value) ){
+                if( $this->exists($key) ){
                     $this->$key = $value;
-
-                    if($key == 'source'){
-                        // set mapId
-                        $sourceSystem = self::getNew('SystemModel');
-                        $sourceSystem->getById( $this->$key );
-                        $this->mapId = $sourceSystem->mapId;
-                    }
                 }
             }elseif($key == 'type'){
                 // json field
@@ -58,8 +55,8 @@ class ConnectionModel extends BasicModel{
 
         $connectionData = [
             'id' => $this->id,
-            'source' => $this->source,
-            'target' => $this->target,
+            'source' => $this->source->id,
+            'target' => $this->target->id,
             'scope' => $this->scope,
             'type' => $this->type,
             'updated' => strtotime($this->updated)
@@ -82,20 +79,10 @@ class ConnectionModel extends BasicModel{
      * @return bool
      */
     public function isValid(){
-
         $isValid = true;
+
         // check if source/target belong to same map
-        $sourceSystem = self::getNew('SystemModel');
-        $sourceSystem->getById( $this->source );
-
-        $targetSystem = self::getNew('SystemModel');
-        $targetSystem->getById( $this->target);
-
-        if(
-            $sourceSystem->dry() ||
-            $targetSystem->dry() ||
-            $sourceSystem->mapId->id !== $targetSystem->mapId->id
-        ){
+        if( $this->source->mapId->id !== $this->target->mapId->id ){
             $isValid = false;
         }
 
@@ -114,6 +101,16 @@ class ConnectionModel extends BasicModel{
                 $this->erase();
             }
         }
+    }
+
+    /**
+     * see parent
+     */
+    public function clearCacheData(){
+        parent::clearCacheData();
+
+        // clear map cache as well
+        $this->mapId->clearCacheData();
     }
 
 } 

@@ -7,6 +7,7 @@ define([
     'bootbox',
     'velocity',
     'velocityUI',
+    'customScrollbar',
     'validator',
     'xEditable',
     'easyPieChart',
@@ -539,7 +540,7 @@ define([
                             doubleClickCallback.call(self, e);
                         }
                         clicks = 0;
-                    }, timeout || Init.timer.dblClickTimer);
+                    }, timeout || Init.timer['DBL_CLICK']);
                 }
             });
         });
@@ -550,6 +551,36 @@ define([
      *   Util functions that are global available for all modules
      *   ==========================================================================================================
      */
+
+    /**
+     * get the current main trigger delay for the main trigger functions
+     * optional in/decrease the delay
+     * @param updateKey
+     * @param value
+     * @returns {*}
+     */
+    var getCurrentTriggerDelay = function( updateKey, value ){
+
+        // make sure the delay timer is valid!
+        // if this is called for the first time -> set CURRENT_DELAY
+        if(
+            Init.timer[updateKey]['CURRENT_DELAY'] === undefined ||
+            Init.timer[updateKey]['CURRENT_DELAY'] <= 0
+        ){
+            Init.timer[updateKey]['CURRENT_DELAY'] = Init.timer[updateKey]['DELAY'];
+        }
+
+        // in/decrease the trigger delay
+        if(
+            value === parseInt(value, 10)  &&
+            ( Init.timer[updateKey]['CURRENT_DELAY'] ) + value > 0
+        ){
+            Init.timer[updateKey]['CURRENT_DELAY'] += value;
+        }
+
+
+        return Init.timer[updateKey]['CURRENT_DELAY'];
+    };
 
     /**
      * get date obj with current EVE Server Time.
@@ -1205,6 +1236,26 @@ define([
     };
 
     /**
+     * get the current log data for the current user character
+     * @returns {boolean}
+     */
+    var getCurrentCharacterLog = function(){
+
+        var characterLog = false;
+        var currentUserData = getCurrentUserData();
+
+        if(
+            currentUserData &&
+            currentUserData.character &&
+            currentUserData.character.log
+        ){
+            characterLog = currentUserData.character.log;
+        }
+
+        return characterLog;
+    };
+
+    /**
      * get information for the current mail user
      * @param option
      * @returns {boolean}
@@ -1218,22 +1269,22 @@ define([
             // user data is set -> user data will be set AFTER the main init request!
             var characterData = currentUserData.character;
 
-            if(
-                option === 'allianceId' &&
-                characterData.alliance
-            ){
-                userInfo = characterData.alliance.id;
-            }
+            if(characterData){
+                if(
+                    option === 'allianceId' &&
+                    characterData.alliance
+                ){
+                    userInfo = characterData.alliance.id;
+                }
 
-            if(
-                option === 'corporationId' &&
-                characterData.corporation
-            ){
-                userInfo = characterData.corporation.id;
+                if(
+                    option === 'corporationId' &&
+                    characterData.corporation
+                ){
+                    userInfo = characterData.corporation.id;
+                }
             }
-
         }
-
 
         return userInfo;
     };
@@ -1299,6 +1350,7 @@ define([
 
     return {
         config: config,
+        getCurrentTriggerDelay: getCurrentTriggerDelay,
         getServerTime: getServerTime,
         timeStart: timeStart,
         timeStop: timeStop,
@@ -1335,6 +1387,7 @@ define([
         setCurrentSystemData: setCurrentSystemData,
         getCurrentSystemData: getCurrentSystemData,
         getCurrentUserInfo: getCurrentUserInfo,
+        getCurrentCharacterLog: getCurrentCharacterLog,
         convertDateToString: convertDateToString,
         formatPrice: formatPrice
     };

@@ -32,4 +32,5 @@ $results-nested-padding: 20px !default;
 $results-choice-bg-hover-color: $gray-lighter !default;
 $results-choice-fg-hover-color: $gray-dark !default;
 
-$results-choice-fg-unselectable-color: grey !default;
+$results-choice-fg-unselectable-color: $gray-light !default;
+$results-choice-bg-unselectable-color: $gray !default;

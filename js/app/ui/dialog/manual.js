@@ -2,7 +2,6 @@
  *  map manual dialog
  */
 
-
 define([
     'jquery',
     'app/init',
@@ -10,6 +9,7 @@ define([
     'app/render',
     'bootbox',
 ], function($, Init, Util, Render, bootbox) {
+
     'use strict';
 
     var config = {
@@ -33,37 +33,26 @@ define([
                 dialogNavLiClass: config.dialogNavigationListItemClass,
                 scrollspyId: config.mapManualScrollspyId,
                 pieChartClass : Init.classes.pieChart.pieChartMapCounterClass,
-                mapCounterClass : Init.classes.pieChart.pieChartMapCounterClass,
-
-                mapTypePrivateClass: Util.getInfoForMap( 'private', 'class'),
-                mapTypePrivateLabel: Util.getInfoForMap( 'private', 'label'),
-                mapTypeCorporationClass: Util.getInfoForMap( 'corporation', 'class'),
-                mapTypeCorporationLabel: Util.getInfoForMap( 'corporation', 'label'),
-                mapTypeAllianceClass: Util.getInfoForMap( 'alliance', 'class'),
-                mapTypeAllianceLabel: Util.getInfoForMap( 'alliance', 'label'),
-                mapTypeGlobalClass: Util.getInfoForMap( 'global', 'class'),
-                mapTypeGlobalLabel: Util.getInfoForMap( 'global', 'label')
+                mapCounterClass : Init.classes.pieChart.pieChartMapCounterClass
             };
 
-
             var content = Mustache.render(template, data);
+
             // show dialog
             var mapManualDialog = bootbox.dialog({
-                title: 'Pathfinder manual',
+                title: 'Manual',
                 message: content,
                 buttons: {
                     success: {
                         label: 'close',
-                        className: "btn-primary",
+                        className: 'btn-default',
                         callback: function() {
                             $(mapManualDialog).modal('hide');
                         }
                     }
                 },
-                show: false
+                show: true
             });
-
-            mapManualDialog.modal('show');
 
             // modal offset top
             var modalOffsetTop = 200;

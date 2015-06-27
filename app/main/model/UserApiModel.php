@@ -12,8 +12,6 @@ use Controller;
 class UserApiModel extends BasicModel {
 
     protected $table = 'user_api';
-    protected $ttl = 0;
-    protected $rel_ttl = 0;
 
     protected $fieldConf = array(
         'userId' => array(
@@ -71,7 +69,7 @@ class UserApiModel extends BasicModel {
         $returnUserCharacter = null;
 
         foreach($userCharacters as $userCharacter){
-            if($userCharacter->characterId->characterId == $characterId){
+            if($userCharacter->characterId->id == $characterId){
                 $returnUserCharacter = $userCharacter;
                 break;
             }
@@ -96,6 +94,14 @@ class UserApiModel extends BasicModel {
         }
 
         return $hasMain;
+    }
+
+    /**
+     * get the user object for this model
+     * @return mixed
+     */
+    public function getUser(){
+        return $this->userId;
     }
 
     /**

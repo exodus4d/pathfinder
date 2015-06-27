@@ -14,7 +14,6 @@ class CcpSystemsMapper extends \RecursiveArrayIterator {
         'system_id' => 'systemId',
         'system_name' => 'name',
         'system_security' => 'trueSec',
-        'system_effect' => 'effect',
         'connstallation_id' => array('constellation' => 'id'),
         'constallation_name' => array('constellation' => 'name'),
         'region_id' => array('region' => 'id'),
@@ -31,6 +30,35 @@ class CcpSystemsMapper extends \RecursiveArrayIterator {
      * @return array
      */
     public function getData(){
+
+        // format functions
+        self::$map['effect'] = function($iterator){
+
+            $effect = $iterator['effect'];
+
+            switch($iterator['effect']){
+                case 'magnetar':
+                    $effect = 'magnetar';
+                    break;
+                case 'red giant':
+                    $effect = 'redGiant';
+                    break;
+                case 'pulsar':
+                    $effect = 'pulsar';
+                    break;
+                case 'wolf-rayet star':
+                    $effect = 'wolfRayet';
+                    break;
+                case 'cataclysmic variable':
+                    $effect = 'cataclysmic';
+                    break;
+                case 'black hole':
+                    $effect = 'blackHole';
+                    break;
+            }
+
+            return $effect;
+        };
 
         // format functions
         self::$map['security'] = function($iterator){

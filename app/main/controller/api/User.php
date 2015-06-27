@@ -19,7 +19,7 @@ class User extends Controller\Controller{
     public function logIn($f3){
         $data = $data = $f3->get('POST');
 
-        $return = new \stdClass();
+        $return = (object) [];
 
         $loginSuccess = false;
 
@@ -33,7 +33,7 @@ class User extends Controller\Controller{
         if($loginSuccess !== true){
 
             $return->error = [];
-            $loginError = new \stdClass();
+            $loginError = (object) [];
             $loginError->type = 'login';
             $return->error[] = $loginError;
         }else{
@@ -92,7 +92,7 @@ class User extends Controller\Controller{
     public function saveConfig($f3){
         $data = $f3->get('POST');
 
-        $return = new \stdClass();
+        $return = (object) [];
         $return->error = [];
 
         $captcha = $f3->get('SESSION.captcha_code');
@@ -158,7 +158,7 @@ class User extends Controller\Controller{
                     }
                 }else{
                     // captcha was send but not valid -> return error
-                    $captchaError = new \stdClass();
+                    $captchaError = (object) [];
                     $captchaError->type = 'error';
                     $captchaError->message = 'Captcha does not match';
                     $return->error[] = $captchaError;
@@ -178,6 +178,10 @@ class User extends Controller\Controller{
 
                     // get all existing API models for this user
                     $apiModels = $user->getAPIs();
+
+                    // check if the user already has a main character
+                    // if not -> save the next best character as main
+                    $mainUserCharacter = $user->getMainUserCharacter();
 
                     foreach($settingsData['keyId'] as $i => $keyId){
 
@@ -210,7 +214,7 @@ class User extends Controller\Controller{
 
                         if(empty($newUserCharacters)){
                             // no characters found -> return warning
-                            $characterError = new \stdClass();
+                            $characterError = (object) [];
                             $characterError->type = 'warning';
                             $characterError->keyId = $api->keyId;
                             $characterError->vCode = $api->vCode;
@@ -224,7 +228,8 @@ class User extends Controller\Controller{
                                 $matchedUserCharacter = $newUserCharacter;
 
                                 foreach($userCharacters as $key => $userCharacter){
-                                    if($userCharacter->characterId == $newUserCharacter->characterId){
+                                    if($userCharacter->characterId->id == $newUserCharacter->characterId->id){
+                                        // user character fond -> update this one
                                         $matchedUserCharacter = $userCharacter;
                                         unset($userCharacters[$key]);
                                         break;
@@ -248,6 +253,12 @@ class User extends Controller\Controller{
                     foreach($apiModels as $apiModel){
                         $apiModel->delete();
                     }
+
+                    // set main character if no main character exists
+                    if(is_null($mainUserCharacter)){
+                        $user->setMainCharacterId();
+                    }
+
                 }
 
 
@@ -269,6 +280,8 @@ class User extends Controller\Controller{
                     $return->reroute = $this->f3->get('BASE') . $this->f3->alias('map');
                 }
 
+                // get updated user object
+                $user = $this->_getUser();
                 $newUserData = $user->getData();
 
             }

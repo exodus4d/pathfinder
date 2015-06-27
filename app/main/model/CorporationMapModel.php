@@ -11,7 +11,6 @@ namespace Model;
 
 class CorporationMapModel extends BasicModel {
 
-
     protected $table = 'corporation_map';
 
     protected $fieldConf = array(

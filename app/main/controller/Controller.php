@@ -92,7 +92,7 @@ class Controller {
         $userId = $this->f3->get('SESSION.user.id');
 
         if($userId > 0){
-            $userModel = Model\BasicModel::getNew('UserModel', 5);
+            $userModel = Model\BasicModel::getNew('UserModel');
             $userModel->getById($userId);
 
             if( !$userModel->dry() ){
@@ -144,6 +144,22 @@ class Controller {
     }
 
     /**
+     * check if the current request was send from inGame
+     * @return bool
+     */
+    static function isIGB(){
+        $isIGB = false;
+
+        $igbHeaderData = self::getIGBHeaderData();
+
+        if(count($igbHeaderData->values) > 0){
+            $isIGB = true;
+        }
+
+        return $isIGB;
+    }
+
+    /**
      * verifies weather a given username and password is valid
      * @param $userName
      * @param $password
@@ -158,7 +174,7 @@ class Controller {
         $user->getByName($userName);
 
         // check userName is valid
-        if(! $user->dry() ){
+        if( !$user->dry() ){
             // check if password is valid
             $isValid = $user->verify($password);
 
@@ -205,9 +221,30 @@ class Controller {
             // redirect to landing page
             $this->f3->reroute('@landing');
         }else{
-            $return = new \stdClass();
+            $return = (object) [];
             $return->reroute = $this->f3->get('BASE') . $this->f3->alias('landing');
             echo json_encode($return);
         }
     }
+
+    /**
+     * get a log controller e.g. "debug"
+     * @param $loggerType
+     * @return mixed
+     */
+    static function getLogger($loggerType){
+        return LogController::getLogger($loggerType);
+    }
+
+    /**
+     * removes illegal characters from a Hive-key that are not allowed
+     * @param $key
+     * @return mixed
+     */
+    static function formatHiveKey($key){
+        $illegalCharacters = ['-'];
+        return str_replace($illegalCharacters, '', $key);
+    }
+
+
 } 

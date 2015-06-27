@@ -6,19 +6,16 @@ define([
     'bootbox',
     'app/ccp',
     'jsPlumb',
-    'customScrollbar',
     'dragToSelect',
     'select2',
-    'app/map/contextmenu'
+    'app/map/contextmenu',
+    'app/map/overlay'
 ], function($, Init, Util, Render, bootbox, CCP) {
 
-    "use strict";
+    'use strict';
 
     var config = {
-        // TODO: remove temp ID counter
-        tempId: 100,
         zIndexCounter: 110,
-        logTimerCount: 3,                                              // map log timer in seconds
         newSystemOffset: {
           x: 150,
           y: 0
@@ -27,7 +24,7 @@ define([
         mapSnapToGrid: false,                                           // Snap systems to grid while dragging
         mapTabContentClass: 'pf-map-tab-content',                       // Tab-Content element (parent element)
         mapWrapperClass: 'pf-map-wrapper',                              // wrapper div (scrollable)
-        mapOverlayClass: 'pf-map-overlay',                              // class for map Overlay e.g. update counter
+
         mapClass: 'pf-map',                                             // class for all maps
         mapGridClass: 'pf-grid-small',                                  // class for map grid snapping
         mapIdPrefix: 'pf-map-',                                         // id prefix for all maps
@@ -68,7 +65,7 @@ define([
         systemSecNull: 'pf-system-sec-nullSec',
         systemSecWHHeigh: 'pf-system-sec-high',
         systemSecWHMid: 'pf-system-sec-mid',
-        systemSecWHLow: 'pf-system-sec-low',
+        systemSecWHLow: 'pf-system-sec-low'
     };
 
     // active jsPlumb instances currently running
@@ -131,9 +128,9 @@ define([
      * updates a system with current information
      * @param map
      * @param data
-     * @param currentUserData // data of the user that is currently viewing this map
+     * @param currentUserIsHere boolean - if the current user is in this system
      */
-    $.fn.updateSystemUserData = function(map, data, currentUserData){
+    $.fn.updateSystemUserData = function(map, data, currentUserIsHere){
 
         var system = $(this);
         var systemId = system.attr('id');
@@ -152,7 +149,7 @@ define([
         system.data('currentUser', false);
 
         // if current user is in THIS system trigger event
-        if(currentUserData){
+        if(currentUserIsHere){
             system.data('currentUser', true);
         }
 
@@ -195,7 +192,7 @@ define([
                                 class: config.systemBodyRightClass
                             })
                         ).append(
-                            $('<li>', {
+                            $('<i>', {
                                 class: ['fa', 'fa-circle', config.systemBodyItemStatusClass, statusClass].join(' ')
                             })
                         ).append(
@@ -484,6 +481,7 @@ define([
 
             // get system info classes
             var effectBasicClass = Util.getEffectInfoForSystem('effect', 'class');
+            var effectName = Util.getEffectInfoForSystem(data.effect, 'name');
             var effectClass = Util.getEffectInfoForSystem(data.effect, 'class');
             var secClass = Util.getSecurityClassForSystem(data.security);
 
@@ -510,7 +508,7 @@ define([
                             // System effect color
                             $('<i>', {
                                 class: ['fa', 'fa-square ', 'fa-fw', effectBasicClass, effectClass].join(' ')
-                            }).attr('title', 'effect')
+                            }).attr('title', effectName)
                         ).append(
                             // expand option
                             $('<i>', {
@@ -555,10 +553,21 @@ define([
                     },{
                         easing: 'linear',
                         duration: Init.animationSpeed.mapMoveSystem,
+                        begin: function(system){
+                            // hide system tooltip
+                            $(system).toggleSystemTooltip('hide', {});
+
+                            // move them to the "top"
+                            $(system).updateSystemZIndex();
+                        },
                         progress: function(){
                             map.revalidate( systemId );
                         },
-                        complete: function(){
+                        complete: function(system){
+                            // show tooltip
+                            $(system).toggleSystemTooltip('show', {show: true});
+
+
                             map.revalidate( systemId );
                         }
                     }
@@ -593,6 +602,7 @@ define([
         system.data('region', data.region.name);
         system.data('constellationId', parseInt(data.constellation.id));
         system.data('constellation', data.constellation.name);
+        system.data('statics', data.statics);
         system.data('updated', parseInt(data.updated.updated));
         system.attr('data-mapid', parseInt(mapContainer.data('id')));
 
@@ -662,7 +672,7 @@ define([
 
 
         // get map data
-        var mapData = mapContainer.getMapDataFromClient();
+        var mapData = mapContainer.getMapDataFromClient({forceData: false});
 
         if(mapData !== false){
             // map data available -> map not locked by update counter :)
@@ -670,7 +680,6 @@ define([
             var currentConnectionData = mapData.data.connections;
 
             // update systems ===========================================================
-
             for(var i = 0; i < mapConfig.data.systems.length; i++){
                 var systemData = mapConfig.data.systems[i];
 
@@ -797,7 +806,7 @@ define([
         var mapElement = $(this);
 
         // start map update counter -> prevent map updates during animations
-        mapElement.getMapOverlay().startMapUpdateCounter();
+        mapElement.getMapOverlay('timer').startMapUpdateCounter();
 
         var systemElements = mapElement.find('.' + config.systemClass);
         var endpointElements =  mapElement.find('._jsPlumb_endpoint');
@@ -840,15 +849,19 @@ define([
                         duration: 180
                     });
 
-                    overlayElements.delay(500).velocity('transition.fadeIn', {
-                        stagger: 50,
-                        duration: 180,
-                        display: 'auto',
-                        complete: function(){
-                            callback();
-                        }
-                    });
-
+                    // show overlay elements (if some exist)
+                    if(overlayElements.length > 0){
+                        overlayElements.delay(500).velocity('transition.fadeIn', {
+                            stagger: 50,
+                            duration: 180,
+                            display: 'auto',
+                            complete: function(){
+                                callback();
+                            }
+                        });
+                    }else{
+                        callback();
+                    }
                 }
             });
         }else if(show === 'hide'){
@@ -1001,7 +1014,7 @@ define([
 
         var mapContainer = $( map.getContainer() );
 
-        mapContainer.getMapOverlay().startMapUpdateCounter();
+        mapContainer.getMapOverlay('timer').startMapUpdateCounter();
 
         var systemIds = [];
         // systemIds for delete request
@@ -1056,7 +1069,7 @@ define([
         map.removeAllEndpoints (system);
 
         // hide tooltip
-        system.toggleSystemTooltip('hide', {});
+        system.toggleSystemTooltip('destroy', {});
 
         // remove system
         system.velocity('transition.whirlOut', {
@@ -1083,6 +1096,7 @@ define([
             title: 'System alias',
             placement: 'top',
             onblur: 'submit',
+            container: 'body',
             toggle: 'manual',       // is triggered manually on dblclick
             showbuttons: false
         });
@@ -1094,138 +1108,15 @@ define([
     };
 
     /**
-     * get map Overlay element by any element within a specific map
-     * @returns {*}
-     */
-    $.fn.getMapOverlay = function(){
-
-        return $(this).parents('.' + config.mapWrapperClass).find('.' + config.mapOverlayClass);
-    };
-
-    /**
-     * get the map counter chart by an overlay
-     * @returns {*}
-     */
-    $.fn.getMapCounter = function(){
-
-        var mapOverlay = $(this);
-
-        return mapOverlay.find('.' + Init.classes.pieChart.pieChartMapCounterClass);
-    };
-
-    /**
-     * draws the map update counter to the map overlay
-     * @param percent
-     * @returns {*}
-     */
-    $.fn.setMapUpdateCounter = function(percent, value){
-
-        var mapOverlay = $(this);
-
-        // check if counter already exists
-        var counterChart = mapOverlay.getMapCounter();
-
-        if(counterChart.length === 0){
-            // create new counter
-
-            counterChart = $('<div>', {
-                class: [Init.classes.pieChart.class, Init.classes.pieChart.pieChartMapCounterClass].join(' ')
-            }).attr('data-percent', percent).append(
-                $('<span>', {
-                    text: value
-                })
-            );
-
-            mapOverlay.append(counterChart);
-
-            // init counter
-            counterChart.initMapUpdateCounter();
-
-            // set tooltip
-            mapOverlay.attr('data-toggle', 'tooltip');
-            mapOverlay.attr('data-placement', 'left');
-            mapOverlay.attr('title', 'update counter');
-            mapOverlay.tooltip();
-        }
-
-        return counterChart;
-    };
-
-    /**
-     * start the map update counter or reset
-     */
-    $.fn.startMapUpdateCounter = function(){
-
-        var mapOverlay = $(this);
-        var counterChart = mapOverlay.getMapCounter();
-
-        var seconds = config.logTimerCount;
-        var fadeEffectDuration = 200;
-
-        var counterChartLabel = counterChart.find('span');
-
-        var percentPerCount = 100 / seconds;
-
-        // update counter
-        var updateChart = function(tempSeconds){
-            var pieChart = counterChart.data('easyPieChart');
-
-            if(pieChart !== undefined){
-                counterChart.data('easyPieChart').update( percentPerCount * tempSeconds);
-            }
-            counterChartLabel.text(tempSeconds);
-        };
-
-        // main timer function is called on any counter update
-        var timer = function(){
-            seconds--;
-
-            if(seconds >= 0){
-                // update counter
-                updateChart(seconds);
-            }else{
-                // hide counter and reset
-                clearInterval(mapUpdateCounter);
-
-                mapOverlay.velocity('transition.whirlOut', {
-                    duration: fadeEffectDuration,
-                    complete: function(){
-                        counterChart.data('interval', false);
-                    }
-                });
-            }
-        };
-
-        // get counter interval (in case there is an active one) ---------------------------
-        var interval = counterChart.data('interval');
-
-        if(interval){
-            clearInterval(interval);
-        }
-
-        // start timer ---------------------------------------------------------------------
-        var mapUpdateCounter = setInterval(timer, 1000);
-        updateChart(seconds);
-
-        // store counter -------------------------------------------------------------------
-        counterChart.data('interval', mapUpdateCounter);
-
-         // show overlay -------------------------------------------------------------------
-        if(mapOverlay.is(':hidden')){
-            mapOverlay.velocity('stop').velocity('transition.whirlIn', { duration: fadeEffectDuration });
-
-        }
-
-    };
-
-    /**
      * update z-index for a system (dragged systems should be always on top)
      * @param system
      */
-    var updateZIndex = function(system){
-
-        var newZIndexSystem = config.zIndexCounter++;
-        $(system).css('z-index', newZIndexSystem);
+    $.fn.updateSystemZIndex = function(){
+        return this.each(function(){
+            // increase global counter
+            var newZIndexSystem = config.zIndexCounter++;
+            $(this).css('z-index', newZIndexSystem);
+        });
     };
 
     /**
@@ -1333,11 +1224,15 @@ define([
 
         var map = connection._jsPlumb.instance;
         var mapContainer = $( map.getContainer() );
-        mapContainer.getMapOverlay().startMapUpdateCounter();
+        mapContainer.getMapOverlay('timer').startMapUpdateCounter();
 
+        var mapId = mapContainer.data('id');
         var connectionData = getDataByConnection(connection);
 
         var requestData = {
+            mapData: {
+                id: mapId
+            },
             connectionData: connectionData
         };
 
@@ -1394,7 +1289,7 @@ define([
 
                 var map = connections[0]._jsPlumb.instance;
                 var mapContainer = $( map.getContainer() );
-                mapContainer.getMapOverlay().startMapUpdateCounter();
+                mapContainer.getMapOverlay('timer').startMapUpdateCounter();
 
 
                 var connectionIds = [];
@@ -1584,6 +1479,7 @@ define([
             items: [
                 {icon: 'fa-info', action: 'info', text: 'info'},
                 {icon: 'fa-plus', action: 'add_system', text: 'add system'},
+                {icon: 'fa-check-square', action: 'select_all', text: 'select all'},
                 {icon: 'fa-filter', action: 'filter_scope', text: 'filter scope', subitems: [
                     {subIcon: '', subAction: 'filter_wh', subText: 'wormhole'},
                     {subIcon: '', subAction: 'filter_stargate', subText: 'stargate'},
@@ -1696,7 +1592,7 @@ define([
         var systemBody = $( system.find('.' + config.systemBodyClass) );
 
         // map overlay will be set on "drag" start
-        var mapOverlay = null;
+        var mapOverlayTimer = null;
 
 
         // make system draggable
@@ -1708,10 +1604,10 @@ define([
             start: function(params){
                 var dragSystem = $(params.el);
 
-                mapOverlay = dragSystem.getMapOverlay();
+                mapOverlayTimer = dragSystem.getMapOverlay('timer');
 
                 // start map update timer
-                mapOverlay.startMapUpdateCounter();
+                mapOverlayTimer.startMapUpdateCounter();
 
                 // check if grid-snap is enable
                 if(config.mapSnapToGrid){
@@ -1730,22 +1626,25 @@ define([
 
                 // hide tooltip
                 $(selectedSystems).toggleSystemTooltip('hide', {});
+
+                // move them to the "top"
+                $(selectedSystems).updateSystemZIndex();
             },
             drag: function(){
                 // start map update timer
-                mapOverlay.startMapUpdateCounter();
+                mapOverlayTimer.startMapUpdateCounter();
             },
             stop: function(params){
                 var dragSystem = $(params.el);
 
                 // start map update timer
-                mapOverlay.startMapUpdateCounter();
+                mapOverlayTimer.startMapUpdateCounter();
 
                 setTimeout(function(){
                     dragSystem.removeClass('no-click');
-                }, Init.timer.dblClickTimer + 50);
+                }, Init.timer['DBL_CLICK'] + 50);
 
-                // render tooltip
+                // show tooltip
                 dragSystem.toggleSystemTooltip('show', {show: true});
 
                 // drag system is not always selected
@@ -1786,6 +1685,7 @@ define([
         var systemTooltipOptions = {
             toggle: 'tooltip',
             placement: 'right',
+            container: 'body',
             viewport: system.id
         };
 
@@ -1859,7 +1759,7 @@ define([
 
             var systemElement = $(this);
 
-            // hide all map tooltips
+            // hide all map contextmenu options
             var hideOptions = getHiddenContextMenuOptions(systemElement);
 
             var activeOptions = getActiveContextMenuOptions(systemElement);
@@ -1943,7 +1843,7 @@ define([
                     case 'change_status_empty':
                     case 'change_status_unscanned':
                         // change system status
-                        currentSystem.getMapOverlay().startMapUpdateCounter();
+                        currentSystem.getMapOverlay('timer').startMapUpdateCounter();
 
                         var statusString = action.split('_');
 
@@ -1992,7 +1892,8 @@ define([
             var headElement = $(system).find('.' + config.systemHeadNameClass);
 
             // update z-index for system, editable field should be on top
-            updateZIndex(system);
+            // move them to the "top"
+            $(system).updateSystemZIndex();
 
             // show "set alias" input (x-editable)
             headElement.editable('show');
@@ -2031,13 +1932,12 @@ define([
 
     /**
      * mark a dom element (map, system, connection) as changed
-     * DB will update this element on next update trigger
      */
     $.fn.markAsChanged = function(){
         return this.each(function(){
             var element = $(this);
 
-            if(element.hasClass(config.systemClass)){
+            if( element.hasClass(config.systemClass) ){
                 // system element
                 element.data('updated', 0);
             }else{
@@ -2046,6 +1946,25 @@ define([
             }
 
         });
+    };
+
+    /**
+     * check if an dom element (system, connection) has changed
+     * @returns {boolean}
+     */
+    $.fn.hasChanged = function(){
+        var element = $(this);
+        var changed = false;
+
+        if( element.hasClass(config.systemClass) ){
+            // system element
+            changed = (element.data('updated') === 0);
+        }else{
+            // connection element
+            changed = (this[0].getParameter('updated') === 0);
+        }
+
+        return changed;
     };
 
     /**
@@ -2061,36 +1980,38 @@ define([
         // get parent Tab Content and fire update event
         var tabContentElement = getTabContentElementByMapElement( system );
 
-        var data = {
-            system: system
+        // collect all required data from map module to update the info element
+        // store them global and assessable for each module
+        var currentSystemData = {
+            systemData: system.getSystemData(),
+            mapId: parseInt( system.attr('data-mapid') )
         };
 
-        $(tabContentElement).trigger('pf:drawSystemModules', [data]);
+        Util.setCurrentSystemData(currentSystemData);
+
+        $(tabContentElement).trigger('pf:drawSystemModules');
     };
 
     /**
      * toggle selectable status of a system
      */
     $.fn.toggleSelectSystem = function(map){
-        var system = $(this);
 
-        if( system.data('locked') !== true ){
+        return this.each(function(){
+            var system = $(this);
 
-            if( system.hasClass( config.systemSelectedClass ) ){
-                system.removeClass( config.systemSelectedClass );
+            if( system.data('locked') !== true ){
 
-                map.removeFromDragSelection(system);
-            }else{
-                system.addClass( config.systemSelectedClass );
-                map.addToDragSelection(system);
+                if( system.hasClass( config.systemSelectedClass ) ){
+                    system.removeClass( config.systemSelectedClass );
+
+                    map.removeFromDragSelection(system);
+                }else{
+                    system.addClass( config.systemSelectedClass );
+                    map.addToDragSelection(system);
+                }
             }
-
-        }else{
-            var systemName = system.getSystemInfo( ['alias'] );
-
-            Util.showNotify({title: 'System is locked', text: systemName, type: 'error'});
-        }
-
+        });
     };
 
     /**
@@ -2151,12 +2072,12 @@ define([
             }
         }
 
-        // repaint connectioons
+        // repaint connections
         map.revalidate( system.attr('id') );
 
 
         if(! hideCounter){
-            $(system).getMapOverlay().startMapUpdateCounter();
+            $(system).getMapOverlay('timer').startMapUpdateCounter();
         }
 
     };
@@ -2214,17 +2135,9 @@ define([
         }
 
         if(! hideCounter){
-            $(system).getMapOverlay().startMapUpdateCounter();
+            $(system).getMapOverlay('timer').startMapUpdateCounter();
         }
 
-    };
-
-    /**
-     * get all TabContentElements
-     * @returns {*|HTMLElement}
-     */
-    var getTabContentElements = function(){
-        return $('.' + config.mapTabContentClass);
     };
 
     /**
@@ -2287,6 +2200,14 @@ define([
                         // add new system dialog
                         showNewSystemDialog(currentMap, {position: position});
                         break;
+                    case 'select_all':
+
+                        var allSystems =  currentMapElement.find('.' + config.systemClass + ':not(.' + config.systemSelectedClass + ')');
+                        allSystems.toggleSelectSystem(currentMap);
+
+                        Util.showNotify({title: allSystems.length + ' systems selected', type: 'success'});
+
+                        break;
                     case 'filter_wh':
                     case 'filter_stargate':
                     case 'filter_jumpbridge':
@@ -2301,13 +2222,25 @@ define([
                             currentMapElement.data('filter_scope') &&
                             currentMapElement.data('filter_scope') === filterScope
                         ){
+                            // remove scope filter
                             currentMapElement.data('filter_scope', false);
                             showScope = false;
+
+                            // hide map overlay filter info
+                            currentMapElement.getMapOverlay('info').updateOverlayIcon('filter', 'hide');
                         }else{
+                            // set scope filter
                             currentMapElement.data('filter_scope', filterScope);
+
+                            // show map overlay filter info
+                            currentMapElement.getMapOverlay('info').updateOverlayIcon('filter', 'show');
                         }
 
-                        $.each(currentMap.getAllConnections(filterScope), function(idx, tempConnection) {
+                        var filteredConnections = currentMap.getAllConnections(filterScope);
+
+                        for(var i = 0; i < filteredConnections.length; i++){
+                            var tempConnection = filteredConnections[i];
+
                             var tempEndpoints = tempConnection.endpoints;
                             var setVisible = true;
 
@@ -2319,10 +2252,10 @@ define([
                             }
 
 
-                            for(var i = 0; i < tempEndpoints.length; i++){
-                                tempEndpoints[i].setVisible( setVisible );
+                            for(var j = 0; j < tempEndpoints.length; j++){
+                                tempEndpoints[j].setVisible( setVisible );
                             }
-                        });
+                        }
 
                         Util.showNotify({title: 'Scope filter changed', text: filterScopeLabel, type: 'success'});
 
@@ -2334,7 +2267,7 @@ define([
                         if(selectedSystems.length > 0){
                             var systemDeleteDialog = bootbox.confirm('Delete ' + selectedSystems.length + ' selected systems and its connections?', function(result) {
                                 if(result){
-                                    currentMapElement.getMapOverlay().startMapUpdateCounter();
+                                    currentMapElement.getMapOverlay('timer').startMapUpdateCounter();
 
                                     deleteSystems(currentMap, selectedSystems, function(){
                                         // callback function after delete -> close dialog
@@ -2355,9 +2288,7 @@ define([
                         break;
 
                 }
-
             }
-
         });
 
         // init drag-frame selection
@@ -2394,10 +2325,13 @@ define([
 
         // toggle "snap to grid" option
         $(mapContainer).on('pf:menuGrid', function(e, data){
+
+            var currentMapElement = $(this);
+
             config.mapSnapToGrid = !config.mapSnapToGrid;
 
             // toggle grid class
-            $(this).toggleClass(config.mapGridClass);
+            currentMapElement.toggleClass(config.mapGridClass);
 
             // toggle button class
             $(data.button).toggleClass('active');
@@ -2405,6 +2339,13 @@ define([
             var notificationText = 'disabled';
             if(config.mapSnapToGrid){
                 notificationText = 'enabled';
+
+                // show map overlay grid info
+                currentMapElement.getMapOverlay('info').updateOverlayIcon('grid', 'show');
+            }else{
+
+                // hide map overlay grid info
+                currentMapElement.getMapOverlay('info').updateOverlayIcon('grid', 'hide');
             }
 
             Util.showNotify({title: 'Grid snapping', text: notificationText, type: 'info'});
@@ -2586,7 +2527,7 @@ define([
                     case 'preserve_mass':   // set "preserve mass
                     case 'wh_eol':          // set "end of life"
 
-                        mapElement.getMapOverlay().startMapUpdateCounter();
+                        mapElement.getMapOverlay('timer').startMapUpdateCounter();
 
                         activeConnection.toggleType( action );
                         // for some reason  a new observer is needed ?!
@@ -2597,7 +2538,7 @@ define([
                     case 'status_reduced':
                     case 'status_critical':
                         var newStatus = action.split('_')[1];
-                        mapElement.getMapOverlay().startMapUpdateCounter();
+                        mapElement.getMapOverlay('timer').startMapUpdateCounter();
 
                         setConnectionWHStatus(activeConnection, 'wh_' + newStatus);
                         $(activeConnection).markAsChanged();
@@ -2612,7 +2553,7 @@ define([
                         bootbox.confirm('Change scope from ' + activeScopeName + ' to ' + newScopeName + '?', function(result) {
                             if(result){
 
-                                mapElement.getMapOverlay().startMapUpdateCounter();
+                                mapElement.getMapOverlay('timer').startMapUpdateCounter();
 
                                 setConnectionScope(activeConnection, newScope);
 
@@ -2677,7 +2618,6 @@ define([
         }else{
             return systemInfo;
         }
-
     };
 
     /**
@@ -2691,20 +2631,42 @@ define([
 
         var mapContainer = $(map.getContainer());
 
-        // format system status for form select
+        // format system status for form select ------------------------------------------------------------------------
         var systemStatus = {};
         $.each(Init.systemStatus, function(status, statusData){
             systemStatus[statusData.id] = statusData.label;
         });
 
         // default system status -> first status entry
-        var defaultSystemStatus = Init.systemStatus[Object.keys(Init.systemStatus)[0]].id;
+        var tempKeys = [];
+        for(var k in Init.systemStatus){
+            if (Init.systemStatus.hasOwnProperty(k)){
+                tempKeys.push(k);
+            }
+        }
+        var defaultSystemStatus = Init.systemStatus[ tempKeys[0] ].id;
 
-
+        // dialog data -------------------------------------------------------------------------------------------------
         var data = {
             id: config.systemDialogId,
             selectClass: config.systemDialogSelectClass
         };
+
+        // current character log data ----------------------------------------------------------------------------------
+        var currentCharacterLog = Util.getCurrentCharacterLog();
+
+        if(currentCharacterLog !== false){
+            // set current position as "default" system to add
+            data.currentSystem = currentCharacterLog.system;
+        }
+
+        // get current map data -> disable systems that are already on it ----------------------------------------------
+        var mapData = mapContainer.getMapDataFromClient({forceData: true});
+        var mapSystems = mapData.data.systems;
+        var mapSystemIds = [];
+        for(var i = 0; i < mapSystems.length; i++ ){
+            mapSystemIds.push( mapSystems[i].systemId );
+        }
 
         requirejs(['text!templates/dialog/system.html', 'mustache'], function(template, Mustache) {
 
@@ -2744,7 +2706,7 @@ define([
                                 return false;
                             }
 
-                            mapContainer.getMapOverlay().startMapUpdateCounter();
+                            mapContainer.getMapOverlay('timer').startMapUpdateCounter();
 
                             // calculate new system position -----------------------------------------------
                             var currentX = 0;
@@ -2825,7 +2787,10 @@ define([
 
                 // init system select live search
                 var selectElement = modalContent.find('.' + config.systemDialogSelectClass);
-                selectElement.initSystemSelect({key: 'systemId'});
+                selectElement.initSystemSelect({
+                    key: 'systemId',
+                    disabledOptions: mapSystemIds
+                });
             });
 
             // init system status select
@@ -2864,13 +2829,8 @@ define([
 
         var mapElement = map.getContainer();
 
-        // get global user data
-        var currentUserData = Init.currentUserData;
-
-        var currentCharacterData = null;
-        if(currentUserData.character){
-            currentCharacterData = currentUserData.character;
-        }
+        // get current character log data
+        var currentCharacterLog = Util.getCurrentCharacterLog();
 
         // container must exist! otherwise systems cant be updated
         if(mapElement !== undefined){
@@ -2888,43 +2848,52 @@ define([
                 userCount: 0                        // active user in a map
             };
 
+            // check if user is currently in this system
+            var currentUserIsHere = false;
+
             for(var i = 0; i < systems.length; i++){
                 // get user Data for System
 
                 var system = $( systems[i] );
 
-                var systemId = $(system).data('id');
+                var systemId = $(system).data('systemId');
 
                 var tempUserData = null;
-                for(var j = 0; j < userData.data.systems.length; j++){
+
+                var j = userData.data.systems.length;
+
+                // search backwards to avoid decrement the counter after splice()
+                while (j--) {
                     var systemData = userData.data.systems[j];
+
                     // check if any user is in this system
-                    if(systemId === systemData.id){
+                    if (systemId === systemData.id) {
                         tempUserData = systemData;
-                        break;
+
+                        // add  "user count" to "total map user count"
+                        headerUpdateData.userCount += tempUserData.user.length;
+
+                        // remove system from "search" array -> speed up
+                        userData.data.systems.splice(j, 1);
                     }
                 }
 
-                // check if user is currently in this system
-                var tempCurrentUserData = null;
-                if(
-                    currentCharacterData &&
-                    currentCharacterData.log &&
-                    currentCharacterData.log.system &&
-                    currentCharacterData.log.system.id === systemId
-                ){
-                    tempCurrentUserData = currentUserData;
+                // the current user can only be in a single system
+                if( !currentUserIsHere){
 
-                    // set current location data for header update
-                    headerUpdateData.currentSystemId =  currentCharacterData.log.system.id;
-                    headerUpdateData.currentSystemName = tempCurrentUserData.system.name;
+                    if(
+                        currentCharacterLog &&
+                        currentCharacterLog.system &&
+                        currentCharacterLog.system.id === systemId
+                    ){
+                        currentUserIsHere = true;
+                        // set current location data for header update
+                        headerUpdateData.currentSystemId =  $(system).data('id');
+                        headerUpdateData.currentSystemName = currentCharacterLog.system.name;
+                    }
                 }
 
-                if(tempUserData){
-                    headerUpdateData.userCount += tempUserData.user.length;
-                }
-
-                system.updateSystemUserData(map, tempUserData, tempCurrentUserData);
+                system.updateSystemUserData(map, tempUserData, currentUserIsHere);
             }
 
             // trigger document event -> update header
@@ -2937,9 +2906,10 @@ define([
     /**
      * collect all map data for export/save for a map
      * this function returns the "client" data NOT the "server" data for a map
+     * @param options
      * @returns {*}
      */
-    $.fn.getMapDataFromClient = function(forceData){
+    $.fn.getMapDataFromClient = function(options){
 
         var mapElement = $(this);
 
@@ -2948,15 +2918,17 @@ define([
         var mapData = {};
 
         // check if there is an active map counter that prevents collecting map data
-        var overlay = mapElement.getMapOverlay();
+        var overlay = mapElement.getMapOverlay('timer');
         var counterChart = overlay.getMapCounter();
 
         var interval = counterChart.data('interval');
 
         if(
             ! interval ||
-            forceData === true
+            options.forceData === true
         ){
+
+
             // map config ---------------------------------
             var mapConfig = {};
             mapConfig.id = parseInt( mapElement.data('id') );
@@ -2980,7 +2952,19 @@ define([
 
             for(var i = 0; i < systems.length; i++){
                 var tempSystem = $(systems[i]);
-                systemsData.push( tempSystem.getSystemData() );
+
+                // check if system data should be added
+                var addSystemData = true;
+                if(
+                    options.checkForChange === true &&
+                    !tempSystem.hasChanged()
+                ){
+                    addSystemData = false;
+                }
+
+                if(addSystemData){
+                    systemsData.push( tempSystem.getSystemData() );
+                }
             }
 
             data.systems = systemsData;
@@ -2996,12 +2980,23 @@ define([
             for(var j = 0; j < connections.length; j++){
                 var tempConnection = connections[j];
 
+                // check if connection data should be added
+                var addConnectionData = true;
+                if(
+                    options.checkForChange === true &&
+                    !$(tempConnection).hasChanged()
+                ){
+                    addConnectionData = false;
+                }
+
                 var connectionData = getDataByConnection(tempConnection);
 
                 // add to cache
                 ativeConnections[mapConfig.id][connectionData.id] = tempConnection;
 
-                connectionsFormatted.push( connectionData );
+                if(addConnectionData){
+                    connectionsFormatted.push( connectionData );
+                }
             }
 
             data.connections = connectionsFormatted;
@@ -3046,6 +3041,7 @@ define([
         systemData.locked = system.data('locked') ? 1 : 0;
         systemData.rally = system.data('rally') ? 1 : 0;
         systemData.currentUser = system.data('currentUser'); // if user is currently in this system
+        systemData.statics = system.data('statics');
         systemData.updated = {
             updated: parseInt( system.data('updated') )
         };
@@ -3168,8 +3164,6 @@ define([
             });
 
             activeInstances[mapId] = newJsPlumbInstance;
-
-            //console.log('new jsPlumbInstance: ' + mapId);
         }
 
         return activeInstances[mapId];
@@ -3204,6 +3198,7 @@ define([
             }
 
             //  draw/update map initial map and set container
+
             var mapContainer = updateMap(parentElement, mapConfig);
 
             if(newMap){
@@ -3233,25 +3228,19 @@ define([
     $.fn.initMapScrollbar = function(){
         // get Map Scrollbar
         var scrollableElement = $(this).find('.' + config.mapWrapperClass);
-        initCutomScrollbar( scrollableElement );
+        initCustomScrollbar( scrollableElement );
 
-        // add map overlay container after scrollbar is initiated
-        // because of its absolute positon
-        var mapOverlay = $('<div>', {
-            class: config.mapOverlayClass
-        });
-        scrollableElement.append(mapOverlay);
-
-
-        // reset map update timer
-        mapOverlay.setMapUpdateCounter(100, config.logTimerCount);
+        // ---------------------------------------------------------------------------
+        // add map overlays after scrollbar is initialized
+        // because of its absolute position
+        scrollableElement.initMapOverlays();
     };
 
     /**
      * init a custom scrollbar
      * @param scrollableElement
      */
-    var initCutomScrollbar = function( scrollableElement ){
+    var initCustomScrollbar = function( scrollableElement ){
 
         // prevent multiple initialization
         $(scrollableElement).mCustomScrollbar('destroy');
@@ -3270,6 +3259,13 @@ define([
                 onTotalScrollOffset: 0,
                 onTotalScrollBackOffset: 0,
                 alwaysTriggerOffsets:true,
+                onScrollStart: function(){
+                    // hide all open xEditable fields
+                    $(this).find('.editable').editable('hide');
+
+                    // hide all system head tooltips
+                    $(this).find('.' + config.systemHeadClass + ' .fa').tooltip('hide');
+                },
                 whileScrolling:function(){
                     // update scroll position for drag-frame-selection
                     var mapElement = $(scrollableElement).find('.' + config.mapClass);
@@ -3284,7 +3280,7 @@ define([
                 autoExpandHorizontalScroll: true
             },
             mouseWheel:{
-                enable:true,
+                enable: false, // scroll weel currently disabled
                 scrollAmount: 'auto',
                 axis: 'x',
                 preventDefault: true
