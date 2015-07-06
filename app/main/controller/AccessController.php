@@ -20,42 +20,23 @@ class AccessController extends Controller {
      */
     function beforeroute() {
 
-        $accessRoute = $this->_isLoggedIn();
+        $loginCheck = $this->_checkLogIn();
 
-        if(
-            !$this->f3->get('AJAX') &&
-            !$accessRoute
-        ){
-            $this->f3->reroute('@landing');
+        if( !$loginCheck ){
+            // no user found or LogIn timer expired
+            $this->logOut();
         }
 
         parent::beforeroute();
     }
 
     /**
-     * stores a new user in database
-     * @param $username
-     * @param $password
-     * @return null
-     */
-    private function _registerUser($username, $password){
-
-        $user = Model\BasicModel::getNew('UserModel');
-
-        $user->name = $username;
-        $user->password = $password;
-        $user->save();
-
-        return $user;
-    }
-
-    /**
      * checks weather a user is currently logged in
      * @return bool
      */
-    private function _isLoggedIn(){
+    private function _checkLogIn(){
 
-        $loggedIn = false;
+        $loginCheck = false;
 
         if($this->f3->get('SESSION.user.time') > 0){
             // check logIn time
@@ -70,32 +51,11 @@ class AccessController extends Controller {
             $minutes += $timeDiff->i;
 
             if($minutes <= $this->f3->get('PATHFINDER.TIMER.LOGGED')){
-                $loggedIn = true;
-            }else{
-                // log out
-                // get user model
-                $user = Model\BasicModel::getNew('UserModel');
-                $user->getById($this->f3->get('SESSION.user.id'));
-
-                if(! $user->dry()){
-                    $this->logOut();
-                }
+                $loginCheck = true;
             }
         }
 
-        return $loggedIn;
-    }
-
-    /**
-     * get error object is a user is not found/logged of
-     * @return object
-     */
-    protected function getUserLoggedOffError(){
-        $userError = (object) [];
-        $userError->type = 'error';
-        $userError->message = 'User not found';
-
-        return $userError;
+        return $loginCheck;
     }
 
 }

@@ -127,6 +127,11 @@ $mapWidth: 2500px ;
     @include transition( opacity 0.18s ease-out);
   }
 
+  // system that is currently dragged
+  .jsPlumb_dragged{
+    @extend .pf-system-selected;
+  }
+
   // hover effects ===================================================
 
   ._jsPlumb_hover{
@@ -292,14 +297,12 @@ $mapWidth: 2500px ;
 
   // Endpoints =======================================================
   .pf-map-endpoint-source, .pf-map-endpoint-target{
-
     z-index: 50;
+
     svg {
-      width: 10;
-      height: 10;
 
       circle{
-        @include transition( stroke 0.2s ease-out);
+        @include transition( stroke 0.18s ease-out, fill 0.18s ease-out);
       }
 
       *{
@@ -318,10 +321,30 @@ $mapWidth: 2500px ;
     // hover effect for  Endpoints
     &:hover{
       circle{
-          stroke: $gray-lightest !important;
+          stroke: $orange !important;
       }
     }
 
+    // while dragging
+    &._jsPlumb_dragging{
+      circle {
+        stroke: $orange;
+      }
+    }
+  }
+
+  ._jsPlumb_endpoint_drop_allowed{
+    circle {
+      stroke: $green !important;
+      fill: $green !important;
+    }
+  }
+
+  ._jsPlumb_endpoint_drop_forbidden{
+    circle {
+      stroke: $red-darker !important;
+      fill: $red-darker !important;
+    }
   }
 
   // Connections =====================================================
@@ -329,10 +352,11 @@ $mapWidth: 2500px ;
   svg._jsPlumb_connector{
     cursor: pointer;
     stroke-linecap: round; // line endings
+    @include transition( stroke 0.18s ease-out) ;
     will-change: all;
 
     path{
-      @include transition( stroke 0.2s ease-out) ;
+      @include transition( stroke 0.18s ease-out) ;
     }
 
     path:not(:first-child){
@@ -347,6 +371,11 @@ $mapWidth: 2500px ;
       path:first-child{
        stroke: $gray-lightest; // hover style
       }
+    }
+
+    &._jsPlumb_dragging{
+      @include transition( opacity 0.18s ease-out) ;
+      opacity: 0.4;
     }
   }
 
@@ -424,7 +453,7 @@ $mapWidth: 2500px ;
     padding: 1px 4px;
     font-size: 11px;
     z-index: 1020;
-    @include border-radius(3px);
+    @include border-radius(8px);
     @include box-shadow(0 6px 12px rgba(0,0,0,.4));
   }
 

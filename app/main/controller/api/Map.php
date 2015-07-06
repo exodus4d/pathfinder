@@ -157,12 +157,8 @@ class Map extends \Controller\AccessController {
             $map->getById( (int)$formData['id'] );
 
             // check if the user has access to this map
-            $mapAccess = true;
-            if(! $map->dry() ){
-                $mapAccess = $map->hasAccess($user);
-            }
+            if( $map->hasAccess($user) ){
 
-            if($mapAccess){
                 $map->setData($formData);
                 $map = $map->save();
 
@@ -316,10 +312,13 @@ class Map extends \Controller\AccessController {
             if($f3->exists($cacheKey) === false ){
 
                 $mapData = (array)$f3->get('POST.mapData');
+                // get current map data ========================================================
+                $maps = $user->getMaps();
 
+                // loop all submitted map data that should be saved
+                // -> currently there will only be ONE map data change submitted -> single loop
                 foreach($mapData as $data){
 
-                    $config = $data['config'];
                     $systems = [];
                     $connections = [];
 
@@ -339,76 +338,73 @@ class Map extends \Controller\AccessController {
                         count($connections) > 0
                     ){
 
-                        $map = Model\BasicModel::getNew('MapModel');
-                        $map->getById( (int)$config['id'] );
+                        // map changes expected =============================================
+                        // -> get active user object
+                        $activeCharacter = $user->getActiveUserCharacter();
 
-                        if( $map->hasAccess($user) ){
-
-                            // map changes expected =============================================
-                            // -> get active user object
-                            $activeCharacter = $user->getActiveUserCharacter();
-
-                            // empty system model for changes
-                            $system = Model\BasicModel::getNew('SystemModel');
-                            // empty connection model for changes
-                            $connection = Model\BasicModel::getNew('ConnectionModel');
-
-                            // clear map cache on change
-                            $clearMapCache = false;
+                        // loop current user maps and check for changes
+                        foreach($maps as $map){
 
                             // update system data -----------------------------------------------
-                            foreach($systems as $systemData){
+                            foreach($systems as $i => $systemData){
 
-                                // get object
-                                $system->getById($systemData['id']);
+                                // check if current system belongs to the current map
+                                $map->filter('systems', array('id = ?', $systemData['id'] ));
+                                $filteredMap = $map->find(
+                                    array('id = ?', $map->id ),
+                                    array('limit' => 1)
+                                );
 
-                                // check if system exists and is part of the current map (security)
-                                if( $system->mapId->id === $map->id ){
-                                    // update
-                                    $system->setData($systemData);
-                                    $system->updatedCharacterId = $activeCharacter->characterId;
-                                    $system->save();
+                                // this should never fail
+                                if(is_object($filteredMap)){
+                                    $filteredMap = $filteredMap->current();
 
-                                    $clearMapCache = true;
+                                    // system belongs to the current map
+                                    if(is_object($filteredMap->systems)){
+                                        // update
+                                        $system = $filteredMap->systems->current();
+                                        $system->setData($systemData);
+                                        $system->updatedCharacterId = $activeCharacter->characterId;
+                                        $system->save();
+
+                                        // a system belongs to ONE  map -> speed up for multiple maps
+                                        unset($systemData[$i]);
+                                    }
                                 }
-
-                                $system->reset();
                             }
 
                             // update connection data -------------------------------------------
-                            foreach($connections as $connectionData){
-                                // get object
-                                $connection->getById($connectionData['id']);
+                            foreach($connections as $i => $connectionData){
 
-                                // check if object exists
-                                if( $connection->mapId->id === $map->id ){
-                                    // update
-                                    $connectionData['mapId'] = $map;
-                                    $connection->setData($connectionData);
-                                    $connection->save($user);
+                                // check if the current connection belongs to the current map
+                                $map->filter('connections', array('id = ?', $connectionData['id'] ));
+                                $filteredMap = $map->find(
+                                    array('id = ?', $map->id ),
+                                    array('limit' => 1)
+                                );
 
-                                    $clearMapCache = true;
+                                // this should never fail
+                                if(is_object($filteredMap)){
+                                    $filteredMap = $filteredMap->current();
+
+                                    // connection belongs to the current map
+                                    if(is_object($filteredMap->connections)){
+                                        // update
+                                        $connection = $filteredMap->connections->current();
+                                        $connection->setData($connectionData);
+                                        $connection->save($user);
+
+                                        // a connection belongs to ONE  map -> speed up for multiple maps
+                                        unset($connectionData[$i]);
+                                    }
                                 }
-                                $connection->reset();
                             }
                         }
-
-                        // map data has changed -> clear map cache
-                        if($clearMapCache){
-                            $map->clearCacheData();
-                        }
-
-
-                        $map->reset();
                     }
-
                 }
 
-                // get map data ======================================================
-                $activeMaps = $user->getMaps($responseTTL);
-
                 // format map Data for return
-                $return->mapData = self::getFormattedMapData($activeMaps);
+                $return->mapData = self::getFormattedMapData($maps);
 
                 $f3->set($cacheKey, $return, $responseTTL);
             }else{
@@ -432,6 +428,8 @@ class Map extends \Controller\AccessController {
 
         $mapData = [];
         foreach($mapModels as $mapModel){
+            //$mapModel->update();
+            //$mapModel->cast();
             $allMapData = $mapModel->getData();
 
             $mapData[] = [

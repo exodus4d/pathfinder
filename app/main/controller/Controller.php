@@ -187,29 +187,6 @@ class Controller {
     }
 
     /**
-     * @param $user
-     * @return bool
-     */
-    protected function _logIn($user){
-
-        $loginSuccess = false;
-
-        if(! $user->dry() ){
-            // set Session login
-            $dateTime = new \DateTime();
-            $this->f3->set('SESSION.user.time', $dateTime->getTimestamp());
-            $this->f3->set('SESSION.user.name', $user->name);
-            $this->f3->set('SESSION.user.id', $user->id);
-
-            // update/check api data
-            // $this->_updateCharacterData();
-            $loginSuccess = true;
-        }
-
-        return $loginSuccess;
-    }
-
-    /**
      * logout function
      */
     public function logOut(){
@@ -223,8 +200,23 @@ class Controller {
         }else{
             $return = (object) [];
             $return->reroute = $this->f3->get('BASE') . $this->f3->alias('landing');
+            $return->error[] = $this->getUserLoggedOffError();
+
             echo json_encode($return);
+            die();
         }
+    }
+
+    /**
+     * get error object is a user is not found/logged of
+     * @return object
+     */
+    protected function getUserLoggedOffError(){
+        $userError = (object) [];
+        $userError->type = 'error';
+        $userError->message = 'User not found';
+
+        return $userError;
     }
 
     /**

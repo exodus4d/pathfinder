@@ -247,7 +247,6 @@ class SystemModel extends BasicModel {
 
         // clear map cache as well
         $this->mapId->clearCacheData();
-
     }
 
 } 

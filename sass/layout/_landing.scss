@@ -58,6 +58,10 @@
     border-bottom: 1px solid $gray-darker;
   }
 
+  .row{
+    margin-bottom: 30px;
+  }
+
   .alert {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
   }
@@ -69,6 +73,82 @@
     border-bottom: 1px solid $gray-darker;
     line-height: 34px;
   }
+
+  // images for gallery
+
+  a[data-gallery] {
+    position: relative;
+
+    &:before{
+      content: '\f002';
+      font-family: 'FontAwesome';
+      font-size: 20px;
+      line-height: 20px;
+      color: $orange;
+      position: absolute;
+      top: 9px;
+      left: 8px;
+      height: 100%;
+      width: 100%;
+      padding-top: calc(50% - 10px);
+      z-index: 10;
+      text-align: center;
+      @include transition(transform 0.1s 0.06s ease-in, opacity 0.1s ease-out);
+      will-change: transform, opacity;
+      transform: scale(0,0);
+      opacity: 0;
+    }
+
+    &:hover{
+      img{
+        border-color: $teal-lightest;
+        @include filter(brightness( 50% ));
+      }
+
+      &:before{
+        @include transition-delay( 0.1s );
+        transform: scale(1,1);
+        opacity: 1;
+      }
+    }
+
+    .pf-landing-image-preview{
+      border: {
+        width: 1px;
+        style: solid;
+        color: $gray-darkest
+      }
+      margin: 5px 0 15px 0;
+      display: inline-block;
+      will-change: all;
+      @include filter(brightness( 100% ));
+      @include transition(all 0.2s ease-out);
+      @include box-shadow(0 4px 10px rgba(0,0,0, 0.4));
+
+
+      &.pf-landing-image-preview-small{
+        height: 160px;
+      }
+
+      &.pf-landing-image-preview-medium{
+        height: 256px;
+      }
+    }
+  }
+
+  // lists
+  .pf-landing-list{
+    li i{
+      @extend .fa-li;
+      @extend .fa;
+      @extend .fa-fw;
+      @extend .fa-angle-right;
+      @extend .txt-color;
+      @extend .txt-color-tealLighter;
+    }
+  }
+
+
 }
  // header --------------------------------------------------------------------
 #pf-landing-top{
@@ -122,7 +202,6 @@
         height: 155px;
         width: 180px;
         padding: 7px;
-        display: none;
         opacity: 0;
         will-change: opacity, transform;
         @include border-radius(5px);
@@ -196,6 +275,10 @@
 // login ----------------------------------------------------------------------
 #pf-landing-login{
   padding-top: 40px;
+
+  .row{
+    margin-bottom: 0px;
+  }
 }
 
 // demo map -------------------------------------------------------------------
@@ -205,6 +288,7 @@
   margin: 0 auto;
   height: 380px;
   width: 600px;
+  pointer-events: none;
 
   .pf-header-svg-layer{
     position: absolute;
@@ -239,6 +323,44 @@
   }
 }
 
+// map bg
+#pf-header-map-bg{
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+
+  img{
+    pointer-events: none;
+  }
+
+  #pf-map-bg-image{
+    opacity: 0; // triggered by js
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  #pf-map-neocom{
+    opacity: 0; // triggered by js
+    height: 665px;
+    width: 21px;
+  }
+
+  #pf-map-browser{
+    opacity: 0; // triggered by js
+    position: absolute;
+    top: 110px;
+    left: 21px;
+    height: 560px;
+    width: 515px;
+  }
+}
+
 // carousel -------------------------------------------------------------------
 #pf-landing-gallery-carousel{
   background-image: url("#{$base-url}/pf-header-bg.jpg");
@@ -246,82 +368,18 @@
   .slide-content{
     border-radius: 5px;
   }
+
+  // title style
+  h3{
+    width: 100%;
+    text-align: left;
+  }
 }
 
 // gallery --------------------------------------------------------------------
 #pf-landing-gallery{
 
-  #pf-landing-gallery-thumb-container{
-
-    .row{
-      margin-bottom: 30px;
-    }
-  }
-
-  a[data-gallery] {
-    position: relative;
-
-    img{
-      border: {
-        width: 1px;
-        style: solid;
-        color: $gray-darker
-      }
-      margin: 5px;
-      display: inline-block;
-      height: 160px;
-      will-change: all;
-      @include border-radius(5px);
-      @include filter(brightness( 100% ));
-      @include transition(all 0.2s ease-out);
-    }
-
-    &:before{
-      content: '\f002';
-      font-family: 'FontAwesome';
-      font-size: 20px;
-      line-height: 20px;
-      color: $orange;
-      position: absolute;
-      top: 9px;
-      left: 8px;
-      height: 20px;
-      width: 154px;
-      margin-top: 70px;
-      z-index: 10;
-      text-align: center;
-      @include transition(transform 0.1s 0.06s ease-in, opacity 0.1s ease-out);
-      will-change: transform, opacity;
-      transform: scale(0,0);
-      opacity: 0;
-    }
-
-    &:hover{
-      img{
-        border-color: $teal-lightest;
-        @include filter(brightness( 50% ));
-        @include box-shadow(0 6px 12px rgba(0,0,0, 0.3));
-      }
-
-      &:before{
-        @include transition-delay( 0.1s );
-        transform: scale(1,1);
-        opacity: 1;
-      }
-    }
-  }
-
-  // feature list points
-  li i{
-    @extend .fa-li;
-    @extend .fa;
-    @extend .fa-fw;
-    @extend .fa-angle-right;
-    @extend .txt-color;
-    @extend .txt-color-tealLighter;
-  }
 }
-
 
 // pricing --------------------------------------------------------------------
 .pf-landing-pricing-panel{
@@ -354,6 +412,16 @@
   }
 }
 
+// about ----------------------------------------------------------------------
+#pf-landing-about{
+
+  .pf-landing-about-me{
+    width: 256px;
+    height: 256px;
+    border: none;
+    @include box-shadow(0 4px 10px rgba(0,0,0, 0.4));
+  }
+}
 
 // footer ---------------------------------------------------------------------
 .pf-landing-footer{

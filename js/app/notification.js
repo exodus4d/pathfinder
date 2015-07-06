@@ -148,6 +148,14 @@ define([
             case 'error':
                 customConfig.icon = 'fa fa-close fa-fw fa-lg';
                 break;
+            case 'lock':
+                customConfig.icon = 'fa fa-lock fa-fw fa-lg';
+                customConfig.type = 'success';
+                break;
+            case 'unlock':
+                customConfig.icon = 'fa fa-unlock fa-fw fa-lg';
+                customConfig.type = 'info';
+                break;
             default:
                 customConfig.icon = false;
         }

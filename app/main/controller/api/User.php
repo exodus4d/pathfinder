@@ -58,7 +58,16 @@ class User extends Controller\Controller{
 
         if($user !== false){
             // user is verified -> ready for login
-            $loginSuccess = $this->_logIn($user);
+
+            // set Session login
+            $dateTime = new \DateTime();
+            $this->f3->set('SESSION.user.time', $dateTime->getTimestamp());
+            $this->f3->set('SESSION.user.name', $user->name);
+            $this->f3->set('SESSION.user.id', $user->id);
+
+            // update/check api data
+            // $this->_updateCharacterData();
+            $loginSuccess = true;
         }
 
         return $loginSuccess;

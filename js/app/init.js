@@ -29,7 +29,7 @@ define(['jquery'], function($) {
           deleteSystem: 'api/system/delete',                        // ajax URL - delete system from map
           getSystemGraphData: 'api/system/graphData',               // ajax URL - get all system graph data
           // connection API
-            saveConnection: 'api/connection/save',                    // ajax URL - save new connection to map
+          saveConnection: 'api/connection/save',                    // ajax URL - save new connection to map
           deleteConnection: 'api/connection/delete',                // ajax URL - delete connection from map
           // signature API
           getSignatures: 'api/signature/getAll',                    // ajax URL - get all signature data for system

@@ -148,12 +148,12 @@ class UserModel extends BasicModel {
      * get all accessible map models for this user
      * @return array
      */
-    public function getMaps($map_ttl = 0){
-        $maps = [];
-        $userMaps = $this->getRelatedModels('UserMapModel', 'userId', null, $map_ttl);
+    public function getMaps(){
+        $this->filter('userMaps', array('active = ?', 1));
 
-        if(is_object($userMaps)){
-            foreach($userMaps as $userMap){
+        $maps = [];
+        if($this->userMaps){
+            foreach($this->userMaps as $userMap){
                 if($userMap->mapId->isActive()){
                     $maps[] = $userMap->mapId;
                 }

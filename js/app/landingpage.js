@@ -27,6 +27,12 @@ define([
         logoContainerId: 'pf-logo-container',                                   // id for main header logo container
         headHeaderMapId: 'pf-header-map',                                       // id for header image (svg animation)
 
+        // map bg
+        headMapBgId: 'pf-header-map-bg',                                        // id for header background container
+        mapNeocomId: 'pf-map-neocom',                                           // id for map "neocom" image
+        mapBrowserId: 'pf-map-browser',                                         // id for "browser" image
+        mapBgImageId: 'pf-map-bg-image',                                        // id for "background" map image
+
         // navigation
         navigationElementId: 'pf-navbar',                                       // id for navbar element
         navigationLinkManualClass: 'pf-navbar-manual',                          // class for the "manual" trigger link
@@ -136,7 +142,8 @@ define([
         // extent "blueimp" gallery for a textFactory method to show HTML templates
         Gallery.prototype.textFactory = function (obj, callback) {
             var newSlideContent = $('<div>')
-                .addClass('text-content');
+                .addClass('text-content')
+                .attr('title', obj.title);
 
             var moduleConfig = {
                 name: obj.href, // template name
@@ -154,7 +161,11 @@ define([
 
             // render HTML file (template)
             var moduleData = {
-                id: config.headHeaderMapId
+                id: config.headHeaderMapId,
+                bgId: config.headMapBgId,
+                neocomId: config.mapNeocomId,
+                browserId: config.mapBrowserId,
+                mapBgImageId: config.mapBgImageId
             };
 
             Render.showModule(moduleConfig, moduleData);
@@ -165,30 +176,25 @@ define([
         // initialize carousel ------------------------------------------
         var carousel = Gallery([
             {
-                title: 'Map',
+                title: '',
                 href: 'ui/map',
                 type: 'text/html'
             },
             {
                 href: 'public/img/landing/responsive.jpg',
-                title: 'Image 1',
+                title: 'Responsive layout',
                 type: 'image/jpg',
                 thumbnail: ''
             },
             {
                 href: 'public/img/landing/pathfinder_1.jpg',
-                title: 'Image 1',
+                title: 'Map view',
                 type: 'image/jpg',
                 thumbnail: ''
             },
             {
                 href: 'public/img/landing/pathfinder_2.jpg',
-                title: 'Image 1',
-                type: 'image/jpg',
-                thumbnail: ''
-            }, {
-                href: 'http://img5.fotos-hochladen.net/uploads/s51600x1200a2j7rqp4ig.jpg',
-                title: 'Image 2',
+                title: 'System information',
                 type: 'image/jpg',
                 thumbnail: ''
             }
@@ -196,7 +202,7 @@ define([
             container: '#' + config.galleryCarouselId,
             carousel: true,
             startSlideshow: false,
-            titleProperty: 'img-title', // attr renamed to prevent bootstrap tooltips for images
+            titleProperty: 'title',
             transitionSpeed: 400,
             slideshowInterval: 5000,
             onopened: function () {
@@ -205,8 +211,42 @@ define([
                 // -> show "demo" map
 
                 $('#' + config.headHeaderMapId).drawDemoMap(function(){
-                    // when map is shown -> start carousel looping
-                    carousel.play();
+
+                    // zoom map SVGs
+                    $('#' + config.headHeaderMapId + ' svg').velocity({
+                        scaleX: 0.66,
+                        scaleY: 0.66
+                    }, {
+                        duration: 360
+                    });
+
+                    // position map container
+                    $('#' + config.headHeaderMapId).velocity({
+                        marginTop: '130px',
+                        marginLeft: '-50px'
+                    }, {
+                        duration: 360,
+                        complete: function(){
+                            // show browser
+                            $('#' +  config.mapBrowserId).velocity('transition.slideUpIn', {
+                                duration: 360,
+                                complete: function(){
+                                    // show neocom
+                                    $('#' +  config.mapNeocomId).velocity('transition.slideLeftIn', {
+                                        duration: 180
+                                    });
+
+                                    // show background
+                                    $('#' +  config.mapBgImageId).velocity('fadeIn', {
+                                        duration: 300
+                                    });
+
+                                    // when map is shown -> start carousel looping
+                                    carousel.play();
+                                }
+                            });
+                        }
+                    });
                 });
 
             }
@@ -220,7 +260,7 @@ define([
 
         requirejs(['blueImpGalleryBootstrap'], function() {
             // thumb links
-            var thumbLinks = $('#' + config.galleryThumbContainerId + ' a');
+            var thumbLinks = $('a[data-gallery="#pf-gallery"]');
 
             var borderless = false;
 
@@ -340,7 +380,9 @@ define([
             $('#' + config.logoContainerId).drawLogo(function(){
 
                 // init header animation
-                $('#' + config.headerContainerId).initHeader();
+                $('#' + config.headerContainerId).initHeader(function(){
+
+                });
             }, false);
         }
 

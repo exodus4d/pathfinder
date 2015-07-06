@@ -1044,11 +1044,6 @@ define([
                 removeSystem(map, system );
             }
 
-            // trigger "system deleted" on Tab Content Element
-            var tabContentElement = getTabContentElementByMapElement( mapContainer );
-
-            $(tabContentElement).trigger('pf:deleteSystemData', [triggerData]);
-
             callback();
         }).fail(function( jqXHR, status, error) {
             var reason = status + ' ' + error;
@@ -1065,8 +1060,17 @@ define([
     var removeSystem = function(map, system){
         system = $(system);
 
+        // check if system is "active"
+        if( system.hasClass(config.systemActiveClass) ){
+            // get parent Tab Content and fire clear modules event
+            var tabContentElement = getTabContentElementByMapElement( system );
+
+            $(tabContentElement).trigger('pf:removeSystemModules');
+        }
+
         // remove endpoints and their connections
-        map.removeAllEndpoints (system);
+        // do not fire a "connectionDetached" event
+        map.detachAllConnections(system, {fireEvent: false});
 
         // hide tooltip
         system.toggleSystemTooltip('destroy', {});
@@ -1599,8 +1603,9 @@ define([
         map.draggable(system, {
             containment: 'parent',
             constrain: true,
+            //scroll: true, not working because of customized scrollbar
             filter: '.' + config.systemHeadNameClass,               // disable drag on "system name"
-            scope: 'wh',
+           // scope: 'wh',
             start: function(params){
                 var dragSystem = $(params.el);
 
@@ -1642,7 +1647,7 @@ define([
 
                 setTimeout(function(){
                     dragSystem.removeClass('no-click');
-                }, Init.timer['DBL_CLICK'] + 50);
+                }, Init.timer.DBL_CLICK + 50);
 
                 // show tooltip
                 dragSystem.toggleSystemTooltip('show', {show: true});
@@ -1800,6 +1805,7 @@ define([
                     case 'set_rally':
                         // set rally point
                         if( ! currentSystem.data( 'rally' ) ){
+
                             // show confirm dialog
                             var rallyDialog = bootbox.dialog({
                                 message: 'Do you want to poke active pilots?',
@@ -1814,15 +1820,15 @@ define([
                                     },
                                     setRallyPoke: {
                                         label: '<i class="fa fa-fw fa-bullhorn"></i> Set rally and poke',
-                                        className: 'btn-info',
+                                        className: 'btn-primary',
                                         callback: function() {
                                             currentSystem.toggleRallyPoint(true, {});
                                             currentSystem.markAsChanged();
                                         }
                                     },
-                                    setRallay: {
-                                        label: '<i class="fa fa-fw fa-users"></i> Set rally',
-                                        className: 'btn-primary',
+                                    success: {
+                                        label: '<i class="fa fa-fw fa-check"></i> save',
+                                        className: 'btn-success',
                                         callback: function() {
                                             currentSystem.toggleRallyPoint(false, {});
                                             currentSystem.markAsChanged();
@@ -1901,7 +1907,7 @@ define([
 
         var single = function(e){
 
-            // check if click was performed on "popover" (x-editable
+            // check if click was performed on "popover" (x-editable)
             var popoverClick = false;
             if( $(e.target).parents('.popover').length ){
                 popoverClick = true;
@@ -1911,14 +1917,17 @@ define([
             if( !popoverClick ){
                 var system = $(this);
 
-                // left mouse button
-                if(e.which === 1){
-                    if(! system.hasClass('no-click')){
-                        if(e.ctrlKey === true){
-                            // select system
-                            system.toggleSelectSystem(map);
-                        }else{
-                            system.showSystemInfo(map);
+                // check if system is locked for "click" events
+                if( !system.hasClass('no-click') ){
+                    // left mouse button
+                    if(e.which === 1){
+                        if(! system.hasClass('no-click')){
+                            if(e.ctrlKey === true){
+                                // select system
+                                system.toggleSelectSystem(map);
+                            }else{
+                                system.showSystemInfo(map);
+                            }
                         }
                     }
                 }
@@ -2058,7 +2067,7 @@ define([
             map.setDraggable(system, true);
 
             if(! hideNotification){
-                Util.showNotify({title: 'System lock removed', text: 'System: ' + systemName, type: 'success'});
+                Util.showNotify({title: 'System unlocked', text: systemName, type: 'unlock'});
             }
         }else{
             system.data('locked', true);
@@ -2068,7 +2077,7 @@ define([
             map.setDraggable(system, false);
 
             if(! hideNotification){
-                Util.showNotify({title: 'System is locked', text: 'System: ' + systemName,  type: 'success'});
+                Util.showNotify({title: 'System locked', text: systemName,  type: 'lock'});
             }
         }
 
@@ -2687,8 +2696,8 @@ define([
                         }
                     },
                     success: {
-                        label: '<i class="fa fa-fw fa-sun-o"></i> add system',
-                        className: 'btn-primary',
+                        label: '<i class="fa fa-fw fa-check"></i> save',
+                        className: 'btn-success',
                         callback: function (e) {
                             // get form Values
                             var form = $('#' + config.systemDialogId).find('form');
@@ -2785,9 +2794,9 @@ define([
 
                 var modalContent = $('#' + config.systemDialogId);
 
-                // init system select live search
+                // init system select live search  - some delay until modal transition has finished
                 var selectElement = modalContent.find('.' + config.systemDialogSelectClass);
-                selectElement.initSystemSelect({
+                selectElement.delay(200).initSystemSelect({
                     key: 'systemId',
                     disabledOptions: mapSystemIds
                 });
@@ -2805,10 +2814,7 @@ define([
                 value: defaultSystemStatus,
                 inputclass: config.systemDialogSelectClass
             });
-
         });
-
-
     };
 
     /**
@@ -3074,6 +3080,10 @@ define([
         var id = connection.getParameter('connectionId');
         var updated = connection.getParameter('updated');
 
+        var connectionTypes = connection.getType();
+        // normalize connection array
+        connectionTypes = $.grep(connectionTypes, function(n){ return(n); });
+
         var data = {
             id: id ? id : 0,
             source: parseInt( source.data('id') ),
@@ -3081,7 +3091,7 @@ define([
             target: parseInt( target.data('id') ),
             targetName: target.data('name'),
             scope: connection.scope,
-            type: connection.getType(),
+            type: connectionTypes,
             updated: updated ? updated : 0
         };
 
@@ -3104,7 +3114,7 @@ define([
                     outlineWidth: 2                                                             // width of the outline for an Endpoint or Connector. An integer.
                 },
                 Connector:[ 'Bezier', { curviness: 40 /*, cssClass: 'pf-map-connection-wh-fresh'*/  } ],
-                Endpoint : ['Dot', {radius: 6}],
+                Endpoints : [ [ 'Dot', { radius: 6 } ], [ 'Dot', { radius: 6 } ] ],
                 // Endpoint: 'Blank', // does not work... :(
                 ReattachConnections: false,                                                     // re-attach connection if dragged with mouse to "nowhere"
                 Scope: Init.defaultMapScope,                                                     // default map scope for connections
@@ -3127,6 +3137,18 @@ define([
             // event after DragStop a connection or new connection
             newJsPlumbInstance.bind('beforeDrop', function(info) {
                 var connection = info.connection;
+
+
+                // lock the target system for "click" events
+                // to prevent loading system information
+                var sourceSystem = $('#' + info.sourceId);
+                var targetSystem = $('#' + info.targetId);
+                sourceSystem.addClass('no-click');
+                targetSystem.addClass('no-click');
+                setTimeout(function(){
+                    sourceSystem.removeClass('no-click');
+                    targetSystem.removeClass('no-click');
+                }, Init.timer.DBL_CLICK + 50);
 
                 // set "default" connection status only for NEW connections
                 if(!connection.suspendedElement){
@@ -3161,6 +3183,12 @@ define([
                 // a connection is manually (drag&drop) detached! otherwise this event should not be send!
                 var connection = info.connection;
                 deleteConnections([connection], true);
+            });
+
+            newJsPlumbInstance.bind('checkDropAllowed', function(params){
+                // connections can not be attached to foreign endpoints
+                // the only endpoint available is endpoint from where the connection was dragged away (re-attach)
+                return true;
             });
 
             activeInstances[mapId] = newJsPlumbInstance;

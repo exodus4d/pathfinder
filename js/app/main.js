@@ -203,7 +203,7 @@ define([
 
             // start user update trigger after map loaded
             setTimeout(function(){
-                triggerUserUpdatePing();
+               // triggerUserUpdatePing();
             }, 3000);
 
         };

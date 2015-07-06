@@ -162,7 +162,6 @@ class MapModel extends BasicModel {
             $mapDataAll->connections = $this->getConnectionData();
 
             $this->updateCacheData($mapDataAll);
-
         }
 
         return $mapDataAll;
@@ -231,7 +230,6 @@ class MapModel extends BasicModel {
 
         return $connections;
     }
-
 
     /**
      * get all connection data in this map

@@ -100,6 +100,7 @@ define([
 
                     }
                 },
+                dropdownParent: 'body',
                 theme: 'pathfinder',
                 minimumInputLength: 2,
                 templateResult: formatResultData,
@@ -111,9 +112,6 @@ define([
                 }
             }).on('change', function(e){
                 // select changed
-                console.log(e);
-                console.log(selectElement.val())
-
             })
         ).done(function(){
             // open select
@@ -222,6 +220,7 @@ define([
 
                         }
                     },
+                    dropdownParent: 'body',
                     theme: 'pathfinder',
                     minimumInputLength: 3,
                     placeholder: '',

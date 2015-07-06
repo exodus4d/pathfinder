@@ -13,6 +13,7 @@ class ConnectionModel extends BasicModel{
 
     protected $table = 'connection';
 
+
     protected $fieldConf = array(
         'mapId' => array(
             'belongs-to-one' => 'Model\MapModel'

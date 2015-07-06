@@ -21,7 +21,7 @@ class BasicModel extends \DB\Cortex {
      * -> leave this at a higher value
      * @var int
      */
-    protected $ttl = 86400;
+    //protected $ttl = 86400;
 
     /**
      * caching for relational data
@@ -212,8 +212,8 @@ class BasicModel extends \DB\Cortex {
      * @param int $ttl
      * @return \DB\Cortex
      */
-    public function getById($id, $ttl = 0) {
-        $ttl = $ttl ? : $this->ttl;
+    public function getById($id, $ttl = 3) {
+
         return $this->getByForeignKey('id', (int)$id, array('limit' => 1), $ttl);
     }
 
@@ -248,7 +248,7 @@ class BasicModel extends \DB\Cortex {
      * @param int $ttl
      * @return \DB\Cortex
      */
-    public function getByForeignKey($key, $id, $options = array(), $ttl = 0){
+    public function getByForeignKey($key, $id, $options = array(), $ttl = 60){
 
         $querySet = [];
         $query = [];
@@ -265,27 +265,7 @@ class BasicModel extends \DB\Cortex {
 
         array_unshift($querySet, implode(' AND ', $query));
 
-        $ttl = $ttl ? : $this->ttl;
-
         return $this->load( $querySet, $options, $ttl );
-    }
-
-    /**
-     * get multiple model obj that have an 1->m relation to this model
-     * @param $model
-     * @param $foreignKey
-     * @param null $options
-     * @param int $ttl
-     * @return mixed
-     */
-    public function getRelatedModels($model, $foreignKey, $options = null, $ttl = 0){
-
-        $ttl = $ttl ? : $this->ttl;
-
-        $model = self::getNew($model, $ttl);
-        $relatedModels = $model->find(array($foreignKey . ' = ? AND active = 1', $this->id), $options, $ttl);
-
-        return $relatedModels;
     }
 
     /**

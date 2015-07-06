@@ -540,7 +540,7 @@ define([
                             doubleClickCallback.call(self, e);
                         }
                         clicks = 0;
-                    }, timeout || Init.timer['DBL_CLICK']);
+                    }, timeout || Init.timer.DBL_CLICK);
                 }
             });
         });

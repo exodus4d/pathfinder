@@ -2,6 +2,7 @@
   <dictionary name="exodus4d">
     <words>
       <w>addclass</w>
+      <w>blueimp</w>
       <w>bootbox</w>
       <w>cacheable</w>
       <w>contextmenu</w>
@@ -25,6 +26,7 @@
       <w>minify</w>
       <w>mouseover</w>
       <w>navbar</w>
+      <w>neocom</w>
       <w>nonblock</w>
       <w>onerror</w>
       <w>orderable</w>
@@ -44,6 +46,7 @@
       <w>timelimit</w>
       <w>viewport</w>
       <w>waypoint</w>
+      <w>webserver</w>
     </words>
   </dictionary>
 </component>

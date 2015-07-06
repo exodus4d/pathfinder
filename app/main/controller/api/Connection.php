@@ -24,6 +24,7 @@ class Connection extends \Controller\AccessController{
 
     /**
      * save a new connection or updates an existing (drag/drop) between two systems
+     * if a connection is changed (drag&drop) to another system. -> this function is called for update
      * @param $f3
      */
     public function save($f3){
@@ -40,40 +41,32 @@ class Connection extends \Controller\AccessController{
             $user = $this->_getUser();
 
             if($user){
-                // get map model
+                // get map model and check map access
                 $map = Model\BasicModel::getNew('MapModel');
                 $map->getById( (int)$mapData['id'] );
 
-                // get source model (system)
-                $source = Model\BasicModel::getNew('SystemModel');
-                $source->getById( (int)$connectionData['source'] );
-
-                // get target model (system)
-                $target = Model\BasicModel::getNew('SystemModel');
-                $target->getById( (int)$connectionData['target'] );
-
-                // map model and systeme are required for a new connection!
-                if(
-                    !$map->dry() &&
-                    !$source->dry() &&
-                    !$target->dry()
-                ){
-                    $connection = Model\BasicModel::getNew('ConnectionModel');
-                    $connection->getById( (int)$connectionData['id'] );
-                    $connection->mapId = $map;
-                    $connection->source = $source;
-                    $connection->target = $target;
+                if( $map->hasAccess($user) ){
+                    $source = $map->getSystem( (int)$connectionData['source'] );
+                    $target = $map->getSystem( (int)$connectionData['target'] );
 
                     if(
-                        $connection->isValid() &&
-                        $connection->hasAccess($user)
+                        !is_null($source) &&
+                        !is_null($target)
                     ){
-                        $connection->save();
-                        $newConnectionData = $connection->getData();
+                        $connection = Model\BasicModel::getNew('ConnectionModel');
+                        $connection->getById( (int)$connectionData['id'] );
+
+                        $connectionData['mapId'] = $map;
+
+                        $connection->setData($connectionData);
+
+                        if( $connection->isValid() ){
+                            $connection->save();
+
+                            $newConnectionData = $connection->getData();
+                        }
                     }
                 }
-
-
             }
         }
 

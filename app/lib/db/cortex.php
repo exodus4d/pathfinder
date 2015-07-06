@@ -18,9 +18,9 @@
  *  https://github.com/ikkez/F3-Sugar/
  *
  *  @package DB
- *  @version 1.3.1-dev
+ *  @version 1.4.0
  *  @since 24.04.2012
- *  @date 19.01.2015
+ *  @date 04.06.2015
  */
 
 namespace DB;
@@ -1182,8 +1182,8 @@ class Cortex extends Cursor {
 						$crit = array_shift($filter);
 						if (count($filter)>0)
 							$this->preBinds+=$filter;
-						$this->set('count_'.$key,'(select count('.$relConf['relField'].') from '.$from.' where '.
-							$crit.' group by '.$mmTable.'.'.$relConf['relField'].')');
+						$this->set('count_'.$key,'(select count('.$mmTable.'.'.$relConf['relField'].') from '.$from.
+							' where '.$crit.' group by '.$mmTable.'.'.$relConf['relField'].')');
 					} else {
 						// count rel
 						$this->countFields[]=$key;

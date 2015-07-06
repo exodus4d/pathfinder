@@ -9,7 +9,7 @@ define([
     'app/ui/system_killboard',
     'datatablesTableTools',
     'app/map/map'
-], function($, Config, Util) {
+], function($, Init, Util) {
 
     'use strict';
 
@@ -90,6 +90,27 @@ define([
                 drawSystemModules($( e.target ));
             });
 
+            $(this).on('pf:removeSystemModules', function(e){
+
+                removeSystemModules($( e.target ));
+            });
+        });
+    };
+
+    /**
+     * clear all system info modules and remove them
+     * @param tabContentElement
+     */
+    var removeSystemModules = function(tabContentElement, callback){
+        tabContentElement.find('.' + config.moduleClass).velocity('transition.slideDownOut', {
+            duration: Init.animationSpeed.mapModule,
+            complete: function(tempElement){
+                $(tempElement).remove();
+
+                if(callback){
+                    callback();
+                }
+            }
         });
     };
 

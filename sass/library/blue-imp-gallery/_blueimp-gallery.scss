@@ -247,7 +247,7 @@ body:last-child .blueimp-gallery-playing > .play-pause {
 // text content
 .blueimp-gallery > .slides > .slide > .text-content {
   overflow: auto;
-  margin: 20px auto;
-  padding: 0 20px;
+  margin: 0 auto;
+  overflow: hidden;
   text-align: left;
 }
