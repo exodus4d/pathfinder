@@ -20,6 +20,7 @@ define([
         mapInfoSystemsId: 'pf-map-info-systems',                                // id for map info systems box
         mapInfoConnectionsId: 'pf-map-info-connections',                        // id for map info connections box
         mapInfoTableClass: 'pf-map-info-table',                                 // class for data
+        mapInfoLifetimeCounterClass: 'pf-map-info-lifetime-counter',            // class for map lifetime counter
 
         loadingOptions: {                                                       // config for loading overlay
             icon: {
@@ -82,7 +83,14 @@ define([
         var dlElementRight = $('<dl>', {
             class: 'dl-horizontal',
             css: {'float': 'right'}
-        }).append(
+            }).append(
+                $('<dt>').text( 'Lifetime' )
+            ).append(
+                $('<dd>', {
+                    class: config.mapInfoLifetimeCounterClass,
+                    text: mapData.config.created
+                })
+            ).append(
                 $('<dt>').text( 'Systems' )
             ).append(
                 $('<dd>').text( countSystems )
@@ -93,6 +101,10 @@ define([
             );
 
         mapElement.append(dlElementRight);
+
+        // init map lifetime counter
+        $('.' + config.mapInfoLifetimeCounterClass).initSignatureCounter();
+
 
 
         mapElement.hideLoadingAnimation();

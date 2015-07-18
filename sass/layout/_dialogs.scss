@@ -2,11 +2,11 @@
 
   // dialog headline ==============================================================
   h2 {
-    font-family: "Oxygen", "Open Sans", Arial, Helvetica, Sans-Serif;;
+    font-family: $font-family-sans-serif;
     letter-spacing: 0px;
-    font-size: $font-size-h2;
+    font-size: $font-size-h5;
     margin: 20px 0;
-    line-height:normal;
+    line-height: normal;
   }
 
   // data tables ==================================================================
@@ -41,7 +41,7 @@
 
       &.finished{
           &:before{
-          @include border-image( linear-gradient(to right, $teal-darker, $teal-darker) 1 1% );
+          @include border-image( linear-gradient(to right, $teal-dark, $teal-dark) 1 1% );
           border-bottom: 0;
         }
       }
@@ -233,6 +233,13 @@
 // ad system dialog =======================================
 .pf-system-dialog-select{
   width: 270px !important;
+}
+
+// sharing dialog =========================================
+#pf-sharing-dialog{
+  .pf-dynamic-area{
+    min-height: 0;
+  }
 }
 
 // credits dialog =========================================

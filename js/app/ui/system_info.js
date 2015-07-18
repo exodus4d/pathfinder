@@ -42,7 +42,7 @@ define([
      * set module observer and look for relevant system data to update
      */
     var setModuleObserver = function(moduleElement){
-        $(document).off('pf:updateSystemModules').on('pf:updateSystemModules', function(e, data){
+        $(document).on('pf:updateSystemModules', function(e, data){
             if(data){
                 moduleElement.updateSystemInfoModule(data);
             }
@@ -405,10 +405,8 @@ define([
         }else{
             drawModule(parentElement, systemData);
         }
-
-
-
     };
+
 });
 
 

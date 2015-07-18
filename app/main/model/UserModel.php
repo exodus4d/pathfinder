@@ -7,23 +7,28 @@
  */
 
 namespace Model;
+
+use DB\SQL\Schema;
 use Controller;
 
 class UserModel extends BasicModel {
 
     protected $table = 'user';
 
-    protected $fieldConf = array(
-        'apis' => array(
-            'has-many' => array('Model\UserApiModel', 'userId')
+    protected $fieldConf = [
+        'lastLogin' => array(
+            'type' => Schema::DT_TIMESTAMP
         ),
-        'userCharacters' => array(
-            'has-many' => array('Model\UserCharacterModel', 'userId')
-        ),
-        'userMaps' => array(
-            'has-many' => array('Model\UserMapModel', 'userId')
-        )
-    );
+        'apis' => [
+            'has-many' => ['Model\UserApiModel', 'userId']
+        ],
+        'userCharacters' => [
+            'has-many' => ['Model\UserCharacterModel', 'userId']
+        ],
+        'userMaps' => [
+            'has-many' => ['Model\UserMapModel', 'userId']
+        ]
+    ];
 
     protected $validate = [
         'name' => [
@@ -57,6 +62,9 @@ class UserModel extends BasicModel {
 
         // add sensitive user data
         $userData->email = $this->email;
+
+        // user sharing info
+        $userData->sharing = $this->sharing;
 
         // api data
         $APIs = $this->getAPIs();
@@ -101,7 +109,7 @@ class UserModel extends BasicModel {
     public function set_email($email){
         if (\Audit::instance()->email($email) == false) {
             // no valid email address
-            $this->_throwValidationError('email');
+            $this->throwValidationError('email');
         }
         return $email;
     }
@@ -113,7 +121,7 @@ class UserModel extends BasicModel {
      */
     public function set_password($password){
         if(strlen($password) < 6){
-            $this->_throwValidationError('password');
+            $this->throwValidationError('password');
         }
 
         $salt = uniqid('', true);
@@ -210,7 +218,7 @@ class UserModel extends BasicModel {
             if(count($userCharacters) > 0){
                 $mainSet = false;
                 foreach($userCharacters as $userCharacter){
-                    if($characterId == $userCharacter->characterId->characterId){
+                    if($characterId == $userCharacter->getCharacter()->id){
                         $mainSet = true;
                         $userCharacter->setMain(1);
                     }else{
@@ -329,7 +337,7 @@ class UserModel extends BasicModel {
             $character->getById( $apiController->values['charid'] );
 
             if( $character->dry() ){
-                // this can happen if a valid user plays the game with a non character
+                // this can happen if a valid user plays the game with a not registered character
                 // whose API is not registered ->  save new character or update character data
 
                 $character->id = $apiController->values['charid'];

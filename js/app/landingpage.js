@@ -13,7 +13,7 @@ define([
     'app/ui/header',
     'app/ui/logo',
     'app/ui/demo_map',
-    'dialog/settings',
+    'dialog/account_settings',
     'dialog/notification',
     'dialog/manual'
 ], function($, Init, Util, Render, CCP, Gallery, bootbox) {
@@ -61,6 +61,9 @@ define([
         $('.' + config.registerButtonClass).on('click', function(e){
             e.preventDefault();
 
+            // logout current user (if there e.g. to register a second account)
+            Util.logout();
+
             // show register/settings dialog
             $.fn.showSettingsDialog(true);
         });
@@ -96,7 +99,7 @@ define([
                         // login error
                         if(data.error !== undefined){
                             $('.' + config.splashOverlayClass).hideSplashOverlay();
-                            loginFormMessageContainer.showMessage({title: 'Login failed', text: ' please try again', type: 'error'});
+                            loginFormMessageContainer.showMessage({title: 'Login failed', text: ' Invalid username and password', type: 'error'});
 
                         }else if(data.reroute !== undefined){
                             window.location = Util.buildUrl(data.reroute);
@@ -203,7 +206,7 @@ define([
             carousel: true,
             startSlideshow: false,
             titleProperty: 'title',
-            transitionSpeed: 400,
+            transitionSpeed: 600,
             slideshowInterval: 5000,
             onopened: function () {
                 // Callback function executed when the Gallery has been initialized
@@ -228,7 +231,7 @@ define([
                         duration: 360,
                         complete: function(){
                             // show browser
-                            $('#' +  config.mapBrowserId).velocity('transition.slideUpIn', {
+                            $('#' +  config.mapBrowserId).velocity('transition.slideUpBigIn', {
                                 duration: 360,
                                 complete: function(){
                                     // show neocom
@@ -237,8 +240,8 @@ define([
                                     });
 
                                     // show background
-                                    $('#' +  config.mapBgImageId).velocity('fadeIn', {
-                                        duration: 300
+                                    $('#' +  config.mapBgImageId).velocity('transition.shrinkIn', {
+                                        duration: 360
                                     });
 
                                     // when map is shown -> start carousel looping
@@ -354,13 +357,21 @@ define([
                 content: {
                     icon: 'fa-sign-out',
                     class: 'txt-color-warning',
-                    title: 'Log off',
-                    headline: 'Logged off',
-                    text: ['You are automatically logged off']
+                    title: 'Logout',
+                    headline: 'Logout',
+                    text: [
+                        'For security reasons, you were logged out automatically',
+                        'Please log in again'
+                    ]
                 }
             };
 
             $.fn.showNotificationDialog(options);
+
+            // change url (remove logout parameter)
+            if (history.pushState) {
+                history.pushState({}, '', location.protocol + '//' + location.host + location.pathname);
+            }
         }
 
         // init scrollspy
@@ -390,5 +401,6 @@ define([
         setPageObserver();
 
     });
+
 
 });

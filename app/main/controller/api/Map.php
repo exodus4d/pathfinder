@@ -153,114 +153,133 @@ class Map extends \Controller\AccessController {
 
             $user = $this->_getUser();
 
-            $map = Model\BasicModel::getNew('MapModel');
-            $map->getById( (int)$formData['id'] );
+            if($user){
+                $map = Model\BasicModel::getNew('MapModel');
+                $map->getById( (int)$formData['id'] );
 
-            // check if the user has access to this map
-            if( $map->hasAccess($user) ){
+                if(
+                    $map->dry() ||
+                    $map->hasAccess($user)
+                ){
+                    // new map
+                    $map->setData($formData);
+                    $map = $map->save();
 
-                $map->setData($formData);
-                $map = $map->save();
+                    // save global map access. Depends on map "type"
+                    if($map->isPrivate()){
 
-                // save global map access. Depends on map "type"
-                if($map->isPrivate()){
+                        // share map between users -> set access
+                        if(isset($formData['mapUsers'])){
+                            // clear map access. In case something has removed from access list
+                            $map->clearAccess();
 
-                    // share map between users -> set access
-                    if(array_key_exists('mapUsers', $formData)){
-                        // clear map access. In case something has removed from access list
-                        $map->clearAccess();
+                            $tempUser = Model\BasicModel::getNew('UserModel');
 
-                        $tempUser = Model\BasicModel::getNew('UserModel');
+                            foreach((array)$formData['mapUsers'] as $userId){
+                                $tempUser->getById( (int)$userId );
 
-                        foreach((array)$formData['mapUsers'] as $userId){
-                            $tempUser->getById( $userId );
-
-                            if( !$tempUser->dry() ){
-                                $map->setAccess($tempUser);
-                            }
-
-                            $tempUser->reset();
-                        }
-                    }
-
-                    // the current user itself should always have access
-                    // just in case he removed himself :)
-                    $map->setAccess($user);
-                }elseif($map->isCorporation()){
-                    $activeCharacter = $user->getActiveUserCharacter();
-
-                    if($activeCharacter){
-                        $corporation = $activeCharacter->getCharacter()->getCorporation();
-
-                        if($corporation){
-                            // the current user has to have a corporation when
-                            // working on corporation maps!
-
-                            // share map between corporations -> set access
-                            if(array_key_exists('mapCorporations', $formData)){
-                                // clear map access. In case something has removed from access list
-                                $map->clearAccess();
-
-                                $tempCorporation = Model\BasicModel::getNew('CorporationModel');
-
-                                foreach((array)$formData['mapCorporations'] as $corporationId){
-                                    $tempCorporation->getById( $corporationId );
-
-                                    if( !$tempCorporation->dry() ){
-                                        $map->setAccess($tempCorporation);
-                                    }
-
-                                    $tempCorporation->reset();
-                                }
-                            }
-
-                            // the corporation of the current user should always have access
-                            $map->setAccess($corporation);
-                        }
-                    }
-                }elseif($map->isAlliance()){
-                    $activeCharacter = $user->getActiveUserCharacter();
-
-                    if($activeCharacter){
-                        $alliance = $activeCharacter->getCharacter()->getAlliance();
-
-                        if($alliance){
-                            // the current user has to have a alliance when
-                            // working on alliance maps!
-
-                            // share map between alliances -> set access
-                            if(array_key_exists('mapAlliances', $formData)){
-                                // clear map access. In case something has removed from access list
-                                $map->clearAccess();
-
-                                $tempAlliance = Model\BasicModel::getNew('AllianceModel');
-
-                                foreach((array)$formData['mapAlliances'] as $allianceId){
-                                    $tempAlliance->getById( $allianceId );
-
-                                    if( !$tempAlliance->dry() ){
-                                        $map->setAccess($tempAlliance);
-                                    }
-
-                                    $tempAlliance->reset();
+                                if(
+                                    !$tempUser->dry() &&
+                                    $tempUser->sharing == 1 // check if map sharing is enabled
+                                ){
+                                    $map->setAccess($tempUser);
                                 }
 
+                                $tempUser->reset();
                             }
+                        }
 
-                            // the alliance of the current user should always have access
-                            $map->setAccess($alliance);
+                        // the current user itself should always have access
+                        // just in case he removed himself :)
+                        $map->setAccess($user);
+                    }elseif($map->isCorporation()){
+                        $activeCharacter = $user->getActiveUserCharacter();
+
+                        if($activeCharacter){
+                            $corporation = $activeCharacter->getCharacter()->getCorporation();
+
+                            if($corporation){
+                                // the current user has to have a corporation when
+                                // working on corporation maps!
+
+                                // share map between corporations -> set access
+                                if(isset($formData['mapCorporations'])){
+                                    // clear map access. In case something has removed from access list
+                                    $map->clearAccess();
+
+                                    $tempCorporation = Model\BasicModel::getNew('CorporationModel');
+
+                                    foreach((array)$formData['mapCorporations'] as $corporationId){
+                                        $tempCorporation->getById( (int)$corporationId );
+
+                                        if(
+                                            !$tempCorporation->dry() &&
+                                            $tempCorporation->sharing == 1 // check if map sharing is enabled
+                                        ){
+                                            $map->setAccess($tempCorporation);
+                                        }
+
+                                        $tempCorporation->reset();
+                                    }
+                                }
+
+                                // the corporation of the current user should always have access
+                                $map->setAccess($corporation);
+                            }
+                        }
+                    }elseif($map->isAlliance()){
+                        $activeCharacter = $user->getActiveUserCharacter();
+
+                        if($activeCharacter){
+                            $alliance = $activeCharacter->getCharacter()->getAlliance();
+
+                            if($alliance){
+                                // the current user has to have a alliance when
+                                // working on alliance maps!
+
+                                // share map between alliances -> set access
+                                if(isset($formData['mapAlliances'])){
+                                    // clear map access. In case something has removed from access list
+                                    $map->clearAccess();
+
+                                    $tempAlliance = Model\BasicModel::getNew('AllianceModel');
+
+                                    foreach((array)$formData['mapAlliances'] as $allianceId){
+                                        $tempAlliance->getById( (int)$allianceId );
+
+                                        if(
+                                            !$tempAlliance->dry() &&
+                                            $tempAlliance->sharing == 1 // check if map sharing is enabled
+                                        ){
+                                            $map->setAccess($tempAlliance);
+                                        }
+
+                                        $tempAlliance->reset();
+                                    }
+
+                                }
+
+                                // the alliance of the current user should always have access
+                                $map->setAccess($alliance);
+                            }
                         }
                     }
+
+                    // reload the same map model (refresh)
+                    // this makes sure all data is up2date
+                    $map->getById( $map->id );
+
+                    $return->mapData = $map->getData();
+
+                }else{
+                    // map access denied
+                    $captchaError = (object) [];
+                    $captchaError->type = 'error';
+                    $captchaError->message = 'Access denied';
+                    $return->error[] = $captchaError;
                 }
-
-                $return->mapData = $map->getData();
-            }else{
-                // map access denied
-                $captchaError = (object) [];
-                $captchaError->type = 'error';
-                $captchaError->message = 'Access denied';
-                $return->error[] = $captchaError;
             }
+
         }else{
             // map id field missing
             $idError = (object) [];
@@ -268,8 +287,6 @@ class Map extends \Controller\AccessController {
             $idError->message = 'Map id missing';
             $return->error[] = $idError;
         }
-
-
 
         echo json_encode($return);
     }
@@ -301,7 +318,7 @@ class Map extends \Controller\AccessController {
 
         // cache time(s) per user should be equal or less than this function is called
         // prevent request flooding
-        $responseTTL = $f3->get('PATHFINDER.TIMER.MAP_UPDATE.DELAY') / 1000;
+        $responseTTL = $f3->get('PATHFINDER.TIMER.UPDATE_SERVER_MAP.DELAY') / 1000;
         $user = $this->_getUser();
 
         $return = (object) [];
@@ -428,8 +445,7 @@ class Map extends \Controller\AccessController {
 
         $mapData = [];
         foreach($mapModels as $mapModel){
-            //$mapModel->update();
-            //$mapModel->cast();
+
             $allMapData = $mapModel->getData();
 
             $mapData[] = [
@@ -453,7 +469,7 @@ class Map extends \Controller\AccessController {
 
         // cache time(s) should be equal or less than request trigger time
         // prevent request flooding
-        $responseTTL = $f3->get('PATHFINDER.TIMER.USER_UPDATE.DELAY') / 1000;
+        $responseTTL = $f3->get('PATHFINDER.TIMER.UPDATE_SERVER_USER_DATA.DELAY') / 1000;
 
         // if the cache key will be set -> cache request
         $cacheKey = null;

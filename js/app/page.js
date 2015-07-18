@@ -14,8 +14,9 @@ define([
     'text!templates/modules/footer.html',
     'dialog/notification',
     'dialog/trust',
+    'dialog/sharing_settings',
     'dialog/map_info',
-    'dialog/settings',
+    'dialog/account_settings',
     'dialog/manual',
     'dialog/map_settings',
     'dialog/system_effects',
@@ -128,83 +129,98 @@ define([
             $('<div>', {
                 class: 'list-group'
             }).append(
-                    $('<a>', {
-                        class: 'list-group-item',
-                        href: '#'
-                    }).html('&nbsp;&nbsp;Home').prepend(
-                            $('<i>',{
-                                class: 'fa fa-home fa-fw'
-                            })
-                        )
-                ).append(
-                    $('<a>', {
-                        class: 'list-group-item',
-                        href: '#'
-                    }).html('&nbsp;&nbsp;Manual').prepend(
-                            $('<i>',{
-                                class: 'fa fa-info fa-fw'
-                            })
-                        ).on('click', function(){
-                            $(document).triggerMenuEvent('Manual', {button: this});
+                $('<a>', {
+                    class: 'list-group-item',
+                    href: '#'
+                }).html('&nbsp;&nbsp;Home').prepend(
+                        $('<i>',{
+                            class: 'fa fa-home fa-fw'
                         })
-                ).append(
-                    $('<a>', {
-                        class: 'list-group-item',
-                        href: '#'
-                    }).html('&nbsp;&nbsp;Effect info').prepend(
-                            $('<i>',{
-                                class: 'fa fa-crosshairs fa-fw'
-                            })
-                        ).on('click', function(){
-                            $(document).triggerMenuEvent('ShowSystemEffectInfo');
+                    )
+            ).append(
+                $('<a>', {
+                    class: 'list-group-item',
+                    href: '#'
+                }).html('&nbsp;&nbsp;Sharing settings').prepend(
+                    $('<i>',{
+                        class: 'fa fa-share-alt fa-fw'
+                    })
+                ).on('click', function(){
+                        $(document).triggerMenuEvent('ShowSharingSettings');
+                    })
+            ).append(
+                $('<a>', {
+                    class: 'list-group-item',
+                    href: '#'
+                }).html('&nbsp;&nbsp;Effect info').prepend(
+                        $('<i>',{
+                            class: 'fa fa-crosshairs fa-fw'
                         })
-                ).append(
-                    $('<a>', {
-                        class: 'list-group-item',
-                        href: '#'
-                    }).html('&nbsp;&nbsp;Jump info').prepend(
-                            $('<i>',{
-                                class: 'fa fa-space-shuttle fa-fw'
-                            })
-                        ).on('click', function(){
-                            $(document).triggerMenuEvent('ShowJumpInfo');
+                    ).on('click', function(){
+                        $(document).triggerMenuEvent('ShowSystemEffectInfo');
+                    })
+            ).append(
+                $('<a>', {
+                    class: 'list-group-item',
+                    href: '#'
+                }).html('&nbsp;&nbsp;Jump info').prepend(
+                        $('<i>',{
+                            class: 'fa fa-space-shuttle fa-fw'
                         })
-                ).append(
-                    $('<a>', {
-                        class: 'list-group-item hide',                      // trigger by js
-                        id: config.menuButtonFullScreenId,
-                        href: '#'
-                    }).html('&nbsp;&nbsp;Full screen').prepend(
-                            $('<i>',{
-                                class: 'glyphicon glyphicon-fullscreen',
-                                css: {width: '1.23em'}
-                            })
-                        ).on('click', function(){
-                            $(document).triggerMenuEvent('FullScreen', {button: this});
+                    ).on('click', function(){
+                        $(document).triggerMenuEvent('ShowJumpInfo');
+                    })
+            ).append(
+                $('<a>', {
+                    class: 'list-group-item hide',                      // trigger by js
+                    id: config.menuButtonFullScreenId,
+                    href: '#'
+                }).html('&nbsp;&nbsp;Full screen').prepend(
+                        $('<i>',{
+                            class: 'glyphicon glyphicon-fullscreen',
+                            css: {width: '1.23em'}
                         })
-                ).append(
-                    $('<a>', {
-                        class: 'list-group-item',
-                        href: '#'
-                    }).html('&nbsp;&nbsp;Notification test').prepend(
-                            $('<i>',{
-                                class: 'fa fa-bullhorn fa-fw'
-                            })
-                        ).on('click', function(){
-                            $(document).triggerMenuEvent('NotificationTest');
+                    ).on('click', function(){
+                       // full screen API is only acceptable by a "user gesture"
+                        // -> js events will not work. therefore all the code here
+
+                        if(CCP.isInGameBrowser() === false){
+                            var fullScreenElement = $('body');
+
+                            // fullscreen is not supported by IGB
+                            requirejs(['jquery', 'fullScreen'], function($) {
+
+                                if($.fullscreen.isFullScreen()){
+                                    $.fullscreen.exit();
+                                }else{
+                                    fullScreenElement.fullscreen({overflow: 'overflow-y', toggleClass: config.fullScreenClass});
+                                }
+                            });
+                        }
+                    })
+            ).append(
+                $('<a>', {
+                    class: 'list-group-item',
+                    href: '#'
+                }).html('&nbsp;&nbsp;Notification test').prepend(
+                        $('<i>',{
+                            class: 'fa fa-bullhorn fa-fw'
                         })
-                ).append(
-                    $('<a>', {
-                        class: 'list-group-item',
-                        href: '#'
-                    }).html('&nbsp;&nbsp;Logout').prepend(
-                            $('<i>',{
-                                class: 'fa fa-power-off fa-fw'
-                            })
-                        ).on('click', function(){
-                            $(document).triggerMenuEvent('Logout');
+                    ).on('click', function(){
+                        $(document).triggerMenuEvent('NotificationTest');
+                    })
+            ).append(
+                $('<a>', {
+                    class: 'list-group-item',
+                    href: '#'
+                }).html('&nbsp;&nbsp;Logout').prepend(
+                        $('<i>',{
+                            class: 'fa fa-sign-in fa-fw'
                         })
-                )
+                    ).on('click', function(){
+                        $(document).triggerMenuEvent('Logout');
+                    })
+            )
         );
 
         // init full screen -> IGB does not support full screen
@@ -225,61 +241,72 @@ define([
             $('<div>', {
                 class: 'list-group'
             }).append(
-                    $('<a>', {
-                        class: 'list-group-item',
-                        href: '#'
-                    }).html('&nbsp;&nbsp;Info').prepend(
-                            $('<i>',{
-                                class: 'fa fa-info fa-fw'
-                            })
-                        ).on('click', function(){
-                            $(document).triggerMenuEvent('ShowMapInfo');
+                $('<a>', {
+                    class: 'list-group-item',
+                    href: '#'
+                }).html('&nbsp;&nbsp;Info').prepend(
+                        $('<i>',{
+                            class: 'fa fa-info fa-fw'
                         })
-                ).append(
-                    $('<a>', {
-                        class: 'list-group-item',
-                        href: '#'
-                    }).html('&nbsp;&nbsp;&nbsp;Grid snap').prepend(
-                            $('<i>',{
-                                class: 'glyphicon glyphicon-th'
-                            })
-                        ).on('click', function(){
-                            Util.getMapModule().getActiveMap().triggerMenuEvent('Grid', {button: this});
+                    ).on('click', function(){
+                        $(document).triggerMenuEvent('ShowMapInfo');
+                    })
+            ).append(
+                $('<a>', {
+                    class: 'list-group-item',
+                    href: '#'
+                }).html('&nbsp;&nbsp;Settings').prepend(
+                    $('<i>',{
+                        class: 'fa fa-gears fa-fw'
+                    })
+                ).on('click', function(){
+                        $(document).triggerMenuEvent('ShowMapSettings', {tab: 'settings'});
+                    })
+            ).append(
+                $('<a>', {
+                    class: 'list-group-item',
+                    href: '#'
+                }).html('&nbsp;&nbsp;&nbsp;Grid snapping').prepend(
+                        $('<i>',{
+                            class: 'glyphicon glyphicon-th'
                         })
-                ).append(
-                    $('<a>', {
-                        class: 'list-group-item',
-                        href: '#'
-                    }).html('&nbsp;&nbsp;Settings').prepend(
-                            $('<i>',{
-                                class: 'fa fa-gears fa-fw'
-                            })
-                        ).on('click', function(){
-                            $(document).triggerMenuEvent('ShowMapSettings', {tab: 'settings'});
+                    ).on('click', function(){
+                        Util.getMapModule().getActiveMap().triggerMenuEvent('Grid', {button: this});
+                    })
+            ).append(
+                $('<a>', {
+                    class: 'list-group-item',
+                    href: '#'
+                }).html('&nbsp;&nbsp;Task-Manager').prepend(
+                        $('<i>',{
+                            class: 'fa fa-tasks fa-fw'
                         })
-                ).append(
-                    $('<a>', {
-                        class: 'list-group-item',
-                        href: '#'
-                    }).html('&nbsp;&nbsp;Task-Manager').prepend(
-                            $('<i>',{
-                                class: 'fa fa-tasks fa-fw'
-                            })
-                        ).on('click', function(){
-                            $(document).triggerMenuEvent('ShowTaskManager');
-                        })
-                ).append(
-                    $('<a>', {
-                        class: 'list-group-item',
-                        href: '#'
-                    }).html('&nbsp;&nbsp;Delete').prepend(
-                            $('<i>',{
-                                class: 'fa fa-eraser fa-fw'
-                            })
-                        ).on('click', function(){
-                            $(document).triggerMenuEvent('DeleteMap');
-                        })
-                )
+                    ).on('click', function(){
+                        $(document).triggerMenuEvent('ShowTaskManager');
+                    })
+            ).append(
+                $('<a>', {
+                    class: 'list-group-item',
+                    href: '#'
+                }).html('&nbsp;&nbsp;Manual').prepend(
+                    $('<i>',{
+                        class: 'fa fa-info fa-fw'
+                    })
+                ).on('click', function(){
+                        $(document).triggerMenuEvent('Manual');
+                    })
+            ).append(
+                $('<a>', {
+                    class: 'list-group-item',
+                    href: '#'
+                }).html('&nbsp;&nbsp;Delete').prepend(
+                    $('<i>',{
+                        class: 'fa fa-eraser fa-fw'
+                    })
+                ).on('click', function(){
+                        $(document).triggerMenuEvent('DeleteMap');
+                    })
+            )
         );
     };
 
@@ -398,16 +425,34 @@ define([
      */
     var setDocumentObserver = function(){
 
+        // tab close/reload detected
+        window.addEventListener('beforeunload', function (e) {
+
+            // logout
+            deleteLog();
+        });
+
+        // on "full-screen" change event
         $(document).on('fscreenchange', function(e, state, elem){
 
             var menuButton = $('#' + config.menuButtonFullScreenId);
 
             if(state === true){
                 // full screen active
+
+                // close all menus
+                $(this).trigger('pf:closeMenu', [{}]);
+
                 menuButton.addClass('active');
             }else{
                 menuButton.removeClass('active');
             }
+        });
+
+        $(document).on('pf:menuShowSharingSettings', function(e){
+            // show sharing settings dialog
+            $.fn.showSharingSettingsDialog();
+            return false;
         });
 
         $(document).on('pf:menuShowSystemEffectInfo', function(e){
@@ -480,37 +525,9 @@ define([
             return false;
         });
 
-        $(document).on('pf:menuFullScreen', function(e, data){
-
-            if(CCP.isInGameBrowser() === false){
-                var fullScreenElement = $('body');
-
-                // close all menus
-                $(this).trigger('pf:closeMenu', [{}]);
-
-                // wait until menu is closed before switch mode (looks better)
-                setTimeout(
-                    function() {
-                        // fullscreen is not supported by IGB
-                        requirejs(['jquery', 'fullScreen'], function($) {
-
-                            if($.fullscreen.isFullScreen()){
-                                $.fullscreen.exit();
-                            }else{
-                                fullScreenElement.fullscreen({overflow: 'overflow-y', toggleClass: config.fullScreenClass});
-                            }
-                        });
-                    }, 400);
-            }
-
-
-
-            return false;
-        });
-
         $(document).on('pf:menuLogout', function(e, data){
             // logout
-            logout();
+            Util.logout();
             return false;
         });
 
@@ -575,7 +592,7 @@ define([
 
             Util.showNotify({title: 'Emergency shutdown', text: data.reason, type: 'error'}, false);
 
-            // remove map
+            // remove map -------------------------------------------------------
             Util.getMapModule().velocity('fadeOut', {
                 duration: 300,
                 complete: function(){
@@ -688,25 +705,17 @@ define([
     };
 
     /**
-     * send logout request
+     * delete active character log for the current user
      */
-    var logout = function(){
+    var deleteLog = function(){
 
         $.ajax({
             type: 'POST',
-            url: Init.path.logOut,
+            url: Init.path.deleteLog,
             data: {},
             dataType: 'json'
         }).done(function(data){
 
-            if(data.reroute !== undefined){
-                window.location = Util.buildUrl(data.reroute) + '?logout';
-            }
-
-        }).fail(function( jqXHR, status, error) {
-
-            var reason = status + ' ' + error;
-            Util.showNotify({title: jqXHR.status + ': logout', text: reason, type: 'error'});
         });
     };
 
@@ -795,8 +804,8 @@ define([
         var increaseTimer = 10000;
 
         // timer keys
-        var mapUpdateKey = 'MAP_UPDATE';
-        var mapUserUpdateKey = 'USER_UPDATE'
+        var mapUpdateKey = 'UPDATE_SERVER_MAP';
+        var mapUserUpdateKey = 'UPDATE_SERVER_USER_DATA';
 
         // Set the name of the hidden property and the change event for visibility
         var hidden, visibilityChange;

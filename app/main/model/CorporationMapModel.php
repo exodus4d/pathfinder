@@ -22,5 +22,14 @@ class CorporationMapModel extends BasicModel {
         )
     );
 
+    /**
+     * see parent
+     */
+    public function clearCacheData(){
+        parent::clearCacheData();
+
+        // clear map cache as well
+        $this->mapId->clearCacheData();
+    }
 
 }

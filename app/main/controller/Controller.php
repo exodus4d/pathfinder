@@ -78,7 +78,11 @@ class Controller {
         $this->f3->set('DB', $db);
 
         // set DB timezone to UTC +00:00 (eve server time)
-        $this->f3->get('DB')->exec('SET @@session.time_zone = "+00:00";');
+        //$this->f3->get('DB')->exec('SET @@session.time_zone = "+00:00";');
+
+        // disable innoDB schema (relevant vor MySql 5.5)
+        // not necessary for MySql 5.6
+        //$this->f3->get('DB')->exec('SET GLOBAL innodb_stats_on_metadata = OFF;');
     }
 
     /**
@@ -93,7 +97,8 @@ class Controller {
 
         if($userId > 0){
             $userModel = Model\BasicModel::getNew('UserModel');
-            $userModel->getById($userId);
+            // get a fresh (not cached) user object
+            $userModel->getById($userId, 0);
 
             if( !$userModel->dry() ){
                 $user = $userModel;

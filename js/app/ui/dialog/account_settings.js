@@ -157,7 +157,15 @@ define([
      */
     $.fn.showSettingsDialog = function(register){
 
+        // check if there is already a settings dialog open
+        var settingsDialog = $('#' + config.settingsDialogId);
+
+        if(settingsDialog.length > 0){
+            return false;
+        }
+
         var reroutePath = '';
+
 
         // check navigation buttons and show/hide them
         var checkNavigationButton = function(dialog){
@@ -447,6 +455,10 @@ define([
                                 characters[i].status =statusInfo;
 
                                 if(characters[i].isMain === 1){
+                                    mainCharacter = characters[i].id;
+                                }else if(mainCharacter === 0){
+                                    // mark at least one character as "main" if no main char was found
+                                    // e.g. first account setup
                                     mainCharacter = characters[i].id;
                                 }
                             }

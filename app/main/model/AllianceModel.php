@@ -30,6 +30,7 @@ class AllianceModel extends BasicModel {
 
         $allianceData->id = $this->id;
         $allianceData->name = $this->name;
+        $allianceData->sharing = $this->sharing;
 
         return $allianceData;
     }

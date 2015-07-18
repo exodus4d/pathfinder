@@ -9,13 +9,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="910fc076-a5b3-46d4-aef4-821103026334" name="Default" comment="splashpage fixes and UNIX lowercase PHP files">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/img/landing/map/bg.jpg" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/img/landing/map/browser.jpg" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/img/landing/development_1.jpg" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/img/landing/thumbs/development_1.jpg" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/img/landing/development_2.jpg" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/img/landing/thumbs/development_2.jpg" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/img/landing/map/neocom.jpg" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/templates/dialog/sharing_settings.html" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/js/app/ui/dialog/sharing_settings.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/js/app/config/signature_type.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/js/app/config/system_effect.js" />
       <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\build_js\app.js" afterPath="" />
       <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\build_js\app\client.js" afterPath="" />
       <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\build_js\app\landingpage.js" afterPath="" />
@@ -152,33 +149,60 @@
       <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\;ycyk04koiq8c.38qy14t6uns44.php" afterPath="" />
       <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\;ycyk04koiq8c.n8dy5gthftcc.php" afterPath="" />
       <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\;ycyk04koiq8c.v72a1qhbkogs.php" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/main/controller/AccessController.php" afterPath="$PROJECT_DIR$/app/main/controller/AccessController.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.htaccess" afterPath="$PROJECT_DIR$/.htaccess" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/main/controller/api/Access.php" afterPath="$PROJECT_DIR$/app/main/controller/api/Access.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/main/model/AllianceMapModel.php" afterPath="$PROJECT_DIR$/app/main/model/AllianceMapModel.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/main/model/AllianceModel.php" afterPath="$PROJECT_DIR$/app/main/model/AllianceModel.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/main/model/BasicModel.php" afterPath="$PROJECT_DIR$/app/main/model/BasicModel.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/main/controller/api/Connection.php" afterPath="$PROJECT_DIR$/app/main/controller/api/Connection.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/main/model/ConnectionModel.php" afterPath="$PROJECT_DIR$/app/main/model/ConnectionModel.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/main/controller/Controller.php" afterPath="$PROJECT_DIR$/app/main/controller/Controller.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/main/model/CorporationMapModel.php" afterPath="$PROJECT_DIR$/app/main/model/CorporationMapModel.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/main/model/CorporationModel.php" afterPath="$PROJECT_DIR$/app/main/model/CorporationModel.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/main/controller/api/Map.php" afterPath="$PROJECT_DIR$/app/main/controller/api/Map.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/main/model/MapModel.php" afterPath="$PROJECT_DIR$/app/main/model/MapModel.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/main/controller/api/Route.php" afterPath="$PROJECT_DIR$/app/main/controller/api/Route.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/main/controller/api/Signature.php" afterPath="$PROJECT_DIR$/app/main/controller/api/Signature.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/main/model/SystemModel.php" afterPath="$PROJECT_DIR$/app/main/model/SystemModel.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/main/controller/api/User.php" afterPath="$PROJECT_DIR$/app/main/controller/api/User.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/main/model/UserMapModel.php" afterPath="$PROJECT_DIR$/app/main/model/UserMapModel.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/main/model/UserModel.php" afterPath="$PROJECT_DIR$/app/main/model/UserModel.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/library/blue-imp-gallery/_blueimp-gallery.scss" afterPath="$PROJECT_DIR$/sass/library/blue-imp-gallery/_blueimp-gallery.scss" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/main/exception/ValidationException.php" afterPath="$PROJECT_DIR$/app/main/exception/ValidationException.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/layout/_animation.scss" afterPath="$PROJECT_DIR$/sass/layout/_animation.scss" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/layout/_dialogs.scss" afterPath="$PROJECT_DIR$/sass/layout/_dialogs.scss" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/layout/_landing.scss" afterPath="$PROJECT_DIR$/sass/layout/_landing.scss" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/layout/_map.scss" afterPath="$PROJECT_DIR$/sass/layout/_map.scss" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/lib/db/cortex.php" afterPath="$PROJECT_DIR$/app/lib/db/cortex.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/layout/_main.scss" afterPath="$PROJECT_DIR$/sass/layout/_main.scss" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/bootstrap/_modals.scss" afterPath="$PROJECT_DIR$/sass/bootstrap/_modals.scss" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/layout/_system-info.scss" afterPath="$PROJECT_DIR$/sass/layout/_system-info.scss" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/_variables.scss" afterPath="$PROJECT_DIR$/sass/_variables.scss" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app.js" afterPath="$PROJECT_DIR$/js/app.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/config.cfg" afterPath="$PROJECT_DIR$/app/config.cfg" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/counter.js" afterPath="$PROJECT_DIR$/js/app/counter.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/dictionaries/exodus4d.xml" afterPath="$PROJECT_DIR$/.idea/dictionaries/exodus4d.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/form_element.js" afterPath="$PROJECT_DIR$/js/app/ui/form_element.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.php" afterPath="$PROJECT_DIR$/index.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/init.js" afterPath="$PROJECT_DIR$/js/app/init.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/lib/jquery.fullscreen.min.js.map" afterPath="$PROJECT_DIR$/js/lib/jquery.fullscreen.min.js.map" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/lib/jquery.fullscreen.min.js" afterPath="$PROJECT_DIR$/js/lib/jquery.fullscreen.min.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/jsLinters/jshint.xml" afterPath="$PROJECT_DIR$/.idea/jsLinters/jshint.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/templates/view/landingpage.html" afterPath="$PROJECT_DIR$/public/templates/view/landingpage.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/landingpage.js" afterPath="$PROJECT_DIR$/js/app/landingpage.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/logging.js" afterPath="$PROJECT_DIR$/js/app/logging.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/main.js" afterPath="$PROJECT_DIR$/js/app/main.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/templates/ui/map.html" afterPath="$PROJECT_DIR$/public/templates/ui/map.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/dialog/manual.js" afterPath="$PROJECT_DIR$/js/app/ui/dialog/manual.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/templates/dialog/map.html" afterPath="$PROJECT_DIR$/public/templates/dialog/map.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/map/map.js" afterPath="$PROJECT_DIR$/js/app/map/map.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/dialog/map_info.js" afterPath="$PROJECT_DIR$/js/app/ui/dialog/map_info.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/templates/dialog/map_manual.html" afterPath="$PROJECT_DIR$/public/templates/dialog/map_manual.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/module_map.js" afterPath="$PROJECT_DIR$/js/app/module_map.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/notification.js" afterPath="$PROJECT_DIR$/js/app/notification.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/page.js" afterPath="$PROJECT_DIR$/js/app/page.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/css/pathfinder.css" afterPath="$PROJECT_DIR$/public/css/pathfinder.css" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/dialog/system_effects.js" afterPath="$PROJECT_DIR$/js/app/ui/dialog/system_effects.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/system_info.js" afterPath="$PROJECT_DIR$/js/app/ui/system_info.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/system_route.js" afterPath="$PROJECT_DIR$/js/app/ui/system_route.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/system_signature.js" afterPath="$PROJECT_DIR$/js/app/ui/system_signature.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/util.js" afterPath="$PROJECT_DIR$/js/app/util.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/lib/velocity.min.js" afterPath="$PROJECT_DIR$/js/lib/velocity.min.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/lib/velocity.ui.min.js" afterPath="$PROJECT_DIR$/js/lib/velocity.ui.min.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MOVED" beforePath="F:\webpages\exodus4d\pathfinder\js\app\ui\dialog\settings.js" afterPath="$PROJECT_DIR$/js/app/ui/dialog/account_settings.js" />
     </list>
     <ignored path="pathfinder.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -194,9 +218,6 @@
   <component name="ChangesViewManager" flattened_view="false" show_ignored="false" />
   <component name="CreatePatchCommitExecutor">
     <option name="PATCH_PATH" value="" />
-  </component>
-  <component name="DaemonCodeAnalyzer">
-    <disable_hints />
   </component>
   <component name="DatabaseView">
     <option name="FLATTEN" value="false" />
@@ -226,34 +247,64 @@
     </favorites_list>
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.33421138">
+    <splitter split-orientation="horizontal" split-proportion="0.29623824">
       <split-first>
         <leaf>
-          <file leaf-file-name="init.js" pinned="true" current-in-tab="false">
+          <file leaf-file-name="init.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/js/app/init.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0" vertical-offset="2299" max-vertical-offset="19908">
-                  <caret line="190" column="31" selection-start-line="190" selection-start-column="22" selection-end-line="190" selection-end-column="31" />
+                <state vertical-scroll-proportion="0.9266118">
+                  <caret line="304" column="33" selection-start-line="304" selection-start-column="33" selection-end-line="304" selection-end-column="33" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="util.js" pinned="true" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/js/app/util.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0" vertical-offset="11559" max-vertical-offset="25182">
-                  <caret line="673" column="28" selection-start-line="673" selection-start-column="28" selection-end-line="673" selection-end-column="28" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="main.js" pinned="true" current-in-tab="false">
+          <file leaf-file-name="main.js" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/js/app/main.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0" vertical-offset="1512" max-vertical-offset="3960">
-                  <caret line="89" column="28" selection-start-line="89" selection-start-column="28" selection-end-line="89" selection-end-column="28" />
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="45" column="17" selection-start-line="45" selection-start-column="17" selection-end-line="45" selection-end-column="17" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="account_settings.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/js/app/ui/dialog/account_settings.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="458" column="62" selection-start-line="458" selection-start-column="62" selection-end-line="458" selection-end-column="62" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="util.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/js/app/util.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="1324" column="8" selection-start-line="1324" selection-start-column="8" selection-end-line="1324" selection-end-column="8" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="page.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/js/app/page.js">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="529" column="21" selection-start-line="529" selection-start-column="0" selection-end-line="530" selection-end-column="0" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="_dialogs.scss" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/sass/layout/_dialogs.scss">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="43" column="81" selection-start-line="43" selection-start-column="81" selection-end-line="43" selection-end-column="81" />
                   <folding />
                 </state>
               </provider>
@@ -262,78 +313,38 @@
           <file leaf-file-name="_colors.scss" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/sass/_colors.scss">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0" vertical-offset="180" max-vertical-offset="1674">
-                  <caret line="10" column="32" selection-start-line="10" selection-start-column="32" selection-end-line="10" selection-end-column="32" />
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="23" column="31" selection-start-line="23" selection-start-column="25" selection-end-line="23" selection-end-column="31" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="app.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/js/app.js">
+          <file leaf-file-name="map.html" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/public/templates/dialog/map.html">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0" vertical-offset="162" max-vertical-offset="2466">
-                  <caret line="9" column="47" selection-start-line="9" selection-start-column="47" selection-end-line="9" selection-end-column="47" />
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="37" column="16" selection-start-line="37" selection-start-column="16" selection-end-line="37" selection-end-column="38" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="landingpage.html" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/public/templates/view/landingpage.html">
+          <file leaf-file-name="map_settings.html" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/public/templates/form/map_settings.html">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0" vertical-offset="1944" max-vertical-offset="14220">
-                  <caret line="111" column="57" selection-start-line="111" selection-start-column="57" selection-end-line="111" selection-end-column="57" />
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="1" column="0" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="AccessController.php" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/app/main/controller/AccessController.php">
+          <file leaf-file-name="sharing_settings.js" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/js/app/ui/dialog/sharing_settings.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0" vertical-offset="504" max-vertical-offset="1098">
-                  <caret line="33" column="45" selection-start-line="33" selection-start-column="45" selection-end-line="33" selection-end-column="45" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="User.php" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/app/main/controller/api/User.php">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0" vertical-offset="972" max-vertical-offset="5454">
-                  <caret line="60" column="0" selection-start-line="60" selection-start-column="0" selection-end-line="60" selection-end-column="0" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="notification.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/js/app/notification.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0" vertical-offset="1758" max-vertical-offset="3834">
-                  <caret line="119" column="49" selection-start-line="119" selection-start-column="49" selection-end-line="119" selection-end-column="49" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="module_map.js" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/js/app/module_map.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-35.37931" vertical-offset="1188" max-vertical-offset="13302">
-                  <caret line="123" column="0" selection-start-line="123" selection-start-column="0" selection-end-line="123" selection-end-column="0" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="system_signature.js" pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/js/app/ui/system_signature.js">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.57027364" vertical-offset="24751" max-vertical-offset="29178">
-                  <caret line="1426" column="13" selection-start-line="1426" selection-start-column="13" selection-end-line="1426" selection-end-column="13" />
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="15" column="53" selection-start-line="15" selection-start-column="53" selection-end-line="15" selection-end-column="53" />
                   <folding />
                 </state>
               </provider>
@@ -342,47 +353,87 @@
         </leaf>
       </split-first>
       <split-second>
-        <splitter split-orientation="horizontal" split-proportion="0.6889881">
+        <splitter split-orientation="horizontal" split-proportion="0.54298645">
           <split-first>
             <leaf>
-              <file leaf-file-name="page.js" pinned="true" current-in-tab="false">
-                <entry file="file://$PROJECT_DIR$/js/app/page.js">
-                  <provider selected="true" editor-type-id="text-editor">
-                    <state vertical-scroll-proportion="0.0" vertical-offset="180" max-vertical-offset="17046">
-                      <caret line="29" column="18" selection-start-line="29" selection-start-column="18" selection-end-line="29" selection-end-column="18" />
-                      <folding />
-                    </state>
-                  </provider>
-                </entry>
-              </file>
-              <file leaf-file-name="map.js" pinned="true" current-in-tab="true">
+              <file leaf-file-name="map.js" pinned="false" current-in-tab="false">
                 <entry file="file://$PROJECT_DIR$/js/app/map/map.js">
                   <provider selected="true" editor-type-id="text-editor">
-                    <state vertical-scroll-proportion="0.3127341" vertical-offset="18651" max-vertical-offset="60066">
-                      <caret line="1064" column="66" selection-start-line="1064" selection-start-column="66" selection-end-line="1064" selection-end-column="66" />
+                    <state vertical-scroll-proportion="0.0">
+                      <caret line="666" column="68" selection-start-line="666" selection-start-column="68" selection-end-line="666" selection-end-column="68" />
                       <folding />
                     </state>
                   </provider>
                 </entry>
               </file>
-              <file leaf-file-name="form_element.js" pinned="false" current-in-tab="false">
-                <entry file="file://$PROJECT_DIR$/js/app/ui/form_element.js">
+              <file leaf-file-name="logging.js" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/js/app/logging.js">
                   <provider selected="true" editor-type-id="text-editor">
-                    <state vertical-scroll-proportion="0.0" vertical-offset="1326" max-vertical-offset="4896">
-                      <caret line="116" column="26" selection-start-line="116" selection-start-column="26" selection-end-line="116" selection-end-column="26" />
+                    <state vertical-scroll-proportion="0.0">
+                      <caret line="165" column="49" selection-start-line="165" selection-start-column="49" selection-end-line="165" selection-end-column="49" />
                       <folding />
                     </state>
                   </provider>
                 </entry>
               </file>
-              <file leaf-file-name="Map.php" pinned="true" current-in-tab="false">
+              <file leaf-file-name="User.php" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/app/main/controller/api/User.php">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state vertical-scroll-proportion="155.62962">
+                      <caret line="18" column="7" selection-start-line="18" selection-start-column="7" selection-end-line="18" selection-end-column="7" />
+                      <folding>
+                        <element signature="e#116#131#0#PHP" expanded="true" />
+                      </folding>
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="Controller.php" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/app/main/controller/Controller.php">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state vertical-scroll-proportion="-58.0">
+                      <caret line="92" column="23" selection-start-line="92" selection-start-column="23" selection-end-line="92" selection-end-column="23" />
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="landingpage.html" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/public/templates/view/landingpage.html">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state vertical-scroll-proportion="0.0">
+                      <caret line="571" column="30" selection-start-line="571" selection-start-column="30" selection-end-line="571" selection-end-column="30" />
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="map_settings.js" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/js/app/ui/dialog/map_settings.js">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state vertical-scroll-proportion="0.0">
+                      <caret line="167" column="35" selection-start-line="167" selection-start-column="35" selection-end-line="167" selection-end-column="35" />
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="Map.php" pinned="false" current-in-tab="true">
                 <entry file="file://$PROJECT_DIR$/app/main/controller/api/Map.php">
                   <provider selected="true" editor-type-id="text-editor">
-                    <state vertical-scroll-proportion="0.0" vertical-offset="8071" max-vertical-offset="9882">
-                      <caret line="476" column="37" selection-start-line="476" selection-start-column="32" selection-end-line="476" selection-end-column="37" />
-                      <folding>
-                        <element signature="e#6#88#0#PHP" expanded="true" />
-                      </folding>
+                    <state vertical-scroll-proportion="0.33962265">
+                      <caret line="362" column="47" selection-start-line="362" selection-start-column="47" selection-end-line="362" selection-end-column="47" />
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="Access.php" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/app/main/controller/api/Access.php">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state vertical-scroll-proportion="0.0">
+                      <caret line="56" column="56" selection-start-line="56" selection-start-column="56" selection-end-line="56" selection-end-column="56" />
+                      <folding />
                     </state>
                   </provider>
                 </entry>
@@ -390,8 +441,74 @@
               <file leaf-file-name="landingpage.js" pinned="false" current-in-tab="false">
                 <entry file="file://$PROJECT_DIR$/js/app/landingpage.js">
                   <provider selected="true" editor-type-id="text-editor">
-                    <state vertical-scroll-proportion="0.0" vertical-offset="2698" max-vertical-offset="7182">
-                      <caret line="178" column="26" selection-start-line="178" selection-start-column="26" selection-end-line="178" selection-end-column="26" />
+                    <state vertical-scroll-proportion="0.0">
+                      <caret line="130" column="30" selection-start-line="130" selection-start-column="30" selection-end-line="130" selection-end-column="30" />
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="map_info.js" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/js/app/ui/dialog/map_info.js">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state vertical-scroll-proportion="-40.344826">
+                      <caret line="101" column="0" selection-start-line="101" selection-start-column="0" selection-end-line="101" selection-end-column="0" />
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="module_map.js" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/js/app/module_map.js">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state vertical-scroll-proportion="0.0">
+                      <caret line="242" column="80" selection-start-line="242" selection-start-column="80" selection-end-line="242" selection-end-column="80" />
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="Signature.php" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/app/main/controller/api/Signature.php">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state vertical-scroll-proportion="-22.37037">
+                      <caret line="132" column="58" selection-start-line="132" selection-start-column="58" selection-end-line="132" selection-end-column="58" />
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="Route.php" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/app/main/controller/api/Route.php">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state vertical-scroll-proportion="-5.785714">
+                      <caret line="23" column="36" selection-start-line="23" selection-start-column="36" selection-end-line="23" selection-end-column="36" />
+                      <folding>
+                        <marker date="1437216696950" expanded="true" signature="1986:2016" placeholder="SELECT * FRO..system_neighbour..." />
+                        <marker date="1437216696950" expanded="true" signature="6269:7224" placeholder="SELECT map_s..mapsolarsystems..." />
+                        <marker date="1437216696950" expanded="true" signature="6579:7012" placeholder="SELECT GROUP..mapsolarsystemjumps..." />
+                        <marker date="1437216696950" expanded="true" signature="7139:7183" placeholder="-- skip syst..." />
+                        <marker date="1437216696950" expanded="true" signature="7627:8074" placeholder="INSERT INTO ..." />
+                      </folding>
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="system_signature.js" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/js/app/ui/system_signature.js">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state vertical-scroll-proportion="-17.655172">
+                      <caret line="927" column="35" selection-start-line="927" selection-start-column="0" selection-end-line="928" selection-end-column="0" />
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="counter.js" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/js/app/counter.js">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state vertical-scroll-proportion="0.0">
+                      <caret line="51" column="28" selection-start-line="51" selection-start-column="28" selection-end-line="51" selection-end-column="28" />
                       <folding />
                     </state>
                   </provider>
@@ -400,111 +517,18 @@
               <file leaf-file-name="_main.scss" pinned="false" current-in-tab="false">
                 <entry file="file://$PROJECT_DIR$/sass/layout/_main.scss">
                   <provider selected="true" editor-type-id="text-editor">
-                    <state vertical-scroll-proportion="0.0" vertical-offset="393" max-vertical-offset="16110">
-                      <caret line="49" column="8" selection-start-line="49" selection-start-column="3" selection-end-line="49" selection-end-column="8" />
+                    <state vertical-scroll-proportion="-16.333334">
+                      <caret line="715" column="31" selection-start-line="715" selection-start-column="31" selection-end-line="715" selection-end-column="31" />
                       <folding />
                     </state>
                   </provider>
                 </entry>
               </file>
-              <file leaf-file-name="_map.scss" pinned="false" current-in-tab="false">
-                <entry file="file://$PROJECT_DIR$/sass/layout/_map.scss">
+              <file leaf-file-name="AccessController.php" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/app/main/controller/AccessController.php">
                   <provider selected="true" editor-type-id="text-editor">
-                    <state vertical-scroll-proportion="0.0" vertical-offset="6002" max-vertical-offset="9162">
-                      <caret line="355" column="21" selection-start-line="355" selection-start-column="21" selection-end-line="355" selection-end-column="21" />
-                      <folding />
-                    </state>
-                  </provider>
-                </entry>
-              </file>
-              <file leaf-file-name="_landing.scss" pinned="false" current-in-tab="false">
-                <entry file="file://$PROJECT_DIR$/sass/layout/_landing.scss">
-                  <provider selected="true" editor-type-id="text-editor">
-                    <state vertical-scroll-proportion="-13.740741" vertical-offset="5605" max-vertical-offset="8676">
-                      <caret line="332" column="23" selection-start-line="332" selection-start-column="23" selection-end-line="332" selection-end-column="23" />
-                      <folding />
-                    </state>
-                  </provider>
-                </entry>
-              </file>
-              <file leaf-file-name="map.html" pinned="false" current-in-tab="false">
-                <entry file="file://$PROJECT_DIR$/public/templates/ui/map.html">
-                  <provider selected="true" editor-type-id="text-editor">
-                    <state vertical-scroll-proportion="0.0" vertical-offset="365" max-vertical-offset="1944">
-                      <caret line="91" column="10" selection-start-line="91" selection-start-column="10" selection-end-line="91" selection-end-column="10" />
-                      <folding>
-                        <element signature="n#style#0;n#path#0;n#g#0;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#path#1;n#g#0;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#path#2;n#g#0;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#text#0;n#g#0;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#tspan#0;n#text#0;n#g#0;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#text#1;n#g#0;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#tspan#0;n#text#1;n#g#0;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#path#0;n#g#1;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#path#1;n#g#1;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#text#0;n#g#1;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#tspan#0;n#text#0;n#g#1;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#text#1;n#g#1;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#tspan#0;n#text#1;n#g#1;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#path#0;n#g#2;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#path#1;n#g#2;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#path#2;n#g#2;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#path#3;n#g#2;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#text#0;n#g#2;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#tspan#0;n#text#0;n#g#2;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#rect#0;n#g#2;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#path#4;n#g#2;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#circle#0;n#g#2;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#text#1;n#g#2;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#tspan#0;n#text#1;n#g#2;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#path#0;n#g#3;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#path#1;n#g#3;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#path#2;n#g#3;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#path#3;n#g#3;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#text#0;n#g#3;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#tspan#0;n#text#0;n#g#3;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#rect#0;n#g#3;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#text#1;n#g#3;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#tspan#0;n#text#1;n#g#3;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#path#0;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#path#1;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#path#2;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#text#0;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#tspan#0;n#text#0;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#text#1;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#tspan#0;n#text#1;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#text#2;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#tspan#0;n#text#2;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#circle#0;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#text#3;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#tspan#0;n#text#3;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#path#3;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#path#0;n#g#5;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#path#1;n#g#5;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#text#0;n#g#5;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#tspan#0;n#text#0;n#g#5;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#text#1;n#g#5;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                        <element signature="n#style#0;n#tspan#0;n#text#1;n#g#5;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-                      </folding>
-                    </state>
-                  </provider>
-                </entry>
-              </file>
-              <file leaf-file-name="_blueimp-gallery.scss" pinned="false" current-in-tab="false">
-                <entry file="file://$PROJECT_DIR$/sass/library/blue-imp-gallery/_blueimp-gallery.scss">
-                  <provider selected="true" editor-type-id="text-editor">
-                    <state vertical-scroll-proportion="0.0" vertical-offset="3120" max-vertical-offset="4644">
-                      <caret line="218" column="28" selection-start-line="218" selection-start-column="28" selection-end-line="218" selection-end-column="28" />
-                      <folding />
-                    </state>
-                  </provider>
-                </entry>
-              </file>
-              <file leaf-file-name="header.js" pinned="false" current-in-tab="false">
-                <entry file="file://$PROJECT_DIR$/js/app/ui/header.js">
-                  <provider selected="true" editor-type-id="text-editor">
-                    <state vertical-scroll-proportion="0.0" vertical-offset="2737" max-vertical-offset="4338">
-                      <caret line="217" column="0" selection-start-line="217" selection-start-column="0" selection-end-line="217" selection-end-column="0" />
+                    <state vertical-scroll-proportion="-8.666667">
+                      <caret line="18" column="20" selection-start-line="18" selection-start-column="20" selection-end-line="18" selection-end-column="20" />
                       <folding />
                     </state>
                   </provider>
@@ -514,21 +538,11 @@
           </split-first>
           <split-second>
             <leaf>
-              <file leaf-file-name="UserModel.php" pinned="false" current-in-tab="false">
-                <entry file="file://$PROJECT_DIR$/app/main/model/UserModel.php">
-                  <provider selected="true" editor-type-id="text-editor">
-                    <state vertical-scroll-proportion="0.0" vertical-offset="2116" max-vertical-offset="6516">
-                      <caret line="154" column="28" selection-start-line="154" selection-start-column="28" selection-end-line="154" selection-end-column="28" />
-                      <folding />
-                    </state>
-                  </provider>
-                </entry>
-              </file>
               <file leaf-file-name="MapModel.php" pinned="false" current-in-tab="true">
                 <entry file="file://$PROJECT_DIR$/app/main/model/MapModel.php">
                   <provider selected="true" editor-type-id="text-editor">
-                    <state vertical-scroll-proportion="0.2340291" vertical-offset="2258" max-vertical-offset="11304">
-                      <caret line="146" column="0" selection-start-line="146" selection-start-column="0" selection-end-line="146" selection-end-column="0" />
+                    <state vertical-scroll-proportion="0.3424179">
+                      <caret line="167" column="20" selection-start-line="167" selection-start-column="20" selection-end-line="167" selection-end-column="20" />
                       <folding>
                         <element signature="e#6#88#0#PHP" expanded="true" />
                       </folding>
@@ -536,21 +550,85 @@
                   </provider>
                 </entry>
               </file>
-              <file leaf-file-name="SystemModel.php" pinned="false" current-in-tab="false">
-                <entry file="file://$PROJECT_DIR$/app/main/model/SystemModel.php">
+              <file leaf-file-name="UserModel.php" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/app/main/model/UserModel.php">
                   <provider selected="true" editor-type-id="text-editor">
-                    <state vertical-scroll-proportion="0.0" vertical-offset="3798" max-vertical-offset="4536">
-                      <caret line="216" column="27" selection-start-line="216" selection-start-column="24" selection-end-line="216" selection-end-column="27" />
+                    <state vertical-scroll-proportion="-22.232143">
+                      <caret line="364" column="25" selection-start-line="364" selection-start-column="12" selection-end-line="364" selection-end-column="25" />
+                      <folding>
+                        <element signature="e#108#126#0#PHP" expanded="true" />
+                      </folding>
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="BasicModel.php" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/app/main/model/BasicModel.php">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state vertical-scroll-proportion="-27.703703">
+                      <caret line="97" column="13" selection-start-line="97" selection-start-column="13" selection-end-line="97" selection-end-column="13" />
+                      <folding>
+                        <element signature="e#108#126#0#PHP" expanded="true" />
+                      </folding>
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="AllianceModel.php" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/app/main/model/AllianceModel.php">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state vertical-scroll-proportion="-18.0">
+                      <caret line="32" column="18" selection-start-line="32" selection-start-column="0" selection-end-line="33" selection-end-column="0" />
                       <folding />
                     </state>
                   </provider>
                 </entry>
               </file>
-              <file leaf-file-name="CharacterModel.php" pinned="false" current-in-tab="false">
-                <entry file="file://$PROJECT_DIR$/app/main/model/CharacterModel.php">
+              <file leaf-file-name="CorporationModel.php" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/app/main/model/CorporationModel.php">
                   <provider selected="true" editor-type-id="text-editor">
-                    <state vertical-scroll-proportion="0.0" vertical-offset="433" max-vertical-offset="2358">
-                      <caret line="58" column="39" selection-start-line="58" selection-start-column="36" selection-end-line="58" selection-end-column="39" />
+                    <state vertical-scroll-proportion="0.0">
+                      <caret line="9" column="0" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="SystemModel.php" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/app/main/model/SystemModel.php">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state vertical-scroll-proportion="-120.0">
+                      <caret line="185" column="80" selection-start-line="185" selection-start-column="80" selection-end-line="185" selection-end-column="80" />
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="UserMapModel.php" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/app/main/model/UserMapModel.php">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state vertical-scroll-proportion="-6.0">
+                      <caret line="14" column="0" selection-start-line="14" selection-start-column="0" selection-end-line="14" selection-end-column="0" />
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="SystemSignatureModel.php" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/app/main/model/SystemSignatureModel.php">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state vertical-scroll-proportion="-40.666668">
+                      <caret line="66" column="14" selection-start-line="66" selection-start-column="14" selection-end-line="66" selection-end-column="14" />
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="UserCharacterModel.php" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/app/main/model/UserCharacterModel.php">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state vertical-scroll-proportion="-12.185185">
+                      <caret line="42" column="9" selection-start-line="42" selection-start-column="9" selection-end-line="42" selection-end-column="9" />
                       <folding />
                     </state>
                   </provider>
@@ -559,21 +637,11 @@
               <file leaf-file-name="cortex.php" pinned="false" current-in-tab="false">
                 <entry file="file://$PROJECT_DIR$/app/lib/db/cortex.php">
                   <provider selected="true" editor-type-id="text-editor">
-                    <state vertical-scroll-proportion="0.0" vertical-offset="1200" max-vertical-offset="46566">
-                      <caret line="115" column="20" selection-start-line="115" selection-start-column="9" selection-end-line="115" selection-end-column="20" />
+                    <state vertical-scroll-proportion="-12.517858">
+                      <caret line="585" column="51" selection-start-line="585" selection-start-column="51" selection-end-line="585" selection-end-column="51" />
                       <folding>
-                        <marker date="1433421482000" expanded="true" signature="25380:25420" placeholder="SELECT * FRO..x..." />
+                        <marker date="1437211122052" expanded="true" signature="25380:25420" placeholder="SELECT * FRO..x..." />
                       </folding>
-                    </state>
-                  </provider>
-                </entry>
-              </file>
-              <file leaf-file-name="ConnectionModel.php" pinned="false" current-in-tab="false">
-                <entry file="file://$PROJECT_DIR$/app/main/model/ConnectionModel.php">
-                  <provider selected="true" editor-type-id="text-editor">
-                    <state vertical-scroll-proportion="0.0" vertical-offset="609" max-vertical-offset="2106">
-                      <caret line="81" column="20" selection-start-line="81" selection-start-column="20" selection-end-line="81" selection-end-column="20" />
-                      <folding />
                     </state>
                   </provider>
                 </entry>
@@ -600,57 +668,57 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/sass/library/select2/theme/pathfinder/_defaults.scss" />
-        <option value="$PROJECT_DIR$/js/app/ui/dialog/map_info.js" />
-        <option value="$PROJECT_DIR$/app/main/controller/api/Route.php" />
-        <option value="$PROJECT_DIR$/app/main/controller/api/System.php" />
-        <option value="$PROJECT_DIR$/app/main/model/UserMapModel.php" />
-        <option value="$PROJECT_DIR$/sass/bootstrap/_component-animations.scss" />
-        <option value="$PROJECT_DIR$/sass/pathfinder.scss" />
-        <option value="$PROJECT_DIR$/sass/library/blue-imp-gallery/_bootstrap-image-gallery.scss" />
-        <option value="$PROJECT_DIR$/js/lib/blueimp-gallery.js" />
-        <option value="$PROJECT_DIR$/sass/layout/_main.scss" />
-        <option value="$PROJECT_DIR$/public/templates/view/parts/landingpage.html" />
-        <option value="$PROJECT_DIR$/app/main/controller/appcontroller.php" />
-        <option value="$PROJECT_DIR$/js/app/page.js" />
-        <option value="$PROJECT_DIR$/js/app/render.js" />
-        <option value="$PROJECT_DIR$/public/templates/ui/header_bg.html" />
-        <option value="$PROJECT_DIR$/js/app/ui/dialog/manual.js" />
-        <option value="$PROJECT_DIR$/js/app/ui/demo_map.js" />
-        <option value="$PROJECT_DIR$/sass/bootstrap/_modals.scss" />
-        <option value="$PROJECT_DIR$/sass/layout/_dialogs.scss" />
-        <option value="$PROJECT_DIR$/sass/_main.scss" />
-        <option value="$PROJECT_DIR$/sass/bootstrap/_type.scss" />
-        <option value="$PROJECT_DIR$/sass/_variables.scss" />
-        <option value="$PROJECT_DIR$/js/lib/bootstrap.min.js" />
+        <option value="$PROJECT_DIR$/js/app/config/signature_type.js" />
         <option value="$PROJECT_DIR$/js/app/ui/system_route.js" />
-        <option value="$PROJECT_DIR$/sass/_colors.scss" />
-        <option value="$PROJECT_DIR$/js/app/main.js" />
-        <option value="$PROJECT_DIR$/app/main/model/SystemModel.php" />
+        <option value="$PROJECT_DIR$/sass/layout/_animation.scss" />
+        <option value="$PROJECT_DIR$/js/app.js" />
+        <option value="$PROJECT_DIR$/js/lib/velocity.ui.min.js" />
+        <option value="$PROJECT_DIR$/js/lib/velocity.min.js" />
+        <option value="$PROJECT_DIR$/index.php" />
         <option value="$PROJECT_DIR$/app/main/controller/AccessController.php" />
-        <option value="$PROJECT_DIR$/app/main/controller/api/User.php" />
-        <option value="$PROJECT_DIR$/js/app/init.js" />
+        <option value="$PROJECT_DIR$/public/templates/dialog/settings.html" />
         <option value="$PROJECT_DIR$/app/config.cfg" />
-        <option value="$PROJECT_DIR$/app/main/model/MapModel.php" />
+        <option value="$PROJECT_DIR$/js/app/logging.js" />
+        <option value="$PROJECT_DIR$/app/main/exception/BaseException.php" />
         <option value="$PROJECT_DIR$/app/main/controller/Controller.php" />
-        <option value="$PROJECT_DIR$/js/app/util.js" />
-        <option value="$PROJECT_DIR$/app/main/model/UserModel.php" />
-        <option value="$PROJECT_DIR$/app/main/model/ConnectionModel.php" />
-        <option value="$PROJECT_DIR$/app/lib/db/cortex.php" />
-        <option value="$PROJECT_DIR$/app/main/model/BasicModel.php" />
-        <option value="$PROJECT_DIR$/js/app/ui/form_element.js" />
-        <option value="$PROJECT_DIR$/app/main/controller/api/Map.php" />
-        <option value="$PROJECT_DIR$/app/main/controller/api/Connection.php" />
-        <option value="$PROJECT_DIR$/sass/layout/_map.scss" />
-        <option value="$PROJECT_DIR$/js/app/notification.js" />
-        <option value="$PROJECT_DIR$/public/templates/view/landingpage.html" />
-        <option value="$PROJECT_DIR$/sass/library/blue-imp-gallery/_blueimp-gallery.scss" />
-        <option value="$PROJECT_DIR$/public/templates/ui/map.html" />
-        <option value="$PROJECT_DIR$/js/app/ui/header.js" />
-        <option value="$PROJECT_DIR$/js/app/landingpage.js" />
+        <option value="$PROJECT_DIR$/app/main/controller/MapController.php" />
+        <option value="$PROJECT_DIR$/app/main/exception/ValidationException.php" />
+        <option value="$PROJECT_DIR$/js/app/main.js" />
+        <option value="$PROJECT_DIR$/js/app/ui/dialog/settings.js" />
+        <option value="$PROJECT_DIR$/public/templates/dialog/map.html" />
         <option value="$PROJECT_DIR$/sass/layout/_landing.scss" />
+        <option value="$PROJECT_DIR$/public/templates/view/landingpage.html" />
+        <option value="$PROJECT_DIR$/app/main/model/AllianceModel.php" />
+        <option value="$PROJECT_DIR$/app/main/model/CorporationModel.php" />
+        <option value="$PROJECT_DIR$/sass/layout/_dialogs.scss" />
+        <option value="$PROJECT_DIR$/js/app/ui/dialog/sharing_settings.js" />
+        <option value="$PROJECT_DIR$/public/templates/dialog/sharing_settings.html" />
+        <option value="$PROJECT_DIR$/app/main/controller/api/Access.php" />
+        <option value="$PROJECT_DIR$/app/main/model/CorporationMapModel.php" />
+        <option value="$PROJECT_DIR$/app/main/model/AllianceMapModel.php" />
+        <option value="$PROJECT_DIR$/app/main/model/UserMapModel.php" />
+        <option value="$PROJECT_DIR$/public/templates/dialog/map_manual.html" />
+        <option value="$PROJECT_DIR$/js/app/page.js" />
+        <option value="$PROJECT_DIR$/js/app/landingpage.js" />
+        <option value="$PROJECT_DIR$/js/app/util.js" />
+        <option value="$PROJECT_DIR$/app/main/controller/api/Map.php" />
+        <option value="$PROJECT_DIR$/js/app/ui/system_info.js" />
         <option value="$PROJECT_DIR$/js/app/module_map.js" />
+        <option value="$PROJECT_DIR$/app/lib/db/cortex.php" />
+        <option value="$PROJECT_DIR$/app/main/model/SystemSignatureModel.php" />
+        <option value="$PROJECT_DIR$/app/main/controller/api/Signature.php" />
+        <option value="$PROJECT_DIR$/app/main/model/SystemModel.php" />
+        <option value="$PROJECT_DIR$/js/app/ui/system_signature.js" />
+        <option value="$PROJECT_DIR$/js/app/init.js" />
+        <option value="$PROJECT_DIR$/app/main/controller/api/Route.php" />
+        <option value="$PROJECT_DIR$/app/main/model/MapModel.php" />
         <option value="$PROJECT_DIR$/js/app/map/map.js" />
+        <option value="$PROJECT_DIR$/js/app/counter.js" />
+        <option value="$PROJECT_DIR$/js/app/ui/dialog/map_info.js" />
+        <option value="$PROJECT_DIR$/sass/layout/_main.scss" />
+        <option value="$PROJECT_DIR$/app/main/controller/api/User.php" />
+        <option value="$PROJECT_DIR$/app/main/model/UserModel.php" />
+        <option value="$PROJECT_DIR$/app/main/model/BasicModel.php" />
       </list>
     </option>
   </component>
@@ -658,14 +726,22 @@
     <exe-path />
     <config-path />
   </component>
+  <component name="JsBuildToolGruntFileManager" detection-done="true" />
   <component name="JsGulpfileManager">
     <detection-done>true</detection-done>
   </component>
+  <component name="NamedScopeManager">
+    <order />
+  </component>
+  <component name="PhpServers">
+    <servers />
+  </component>
   <component name="PhpWorkspaceProjectConfiguration" backward_compatibility_performed="true" />
   <component name="ProjectFrameBounds">
-    <option name="y" value="8" />
-    <option name="width" value="3678" />
-    <option name="height" value="2056" />
+    <option name="x" value="10" />
+    <option name="y" value="28" />
+    <option name="width" value="3783" />
+    <option name="height" value="2039" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
     <entry key="Project Default">
@@ -710,100 +786,6 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="Scope">
-        <subPane subId="Project Files">
-          <PATH>
-            <PATH_ELEMENT USER_OBJECT="Root">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT USER_OBJECT="pathfinder">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT USER_OBJECT="Root">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT USER_OBJECT="pathfinder">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT USER_OBJECT="app">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT USER_OBJECT="Root">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT USER_OBJECT="pathfinder">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT USER_OBJECT="app">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT USER_OBJECT="main">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT USER_OBJECT="Root">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT USER_OBJECT="pathfinder">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT USER_OBJECT="app">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT USER_OBJECT="main">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT USER_OBJECT="controller">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT USER_OBJECT="Root">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT USER_OBJECT="pathfinder">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT USER_OBJECT="app">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT USER_OBJECT="main">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT USER_OBJECT="controller">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT USER_OBJECT="api">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-          </PATH>
-        </subPane>
-      </pane>
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -819,6 +801,20 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="pathfinder" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pathfinder" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pathfinder" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="usage" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -911,6 +907,10 @@
               <option name="myItemId" value="templates" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="view" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
           </PATH>
           <PATH>
             <PATH_ELEMENT>
@@ -931,6 +931,68 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="ui" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pathfinder" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pathfinder" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="public" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="templates" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pathfinder" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pathfinder" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="public" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="templates" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="modules" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pathfinder" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pathfinder" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="public" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="templates" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="form" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -987,12 +1049,22 @@
               <option name="myItemId" value="public" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
+          </PATH>
+          <PATH>
             <PATH_ELEMENT>
-              <option name="myItemId" value="img" />
+              <option name="myItemId" value="pathfinder" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pathfinder" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="landing" />
+              <option name="myItemId" value="node_modules" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value=".bin" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -1006,33 +1078,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="public" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="img" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="landing" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="map" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="public" />
+              <option name="myItemId" value="logs" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -1242,6 +1288,101 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scope">
+        <subPane subId="Project Files">
+          <PATH>
+            <PATH_ELEMENT USER_OBJECT="Root">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="pathfinder">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT USER_OBJECT="Root">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="pathfinder">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="app">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT USER_OBJECT="Root">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="pathfinder">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="app">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="main">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT USER_OBJECT="Root">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="pathfinder">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="app">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="main">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="controller">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT USER_OBJECT="Root">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="pathfinder">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="app">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="main">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="controller">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="api">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
+      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -1290,9 +1431,9 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="F:\webpages\exodus4d\pathfinder\js\lib" />
       <recent name="F:\webpages\exodus4d\pathfinder\app\lib\db\sql" />
       <recent name="F:\webpages\exodus4d\pathfinder\app\lib\db" />
-      <recent name="F:\webpages\exodus4d\pathfinder\js\lib" />
       <recent name="F:\webpages\exodus4d\pathfinder\js\lib\datatables\extensions\responsive" />
       <recent name="F:\webpages\exodus4d\pathfinder\sass\library\select2\theme\pathfinder" />
     </key>
@@ -1311,24 +1452,18 @@
     <configuration default="true" type="NodeJSConfigurationType" factoryName="Node.js" working-dir="">
       <method />
     </configuration>
-    <configuration default="true" type="PhpUnitRemoteRunConfigurationType" factoryName="PHPUnit on Server" server_id="f216e6fb-f4a4-4dfb-9ca5-7327f48a8c7a" server_name="pathfinder.exodus4d.de">
-      <method />
-    </configuration>
     <configuration default="true" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
       <TestRunner />
-      <method />
-    </configuration>
-    <configuration default="true" type="PhpLocalRunConfigurationType" factoryName="PHP Console">
       <method />
     </configuration>
     <configuration default="true" type="PhpBehatConfigurationType" factoryName="Behat">
       <BehatRunner />
       <method />
     </configuration>
-    <configuration default="true" type="com.intellij.database.run.ConsoleRunConfigurationType" factoryName="Query Language Console">
-      <option name="VM_PARAMETERS" value="" />
-      <option name="USER_CFG_CLASS" />
-      <option name="CONTEXT_PROVIDER" />
+    <configuration default="true" type="PhpLocalRunConfigurationType" factoryName="PHP Console">
+      <method />
+    </configuration>
+    <configuration default="true" type="PhpUnitRemoteRunConfigurationType" factoryName="PHPUnit on Server" server_id="f216e6fb-f4a4-4dfb-9ca5-7327f48a8c7a" server_name="pathfinder.exodus4d.de">
       <method />
     </configuration>
     <configuration default="true" type="js.build_tools.gulp" factoryName="Gulp.js">
@@ -1352,7 +1487,7 @@
   <component name="ShelveChangesManager" show_recycled="false" />
   <component name="StructureViewFactory">
     <option name="AUTOSCROLL_FROM_SOURCE" value="true" />
-    <option name="ACTIVE_ACTIONS" value="Show Constants,,Show Fields,ALPHA_COMPARATOR,VISIBILITY_SORTER,SHOW_FIELDS" />
+    <option name="ACTIVE_ACTIONS" value="Show Constants,,Show Fields,VISIBILITY_SORTER,SHOW_FIELDS,ALPHA_COMPARATOR" />
   </component>
   <component name="SvnConfiguration" myUseAcceleration="nothing">
     <configuration>C:\Users\exodus4d\AppData\Roaming\Subversion</configuration>
@@ -1538,7 +1673,13 @@
       <option name="project" value="LOCAL" />
       <updated>1435443312866</updated>
     </task>
-    <option name="localTasksCounter" value="30" />
+    <task id="LOCAL-00030" summary="improved request caching, new C4 statics, landing page carousel,">
+      <created>1436207976134</created>
+      <option name="number" value="00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1436207976134</updated>
+    </task>
+    <option name="localTasksCounter" value="31" />
     <servers />
   </component>
   <component name="TodoView" selected-index="0">
@@ -1562,31 +1703,31 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="8" width="3678" height="2056" extended-state="0" />
+    <frame x="10" y="28" width="3783" height="2039" extended-state="0" />
     <editor active="false" />
     <layout>
-      <window_info id="Remote Host" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.061468866" sideWeight="0.45030737" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Changes" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.12111638" sideWeight="0.45304778" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.09342178" sideWeight="0.5808685" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.09057399" sideWeight="0.414281" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.20042083" sideWeight="0.6232719" order="6" side_tool="true" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="13" side_tool="false" content_ui="tabs" />
-      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.06771697" sideWeight="0.3433386" order="4" side_tool="true" content_ui="tabs" x="1667" y="651" width="475" height="815" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.1721959" sideWeight="0.4523888" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.20010532" sideWeight="0.40083218" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.06771697" sideWeight="0.6566614" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.12111638" sideWeight="0.54695225" order="12" side_tool="true" content_ui="tabs" x="945" y="556" width="1373" height="181" />
+      <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.19978745" sideWeight="0.39981186" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.19905214" sideWeight="0.3714097" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.19978745" sideWeight="0.60018814" order="12" side_tool="true" content_ui="tabs" x="945" y="556" width="1373" height="181" />
+      <window_info id="Remote Host" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.061468866" sideWeight="0.45030737" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.07896858" sideWeight="0.5808685" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.064464144" sideWeight="0.36875665" order="4" side_tool="true" content_ui="tabs" x="1667" y="651" width="475" height="815" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.17800212" sideWeight="0.4148636" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.064464144" sideWeight="0.63124335" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.06771697" sideWeight="0.2838336" order="3" side_tool="true" content_ui="tabs" x="2380" y="542" width="342" height="659" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.12111638" sideWeight="0.45304778" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.22373949" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.15712851" sideWeight="0.49984515" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="File Transfer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3277311" sideWeight="0.49848944" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.19905214" sideWeight="0.37183285" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -1601,9 +1742,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <option name="myTodoPanelSettings">
-      <TodoPanelSettings />
-    </option>
     <MESSAGE value="project structure" />
     <MESSAGE value="new ma functions" />
     <MESSAGE value="multiple map instances support added" />
@@ -1625,7 +1763,8 @@
     <MESSAGE value="alliance/corp maps. build process optimization, new/edit map dialog fixes" />
     <MESSAGE value="landing page pricing table, map bug fixes, signature module improvement" />
     <MESSAGE value="splashpage feature list, carousel, first iteration of request cache engine." />
-    <option name="LAST_COMMIT_MESSAGE" value="splashpage feature list, carousel, first iteration of request cache engine." />
+    <MESSAGE value="improved request caching, new C4 statics, landing page carousel," />
+    <option name="LAST_COMMIT_MESSAGE" value="improved request caching, new C4 statics, landing page carousel," />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1634,481 +1773,419 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/js/app/ui/demo_map.js">
+    <entry file="file://$PROJECT_DIR$/public/templates/view/landingpage.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.78634363" vertical-offset="4203" max-vertical-offset="5742">
-          <caret line="293" column="33" selection-start-line="293" selection-start-column="33" selection-end-line="293" selection-end-column="33" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/main/controller/appcontroller.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="270" max-vertical-offset="702">
-          <caret line="20" column="47" selection-start-line="20" selection-start-column="47" selection-end-line="20" selection-end-column="47" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/lib/db/sql/schema.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="21096">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/sass/bootstrap/_modals.scss">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.23961219" vertical-offset="14" max-vertical-offset="2862">
-          <caret line="20" column="9" selection-start-line="20" selection-start-column="9" selection-end-line="20" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/sass/_variables.scss">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.3095737" vertical-offset="4255" max-vertical-offset="17118">
-          <caret line="261" column="30" selection-start-line="261" selection-start-column="28" selection-end-line="261" selection-end-column="30" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/routes.cfg">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1412">
-          <caret line="0" column="2" selection-start-line="0" selection-start-column="1" selection-end-line="0" selection-end-column="2" />
-        </state>
-      </provider>
-      <provider editor-type-id="com.intellij.database.editor.CsvTableFileEditorProvider">
-        <state />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/main/controller/AccessController.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="504" max-vertical-offset="1098">
-          <caret line="33" column="45" selection-start-line="33" selection-start-column="45" selection-end-line="33" selection-end-column="45" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="571" column="30" selection-start-line="571" selection-start-column="30" selection-end-line="571" selection-end-column="30" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/js/app/page.js">
+    <entry file="file://$PROJECT_DIR$/js/app/ui/dialog/account_settings.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="180" max-vertical-offset="17046">
-          <caret line="29" column="18" selection-start-line="29" selection-start-column="18" selection-end-line="29" selection-end-column="18" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="458" column="62" selection-start-line="458" selection-start-column="62" selection-end-line="458" selection-end-column="62" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/js/app/main.js">
+    <entry file="file://$PROJECT_DIR$/public/templates/form/map_settings.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="1454" max-vertical-offset="3960">
-          <caret line="89" column="28" selection-start-line="89" selection-start-column="28" selection-end-line="89" selection-end-column="28" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/php/lib/php.jar!/com/jetbrains/php/lang/psi/stubs/data/SPL.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.33908427" vertical-offset="33203" max-vertical-offset="37224">
-          <caret line="1873" column="20" selection-start-line="1873" selection-start-column="20" selection-end-line="1873" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/main/controller/api/User.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="972" max-vertical-offset="5454">
-          <caret line="60" column="0" selection-start-line="60" selection-start-column="0" selection-end-line="60" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="1" column="0" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/config.cfg">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="464" max-vertical-offset="1998">
-          <caret line="14" column="12" selection-start-line="14" selection-start-column="8" selection-end-line="14" selection-end-column="12" />
+        <state vertical-scroll-proportion="0.10338226">
+          <caret line="9" column="0" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
         </state>
       </provider>
     </entry>
-    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/php/lib/php.jar!/com/jetbrains/php/lang/psi/stubs/data/standard_4.php">
+    <entry file="file://$PROJECT_DIR$/sass/_main-colorpallet.scss">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.33908427" vertical-offset="3629" max-vertical-offset="19710">
-          <caret line="230" column="9" selection-start-line="230" selection-start-column="9" selection-end-line="230" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/main/model/SystemModel.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="3798" max-vertical-offset="4536">
-          <caret line="216" column="27" selection-start-line="216" selection-start-column="24" selection-end-line="216" selection-end-column="27" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/main/controller/api/System.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="2140" max-vertical-offset="6264">
-          <caret line="287" column="47" selection-start-line="287" selection-start-column="47" selection-end-line="287" selection-end-column="47" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/lib/db/cortex.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="1200" max-vertical-offset="46566">
-          <caret line="115" column="20" selection-start-line="115" selection-start-column="9" selection-end-line="115" selection-end-column="20" />
-          <folding>
-            <marker date="1433421482000" expanded="true" signature="25380:25420" placeholder="SELECT * FRO..x..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/js/app/ui/form_element.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="1326" max-vertical-offset="4896">
-          <caret line="116" column="26" selection-start-line="116" selection-start-column="26" selection-end-line="116" selection-end-column="26" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/js/lib/jquery-1.11.3.min.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.059800666" vertical-offset="0" max-vertical-offset="1505">
-          <caret line="5" column="0" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/js/lib/dom.jsPlumb-1.7.5-min.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.31034482" vertical-offset="9" max-vertical-offset="198">
-          <caret line="0" column="15951" selection-start-line="0" selection-start-column="15947" selection-end-line="0" selection-end-column="15951" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/main/controller/api/Map.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="8071" max-vertical-offset="9882">
-          <caret line="476" column="37" selection-start-line="476" selection-start-column="32" selection-end-line="476" selection-end-column="37" />
-          <folding>
-            <element signature="e#6#88#0#PHP" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/main/model/BasicModel.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.33333334" vertical-offset="4519" max-vertical-offset="6714">
-          <caret line="283" column="20" selection-start-line="283" selection-start-column="20" selection-end-line="283" selection-end-column="20" />
+        <state vertical-scroll-proportion="0.33896104">
+          <caret line="29" column="25" selection-start-line="29" selection-start-column="4" selection-end-line="29" selection-end-column="25" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/main/model/CharacterModel.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="433" max-vertical-offset="2358">
-          <caret line="58" column="39" selection-start-line="58" selection-start-column="36" selection-end-line="58" selection-end-column="39" />
+        <state vertical-scroll-proportion="-38.925926">
+          <caret line="89" column="34" selection-start-line="89" selection-start-column="20" selection-end-line="89" selection-end-column="34" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/main/model/ConnectionModel.php">
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/DOMCore.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="609" max-vertical-offset="2106">
-          <caret line="81" column="20" selection-start-line="81" selection-start-column="20" selection-end-line="81" selection-end-column="20" />
+        <state vertical-scroll-proportion="0.3331206">
+          <caret line="585" column="0" selection-start-line="585" selection-start-column="0" selection-end-line="585" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/templates/dialog/map.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="37" column="16" selection-start-line="37" selection-start-column="16" selection-end-line="37" selection-end-column="38" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/main/model/UserModel.php">
+    <entry file="file://$PROJECT_DIR$/sass/layout/_dialogs.scss">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="2116" max-vertical-offset="6516">
-          <caret line="154" column="28" selection-start-line="154" selection-start-column="28" selection-end-line="154" selection-end-column="28" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="43" column="81" selection-start-line="43" selection-start-column="81" selection-end-line="43" selection-end-column="81" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/sass/layout/_main.scss">
+    <entry file="file://$PROJECT_DIR$/js/app/ui/dialog/manual.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="393" max-vertical-offset="16110">
-          <caret line="49" column="8" selection-start-line="49" selection-start-column="3" selection-end-line="49" selection-end-column="8" />
+        <state vertical-scroll-proportion="0.4754717">
+          <caret line="42" column="24" selection-start-line="42" selection-start-column="24" selection-end-line="42" selection-end-column="24" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/js/lib/bootbox.min.js">
+    <entry file="file://$PROJECT_DIR$/public/templates/dialog/sharing_settings.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1511">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="22" column="42" selection-start-line="22" selection-start-column="42" selection-end-line="22" selection-end-column="42" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/app/ui/form_element.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="126" column="25" selection-start-line="126" selection-start-column="9" selection-end-line="126" selection-end-column="25" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/controller/api/Access.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="56" column="56" selection-start-line="56" selection-start-column="56" selection-end-line="56" selection-end-column="56" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/CorporationModel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="9" column="0" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/usage/.htaccess">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/templates/dialog/map_manual.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="318" column="120" selection-start-line="318" selection-start-column="120" selection-end-line="318" selection-end-column="120" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/app/ui/dialog/sharing_settings.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="15" column="53" selection-start-line="15" selection-start-column="53" selection-end-line="15" selection-end-column="53" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/app/main.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="45" column="17" selection-start-line="45" selection-start-column="17" selection-end-line="45" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/app/page.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="529" column="21" selection-start-line="529" selection-start-column="0" selection-end-line="530" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/js/app/util.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="11559" max-vertical-offset="25182">
-          <caret line="673" column="28" selection-start-line="673" selection-start-column="28" selection-end-line="673" selection-end-column="28" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="1324" column="8" selection-start-line="1324" selection-start-column="8" selection-end-line="1324" selection-end-column="8" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/js/app/notification.js">
+    <entry file="file://$PROJECT_DIR$/app/main/controller/MapController.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="1758" max-vertical-offset="3834">
-          <caret line="119" column="49" selection-start-line="119" selection-start-column="49" selection-end-line="119" selection-end-column="49" />
+        <state vertical-scroll-proportion="0.30850363">
+          <caret line="31" column="26" selection-start-line="31" selection-start-column="26" selection-end-line="31" selection-end-column="26" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/main/model/MapModel.php">
+    <entry file="file://$PROJECT_DIR$/app/lib/db/cursor.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.2340291" vertical-offset="2258" max-vertical-offset="11304">
-          <caret line="146" column="0" selection-start-line="146" selection-start-column="0" selection-end-line="146" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.33421227">
+          <caret line="80" column="22" selection-start-line="80" selection-start-column="22" selection-end-line="80" selection-end-column="22" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/UserCharacterModel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-12.185185">
+          <caret line="42" column="9" selection-start-line="42" selection-start-column="9" selection-end-line="42" selection-end-column="9" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/exception/ValidationException.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.16611734">
+          <caret line="19" column="28" selection-start-line="19" selection-start-column="28" selection-end-line="19" selection-end-column="28" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/AllianceMapModel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.29220778">
+          <caret line="30" column="0" selection-start-line="30" selection-start-column="0" selection-end-line="30" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/CorporationMapModel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.22207792">
+          <caret line="24" column="0" selection-start-line="24" selection-start-column="0" selection-end-line="32" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/lib/db/cortex.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-12.517858">
+          <caret line="585" column="51" selection-start-line="585" selection-start-column="51" selection-end-line="585" selection-end-column="51" />
           <folding>
-            <element signature="e#6#88#0#PHP" expanded="true" />
+            <marker date="1437211122052" expanded="true" signature="25380:25420" placeholder="SELECT * FRO..x..." />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/js/app.js">
+    <entry file="file://$PROJECT_DIR$/app/main/model/UserMapModel.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2466">
-          <caret line="9" column="47" selection-start-line="9" selection-start-column="47" selection-end-line="9" selection-end-column="47" />
+        <state vertical-scroll-proportion="-6.0">
+          <caret line="14" column="0" selection-start-line="14" selection-start-column="0" selection-end-line="14" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/sass/_colors.scss">
+    <entry file="file://$PROJECT_DIR$/app/main/model/AllianceModel.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="180" max-vertical-offset="1674">
-          <caret line="10" column="32" selection-start-line="10" selection-start-column="32" selection-end-line="10" selection-end-column="32" />
+        <state vertical-scroll-proportion="-18.0">
+          <caret line="32" column="18" selection-start-line="32" selection-start-column="0" selection-end-line="33" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="uml://DATABASE/da3cf616-be39-4091-94bd-76d70f41765d.schema:pathfinder">
-      <provider selected="true" editor-type-id="UmlEditorProvider">
-        <state>
-          <ID>DATABASE</ID>
-          <OriginalElement>da3cf616-be39-4091-94bd-76d70f41765d.schema:pathfinder</OriginalElement>
-          <nodes>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.system_jumps</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.map_scope</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.character_status</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.corporation_map</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.corporation</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.system</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.character</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.character_log</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.map</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.user_api</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.user_map</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.system_kills_pods</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.system_signature</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.system_status</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.user</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.connection_scope</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.system_static</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.sessions</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.system_kills_factions</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.connection</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.user_character</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.alliance_map</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.system_neighbour</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.system_type</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.alliance</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.map_type</node>
-            <node x="" y="">da3cf616-be39-4091-94bd-76d70f41765d.table:pathfinder.system_kills_ships</node>
-          </nodes>
-          <notes />
-          <edges />
-          <settings layout="Hierarchic Group" zoom="1.0" x="1652.0" y="947.0" />
-          <SelectedNodes />
-          <Categories>
-            <Category>Columns</Category>
-            <Category>Key columns</Category>
-          </Categories>
-          <SCOPE>All</SCOPE>
+    <entry file="file://$PROJECT_DIR$/app/main/model/SystemSignatureModel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-40.666668">
+          <caret line="66" column="14" selection-start-line="66" selection-start-column="14" selection-end-line="66" selection-end-column="14" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/SystemModel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-120.0">
+          <caret line="185" column="80" selection-start-line="185" selection-start-column="80" selection-end-line="185" selection-end-column="80" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/controller/api/Signature.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-22.37037">
+          <caret line="132" column="58" selection-start-line="132" selection-start-column="58" selection-end-line="132" selection-end-column="58" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/js/app/init.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="2299" max-vertical-offset="19908">
-          <caret line="190" column="31" selection-start-line="190" selection-start-column="22" selection-end-line="190" selection-end-column="31" />
+        <state vertical-scroll-proportion="0.9266118">
+          <caret line="304" column="33" selection-start-line="304" selection-start-column="33" selection-end-line="304" selection-end-column="33" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/public/img/landing/thumbs/kb_2.jpg">
-      <provider selected="true" editor-type-id="images">
-        <state />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/public/img/landing/thumbs/development_1.jpg">
-      <provider selected="true" editor-type-id="images">
-        <state />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/public/img/landing/development_1.jpg">
-      <provider selected="true" editor-type-id="images">
-        <state />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/public/templates/dialog/system.html">
+    <entry file="file://$PROJECT_DIR$/app/main/controller/api/Route.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1534">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/main/controller/Controller.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.33199733" vertical-offset="997" max-vertical-offset="4356">
-          <caret line="88" column="23" selection-start-line="88" selection-start-column="23" selection-end-line="88" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/main/controller/api/Connection.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.41973683" vertical-offset="154" max-vertical-offset="1674">
-          <caret line="49" column="58" selection-start-line="49" selection-start-column="58" selection-end-line="49" selection-end-column="58" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/sass/layout/_map.scss">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="6002" max-vertical-offset="9162">
-          <caret line="355" column="21" selection-start-line="355" selection-start-column="21" selection-end-line="355" selection-end-column="21" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/public/img/landing/map/neocom.jpg">
-      <provider selected="true" editor-type-id="images">
-        <state />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/js/app/ui/header.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="2737" max-vertical-offset="4338">
-          <caret line="217" column="0" selection-start-line="217" selection-start-column="0" selection-end-line="217" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/js/app/landingpage.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="2698" max-vertical-offset="7182">
-          <caret line="178" column="26" selection-start-line="178" selection-start-column="26" selection-end-line="178" selection-end-column="26" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/sass/library/blue-imp-gallery/_blueimp-gallery.scss">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="3120" max-vertical-offset="4644">
-          <caret line="218" column="28" selection-start-line="218" selection-start-column="28" selection-end-line="218" selection-end-column="28" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/public/templates/ui/map.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="365" max-vertical-offset="1944">
-          <caret line="91" column="10" selection-start-line="91" selection-start-column="10" selection-end-line="91" selection-end-column="10" />
+        <state vertical-scroll-proportion="-5.785714">
+          <caret line="23" column="36" selection-start-line="23" selection-start-column="36" selection-end-line="23" selection-end-column="36" />
           <folding>
-            <element signature="n#style#0;n#path#0;n#g#0;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#path#1;n#g#0;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#path#2;n#g#0;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#text#0;n#g#0;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#tspan#0;n#text#0;n#g#0;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#text#1;n#g#0;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#tspan#0;n#text#1;n#g#0;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#path#0;n#g#1;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#path#1;n#g#1;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#text#0;n#g#1;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#tspan#0;n#text#0;n#g#1;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#text#1;n#g#1;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#tspan#0;n#text#1;n#g#1;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#path#0;n#g#2;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#path#1;n#g#2;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#path#2;n#g#2;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#path#3;n#g#2;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#text#0;n#g#2;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#tspan#0;n#text#0;n#g#2;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#rect#0;n#g#2;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#path#4;n#g#2;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#circle#0;n#g#2;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#text#1;n#g#2;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#tspan#0;n#text#1;n#g#2;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#path#0;n#g#3;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#path#1;n#g#3;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#path#2;n#g#3;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#path#3;n#g#3;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#text#0;n#g#3;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#tspan#0;n#text#0;n#g#3;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#rect#0;n#g#3;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#text#1;n#g#3;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#tspan#0;n#text#1;n#g#3;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#path#0;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#path#1;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#path#2;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#text#0;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#tspan#0;n#text#0;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#text#1;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#tspan#0;n#text#1;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#text#2;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#tspan#0;n#text#2;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#circle#0;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#text#3;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#tspan#0;n#text#3;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#path#3;n#g#4;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#path#0;n#g#5;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#path#1;n#g#5;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#text#0;n#g#5;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#tspan#0;n#text#0;n#g#5;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#text#1;n#g#5;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#tspan#0;n#text#1;n#g#5;n#svg#0;n#div#3;n#div#0;n#!!top" expanded="true" />
+            <marker date="1437216696950" expanded="true" signature="1986:2016" placeholder="SELECT * FRO..system_neighbour..." />
+            <marker date="1437216696950" expanded="true" signature="6269:7224" placeholder="SELECT map_s..mapsolarsystems..." />
+            <marker date="1437216696950" expanded="true" signature="6579:7012" placeholder="SELECT GROUP..mapsolarsystemjumps..." />
+            <marker date="1437216696950" expanded="true" signature="7139:7183" placeholder="-- skip syst..." />
+            <marker date="1437216696950" expanded="true" signature="7627:8074" placeholder="INSERT INTO ..." />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/public/templates/view/landingpage.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="1944" max-vertical-offset="14220">
-          <caret line="111" column="57" selection-start-line="111" selection-start-column="57" selection-end-line="111" selection-end-column="57" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/sass/layout/_landing.scss">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-13.740741" vertical-offset="5605" max-vertical-offset="8676">
-          <caret line="332" column="23" selection-start-line="332" selection-start-column="23" selection-end-line="332" selection-end-column="23" />
-          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/js/app/ui/system_info.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.7736598" vertical-offset="6067" max-vertical-offset="7578">
-          <caret line="402" column="17" selection-start-line="398" selection-start-column="16" selection-end-line="402" selection-end-column="17" />
+        <state vertical-scroll-proportion="1.1257179">
+          <caret line="98" column="48" selection-start-line="98" selection-start-column="48" selection-end-line="98" selection-end-column="48" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/js/app/module_map.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-35.37931" vertical-offset="1188" max-vertical-offset="13302">
-          <caret line="123" column="0" selection-start-line="123" selection-start-column="0" selection-end-line="123" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="242" column="80" selection-start-line="242" selection-start-column="80" selection-end-line="242" selection-end-column="80" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/app/landingpage.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="130" column="30" selection-start-line="130" selection-start-column="30" selection-end-line="130" selection-end-column="30" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/app/ui/dialog/map_settings.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="167" column="35" selection-start-line="167" selection-start-column="35" selection-end-line="167" selection-end-column="35" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/js/app/map/map.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.3127341" vertical-offset="18651" max-vertical-offset="60066">
-          <caret line="1064" column="66" selection-start-line="1064" selection-start-column="66" selection-end-line="1064" selection-end-column="66" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="666" column="68" selection-start-line="666" selection-start-column="68" selection-end-line="666" selection-end-column="68" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/app/counter.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="51" column="28" selection-start-line="51" selection-start-column="28" selection-end-line="51" selection-end-column="28" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/js/app/ui/system_signature.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.57027364" vertical-offset="24751" max-vertical-offset="29178">
-          <caret line="1426" column="13" selection-start-line="1426" selection-start-column="13" selection-end-line="1426" selection-end-column="13" />
+        <state vertical-scroll-proportion="-17.655172">
+          <caret line="927" column="35" selection-start-line="927" selection-start-column="0" selection-end-line="928" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/app/ui/dialog/map_info.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-40.344826">
+          <caret line="101" column="0" selection-start-line="101" selection-start-column="0" selection-end-line="101" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/sass/bootstrap/_type.scss">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33896104">
+          <caret line="189" column="3" selection-start-line="189" selection-start-column="3" selection-end-line="189" selection-end-column="3" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/sass/layout/_main.scss">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-16.333334">
+          <caret line="715" column="31" selection-start-line="715" selection-start-column="31" selection-end-line="715" selection-end-column="31" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/controller/Controller.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-58.0">
+          <caret line="92" column="23" selection-start-line="92" selection-start-column="23" selection-end-line="92" selection-end-column="23" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/controller/AccessController.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-8.666667">
+          <caret line="18" column="20" selection-start-line="18" selection-start-column="20" selection-end-line="18" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/controller/api/User.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="155.62962">
+          <caret line="18" column="7" selection-start-line="18" selection-start-column="7" selection-end-line="18" selection-end-column="7" />
+          <folding>
+            <element signature="e#116#131#0#PHP" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/BasicModel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-27.703703">
+          <caret line="97" column="13" selection-start-line="97" selection-start-column="13" selection-end-line="97" selection-end-column="13" />
+          <folding>
+            <element signature="e#108#126#0#PHP" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/UserModel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-22.232143">
+          <caret line="364" column="25" selection-start-line="364" selection-start-column="12" selection-end-line="364" selection-end-column="25" />
+          <folding>
+            <element signature="e#108#126#0#PHP" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/MapModel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.3424179">
+          <caret line="167" column="20" selection-start-line="167" selection-start-column="20" selection-end-line="167" selection-end-column="20" />
+          <folding>
+            <element signature="e#6#88#0#PHP" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/controller/api/Map.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33962265">
+          <caret line="362" column="47" selection-start-line="362" selection-start-column="47" selection-end-line="362" selection-end-column="47" />
           <folding />
         </state>
       </provider>

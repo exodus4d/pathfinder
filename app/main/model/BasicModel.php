@@ -8,8 +8,9 @@
 
 namespace Model;
 
-
+use DB\SQL\Schema;
 use Exception;
+use Controller;
 
 class BasicModel extends \DB\Cortex {
 
@@ -52,12 +53,17 @@ class BasicModel extends \DB\Cortex {
 
 
     public function __construct($db = NULL, $table = NULL, $fluid = NULL, $ttl = 0){
+
+        // add static fields to this mapper
+        $this->addStaticFieldConfig();
+
         parent::__construct($db, $table, $fluid, $ttl);
 
         // events -----------------------------------------
         $this->afterinsert(function($self){
             $self->clearCacheData();
         });
+
         // model updated
         $this->afterupdate( function($self){
             $self->clearCacheData();
@@ -65,19 +71,31 @@ class BasicModel extends \DB\Cortex {
     }
 
     /**
-     * overwrites magic __set() mainly used for validation
-     * @param string $col
-     * @param \scalar $val
+     * @param string $key
+     * @param mixed $val
      * @return mixed|void
-     * @throws \Exception\ValidationException
+     * @throws Exception\ValidationException
      */
-    public function __set($col, $val){
+    public function set($key, $val){
 
-        if(
-            $col == 'updated' || // is set automatic
-            $col == 'active'     // prevent abuse
-        ){
+        if($key == 'active'){
+            // prevent abuse
             return;
+        }
+
+        if($key != 'updated'){
+            if( $this->exists($key) ){
+                $currentVal = $this->get($key);
+
+                // if current value is not a relational object
+                // and value has changed -> update table col
+                if(
+                    !is_object($currentVal) &&
+                    $currentVal != $val
+                ){
+                    $this->touch('updated');
+                }
+            }
         }
 
         // trim all values
@@ -85,15 +103,32 @@ class BasicModel extends \DB\Cortex {
             $val = trim($val);
         }
 
-        $valid = $this->_validateField($col, $val);
+        $valid = $this->validateField($key, $val);
 
         if(!$valid){
-            $this->_throwValidationError($col);
+            $this->throwValidationError($key);
         }else{
-            parent::__set($col, $val);
+            return parent::set($key, $val);
         }
     }
 
+
+    /**
+     * extent the fieldConf Array with static fields for each table
+     */
+    private function addStaticFieldConfig(){
+
+        if(is_array($this->fieldConf)){
+
+            $staticFieldConfig = array(
+                'updated' => array(
+                    'type' => Schema::DT_TIMESTAMP
+                )
+            );
+
+            $this->fieldConf = array_merge($this->fieldConf, $staticFieldConfig);
+        }
+    }
 
     /**
      * validates a table column based on validation settings
@@ -101,7 +136,7 @@ class BasicModel extends \DB\Cortex {
      * @param $val
      * @return bool
      */
-    private function _validateField($col, $val){
+    private function validateField($col, $val){
         $valid = true;
 
         if(array_key_exists($col, $this->validate)){
@@ -185,8 +220,8 @@ class BasicModel extends \DB\Cortex {
      * @param $col
      * @throws \Exception\ValidationException
      */
-    protected function _throwValidationError($col){
-        throw new Exception\ValidationException('Field validation: "' . $this->table . '->' . $col . '" not valid', Exception\BaseException::VALIDATION_FAILED);
+    protected function throwValidationError($col){
+        throw new Exception\ValidationException('Validation failed: "' . $col . '".', $col);
 
     }
 
@@ -369,5 +404,13 @@ class BasicModel extends \DB\Cortex {
         return \Base::instance();
     }
 
+    /**
+     * debug log function
+     * @param $text
+     */
+    public static function log($text){
+        Controller\LogController::getLogger('debug')->write($text);
+
+    }
 
 } 

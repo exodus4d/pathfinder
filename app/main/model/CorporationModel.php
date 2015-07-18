@@ -30,6 +30,8 @@ class CorporationModel extends BasicModel {
 
         $cooperationData->id = $this->id;
         $cooperationData->name = $this->name;
+        $cooperationData->sharing = $this->sharing;
+
 
         return $cooperationData;
     }

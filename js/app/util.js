@@ -4,6 +4,8 @@
 define([
     'jquery',
     'app/init',
+    'config/system_effect',
+    'config/signature_type',
     'bootbox',
     'velocity',
     'velocityUI',
@@ -13,7 +15,7 @@ define([
     'easyPieChart',
     'hoverIntent',
     'bootstrapConfirmation'
-], function($, Init, bootbox) {
+], function($, Init, SystemEffect, SignatureType, bootbox) {
 
     'use strict';
 
@@ -178,6 +180,13 @@ define([
         for(var i = 0; i < errors.length; i++){
             if(errors[i].type === 'error'){
                 errorMessage.push( errors[i].message );
+
+                // mark form field as invalid in case of a validation error
+                if(errors[i].field){
+                    var formField = formElement.find('[name="' + errors[i].field + '"]');
+                    formField.parents('.form-group').removeClass('has-success').addClass('has-error');
+                }
+
             }else if(errors[i].type === 'warning'){
                 warningMessage.push( errors[i].message );
             }
@@ -908,24 +917,31 @@ define([
         return effectInfo;
     };
 
+
     /**
      * get system effect data by system security and system class
-     * @param secureity
+     * if no search parameters given -> get all effect data
+     * @param security
      * @param effect
      * @returns {boolean}
      */
-    var getSystemEffectData = function(securety, effect){
+    var getSystemEffectData = function(security, effect){
 
-        var areaId = getAreaIdBySecurity(securety);
+        var data =  SystemEffect;
 
-        var data = false;
+        if(security){
+            // look for specific data
+            data = false;
 
-        if(
-            Init.systemEffects &&
-            Init.systemEffects.wh[effect] &&
-            Init.systemEffects.wh[effect][areaId]
-        ){
-            data = Init.systemEffects.wh[effect][areaId];
+            var areaId = getAreaIdBySecurity(security);
+
+            if(
+                areaId > 0 &&
+                SystemEffect.wh[effect] &&
+                SystemEffect.wh[effect][areaId]
+            ){
+                data = SystemEffect.wh[effect][areaId];
+            }
         }
 
         return data;
@@ -1098,21 +1114,21 @@ define([
 
     /**
      * get Signature names out of global
-     * @param systemType
+     * @param systemTypeId
      * @param areaId
      * @param sigGroupId
      * @returns {{}}
      */
-    var getAllSignatureNames = function(systemType, areaId, sigGroupId){
+    var getAllSignatureNames = function(systemTypeId, areaId, sigGroupId){
 
         var signatureNames = {};
 
         if(
-            Init.signatureTypes[systemType] &&
-            Init.signatureTypes[systemType][areaId] &&
-            Init.signatureTypes[systemType][areaId][sigGroupId]
+            SignatureType[systemTypeId] &&
+            SignatureType[systemTypeId][areaId] &&
+            SignatureType[systemTypeId][areaId][sigGroupId]
         ){
-            signatureNames =  Init.signatureTypes[systemType][areaId][sigGroupId];
+            signatureNames =  SignatureType[systemTypeId][areaId][sigGroupId];
         }
 
         return signatureNames;
@@ -1129,22 +1145,21 @@ define([
 
         var signatureTypeId = 0;
 
-        name = name.toLowerCase();
+        var areaId = getAreaIdBySecurity(systemData.security);
 
-        var systemConfig = systemData.config;
+        if(areaId > 0){
+            var signatureNames = getAllSignatureNames(systemData.type.id, areaId, sigGroupId );
+            name = name.toLowerCase();
 
-        var areaId = getAreaIdBySecurity(systemConfig.security);
+            for(var prop in signatureNames) {
 
-        var signatureNames = getAllSignatureNames(systemConfig.type, areaId, sigGroupId );
-
-        for(var prop in signatureNames) {
-
-            if(
-                signatureNames.hasOwnProperty(prop) &&
-                signatureNames[prop].toLowerCase() === name
-            ){
-                signatureTypeId = parseInt( prop );
-                break;
+                if(
+                    signatureNames.hasOwnProperty(prop) &&
+                    signatureNames[prop].toLowerCase() === name
+                ){
+                    signatureTypeId = parseInt( prop );
+                    break;
+                }
             }
         }
 
@@ -1153,19 +1168,32 @@ define([
 
     /**
      * get Area ID by security string
-     * k-space not implemented jet
      * @param security
-     * @returns {*}
+     * @returns {number}
      */
     var getAreaIdBySecurity = function(security){
 
-        var areaId = null;
+        var areaId = 0;
 
-        for(var i = 1; i <= 6; i++){
-            if(security === 'C' + i){
-                areaId = i;
+        switch(security){
+            case 'H':
+                areaId = 10;
                 break;
-            }
+            case 'L':
+                areaId = 11;
+                break;
+            case '0.0':
+                areaId = 12;
+                break;
+            default:
+                // w-space
+                for(var i = 1; i <= 6; i++){
+                    if(security === 'C' + i){
+                        areaId = i;
+                        break;
+                    }
+                }
+                break;
         }
 
         return areaId;
@@ -1348,6 +1376,34 @@ define([
         return   dateString + ' ' + timeString;
     };
 
+    /**
+     * send logout request
+     */
+    var logout = function(){
+
+        $.ajax({
+            type: 'POST',
+            url: Init.path.logOut,
+            data: {},
+            dataType: 'json'
+        }).done(function(data){
+
+            if(data.reroute !== undefined){
+                var landingPageUrl = buildUrl(data.reroute);
+                var currentUrl = document.URL;
+
+                // relocate to landing page
+                if(landingPageUrl !== currentUrl){
+                    window.location = landingPageUrl + '?logout';
+                }
+            }
+        }).fail(function( jqXHR, status, error) {
+
+            var reason = status + ' ' + error;
+            showNotify({title: jqXHR.status + ': logout', text: reason, type: 'error'});
+        });
+    };
+
     return {
         config: config,
         getCurrentTriggerDelay: getCurrentTriggerDelay,
@@ -1389,6 +1445,7 @@ define([
         getCurrentUserInfo: getCurrentUserInfo,
         getCurrentCharacterLog: getCurrentCharacterLog,
         convertDateToString: convertDateToString,
-        formatPrice: formatPrice
+        formatPrice: formatPrice,
+        logout: logout
     };
 });

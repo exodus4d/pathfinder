@@ -9,6 +9,7 @@
 namespace Controller\Api;
 use Controller;
 use Model;
+use Exception;
 
 class User extends Controller\Controller{
 
@@ -25,7 +26,6 @@ class User extends Controller\Controller{
 
         if($data['loginData']){
             $loginData = $data['loginData'];
-
             $loginSuccess = $this->logUserIn( $loginData['userName'], $loginData['userPassword'] );
         }
 
@@ -65,6 +65,10 @@ class User extends Controller\Controller{
             $this->f3->set('SESSION.user.name', $user->name);
             $this->f3->set('SESSION.user.id', $user->id);
 
+            // save user login information
+            $user->touch('lastLogin');
+            $user->save();
+
             // update/check api data
             // $this->_updateCharacterData();
             $loginSuccess = true;
@@ -95,6 +99,88 @@ class User extends Controller\Controller{
     }
 
     /**
+     * delete the character log entry for the current active (main) character
+     */
+    public function deleteLog(){
+
+        $user = $this->_getUser();
+
+        $activeUserCharacter = $user->getActiveUserCharacter();
+
+        if($activeUserCharacter){
+            $character = $activeUserCharacter->getCharacter();
+
+            if(is_object($character->characterLog)){
+                $character->characterLog->erase();
+                $character->save();
+            }
+        }
+    }
+
+    /**
+     * save/update "map sharing" configurations for all map types
+     * the user has access to
+     * @param $f3
+     */
+    public function saveSharingConfig($f3){
+        $data = $f3->get('POST');
+
+        $return = (object) [];
+
+        $privateSharing = 0;
+        $corporationSharing = 0;
+        $allianceSharing = 0;
+
+        $user = $this->_getUser();
+
+        if($user){
+
+            // form values
+            if(isset($data['formData'])){
+                $formData = $data['formData'];
+
+                if(isset($formData['privateSharing'])){
+                    $privateSharing = 1;
+                }
+
+                if(isset($formData['corporationSharing'])){
+                    $corporationSharing = 1;
+                }
+
+                if(isset($formData['allianceSharing'])){
+                    $allianceSharing = 1;
+                }
+            }
+
+            $user->sharing = $privateSharing;
+            $user->save();
+
+            // update corp/ally ---------------------------------------------------------------
+
+            $activeUserCharacter = $user->getActiveUserCharacter();
+
+            if(is_object($activeUserCharacter)){
+                $corporation = $activeUserCharacter->getCharacter()->getCorporation();
+                $alliance = $activeUserCharacter->getCharacter()->getAlliance();
+
+                if(is_object($corporation)){
+                    $corporation->sharing = $corporationSharing;
+                    $corporation->save();
+                }
+
+                if(is_object($alliance)){
+                    $alliance->sharing = $allianceSharing;
+                    $alliance->save();
+                }
+            }
+
+            $return->userData = $user->getData();
+        }
+
+        echo json_encode($return);
+    }
+
+    /**
      * save/update user data
      * @param $f3
      */
@@ -114,186 +200,194 @@ class User extends Controller\Controller{
         // check user if if he is new
         $loginAfterSave = false;
 
-        if($data['settingsData']){
+        if( isset($data['settingsData']) ){
             $settingsData = $data['settingsData'];
 
-            $user = $this->_getUser();
+            try{
+                $user = $this->_getUser();
 
-            // captcha is send -> check captcha
-            if(
-                array_key_exists('captcha', $settingsData) &&
-                !empty($settingsData['captcha'])
-            ){
-
-
-                if($settingsData['captcha'] === $captcha){
-                    // change/set sensitive user data requires captcha!
-
-                    if($user === false){
-                        // new user registration
-                        $user = $mapType = Model\BasicModel::getNew('UserModel');
-
-                        $loginAfterSave = true;
-
-                        // set username
-                        if(
-                            array_key_exists('name', $settingsData) &&
-                            !empty($settingsData['name'])
-                        ){
-                            $user->name = $settingsData['name'];
-                        }
-                    }
-
-                    // change/set email
-                    if(
-                        array_key_exists('email', $settingsData) &&
-                        array_key_exists('email_confirm', $settingsData) &&
-                        !empty($settingsData['email']) &&
-                        !empty($settingsData['email_confirm']) &&
-                        $settingsData['email'] == $settingsData['email_confirm']
-                    ){
-                        $user->email = $settingsData['email'];
-                    }
-
-                    // change/set password
-                    if(
-                        array_key_exists('password', $settingsData) &&
-                        array_key_exists('password_confirm', $settingsData) &&
-                        !empty($settingsData['password']) &&
-                        !empty($settingsData['password_confirm']) &&
-                        $settingsData['password'] == $settingsData['password_confirm']
-                    ){
-                        $user->password = $settingsData['password'];
-                    }
-                }else{
-                    // captcha was send but not valid -> return error
-                    $captchaError = (object) [];
-                    $captchaError->type = 'error';
-                    $captchaError->message = 'Captcha does not match';
-                    $return->error[] = $captchaError;
-                }
-            }
-
-            // saving additional user info requires valid user object (no captcha required)
-            if($user){
-
-                // save API data
+                // captcha is send -> check captcha
                 if(
-                    array_key_exists('keyId', $settingsData) &&
-                    array_key_exists('vCode', $settingsData) &&
-                    is_array($settingsData['keyId']) &&
-                    is_array($settingsData['vCode'])
+                    isset($settingsData['captcha']) &&
+                    !empty($settingsData['captcha'])
                 ){
 
-                    // get all existing API models for this user
-                    $apiModels = $user->getAPIs();
 
-                    // check if the user already has a main character
-                    // if not -> save the next best character as main
-                    $mainUserCharacter = $user->getMainUserCharacter();
+                    if($settingsData['captcha'] === $captcha){
+                        // change/set sensitive user data requires captcha!
 
-                    foreach($settingsData['keyId'] as $i => $keyId){
+                        if($user === false){
+                            // new user registration
+                            $user = $mapType = Model\BasicModel::getNew('UserModel');
 
-                        $api = null;
-                        $userCharacters = [];
+                            $loginAfterSave = true;
 
-                        // search for existing API model
-                        foreach($apiModels as $key => $apiModel){
-                            if($apiModel->keyId == $keyId){
-                                $api = $apiModel;
-                                // get existing characters in case api model already exists
-                                $userCharacters = $api->getUserCharacters();
-
-                                unset($apiModels[$key]);
-                                break;
+                            // set username
+                            if(
+                                isset($settingsData['name']) &&
+                                !empty($settingsData['name'])
+                            ){
+                                $user->name = $settingsData['name'];
                             }
                         }
 
-                        if(is_null($api)){
-                            // new API Key
-                            $api = Model\BasicModel::getNew('UserApiModel');
+                        // change/set email
+                        if(
+                            isset($settingsData['email']) &&
+                            isset($settingsData['email_confirm']) &&
+                            !empty($settingsData['email']) &&
+                            !empty($settingsData['email_confirm']) &&
+                            $settingsData['email'] == $settingsData['email_confirm']
+                        ){
+                            $user->email = $settingsData['email'];
                         }
 
-                        $api->userId = $user;
-                        $api->keyId = $keyId;
-                        $api->vCode = $settingsData['vCode'][$i];
+                        // change/set password
+                        if(
+                            isset($settingsData['password']) &&
+                            isset($settingsData['password_confirm']) &&
+                            !empty($settingsData['password']) &&
+                            !empty($settingsData['password_confirm']) &&
+                            $settingsData['password'] == $settingsData['password_confirm']
+                        ){
+                            $user->password = $settingsData['password'];
+                        }
+                    }else{
+                        // captcha was send but not valid -> return error
+                        $captchaError = (object) [];
+                        $captchaError->type = 'error';
+                        $captchaError->message = 'Captcha does not match';
+                        $return->error[] = $captchaError;
+                    }
+                }
 
-                        // check each API Model if valid
-                        $newUserCharacters = $api->requestCharacters();
+                // saving additional user info requires valid user object (no captcha required)
+                if($user){
 
-                        if(empty($newUserCharacters)){
-                            // no characters found -> return warning
-                            $characterError = (object) [];
-                            $characterError->type = 'warning';
-                            $characterError->keyId = $api->keyId;
-                            $characterError->vCode = $api->vCode;
-                            $characterError->message = 'No characters found';
-                            $return->error[] = $characterError;
-                        }else{
-                            $api->save();
-                            // find existing character
-                            foreach($newUserCharacters as $newUserCharacter){
+                    // save API data
+                    if(
+                        isset($settingsData['keyId']) &&
+                        isset($settingsData['vCode']) &&
+                        is_array($settingsData['keyId']) &&
+                        is_array($settingsData['vCode'])
+                    ){
 
-                                $matchedUserCharacter = $newUserCharacter;
+                        // get all existing API models for this user
+                        $apiModels = $user->getAPIs();
 
-                                foreach($userCharacters as $key => $userCharacter){
-                                    if($userCharacter->characterId->id == $newUserCharacter->characterId->id){
-                                        // user character fond -> update this one
-                                        $matchedUserCharacter = $userCharacter;
-                                        unset($userCharacters[$key]);
-                                        break;
-                                    }
+                        // check if the user already has a main character
+                        // if not -> save the next best character as main
+                        $mainUserCharacter = $user->getMainUserCharacter();
+
+                        foreach($settingsData['keyId'] as $i => $keyId){
+                            $api = null;
+                            $userCharacters = [];
+
+                            // search for existing API model
+                            foreach($apiModels as $key => $apiModel){
+                                if($apiModel->keyId == $keyId){
+                                    $api = $apiModel;
+                                    // get existing characters in case api model already exists
+                                    $userCharacters = $api->getUserCharacters();
+
+                                    unset($apiModels[$key]);
+                                    break;
                                 }
+                            }
 
-                                $matchedUserCharacter->apiId = $api;
-                                $matchedUserCharacter->userId = $user;
 
-                                $matchedUserCharacter->save();
+                            if(is_null($api)){
+                                // new API Key
+                                $api = Model\BasicModel::getNew('UserApiModel');
+                                $api->userId = $user;
+                            }
+
+                            $api->keyId = $keyId;
+                            $api->vCode = $settingsData['vCode'][$i];
+
+                            // check each API Model if valid
+                            $newUserCharacters = $api->requestCharacters();
+
+                            if(empty($newUserCharacters)){
+                                // no characters found -> return warning
+                                $characterError = (object) [];
+                                $characterError->type = 'warning';
+                                $characterError->keyId = $api->keyId;
+                                $characterError->vCode = $api->vCode;
+                                $characterError->message = 'No characters found';
+                                $return->error[] = $characterError;
+                            }else{
+                                $api->save();
+                                // find existing character
+                                foreach($newUserCharacters as $newUserCharacter){
+
+                                    $matchedUserCharacter = $newUserCharacter;
+
+                                    foreach($userCharacters as $key => $userCharacter){
+                                        if($userCharacter->characterId->id == $newUserCharacter->characterId->id){
+                                            // user character fond -> update this one
+                                            $matchedUserCharacter = $userCharacter;
+                                            unset($userCharacters[$key]);
+                                            break;
+                                        }
+                                    }
+
+                                    $matchedUserCharacter->apiId = $api;
+                                    $matchedUserCharacter->userId = $user;
+
+                                    $matchedUserCharacter->save();
+                                }
+                            }
+
+                            // delete characters that are no longer in this API
+                            foreach($userCharacters as $userCharacter){
+                                print_r('delete Character: ' . $userCharacter->id);
                             }
                         }
 
-                        // delete characters that are no longer in this API
-                        foreach($userCharacters as $userCharacter){
-                            print_r('delete Character: ' . $userCharacter->id);
+                        // delete API models that no longer exists
+                        foreach($apiModels as $apiModel){
+                            $apiModel->delete();
                         }
+
+                        // set main character if no main character exists
+                        if(is_null($mainUserCharacter)){
+                            $user->setMainCharacterId();
+                        }
+
                     }
 
-                    // delete API models that no longer exists
-                    foreach($apiModels as $apiModel){
-                        $apiModel->delete();
+
+                    // set main character
+                    if( isset($settingsData['mainCharacterId']) ){
+                        $user->setMainCharacterId((int)$settingsData['mainCharacterId']);
                     }
 
-                    // set main character if no main character exists
-                    if(is_null($mainUserCharacter)){
-                        $user->setMainCharacterId();
+                    // save/update user model
+                    // this will fail if model validation fails!
+                    $user->save();
+
+                    // log user in (in case he is new
+                    if($loginAfterSave){
+                        $this->logUserIn( $user->name, $settingsData['password'] );
+
+                        // return reroute path
+                        $return->reroute = $this->f3->get('BASE') . $this->f3->alias('map');
                     }
 
+                    // get fresh updated user object
+                    $user = $this->_getUser();
+                    $newUserData = $user->getData();
+
                 }
-
-
-                // set main character
-                if( array_key_exists('mainCharacterId', $settingsData) ){
-                    $user->setMainCharacterId((int)$settingsData['mainCharacterId']);
-                }
-
-
-                // save/update user model
-                // this will fail if model validation fails!
-                $user->save();
-
-                // log user in (in case he is new
-                if($loginAfterSave){
-                    $this->logUserIn( $user->name, $settingsData['password'] );
-
-                    // return reroute path
-                    $return->reroute = $this->f3->get('BASE') . $this->f3->alias('map');
-                }
-
-                // get updated user object
-                $user = $this->_getUser();
-                $newUserData = $user->getData();
-
+            }catch(Exception\ValidationException $e){
+                $validationError = (object) [];
+                $validationError->type = 'error';
+                $validationError->field = $e->getField();
+                $validationError->message = $e->getMessage();
+                $return->error[] = $validationError;
             }
+
 
             // return new/updated user data
             $return->userData = $newUserData;

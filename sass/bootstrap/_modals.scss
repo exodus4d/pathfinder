@@ -143,11 +143,5 @@
 }
 
 @media (min-width: $screen-md-min) {
-  .modal-lg {
-
-    > .modal-dialog{
-      width: $modal-lg;
-
-    }
-  }
+  .modal-lg { width: $modal-lg; }
 }

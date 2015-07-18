@@ -56,22 +56,22 @@
     min-height: 200px;
     padding: 20px 0 40px 0;
     border-bottom: 1px solid $gray-darker;
+
+    h4{
+      font-size: 18px;
+      font-family: $font-family-sans-serif;
+      margin: 5px 0 10px 0;
+      border-bottom: 1px solid $gray-darker;
+      line-height: 34px;
+    }
   }
 
-  .row{
+  .container > .row{
     margin-bottom: 30px;
   }
 
   .alert {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-  }
-
-  h4{
-    font-size: 18px;
-    font-family: $font-family-sans-serif;
-    margin: 5px 0 10px 0;
-    border-bottom: 1px solid $gray-darker;
-    line-height: 34px;
   }
 
   // images for gallery
@@ -407,7 +407,7 @@
     background: $gray;
     color: $gray-lighter;
     padding: 20px 15px;
-    min-height: 182px;
+    min-height: 205px;
     line-height: 22px;
   }
 }

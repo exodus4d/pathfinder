@@ -33,7 +33,9 @@ define([
                 class: config.systemEffectDialogWrapperClass
             });
 
-            $.each( Init.systemEffects.wh, function( effectName, effectData ) {
+            var systemEffectData = Util.getSystemEffectData();
+
+            $.each( systemEffectData.wh, function( effectName, effectData ) {
 
                 var table = $('<table>', {
                     class: ['table', 'table-condensed'].join(' ')
@@ -50,6 +52,9 @@ define([
 
                 $.each( effectData, function( areaId, areaData ) {
 
+                    var systemType = 'C' + areaId;
+                    var securityClass = Util.getSecurityClassForSystem( systemType );
+
                     if(areaId === '1'){
                         rows.push( $('<tr>') );
                         thead.append( rows[0] );
@@ -64,8 +69,8 @@ define([
                     }
 
                     rows[0].append( $('<td>', {
-                        class: ['text-right', 'col-xs-1'].join(' ')
-                    }).text( 'C' + areaId ));
+                        class: ['text-right', 'col-xs-1', securityClass].join(' ')
+                    }).text( systemType ));
 
                     $.each( areaData, function( i, data ) {
 

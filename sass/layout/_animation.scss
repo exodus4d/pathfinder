@@ -14,15 +14,7 @@
   }
 }
 
-
 // slide in and show ==================================
-/*
-tr{
-  @extend .pf-animation-slide-in;
-}
-*/
-
-
 .pf-animation-slide-in {
   -moz-animation-duration: 1.2s;
   -webkit-animation-duration: 1.2s;
@@ -41,4 +33,60 @@ tr{
     opacity: 1;
     top:0px;
   }
+};
+
+// pulse-out ==========================================
+
+.pf-animation-pulse-success{
+  @include animation( pulseBackgroundSuccess 3s 1 );
+  @include animation-timing-function( cubic-bezier(0.53, -0.03, 0.68, 0.38) );
+
+  .sorting_1{
+    @include animation( pulseBackgroundSuccessActive 3s 1 );
+    @include animation-timing-function( cubic-bezier(0.53, -0.03, 0.68, 0.38) );
+  }
+}
+
+.pf-animation-pulse-warning{
+  @include animation( pulseBackgroundWarning 3s 1 );
+  @include animation-timing-function( cubic-bezier(0.53, -0.03, 0.68, 0.38) );
+
+  .sorting_1{
+    @include animation( pulseBackgroundWarningActive 3s 1 );
+    @include animation-timing-function( cubic-bezier(0.53, -0.03, 0.68, 0.38) );
+  }
+}
+
+@include keyframes(pulseBackgroundSuccess){
+  0%   {}
+  5%  {
+    background-color: $green;
+    color: $gray-dark;
+  }
+  100% {}
+};
+@include keyframes(pulseBackgroundSuccessActive){
+  0%   {}
+  5%  {
+    background-color: darken($green, 5%);
+    color: $gray-dark;
+  }
+  100% {}
+};
+
+@include keyframes(pulseBackgroundWarning){
+  0%   {}
+  5%  {
+    background-color: $orange;
+    color: $gray-darker;
+  }
+  100% {}
+};
+@include keyframes(pulseBackgroundWarningActive){
+  0%   {}
+  5%  {
+    background-color: darken($orange, 5%);
+    color: $gray-darker;
+  }
+  100% {}
 };

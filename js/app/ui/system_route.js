@@ -189,7 +189,10 @@ define([
     var formatRouteData = function(routeData){
 
         var rowData = false;
-        if(routeData.routePossible === true){
+        if(
+            routeData.routePossible === true &&
+            routeData.route.length > 0
+        ){
             // route data available
 
             // add route Data

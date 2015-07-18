@@ -24,7 +24,7 @@ php_value suhosin.request.max_vars 5000
 
 # PHP error logs
 php_flag log_errors on
-php_value error_log "/www/htdocs/w0128162/pathfinder.exodus4d.de/php_errors.html"
+# php_value error_log "/www/htdocs/w0128162/pathfinder.exodus4d.de/php_errors.html"
 
 # cache images/pdf docs
 <ifmodule mod_expires.c>

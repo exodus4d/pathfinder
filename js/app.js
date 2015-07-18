@@ -3,14 +3,15 @@ requirejs.config({
     baseUrl: 'js', // user build_js files, change to "js" for un-compressed source
     paths: {
         layout: 'layout',
-        dialog: 'app/ui/dialog',
+        config: 'app/config',                                           // path for "configuration" files dir
+        dialog: 'app/ui/dialog',                                        // path for "dialog" files dir
         jquery: 'lib/jquery-1.11.3.min',                                // v1.11.3 jQuery
         //jquery: "lib/jquery-2.1.1.min",                               // v2.1.1 jQuery
         bootstrap: 'lib/bootstrap.min',                                 // v3.3.0 Bootstrap js code - http://getbootstrap.com/javascript/
         text: 'lib/requirejs/text',                                     // v2.0.12 A RequireJS/AMD loader plugin for loading text resources.
         mustache: 'lib/mustache.min',                                   // v1.0.0 Javascript template engine - http://mustache.github.io/
-        velocity: 'lib/velocity.min',                                   // v1.2.1 animation engine - http://julian.com/research/velocity/
-        velocityUI: 'lib/velocity.ui.min',                              // v5.0.3 plugin for velocity - http://julian.com/research/velocity/#uiPack
+        velocity: 'lib/velocity.min',                                   // v1.2.2 animation engine - http://julian.com/research/velocity/
+        velocityUI: 'lib/velocity.ui.min',                              // v5.0.4 plugin for velocity - http://julian.com/research/velocity/#uiPack
         templates: '../public/templates',                               // template dir
         img: '../public/img',                                           // images dir
         slidebars: 'lib/slidebars',                                     // v0.10 Slidebars - side menu plugin http://plugins.adchsm.me/slidebars/

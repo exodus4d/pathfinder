@@ -5,6 +5,7 @@
             <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-system" href="#"><i class="fa fa-sun-o fa-lg fa-fw"></i>&nbsp;System</a></li>
             <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-connection" href="#"><i class="fa fa-chain fa-lg fa-fw"></i>&nbsp;Connection</a></li>
             <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-signature" href="#"><i class="fa fa-table fa-lg fa-fw"></i>&nbsp;Signature</a></li>
+            <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-share" href="#"><i class="fa fa-share-alt fa-lg fa-fw"></i>&nbsp;Share</a></li>
             <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-chart" href="#"><i class="fa fa-bar-chart fa-lg fa-fw"></i>&nbsp;Chart</a></li>
             <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-notification" href="#"><i class="fa fa-bullhorn fa-lg fa-fw"></i>&nbsp;Notification</a></li>
         </ul>
@@ -69,7 +70,7 @@
     <hr class="pf-manual-scroll-break">
     {{! ================================================================================================================================================  }}
 
-    <h2 id="pf-manual-system"><i class="fa fa-sun-o fa-lg fa-fw"></i>&nbsp;&nbsp;System</h2>
+    <h2 id="pf-manual-system"><i class="fa fa-sun-o fa-lg fa-fw"></i>&nbsp;&nbsp;Solar system / Wormhole system</h2>
 
     <p>
         Systems are represented by rectangle boxes on a map <small>(<i class="fa fa-code-fork fa-fw"></i><a href="#" data-target="#pf-manual-map">more</a>)</small>.
@@ -255,7 +256,7 @@
     <hr class="pf-manual-scroll-break">
     {{! ================================================================================================================================================  }}
 
-    <h2 id="pf-manual-signature"><i class="fa fa-table fa-lg fa-fw"></i>&nbsp;&nbsp;Signature</h2>
+    <h2 id="pf-manual-signature"><i class="fa fa-table fa-lg fa-fw"></i>&nbsp;&nbsp;Signature module</h2>
     <p>
         The <em>"Signature table"</em> of a system is shown below the map. Any active system <small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-system-active">more</a>)</small> has its own <em>"Signature table"</em>.
         Signatures found in a system can be added to the table in order to share information. The table represents a record of the current scan process of a system.
@@ -295,6 +296,41 @@
         <li>Clear Signatures: <small>Delete all signatures by </small><kbd>click</kbd><small> at the <em>"Clear Signatures"</em> button</small></li>
         <li>Delete Signature: <small>Delete a signature by </small><kbd>click</kbd><small> at the (<i class="fa fa-close fa-fw"></i>) button at the end of a row</small></li>
         <li>Automatically: <small>Signatures will be deleted automatically after some days</small></li>
+    </ul>
+
+    <hr class="pf-manual-scroll-break">
+    {{! ================================================================================================================================================  }}
+
+    <h2 id="pf-manual-share"><i class="fa fa-share-alt fa-lg fa-fw"></i>&nbsp;&nbsp;Sharing maps</h2>
+
+    <p>
+        The concept of map sharing is pretty complex and powerful. By default all sharing options are disabled, so there is no reason to be concerned about map security.
+        All map types <small>(<i class="fa fa-code-fork fa-fw"></i><a href="#" data-target="#pf-manual-map">more</a>)</small> can be temporary shared with allied entities e.g. for "<em>Joint-Ops</em>".<br>
+        The map type is preserved for the period of sharing (private maps can be shared with other users, corporation maps can be shared with other corporations,..).
+        For now you can not invite a single user to your corporation map.
+        Do the following steps to share your map with your friend/allied corporation/allied alliance:
+    </p>
+    <ol style=" padding-left: 20px; list-style-type: decimal;">
+        <li>Get in contact with your friend and convince him to temporary enable "map invite", for the type of map you are planning to share, in the "<em>Share settings</em>" dialog</li>
+        <li>Open the "<em>Map settings</em>" dialog on the map you are planning to share. Switch to the "<em>Settings</em>" tab and search for your friend or corporation/alliance </li>
+        <li>If you can not find the "option" you are looking for, make sure he has enabled the "map invite" option</li>
+        <li>Save the "<em>Map settings</em>" with the new "share" option. Wait a few seconds until the new settings take effect</li>
+        <li>If you were successful, you will see a small  <i class="fa fa-share-alt fa-fw"></i> icon in your map tab</li>
+        <li>Disable the "map invite" flag and enjoy the shared map (prevent hostiles from invite you to their maps)</li>
+    </ol>
+    <h4><i class="fa fa-info fa-fw"></i> Important information</h4>
+    <ul class="list-unstyled" style=" margin-left: 10px;">
+        <li>"<em>Private maps</em>" are shared between "Users" (not "Characters")! - Make sure looking for the correct username instead of searching for a character name.</li>
+        <li>
+            <ul class="list-unstyled" style=" margin-left: 10px;">
+                <li>The advantage of this concept is that a "User" can use a map with all its registered "<em>Alt-Characters</em>"</li>
+            </ul>
+        </li>
+        <li>For now, all corporation/alliance members have the role to change/set the "map invite" flag.
+            Make sure not to share your corp/ally maps with hostile entities, and/or remove them from the map once the Op is over. If you are paranoid, delete the shared map</li>
+        <li>Keep the limit of shared maps in mind. If you, your friend/corp/ally have reached the limit of shared maps, you cant start an additional shared map</li>
+        <li>Please be aware of the fact, that any entity that has map access, can take over map control and hijack the map by removing you/your corp/your ally from the access list</li>
+        <li>Check the lifetime cycle for "<em>Private maps</em>". If a map reaches the end, it will be removed for all users who have access</li>
     </ul>
 
     <hr class="pf-manual-scroll-break">

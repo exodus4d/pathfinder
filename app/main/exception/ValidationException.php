@@ -11,7 +11,27 @@ namespace Exception;
 
 class ValidationException extends BaseException {
 
-    public function __construct($message, $code = 0){
-        parent::__construct($message, $code);
+    private $field;
+
+    /**
+     * @return mixed
+     */
+    public function getField(){
+        return $this->field;
+    }
+
+    /**
+     * @param mixed $field
+     */
+    public function setField($field){
+        $this->field = $field;
+    }
+
+
+    public function __construct($message, $field = 0){
+
+        parent::__construct($message, self::VALIDATION_FAILED);
+
+        $this->setField($field);
     }
 } 

@@ -70,7 +70,7 @@ $pf-font-path:            "../fonts" !default;
 
 $font-family-sans-serif:  'Oxygen', "Helvetica Neue", Helvetica, Arial, sans-serif !default;
 $font-family-serif:       'Oxygen' Georgia, "Times New Roman", Times, serif !default;
-$font-family-monospace:   Monaco, Menlo, Consolas, "Courier New", monospace;
+$font-family-monospace:   Consolas, monospace, Menlo, Monaco, "Courier New";
 $font-family-bold:        'Oxygen Bold', "Helvetica Neue", Helvetica, Arial, sans-serif !default;
 $font-family-base:        $font-family-sans-serif;
 $font-style-base:         normal;

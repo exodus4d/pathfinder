@@ -1,0 +1,89 @@
+<div id="{{id}}" >
+
+    <form role="form" class="form-horizontal">
+
+        <div class="row">
+            <div class="col-sm-11">
+                <blockquote>
+                    <p>
+                        Before other pilots, corporations or alliances can invite you to their maps, you have to enable the associated option.
+                    </p>
+                    <small>Check out the "<a href="javascript:void(0);" onclick="$(document).triggerMenuEvent('Manual');">manual</a>" for more information
+                    </small>
+                </blockquote>
+            </div>
+        </div>
+
+
+        {{#userData.character}}
+            <h2><img src="{{ccpImageServer}}Character/{{id}}_32.jpg">&nbsp;&nbsp;Private maps "<em class="pf-map-type-private">{{userData.name}}</em>"</h2>
+
+            <fieldset class="pf-dynamic-area">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label for="privateSharing" class="col-sm-10 control-label">Enable map invite for private maps</label>
+                            <div class="col-sm-2">
+                                <div class="checkbox">
+                                    <input id="privateSharing" type="checkbox" name="privateSharing" value="1" {{#userData.sharing}}checked{{/userData.sharing}}>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+
+                    </div>
+                </div>
+            </fieldset>
+
+
+            {{#corporation}}
+                <h2><img src="{{ccpImageServer}}Corporation/{{id}}_32.png">&nbsp;&nbsp;Corporation maps "<em class="pf-map-type-corporation">{{name}}</em>"</h2>
+
+                <fieldset class="pf-dynamic-area">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label for="corporationSharing" class="col-sm-10 control-label">Enable map invite for corporation maps</label>
+                                <div class="col-sm-2">
+                                    <div class="checkbox">
+                                        <input id="corporationSharing" type="checkbox" name="corporationSharing" value="1" {{#sharing}}checked{{/sharing}} >
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+
+                        </div>
+                    </div>
+                </fieldset>
+
+            {{/corporation}}
+
+            {{#alliance}}
+                <h2><img src="{{ccpImageServer}}Alliance/{{id}}_32.png">&nbsp;&nbsp;Alliance maps "<em class="pf-map-type-alliance">{{name}}</em>"</h2>
+
+                <fieldset class="pf-dynamic-area">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label for="allianceSharing" class="col-sm-10 control-label">Enable map invite for alliance maps</label>
+                                <div class="col-sm-2">
+                                    <div class="checkbox">
+                                        <input id="allianceSharing" type="checkbox" name="allianceSharing" value="1" {{#sharing}}checked{{/sharing}}>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+
+                        </div>
+                    </div>
+                </fieldset>
+
+            {{/alliance}}
+        {{/userData.character}}
+
+    </form>
+
+</div>

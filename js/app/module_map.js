@@ -235,13 +235,17 @@ define([
 
             // check if current open system is still the requested info system
             var currentSystemData = Util.getCurrentSystemData();
+
             if(
                 currentSystemData &&
-                mapModuleData.system &&
-                mapModuleData.system.id === currentSystemData.systemData.id
+                mapModuleData.system
             ){
-                // trigger system update event
-                $(document).trigger('pf:updateSystemModules', [mapModuleData.system]);
+                if(mapModuleData.system.id === currentSystemData.systemData.id){
+                    // trigger system update event
+                    $(document).trigger('pf:updateSystemModules', [mapModuleData.system]);
+                }
+
+
             }
 
         }
@@ -272,7 +276,6 @@ define([
             // append grid structure
             $(this).append(contentStructure);
         });
-
     };
 
     var getTabElement = function(options){

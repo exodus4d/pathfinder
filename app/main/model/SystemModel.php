@@ -180,18 +180,31 @@ class SystemModel extends BasicModel {
      * @return bool|null
      */
     public function getSignatureById($accessObject, $id){
-        $signature = false;
+        $signature = null;
 
         if($this->hasAccess($accessObject)){
-            $signature = self::getNew('SystemSignatureModel');
-            $signature->getById($id);
+            $this->filter('signatures', array('active = ? AND id = ?', 1, $id));
+            if($this->signatures){
+                $signature = reset( $this->signatures );
+            }
+        }
 
-            if(
-                !$signature->dry() &&
-                $signature->systemId->id !== $this->id
-            ){
-                // check if signature belongs to system -> security check
-                $signature = false;
+        return $signature;
+    }
+
+    /**
+     * get a signature by its "unique" 3-digit name
+     * @param $accessObject
+     * @param $name
+     * @return mixed|null
+     */
+    public function getSignatureByName($accessObject, $name){
+        $signature = null;
+
+        if($this->hasAccess($accessObject)){
+            $this->filter('signatures', array('active = ? AND name = ?', 1, $name));
+            if($this->signatures){
+                $signature = reset( $this->signatures );
             }
         }
 

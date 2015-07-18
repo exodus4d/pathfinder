@@ -104,7 +104,8 @@ define([
                     title: '<i class="fa fa-lg fa-tag"></i>',
                     width: '18px',
                     searchable: false,
-                    data: 'type'
+                    class: ['text-center'].join(' '),
+                    data: 'status'
                 },{
                     targets: 1,
                     title: '<i class="fa fa-lg fa-fw fa-clock-o"></i>&nbsp;&nbsp;',
@@ -127,11 +128,11 @@ define([
                     data: 'description'
                 },{
                     targets: 4,
-                    title: '<i class="fa fa-lg fa-code-fork"></i>&nbsp;&nbsp;&nbsp;',
-                    width: '18px',
+                    title: 'type',
+                    width: '40px',
                     searchable: true,
-                    class: 'text-right',
-                    data: 'test'
+                    class: ['text-center'].join(' '),
+                    data: 'type'
                 },{
                     targets: 5,
                     title: 'Prozess-ID&nbsp;&nbsp;&nbsp;',
@@ -148,7 +149,7 @@ define([
         var logDialog = bootbox.dialog({
             title: 'Task-Manager',
             message: content,
-            className: 'modal-lg',
+            size: 'large',
             buttons: {
                 close: {
                     label: 'close',
@@ -166,7 +167,6 @@ define([
             var labelYFormat = function(y){
                 return Math.round(y) + 'ms';
             };
-
 
             for(var key in chartData) {
                 if(chartData.hasOwnProperty(key)) {
@@ -367,18 +367,18 @@ define([
             // change avg. display
             avgElement[0].textContent = 'Avg. ' + tempChartData.average + 'ms';
 
-            var avgType = getLogTypeByDuration(key, tempChartData.average);
-            var avgTypeClass = Util.getLogInfo( avgType, 'class' );
+            var avgStatus = getLogStatusByDuration(key, tempChartData.average);
+            var avgStatusClass = Util.getLogInfo( avgStatus, 'class' );
 
             //change avg. display class
             if(
-                !avgElement.hasClass(avgTypeClass)
+                !avgElement.hasClass(avgStatusClass)
             ){
-                // avg type changed!
-                avgElement.removeClass().addClass('pull-right txt-color ' + avgTypeClass);
+                // avg status changed!
+                avgElement.removeClass().addClass('pull-right txt-color ' + avgStatusClass);
 
                 // change goals line color
-                if(avgType === 'warning'){
+                if(avgStatus === 'warning'){
                     chartData[key].graph.options.goalLineColors = ['#e28a0d'];
                     $(document).setProgramStatus('problem');
                 }else{
@@ -394,19 +394,40 @@ define([
     };
 
     /**
-     * get the log "type" by log duration (ms).
+     * get the log "status" by log duration (ms).
      * If duration > warning limit -> show as warning
      * @param logKey
      * @param logDuration
      * @returns {string}
      */
-    var getLogTypeByDuration = function(logKey, logDuration){
+    var getLogStatusByDuration = function(logKey, logDuration){
 
-        var logType = 'info';
+        var logStatus = 'info';
         if( logDuration > Init.timer[logKey].EXECUTION_LIMIT ){
-            logType = 'warning';
+            logStatus = 'warning';
         }
-        return logType;
+        return logStatus;
+    };
+
+    /**
+     * get the css class for a specific log type
+     * @param logType
+     * @returns {string}
+     */
+    var getLogTypeIconClass = function(logType){
+
+        var logIconClass = '';
+
+        switch(logType){
+            case 'client':
+                logIconClass = 'fa-user';
+                break;
+            case 'server':
+                logIconClass = 'fa-download';
+                break;
+        }
+
+        return logIconClass;
     };
 
     /**
@@ -427,21 +448,24 @@ define([
             ){
                 var logDescription = options.description;
                 var logDuration = options.duration;
+                var logType = options.type;
 
-                // check log type by duration
-                var logType = getLogTypeByDuration(logKey, logDuration);
+                // check log status by duration
+                var logStatus = getLogStatusByDuration(logKey, logDuration);
 
-                var typeClass = Util.getLogInfo( logType, 'class' );
+                var statusClass = Util.getLogInfo( logStatus, 'class' );
+
+                var typeIconClass = getLogTypeIconClass(logType);
 
                 // update graph data
                 updateLogGraph(logKey, logDuration);
 
                 var logRowData = {
-                    type:  '<i class="fa fa-fw fa-circle txt-color ' + typeClass + '"></i>',
+                    status:  '<i class="fa fa-fw fa-circle txt-color ' + statusClass + '"></i>',
                     time: getLogTime(),
-                    duration: '<span class="txt-color ' + typeClass + '">' + logDuration + '<small>ms</small></span>',
+                    duration: '<span class="txt-color ' + statusClass + '">' + logDuration + '<small>ms</small></span>',
                     description: logDescription,
-                    test: '123',
+                    type: '<i class="fa ' + typeIconClass + '"></i>',
                     key: logKey
                 };
 

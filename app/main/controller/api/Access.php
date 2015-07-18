@@ -52,8 +52,12 @@ class Access extends \Controller\AccessController {
             }
 
             if( is_object($accessModel) ){
+
+                // find "active" entries that have their "sharing" option activated
                 $accessList = $accessModel->find( array(
-                    "LOWER(name) LIKE :token AND active = 1",
+                    "LOWER(name) LIKE :token AND " .
+                    "active = 1 AND " .
+                    "sharing = 1 ",
                     ':token' => '%' . $searchToken . '%'
                 ));
 

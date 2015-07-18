@@ -42,6 +42,7 @@ define([
             var mapManualDialog = bootbox.dialog({
                 title: 'Manual',
                 message: content,
+                size: 'large',
                 buttons: {
                     success: {
                         label: 'close',

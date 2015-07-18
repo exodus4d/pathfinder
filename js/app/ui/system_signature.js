@@ -7,10 +7,11 @@ define([
     'app/init',
     'app/util',
     'app/render',
+    'config/signature_type',
     'bootbox',
     'app/counter',
     'datatablesResponsive'
-], function($, Init, Util, Render, bootbox) {
+], function($, Init, Util, Render, SignatureType, bootbox) {
     'use strict';
 
     var config = {
@@ -49,12 +50,19 @@ define([
         sigTableActionCellClass: 'pf-sig-table-action-cell',                    // class for "action" cells
         sigTableActionButtonClass: 'pf-sig-table-action-button',                // class for row action button
 
+        // animation
+        animationPulseSuccessClass: 'pf-animation-pulse-success',               // animation class
+        animationPulseWarningClass: 'pf-animation-pulse-warning',               // animation class
+
         // xEditable
         editableDiscriptionInputClass: 'pf-editable-description'                // class for "description" textarea
     };
 
-    // disable Signature Table update temporary (until. some requests/animations) are finished
+    // lock Signature Table update temporary (until. some requests/animations) are finished
     var disableTableUpdate = true;
+
+    // disable "copy&paste" from clipboard (until  request finished)
+    var disableCopyFromClipboard = false;
 
     // cache for dataTable object
     var signatureTable = null;
@@ -136,9 +144,11 @@ define([
     /**
      * Updates a signature table, changes all signatures where name matches
      * add all new signatures as a row
+     *
      * @param signatureData
+     * @param deleteOutdatedSignatures -> set to "true" if signatures should be deleted that are not included in "signatureData"
      */
-    $.fn.updateSignatureTable = function(signatureData){
+    $.fn.updateSignatureTable = function(signatureData, deleteOutdatedSignatures){
 
         // check if table update is allowed
         if(disableTableUpdate === true){
@@ -147,7 +157,6 @@ define([
 
         // disable update until function is ready;
         disableTableUpdate = true;
-
 
         var moduleElement = $(this);
 
@@ -173,11 +182,20 @@ define([
                     // check if row has updated
                     if(signatureData[i].updated.updated > tableData[j].updated.updated){
 
+                        // row element to remove
+                        var currentRowElement = signatureTableApi.row(tableData[j].index).nodes().to$();
+
+                        // hide open editable fields on the row before removing them
+                        currentRowElement.find('.editable').editable('destroy');
+
                         // remove "old" row
-                        signatureTableApi.row(tableData[j].index).remove().draw();
+                        signatureTableApi.row(currentRowElement).remove().draw();
 
                         // and add "new" row
-                        addSignatureRow(currentSystemData.systemData, signatureData[i], false);
+                        var changedRowElement = addSignatureRow(currentSystemData.systemData, signatureData[i], false);
+
+                        // highlight
+                        changedRowElement.pulseTableRow('changed');
 
                         notificationCounter.changed++;
                     }
@@ -196,28 +214,37 @@ define([
         }
 
         // delete signatures ====================================================
-        for(var l = 0; l < tableData.length; l++){
+        if(deleteOutdatedSignatures === true){
+            for(var l = 0; l < tableData.length; l++){
 
-            var rowElement = signatureTableApi.row(tableData[l].index).nodes().to$();
+                var rowElement = signatureTableApi.row(tableData[l].index).nodes().to$();
 
-            rowElement.toggleTableRow(function(){
-                // delete signature row
-                signatureTableApi.row(rowElement).remove().draw();
-            });
+                rowElement.toggleTableRow(function(){
 
-            notificationCounter.deleted++;
+                    // hide open editable fields on the row before removing them
+                    rowElement.find('.editable').editable('destroy');
 
+                    // delete signature row
+                    signatureTableApi.row(rowElement).remove().draw();
+                });
+
+                notificationCounter.deleted++;
+            }
         }
 
         // add new signatures ===================================================
         for(var k = 0; k < signatureData.length; k++){
             // and add "new" row
-            addSignatureRow(currentSystemData.systemData, signatureData[k], true);
+            var newRowElement = addSignatureRow(currentSystemData.systemData, signatureData[k], false);
+
+            // highlight
+            newRowElement.pulseTableRow('added');
 
             notificationCounter.added++;
         }
 
 
+        // show notification ====================================================
         if(
             notificationCounter.added > 0 ||
             notificationCounter.changed > 0 ||
@@ -235,6 +262,36 @@ define([
 
         // enable table update
         disableTableUpdate = false;
+    };
+
+    /**
+     * highlight jquery elements
+     * add/remove css class for keyframe animation
+     * @returns {any|JQuery|*}
+     */
+    $.fn.pulseTableRow = function(status){
+
+        var animationClass = '';
+        switch(status){
+            case 'added':
+                animationClass = config.animationPulseSuccessClass;
+                break;
+            case 'changed':
+                animationClass = config.animationPulseWarningClass;
+                break;
+        }
+
+        return this.each(function(){
+            var element = $(this);
+            element.addClass( animationClass );
+
+            var timer = setTimeout(
+                function() {
+                    element.removeClass( animationClass );
+
+                    clearTimeout( timer );
+                }, 3000);
+        });
     };
 
     /**
@@ -347,50 +404,79 @@ define([
     };
 
     /**
-     * updates
+     * updates the signature table with all signatures pasted into the "signature reader" dialog
+     * -> Hint: copy&paste signature data (without any open dialog) will add signatures as well
      * @param systemData
      * @param clipboard data stream
      */
     $.fn.updateSignatureTableByClipboard = function(systemData, clipboard){
 
-        var moduleElement = $(this);
+        // check if copy&paste is enabled
+        if( !disableCopyFromClipboard ){
+            var moduleElement = $(this);
 
-        // parse input stream
-        var signatureData = parseSignatureString(systemData, clipboard);
+            // parse input stream
+            var signatureData = parseSignatureString(systemData, clipboard);
 
-        // TODO save data and get date with ID updatedBy names etc.
+            if(signatureData.length > 0){
+                // save signature data
 
-        // updates table with new signature information
-        moduleElement.updateSignatureTable(signatureData);
+                // lock copy during request (prevent spamming (ctrl + c )
+                disableCopyFromClipboard = true;
 
+                var requestData = {
+                    signatures: signatureData
+                };
+
+                $.ajax({
+                    type: 'POST',
+                    url: Init.path.saveSignatureData,
+                    data: requestData,
+                    dataType: 'json'
+                }).done(function(responseData){
+                    // updates table with new/updated signature information
+                    moduleElement.updateSignatureTable(responseData.signatures, false);
+                }).fail(function( jqXHR, status, error) {
+                    var reason = status + ' ' + error;
+                    Util.showNotify({title: jqXHR.status + ': Update signatures', text: reason, type: 'warning'});
+                    $(document).setProgramStatus('problem');
+                }).always(function() {
+                    disableCopyFromClipboard = false;
+                });
+            }
+        }
     };
 
     /**
      * parses a copy&paste string from ingame scanning window and parses it
      * @param systemData
-     * @param clipbaord
+     * @param clipboard
      * @returns {Array}
      */
-    var parseSignatureString = function(systemData, clipbaord){
+    var parseSignatureString = function(systemData, clipboard){
 
         var signatureData = [];
-        var signatureRows = clipbaord.split('\r\n');
+
+        var signatureRows = clipboard.split(/\r\n|\r|\n/g);
 
         var signatureGroupOptions = Util.getSignatureGroupInfo('name');
 
         for(var i = 0; i < signatureRows.length; i++){
-            var rowData = signatureRows[i].split('\t');
+            var rowData = signatureRows[i].split(/\t/g);
 
             if(rowData.length === 6){
 
                 // check if sig Type = anomaly or combat site
                 if(
                     rowData[1] === 'Cosmic Anomaly' ||
-                        rowData[1] === 'Cosmic Signature'
-                    ){
-                    var sigGroup = rowData[2].trim().toLowerCase();
+                    rowData[1] === 'Cosmic Signature'
+                ){
 
+                    var sigGroup = $.trim(rowData[2]).toLowerCase();
+                    var sigDescription = $.trim(rowData[3]);
                     var sigGroupId = 0;
+                    var typeId = 0;
+
                     // get groupId by groupName
                     for (var prop in signatureGroupOptions) {
                         if(signatureGroupOptions.hasOwnProperty(prop)){
@@ -401,13 +487,24 @@ define([
                         }
                     }
 
-                    var typeId = Util.getSignatureTypeIdByName( systemData, sigGroupId, rowData[3].trim() );
+                    // wormhole type cant be extracted from signature string -> skip function call
+                    if(sigGroupId !== 5){
+                        // try to get "typeId" by description string
+                        typeId = Util.getSignatureTypeIdByName( systemData, sigGroupId, sigDescription );
+
+                        // set signature name as "description" if signature matching failed
+                        sigDescription = (typeId === 0) ? sigDescription : '';
+                    }else{
+                        sigDescription = '';
+                    }
 
                     // map array values to signature Object
                     var signatureObj = {
-                        name: rowData[0].substr(0, 3).trim().toLowerCase(),
+                        systemId: systemData.id,
+                        name: $.trim( rowData[0].substr(0, 3) ).toLowerCase(),
                         groupId: sigGroupId,
-                        typeId: typeId
+                        typeId: typeId,
+                        description: sigDescription
                     };
 
                     signatureData.push(signatureObj);
@@ -611,8 +708,8 @@ define([
             // do not read clipboard if pasting into form elements
             if(
                 $(e.target).prop('tagName').toLowerCase() !== 'input' &&
-                    $(e.target).prop('tagName').toLowerCase() !== 'textarea'
-                ){
+                $(e.target).prop('tagName').toLowerCase() !== 'textarea'
+            ){
                 var clipboard = (e.originalEvent || e).clipboardData.getData('text/plain');
                 moduleElement.updateSignatureTableByClipboard(systemData, clipboard);
             }
@@ -643,8 +740,12 @@ define([
                     var nextField = getNextEditableField(currentField);
                     nextField.editable('show');
 
-                    // update scanning progressbar if sig "type" has changed
-                    if($(e.target).hasClass(config.sigTableEditSigGroupSelect)){
+                    // update scanning progressbar if sig "type" has changed AND
+                    // the current field is in the "primary" table (not the "add" new sig row)
+                    if(
+                        $(e.target).hasClass(config.sigTableEditSigGroupSelect) &&
+                        tableElement.hasClass(config.sigTablePrimaryClass)
+                    ){
                         currentField.parents('.' + config.moduleClass).updateScannedSignaturesBar({showNotice: true});
                     }
                 }, 200);
@@ -686,7 +787,7 @@ define([
                     status = jqXHR.status;
                 }
 
-                Util.showNotify({title: status + ': save signature', text: reason, type: 'warning'});
+                Util.showNotify({title: status + ': save signature', text: reason, type: 'error'});
                 $(document).setProgramStatus('problem');
                 return reason;
             }
@@ -724,51 +825,36 @@ define([
             source: function(){
 
                 var signatureGroupField = $(this);
-                var systemTypeId = signatureGroupField.attr('data-systemTypeId');
-                var areaId = signatureGroupField.attr('data-areaid');
-
-                var cacheKey = [systemTypeId, areaId].join('_');
-
-                // check for cached signature names
-                if(sigTypeCache.hasOwnProperty( cacheKey )){
-                    return sigTypeCache[cacheKey];
-                }
-
-                var availableTypes = {};
+                var systemTypeId = parseInt( signatureGroupField.attr('data-systemTypeId') );
 
                 // get all available Signature Types
-                if(
-                    Init.signatureTypes[systemTypeId] &&
-                        Init.signatureTypes[systemTypeId][areaId]
-                    ){
-                    // json object -> "translate" keys to names
-                    availableTypes = Util.getSignatureGroupInfo('label');
+                // json object -> "translate" keys to names
+                var availableTypes = Util.getSignatureGroupInfo('label');
 
-                    // add empty option
-                    availableTypes[0] = '';
-
-                    availableTypes = sigTypeCache[cacheKey] = availableTypes;
-                }
+                // add empty option
+                availableTypes[0] = '';
 
                 return availableTypes;
             },
             success: function(response, newValue){
                 var signatureTypeField = $(this);
 
+                newValue = parseInt(newValue);
+
                 // find related "name" select (same row) and change options
                 var nameSelect = getNextEditableField(signatureTypeField);
 
-                var systemTypeId = signatureTypeField.attr('data-systemTypeId');
-                var areaId = signatureTypeField.attr('data-areaid');
+                var systemTypeId = parseInt( signatureTypeField.attr('data-systemTypeId') );
+                var areaId = parseInt( signatureTypeField.attr('data-areaid') );
 
-                // set new Options
-                var newSelectOptions = Util.getAllSignatureNames(systemTypeId, areaId, newValue);
-
+                var newSelectOptions = getAllSignatureNames(systemData, systemTypeId, areaId, newValue);
                 nameSelect.editable('option', 'source', newSelectOptions);
-
                 nameSelect.editable('setValue', null);
 
-                if(newValue > 0){
+                if(
+                    newValue > 0 &&
+                    newSelectOptions.length > 0
+                ){
                     nameSelect.editable('enable');
                 }else{
                     nameSelect.editable('disable');
@@ -789,9 +875,9 @@ define([
             source: function(){
                 var signatureNameField = $(this);
 
-                var systemTypeId = signatureNameField.attr('data-systemTypeId');
-                var areaId = signatureNameField.attr('data-areaid');
-                var groupId = signatureNameField.attr('data-groupId');
+                var systemTypeId = parseInt( signatureNameField.attr('data-systemTypeId') );
+                var areaId = parseInt( signatureNameField.attr('data-areaid') );
+                var groupId = parseInt( signatureNameField.attr('data-groupId') );
 
                 var cacheKey = [systemTypeId, areaId, groupId].join('_');
 
@@ -800,10 +886,7 @@ define([
                     return sigNameCache[cacheKey];
                 }
 
-                var signatureNames = Util.getAllSignatureNames(systemTypeId, areaId, groupId);
-
-                // add empty option
-                signatureNames[0] = '';
+                var signatureNames = getAllSignatureNames(systemData, systemTypeId, areaId, groupId);
 
                 // get all available Signature Names
                 var availableSigs = sigNameCache[cacheKey] = signatureNames;
@@ -843,6 +926,125 @@ define([
 
         // init signature counter ---------------------------------------------------------------
         tableElement.find('.' + config.sigTableCounterClass + '[data-counter!="init"]').initSignatureCounter();
+    };
+
+    /**
+     * get all signatures that can exist for a given system
+     * @param systemData
+     * @param systemTypeId
+     * @param areaId
+     * @param groupId
+     * @returns {Array}
+     */
+    var getAllSignatureNames = function(systemData, systemTypeId, areaId, groupId){
+        var newSelectOptions = [];
+        var newSelectOptionsCount = 0;
+
+        // set new Options ----------
+        // get all possible "static" signature names by the selected groupId
+        var tempSelectOptions = Util.getAllSignatureNames(systemTypeId, areaId, groupId);
+
+        // format options into array with objects advantages: keep order, add more options (whs), use optgroup
+        if(tempSelectOptions){
+            var fixSelectOptions = [];
+            for (var key in tempSelectOptions) {
+                if (
+                    key > 0 &&
+                    tempSelectOptions.hasOwnProperty(key)
+                ) {
+                    //newSelectOptions.push({value: key, text: tempSelectOptions[key] });
+                    fixSelectOptions.push( {value: key, text: tempSelectOptions[key] } );
+                    newSelectOptionsCount++;
+                }
+            }
+
+            if(newSelectOptionsCount > 0){
+                if(groupId === 5){
+                    // "wormhole" selected => multiple <optgroup> available
+                    newSelectOptions.push({ text: 'Wandering WHs', children: fixSelectOptions});
+                }else{
+                    newSelectOptions = fixSelectOptions;
+                }
+            }
+        }
+
+        // wormhole
+        if( groupId === 5 ){
+            // add static WH(s) for this system
+            if(systemData.statics){
+                var staticWHData = [];
+                for(var i = 0; i < systemData.statics.length; i++){
+                    newSelectOptionsCount++;
+                    var staticWHName = systemData.statics[i].name + ' - ' + systemData.statics[i].security;
+
+                    staticWHData.push( {value: newSelectOptionsCount, text: staticWHName} );
+                    newSelectOptionsCount++;
+                }
+
+                if(staticWHData.length > 0){
+                    newSelectOptions.unshift({ text: 'Static WHs', children: staticWHData});
+                }
+            }
+
+            // add possible frigate holes
+            var frigateHoles = getFrigateHolesBySystem(areaId);
+            var frigateWHData = [];
+            for(var frigKey in frigateHoles){
+                if (
+                    frigKey > 0 &&
+                    frigateHoles.hasOwnProperty(frigKey)
+                ) {
+                    frigateWHData.push( {value: newSelectOptionsCount, text: frigateHoles[frigKey]} );
+                    newSelectOptionsCount++;
+                }
+            }
+
+            if(frigateWHData.length > 0){
+                newSelectOptions.push({ text: 'Frigate WHs', children: frigateWHData});
+            }
+
+            // add possible incoming holes
+            var incomingWHData = [];
+            for(var incomingKey in Init.incomingWormholes){
+                if (
+                    incomingKey > 0 &&
+                    Init.incomingWormholes.hasOwnProperty(incomingKey)
+                ) {
+                    incomingWHData.push( {value: newSelectOptionsCount, text: Init.incomingWormholes[incomingKey]} );
+                    newSelectOptionsCount++;
+                }
+            }
+
+            if(incomingWHData.length > 0){
+                newSelectOptions.push({ text: 'Incoming WHs', children: incomingWHData});
+            }
+
+
+        }
+
+        // if selectOptions available -> add "empty" option as well
+        if(newSelectOptionsCount > 0){
+            newSelectOptions.unshift({ value: 0, text: ''});
+        }
+
+
+        return newSelectOptions;
+    };
+
+    /**
+     * get possible frig holes that could spawn in a system
+     * filtered by "systemTypeId"
+     * @param systemTypeId
+     * @returns {{}}
+     */
+    var getFrigateHolesBySystem = function(systemTypeId){
+        var signatureNames = {};
+
+        if(Init.frigateWormholes[systemTypeId]){
+            signatureNames =  Init.frigateWormholes[systemTypeId];
+        }
+
+        return signatureNames;
     };
 
     /**
@@ -914,6 +1116,8 @@ define([
      * adds a new row to signature Table
      * @param systemData
      * @param signatureData
+     * @param animate
+     * @returns {*}
      */
     var addSignatureRow = function(systemData, signatureData, animate){
 
@@ -931,12 +1135,15 @@ define([
             newRowElement.toggleTableRow(function(){
                 // make new row editable
                 newRowElement.makeEditable(systemData);
+
+                // update scan progress bar
+                newRowElement.parents('.' + config.moduleClass).updateScannedSignaturesBar({showNotice: true});
             });
         }else{
             newRowElement.makeEditable(systemData);
         }
 
-
+        return newRowElement;
     };
 
     /**
@@ -1084,113 +1291,113 @@ define([
         if(
             systemData &&
             systemData.id &&
-            systemData.id > 0 &&
-            systemData.type.id === 1 // wormholes
+            systemData.id > 0
         ){
             var systemTypeId = systemData.type.id;
-            var areaId = Util.getAreaIdBySecurity(systemData.security);
+
             // areaId is required as a key for signature names
-            if(areaId){
+            // if areaId is 0, no signature data is available for this system
+            var areaId = Util.getAreaIdBySecurity(systemData.security);
 
-                for(var i = 0; i < signatureData.length; i++){
-                    var data = signatureData[i];
+            for(var i = 0; i < signatureData.length; i++){
+                var data = signatureData[i];
 
-                    var tempData = {};
+                var tempData = {};
 
-                    // set id ------------------------------------------------------------------------------------------
-                    var sigId = 0;
-                    if(data.id > 0){
-                        sigId = data.id;
-                    }
-                    tempData.id = sigId;
-
-                    // set status --------------------------------------------------------------------------------------
-                    var status = '';
-                    var statusClass = '';
-                    if(data.updated.character !== undefined){
-                        statusClass = Util.getStatusInfoForCharacter(data.updated.character, 'class');
-                        status =  '<i class="fa fa-fw fa-circle pf-user-status ' + statusClass + '"></i>';
-                    }
-
-                    tempData.status = {
-                        status: status,
-                        status_sort: statusClass
-                    };
-
-                    // set name ----------------------------------------------------------------------------------------
-                    var sigName = '<a href="#" class="' + config.sigTableEditSigNameInput + '" ';
-                    if(data.id > 0){
-                        sigName += 'data-pk="' + data.id + '" ';
-                    }
-                    sigName += '>' + data.name + '</a>';
-
-                    tempData.name = sigName;
-
-                    // set group id ------------------------------------------------------------------------------------
-                    var sigGroup = '<a href="#" class="' + config.sigTableEditSigGroupSelect + '" ';
-                    if(data.id > 0){
-                        sigGroup += 'data-pk="' + data.id + '" ';
-                    }
-                    sigGroup += 'data-systemTypeId="' + systemTypeId + '" ';
-                    sigGroup += 'data-areaId="' + areaId + '" ';
-                    sigGroup += 'data-value="' + data.groupId + '" ';
-                    sigGroup += '></a>';
-
-                    tempData.group = sigGroup;
-
-                    // set type id -------------------------------------------------------------------------------------
-                    var sigType = '<a href="#" class="' + config.sigTableEditSigTypeSelect + '" ';
-                    if(data.id > 0){
-                        sigType += 'data-pk="' + data.id + '" ';
-                    }
-
-                    // set disabled if sig type is not selected
-                    if(data.groupId < 1){
-                        sigType += 'data-disabled="1" ';
-                    }
-
-                    sigType += 'data-systemTypeId="' + systemTypeId + '" ';
-                    sigType += 'data-areaId="' + areaId + '" ';
-                    sigType += 'data-groupId="' + data.groupId + '" ';
-                    sigType += 'data-value="' + data.typeId + '" ';
-                    sigType += '></a>';
-
-                    tempData.type = sigType;
-
-                    // set description ---------------------------------------------------------------------------------
-                    var sigDescription = '<a href="#" class="' + config.sigTableEditSigDescriptionTextarea + '" ';
-                    if(data.id > 0){
-                        sigDescription += 'data-pk="' + data.id + '" ';
-                    }
-                    sigDescription += '>' + data.description + '</a>';
-
-                    tempData.description = sigDescription;
-
-                    // set created -------------------------------------------------------------------------------------
-                    tempData.created = data.created;
-
-                    // set updated -------------------------------------------------------------------------------------
-                    tempData.updated = data.updated;
-
-                    // info icon ---------------------------------------------------------------------------------------
-                    var infoButton = '';
-                    if(data.id > 0){
-                        infoButton = '<i class="fa fa-fw fa-question-circle"></i>';
-                    }
-                    tempData.info = infoButton;
-
-                    // action icon -------------------------------------------------------------------------------------
-
-                    var actionButton = '<i class="fa ' + options.actionClass + ' ' + config.sigTableActionButtonClass + '"></i>';
-                    tempData.action = {
-                        action: options.action,
-                        button: actionButton
-                    };
-
-                    formattedData.push(tempData);
-
+                // set id ------------------------------------------------------------------------------------------
+                var sigId = 0;
+                if(data.id > 0){
+                    sigId = data.id;
                 }
+                tempData.id = sigId;
+
+                // set status --------------------------------------------------------------------------------------
+                var status = '';
+                var statusClass = '';
+                if(data.updated.character !== undefined){
+                    statusClass = Util.getStatusInfoForCharacter(data.updated.character, 'class');
+                }
+                status =  '<i class="fa fa-fw fa-circle pf-user-status ' + statusClass + '"></i>';
+
+                tempData.status = {
+                    status: status,
+                    status_sort: statusClass
+                };
+
+                // set name ----------------------------------------------------------------------------------------
+                var sigName = '<a href="#" class="' + config.sigTableEditSigNameInput + '" ';
+                if(data.id > 0){
+                    sigName += 'data-pk="' + data.id + '" ';
+                }
+                sigName += '>' + data.name + '</a>';
+
+                tempData.name = sigName;
+
+                // set group id ------------------------------------------------------------------------------------
+                var sigGroup = '<a href="#" class="' + config.sigTableEditSigGroupSelect + '" ';
+                if(data.id > 0){
+                    sigGroup += 'data-pk="' + data.id + '" ';
+                }
+                sigGroup += 'data-systemTypeId="' + systemTypeId + '" ';
+                sigGroup += 'data-areaId="' + areaId + '" ';
+                sigGroup += 'data-value="' + data.groupId + '" ';
+                sigGroup += '></a>';
+
+                tempData.group = sigGroup;
+
+                // set type id -------------------------------------------------------------------------------------
+                var sigType = '<a href="#" class="' + config.sigTableEditSigTypeSelect + '" ';
+                if(data.id > 0){
+                    sigType += 'data-pk="' + data.id + '" ';
+                }
+
+                // set disabled if sig type is not selected
+                if(data.groupId < 1){
+                    sigType += 'data-disabled="1" ';
+                }
+
+                sigType += 'data-systemTypeId="' + systemTypeId + '" ';
+                sigType += 'data-areaId="' + areaId + '" ';
+                sigType += 'data-groupId="' + data.groupId + '" ';
+                sigType += 'data-value="' + data.typeId + '" ';
+                sigType += '></a>';
+
+                tempData.type = sigType;
+
+                // set description ---------------------------------------------------------------------------------
+                var sigDescription = '<a href="#" class="' + config.sigTableEditSigDescriptionTextarea + '" ';
+                if(data.id > 0){
+                    sigDescription += 'data-pk="' + data.id + '" ';
+                }
+                sigDescription += '>' + data.description + '</a>';
+
+                tempData.description = sigDescription;
+
+                // set created -------------------------------------------------------------------------------------
+                tempData.created = data.created;
+
+                // set updated -------------------------------------------------------------------------------------
+                tempData.updated = data.updated;
+
+                // info icon ---------------------------------------------------------------------------------------
+                var infoButton = '';
+                if(data.id > 0){
+                    infoButton = '<i class="fa fa-fw fa-question-circle"></i>';
+                }
+                tempData.info = infoButton;
+
+                // action icon -------------------------------------------------------------------------------------
+
+                var actionButton = '<i class="fa ' + options.actionClass + ' ' + config.sigTableActionButtonClass + '"></i>';
+                tempData.action = {
+                    action: options.action,
+                    button: actionButton
+                };
+
+                formattedData.push(tempData);
+
             }
+
         }
 
         return formattedData;
@@ -1341,8 +1548,10 @@ define([
                                             error: $.fn.editable.defaults.error, // user default xEditable error function
                                             success: function (data, editableConfig) {
 
-                                                addSignatureRow(systemData, data, true);
+                                                var newRowElement = addSignatureRow(systemData, data.signatures[0], true);
 
+                                                // highlight
+                                                newRowElement.pulseTableRow('added');
 
                                                 // prepare "add signature" table for new entry -> reset --------------------------------------------
                                                 var signatureData = formatSignatureData(systemData, [emptySignatureData], emptySignatureOptions);
@@ -1412,7 +1621,7 @@ define([
 
         $(document).off('pf:updateSystemModules').on('pf:updateSystemModules', function(e, data){
             if(data.signatures){
-                moduleElement.updateSignatureTable(data.signatures);
+                moduleElement.updateSignatureTable(data.signatures, true);
             }
 
         });
@@ -1443,7 +1652,6 @@ define([
         var selectedRowCount = selectedRows.data().length;
         var clearButton = $('.' + config.sigTableClearButtonClass);
 
-
         if(selectedRowCount > 0){
             var allRows = getRows(signatureTable);
             var rowCount = allRows.data().length;
@@ -1460,18 +1668,18 @@ define([
             if( clearButton.is(':hidden') ){
                 // show button
                 clearButton.velocity('transition.bounceIn', {
-                    duration: 200
+                    duration: 180
                 });
             }else{
                 // highlight button
                 clearButton.velocity('callout.pulse', {
-                    duration: 250
+                    duration: 240
                 });
             }
         }else{
             // hide button
             clearButton.velocity('transition.bounceOut', {
-                duration: 200
+                duration: 180
             });
         }
     };

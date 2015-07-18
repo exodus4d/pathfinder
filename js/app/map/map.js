@@ -653,7 +653,7 @@ define([
             $(parentElement).prepend(mapWrapper);
 
             // set main Container for current map -> the container exists now in DOM !! very important
-            mapConfig.map.setContainer($('#' + config.mapIdPrefix + mapConfig.config.id));
+            mapConfig.map.setContainer( config.mapIdPrefix + mapConfig.config.id );
 
             // set map observer
             setMapObserver(mapConfig.map);
@@ -667,6 +667,7 @@ define([
             mapContainer.data('scopeId', mapConfig.config.scope.id);
             mapContainer.data('typeId', mapConfig.config.type.id);
             mapContainer.data('icon', mapConfig.config.icon);
+            mapContainer.data('created', mapConfig.config.created);
             mapContainer.data('updated', mapConfig.config.updated);
         }
 
@@ -860,7 +861,7 @@ define([
                             }
                         });
                     }else{
-                        callback();
+                       // callback();
                     }
                 }
             });
@@ -1510,7 +1511,6 @@ define([
         var moduleData = {
             id: config.connectionContextMenuId,
             items: [
-                {icon: 'fa-info', action: 'info', text: 'info'},
                 {icon: 'fa-plane', action: 'frigate', text: 'frigate hole'},
                 {icon: 'fa-warning', action: 'preserve_mass', text: 'preserve mass'},
                 {icon: 'fa-crosshairs', action: 'change_scope', text: 'change scope', subitems: [
@@ -2573,10 +2573,6 @@ define([
                                 $(activeConnection).markAsChanged();
                             }
                         });
-
-                        break;
-                    case 'info':
-                        console.log('info');
                         break;
                 }
 
@@ -2946,6 +2942,7 @@ define([
             mapConfig.type = {
                 id: parseInt( mapElement.data('typeId') )
             };
+            mapConfig.created = parseInt( mapElement.data('created') );
             mapConfig.updated = parseInt( mapElement.data('updated') );
             mapData.config = mapConfig;
 
@@ -3099,6 +3096,11 @@ define([
     };
 
 
+    /**
+     * get a new jsPlumb map instance or or get a cached one for update
+     * @param mapId
+     * @returns {*}
+     */
     var getMapInstance = function(mapId){
 
         if(typeof activeInstances[mapId] !== 'object'){
@@ -3226,7 +3228,6 @@ define([
             }
 
             //  draw/update map initial map and set container
-
             var mapContainer = updateMap(parentElement, mapConfig);
 
             if(newMap){

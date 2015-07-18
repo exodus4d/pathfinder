@@ -7,7 +7,6 @@
  */
 
 namespace Model;
-use Controller;
 
 class MapModel extends BasicModel {
 
@@ -76,13 +75,6 @@ class MapModel extends BasicModel {
                 if($this->exists($key)){
                     $this->$key = $value;
                 }
-            } else{
-                // special array data
-                if($key == 'scope'){
-                    $this->scopeId = $value['id'];
-                } elseif($key == 'type'){
-                    $this->typeId = $value['id'];
-                }
             }
         }
     }
@@ -105,6 +97,7 @@ class MapModel extends BasicModel {
             $mapData->id = $this->id;
             $mapData->name = $this->name;
             $mapData->icon = $this->icon;
+            $mapData->created = strtotime($this->created);
             $mapData->updated = strtotime($this->updated);
 
             // map scope

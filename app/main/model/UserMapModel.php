@@ -13,14 +13,6 @@ class UserMapModel extends BasicModel {
 
     protected $table = 'user_map';
 
-    protected $ttl = 0;
-
-    /**
-     * caching for relational data
-     * @var int
-     */
-    protected $rel_ttl = 0;
-
     protected $fieldConf = array(
         'userId' => array(
             'belongs-to-one' => 'Model\UserModel'
@@ -30,6 +22,14 @@ class UserMapModel extends BasicModel {
         )
     );
 
+    /**
+     * see parent
+     */
+    public function clearCacheData(){
+        parent::clearCacheData();
 
+        // clear map cache as well
+        $this->mapId->clearCacheData();
+    }
 
 } 

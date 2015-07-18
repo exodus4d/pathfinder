@@ -52,52 +52,107 @@ class Signature extends \Controller\AccessController{
 
     /**
      * save or update a full signature data set
-     * or save/update just single signature data
+     * or save/update just single or multiple signature data
      * @param $f3
      */
     public function save($f3){
-        $signatureData = $f3->get('POST');
-        $user = $this->_getUser();
+        $requestData = $f3->get('POST');
 
-        $newSignatureData = false;
+        $signatureData = null;
 
-        if($user){
-            $system = Model\BasicModel::getNew('SystemModel');
-            $system->getById($signatureData['systemId']);
+        $return = (object) [];
+        $return->error = [];
+        $return->signatures = [];
 
-            $activeCharacter = $user->getActiveUserCharacter();
-            if(!$system->dry()){
-                // update/save signature
+        if( isset($requestData['signatures']) ){
+            // save multiple signatures
+            $signatureData = $requestData['signatures'];
+        }elseif( !empty($requestData) ){
+            // single signature
+            $signatureData = [$requestData];
+        }
 
-                $signature = $system->getSignatureById($user, $signatureData['pk']);
+        if( !is_null($signatureData) ){
+            $user = $this->_getUser();
 
-                if($signature){
-                    if($signature->dry()){
-                        // new signature
-                        $signature->systemId = $system;
-                        $signature->createdCharacterId = $activeCharacter->characterId;
-                        $signature->setData($signatureData);
-                    }else{
-                        // update signature (single data)
-                        $newData = [
-                            $signatureData['name'] => $signatureData['value']
-                        ];
-                        $signature->setData($newData);
+            if($user){
+                $activeCharacter = $user->getActiveUserCharacter();
+                $system = Model\BasicModel::getNew('SystemModel');
+
+                // update/add all submitted signatures
+                foreach($signatureData as $data){
+                    $system->getById( (int)$data['systemId']);
+
+                    if(!$system->dry()){
+                        // update/save signature
+
+                        $signature = null;
+                        if( isset($data['pk']) ){
+                            // try to get system by "primary key"
+                            $signature = $system->getSignatureById($user, (int)$data['pk']);
+                        }elseif( isset($data['name']) ){
+                            $signature = $system->getSignatureByName($user, $data['name']);
+                        }
+
+                        if( is_null($signature) ){
+                            $signature = Model\BasicModel::getNew('SystemSignatureModel');
+                        }
+
+                        $signature->updatedCharacterId = $activeCharacter->getCharacter();
+
+                        if($signature->dry()){
+                            // new signature
+                            $signature->systemId = $system;
+                            $signature->createdCharacterId = $activeCharacter->getCharacter();
+                            $signature->setData($data);
+                        }else{
+                            // update signature
+
+                            if(
+                                isset($data['name']) &&
+                                isset($data['value'])
+                            ){
+                                // update single key => value pair
+                                $newData = [
+                                    $data['name'] => $data['value']
+                                ];
+                            }else{
+                                // update complete signature (signature reader dialog)
+
+                                // description should not be updated
+                                unset( $data['description'] );
+
+                                // wormhole typeID cant figured out/saved by the sig reader dialog
+                                if($data['groupId'] == 5){
+                                    unset( $data['typeId'] );
+                                }
+
+                                $newData = $data;
+                            }
+
+                            $signature->setData($newData);
+                        }
+
+
+                        $signature->save();
+
+                        // get a fresh signature object with the new data. This is a bad work around!
+                        // but i could not figure out what the problem was when using the signature model, saved above :(
+                        // -> some caching problems
+                        $newSignature = Model\BasicModel::getNew('SystemSignatureModel');
+                        $newSignature->getById( $signature->id, 0);
+
+                        $return->signatures[] = $newSignature->getData();
+
+                        $signature->reset();
                     }
 
-                    $signature->updatedCharacterId = $activeCharacter->characterId;
-                    $signature->save();
-                    $newSignatureData = $signature->getData();
+                    $system->reset();
                 }
-            }
-
-            if(!$newSignatureData){
-                $this->f3->error(401, 'Signature could not be saved.');
             }
         }
 
-
-        echo json_encode($newSignatureData);
+        echo json_encode($return);
     }
 
     /**

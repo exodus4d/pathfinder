@@ -82,6 +82,28 @@ em{
   will-change: opacity, transform;
 }
 
+// form fields custom styles ========================================
+.editable-input{
+  optgroup[label]{
+    background-color: $gray;
+    color: $gray-light;
+
+    option{
+      background-color: $gray-dark;
+      color: $gray-lighter;
+      font-family: $font-family-monospace;
+    }
+  }
+}
+select:active, select:hover {
+  outline: none
+}
+
+/* make it red instead (with with same width and style) */
+select:active, select:hover {
+  outline-color: red
+}
+
 // select2 custom template ==========================================
 
 .select2-results{
@@ -129,27 +151,6 @@ em{
   height: 0;
   visibility: hidden;
 }
-
-
-
-// full screen view of an element
-/*
-.pf-fullscreen{
-
-  &:fullscreen, &:-webkit-full-screen, {
-    background-color: red;
-  }
-
-  &:-webkit-full-screen{
-    background:url("#{$base-url}/#{$body-background-image}") $body-background-color;
-    background-repeat: no-repeat;
-  }
-
-  &:-moz-full-screen{
-    background-color: green;
-  }
-}
-*/
 
 // laoding indicator overlay =====================================
 .pf-loading-overlay{
@@ -680,13 +681,10 @@ em{
 }
 
 // global popover settings ======================================
-
 .popover{
+
   // on top of modals even if they are attached to <body>
   z-index: $zindex-modal + 10;
-}
-
-.popover{
 
   // image in popover
   img{
@@ -700,7 +698,9 @@ em{
   // table in pop popover
   table{
     color: $gray-lighter;
-    font-size: 10px;
+    font-family: $font-family-bold;
+    line-height: 18px;
+    font-size: 11px;
 
     td{
       padding: 0 5px;
@@ -708,7 +708,7 @@ em{
   }
 }
 
-// dynamic area (e.g. for loading animation =====================
+// dynamic area (e.g. for loading animation) ====================
 .pf-dynamic-area{
   padding: 10px;
   min-height: 100px;
@@ -719,6 +719,10 @@ em{
 
   .dl-horizontal{
     margin-bottom: 0;
+
+    dd{
+      min-width: 100px;
+    }
   }
 }
 

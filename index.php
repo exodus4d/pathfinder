@@ -2,9 +2,6 @@
 
 $f3 = require('app/lib/base.php');
 
-// sync program with eve server time
-date_default_timezone_set('UTC');
-
 // load configuration
 $f3->config('app/config.cfg');
 

@@ -17,6 +17,7 @@
       <w>fullscreen</w>
       <w>ifnull</w>
       <w>ingame</w>
+      <w>inno</w>
       <w>inputclass</w>
       <w>jqueryui</w>
       <w>jumpbridge</w>
@@ -29,6 +30,7 @@
       <w>neocom</w>
       <w>nonblock</w>
       <w>onerror</w>
+      <w>optgroup</w>
       <w>orderable</w>
       <w>pnotify</w>
       <w>raphaël</w>

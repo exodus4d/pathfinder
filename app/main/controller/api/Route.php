@@ -9,12 +9,19 @@
 namespace Controller\Api;
 use Model;
 
+
 /**
  * Routes controller
  * Class Route
  * @package Controller\Api
  */
 class Route extends \Controller\AccessController {
+
+    /**
+     * search depth for recursive route search (5000 would be best but slow)
+     * -> in reality there are no routes > 100 jumps between systems
+     */
+    const ROUTE_SEARCH_DEPTH = 5000;
 
     /**
      * cache time for static jump data
@@ -39,6 +46,8 @@ class Route extends \Controller\AccessController {
      * @var array
      */
     private $idArray = [];
+
+
 
 
     function __construct() {
@@ -308,7 +317,7 @@ class Route extends \Controller\AccessController {
 
             // system is not a direct neighbour -> search recursive its neighbours
             if ($jumpNum == 0) {
-                foreach( $this->graph_find_path( $this->jumpArray, $from, $to ) as $n ) {
+                foreach( $this->graph_find_path( $this->jumpArray, $from, $to, self::ROUTE_SEARCH_DEPTH ) as $n ) {
 
                     if ($jumpNum > 0) {
 
