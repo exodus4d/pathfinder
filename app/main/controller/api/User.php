@@ -118,6 +118,15 @@ class User extends Controller\Controller{
     }
 
     /**
+     * log the current user out + clear character system log data
+     */
+    public function logOut(){
+        $this->deleteLog();
+
+        return parent::logOut();
+    }
+
+    /**
      * save/update "map sharing" configurations for all map types
      * the user has access to
      * @param $f3

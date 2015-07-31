@@ -93,7 +93,6 @@ define([
         actionClass: ['fa-plus'].join(' ')
     };
 
-    var sigTypeCache = {};                                                      // cache signature groups
     var sigNameCache = {};                                                      // cache signature names
 
     /**
@@ -219,14 +218,15 @@ define([
 
                 var rowElement = signatureTableApi.row(tableData[l].index).nodes().to$();
 
-                rowElement.toggleTableRow(function(){
+                rowElement.toggleTableRow(function(tempRowElement){
 
                     // hide open editable fields on the row before removing them
-                    rowElement.find('.editable').editable('destroy');
+                    tempRowElement.find('.editable').editable('destroy');
 
                     // delete signature row
-                    signatureTableApi.row(rowElement).remove().draw();
+                    signatureTableApi.row(tempRowElement).remove().draw();
                 });
+
 
                 notificationCounter.deleted++;
             }
@@ -248,7 +248,7 @@ define([
         if(
             notificationCounter.added > 0 ||
             notificationCounter.changed > 0 ||
-            notificationCounter.deleted
+            notificationCounter.deleted > 0
         ){
             // update signature bar
             moduleElement.updateScannedSignaturesBar({showNotice: true});
@@ -258,10 +258,15 @@ define([
             notification += notificationCounter.changed + ' changed<br>';
             notification += notificationCounter.deleted + ' deleted<br>';
             Util.showNotify({title: 'Signatures updated', text: notification, type: 'success'});
+
+            // wait until add/remove animations are finished before enable table for auto update again
+            setTimeout(function(){ disableTableUpdate = false; }, 2000);
+        }else{
+            // enable table update
+            disableTableUpdate = false;
         }
 
-        // enable table update
-        disableTableUpdate = false;
+
     };
 
     /**
@@ -682,6 +687,7 @@ define([
             info: false,
             searching: false
         } );
+
         table.makeEditable(systemData);
 
         // scanned signatures progress bar =============================================================================
@@ -703,7 +709,7 @@ define([
         Render.showModule(moduleConfig, moduleData);
 
         // event listener for global "paste" signatures into the page ==================================================
-        $(document).on('paste', function(e){
+        $(document).off('paste').on('paste', function(e){
 
             // do not read clipboard if pasting into form elements
             if(
@@ -1052,14 +1058,13 @@ define([
      * @param rows
      */
     var deleteSignatures = function(rows){
-        // disable Table update during delete process
-        disableTableUpdate = true;
+
         var deletedSignatures = 0;
 
         var moduleElement = $('.' + config.systemSigModuleClass);
         var data = rows.data();
         var signatureTableApi = signatureTable.api();
-        var rowElements = rows.nodes().to$();
+        var rowElements = rows.nodes().to$();0
         var signatureCount = data.length;
 
         var signatureIds = [];
@@ -1085,9 +1090,6 @@ define([
                 moduleElement.updateScannedSignaturesBar({showNotice: false});
 
                 Util.showNotify({title: 'Signature deleted', text: signatureCount + ' signatures deleted', type: 'success'});
-
-                // enable signature Table update
-                disableTableUpdate = false;
             }
         };
 
@@ -1132,8 +1134,9 @@ define([
         if(animate === true){
             newRowElement.hide();
 
-            newRowElement.toggleTableRow(function(){
+            newRowElement.toggleTableRow(function(newRowElement){
                 // make new row editable
+
                 newRowElement.makeEditable(systemData);
 
                 // update scan progress bar
@@ -1235,7 +1238,7 @@ define([
                                     }
 
                                     if(callback !== undefined){
-                                        callback();
+                                        callback(rowElement);
                                     }
 
                                 }
@@ -1343,7 +1346,10 @@ define([
                 sigGroup += 'data-value="' + data.groupId + '" ';
                 sigGroup += '></a>';
 
-                tempData.group = sigGroup;
+                tempData.group = {
+                    group: sigGroup,
+                    group_sort: data.groupId
+                };
 
                 // set type id -------------------------------------------------------------------------------------
                 var sigType = '<a href="#" class="' + config.sigTableEditSigTypeSelect + '" ';
@@ -1447,12 +1453,16 @@ define([
                     data: 'name'
                 },{
                     targets: 2,
-                    orderable: false,
+                    orderable: true,
                     searchable: false,
                     title: 'group',
                     type: 'html',
                     width: '50px',
-                    data: 'group'
+                    data: 'group',
+                    render: {
+                        _: 'group',
+                        sort: 'group_sort'
+                    }
                 },{
                     targets: 3,
                     orderable: false,

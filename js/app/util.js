@@ -34,40 +34,6 @@ define([
 
         // map module
         mapModuleId: 'pf-map-module',                                           // main map module
-
-        // available map ions
-        mapIcons: [
-            {
-                class: 'fa-desktop',
-                label: 'desktop',
-                unicode: '&#xf108;'
-            },{
-                class: 'fa-bookmark',
-                label: 'bookmark',
-                unicode: '&#xf02e;'
-            },{
-                class: 'fa-cube',
-                label: 'cube',
-                unicode: '&#xf1b2;'
-            },{
-                class: 'fa-plane',
-                label: 'plane',
-                unicode: '&#xf072;'
-            },{
-                class: 'fa-globe',
-                label: 'globe',
-                unicode: '&#xf0ac;'
-            },{
-                class: 'fa-rocket',
-                label: 'rocket',
-                unicode: '&#xf135;'
-            },{
-                class: 'fa-life-ring',
-                label: 'life ring',
-                unicode: '&#xf1cd;'
-            }
-        ]
-
     };
 
     var stopTimerCache = {};                                                    // cache for stopwatch timer
@@ -736,7 +702,7 @@ define([
      */
     var getMapIcons = function(){
 
-        return config.mapIcons;
+        return Init.mapIcons;
     };
 
     /**
@@ -856,7 +822,16 @@ define([
         var scopeInfo = '';
 
         if(Init.connectionScopes.hasOwnProperty(info)){
-            scopeInfo = Init.connectionScopes[info][option];
+            switch(option){
+                case 'connectorDefinition':
+                    // json data in DB
+                    var temp = '{ "data": ' + Init.connectionScopes[info][option] + '}';
+                    scopeInfo = $.parseJSON( temp).data;
+                    break;
+                default:
+                    scopeInfo = Init.connectionScopes[info][option];
+                    break;
+            }
         }
 
         return scopeInfo;

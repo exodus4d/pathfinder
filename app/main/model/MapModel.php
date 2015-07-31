@@ -12,14 +12,6 @@ class MapModel extends BasicModel {
 
     protected $table = 'map';
 
-    /**
-     * max caching time for a map
-     * the cached date has to be cleared manually on any change
-     * this includes system, connection,... changes (all dependencies)
-     * @var int
-     */
-    protected $data_ttl = 300;
-
     protected $fieldConf = array(
         'scopeId' => array(
             'belongs-to-one' => 'Model\MapScopeModel'
@@ -154,7 +146,10 @@ class MapModel extends BasicModel {
             // map connection data ----------------------------------------
             $mapDataAll->connections = $this->getConnectionData();
 
-            $this->updateCacheData($mapDataAll);
+            // max caching time for a map
+            // the cached date has to be cleared manually on any change
+            // this includes system, connection,... changes (all dependencies)
+            $this->updateCacheData($mapDataAll, '', 300);
         }
 
         return $mapDataAll;
@@ -183,7 +178,8 @@ class MapModel extends BasicModel {
      * @return array|mixed
      */
     public function getSystems(){
-        $this->filter('systems', array('active = ?', 1));
+        // orderBy x-Coordinate for cleaner frontend animation (left to right)
+        $this->filter('systems', ['active = ?', 1], ['order' => 'posX']);
 
         $systems = [];
         if($this->systems){
@@ -432,7 +428,7 @@ class MapModel extends BasicModel {
                 $charactersData[] = $character->getData(true);
             }
 
-            $this->updateCacheData($charactersData, 'CHARACTERS');
+            $this->updateCacheData($charactersData, 'CHARACTERS', 10);
         }
 
         return $charactersData;

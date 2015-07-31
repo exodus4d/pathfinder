@@ -37,34 +37,38 @@ define(['jquery'], function($) {
                 }
 
                 //open menu
-                contextMenu
-                    .show()
-                    .css({
-                        position: 'absolute',
-                        left: getLeftLocation(originalEvent),
-                        top: getTopLocation(originalEvent)
-                    })
-                    .off('click')
-                    .on('click', {component: component, position:{x: getLeftLocation(originalEvent), y: getTopLocation(originalEvent)}}, function (e) {
-                        $(this).hide();
+                contextMenu.css({
+                    position: 'absolute',
+                    left: getLeftLocation(originalEvent),
+                    top: getTopLocation(originalEvent)
+                }).off('click').velocity('transition.flipXIn', {
+                    duration: 180,
+                    complete: function(){
+                        // set context menu "click" observer
+                        $(this).on('click', {component: component, position:{x: getLeftLocation(originalEvent), y: getTopLocation(originalEvent)}}, function (e) {
+                            $(this).hide();
 
-                        var params = {
-                            selectedMenu: $(e.target),
-                            component: e.data.component,
-                            position: e.data.position
-                        };
+                            var params = {
+                                selectedMenu: $(e.target),
+                                component: e.data.component,
+                                position: e.data.position
+                            };
 
 
-                        settings.menuSelected.call(this, params);
-                    });
-
+                            settings.menuSelected.call(this, params);
+                        });
+                    }
+                });
 
                 return false;
             });
 
             //make sure menu closes on any click
-            $(document).click(function () {
-                $(settings.menuSelector).hide();
+            $(document).off('click').on('click', function () {
+
+                $('.dropdown-menu[role="menu"]').velocity('transition.flipXOut', {
+                    duration: 180
+                });
             });
         });
 

@@ -37,14 +37,6 @@ class BasicModel extends \DB\Cortex {
     protected $validate = [];
 
     /**
-     * if the getData() function should be cached or not
-     * if set to "0" no data is cached
-     * cache will be updated on save/update
-     * @var int (seconds)
-     */
-    protected $data_ttl = 0;
-
-    /**
      * getData() cache key prefix
      * -> do not change, otherwise cached data is lost
      * @var string
@@ -93,6 +85,8 @@ class BasicModel extends \DB\Cortex {
                     !is_object($currentVal) &&
                     $currentVal != $val
                 ){
+                    //print_r($val);
+                    //print_r($this->cast());
                     $this->touch('updated');
                 }
             }
@@ -120,11 +114,14 @@ class BasicModel extends \DB\Cortex {
 
         if(is_array($this->fieldConf)){
 
-            $staticFieldConfig = array(
-                'updated' => array(
+            $staticFieldConfig = [
+                'created' => [
                     'type' => Schema::DT_TIMESTAMP
-                )
-            );
+                ],
+                'updated' => [
+                    'type' => Schema::DT_TIMESTAMP
+                ]
+            ];
 
             $this->fieldConf = array_merge($this->fieldConf, $staticFieldConfig);
         }
@@ -342,19 +339,20 @@ class BasicModel extends \DB\Cortex {
      * update/set the getData() cache for this object
      * @param $cacheData
      * @param string $dataCacheKeyPrefix
+     * @param int $data_ttl
      */
-    public function updateCacheData($cacheData, $dataCacheKeyPrefix = ''){
+    public function updateCacheData($cacheData, $dataCacheKeyPrefix = '', $data_ttl = 300){
 
-        // check if model is allowed to be cached
+        // check if data should be cached
         // and cacheData is not empty
         if(
-            $this->data_ttl > 0 &&
+            $data_ttl > 0 &&
             !empty( (array)$cacheData )
         ){
             $cacheKey = $this->getCacheKey($dataCacheKeyPrefix);
 
             if( !is_null($cacheKey) ){
-                self::getF3()->set($cacheKey, $cacheData, $this->data_ttl);
+                self::getF3()->set($cacheKey, $cacheData, $data_ttl);
             }
         }
     }

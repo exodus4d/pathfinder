@@ -2,10 +2,16 @@
 
 $f3 = require('app/lib/base.php');
 
-// load configuration
-$f3->config('app/config.cfg');
+// load main config
+$f3->config('app/config.ini');
 
-// load routes
-$f3->config('app/routes.cfg');
+// load route config
+$f3->config('app/routes.ini');
+
+// load cron config
+$f3->config('app/cron.ini');
+
+// initiate cron-jobs
+Cron::instance();
 
 $f3->run();

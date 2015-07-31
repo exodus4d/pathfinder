@@ -53,6 +53,42 @@ define(['jquery'], function($) {
             mapModule: 200,                                         // show/hide of an map module
             dialogEvents: 180                                       // dialog events /slide/show/...
         },
+        mapIcons: [                                                 // map tab-icons
+            {
+                class: 'fa-desktop',
+                label: 'desktop',
+                unicode: '&#xf108;'
+            },{
+                class: 'fa-bookmark',
+                label: 'bookmark',
+                unicode: '&#xf02e;'
+            },{
+                class: 'fa-cube',
+                label: 'cube',
+                unicode: '&#xf1b2;'
+            },{
+                class: 'fa-plane',
+                label: 'plane',
+                unicode: '&#xf072;'
+            },{
+                class: 'fa-globe',
+                label: 'globe',
+                unicode: '&#xf0ac;'
+            },{
+                class: 'fa-rocket',
+                label: 'rocket',
+                unicode: '&#xf135;'
+            },{
+                class: 'fa-life-ring',
+                label: 'life ring',
+                unicode: '&#xf1cd;'
+            },{
+                class: 'fa-heart',
+                label: 'heart',
+                unicode: '&#xf004;'
+            }
+        ],
+
         classes: {
             // log types
             logTypes: {
@@ -190,8 +226,7 @@ define(['jquery'], function($) {
             jumpbridge: {
                 cssClass: 'pf-map-connection-jumpbridge',
                 paintStyle: {
-                    //dashstyle: '2',
-                    'stroke-dasharray': [15,15]
+                    dashstyle: '4 2 1 2'
                 }
             },
             stargate: {
@@ -212,7 +247,7 @@ define(['jquery'], function($) {
             frigate: {
                 cssClass: 'pf-map-connection-frig',
                 paintStyle: {
-                    dashstyle: '0.9'
+                    dashstyle: '0.99'
                 },
                 overlays:[
                     [ 'Label',
@@ -295,7 +330,8 @@ define(['jquery'], function($) {
             },
             6: {    // C6
                 1: 'E004 - C1',
-                2: 'Z006 - C3'
+                2: 'Z006 - C3',
+                5: 'Q003 - 0.0'
             }
         },
         // incoming wormholes

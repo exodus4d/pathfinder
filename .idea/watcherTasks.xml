@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="ProjectTasksOptions">
+  <component name="ProjectTasksOptions" suppressed-tasks="Babel;Traceur compiler">
     <TaskOptions isEnabled="true">
       <option name="arguments" value="compile $ProjectFileDir$ " />
       <option name="checkSyntaxErrors" value="true" />
@@ -18,7 +18,7 @@
       <option name="program" value="C:/Ruby21-x64/bin/compass.bat" />
       <option name="scopeName" value="Project Files" />
       <option name="trackOnlyRoot" value="true" />
-      <option name="workingDir" value="$Projectpath$" />
+      <option name="workingDir" value="F:\webpages\exodus4d\pathfinder" />
       <envs />
     </TaskOptions>
   </component>

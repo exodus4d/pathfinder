@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="dataSourceStorageLocal">
+    <data-source name="Pathfinder" uuid="da3cf616-be39-4091-94bd-76d70f41765d">
+      <user-name>root</user-name>
+      <schema-pattern>eve_phoebe.* pathfinder.*</schema-pattern>
+      <default-schemas>eve_phoebe.* pathfinder.*</default-schemas>
+    </data-source>
+  </component>
+</project>

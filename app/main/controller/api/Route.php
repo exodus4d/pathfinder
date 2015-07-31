@@ -238,7 +238,7 @@ class Route extends \Controller\AccessController {
 
         if(count($rows) > 0){
             // switch DB back to pathfinder DB
-            $this->setDB();
+            $this->setDB('PF');
 
             // clear cache table
             $query = "TRUNCATE system_neighbour";

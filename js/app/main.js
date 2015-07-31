@@ -96,7 +96,7 @@ define([
 
                 // get updated map data
                 Util.timeStart(logKeyGetClientMapData);
-                var updatedMapData = mapModule.getMapModuleData();
+                var updatedMapData = mapModule.getMapModuleDataForUpdate();
                 var mapDataLogDuration = Util.timeStop(logKeyGetClientMapData);
 
                 // log execution time

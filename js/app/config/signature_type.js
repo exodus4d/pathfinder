@@ -50,6 +50,9 @@ define([], function() {
                     4: 'Average Frontier Deposit', //*
                     5: 'Isolated Core Deposit', //*
                     6: 'Uncommon Core Deposit' //*
+                },
+                7: {    // Ghost
+
                 }
             },
             2: {    // C2
@@ -85,6 +88,9 @@ define([], function() {
                     4: 'Average Frontier Deposit', //*
                     5: 'Isolated Core Deposit', //*
                     6: 'Uncommon Core Deposit' //*
+                },
+                7: {    // Ghost
+
                 }
             },
             3: {    // C3
@@ -126,6 +132,9 @@ define([], function() {
                     4: 'Average Frontier Deposit', //*
                     5: 'Infrequent Core Deposit', //*
                     6: 'Unusual Core Deposit' //*
+                },
+                7: {    // Ghost
+
                 }
             },
             4: {    // C4
@@ -161,6 +170,9 @@ define([], function() {
                     3: 'Unexceptional Frontier Deposit', //*
                     4: 'Average Frontier Deposit', //*
                     5: 'Unusual Core Deposit' //*
+                },
+                7: {    // Ghost
+
                 }
             },
             5: {    // C5
@@ -196,6 +208,9 @@ define([], function() {
                     1: 'Ordinary Perimeter Deposit', //*
                     2: 'Common Perimeter Deposit', //*
                     3: 'Rarified Core Deposit' //*
+                },
+                7: {    // Ghost
+
                 }
             },
             6: {    // C6
@@ -234,6 +249,9 @@ define([], function() {
                     3: 'Unexceptional Frontier Deposit', //*
                     4: 'Average Frontier Deposit', //*
                     5: 'Rarified Core Deposit' //*
+                },
+                7: {    // Ghost
+                    1: 'Superior Blood Raider Covert Research Facility' //*
                 }
             }
         }, // system type (k-space)

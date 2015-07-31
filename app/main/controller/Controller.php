@@ -8,11 +8,20 @@
 
 namespace Controller;
 use Model;
+use DB;
 
 class Controller {
 
     protected $f3;
     private $template;
+
+    function __construct(){
+
+        $this->f3 = \Base::instance();
+
+        // initiate DB connection
+        DB\Database::instance('PF');
+    }
 
     /**
      * @param mixed $template
@@ -26,15 +35,6 @@ class Controller {
      */
     public function getTemplate(){
         return $this->template;
-    }
-
-    function __construct(){
-
-        $f3 = \Base::instance();
-        $this->f3 = $f3;
-
-        // init DB
-        $this->setDB('PF');
     }
 
     /**
@@ -55,34 +55,11 @@ class Controller {
     }
 
     /**
-     * set/change DB connection
-     * @param $type
+     * set change the DB connection
+     * @param string $database
      */
-    protected function setDB($type = ''){
-
-        if($type === 'CCP'){
-            // CCP DB
-            $db = new \DB\SQL(
-                $this->f3->get('DB_CCP_DNS') . $this->f3->get('DB_CCP_NAME'),
-                $this->f3->get('DB_CCP_USER'),
-                $this->f3->get('DB_CCP_PASS')
-            );
-        }else{
-            // Pathfinder DB
-            $db = new \DB\SQL(
-                $this->f3->get('DB_DNS') . $this->f3->get('DB_NAME'),
-                $this->f3->get('DB_USER'),
-                $this->f3->get('DB_PASS')
-            );
-        }
-        $this->f3->set('DB', $db);
-
-        // set DB timezone to UTC +00:00 (eve server time)
-        //$this->f3->get('DB')->exec('SET @@session.time_zone = "+00:00";');
-
-        // disable innoDB schema (relevant vor MySql 5.5)
-        // not necessary for MySql 5.6
-        //$this->f3->get('DB')->exec('SET GLOBAL innodb_stats_on_metadata = OFF;');
+    protected function setDB($database = 'PF'){
+        DB\Database::instance()->setDB($database);
     }
 
     /**
@@ -191,8 +168,9 @@ class Controller {
         return $validUser;
     }
 
+
     /**
-     * logout function
+     * log the current user out
      */
     public function logOut(){
 

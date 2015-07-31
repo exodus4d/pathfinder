@@ -108,7 +108,8 @@ class Map extends \Controller\AccessController {
         foreach((array)$rows as $rowData){
             $data = [
                 'id' => $rowData->id,
-                'label' => $rowData->label
+                'label' => $rowData->label,
+                'connectorDefinition' => $rowData->connectorDefinition
             ];
             $connectionScopeData[$rowData->name] = $data;
         }
@@ -319,16 +320,26 @@ class Map extends \Controller\AccessController {
         // cache time(s) per user should be equal or less than this function is called
         // prevent request flooding
         $responseTTL = $f3->get('PATHFINDER.TIMER.UPDATE_SERVER_MAP.DELAY') / 1000;
+        $mapData = (array)$f3->get('POST.mapData');
+
         $user = $this->_getUser();
 
         $return = (object) [];
         $return->error = [];
 
         if($user){
-            $cacheKey = 'user_map_data_' . $user->id;
+            // -> get active user object
+            $activeCharacter = $user->getActiveUserCharacter();
+
+            $cacheKey = 'user_map_data_' . $activeCharacter->id;
+
+            // if there is any system/connection change data submitted -> clear cache
+            if(!empty($mapData)){
+                $f3->clear($cacheKey);
+            }
+
             if($f3->exists($cacheKey) === false ){
 
-                $mapData = (array)$f3->get('POST.mapData');
                 // get current map data ========================================================
                 $maps = $user->getMaps();
 
@@ -356,8 +367,7 @@ class Map extends \Controller\AccessController {
                     ){
 
                         // map changes expected =============================================
-                        // -> get active user object
-                        $activeCharacter = $user->getActiveUserCharacter();
+
 
                         // loop current user maps and check for changes
                         foreach($maps as $map){
@@ -379,6 +389,7 @@ class Map extends \Controller\AccessController {
                                     // system belongs to the current map
                                     if(is_object($filteredMap->systems)){
                                         // update
+                                        unset($systemData['updated']);
                                         $system = $filteredMap->systems->current();
                                         $system->setData($systemData);
                                         $system->updatedCharacterId = $activeCharacter->characterId;
@@ -407,6 +418,7 @@ class Map extends \Controller\AccessController {
                                     // connection belongs to the current map
                                     if(is_object($filteredMap->connections)){
                                         // update
+                                        unset($connectionData['updated']);
                                         $connection = $filteredMap->connections->current();
                                         $connection->setData($connectionData);
                                         $connection->save($user);

@@ -713,10 +713,11 @@ define([
     };
 
     /**
-     * collect all data for export/save from each active map in the map module
+     * collect all data (systems/connections) for export/save from each active map in the map module
+     * if no change detected -> don´t attach map data to return array
      * @returns {Array}
      */
-    $.fn.getMapModuleData = function(){
+    $.fn.getMapModuleDataForUpdate = function(){
 
         // get all active map elements for module
         var mapElements = $(this).getMaps();
@@ -727,7 +728,13 @@ define([
             var mapData = $(mapElements[i]).getMapDataFromClient({forceData: false, checkForChange: true});
 
             if(mapData !== false){
-                data.push(mapData);
+
+                if(
+                    mapData.data.systems.length > 0 ||
+                    mapData.data.connections.length > 0
+                ){
+                    data.push(mapData);
+                }
             }
         }
 

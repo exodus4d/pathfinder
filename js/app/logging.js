@@ -29,17 +29,9 @@ define([
      */
     var getLogTime = function(){
 
-        var logTimeFormatOptions = {
-            month: '2-digit',
-            day: '2-digit',
-            year: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false
-        };
+        var serverTime = Util.getServerTime();
 
-        var logTime = Util.getServerTime().toLocaleString('en-UK', logTimeFormatOptions);
+        var logTime = serverTime.toLocaleTimeString('en-US', { hour12: false });
 
         return logTime;
     };
@@ -109,7 +101,7 @@ define([
                 },{
                     targets: 1,
                     title: '<i class="fa fa-lg fa-fw fa-clock-o"></i>&nbsp;&nbsp;',
-                    width: '80px',
+                    width: '50px',
                     searchable: true,
                     class: 'text-right',
                     data: 'time'
@@ -371,9 +363,7 @@ define([
             var avgStatusClass = Util.getLogInfo( avgStatus, 'class' );
 
             //change avg. display class
-            if(
-                !avgElement.hasClass(avgStatusClass)
-            ){
+            if( !avgElement.hasClass(avgStatusClass) ){
                 // avg status changed!
                 avgElement.removeClass().addClass('pull-right txt-color ' + avgStatusClass);
 

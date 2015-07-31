@@ -149,11 +149,12 @@ class System extends \Controller\AccessController {
     public function search($f3, $params){
 
         // switch DB
+        \DB\Database::instance();
         $this->setDB('CCP');
 
         $searchToken = '';
         // check for search parameter
-        if( array_key_exists( 'arg1', $params) ){
+        if( isset($params['arg1']) ){
             $searchToken = $params['arg1'];
         }
 

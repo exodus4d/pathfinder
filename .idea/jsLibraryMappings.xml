@@ -2,5 +2,6 @@
 <project version="4">
   <component name="JavaScriptLibraryMappings">
     <file url="PROJECT" libraries="{Node.js v0.10.32 Core Modules, jQuery-2.0.0, jquery-DefinitelyTyped}" />
+    <includedPredefinedLibrary name="ECMAScript 6" />
   </component>
 </project>

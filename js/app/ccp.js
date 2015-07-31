@@ -33,7 +33,7 @@ define(['jquery'], function($) {
 
       if(
           isInGameBrowser() &&
-          ! isTrusted()
+          !isTrusted()
       ){
         CCPEVE.requestTrust( location.protocol + '//' + location.host );
       }

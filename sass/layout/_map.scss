@@ -300,7 +300,6 @@ $mapWidth: 2500px ;
     z-index: 50;
 
     svg {
-
       circle{
         @include transition( stroke 0.18s ease-out, fill 0.18s ease-out);
       }
@@ -315,7 +314,6 @@ $mapWidth: 2500px ;
          stroke: $gray-lightest; // hover style
         }
       }
-
     }
 
     // hover effect for  Endpoints
@@ -386,7 +384,7 @@ $mapWidth: 2500px ;
     }
 
     path:not(:first-child){
-      stroke: $gray-light;
+      stroke: $indigo-darkest;
     }
 
     &:hover{
