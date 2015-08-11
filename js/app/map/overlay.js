@@ -105,11 +105,11 @@ define([
         var mapOverlayTimer = $(this);
         var counterChart = mapOverlayTimer.getMapCounter();
 
-        var seconds = config.logTimerCount;
+        var maxSeconds = config.logTimerCount;
 
         var counterChartLabel = counterChart.find('span');
 
-        var percentPerCount = 100 / seconds;
+        var percentPerCount = 100 / maxSeconds;
 
         // update counter
         var updateChart = function(tempSeconds){
@@ -123,11 +123,15 @@ define([
 
         // main timer function is called on any counter update
         var timer = function(){
-            seconds--;
+            // decrease timer
+            var currentSeconds = counterChart.data('currentSeconds');
+            currentSeconds--;
+            counterChart.data('currentSeconds', currentSeconds);
 
-            if(seconds >= 0){
+
+            if(currentSeconds >= 0){
                 // update counter
-                updateChart(seconds);
+                updateChart(currentSeconds);
             }else{
                 // hide counter and reset
                 clearInterval(mapUpdateCounter);
@@ -141,23 +145,27 @@ define([
             }
         };
 
-        // get counter interval (in case there is an active one) ---------------------------
-        var interval = counterChart.data('interval');
+        // get current seconds (in case the timer is already running)
+        var currentSeconds = counterChart.data('currentSeconds');
 
-        if(interval){
-            clearInterval(interval);
-        }
+        // start values for timer and chart
+        counterChart.data('currentSeconds', maxSeconds);
+        updateChart(maxSeconds);
 
-        // start timer ---------------------------------------------------------------------
-        var mapUpdateCounter = setInterval(timer, 1000);
-        updateChart(seconds);
+        if(
+            currentSeconds === undefined ||
+            currentSeconds < 0
+        ){
+            // start timer
+            var mapUpdateCounter = setInterval(timer, 1000);
 
-        // store counter -------------------------------------------------------------------
-        counterChart.data('interval', mapUpdateCounter);
+            // store counter interval
+            counterChart.data('interval', mapUpdateCounter);
 
-        // show overlay -------------------------------------------------------------------
-        if(mapOverlayTimer.is(':hidden')){
-            mapOverlayTimer.velocity('stop').velocity('transition.whirlIn', { duration: Init.animationSpeed.mapOverlay });
+            // show overlay
+            if(mapOverlayTimer.is(':hidden')){
+                mapOverlayTimer.velocity('stop').velocity('transition.whirlIn', { duration: Init.animationSpeed.mapOverlay });
+            }
         }
     };
 

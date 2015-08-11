@@ -142,6 +142,11 @@ define([
      */
     var initCarousel = function(){
 
+        // check if carousel exists (e.g. not in IGB browser
+        if($('#' + config.galleryCarouselId).length === 0){
+            return;
+        }
+
         // extent "blueimp" gallery for a textFactory method to show HTML templates
         Gallery.prototype.textFactory = function (obj, callback) {
             var newSlideContent = $('<div>')

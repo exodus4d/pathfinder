@@ -22,6 +22,10 @@ define([
         mapInfoTableClass: 'pf-map-info-table',                                 // class for data
         mapInfoLifetimeCounterClass: 'pf-map-info-lifetime-counter',            // class for map lifetime counter
 
+        // dataTable
+        tableActionCellClass: 'pf-table-action-cell',                           // class for table "action" cells
+        tableCounterCellClass: 'pf-table-counter-cell',                         // cell for table "counter" cells
+
         loadingOptions: {                                                       // config for loading overlay
             icon: {
                 size: 'fa-2x'
@@ -103,7 +107,7 @@ define([
         mapElement.append(dlElementRight);
 
         // init map lifetime counter
-        $('.' + config.mapInfoLifetimeCounterClass).initSignatureCounter();
+        $('.' + config.mapInfoLifetimeCounterClass).initTimestampCounter();
 
 
 
@@ -284,12 +288,14 @@ define([
         for(var j = 0; j < mapData.data.connections.length; j++){
             var tempConnectionData = mapData.data.connections[j];
 
-            var tempConData = [];
+            var tempConData = {};
 
-            tempConData.push( Util.getScopeInfoForConnection( tempConnectionData.scope, 'label') );
+            tempConData.id = tempConnectionData.id;
+
+            tempConData.scope =  Util.getScopeInfoForConnection( tempConnectionData.scope, 'label');
 
             // source system name
-            tempConData.push( tempConnectionData.sourceName );
+            tempConData.source = tempConnectionData.sourceName;
 
             // connection
             var connectionClasses = [];
@@ -300,10 +306,14 @@ define([
 
             connectionClasses = connectionClasses.join(' ');
 
-            tempConData.push( '<div class="pf-fake-connection ' + connectionClasses + '"></div>' );
+            tempConData.connection = '<div class="pf-fake-connection ' + connectionClasses + '"></div>';
 
 
-            tempConData.push( tempConnectionData.targetName );
+            tempConData.target = tempConnectionData.targetName;
+
+            tempConData.updated = tempConnectionData.updated;
+
+            tempConData.clear = '<i class="fa fa-close txt-color txt-color-redDarker"></i>';
 
             connectionData.push(tempConData);
         }
@@ -326,17 +336,68 @@ define([
                 {
                     title: 'scope',
                     width: '50px',
-                    orderable: false
+                    orderable: false,
+                    data: 'scope'
                 },{
-                    title: 'source system'
+                    title: 'source system',
+                    data: 'source'
                 },{
                     title: 'connection',
                     width: '80px',
                     class: 'text-center',
                     orderable: false,
-                    searchable: false
+                    searchable: false,
+                    data: 'connection'
+                }, {
+                    title: 'target system',
+                    data: 'target'
                 },{
-                    title: 'target system'
+                    title: 'updated',
+                    width: '90px',
+                    searchable: false,
+                    className: [config.tableCounterCellClass, 'min-tablet-l'].join(' '),
+                    data: 'updated',
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                        $(cell).initTimestampCounter();
+                    }
+                },{
+                    title: '',
+                    orderable: false,
+                    searchable: false,
+                    width: '10px',
+                    class: ['text-center', config.tableActionCellClass].join(' '),
+                    data: 'clear',
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex) {
+                        var tempTableElement = this;
+
+                        var confirmationSettings = {
+                            container: 'body',
+                            placement: 'left',
+                            btnCancelClass: 'btn btn-sm btn-default',
+                            btnCancelLabel: 'cancel',
+                            btnCancelIcon: 'fa fa-fw fa-ban',
+                            title: 'Delete connection',
+                            btnOkClass: 'btn btn-sm btn-danger',
+                            btnOkLabel: 'delete',
+                            btnOkIcon: 'fa fa-fw fa-close',
+                            onConfirm : function(e, target){
+                                var deleteRowElement = $(target).parents('tr');
+
+                               // deleteSignatures(row);
+                                var connection = $().getConnectionById(mapData.config.id, rowData.id);
+
+                                $().deleteConnections([connection], function(){
+                                    // callback function after ajax "delete" success
+                                    // remove table row
+                                    tempTableElement.DataTable().rows(deleteRowElement).remove().draw();
+                                });
+                            }
+                        };
+
+                        // init confirmation dialog
+                        $(cell).confirmation(confirmationSettings);
+
+                    }
                 }
             ]
         });
@@ -369,6 +430,7 @@ define([
                 var mapInfoDialog = bootbox.dialog({
                     title: 'Map information',
                     message: content,
+                    size: 'large',
                     buttons: {
                         success: {
                             label: 'close',

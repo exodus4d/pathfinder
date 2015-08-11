@@ -7,7 +7,7 @@ define([
     'app/init',
     'app/util',
     'app/render',
-    'bootbox',
+    'bootbox'
 ], function($, Init, Util, Render, bootbox) {
     'use strict';
 
@@ -75,9 +75,9 @@ define([
                                         }
 
                                     }).fail(function( jqXHR, status, error) {
-                                        console.log('sharing fail')
-
-
+                                        var reason = status + ' ' + error;
+                                        Util.showNotify({title: jqXHR.status + ': shareSettings', text: reason, type: 'warning'});
+                                        $(document).setProgramStatus('problem');
                                     });
 
                                     return false;
@@ -86,18 +86,23 @@ define([
                         }
                     });
 
+                    // after modal is shown ---------------------------------------------------
+                    sharingSettingsDialog.on('shown.bs.modal', function(e) {
 
-
+                        $(this).find('input[type="checkbox"]').bootstrapToggle({
+                            on: '<i class="fa fa-fw fa-check"></i>&nbsp;Enable',
+                            off: 'Disable&nbsp;<i class="fa fa-fw fa-ban"></i>',
+                            onstyle: 'success',
+                            offstyle: 'warning',
+                            width: 90,
+                            height: 30
+                        });
+                    });
                 });
             }else{
                 Util.showNotify({title: 'No userData found', type: 'warning'});
 
             }
-
-
-
-
-
         }
     };
 

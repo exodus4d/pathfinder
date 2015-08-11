@@ -11,7 +11,7 @@ define(['jquery'], function($) {
         return this.each(function () {
 
             // Open context menu
-            $(this).on('pf:openContextMenu', function (e, originalEvent, component, hiddenOptions, activeOptions) {
+            $(this).off('pf:openContextMenu').on('pf:openContextMenu', function (e, originalEvent, component, hiddenOptions, activeOptions) {
 
                 // hide all other open context menus
                $('#pf-dialog-wrapper > .dropdown-menu').hide();
@@ -41,11 +41,12 @@ define(['jquery'], function($) {
                     position: 'absolute',
                     left: getLeftLocation(originalEvent),
                     top: getTopLocation(originalEvent)
-                }).off('click').velocity('transition.flipXIn', {
-                    duration: 180,
+                }).velocity('transition.flipXIn', {
+                    duration: 150,
                     complete: function(){
                         // set context menu "click" observer
-                        $(this).on('click', {component: component, position:{x: getLeftLocation(originalEvent), y: getTopLocation(originalEvent)}}, function (e) {
+                        $(this).one('click', {component: component, position:{x: getLeftLocation(originalEvent), y: getTopLocation(originalEvent)}}, function (e) {
+                            // hide contextmenu
                             $(this).hide();
 
                             var params = {
@@ -60,16 +61,16 @@ define(['jquery'], function($) {
                     }
                 });
 
+                //make sure menu closes on any click
+                $(document).one('click.closeContextmenu', function () {
+                    $('.dropdown-menu[role="menu"]').velocity('transition.flipXOut', {
+                        duration: 150
+                    });
+                });
+
                 return false;
             });
 
-            //make sure menu closes on any click
-            $(document).off('click').on('click', function () {
-
-                $('.dropdown-menu[role="menu"]').velocity('transition.flipXOut', {
-                    duration: 180
-                });
-            });
         });
 
         function getLeftLocation(e) {

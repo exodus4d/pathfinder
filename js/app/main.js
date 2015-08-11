@@ -179,7 +179,17 @@ define([
             // ping for user data update =======================================================
             var triggerUserUpdatePing = function(){
 
+                // IMPORTANT: Get user data for ONE map that is currently visible
+                // On later releases this can be easy changed to "full update" all maps for a user
+                //
+                var mapIds = [];
+                var activeMap = Util.getMapModule().getActiveMap();
+                if(activeMap){
+                    mapIds = [ activeMap.data('id') ];
+                }
+
                 var updatedUserData = {
+                    mapIds: mapIds,
                     systemData: Util.getCurrentSystemData()
                 };
 
@@ -264,7 +274,6 @@ define([
             triggerMapUpdatePing();
 
         };
-
 
 
     });

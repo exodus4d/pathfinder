@@ -29,7 +29,7 @@
     <orderEntry type="library" name="jQuery-2.0.0" level="application" />
     <orderEntry type="library" name="Node.js v0.10.32 Core Modules" level="application" />
     <orderEntry type="library" name="sass-stdlib" level="application" />
-    <orderEntry type="library" name="compass-library" level="project" />
     <orderEntry type="library" name="jquery-DefinitelyTyped" level="application" />
+    <orderEntry type="library" name="compass-library" level="project" />
   </component>
 </module>

@@ -84,36 +84,40 @@
       max-height: 50px;
     }
 
-    .pf-sig-table-action-cell{
-      cursor: pointer;
-    }
-
     .pf-sig-table-edit-name-input{
       text-transform: uppercase;
     }
+  }
+}
 
-    // signature timer/date counter head
-    th.pf-sig-table-counter{
-      padding-right: 20px !important;
+// global datatable styles
+.dataTable{
+  .pf-table-action-cell{
+    cursor: pointer;
+  }
+
+  // signature timer/date counter head
+  th.pf-table-counter-cell{
+    padding-right: 20px !important;
+  }
+
+  // signature timer/date counter
+  .pf-table-counter-cell{
+    text-align: right;
+
+    .pf-digit-counter-small{
+      width: 20px;
+      display: inline-block;
+      font-size: 10px;
     }
 
-    // signature timer/date counter
-    .pf-sig-table-counter{
-      text-align: right;
-
-      .pf-digit-counter-small{
-        width: 20px;
-        display: inline-block;
-        font-size: 10px;
-      }
-
-      .pf-digit-counter-large{
-        width: 26px;
-        display: inline-block;
-        font-size: 10px;
-      }
+    .pf-digit-counter-large{
+      width: 26px;
+      display: inline-block;
+      font-size: 10px;
     }
   }
+
 }
 
 // system graph module =====================================================

@@ -54,6 +54,7 @@ define([
         headActiveUserClass: 'pf-head-active-user',                             // class for "active user" link
         headCurrentLocationClass: 'pf-head-current-location',                   // class for "show current location" link
         headProgramStatusClass: 'pf-head-program-status',                       // class for "program status" notification
+        headMapTrackingId: 'pf-head-map-tracking',                              // id for "map tracking" toggle (checkbox)
 
         // footer
         pageFooterId: 'pf-footer',                                              // id for page footer
@@ -336,14 +337,15 @@ define([
             userCharacterClass: config.headUserCharacterClass,
             userCharacterImageClass: config.userCharacterImageClass,
             userShipClass: config.headUserShipClass,
-            userShipImageClass: config.userShipImageClass
+            userShipImageClass: config.userShipImageClass,
+            mapTrackingId: config.headMapTrackingId
         };
 
         var headRendered = Mustache.render(TplHead, moduleData);
 
         pageElement.prepend(headRendered);
 
-        // init heaser =====================================================================
+        // init header =====================================================================
 
         // init slide menus
         var slideMenu = new $.slidebars({
@@ -379,10 +381,45 @@ define([
             $(document).triggerMenuEvent('ShowTaskManager');
         });
 
+        // close menu
         $(document).on('pf:closeMenu', function(e){
             // close all menus
             slideMenu.slidebars.close();
         });
+
+        // tracking toggle
+        var mapTrackingCheckbox = $('#' + config.headMapTrackingId);
+        mapTrackingCheckbox.bootstrapToggle({
+            size: 'mini',
+            on: 'on',
+            off: 'off',
+            onstyle: 'success',
+            offstyle: 'default',
+            width: 38,
+            height: 19
+        });
+
+        // set default values for map tracking checkbox
+        if(CCP.isInGameBrowser() === false){
+            mapTrackingCheckbox.bootstrapToggle('disable');
+        }else{
+            mapTrackingCheckbox.bootstrapToggle('on');
+        }
+
+        mapTrackingCheckbox.on('change', function(e) {
+            var value = $(this).is(':checked');
+            var tracking = 'off';
+            var trackingText = 'Your current location will not actually be added';
+            var trackingType = 'info';
+            if(value){
+                tracking = 'on';
+                trackingText = 'New connections will actually be added';
+                trackingType = 'success';
+            }
+
+            Util.showNotify({title: 'Map tracking: ' + tracking, text: trackingText, type: trackingType}, false);
+        });
+
 
         // init all tooltips
         var tooltipElements = $('#' + config.pageHeaderId).find('[title]');

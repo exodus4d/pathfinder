@@ -72,7 +72,7 @@ define([
                                 // check if system is dialed
                                 if(
                                     options.disabledOptions &&
-                                    options.disabledOptions.indexOf(systemId) !== -1
+                                    options.disabledOptions.indexOf(parseInt(systemId, 10)) !== -1
                                 ){
                                     disabled = true;
                                 }

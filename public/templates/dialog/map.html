@@ -19,14 +19,14 @@
         <div role="tabpanel" class="tab-pane fade {{#openTabEdit}}in active{{/openTabEdit}}" id="{{dialogMapEditContainerId}}"></div>
         <div role="tabpanel" class="tab-pane fade {{#openTabSettings}}in active{{/openTabSettings}}" id="{{dialogMapSettingsContainerId}}">
             <form role="form" class="form-horizontal">
-                <h2><i class="fa fa-share-alt fa-fw"></i> Who has access</h2>
+                <h2><i class="fa fa-share-alt fa-fw"></i> Share settings</h2>
 
                 <div class="row">
                     <div class="col-sm-11">
                         <blockquote>
                             <p>
-                                Use this feature with caution! - Shared map entities have full access.
-                                They even can take over map control by removing other entities from this list.
+                                Use this feature with caution! - Shared map entities have full map access.
+                                They even can take over control by removing other entities from this list.
                             </p>
                             <small>Reduce this risk by creating a new map for joined OPs.
                             </small>
@@ -107,12 +107,18 @@
         </div>
     </div>
 
-    <div id="{{dialogMessageContainerId}}"></div>
+    <div class="{{formInfoContainerClass}} alert alert-info" style="display: none;">
+        <span class="txt-color txt-color-information">Information</span>
+        <small> (important non-critical information)</small>
+    </div>
 
+    <div class="{{formWarningContainerClass}} alert alert-warning" style="display: none;">
+        <span class="txt-color txt-color-warning">Warning</span>
+        <small> (important non-critical information)</small>
+    </div>
 
-
-        <div class="{{formWarningContainerClass}}" class="alert alert-warning" style="display: none;">
-            <span class="txt-color txt-color-warning">Warning</span>
-            <small> (important non-critical information)</small>
-        </div>
+    <div class="{{formErrorContainerClass}} alert alert-danger" style="display: none;">
+        <span class="txt-color txt-color-danger">Error</span>
+        <small> (important non-critical information)</small>
+    </div>
 </div>

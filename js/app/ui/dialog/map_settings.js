@@ -18,8 +18,6 @@ define([
         dialogMapEditContainerId: 'pf-map-dialog-edit',                                 // id for the "edit" container
         dialogMapSettingsContainerId: 'pf-map-dialog-settings',                         // id for the "settings" container
 
-        dialogMessageContainerId: 'pf-map-dialog-message-container',                    // id for dialog form message container
-
         userSelectId: 'pf-map-dialog-user-select',                                      // id for "user" select
         corporationSelectId: 'pf-map-dialog-corporation-select',                        // id for "corporation" select
         allianceSelectId: 'pf-map-dialog-alliance-select'                               // id for "alliance" select
@@ -59,7 +57,8 @@ define([
                     type: Util.getMapTypes(true),
                     icon: Util.getMapIcons(),
                     formErrorContainerClass: Util.config.formErrorContainerClass,
-                    formWarningContainerClass: Util.config.formWarningContainerClass
+                    formWarningContainerClass: Util.config.formWarningContainerClass,
+                    formInfoContainerClass: Util.config.formInfoContainerClass
                 };
 
                 // render "new map" tab content -------------------------------------------
@@ -99,7 +98,6 @@ define([
                     dialogMapCreateContainerId: config.dialogMapCreateContainerId,
                     dialogMapEditContainerId: config.dialogMapEditContainerId,
                     dialogMapSettingsContainerId: config.dialogMapSettingsContainerId,
-                    dialogMessageContainerId: config.dialogMessageContainerId,
 
                     hideEditTab: hideEditTab,
                     hideSettingsTab: hideSettingsTab,
@@ -191,12 +189,17 @@ define([
                                             form.showFormMessage(responseData.error);
                                         }else{
                                             // success
-                                            Util.showNotify({title: dialogTitle, text: 'Map: ' + responseData.name, type: 'success'});
+                                            Util.showNotify({title: dialogTitle, text: 'Map: ' + responseData.mapData.mapData.name, type: 'success'});
+
+                                            // update map-tab Element
+                                            var tabLinkElement = Util.getMapModule().getMapTabElements(responseData.mapData.mapData.id);
+                                            if(tabLinkElement.length === 1){
+                                                tabLinkElement.updateTabData(responseData.mapData.mapData);
+                                            }
 
                                             $(mapInfoDialog).modal('hide');
                                             $(document).trigger('pf:closeMenu', [{}]);
                                         }
-
                                     }).fail(function( jqXHR, status, error) {
                                         var reason = status + ' ' + error;
                                         Util.showNotify({title: jqXHR.status + ': saveMap', text: reason, type: 'warning'});
@@ -232,7 +235,6 @@ define([
 
                             initSettingsSelectFields(mapInfoDialog);
                         }else{
-
                             if( $(selectElementUser).data('select2') !== undefined ){
                                 $(selectElementUser).select2('destroy');
                             }
@@ -248,11 +250,14 @@ define([
                     });
 
                     // show form messages -------------------------------------
-                    $('#' + config.dialogMessageContainerId).showMessage({type: 'info', title: 'Hint', text: 'Creating new maps or change settings may take a few seconds'});
+                    // get current active form(tab)
+                    var form = $('#' + config.newMapDialogId).find('form').filter(':visible');
+
+                    form.showFormMessage([{type: 'info', message: 'Creating new maps or change settings may take a few seconds'}]);
 
                     if(mapData === false){
                         // no map data found (probably new user
-                        $('#' + config.dialogMessageContainerId).showMessage({type: 'warning', title: 'No maps found', text: 'Create a new map before you can start'});
+                        form.showFormMessage([{type: 'warning', message: 'No maps found. Create a new map before you can start'}]);
                     }
                 });
 

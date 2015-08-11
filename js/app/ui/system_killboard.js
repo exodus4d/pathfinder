@@ -43,12 +43,12 @@ define([
         return label;
     };
 
-    // show number of killmails
-    var killMailCounterMax = 20;
-    var killMailCounter = 0;
-
 
     var showKillmails = function(moduleElement, killboardData){
+
+        // show number of killMails
+        var killMailCounterMax = 20;
+        var killMailCounter = 0;
 
         // change order (show right to left)
         killboardData.tableData.reverse();

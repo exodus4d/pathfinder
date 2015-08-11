@@ -95,12 +95,12 @@
   }
 
   // show add button only on last row
-  .pf-dialog-api-row:not(:nth-last-child(1)) .pf-dialog-clone-button{
+  .pf-dialog-api-row:not(:nth-last-child(2)) .pf-dialog-clone-button{
     display: none;
   }
 
   // hide delete button if there is just a single api row
-  .pf-dialog-api-row:nth-child(2):nth-last-child(1) .pf-dialog-delete-button{
+  .pf-dialog-api-row:nth-child(2):nth-last-child(2) .pf-dialog-delete-button{
     display: none;
   }
 

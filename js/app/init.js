@@ -30,6 +30,8 @@ define(['jquery'], function($) {
             saveSystem: 'api/system/save',                          // ajax URL - saves system to map
             deleteSystem: 'api/system/delete',                      // ajax URL - delete system from map
             getSystemGraphData: 'api/system/graphData',             // ajax URL - get all system graph data
+            getConstellationData: 'api/system/constellationData',   // ajax URL - get system constellation data
+
             // connection API
             saveConnection: 'api/connection/save',                  // ajax URL - save new connection to map
             deleteConnection: 'api/connection/delete',              // ajax URL - delete connection from map
@@ -230,19 +232,34 @@ define(['jquery'], function($) {
                 }
             },
             stargate: {
-                cssClass: 'pf-map-connection-stargate'
+                cssClass: 'pf-map-connection-stargate',
+                paintStyle: {
+                    dashstyle: '0' // solid line
+                }
             },
             wh_eol: {
-                cssClass: 'pf-map-connection-wh-eol'
+                cssClass: 'pf-map-connection-wh-eol',
+                paintStyle: {
+                    dashstyle: '0' // solid line
+                }
             },
             wh_fresh: {
-                cssClass: 'pf-map-connection-wh-fresh'
+                cssClass: 'pf-map-connection-wh-fresh',
+                paintStyle: {
+                    dashstyle: '0' // solid line
+                }
             },
             wh_reduced: {
-                cssClass: 'pf-map-connection-wh-reduced'
+                cssClass: 'pf-map-connection-wh-reduced',
+                paintStyle: {
+                    dashstyle: '0' // solid line
+                }
             },
             wh_critical: {
-                cssClass: 'pf-map-connection-wh-critical'
+                cssClass: 'pf-map-connection-wh-critical',
+                paintStyle: {
+                    dashstyle: '0' // solid line
+                }
             },
             frigate: {
                 cssClass: 'pf-map-connection-frig',

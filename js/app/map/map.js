@@ -17,7 +17,7 @@ define([
     var config = {
         zIndexCounter: 110,
         newSystemOffset: {
-          x: 150,
+          x: 130,
           y: 0
         },
 
@@ -25,6 +25,7 @@ define([
         mapSnapToGrid: false,                                           // Snap systems to grid while dragging
         mapTabContentClass: 'pf-map-tab-content',                       // Tab-Content element (parent element)
         mapWrapperClass: 'pf-map-wrapper',                              // wrapper div (scrollable)
+        headMapTrackingId: 'pf-head-map-tracking',                      // id for "map tracking" toggle (checkbox)
 
         mapClass: 'pf-map',                                             // class for all maps
         mapGridClass: 'pf-grid-small',                                  // class for map grid snapping
@@ -40,8 +41,9 @@ define([
         systemBodyClass: 'pf-system-body',                              // class for system body
         systemBodyItemHeight: 16,                                       // px of a system body entry
         systemBodyItemClass: 'pf-system-body-item',                     // class for a system body entry
-        systemBodyItemStatusClass: 'pf-user-status',
-        systemBodyRightClass: 'pf-system-body-right',
+        systemBodyItemStatusClass: 'pf-user-status',                    // class for player status in system body
+        systemBodyItemNameClass: 'pf-system-body-item-name',            // class for player name in system body
+        systemBodyRightClass: 'pf-system-body-right',                   // class for player ship name in system body
         systemTooltipInnerClass: 'pf-system-tooltip-inner',             // class for system tooltip content
         systemTooltipInnerIdPrefix: 'pf-system-tooltip-inner-',         // id prefix for system tooltip content
         dynamicElementWrapperId: 'pf-dialog-wrapper',                   // wrapper div for dynamic content (dialogs, context-menus,...)
@@ -83,27 +85,22 @@ define([
     var globalMapConfig =  {
         source: {
             filter: '.' + config.systemHeadNameClass,
- //           anchor: 'Continuous',
-            allowLoopback: false,                   // loopback connections are not allowed
             //isSource:true,
             isTarget:true,                          // add target Endpoint to each system (e.g. for drag&drop)
-            uniqueEndpoint: false,                  // each connection has its own endpoint visible
+            allowLoopback: false,                   // loopBack connections are not allowed
             cssClass: config.endpointSourceClass,
+            uniqueEndpoint: false,                  // each connection has its own endpoint visible
             dragOptions:{
-               // scope: 'fgd'
             },
             connectionsDetachable: true,            // dragOptions are set -> allow detaching them
             maxConnections: 10                     // due to isTarget is true, this is the max count of !out!-going connections
         },
         target: {
-           // filter: '.' + config.systemHeadNameClass,
- //           anchor: 'Continuous',
+            filter: '.' + config.systemHeadNameClass,
+            isSource:true,
+            //isTarget:true,
             allowLoopback: false,                   // loopback connections are not allowed
             cssClass: config.endpointTargetClass,
-            //isTarget:true,
-           // uniqueEndpoint: false,
-            isSource:true,
-           // connectionsDetachable: false,
             dropOptions: {
                 tolerance: 'touch',
                 hoverClass: config.systemActiveClass,
@@ -147,13 +144,12 @@ define([
             data &&
             data.user
         ){
-
             var cacheArray = [];
             // loop all active pilots and build cache-key
             for(var i = 0; i < data.user.length; i++){
                 userCounter++;
                 var tempUserData = data.user[i];
-                cacheArray.push(tempUserData.id + '_' + tempUserData.log.ship.typeName);
+                cacheArray.push(tempUserData.id + '_' + tempUserData.log.ship.id);
             }
             var cacheKey = cacheArray.join('_');
 
@@ -182,11 +178,12 @@ define([
                             })
                         ).append(
                             $('<i>', {
-                                class: ['fa', 'fa-circle', config.systemBodyItemStatusClass, statusClass].join(' ')
+                                class: ['fa', 'fa-fw', 'fa-circle', config.systemBodyItemStatusClass, statusClass].join(' ')
                             })
                         ).append(
                             $('<span>', {
-                                text: ' ' + userName
+                                class: config.systemBodyItemNameClass,
+                                text: userName
                             })
                         );
 
@@ -251,7 +248,7 @@ define([
                 system.toggleSystemTooltip('destroy', {});
 
                 // no user -> clear SystemBody
-                systemHeadExpand.velocity('stop', true).velocity('reverse',{
+                systemHeadExpand.velocity('stop').velocity('reverse',{
                     display: 'none',
                     complete: function(){
                         system.toggleBody(false, map, {});
@@ -556,14 +553,12 @@ define([
                             // show tooltip
                             $(system).toggleSystemTooltip('show', {show: true});
 
-
                             map.revalidate( systemId );
                         }
                     }
                 );
             }
         }
-
 
         // set system name or alias
         var systemName = data.name;
@@ -736,7 +731,7 @@ define([
                                 currentConnectionData[c].updated < connectionData.updated
                             ){
                                 // connection changed -> update
-                                var tempConnection = activeConnections[mapData.config.id][connectionData.id];
+                                var tempConnection = $().getConnectionById(mapData.config.id, connectionData.id);
                                 updateConnection(tempConnection, currentConnectionData[c], connectionData);
                             }
 
@@ -764,20 +759,19 @@ define([
                         }
                     }
 
-                    if(
-                        deleteThisConnection === true &&
-                        activeConnections[mapData.config.id][currentConnectionData[d].id] !== undefined
-                    ){
-                        // connection not found -> delete connection
-                        var deleteConnection = activeConnections[mapData.config.id][currentConnectionData[d].id];
+                    if(deleteThisConnection === true){
+                        // get connection from cache -> delete connection
+                        var deleteConnection = $().getConnectionById(mapData.config.id, currentConnectionData[d].id);
 
-                        // check if "source" and "target" still exist before remove
-                        // this is NOT the case if the system was removed previous
-                        if(
-                            deleteConnection.source &&
-                            deleteConnection.target
-                        ){
-                            mapConfig.map.detach(deleteConnection, {fireEvent: false});
+                        if(deleteConnection){
+                            // check if "source" and "target" still exist before remove
+                            // this is NOT the case if the system was removed previous
+                            if(
+                                deleteConnection.source &&
+                                deleteConnection.target
+                            ){
+                                mapConfig.map.detach(deleteConnection, {fireEvent: false});
+                            }
                         }
                     }
                 }
@@ -786,6 +780,26 @@ define([
         }
 
         return mapContainer;
+    };
+
+    /**
+     * get a connection object from "cache" (this requires the "activeConnections" cache to be actual!
+     * @param mapId
+     * @param connectionId
+     * @returns {*}
+     */
+    $.fn.getConnectionById = function(mapId, connectionId){
+
+        var connection = null;
+
+        if(
+            activeConnections[mapId] &&
+            activeConnections[mapId][connectionId]
+        ){
+            connection = activeConnections[mapId][connectionId];
+        }
+
+        return connection;
     };
 
     /**
@@ -909,8 +923,6 @@ define([
         sourceConfig.connector = Util.getScopeInfoForConnection('wh', 'connectorDefinition');
 
         map.makeSource(system, sourceConfig);
-
-
     };
 
     /**
@@ -979,10 +991,11 @@ define([
             // connect new system (if connection data is given)
             if(connectedSystem){
 
+                // hint: "type" will be auto detected by jump distance
                 var connectionData = {
                     source: $(connectedSystem).data('id'),
                     target: newSystem.data('id'),
-                    type: ['wh']
+                    type: ['wh_fresh'] // default type.
                 };
                 var connection = drawConnection(map, connectionData);
 
@@ -1179,7 +1192,8 @@ define([
             parameters: {
                 connectionId: connectionId,
                 updated: connectionData.updated
-            }
+            },
+            type: null
             /* experimental (straight connections)
             anchors: [
                 [ "Perimeter", { shape: 'Rectangle' }],
@@ -1203,8 +1217,7 @@ define([
         }
         setConnectionScope(connection, scope);
 
-        // set Observer for new Connection
-        setConnectionObserver(map, connection);
+        // set Observer for new Connection -> is automatically set
 
         return connection;
     };
@@ -1236,16 +1249,18 @@ define([
             dataType: 'json'
         }).done(function(newConnectionData){
 
-            // update connection data
-            connection.setParameter('connectionId', newConnectionData.id);
-            connection.setParameter('updated', newConnectionData.updated);
+            // update connection data e.g. "scope" has auto detected
+            updateConnection(connection, connectionData, newConnectionData);
 
-            var text = 'New connection established';
+            // connection scope
+            var scope = Util.getScopeInfoForConnection(newConnectionData.scope, 'label');
+
+            var title = 'New connection established';
             if(connectionData.id > 0){
-                text = 'Connection switched';
+                title = 'Connection switched';
             }
 
-            Util.showNotify({title: text, type: 'success'});
+            Util.showNotify({title: title, text: 'Scope: ' + scope, type: 'success'});
         }).fail(function( jqXHR, status, error) {
 
             // remove this connection from map
@@ -1258,12 +1273,10 @@ define([
     };
 
     /**
-     * Programmatically delete a connection and all related data
+     * delete a connection and all related data
      * @param connections
-     * @param deleteOnServer
      */
-    var deleteConnections = function(connections, deleteOnServer){
-
+    $.fn.deleteConnections = function(connections, callback){
         if(connections.length > 0){
 
             // remove connections from map
@@ -1277,52 +1290,50 @@ define([
                 }
             };
 
-            if(deleteOnServer === true){
-                // prepare delete request
+            // prepare delete request
 
-                var map = connections[0]._jsPlumb.instance;
-                var mapContainer = $( map.getContainer() );
-                mapContainer.getMapOverlay('timer').startMapUpdateCounter();
+            var map = connections[0]._jsPlumb.instance;
+            var mapContainer = $( map.getContainer() );
+            mapContainer.getMapOverlay('timer').startMapUpdateCounter();
 
 
-                var connectionIds = [];
-                // systemIds for delete request
-                for(var i = 0; i < connections.length; i++){
-                    var connectionId = connections[i].getParameter('connectionId');
-                    // drag&drop a new connection does not have an id yet, if connection is not established correct
-                    if(connectionId !== undefined){
-                        connectionIds[i] = connections[i].getParameter('connectionId');
+            var connectionIds = [];
+            // systemIds for delete request
+            for(var i = 0; i < connections.length; i++){
+                var connectionId = connections[i].getParameter('connectionId');
+                // drag&drop a new connection does not have an id yet, if connection is not established correct
+                if(connectionId !== undefined){
+                    connectionIds[i] = connections[i].getParameter('connectionId');
+                }
+            }
+
+            if(connectionIds.length > 0){
+                var requestData = {
+                    connectionIds: connectionIds
+                };
+
+                $.ajax({
+                    type: 'POST',
+                    url: Init.path.deleteConnection,
+                    data: requestData,
+                    dataType: 'json'
+                }).done(function(data){
+
+                    // remove connections from map
+                    removeConnections(connections);
+
+                    // optional callback
+                    if(callback){
+                        callback();
                     }
-                }
 
-                if(connectionIds.length > 0){
-                    var requestData = {
-                        connectionIds: connectionIds
-                    };
-
-                    $.ajax({
-                        type: 'POST',
-                        url: Init.path.deleteConnection,
-                        data: requestData,
-                        dataType: 'json'
-                    }).done(function(data){
-
-                        // remove connections from map
-                        removeConnections(connections);
-
-                    }).fail(function( jqXHR, status, error) {
-                        var reason = status + ' ' + error;
-                        Util.showNotify({title: jqXHR.status + ': deleteSystem', text: reason, type: 'warning'});
-                        $(document).setProgramStatus('problem');
-                    });
-                }
-            }else{
-                // remove connections from map (no request)
-                removeConnections(connections);
+                }).fail(function( jqXHR, status, error) {
+                    var reason = status + ' ' + error;
+                    Util.showNotify({title: jqXHR.status + ': deleteSystem', text: reason, type: 'warning'});
+                    $(document).setProgramStatus('problem');
+                });
             }
         }
-
-
     };
 
     /**
@@ -1337,9 +1348,16 @@ define([
         var mapContainer = $( map.getContainer() );
         var mapId = mapContainer.data('id');
 
+        // check id, IDs should never change but must be set after initial save
+        if(connection.getParameter('connectionId') !== newConnectionData.id){
+            connection.setParameter('connectionId', newConnectionData.id);
+        }
+
         // check scope
         if(connectionData.scope !== newConnectionData.scope){
             setConnectionScope(connection, newConnectionData.scope);
+            // for some reason the observers are gone after scope change...
+            setConnectionObserver(map, connection);
         }
 
         var addType = $(newConnectionData.type).not(connectionData.type).get();
@@ -1383,8 +1401,6 @@ define([
 
         // set update date
         connection.setParameter('updated', newConnectionData.updated);
-
-
     };
 
     /**
@@ -1393,21 +1409,53 @@ define([
      * @param scope
      */
     var setConnectionScope = function(connection, scope){
+        var map = connection._jsPlumb.instance;
+        var currentConnector = connection.getConnector();
+        var newConnector = Util.getScopeInfoForConnection(scope, 'connectorDefinition');
 
-        connection.setConnector( Util.getScopeInfoForConnection(scope, 'connectorDefinition') );
+        if(currentConnector.type !== newConnector[0]){
+            // connector has changed
 
-        if(connection.scope !== scope){
+            connection.setConnector( newConnector );
 
             // remove all connection types
             connection.clearTypes();
 
             // set new new connection type
             // if scope changed -> connection type == scope
-            connection.addType(scope);
+            connection.setType( getDefaultConnectionTypeByScope(scope) );
 
             // change scope
             connection.scope = scope;
+
+            // new observer is required after scope change
+            setConnectionObserver(map, connection);
         }
+
+    };
+
+    /**
+     * get the default connection type for a scope
+     * e.g. for new type after scope change
+     * @param scope
+     * @returns {string}
+     */
+    var getDefaultConnectionTypeByScope = function(scope){
+
+        var type = '';
+        switch(scope){
+            case 'wh':
+                type = 'wh_fresh';
+                break;
+            case 'jumpbridge':
+                type = 'jumpbridge';
+                break;
+            case'stargate':
+                type = 'stargate';
+                break;
+        }
+
+        return type;
     };
 
     /**
@@ -1416,8 +1464,6 @@ define([
      * @param status
      */
     var setConnectionWHStatus = function(connection, status){
-
-        var map = connection._jsPlumb.instance;
 
         if(
             status === 'wh_fresh' &&
@@ -1529,7 +1575,7 @@ define([
         var systemStatus = [];
         $.each(Init.systemStatus, function(status, statusData){
             var tempStatus = {
-                subIcon: 'fa-circle',
+                subIcon: 'fa-tag',
                 subIconClass: statusData.class,
                 subAction: 'change_status_' + status,
                 subText: statusData.label
@@ -1548,7 +1594,7 @@ define([
                 {icon: 'fa-plus', action: 'add_system', text: 'add system'},
                 {icon: 'fa-lock', action: 'lock_system', text: 'lock system'},
                 {icon: 'fa-users', action: 'set_rally', text: 'set rally point'},
-                {icon: 'fa-reply fa-rotate-180', text: 'change status', subitems: systemStatus},
+                {icon: 'fa-tags', text: 'set status', subitems: systemStatus},
                 {divider: true, action: 'ingame'},
                 {icon: 'fa-reply fa-rotate-180', action: 'ingame', text: 'ingame actions', subitems: [
                     {subIcon: 'fa-info', subAction: 'ingame_show_info', subText: 'show info'},
@@ -1582,7 +1628,6 @@ define([
 
         // map overlay will be set on "drag" start
         var mapOverlayTimer = null;
-
 
         // make system draggable
         map.draggable(system, {
@@ -1706,6 +1751,10 @@ define([
                     },
                     complete: function(){
                         map.revalidate( hoverSystemId );
+
+                        // extend player name element
+                        $(this).find('.' + config.systemBodyItemNameClass).css({width: '80px'});
+
                         $(this).find('.' + config.systemBodyRightClass).velocity('stop').velocity({
                             opacity: 1
                         },{
@@ -1720,6 +1769,12 @@ define([
             // hover out
             var hoverSystem = $(this).parents('.' + config.systemClass);
             var hoverSystemId = hoverSystem.attr('id');
+
+            // stop animation (prevent visual bug if user spams hover-icon [in - out])
+            systemBody.velocity('stop');
+
+            // reduce player name element back to "normal" size (css class width is used)
+            systemBody.find('.' + config.systemBodyItemNameClass).css({width: ''});
 
             systemBody.find('.' + config.systemBodyRightClass).velocity('stop').velocity( {
                 opacity: 0,
@@ -2443,7 +2498,6 @@ define([
             }else{
                 // not reduced is default
                 activeOptions.push('status_fresh');
-
             }
 
         }else if( component.hasClass(config.mapClass) ){
@@ -2481,7 +2535,8 @@ define([
         // get map container
         var mapElement = $( map.getContainer() );
 
-        connection.bind('contextmenu', function(component, e) {
+        // if the connection already exists -> do not set it twice
+        connection.unbind('contextmenu').bind('contextmenu', function(component, e) {
             e.preventDefault();
             e.stopPropagation();
 
@@ -2518,7 +2573,7 @@ define([
                         // confirm dialog
                         bootbox.confirm('Is this connection really gone?', function(result) {
                             if(result){
-                                deleteConnections([params.component], true);
+                                $().deleteConnections([activeConnection]);
                             }
                         });
                         break;
@@ -2839,6 +2894,12 @@ define([
 
         var mapElement = map.getContainer();
 
+
+        // get map tracking toggle value
+        // if "false" -> new systems/connections will not automatically added
+        var mapTracking = $('#' + config.headMapTrackingId).is(':checked');
+
+
         // container must exist! otherwise systems can not be updated
         if(mapElement !== undefined){
 
@@ -2904,6 +2965,31 @@ define([
                         headerUpdateData.currentSystemId =  $(system).data('id');
                         headerUpdateData.currentSystemName = currentCharacterLog.system.name;
 
+                        // check connection exists between new and previous systems --------o------------------------------
+                        // e.g. a loop
+                        if(
+                            activeSystemCache &&
+                            mapTracking &&
+                            activeSystemCache.data('systemId') !== currentCharacterLog.system.id
+                        ){
+                            // maybe a loop detected (both systems already on map -> connection missing
+                            var connections = checkForConnection(map, activeSystemCache, system );
+
+                            if(connections.length === 0){
+                                var connectionData = {
+                                    source: activeSystemCache.data('id') ,
+                                    target: system.data('id'),
+                                    type: ['wh_fresh'] // default type.
+                                };
+
+                                var connection = drawConnection(map, connectionData);
+                                saveConnection(connection);
+                            }
+
+                        }
+
+
+
                         // cache current location
                         activeSystemCache = system;
                     }
@@ -2915,34 +3001,48 @@ define([
             // current user was not found on any map system -> add new system to map where the user is in ----------------
             // this is restricted to IGB-usage! CharacterLog data is always set through the IGB
             // ->this prevent adding the same system multiple times, if a user if online with the IGB AND OOG
+
             if(
                 CCP.isInGameBrowser() === true &&
                 currentUserIsHere === false &&
-                currentCharacterLog
+                currentCharacterLog &&
+                mapTracking
             ){
 
-                var requestData = {
-                    systemData: {
-                        systemId: currentCharacterLog.system.id
-                    },
-                    mapData: {
-                        id: userData.config.id
+                // check if the system where the character is in exists on this map
+                if(currentUserIsHere === false){
+                    // add new system to the map
+
+                    var requestData = {
+                        systemData: {
+                            systemId: currentCharacterLog.system.id
+                        },
+                        mapData: {
+                            id: userData.config.id
+                        }
+                    };
+
+
+                    // check if a system jump is detected previous system !== current system
+                    // and add a connection to the previous system as well
+                    // hint: if a user just logged on -> there is no active system cached
+                    var sourceSystem = false;
+                    if(
+                        activeSystemCache &&
+                        activeSystemCache.data('systemId') !== currentCharacterLog.system.id
+                    ){
+
+                        // draw new connection
+                        sourceSystem = activeSystemCache;
+                        // calculate new system coordinates
+                        requestData.systemData.position = calculateNewSystemPosition(sourceSystem);
                     }
-                };
 
-                // check if a system jump is detected previous system !== current system
-                // and add a connection to the previous system as well
-                var sourceSystem = false;
-                if( activeSystemCache.data('systemId') !== currentCharacterLog.system.id){
-                    sourceSystem = activeSystemCache;
+                    mapElement.getMapOverlay('timer').startMapUpdateCounter();
 
-                    // calculate new system coordinates
-                    requestData.systemData.position = calculateNewSystemPosition(sourceSystem);
+                    saveSystem(map, requestData, sourceSystem, false);
+
                 }
-
-                mapElement.getMapOverlay('timer').startMapUpdateCounter();
-
-                saveSystem(map, requestData, sourceSystem, false);
             }
 
 
@@ -3125,8 +3225,18 @@ define([
         var updated = connection.getParameter('updated');
 
         var connectionTypes = connection.getType();
+
         // normalize connection array
-        connectionTypes = $.grep(connectionTypes, function(n){ return(n); });
+        connectionTypes = $.grep(connectionTypes, function(n){
+            if(
+                n.length > 0 &&
+                n !== 'default' // this is added by jsplumb by default -_-
+            ){
+                return true;
+            }else{
+                return false;
+            }
+        });
 
         var data = {
             id: id ? id : 0,
@@ -3188,7 +3298,6 @@ define([
             // event after DragStop a connection or new connection ------------------
             newJsPlumbInstance.bind('beforeDrop', function(info) {
                 var connection = info.connection;
-                console.log('beforeDrop');
 
                 // lock the target system for "click" events
                 // to prevent loading system information
@@ -3203,7 +3312,7 @@ define([
 
                 // set "default" connection status only for NEW connections
                 if(!connection.suspendedElement){
-                    setConnectionWHStatus(connection, 'wh_fresh');
+                    setConnectionWHStatus(connection, getDefaultConnectionTypeByScope(connection.scope) );
                 }
 
                 // prevent multiple connections between same systems
@@ -3231,14 +3340,12 @@ define([
             newJsPlumbInstance.bind('connectionDetached', function(info, e){
                 // a connection is manually (drag&drop) detached! otherwise this event should not be send!
                 var connection = info.connection;
-                deleteConnections([connection], true);
-                console.log('connectionDetached');
+                $().deleteConnections([connection]);
             });
 
             newJsPlumbInstance.bind('checkDropAllowed', function(params){
                 // connections can not be attached to foreign endpoints
                 // the only endpoint available is endpoint from where the connection was dragged away (re-attach)
-                console.log('checkDropAllowed');
 
                 return true;
             });
@@ -3356,7 +3463,8 @@ define([
             advanced: {
                 updateOnBrowserResize: true,
                 updateOnContentResize: true,
-                autoExpandHorizontalScroll: true
+                autoExpandHorizontalScroll: true,
+                autoScrollOnFocus: "div"
             },
             mouseWheel:{
                 enable: false, // scroll weel currently disabled

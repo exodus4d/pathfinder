@@ -44,11 +44,13 @@ define([
         sigTableEditSigGroupSelect: 'pf-sig-table-edit-group-select',           // class for editable fields (sig group)
         sigTableEditSigTypeSelect: 'pf-sig-table-edit-type-select',             // class for editable fields (sig type)
         sigTableEditSigDescriptionTextarea: 'pf-sig-table-edit-desc-text',      // class for editable fields (sig description)
-        sigTableCounterClass: 'pf-sig-table-counter',                           // class for signature table counter
         sigTableCreatedCellClass: 'pf-sig-table-created',                       // class for "created" cells
         sigTableUpdatedCellClass: 'pf-sig-table-updated',                       // class for "updated" cells
-        sigTableActionCellClass: 'pf-sig-table-action-cell',                    // class for "action" cells
         sigTableActionButtonClass: 'pf-sig-table-action-button',                // class for row action button
+
+        sigTableCounterClass: 'pf-table-counter-cell',                          // class for "counter" cells
+        sigTableActionCellClass: 'pf-table-action-cell',                        // class for "action" cells
+
 
         // animation
         animationPulseSuccessClass: 'pf-animation-pulse-success',               // animation class
@@ -931,7 +933,7 @@ define([
         openNextEditDialogOnSave(sigGroupFields);
 
         // init signature counter ---------------------------------------------------------------
-        tableElement.find('.' + config.sigTableCounterClass + '[data-counter!="init"]').initSignatureCounter();
+        tableElement.find('.' + config.sigTableCounterClass + '[data-counter!="init"]').initTimestampCounter();
     };
 
     /**
@@ -1064,7 +1066,7 @@ define([
         var moduleElement = $('.' + config.systemSigModuleClass);
         var data = rows.data();
         var signatureTableApi = signatureTable.api();
-        var rowElements = rows.nodes().to$();0
+        var rowElements = rows.nodes().to$();
         var signatureCount = data.length;
 
         var signatureIds = [];
@@ -1538,74 +1540,74 @@ define([
                         var tempTableElement = this;
                         var rowElement = $(cell).parents('tr');
 
-                            switch(cellData.action){
-                                case 'add':
-                                    // add new signature ---------------------------------------------------------------
-                                    $(cell).on('click', function(e) {
-                                        // submit all fields within a table row
-                                        var formFields = rowElement.find('.editable');
+                        switch(cellData.action){
+                            case 'add':
+                                // add new signature ---------------------------------------------------------------
+                                $(cell).on('click', function(e) {
+                                    // submit all fields within a table row
+                                    var formFields = rowElement.find('.editable');
 
-                                        // submit all xEditable fields
-                                        formFields.editable('submit', {
-                                            url: Init.path.saveSignatureData,
-                                            ajaxOptions: {
-                                                dataType: 'json' //assuming json response
-                                            },
-                                            data: {
-                                                systemId: systemData.id, // additional data to submit
-                                                pk: 0 // new data no primary key
-                                            },
-                                            error: $.fn.editable.defaults.error, // user default xEditable error function
-                                            success: function (data, editableConfig) {
+                                    // submit all xEditable fields
+                                    formFields.editable('submit', {
+                                        url: Init.path.saveSignatureData,
+                                        ajaxOptions: {
+                                            dataType: 'json' //assuming json response
+                                        },
+                                        data: {
+                                            systemId: systemData.id, // additional data to submit
+                                            pk: 0 // new data no primary key
+                                        },
+                                        error: $.fn.editable.defaults.error, // user default xEditable error function
+                                        success: function (data, editableConfig) {
 
-                                                var newRowElement = addSignatureRow(systemData, data.signatures[0], true);
+                                            var newRowElement = addSignatureRow(systemData, data.signatures[0], true);
 
-                                                // highlight
-                                                newRowElement.pulseTableRow('added');
+                                            // highlight
+                                            newRowElement.pulseTableRow('added');
 
-                                                // prepare "add signature" table for new entry -> reset --------------------------------------------
-                                                var signatureData = formatSignatureData(systemData, [emptySignatureData], emptySignatureOptions);
+                                            // prepare "add signature" table for new entry -> reset --------------------------------------------
+                                            var signatureData = formatSignatureData(systemData, [emptySignatureData], emptySignatureOptions);
 
-                                                var dataSecondaryElement = $('.' + config.sigTableSecondaryClass);
-                                                var dataTableSecondary = dataSecondaryElement.DataTable();
-                                                var newAddRowElement = dataTableSecondary.clear().row.add(signatureData.shift()).draw().nodes();
+                                            var dataSecondaryElement = $('.' + config.sigTableSecondaryClass);
+                                            var dataTableSecondary = dataSecondaryElement.DataTable();
+                                            var newAddRowElement = dataTableSecondary.clear().row.add(signatureData.shift()).draw().nodes();
 
-                                                newAddRowElement.to$().makeEditable(systemData);
+                                            newAddRowElement.to$().makeEditable(systemData);
 
-                                                Util.showNotify({
-                                                    title: 'Signature added',
-                                                    text: 'Name: ' + data.name,
-                                                    type: 'success'
-                                                });
-                                            }
-                                        });
-                                    });
-                                    break;
-                                case 'delete':
-                                    // delete signature ----------------------------------------------------------------
-                                    var confirmationSettings = {
-                                        container: 'body',
-                                        placement: 'left',
-                                        btnCancelClass: 'btn btn-sm btn-default',
-                                        btnCancelLabel: 'cancel',
-                                        btnCancelIcon: 'fa fa-fw fa-ban',
-                                        title: 'Delete signature',
-                                        btnOkClass: 'btn btn-sm btn-danger',
-                                        btnOkLabel: 'delete',
-                                        btnOkIcon: 'fa fa-fw fa-close',
-                                        onConfirm : function(e, target){
-                                            var deleteRowElement = $(target).parents('tr');
-                                            var row = tempTableElement.DataTable().rows(deleteRowElement);
-                                            deleteSignatures(row);
+                                            Util.showNotify({
+                                                title: 'Signature added',
+                                                text: 'Name: ' + data.name,
+                                                type: 'success'
+                                            });
                                         }
-                                    };
+                                    });
+                                });
+                                break;
+                            case 'delete':
+                                // delete signature ----------------------------------------------------------------
+                                var confirmationSettings = {
+                                    container: 'body',
+                                    placement: 'left',
+                                    btnCancelClass: 'btn btn-sm btn-default',
+                                    btnCancelLabel: 'cancel',
+                                    btnCancelIcon: 'fa fa-fw fa-ban',
+                                    title: 'Delete signature',
+                                    btnOkClass: 'btn btn-sm btn-danger',
+                                    btnOkLabel: 'delete',
+                                    btnOkIcon: 'fa fa-fw fa-close',
+                                    onConfirm : function(e, target){
+                                        var deleteRowElement = $(target).parents('tr');
+                                        var row = tempTableElement.DataTable().rows(deleteRowElement);
+                                        deleteSignatures(row);
+                                    }
+                                };
 
-                                    // init confirmation dialog
-                                    $(cell).confirmation(confirmationSettings);
+                                // init confirmation dialog
+                                $(cell).confirmation(confirmationSettings);
 
 
-                                    break;
-                            }
+                                break;
+                        }
 
                     }
                 }

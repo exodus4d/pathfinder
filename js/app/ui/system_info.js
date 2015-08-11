@@ -17,6 +17,10 @@ define([
         // system info module
         systemInfoModuleClass: 'pf-system-info-module',                         // module wrapper
 
+        // breadcrumb
+        constellationLinkClass: 'pf-system-info-constellation',                 // class for "constellation" link
+        regionLinkClass: 'pf-system-info-region',                               // class for "region" link
+
         // info table
         systemInfoTableClass: 'pf-system-info-table',                           // class for system info table
         systemInfoNameInfoClass: 'pf-system-info-name',                         // class for "name" information element
@@ -260,7 +264,7 @@ define([
                         }
                     });
 
-                    // on xEditable open
+                    // on xEditable open -------------------------------------------------------------------------
                     descriptionTextareaElement.on('shown', function(e){
                         // disable module update until description field is open
                         disableModuleUpdate = true;
@@ -269,7 +273,7 @@ define([
                         tempModuleElement.find('.' + config.descriptionTextareaTooltipClass).tooltip('disable');
                     });
 
-                    // on xEditable close
+                    // on xEditable close ------------------------------------------------------------------------
                     descriptionTextareaElement.on('hidden', function(e){
                         var value = $(this).editable('getValue', true);
 
@@ -288,7 +292,7 @@ define([
                         disableModuleUpdate = false;
                     });
 
-                    // enable xEditable field on Button click
+                    // enable xEditable field on Button click ----------------------------------------------------
                     descriptionButton.on('click', function(e){
                         e.stopPropagation();
 
@@ -302,11 +306,11 @@ define([
                     });
 
 
-                    // init tooltips
+                    // init tooltips -----------------------------------------------------------------------------
                     var tooltipElements = $('.' + config.systemInfoModuleClass + ' [data-toggle="tooltip"]');
                     tooltipElements.tooltip();
 
-                    // init system effect popover
+                    // init system effect popover ----------------------------------------------------------------
                     var systemEffectData = Util.getSystemEffectData( systemData.security, systemData.effect);
 
                     if(systemEffectData !== false){
@@ -324,6 +328,36 @@ define([
                             container: 'body',
                             content: systemEffectTable
                         });
+                    }
+
+                    // constellation popover ---------------------------------------------------------------------
+                    tempModuleElement.find('a.popup-ajax').popover({
+                        html: true,
+                        trigger: 'hover',
+                        placement: 'top',
+                        delay: 200,
+                        container: 'body',
+                        content: function(){
+                            return details_in_popup(this);
+                        }
+                    });
+
+
+                    function details_in_popup(popoverElement){
+                        popoverElement = $(popoverElement);
+                        var popover = popoverElement.data('bs.popover');
+
+
+                        $.ajax({
+                            url: popoverElement.data('url'),
+                            success: function(data){
+                                var systemEffectTable = Util.getSystemsInfoTable( data.systemData );
+                                popover.options.content = systemEffectTable;
+                                // reopen popover (new content size)
+                                popover.show();
+                            }
+                        });
+                        return 'Loading...';
                     }
 
                     showModule(moduleElement);
@@ -358,7 +392,13 @@ define([
             descriptionButtonClass: config.addDescriptionButtonClass,
             moduleToolbarActionId: config.moduleToolbarActionId,
             descriptionTextareaClass: config.descriptionTextareaElementClass,
-            descriptionTooltipClass: config.descriptionTextareaTooltipClass
+            descriptionTooltipClass: config.descriptionTextareaTooltipClass,
+
+            ajaxConstellationInfoUrl: Init.path.getConstellationData,
+
+            systemConstellationLinkClass: config.constellationLinkClass,
+            systemRegionLinkClass: config.regionLinkClass
+
         };
 
         Render.showModule(moduleConfig, moduleData);

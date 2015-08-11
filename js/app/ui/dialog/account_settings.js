@@ -302,7 +302,6 @@ define([
 
                                         // set new captcha for any request
                                         // captcha is required for sensitive data (not for all data)
-
                                         if(
                                             responseData.error &&
                                             responseData.error.length > 0

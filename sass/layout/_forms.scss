@@ -19,5 +19,15 @@ input, select{
     -webkit-text-fill-color: $gray-lighter;
   }
 
+}
 
+// fix for bootstrap-toggle plugin
+.toggle{
+  &.btn:active{
+    box-shadow: none;
+  }
+
+  .toggle-group .btn{
+    padding: 0px 5px;
+  }
 }

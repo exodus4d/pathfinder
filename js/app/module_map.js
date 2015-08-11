@@ -68,15 +68,6 @@ define([
         return map;
     };
 
-
-    /**
-     * get all TabElements in this map module
-     * @returns {*}
-     */
-    var getTabElements = function(){
-        return $('#' + config.mapTabBarId).find('a');
-    };
-
     /**
      * set Tab Observer, events are triggered within map.js
      * @param mapContentModule
@@ -534,7 +525,7 @@ define([
 
         if(tabMapElement.length > 0){
             // tab element already exists
-            var tabElements = getTabElements();
+            var tabElements = mapModuleElement.getMapTabElements();
 
             // mapIds that are currently active
             var activeMapIds = [];
@@ -655,7 +646,7 @@ define([
         if(tabsChanged === true){
 
             // remove previous event handlers
-            var allTabElements = getTabElements();
+            var allTabElements = mapModuleElement.getMapTabElements();
             allTabElements.off('show.bs.tab');
             allTabElements.off('shown.bs.tab');
             allTabElements.off('hide.bs.tab');

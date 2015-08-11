@@ -14,7 +14,8 @@ define([
     'xEditable',
     'easyPieChart',
     'hoverIntent',
-    'bootstrapConfirmation'
+    'bootstrapConfirmation',
+    'bootstrapToggle'
 ], function($, Init, SystemEffect, SignatureType, bootbox) {
 
     'use strict';
@@ -27,13 +28,17 @@ define([
         formEditableFieldClass: 'pf-editable',                                  // class for all xEditable fields
         formErrorContainerClass: 'pf-dialog-error-container',                   // class for "error" containers in dialogs
         formWarningContainerClass: 'pf-dialog-warning-container',               // class for "warning" containers in dialogs
+        formInfoContainerClass: 'pf-dialog-info-container',                     // class for "info" containers in dialogs
+
 
         settingsMessageVelocityOptions: {
             duration: 180
         },
 
         // map module
-        mapModuleId: 'pf-map-module',                                           // main map module
+        mapModuleId: 'pf-map-module',                                           // id for main map module
+        mapTabBarId: 'pf-map-tabs'                                              // id for map tab bar
+
     };
 
     var stopTimerCache = {};                                                    // cache for stopwatch timer
@@ -62,7 +67,6 @@ define([
                     iconSize = options.icon.size;
                 }
             }
-
         }
 
         var overlay = $('<div>', {
@@ -143,6 +147,7 @@ define([
 
         var errorMessage = [];
         var warningMessage = [];
+        var infoMessage = [];
         for(var i = 0; i < errors.length; i++){
             if(errors[i].type === 'error'){
                 errorMessage.push( errors[i].message );
@@ -155,19 +160,28 @@ define([
 
             }else if(errors[i].type === 'warning'){
                 warningMessage.push( errors[i].message );
+            }else if(errors[i].type === 'info'){
+                infoMessage.push( errors[i].message );
             }
         }
 
         if(errorMessage.length > 0){
             formElement.hideFormMessage('error', function(element){
-                $(element).find('small').text( errorMessage.join('<br>') );
+                $(element).find('small').html( errorMessage.join('<br>') );
                 $(element).velocity('transition.slideUpIn', config.settingsMessageVelocityOptions);
             });
         }
 
         if(warningMessage.length > 0){
             formElement.hideFormMessage('warning', function(element){
-                $(element).find('small').text( warningMessage.join('<br>') );
+                $(element).find('small').html( warningMessage.join('<br>') );
+                $(element).velocity('transition.slideUpIn', config.settingsMessageVelocityOptions);
+            });
+        }
+
+        if(infoMessage.length > 0){
+            formElement.hideFormMessage('info', function(element){
+                $(element).find('small').html( infoMessage.join('<br>') );
                 $(element).velocity('transition.slideUpIn', config.settingsMessageVelocityOptions);
             });
         }
@@ -192,28 +206,27 @@ define([
             settingsMessageVelocityOptions.display = 'block';
         }
 
-        if(type === 'error'){
-            // find error container
-            var errorMessageElement = formElement.find('.' + config.formErrorContainerClass);
+        var messageElement = null;
 
-            // check if element is visible
-            if(errorMessageElement.is(':visible')){
-                errorMessageElement.velocity('transition.slideDownOut', settingsMessageVelocityOptions);
-            }else if(callback){
-                // skip hide animation
-                callback(errorMessageElement);
-            }
+        switch(type){
+            case 'error':
+                // find error container
+                messageElement = formElement.find('.' + config.formErrorContainerClass);
+                break;
+            case 'warning':
+                messageElement = formElement.find('.' + config.formWarningContainerClass);
+                break;
+            case 'info':
+                messageElement = formElement.find('.' + config.formInfoContainerClass);
+                break;
         }
 
-        if(type === 'warning'){
-            var warningMessageElement = formElement.find('.' + config.formWarningContainerClass);
-
-            // check if element is visible
-            if(warningMessageElement.is(':visible')){
-                warningMessageElement.velocity('transition.slideDownOut', settingsMessageVelocityOptions);
+        if(messageElement){
+            if(messageElement.is(':visible')){
+                messageElement.velocity('transition.slideDownOut', settingsMessageVelocityOptions);
             }else if(callback){
                 // skip hide animation
-                callback(warningMessageElement);
+                callback(messageElement);
             }
         }
     };
@@ -681,6 +694,29 @@ define([
     };
 
     /**
+     * get all mapTabElements (<a> tags)
+     * or search for a specific tabElement within the
+     * mapModuleElement
+     * @param mapId
+     * @returns {JQuery|*|{}|T}
+     */
+    $.fn.getMapTabElements = function(mapId){
+
+        var mapModuleElement = $(this);
+
+        var mapTabElements = mapModuleElement.find('#' + config.mapTabBarId).find('a');
+
+        if(mapId){
+            // search for a specific tab element
+            mapTabElements = mapTabElements.filter(function(i, el){
+                return ( $(el).data('map-id') === mapId );
+            });
+        }
+
+        return mapTabElements;
+    };
+
+    /**
      * get the map module object or create a new module
      * @returns {*|HTMLElement}
      */
@@ -955,6 +991,12 @@ define([
         return statusInfo;
     };
 
+    /**
+     * get a HTML table with system effect information
+     * e.g. for popover
+     * @param data
+     * @returns {string}
+     */
     var getSystemEffectTable = function(data){
 
         var table = '';
@@ -962,7 +1004,6 @@ define([
         if(data.length > 0){
 
             table += '<table>';
-
             for(var i = 0; i < data.length; i++){
                 table += '<tr>';
                 table += '<td>';
@@ -973,10 +1014,43 @@ define([
                 table += '</td>';
                 table += '</tr>';
             }
-
             table += '</table>';
         }
 
+        return table;
+    };
+
+    /**
+     * get a HTML table with information for multiple systems
+     * e.g. for popover
+     * @param data
+     * @returns {string}
+     */
+    var getSystemsInfoTable = function(data){
+        var table = '';
+
+        if(data.length > 0){
+
+            table += '<table>';
+            for(var i = 0; i < data.length; i++){
+
+                var trueSecClass = getTrueSecClassForSystem( data[i].trueSec );
+                var securityClass = getSecurityClassForSystem( data[i].security );
+
+                table += '<tr>';
+                table += '<td>';
+                table += data[i].name;
+                table += '</td>';
+                table += '<td class="text-right ' + securityClass + '">';
+                table += data[i].security;
+                table += '</td>';
+                table += '<td class="text-right ' + trueSecClass + '">';
+                table += parseFloat( data[i].trueSec ).toFixed(1);
+                table += '</td>';
+                table += '</tr>';
+            }
+            table += '</table>';
+        }
 
         return table;
     };
@@ -1402,6 +1476,7 @@ define([
         getEffectInfoForSystem: getEffectInfoForSystem,
         getSystemEffectData: getSystemEffectData,
         getSystemEffectTable: getSystemEffectTable,
+        getSystemsInfoTable: getSystemsInfoTable,
         getStatusInfoForCharacter: getStatusInfoForCharacter,
         getSecurityClassForSystem: getSecurityClassForSystem,
         getTrueSecClassForSystem: getTrueSecClassForSystem,

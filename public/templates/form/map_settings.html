@@ -5,7 +5,7 @@
             <div class="form-group">
                 <label for="icon" class="col-sm-4 control-label">Icon</label>
                 <div class="col-sm-8">
-                    <select style="font-family: FontAwesome" name="icon" id="icon" class="form-control" title="Icon for map tab" data-placement="top">
+                    <select style="font-family: FontAwesome" name="icon" id="icon" class="form-control" title="Map icon for identification" data-placement="top">
                         {{#icon}}
                         <option value="{{class}}">{{{unicode}}}</option>
                         {{/icon}}
@@ -18,19 +18,18 @@
                 <label for="name" class="col-sm-2 control-label">Name</label>
                 <div class="col-sm-10">
                     <input name="name" type="text" class="form-control" id="name" value="" placeholder="Map name" data-error="Name required" required>
-                    <span class="help-block with-errors">Set unique map name</span>
+                    <span class="help-block with-errors">Choose a meaningful name</span>
                 </div>
             </div>
         </div>
     </div>
-
 
     <div class="row">
         <div class="col-sm-6">
             <div class="form-group">
                 <label for="scope" class="col-sm-2 control-label">Scope</label>
                 <div class="col-sm-10">
-                    <select name="scopeId" id="scope" class="form-control">
+                    <select name="scopeId" id="scope" class="form-control" title="Default scope for new connections" data-placement="top">
                         {{#scope}}
                         <option value="{{id}}">{{label}}</option>
                         {{/scope}}
@@ -42,7 +41,7 @@
             <div class="form-group">
                 <label for="type" class="col-sm-2 control-label">Type</label>
                 <div class="col-sm-10">
-                    <select name="typeId" id="type" class="form-control" title="Alliance/Corporation maps require character authorisation" data-placement="top">
+                    <select name="typeId" id="type" class="form-control" title="Alliance/Corporation maps require character authentication" data-placement="top">
                         {{#type}}
                         <option value="{{id}}">{{label}}</option>
                         {{/type}}
@@ -53,6 +52,17 @@
     </div>
 
     <input type="hidden" name="id" value="0" />
+
+
+    <div class="{{formInfoContainerClass}} alert alert-info" style="display: none;">
+        <span class="txt-color txt-color-information">Information</span>
+        <small> (important non-critical information)</small>
+    </div>
+
+    <div class="{{formWarningContainerClass}} alert alert-warning" style="display: none;">
+        <span class="txt-color txt-color-warning">Warning</span>
+        <small> (important non-critical information)</small>
+    </div>
 
     <div class="{{formErrorContainerClass}} alert alert-danger" style="display: none;">
         <span class="txt-color txt-color-danger">Error</span>
