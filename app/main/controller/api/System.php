@@ -63,11 +63,11 @@ class System extends \Controller\AccessController {
     private $limitQuery = "";
 
     /**
-     * event handler
+     * @param $f3
      */
-    function beforeroute() {
+    function beforeroute($f3) {
 
-        parent::beforeroute();
+        parent::beforeroute($f3);
 
         // set header for all routes
         header('Content-type: application/json');
@@ -88,38 +88,42 @@ class System extends \Controller\AccessController {
         return $query;
     }
 
-
     /**
      * get static system Data from CCPs Static DB export
-     * @param $systemId
+     * search column for IDs can be (solarSystemID, regionID, constellationID)
+     * @param array $columnIDs
      * @return null
+     * @throws \Exception
      */
-    protected function _getSystemModelById($systemId){
+    protected function _getSystemModelByIds($columnIDs = [], $column = 'solarSystemID'){
+
+        $systemModels = [];
 
         // switch DB
         $this->setDB('CCP');
 
-
         $this->whereQuery = "WHERE
-            map_sys.solarSystemID = " . (int)$systemId . "";
-
-        $this->limitQuery = "Limit 1";
+            map_sys." . $column . " IN (" . implode(',', $columnIDs) . ")";
 
         $query = $this->_getQuery();
 
-        $rows = $this->f3->get('DB')->exec($query, null, 30);
+        $rows = $this->f3->get('DB')->exec($query, null, 60 * 60 * 24);
 
         // format result
         $mapper = new Mapper\CcpSystemsMapper($rows);
 
-        $ccpData = $mapper->getData();
+        $ccpSystemsData = $mapper->getData();
 
         // switch DB
         $this->setDB('PF');
-        $system = Model\BasicModel::getNew('SystemModel');
-        $system->setData(reset($ccpData));
 
-        return $system;
+        foreach($ccpSystemsData as $ccpSystemData){
+            $system = Model\BasicModel::getNew('SystemModel');
+            $system->setData($ccpSystemData);
+            $systemModels[] = $system;
+        }
+
+        return $systemModels;
     }
 
     /**
@@ -222,7 +226,7 @@ class System extends \Controller\AccessController {
                             $systemData['mapId'] = $map;
 
                             // get static system data (CCP DB)
-                            $systemModel = $this->_getSystemModelById($systemData['systemId']);
+                            $systemModel = array_values( $this->_getSystemModelByIds([$systemData['systemId']]) )[0];
 
                             $systemModel->createdCharacterId = $activeCharacter->characterId;
 
@@ -323,6 +327,46 @@ class System extends \Controller\AccessController {
         echo json_encode($graphData);
     }
 
+    /**
+     * get system data for all systems within a constellation
+     * @param $f3
+     * @param $params
+     */
+    public function constellationData($f3, $params){
+
+        $return = (object) [];
+        $return->error = [];
+        $return->systemData = [];
+
+        $constellationId = 0;
+
+        $user = $this->_getUser();
+
+        if($user){
+            // check for search parameter
+            if( isset($params['arg1']) ){
+                $constellationId = (int)$params['arg1'];
+            }
+
+            $cacheKey = 'CACHE_CONSTELLATION_SYSTEMS_' . self::formatHiveKey($constellationId);
+
+            if($f3->exists($cacheKey)){
+                $return->systemData = $f3->get($cacheKey);
+            }else{
+                if($constellationId > 0){
+                    $systemModels = $this->_getSystemModelByIds([$constellationId], 'constellationID');
+
+                    foreach($systemModels as $systemModel){
+                        $return->systemData[] = $systemModel->getData();
+                    }
+
+                    $f3->set($cacheKey, $return->systemData, $f3->get('PATHFINDER.CACHE.CONSTELLATION_SYSTEMS') );
+                }
+            }
+        }
+
+        echo json_encode($return);
+    }
 
 
 }

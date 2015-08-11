@@ -35,13 +35,12 @@ class UserApiModel extends BasicModel {
     }
 
     /**
-     * request CCP API and get all characters for this API
-     * @return array
+     * @return int
      */
-    public function requestCharacters(){
-
+    public function updateCharacters(){
         $apiController = new Controller\CcpApiController();
-        return $apiController->getCharacters([$this]);
+
+        return $apiController->updateCharacters($this);
     }
 
     /**
@@ -49,7 +48,7 @@ class UserApiModel extends BasicModel {
      * @return array|mixed
      */
     public function getUserCharacters(){
-        $this->filter('userCharacters', array('active = ?', 1));
+        $this->filter('userCharacters', ['active = ?', 1]);
 
         $userCharacters = [];
         if($this->userCharacters){

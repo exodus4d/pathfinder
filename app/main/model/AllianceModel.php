@@ -12,14 +12,14 @@ class AllianceModel extends BasicModel {
 
     protected $table = 'alliance';
 
-    protected $fieldConf = array(
-        'allianceCharacters' => array(
-            'has-many' => array('Model\CharacterModel', 'allianceId')
-        ),
-        'mapAlliances' => array(
-            'has-many' => array('Model\AllianceMapModel', 'allianceId')
-        )
-    );
+    protected $fieldConf = [
+        'allianceCharacters' => [
+            'has-many' => ['Model\CharacterModel', 'allianceId']
+        ],
+        'mapAlliances' => [
+            'has-many' => ['Model\AllianceMapModel', 'allianceId']
+        ]
+    ];
 
     /**
      * get all alliance data
@@ -42,6 +42,16 @@ class AllianceModel extends BasicModel {
     public function getMaps(){
         $maps = [];
 
+        $f3 = self::getF3();
+
+        $this->filter('mapAlliances',
+            ['active = ?', 1],
+            [
+                'limit' => $f3->get('PATHFINDER.MAX_MAPS_ALLIANCE'),
+                'order' => 'created'
+            ]
+        );
+
         if($this->mapAlliances){
             foreach($this->mapAlliances as $mapAlliance){
                 if($mapAlliance->mapId->isActive()){
@@ -60,7 +70,7 @@ class AllianceModel extends BasicModel {
     public function getCharacters(){
         $characters = [];
 
-        $this->filter('allianceCharacters', array('active = ?', 1));
+        $this->filter('allianceCharacters', ['active = ?', 1]);
 
         if($this->allianceCharacters){
             foreach($this->allianceCharacters as $character){

@@ -17,17 +17,18 @@ class AccessController extends Controller {
 
     /**
      * event handler
+     * @param $f3
      */
-    function beforeroute() {
+    function beforeroute($f3) {
 
         $loginCheck = $this->_checkLogIn();
 
         if( !$loginCheck ){
             // no user found or LogIn timer expired
-            $this->logOut();
+            $this->logOut($f3);
         }
 
-        parent::beforeroute();
+        parent::beforeroute($f3);
     }
 
     /**

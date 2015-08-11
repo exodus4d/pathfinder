@@ -39,8 +39,9 @@ class Controller {
 
     /**
      * event handler
+     * @param $f3
      */
-    function beforeroute() {
+    function beforeroute($f3) {
 
     }
 
@@ -64,18 +65,18 @@ class Controller {
 
     /**
      * get current user model
+     * @param int $ttl
      * @return bool|null
      * @throws \Exception
      */
-    protected function _getUser(){
+    protected function _getUser($ttl = 5){
 
         $user = false;
         $userId = $this->f3->get('SESSION.user.id');
 
         if($userId > 0){
             $userModel = Model\BasicModel::getNew('UserModel');
-            // get a fresh (not cached) user object
-            $userModel->getById($userId, 0);
+            $userModel->getById($userId, $ttl);
 
             if( !$userModel->dry() ){
                 $user = $userModel;
@@ -145,13 +146,13 @@ class Controller {
      * verifies weather a given username and password is valid
      * @param $userName
      * @param $password
-     * @return bool user object if valid
+     * @return Model\UserModel|null
      */
     protected function _verifyUser($userName, $password) {
 
-        $validUser = false;
+        $validUser = null;
 
-        $user =  Model\BasicModel::getNew('UserModel');
+        $user =  Model\BasicModel::getNew('UserModel', 0);
 
         $user->getByName($userName);
 
@@ -171,18 +172,19 @@ class Controller {
 
     /**
      * log the current user out
+     * @param $f3
      */
-    public function logOut(){
+    public function logOut($f3){
 
         // destroy session
-        $this->f3->clear('SESSION');
+        $f3->clear('SESSION');
 
-        if( !$this->f3->get('AJAX') ){
+        if( !$f3->get('AJAX') ){
             // redirect to landing page
-            $this->f3->reroute('@landing');
+            $f3->reroute('@landing');
         }else{
             $return = (object) [];
-            $return->reroute = $this->f3->get('BASE') . $this->f3->alias('landing');
+            $return->reroute = $f3->get('BASE') . $f3->alias('landing');
             $return->error[] = $this->getUserLoggedOffError();
 
             echo json_encode($return);

@@ -22,21 +22,23 @@ class User extends Controller\Controller{
 
         $return = (object) [];
 
-        $loginSuccess = false;
+        $user = null;
 
         if($data['loginData']){
             $loginData = $data['loginData'];
-            $loginSuccess = $this->logUserIn( $loginData['userName'], $loginData['userPassword'] );
+            $user = $this->logUserIn( $loginData['userName'], $loginData['userPassword'] );
         }
 
         // set "vague" error
-        if($loginSuccess !== true){
-
+        if(is_null($user)){
             $return->error = [];
             $loginError = (object) [];
             $loginError->type = 'login';
             $return->error[] = $loginError;
         }else{
+            // update/check api data
+            $user->updateApiData();
+
             // route user to map app
             $return->reroute = $f3->get('BASE') . $f3->alias('map');
         }
@@ -48,10 +50,9 @@ class User extends Controller\Controller{
      * core function for user login
      * @param $userName
      * @param $password
-     * @return bool
+     * @return Model\UserModel|null
      */
     private function logUserIn($userName, $password){
-        $loginSuccess = false;
 
         // try to verify user
         $user = $this->_verifyUser($userName, $password);
@@ -65,16 +66,19 @@ class User extends Controller\Controller{
             $this->f3->set('SESSION.user.name', $user->name);
             $this->f3->set('SESSION.user.id', $user->id);
 
+
             // save user login information
             $user->touch('lastLogin');
             $user->save();
 
-            // update/check api data
-            // $this->_updateCharacterData();
-            $loginSuccess = true;
+            // save log
+            $logText = "id: %s, name: %s, ip: %s";
+            self::getLogger( $this->f3->get('PATHFINDER.LOGFILES.LOGIN') )->write(
+                sprintf($logText, $user->id, $user->name, $this->f3->get('IP'))
+            );
         }
 
-        return $loginSuccess;
+        return $user;
     }
 
     /**
@@ -100,30 +104,42 @@ class User extends Controller\Controller{
 
     /**
      * delete the character log entry for the current active (main) character
+     * @param $f3
      */
-    public function deleteLog(){
+    public function deleteLog($f3){
 
         $user = $this->_getUser();
+        if($user){
+            $activeUserCharacter = $user->getActiveUserCharacter();
 
-        $activeUserCharacter = $user->getActiveUserCharacter();
+            if($activeUserCharacter){
+                $character = $activeUserCharacter->getCharacter();
 
-        if($activeUserCharacter){
-            $character = $activeUserCharacter->getCharacter();
+                if($characterLog = $character->getLog()){
+                    $characterLog->erase();
+                    $characterLog->save();
 
-            if(is_object($character->characterLog)){
-                $character->characterLog->erase();
-                $character->save();
+                    $character->clearCacheData();
+
+                    // delete log cache key as well
+                    $f3->clear('LOGGED.user.character.id_' . $characterLog->characterId->id . '.systemId');
+                    $f3->clear('LOGGED.user.character.id_' . $characterLog->characterId->id . '.shipId');
+
+                }
             }
         }
+
+
     }
 
     /**
      * log the current user out + clear character system log data
+     * @param $f3
      */
-    public function logOut(){
-        $this->deleteLog();
+    public function logOut($f3){
+        $this->deleteLog($f3);
 
-        return parent::logOut();
+        return parent::logOut($f3);
     }
 
     /**
@@ -284,26 +300,19 @@ class User extends Controller\Controller{
                         // get all existing API models for this user
                         $apiModels = $user->getAPIs();
 
-                        // check if the user already has a main character
-                        // if not -> save the next best character as main
-                        $mainUserCharacter = $user->getMainUserCharacter();
-
                         foreach($settingsData['keyId'] as $i => $keyId){
                             $api = null;
-                            $userCharacters = [];
 
                             // search for existing API model
                             foreach($apiModels as $key => $apiModel){
                                 if($apiModel->keyId == $keyId){
                                     $api = $apiModel;
-                                    // get existing characters in case api model already exists
-                                    $userCharacters = $api->getUserCharacters();
-
+                                    // make sure model is up2data -> cast()
+                                    $api->cast();
                                     unset($apiModels[$key]);
                                     break;
                                 }
                             }
-
 
                             if(is_null($api)){
                                 // new API Key
@@ -311,46 +320,22 @@ class User extends Controller\Controller{
                                 $api->userId = $user;
                             }
 
+
+
                             $api->keyId = $keyId;
                             $api->vCode = $settingsData['vCode'][$i];
 
-                            // check each API Model if valid
-                            $newUserCharacters = $api->requestCharacters();
+                            // -----
+                            $api->save();
 
-                            if(empty($newUserCharacters)){
+                            $characterCount = $api->updateCharacters();
+
+                            if($characterCount == 0){
                                 // no characters found -> return warning
                                 $characterError = (object) [];
                                 $characterError->type = 'warning';
-                                $characterError->keyId = $api->keyId;
-                                $characterError->vCode = $api->vCode;
-                                $characterError->message = 'No characters found';
+                                $characterError->message = 'API verification failed. No Characters found for KeyId ' . $api->keyId;
                                 $return->error[] = $characterError;
-                            }else{
-                                $api->save();
-                                // find existing character
-                                foreach($newUserCharacters as $newUserCharacter){
-
-                                    $matchedUserCharacter = $newUserCharacter;
-
-                                    foreach($userCharacters as $key => $userCharacter){
-                                        if($userCharacter->characterId->id == $newUserCharacter->characterId->id){
-                                            // user character fond -> update this one
-                                            $matchedUserCharacter = $userCharacter;
-                                            unset($userCharacters[$key]);
-                                            break;
-                                        }
-                                    }
-
-                                    $matchedUserCharacter->apiId = $api;
-                                    $matchedUserCharacter->userId = $user;
-
-                                    $matchedUserCharacter->save();
-                                }
-                            }
-
-                            // delete characters that are no longer in this API
-                            foreach($userCharacters as $userCharacter){
-                                print_r('delete Character: ' . $userCharacter->id);
                             }
                         }
 
@@ -359,17 +344,20 @@ class User extends Controller\Controller{
                             $apiModel->delete();
                         }
 
-                        // set main character if no main character exists
-                        if(is_null($mainUserCharacter)){
-                            $user->setMainCharacterId();
-                        }
-
                     }
-
 
                     // set main character
                     if( isset($settingsData['mainCharacterId']) ){
                         $user->setMainCharacterId((int)$settingsData['mainCharacterId']);
+                    }
+
+                    // check if the user already has a main character
+                    // if not -> save the next best character as main
+                    $mainUserCharacter = $user->getMainUserCharacter();
+
+                    // set main character if no main character exists
+                    if(is_null($mainUserCharacter)){
+                        $user->setMainCharacterId();
                     }
 
                     // save/update user model
@@ -385,9 +373,8 @@ class User extends Controller\Controller{
                     }
 
                     // get fresh updated user object
-                    $user = $this->_getUser();
+                    $user = $this->_getUser(0);
                     $newUserData = $user->getData();
-
                 }
             }catch(Exception\ValidationException $e){
                 $validationError = (object) [];

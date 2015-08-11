@@ -13,8 +13,6 @@ class UserCharacterModel extends BasicModel {
 
     protected $table = 'user_character';
 
-    private $character = null;
-
     protected $fieldConf = array(
         'userId' => array(
             'belongs-to-one' => 'Model\UserModel'

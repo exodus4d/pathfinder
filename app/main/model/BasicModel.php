@@ -85,8 +85,6 @@ class BasicModel extends \DB\Cortex {
                     !is_object($currentVal) &&
                     $currentVal != $val
                 ){
-                    //print_r($val);
-                    //print_r($this->cast());
                     $this->touch('updated');
                 }
             }
@@ -206,7 +204,6 @@ class BasicModel extends \DB\Cortex {
                 $cacheKey .= '.ID_';
             }
             $cacheKey .= (string) $this->_id;
-
         }
 
         return $cacheKey;
@@ -327,9 +324,12 @@ class BasicModel extends \DB\Cortex {
         $cacheKey = $this->getCacheKey($dataCacheKeyPrefix);
         $cacheData = null;
 
-        $f3 = self::getF3();
-        if( $f3->exists($cacheKey) ){
-            $cacheData = $f3->get( $cacheKey );
+        if( !is_null($cacheKey) ){
+            $f3 = self::getF3();
+
+            if( $f3->exists($cacheKey) ){
+                $cacheData = $f3->get( $cacheKey );
+            }
         }
 
         return $cacheData;

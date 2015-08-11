@@ -11,6 +11,9 @@ namespace Model;
 
 class SystemModel extends BasicModel {
 
+    const MAX_POS_X = 2300;
+    const MAX_POS_Y = 500;
+
     protected $table = 'system';
 
     protected $fieldConf = array(
@@ -72,51 +75,95 @@ class SystemModel extends BasicModel {
      */
     public function getData(){
 
-        $systemData = (object) [];
-        $systemData->id = $this->id;
-        $systemData->mapId = is_object($this->mapId) ? $this->mapId->id : 0;
-        $systemData->systemId = $this->systemId;
-        $systemData->name = $this->name;
-        $systemData->alias = $this->alias;
-        $systemData->effect = $this->effect;
-        $systemData->security = $this->security;
-        $systemData->trueSec = $this->trueSec;
+        // check if there is cached data
+        $systemData = $this->getCacheData();
 
-        $systemData->region = (object) [];
-        $systemData->region->id = $this->regionId;
-        $systemData->region->name = $this->region;
+        if(is_null($systemData)){
+            // no cached system data found
 
-        $systemData->constellation = (object) [];
-        $systemData->constellation->id = $this->constellationId;
-        $systemData->constellation->name = $this->constellation;
+            $systemData = (object) [];
+            $systemData->id = $this->id;
+            $systemData->mapId = is_object($this->mapId) ? $this->mapId->id : 0;
+            $systemData->systemId = $this->systemId;
+            $systemData->name = $this->name;
+            $systemData->alias = $this->alias;
+            $systemData->effect = $this->effect;
+            $systemData->security = $this->security;
+            $systemData->trueSec = $this->trueSec;
 
-        $systemData->type = (object) [];
-        $systemData->type->id = $this->typeId->id;
-        $systemData->type->name = $this->typeId->name;
+            $systemData->region = (object) [];
+            $systemData->region->id = $this->regionId;
+            $systemData->region->name = $this->region;
 
-        $systemData->status = (object) [];
-        $systemData->status->id = is_object($this->statusId) ? $this->statusId->id : 0;
-        $systemData->status->name = is_object($this->statusId) ? $this->statusId->name : '';
+            $systemData->constellation = (object) [];
+            $systemData->constellation->id = $this->constellationId;
+            $systemData->constellation->name = $this->constellation;
 
-        $systemData->locked = $this->locked;
-        $systemData->rally = $this->rally;
-        $systemData->description = $this->description;
+            $systemData->type = (object) [];
+            $systemData->type->id = $this->typeId->id;
+            $systemData->type->name = $this->typeId->name;
 
-        $systemData->statics = $this->getStaticWormholeData();
+            $systemData->status = (object) [];
+            $systemData->status->id = is_object($this->statusId) ? $this->statusId->id : 0;
+            $systemData->status->name = is_object($this->statusId) ? $this->statusId->name : '';
 
-        $systemData->position = (object) [];
-        $systemData->position->x = $this->posX;
-        $systemData->position->y = $this->posY;
+            $systemData->locked = $this->locked;
+            $systemData->rally = $this->rally;
+            $systemData->description = $this->description;
 
-        $systemData->created = (object) [];
-        $systemData->created->character = $this->createdCharacterId->getData();
-        $systemData->created->created = strtotime($this->created);
+            $systemData->statics = $this->getStaticWormholeData();
 
-        $systemData->updated = (object) [];
-        $systemData->updated->character = $this->updatedCharacterId->getData();
-        $systemData->updated->updated = strtotime($this->updated);
+            $systemData->position = (object) [];
+            $systemData->position->x = $this->posX;
+            $systemData->position->y = $this->posY;
+
+            if($this->createdCharacterId){
+                $systemData->created = (object) [];
+                $systemData->created->character = $this->createdCharacterId->getData();
+                $systemData->created->created = strtotime($this->created);
+            }
+
+            if($this->updatedCharacterId){
+                $systemData->updated = (object) [];
+                $systemData->updated->character = $this->updatedCharacterId->getData();
+                $systemData->updated->updated = strtotime($this->updated);
+            }
+
+            // max caching time for a system
+            // the cached date has to be cleared manually on any change
+            // this includes system, connection,... changes (all dependencies)
+            $this->updateCacheData($systemData, '', 300);
+        }
 
         return $systemData;
+    }
+
+    /**
+     * setter validation for x coordinate
+     * @param $posX
+     * @return int|number
+     */
+    public function set_posX($posX){
+        $posX = abs($posX);
+        if($posX > self::MAX_POS_X){
+            $posX = self::MAX_POS_X;
+        }
+
+        return $posX;
+    }
+
+    /**
+     * setter validation for y coordinate
+     * @param $posY
+     * @return int|number
+     */
+    public function set_posY($posY){
+        $posY = abs($posY);
+        if($posY > self::MAX_POS_Y){
+            $posY = self::MAX_POS_Y;
+        }
+
+        return $posY;
     }
 
     /**
@@ -148,7 +195,7 @@ class SystemModel extends BasicModel {
      * @return array
      */
     public function getSignatures(){
-        $this->filter('signatures', array('active = ?', 1));
+        $this->filter('signatures', ['active = ?', 1], ['order' => 'name']);
 
         $signatures = [];
         if($this->signatures){

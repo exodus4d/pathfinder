@@ -12,14 +12,14 @@ class CorporationModel extends BasicModel {
 
     protected $table = 'corporation';
 
-    protected $fieldConf = array(
-        'corporationCharacters' => array(
-            'has-many' => array('Model\CharacterModel', 'corporationId')
-        ),
-        'mapCorporations' => array(
-            'has-many' => array('Model\CorporationMapModel', 'corporationId')
-        )
-    );
+    protected $fieldConf = [
+        'corporationCharacters' => [
+            'has-many' => ['Model\CharacterModel', 'allianceId']
+        ],
+        'mapCorporations' => [
+            'has-many' => ['Model\CorporationMapModel', 'corporationId']
+        ]
+    ];
 
     /**
      * get all cooperation data
@@ -43,6 +43,16 @@ class CorporationModel extends BasicModel {
     public function getMaps(){
         $maps = [];
 
+        $f3 = self::getF3();
+
+        $this->filter('mapCorporations',
+            ['active = ?', 1],
+            [
+                'limit' => $f3->get('PATHFINDER.MAX_MAPS_CORPORATION'),
+                'order' => 'created'
+            ]
+        );
+
         if($this->mapCorporations){
             foreach($this->mapCorporations as $mapCorporation){
                 if($mapCorporation->mapId->isActive()){
@@ -61,7 +71,7 @@ class CorporationModel extends BasicModel {
     public function getCharacters(){
         $characters = [];
 
-        $this->filter('corporationCharacters', array('active = ?', 1));
+        $this->filter('corporationCharacters', ['active = ?', 1]);
 
         if($this->corporationCharacters){
             foreach($this->corporationCharacters as $character){

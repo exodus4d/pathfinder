@@ -157,7 +157,17 @@ class UserModel extends BasicModel {
      * @return array
      */
     public function getMaps(){
-        $this->filter('userMaps', array('active = ?', 1));
+
+        $f3 = self::getF3();
+
+        $this->filter(
+            'userMaps',
+            ['active = ?', 1],
+            [
+                'limit' => $f3->get('PATHFINDER.MAX_MAPS_PRIVATE'),
+                'order' => 'created'
+            ]
+        );
 
         $maps = [];
         if($this->userMaps){
@@ -190,12 +200,25 @@ class UserModel extends BasicModel {
         return $maps;
     }
 
+    public function getMap($mapId){
+        $map = self::getNew('MapModel');
+        $map->getById( (int)$mapId );
+
+        $returnMap = null;
+        if($map->hasAccess($this)){
+            $returnMap = $map;
+        }
+
+        return $returnMap;
+    }
+
+
     /**
      * get all API models for this user
      * @return array|mixed
      */
     public function getAPIs(){
-        $this->filter('apis', array('active = ?', 1));
+        $this->filter('apis', ['active = ?', 1]);
 
         $apis = [];
         if($this->apis){
@@ -242,12 +265,29 @@ class UserModel extends BasicModel {
      * @return array|mixed
      */
     public function getUserCharacters(){
-        $this->filter('userCharacters', array('active = ?', 1));
+
+        $this->filter('apis', ['active = ?', 1]);
 
         $userCharacters = [];
-        if($this->userCharacters){
-            $userCharacters = $this->userCharacters;
+
+        if($this->apis){
+            $this->apis->rewind();
+            while($this->apis->valid()){
+
+                $this->apis->current()->filter('userCharacters', ['active = ?', 1]);
+                if($this->apis->current()->userCharacters){
+                    $this->apis->current()->userCharacters->rewind();
+                    while($this->apis->current()->userCharacters->valid()){
+                        $userCharacters[] = $this->apis->current()->userCharacters->current();
+                        $this->apis->current()->userCharacters->next();
+                    }
+                }
+
+                $this->apis->next();
+            }
         }
+
+
 
         return $userCharacters;
     }
@@ -283,14 +323,23 @@ class UserModel extends BasicModel {
         // check if IGB Data is available
         if( !empty($apiController->values) ){
             // search for the active character by IGB Header Data
-            $activeUserCharacters = $this->getActiveUserCharacters();
 
-            foreach($activeUserCharacters as $userCharacter){
+            $this->filter('userCharacters',
+                [
+                    'active = :active AND characterId = :characterId',
+                    ':active' => 1,
+                    ':characterId' => intval($apiController->values['charid'])
+                ],
+                ['limit' => 1]
+            );
 
-               if($userCharacter->getCharacter()->id == intval($apiController->values['charid']) ){
-                   $activeUserCharacter = $userCharacter;
-                   break;
-               }
+            if($this->userCharacters){
+                // check if userCharacter has active log
+                $userCharacter = current($this->userCharacters);
+
+                if( $userCharacter->getCharacter()->getLog() ){
+                    $activeUserCharacter = $userCharacter;
+                }
             }
         }
 
@@ -325,44 +374,86 @@ class UserModel extends BasicModel {
     }
 
     /**
-     * updated the character log entry for a user character by IGB Header data
+     * update/check API information.
+     * request API information from CCP
      */
-    public function updateCharacterLog(){
+    public function updateApiData(){
+        $this->filter('apis', ['active = ?', 1]);
+
+        if($this->apis){
+            $this->apis->rewind();
+            while($this->apis->valid()){
+                $this->apis->current()->updateCharacters();
+                $this->apis->next();
+            }
+
+        }
+    }
+
+    /**
+     * updated the character log entry for a user character by IGB Header data
+     * @param int $ttl cache time in seconds
+     * @throws \Exception
+     */
+    public function updateCharacterLog($ttl = 0){
         $apiController = Controller\CcpApiController::getIGBHeaderData();
 
         // check if IGB Data is available
         if( !empty($apiController->values) ){
+            $f3 = self::getF3();
 
-            $character = self::getNew('CharacterModel');
-            $character->getById( $apiController->values['charid'] );
+            // check if system has changed since the last call
+            // current location is stored in session to avoid unnecessary DB calls
+            $sessionCharacterKey = 'LOGGED.user.character.id_' . $apiController->values['charid'];
 
-            if( $character->dry() ){
-                // this can happen if a valid user plays the game with a not registered character
-                // whose API is not registered ->  save new character or update character data
+            if(
+                !$f3->exists($sessionCharacterKey) ||
+                $f3->get($sessionCharacterKey . '.systemId') != $apiController->values['solarsystemid'] ||
+                $f3->get($sessionCharacterKey . '.shipId') != $apiController->values['shiptypeid']
+            ){
 
-                $character->id = $apiController->values['charid'];
-                $character->name = $apiController->values['charname'];
-                $character->corporationId = array_key_exists('corpid', $apiController->values) ? $apiController->values['corpid'] : null;
-                $character->allianceId = array_key_exists('allianceid', $apiController->values) ? $apiController->values['allianceid'] : null;
-                $character->save();
+                $cacheData = [
+                    'systemId' => $apiController->values['solarsystemid'],
+                    'shipId' => $apiController->values['shiptypeid']
+                ];
+
+                // character has changed system, or character just logged on
+                $character = self::getNew('CharacterModel');
+                $character->getById( (int)$apiController->values['charid'] );
+
+                if( $character->dry() ){
+                    // this can happen if a valid user plays the game with a not registered character
+                    // whose API is not registered -> save new character or update character data
+
+                    $character->id = (int) $apiController->values['charid'];
+                    $character->name = $apiController->values['charname'];
+                    $character->corporationId = array_key_exists('corpid', $apiController->values) ? $apiController->values['corpid'] : null;
+                    $character->allianceId = array_key_exists('allianceid', $apiController->values) ? $apiController->values['allianceid'] : null;
+                    $character->save();
+                }
+
+                // check if this character has an active log
+                if( !$characterLog = $character->getLog() ){
+                    $characterLog = self::getNew('CharacterLogModel');
+                }
+
+                // set character log values
+                $characterLog->characterId = $character;
+                $characterLog->systemId = $apiController->values['solarsystemid'];
+                $characterLog->systemName = $apiController->values['solarsystemname'];
+                $characterLog->shipId = $apiController->values['shiptypeid'];
+                $characterLog->shipName = $apiController->values['shipname'];
+                $characterLog->shipTypeName = $apiController->values['shiptypename'];
+
+                $characterLog->save();
+
+                // clear cache for the characterModel as well
+                $character->clearCacheData();
+
+                // cache character log information
+                $f3->set($sessionCharacterKey, $cacheData, $ttl);
             }
 
-            // check if this character has an active log
-            if( is_object($character->characterLog) ){
-                $characterLog = $character->characterLog;
-            }else{
-                $characterLog = self::getNew('CharacterLogModel');
-            }
-
-            // set character log values
-            $characterLog->characterId = $character;
-            $characterLog->systemId = $apiController->values['solarsystemid'];
-            $characterLog->systemName = $apiController->values['solarsystemname'];
-            $characterLog->shipId = $apiController->values['shiptypeid'];
-            $characterLog->shipName = $apiController->values['shipname'];
-            $characterLog->shipTypeName = $apiController->values['shiptypename'];
-
-            $characterLog->save();
         }
     }
 

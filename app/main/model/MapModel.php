@@ -12,29 +12,29 @@ class MapModel extends BasicModel {
 
     protected $table = 'map';
 
-    protected $fieldConf = array(
-        'scopeId' => array(
+    protected $fieldConf = [
+        'scopeId' => [
             'belongs-to-one' => 'Model\MapScopeModel'
-        ),
-        'typeId' => array(
+        ],
+        'typeId' => [
             'belongs-to-one' => 'Model\MapTypeModel'
-        ),
-        'systems' => array(
-            'has-many' => array('Model\SystemModel', 'mapId')
-        ),
-        'connections' => array(
-            'has-many' => array('Model\ConnectionModel', 'mapId')
-        ),
-        'mapUsers' => array(
-            'has-many' => array('Model\UserMapModel', 'mapId')
-        ),
-        'mapCorporations' => array(
-            'has-many' => array('Model\CorporationMapModel', 'mapId')
-        ),
-        'mapAlliances' => array('has-many' => array(
-            'Model\AllianceMapModel', 'mapId')
-        )
-    );
+        ],
+        'systems' => [
+            'has-many' => ['Model\SystemModel', 'mapId']
+        ],
+        'connections' => [
+            'has-many' => ['Model\ConnectionModel', 'mapId']
+        ],
+        'mapUsers' => [
+            'has-many' => ['Model\UserMapModel', 'mapId']
+        ],
+        'mapCorporations' => [
+            'has-many' => ['Model\CorporationMapModel', 'mapId']
+        ],
+        'mapAlliances' => ['has-many' => [
+            'Model\AllianceMapModel', 'mapId']
+        ]
+    ];
 
     protected $validate = [
         'name' => [
@@ -210,7 +210,7 @@ class MapModel extends BasicModel {
      * @return array|mixed
      */
     public function getConnections(){
-        $this->filter('connections', array('active = ?', 1));
+        $this->filter('connections', ['active = ?', 1]);
 
         $connections = [];
         if($this->connections){
@@ -246,9 +246,9 @@ class MapModel extends BasicModel {
         if($obj instanceof UserModel){
             // private map
 
-            // check whether the user already has map access
-            $this->has('mapUsers', array('active = 1 AND userId = :userId', ':userId' => $obj->id));
-            $result = $this->findone(array('id = :id', ':id' => $this->id));
+            // check whether the user has already map access
+            $this->has('mapUsers', ['active = 1 AND userId = :userId', ':userId' => $obj->id]);
+            $result = $this->findone(['id = :id', ':id' => $this->id]);
 
             if($result === false){
                 // grant access for the user
@@ -262,8 +262,8 @@ class MapModel extends BasicModel {
         } elseif($obj instanceof CorporationModel){
 
             // check whether the corporation already has map access
-            $this->has('mapCorporations', array('active = 1 AND corporationId = :corporationId', ':corporationId' => $obj->id));
-            $result = $this->findone(array('id = :id', ':id' => $this->id));
+            $this->has('mapCorporations', ['active = 1 AND corporationId = :corporationId', ':corporationId' => $obj->id]);
+            $result = $this->findone(['id = :id', ':id' => $this->id]);
 
             if($result === false){
                 // grant access for this corporation
@@ -277,8 +277,8 @@ class MapModel extends BasicModel {
         } elseif($obj instanceof AllianceModel){
 
             // check whether the corporation already has map access
-            $this->has('mapAlliances', array('active = 1 AND allianceId = :allianceId', ':allianceId' => $obj->id));
-            $result = $this->findone(array('id = :id', ':id' => $this->id));
+            $this->has('mapAlliances', ['active = 1 AND allianceId = :allianceId', ':allianceId' => $obj->id]);
+            $result = $this->findone(['id = :id', ':id' => $this->id]);
 
             if($result === false){
                 $allianceMap = self::getNew('AllianceMapModel');
@@ -289,7 +289,6 @@ class MapModel extends BasicModel {
                 $newAccessGranted = true;
             }
         }
-
 
         if($newAccessGranted){
             // mark this map as updated
@@ -362,7 +361,7 @@ class MapModel extends BasicModel {
         $users = [];
 
         if($this->isPrivate()){
-            $this->filter('mapUsers', array('active = ?', 1));
+            $this->filter('mapUsers', ['active = ?', 1]);
 
             if($this->mapUsers){
                 foreach($this->mapUsers as $mapUser){
@@ -442,7 +441,7 @@ class MapModel extends BasicModel {
         $corporations = [];
 
         if($this->isCorporation()){
-            $this->filter('mapCorporations', array('active = ?', 1));
+            $this->filter('mapCorporations', ['active = ?', 1]);
 
             if($this->mapCorporations){
                 foreach($this->mapCorporations as $mapCorporation){
@@ -462,7 +461,7 @@ class MapModel extends BasicModel {
         $alliances = [];
 
         if($this->isAlliance()){
-            $this->filter('mapAlliances', array('active = ?', 1));
+            $this->filter('mapAlliances', ['active = ?', 1]);
 
             if($this->mapAlliances){
                 foreach($this->mapAlliances as $mapAlliance){

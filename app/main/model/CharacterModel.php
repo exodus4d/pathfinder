@@ -27,29 +27,42 @@ class CharacterModel extends BasicModel {
 
     /**
      * get character data
+     * @param bool|false $addCharacterLogData
      * @return object
      */
     public function getData($addCharacterLogData = false){
-        $characterData = (object) [];
 
-        $characterData->id = $this->id;
-        $characterData->name = $this->name;
+        // check if there is cached data
+        $characterData = null; //$this->getCacheData();
 
-        if($addCharacterLogData){
-            $logModel = $this->getLog();
-            if($logModel){
-                $characterData->log = $logModel->getData();
+        if(is_null($characterData)){
+            // no cached character data found
+
+            $characterData = (object) [];
+
+            $characterData->id = $this->id;
+            $characterData->name = $this->name;
+
+            if($addCharacterLogData){
+                if($logModel = $this->getLog()){
+                    $characterData->log = $logModel->getData();
+                }
             }
-        }
 
-        // check for corporation
-        if($this->hasCorporation()){
-            $characterData->corporation = $this->getCorporation()->getData();
-        }
+            // check for corporation
+            if($corporation = $this->getCorporation()){
+                $characterData->corporation = $corporation->getData();
+            }
 
-        // check for alliance
-        if($this->allianceId){
-            $characterData->alliance = $this->allianceId->getData();
+            // check for alliance
+            if($alliance = $this->getAlliance()){
+                $characterData->alliance = $alliance->getData();
+            }
+
+            // max caching time for a system
+            // the cached date has to be cleared manually on any change
+            // this includes system, connection,... changes (all dependencies)
+            $this->updateCacheData($characterData, '', 300);
         }
 
         return $characterData;

@@ -47,98 +47,148 @@ class CcpApiController extends Controller{
     }
 
     /**
-     * request Character data for given api models
-     * @param $apiModels
-     * @return array
+     * request character information from CCP API
+     * @param $keyID
+     * @param $vCode
+     * @return bool|\SimpleXMLElement
      */
-    public function getCharacters($apiModels){
-
+    public function requestCharacters($keyID, $vCode){
         $apiPath = $this->f3->get('api_path.CCP_XML') . '/account/APIKeyInfo.xml.aspx';
 
-        $characters = [];
-        foreach($apiModels as $apiModel){
-            // build request URL
-            $options = $this->getRequestOptions();
-            $options['content'] = http_build_query( [
-                'keyID' => $apiModel->keyId,
-                'vCode' => $apiModel->vCode
-            ]);
+        $xml = false;
 
-            $apiResponse = \Web::instance()->request($apiPath, $options );
+        // build request URL
+        $options = $this->getRequestOptions();
+        $options['content'] = http_build_query( [
+            'keyID' => $keyID,
+            'vCode' => $vCode
+        ]);
 
-            if($apiResponse['body']){
-                $xml = simplexml_load_string($apiResponse['body']);
-                $rowApiData = $xml->result->key->rowset;
-                // request successful --------------------------------------------
+        $apiResponse = \Web::instance()->request($apiPath, $options );
 
-                if($rowApiData->children()){
-                    $characterModel = Model\BasicModel::getNew('CharacterModel');
-                    $corporationModel = Model\BasicModel::getNew('CorporationModel');
-                    $allianceModel = Model\BasicModel::getNew('AllianceModel');
-
-                    foreach($rowApiData->children() as $characterApiData){
-
-                        // map attributes to array
-                        $attributeData = current( $characterApiData->attributes() );
-
-                        $corporationModelTemp = null;
-                        $allianceModelTemp = null;
-
-                        // check if corporation already exists
-                        if($attributeData['corporationID'] > 0){
-                            $corporationModel->getById($attributeData['corporationID']);
-                            if( $corporationModel->dry() ){
-                                $corporationModel->id = $attributeData['corporationID'];
-                                $corporationModel->name = $attributeData['corporationName'];
-                                $corporationModel->save();
-                            }
-                            $corporationModelTemp = $corporationModel;
-                        }
-
-                        // check if alliance already exists
-                        if($attributeData['allianceID'] > 0){
-                            $allianceModel->getById($attributeData['allianceID']);
-                            if( $allianceModel->dry() ){
-                                $allianceModel->id = $attributeData['allianceID'];
-                                $allianceModel->name = $attributeData['allianceName'];
-                                $allianceModel->save();
-                            }
-                            $allianceModelTemp = $allianceModel;
-                        }
-
-                        // search for existing user character model
-                        $userCharacterModel = $apiModel->getUserCharacterById($attributeData['characterID']);
-                        if(is_null($userCharacterModel)){
-                            $userCharacterModel = Model\BasicModel::getNew('UserCharacterModel');
-                        }
-
-                        $characterModel->getById($attributeData['characterID']);
-
-                        $characterModel->id = $attributeData['characterID'];
-                        $characterModel->name = $attributeData['characterName'];
-                        $characterModel->corporationId = $corporationModelTemp;
-                        $characterModel->allianceId = $allianceModelTemp;
-                        $characterModel->factionId = $attributeData['factionID'];
-                        $characterModel->factionName = $attributeData['factionName'];
-
-                        // save/update character
-                        $characterModel->save();
-
-                        // store "temp" character obj until obj is saved for the first time
-                        $userCharacterModel->characterId = $characterModel;
-
-                        $characters[] = $userCharacterModel;
-
-                        $corporationModel->reset();
-                        $allianceModel->reset();
-                        $characterModel->reset();
-                    }
-                }
-            }
+        if($apiResponse['body']){
+            $xml = simplexml_load_string($apiResponse['body']);
         }
 
-        return $characters;
+        return $xml;
     }
 
+    /**
+     * update all character information for a given apiModel
+     * @param $userApiModel
+     * @return int
+     * @throws \Exception
+     */
+    public function updateCharacters($userApiModel){
+
+        $xml = $this->requestCharacters($userApiModel->keyId, $userApiModel->vCode);
+
+        $characterCount = 0;
+
+        // important -> user API model must be up2date
+        // if not -> matched userCharacter cant be found
+        $userApiModel->getById($userApiModel->id, 0);
+
+        if($xml){
+            // request successful
+            $rowApiData = $xml->result->key->rowset;
+
+            if($rowApiData->children()){
+                $characterModel = Model\BasicModel::getNew('CharacterModel');
+                $corporationModel = Model\BasicModel::getNew('CorporationModel');
+                $allianceModel = Model\BasicModel::getNew('AllianceModel');
+
+                foreach($rowApiData->children() as $characterApiData){
+                    // map attributes to array
+                    $attributeData = current( $characterApiData->attributes() );
+
+                    $newCharacter = true;
+
+                    $characterId = (int)$attributeData['characterID'];
+                    $characterModel->getById($characterId);
+
+                    // check if corporation already exists
+                    if($attributeData['corporationID'] > 0){
+                        $corporationModel->getById($attributeData['corporationID']);
+                        if( $corporationModel->dry() ){
+                            $corporationModel->id = $attributeData['corporationID'];
+                            $corporationModel->name = $attributeData['corporationName'];
+                            $corporationModel->save();
+                        }
+                        $corporationModelTemp = $corporationModel;
+                    }
+
+                    // check if alliance already exists
+                    if($attributeData['allianceID'] > 0){
+                        $allianceModel->getById($attributeData['allianceID']);
+                        if( $allianceModel->dry() ){
+                            $allianceModel->id = $attributeData['allianceID'];
+                            $allianceModel->name = $attributeData['allianceName'];
+                            $allianceModel->save();
+                        }
+                        $allianceModelTemp = $allianceModel;
+                    }
+
+                    if($userApiModel->userCharacters){
+                        $userApiModel->userCharacters->rewind();
+                        while($userApiModel->userCharacters->valid()){
+                            $tempCharacterModel = $userApiModel->userCharacters->current()->getCharacter();
+
+                            // character already exists -> update
+                            if($tempCharacterModel->id == $characterId){
+                                $characterModel = $tempCharacterModel;
+
+                                // unset userCharacter -> all leftover models are no longer part of this API
+                                // --> delete leftover models at the end
+                                $userApiModel->userCharacters->offsetUnset($userApiModel->userCharacters->key());
+
+                                $newCharacter = false;
+                                break;
+                            }else{
+                                $userApiModel->userCharacters->next();
+                            }
+                        }
+
+                        $userApiModel->userCharacters->rewind();
+
+                    }
+
+                    $characterModel->id = $characterId;
+                    $characterModel->name = $attributeData['characterName'];
+                    $characterModel->corporationId = $corporationModelTemp;
+                    $characterModel->allianceId = $allianceModelTemp;
+                    $characterModel->factionId = $attributeData['factionID'];
+                    $characterModel->factionName = $attributeData['factionName'];
+                    $characterModel->save();
+
+                    if($newCharacter){
+                        // new character for this API
+                        $userCharactersModel = Model\BasicModel::getNew('UserCharacterModel', 0);
+                        $userCharactersModel->userId = $userApiModel->userId;
+                        $userCharactersModel->apiId = $userApiModel;
+                        $userCharactersModel->characterId = $characterModel;
+                        $userCharactersModel->save();
+                    }
+
+                    $corporationModel->reset();
+                    $allianceModel->reset();
+                    $characterModel->reset();
+
+                    $characterCount++;
+                }
+            }
+
+            // delete leftover userCharacters from this API
+            if(count($userApiModel->userCharacters) > 0){
+                while($userApiModel->userCharacters->valid()){
+                    $userApiModel->userCharacters->current()->erase();
+                    $userApiModel->userCharacters->next();
+                }
+            }
+
+        }
+
+        return $characterCount;
+    }
 
 } 

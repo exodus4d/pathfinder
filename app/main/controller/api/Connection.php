@@ -12,11 +12,11 @@ use Model;
 class Connection extends \Controller\AccessController{
 
     /**
-     * event handler
+     * @param $f3
      */
-    function beforeroute() {
+    function beforeroute($f3) {
 
-        parent::beforeroute();
+        parent::beforeroute($f3);
 
         // set header for all routes
         header('Content-type: application/json');
@@ -56,7 +56,24 @@ class Connection extends \Controller\AccessController{
                         $connection = Model\BasicModel::getNew('ConnectionModel');
                         $connection->getById( (int)$connectionData['id'] );
 
+                        // search if systems are neighbors
+                        $routeController = new Route();
+                        $route = $routeController->findRoute($connectionData['sourceName'], $connectionData['targetName'], 1);
+
+                        if($route['routePossible'] == true){
+                            // systems are next to each other
+                            $connectionData['scope'] = 'stargate';
+                            $connectionData['type'] = ['stargate'];
+                        }elseif($connectionData['scope'] == 'stargate'){
+                            // connection scope changed -> this can not be a stargate
+                            $connectionData['scope'] = 'wh';
+                            $connectionData['type'] = ['wh_fresh'];
+                        }
+
                         $connectionData['mapId'] = $map;
+
+                        // "updated" should not be set by client e.g. after manual drag&drop
+                        unset($connectionData['updated']);
 
                         $connection->setData($connectionData);
 

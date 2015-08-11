@@ -18,13 +18,14 @@ class Map extends \Controller\AccessController {
 
     /**
      * event handler
+     * @param $f3
      */
-    function beforeroute() {
+    function beforeroute($f3) {
 
         // set header for all routes
         header('Content-type: application/json');
 
-        parent::beforeroute();
+        parent::beforeroute($f3);
     }
 
     /**
@@ -152,7 +153,7 @@ class Map extends \Controller\AccessController {
 
         if( isset($formData['id']) ){
 
-            $user = $this->_getUser();
+            $user = $this->_getUser(0);
 
             if($user){
                 $map = Model\BasicModel::getNew('MapModel');
@@ -171,12 +172,15 @@ class Map extends \Controller\AccessController {
 
                         // share map between users -> set access
                         if(isset($formData['mapUsers'])){
+                            // avoid abuse -> respect share limits
+                            $accessUsers = array_slice( $formData['mapUsers'], 0, $f3->get('PATHFINDER.MAX_SHARED_USER') );
+
                             // clear map access. In case something has removed from access list
                             $map->clearAccess();
 
                             $tempUser = Model\BasicModel::getNew('UserModel');
 
-                            foreach((array)$formData['mapUsers'] as $userId){
+                            foreach($accessUsers as $userId){
                                 $tempUser->getById( (int)$userId );
 
                                 if(
@@ -205,12 +209,15 @@ class Map extends \Controller\AccessController {
 
                                 // share map between corporations -> set access
                                 if(isset($formData['mapCorporations'])){
+                                    // avoid abuse -> respect share limits
+                                    $accessCorporations = array_slice( $formData['mapCorporations'], 0, $f3->get('PATHFINDER.MAX_SHARED_CORPORATION') );
+
                                     // clear map access. In case something has removed from access list
                                     $map->clearAccess();
 
                                     $tempCorporation = Model\BasicModel::getNew('CorporationModel');
 
-                                    foreach((array)$formData['mapCorporations'] as $corporationId){
+                                    foreach($accessCorporations as $corporationId){
                                         $tempCorporation->getById( (int)$corporationId );
 
                                         if(
@@ -240,12 +247,15 @@ class Map extends \Controller\AccessController {
 
                                 // share map between alliances -> set access
                                 if(isset($formData['mapAlliances'])){
+                                    // avoid abuse -> respect share limits
+                                    $accessAlliances = array_slice( $formData['mapAlliances'], 0, $f3->get('PATHFINDER.MAX_SHARED_ALLIANCE') );
+
                                     // clear map access. In case something has removed from access list
                                     $map->clearAccess();
 
                                     $tempAlliance = Model\BasicModel::getNew('AllianceModel');
 
-                                    foreach((array)$formData['mapAlliances'] as $allianceId){
+                                    foreach($accessAlliances as $allianceId){
                                         $tempAlliance->getById( (int)$allianceId );
 
                                         if(
@@ -265,10 +275,10 @@ class Map extends \Controller\AccessController {
                             }
                         }
                     }
-
                     // reload the same map model (refresh)
                     // this makes sure all data is up2date
-                    $map->getById( $map->id );
+                    $map->getById( $map->id, 0 );
+
 
                     $return->mapData = $map->getData();
 
@@ -323,7 +333,6 @@ class Map extends \Controller\AccessController {
         $mapData = (array)$f3->get('POST.mapData');
 
         $user = $this->_getUser();
-
         $return = (object) [];
         $return->error = [];
 
@@ -487,70 +496,70 @@ class Map extends \Controller\AccessController {
         $cacheKey = null;
 
         $return = (object) [];
-
-        $user = $this->_getUser();
-
         $return->error = [];
 
-        if($user){
-
-            // update current location (IGB data)
-            $user->updateCharacterLog();
-
+        if( !empty($f3->get('POST.mapIds')) ){
+            $mapIds = (array)$f3->get('POST.mapIds');
             // check if data for specific system is requested
             $systemData = (array)$f3->get('POST.systemData');
 
-            // if data is requested extend the cache key in order to get new data
-            $requestSystemData = (object) [];
-            $requestSystemData->mapId = isset($systemData['mapId']) ? (int) $systemData['mapId'] : 0;
-            $requestSystemData->systemId = isset($systemData['systemData']['id']) ? (int) $systemData['systemData']['id'] : 0;
+            $user = $this->_getUser();
 
-            // the maps are cached per user
-            $cacheKey = 'user_data_' . $user->id . '_' . $requestSystemData->systemId;
+            if($user){
+                // update current location (IGB data)
+                $user->updateCharacterLog(60 * 5);
 
-            if( $f3->exists($cacheKey) === false ){
+                // if data is requested extend the cache key in order to get new data
+                $requestSystemData = (object) [];
+                $requestSystemData->mapId = isset($systemData['mapId']) ? (int) $systemData['mapId'] : 0;
+                $requestSystemData->systemId = isset($systemData['systemData']['id']) ? (int) $systemData['systemData']['id'] : 0;
 
-                // get user Data for each map
-                $activeMaps = $user->getMaps(5);
+                // IMPORTANT for now -> just update a single map (save performance)
+                $mapIds = array_slice($mapIds, 0, 1);
 
-                foreach($activeMaps as $mapModel){
-                    $return->mapUserData[] = $mapModel->getUserData();
+                // the maps are cached per map (this must be changed if multiple maps
+                // will be allowed in future...
+                $tempId = $mapIds[0];
+                $cacheKey = 'user_data_' . $tempId . '_' . $requestSystemData->systemId;
 
-                    // request signature data for a system if user has map access!
-                    if( $mapModel->id === $requestSystemData->mapId ){
-                        $system = $mapModel->getSystem( $requestSystemData->systemId );
+                if( $f3->exists($cacheKey) === false ){
+                    foreach($mapIds as $mapId){
+                        $map = $user->getMap($mapId);
 
-                        if( !is_null($system) ){
-                            // data for the current selected system
-                            $return->system = $system->getData();
-                            $return->system->signatures = $system->getSignaturesData();
+                        if( !is_null($map) ){
+                            $return->mapUserData[] = $map->getUserData();
+
+
+                            // request signature data for a system if user has map access!
+                            if( $map->id === $requestSystemData->mapId ){
+                                $system = $map->getSystem( $requestSystemData->systemId );
+
+                                if( !is_null($system) ){
+                                    // data for the current selected system
+                                    $return->system = $system->getData();
+                                    $return->system->signatures = $system->getSignaturesData();
+                                }
+                            }
                         }
                     }
-                }
 
-                // cache response
-                if( !is_null($cacheKey) ){
+                    // cache response
                     $f3->set($cacheKey, $return, $responseTTL);
+                }else{
+                    // get from cache
+                    // this should happen if a user has multiple program instances running
+                    // with the same main char
+                    $return = $f3->get($cacheKey);
                 }
 
+                // get current user data -> this should not be cached because each user has different personal data
+                // even if they have multiple characters using the same map!
+                $return->userData = $user->getData();
             }else{
-                // get from cache
-                // this should happen if a user has multiple program instances running
-                // with the same main char
-                $return = $f3->get($cacheKey);
+                // user logged of
+                $return->error[] = $this->getUserLoggedOffError();
             }
-
-            // add data that is not cacheable -----------------------------------------
-
-            // get current user data -> this should not be cached because each user has different personal data
-            // even if they have multiple characters using the same map!
-            $return->userData = $user->getData();
-
-        }else{
-            // user logged of
-            $return->error[] = $this->getUserLoggedOffError();
         }
-
 
         echo json_encode( $return );
     }

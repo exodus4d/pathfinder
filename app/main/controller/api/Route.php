@@ -18,12 +18,6 @@ use Model;
 class Route extends \Controller\AccessController {
 
     /**
-     * search depth for recursive route search (5000 would be best but slow)
-     * -> in reality there are no routes > 100 jumps between systems
-     */
-    const ROUTE_SEARCH_DEPTH = 5000;
-
-    /**
      * cache time for static jump data
      * @var int
      */
@@ -277,11 +271,14 @@ class Route extends \Controller\AccessController {
 
     /**
      * find a route between two systems (system names)
+     * $searchDepth for recursive route search (5000 would be best but slow)
+     * -> in reality there are no routes > 100 jumps between systems
      * @param $systemFrom
      * @param $systemTo
+     * @param int $searchDepth
      * @return array
      */
-    private function findRoute($systemFrom, $systemTo){
+    public function findRoute($systemFrom, $systemTo, $searchDepth = 5000){
 
         $routeData = [
             'routePossible' => false,
@@ -299,27 +296,14 @@ class Route extends \Controller\AccessController {
             // jump counter
             $jumpNum = 0;
 
-            // check if the system we are looking for is a direct neighbour
-            foreach( $this->jumpArray[$from] as $n ) {
+            if( isset($this->jumpArray[$from]) ){
 
-                if ($n == $to) {
-                    $jumpNum = 2;
 
-                    $jumpNode = [
-                        'system' => $n,
-                        'security' => $this->getSystemInfoBySystemId($this->idArray[$n], 'trueSec')
-                    ];
+                // check if the system we are looking for is a direct neighbour
+                foreach( $this->jumpArray[$from] as $n ) {
 
-                    $routeData['route'][] = $jumpNode;
-                    break;
-                }
-            }
-
-            // system is not a direct neighbour -> search recursive its neighbours
-            if ($jumpNum == 0) {
-                foreach( $this->graph_find_path( $this->jumpArray, $from, $to, self::ROUTE_SEARCH_DEPTH ) as $n ) {
-
-                    if ($jumpNum > 0) {
+                    if ($n == $to) {
+                        $jumpNum = 2;
 
                         $jumpNode = [
                             'system' => $n,
@@ -327,25 +311,42 @@ class Route extends \Controller\AccessController {
                         ];
 
                         $routeData['route'][] = $jumpNode;
+                        break;
                     }
-                    $jumpNum++;
                 }
-            }
 
-            if ($jumpNum > 0) {
-                // route found
-                $routeData['routePossible'] = true;
+                // system is not a direct neighbour -> search recursive its neighbours
+                if ($jumpNum == 0) {
+                    foreach( $this->graph_find_path( $this->jumpArray, $from, $to, $searchDepth ) as $n ) {
 
-                $jumpNode = [
-                    'system' => $from,
-                    'security' => $this->getSystemInfoBySystemId($this->idArray[$from], 'trueSec')
-                ];
+                        if ($jumpNum > 0) {
 
-                // insert "from" system on top
-                array_unshift($routeData['route'], $jumpNode);
-            } else {
-                // route not found
-                $routeData['routePossible'] = true;
+                            $jumpNode = [
+                                'system' => $n,
+                                'security' => $this->getSystemInfoBySystemId($this->idArray[$n], 'trueSec')
+                            ];
+
+                            $routeData['route'][] = $jumpNode;
+                        }
+                        $jumpNum++;
+                    }
+                }
+
+                if ($jumpNum > 0) {
+                    // route found
+                    $routeData['routePossible'] = true;
+
+                    $jumpNode = [
+                        'system' => $from,
+                        'security' => $this->getSystemInfoBySystemId($this->idArray[$from], 'trueSec')
+                    ];
+
+                    // insert "from" system on top
+                    array_unshift($routeData['route'], $jumpNode);
+                } else {
+                    // route not found
+                    $routeData['routePossible'] = false;
+                }
             }
 
             // route jumps

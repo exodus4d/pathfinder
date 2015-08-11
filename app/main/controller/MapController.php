@@ -28,9 +28,6 @@ class MapController extends \Controller\AccessController {
         // JS main file
         $this->f3->set('jsView', 'main');
 
-        //$logger = self::getLogger('debug');
-        //$logger->write( print_r(apache_request_headers(), true) );
-
          $this->setTemplate('templates/view/index.html');
     }
 
