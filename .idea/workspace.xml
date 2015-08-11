@@ -6,10 +6,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="910fc076-a5b3-46d4-aef4-821103026334" name="Default" comment="splashpage fixes and UNIX lowercase PHP files">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/sass/library/bootstrap-toggle/_bootstrap2-toggle.scss" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/public/css/library/bootstrap-toggle/bootstrap2-toggle.css" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/js/lib/bootstrap2-toggle.min.js.map" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/js/lib/bootstrap2-toggle.min.js" />
       <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\logs\cron.log" afterPath="" />
       <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.11blntoe75g0c.sql" afterPath="" />
       <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.11y7x5qorsu84.sql" afterPath="" />
@@ -181,48 +177,8 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tmp/cache/2vvmn4596r8kw.i2ielky9imo8.sql" afterPath="$PROJECT_DIR$/tmp/cache/2vvmn4596r8kw.i2ielky9imo8.sql" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tmp/cache/2vvmn4596r8kw.pv000y78z68.sql" afterPath="$PROJECT_DIR$/tmp/cache/2vvmn4596r8kw.pv000y78z68.sql" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tmp/cache/2vvmn4596r8kw.yd7jh7fy1b4g.var" afterPath="$PROJECT_DIR$/tmp/cache/2vvmn4596r8kw.yd7jh7fy1b4g.var" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/layout/_dialogs.scss" afterPath="$PROJECT_DIR$/sass/layout/_dialogs.scss" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/layout/_forms.scss" afterPath="$PROJECT_DIR$/sass/layout/_forms.scss" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/library/select2/theme/pathfinder/_layout.scss" afterPath="$PROJECT_DIR$/sass/library/select2/theme/pathfinder/_layout.scss" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/_main.scss" afterPath="$PROJECT_DIR$/sass/_main.scss" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/layout/_main.scss" afterPath="$PROJECT_DIR$/sass/layout/_main.scss" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/layout/_map.scss" afterPath="$PROJECT_DIR$/sass/layout/_map.scss" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/layout/_system-info.scss" afterPath="$PROJECT_DIR$/sass/layout/_system-info.scss" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/bootstrap/_variables.scss" afterPath="$PROJECT_DIR$/sass/bootstrap/_variables.scss" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/dialog/account_settings.js" afterPath="$PROJECT_DIR$/js/app/ui/dialog/account_settings.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app.js" afterPath="$PROJECT_DIR$/js/app.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/templates/form/character_panel.html" afterPath="$PROJECT_DIR$/public/templates/form/character_panel.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/config.ini" afterPath="$PROJECT_DIR$/app/config.ini" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/map/contextmenu.js" afterPath="$PROJECT_DIR$/js/app/map/contextmenu.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/counter.js" afterPath="$PROJECT_DIR$/js/app/counter.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/dictionaries/exodus4d.xml" afterPath="$PROJECT_DIR$/.idea/dictionaries/exodus4d.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/form_element.js" afterPath="$PROJECT_DIR$/js/app/ui/form_element.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/templates/modules/header.html" afterPath="$PROJECT_DIR$/public/templates/modules/header.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/init.js" afterPath="$PROJECT_DIR$/js/app/init.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/lib/jquery.mCustomScrollbar.concat.min.js" afterPath="$PROJECT_DIR$/js/lib/jquery.mCustomScrollbar.concat.min.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/landingpage.js" afterPath="$PROJECT_DIR$/js/app/landingpage.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/main.js" afterPath="$PROJECT_DIR$/js/app/main.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/templates/dialog/map.html" afterPath="$PROJECT_DIR$/public/templates/dialog/map.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/map/map.js" afterPath="$PROJECT_DIR$/js/app/map/map.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/dialog/map_info.js" afterPath="$PROJECT_DIR$/js/app/ui/dialog/map_info.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/templates/dialog/map_manual.html" afterPath="$PROJECT_DIR$/public/templates/dialog/map_manual.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/templates/form/map_settings.html" afterPath="$PROJECT_DIR$/public/templates/form/map_settings.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/dialog/map_settings.js" afterPath="$PROJECT_DIR$/js/app/ui/dialog/map_settings.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/module_map.js" afterPath="$PROJECT_DIR$/js/app/module_map.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/map/overlay.js" afterPath="$PROJECT_DIR$/js/app/map/overlay.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/page.js" afterPath="$PROJECT_DIR$/js/app/page.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/css/pathfinder.css" afterPath="$PROJECT_DIR$/public/css/pathfinder.css" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/pathfinder.iml" afterPath="$PROJECT_DIR$/.idea/pathfinder.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/pathfinder.scss" afterPath="$PROJECT_DIR$/sass/pathfinder.scss" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/routes.ini" afterPath="$PROJECT_DIR$/app/routes.ini" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/templates/dialog/settings.html" afterPath="$PROJECT_DIR$/public/templates/dialog/settings.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/templates/dialog/sharing_settings.html" afterPath="$PROJECT_DIR$/public/templates/dialog/sharing_settings.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/dialog/sharing_settings.js" afterPath="$PROJECT_DIR$/js/app/ui/dialog/sharing_settings.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/templates/modules/system_info.html" afterPath="$PROJECT_DIR$/public/templates/modules/system_info.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/system_info.js" afterPath="$PROJECT_DIR$/js/app/ui/system_info.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/system_killboard.js" afterPath="$PROJECT_DIR$/js/app/ui/system_killboard.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/system_signature.js" afterPath="$PROJECT_DIR$/js/app/ui/system_signature.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/util.js" afterPath="$PROJECT_DIR$/js/app/util.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MOVED" beforePath="F:\webpages\exodus4d\pathfinder\app\main\controller\AccessController.php" afterPath="$PROJECT_DIR$/app/main/controller/accessController.php" />
       <change type="MOVED" beforePath="F:\webpages\exodus4d\pathfinder\app\main\controller\CcpApiController.php" afterPath="$PROJECT_DIR$/app/main/controller/ccpApiController.php" />
@@ -1684,7 +1640,13 @@
       <option name="project" value="LOCAL" />
       <updated>1437221545339</updated>
     </task>
-    <option name="localTasksCounter" value="32" />
+    <task id="LOCAL-00032" summary="bigfixing">
+      <created>1439312719402</created>
+      <option name="number" value="00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1439312719402</updated>
+    </task>
+    <option name="localTasksCounter" value="33" />
     <servers />
   </component>
   <component name="TodoView" selected-index="0">
@@ -1747,7 +1709,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="project structure" />
     <MESSAGE value="new ma functions" />
     <MESSAGE value="multiple map instances support added" />
     <MESSAGE value="multiple bug fixes and improvements. 1st sig-table iteration." />
@@ -1772,7 +1733,8 @@
     <MESSAGE value="Bufg fixing, minor improvements" />
     <MESSAGE value="splashpage fixes and UNIX lowercase PHP files" />
     <MESSAGE value="bug fixing" />
-    <option name="LAST_COMMIT_MESSAGE" value="bug fixing" />
+    <MESSAGE value="bigfixing" />
+    <option name="LAST_COMMIT_MESSAGE" value="bigfixing" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
