@@ -6,182 +6,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="910fc076-a5b3-46d4-aef4-821103026334" name="Default" comment="splashpage fixes and UNIX lowercase PHP files">
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\logs\cron.log" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.11blntoe75g0c.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.11y7x5qorsu84.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.13b9a55smqxw4.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.148uhzyzs89w4.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.15697b82wdi8c.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1749usnj4jfkc.var" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.188gh7jmmylco.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.18mb9fneatxc0.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.18yc74tlxfwko.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.199lequjd3fo8.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1at4brqvrcdcc.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1b5r2dasn0zoo.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1cxbo07rdt7o0.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1da62k1pt7s0o.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1dnfv4ejlxfoc.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1ekujetyura8o.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1elj7a3nudy8g.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1ezvezjpxuass.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1fozauxmng5cs.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1gqwvdbhamg0g.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1h3umsej4clc4.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1hhijdndhvwg4.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1js8bhbvf5c04.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1juh2n4g7xj48.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1k72hj03q45c8.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1kvlo81dmhwgg.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1lqacwzoqq00g.var" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1ns8bm1sp4lc8.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1nzjx8h7aajo.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1oft48f5fmn4c.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1qza72e6qj7oo.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1r3sc60bj8u8s.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1sartz2atehws.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1ug9pk11jrwkk.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1uosomv3txr4g.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1v0ularqpko0k.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1va3ij1jfh0k4.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1xdwxall8l5w0.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1xi36e0nu7esk.var" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1y05kgzu5i80s.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1yg1idsii5es4.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.1zqmxkktsb280.url" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.20s3cn7sdz7oc.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.213sen2n2dj40.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.21mxh0mcl074w.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.23mrxn1by1vok.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.23vbrx8vvq5cg.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2677w3mwszhco.var" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.26qlza03wzpc4.var" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.27830etolp7oo.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.27z5sdhxmyhwk.var" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2a84bkaet24g0.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2anv6t0l5olco.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2bz94mmifni8o.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2cdoscl9t7vo0.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2d2vdt2qsc9wg.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2dtsqs24guck8.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2e4zpj5yndz4s.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2ekx84e86h8go.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2g8klwjy4cu80.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2gi596f3xiskw.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2gjgb5zd4x0kk.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2gtgde77y50ko.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2h58xm9znrc4g.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2hh676xk0gw08.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2idggejyydyck.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2k1fkcwm31k4s.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2k7c9al67pk4k.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2k8osiln58g0g.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2mhknj2454cgc.var" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2msbiz03k8ao0.var" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2n3yr5ty3wmc4.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2o1vsyckjku8w.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2oe8zoqe9f28s.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2qtownb87b284.var" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2rapuge51desg.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2rilekn6m9ic8.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2rob7fvmgk8ws.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2tunligonxkw4.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2txn6omr5lkw8.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2uklz8rdslog4.url" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2ulmn5lzrh2c0.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2vax1y1dea680.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2vvq4w0fs70g8.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2w1ghgtplneoo.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2x8rycq2j7k0g.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2xjxwlmsnc6cc.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2yzegkqldjms8.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2zkyk5ekal4w8.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.2zlck9oiapogs.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.308w4uvz5we8w.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.30cksu9vry2ow.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.30oe320tc1a8s.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.312llljznk8wc.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.31gjrnqzjvs4s.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.31ii5kbz5gmcw.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.31pge1op4bokg.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.336q09gqks6c8.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.33oory056qgws.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3411uigaphmo8.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.34hv2yjb6so48.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.35pcwn18bisk4.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.35yhouizxquck.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.366u0pa1gkqo0.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3786ow7vc8ysc.var" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.37m2ltjlu5k4s.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.37o5r2ijelmo0.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.37y3jen5xc2sw.var" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.38hpem2furcwg.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.38xvoltkhdwks.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.39btlxtbv9q80.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3ac8sq194m80s.url" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3bj487i87tess.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3c4iggsdxgao4.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3dmnqf13al0k4.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3fadjbe6guuc0.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3giqhzfmkg8wc.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3gu4q34quaec0.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3kdo82u287c4k.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3kfp9xc9r92c8.var" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3kuv4pn9zjcw4.var" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3le0ik0oatc0g.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3lu5iu876nwg8.var" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3mxftj0ikdgkg.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3o8abldr0w840.var" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3op8b43ru7i8s.var" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3orlssotylmok.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3p6etnofkteso.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3pemiiq7s0mck.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3qjzeox6rz8kk.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3r0qkzjsewkkw.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3rfh2rmdlmsk8.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3tngb2r2d3s4w.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3u46kb9mxls0s.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.3v4ujwrrdpgkk.var" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.5v5r83is6w84.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.62iwyz5ffboc.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.7f9hxer9raww.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.8vn53pztnhoo.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.achmihkbrs0k.var" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.ajhx88d08i04.var" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.d1jj2g1ljo8c.var" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.dvompomu6xw0.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.eun1gor7zvkk.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.fgutq5u4gr48.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.gsh7z6ggy0ow.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.gvum3cmvjv48.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.hus3bqxrvs8o.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.i2ielky9imo8.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.iofxeuhqutws.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.j6novmv61kgs.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.jczidbrjeigw.var" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.l0u9083s7dww.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.lg9hcfav33ks.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.llecnq7b3mog.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.ntw7sgmrcpc8.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.o05okckzw2s0.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.p6piice0b0gw.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.ppj84yfttjkc.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.pv000y78z68.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.rvwta5xqajkk.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.sjm1gu19fdw0.var" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.t5w0wft9n280.var" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.uh2otir30eso.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.us2b8xnx0iok.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.vvtr22yl0lcw.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.w57tbj8f1ggg.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.wl1mr229opww.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.xg1dxxn0qlw8.sql" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\cache\2vvmn4596r8kw.yd7jh7fy1b4g.var" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\ycyk04koiq8c.1g9tuspip3k0w.php" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\ycyk04koiq8c.n8dy5gthftcc.php" afterPath="" />
-      <change type="DELETED" beforePath="F:\webpages\exodus4d\pathfinder\tmp\ycyk04koiq8c.v72a1qhbkogs.php" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/routes.ini" afterPath="$PROJECT_DIR$/app/routes.ini" />
+      <change type="DELETED" beforePath="G:\webpages\exodus4d\pathfinder\.idea\libraries\compass_library.xml" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/deployment.xml" afterPath="$PROJECT_DIR$/.idea/deployment.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/jsLibraryMappings.xml" afterPath="$PROJECT_DIR$/.idea/jsLibraryMappings.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/pathfinder.iml" afterPath="$PROJECT_DIR$/.idea/pathfinder.iml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="pathfinder.iws" />
@@ -236,7 +64,7 @@
           <file leaf-file-name="init.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/js/app/init.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.65519524">
+                <state vertical-scroll-proportion="0.21693122">
                   <caret line="279" column="30" selection-start-line="279" selection-start-column="30" selection-end-line="279" selection-end-column="30" />
                   <folding />
                 </state>
@@ -329,26 +157,6 @@
         <splitter split-orientation="horizontal" split-proportion="0.75442684">
           <split-first>
             <leaf>
-              <file leaf-file-name="map.js" pinned="false" current-in-tab="false">
-                <entry file="file://$PROJECT_DIR$/js/app/map/map.js">
-                  <provider selected="true" editor-type-id="text-editor">
-                    <state vertical-scroll-proportion="-4.1034484">
-                      <caret line="2687" column="53" selection-start-line="2687" selection-start-column="53" selection-end-line="2687" selection-end-column="53" />
-                      <folding />
-                    </state>
-                  </provider>
-                </entry>
-              </file>
-              <file leaf-file-name="map.php" pinned="false" current-in-tab="false">
-                <entry file="file://$PROJECT_DIR$/app/main/controller/api/map.php">
-                  <provider selected="true" editor-type-id="text-editor">
-                    <state vertical-scroll-proportion="0.0">
-                      <caret line="529" column="73" selection-start-line="529" selection-start-column="73" selection-end-line="529" selection-end-column="73" />
-                      <folding />
-                    </state>
-                  </provider>
-                </entry>
-              </file>
               <file leaf-file-name="map_settings.js" pinned="false" current-in-tab="false">
                 <entry file="file://$PROJECT_DIR$/js/app/ui/dialog/map_settings.js">
                   <provider selected="true" editor-type-id="text-editor">
@@ -455,8 +263,8 @@
               <file leaf-file-name="contextmenu.js" pinned="false" current-in-tab="true">
                 <entry file="file://$PROJECT_DIR$/js/app/map/contextmenu.js">
                   <provider selected="true" editor-type-id="text-editor">
-                    <state vertical-scroll-proportion="0.049543675">
-                      <caret line="27" column="82" selection-start-line="27" selection-start-column="82" selection-end-line="27" selection-end-column="82" />
+                    <state vertical-scroll-proportion="0.3869707">
+                      <caret line="33" column="50" selection-start-line="33" selection-start-column="50" selection-end-line="33" selection-end-column="50" />
                       <folding />
                     </state>
                   </provider>
@@ -613,8 +421,8 @@
         <option value="$PROJECT_DIR$/public/templates/modules/header.html" />
         <option value="$PROJECT_DIR$/js/app/page.js" />
         <option value="$PROJECT_DIR$/js/app/init.js" />
-        <option value="$PROJECT_DIR$/js/app/map/contextmenu.js" />
         <option value="$PROJECT_DIR$/js/app/map/map.js" />
+        <option value="$PROJECT_DIR$/js/app/map/contextmenu.js" />
       </list>
     </option>
   </component>
@@ -634,8 +442,8 @@
   </component>
   <component name="PhpWorkspaceProjectConfiguration" backward_compatibility_performed="true" interpreter_name="PHP 5.5" />
   <component name="ProjectFrameBounds">
-    <option name="x" value="8" />
-    <option name="y" value="10" />
+    <option name="x" value="-5" />
+    <option name="y" value="3" />
     <option name="width" value="3738" />
     <option name="height" value="2108" />
   </component>
@@ -742,309 +550,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="sass" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="sass" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="library" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="sass" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="library" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="bootstrap-toggle" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="sass" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="layout" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="public" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="templates" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="view" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="public" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="templates" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ui" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="public" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="templates" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="public" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="templates" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="modules" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="public" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="templates" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="form" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="public" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="templates" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="dialog" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="public" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="js" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="js" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="app" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="js" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="app" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ui" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="js" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="app" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ui" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="dialog" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="js" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="app" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="map" />
+              <option name="myItemId" value="tmp" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -1200,7 +706,6 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scratches" />
       <pane id="Scope">
         <subPane subId="Problems">
           <PATH>
@@ -1319,6 +824,7 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -1326,7 +832,7 @@
     <property name="options.splitter.main.proportions" value="0.3" />
     <property name="options.splitter.details.proportions" value="0.2" />
     <property name="options.searchVisible" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="C:/Program Files/Git/bin/git.exe" />
     <property name="WebServerToolWindowFactoryState" value="true" />
     <property name="FullScreen" value="false" />
     <property name="recentsLimit" value="5" />
@@ -1364,7 +870,7 @@
     <property name="LayoutCode.rearrangeEntriesSCSS" value="false" />
     <property name="HbShouldOpenHtmlAsHb" value="" />
     <property name="LayoutCode.rearrangeEntriesXML" value="false" />
-    <property name="settings.editor.selected.configurable" value="settings.github" />
+    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
   </component>
   <component name="RecentsManager">
@@ -1635,7 +1141,13 @@
       <option name="project" value="LOCAL" />
       <updated>1439312750557</updated>
     </task>
-    <option name="localTasksCounter" value="34" />
+    <task id="LOCAL-00034" summary="splashpage fixes and UNIX lowercase PHP files">
+      <created>1439659928601</created>
+      <option name="number" value="00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1439659928601</updated>
+    </task>
+    <option name="localTasksCounter" value="35" />
     <servers />
   </component>
   <component name="TodoView" selected-index="0">
@@ -1659,31 +1171,31 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="8" y="10" width="3738" height="2108" extended-state="0" />
+    <frame x="-5" y="3" width="3738" height="2108" extended-state="0" />
     <editor active="false" />
     <layout>
+      <window_info id="Remote Host" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.061468866" sideWeight="0.45030737" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.100054376" sideWeight="0.5808685" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.09057399" sideWeight="0.414281" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.22347514" sideWeight="0.49627712" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.20042083" sideWeight="0.6232719" order="6" side_tool="true" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="13" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.20092261" sideWeight="0.38847524" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.19887237" sideWeight="0.3685742" order="11" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.20092261" sideWeight="0.61152476" order="12" side_tool="true" content_ui="tabs" x="945" y="556" width="1373" height="181" />
-      <window_info id="Remote Host" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.061468866" sideWeight="0.45030737" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.09869494" sideWeight="0.5808685" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.06144644" sideWeight="0.42080984" order="4" side_tool="true" content_ui="tabs" x="1667" y="651" width="475" height="815" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.27780625" sideWeight="0.4399482" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.06144644" sideWeight="0.57919014" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.061174553" sideWeight="0.43311122" order="4" side_tool="true" content_ui="tabs" x="1667" y="651" width="475" height="815" />
+      <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.20041005" sideWeight="0.38379255" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.061174553" sideWeight="0.56688875" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.20041005" sideWeight="0.6162075" order="12" side_tool="true" content_ui="tabs" x="945" y="556" width="1373" height="181" />
       <window_info id="Favorites" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.06771697" sideWeight="0.2838336" order="3" side_tool="true" content_ui="tabs" x="2380" y="542" width="342" height="659" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.12111638" sideWeight="0.45304778" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.15712851" sideWeight="0.49984515" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="File Transfer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3277311" sideWeight="0.49848944" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.19887237" sideWeight="0.3685742" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.27780625" sideWeight="0.4399482" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -1732,10 +1244,21 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/sass/bootstrap/_normalize.scss">
+    <entry file="file://$PROJECT_DIR$/app/main/model/basicModel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="331" column="13" selection-start-line="331" selection-start-column="13" selection-end-line="331" selection-end-column="13" />
+          <folding>
+            <element signature="e#108#126#0#PHP" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main/model/systemModel.php">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1919,7 +1442,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="529" column="73" selection-start-line="529" selection-start-column="73" selection-end-line="529" selection-end-column="73" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -2104,7 +1626,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/js/app/init.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.65519524">
+        <state vertical-scroll-proportion="0.21693122">
           <caret line="279" column="30" selection-start-line="279" selection-start-column="30" selection-end-line="279" selection-end-column="30" />
           <folding />
         </state>
@@ -2114,14 +1636,13 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-4.1034484">
           <caret line="2687" column="53" selection-start-line="2687" selection-start-column="53" selection-end-line="2687" selection-end-column="53" />
-          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/js/app/map/contextmenu.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.049543675">
-          <caret line="27" column="82" selection-start-line="27" selection-start-column="82" selection-end-line="27" selection-end-column="82" />
+        <state vertical-scroll-proportion="0.3869707">
+          <caret line="33" column="50" selection-start-line="33" selection-start-column="50" selection-end-line="33" selection-end-column="50" />
           <folding />
         </state>
       </provider>

@@ -4,12 +4,6 @@
     <option name="compassConfigPath" value="F:\webpages\exodus4d\pathfinder\config.rb" />
     <option name="compassExecutableFilePath" value="C:\Ruby21-x64\bin\compass.bat" />
     <option name="compassSupportEnabled" value="true" />
-    <option name="importPaths">
-      <list>
-        <option value="C:/Ruby21-x64/lib/ruby/gems/2.1.0/gems/compass-core-1.0.3/stylesheets" />
-        <option value="C:/Ruby21-x64/lib/ruby/gems/2.1.0/gems/bootstrap-sass-3.2.0.2/assets/stylesheets" />
-      </list>
-    </option>
   </component>
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
@@ -30,6 +24,5 @@
     <orderEntry type="library" name="Node.js v0.10.32 Core Modules" level="application" />
     <orderEntry type="library" name="sass-stdlib" level="application" />
     <orderEntry type="library" name="jquery-DefinitelyTyped" level="application" />
-    <orderEntry type="library" name="compass-library" level="project" />
   </component>
 </module>
