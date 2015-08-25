@@ -91,7 +91,7 @@ define([
                         });
 
                         // show full logo
-                        $('#' + config.staticLogoId + '').velocity({
+                        canvasElement.find('#' + config.staticLogoId + '').velocity({
                             opacity: 1
                         },{
                             delay: 100,
@@ -99,7 +99,7 @@ define([
                             complete: function(){
 
                                 // execute callback
-                                if(callback !== undefined){
+                                if(typeof callback === 'function'){
                                     callback();
                                 }
 

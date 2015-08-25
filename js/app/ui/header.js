@@ -203,7 +203,7 @@ define([
      */
     $.fn.initHeader = function(callback){
         largeHeader = $(this)[0];
-        canvas = $(this).find('canvas')[0];
+        canvas = $(this).find('canvas:visible')[0];
 
         // header preview elements
         $('.' + config.previewElementClass).velocity('transition.bounceIn', {
@@ -211,21 +211,24 @@ define([
             stagger: 60,
             delay: 120,
             complete: function(){
-                // header animation
-                initHeader();
-                initAnimation();
-                addListeners();
 
                 // show header canvas animation
-                $(canvas).velocity('fadeIn', {
-                    duration: 900,
-                    visibility: 'visible',
-                    complete: function(){
-                        if(callback !== undefined){
-                            callback();
+                if(canvas){
+                    // header animation
+                    initHeader();
+                    initAnimation();
+                    addListeners();
+
+                    $(canvas).velocity('fadeIn', {
+                        duration: 900,
+                        visibility: 'visible',
+                        complete: function(){
+                            if(callback !== undefined){
+                                callback();
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
 
         });

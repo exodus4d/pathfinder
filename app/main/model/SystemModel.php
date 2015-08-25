@@ -12,30 +12,30 @@ namespace Model;
 class SystemModel extends BasicModel {
 
     const MAX_POS_X = 2300;
-    const MAX_POS_Y = 500;
+    const MAX_POS_Y = 498;
 
     protected $table = 'system';
 
-    protected $fieldConf = array(
-        'mapId' => array(
+    protected $fieldConf = [
+        'mapId' => [
             'belongs-to-one' => 'Model\MapModel'
-        ),
-        'typeId' => array(
+        ],
+        'typeId' => [
             'belongs-to-one' => 'Model\SystemTypeModel'
-        ),
-        'statusId' => array(
+        ],
+        'statusId' => [
             'belongs-to-one' => 'Model\SystemStatusModel'
-        ),
-        'createdCharacterId' => array(
+        ],
+        'createdCharacterId' => [
             'belongs-to-one' => 'Model\CharacterModel'
-        ),
-        'updatedCharacterId' => array(
+        ],
+        'updatedCharacterId' => [
             'belongs-to-one' => 'Model\CharacterModel'
-        ),
-        'signatures' => array(
-            'has-many' => array('Model\SystemSignatureModel', 'systemId')
-        ),
-    );
+        ],
+        'signatures' => [
+            'has-many' => ['Model\SystemSignatureModel', 'systemId']
+        ],
+    ];
 
     /**
      * set an array with all data for a system
@@ -230,7 +230,7 @@ class SystemModel extends BasicModel {
         $signature = null;
 
         if($this->hasAccess($accessObject)){
-            $this->filter('signatures', array('active = ? AND id = ?', 1, $id));
+            $this->filter('signatures', ['active = ? AND id = ?', 1, $id]);
             if($this->signatures){
                 $signature = reset( $this->signatures );
             }
@@ -249,7 +249,7 @@ class SystemModel extends BasicModel {
         $signature = null;
 
         if($this->hasAccess($accessObject)){
-            $this->filter('signatures', array('active = ? AND name = ?', 1, $name));
+            $this->filter('signatures', ['active = ? AND name = ?', 1, $name]);
             if($this->signatures){
                 $signature = reset( $this->signatures );
             }

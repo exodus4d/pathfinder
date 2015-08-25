@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component name="dataSourceStorage">
   <data-source name="Pathfinder" uuid="da3cf616-be39-4091-94bd-76d70f41765d">
-    <database-info product="MySQL" version="5.6.16" jdbc-version="4.0" driver-name="MySQL Connector Java" driver-version="mysql-connector-java-5.1.34 ( Revision: jess.balint@oracle.com-20141014163213-wqbwpf1ok2kvo1om )">
+    <database-info product="MySQL" version="5.6.25" jdbc-version="4.0" driver-name="MySQL Connector Java" driver-version="mysql-connector-java-5.1.35 ( Revision: 5fb9c5849535c13917c2cf9baaece6ef9693ef27 )">
       <extra-name-characters>#@</extra-name-characters>
       <identifier-quote-string>`</identifier-quote-string>
     </database-info>
     <case-sensitivity plain-identifiers="lower" quoted-identifiers="lower"/>
-    <schema name="" catalog="eve_phoebe"/>
+    <schema name="" catalog="eve_aegis"/>
+    <schema name="" catalog="eve_test"/>
     <schema name="" catalog="pathfinder"/>
-    <table name="agtagents" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="agtagents" schema="" catalog="eve_aegis" type="TABLE">
       <column name="agentID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="divisionID" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="true" jdbcType="-6"/>
       <column name="corporationID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
@@ -21,37 +22,37 @@
       <index name="agtAgents_IX_corporation" unique="false" columns="corporationID"/>
       <index name="agtAgents_IX_station" unique="false" columns="locationID"/>
     </table>
-    <table name="agtagenttypes" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="agtagenttypes" schema="" catalog="eve_aegis" type="TABLE">
       <column name="agentTypeID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="agentType" sqlType="VARCHAR" precision="50" scale="0" nullable="true" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="agentTypeID"/>
     </table>
-    <table name="agtresearchagents" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="agtresearchagents" schema="" catalog="eve_aegis" type="TABLE">
       <column name="agentID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="typeID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <primary-key name="PRIMARY" columns="agentID,typeID"/>
       <index name="agtResearchAgents_IX_type" unique="false" columns="typeID"/>
     </table>
-    <table name="certcerts" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="certcerts" schema="" catalog="eve_aegis" type="TABLE">
       <column name="certID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="description" sqlType="TEXT" precision="65535" scale="0" nullable="true" jdbcType="-1"/>
       <column name="groupid" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="name" sqlType="VARCHAR" precision="255" scale="0" nullable="true" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="certID"/>
     </table>
-    <table name="certmasteries" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="certmasteries" schema="" catalog="eve_aegis" type="TABLE">
       <column name="typeID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="masteryLevel" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="certID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
     </table>
-    <table name="certskills" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="certskills" schema="" catalog="eve_aegis" type="TABLE">
       <column name="certID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="skillID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="certLevelInt" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="skillLevel" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="certLevelText" sqlType="VARCHAR" precision="8" scale="0" nullable="true" jdbcType="12"/>
     </table>
-    <table name="chrancestries" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="chrancestries" schema="" catalog="eve_aegis" type="TABLE">
       <column name="ancestryID" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="false" jdbcType="-6"/>
       <column name="ancestryName" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
       <column name="bloodlineID" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="true" jdbcType="-6"/>
@@ -65,7 +66,7 @@
       <column name="shortDescription" sqlType="VARCHAR" precision="500" scale="0" nullable="true" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="ancestryID"/>
     </table>
-    <table name="chrattributes" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="chrattributes" schema="" catalog="eve_aegis" type="TABLE">
       <column name="attributeID" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="false" jdbcType="-6"/>
       <column name="attributeName" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
       <column name="description" sqlType="VARCHAR" precision="1000" scale="0" nullable="true" jdbcType="12"/>
@@ -74,7 +75,7 @@
       <column name="notes" sqlType="VARCHAR" precision="500" scale="0" nullable="true" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="attributeID"/>
     </table>
-    <table name="chrbloodlines" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="chrbloodlines" schema="" catalog="eve_aegis" type="TABLE">
       <column name="bloodlineID" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="false" jdbcType="-6"/>
       <column name="bloodlineName" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
       <column name="raceID" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="true" jdbcType="-6"/>
@@ -94,7 +95,7 @@
       <column name="shortFemaleDescription" sqlType="VARCHAR" precision="500" scale="0" nullable="true" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="bloodlineID"/>
     </table>
-    <table name="chrfactions" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="chrfactions" schema="" catalog="eve_aegis" type="TABLE">
       <column name="factionID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="factionName" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
       <column name="description" sqlType="VARCHAR" precision="1000" scale="0" nullable="true" jdbcType="12"/>
@@ -108,7 +109,7 @@
       <column name="iconID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <primary-key name="PRIMARY" columns="factionID"/>
     </table>
-    <table name="chrraces" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="chrraces" schema="" catalog="eve_aegis" type="TABLE">
       <column name="raceID" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="false" jdbcType="-6"/>
       <column name="raceName" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
       <column name="description" sqlType="VARCHAR" precision="1000" scale="0" nullable="true" jdbcType="12"/>
@@ -116,24 +117,24 @@
       <column name="shortDescription" sqlType="VARCHAR" precision="500" scale="0" nullable="true" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="raceID"/>
     </table>
-    <table name="crpactivities" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="crpactivities" schema="" catalog="eve_aegis" type="TABLE">
       <column name="activityID" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="false" jdbcType="-6"/>
       <column name="activityName" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
       <column name="description" sqlType="VARCHAR" precision="1000" scale="0" nullable="true" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="activityID"/>
     </table>
-    <table name="crpnpccorporationdivisions" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="crpnpccorporationdivisions" schema="" catalog="eve_aegis" type="TABLE">
       <column name="corporationID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="divisionID" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="false" jdbcType="-6"/>
       <column name="size" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="true" jdbcType="-6"/>
       <primary-key name="PRIMARY" columns="corporationID,divisionID"/>
     </table>
-    <table name="crpnpccorporationresearchfields" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="crpnpccorporationresearchfields" schema="" catalog="eve_aegis" type="TABLE">
       <column name="skillID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="corporationID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <primary-key name="PRIMARY" columns="skillID,corporationID"/>
     </table>
-    <table name="crpnpccorporations" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="crpnpccorporations" schema="" catalog="eve_aegis" type="TABLE">
       <column name="corporationID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="size" sqlType="CHAR" precision="1" scale="0" nullable="true" jdbcType="1"/>
       <column name="extent" sqlType="CHAR" precision="1" scale="0" nullable="true" jdbcType="1"/>
@@ -164,25 +165,25 @@
       <column name="iconID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <primary-key name="PRIMARY" columns="corporationID"/>
     </table>
-    <table name="crpnpccorporationtrades" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="crpnpccorporationtrades" schema="" catalog="eve_aegis" type="TABLE">
       <column name="corporationID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="typeID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <primary-key name="PRIMARY" columns="corporationID,typeID"/>
     </table>
-    <table name="crpnpcdivisions" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="crpnpcdivisions" schema="" catalog="eve_aegis" type="TABLE">
       <column name="divisionID" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="false" jdbcType="-6"/>
       <column name="divisionName" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
       <column name="description" sqlType="VARCHAR" precision="1000" scale="0" nullable="true" jdbcType="12"/>
       <column name="leaderType" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="divisionID"/>
     </table>
-    <table name="dgmattributecategories" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="dgmattributecategories" schema="" catalog="eve_aegis" type="TABLE">
       <column name="categoryID" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="false" jdbcType="-6"/>
       <column name="categoryName" sqlType="VARCHAR" precision="50" scale="0" nullable="true" jdbcType="12"/>
       <column name="categoryDescription" sqlType="VARCHAR" precision="200" scale="0" nullable="true" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="categoryID"/>
     </table>
-    <table name="dgmattributetypes" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="dgmattributetypes" schema="" catalog="eve_aegis" type="TABLE">
       <column name="attributeID" sqlType="SMALLINT" precision="5" scale="0" nullable="false" jdbcType="5"/>
       <column name="attributeName" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
       <column name="description" sqlType="VARCHAR" precision="1000" scale="0" nullable="true" jdbcType="12"/>
@@ -196,7 +197,7 @@
       <column name="categoryID" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="true" jdbcType="-6"/>
       <primary-key name="PRIMARY" columns="attributeID"/>
     </table>
-    <table name="dgmeffects" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="dgmeffects" schema="" catalog="eve_aegis" type="TABLE">
       <column name="effectID" sqlType="SMALLINT" precision="5" scale="0" nullable="false" jdbcType="5"/>
       <column name="effectName" sqlType="VARCHAR" precision="400" scale="0" nullable="true" jdbcType="12"/>
       <column name="effectCategory" sqlType="SMALLINT" precision="5" scale="0" nullable="true" jdbcType="5"/>
@@ -224,42 +225,56 @@
       <column name="npcUsageChanceAttributeID" sqlType="SMALLINT" precision="5" scale="0" nullable="true" jdbcType="5"/>
       <column name="npcActivationChanceAttributeID" sqlType="SMALLINT" precision="5" scale="0" nullable="true" jdbcType="5"/>
       <column name="fittingUsageChanceAttributeID" sqlType="SMALLINT" precision="5" scale="0" nullable="true" jdbcType="5"/>
+      <column name="modifierInfo" sqlType="LONGTEXT" precision="2147483647" scale="0" nullable="true" jdbcType="-1"/>
       <primary-key name="PRIMARY" columns="effectID"/>
     </table>
-    <table name="dgmtypeattributes" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="dgmexpressions" schema="" catalog="eve_aegis" type="TABLE">
+      <column name="expressionID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="operandID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="arg1" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="arg2" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="expressionValue" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
+      <column name="description" sqlType="VARCHAR" precision="1000" scale="0" nullable="true" jdbcType="12"/>
+      <column name="expressionName" sqlType="VARCHAR" precision="500" scale="0" nullable="true" jdbcType="12"/>
+      <column name="expressionTypeID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="expressionGroupID" sqlType="SMALLINT" precision="5" scale="0" nullable="true" jdbcType="5"/>
+      <column name="expressionAttributeID" sqlType="SMALLINT" precision="5" scale="0" nullable="true" jdbcType="5"/>
+      <primary-key name="PRIMARY" columns="expressionID"/>
+    </table>
+    <table name="dgmtypeattributes" schema="" catalog="eve_aegis" type="TABLE">
       <column name="typeID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="attributeID" sqlType="SMALLINT" precision="5" scale="0" nullable="false" jdbcType="5"/>
       <column name="valueInt" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="valueFloat" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
       <primary-key name="PRIMARY" columns="typeID,attributeID"/>
     </table>
-    <table name="dgmtypeeffects" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="dgmtypeeffects" schema="" catalog="eve_aegis" type="TABLE">
       <column name="typeID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="effectID" sqlType="SMALLINT" precision="5" scale="0" nullable="false" jdbcType="5"/>
       <column name="isDefault" sqlType="TINYINT" precision="3" scale="0" nullable="true" jdbcType="-6"/>
       <primary-key name="PRIMARY" columns="typeID,effectID"/>
     </table>
-    <table name="eveicons" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="eveicons" schema="" catalog="eve_aegis" type="TABLE">
       <column name="iconID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="iconFile" sqlType="VARCHAR" precision="500" scale="0" nullable="false" jdbcType="12"/>
       <column name="description" sqlType="TEXT" precision="65535" scale="0" nullable="true" jdbcType="-1"/>
       <primary-key name="PRIMARY" columns="iconID"/>
     </table>
-    <table name="eveunits" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="eveunits" schema="" catalog="eve_aegis" type="TABLE">
       <column name="unitID" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="false" jdbcType="-6"/>
       <column name="unitName" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
       <column name="displayName" sqlType="VARCHAR" precision="50" scale="0" nullable="true" jdbcType="12"/>
       <column name="description" sqlType="VARCHAR" precision="1000" scale="0" nullable="true" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="unitID"/>
     </table>
-    <table name="industryactivity" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="industryactivity" schema="" catalog="eve_aegis" type="TABLE">
       <column name="typeID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
       <column name="time" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="activityID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
       <primary-key name="PRIMARY" columns="typeID,activityID"/>
       <index name="activityID" unique="false" columns="activityID"/>
     </table>
-    <table name="industryactivitymaterials" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="industryactivitymaterials" schema="" catalog="eve_aegis" type="TABLE">
       <column name="typeID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="activityID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="materialTypeID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
@@ -268,7 +283,7 @@
       <index name="typeID" unique="false" columns="typeID"/>
       <index name="typeID_2" unique="false" columns="typeID,activityID"/>
     </table>
-    <table name="industryactivityprobabilities" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="industryactivityprobabilities" schema="" catalog="eve_aegis" type="TABLE">
       <column name="typeID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="activityID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="productTypeID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
@@ -277,7 +292,7 @@
       <index name="typeID" unique="false" columns="typeID"/>
       <index name="typeID_2" unique="false" columns="typeID,activityID"/>
     </table>
-    <table name="industryactivityproducts" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="industryactivityproducts" schema="" catalog="eve_aegis" type="TABLE">
       <column name="typeID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="activityID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="productTypeID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
@@ -286,16 +301,7 @@
       <index name="typeID" unique="false" columns="typeID"/>
       <index name="typeID_2" unique="false" columns="typeID,activityID"/>
     </table>
-    <table name="industryactivityraces" schema="" catalog="eve_phoebe" type="TABLE">
-      <column name="typeID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
-      <column name="activityID" sqlType="TINYINT" precision="3" scale="0" nullable="true" jdbcType="-6"/>
-      <column name="productTypeID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
-      <column name="raceID" sqlType="TINYINT" precision="3" scale="0" nullable="true" jdbcType="-6"/>
-      <index name="productTypeID" unique="false" columns="productTypeID"/>
-      <index name="typeID" unique="false" columns="typeID"/>
-      <index name="typeID_2" unique="false" columns="typeID,activityID"/>
-    </table>
-    <table name="industryactivityskills" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="industryactivityskills" schema="" catalog="eve_aegis" type="TABLE">
       <column name="typeID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="activityID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="skillID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
@@ -303,20 +309,19 @@
       <index name="typeID" unique="false" columns="typeID"/>
       <index name="typeID_2" unique="false" columns="typeID,activityID"/>
     </table>
-    <table name="industryblueprints" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="industryblueprints" schema="" catalog="eve_aegis" type="TABLE">
       <column name="typeID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="maxProductionLimit" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <primary-key name="PRIMARY" columns="typeID"/>
     </table>
-    <table name="invcategories" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="invcategories" schema="" catalog="eve_aegis" type="TABLE">
       <column name="categoryID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="categoryName" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
-      <column name="description" sqlType="VARCHAR" precision="3000" scale="0" nullable="true" jdbcType="12"/>
       <column name="iconID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="published" sqlType="TINYINT" precision="3" scale="0" nullable="true" jdbcType="-6"/>
       <primary-key name="PRIMARY" columns="categoryID"/>
     </table>
-    <table name="invcontrabandtypes" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="invcontrabandtypes" schema="" catalog="eve_aegis" type="TABLE">
       <column name="factionID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="typeID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="standingLoss" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
@@ -326,12 +331,12 @@
       <primary-key name="PRIMARY" columns="factionID,typeID"/>
       <index name="invContrabandTypes_IX_type" unique="false" columns="typeID"/>
     </table>
-    <table name="invcontroltowerresourcepurposes" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="invcontroltowerresourcepurposes" schema="" catalog="eve_aegis" type="TABLE">
       <column name="purpose" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="false" jdbcType="-6"/>
       <column name="purposeText" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="purpose"/>
     </table>
-    <table name="invcontroltowerresources" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="invcontroltowerresources" schema="" catalog="eve_aegis" type="TABLE">
       <column name="controlTowerTypeID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="resourceTypeID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="purpose" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="true" jdbcType="-6"/>
@@ -340,22 +345,19 @@
       <column name="factionID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <primary-key name="PRIMARY" columns="controlTowerTypeID,resourceTypeID"/>
     </table>
-    <table name="invflags" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="invflags" schema="" catalog="eve_aegis" type="TABLE">
       <column name="flagID" sqlType="SMALLINT" precision="5" scale="0" nullable="false" jdbcType="5"/>
       <column name="flagName" sqlType="VARCHAR" precision="200" scale="0" nullable="true" jdbcType="12"/>
       <column name="flagText" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
       <column name="orderID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <primary-key name="PRIMARY" columns="flagID"/>
     </table>
-    <table name="invgroups" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="invgroups" schema="" catalog="eve_aegis" type="TABLE">
       <column name="groupID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="categoryID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="groupName" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
-      <column name="description" sqlType="VARCHAR" precision="3000" scale="0" nullable="true" jdbcType="12"/>
       <column name="iconID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="useBasePrice" sqlType="TINYINT" precision="3" scale="0" nullable="true" jdbcType="-6"/>
-      <column name="allowManufacture" sqlType="TINYINT" precision="3" scale="0" nullable="true" jdbcType="-6"/>
-      <column name="allowRecycler" sqlType="TINYINT" precision="3" scale="0" nullable="true" jdbcType="-6"/>
       <column name="anchored" sqlType="TINYINT" precision="3" scale="0" nullable="true" jdbcType="-6"/>
       <column name="anchorable" sqlType="TINYINT" precision="3" scale="0" nullable="true" jdbcType="-6"/>
       <column name="fittableNonSingleton" sqlType="TINYINT" precision="3" scale="0" nullable="true" jdbcType="-6"/>
@@ -363,7 +365,7 @@
       <primary-key name="PRIMARY" columns="groupID"/>
       <index name="invGroups_IX_category" unique="false" columns="categoryID"/>
     </table>
-    <table name="invitems" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="invitems" schema="" catalog="eve_aegis" type="TABLE">
       <column name="itemID" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
       <column name="typeID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="ownerID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
@@ -374,7 +376,7 @@
       <index name="items_IX_Location" unique="false" columns="locationID"/>
       <index name="items_IX_OwnerLocation" unique="false" columns="ownerID,locationID"/>
     </table>
-    <table name="invmarketgroups" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="invmarketgroups" schema="" catalog="eve_aegis" type="TABLE">
       <column name="marketGroupID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="parentGroupID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="marketGroupName" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
@@ -383,25 +385,25 @@
       <column name="hasTypes" sqlType="TINYINT" precision="3" scale="0" nullable="true" jdbcType="-6"/>
       <primary-key name="PRIMARY" columns="marketGroupID"/>
     </table>
-    <table name="invmetagroups" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="invmetagroups" schema="" catalog="eve_aegis" type="TABLE">
       <column name="metaGroupID" sqlType="SMALLINT" precision="5" scale="0" nullable="false" jdbcType="5"/>
       <column name="metaGroupName" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
       <column name="description" sqlType="VARCHAR" precision="1000" scale="0" nullable="true" jdbcType="12"/>
       <column name="iconID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <primary-key name="PRIMARY" columns="metaGroupID"/>
     </table>
-    <table name="invmetatypes" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="invmetatypes" schema="" catalog="eve_aegis" type="TABLE">
       <column name="typeID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="parentTypeID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="metaGroupID" sqlType="SMALLINT" precision="5" scale="0" nullable="true" jdbcType="5"/>
       <primary-key name="PRIMARY" columns="typeID"/>
     </table>
-    <table name="invnames" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="invnames" schema="" catalog="eve_aegis" type="TABLE">
       <column name="itemID" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
       <column name="itemName" sqlType="VARCHAR" precision="200" scale="0" nullable="false" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="itemID"/>
     </table>
-    <table name="invpositions" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="invpositions" schema="" catalog="eve_aegis" type="TABLE">
       <column name="itemID" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
       <column name="x" sqlType="DOUBLE" precision="22" scale="0" nullable="false" jdbcType="8" def="MA=="/>
       <column name="y" sqlType="DOUBLE" precision="22" scale="0" nullable="false" jdbcType="8" def="MA=="/>
@@ -411,27 +413,27 @@
       <column name="roll" sqlType="FLOAT" precision="24" scale="0" nullable="true" jdbcType="7"/>
       <primary-key name="PRIMARY" columns="itemID"/>
     </table>
-    <table name="invtraits" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="invtraits" schema="" catalog="eve_aegis" type="TABLE">
       <column name="typeID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="skillID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="bonus" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
       <column name="bonusText" sqlType="TEXT" precision="65535" scale="0" nullable="true" jdbcType="-1"/>
       <column name="unitID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
     </table>
-    <table name="invtypematerials" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="invtypematerials" schema="" catalog="eve_aegis" type="TABLE">
       <column name="typeID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="materialTypeID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="quantity" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
       <primary-key name="PRIMARY" columns="typeID,materialTypeID"/>
     </table>
-    <table name="invtypereactions" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="invtypereactions" schema="" catalog="eve_aegis" type="TABLE">
       <column name="reactionTypeID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="input" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6"/>
       <column name="typeID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="quantity" sqlType="SMALLINT" precision="5" scale="0" nullable="true" jdbcType="5"/>
       <primary-key name="PRIMARY" columns="reactionTypeID,input,typeID"/>
     </table>
-    <table name="invtypes" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="invtypes" schema="" catalog="eve_aegis" type="TABLE">
       <column name="typeID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="groupID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="typeName" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
@@ -444,11 +446,14 @@
       <column name="basePrice" sqlType="DECIMAL" precision="19" scale="4" nullable="true" jdbcType="3"/>
       <column name="published" sqlType="TINYINT" precision="3" scale="0" nullable="true" jdbcType="-6"/>
       <column name="marketGroupID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
-      <column name="chanceOfDuplicating" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="graphicID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="iconID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="radius" sqlType="DECIMAL" precision="19" scale="4" nullable="true" jdbcType="3"/>
+      <column name="soundID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <primary-key name="PRIMARY" columns="typeID"/>
       <index name="invTypes_IX_Group" unique="false" columns="groupID"/>
     </table>
-    <table name="invuniquenames" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="invuniquenames" schema="" catalog="eve_aegis" type="TABLE">
       <column name="itemID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="itemName" sqlType="VARCHAR" precision="200" scale="0" nullable="false" jdbcType="12"/>
       <column name="groupID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
@@ -456,7 +461,7 @@
       <index name="invUniqueNames_UQ" unique="true" columns="itemName"/>
       <index name="invUniqueNames_IX_GroupName" unique="false" columns="groupID,itemName"/>
     </table>
-    <table name="mapcelestialstatistics" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="mapcelestialstatistics" schema="" catalog="eve_aegis" type="TABLE">
       <column name="celestialID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="temperature" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
       <column name="spectralClass" sqlType="LONGTEXT" precision="2147483647" scale="0" nullable="true" jdbcType="-1"/>
@@ -479,14 +484,14 @@
       <column name="mass" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <primary-key name="PRIMARY" columns="celestialID"/>
     </table>
-    <table name="mapconstellationjumps" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="mapconstellationjumps" schema="" catalog="eve_aegis" type="TABLE">
       <column name="fromRegionID" sqlType="BIGINT" precision="19" scale="0" nullable="true" jdbcType="-5"/>
       <column name="fromConstellationID" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
       <column name="toConstellationID" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
       <column name="toRegionID" sqlType="BIGINT" precision="19" scale="0" nullable="true" jdbcType="-5"/>
       <primary-key name="PRIMARY" columns="fromConstellationID,toConstellationID"/>
     </table>
-    <table name="mapconstellations" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="mapconstellations" schema="" catalog="eve_aegis" type="TABLE">
       <column name="regionID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="constellationID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="constellationName" sqlType="LONGTEXT" precision="2147483647" scale="0" nullable="true" jdbcType="-1"/>
@@ -504,7 +509,7 @@
       <primary-key name="PRIMARY" columns="constellationID"/>
       <index name="mapConstellations_IX_region" unique="false" columns="regionID"/>
     </table>
-    <table name="mapdenormalize" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="mapdenormalize" schema="" catalog="eve_aegis" type="TABLE">
       <column name="itemID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="typeID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="groupID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
@@ -521,6 +526,7 @@
       <column name="celestialIndex" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="orbitIndex" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <primary-key name="PRIMARY" columns="itemID"/>
+      <index name="mapDenormalize_gis" unique="false" columns="solarSystemID,x,y,z,itemName,itemID"/>
       <index name="mapDenormalize_IX_constellation" unique="false" columns="constellationID"/>
       <index name="mapDenormalize_IX_groupConstellation" unique="false" columns="groupID,constellationID"/>
       <index name="mapDenormalize_IX_groupRegion" unique="false" columns="groupID,regionID"/>
@@ -529,12 +535,12 @@
       <index name="mapDenormalize_IX_region" unique="false" columns="regionID"/>
       <index name="mapDenormalize_IX_system" unique="false" columns="solarSystemID"/>
     </table>
-    <table name="mapjumps" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="mapjumps" schema="" catalog="eve_aegis" type="TABLE">
       <column name="stargateID" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
       <column name="destinationID" sqlType="BIGINT" precision="19" scale="0" nullable="true" jdbcType="-5"/>
       <primary-key name="PRIMARY" columns="stargateID"/>
     </table>
-    <table name="maplandmarks" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="maplandmarks" schema="" catalog="eve_aegis" type="TABLE">
       <column name="landmarkID" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
       <column name="landmarkName" sqlType="LONGTEXT" precision="2147483647" scale="0" nullable="true" jdbcType="-1"/>
       <column name="description" sqlType="LONGTEXT" precision="2147483647" scale="0" nullable="true" jdbcType="-1"/>
@@ -545,22 +551,22 @@
       <column name="iconID" sqlType="BIGINT" precision="19" scale="0" nullable="true" jdbcType="-5"/>
       <primary-key name="PRIMARY" columns="landmarkID"/>
     </table>
-    <table name="maplocationscenes" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="maplocationscenes" schema="" catalog="eve_aegis" type="TABLE">
       <column name="locationID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="graphicID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <primary-key name="PRIMARY" columns="locationID"/>
     </table>
-    <table name="maplocationwormholeclasses" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="maplocationwormholeclasses" schema="" catalog="eve_aegis" type="TABLE">
       <column name="locationID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="wormholeClassID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <primary-key name="PRIMARY" columns="locationID"/>
     </table>
-    <table name="mapregionjumps" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="mapregionjumps" schema="" catalog="eve_aegis" type="TABLE">
       <column name="fromRegionID" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
       <column name="toRegionID" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
       <primary-key name="PRIMARY" columns="fromRegionID,toRegionID"/>
     </table>
-    <table name="mapregions" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="mapregions" schema="" catalog="eve_aegis" type="TABLE">
       <column name="regionID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="regionName" sqlType="LONGTEXT" precision="2147483647" scale="0" nullable="true" jdbcType="-1"/>
       <column name="x" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
@@ -577,7 +583,7 @@
       <primary-key name="PRIMARY" columns="regionID"/>
       <index name="mapRegions_IX_region" unique="false" columns="regionID"/>
     </table>
-    <table name="mapsolarsystemjumps" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="mapsolarsystemjumps" schema="" catalog="eve_aegis" type="TABLE">
       <column name="fromRegionID" sqlType="BIGINT" precision="19" scale="0" nullable="true" jdbcType="-5"/>
       <column name="fromConstellationID" sqlType="BIGINT" precision="19" scale="0" nullable="true" jdbcType="-5"/>
       <column name="fromSolarSystemID" sqlType="BIGINT" precision="19" scale="0" nullable="false" jdbcType="-5"/>
@@ -586,7 +592,7 @@
       <column name="toRegionID" sqlType="BIGINT" precision="19" scale="0" nullable="true" jdbcType="-5"/>
       <primary-key name="PRIMARY" columns="fromSolarSystemID,toSolarSystemID"/>
     </table>
-    <table name="mapsolarsystems" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="mapsolarsystems" schema="" catalog="eve_aegis" type="TABLE">
       <column name="regionID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="constellationID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <column name="solarSystemID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
@@ -617,8 +623,9 @@
       <index name="mapSolarSystems_IX_constellation" unique="false" columns="constellationID"/>
       <index name="mapSolarSystems_IX_region" unique="false" columns="regionID"/>
       <index name="mapSolarSystems_IX_security" unique="false" columns="security"/>
+      <index name="mss_name" unique="false" columns="solarSystemName"/>
     </table>
-    <table name="mapuniverse" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="mapuniverse" schema="" catalog="eve_aegis" type="TABLE">
       <column name="universeID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="universeName" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
       <column name="x" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
@@ -633,25 +640,25 @@
       <column name="radius" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
       <primary-key name="PRIMARY" columns="universeID"/>
     </table>
-    <table name="planetschematics" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="planetschematics" schema="" catalog="eve_aegis" type="TABLE">
       <column name="schematicID" sqlType="SMALLINT" precision="5" scale="0" nullable="false" jdbcType="5"/>
       <column name="schematicName" sqlType="VARCHAR" precision="255" scale="0" nullable="true" jdbcType="12"/>
       <column name="cycleTime" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <primary-key name="PRIMARY" columns="schematicID"/>
     </table>
-    <table name="planetschematicspinmap" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="planetschematicspinmap" schema="" catalog="eve_aegis" type="TABLE">
       <column name="schematicID" sqlType="SMALLINT" precision="5" scale="0" nullable="false" jdbcType="5"/>
       <column name="pinTypeID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <primary-key name="PRIMARY" columns="schematicID,pinTypeID"/>
     </table>
-    <table name="planetschematicstypemap" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="planetschematicstypemap" schema="" catalog="eve_aegis" type="TABLE">
       <column name="schematicID" sqlType="SMALLINT" precision="5" scale="0" nullable="false" jdbcType="5"/>
       <column name="typeID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="quantity" sqlType="SMALLINT" precision="5" scale="0" nullable="true" jdbcType="5"/>
       <column name="isInput" sqlType="TINYINT" precision="3" scale="0" nullable="true" jdbcType="-6"/>
       <primary-key name="PRIMARY" columns="schematicID,typeID"/>
     </table>
-    <table name="ramactivities" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="ramactivities" schema="" catalog="eve_aegis" type="TABLE">
       <column name="activityID" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="false" jdbcType="-6"/>
       <column name="activityName" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
       <column name="iconNo" sqlType="VARCHAR" precision="5" scale="0" nullable="true" jdbcType="12"/>
@@ -659,7 +666,7 @@
       <column name="published" sqlType="TINYINT" precision="3" scale="0" nullable="true" jdbcType="-6"/>
       <primary-key name="PRIMARY" columns="activityID"/>
     </table>
-    <table name="ramassemblylinestations" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="ramassemblylinestations" schema="" catalog="eve_aegis" type="TABLE">
       <column name="stationID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="assemblyLineTypeID" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="false" jdbcType="-6"/>
       <column name="quantity" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="true" jdbcType="-6"/>
@@ -671,7 +678,7 @@
       <index name="ramAssemblyLineStations_IX_owner" unique="false" columns="ownerID"/>
       <index name="ramAssemblyLineStations_IX_region" unique="false" columns="regionID"/>
     </table>
-    <table name="ramassemblylinetypedetailpercategory" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="ramassemblylinetypedetailpercategory" schema="" catalog="eve_aegis" type="TABLE">
       <column name="assemblyLineTypeID" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="false" jdbcType="-6"/>
       <column name="categoryID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="timeMultiplier" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
@@ -679,7 +686,7 @@
       <column name="costMultiplier" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
       <primary-key name="PRIMARY" columns="assemblyLineTypeID,categoryID"/>
     </table>
-    <table name="ramassemblylinetypedetailpergroup" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="ramassemblylinetypedetailpergroup" schema="" catalog="eve_aegis" type="TABLE">
       <column name="assemblyLineTypeID" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="false" jdbcType="-6"/>
       <column name="groupID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="timeMultiplier" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
@@ -687,7 +694,7 @@
       <column name="costMultiplier" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
       <primary-key name="PRIMARY" columns="assemblyLineTypeID,groupID"/>
     </table>
-    <table name="ramassemblylinetypes" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="ramassemblylinetypes" schema="" catalog="eve_aegis" type="TABLE">
       <column name="assemblyLineTypeID" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="false" jdbcType="-6"/>
       <column name="assemblyLineTypeName" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
       <column name="description" sqlType="VARCHAR" precision="1000" scale="0" nullable="true" jdbcType="12"/>
@@ -699,13 +706,41 @@
       <column name="minCostPerHour" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
       <primary-key name="PRIMARY" columns="assemblyLineTypeID"/>
     </table>
-    <table name="raminstallationtypecontents" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="raminstallationtypecontents" schema="" catalog="eve_aegis" type="TABLE">
       <column name="installationTypeID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="assemblyLineTypeID" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="false" jdbcType="-6"/>
       <column name="quantity" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="true" jdbcType="-6"/>
       <primary-key name="PRIMARY" columns="installationTypeID,assemblyLineTypeID"/>
     </table>
-    <table name="staoperations" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="skinlicense" schema="" catalog="eve_aegis" type="TABLE">
+      <column name="licenseTypeID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="duration" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="skinID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <primary-key name="PRIMARY" columns="licenseTypeID"/>
+    </table>
+    <table name="skinmaterials" schema="" catalog="eve_aegis" type="TABLE">
+      <column name="skinMaterialID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="material" sqlType="VARCHAR" precision="40" scale="0" nullable="true" jdbcType="12"/>
+      <column name="displayNameID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="colorWindow" sqlType="VARCHAR" precision="6" scale="0" nullable="true" jdbcType="12"/>
+      <column name="colorPrimary" sqlType="VARCHAR" precision="6" scale="0" nullable="true" jdbcType="12"/>
+      <column name="colorSecondary" sqlType="VARCHAR" precision="6" scale="0" nullable="true" jdbcType="12"/>
+      <column name="colorHull" sqlType="VARCHAR" precision="6" scale="0" nullable="true" jdbcType="12"/>
+      <primary-key name="PRIMARY" columns="skinMaterialID"/>
+    </table>
+    <table name="skins" schema="" catalog="eve_aegis" type="TABLE">
+      <column name="skinID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="internalName" sqlType="VARCHAR" precision="70" scale="0" nullable="true" jdbcType="12"/>
+      <column name="skinMaterialID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <primary-key name="PRIMARY" columns="skinID"/>
+    </table>
+    <table name="skinship" schema="" catalog="eve_aegis" type="TABLE">
+      <column name="skinID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="typeID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <index name="skinID" unique="false" columns="skinID"/>
+      <index name="typeID" unique="false" columns="typeID"/>
+    </table>
+    <table name="staoperations" schema="" catalog="eve_aegis" type="TABLE">
       <column name="activityID" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="true" jdbcType="-6"/>
       <column name="operationID" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="false" jdbcType="-6"/>
       <column name="operationName" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
@@ -722,18 +757,18 @@
       <column name="joveStationTypeID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <primary-key name="PRIMARY" columns="operationID"/>
     </table>
-    <table name="staoperationservices" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="staoperationservices" schema="" catalog="eve_aegis" type="TABLE">
       <column name="operationID" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="false" jdbcType="-6"/>
       <column name="serviceID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <primary-key name="PRIMARY" columns="operationID,serviceID"/>
     </table>
-    <table name="staservices" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="staservices" schema="" catalog="eve_aegis" type="TABLE">
       <column name="serviceID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="serviceName" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
       <column name="description" sqlType="VARCHAR" precision="1000" scale="0" nullable="true" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="serviceID"/>
     </table>
-    <table name="stastations" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="stastations" schema="" catalog="eve_aegis" type="TABLE">
       <column name="stationID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="security" sqlType="SMALLINT" precision="5" scale="0" nullable="true" jdbcType="5"/>
       <column name="dockingCostPerVolume" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
@@ -760,7 +795,7 @@
       <index name="staStations_IX_system" unique="false" columns="solarSystemID"/>
       <index name="staStations_IX_type" unique="false" columns="stationTypeID"/>
     </table>
-    <table name="stastationtypes" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="stastationtypes" schema="" catalog="eve_aegis" type="TABLE">
       <column name="stationTypeID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="dockEntryX" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
       <column name="dockEntryY" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
@@ -774,7 +809,7 @@
       <column name="conquerable" sqlType="TINYINT" precision="3" scale="0" nullable="true" jdbcType="-6"/>
       <primary-key name="PRIMARY" columns="stationTypeID"/>
     </table>
-    <table name="translationtables" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="translationtables" schema="" catalog="eve_aegis" type="TABLE">
       <column name="sourceTable" sqlType="VARCHAR" precision="200" scale="0" nullable="false" jdbcType="12"/>
       <column name="destinationTable" sqlType="VARCHAR" precision="200" scale="0" nullable="true" jdbcType="12"/>
       <column name="translatedKey" sqlType="VARCHAR" precision="200" scale="0" nullable="false" jdbcType="12"/>
@@ -782,7 +817,7 @@
       <column name="tcID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <primary-key name="PRIMARY" columns="sourceTable,translatedKey"/>
     </table>
-    <table name="trntranslationcolumns" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="trntranslationcolumns" schema="" catalog="eve_aegis" type="TABLE">
       <column name="tcGroupID" sqlType="SMALLINT" precision="5" scale="0" nullable="true" jdbcType="5"/>
       <column name="tcID" sqlType="SMALLINT" precision="5" scale="0" nullable="false" jdbcType="5"/>
       <column name="tableName" sqlType="VARCHAR" precision="256" scale="0" nullable="false" jdbcType="12"/>
@@ -790,20 +825,20 @@
       <column name="masterID" sqlType="VARCHAR" precision="128" scale="0" nullable="true" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="tcID"/>
     </table>
-    <table name="trntranslationlanguages" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="trntranslationlanguages" schema="" catalog="eve_aegis" type="TABLE">
       <column name="numericLanguageID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="languageID" sqlType="VARCHAR" precision="50" scale="0" nullable="true" jdbcType="12"/>
       <column name="languageName" sqlType="VARCHAR" precision="200" scale="0" nullable="true" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="numericLanguageID"/>
     </table>
-    <table name="trntranslations" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="trntranslations" schema="" catalog="eve_aegis" type="TABLE">
       <column name="tcID" sqlType="SMALLINT" precision="5" scale="0" nullable="false" jdbcType="5"/>
       <column name="keyID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="languageID" sqlType="VARCHAR" precision="50" scale="0" nullable="false" jdbcType="12"/>
       <column name="text" sqlType="LONGTEXT" precision="2147483647" scale="0" nullable="false" jdbcType="-1"/>
       <primary-key name="PRIMARY" columns="tcID,keyID,languageID"/>
     </table>
-    <table name="warcombatzones" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="warcombatzones" schema="" catalog="eve_aegis" type="TABLE">
       <column name="combatZoneID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="LTE="/>
       <column name="combatZoneName" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
       <column name="factionID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
@@ -811,10 +846,129 @@
       <column name="description" sqlType="VARCHAR" precision="500" scale="0" nullable="true" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="combatZoneID"/>
     </table>
-    <table name="warcombatzonesystems" schema="" catalog="eve_phoebe" type="TABLE">
+    <table name="warcombatzonesystems" schema="" catalog="eve_aegis" type="TABLE">
       <column name="solarSystemID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="combatZoneID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
       <primary-key name="PRIMARY" columns="solarSystemID"/>
+    </table>
+    <table name="invtypes" schema="" catalog="eve_test" type="TABLE">
+      <column name="typeID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="groupID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="typeName" sqlType="VARCHAR" precision="100" scale="0" nullable="true" jdbcType="12"/>
+      <column name="description" sqlType="VARCHAR" precision="3000" scale="0" nullable="true" jdbcType="12"/>
+      <column name="mass" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="volume" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="capacity" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="portionSize" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="raceID" sqlType="TINYINT UNSIGNED" precision="3" scale="0" nullable="true" jdbcType="-6"/>
+      <column name="basePrice" sqlType="DECIMAL" precision="19" scale="4" nullable="true" jdbcType="3"/>
+      <column name="published" sqlType="TINYINT" precision="3" scale="0" nullable="true" jdbcType="-6"/>
+      <column name="marketGroupID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="graphicID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="iconID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="radius" sqlType="DECIMAL" precision="19" scale="4" nullable="true" jdbcType="3"/>
+      <column name="soundID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <primary-key name="PRIMARY" columns="typeID"/>
+      <index name="invTypes_IX_Group" unique="false" columns="groupID"/>
+    </table>
+    <table name="mapconstellations" schema="" catalog="eve_test" type="TABLE">
+      <column name="regionID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="constellationID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="constellationName" sqlType="LONGTEXT" precision="2147483647" scale="0" nullable="true" jdbcType="-1"/>
+      <column name="x" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="y" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="z" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="xMin" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="xMax" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="yMin" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="yMax" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="zMin" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="zMax" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="factionID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="radius" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <primary-key name="PRIMARY" columns="constellationID"/>
+      <index name="mapConstellations_IX_region" unique="false" columns="regionID"/>
+    </table>
+    <table name="mapdenormalize" schema="" catalog="eve_test" type="TABLE">
+      <column name="itemID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="typeID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="groupID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="solarSystemID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="constellationID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="regionID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="orbitID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="x" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="y" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="z" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="radius" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="itemName" sqlType="LONGTEXT" precision="2147483647" scale="0" nullable="true" jdbcType="-1"/>
+      <column name="security" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="celestialIndex" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="orbitIndex" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <primary-key name="PRIMARY" columns="itemID"/>
+      <index name="mapDenormalize_gis" unique="false" columns="solarSystemID,x,y,z,itemName,itemID"/>
+      <index name="mapDenormalize_IX_constellation" unique="false" columns="constellationID"/>
+      <index name="mapDenormalize_IX_groupConstellation" unique="false" columns="groupID,constellationID"/>
+      <index name="mapDenormalize_IX_groupRegion" unique="false" columns="groupID,regionID"/>
+      <index name="mapDenormalize_IX_groupSystem" unique="false" columns="groupID,solarSystemID"/>
+      <index name="mapDenormalize_IX_orbit" unique="false" columns="orbitID"/>
+      <index name="mapDenormalize_IX_region" unique="false" columns="regionID"/>
+      <index name="mapDenormalize_IX_system" unique="false" columns="solarSystemID"/>
+    </table>
+    <table name="maplocationwormholeclasses" schema="" catalog="eve_test" type="TABLE">
+      <column name="locationID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="wormholeClassID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <primary-key name="PRIMARY" columns="locationID"/>
+    </table>
+    <table name="mapregions" schema="" catalog="eve_test" type="TABLE">
+      <column name="regionID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="regionName" sqlType="LONGTEXT" precision="2147483647" scale="0" nullable="true" jdbcType="-1"/>
+      <column name="x" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="y" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="z" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="xMin" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="xMax" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="yMin" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="yMax" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="zMin" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="zMax" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="factionID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="radius" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <primary-key name="PRIMARY" columns="regionID"/>
+      <index name="mapRegions_IX_region" unique="false" columns="regionID"/>
+    </table>
+    <table name="mapsolarsystems" schema="" catalog="eve_test" type="TABLE">
+      <column name="regionID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="constellationID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="solarSystemID" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="solarSystemName" sqlType="LONGTEXT" precision="2147483647" scale="0" nullable="true" jdbcType="-1"/>
+      <column name="x" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="y" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="z" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="xMin" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="xMax" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="yMin" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="yMax" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="zMin" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="zMax" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="luminosity" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="border" sqlType="TINYINT" precision="3" scale="0" nullable="true" jdbcType="-6"/>
+      <column name="fringe" sqlType="TINYINT" precision="3" scale="0" nullable="true" jdbcType="-6"/>
+      <column name="corridor" sqlType="TINYINT" precision="3" scale="0" nullable="true" jdbcType="-6"/>
+      <column name="hub" sqlType="TINYINT" precision="3" scale="0" nullable="true" jdbcType="-6"/>
+      <column name="international" sqlType="TINYINT" precision="3" scale="0" nullable="true" jdbcType="-6"/>
+      <column name="regional" sqlType="TINYINT" precision="3" scale="0" nullable="true" jdbcType="-6"/>
+      <column name="constellation" sqlType="TINYINT" precision="3" scale="0" nullable="true" jdbcType="-6"/>
+      <column name="security" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="factionID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="radius" sqlType="DOUBLE" precision="22" scale="0" nullable="true" jdbcType="8"/>
+      <column name="sunTypeID" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="securityClass" sqlType="LONGTEXT" precision="2147483647" scale="0" nullable="true" jdbcType="-1"/>
+      <primary-key name="PRIMARY" columns="solarSystemID"/>
+      <index name="mapSolarSystems_IX_constellation" unique="false" columns="constellationID"/>
+      <index name="mapSolarSystems_IX_region" unique="false" columns="regionID"/>
+      <index name="mapSolarSystems_IX_security" unique="false" columns="security"/>
+      <index name="mss_name" unique="false" columns="solarSystemName"/>
     </table>
     <table name="alliance" schema="" catalog="pathfinder" type="TABLE">
       <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
@@ -822,6 +976,7 @@
       <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
       <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
       <column name="name" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="sharing" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MA=="/>
       <primary-key name="PRIMARY" columns="id"/>
       <exported-key name="alliance_map_ibfk_2" table="alliance_map" schema="" catalog="pathfinder" columns="allianceId"/>
       <exported-key name="character_ibfk_2" table="character" schema="" catalog="pathfinder" columns="allianceId"/>
@@ -925,6 +1080,7 @@
       <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
       <column name="name" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
       <column name="label" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="connectorDefinition" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="id"/>
       <index name="active" unique="false" columns="active"/>
       <index name="created" unique="false" columns="created"/>
@@ -936,6 +1092,7 @@
       <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
       <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
       <column name="name" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="sharing" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MA=="/>
       <primary-key name="PRIMARY" columns="id"/>
       <exported-key name="character_ibfk_1" table="character" schema="" catalog="pathfinder" columns="corporationId"/>
       <exported-key name="corporation_map_ibfk_2" table="corporation_map" schema="" catalog="pathfinder" columns="corporationId"/>
@@ -1028,10 +1185,10 @@
       <column name="constellationId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <column name="constellation" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
       <column name="effect" sqlType="VARCHAR" precision="100" scale="0" nullable="false" jdbcType="12"/>
-      <column name="typeId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="typeId" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6"/>
       <column name="security" sqlType="VARCHAR" precision="10" scale="0" nullable="false" jdbcType="12"/>
       <column name="trueSec" sqlType="DECIMAL" precision="2" scale="1" nullable="false" jdbcType="3"/>
-      <column name="statusId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MQ=="/>
+      <column name="statusId" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
       <column name="locked" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MA=="/>
       <column name="rally" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MA=="/>
       <column name="description" sqlType="MEDIUMTEXT" precision="16777215" scale="0" nullable="false" jdbcType="-1"/>
@@ -1041,14 +1198,13 @@
       <column name="updatedCharacterId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
       <primary-key name="PRIMARY" columns="id"/>
       <foreign-key name="system_ibfk_1" columns="mapId" ref-table="map" ref-schema="" ref-catalog="pathfinder" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
-      <foreign-key name="system_ibfk_2" columns="typeId" ref-table="system_type" ref-schema="" ref-catalog="pathfinder" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
-      <foreign-key name="system_ibfk_3" columns="statusId" ref-table="system_status" ref-schema="" ref-catalog="pathfinder" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
       <foreign-key name="system_ibfk_4" columns="createdCharacterId" ref-table="character" ref-schema="" ref-catalog="pathfinder" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
       <foreign-key name="system_ibfk_5" columns="updatedCharacterId" ref-table="character" ref-schema="" ref-catalog="pathfinder" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <foreign-key name="system_ibfk_6" columns="statusId" ref-table="system_status" ref-schema="" ref-catalog="pathfinder" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <foreign-key name="system_ibfk_7" columns="typeId" ref-table="system_type" ref-schema="" ref-catalog="pathfinder" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
       <exported-key name="connection_ibfk_2" table="connection" schema="" catalog="pathfinder" columns="source"/>
       <exported-key name="connection_ibfk_3" table="connection" schema="" catalog="pathfinder" columns="target"/>
       <exported-key name="system_signature_ibfk_1" table="system_signature" schema="" catalog="pathfinder" columns="systemId"/>
-      <index name="mapId_2" unique="true" columns="mapId,systemId"/>
       <index name="unique_system" unique="true" columns="mapId,systemId"/>
       <index name="active" unique="false" columns="active"/>
       <index name="created" unique="false" columns="created"/>
@@ -1246,7 +1402,7 @@
       <index name="constellation_id" unique="false" columns="constellationId"/>
     </table>
     <table name="system_status" schema="" catalog="pathfinder" type="TABLE">
-      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="id" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" autoIncrement="true"/>
       <column name="created" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
       <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
       <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
@@ -1254,19 +1410,19 @@
       <column name="label" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
       <column name="class" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="id"/>
-      <exported-key name="system_ibfk_3" table="system" schema="" catalog="pathfinder" columns="statusId"/>
+      <exported-key name="system_ibfk_6" table="system" schema="" catalog="pathfinder" columns="statusId"/>
       <index name="active" unique="false" columns="active"/>
       <index name="created" unique="false" columns="created"/>
       <index name="updated" unique="false" columns="updated"/>
     </table>
     <table name="system_type" schema="" catalog="pathfinder" type="TABLE">
-      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="id" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" autoIncrement="true"/>
       <column name="created" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
       <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
       <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
       <column name="name" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
       <primary-key name="PRIMARY" columns="id"/>
-      <exported-key name="system_ibfk_2" table="system" schema="" catalog="pathfinder" columns="typeId"/>
+      <exported-key name="system_ibfk_7" table="system" schema="" catalog="pathfinder" columns="typeId"/>
       <index name="active" unique="false" columns="active"/>
       <index name="created" unique="false" columns="created"/>
       <index name="updated" unique="false" columns="updated"/>
@@ -1280,6 +1436,7 @@
       <column name="name" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
       <column name="email" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
       <column name="password" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="sharing" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MA=="/>
       <primary-key name="PRIMARY" columns="id"/>
       <exported-key name="user_api_ibfk_1" table="user_api" schema="" catalog="pathfinder" columns="userId"/>
       <exported-key name="user_character_ibfk_1" table="user_character" schema="" catalog="pathfinder" columns="userId"/>
@@ -1337,6 +1494,544 @@
       <primary-key name="PRIMARY" columns="id"/>
       <foreign-key name="user_map_ibfk_1" columns="mapId" ref-table="map" ref-schema="" ref-catalog="pathfinder" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
       <foreign-key name="user_map_ibfk_2" columns="userId" ref-table="user" ref-schema="" ref-catalog="pathfinder" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <index name="unique_user" unique="true" columns="userId,mapId"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="updated" unique="false" columns="updated"/>
+      <index name="userId" unique="false" columns="mapId"/>
+    </table>
+  </data-source>
+  <data-source name="Pathfinder production" uuid="5ad9de1d-d2a1-4aed-832f-ec919fcd1338">
+    <database-info product="MySQL" version="5.6.24-nmm1-log" jdbc-version="4.0" driver-name="MySQL Connector Java" driver-version="mysql-connector-java-5.1.35 ( Revision: 5fb9c5849535c13917c2cf9baaece6ef9693ef27 )">
+      <extra-name-characters>#@</extra-name-characters>
+      <identifier-quote-string>`</identifier-quote-string>
+    </database-info>
+    <case-sensitivity plain-identifiers="exact" quoted-identifiers="exact"/>
+    <schema name="" catalog="d01d8636"/>
+    <table name="alliance" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="created" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="name" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="sharing" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MA=="/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <exported-key name="alliance_map_ibfk_2" table="alliance_map" schema="" catalog="d01d8636" columns="allianceId"/>
+      <exported-key name="character_ibfk_2" table="character" schema="" catalog="d01d8636" columns="allianceId"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="updated" unique="false" columns="updated"/>
+    </table>
+    <table name="alliance_map" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="created" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="allianceId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="mapId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="alliance_map_ibfk_1" columns="mapId" ref-table="map" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <foreign-key name="alliance_map_ibfk_2" columns="allianceId" ref-table="alliance" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <index name="allianceId_mapId" unique="true" columns="allianceId,mapId"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="updated" unique="false" columns="updated"/>
+    </table>
+    <table name="character" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="created" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="name" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="corporationId" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="allianceId" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="factionId" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <column name="factionName" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="character_ibfk_1" columns="corporationId" ref-table="corporation" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="3" delete-rule="2" deferrability="2"/>
+      <foreign-key name="character_ibfk_2" columns="allianceId" ref-table="alliance" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="3" delete-rule="2" deferrability="2"/>
+      <exported-key name="character_log_ibfk_1" table="character_log" schema="" catalog="d01d8636" columns="characterId"/>
+      <exported-key name="system_ibfk_4" table="system" schema="" catalog="d01d8636" columns="createdCharacterId"/>
+      <exported-key name="system_ibfk_5" table="system" schema="" catalog="d01d8636" columns="updatedCharacterId"/>
+      <exported-key name="system_signature_ibfk_2" table="system_signature" schema="" catalog="d01d8636" columns="createdCharacterId"/>
+      <exported-key name="system_signature_ibfk_3" table="system_signature" schema="" catalog="d01d8636" columns="updatedCharacterId"/>
+      <exported-key name="user_character_ibfk_3" table="user_character" schema="" catalog="d01d8636" columns="characterId"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="factionId" unique="false" columns="factionId"/>
+      <index name="updated" unique="false" columns="updated"/>
+    </table>
+    <table name="character_log" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="created" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="characterId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="systemId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="systemName" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="shipId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="shipName" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="shipTypeName" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="character_log_ibfk_1" columns="characterId" ref-table="character" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="shipId" unique="false" columns="shipId"/>
+      <index name="systemId" unique="false" columns="systemId"/>
+      <index name="updated" unique="false" columns="updated"/>
+    </table>
+    <table name="character_status" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="created" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="name" sqlType="VARCHAR" precision="155" scale="0" nullable="false" jdbcType="12"/>
+      <column name="class" sqlType="VARCHAR" precision="155" scale="0" nullable="false" jdbcType="12"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="updated" unique="false" columns="updated"/>
+    </table>
+    <table name="connection" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="created" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="mapId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="source" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="target" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="scope" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="type" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="connection_ibfk_1" columns="mapId" ref-table="map" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <foreign-key name="connection_ibfk_2" columns="source" ref-table="system" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <foreign-key name="connection_ibfk_3" columns="target" ref-table="system" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="source" unique="false" columns="target,scope"/>
+      <index name="updated" unique="false" columns="updated"/>
+    </table>
+    <table name="connection_scope" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="created" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="name" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="label" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="connectorDefinition" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="updated" unique="false" columns="updated"/>
+    </table>
+    <table name="corporation" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="created" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="name" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="sharing" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MA=="/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <exported-key name="character_ibfk_1" table="character" schema="" catalog="d01d8636" columns="corporationId"/>
+      <exported-key name="corporation_map_ibfk_2" table="corporation_map" schema="" catalog="d01d8636" columns="corporationId"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="updated" unique="false" columns="updated"/>
+    </table>
+    <table name="corporation_map" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="created" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="corporationId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="mapId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="corporation_map_ibfk_1" columns="mapId" ref-table="map" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <foreign-key name="corporation_map_ibfk_2" columns="corporationId" ref-table="corporation" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <index name="corporationId_2" unique="true" columns="corporationId,mapId"/>
+      <index name="corporationId_mapId" unique="true" columns="corporationId,mapId"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="updated" unique="false" columns="updated"/>
+    </table>
+    <table name="map" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="created" sqlType="DATETIME" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="scopeId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="typeId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="name" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="icon" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="map_ibfk_1" columns="typeId" ref-table="map_type" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <foreign-key name="map_ibfk_2" columns="scopeId" ref-table="map_scope" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <exported-key name="alliance_map_ibfk_1" table="alliance_map" schema="" catalog="d01d8636" columns="mapId"/>
+      <exported-key name="connection_ibfk_1" table="connection" schema="" catalog="d01d8636" columns="mapId"/>
+      <exported-key name="corporation_map_ibfk_1" table="corporation_map" schema="" catalog="d01d8636" columns="mapId"/>
+      <exported-key name="system_ibfk_1" table="system" schema="" catalog="d01d8636" columns="mapId"/>
+      <exported-key name="user_map_ibfk_1" table="user_map" schema="" catalog="d01d8636" columns="mapId"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="updated" unique="false" columns="updated"/>
+    </table>
+    <table name="map_scope" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="created" sqlType="DATETIME" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="name" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="label" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <exported-key name="map_ibfk_2" table="map" schema="" catalog="d01d8636" columns="scopeId"/>
+    </table>
+    <table name="map_type" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="created" sqlType="DATETIME" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="name" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="label" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="class" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="classTab" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <exported-key name="map_ibfk_1" table="map" schema="" catalog="d01d8636" columns="typeId"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="updated" unique="false" columns="updated"/>
+    </table>
+    <table name="sessions" schema="" catalog="d01d8636" type="TABLE">
+      <column name="session_id" sqlType="VARCHAR" precision="40" scale="0" nullable="false" jdbcType="12" def="Jyc="/>
+      <column name="data" sqlType="TEXT" precision="65535" scale="0" nullable="true" jdbcType="-1"/>
+      <column name="csrf" sqlType="TEXT" precision="65535" scale="0" nullable="true" jdbcType="-1"/>
+      <column name="ip" sqlType="VARCHAR" precision="40" scale="0" nullable="true" jdbcType="12"/>
+      <column name="agent" sqlType="VARCHAR" precision="255" scale="0" nullable="true" jdbcType="12"/>
+      <column name="stamp" sqlType="INT" precision="10" scale="0" nullable="true" jdbcType="4"/>
+      <primary-key name="PRIMARY" columns="session_id"/>
+    </table>
+    <table name="system" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="created" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="mapId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="systemId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="name" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="alias" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="regionId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="region" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="constellationId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="constellation" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="effect" sqlType="VARCHAR" precision="100" scale="0" nullable="false" jdbcType="12"/>
+      <column name="typeId" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6"/>
+      <column name="security" sqlType="VARCHAR" precision="10" scale="0" nullable="false" jdbcType="12"/>
+      <column name="trueSec" sqlType="DECIMAL" precision="2" scale="1" nullable="false" jdbcType="3"/>
+      <column name="statusId" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="locked" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MA=="/>
+      <column name="rally" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MA=="/>
+      <column name="description" sqlType="MEDIUMTEXT" precision="16777215" scale="0" nullable="false" jdbcType="-1"/>
+      <column name="posX" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="posY" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="createdCharacterId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="updatedCharacterId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="system_ibfk_1" columns="mapId" ref-table="map" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <foreign-key name="system_ibfk_4" columns="createdCharacterId" ref-table="character" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <foreign-key name="system_ibfk_5" columns="updatedCharacterId" ref-table="character" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <foreign-key name="system_ibfk_6" columns="statusId" ref-table="system_status" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <foreign-key name="system_ibfk_7" columns="typeId" ref-table="system_type" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <exported-key name="connection_ibfk_2" table="connection" schema="" catalog="d01d8636" columns="source"/>
+      <exported-key name="connection_ibfk_3" table="connection" schema="" catalog="d01d8636" columns="target"/>
+      <exported-key name="system_signature_ibfk_1" table="system_signature" schema="" catalog="d01d8636" columns="systemId"/>
+      <index name="unique_system" unique="true" columns="mapId,systemId"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="locked" unique="false" columns="locked"/>
+      <index name="rally" unique="false" columns="rally"/>
+      <index name="regionId" unique="false" columns="regionId"/>
+      <index name="systemId" unique="false" columns="systemId"/>
+      <index name="updated" unique="false" columns="updated"/>
+    </table>
+    <table name="system_jumps" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="created" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="systemId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="value1" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value2" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value3" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value4" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value5" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value6" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value7" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value8" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value9" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value10" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value11" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value12" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value13" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value14" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value15" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value16" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value17" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value18" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value19" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value20" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value21" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value22" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value23" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value24" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <index name="systemId" unique="true" columns="systemId"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="updated" unique="false" columns="updated"/>
+    </table>
+    <table name="system_kills_factions" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="created" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="systemId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="value1" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value2" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value3" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value4" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value5" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value6" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value7" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value8" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value9" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value10" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value11" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value12" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value13" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value14" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value15" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value16" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value17" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value18" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value19" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value20" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value21" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value22" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value23" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value24" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <index name="systemId" unique="true" columns="systemId"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="updated" unique="false" columns="updated"/>
+    </table>
+    <table name="system_kills_pods" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="created" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="systemId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="value1" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value2" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value3" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value4" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value5" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value6" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value7" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value8" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value9" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value10" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value11" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value12" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value13" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value14" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value15" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value16" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value17" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value18" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value19" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value20" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value21" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value22" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value23" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value24" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <index name="systemId" unique="true" columns="systemId"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="updated" unique="false" columns="updated"/>
+    </table>
+    <table name="system_kills_ships" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="created" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="systemId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="value1" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value2" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value3" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value4" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value5" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value6" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value7" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value8" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value9" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value10" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value11" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value12" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value13" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value14" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value15" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value16" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value17" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value18" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value19" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value20" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value21" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value22" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value23" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <column name="value24" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA=="/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <index name="systemId" unique="true" columns="systemId"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="updated" unique="false" columns="updated"/>
+    </table>
+    <table name="system_neighbour" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="regionId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="constellationId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="systemName" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="systemId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="jumpNodes" sqlType="TEXT" precision="65535" scale="0" nullable="false" jdbcType="-1"/>
+      <column name="trueSec" sqlType="DECIMAL" precision="6" scale="5" nullable="false" jdbcType="3"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <index name="systemId_2" unique="true" columns="systemId"/>
+      <index name="constellationId" unique="false" columns="constellationId"/>
+      <index name="regionId" unique="false" columns="regionId"/>
+      <index name="systemId" unique="false" columns="systemId"/>
+    </table>
+    <table name="system_signature" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="created" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="systemId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="groupId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="typeId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="name" sqlType="VARCHAR" precision="50" scale="0" nullable="false" jdbcType="12"/>
+      <column name="description" sqlType="MEDIUMTEXT" precision="16777215" scale="0" nullable="false" jdbcType="-1"/>
+      <column name="createdCharacterId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="updatedCharacterId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="system_signature_ibfk_1" columns="systemId" ref-table="system" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <foreign-key name="system_signature_ibfk_2" columns="createdCharacterId" ref-table="character" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <foreign-key name="system_signature_ibfk_3" columns="updatedCharacterId" ref-table="character" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="systemId" unique="false" columns="typeId,groupId"/>
+      <index name="updated" unique="false" columns="updated"/>
+    </table>
+    <table name="system_static" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="constellationId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="security" sqlType="VARCHAR" precision="5" scale="0" nullable="false" jdbcType="12"/>
+      <column name="name" sqlType="VARCHAR" precision="10" scale="0" nullable="false" jdbcType="12"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <index name="constellation_id" unique="false" columns="constellationId"/>
+    </table>
+    <table name="system_status" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" autoIncrement="true"/>
+      <column name="created" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="name" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="label" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="class" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <exported-key name="system_ibfk_6" table="system" schema="" catalog="d01d8636" columns="statusId"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="updated" unique="false" columns="updated"/>
+    </table>
+    <table name="system_type" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" autoIncrement="true"/>
+      <column name="created" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="name" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <exported-key name="system_ibfk_7" table="system" schema="" catalog="d01d8636" columns="typeId"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="updated" unique="false" columns="updated"/>
+    </table>
+    <table name="user" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="created" sqlType="DATETIME" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="lastLogin" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="JzAwMDAtMDAtMDAgMDA6MDA6MDAn"/>
+      <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="name" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="email" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="password" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <column name="sharing" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MA=="/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <exported-key name="user_api_ibfk_1" table="user_api" schema="" catalog="d01d8636" columns="userId"/>
+      <exported-key name="user_character_ibfk_1" table="user_character" schema="" catalog="d01d8636" columns="userId"/>
+      <exported-key name="user_map_ibfk_2" table="user_map" schema="" catalog="d01d8636" columns="userId"/>
+      <index name="email" unique="true" columns="email"/>
+      <index name="id" unique="true" columns="id"/>
+      <index name="name" unique="true" columns="name"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="lastLogin" unique="false" columns="lastLogin"/>
+      <index name="updated" unique="false" columns="updated"/>
+    </table>
+    <table name="user_api" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="created" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="userId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="keyId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="vCode" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="user_api_ibfk_1" columns="userId" ref-table="user" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <exported-key name="user_character_ibfk_2" table="user_character" schema="" catalog="d01d8636" columns="apiId"/>
+      <index name="keyId" unique="true" columns="keyId"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="updated" unique="false" columns="updated"/>
+    </table>
+    <table name="user_character" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="created" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="userId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="apiId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="characterId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="isMain" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MA=="/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="user_character_ibfk_1" columns="userId" ref-table="user" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <foreign-key name="user_character_ibfk_2" columns="apiId" ref-table="user_api" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <foreign-key name="user_character_ibfk_3" columns="characterId" ref-table="character" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <index name="userId_2" unique="true" columns="userId,apiId,characterId"/>
+      <index name="userId_3" unique="true" columns="userId,characterId"/>
+      <index name="active" unique="false" columns="active"/>
+      <index name="created" unique="false" columns="created"/>
+      <index name="updated" unique="false" columns="updated"/>
+      <index name="userId" unique="false" columns="apiId"/>
+    </table>
+    <table name="user_map" schema="" catalog="d01d8636" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="created" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA="/>
+      <column name="updated" sqlType="TIMESTAMP" precision="19" scale="0" nullable="false" jdbcType="93" def="Q1VSUkVOVF9USU1FU1RBTVA=" version="true"/>
+      <column name="active" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MQ=="/>
+      <column name="userId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <column name="mapId" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="user_map_ibfk_1" columns="mapId" ref-table="map" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
+      <foreign-key name="user_map_ibfk_2" columns="userId" ref-table="user" ref-schema="" ref-catalog="d01d8636" ref-columns="id" update-rule="0" delete-rule="0" deferrability="2"/>
       <index name="unique_user" unique="true" columns="userId,mapId"/>
       <index name="active" unique="false" columns="active"/>
       <index name="created" unique="false" columns="created"/>

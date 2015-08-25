@@ -29,10 +29,6 @@ class AppController extends Controller {
         // JS main file
         $f3->set('jsView', 'landingpage');
 
-        // check if user is in game
-        $f3->set('isIngame', self::isIGB() );
-        $this->f3->set('igbTest', 123 );
-
         $this->setTemplate('templates/view/index.html');
     }
 

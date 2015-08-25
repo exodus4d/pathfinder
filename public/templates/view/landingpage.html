@@ -1,3 +1,10 @@
+{* config *}
+<check if="{{ @PATHFINDER.REGISTRATION.STATUS != '1' }}">
+    <set registrationStatusButton="disabled" />
+    <set registrationStatusTitle= "{{@PATHFINDER.REGISTRATION.MSG_DISABLED}}" />
+</check>
+
+{* splash page *}
 <div class="pf-splash">
     <div class="pf-color-line"></div>
     <div class="pf-splash-title">
@@ -20,7 +27,9 @@
             </button>
 
             <p class="navbar-text">
-                <span class="badge txt-color txt-color-grayLight">v.0.02 beta</span>
+                <a target="_blank" href="{{ @PATHFINDER.REPO }}">
+                    <span class="badge txt-color txt-color-grayLight">{{ @PATHFINDER.VERSION }}</span>
+                </a>
             </p>
 
             <ul class="nav navbar-nav navbar-right" role="tablist">
@@ -34,6 +43,7 @@
                 <li> <a class="page-scroll" data-anchor="#pf-landing-pricing" href="#">Pricing</a></li>
                 <li> <a class="page-scroll" data-anchor="#pf-landing-about" href="#">About</a></li>
                 <li> <a class="page-scroll" data-anchor="#pf-landing-faq" href="#">FAQ</a></li>
+                <li> <a class="pf-navbar-license" href="#">License</a></li>
             </ul>
         </div>
     </div>
@@ -42,7 +52,7 @@
 {* header *}
 <header id="pf-landing-top">
     <div id="pf-header-container">
-        <canvas id="pf-header-canvas" width="500" height="480"></canvas>
+        <canvas id="pf-header-canvas" class="hidden-xs" width="500" height="480"></canvas>
         <div class="container">
 
             <check if="{{ @isIngame == 1 }}">
@@ -119,11 +129,11 @@
 
             <div class="row text-center">
                 <div class="col-sm-6 col-sm-offset-3">
-                    <div class="col-sm-4 col-sm-offset-2">
-                        <button class="pf-register-button btn-block btn btn-primary" tabindex="4"><i class="fa fa-fw fa-user-plus"></i> Register</button>
+                    <div class="col-sm-4 col-sm-offset-2" data-placement="left" title="{{@registrationStatusTitle}}">
+                        <button class="pf-register-button btn-block btn btn-primary {{@registrationStatusButton}}" tabindex="4"><i class="fa fa-fw fa-user-plus"></i> Sign up</button>
                     </div>
                     <div class="col-sm-4">
-                        <button class="pf-login-button btn-block btn btn-success" tabindex="3"><i class="fa fa-fw fa-sign-in"></i> Login</button>
+                        <button class="pf-login-button btn-block btn btn-success" tabindex="3"><i class="fa fa-fw fa-sign-in"></i> Log in</button>
                     </div>
                 </div>
             </div>
@@ -526,8 +536,8 @@
                             </ul>
                         </div>
                     </div>
-                    <div class="panel-footer text-align-center">
-                        <button class="btn btn-primary btn-block pf-register-button" role="button">Register</button>
+                    <div class="panel-footer text-align-center" data-placement="top" title="{{@registrationStatusTitle}}">
+                        <button class="btn btn-primary btn-block pf-register-button {{@registrationStatusButton}}" role="button"><i class="fa fa-fw fa-user-plus"></i> Sign up</button>
                     </div>
                 </div>
             </div>
@@ -554,7 +564,7 @@
                         </div>
                     </div>
                     <div class="panel-footer text-align-center">
-                        <a href="javascript:void(0);" class="btn btn-default btn-block disabled" role="button">Apply for</a>
+                        <a href="javascript:void(0);" class="btn btn-default btn-block disabled" role="button"><i class="fa fa-fw fa-pencil-square-o"></i> Apply for</a>
                     </div>
                 </div>
             </div>
@@ -581,7 +591,7 @@
                         </div>
                     </div>
                     <div class="panel-footer text-align-center">
-                        <a href="javascript:void(0);" class="btn btn-default btn-block disabled" role="button">Apply for</a>
+                        <a href="javascript:void(0);" class="btn btn-default btn-block disabled" role="button"><i class="fa fa-fw fa-pencil-square-o"></i> Apply for</a>
                     </div>
                 </div>
             </div>
@@ -622,14 +632,14 @@
                     The main focus of my daily work is based on large scale frontend applications.
                 </p>
                 <p>
-                    I decided to make this project <a target="_blank" href="https://github.com/exodus4d/pathfinder">"Open Source"</a>, once the beta testing is finished.
+                    I decided to make this project <a target="_blank" href="{{ @PATHFINDER.REPO }}">"Open Source"</a>, once the beta testing is finished.
                     It would be a great pleasure to me if you would help me to improve this project by submitting <a target="_blank" href="https://github.com/exodus4d/pathfinder/issues">bug reports</a>
                     or any kind of security issues.
                 </p>
             </div>
 
             <div class="col-xs-12 col-sm-5 col-md-4 col-lg-4 text-center">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small pf-landing-about-me" alt="" src="http://image.eveonline.com/Character/1946320202_256.jpg">
+                    <img class="pf-landing-image-preview pf-landing-image-preview-small pf-landing-about-me" alt="" src="https://image.eveonline.com/Character/1946320202_256.jpg">
             </div>
         </div>
 
@@ -793,7 +803,7 @@
                 <ul class="pf-social-networks text-right">
                     <li><a target="_blank" href="https://www.youtube.com/channel/UC7HU7XEoMbqRwqxDTbMjSPg"> <i class="fa fa-lg fa-youtube-play fa-fw"></i> </a></li>
                     <li><a target="_blank" href="https://plus.google.com/u/0/b/110257318165279088853/110257318165279088853/about"> <i class="fa fa-lg fa-google-plus fa-fw"></i> </a></li>
-                    <li><a target="_blank" href="https://github.com/exodus4d/pathfinder"> <i class="fa fa-lg fa-github fa-fw"></i> </a></li>
+                    <li><a target="_blank" href="{{ @PATHFINDER.REPO }}"> <i class="fa fa-lg fa-github fa-fw"></i> </a></li>
                 </ul>
             </div>
         </div>

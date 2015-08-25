@@ -18,8 +18,9 @@ define([
         systemInfoModuleClass: 'pf-system-info-module',                         // module wrapper
 
         // breadcrumb
-        constellationLinkClass: 'pf-system-info-constellation',                 // class for "constellation" link
-        regionLinkClass: 'pf-system-info-region',                               // class for "region" link
+        constellationLinkClass: 'pf-system-info-constellation',                 // class for "constellation" name
+        regionLinkClass: 'pf-system-info-region',                               // class for "region" name
+        typeLinkClass: 'pf-system-info-type',                                   // class for "type" name
 
         // info table
         systemInfoTableClass: 'pf-system-info-table',                           // class for system info table
@@ -397,7 +398,8 @@ define([
             ajaxConstellationInfoUrl: Init.path.getConstellationData,
 
             systemConstellationLinkClass: config.constellationLinkClass,
-            systemRegionLinkClass: config.regionLinkClass
+            systemRegionLinkClass: config.regionLinkClass,
+            systemTypeLinkClass: config.typeLinkClass
 
         };
 

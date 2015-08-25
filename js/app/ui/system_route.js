@@ -95,7 +95,7 @@ define([
             $.fn.modal.Constructor.prototype.enforceFocus = function() {};
 
             var findRouteDialog = bootbox.dialog({
-                title: 'Search route',
+                title: 'Search shortest route',
                 message: content,
                 buttons: {
                     close: {
@@ -150,10 +150,9 @@ define([
 
                 var modalContent = $('#' + config.routeDialogId);
 
-                // init system select live  search
+                // init system select live  search  - some delay until modal transition has finished
                 var selectElement = modalContent.find('.' + config.systemDialogSelectClass);
-
-                selectElement.initSystemSelect({key: 'name'});
+                selectElement.delay(240).initSystemSelect({key: 'name'});
             });
         });
     };
@@ -188,7 +187,8 @@ define([
      */
     var formatRouteData = function(routeData){
 
-        var rowData = false;
+        var tableRowData = {};
+
         if(
             routeData.routePossible === true &&
             routeData.route.length > 0
@@ -196,9 +196,10 @@ define([
             // route data available
 
             // add route Data
-            rowData = [routeData.route[ routeData.route.length - 1 ].system.toLowerCase(), routeData.routeJumps];
+            var rowData = [routeData.route[ routeData.route.length - 1 ].system.toLowerCase(), routeData.routeJumps];
 
             var jumpData = [];
+            var avgSecTemp = 0;
 
             // loop all systems on this route
             for(var i = 0; i < routeData.route.length; i++){
@@ -215,16 +216,26 @@ define([
 
                 var system = '<i class="fa fa-square ' + systemSecClass + '" ';
                 system += 'data-toggle="tooltip" data-placement="bottom" data-container="body" ';
-                system += 'title="' + routeNodeData.system + ' [' + systemSec + '] "></i>';
+                system += 'title="' + routeNodeData.system.toLowerCase() + ' [' + systemSec + '] "></i>';
                 jumpData.push( system );
 
+                avgSecTemp += Number(routeNodeData.security);
             }
 
-            rowData.push( jumpData.join(' ') );
+            var avgSec = ( avgSecTemp /  routeData.route.length).toFixed(2);
+            var avgSecClass = config.systemSecurityClassPrefix + ( avgSecTemp /  routeData.route.length).toFixed(1).toString().replace('.', '-');
+
+            tableRowData.system = rowData[0];
+            tableRowData.jumps = rowData[1];
+            tableRowData.avgTrueSec = {
+                value: avgSec,
+                formatted: '<span class="' + avgSecClass + '">' + avgSec + '</span>'
+            };
+            tableRowData.route = jumpData.join(' ');
+
         }
 
-
-        return rowData;
+        return tableRowData;
     };
 
     /**
@@ -294,17 +305,31 @@ define([
                     {
                         targets: 0,
                         orderable: true,
-                        title: 'system&nbsp;&nbsp;&nbsp;'
+                        title: 'system&nbsp;&nbsp;&nbsp;',
+                        data: 'system'
                     },{
                         targets: 1,
                         orderable: true,
                         title: 'jumps&nbsp;&nbsp;&nbsp',
                         width: '40px',
-                        class: 'text-right'
+                        class: 'text-right',
+                        data: 'jumps'
                     },{
                         targets: 2,
+                        orderable: true,
+                        title: '&#216;&nbsp;&nbsp;&nbsp',
+                        width: '25px',
+                        class: 'text-right',
+                        data: 'avgTrueSec',
+                        render: {
+                            _: 'formatted',
+                            sort: 'value'
+                        }
+                    },{
+                        targets: 3,
                         orderable: false,
-                        title: 'route'
+                        title: 'route',
+                        data: 'route'
                     }
                 ],
                 data: [] // will be added dynamic

@@ -26,11 +26,25 @@ define([
         tableActionCellClass: 'pf-table-action-cell',                           // class for table "action" cells
         tableCounterCellClass: 'pf-table-counter-cell',                         // cell for table "counter" cells
 
+        systemIdPrefix: 'pf-system-',                                           // id prefix for a system
+
         loadingOptions: {                                                       // config for loading overlay
             icon: {
                 size: 'fa-2x'
             }
         }
+    };
+
+    // confirmation dialog settings (e.g. delete row)
+    var confirmationSettings = {
+        container: 'body',
+        placement: 'left',
+        btnCancelClass: 'btn btn-sm btn-default',
+        btnCancelLabel: 'cancel',
+        btnCancelIcon: 'fa fa-fw fa-ban',
+        btnOkClass: 'btn btn-sm btn-danger',
+        btnOkLabel: 'delete',
+        btnOkIcon: 'fa fa-fw fa-close'
     };
 
     /**
@@ -132,80 +146,159 @@ define([
 
         systemsElement.showLoadingAnimation(config.loadingOptions);
 
+        // table init complete
+        systemTable.on( 'init.dt', function () {
+            systemsElement.hideLoadingAnimation();
+
+            // init table tooltips
+            var tooltipElements = systemsElement.find('[data-toggle="tooltip"]');
+            tooltipElements.tooltip();
+        });
 
         // prepare data for dataTables
         var systemsData = [];
         for(var i = 0; i < mapData.data.systems.length; i++){
             var tempSystemData = mapData.data.systems[i];
 
-            var tempData = [];
+            var tempData = {};
+
+            // system id
+            tempData.id = tempSystemData.id;
 
             // current position
             if(tempSystemData.currentUser === true){
-                tempData.push( '<i class="fa fa fa-map-marker fa-lg fa-fw"></i>' );
+                tempData.position = {
+                    position: '<i class="fa fa fa-map-marker fa-lg fa-fw"></i>',
+                    position_sort: 1
+                };
             }else{
-                tempData.push( '' );
+                tempData.position = {
+                    position: '',
+                    position_sort: 0
+                };
             }
 
             // active pilots
             if(tempSystemData.userCount > 0){
-                tempData.push(tempSystemData.userCount);
+                tempData.userCount = tempSystemData.userCount;
             }else{
-                tempData.push( '' );
+                tempData.userCount = '';
             }
 
             // type
-            tempData.push(Util.getSystemTypeInfo(tempSystemData.type.id, 'name'));
+            tempData.type = {
+                type: Util.getSystemTypeInfo(tempSystemData.type.id, 'name'),
+                type_sort: tempSystemData.type.id
+            };
 
             // name
-            tempData.push( tempSystemData.name );
+            tempData.name = tempSystemData.name;
+
+            // region
+            tempData.region = tempSystemData.region.name;
+
+            // static
+            var statics = [];
+            for(var j = 0; j < tempSystemData.statics.length; j++){
+                var security = tempSystemData.statics[j].security;
+                var secClass = Util.getSecurityClassForSystem(security);
+                statics.push('<span class="' + secClass + '">' + security + '</span>');
+            }
+            tempData.static = statics.join('&nbsp;&nbsp;');
 
             // status
             var systemStatusClass = Util.getStatusInfoForSystem(tempSystemData.status.id, 'class');
             if(systemStatusClass !== ''){
-                tempData.push( '<i class="fa fa fa-square-o fa-lg fa-fw ' + systemStatusClass + '"></i>' );
+                tempData.status = {
+                    status: '<i class="fa fa fa-square-o fa-lg fa-fw ' + systemStatusClass + '"></i>',
+                    status_sort: tempSystemData.status.id
+                };
             }else{
-                tempData.push( '' );
+                tempData.status = {
+                    status: '',
+                    status_sort: tempSystemData.status.id
+                };
             }
 
             // effect
             var systemEffectClass = Util.getEffectInfoForSystem(tempSystemData.effect, 'class');
             if(systemEffectClass !== ''){
-                tempData.push( '<i class="fa fa fa-square fa-lg fa-fw ' + systemEffectClass + '"></i>' );
+                tempData.effect = {
+                    effect: '<i class="fa fa fa-square fa-lg fa-fw ' + systemEffectClass + '"></i>',
+                    effect_sort: tempSystemData.effect
+                };
             }else{
-                tempData.push( '' );
+                tempData.effect = {
+                    effect: '',
+                    effect_sort: ''
+                };
             }
 
             // trueSec
             var systemTrueSecClass = Util.getTrueSecClassForSystem(tempSystemData.trueSec);
             if(systemTrueSecClass !== ''){
-                tempData.push( '<span class="' + systemTrueSecClass + '">' + tempSystemData.trueSec.toFixed(1) + '</span>' );
+                tempData.trueSec = {
+                    trueSec: '<span class="' + systemTrueSecClass + '">' + tempSystemData.trueSec.toFixed(1) + '</span>',
+                    trueSec_sort: tempSystemData.trueSec
+                };
             }else{
-                tempData.push( '' );
+                tempData.trueSec = {
+                    trueSec: '',
+                    trueSec_sort: tempSystemData.trueSec
+                };
             }
 
             // locked
             if(tempSystemData.locked === 1){
-                tempData.push( '<i class="fa fa-lock fa-lg fa-fw"></i>' );
+                tempData.locked = {
+                    locked: '<i class="fa fa-lock fa-lg fa-fw"></i>',
+                    locked_sort: tempSystemData.locked
+                };
             }else{
-                tempData.push( '' );
+                tempData.locked = {
+                    locked: '',
+                    locked_sort: 0
+                };
             }
 
             // rally point
             if(tempSystemData.rally === 1){
-                tempData.push( '<i class="fa fa-users fa-lg fa-fw"></i>' );
+                tempData.rally = {
+                    rally: '<i class="fa fa-users fa-lg fa-fw"></i>',
+                    rally_sort: tempSystemData.rally
+                };
             }else{
-                tempData.push( '' );
+                tempData.rally = {
+                    rally: '',
+                    rally_sort: 0
+                };
             }
+
+            // updated
+            tempData.updated = tempSystemData.updated.updated;
+
+            // delete row
+            tempData.clear = '<i class="fa fa-close txt-color txt-color-redDarker"></i>';
 
             systemsData.push(tempData);
         }
 
         var systemsDataTable = systemTable.dataTable( {
-            paging: false,
+            pageLength: 20,
+            paging: true,
+            lengthMenu: [[5, 10, 20, 50, -1], [5, 10, 20, 50, 'All']],
             ordering: true,
-            order: [ 0, 'desc' ],
+            order: [[ 7, 'desc' ], [ 2, 'asc' ]],
             autoWidth: false,
+            responsive: {
+                breakpoints: [
+                    { name: 'desktop', width: Infinity },
+                    { name: 'tablet',  width: 1200 },
+                    { name: 'fablet',  width: 780 },
+                    { name: 'phone',   width: 480 }
+                ],
+                details: false
+            },
             hover: false,
             data: systemsData,
             columnDefs: [],
@@ -217,51 +310,143 @@ define([
             },
             columns: [
                 {
-                    title: '<i class="fa fa fa-map-marker fa-lg"></i>',
-                    width: '15px',
-                    searchable: false
-                },{
-                    title: '<i class="fa fa fa-plane fa-lg"></i>',
-                    width: '18px',
-                    searchable: false
-                },{
                     title: 'type',
-                    width: '50px'
+                    width: '25px',
+                    className: ['min-desktop'].join(' '),
+                    data: 'type',
+                    render: {
+                        _: 'type',
+                        sort: 'type_sort'
+                    }
                 },{
-                    title: 'system'
-                },{
-                    title: 'status',
-                    width: '30px',
-                    class: 'text-center',
-                    orderable: false,
-                    searchable: false
-                },{
-                    title: 'effect',
-                    width: '30px',
-                    class: 'text-center',
-                    orderable: false,
-                    searchable: false
-                },{
-                    title: 'sec.',
-                    width: '20px',
-                    class: 'text-center',
-                    orderable: false,
-                    searchable: false
-                },{
-                    title: '<i class="fa fa-lock fa-lg fa-fw"></i>',
-                    width: '30px',
-                    class: 'text-center',
-                    searchable: false
-                },{
-                    title: '<i class="fa fa-users fa-lg fa-fw"></i>',
-                    width: '30px',
+                    title: 'sec',
+                    width: '18px',
                     className: 'text-center',
-                    searchable: false
+                    searchable: false,
+                    data: 'trueSec',
+                    render: {
+                        _: 'trueSec',
+                        sort: 'trueSec_sort'
+                    }
+                },{
+                    title: 'system',
+                    data: 'name'
+                },{
+                    title: 'region',
+                    data: 'region'
+                },{
+                    title: '<i class="fa fa-square-o fa-lg" title="system&nbsp;status" data-toggle="tooltip"></i>',
+                    width: '12px',
+                    searchable: false,
+                    data: 'status',
+                    render: {
+                        _: 'status',
+                        sort: 'status_sort'
+                    }
+                },{
+                    title: '<i class="fa fa-square fa-lg" title="system&nbsp;effect" data-toggle="tooltip"></i>',
+                    width: '12px',
+                    className: 'text-center',
+                    searchable: false,
+                    data: 'effect',
+                    render: {
+                        _: 'effect',
+                        sort: 'effect_sort'
+                    }
+                },{
+                    title: 'static',
+                    width: '30px',
+                    data: 'static'
+                },{
+                    title: '<i class="fa fa-map-marker fa-lg" title="your&nbsp;position" data-toggle="tooltip"></i>',
+                    width: '8px',
+                    searchable: false,
+                    data: 'position',
+                    render: {
+                        _: 'position',
+                        sort: 'position_sort'
+                    }
+                },{
+                    title: '<i class="fa fa-plane fa-lg" title="active&nbsp;pilots" data-toggle="tooltip"></i>',
+                    width: '12px',
+                    className: 'text-center',
+                    searchable: false,
+                    data: 'userCount'
+                },{
+                    title: '<i class="fa fa-lock fa-lg" title="system&nbsp;locked" data-toggle="tooltip"></i>',
+                    width: '10px',
+                    searchable: false,
+                    data: 'locked',
+                    render: {
+                        _: 'locked',
+                        sort: 'locked_sort'
+                    }
+                },{
+                    title: '<i class="fa fa-users fa-lg fa-fw" title="rally&nbsp;point" data-toggle="tooltip"></i>',
+                    width: '15px',
+                    className: ['min-desktop'].join(' '),
+                    searchable: false,
+                    data: 'rally',
+                    render: {
+                        _: 'rally',
+                        sort: 'rally_sort'
+                    }
+                },{
+                    title: 'updated',
+                    width: '80px',
+                    searchable: false,
+                    className: ['text-right', config.tableCounterCellClass, 'min-desktop'].join(' '),
+                    data: 'updated',
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                        $(cell).initTimestampCounter();
+
+                        // highlight cell
+                        var diff = new Date().getTime() - cellData * 1000;
+                        var dateDiff = new Date(diff);
+                        if(dateDiff.getUTCDate() > 1){
+                            $(cell).addClass('txt-color txt-color-warning');
+                        }
+                    }
+                },{
+                    title: '',
+                    orderable: false,
+                    searchable: false,
+                    width: '10px',
+                    className: ['text-center', config.tableActionCellClass].join(' '),
+                    data: 'clear',
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex) {
+                        var tempTableElement = this;
+
+                        var tempConfirmationSettings = confirmationSettings;
+                        tempConfirmationSettings.title = 'Delete system';
+                        tempConfirmationSettings.onConfirm = function(e, target){
+                            var deleteRowElement = $(target).parents('tr');
+
+                            var activeMap = Util.getMapModule().getActiveMap();
+                            var systemElement = $('#' + config.systemIdPrefix + mapData.config.id + '-' + rowData.id);
+
+                            if(systemElement){
+                                // trigger system delete event
+                                activeMap.trigger('pf:deleteSystems', [{
+                                    systems: [systemElement],
+                                    callback: function(){
+                                        // callback function after ajax "delete" success
+                                        // remove table row
+                                        tempTableElement.DataTable().rows(deleteRowElement).remove().draw();
+
+                                        Util.showNotify({title: 'System deleted', text: rowData.name, type: 'success'});
+                                    }
+                                }]);
+                            }
+                        };
+
+                        // init confirmation dialog
+                        $(cell).confirmation(tempConfirmationSettings);
+
+                    }
                 }
             ]
         });
-
-        systemsElement.hideLoadingAnimation();
 
     };
 
@@ -281,6 +466,11 @@ define([
 
         connectionsElement.showLoadingAnimation(config.loadingOptions);
 
+        // table init complete
+        connectionTable.on( 'init.dt', function () {
+            connectionsElement.hideLoadingAnimation();
+        });
+
         // connections table ==================================================
 
         // prepare data for dataTables
@@ -292,7 +482,10 @@ define([
 
             tempConData.id = tempConnectionData.id;
 
-            tempConData.scope =  Util.getScopeInfoForConnection( tempConnectionData.scope, 'label');
+            tempConData.scope = {
+                scope: Util.getScopeInfoForConnection(tempConnectionData.scope, 'label'),
+                scope_sort: tempConnectionData.scope
+            };
 
             // source system name
             tempConData.source = tempConnectionData.sourceName;
@@ -319,7 +512,9 @@ define([
         }
 
         var connectionDataTable = connectionTable.dataTable( {
-            paging: false,
+            pageLength: 20,
+            paging: true,
+            lengthMenu: [[5, 10, 20, 50, -1], [5, 10, 20, 50, 'All']],
             ordering: true,
             order: [ 0, 'desc' ],
             autoWidth: false,
@@ -336,15 +531,19 @@ define([
                 {
                     title: 'scope',
                     width: '50px',
-                    orderable: false,
-                    data: 'scope'
+                    orderable: true,
+                    data: 'scope',
+                    render: {
+                        _: 'scope',
+                        sort: 'scope_sort'
+                    }
                 },{
                     title: 'source system',
                     data: 'source'
                 },{
                     title: 'connection',
                     width: '80px',
-                    class: 'text-center',
+                    className: 'text-center',
                     orderable: false,
                     searchable: false,
                     data: 'connection'
@@ -353,57 +552,51 @@ define([
                     data: 'target'
                 },{
                     title: 'updated',
-                    width: '90px',
+                    width: '80px',
                     searchable: false,
-                    className: [config.tableCounterCellClass, 'min-tablet-l'].join(' '),
+                    className: ['text-right', config.tableCounterCellClass].join(' '),
                     data: 'updated',
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         $(cell).initTimestampCounter();
+
+                        // highlight cell
+                        var diff = new Date().getTime() - cellData * 1000;
+                        var dateDiff = new Date(diff);
+                        if(dateDiff.getUTCDate() > 1){
+                            $(cell).addClass('txt-color txt-color-warning');
+                        }
                     }
                 },{
                     title: '',
                     orderable: false,
                     searchable: false,
                     width: '10px',
-                    class: ['text-center', config.tableActionCellClass].join(' '),
+                    className: ['text-center', config.tableActionCellClass].join(' '),
                     data: 'clear',
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex) {
                         var tempTableElement = this;
 
-                        var confirmationSettings = {
-                            container: 'body',
-                            placement: 'left',
-                            btnCancelClass: 'btn btn-sm btn-default',
-                            btnCancelLabel: 'cancel',
-                            btnCancelIcon: 'fa fa-fw fa-ban',
-                            title: 'Delete connection',
-                            btnOkClass: 'btn btn-sm btn-danger',
-                            btnOkLabel: 'delete',
-                            btnOkIcon: 'fa fa-fw fa-close',
-                            onConfirm : function(e, target){
-                                var deleteRowElement = $(target).parents('tr');
+                        var tempConfirmationSettings = confirmationSettings;
+                        tempConfirmationSettings.title = 'Delete connection';
+                        tempConfirmationSettings.onConfirm = function(e, target){
+                            var deleteRowElement = $(target).parents('tr');
 
-                               // deleteSignatures(row);
-                                var connection = $().getConnectionById(mapData.config.id, rowData.id);
+                            // deleteSignatures(row);
+                            var connection = $().getConnectionById(mapData.config.id, rowData.id);
 
-                                $().deleteConnections([connection], function(){
-                                    // callback function after ajax "delete" success
-                                    // remove table row
-                                    tempTableElement.DataTable().rows(deleteRowElement).remove().draw();
-                                });
-                            }
+                            $().deleteConnections([connection], function(){
+                                // callback function after ajax "delete" success
+                                // remove table row
+                                tempTableElement.DataTable().rows(deleteRowElement).remove().draw();
+                            });
                         };
 
                         // init confirmation dialog
-                        $(cell).confirmation(confirmationSettings);
-
+                        $(cell).confirmation(tempConfirmationSettings);
                     }
                 }
             ]
         });
-
-
-        connectionsElement.hideLoadingAnimation();
     };
 
     /**

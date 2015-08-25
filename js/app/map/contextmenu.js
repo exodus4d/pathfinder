@@ -2,7 +2,10 @@
  * context menu
  */
 
-define(['jquery'], function($) {
+define([
+    'jquery',
+    'app/ccp'
+], function($, CCP) {
 
     'use strict';
 
@@ -42,10 +45,10 @@ define(['jquery'], function($) {
                     left: getLeftLocation(originalEvent),
                     top: getTopLocation(originalEvent)
                 }).velocity('transition.flipXIn', {
-                    duration: 150,
+                    duration: CCP.isInGameBrowser() ? 0 : 150,
                     complete: function(){
                         // set context menu "click" observer
-                        $(this).one('click', {component: component, position:{x: getLeftLocation(originalEvent), y: getTopLocation(originalEvent)}}, function (e) {
+                        $(this).off('click').one('click', {component: component, position:{x: getLeftLocation(originalEvent), y: getTopLocation(originalEvent)}}, function (e) {
                             // hide contextmenu
                             $(this).hide();
 
@@ -64,7 +67,7 @@ define(['jquery'], function($) {
                 //make sure menu closes on any click
                 $(document).one('click.closeContextmenu', function () {
                     $('.dropdown-menu[role="menu"]').velocity('transition.flipXOut', {
-                        duration: 150
+                        duration: CCP.isInGameBrowser() ? 0 : 150
                     });
                 });
 

@@ -8,9 +8,7 @@ define([
     'app/util',
     'app/render',
     'config/signature_type',
-    'bootbox',
-    'app/counter',
-    'datatablesResponsive'
+    'bootbox'
 ], function($, Init, Util, Render, SignatureType, bootbox) {
     'use strict';
 
@@ -931,9 +929,6 @@ define([
         // open next field dialog ---------------------------------------------------------------
         openNextEditDialogOnSave(sigNameFields);
         openNextEditDialogOnSave(sigGroupFields);
-
-        // init signature counter ---------------------------------------------------------------
-        tableElement.find('.' + config.sigTableCounterClass + '[data-counter!="init"]').initTimestampCounter();
     };
 
     /**
@@ -1485,22 +1480,35 @@ define([
                     title: 'created',
                     width: '90px',
                     searchable: false,
-                    className: [config.sigTableCounterClass, config.sigTableCreatedCellClass, 'min-tablet-l'].join(' '),
+                    className: ['text-right', config.sigTableCounterClass, config.sigTableCreatedCellClass, 'min-tablet-l'].join(' '),
                     data: 'created',
                     render: {
                         _: 'created',
                         sort: 'created'
+                    },
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                        $(cell).initTimestampCounter();
                     }
                 },{
                     targets: 6,
                     title: 'updated',
                     width: '90px',
                     searchable: false,
-                    className: [config.sigTableCounterClass, config.sigTableUpdatedCellClass, 'min-tablet-l'].join(' '),
+                    className: ['text-right', config.sigTableCounterClass, config.sigTableUpdatedCellClass, 'min-tablet-l'].join(' '),
                     data: 'updated',
                     render: {
                         _: 'updated',
                         sort: 'updated'
+                    },
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                        $(cell).initTimestampCounter();
+
+                        // highlight cell
+                        var diff = new Date().getTime() - cellData.updated * 1000;
+                        var dateDiff = new Date(diff);
+                        if(dateDiff.getUTCDate() > 1){
+                            $(cell).addClass('txt-color txt-color-warning');
+                        }
                     }
                 },{
                     targets: 7,

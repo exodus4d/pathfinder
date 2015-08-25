@@ -15,7 +15,8 @@ define([
     'app/ui/demo_map',
     'dialog/account_settings',
     'dialog/notification',
-    'dialog/manual'
+    'dialog/manual',
+    'dialog/credit'
 ], function($, Init, Util, Render, CCP, Gallery, bootbox) {
 
     'use strict';
@@ -35,7 +36,8 @@ define([
 
         // navigation
         navigationElementId: 'pf-navbar',                                       // id for navbar element
-        navigationLinkManualClass: 'pf-navbar-manual',                          // class for the "manual" trigger link
+        navigationLinkManualClass: 'pf-navbar-manual',                          // class for "manual" trigger link
+        navigationLinkLicenseClass : 'pf-navbar-license',                       // class for "license" trigger link
 
         // login form
         loginFormId: 'pf-login-form',                                           // id for login form
@@ -102,7 +104,7 @@ define([
                             loginFormMessageContainer.showMessage({title: 'Login failed', text: ' Invalid username and password', type: 'error'});
 
                         }else if(data.reroute !== undefined){
-                            window.location = Util.buildUrl(data.reroute);
+                            window.location = data.reroute;
                         }
                     }).fail(function( jqXHR, status, error) {
                         $('.' + config.splashOverlayClass).hideSplashOverlay();
@@ -118,22 +120,26 @@ define([
         });
 
         // manual -------------------------------------------------------
-        $('.' + config.navigationLinkManualClass).on('click', function(){
+        $('.' + config.navigationLinkManualClass).on('click', function(e){
+            e.preventDefault();
             $.fn.showMapManual();
         });
 
+        // license ------------------------------------------------------
+        $('.' + config.navigationLinkLicenseClass).on('click', function(e){
+            e.preventDefault();
+            $.fn.showCreditsDialog(false, true);
+        });
 
         // tooltips -----------------------------------------------------
-        /*
         var mapTooltipOptions = {
             toggle: 'tooltip',
-            placement: 'top',
             container: 'body',
             delay: 150
         };
 
-        $('[title]').tooltip(mapTooltipOptions);
-        */
+        $('[title]').not('.slide img').tooltip(mapTooltipOptions);
+
     };
 
 
@@ -184,7 +190,7 @@ define([
         // initialize carousel ------------------------------------------
         var carousel = Gallery([
             {
-                title: '',
+                title: 'IGB',
                 href: 'ui/map',
                 type: 'text/html'
             },
@@ -347,9 +353,11 @@ define([
      */
     $(function(){
 
+        // show app information in browser console
+        Util.showVersionInfo();
+
         // show log off message
         var isLogOut = location.search.split('logout')[1];
-
         if(isLogOut !== undefined){
             // show logout dialog
             var options = {

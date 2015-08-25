@@ -13,17 +13,17 @@ class SystemSignatureModel extends BasicModel {
 
     protected $table = 'system_signature';
 
-    protected $fieldConf = array(
-        'systemId' => array(
+    protected $fieldConf = [
+        'systemId' => [
             'belongs-to-one' => 'Model\SystemModel'
-        ),
-        'createdCharacterId' => array(
+        ],
+        'createdCharacterId' => [
             'belongs-to-one' => 'Model\CharacterModel'
-        ),
-        'updatedCharacterId' => array(
+        ],
+        'updatedCharacterId' => [
             'belongs-to-one' => 'Model\CharacterModel'
-        )
-    );
+        ]
+    ];
 
     protected $validate = [
         'name' => [

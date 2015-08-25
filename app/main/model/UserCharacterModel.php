@@ -13,17 +13,17 @@ class UserCharacterModel extends BasicModel {
 
     protected $table = 'user_character';
 
-    protected $fieldConf = array(
-        'userId' => array(
+    protected $fieldConf = [
+        'userId' => [
             'belongs-to-one' => 'Model\UserModel'
-        ),
-        'apiId' => array(
+        ],
+        'apiId' => [
             'belongs-to-one' => 'Model\UserApiModel'
-        ),
-        'characterId' => array(
+        ],
+        'characterId' => [
             'belongs-to-one' => 'Model\CharacterModel'
-        )
-    );
+        ]
+    ];
 
     /**
      * set an array with all data for a character

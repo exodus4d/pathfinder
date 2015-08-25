@@ -53,7 +53,8 @@ class CcpApiController extends Controller{
      * @return bool|\SimpleXMLElement
      */
     public function requestCharacters($keyID, $vCode){
-        $apiPath = $this->f3->get('api_path.CCP_XML') . '/account/APIKeyInfo.xml.aspx';
+
+        $apiPath = $this->f3->get('PATHFINDER.API.CCP_XML') . '/account/APIKeyInfo.xml.aspx';
 
         $xml = false;
 

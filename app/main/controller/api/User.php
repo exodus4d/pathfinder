@@ -40,7 +40,7 @@ class User extends Controller\Controller{
             $user->updateApiData();
 
             // route user to map app
-            $return->reroute = $f3->get('BASE') . $f3->alias('map');
+            $return->reroute = self::getEnvironmentData('URL') . $f3->alias('map');
         }
 
         echo json_encode($return);
@@ -57,7 +57,7 @@ class User extends Controller\Controller{
         // try to verify user
         $user = $this->_verifyUser($userName, $password);
 
-        if($user !== false){
+        if( !is_null($user)){
             // user is verified -> ready for login
 
             // set Session login
@@ -244,7 +244,6 @@ class User extends Controller\Controller{
                         if($user === false){
                             // new user registration
                             $user = $mapType = Model\BasicModel::getNew('UserModel');
-
                             $loginAfterSave = true;
 
                             // set username
@@ -320,12 +319,8 @@ class User extends Controller\Controller{
                                 $api->userId = $user;
                             }
 
-
-
                             $api->keyId = $keyId;
                             $api->vCode = $settingsData['vCode'][$i];
-
-                            // -----
                             $api->save();
 
                             $characterCount = $api->updateCharacters();
@@ -369,7 +364,7 @@ class User extends Controller\Controller{
                         $this->logUserIn( $user->name, $settingsData['password'] );
 
                         // return reroute path
-                        $return->reroute = $this->f3->get('BASE') . $this->f3->alias('map');
+                        $return->reroute = self::getEnvironmentData('URL') . $this->f3->alias('map');
                     }
 
                     // get fresh updated user object
@@ -382,8 +377,12 @@ class User extends Controller\Controller{
                 $validationError->field = $e->getField();
                 $validationError->message = $e->getMessage();
                 $return->error[] = $validationError;
+            }catch(Exception\RegistrationException $e){
+                $registrationError = (object) [];
+                $registrationError->type = 'error';
+                $registrationError->message = $e->getMessage();
+                $return->error[] = $registrationError;
             }
-
 
             // return new/updated user data
             $return->userData = $newUserData;

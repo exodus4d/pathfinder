@@ -3,8 +3,14 @@
   <component name="dataSourceStorageLocal">
     <data-source name="Pathfinder" uuid="da3cf616-be39-4091-94bd-76d70f41765d">
       <user-name>root</user-name>
-      <schema-pattern>eve_phoebe.* pathfinder.*</schema-pattern>
-      <default-schemas>eve_phoebe.* pathfinder.*</default-schemas>
+      <schema-pattern>eve_aegis.* eve_test.* pathfinder.*</schema-pattern>
+      <default-schemas>pathfinder.*</default-schemas>
+    </data-source>
+    <data-source name="Pathfinder production" uuid="5ad9de1d-d2a1-4aed-832f-ec919fcd1338">
+      <secret-storage>master_key</secret-storage>
+      <user-name>d01d8636</user-name>
+      <schema-pattern>d01d8636.*</schema-pattern>
+      <default-schemas>d01d8636.*</default-schemas>
     </data-source>
   </component>
 </project>

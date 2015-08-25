@@ -2,12 +2,14 @@ define([
     'jquery',
     'app/init',
     'app/util',
+    'app/counter',
     'app/ui/system_info',
     'app/ui/system_graph',
     'app/ui/system_signature',
     'app/ui/system_route',
     'app/ui/system_killboard',
     'datatablesTableTools',
+    'datatablesResponsive',
     'app/map/map'
 ], function($, Init, Util) {
 

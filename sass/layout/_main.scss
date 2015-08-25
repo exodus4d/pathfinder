@@ -23,6 +23,10 @@ a{
     color: $teal-lightest;
     text-decoration: none;
   }
+
+  &:focus{
+    color: $teal;
+  }
 }
 
 // emphasized text

@@ -517,9 +517,9 @@ class Map extends \Controller\AccessController {
                 // IMPORTANT for now -> just update a single map (save performance)
                 $mapIds = array_slice($mapIds, 0, 1);
 
-                // the maps are cached per map (this must be changed if multiple maps
+                // the userMasData is cached per map (this must be changed if multiple maps
                 // will be allowed in future...
-                $tempId = $mapIds[0];
+                $tempId = (int)$mapIds[0];
                 $cacheKey = 'user_data_' . $tempId . '_' . $requestSystemData->systemId;
 
                 if( $f3->exists($cacheKey) === false ){

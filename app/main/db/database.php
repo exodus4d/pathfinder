@@ -7,12 +7,15 @@
  */
 
 namespace DB;
+use Controller;
+use controller\LogController;
 
 class Database extends \Prefab {
 
 
     function __construct($database = 'PF'){
         // set database
+        $this->setDB($database);
         $this->setDB($database);
     }
 
@@ -26,20 +29,36 @@ class Database extends \Prefab {
 
         if($database === 'CCP'){
             // CCP DB
-            $db = $this->connect($f3->get('DB_CCP_DNS'), $f3->get('DB_CCP_NAME'), $f3->get('DB_CCP_USER'), $f3->get('DB_CCP_PASS'));
+            $dns = Controller\Controller::getEnvironmentData('DB_CCP_DNS');
+            $name = Controller\Controller::getEnvironmentData('DB_CCP_NAME');
+            $user = Controller\Controller::getEnvironmentData('DB_CCP_USER');
+            $password = Controller\Controller::getEnvironmentData('DB_CCP_PASS');
         }else{
             // Pathfinder DB
-            $db = $this->connect($f3->get('DB_DNS'), $f3->get('DB_NAME'), $f3->get('DB_USER'), $f3->get('DB_PASS'));
+            $dns = Controller\Controller::getEnvironmentData('DB_DNS');
+            $name = Controller\Controller::getEnvironmentData('DB_NAME');
+            $user = Controller\Controller::getEnvironmentData('DB_USER');
+            $password = Controller\Controller::getEnvironmentData('DB_PASS');
         }
 
-        $f3->set('DB', $db);
+        // check for DB switch. If current DB equal new DB -> no switch needed
+        if(
+            !$f3->exists('DB') ||
+            $name !== $f3->get('DB')->name()
+        ){
 
-        // set DB timezone to UTC +00:00 (eve server time)
-        $f3->get('DB')->exec('SET @@session.time_zone = "+00:00";');
+            $db = $this->connect($dns, $name, $user, $password);
 
-        // disable innoDB schema (relevant vor MySql 5.5)
-        // not necessary for MySql 5.6
-        //$f3->get('DB')->exec('SET GLOBAL innodb_stats_on_metadata = OFF;');
+            $f3->set('DB', $db);
+
+            // set DB timezone to UTC +00:00 (eve server time)
+            $f3->get('DB')->exec('SET @@session.time_zone = "+00:00";');
+
+            // disable innoDB schema (relevant vor MySql 5.5)
+            // not necessary for MySql > v.5.6
+            //$f3->get('DB')->exec('SET GLOBAL innodb_stats_on_metadata = OFF;');
+        }
+
     }
 
     /**
@@ -52,11 +71,19 @@ class Database extends \Prefab {
      */
     protected function connect($dns, $name, $user, $password){
 
-        $db = new SQL(
-            $dns . $name,
-            $user,
-            $password
-        );
+        try {
+            $db = new SQL(
+                $dns . $name,
+                $user,
+                $password,
+                [
+                    \PDO::MYSQL_ATTR_COMPRESS  => TRUE
+                ]
+            );
+        }catch(\PDOException $e){
+            // DB connection error
+            LogController::getLogger('error')->write($e->getMessage());
+        }
 
         return $db;
     }

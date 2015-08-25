@@ -60,7 +60,13 @@ class BasicModel extends \DB\Cortex {
         $this->afterupdate( function($self){
             $self->clearCacheData();
         });
+
+        // model updated
+        $this->beforeinsert( function($self){
+            $self->beforeInsertEvent($self);
+        });
     }
+
 
     /**
      * @param string $key
@@ -243,7 +249,7 @@ class BasicModel extends \DB\Cortex {
      */
     public function getById($id, $ttl = 3) {
 
-        return $this->getByForeignKey('id', (int)$id, array('limit' => 1), $ttl);
+        return $this->getByForeignKey('id', (int)$id, ['limit' => 1], $ttl);
     }
 
     /**
@@ -277,7 +283,7 @@ class BasicModel extends \DB\Cortex {
      * @param int $ttl
      * @return \DB\Cortex
      */
-    public function getByForeignKey($key, $id, $options = array(), $ttl = 60){
+    public function getByForeignKey($key, $id, $options = [], $ttl = 60){
 
         $querySet = [];
         $query = [];
@@ -295,6 +301,15 @@ class BasicModel extends \DB\Cortex {
         array_unshift($querySet, implode(' AND ', $query));
 
         return $this->load( $querySet, $options, $ttl );
+    }
+
+    /**
+     * Event "Hook" function
+     * can be overwritten
+     * return false will stop any further action
+     */
+    public function beforeInsertEvent(){
+        return true;
     }
 
     /**

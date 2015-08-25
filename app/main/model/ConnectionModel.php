@@ -14,20 +14,20 @@ class ConnectionModel extends BasicModel{
     protected $table = 'connection';
 
 
-    protected $fieldConf = array(
-        'mapId' => array(
+    protected $fieldConf = [
+        'mapId' => [
             'belongs-to-one' => 'Model\MapModel'
-        ),
-        'source' => array(
+        ],
+        'source' => [
             'belongs-to-one' => 'Model\SystemModel'
-        ),
-        'target' => array(
+        ],
+        'target' => [
             'belongs-to-one' => 'Model\SystemModel'
-        ),
-        'type' => array(
+        ],
+        'type' => [
             'type' => self::DT_JSON
-        )
-    );
+        ]
+    ];
 
     /**
      * set an array with all data for a system

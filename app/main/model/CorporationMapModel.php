@@ -13,14 +13,14 @@ class CorporationMapModel extends BasicModel {
 
     protected $table = 'corporation_map';
 
-    protected $fieldConf = array(
-        'corporationId' => array(
+    protected $fieldConf = [
+        'corporationId' => [
             'belongs-to-one' => 'Model\CorporationModel'
-        ),
-        'mapId' => array(
+        ],
+        'mapId' => [
             'belongs-to-one' => 'Model\MapModel'
-        )
-    );
+        ]
+    ];
 
     /**
      * see parent

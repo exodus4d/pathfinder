@@ -15,7 +15,8 @@ class CcpSystemsUpdate {
     const LOG_TEXT = '%s prepare table (%.3F s), jump (%.3F s), kill (%.3F s), update all (%.3F s)';
 
     protected  $apiRequestOptions = [
-        'timeout' => 5
+        'timeout' => 5,
+        'follow_location' => false // otherwise CURLOPT_FOLLOWLOCATION will fail
     ];
 
     /**
@@ -57,7 +58,7 @@ class CcpSystemsUpdate {
                 if($systemData['type']['name'] == 'k-space'){
                     $f3->get('DB')->exec($sqlInsertSystem, array(
                         ':systemId' => $systemData['systemId']
-                    ));
+                    ), 0, false);
                 }
             }
 
@@ -84,7 +85,7 @@ class CcpSystemsUpdate {
 
         // get current jump Data -------------------------------------------------------
         $time_start = microtime(true);
-        $apiPath = $f3->get('api_path.CCP_XML') . '/map/Jumps.xml.aspx';
+        $apiPath = $f3->get('PATHFINDER.API.CCP_XML') . '/map/Jumps.xml.aspx';
 
         $apiResponse = \Web::instance()->request($apiPath, $this->apiRequestOptions );
 
@@ -109,7 +110,7 @@ class CcpSystemsUpdate {
 
         // get current kill Data -------------------------------------------------------
         $time_start = microtime(true);
-        $apiPath = $f3->get('api_path.CCP_XML') . '/map/Kills.xml.aspx';
+        $apiPath = $f3->get('PATHFINDER.API.CCP_XML') . '/map/Kills.xml.aspx';
 
         $apiResponse = \Web::instance()->request($apiPath, $this->apiRequestOptions );
         $killData = [];
@@ -171,8 +172,7 @@ class CcpSystemsUpdate {
                     value2 = value1,
                     value1 = :value
                 WHERE
-                  systemId = :systemId AND
-                   HOUR(TIMEDIFF(NOW(), updated)) > 0
+                  systemId = :systemId
                 ";
 
             foreach($systemsData as $systemData){
@@ -190,7 +190,7 @@ class CcpSystemsUpdate {
                     $f3->get('DB')->exec($sql, array(
                         ':systemId' => $systemData['systemId'],
                         ':value' => $currentJumps
-                    ));
+                    ), 0, false);
                 }else if($updateKills){
 
                     // update kill data (if available)
@@ -204,7 +204,7 @@ class CcpSystemsUpdate {
                     $f3->get('DB')->exec($sql, array(
                         ':systemId' => $systemData['systemId'],
                         ':value' => $currentKills
-                    ));
+                    ), 0, false);
                 }
             }
         }

@@ -10,6 +10,7 @@ namespace Model;
 
 use DB\SQL\Schema;
 use Controller;
+use Exception;
 
 class UserModel extends BasicModel {
 
@@ -82,7 +83,7 @@ class UserModel extends BasicModel {
         // set active character with log data
         $activeUserCharacter = $this->getActiveUserCharacter();
         if($activeUserCharacter){
-            $userData->character = $activeUserCharacter->getData(true);
+            $userData->character = $activeUserCharacter->getData();
         }
 
         return $userData;
@@ -126,6 +127,28 @@ class UserModel extends BasicModel {
 
         $salt = uniqid('', true);
         return \Bcrypt::instance()->hash($password, $salt);
+    }
+
+    /**
+     * check if new user registration is allowed
+     * @return bool
+     * @throws Exception\RegistrationException
+     */
+    public function beforeInsertEvent(){
+        $registrationStatus = Controller\Controller::getRegistrationStatus();
+
+        switch($registrationStatus){
+            case 0:
+                $f3 = self::getF3();
+                throw new Exception\RegistrationException($f3->get('PATHFINDER.REGISTRATION.MSG_DISABLED'));
+                return false;
+                break;
+            case 1:
+                return true;
+                break;
+            default:
+                return false;
+        }
     }
 
     /**
@@ -200,6 +223,12 @@ class UserModel extends BasicModel {
         return $maps;
     }
 
+    /**
+     * get mapModel by id and check if user has access
+     * @param $mapId
+     * @return null
+     * @throws \Exception
+     */
     public function getMap($mapId){
         $map = self::getNew('MapModel');
         $map->getById( (int)$mapId );
@@ -286,8 +315,6 @@ class UserModel extends BasicModel {
                 $this->apis->next();
             }
         }
-
-
 
         return $userCharacters;
     }
@@ -386,7 +413,6 @@ class UserModel extends BasicModel {
                 $this->apis->current()->updateCharacters();
                 $this->apis->next();
             }
-
         }
     }
 

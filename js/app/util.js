@@ -541,6 +541,14 @@ define([
      */
 
     /**
+     * show current program version information in browser console
+     */
+    var showVersionInfo = function(){
+        var versionNumber = $('body').data('version');
+        console.info('PATHFINDER', versionNumber);
+    };
+
+    /**
      * get the current main trigger delay for the main trigger functions
      * optional in/decrease the delay
      * @param updateKey
@@ -565,7 +573,6 @@ define([
         ){
             Init.timer[updateKey]['CURRENT_DELAY'] += value;
         }
-
 
         return Init.timer[updateKey]['CURRENT_DELAY'];
     };
@@ -631,15 +638,6 @@ define([
         }
 
         return duration;
-    };
-
-    /**
-     * build a program URL by a given path
-     * @param path
-     * @returns {string}
-     */
-    var buildUrl = function(path){
-        return document.location.protocol + '//' + document.location.host + path;
     };
 
     /**
@@ -1438,7 +1436,7 @@ define([
         }).done(function(data){
 
             if(data.reroute !== undefined){
-                var landingPageUrl = buildUrl(data.reroute);
+                var landingPageUrl = data.reroute;
                 var currentUrl = document.URL;
 
                 // relocate to landing page
@@ -1455,11 +1453,11 @@ define([
 
     return {
         config: config,
+        showVersionInfo: showVersionInfo,
         getCurrentTriggerDelay: getCurrentTriggerDelay,
         getServerTime: getServerTime,
         timeStart: timeStart,
         timeStop: timeStop,
-        buildUrl: buildUrl,
         log: log,
         showNotify: showNotify,
         getLogInfo: getLogInfo,

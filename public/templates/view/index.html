@@ -33,14 +33,23 @@
 
     <title>Pathfinder</title>
 
-    <link rel="stylesheet" type="text/css" media="screen" href="public/css/pathfinder.css">
+    <meta property="og:title" content="EVE ONLINE mapping tool" />
+    <meta property="og:site_name" content="PATHFINDER" />
+    <meta property="og:image" content="https://www.pathfinder.exodus4d.de/logo.png" />
+    <meta property="og:url" content="https://www.pathfinder.exodus4d.de" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="de_DE" />
+    <meta property="og:description" content="PATHFINDER is an 'open source' mapping tool for EVE ONLINE,
+    primarily developed to enrich the gameplay of small scale PvP and PvE." />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="public/css/pathfinder.css?{{ @PATHFINDER.VERSION }}">
 
 </head>
-<body class="{{ @bodyClass }}" data-trusted="{{ @trusted }}" data-script="app/{{ @jsView }}">
+<body class="{{ @bodyClass }}" data-trusted="{{ @trusted }}" data-js-path="{{ @pathJs }}" data-script="{{ @jsView }}" data-version="{{ @PATHFINDER.VERSION }}">
 
-    <check if="{{ @pageContent }}">
-        <include href="{{ @pageContent }}"/>
-    </check>
+    <include if="{{ @pageContent }}" href="{{ @pageContent }}"/>
+
+    <!-- Hey dude! Where is all the magic? -->
 
     <script data-main="js/app" src="js/lib/require.js" ></script>
 </body>

@@ -232,7 +232,7 @@ define([
                             if(register){
                                 if(reroutePath !== undefined){
                                     // root user to main app
-                                    window.location = Util.buildUrl(reroutePath);
+                                    window.location = reroutePath;
                                 }
                             }else{
                                 // close dialog
@@ -330,7 +330,7 @@ define([
                                                 }
                                             });
 
-                                            Util.showNotify({title: 'Account data saved', type: 'success'});
+                                            Util.showNotify({title: 'Account saved', type: 'success'});
                                         }
 
                                     }).fail(function( jqXHR, status, error) {

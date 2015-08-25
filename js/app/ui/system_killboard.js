@@ -233,7 +233,7 @@ define([
 
              if(data.count === 0){
                  labelOptions.type = 'label-success';
-                 label = getLabel( 'No kills found within 24h', labelOptions );
+                 label = getLabel( 'No kills found within the last 24h', labelOptions );
                  killboardGraphElement.append( label );
 
                  minifyKillboardGraphElement(killboardGraphElement);

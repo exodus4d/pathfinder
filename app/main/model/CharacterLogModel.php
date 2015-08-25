@@ -13,11 +13,11 @@ class CharacterLogModel extends BasicModel {
 
     protected $table = 'character_log';
 
-    protected $fieldConf = array(
-        'characterId' => array(
+    protected $fieldConf = [
+        'characterId' => [
             'belongs-to-one' => 'Model\CharacterModel'
-        )
-    );
+        ]
+    ];
 
     /**
      * get all character log data

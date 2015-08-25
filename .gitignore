@@ -46,6 +46,7 @@ Temporary Items
 # ========================
 # project files
 # ========================
+.idea
 .sass-cache
 .build_js
 .css

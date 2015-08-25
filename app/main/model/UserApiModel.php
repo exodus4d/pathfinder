@@ -13,14 +13,14 @@ class UserApiModel extends BasicModel {
 
     protected $table = 'user_api';
 
-    protected $fieldConf = array(
-        'userId' => array(
+    protected $fieldConf = [
+        'userId' => [
             'belongs-to-one' => 'Model\UserModel'
-        ),
-        'userCharacters' => array(
-            'has-many' => array('Model\UserCharacterModel', 'apiId')
-        )
-    );
+        ],
+        'userCharacters' => [
+            'has-many' => ['Model\UserCharacterModel', 'apiId']
+        ]
+    ];
 
     /**
      * get all data for this api

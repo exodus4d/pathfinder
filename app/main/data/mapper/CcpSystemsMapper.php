@@ -85,8 +85,8 @@ class CcpSystemsMapper extends \RecursiveArrayIterator {
         // format functions
         self::$map['type'] = function($iterator){
 
-            // TODO refactore
-            $type = 'wh';
+            // TODO refactor
+            $type = 'w-space';
             $typeId = 1;
             if(
                 $iterator['security'] == 7 ||

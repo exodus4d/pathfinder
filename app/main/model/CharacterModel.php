@@ -13,17 +13,17 @@ class CharacterModel extends BasicModel {
 
     protected $table = 'character';
 
-    protected $fieldConf = array(
-        'corporationId' => array(
+    protected $fieldConf = [
+        'corporationId' => [
             'belongs-to-one' => 'Model\CorporationModel'
-        ),
-        'allianceId' => array(
+        ],
+        'allianceId' => [
             'belongs-to-one' => 'Model\AllianceModel'
-        ),
-        'characterLog' => array(
-            'has-one' => array('Model\CharacterLogModel', 'characterId')
-        )
-    );
+        ],
+        'characterLog' => [
+            'has-one' => ['Model\CharacterLogModel', 'characterId']
+        ]
+    ];
 
     /**
      * get character data
@@ -33,6 +33,7 @@ class CharacterModel extends BasicModel {
     public function getData($addCharacterLogData = false){
 
         // check if there is cached data
+        // temporary disabled (performance test)
         $characterData = null; //$this->getCacheData();
 
         if(is_null($characterData)){

@@ -37,12 +37,19 @@ class Controller {
         return $this->template;
     }
 
+
     /**
-     * event handler
+     * event handler for all "views"
+     * some global template variables are set in here
      * @param $f3
      */
     function beforeroute($f3) {
 
+        // check if user is in game
+        $f3->set('isIngame', self::isIGB() );
+
+        // js path (build/minified or raw uncompressed files)
+        $f3->set('pathJs', self::getEnvironmentData('PATH_JS') );
     }
 
     /**
@@ -169,7 +176,6 @@ class Controller {
         return $validUser;
     }
 
-
     /**
      * log the current user out
      * @param $f3
@@ -184,7 +190,7 @@ class Controller {
             $f3->reroute('@landing');
         }else{
             $return = (object) [];
-            $return->reroute = $f3->get('BASE') . $f3->alias('landing');
+            $return->reroute = self::getEnvironmentData('URL') . $f3->alias('landing');
             $return->error[] = $this->getUserLoggedOffError();
 
             echo json_encode($return);
@@ -202,6 +208,15 @@ class Controller {
         $userError->message = 'User not found';
 
         return $userError;
+    }
+
+    /**
+     * get the current registration status
+     * 0=registration stop |1=new registration allowed
+     * @return int
+     */
+    static function getRegistrationStatus(){
+        return (int)\Base::instance()->get('PATHFINDER.REGISTRATION.STATUS');
     }
 
     /**
@@ -223,5 +238,22 @@ class Controller {
         return str_replace($illegalCharacters, '', $key);
     }
 
+    /**
+     * get environment specific configuration data
+     * @param $key
+     * @return mixed|null
+     */
+    static function getEnvironmentData($key){
+        $f3 = \Base::instance();
+        $environment = $f3->get('PATHFINDER.ENVIRONMENT.SERVER');
+        $environmentKey = 'PATHFINDER.ENVIRONMENT[' . $environment . '][' . $key . ']';
+        $data = null;
+
+        if( $f3->exists($environmentKey) ){
+            $data = $f3->get($environmentKey);
+        }
+
+        return $data;
+    }
 
 } 

@@ -21,12 +21,13 @@ define([
     /**
      * show jump info dialog
      */
-    $.fn.showCreditsDialog = function(){
+    $.fn.showCreditsDialog = function(callback, enableHover){
 
         requirejs(['text!templates/dialog/credit.html', 'mustache'], function(template, Mustache) {
 
             var data = {
-                logoContainerId: config.creditsDialogLogoContainerId
+                logoContainerId: config.creditsDialogLogoContainerId,
+                version: $('body').data('version')
             };
 
             var content = Mustache.render(template, data);
@@ -41,7 +42,7 @@ define([
             creditDialog.on('shown.bs.modal', function(e) {
 
                 // load Logo svg
-                $('#' + config.creditsDialogLogoContainerId).drawLogo();
+                creditDialog.find('#' + config.creditsDialogLogoContainerId).drawLogo(callback, enableHover);
             });
 
         });

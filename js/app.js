@@ -1,12 +1,24 @@
+// main script path
+var mainScriptPath = document.body.getAttribute('data-script');
 
+// js baseURL. Depends on the environment.
+// e.g. use raw files (develop) or build files (production)
+var jsBaseUrl = document.body.getAttribute('data-js-path');
+
+// requireJs configuration
 requirejs.config({
-    baseUrl: 'js', // user build_js files, change to "js" for un-compressed source
+    baseUrl: 'js',                                                      // path for baseUrl - dynamically set !below! ("build_js" | "js")
+
     paths: {
         layout: 'layout',
         config: 'app/config',                                           // path for "configuration" files dir
         dialog: 'app/ui/dialog',                                        // path for "dialog" files dir
+
+        // main views
+        landingpage: './app/landingpage',                               // initial start "landing page" view
+        mappage: './app/mappage',                                       // initial start "map page" view
+
         jquery: 'lib/jquery-1.11.3.min',                                // v1.11.3 jQuery
-        //jquery: "lib/jquery-2.1.1.min",                               // v2.1.1 jQuery
         bootstrap: 'lib/bootstrap.min',                                 // v3.3.0 Bootstrap js code - http://getbootstrap.com/javascript/
         text: 'lib/requirejs/text',                                     // v2.0.12 A RequireJS/AMD loader plugin for loading text resources.
         mustache: 'lib/mustache.min',                                   // v1.0.0 Javascript template engine - http://mustache.github.io/
@@ -18,7 +30,7 @@ requirejs.config({
         jsPlumb: 'lib/dom.jsPlumb-1.7.6-min',                           // v1.7.6 jsPlumb (Vanilla)- main map draw plugin https://jsplumbtoolkit.com/
         customScrollbar: 'lib/jquery.mCustomScrollbar.concat.min',      // v3.0.9 Custom scroll bars - http://manos.malihu.gr/
         datatables: 'lib/datatables/jquery.dataTables.min',             // v1.10.7 DataTables - https://datatables.net/
-        datatablesBootstrap: 'lib/datatables/dataTables.bootstrap',     // DataTables - not used (bootstrap style)
+        //datatablesBootstrap: 'lib/datatables/dataTables.bootstrap',   // DataTables - not used (bootstrap style)
         datatablesResponsive: 'lib/datatables/extensions/responsive/dataTables.responsive',   // v1.0.6 TableTools (PlugIn) - https://datatables.net/extensions/responsive/
 
         datatablesTableTools: 'lib/datatables/extensions/tabletools/js/dataTables.tableTools',   // v2.2.3 TableTools (PlugIn) - https://datatables.net/extensions/tabletools/
@@ -38,7 +50,6 @@ requirejs.config({
         blueImpGalleryBootstrap: 'lib/bootstrap-image-gallery',         // v3.1.1 Bootstrap extension for Blue Imp Gallery - https://blueimp.github.io/Bootstrap-Image-Gallery/
         bootstrapConfirmation: 'lib/bootstrap-confirmation',            // v1.0.1 Bootstrap extension for inline confirm dialog - https://github.com/tavicu/bs-confirmation
         bootstrapToggle: 'lib/bootstrap2-toggle.min',                   // v2.2.0 Bootstrap Toggle (Checkbox) - http://www.bootstraptoggle.com/
-
 
         // header animation
         easePack: 'lib/EasePack.min',
@@ -131,7 +142,12 @@ requirejs.config({
     }
 });
 
-var mainScriptPath = document.body.getAttribute('data-script');
+// switch baseUrl to js "build_js" in production environment
+// this has no effect for js build process!
+// check build.js for build configuration
+require.config({
+    baseUrl: jsBaseUrl
+});
 
-// load the main app module in order to start the app
+// load the main app module -> initial app start
 requirejs( [mainScriptPath] );

@@ -13,14 +13,14 @@ class UserMapModel extends BasicModel {
 
     protected $table = 'user_map';
 
-    protected $fieldConf = array(
-        'userId' => array(
+    protected $fieldConf = [
+        'userId' => [
             'belongs-to-one' => 'Model\UserModel'
-        ),
-        'mapId' => array(
+        ],
+        'mapId' => [
             'belongs-to-one' => 'Model\MapModel'
-        )
-    );
+        ]
+    ];
 
     /**
      * see parent

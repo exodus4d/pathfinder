@@ -838,7 +838,7 @@ define([
             overlayElements.css('opacity', 0);
 
             systemElements.velocity('transition.whirlIn', {
-                stagger: 50,
+                stagger: 30,
                 drag: true,
                 duration: 100,
                 //display: 'auto',
@@ -849,8 +849,8 @@ define([
                     });
 
                     connectorElements.velocity('transition.fadeIn', {
-                        stagger: 50,
-                        duration: 180
+                        stagger: 30,
+                        duration: 120
                     });
 
                     // show overlay elements (if some exist)
@@ -895,7 +895,7 @@ define([
                     });
 
                     systemElements.delay(100).velocity('transition.slideUpOut', {
-                        stagger: 50,
+                        stagger: 30,
                         drag: true,
                         duration: 180,
                         display: 'block',
@@ -1032,18 +1032,22 @@ define([
             type: 'POST',
             url: Init.path.deleteSystem,
             data: requestData,
-            dataType: 'json'
-        }).done(function(data){
+            dataType: 'json',
+            context: {
+                map: map,
+                systems: systems
+            }
+        }).done(function(){
             // deleted SystemIds
             var triggerData = {
                 systemIds: []
             };
 
             // remove systems from map
-            for(var i = 0; i < systems.length; i++){
-                var system = $(systems[i]);
+            for(var i = 0; i < this.systems.length; i++){
+                var system = $(this.systems[i]);
                 triggerData.systemIds.push( system.data('id') );
-                removeSystem(map, system );
+                removeSystem(this.map, system );
             }
 
             callback();
@@ -1246,11 +1250,12 @@ define([
             type: 'POST',
             url: Init.path.saveConnection,
             data: requestData,
-            dataType: 'json'
+            dataType: 'json',
+            context: connection
         }).done(function(newConnectionData){
 
             // update connection data e.g. "scope" has auto detected
-            updateConnection(connection, connectionData, newConnectionData);
+            updateConnection(this, connectionData, newConnectionData);
 
             // connection scope
             var scope = Util.getScopeInfoForConnection(newConnectionData.scope, 'label');
@@ -1264,7 +1269,7 @@ define([
         }).fail(function( jqXHR, status, error) {
 
             // remove this connection from map
-            connection._jsPlumb.instance.detach(connection);
+            this._jsPlumb.instance.detach(this);
 
             var reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': saveConnection', text: reason, type: 'warning'});
@@ -1316,11 +1321,12 @@ define([
                     type: 'POST',
                     url: Init.path.deleteConnection,
                     data: requestData,
-                    dataType: 'json'
+                    dataType: 'json',
+                    context: connections
                 }).done(function(data){
 
                     // remove connections from map
-                    removeConnections(connections);
+                    removeConnections(this);
 
                     // optional callback
                     if(callback){
@@ -1798,7 +1804,7 @@ define([
         // context menu =====================================================================================
 
         // trigger context menu
-        system.on('contextmenu', function(e){
+        system.off('contextmenu').on('contextmenu', function(e){
             e.preventDefault();
             e.stopPropagation();
 
@@ -1904,8 +1910,7 @@ define([
                                 var systemName = currentSystem.getSystemInfo(['alias']);
                                 deleteSystems(map, [currentSystem], function(){
                                     // callback function after delete -> close dialog
-
-                                    $(systemDeleteDialog).modal('hide');
+                                    bootbox.hideAll();
                                     Util.showNotify({title: 'System deleted', text: systemName, type: 'success'});
                                 });
 
@@ -2375,7 +2380,7 @@ define([
         });
 
 
-        // catch menu events ====================================================
+        // catch events =========================================================
 
         // toggle "snap to grid" option
         $(mapContainer).on('pf:menuGrid', function(e, data){
@@ -2403,7 +2408,12 @@ define([
             }
 
             Util.showNotify({title: 'Grid snapping', text: notificationText, type: 'info'});
+        });
 
+        // delete system event
+        // triggered from "map info" dialog scope
+        $(mapContainer).on('pf:deleteSystems', function(e, data){
+            deleteSystems(map, data.systems, data.callback);
         });
 
         $(mapContainer).on('pf:menuSelectSystem', function(e, data){
@@ -2419,7 +2429,6 @@ define([
                 // select system
                 system.showSystemInfo(map);
             }
-
         });
 
 
@@ -2544,9 +2553,7 @@ define([
 
             // get invisible menu entries
             var hideOptions = getHiddenContextMenuOptions(component);
-
             var activeOptions = getActiveContextMenuOptions(component);
-
             $(e.target).trigger('pf:openContextMenu', [e, component, hideOptions, activeOptions]);
 
             return false;
@@ -2556,7 +2563,6 @@ define([
          *  init context menu for all connections
          *  must be triggered manually on demand
          */
-
         $(connection.canvas).contextMenu({
             menuSelector: "#" + config.connectionContextMenuId,
             menuSelected: function (params){
@@ -2726,10 +2732,7 @@ define([
                 buttons: {
                     close: {
                         label: 'cancel',
-                        className: 'btn-default',
-                        callback: function(){
-                            $(systemDialog).modal('hide');
-                        }
+                        className: 'btn-default'
                     },
                     success: {
                         label: '<i class="fa fa-fw fa-check"></i> save',
@@ -2788,7 +2791,7 @@ define([
                             };
 
                             saveSystem(map, requestData, sourceSystem, function(){
-                                $(systemDialog).modal('hide');
+                                bootbox.hideAll();
                             });
                             return false;
                         }
@@ -2803,7 +2806,7 @@ define([
 
                 // init system select live search  - some delay until modal transition has finished
                 var selectElement = modalContent.find('.' + config.systemDialogSelectClass);
-                selectElement.delay(200).initSystemSelect({
+                selectElement.delay(240).initSystemSelect({
                     key: 'systemId',
                     disabledOptions: mapSystemIds
                 });
@@ -2837,11 +2840,15 @@ define([
             type: 'POST',
             url: Init.path.saveSystem,
             data: requestData,
-            dataType: 'json'
+            dataType: 'json',
+            context: {
+                map: map,
+                sourceSystem: sourceSystem
+            }
         }).done(function(newSystemData){
 
             // draw new system to map
-            drawSystem(map, newSystemData, sourceSystem);
+            drawSystem(this.map, newSystemData, this.sourceSystem);
 
             Util.showNotify({title: 'New system', text: newSystemData.name, type: 'success'});
 
@@ -3274,7 +3281,7 @@ define([
                     outlineWidth: 2                                                         // width of the outline for an Endpoint or Connector. An integer.
                 },
                 Connector:[ 'Bezier', { curviness: 40 } ],                                  // default connector style (this is not used!) all connections have their own style (by scope)
-                Endpoints: [ [ 'Dot', { radius: 6 } ], [ 'Dot', { radius: 6 } ] ],
+                Endpoints: [ [ 'Dot', { radius: 5 } ], [ 'Dot', { radius: 5 } ] ],
                 // Endpoint: 'Blank', // does not work... :(
                 ReattachConnections: false,                                                 // re-attach connection if dragged with mouse to "nowhere"
                 Scope: Init.defaultMapScope,                                                // default map scope for connections

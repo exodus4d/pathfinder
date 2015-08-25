@@ -14,14 +14,14 @@ class AllianceMapModel extends BasicModel {
 
     protected $table = 'alliance_map';
 
-    protected $fieldConf = array(
-        'allianceId' => array(
+    protected $fieldConf = [
+        'allianceId' => [
             'belongs-to-one' => 'Model\AllianceModel'
-        ),
-        'mapId' => array(
+        ],
+        'mapId' => [
             'belongs-to-one' => 'Model\MapModel'
-        )
-    );
+        ]
+    ];
 
     /**
      * see parent
