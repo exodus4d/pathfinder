@@ -6,75 +6,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="910fc076-a5b3-46d4-aef4-821103026334" name="Default" comment="splashpage fixes and UNIX lowercase PHP files">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/pathfinder.ini" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/main/exception/registrationexception.php" />
-      <change type="DELETED" beforePath="G:\webpages\exodus4d\pathfinder\js\lib\jquery-2.1.1.min.js" afterPath="" />
-      <change type="DELETED" beforePath="G:\webpages\exodus4d\pathfinder\public\css\library\bootstrap-toggle\bootstrap2-toggle.css" afterPath="" />
-      <change type="DELETED" beforePath="G:\webpages\exodus4d\pathfinder\public\img\logo.png" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/dataSources.ids" afterPath="$PROJECT_DIR$/.idea/dataSources.ids" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.htaccess" afterPath="$PROJECT_DIR$/.htaccess" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/library/data-tables/_dataTables.scss" afterPath="$PROJECT_DIR$/sass/library/data-tables/_dataTables.scss" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/layout/_main.scss" afterPath="$PROJECT_DIR$/sass/layout/_main.scss" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/layout/_map.scss" afterPath="$PROJECT_DIR$/sass/layout/_map.scss" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/layout/_system-info.scss" afterPath="$PROJECT_DIR$/sass/layout/_system-info.scss" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sass/_variables.scss" afterPath="$PROJECT_DIR$/sass/_variables.scss" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/dialog/account_settings.js" afterPath="$PROJECT_DIR$/js/app/ui/dialog/account_settings.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app.js" afterPath="$PROJECT_DIR$/js/app.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/main/controller/appcontroller.php" afterPath="$PROJECT_DIR$/app/main/controller/appcontroller.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/node_modules/.bin/build.js" afterPath="$PROJECT_DIR$/node_modules/.bin/build.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/config.ini" afterPath="$PROJECT_DIR$/app/config.ini" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/config.rb" afterPath="$PROJECT_DIR$/config.rb" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/map/contextmenu.js" afterPath="$PROJECT_DIR$/js/app/map/contextmenu.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/templates/dialog/credit.html" afterPath="$PROJECT_DIR$/public/templates/dialog/credit.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/dialog/credit.js" afterPath="$PROJECT_DIR$/js/app/ui/dialog/credit.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/cron.ini" afterPath="$PROJECT_DIR$/app/cron.ini" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/dataSources.xml" afterPath="$PROJECT_DIR$/.idea/dataSources.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/main/db/database.php" afterPath="$PROJECT_DIR$/app/main/db/database.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/deployment.xml" afterPath="$PROJECT_DIR$/.idea/deployment.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/header.js" afterPath="$PROJECT_DIR$/js/app/ui/header.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/templates/view/index.html" afterPath="$PROJECT_DIR$/public/templates/view/index.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.php" afterPath="$PROJECT_DIR$/index.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/jsLibraryMappings.xml" afterPath="$PROJECT_DIR$/.idea/jsLibraryMappings.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/templates/view/landingpage.html" afterPath="$PROJECT_DIR$/public/templates/view/landingpage.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/landingpage.js" afterPath="$PROJECT_DIR$/js/app/landingpage.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/logo.js" afterPath="$PROJECT_DIR$/js/app/ui/logo.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/map/map.js" afterPath="$PROJECT_DIR$/js/app/map/map.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/templates/dialog/map_info.html" afterPath="$PROJECT_DIR$/public/templates/dialog/map_info.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/dialog/map_info.js" afterPath="$PROJECT_DIR$/js/app/ui/dialog/map_info.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/module_map.js" afterPath="$PROJECT_DIR$/js/app/module_map.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/css/pathfinder.css" afterPath="$PROJECT_DIR$/public/css/pathfinder.css" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/pathfinder.iml" afterPath="$PROJECT_DIR$/.idea/pathfinder.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/routes.ini" afterPath="$PROJECT_DIR$/app/routes.ini" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/templates/modules/system_info.html" afterPath="$PROJECT_DIR$/public/templates/modules/system_info.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/system_info.js" afterPath="$PROJECT_DIR$/js/app/ui/system_info.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/system_killboard.js" afterPath="$PROJECT_DIR$/js/app/ui/system_killboard.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/system_route.js" afterPath="$PROJECT_DIR$/js/app/ui/system_route.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/ui/system_signature.js" afterPath="$PROJECT_DIR$/js/app/ui/system_signature.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/app/util.js" afterPath="$PROJECT_DIR$/js/app/util.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/watcherTasks.xml" afterPath="$PROJECT_DIR$/.idea/watcherTasks.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MOVED" beforePath="G:\webpages\exodus4d\pathfinder\app\main\controller\CcpApiController.php" afterPath="$PROJECT_DIR$/app/main/controller/ccpapicontroller.php" />
-      <change type="MOVED" beforePath="G:\webpages\exodus4d\pathfinder\app\main\controller\Controller.php" afterPath="$PROJECT_DIR$/app/main/controller/controller.php" />
-      <change type="MOVED" beforePath="G:\webpages\exodus4d\pathfinder\app\main\controller\MapController.php" afterPath="$PROJECT_DIR$/app/main/controller/mapcontroller.php" />
-      <change type="MOVED" beforePath="G:\webpages\exodus4d\pathfinder\app\main\controller\api\Map.php" afterPath="$PROJECT_DIR$/app/main/controller/api/map.php" />
-      <change type="MOVED" beforePath="G:\webpages\exodus4d\pathfinder\app\main\controller\api\User.php" afterPath="$PROJECT_DIR$/app/main/controller/api/user.php" />
-      <change type="MOVED" beforePath="G:\webpages\exodus4d\pathfinder\app\main\cron\ccpSystemsUpdate.php" afterPath="$PROJECT_DIR$/app/main/cron/ccpsystemsupdate.php" />
-      <change type="MOVED" beforePath="G:\webpages\exodus4d\pathfinder\app\main\exception\BaseException.php" afterPath="$PROJECT_DIR$/app/main/exception/baseexception.php" />
-      <change type="MOVED" beforePath="G:\webpages\exodus4d\pathfinder\app\main\model\AllianceMapModel.php" afterPath="$PROJECT_DIR$/app/main/model/alliancemapmodel.php" />
-      <change type="MOVED" beforePath="G:\webpages\exodus4d\pathfinder\app\main\model\BasicModel.php" afterPath="$PROJECT_DIR$/app/main/model/basicmodel.php" />
-      <change type="MOVED" beforePath="G:\webpages\exodus4d\pathfinder\app\main\model\CharacterLogModel.php" afterPath="$PROJECT_DIR$/app/main/model/characterlogmodel.php" />
-      <change type="MOVED" beforePath="G:\webpages\exodus4d\pathfinder\app\main\model\CharacterModel.php" afterPath="$PROJECT_DIR$/app/main/model/charactermodel.php" />
-      <change type="MOVED" beforePath="G:\webpages\exodus4d\pathfinder\app\main\model\ConnectionModel.php" afterPath="$PROJECT_DIR$/app/main/model/connectionmodel.php" />
-      <change type="MOVED" beforePath="G:\webpages\exodus4d\pathfinder\app\main\model\CorporationMapModel.php" afterPath="$PROJECT_DIR$/app/main/model/corporationmapmodel.php" />
-      <change type="MOVED" beforePath="G:\webpages\exodus4d\pathfinder\app\main\model\SystemModel.php" afterPath="$PROJECT_DIR$/app/main/model/systemmodel.php" />
-      <change type="MOVED" beforePath="G:\webpages\exodus4d\pathfinder\app\main\model\SystemSignatureModel.php" afterPath="$PROJECT_DIR$/app/main/model/systemsignaturemodel.php" />
-      <change type="MOVED" beforePath="G:\webpages\exodus4d\pathfinder\app\main\model\UserApiModel.php" afterPath="$PROJECT_DIR$/app/main/model/userapimodel.php" />
-      <change type="MOVED" beforePath="G:\webpages\exodus4d\pathfinder\app\main\model\UserCharacterModel.php" afterPath="$PROJECT_DIR$/app/main/model/usercharactermodel.php" />
-      <change type="MOVED" beforePath="G:\webpages\exodus4d\pathfinder\app\main\model\UserMapModel.php" afterPath="$PROJECT_DIR$/app/main/model/usermapmodel.php" />
-      <change type="MOVED" beforePath="G:\webpages\exodus4d\pathfinder\app\main\model\UserModel.php" afterPath="$PROJECT_DIR$/app/main/model/usermodel.php" />
-      <change type="MOVED" beforePath="G:\webpages\exodus4d\pathfinder\js\app\main.js" afterPath="$PROJECT_DIR$/js/app/mappage.js" />
+      <change type="DELETED" beforePath="G:\webpages\exodus4d\pathfinder\js\app\main.js" afterPath="" />
     </list>
     <ignored path="pathfinder.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -142,10 +74,10 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="mappage.js" pinned="false" current-in-tab="false">
+          <file leaf-file-name="mappage.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/js/app/mappage.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
+                <state vertical-scroll-proportion="0.2782258">
                   <caret line="23" column="21" selection-start-line="23" selection-start-column="21" selection-end-line="23" selection-end-column="21" />
                   <folding />
                 </state>
@@ -192,10 +124,10 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="landingpage.html" pinned="false" current-in-tab="true">
+          <file leaf-file-name="landingpage.html" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/public/templates/view/landingpage.html">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.3488746">
+                <state vertical-scroll-proportion="-11.107142">
                   <caret line="776" column="82" selection-start-line="776" selection-start-column="78" selection-end-line="776" selection-end-column="82" />
                   <folding />
                 </state>
@@ -343,7 +275,7 @@
               <file leaf-file-name="credit.js" pinned="false" current-in-tab="true">
                 <entry file="file://$PROJECT_DIR$/js/app/ui/dialog/credit.js">
                   <provider selected="true" editor-type-id="text-editor">
-                    <state vertical-scroll-proportion="0.58153844">
+                    <state vertical-scroll-proportion="0.5080645">
                       <caret line="42" column="0" selection-start-line="42" selection-start-column="0" selection-end-line="42" selection-end-column="0" />
                       <folding />
                     </state>
@@ -1065,76 +997,6 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="js" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="app" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ui" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="js" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="app" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ui" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="dialog" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="js" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="app" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="map" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pathfinder" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
               <option name="myItemId" value="build_js" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
@@ -1578,16 +1440,16 @@
     <frame x="22" y="14" width="3779" height="2077" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.089024715" sideWeight="0.5808685" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.09007798" sideWeight="0.5808685" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.1601622" sideWeight="0.41233867" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.1601622" sideWeight="0.5876613" order="6" side_tool="true" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="13" side_tool="false" content_ui="tabs" />
-      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.061121445" sideWeight="0.8506694" order="4" side_tool="true" content_ui="tabs" x="1667" y="651" width="475" height="815" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.30587023" sideWeight="0.3821138" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.20041005" sideWeight="0.3788701" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.061844584" sideWeight="0.85052085" order="4" side_tool="true" content_ui="tabs" x="1667" y="651" width="475" height="815" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.309375" sideWeight="0.38205454" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2" sideWeight="0.3779328" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.1961895" sideWeight="0.40994373" order="11" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.061121445" sideWeight="0.14933059" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.30587023" sideWeight="0.6178862" order="12" side_tool="true" content_ui="tabs" x="945" y="556" width="1373" height="181" />
+      <window_info id="Structure" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.061844584" sideWeight="0.14947917" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2" sideWeight="0.6220672" order="12" side_tool="true" content_ui="tabs" x="945" y="556" width="1373" height="181" />
       <window_info id="Favorites" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.06771697" sideWeight="0.2838336" order="3" side_tool="true" content_ui="tabs" x="2380" y="542" width="342" height="659" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.12111638" sideWeight="0.45304778" order="9" side_tool="false" content_ui="tabs" />
@@ -1667,14 +1529,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="17" column="2" selection-start-line="17" selection-start-column="2" selection-end-line="17" selection-end-column="2" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/js/app/mappage.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="23" column="21" selection-start-line="23" selection-start-column="21" selection-end-line="23" selection-end-column="21" />
           <folding />
         </state>
       </provider>
@@ -1960,14 +1814,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/sass/layout/_main.scss">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-16.666666">
-          <caret line="25" column="0" selection-start-line="25" selection-start-column="0" selection-end-line="25" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/js/app/ui/system_route.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1988,14 +1834,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-12.724138">
           <caret line="2554" column="69" selection-start-line="2554" selection-start-column="69" selection-end-line="2554" selection-end-column="69" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/build_js/app.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -2042,7 +1880,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/js/app/ui/dialog/credit.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.58153844">
+        <state vertical-scroll-proportion="0.5080645">
           <caret line="42" column="0" selection-start-line="42" selection-start-column="0" selection-end-line="42" selection-end-column="0" />
           <folding />
         </state>
@@ -2050,8 +1888,32 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/public/templates/view/landingpage.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.3488746">
+        <state vertical-scroll-proportion="-11.107142">
           <caret line="776" column="82" selection-start-line="776" selection-start-column="78" selection-end-line="776" selection-end-column="82" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/build_js/app.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/sass/layout/_main.scss">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-16.666666">
+          <caret line="25" column="0" selection-start-line="25" selection-start-column="0" selection-end-line="25" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/js/app/mappage.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.2782258">
+          <caret line="23" column="21" selection-start-line="23" selection-start-column="21" selection-end-line="23" selection-end-column="21" />
           <folding />
         </state>
       </provider>
