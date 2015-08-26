@@ -43,12 +43,12 @@ php_value suhosin.request.max_vars 5000
 php_flag log_errors on
 # php_value error_log "/www/htdocs/w0128162/www.pathfinder.exodus4d.de/logs/php_errors.log"
 
-# cache images/pdf docs
+# caching
 <ifmodule mod_expires.c>
     # fonts
-    <Filesmatch "\.(eot|woff2|woff|ttf)$">
+    <Filesmatch "\.(eot|woff2|woff|ttf|ttf|svg)$">
         ExpiresActive on
-        ExpiresDefault "access plus 1 year"
+        ExpiresDefault "access plus 1 month"
         Header append Cache-Control "public"
     </Filesmatch>
 
@@ -61,10 +61,15 @@ php_flag log_errors on
         Header unset ETag
     </Filesmatch>
 
-    # js/css/source maps
-    <Filesmatch "\.(js|css|map)$">
+    # css
+    <Filesmatch "\.(css)$">
         ExpiresActive on
         ExpiresDefault "access plus 1 month"
+    </Filesmatch>
+
+    ## js/source maps
+    <Filesmatch "\.(js|map)$">
+        ExpiresActive off
     </Filesmatch>
 
     # html templates
