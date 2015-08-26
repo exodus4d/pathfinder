@@ -48,10 +48,4 @@ Temporary Items
 # ========================
 .idea
 .sass-cache
-.build_js
-.css
-.tmp
 .usage
-*.var
-*.sql
-*.url
