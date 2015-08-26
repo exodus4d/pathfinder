@@ -1,8 +1,8 @@
-# PATHFINDER
-> lalala
-## EVE ONLINE mapping tool
+## *PATHFINDER*
+### Mapping tool for *EVE ONLINE*
 
-
+### Directory structure (production deployment)
+```
   |-- (0755) app              --> backend [*.php]
         |-- app               --> "Fat Free Framework" extensions
             |-- ...
@@ -21,4 +21,4 @@
   |-- (0777) tmp
   |-- (0755) .htaccess
   |-- (0755) index.php
-
+```
