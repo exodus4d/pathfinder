@@ -1,6 +1,7 @@
 ## *PATHFINDER*
 Mapping tool for *EVE ONLINE*
 
+url: https://www.pathfinder.exodus4d.de
 ## Directory structure (production)
 
 ```
@@ -22,11 +23,15 @@ Mapping tool for *EVE ONLINE*
       |-- app.js            --> require.js config (!required for production!)
   |-- (0777) logs           --> log files
       |-- ...
+  | -- node_modules         --> node.js modules (not used for production )     
+      |-- ...
   |-- (0755) public         --> frontend source
       |-- css               --> CSS build folder (minified)
       |-- fonts             --> Web/Icon fonts
       |-- img               --> images
       |-- templates         --> templates
+  |-- sass                  --> SCSS source (not used for production )
+      |-- ...
   |-- (0777) tmp            --> cache folder
       |-- ...
   |-- (0755) .htaccess      --> reroute/caching rules
