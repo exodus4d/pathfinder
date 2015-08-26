@@ -2,12 +2,12 @@
 EVE Online - Pathfinder
 
 ```
-  |-- (0755) app
-        |-- app
+  |-- (0755) app              --> backend [*.php]
+        |-- app               --> "Fat Free Framework" extensions
             |-- ...
-        |-- lib
+        |-- lib               --> "Fat Free Framework"
             |-- ...
-        |-- main
+        |-- main              --> "PATHFINDER" root
             |-- ...
         |-- config.ini        --> config "f3" framework
         |-- cron.ini          --> config cronjobs
