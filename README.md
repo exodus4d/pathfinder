@@ -9,10 +9,10 @@ EVE Online - Pathfinder
             |-- ...
         |-- main
             |-- ...
-        |-- config.ini --> config "f3" framework
-        |-- cron.ini --> config cronjobs
-        |-- pathfinder.ini --> config pathfinder
-        |-- routes.ini --> config routes
+        |-- config.ini        --> config "f3" framework
+        |-- cron.ini          --> config cronjobs
+        |-- pathfinder.ini    --> config pathfinder
+        |-- routes.ini        --> config routes
   |-- (0755) build_js
   |-- (0755) js
   |-- (0777) logs
