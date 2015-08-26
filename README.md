@@ -2,7 +2,7 @@
 > lalala
 ## EVE ONLINE mapping tool
 
-```
+
   |-- (0755) app              --> backend [*.php]
         |-- app               --> "Fat Free Framework" extensions
             |-- ...
@@ -21,4 +21,4 @@
   |-- (0777) tmp
   |-- (0755) .htaccess
   |-- (0755) index.php
-```
+
