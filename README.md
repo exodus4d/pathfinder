@@ -3,20 +3,32 @@ Mapping tool for *EVE ONLINE*
 
 url: https://www.pathfinder.exodus4d.de
 
-### Project requirements
-> #### APACHE Webserver 
-http://fatfreeframework.com/system-requirements
-- PHP 5.3.4 or higher
-- PCRE 8.02 or higher (usually shipped with PHP package, but needs to be additionally updated on CentOS or Red Hat systems)
-- mod_rewrite and mod_headers enabled
-- GD libary (for Image plugin)
-- cURL, sockets or stream extension (for Web plugin)
-- Gzip compression
+### Project requirements --------------------------------------------------
+#### APACHE Webserver 
+  - PHP 5.3.4 or higher
+  - PCRE 8.02 or higher (usually shipped with PHP package, but needs to be additionally updated on CentOS or Red Hat systems)
+  - mod_rewrite and mod_headers enabled
+  - GD libary (for Image plugin)
+  - cURL, sockets or stream extension (for Web plugin)
+  - Gzip compression
+  
+  Nginx and Lighttpd configurations are also possible.
+  http://fatfreeframework.com/system-requirements
+#### Database
+  - mysql: MySQL 5.x
+  - sqlite: SQLite 3 and SQLite 2
+  - pgsql: PostgreSQL
+  - sqlsrv: Microsoft SQL Server / SQL Azure
+  - mssql, dblib, sybase: FreeTDS / Microsoft SQL Server / Sybase
+  - odbc: ODBC v3
+  - oci: Oracle
 
-#### Development
-> t.b.a.
+  Here is a list of links to DSN connection details for all currently supported engines in the SQL layer:
+  http://fatfreeframework.com/sql
+#### Development Environment
+  - t.b.a.
 
-### Folder structure (production)
+### Folder structure (production) ----------------------------------------
 
 ```
   |-- (0755) app              --> backend [*.php]
