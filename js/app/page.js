@@ -518,7 +518,10 @@ define([
 
         $(document).on('pf:menuShowSettingsDialog', function(e){
             // show character select dialog
-            $.fn.showSettingsDialog(false);
+            $.fn.showSettingsDialog({
+                register: 0,
+                invite : parseInt( $('body').data('invite') )
+            });
             return false;
         });
 

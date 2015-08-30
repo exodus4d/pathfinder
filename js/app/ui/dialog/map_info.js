@@ -191,6 +191,13 @@ define([
                 type_sort: tempSystemData.type.id
             };
 
+            // security
+            var securityClass = Util.getSecurityClassForSystem(tempSystemData.security);
+            tempData.security = {
+                security: '<span class="' + securityClass + '">' + tempSystemData.security + '</span>',
+                security_sort: tempSystemData.security
+            };
+
             // name
             tempData.name = tempSystemData.name;
 
@@ -261,19 +268,6 @@ define([
                 };
             }
 
-            // rally point
-            if(tempSystemData.rally === 1){
-                tempData.rally = {
-                    rally: '<i class="fa fa-users fa-lg fa-fw"></i>',
-                    rally_sort: tempSystemData.rally
-                };
-            }else{
-                tempData.rally = {
-                    rally: '',
-                    rally_sort: 0
-                };
-            }
-
             // updated
             tempData.updated = tempSystemData.updated.updated;
 
@@ -288,7 +282,7 @@ define([
             paging: true,
             lengthMenu: [[5, 10, 20, 50, -1], [5, 10, 20, 50, 'All']],
             ordering: true,
-            order: [[ 7, 'desc' ], [ 2, 'asc' ]],
+            order: [[ 9, 'desc' ], [ 3, 'asc' ]],
             autoWidth: false,
             responsive: {
                 breakpoints: [
@@ -319,9 +313,18 @@ define([
                         sort: 'type_sort'
                     }
                 },{
+                    title: '',
+                    width: '1px',
+                    searchable: false,
+                    data: 'security',
+                    render: {
+                        _: 'security',
+                        sort: 'security_sort'
+                    }
+                },{
                     title: 'sec',
                     width: '18px',
-                    className: 'text-center',
+                    className: ['text-center', 'min-desktop'].join(' '),
                     searchable: false,
                     data: 'trueSec',
                     render: {
@@ -380,16 +383,6 @@ define([
                     render: {
                         _: 'locked',
                         sort: 'locked_sort'
-                    }
-                },{
-                    title: '<i class="fa fa-users fa-lg fa-fw" title="rally&nbsp;point" data-toggle="tooltip"></i>',
-                    width: '15px',
-                    className: ['min-desktop'].join(' '),
-                    searchable: false,
-                    data: 'rally',
-                    render: {
-                        _: 'rally',
-                        sort: 'rally_sort'
                     }
                 },{
                     title: 'updated',

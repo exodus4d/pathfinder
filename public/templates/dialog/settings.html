@@ -41,20 +41,45 @@
                     {{/register}}
 
                     {{#register}}
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <div class="form-group">
-                                <label for="email" class="col-sm-3 control-label">Username</label>
-                                <div class="col-sm-6">
-                                    <div class="input-group" title="Choose your unique username" data-placement="right">
-                                        <input name="name" type="text" class="form-control" id="name" value="" placeholder="Your username" data-error="Username required" data-minlength="5" data-minlength-error="Min. of 5 characters" autocomplete="off" required>
-                                        <span class="input-group-addon"><i class="fa fa-user"></i></span>
+
+                        {{#invite}}
+                        <div class="alert alert-info" style="margin-bottom: 20px">
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><i class="fa fa-close"></i></button>
+                            <span class="txt-color txt-color-information">Invite active</span>
+                            <small>You need a "Registration Key" to complete registration</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label for="registrationKey" class="col-sm-3 control-label">Registration Key</label>
+                                    <div class="col-sm-6">
+                                        <div class="input-group" title="Enter your personal registration kay" data-placement="right">
+                                            <input name="registrationKey" type="text" class="form-control" id="registrationKey" value="" placeholder="XXXXXX" data-error="Registration key required" data-minlength="40" data-minlength-error="Min. of 40 characters" autocomplete="off" required>
+                                            <span class="input-group-addon"><i class="fa fa-fw fa-certificate"></i></span>
+                                        </div>
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {{/invite}}
+
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label for="email" class="col-sm-3 control-label">Username</label>
+                                    <div class="col-sm-6">
+                                        <div class="input-group" title="Choose your unique username" data-placement="right">
+                                            <input name="name" type="text" class="form-control" id="name" value="" placeholder="Your username" data-error="Username required" data-minlength="5" data-minlength-error="Min. of 5 characters" autocomplete="off" required>
+                                            <span class="input-group-addon"><i class="fa fa-fw fa-user"></i></span>
+                                        </div>
+                                        <div class="help-block with-errors"></div>
                                     </div>
                                     <div class="help-block with-errors"></div>
                                 </div>
                             </div>
                         </div>
-                    </div>
                     {{/register}}
 
                     {{^register}}
@@ -81,7 +106,7 @@
                                     <div class="col-sm-6">
                                         <div class="input-group" title="Enter your email. It will be kept private!" data-placement="right">
                                             <input name="email" type="email" class="form-control" id="email" value="" placeholder="your@email.com" data-error="Email required" autocomplete="off" {{#register}}required{{/register}} >
-                                            <span class="input-group-addon"><i class="fa fa-envelope"></i></span>
+                                            <span class="input-group-addon"><i class="fa fa-fw fa-envelope"></i></span>
                                         </div>
                                         <div class="help-block with-errors"></div>
                                     </div>
@@ -96,7 +121,7 @@
                                     <div class="col-sm-6">
                                         <div class="input-group" title="Confirm your email" data-placement="right">
                                             <input name="email_confirm" type="email" class="form-control" id="email_confirm" value="" placeholder="your@email.com" data-error="Email required" data-match="#email" data-match-error="Email fields do not match" autocomplete="off" {{#register}}required{{/register}}>
-                                            <span class="input-group-addon"><i class="fa fa-envelope"></i></span>
+                                            <span class="input-group-addon"><i class="fa fa-fw fa-envelope"></i></span>
                                         </div>
                                         <div class="help-block with-errors"></div>
                                     </div>
@@ -129,7 +154,7 @@
                                     <div class="col-sm-6">
                                         <div class="input-group" title="Enter your password. Do not use your EVE password" data-placement="right">
                                             <input name="password" type="password" class="form-control" id="password" placeholder="" data-minlength="6" data-minlength-error="Min. of 6 characters" {{#register}}required{{/register}}>
-                                            <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+                                            <span class="input-group-addon"><i class="fa fa-fw fa-lock"></i></span>
                                         </div>
                                         <div class="help-block with-errors"></div>
                                     </div>
@@ -144,7 +169,7 @@
                                     <div class="col-sm-6">
                                         <div class="input-group" title="Confirm your password" data-placement="right">
                                             <input name="password_confirm" type="password" class="form-control" id="password_confirm" placeholder="" data-minlength="6" data-minlength-error="Min. of 6 characters" data-match="#password" data-match-error="Password fields do not match" {{#register}}required{{/register}}>
-                                            <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+                                            <span class="input-group-addon"><i class="fa fa-fw fa-lock"></i></span>
                                         </div>
                                         <div class="help-block with-errors"></div>
                                     </div>
@@ -174,7 +199,7 @@
                                     <div class="col-sm-6">
                                         <div class="input-group" title="Enter the characters seen above" data-placement="right">
                                             <input name="captcha" type="text" class="form-control" id="captcha" placeholder="" data-minlength="6" data-minlength-error="Min. of 6 characters" autocomplete="off" required>
-                                            <span class="input-group-addon"><i class="fa fa-refresh"></i></span>
+                                            <span class="input-group-addon"><i class="fa fa-fw fa-refresh"></i></span>
                                         </div>
                                         <div class="help-block with-errors"></div>
                                     </div>

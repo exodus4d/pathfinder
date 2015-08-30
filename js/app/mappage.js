@@ -65,8 +65,6 @@ define([
             var mapModule = $(this);
 
             // log keys ------------------------------------------------------------------------
-            // get map data from client
-            var logKeyGetClientMapData = 'GET_CLIENT_MAP_DATA';
 
             // ajax request update map data
             var logKeyServerMapData = 'UPDATE_SERVER_MAP';
@@ -98,12 +96,7 @@ define([
                 }
 
                 // get updated map data
-                Util.timeStart(logKeyGetClientMapData);
                 var updatedMapData = mapModule.getMapModuleDataForUpdate();
-                var mapDataLogDuration = Util.timeStop(logKeyGetClientMapData);
-
-                // log execution time
-                Util.log(logKeyGetClientMapData, {duration: mapDataLogDuration, type: 'client', description: 'get client data'});
 
                 // wrap array to object
                 updatedMapData = {mapData: updatedMapData};
@@ -223,7 +216,7 @@ define([
                             if(userData.character === undefined){
                                 // no active character found -> show settings dialog
 
-                                Util.showNotify({title: 'No main character found', text: 'Set up your main character', type: 'error'});
+                                Util.showNotify({title: 'Main character missing', text: 'Check API and set a main character', type: 'error'});
 
                                 $(document).triggerMenuEvent('ShowSettingsDialog');
                             }

@@ -11,6 +11,7 @@ define(['jquery'], function($) {
             img: 'public/img/',                                     // path for images
             // user API
             getCaptcha: 'api/user/getCaptcha',                      // ajax URL - get captcha image
+            sendRegistrationKey: 'api/user/sendRegistration',       // ajax URL - send registration key
             logIn: 'api/user/logIn',                                // ajax URL - login
             logOut: 'api/user/logOut',                              // ajax URL - logout
             deleteLog: 'api/user/deleteLog',                        // ajax URL - delete character log

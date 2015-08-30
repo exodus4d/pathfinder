@@ -40,7 +40,8 @@ class CcpApiController extends Controller{
         $requestOptions = [
             'timeout' => 8,
             'method' => 'POST',
-            'user_agent' => $this->getUserAgent()
+            'user_agent' => $this->getUserAgent(),
+            'follow_location' => false // otherwise CURLOPT_FOLLOWLOCATION will fail
         ];
 
         return $requestOptions;
@@ -94,7 +95,10 @@ class CcpApiController extends Controller{
             // request successful
             $rowApiData = $xml->result->key->rowset;
 
-            if($rowApiData->children()){
+            if(
+                is_object($rowApiData) &&
+                $rowApiData->children()
+            ){
                 $characterModel = Model\BasicModel::getNew('CharacterModel');
                 $corporationModel = Model\BasicModel::getNew('CorporationModel');
                 $allianceModel = Model\BasicModel::getNew('AllianceModel');
@@ -151,7 +155,6 @@ class CcpApiController extends Controller{
                         }
 
                         $userApiModel->userCharacters->rewind();
-
                     }
 
                     $characterModel->id = $characterId;

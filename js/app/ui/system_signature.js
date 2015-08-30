@@ -739,7 +739,9 @@ define([
 
         // jump to "next" editable field on save
         var openNextEditDialogOnSave = function(fields){
-            fields.on('save', function(e){
+            fields.on('save', function(e, a){
+                console.log(e);
+                console.log(a)
                 var currentField = $(this);
 
                 setTimeout(function() {
@@ -1504,9 +1506,10 @@ define([
                         $(cell).initTimestampCounter();
 
                         // highlight cell
-                        var diff = new Date().getTime() - cellData.updated * 1000;
-                        var dateDiff = new Date(diff);
-                        if(dateDiff.getUTCDate() > 1){
+                        var diff = Math.floor((new Date()).getTime()) - cellData.updated * 1000;
+
+                        // age > 1 day
+                        if( diff > 86400000){
                             $(cell).addClass('txt-color txt-color-warning');
                         }
                     }

@@ -165,6 +165,7 @@ select:active, select:hover {
   left: 0;
   opacity: 0;
   background: $gray-darker;
+  z-index: 1060;
   @include border-radius(5px);
 
   .pf-loading-overlay-wrapper{
@@ -320,9 +321,7 @@ select:active, select:hover {
     overflow: hidden;
     @include border-radius(5px);
 
-    &:after{
-      //content: "\f09b";
-      //font: normal normal normal 14px/1 FontAwesome; // shortening font declaration
+    &:before{
       content:'';
       position: absolute;
       top: 0;
@@ -821,6 +820,10 @@ select:active, select:hover {
 
   .pf-head-program-status{
     cursor: pointer;
+  }
+
+  .navbar-text{
+    min-width: 60px; // fixes a load-delay issue for "toggle" map-tracking
   }
 
   // tooltips header

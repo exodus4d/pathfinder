@@ -35,7 +35,7 @@ class UserModel extends BasicModel {
         'name' => [
             'length' => [
                 'min' => 5,
-                'max' => 20
+                'max' => 25
             ]
         ],
         'email' => [

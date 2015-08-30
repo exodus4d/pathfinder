@@ -154,8 +154,10 @@ define([
 
     /**
      * show "register/settings" dialog
+     * @param options
+     * @returns {boolean}
      */
-    $.fn.showSettingsDialog = function(register){
+    $.fn.showSettingsDialog = function(options){
 
         // check if there is already a settings dialog open
         var settingsDialog = $('#' + config.settingsDialogId);
@@ -191,7 +193,7 @@ define([
         requirejs(['text!templates/dialog/settings.html', 'mustache'], function(template, Mustache) {
 
             // if this is a new registration there is no API key -> fake an empty API to make fields visible
-            if(register){
+            if(options.register === 1){
                 Init.currentUserData = {};
                 Init.currentUserData.api = [{
                     keyId: '',
@@ -206,7 +208,8 @@ define([
 
             var data = {
                 id: config.settingsDialogId,
-                register: register,
+                register: options.register === 1 ? 1 : 0,
+                invite : options.invite === 1 ? 1 : 0,
                 navigationClass: config.dialogWizardNavigationClass,
                 userData: Init.currentUserData,
                 cloneApiRowClass: config.settingsCloneApiRowClass,
@@ -221,7 +224,7 @@ define([
             var content = Mustache.render(template, data);
 
             var selectCharacterDialog = bootbox.dialog({
-                title: register ? 'Registration' : 'Account settings',
+                title: options.register === 1 ? 'Registration' : 'Account settings',
                 message: content,
                 buttons: {
                     close: {
@@ -229,7 +232,7 @@ define([
                         className: ['btn-success', 'pull-right', config.settingsFinishButtonClass].join(' '),
                         callback: function(e){
 
-                            if(register){
+                            if(options.register === 1){
                                 if(reroutePath !== undefined){
                                     // root user to main app
                                     window.location = reroutePath;
@@ -358,23 +361,20 @@ define([
                                                         var fieldName = 'name';
                                                         if(errorObj.text.match( fieldName )){
                                                             // name exist
-                                                            showFormMessage([{type: 'error', message: 'Username already exists'}]);
-                                                            resetFormField( fieldName );
+                                                            form.showFormMessage([{type: 'error', message: 'Username already exists', field: fieldName}]);
                                                         }
 
                                                         fieldName = 'email';
                                                         if(errorObj.text.match( fieldName )){
-                                                            // name exist
-                                                            showFormMessage([{type: 'error', message: 'Email already exists'}]);
-                                                            resetFormField( fieldName );
-                                                            resetFormField( fieldName + '_confirm');
+                                                            // email exist
+                                                            form.showFormMessage([{type: 'error', message: 'Email already exists', field: fieldName}]);
                                                         }
                                                     }
                                                 }
                                             }
                                         }
 
-                                        if(!register){
+                                        if( options.register !== 1 ){
                                             $(document).setProgramStatus('problem');
                                         }
 

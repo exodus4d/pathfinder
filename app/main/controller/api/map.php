@@ -451,7 +451,7 @@ class Map extends \Controller\AccessController {
             }
 
         }else{
-            // user logged of
+            // user logged off
             $return->error[] = $this->getUserLoggedOffError();
         }
 
@@ -498,14 +498,16 @@ class Map extends \Controller\AccessController {
         $return = (object) [];
         $return->error = [];
 
-        if( !empty($f3->get('POST.mapIds')) ){
-            $mapIds = (array)$f3->get('POST.mapIds');
-            // check if data for specific system is requested
-            $systemData = (array)$f3->get('POST.systemData');
+        $user = $this->_getUser();
 
-            $user = $this->_getUser();
+        if($user){
 
-            if($user){
+            if( !empty($f3->get('POST.mapIds')) ){
+                $mapIds = (array)$f3->get('POST.mapIds');
+                // check if data for specific system is requested
+                $systemData = (array)$f3->get('POST.systemData');
+
+
                 // update current location (IGB data)
                 $user->updateCharacterLog(60 * 5);
 
@@ -551,15 +553,16 @@ class Map extends \Controller\AccessController {
                     // with the same main char
                     $return = $f3->get($cacheKey);
                 }
-
-                // get current user data -> this should not be cached because each user has different personal data
-                // even if they have multiple characters using the same map!
-                $return->userData = $user->getData();
-            }else{
-                // user logged of
-                $return->error[] = $this->getUserLoggedOffError();
             }
+
+            // get current user data -> this should not be cached because each user has different personal data
+            // even if they have multiple characters using the same map!
+            $return->userData = $user->getData();
+        }else{
+            // user logged off
+            $return->error[] = $this->getUserLoggedOffError();
         }
+
 
         echo json_encode( $return );
     }

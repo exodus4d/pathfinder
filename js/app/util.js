@@ -153,7 +153,10 @@ define([
                 errorMessage.push( errors[i].message );
 
                 // mark form field as invalid in case of a validation error
-                if(errors[i].field){
+                if(
+                    errors[i].field &&
+                    errors[i].field.length > 0
+                ){
                     var formField = formElement.find('[name="' + errors[i].field + '"]');
                     formField.parents('.form-group').removeClass('has-success').addClass('has-error');
                 }

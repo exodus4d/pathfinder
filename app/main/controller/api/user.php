@@ -8,6 +8,7 @@
 
 namespace Controller\Api;
 use Controller;
+use controller\MailController;
 use Model;
 use Exception;
 
@@ -206,6 +207,60 @@ class User extends Controller\Controller{
     }
 
     /**
+     * search for a registration key model
+     * e.g. for new user registration with "invite" feature enabled
+     * @param $email
+     * @param $registrationKey
+     * @return bool|Model\RegistrationKeyModel
+     * @throws Exception
+     */
+    protected function getRegistrationKey($email, $registrationKey){
+        $registrationKeyModel = Model\BasicModel::getNew('RegistrationKeyModel');
+        $registrationKeyModel->load([
+            'registrationKey = :registrationKey AND
+            email = :email AND
+            used = 0 AND
+            active = 1',
+            ':registrationKey' => $registrationKey,
+            ':email' => $email
+        ]);
+
+        if( $registrationKeyModel->dry() ){
+            return false;
+        }else{
+            return $registrationKeyModel;
+        }
+    }
+
+    /**
+     * check if there is already an active Key for a mail
+     * @param $email
+     * @param bool|false $used
+     * @return bool|null
+     * @throws Exception
+     */
+    protected function findRegistrationKey($email, $used = false){
+
+        $queryPart = 'email = :email AND active = 1';
+
+        if(is_int($used)){
+            $queryPart .= ' AND used = ' . $used;
+        }
+
+        $registrationKeyModel = Model\BasicModel::getNew('RegistrationKeyModel');
+        $registrationKeyModels = $registrationKeyModel->find([
+            $queryPart,
+            ':email' => $email
+        ]);
+
+        if( is_object($registrationKeyModels) ){
+            return $registrationKeyModels;
+        }else{
+            return false;
+        }
+    }
+
+    /**
      * save/update user data
      * @param $f3
      */
@@ -225,6 +280,10 @@ class User extends Controller\Controller{
         // check user if if he is new
         $loginAfterSave = false;
 
+        // valid registration key Model is required for new registration
+        // if "invite" feature is enabled
+        $registrationKeyModel = false;
+
         if( isset($data['settingsData']) ){
             $settingsData = $data['settingsData'];
 
@@ -242,6 +301,16 @@ class User extends Controller\Controller{
                         // change/set sensitive user data requires captcha!
 
                         if($user === false){
+
+                            // check if registration key invite function is enabled
+                            if($f3->get('PATHFINDER.REGISTRATION.INVITE') === 1 ){
+                                $registrationKeyModel = $this->getRegistrationKey( $settingsData['email'], $settingsData['registrationKey'] );
+
+                                if($registrationKeyModel === false){
+                                    throw new Exception\RegistrationException('Registration key invalid', 'registrationKey');
+                                }
+                            }
+
                             // new user registration
                             $user = $mapType = Model\BasicModel::getNew('UserModel');
                             $loginAfterSave = true;
@@ -359,6 +428,11 @@ class User extends Controller\Controller{
                     // this will fail if model validation fails!
                     $user->save();
 
+                    if(is_object($registrationKeyModel)){
+                        $registrationKeyModel->used = 1;
+                        $registrationKeyModel->save();
+                    }
+
                     // log user in (in case he is new
                     if($loginAfterSave){
                         $this->logUserIn( $user->name, $settingsData['password'] );
@@ -380,6 +454,7 @@ class User extends Controller\Controller{
             }catch(Exception\RegistrationException $e){
                 $registrationError = (object) [];
                 $registrationError->type = 'error';
+                $registrationError->field = $e->getField();
                 $registrationError->message = $e->getMessage();
                 $return->error[] = $registrationError;
             }
@@ -388,6 +463,109 @@ class User extends Controller\Controller{
             $return->userData = $newUserData;
 
         }
+        echo json_encode($return);
+    }
+
+    /**
+     * send mail with registration key
+     * -> check INVITE in pathfinder.ini
+     * @param $f3
+     * @throws Exception
+     */
+    public function sendRegistration($f3){
+        $data = $f3->get('POST.settingsData');
+        $return = (object) [];
+
+        // check invite limit
+        // get handed out key count
+        $tempRegistrationKeyModel = Model\BasicModel::getNew('RegistrationKeyModel');
+        $tempRegistrationKeyModels = $tempRegistrationKeyModel->find([ '
+            email != "" AND
+            active = 1'
+        ]);
+
+        $totalKeys = 0;
+        if(is_object($tempRegistrationKeyModels)){
+            $totalKeys = $tempRegistrationKeyModels->count();
+        }
+
+        if(
+            $f3->get('PATHFINDER.REGISTRATION.INVITE') == 1 &&
+            $totalKeys < $f3->get('PATHFINDER.REGISTRATION.INVITE_LIMIT')
+        ){
+            // key limit not reached
+
+            if(
+                isset($data['email']) &&
+                !empty($data['email'])
+            ){
+                $email = trim($data['email']);
+
+                // check if mail is valid
+                if( \Audit::instance()->email($email) ){
+
+                    // new key for this mail is allowed
+                    $registrationKeyModel = $this->findRegistrationKey($email, 0);
+
+                    if($registrationKeyModel === false){
+
+                        // check for total number of invites (active and inactive) -> prevent spamming
+                        $allRegistrationKeysByMail = $this->findRegistrationKey($email);
+
+                        if(
+                            $allRegistrationKeysByMail == false ||
+                            $allRegistrationKeysByMail->count() < 3
+                        ){
+
+                            // get a fresh key
+                            $registrationKeyModel = Model\BasicModel::getNew('RegistrationKeyModel');
+                            $registrationKeyModel->load(['
+                                used = 0 AND
+                                active = 1 AND
+                                email = "" ',
+                                ':email' => $email
+                            ], ['limit' => 1]);
+
+                        }else{
+                            $validationError = (object) [];
+                            $validationError->type = 'warning';
+                            $validationError->message = 'The number of keys is limited per an Email. You can not get more keys';
+                            $return->error[] = $validationError;
+                        }
+
+                    }else{
+                        $registrationKeyModel = $registrationKeyModel[0];
+                    }
+
+                    // send "old" key again or send a new key
+                    if( is_object($registrationKeyModel) ){
+                        $msg = 'Your personal Registration Key: ' . $registrationKeyModel->registrationKey;
+
+                        $mailController = new MailController();
+                        $status = $mailController->sendRegistrationKey($email, $msg);
+
+                        if( $status ){
+                            $registrationKeyModel->email = $email;
+                            $registrationKeyModel->ip = $this->f3->get('IP');
+                            $registrationKeyModel->save();
+                        }
+                    }
+
+                }else{
+                    $validationError = (object) [];
+                    $validationError->type = 'error';
+                    $validationError->field = 'email';
+                    $validationError->message = 'Email is not valid';
+                    $return->error[] = $validationError;
+                }
+            }
+        }else{
+            $validationError = (object) [];
+            $validationError->type = 'warning';
+            $validationError->message = 'The pool of beta keys has been exhausted, please try again in a few days/weeks';
+            $return->error[] = $validationError;
+        }
+
         echo json_encode($return);
     }
 } 
