@@ -1,9 +1,11 @@
-## *PATHFINDER*
+## *PATHFINDER* (DRAFT VERSION)
 Mapping tool for *EVE ONLINE*
 
 url: https://www.pathfinder.exodus4d.de
 
-### Project requirements --------------------------------------------------
+IMPORTANT: This project is still in beta phase and is not officially released! Feel free to check the code for security issues. You can not get the project to work, on your own server, until some required SQL dumps have been included to this repository! I will provide all required dumps once the beta phase is over. Do not expect this before the end of 2015.
+
+### Project requirements ---------------------------------------------
 #### APACHE Webserver 
   - PHP 5.3.4 or higher
   - PCRE 8.02 or higher (usually shipped with PHP package, but needs to be additionally updated on CentOS or Red Hat systems)
@@ -28,7 +30,7 @@ url: https://www.pathfinder.exodus4d.de
 #### Development Environment
   - t.b.a.
 
-### Folder structure (production) ----------------------------------------
+### Folder structure (production) ------------------------------------
 
 ```
   |-- (0755) app              --> backend [*.php]
