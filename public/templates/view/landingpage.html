@@ -50,17 +50,17 @@
 </nav>
 
 {* header *}
-<header id="pf-landing-top">
-    <div id="pf-header-container">
-        <canvas id="pf-header-canvas" class="hidden-xs" width="500" height="480"></canvas>
-        <div class="container">
-
-            <check if="{{ @isIngame == 1 }}">
-                <true>
-                    {* fallback logo -> no SVG support *}
-                    <img width="300px" height="300px" class="center-block pf-logo-fallback" src="public/img/logo.png" alt="Logo" />
-                </true>
-                <false>
+<check if="{{ @isIngame == 1 }}">
+    <true>
+        {* fallback logo -> no SVG support *}
+        <header id="pf-landing-top" class="pf-logo-fallback">
+        </header>
+    </true>
+    <false>
+        <header id="pf-landing-top">
+            <div id="pf-header-container">
+                <canvas id="pf-header-canvas" class="hidden-xs" width="500" height="480"></canvas>
+                <div class="container">
                     <div id="pf-logo-container"></div>
 
                     <div id="pf-header-preview-container" class="hidden-xs hidden-sm">
@@ -71,11 +71,13 @@
                         <div id="pf-header-preview-data" class="pf-header-preview-element pull-left"></div>
                         <div id="pf-header-preview-gameplay" class="pf-header-preview-element pull-left"></div>
                     </div>
-                </false>
-            </check>
-        </div>
-    </div>
-</header>
+                </div>
+            </div>
+        </header>
+    </false>
+</check>
+
+
 
 
 {* login form*}
@@ -141,6 +143,7 @@
     </div>
 </section>
 
+
 {* features/ gallery *}
 <section id="pf-landing-gallery">
 
@@ -190,11 +193,11 @@
             <div class="col-xs-12 col-sm-9 col-lg-4">
                 <h4><i class="fa fa-fw fa-angle-double-right"></i>Pathfinder</h4>
                 <ul class="fa-ul pf-landing-list">
-                    <li><i></i>Support for IGB ond OGB</li>
+                    <li><i></i>Support for IGB and OGB</li>
+                    <li><i></i><span class="txt-color txt-color-greenDark"><e class="fa fa-fw fa-lock"></e>SSL</span> encrypted connection</li>
                     <li><i></i>Open Source Project</li>
                     <li>
                         <ul class="fa-ul">
-                            <li><i></i>Check the sourcecode</li>
                             <li><i></i>Find bugs or security issues</li>
                             <li><i></i>Host it on your own webserver</li>
                         </ul>
@@ -215,11 +218,25 @@
                             <li><i></i>Advanced client-side caching - local storage (OGB)</li>
                         </ul>
                     </li>
+                    <li><i></i>Optional "invite only" registration feature</li>
+                    <li>
+                        <ul class="fa-ul">
+                            <li><i></i>If active, a unique Registration Key is required for registration</li>
+                            <li><i></i>This can limit the number of new accounts (e.g. beta)</li>
+                            <li><i></i>Access can be limited to a single corp/ally</li>
+                        </ul>
+                    </li>
                     <li><i></i>Integrated Task Manager</li>
                     <li>
                         <ul class="fa-ul">
                             <li><i></i>visual live graphs</li>
                             <li><i></i>Print/export client site log files for debugging</li>
+                        </ul>
+                    </li>
+                    <li><i></i>Build in SMTP support</li>
+                    <li>
+                        <ul class="fa-ul">
+                            <li><i></i>Mailserver required</li>
                         </ul>
                     </li>
                     <li><i></i>No dependencies from other 3rd party pages</li>
@@ -251,8 +268,8 @@
             <div class="col-xs-12 col-sm-9 col-lg-4">
                 <h4><i class="fa fa-fw fa-angle-double-right"></i>Map module</h4>
                 <ul class="fa-ul  pf-landing-list">
-                    <li><i></i>Live synchronisation between all clients</li>
-                    <li><i></i>Watch multiple maps at once</li>
+                    <li><i></i>Live synchronisation between multiple clients</li>
+                    <li><i></i>Track/edit multiple maps at once</li>
                     <li><i></i>Share maps with other players or groups</li>
                     <li><i></i>Invite other players to your maps</li>
                     <li><i></i>Advanced drag &amp; drop support</li>
@@ -272,7 +289,7 @@
                             <li><i></i>In/decreasing ship count per system</li>
                         </ul>
                     </li>
-                    <li><i></i>Multiple system status</li>
+                    <li><i></i>Multiple system status supported</li>
                     <li>
                         <ul class="fa-ul">
                             <li><i></i>"Locked"</li>
@@ -284,7 +301,7 @@
                             <li><i></i>"Unscanned"</li>
                         </ul>
                     </li>
-                    <li><i></i>Multiple connection scopes</li>
+                    <li><i></i>Multiple connection scopes available</li>
                     <li>
                         <ul class="fa-ul">
                             <li><i></i>"Stargate"</li>
@@ -304,7 +321,7 @@
                             <li><i></i>TrueSec, Region, Constallation information</li>
                         </ul>
                     </li>
-                    <li><i></i>Filter maps by Stargate, Wormhole, Jumpbridge connections</li>
+                    <li><i></i>Filter maps by connection scopes</li>
                     <li><i></i>Map information dialog</li>
                     <li>
                         <ul class="fa-ul">
@@ -344,7 +361,7 @@
                         </ul>
                     </li>
                     <li><i></i>Optional renaming of Systems</li>
-                    <li><i></i>Add a system description</li>
+                    <li><i></i>Individual system description</li>
                     <li><i></i>Receive system warnings from other players</li>
                     <li><i></i>Quick information links to 3rd party pages</li>
                     <li>
@@ -380,11 +397,11 @@
                     <li><i></i>Share system signature information</li>
                     <li><i></i>Add multiple signatures at once <kbd>ctrl</kbd> + <kbd>c</kbd> from the scanning window</li>
                     <li><i></i>Check for new signatures within a second</li>
-                    <li><i></i>Track the scan progress of a system by a progress bar</li>
+                    <li><i></i>Get informed about new signatures in your current system</li>
                     <li><i></i>Receive warnings if a system is not fully scanned</li>
                     <li><i></i>Speed up scanning and work with multiple pilots on the same scanning table</li>
                     <li><i></i>Label signatures for later operations</li>
-                    <li><i></i>Add a description to a signature</li>
+                    <li><i></i>Estimated sec status for a route</li>
                     <li><i></i>Shown meta information for each signature</li>
                     <li>
                         <ul class="fa-ul">
@@ -453,7 +470,7 @@
                 <ul class="fa-ul pf-landing-list">
                     <li><i></i>Search for routes between systems</li>
                     <li><i></i>Predefined routes to trade hubs</li>
-                    <li><i></i>Add additional routes</li>
+                    <li><i></i>Add your personal routes</li>
                     <li><i></i>Additional information for each system</li>
                     <li><i></i>Sort routes by jump count</li>
                     <li>
@@ -497,6 +514,57 @@
 
     </div>
 </section>
+
+
+{* beta *}
+<section id="pf-landing-beta">
+
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-6 col-md-offset-3">
+                <h2><span class="txt-color txt-color-warning"><i class="fa fa-fw fa-warning"></i> BETA</span> {{ @PATHFINDER.VERSION }}</h2>
+                <p class="lead">
+                    <em>PATHFINDER</em> is still a  <em>BETA</em> version.
+                    Please read and confirm with the following rules that apply during public beta testing.
+                </p>
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-sm-offset-3 col-xs-12 col-sm-6">
+                <h4><i class="fa fa-fw fa-angle-double-right"></i>Rules for beta testing phase</h4>
+                <ul class="fa-ul pf-landing-list">
+                    <li><i></i>Any abuse of following rules may result in server ban!</li>
+                    <li><i></i>You need a valid Registration Key (invite mode is active)</li>
+                    <li>
+                        <ul class="fa-ul">
+                            <li><i></i>The number of keys is limited and will be increased continuously</li>
+                            <li><i></i>Keys are bound to your unique Email address</li>
+                        </ul>
+                    </li>
+                    <li><i></i>Do not use it as your main corp/ally wide mapping tool (for now)</li>
+                    <li>
+                        <ul class="fa-ul">
+                            <li><i></i>There might be security bugs that will be found/fixed during beta testing</li>
+                            <li><i></i>At the beginning of the testing period it is simpler to find/reproduce bugs with a lower number of clients</li>
+                        </ul>
+                    </li>
+                    <li><i></i>You can create a fresh CCP API Key (limited access) for registration</li>
+                    <li><i></i>Please help testing and report any problem/bug you find</li>
+                    <li>
+                        <ul class="fa-ul">
+                            <li><i></i><em>PATHFINDER</em> is free for all [<a target="_blank" href="{{ @PATHFINDER.REPO }}">open source</a>], let us make it a better application</li>
+                            <li><i></i>If you are a native English speaker, great! Feel free to read over my bad English :)</li>
+                            <li><i></i>A forum post with your constructive criticism/opinion will help as well</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
 
 {* pricing *}
 <section id="pf-landing-pricing">

@@ -83,7 +83,7 @@ class UserModel extends BasicModel {
         // set active character with log data
         $activeUserCharacter = $this->getActiveUserCharacter();
         if($activeUserCharacter){
-            $userData->character = $activeUserCharacter->getData();
+            $userData->character = $activeUserCharacter->getData(true);
         }
 
         return $userData;
@@ -450,11 +450,35 @@ class UserModel extends BasicModel {
                 if( $character->dry() ){
                     // this can happen if a valid user plays the game with a not registered character
                     // whose API is not registered -> save new character or update character data
+                    $corporationId = array_key_exists('corpid', $apiController->values) ? $apiController->values['corpid'] : null;
+                    $allianceId = array_key_exists('allianceid', $apiController->values) ? $apiController->values['allianceid'] : null;
+
+                    // check if corp exists
+                    if( !is_null($corporationId) ){
+                        $corporation = self::getNew('CorporationModel');
+                        $corporation->getById( (int)$corporationId );
+                        if( $corporation->dry() ){
+                            $corporation->id = $corporationId;
+                            $corporation->name = $apiController->values['corpname'];
+                            $corporation->save();
+                        }
+                    }
+
+                    // check if ally exists
+                    if( !is_null($allianceId) ){
+                        $alliance = self::getNew('AllianceModel');
+                        $alliance->getById( (int)$allianceId );
+                        if( $alliance->dry() ){
+                            $alliance->id = $allianceId;
+                            $alliance->name = $apiController->values['alliancename'];
+                            $alliance->save();
+                        }
+                    }
 
                     $character->id = (int) $apiController->values['charid'];
                     $character->name = $apiController->values['charname'];
-                    $character->corporationId = array_key_exists('corpid', $apiController->values) ? $apiController->values['corpid'] : null;
-                    $character->allianceId = array_key_exists('allianceid', $apiController->values) ? $apiController->values['allianceid'] : null;
+                    $character->corporationId = $corporationId;
+                    $character->allianceId = $allianceId;
                     $character->save();
                 }
 

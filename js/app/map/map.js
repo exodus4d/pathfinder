@@ -2926,8 +2926,8 @@ define([
                 userCount: 0                        // active user in a map
             };
 
-            // check if user is currently in "this" system
-            var currentUserIsHere = false;
+            // check if current user was found on the map
+            var currentUserOnMap = false;
 
             // get all systems
             var systems = mapElement.find('.' + config.systemClass);
@@ -2940,6 +2940,9 @@ define([
                 var systemId = $(system).data('systemId');
 
                 var tempUserData = null;
+
+                // check if user is currently in "this" system
+                var currentUserIsHere = false;
 
                 var j = userData.data.systems.length;
 
@@ -2960,7 +2963,7 @@ define([
                 }
 
                 // the current user can only be in a single system -------------------------------------------------------
-                if( !currentUserIsHere){
+                if( !currentUserOnMap){
 
                     if(
                         currentCharacterLog &&
@@ -2968,6 +2971,8 @@ define([
                         currentCharacterLog.system.id === systemId
                     ){
                         currentUserIsHere = true;
+                        currentUserOnMap = true;
+
                         // set current location data for header update
                         headerUpdateData.currentSystemId =  $(system).data('id');
                         headerUpdateData.currentSystemName = currentCharacterLog.system.name;
@@ -3008,50 +3013,43 @@ define([
             // current user was not found on any map system -> add new system to map where the user is in ----------------
             // this is restricted to IGB-usage! CharacterLog data is always set through the IGB
             // ->this prevent adding the same system multiple times, if a user if online with the IGB AND OOG
-
             if(
                 CCP.isInGameBrowser() === true &&
-                currentUserIsHere === false &&
+                currentUserOnMap === false &&
                 currentCharacterLog &&
                 mapTracking
             ){
 
-                // check if the system where the character is in exists on this map
-                if(currentUserIsHere === false){
-                    // add new system to the map
+                // add new system to the map
 
-                    var requestData = {
-                        systemData: {
-                            systemId: currentCharacterLog.system.id
-                        },
-                        mapData: {
-                            id: userData.config.id
-                        }
-                    };
-
-
-                    // check if a system jump is detected previous system !== current system
-                    // and add a connection to the previous system as well
-                    // hint: if a user just logged on -> there is no active system cached
-                    var sourceSystem = false;
-                    if(
-                        activeSystemCache &&
-                        activeSystemCache.data('systemId') !== currentCharacterLog.system.id
-                    ){
-
-                        // draw new connection
-                        sourceSystem = activeSystemCache;
-                        // calculate new system coordinates
-                        requestData.systemData.position = calculateNewSystemPosition(sourceSystem);
+                var requestData = {
+                    systemData: {
+                        systemId: currentCharacterLog.system.id
+                    },
+                    mapData: {
+                        id: userData.config.id
                     }
+                };
 
-                    mapElement.getMapOverlay('timer').startMapUpdateCounter();
+                // check if a system jump is detected previous system !== current system
+                // and add a connection to the previous system as well
+                // hint: if a user just logged on -> there is no active system cached
+                var sourceSystem = false;
+                if(
+                    activeSystemCache &&
+                    activeSystemCache.data('systemId') !== currentCharacterLog.system.id
+                ){
 
-                    saveSystem(map, requestData, sourceSystem, false);
-
+                    // draw new connection
+                    sourceSystem = activeSystemCache;
+                    // calculate new system coordinates
+                    requestData.systemData.position = calculateNewSystemPosition(sourceSystem);
                 }
-            }
 
+                mapElement.getMapOverlay('timer').startMapUpdateCounter();
+
+                saveSystem(map, requestData, sourceSystem, false);
+            }
 
             // trigger document event -> update header
             $(document).trigger('pf:updateHeaderMapData', headerUpdateData);

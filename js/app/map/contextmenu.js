@@ -11,6 +11,12 @@ define([
 
     $.fn.contextMenu = function (settings) {
 
+        // animation
+        var animationInType = CCP.isInGameBrowser() ? 'fadeIn' : 'transition.flipXIn';
+        var animationInDuration = CCP.isInGameBrowser() ? 0 : 150;
+        var animationOutType = CCP.isInGameBrowser() ? 'fadeOut' : 'transition.flipXOut';
+        var animationOutDuration = CCP.isInGameBrowser() ? 0 : 150;
+
         return this.each(function () {
 
             // Open context menu
@@ -44,8 +50,8 @@ define([
                     position: 'absolute',
                     left: getLeftLocation(originalEvent),
                     top: getTopLocation(originalEvent)
-                }).velocity('transition.flipXIn', {
-                    duration: CCP.isInGameBrowser() ? 0 : 150,
+                }).velocity(animationInType, {
+                    duration: animationInDuration,
                     complete: function(){
                         // set context menu "click" observer
                         $(this).off('click').one('click', {component: component, position:{x: getLeftLocation(originalEvent), y: getTopLocation(originalEvent)}}, function (e) {
@@ -66,8 +72,8 @@ define([
 
                 //make sure menu closes on any click
                 $(document).one('click.closeContextmenu', function () {
-                    $('.dropdown-menu[role="menu"]').velocity('transition.flipXOut', {
-                        duration: CCP.isInGameBrowser() ? 0 : 150
+                    $('.dropdown-menu[role="menu"]').velocity(animationOutType, {
+                        duration: animationOutDuration
                     });
                 });
 
