@@ -7,6 +7,7 @@ define([
     'config/system_effect',
     'config/signature_type',
     'bootbox',
+    'app/ccp',
     'velocity',
     'velocityUI',
     'customScrollbar',
@@ -16,7 +17,7 @@ define([
     'hoverIntent',
     'bootstrapConfirmation',
     'bootstrapToggle'
-], function($, Init, SystemEffect, SignatureType, bootbox) {
+], function($, Init, SystemEffect, SignatureType, bootbox, CCP) {
 
     'use strict';
 
@@ -548,7 +549,7 @@ define([
      */
     var showVersionInfo = function(){
         var versionNumber = $('body').data('version');
-        console.info('PATHFINDER', versionNumber);
+        console.info('PATHFINDER ' + versionNumber);
     };
 
     /**
@@ -1320,14 +1321,20 @@ define([
     var getCurrentCharacterLog = function(){
 
         var characterLog = false;
+
         var currentUserData = getCurrentUserData();
 
         if(
             currentUserData &&
-            currentUserData.character &&
-            currentUserData.character.log
+            currentUserData.character
         ){
-            characterLog = currentUserData.character.log;
+            if(currentUserData.character.log){
+                characterLog = currentUserData.character.log;
+            }else if(CCP.isInGameBrowser() === true){
+                // if user is IGB online and log data is missing
+                // -> character API information not found!
+                showNotify({title: 'Character not found', text: 'Enter API information', type: 'error'});
+            }
         }
 
         return characterLog;

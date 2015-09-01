@@ -7,6 +7,7 @@ app/config/system_effect.js
 app/config/signature_type.js
 lib/bootstrap.min.js
 lib/bootbox.min.js
+app/ccp.js
 lib/velocity.min.js
 lib/velocity.ui.min.js
 lib/jquery.mCustomScrollbar.concat.min.js
@@ -20,7 +21,6 @@ app/util.js
 lib/mustache.min.js
 app/render.js
 app/logging.js
-app/ccp.js
 lib/requirejs/text.js
 text!img/logo.svg!strip
 text!templates/modules/header.html
@@ -68,6 +68,7 @@ app/config/system_effect.js
 app/config/signature_type.js
 lib/bootstrap.min.js
 lib/bootbox.min.js
+app/ccp.js
 lib/velocity.min.js
 lib/velocity.ui.min.js
 lib/jquery.mCustomScrollbar.concat.min.js
@@ -80,7 +81,6 @@ lib/bootstrap2-toggle.min.js
 app/util.js
 lib/mustache.min.js
 app/render.js
-app/ccp.js
 lib/blueimp-helper.js
 lib/blueimp-gallery.js
 lib/EasePack.min.js

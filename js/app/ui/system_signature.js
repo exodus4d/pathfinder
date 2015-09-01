@@ -740,8 +740,7 @@ define([
         // jump to "next" editable field on save
         var openNextEditDialogOnSave = function(fields){
             fields.on('save', function(e, a){
-                console.log(e);
-                console.log(a)
+
                 var currentField = $(this);
 
                 setTimeout(function() {

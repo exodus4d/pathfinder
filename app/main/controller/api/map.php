@@ -531,7 +531,6 @@ class Map extends \Controller\AccessController {
                         if( !is_null($map) ){
                             $return->mapUserData[] = $map->getUserData();
 
-
                             // request signature data for a system if user has map access!
                             if( $map->id === $requestSystemData->mapId ){
                                 $system = $map->getSystem( $requestSystemData->systemId );
@@ -558,6 +557,7 @@ class Map extends \Controller\AccessController {
             // get current user data -> this should not be cached because each user has different personal data
             // even if they have multiple characters using the same map!
             $return->userData = $user->getData();
+
         }else{
             // user logged off
             $return->error[] = $this->getUserLoggedOffError();

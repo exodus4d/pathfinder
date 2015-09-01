@@ -33,9 +33,12 @@ class MailController extends \SMTP{
      */
     public function sendRegistrationKey($to, $msg){
 
-        $this->set('To', '"<' . $to . '>');
-        $this->set('From', '"PATHFINDER" <' . Controller::getEnvironmentData('SMTP_FROM') . '>');
-        $this->set('Subject', 'PATHFINDERR - Registration Key');
+        $this->set('To', '<' . $to . '>');
+        $this->set('From', 'Pathfinder <' . Controller::getEnvironmentData('SMTP_FROM') . '>');
+        $this->set('Subject', 'Registration Key');
+        $this->set('Error-To', '<' . Controller::getEnvironmentData('SMTP_ERROR') . '>');
+        $this->set('MIME-Version', '1.0');
+        $this->set('Content-Type', 'text/html; charset=ISO-8859-1');
         $status = $this->send($msg);
 
         return $status;

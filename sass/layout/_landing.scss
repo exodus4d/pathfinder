@@ -167,6 +167,24 @@
     @include filter(brightness(0.9))
   }
 
+  // IGB fallback header
+
+  &.pf-logo-fallback{
+    height: 370px;
+
+    &:after{
+      content: '';
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      background: url("#{$base-url}/logo_alpha.png");
+      background-repeat: no-repeat;
+      background-position: 50% 0;
+      margin-top: 50px;
+    }
+  }
+
+
   #pf-header-container{
     position: absolute;
     width: 100%;
@@ -181,11 +199,6 @@
 
     #pf-logo-container{
       z-index: 110;
-    }
-
-    // fallback logo -> IGB
-    .pf-logo-fallback{
-      margin-top: 30px;
     }
 
     #pf-header-preview-container{
@@ -234,6 +247,17 @@
     position: relative;
     margin-top: 50px;
   }
+
+  // fallback logo (IGB)
+  /*
+  .pf-logo-fallback{
+    width: 300px;
+    height: 300px;
+    background: url("#{$base-url}/logo_alpha.png");
+    background-repeat: no-repeat;
+    background-position: 0 0;
+  }*/
+
 }
 
 #pf-header-preview-intel{
