@@ -60,14 +60,7 @@
                         <i class="fa fa-fw fa-question-circle"></i>
                     </th>
                     <th>Name</th>
-                    <th class="text-right">
-                        {{#system.alias}}
-                            {{system.alias}}
-                        {{/system.alias}}
-                        {{^system.alias}}
-                            {{system.name}}
-                        {{/system.alias}}
-                    </th>
+                    <th class="text-right">{{system.name}}</th>
                     <th class="text-right {{securityClass}}">{{system.security}}</th>
                 </tr>
                 </thead>

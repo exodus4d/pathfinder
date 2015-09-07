@@ -141,6 +141,33 @@ define([
     };
 
     /**
+     * updates a single cell with new data (e.g. "updated" cell)
+     * @param rowElement
+     * @param cellIndex
+     * @param data
+     */
+    var updateSignatureCell = function(rowElement, cellIndex, data){
+
+        var signatureTableApi = signatureTable.api();
+        var rowIndex = signatureTableApi.row( rowElement ).index();
+
+        var updateCell = signatureTableApi.cell( rowIndex, cellIndex );
+        var updateCellElement = updateCell.nodes().to$();
+
+        if(cellIndex === 6){
+            // clear existing counter interval
+            clearInterval( updateCellElement.data('interval') );
+        }
+
+        // set new value
+        updateCell.data( data ).draw();
+
+        if(cellIndex === 6){
+            updateCellElement.initTimestampCounter();
+        }
+    };
+
+    /**
      * Updates a signature table, changes all signatures where name matches
      * add all new signatures as a row
      *
@@ -814,9 +841,17 @@ define([
                     return 'Id is more than max of "10"';
                 }
             },
+            params: modifyFieldParamsOnSend,
             success: function(response, newValue){
-            },
-            params: modifyFieldParamsOnSend
+                if(response){
+                    var signatureTypeField = $(this);
+                    var rowElement = signatureTypeField.parents('tr');
+                    var newRowData = response.signatures[0];
+
+                    // update "updated" cell
+                    updateSignatureCell(rowElement, 6, newRowData.updated);
+                }
+            }
         });
 
 
@@ -845,8 +880,15 @@ define([
             },
             success: function(response, newValue){
                 var signatureTypeField = $(this);
-
+                var rowElement = signatureTypeField.parents('tr');
                 newValue = parseInt(newValue);
+
+                if(response){
+                    var newRowData = response.signatures[0];
+
+                    // update "updated" cell
+                    updateSignatureCell(rowElement, 6, newRowData.updated);
+                }
 
                 // find related "name" select (same row) and change options
                 var nameSelect = getNextEditableField(signatureTypeField);
@@ -899,6 +941,16 @@ define([
                 var availableSigs = sigNameCache[cacheKey] = signatureNames;
 
                 return availableSigs;
+            },
+            success: function(response, newValue){
+                if(response){
+                    var signatureTypeField = $(this);
+                    var rowElement = signatureTypeField.parents('tr');
+                    var newRowData = response.signatures[0];
+
+                    // update "updated" cell
+                    updateSignatureCell(rowElement, 6, newRowData.updated);
+                }
             }
         });
 
@@ -912,7 +964,17 @@ define([
             mode: 'inline',
             showbuttons: false,
             inputclass: config.editableDiscriptionInputClass,
-            params: modifyFieldParamsOnSend
+            params: modifyFieldParamsOnSend,
+            success: function(response, newValue){
+                if(response){
+                    var signatureTypeField = $(this);
+                    var rowElement = signatureTypeField.parents('tr');
+                    var newRowData = response.signatures[0];
+
+                    // update "updated" cell
+                    updateSignatureCell(rowElement, 6, newRowData.updated);
+                }
+            }
         });
 
         // open even
@@ -1650,7 +1712,7 @@ define([
 
         // set multi row select -----------------------------------------------------------------
         tablePrimaryElement.on('click', 'tr', function(e){
-            if(event.ctrlKey) {
+            if(e.ctrlKey) {
                 $(this).toggleClass('selected');
 
                 // check delete button

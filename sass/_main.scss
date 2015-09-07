@@ -530,7 +530,7 @@ h6 {
 
 .input-group-addon {
   padding: 6px 10px;
-  will-change: all;
+  will-change: background-color, border-color;
   @include border-radius(0);
   @include transition(all ease-out .15s);
 }
@@ -1277,7 +1277,7 @@ input[type="email"]{
 
 .btn {
   font-family: $font-family-bold;
-  will-change: all;
+  will-change: background-color, border-color;
   @include border-radius(2px);
   //@include transition( all 0.06s linear );
   @include transition( all 0.18s ease-in-out );

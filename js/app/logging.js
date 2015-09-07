@@ -249,7 +249,7 @@ define([
             // ------------------------------------------------------------------------------
             // add TableTool Buttons
             var tt = new $.fn.DataTable.TableTools( logDataTable, {
-                sSwfPath: 'js/lib/datatables/extensions/TableTools/swf/copy_csv_xls.swf',
+                sSwfPath: require.toUrl('') + 'lib/datatables/extensions/tabletools/swf/copy_csv_xls.swf',
                 aButtons: [ 'copy', 'csv', 'print' ]
             });
 

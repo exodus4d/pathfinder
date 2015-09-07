@@ -117,13 +117,19 @@ class Signature extends \Controller\AccessController{
                                 $newData = [
                                     $data['name'] => $data['value']
                                 ];
+
+                                // if groupID changed -> typeID set to 0
+                                if($data['name'] == 'groupId'){
+                                    $newData['typeId'] = 0;
+                                }
+
                             }else{
                                 // update complete signature (signature reader dialog)
 
                                 // description should not be updated
                                 unset( $data['description'] );
 
-                                // wormhole typeID cant figured out/saved by the sig reader dialog
+                                // wormhole typeID can´t figured out/saved by the sig reader dialog
                                 if($data['groupId'] == 5){
                                     unset( $data['typeId'] );
                                 }

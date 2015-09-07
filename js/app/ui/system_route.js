@@ -48,13 +48,16 @@ define([
             // format routeData
             var rowData = formatRouteData(routeData);
 
-            if(rowData){
+            if(rowData.route){
                 var cacheKey = routeData.route[0].system + '_' + routeData.route[ routeData.route.length - 1 ].system;
 
                 // update route cache
                 cache.systemRoutes[cacheKey] = rowData;
 
                 addRow(context.dataTable, rowData);
+            }else{
+                // route not possible
+                Util.showNotify({title: 'Route not found', type: 'warning'});
             }
         }
     };
@@ -135,6 +138,7 @@ define([
 
 
                             var contextData = {
+                                moduleElement: dialogData.moduleElement,
                                 dataTable: dialogData.dataTable
                             };
 
@@ -167,6 +171,8 @@ define([
 
         var requestData = {routeData: requestRouteData};
 
+        contextData.moduleElement.showLoadingAnimation();
+
         $.ajax({
             url: Init.path.searchRoute,
             type: 'POST',
@@ -174,6 +180,9 @@ define([
             data: requestData,
             context: contextData
         }).done(function(routesData){
+
+            this.moduleElement.hideLoadingAnimation();
+
             // execute callback
             callback(this, routesData.routesData);
         });
@@ -361,7 +370,7 @@ define([
             };
 
             showFindRouteDialog(dialogData);
-        })
+        });
 
         // fill routesTable with data ------------------------------------------------------------------------------
         var requestRouteData = [];
@@ -388,6 +397,7 @@ define([
         // check if routes data is not cached and is requested
         if(requestRouteData.length > 0){
             var contextData = {
+                moduleElement: moduleElement,
                 dataTable: routesTable
             };
             getRouteData(requestRouteData, contextData, callbackAddRouteRow);

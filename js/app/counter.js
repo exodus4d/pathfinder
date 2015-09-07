@@ -79,16 +79,17 @@ define(["jquery"], function($) {
 
                 updateDateDiff(element, date);
 
-                var refreshIntervallId = window.setInterval(function(){
+                var refreshIntervalId = window.setInterval(function(){
 
                     // update element with current time
-                    if(! element.hasClass('stopCounter')){
+                    if( !element.hasClass('stopCounter')){
                         updateDateDiff(element, date);
                     }else{
-                        clearInterval(refreshIntervallId);
+                        clearInterval( element.data('interval') );
                     }
-
                 }, 100);
+
+                element.data('interval', refreshIntervalId);
 
             }
 
