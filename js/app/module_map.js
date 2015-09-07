@@ -120,7 +120,7 @@ define([
         var secondCell = $(tabContentElement).find('.' + config.mapTabContentCellSecond);
 
         // draw system info module
-        firstCell.drawSystemInfoModule(currentSystemData.systemData);
+        firstCell.drawSystemInfoModule(currentSystemData.mapId, currentSystemData.systemData);
 
         // draw system graph module
         firstCell.drawSystemGraphModule(currentSystemData.systemData);

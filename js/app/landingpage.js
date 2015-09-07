@@ -293,6 +293,12 @@ define([
                 thumbnail: ''
             },
             {
+                href: 'public/img/landing/pathfinder_3.jpg',
+                title: 'Map information',
+                type: 'image/jpg',
+                thumbnail: ''
+            },
+            {
                 href: 'public/img/landing/pathfinder_2.jpg',
                 title: 'System information',
                 type: 'image/jpg',

@@ -30,6 +30,7 @@ define([
         systemInfoStatusAttributeName: 'data-status',                           // attribute name for status label
 
         // description field
+        descriptionArea: 'pf-system-info-description-area',                     // class for "description" area
         addDescriptionButtonClass: 'pf-system-info-description-button',         // class for "add description" button
         moduleElementToolbarClass: 'pf-table-tools',                            // class for "module toolbar" element
         moduleToolbarActionId: 'pf-system-info-collapse-container',             // id for "module toolbar action" element
@@ -168,14 +169,17 @@ define([
 
             nameRowElement.addCharacterInfoTooltip( tooltipData );
         }
+
+        $('.' + config.descriptionArea).hideLoadingAnimation();
     };
 
     /**
      *
      * @param parentElement
-     * @param systemInfoData
+     * @param mapId
+     * @param systemData
      */
-    var drawModule = function(parentElement, systemData){
+    var drawModule = function(parentElement, mapId, systemData){
 
         // create new module container
         var moduleElement = $('<div>', {
@@ -198,18 +202,17 @@ define([
             link: 'append',
             functions: {
                 after: function(){
+                    // lock "description" field until first update
+                    $('.' + config.descriptionArea).showLoadingAnimation();
+
 
                     var tempModuleElement = $('.' + config.systemInfoModuleClass);
 
                     // "add description" button
                     var descriptionButton = tempModuleElement.find('.' + config.addDescriptionButtonClass);
 
-                    // toolbar element
-                    //var toolbarElement = tempModuleElement.find('.' + config.moduleElementToolbarClass);
-
                     // description textarea element
                     var descriptionTextareaElement =  tempModuleElement.find('.' + config.descriptionTextareaElementClass);
-
 
                     // init description textarea
                     descriptionTextareaElement.editable({
@@ -226,6 +229,10 @@ define([
                         name: 'description',
                         inputclass: config.descriptionTextareaElementClass,
                         params: function(params){
+
+                            params.mapData = {
+                                id: mapId
+                            };
 
                             params.systemData = {};
                             params.systemData.id = params.pk;
@@ -426,9 +433,10 @@ define([
 
     /**
      * update system info module
-     * @param systemInfoData
+     * @param mapId
+     * @param systemData
      */
-    $.fn.drawSystemInfoModule = function(systemData){
+    $.fn.drawSystemInfoModule = function(mapId, systemData){
 
         var parentElement = $(this);
 
@@ -441,11 +449,11 @@ define([
                 complete: function(tempElement){
                     $(tempElement).remove();
 
-                    drawModule(parentElement, systemData);
+                    drawModule(parentElement, mapId, systemData);
                 }
             });
         }else{
-            drawModule(parentElement, systemData);
+            drawModule(parentElement, mapId, systemData);
         }
     };
 
