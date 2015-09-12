@@ -192,7 +192,7 @@ define([
 
                                     $.ajax({
                                         type: 'POST',
-                                        url: Init.path.sendRegistrationKey,
+                                        url: Init.path.sendInviteKey,
                                         data: requestData,
                                         dataType: 'json'
                                     }).done(function(responseData){

@@ -23,22 +23,36 @@ class MailController extends \SMTP{
 
         // error handling
         $this->set('Errors-to', '' . Controller::getEnvironmentData('SMTP_ERROR') . '>');
+        $this->set('MIME-Version', '1.0');
+        $this->set('Content-Type', 'text/html; charset=ISO-8859-1');
     }
 
     /**
-     * send registration key
+     * send registration mail
      * @param $to
      * @param $msg
      * @return bool
      */
-    public function sendRegistrationKey($to, $msg){
+    public function sendRegistration($to, $msg){
+        $this->set('To', '<' . $to . '>');
+        $this->set('From', 'Pathfinder <' . Controller::getEnvironmentData('SMTP_FROM') . '>');
+        $this->set('Subject', 'Account information');
+        $status = $this->send($msg);
+
+        return $status;
+    }
+
+    /**
+     * send invite key mail
+     * @param $to
+     * @param $msg
+     * @return bool
+     */
+    public function sendInviteKey($to, $msg){
 
         $this->set('To', '<' . $to . '>');
         $this->set('From', 'Pathfinder <' . Controller::getEnvironmentData('SMTP_FROM') . '>');
         $this->set('Subject', 'Registration Key');
-        $this->set('Error-To', '<' . Controller::getEnvironmentData('SMTP_ERROR') . '>');
-        $this->set('MIME-Version', '1.0');
-        $this->set('Content-Type', 'text/html; charset=ISO-8859-1');
         $status = $this->send($msg);
 
         return $status;

@@ -277,8 +277,11 @@ class User extends Controller\Controller{
 
         $newUserData = null;
 
-        // check user if if he is new
+        // check for new user
         $loginAfterSave = false;
+
+        // send registration mail
+        $sendRegistrationMail = false;
 
         // valid registration key Model is required for new registration
         // if "invite" feature is enabled
@@ -314,6 +317,7 @@ class User extends Controller\Controller{
                             // new user registration
                             $user = $mapType = Model\BasicModel::getNew('UserModel');
                             $loginAfterSave = true;
+                            $sendRegistrationMail = true;
 
                             // set username
                             if(
@@ -344,6 +348,9 @@ class User extends Controller\Controller{
                             $settingsData['password'] == $settingsData['password_confirm']
                         ){
                             $user->password = $settingsData['password'];
+
+                            // pw changed -> send mail
+                            $sendRegistrationMail = true;
                         }
                     }else{
                         // captcha was send but not valid -> return error
@@ -444,6 +451,12 @@ class User extends Controller\Controller{
                     // get fresh updated user object
                     $user = $this->_getUser(0);
                     $newUserData = $user->getData();
+
+                    // send registration mail with account information
+                    if($sendRegistrationMail){
+                        $this->sendRegistration($user, $settingsData['password']);
+                    }
+
                 }
             }catch(Exception\ValidationException $e){
                 $validationError = (object) [];
@@ -467,12 +480,29 @@ class User extends Controller\Controller{
     }
 
     /**
+     * send registration mail to user
+     * @param $user
+     * @param $password
+     * @return mixed
+     */
+    protected function sendRegistration($user, $password){
+
+        $msg = 'Username: ' . $user->name . '<br>';
+        $msg .= 'Password: ' . $password . '<br>';
+
+        $mailController = new MailController();
+        $status = $mailController->sendRegistration($user->email, $msg);
+
+        return $status;
+    }
+
+    /**
      * send mail with registration key
      * -> check INVITE in pathfinder.ini
      * @param $f3
      * @throws Exception
      */
-    public function sendRegistration($f3){
+    public function sendInvite($f3){
         $data = $f3->get('POST.settingsData');
         $return = (object) [];
 
@@ -529,7 +559,7 @@ class User extends Controller\Controller{
                         }else{
                             $validationError = (object) [];
                             $validationError->type = 'warning';
-                            $validationError->message = 'The number of keys is limited per an Email. You can not get more keys';
+                            $validationError->message = 'The number of keys is limited by Email. You can not get more keys';
                             $return->error[] = $validationError;
                         }
 
@@ -542,7 +572,7 @@ class User extends Controller\Controller{
                         $msg = 'Your personal Registration Key: ' . $registrationKeyModel->registrationKey;
 
                         $mailController = new MailController();
-                        $status = $mailController->sendRegistrationKey($email, $msg);
+                        $status = $mailController->sendInviteKey($email, $msg);
 
                         if( $status ){
                             $registrationKeyModel->email = $email;
