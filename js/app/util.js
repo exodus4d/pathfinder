@@ -152,7 +152,7 @@ define([
             getCaptchaImage(reason, function(base64Image){
 
                 captchaImage.attr('src', base64Image).show();
-                captchaWrapper.hideLoadingAnimation({                                                       // config for loading overlay
+                captchaWrapper.hideLoadingAnimation({
                     icon: {
                         size: 'fa-2x'
                     }
