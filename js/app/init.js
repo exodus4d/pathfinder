@@ -11,12 +11,13 @@ define(['jquery'], function($) {
             img: 'public/img/',                                     // path for images
             // user API
             getCaptcha: 'api/user/getCaptcha',                      // ajax URL - get captcha image
-            sendRegistrationKey: 'api/user/sendRegistration',       // ajax URL - send registration key
+            sendInviteKey: 'api/user/sendInvite',                   // ajax URL - send registration key
             logIn: 'api/user/logIn',                                // ajax URL - login
             logOut: 'api/user/logOut',                              // ajax URL - logout
             deleteLog: 'api/user/deleteLog',                        // ajax URL - delete character log
             saveUserConfig: 'api/user/saveConfig',                  // ajax URL - saves custom configuration
             saveSharingConfig: 'api/user/saveSharingConfig',        // ajax URL - save "sharing settings" dialog
+            deleteAccount: 'api/user/deleteAccount',                // ajax URL - delete Account data
             // access API
             searchAccess: 'api/access/search',                      // ajax URL - search user/corporation/ally by name
             // main config/map ping API

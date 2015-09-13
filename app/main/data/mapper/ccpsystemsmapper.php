@@ -10,15 +10,15 @@ namespace Data\Mapper;
 
 class CcpSystemsMapper extends \RecursiveArrayIterator {
 
-    static $map = array(
+    static $map = [
         'system_id' => 'systemId',
         'system_name' => 'name',
         'system_security' => 'trueSec',
-        'connstallation_id' => array('constellation' => 'id'),
-        'constallation_name' => array('constellation' => 'name'),
-        'region_id' => array('region' => 'id'),
-        'region_name' => array('region' => 'name')
-    );
+        'connstallation_id' => ['constellation' => 'id'],
+        'constallation_name' => ['constellation' => 'name'],
+        'region_id' => ['region' => 'id'],
+        'region_name' => ['region' => 'name']
+    ];
 
     function __construct($data){
 
@@ -106,7 +106,7 @@ class CcpSystemsMapper extends \RecursiveArrayIterator {
             ];
         };
 
-        iterator_apply($this, 'self::recursiveIterator', array($this));
+        iterator_apply($this, 'self::recursiveIterator', [$this]);
 
 
         return iterator_to_array($this, false);
@@ -143,7 +143,7 @@ class CcpSystemsMapper extends \RecursiveArrayIterator {
 
                                 $iterator->offsetSet( $parentKey, $currentValue  );
                             }else{
-                                $iterator->offsetSet( $parentKey, array($entryKey => $iterator->current() )  );
+                                $iterator->offsetSet( $parentKey, [$entryKey => $iterator->current() ]  );
                             }
 
                             $removeOldEntry = true;

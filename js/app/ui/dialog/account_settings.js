@@ -7,7 +7,7 @@ define([
     'app/init',
     'app/util',
     'app/render',
-    'bootbox',
+    'bootbox'
 ], function($, Init, Util, Render, bootbox) {
     'use strict';
 
@@ -40,7 +40,7 @@ define([
     };
 
     /**
-     * getz active Tab link element for a dialog
+     * get active Tab link element for a dialog
      * @param dialog
      * @returns {JQuery|*}
      */
@@ -49,55 +49,6 @@ define([
         var currentActiveTab = navigationBarElement.find('li.active');
 
         return currentActiveTab;
-    };
-
-    /**
-     * generates a captcha image and return as base64 image/png
-     * @param callback
-     */
-    var getCaptchaImage = function(callback){
-
-        $.ajax({
-            type: 'POST',
-            url: Init.path.getCaptcha,
-            data: {},
-            dataType: 'text'
-        }).done(function(base64Image){
-
-            callback(base64Image);
-        }).fail(function( jqXHR, status, error) {
-            var reason = status + ' ' + error;
-            Util.showNotify({title: jqXHR.status + ': saveConfig', text: reason, type: 'warning'});
-        });
-    };
-
-    /**
-     * clear a field and reset success/error classes
-     * @param fieldId
-     */
-    var resetFormField = function(fieldId){
-        var field = $('#' + fieldId);
-        field.val('');
-        field.parents('.form-group').removeClass('has-error has-success');
-    }
-
-    /**
-     * request captcha image and show in form
-     */
-    var showCaptchaImage = function(){
-
-        var captchaWrapper = $('#' + config.captchaImageWrapperId);
-        var captchaImage = $('#' + config.captchaImageId);
-
-        captchaWrapper.showLoadingAnimation(config.loadingOptions);
-        getCaptchaImage(function(base64Image){
-
-            captchaImage.attr('src', base64Image).show();
-            captchaWrapper.hideLoadingAnimation();
-
-            // reset captcha field
-            resetFormField('captcha');
-        });
     };
 
     /**
@@ -127,7 +78,7 @@ define([
                 var cloneRow = dialogElement.find('.' + config.settingsCloneApiRowClass).last();
                 var newApiRow = cloneRow.clone();
 
-                newApiRow.find('.form-group').removeClass('has-success has-error')
+                newApiRow.find('.form-group').removeClass('has-success has-error');
                 newApiRow.find('input').val('');
                 cloneRow.after(newApiRow);
 
@@ -311,7 +262,9 @@ define([
                                         ){
                                             form.showFormMessage(responseData.error);
 
-                                            showCaptchaImage();
+                                            $('#' + config.captchaImageWrapperId).showCaptchaImage('createAccount', function(){
+                                                $('#captcha').resetFormFields();
+                                            });
                                         }else{
                                             // store new/updated user data -> update head
                                             if(responseData.userData){
@@ -329,7 +282,9 @@ define([
                                                     // switch tab
                                                     changeTab();
 
-                                                    showCaptchaImage();
+                                                    $('#' + config.captchaImageWrapperId).showCaptchaImage('createAccount', function(){
+                                                        $('#captcha').resetFormFields();
+                                                    });
                                                 }
                                             });
 
@@ -344,7 +299,9 @@ define([
 
                                         // set new captcha for any request
                                         // captcha is required for sensitive data (not for all)
-                                        showCaptchaImage();
+                                        $('#' + config.captchaImageWrapperId).showCaptchaImage('createAccount', function(){
+                                            $('#captcha').resetFormFields();
+                                        });
 
                                         // check for DB errors
                                         if(jqXHR.status === 500){
@@ -400,7 +357,7 @@ define([
                 var form = dialogElement.find('form');
 
                 // request captcha image and show
-                showCaptchaImage();
+                $('#' + config.captchaImageWrapperId).showCaptchaImage('createAccount');
 
                 // init dialog tooltips
                 dialogElement.initTooltips();

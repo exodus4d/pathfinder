@@ -15,6 +15,13 @@ use Exception;
 class User extends Controller\Controller{
 
     /**
+     * valid reasons for captcha images
+     * @var array
+     */
+    private static $captchaReason = ['createAccount', 'deleteAccount'];
+
+
+    /**
      * login function
      * @param $f3
      */
@@ -87,20 +94,39 @@ class User extends Controller\Controller{
      * @param $f3
      */
     public function getCaptcha($f3){
+        $data = $f3->get('POST');
 
-        $img = new \Image();
+        $return = (object) [];
+        $return->error = [];
 
-        $imgDump = $img->captcha(
-            'fonts/oxygen-bold-webfont.ttf',
-            14,
-            6,
-            'SESSION.captcha_code',
-            '',
-            '0x66C84F',
-            '0x313335'
-        )->dump();
+        // check if reason for captcha generation is valid
+        if(
+            isset($data['reason']) &&
+            in_array( $data['reason'], self::$captchaReason)
+        ){
+            $reason = $data['reason'];
 
-        echo $f3->base64( $imgDump,  'image/png');
+            $img = new \Image();
+
+            $imgDump = $img->captcha(
+                'fonts/oxygen-bold-webfont.ttf',
+                14,
+                6,
+                'SESSION.' . $reason,
+                '',
+                '0x66C84F',
+                '0x313335'
+            )->dump();
+
+            $return->img = $f3->base64( $imgDump,  'image/png');
+        }else{
+            $captchaError = (object) [];
+            $captchaError->type = 'error';
+            $captchaError->message = 'Could not create captcha image';
+            $return->error[] = $captchaError;
+        }
+
+        echo json_encode($return);
     }
 
     /**
@@ -270,15 +296,18 @@ class User extends Controller\Controller{
         $return = (object) [];
         $return->error = [];
 
-        $captcha = $f3->get('SESSION.captcha_code');
+        $captcha = $f3->get('SESSION.createAccount');
 
         // reset captcha -> forces user to enter new one
-        $f3->clear('SESSION.captcha_code');
+        $f3->clear('SESSION.createAccount');
 
         $newUserData = null;
 
-        // check user if if he is new
+        // check for new user
         $loginAfterSave = false;
+
+        // send registration mail
+        $sendRegistrationMail = false;
 
         // valid registration key Model is required for new registration
         // if "invite" feature is enabled
@@ -314,6 +343,7 @@ class User extends Controller\Controller{
                             // new user registration
                             $user = $mapType = Model\BasicModel::getNew('UserModel');
                             $loginAfterSave = true;
+                            $sendRegistrationMail = true;
 
                             // set username
                             if(
@@ -344,6 +374,9 @@ class User extends Controller\Controller{
                             $settingsData['password'] == $settingsData['password_confirm']
                         ){
                             $user->password = $settingsData['password'];
+
+                            // pw changed -> send mail
+                            $sendRegistrationMail = true;
                         }
                     }else{
                         // captcha was send but not valid -> return error
@@ -407,7 +440,6 @@ class User extends Controller\Controller{
                         foreach($apiModels as $apiModel){
                             $apiModel->delete();
                         }
-
                     }
 
                     // set main character
@@ -444,6 +476,12 @@ class User extends Controller\Controller{
                     // get fresh updated user object
                     $user = $this->_getUser(0);
                     $newUserData = $user->getData();
+
+                    // send registration mail with account information
+                    if($sendRegistrationMail){
+                        $this->sendRegistration($user, $settingsData['password']);
+                    }
+
                 }
             }catch(Exception\ValidationException $e){
                 $validationError = (object) [];
@@ -467,12 +505,29 @@ class User extends Controller\Controller{
     }
 
     /**
+     * send registration mail to user
+     * @param $user
+     * @param $password
+     * @return mixed
+     */
+    protected function sendRegistration($user, $password){
+
+        $msg = 'Username: ' . $user->name . '<br>';
+        $msg .= 'Password: ' . $password . '<br>';
+
+        $mailController = new MailController();
+        $status = $mailController->sendRegistration($user->email, $msg);
+
+        return $status;
+    }
+
+    /**
      * send mail with registration key
      * -> check INVITE in pathfinder.ini
      * @param $f3
      * @throws Exception
      */
-    public function sendRegistration($f3){
+    public function sendInvite($f3){
         $data = $f3->get('POST.settingsData');
         $return = (object) [];
 
@@ -529,7 +584,7 @@ class User extends Controller\Controller{
                         }else{
                             $validationError = (object) [];
                             $validationError->type = 'warning';
-                            $validationError->message = 'The number of keys is limited per an Email. You can not get more keys';
+                            $validationError->message = 'The number of keys is limited by Email. You can not get more keys';
                             $return->error[] = $validationError;
                         }
 
@@ -542,7 +597,7 @@ class User extends Controller\Controller{
                         $msg = 'Your personal Registration Key: ' . $registrationKeyModel->registrationKey;
 
                         $mailController = new MailController();
-                        $status = $mailController->sendRegistrationKey($email, $msg);
+                        $status = $mailController->sendInviteKey($email, $msg);
 
                         if( $status ){
                             $registrationKeyModel->email = $email;
@@ -568,4 +623,71 @@ class User extends Controller\Controller{
 
         echo json_encode($return);
     }
+
+    /**
+     * delete current user account from DB
+     * @param $f3
+     */
+    public function deleteAccount($f3){
+        $data = $f3->get('POST.formData');
+        $return = (object) [];
+
+        $captcha = $f3->get('SESSION.deleteAccount');
+
+        // reset captcha -> forces user to enter new one
+        $f3->clear('SESSION.deleteAccount');
+
+        if(
+            isset($data['captcha']) &&
+            !empty($data['captcha']) &&
+            $data['captcha'] === $captcha
+        ){
+            $user = $this->_getUser(0);
+
+            $validUser = $this->_verifyUser( $user->name, $data['password']);
+
+            if(
+                is_object($validUser) &&
+                is_object($user) &&
+                $user->id === $validUser->id
+            ){
+                // send delete account mail
+                $msg = 'Hello ' . $user->name . ',<br><br>';
+                $msg .= 'your account data has been successfully deleted.';
+
+                $mailController = new MailController();
+                $status = $mailController->sendDeleteAccount($user->email, $msg);
+
+                if($status){
+                    // save log
+                    $logText = "id: %s, name: %s, ip: %s";
+                    self::getLogger( $this->f3->get('PATHFINDER.LOGFILES.DELETE_ACCOUNT') )->write(
+                        sprintf($logText, $user->id, $user->name, $f3->get('IP'))
+                    );
+
+                    // remove user
+                    $user->erase();
+
+                    $this->logOut($f3);
+                    die();
+                }
+            }else{
+                // password does not match current user pw
+                $passwordError = (object) [];
+                $passwordError->type = 'error';
+                $passwordError->message = 'Invalid password';
+                $return->error[] = $passwordError;
+            }
+        }else{
+            // captcha not valid -> return error
+            $captchaError = (object) [];
+            $captchaError->type = 'error';
+            $captchaError->message = 'Captcha does not match';
+            $return->error[] = $captchaError;
+        }
+
+        echo json_encode($return);
+    }
+
+
 } 

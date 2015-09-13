@@ -183,7 +183,8 @@ class Controller {
     public function logOut($f3){
 
         // destroy session
-        $f3->clear('SESSION');
+        $f3->clear('SESSION.user');
+        $f3->sync('SESSION');
 
         if( !$f3->get('AJAX') ){
             // redirect to landing page
