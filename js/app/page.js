@@ -21,6 +21,7 @@ define([
     'dialog/map_settings',
     'dialog/system_effects',
     'dialog/jump_info',
+    'dialog/delete_account',
     'dialog/credit',
     'slidebars',
     'app/module_map'
@@ -209,6 +210,17 @@ define([
                         })
                     ).on('click', function(){
                         $(document).triggerMenuEvent('NotificationTest');
+                    })
+            ).append(
+                $('<a>', {
+                    class: 'list-group-item',
+                    href: '#'
+                }).html('&nbsp;&nbsp;Delete account').prepend(
+                    $('<i>',{
+                        class: 'fa fa-user-times fa-fw'
+                    })
+                ).on('click', function(){
+                        $(document).triggerMenuEvent('DeleteAccount');
                     })
             ).append(
                 $('<a>', {
@@ -507,6 +519,12 @@ define([
         $(document).on('pf:menuNotificationTest', function(e){
             // show system effects info box
             notificationTest();
+            return false;
+        });
+
+        $(document).on('pf:menuDeleteAccount', function(e){
+            // show "delete account" dialog
+            $.fn.showDeleteAccountDialog();
             return false;
         });
 

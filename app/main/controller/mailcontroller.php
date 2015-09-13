@@ -49,10 +49,24 @@ class MailController extends \SMTP{
      * @return bool
      */
     public function sendInviteKey($to, $msg){
-
         $this->set('To', '<' . $to . '>');
         $this->set('From', 'Pathfinder <' . Controller::getEnvironmentData('SMTP_FROM') . '>');
         $this->set('Subject', 'Registration Key');
+        $status = $this->send($msg);
+
+        return $status;
+    }
+
+    /**
+     * send mail to removed user account
+     * @param $to
+     * @param $msg
+     * @return bool
+     */
+    public function sendDeleteAccount($to, $msg){
+        $this->set('To', '<' . $to . '>');
+        $this->set('From', 'Pathfinder <' . Controller::getEnvironmentData('SMTP_FROM') . '>');
+        $this->set('Subject', 'Account deleted');
         $status = $this->send($msg);
 
         return $status;

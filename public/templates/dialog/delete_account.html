@@ -1,0 +1,75 @@
+<div class="row" id="{{deleteAccountId}}">
+    <div class="col-sm-12">
+        <form role="form" class="form-horizontal">
+
+            {{#userData.name}}
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Username</label>
+                            <div class="col-sm-9">
+                                <p class="form-control-static">{{userData.name}}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {{/userData.name}}
+
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label for="password" class="col-sm-3 control-label">Password</label>
+                        <div class="col-sm-6">
+                            <div class="input-group" title="Enter your password" data-placement="right">
+                                <input name="password" type="password" class="form-control" id="password" placeholder="" data-error="Field is required" autocomplete="off" required>
+                                <span class="input-group-addon"><i class="fa fa-fw fa-lock"></i></span>
+                            </div>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label"></label>
+                        <div class="col-sm-6">
+                            <p id="{{captchaImageWrapperId}}">
+                                <img src="" />
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label for="captcha" class="col-sm-3 control-label">Captcha</label>
+                            <div class="col-sm-6">
+                                <div class="input-group" title="Enter the characters seen above" data-placement="right">
+                                    <input name="captcha" type="text" class="form-control" id="captcha" placeholder="" data-minlength="6" data-minlength-error="Min. of 6 characters" data-error="Field is required" autocomplete="off" required>
+                                    <span class="input-group-addon"><i class="fa fa-fw fa-refresh"></i></span>
+                                </div>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-warning">
+                <span class="txt-color txt-color-warning">Delete account</span>
+                <small>This will permanently remove your account!</small>
+            </div>
+
+            <div class="{{formErrorContainerClass}} alert alert-danger" style="display: none;">
+                <span class="txt-color txt-color-danger">Error</span>
+                <small> (important non-critical information)</small>
+            </div>
+
+        </form>
+    </div>
+</div>

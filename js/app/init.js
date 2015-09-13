@@ -17,6 +17,7 @@ define(['jquery'], function($) {
             deleteLog: 'api/user/deleteLog',                        // ajax URL - delete character log
             saveUserConfig: 'api/user/saveConfig',                  // ajax URL - saves custom configuration
             saveSharingConfig: 'api/user/saveSharingConfig',        // ajax URL - save "sharing settings" dialog
+            deleteAccount: 'api/user/deleteAccount',                // ajax URL - delete Account data
             // access API
             searchAccess: 'api/access/search',                      // ajax URL - search user/corporation/ally by name
             // main config/map ping API

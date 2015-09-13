@@ -138,6 +138,73 @@ define([
     };
 
     /**
+     * show a unique generated captcha image
+     * @param reason
+     * @param callback
+     * @returns {*}
+     */
+    $.fn.showCaptchaImage = function(reason, callback){
+        return this.each(function(){
+            var captchaWrapper = $(this);
+            var captchaImage = captchaWrapper.find('img');
+
+            captchaWrapper.showLoadingAnimation(config.loadingOptions);
+            getCaptchaImage(reason, function(base64Image){
+
+                captchaImage.attr('src', base64Image).show();
+                captchaWrapper.hideLoadingAnimation({                                                       // config for loading overlay
+                    icon: {
+                        size: 'fa-2x'
+                    }
+                });
+
+                if(callback){
+                    callback();
+                }
+            });
+        });
+    };
+
+    /**
+     * request a captcha image
+     * @param callback
+     */
+    var getCaptchaImage = function(reason, callback){
+
+        $.ajax({
+            type: 'POST',
+            url: Init.path.getCaptcha,
+            data: {
+                reason: reason
+            },
+            dataType: 'json'
+        }).done(function(responseData){
+            if(responseData.error.length > 0){
+                showNotify({title: 'getCaptchaImage', text: 'Captcha image gneration failed', type: 'error'});
+            }else{
+                callback(responseData.img);
+            }
+        }).fail(function( jqXHR, status, error) {
+            var reason = status + ' ' + error;
+            showNotify({title: jqXHR.status + ': getCaptchaImage', text: reason, type: 'error'});
+        });
+
+    };
+
+    /**
+     * reset/clear form fields
+     * @returns {*}
+     */
+    $.fn.resetFormFields = function(){
+        return this.each(function(){
+            var field = $(this);
+
+            field.val('');
+            field.parents('.form-group').removeClass('has-error has-success');
+        });
+    };
+
+    /**
      * show form messages
      * check: showMessage() for en other way of showing messages
      * @param errors
@@ -1434,6 +1501,22 @@ define([
     };
 
     /**
+     * redirect
+     * @param url
+     * @param params
+     */
+    var redirect = function(url, params){
+        var currentUrl = document.URL;
+
+        if(url !== currentUrl){
+            if(params.length > 0){
+                url += '?' + params.join('&');
+            }
+            window.location = url;
+        }
+    };
+
+    /**
      * send logout request
      */
     var logout = function(){
@@ -1444,15 +1527,8 @@ define([
             data: {},
             dataType: 'json'
         }).done(function(data){
-
             if(data.reroute !== undefined){
-                var landingPageUrl = data.reroute;
-                var currentUrl = document.URL;
-
-                // relocate to landing page
-                if(landingPageUrl !== currentUrl){
-                    window.location = landingPageUrl + '?logout';
-                }
+                redirect(data.reroute, ['logout']);
             }
         }).fail(function( jqXHR, status, error) {
 
@@ -1504,6 +1580,7 @@ define([
         getCurrentCharacterLog: getCurrentCharacterLog,
         convertDateToString: convertDateToString,
         formatPrice: formatPrice,
+        redirect: redirect,
         logout: logout
     };
 });
