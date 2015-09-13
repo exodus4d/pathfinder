@@ -84,7 +84,7 @@ class UserApiModel extends BasicModel {
     public function hasMainCharacter(){
         $hasMain = false;
 
-        $characters = $this->getCharacters();
+        $characters = $this->getUserCharacters();
         foreach($characters as $character){
             if($character->isMain()){
                 $hasMain = true;
@@ -111,6 +111,7 @@ class UserApiModel extends BasicModel {
         // check if this api model had a main character
         $user = $this->userId;
         $setNewMain = false;
+
         if($this->hasMainCharacter()){
             $setNewMain = true;
         }

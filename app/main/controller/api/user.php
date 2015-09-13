@@ -440,7 +440,6 @@ class User extends Controller\Controller{
                         foreach($apiModels as $apiModel){
                             $apiModel->delete();
                         }
-
                     }
 
                     // set main character
