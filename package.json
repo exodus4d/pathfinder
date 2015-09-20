@@ -1,0 +1,41 @@
+{
+  "name": "pathfinder",
+  "version": "1.0.0",
+  "description": "System mapping tool for EVE ONLINE",
+  "main": "index.php",
+  "dependencies": {
+    "requirejs": "^2.1.20"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-clean": "^0.3.1",
+    "gulp-if": "^1.2.5",
+    "gulp-jshint": "^1.11.2",
+    "gulp-notify": "^2.2.0",
+    "gulp-param": "^0.6.3",
+    "gulp-plumber": "^1.0.1",
+    "jshint": "^2.8.0",
+    "jshint-stylish": "^2.0.1",
+    "requirejs": "^2.1.20",
+    "run-sequence": "^1.1.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/exodus4d/pathfinder.git"
+  },
+  "keywords": [
+    "Pathfinder",
+    "Exodus 4D",
+    "EVE ONLINE",
+    "Wormhole"
+  ],
+  "author": "Exodus 4D",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/exodus4d/pathfinder/issues"
+  },
+  "homepage": "https://github.com/exodus4d/pathfinder#readme"
+}

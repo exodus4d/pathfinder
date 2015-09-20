@@ -77,7 +77,7 @@ define([
     // active connections per map (cache object)
     var activeConnections = {};
 
-    // characterID => systemId´s are cached temporary where the active user character is in
+    // characterID => systemIds are cached temporary where the active user character is in
     // if a character switches/add system, establish connection with "previous" system
     var activeSystemCache = '';
 
@@ -1833,6 +1833,8 @@ define([
                 // system name
                 var currentSystemName = currentSystem.getSystemInfo( ['alias'] );
 
+                var systemData = {};
+
                 switch(action){
                     case 'add_system':
                         // add a new system
@@ -1919,17 +1921,17 @@ define([
                         });
                         break;
                     case 'ingame_show_info':
-                        var systemData = system.getSystemData();
+                        systemData = system.getSystemData();
 
                         CCPEVE.showInfo(5, systemData.systemId );
                         break;
                     case 'ingame_set_destination':
-                        var systemData = system.getSystemData();
+                        systemData = system.getSystemData();
 
                         CCPEVE.setDestination( systemData.systemId );
                         break;
                     case 'ingame_add_waypoint':
-                        var systemData = system.getSystemData();
+                        systemData = system.getSystemData();
 
                         CCPEVE.addWaypoint( systemData.systemId );
                         break;

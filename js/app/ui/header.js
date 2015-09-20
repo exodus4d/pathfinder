@@ -48,8 +48,8 @@ define([
             var closest = [];
             var p1 = points[i];
             for(var j = 0; j < points.length; j++) {
-                var p2 = points[j]
-                if(!(p1 === p2)) {
+                var p2 = points[j];
+                if(p1 !== p2) {
                     var placed = false;
                     for(var k = 0; k < connectionCount; k++) {
                         if(!placed) {
@@ -60,10 +60,10 @@ define([
                         }
                     }
 
-                    for(var k = 0; k < connectionCount; k++) {
+                    for(var m = 0; k < connectionCount; m++) {
                         if(!placed) {
-                            if(getDistance(p1, p2) < getDistance(p1, closest[k])) {
-                                closest[k] = p2;
+                            if(getDistance(p1, p2) < getDistance(p1, closest[m])) {
+                                closest[m] = p2;
                                 placed = true;
                             }
                         }
@@ -74,9 +74,9 @@ define([
         }
 
         // assign a circle to each point
-        for(var i in points) {
-            var c = new Circle(points[i], 2+Math.random()*2, 'rgba(255,255,255,0.3)');
-            points[i].circle = c;
+        for(var n in points) {
+            var c = new Circle(points[n], 2+Math.random()*2, 'rgba(255,255,255,0.3)');
+            points[n].circle = c;
         }
     };
 

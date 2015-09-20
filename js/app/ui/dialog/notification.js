@@ -32,7 +32,7 @@ define([
         if( !CCP.isInGameBrowser() ){
             headlineElement.delay(300).velocity('transition.shrinkIn', {
                 duration: 500
-            }).delay(800)
+            }).delay(800);
 
             headlineElement.velocity({
                 scale: 1.05

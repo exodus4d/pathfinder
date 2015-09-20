@@ -13,6 +13,8 @@ requirejs.config({
         layout: 'layout',
         config: 'app/config',                                           // path for "configuration" files dir
         dialog: 'app/ui/dialog',                                        // path for "dialog" files dir
+        templates: '../../templates',                                   // template dir
+        img: '../../img',                                               // images dir
 
         // main views
         landingpage: './app/landingpage',                               // initial start "landing page" view
@@ -24,8 +26,6 @@ requirejs.config({
         mustache: 'lib/mustache.min',                                   // v1.0.0 Javascript template engine - http://mustache.github.io/
         velocity: 'lib/velocity.min',                                   // v1.2.2 animation engine - http://julian.com/research/velocity/
         velocityUI: 'lib/velocity.ui.min',                              // v5.0.4 plugin for velocity - http://julian.com/research/velocity/#uiPack
-        templates: '../public/templates',                               // template dir
-        img: '../public/img',                                           // images dir
         slidebars: 'lib/slidebars',                                     // v0.10 Slidebars - side menu plugin http://plugins.adchsm.me/slidebars/
         jsPlumb: 'lib/dom.jsPlumb-1.7.6-min',                           // v1.7.6 jsPlumb (Vanilla)- main map draw plugin https://jsplumbtoolkit.com/
         customScrollbar: 'lib/jquery.mCustomScrollbar.concat.min',      // v3.0.9 Custom scroll bars - http://manos.malihu.gr/

@@ -49,7 +49,7 @@ class Controller {
         $f3->set('isIngame', self::isIGB() );
 
         // js path (build/minified or raw uncompressed files)
-        $f3->set('pathJs', self::getEnvironmentData('PATH_JS') );
+        $f3->set('pathJs', 'public/js/' . $f3->get('PATHFINDER.VERSION') );
     }
 
     /**
