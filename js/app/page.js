@@ -966,7 +966,7 @@ define([
                     var timer = function(){
 
                         // change status on first timer iteration
-                        if(programStatusCounter === Init.timer['PROGRAM_STATUS_VISIBLE']){
+                        if(programStatusCounter === Init.timer.PROGRAM_STATUS_VISIBLE){
 
                             statusElement.velocity('stop').velocity('fadeOut', {
                                 duration: Init.animationSpeed.headerLink,
@@ -992,7 +992,7 @@ define([
                     };
 
                     if(! programStatusInterval){
-                        programStatusCounter = Init.timer['PROGRAM_STATUS_VISIBLE'];
+                        programStatusCounter = Init.timer.PROGRAM_STATUS_VISIBLE;
                         programStatusInterval = setInterval(timer, 1000);
                     }
                 }

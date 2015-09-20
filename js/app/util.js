@@ -631,21 +631,21 @@ define([
         // make sure the delay timer is valid!
         // if this is called for the first time -> set CURRENT_DELAY
         if(
-            Init.timer[updateKey]['CURRENT_DELAY'] === undefined ||
-            Init.timer[updateKey]['CURRENT_DELAY'] <= 0
+            Init.timer[updateKey].CURRENT_DELAY === undefined ||
+            Init.timer[updateKey].CURRENT_DELAY <= 0
         ){
-            Init.timer[updateKey]['CURRENT_DELAY'] = Init.timer[updateKey]['DELAY'];
+            Init.timer[updateKey].CURRENT_DELAY = Init.timer[updateKey].DELAY;
         }
 
         // in/decrease the trigger delay
         if(
             value === parseInt(value, 10)  &&
-            ( Init.timer[updateKey]['CURRENT_DELAY'] ) + value > 0
+            ( Init.timer[updateKey].CURRENT_DELAY ) + value > 0
         ){
-            Init.timer[updateKey]['CURRENT_DELAY'] += value;
+            Init.timer[updateKey].CURRENT_DELAY += value;
         }
 
-        return Init.timer[updateKey]['CURRENT_DELAY'];
+        return Init.timer[updateKey].CURRENT_DELAY;
     };
 
     /**

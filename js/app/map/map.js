@@ -465,6 +465,16 @@ define([
 
         if(!system){
 
+            // set system name or alias
+            var systemName = data.name;
+
+            if(
+                data.alias &&
+                data.alias !== ''
+            ){
+                systemName = data.alias;
+            }
+
             // get system info classes
             var effectBasicClass = Util.getEffectInfoForSystem('effect', 'class');
             var effectName = Util.getEffectInfoForSystem(data.effect, 'name');
@@ -476,42 +486,42 @@ define([
                 id: systemId,
                 class: config.systemClass
             }).append(
-                    // system head
-                    $('<div>', {
-                        class: config.systemHeadClass
-                    }).append(
-                            // System name is editable
-                            $('<a>', {
-                                href: '#',
-                                class: config.systemHeadNameClass
-                            })
-                        ).append(
-                            // System locked status
-                            $('<i>', {
-                                class: ['fa', 'fa-lock', 'fa-fw'].join(' ')
-                            }).attr('title', 'locked')
-                        ).append(
-                            // System effect color
-                            $('<i>', {
-                                class: ['fa', 'fa-square ', 'fa-fw', effectBasicClass, effectClass].join(' ')
-                            }).attr('title', effectName)
-                        ).append(
-                            // expand option
-                            $('<i>', {
-                                class: ['fa', 'fa-angle-down ', config.systemHeadExpandClass].join(' ')
-                            })
-                        ).prepend(
-                            $('<span>', {
-                                class: [config.systemSec, secClass].join(' '),
-                                text: data.security
-                            })
-                        )
-                ).append(
-                    // system body
-                    $('<div>', {
-                        class: config.systemBodyClass
-                    })
-                ).data('name', data.name);
+                // system head
+                $('<div>', {
+                    class: config.systemHeadClass
+                }).append(
+                        // System name is editable
+                        $('<a>', {
+                            href: '#',
+                            class: config.systemHeadNameClass
+                        }).attr('data-value', systemName)
+                    ).append(
+                        // System locked status
+                        $('<i>', {
+                            class: ['fa', 'fa-lock', 'fa-fw'].join(' ')
+                        }).attr('title', 'locked')
+                    ).append(
+                        // System effect color
+                        $('<i>', {
+                            class: ['fa', 'fa-square ', 'fa-fw', effectBasicClass, effectClass].join(' ')
+                        }).attr('title', effectName)
+                    ).append(
+                        // expand option
+                        $('<i>', {
+                            class: ['fa', 'fa-angle-down ', config.systemHeadExpandClass].join(' ')
+                        })
+                    ).prepend(
+                        $('<span>', {
+                            class: [config.systemSec, secClass].join(' '),
+                            text: data.security
+                        })
+                    )
+            ).append(
+                // system body
+                $('<div>', {
+                    class: config.systemBodyClass
+                })
+            );
 
             // set initial system position
             system.css({
@@ -530,7 +540,6 @@ define([
                 newPosX !== currentPosX ||
                 newPosY !== currentPosY
             ){
-
                 // change position with animation
                 system.velocity(
                     {
@@ -558,23 +567,18 @@ define([
                     }
                 );
             }
+
+            // set system alias
+            var alias = system.getSystemInfo(['alias']);
+
+            if(alias !== data.alias){
+                // alias changed
+                system.find('.' + config.systemHeadNameClass).editable('setValue', data.alias);
+            }
         }
-
-        // set system name or alias
-        var systemName = data.name;
-
-        if(
-            data.alias &&
-            data.alias !== ''
-        ){
-            systemName = data.alias;
-        }
-
-        system.find('.' + config.systemHeadNameClass).attr('data-value', systemName);
 
         // set system status
         system.setSystemStatus(data.status.name);
-
         system.data('id', parseInt(data.id));
         system.data('systemId', parseInt(data.systemId));
         system.data('name', data.name);
@@ -1103,6 +1107,7 @@ define([
         headElement.editable({
             mode: 'popup',
             type: 'text',
+            name: 'alias',
             title: 'System alias',
             placement: 'top',
             onblur: 'submit',
@@ -2658,7 +2663,14 @@ define([
             switch(info[i]){
                 case 'alias':
                     // get current system alias
-                    systemInfo.push( $(this).find('.' + config.systemHeadNameClass).text() );
+                    var systemHeadNameElement = $(this).find('.' + config.systemHeadNameClass);
+                    var alias = '';
+                    if( systemHeadNameElement.hasClass('editable') ){
+                        // xEditable is initiated
+                        alias = systemHeadNameElement.editable('getValue', true);
+                    }
+
+                    systemInfo.push(alias );
                     break;
                 default:
                     systemInfo.push('bad system query');

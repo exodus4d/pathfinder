@@ -60,7 +60,7 @@ define([
                         }
                     }
 
-                    for(var m = 0; k < connectionCount; m++) {
+                    for(var m = 0; m < connectionCount; m++) {
                         if(!placed) {
                             if(getDistance(p1, p2) < getDistance(p1, closest[m])) {
                                 closest[m] = p2;

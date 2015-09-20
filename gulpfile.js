@@ -17,9 +17,8 @@ var stylish = require('jshint-stylish');
 var _src = {
     GULP: './gulpfile.js',
     ICON: './public/img/notifications/logo.png',
- //   JS_CONFIG: './src/main/conf/build.js', // path to requirejs config file
-    JS_SRC: './js/**/*.js',
-    JS_LIBS: './js/lib/**/*.js',
+    JS_SRC: './js/**/*',
+    JS_LIBS: './js/lib/**/*',
     JS_BUILD: './build_js',
     JS_DIST: './public/js',
     PACKAGE: './package.json'
