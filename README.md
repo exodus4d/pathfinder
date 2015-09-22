@@ -8,33 +8,9 @@ Mapping tool for [*EVE ONLINE*](https://www.eveonline.com)
 - Licence[MIT](http://opensource.org/licenses/MIT)
 
 ##### Beta Information
-> This project is still in beta phase and is not officially released! Feel free to check the code for security issues.
-You can not get the project to work, on your own server, until some required SQL dumps have been included to this repository!
-I will provide all required dumps once the beta phase is over.
+**This project is still in beta phase and is not officially released! Feel free to check the code for security issues.**
 
-## Requirements
-#### APACHE Webserver 
-- PHP 5.3.4 or higher
-- PCRE 8.02 or higher (usually shipped with PHP package, but needs to be additionally updated on CentOS or Red Hat systems)
-- mod_rewrite and mod_headers enabled
-- GD libary (for Image plugin)
-- cURL, sockets or stream extension (for Web plugin)
-- Gzip compression
-
-> Nginx and Lighttpd configurations are also possible.
-http://fatfreeframework.com/system-requirements
-
-#### Database
-- mysql: MySQL 5.x
-- sqlite: SQLite 3 and SQLite 2
-- pgsql: PostgreSQL
-- sqlsrv: Microsoft SQL Server / SQL Azure
-- mssql, dblib, sybase: FreeTDS / Microsoft SQL Server / Sybase
-- odbc: ODBC v3
-- oci: Oracle
-
->Here is a list of links to DSN connection details for all currently supported engines in the SQL layer:
-http://fatfreeframework.com/sql
+If you are looking for installation help, please check the [wiki](https://github.com/exodus4d/pathfinder/wiki) (DRAFT). More information will be added once the beta is over and the first stable build is released.
 
 ## Setup
 #### Backend (PHP)
@@ -120,25 +96,6 @@ in order to build the single \*.css file out of the **raw** \*.scss source files
   ```
 > This will watch all \*.scss files for changes and generate a compressed \*.css file (./public/css/pathfinder.css).
 Don´t worry about `cache busting`. Your current version `tag` will be added to the final path (e.g. ./public/css/pathfinder.css?v.0.0.10)
-
-## SQL Schema
-To get *PATHFINDER* to work, you will need (at least) **two** databases. The first one is the [SDE](https://developers.eveonline.com/resource/static-data-export)
-from *CCP*. The second database is *PATHFINDERS*´s own DB. Make sure, you have the correct DB export for your version!
-
-**1. *CCP* Static Data Export ([SDE](https://developers.eveonline.com/resource/static-data-export))**
-
-You need to import the Eve SDE into the database specified in the `DB_CCP_*` settings. You can do this like the following:
-  ```
-  wget https://www.fuzzwork.co.uk/dump/mysql-latest.tar.bz2
-  tar xf mysql-latest.tar.bz2
-  cd mysql-{}/
-  mysql -u -p __DATABASE_NAME__ < db_file.sql
-  ```
-> If you need an older versions of the SDE, check out[**Fuzzwork**](https://www.fuzzwork.co.uk/dump/)´s awesome dumps!
-
-**2. *PATHFINDER* Clean Data Export ([CDE](https://www.google.de))**
-> Make sure, that all column `indexes` and foreign `key constraints` have been imported correct!
-Otherwise you will get DB errors and the cache engine can not track all tables (Models), which may result in bad performance!
 
 ## Cronjob configuration
 *PATHFINDER* requires some dynamic `system data` from *CCP*´s [XML APIv2](http://wiki.eve-id.net/APIv2_Page_Index).
