@@ -12,28 +12,6 @@ Mapping tool for [*EVE ONLINE*](https://www.eveonline.com)
 
 If you are looking for installation help, please check the [wiki](https://github.com/exodus4d/pathfinder/wiki) (DRAFT). More information will be added once the beta is over and the first stable build is released.
 
-## Setup
-#### Backend (PHP)
-
-*PATHFINDER* is pretty easy to configure! If you are not planning "getting your hands dirty" with programming stuff,
-you don´t have to change a lot. All configuration files can be found here:
-- [config.ini](https://github.com/exodus4d/pathfinder/blob/master/app/config.ini) Main config **(DO NOT CHANGE)**
-- [pathfinder.ini](https://github.com/exodus4d/pathfinder/blob/master/app/pathfinder.ini) Pathfinder config
-- [cron.ini](https://github.com/exodus4d/pathfinder/blob/master/app/cron.ini) Cronjob config
-- [routes.ini](https://github.com/exodus4d/pathfinder/blob/master/app/routes.ini) Routes config **(DO NOT CHANGE)**
-
-> The default configuration should be fine in most cases. Edit all values with caution!
-
-#### Frontend (JS)
-There is **no** need to change any javascript configuration, except *Signature names* that can be changed/added
-- [init.js](https://github.com/exodus4d/pathfinder/blob/master/js/app/init.js) Main config **(DO NOT CHANGE)**
-- [signature_type.js](https://github.com/exodus4d/pathfinder/blob/master/js/app/config/signature_type.js) Signature mapping config **(DO NOT CHANGE)**
-- [system_effect](https://github.com/exodus4d/pathfinder/blob/master/js/app/config/system_effect.js) System effect config **(DO NOT CHANGE)**
-
-> If you found any *Signature Names* or other information missing in these files, please create an [Issue](https://github.com/exodus4d/pathfinder/issues) for that!
-I´ll try to fix it with the next release.
-If you still want to change anything in here, make sure to run the `build` process afterwards (see below).
-
 ## Development Environment
 *PATHFINDER* comes along with a simple, [*Gulp*](http://gulpjs.com/) based, build process.
 There are two main *Gulp tasks* that should help you.
@@ -96,25 +74,6 @@ in order to build the single \*.css file out of the **raw** \*.scss source files
   ```
 > This will watch all \*.scss files for changes and generate a compressed \*.css file (./public/css/pathfinder.css).
 Don´t worry about `cache busting`. Your current version `tag` will be added to the final path (e.g. ./public/css/pathfinder.css?v.0.0.10)
-
-## Cronjob configuration
-*PATHFINDER* requires some dynamic `system data` from *CCP*´s [XML APIv2](http://wiki.eve-id.net/APIv2_Page_Index).
-This data is automatically imported by a [*Cron-Job*](https://en.wikipedia.org/wiki/Cron) into the DB.
-
-Moreover, there are some predefined *Cron-Jobs* that handle some `db maintenance` and clean up tasks.
-
-You have to setup a **single** *Cron-Jobs* for this, that handles **all** other *Cron-Jobs* and works as a "*dispatcher*".
- - **Important**: Block access to `[YOUR INSTALLATION]/cron` (e.g. by `.htaccess` or edit `cron.ini`)
- - Trigger `[YOUR INSTALLATION]/cron` by [*CLI*](http://php.net/manual/en/features.commandline.php) **every minute**, e.g create `cron.phpx`:
-
-``` php
-exec('wget -qO- /dev/null [YOUR INSTALLATION]/cron &> /dev/null', $out, $result);
-echo "start:";
-echo "Returncode: " .$result ."<br>";
-echo "Ausgabe des Scripts: " ."<br>";
-echo "<pre>"; print_r($out);
-```
- - ... or use [*CURL*](http://php.net/manual/en/book.curl.php) for this ;)
 
 ## Project structure
 
