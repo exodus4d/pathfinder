@@ -178,7 +178,7 @@ define([
                             })
                         ).append(
                             $('<i>', {
-                                class: ['fa', 'fa-fw', 'fa-circle', config.systemBodyItemStatusClass, statusClass].join(' ')
+                                class: ['fa', 'fa-circle', config.systemBodyItemStatusClass, statusClass].join(' ')
                             })
                         ).append(
                             $('<span>', {
@@ -209,7 +209,7 @@ define([
 
                 tooltipOptions.id = systemId;
                 tooltipOptions.highlight = highlight;
-                tooltipOptions.title = '<i class="fa ' + tooltipIconClass + '"></i>';
+                tooltipOptions.title = "<i class='fa " + tooltipIconClass + "'></i>";
                 tooltipOptions.title += '&nbsp;' + userCounter;
 
                 // show system head
@@ -224,13 +224,11 @@ define([
                     },
                     complete: function(){
                         // show system body
-                        system.toggleBody(true, map, {complete: function(){
+                        system.toggleBody(true, map, {complete: function(system){
                             // complete callback function
                             // show active user tooltip
                             system.toggleSystemTooltip('show', tooltipOptions);
                         }});
-
-
                     }
                 });
             }
@@ -285,10 +283,8 @@ define([
                     map.revalidate( systemDomId );
 
                     if(callback.complete){
-                        callback.complete();
+                        callback.complete(system);
                     }
-
-
                 }
             });
         }else if(type === false){
@@ -363,6 +359,7 @@ define([
                     tooltipActive === false &&
                     options.id
                 ){
+
                     // init new tooltip
                     tooltipId = config.systemTooltipInnerIdPrefix + options.id;
 
@@ -2971,7 +2968,7 @@ define([
                         // add  "user count" to "total map user count"
                         headerUpdateData.userCount += tempUserData.user.length;
 
-                        // remove system from "search" array -> speed up
+                        // remove system from "search" array -> speed up loop
                         userData.data.systems.splice(j, 1);
                     }
                 }
