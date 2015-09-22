@@ -33,7 +33,7 @@ If you are looking for installation help, please check the [wiki](https://github
       |-- app.js            --> require.js config (!required for production!)
   |-- (0777) logs           --> log files
       |-- ...
-  | -- node_modules         --> node.js modules (not used for production) [check "Development Environment"]
+  | -- node_modules         --> node.js modules (not used for production)
       |-- ...
   |-- (0755) public         --> frontend source
       |-- css               --> CSS dist/build folder (minified)
