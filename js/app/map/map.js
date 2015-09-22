@@ -77,7 +77,7 @@ define([
     // active connections per map (cache object)
     var activeConnections = {};
 
-    // characterID => systemId´s are cached temporary where the active user character is in
+    // characterID => systemIds are cached temporary where the active user character is in
     // if a character switches/add system, establish connection with "previous" system
     var activeSystemCache = '';
 
@@ -178,7 +178,7 @@ define([
                             })
                         ).append(
                             $('<i>', {
-                                class: ['fa', 'fa-fw', 'fa-circle', config.systemBodyItemStatusClass, statusClass].join(' ')
+                                class: ['fa', 'fa-circle', config.systemBodyItemStatusClass, statusClass].join(' ')
                             })
                         ).append(
                             $('<span>', {
@@ -209,7 +209,7 @@ define([
 
                 tooltipOptions.id = systemId;
                 tooltipOptions.highlight = highlight;
-                tooltipOptions.title = '<i class="fa ' + tooltipIconClass + '"></i>';
+                tooltipOptions.title = "<i class='fa " + tooltipIconClass + "'></i>";
                 tooltipOptions.title += '&nbsp;' + userCounter;
 
                 // show system head
@@ -224,13 +224,11 @@ define([
                     },
                     complete: function(){
                         // show system body
-                        system.toggleBody(true, map, {complete: function(){
+                        system.toggleBody(true, map, {complete: function(system){
                             // complete callback function
                             // show active user tooltip
                             system.toggleSystemTooltip('show', tooltipOptions);
                         }});
-
-
                     }
                 });
             }
@@ -285,10 +283,8 @@ define([
                     map.revalidate( systemDomId );
 
                     if(callback.complete){
-                        callback.complete();
+                        callback.complete(system);
                     }
-
-
                 }
             });
         }else if(type === false){
@@ -363,6 +359,7 @@ define([
                     tooltipActive === false &&
                     options.id
                 ){
+
                     // init new tooltip
                     tooltipId = config.systemTooltipInnerIdPrefix + options.id;
 
@@ -465,6 +462,16 @@ define([
 
         if(!system){
 
+            // set system name or alias
+            var systemName = data.name;
+
+            if(
+                data.alias &&
+                data.alias !== ''
+            ){
+                systemName = data.alias;
+            }
+
             // get system info classes
             var effectBasicClass = Util.getEffectInfoForSystem('effect', 'class');
             var effectName = Util.getEffectInfoForSystem(data.effect, 'name');
@@ -476,42 +483,42 @@ define([
                 id: systemId,
                 class: config.systemClass
             }).append(
-                    // system head
-                    $('<div>', {
-                        class: config.systemHeadClass
-                    }).append(
-                            // System name is editable
-                            $('<a>', {
-                                href: '#',
-                                class: config.systemHeadNameClass
-                            })
-                        ).append(
-                            // System locked status
-                            $('<i>', {
-                                class: ['fa', 'fa-lock', 'fa-fw'].join(' ')
-                            }).attr('title', 'locked')
-                        ).append(
-                            // System effect color
-                            $('<i>', {
-                                class: ['fa', 'fa-square ', 'fa-fw', effectBasicClass, effectClass].join(' ')
-                            }).attr('title', effectName)
-                        ).append(
-                            // expand option
-                            $('<i>', {
-                                class: ['fa', 'fa-angle-down ', config.systemHeadExpandClass].join(' ')
-                            })
-                        ).prepend(
-                            $('<span>', {
-                                class: [config.systemSec, secClass].join(' '),
-                                text: data.security
-                            })
-                        )
-                ).append(
-                    // system body
-                    $('<div>', {
-                        class: config.systemBodyClass
-                    })
-                ).data('name', data.name);
+                // system head
+                $('<div>', {
+                    class: config.systemHeadClass
+                }).append(
+                        // System name is editable
+                        $('<a>', {
+                            href: '#',
+                            class: config.systemHeadNameClass
+                        }).attr('data-value', systemName)
+                    ).append(
+                        // System locked status
+                        $('<i>', {
+                            class: ['fa', 'fa-lock', 'fa-fw'].join(' ')
+                        }).attr('title', 'locked')
+                    ).append(
+                        // System effect color
+                        $('<i>', {
+                            class: ['fa', 'fa-square ', 'fa-fw', effectBasicClass, effectClass].join(' ')
+                        }).attr('title', effectName)
+                    ).append(
+                        // expand option
+                        $('<i>', {
+                            class: ['fa', 'fa-angle-down ', config.systemHeadExpandClass].join(' ')
+                        })
+                    ).prepend(
+                        $('<span>', {
+                            class: [config.systemSec, secClass].join(' '),
+                            text: data.security
+                        })
+                    )
+            ).append(
+                // system body
+                $('<div>', {
+                    class: config.systemBodyClass
+                })
+            );
 
             // set initial system position
             system.css({
@@ -530,7 +537,6 @@ define([
                 newPosX !== currentPosX ||
                 newPosY !== currentPosY
             ){
-
                 // change position with animation
                 system.velocity(
                     {
@@ -558,23 +564,18 @@ define([
                     }
                 );
             }
+
+            // set system alias
+            var alias = system.getSystemInfo(['alias']);
+
+            if(alias !== data.alias){
+                // alias changed
+                system.find('.' + config.systemHeadNameClass).editable('setValue', data.alias);
+            }
         }
-
-        // set system name or alias
-        var systemName = data.name;
-
-        if(
-            data.alias &&
-            data.alias !== ''
-        ){
-            systemName = data.alias;
-        }
-
-        system.find('.' + config.systemHeadNameClass).attr('data-value', systemName);
 
         // set system status
         system.setSystemStatus(data.status.name);
-
         system.data('id', parseInt(data.id));
         system.data('systemId', parseInt(data.systemId));
         system.data('name', data.name);
@@ -1103,6 +1104,7 @@ define([
         headElement.editable({
             mode: 'popup',
             type: 'text',
+            name: 'alias',
             title: 'System alias',
             placement: 'top',
             onblur: 'submit',
@@ -1833,6 +1835,8 @@ define([
                 // system name
                 var currentSystemName = currentSystem.getSystemInfo( ['alias'] );
 
+                var systemData = {};
+
                 switch(action){
                     case 'add_system':
                         // add a new system
@@ -1919,17 +1923,17 @@ define([
                         });
                         break;
                     case 'ingame_show_info':
-                        var systemData = system.getSystemData();
+                        systemData = system.getSystemData();
 
                         CCPEVE.showInfo(5, systemData.systemId );
                         break;
                     case 'ingame_set_destination':
-                        var systemData = system.getSystemData();
+                        systemData = system.getSystemData();
 
                         CCPEVE.setDestination( systemData.systemId );
                         break;
                     case 'ingame_add_waypoint':
-                        var systemData = system.getSystemData();
+                        systemData = system.getSystemData();
 
                         CCPEVE.addWaypoint( systemData.systemId );
                         break;
@@ -2656,7 +2660,14 @@ define([
             switch(info[i]){
                 case 'alias':
                     // get current system alias
-                    systemInfo.push( $(this).find('.' + config.systemHeadNameClass).text() );
+                    var systemHeadNameElement = $(this).find('.' + config.systemHeadNameClass);
+                    var alias = '';
+                    if( systemHeadNameElement.hasClass('editable') ){
+                        // xEditable is initiated
+                        alias = systemHeadNameElement.editable('getValue', true);
+                    }
+
+                    systemInfo.push(alias );
                     break;
                 default:
                     systemInfo.push('bad system query');
@@ -2957,7 +2968,7 @@ define([
                         // add  "user count" to "total map user count"
                         headerUpdateData.userCount += tempUserData.user.length;
 
-                        // remove system from "search" array -> speed up
+                        // remove system from "search" array -> speed up loop
                         userData.data.systems.splice(j, 1);
                     }
                 }

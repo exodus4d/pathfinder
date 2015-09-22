@@ -152,7 +152,7 @@ define([
                     // hide/disable description field
 
                     // hide tool button
-                    descriptionButton.hide()
+                    descriptionButton.hide();
 
                     showToolsActionElement();
                 }

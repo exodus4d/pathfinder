@@ -30,7 +30,7 @@ define([
 
         pageElement.find('h1').delay(300).velocity('transition.shrinkIn', {
             duration: 500
-        }).delay(800)
+        }).delay(800);
 
         pageElement.find('h1').velocity({
             scale: 1.05

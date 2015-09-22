@@ -69,7 +69,11 @@ php_flag log_errors on
 
     ## js/source maps
     <Filesmatch "\.(js|map)$">
-        ExpiresActive off
+        ExpiresActive on
+        ExpiresDefault "access plus 1 year"
+        Header append Cache-Control "public"
+        FileETag None
+        Header unset ETag
     </Filesmatch>
 
     # html templates

@@ -411,7 +411,7 @@ define([
         var contentElement = $('<div>', {
             id: config.mapTabIdPrefix + parseInt( options.id ),
             class: [config.mapTabContentClass].join(' ')
-        })
+        });
 
         contentElement.addClass('tab-pane');
 
@@ -707,7 +707,7 @@ define([
 
     /**
      * collect all data (systems/connections) for export/save from each active map in the map module
-     * if no change detected -> don´t attach map data to return array
+     * if no change detected -> do not attach map data to return array
      * @returns {Array}
      */
     $.fn.getMapModuleDataForUpdate = function(){

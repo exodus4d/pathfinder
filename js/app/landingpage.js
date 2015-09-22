@@ -274,7 +274,7 @@ define([
         };
 
         // initialize carousel ------------------------------------------
-        var carousel = Gallery([
+        var carousel = new Gallery([
             {
                 title: 'IGB',
                 href: 'ui/map',
@@ -389,7 +389,7 @@ define([
                     titleProperty: 'description'
                 };
 
-                Gallery(thumbLinks, options);
+                new Gallery(thumbLinks, options);
             });
         });
     };

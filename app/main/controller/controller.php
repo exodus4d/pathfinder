@@ -49,7 +49,7 @@ class Controller {
         $f3->set('isIngame', self::isIGB() );
 
         // js path (build/minified or raw uncompressed files)
-        $f3->set('pathJs', self::getEnvironmentData('PATH_JS') );
+        $f3->set('pathJs', 'public/js/' . $f3->get('PATHFINDER.VERSION') );
     }
 
     /**
@@ -105,7 +105,7 @@ class Controller {
     }
 
     /**
-     * extract all eve IGB specific header data
+     * get all eve IGB specific header data
      * @return object
      */
     static function getIGBHeaderData(){
@@ -115,9 +115,12 @@ class Controller {
         $headerData = apache_request_headers();
 
         foreach($headerData as $key => $value){
-            if (strpos($key, 'EVE_') === 0) {
-                $key = str_replace('EVE_', '', $key);
-                $key = strtolower($key);
+            $key = strtolower($key);
+            $key = str_replace('eve_', 'eve-', $key);
+
+
+            if (strpos($key, 'eve-') === 0) {
+                $key = str_replace('eve-', '', $key);
 
                 if (
                     $key === 'trusted' &&
