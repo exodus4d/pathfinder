@@ -75,7 +75,7 @@ define([
     var activeInstances = {};
 
     // active connections per map (cache object)
-    var activeConnections = {};
+    var connectionCache = {};
 
     // characterID => systemIds are cached temporary where the active user character is in
     // if a character switches/add system, establish connection with "previous" system
@@ -371,6 +371,7 @@ define([
                     options.html = true;
                     options.animation = true;
                     options.template = template;
+                    options.viewport = system.parent('.' + config.mapClass);
 
                     system.attr('title', options.title);
 
@@ -784,7 +785,30 @@ define([
     };
 
     /**
-     * get a connection object from "cache" (this requires the "activeConnections" cache to be actual!
+     * update local connection cache
+     * @param mapId
+     * @param connection
+     */
+    var updateConnectionCache = function(mapId, connection){
+
+        if(
+            mapId > 0 &&
+            connection
+        ){
+            var connectionId = parseInt( connection.getParameter('connectionId') );
+
+            if(connectionId > 0){
+                connectionCache[mapId][connectionId] = connection;
+            }else{
+                console.error('updateConnectionCache', 'connectionId missing');
+            }
+        }else{
+            console.error('updateConnectionCache', 'missing data');
+        }
+    };
+
+    /**
+     * get a connection object from "cache" (this requires the "connectionCache" cache to be actual!
      * @param mapId
      * @param connectionId
      * @returns {*}
@@ -794,10 +818,10 @@ define([
         var connection = null;
 
         if(
-            activeConnections[mapId] &&
-            activeConnections[mapId][connectionId]
+            connectionCache[mapId] &&
+            connectionCache[mapId][connectionId]
         ){
-            connection = activeConnections[mapId][connectionId];
+            connection = connectionCache[mapId][connectionId];
         }
 
         return connection;
@@ -1253,11 +1277,18 @@ define([
             url: Init.path.saveConnection,
             data: requestData,
             dataType: 'json',
-            context: connection
+            //context: connection
+            context: {
+              connection: connection,
+              mapId: mapId
+            }
         }).done(function(newConnectionData){
 
             // update connection data e.g. "scope" has auto detected
-            updateConnection(this, connectionData, newConnectionData);
+            connection = updateConnection(this.connection, connectionData, newConnectionData);
+
+            // new connection should be cached immediately!
+            updateConnectionCache(this.mapId, connection);
 
             // connection scope
             var scope = Util.getScopeInfoForConnection(newConnectionData.scope, 'label');
@@ -1349,6 +1380,7 @@ define([
      * @param connection
      * @param connectionData
      * @param newConnectionData
+     * @returns {*}
      */
     var updateConnection = function(connection, connectionData, newConnectionData){
 
@@ -1409,6 +1441,8 @@ define([
 
         // set update date
         connection.setParameter('updated', newConnectionData.updated);
+
+        return connection;
     };
 
     /**
@@ -2912,7 +2946,6 @@ define([
 
         var mapElement = map.getContainer();
 
-
         // get map tracking toggle value
         // if "false" -> new systems/connections will not automatically added
         var mapTracking = $('#' + config.headMapTrackingId).is(':checked');
@@ -3139,8 +3172,8 @@ define([
             var connections = map.getAllConnections();
             var connectionsFormatted = [];
 
-            // clear connections cache
-            activeConnections[mapConfig.id] = {};
+            // new connections cache
+            var updatedConnectionCache = {};
 
             // format connections
             for(var j = 0; j < connections.length; j++){
@@ -3157,13 +3190,16 @@ define([
 
                 var connectionData = getDataByConnection(tempConnection);
 
-                // add to cache
-                activeConnections[mapConfig.id][connectionData.id] = tempConnection;
-
                 if(addConnectionData){
                     connectionsFormatted.push( connectionData );
                 }
+
+                // add to cache
+                updatedConnectionCache[connectionData.id] = tempConnection;
             }
+
+            // overwrite connection cache
+            connectionCache[mapConfig.id] = updatedConnectionCache;
 
             data.connections = connectionsFormatted;
 

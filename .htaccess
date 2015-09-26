@@ -3,6 +3,7 @@ RewriteEngine On
 
 # HTTP to HTTPS ----------------------------------------------------------------
 RewriteCond %{HTTPS} off
+RewriteCond %{HTTP_HOST} !^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$
 RewriteCond %{HTTP_HOST} !=localhost
 
 # First rewrite to HTTPS:
@@ -13,6 +14,7 @@ RewriteRule .* https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 # Now, rewrite any request to the wrong domain to use www.
 RewriteCond %{HTTP_HOST} !^www\.
 RewriteCond %{HTTP_HOST} !=localhost
+RewriteCond %{HTTP_HOST} !^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$
 RewriteRule .* https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 
