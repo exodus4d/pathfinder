@@ -337,6 +337,7 @@ define([
 
             if(show === 'destroy'){
                 system.tooltip( show );
+                system.removeAttr('data-original-title');
             }else if(show === 'hide'){
                 system.tooltip( show );
             } else if(show === 'toggle'){
@@ -3044,8 +3045,6 @@ define([
 
                         }
 
-
-
                         // cache current location
                         activeSystemCache = system;
                     }
@@ -3056,7 +3055,7 @@ define([
 
             // current user was not found on any map system -> add new system to map where the user is in ----------------
             // this is restricted to IGB-usage! CharacterLog data is always set through the IGB
-            // ->this prevent adding the same system multiple times, if a user if online with the IGB AND OOG
+            // ->this prevent adding the same system multiple times, if a user is online with IGB AND OOG
             if(
                 CCP.isInGameBrowser() === true &&
                 currentUserOnMap === false &&
@@ -3065,7 +3064,6 @@ define([
             ){
 
                 // add new system to the map
-
                 var requestData = {
                     systemData: {
                         systemId: currentCharacterLog.system.id
