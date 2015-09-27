@@ -14,7 +14,7 @@ class CorporationModel extends BasicModel {
 
     protected $fieldConf = [
         'corporationCharacters' => [
-            'has-many' => ['Model\CharacterModel', 'allianceId']
+            'has-many' => ['Model\CharacterModel', 'corporationId']
         ],
         'mapCorporations' => [
             'has-many' => ['Model\CorporationMapModel', 'corporationId']
