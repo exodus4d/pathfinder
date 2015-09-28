@@ -187,16 +187,20 @@ class UserModel extends BasicModel {
             'userMaps',
             ['active = ?', 1],
             [
-                'limit' => $f3->get('PATHFINDER.MAX_MAPS_PRIVATE'),
                 'order' => 'created'
             ]
         );
 
         $maps = [];
         if($this->userMaps){
+            $mapCountPrivate = 0;
             foreach($this->userMaps as $userMap){
-                if($userMap->mapId->isActive()){
+                if(
+                    $userMap->mapId->isActive() &&
+                    $mapCountPrivate < $f3->get('PATHFINDER.MAX_MAPS_PRIVATE')
+                ){
                     $maps[] = $userMap->mapId;
+                    $mapCountPrivate++;
                 }
             }
         }
