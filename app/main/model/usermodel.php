@@ -186,9 +186,7 @@ class UserModel extends BasicModel {
         $this->filter(
             'userMaps',
             ['active = ?', 1],
-            [
-                'order' => 'created'
-            ]
+            ['order' => 'created']
         );
 
         $maps = [];
