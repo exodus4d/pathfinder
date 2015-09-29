@@ -14,7 +14,7 @@ class CorporationModel extends BasicModel {
 
     protected $fieldConf = [
         'corporationCharacters' => [
-            'has-many' => ['Model\CharacterModel', 'allianceId']
+            'has-many' => ['Model\CharacterModel', 'corporationId']
         ],
         'mapCorporations' => [
             'has-many' => ['Model\CorporationMapModel', 'corporationId']
@@ -32,7 +32,6 @@ class CorporationModel extends BasicModel {
         $cooperationData->name = $this->name;
         $cooperationData->sharing = $this->sharing;
 
-
         return $cooperationData;
     }
 
@@ -47,16 +46,18 @@ class CorporationModel extends BasicModel {
 
         $this->filter('mapCorporations',
             ['active = ?', 1],
-            [
-                'limit' => $f3->get('PATHFINDER.MAX_MAPS_CORPORATION'),
-                'order' => 'created'
-            ]
+            ['order' => 'created']
         );
 
         if($this->mapCorporations){
+            $mapCount = 0;
             foreach($this->mapCorporations as $mapCorporation){
-                if($mapCorporation->mapId->isActive()){
+                if(
+                    $mapCorporation->mapId->isActive() &&
+                    $mapCount < $f3->get('PATHFINDER.MAX_MAPS_CORPORATION')
+                ){
                     $maps[] = $mapCorporation->mapId;
+                    $mapCount++;
                 }
             }
         }

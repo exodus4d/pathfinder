@@ -197,7 +197,8 @@ define([], function() {
                     4: 'Ordinary Perimeter Reservoir', //*
                     5: 'Bountiful Frontier Reservoir', //*
                     6: 'Instrumental Core Reservoir', //*
-                    7: 'Vital Core Reservoir' //*
+                    7: 'Vital Core Reservoir', //*
+                    8: 'Minor Perimeter Reservoir' //*
                 },
                 5: {    // Wormhole
                     1: 'D792 - HS',

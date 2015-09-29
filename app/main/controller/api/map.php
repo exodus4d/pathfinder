@@ -444,7 +444,9 @@ class Map extends \Controller\AccessController {
                 // format map Data for return
                 $return->mapData = self::getFormattedMapData($maps);
 
-                $f3->set($cacheKey, $return, $responseTTL);
+                if(count($return->mapData) > 0){
+                    $f3->set($cacheKey, $return, $responseTTL);
+                }
             }else{
                 // get from cache
                 $return = $f3->get($cacheKey);

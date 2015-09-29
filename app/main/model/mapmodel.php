@@ -420,14 +420,16 @@ class MapModel extends BasicModel {
 
         if(is_null($charactersData)){
             $charactersData = [];
-
             $characters = $this->getCharacters();
 
             foreach($characters as $character){
                 $charactersData[] = $character->getData(true);
             }
 
-            $this->updateCacheData($charactersData, 'CHARACTERS', 10);
+            // cache active characters (if found)
+            if(!empty($charactersData)){
+                $this->updateCacheData($charactersData, 'CHARACTERS', 10);
+            }
         }
 
         return $charactersData;
