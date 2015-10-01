@@ -31,12 +31,12 @@ define([
             }
 
             var markup = '<div class="clearfix">';
-            markup += '<div class="col-sm-6 pf-select-item-anchor">' + data.text + '</div>';
+            markup += '<div class="col-sm-5 pf-select-item-anchor">' + data.text + '</div>';
             markup += '<div class="col-sm-2 text-right ' + data.effectClass + '">';
             markup += '<i class="fa fa-fw fa-square ' + hideEffectClass + '"></i>';
             markup += '</div>';
             markup += '<div class="col-sm-2 text-right ' + data.secClass + '">' + data.security + '</div>';
-            markup += '<div class="col-sm-2 text-right ' + data.trueSecClass + '">' + data.trueSec + '</div></div>';
+            markup += '<div class="col-sm-3 text-right ' + data.trueSecClass + '">' + data.trueSec + '</div></div>';
 
             return markup;
         }
