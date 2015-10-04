@@ -224,7 +224,7 @@
                             <blockquote>
                                 <p>
                                     API Key(s) are required to use <em class="pf-brand">pathfinder</em>.
-                                    Don't have one? - Create a new key with the lowest access level possible.
+                                    Don't have one? - Create a new key with an empty 'Access Mask'.
                                 </p>
                                 <small>Get your new/custom API Key from
                                     <a href="https://support.eveonline.com/api" target="_blank">here</a>
@@ -269,6 +269,11 @@
 
                         </div>
                     {{/userData.api}}
+
+                    <div class="{{formErrorContainerClass}} alert alert-danger" style="display: none;">
+                        <span class="txt-color txt-color-danger">Error</span>
+                        <small> (important non-critical information)</small>
+                    </div>
 
                     <div class="{{formWarningContainerClass}} alert alert-warning" style="display: none;">
                         <span class="txt-color txt-color-warning">Warning</span>

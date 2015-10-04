@@ -273,21 +273,34 @@ class Controller {
         }
 
         if($f3->get('AJAX')){
+            // error on ajax call
             header('Content-type: application/json');
 
-            // error on ajax call
-            $errorData = [
-                'status' => $f3->get('ERROR.status'),
-                'code' => $f3->get('ERROR.code'),
-                'text' => $f3->get('ERROR.text')
-            ];
+            $return = (object) [];
+            $error = (object) [];
+            $error->type = 'error';
+            $error->code = $f3->get('ERROR.code');
+            $error->status = $f3->get('ERROR.status');
+            $error->message = $f3->get('ERROR.text');
 
             // append stack trace for greater debug level
             if( $f3->get('DEBUG') === 3){
-                $errorData['trace'] = $f3->get('ERROR.trace');
+                $error->trace = $f3->get('ERROR.trace');
             }
 
-            echo json_encode($errorData);
+            // check if error is a PDO Exception
+            if(strpos(strtolower( $f3->get('ERROR.text') ), 'duplicate') !== false){
+                preg_match_all('/\'([^\']+)\'/', $f3->get('ERROR.text'), $matches, PREG_SET_ORDER);
+
+                if(count($matches) === 2){
+                    $error->field = $matches[1][1];
+                    $error->message = 'Value "' . $matches[0][1] . '" already exists';
+                }
+            }
+
+            $return->error[] = $error;
+
+            echo json_encode($return);
         }else{
             echo $f3->get('ERROR.text');
         }
