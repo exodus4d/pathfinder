@@ -157,7 +157,7 @@ class UserModel extends BasicModel {
      * @return array|FALSE
      */
     public function getByName($name){
-        return $this->getByForeignKey('name', $name);
+        return $this->getByForeignKey('name', $name, [], 0);
     }
 
     /**
@@ -281,10 +281,11 @@ class UserModel extends BasicModel {
                     $userCharacter->save();
                 }
 
-                // set random main character
-                if(! $mainSet ){
-                    $userCharacters[0]->setMain(1);
-                    $userCharacters[0]->save();
+                // set first character as "main"
+                if( !$mainSet ){
+                    $userCharacter = reset($userCharacters);
+                    $userCharacter->setMain(1);
+                    $userCharacter->save();
                 }
             }
         }
@@ -299,6 +300,8 @@ class UserModel extends BasicModel {
 
         $this->filter('apis', ['active = ?', 1]);
 
+        // if a user has multiple API keys saved for ONE character,
+        // skip double characters!
         $userCharacters = [];
 
         if($this->apis){
@@ -306,14 +309,18 @@ class UserModel extends BasicModel {
             while($this->apis->valid()){
 
                 $this->apis->current()->filter('userCharacters', ['active = ?', 1]);
+
                 if($this->apis->current()->userCharacters){
                     $this->apis->current()->userCharacters->rewind();
                     while($this->apis->current()->userCharacters->valid()){
-                        $userCharacters[] = $this->apis->current()->userCharacters->current();
+
+                        $tempCharacterId = $this->apis->current()->userCharacters->current()->characterId->get('id');
+                        if( !isset($userCharacters[ $tempCharacterId ]) ){
+                            $userCharacters[ $tempCharacterId ] = $this->apis->current()->userCharacters->current();
+                        }
                         $this->apis->current()->userCharacters->next();
                     }
                 }
-
                 $this->apis->next();
             }
         }
@@ -347,17 +354,17 @@ class UserModel extends BasicModel {
     public function getActiveUserCharacter(){
         $activeUserCharacter = null;
 
-        $apiController = Controller\CcpApiController::getIGBHeaderData();
+        $headerData = Controller\CcpApiController::getIGBHeaderData();
 
         // check if IGB Data is available
-        if( !empty($apiController->values) ){
+        if( !empty($headerData->values) ){
             // search for the active character by IGB Header Data
 
             $this->filter('userCharacters',
                 [
                     'active = :active AND characterId = :characterId',
                     ':active' => 1,
-                    ':characterId' => intval($apiController->values['charid'])
+                    ':characterId' => intval($headerData->values['charid'])
                 ],
                 ['limit' => 1]
             );
