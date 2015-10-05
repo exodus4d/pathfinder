@@ -202,6 +202,11 @@ $mapWidth: 2500px ;
         color: $gray-light;
         display: none;  // triggered by JS
       }
+
+      // overwrites "xEditable" style for empty values
+      .editable-empty{
+        font-style: normal;
+      }
     }
 
     // ========================================================================

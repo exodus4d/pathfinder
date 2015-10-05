@@ -1130,6 +1130,7 @@ define([
             mode: 'popup',
             type: 'text',
             name: 'alias',
+            emptytext: system.data('name'),
             title: 'System alias',
             placement: 'top',
             onblur: 'submit',
