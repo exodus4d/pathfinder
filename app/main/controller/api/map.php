@@ -332,7 +332,7 @@ class Map extends \Controller\AccessController {
         $responseTTL = $f3->get('PATHFINDER.TIMER.UPDATE_SERVER_MAP.DELAY') / 1000;
         $mapData = (array)$f3->get('POST.mapData');
 
-        $user = $this->_getUser();
+        $user = $this->_getUser(0);
         $return = (object) [];
         $return->error = [];
 
@@ -342,12 +342,11 @@ class Map extends \Controller\AccessController {
 
             $cacheKey = 'user_map_data_' . $activeCharacter->id;
 
-            // if there is any system/connection change data submitted -> clear cache
-            if(!empty($mapData)){
-                $f3->clear($cacheKey);
-            }
-
-            if($f3->exists($cacheKey) === false ){
+            // if there is any system/connection change data submitted -> save new data
+            if(
+                $f3->exists($cacheKey) === false ||
+                !empty($mapData)
+            ){
 
                 // get current map data ========================================================
                 $maps = $user->getMaps();
@@ -376,7 +375,6 @@ class Map extends \Controller\AccessController {
                     ){
 
                         // map changes expected =============================================
-
 
                         // loop current user maps and check for changes
                         foreach($maps as $map){
@@ -443,10 +441,7 @@ class Map extends \Controller\AccessController {
 
                 // format map Data for return
                 $return->mapData = self::getFormattedMapData($maps);
-
-                if(count($return->mapData) > 0){
-                    $f3->set($cacheKey, $return, $responseTTL);
-                }
+                $f3->set($cacheKey, $return, $responseTTL);
             }else{
                 // get from cache
                 $return = $f3->get($cacheKey);
@@ -500,7 +495,7 @@ class Map extends \Controller\AccessController {
         $return = (object) [];
         $return->error = [];
 
-        $user = $this->_getUser();
+        $user = $this->_getUser(0);
 
         if($user){
 

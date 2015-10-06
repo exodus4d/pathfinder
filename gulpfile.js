@@ -162,7 +162,6 @@ gulp.task('watch', function(tag) {
 
 /**
  * Production task for deployment.
- * Triggered by Maven Plugin.
  * $ gulp production --tag v0.0.9
  * WARNING: DO NOT REMOVE THIS TASK!!!
  */

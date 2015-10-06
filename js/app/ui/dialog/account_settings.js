@@ -309,24 +309,11 @@ define([
                                             if(jqXHR.responseText){
                                                 var errorObj = $.parseJSON(jqXHR.responseText);
 
-                                                if(errorObj.text !== undefined){
-                                                    // DB error
-
-                                                    if(errorObj.text.match('Duplicate')){
-                                                        // duplicate DB key
-
-                                                        var fieldName = 'name';
-                                                        if(errorObj.text.match( fieldName )){
-                                                            // name exist
-                                                            form.showFormMessage([{type: 'error', message: 'Username already exists', field: fieldName}]);
-                                                        }
-
-                                                        fieldName = 'email';
-                                                        if(errorObj.text.match( fieldName )){
-                                                            // email exist
-                                                            form.showFormMessage([{type: 'error', message: 'Email already exists', field: fieldName}]);
-                                                        }
-                                                    }
+                                                if(
+                                                    errorObj.error &&
+                                                    errorObj.error.length > 0
+                                                ){
+                                                    form.showFormMessage(errorObj.error);
                                                 }
                                             }
                                         }

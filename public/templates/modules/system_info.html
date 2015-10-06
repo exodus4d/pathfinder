@@ -1,8 +1,12 @@
-{{#system.alias}}
+
     <h5 class="pull-right" data-toggle="tooltip" data-placement="top" data-container="body" title="alias">
-        {{system.alias}}
+        {{#system.alias}}
+            {{system.alias}}
+        {{/system.alias}}
+        {{^system.alias}}
+            {{system.name}}
+        {{/system.alias}}
     </h5>
-{{/system.alias}}
 
 
 <h5 style="display: inline-block">

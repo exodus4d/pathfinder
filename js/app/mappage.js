@@ -127,6 +127,9 @@ define([
                         $(document).setProgramStatus('online');
 
                         if(data.mapData.length === 0){
+                            // clear all existing maps
+                            mapModule.clearMapModule();
+
                             // no map data available -> show "new map" dialog
                             $(document).trigger('pf:menuShowMapSettings', {tab: 'new'});
                         }else{

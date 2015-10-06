@@ -503,6 +503,29 @@ define([
     };
 
     /**
+     * clear all active maps
+     */
+    $.fn.clearMapModule = function(){
+
+        var mapModuleElement = $(this);
+
+        var tabMapElement = $('#' + config.mapTabElementId);
+
+        if(tabMapElement.length > 0){
+            var tabElements = mapModuleElement.getMapTabElements();
+
+            for(var i = 0; i < tabElements.length; i++){
+                var tabElement = $(tabElements[i]);
+                var mapId = tabElement.data('map-id');
+
+                if(mapId > 0){
+                    tabMapElement.deleteTab(mapId);
+                }
+            }
+        }
+    };
+
+    /**
      * load/update map module into element (all maps)
      * @param mapData
      * @returns {boolean}
