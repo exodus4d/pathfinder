@@ -238,8 +238,8 @@ class Controller {
      * @return mixed
      */
     static function formatHiveKey($key){
-        $illegalCharacters = ['-'];
-        return str_replace($illegalCharacters, '', $key);
+        $illegalCharacters = ['-', ' '];
+        return strtolower( str_replace($illegalCharacters, '', $key) );
     }
 
     /**
