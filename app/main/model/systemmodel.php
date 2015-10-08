@@ -139,6 +139,26 @@ class SystemModel extends BasicModel {
     }
 
     /**
+     * setter for system security value
+     * @param $trueSec
+     * @return float
+     */
+    public function set_trueSec($trueSec){
+
+        if(
+            $trueSec > 0 &&
+            $trueSec < 0.1
+        ){
+            // 0.3 is still a LS -> no rounding
+            $trueSec = 0.1;
+        }else{
+            $trueSec = round($trueSec, 1);
+        }
+
+        return $trueSec;
+    }
+
+    /**
      * setter validation for x coordinate
      * @param $posX
      * @return int|number

@@ -68,7 +68,7 @@ class CcpSystemsMapper extends \RecursiveArrayIterator {
                 $iterator['security'] == 8 ||
                 $iterator['security'] == 9
             ){
-                $trueSec = round($iterator['trueSec'], 1);
+                $trueSec = round($iterator['trueSec'], 3);
 
                 if($trueSec <= 0){
                     $security = '0.0';
