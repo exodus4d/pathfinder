@@ -431,36 +431,43 @@ class UserModel extends BasicModel {
      * @throws \Exception
      */
     public function updateCharacterLog($ttl = 0){
-        $apiController = Controller\CcpApiController::getIGBHeaderData();
+        $headerData = Controller\CcpApiController::getIGBHeaderData();
 
         // check if IGB Data is available
-        if( !empty($apiController->values) ){
+        if( !empty($headerData->values) ){
             $f3 = self::getF3();
 
             // check if system has changed since the last call
-            // current location is stored in session to avoid unnecessary DB calls
-            $sessionCharacterKey = 'LOGGED.user.character.id_' . $apiController->values['charid'];
+            // current location is stored (global) to avoid unnecessary DB calls
+            $sessionCharacterKey = 'LOGGED.user.character.id_' . $headerData->values['charid'];
+
+            if($f3->exists($sessionCharacterKey)){
+                // cache data exists
+                $cacheData = $f3->get($sessionCharacterKey);
+            }else{
+                // new cache data
+                $cacheData = [
+                    'systemId' => 0,
+                    'shipId' => 0
+                ];
+            }
 
             if(
-                !$f3->exists($sessionCharacterKey) ||
-                $f3->get($sessionCharacterKey . '.systemId') != $apiController->values['solarsystemid'] ||
-                $f3->get($sessionCharacterKey . '.shipId') != $apiController->values['shiptypeid']
+                $cacheData['systemId'] != $headerData->values['solarsystemid'] ||
+                $cacheData['shipId'] != $headerData->values['shiptypeid']
             ){
-
-                $cacheData = [
-                    'systemId' => $apiController->values['solarsystemid'],
-                    'shipId' => $apiController->values['shiptypeid']
-                ];
+                $cacheData['systemId'] = (int)$headerData->values['solarsystemid'];
+                $cacheData['shipId'] = (int)$headerData->values['shiptypeid'];
 
                 // character has changed system, or character just logged on
                 $character = self::getNew('CharacterModel');
-                $character->getById( (int)$apiController->values['charid'] );
+                $character->getById( (int)$headerData->values['charid'] );
 
                 if( $character->dry() ){
                     // this can happen if a valid user plays the game with a not registered character
                     // whose API is not registered -> save new character or update character data
-                    $corporationId = array_key_exists('corpid', $apiController->values) ? $apiController->values['corpid'] : null;
-                    $allianceId = array_key_exists('allianceid', $apiController->values) ? $apiController->values['allianceid'] : null;
+                    $corporationId = array_key_exists('corpid', $headerData->values) ? $headerData->values['corpid'] : null;
+                    $allianceId = array_key_exists('allianceid', $headerData->values) ? $headerData->values['allianceid'] : null;
 
                     // check if corp exists
                     if( !is_null($corporationId) ){
@@ -468,7 +475,7 @@ class UserModel extends BasicModel {
                         $corporation->getById( (int)$corporationId );
                         if( $corporation->dry() ){
                             $corporation->id = $corporationId;
-                            $corporation->name = $apiController->values['corpname'];
+                            $corporation->name = $headerData->values['corpname'];
                             $corporation->save();
                         }
                     }
@@ -479,13 +486,13 @@ class UserModel extends BasicModel {
                         $alliance->getById( (int)$allianceId );
                         if( $alliance->dry() ){
                             $alliance->id = $allianceId;
-                            $alliance->name = $apiController->values['alliancename'];
+                            $alliance->name = $headerData->values['alliancename'];
                             $alliance->save();
                         }
                     }
 
-                    $character->id = (int) $apiController->values['charid'];
-                    $character->name = $apiController->values['charname'];
+                    $character->id = (int) $headerData->values['charid'];
+                    $character->name = $headerData->values['charname'];
                     $character->corporationId = $corporationId;
                     $character->allianceId = $allianceId;
                     $character->save();
@@ -498,11 +505,11 @@ class UserModel extends BasicModel {
 
                 // set character log values
                 $characterLog->characterId = $character;
-                $characterLog->systemId = $apiController->values['solarsystemid'];
-                $characterLog->systemName = $apiController->values['solarsystemname'];
-                $characterLog->shipId = $apiController->values['shiptypeid'];
-                $characterLog->shipName = $apiController->values['shipname'];
-                $characterLog->shipTypeName = $apiController->values['shiptypename'];
+                $characterLog->systemId = (int)$headerData->values['solarsystemid'];
+                $characterLog->systemName = $headerData->values['solarsystemname'];
+                $characterLog->shipId = (int)$headerData->values['shiptypeid'];
+                $characterLog->shipName = $headerData->values['shipname'];
+                $characterLog->shipTypeName = $headerData->values['shiptypename'];
 
                 $characterLog->save();
 
@@ -512,7 +519,6 @@ class UserModel extends BasicModel {
                 // cache character log information
                 $f3->set($sessionCharacterKey, $cacheData, $ttl);
             }
-
         }
     }
 

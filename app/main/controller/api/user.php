@@ -11,6 +11,7 @@ use Controller;
 use controller\MailController;
 use Model;
 use Exception;
+use DB;
 
 class User extends Controller\Controller{
 
@@ -70,10 +71,12 @@ class User extends Controller\Controller{
 
             // set Session login
             $dateTime = new \DateTime();
-            $this->f3->set('SESSION.user.time', $dateTime->getTimestamp());
-            $this->f3->set('SESSION.user.name', $user->name);
-            $this->f3->set('SESSION.user.id', $user->id);
 
+            $this->f3->set('SESSION.user', [
+                'time' => $dateTime->getTimestamp(),
+                'name' => $user->name,
+                'id' => $user->id
+            ]);
 
             // save user login information
             $user->touch('lastLogin');
@@ -144,19 +147,9 @@ class User extends Controller\Controller{
 
                 if($characterLog = $character->getLog()){
                     $characterLog->erase();
-                    $characterLog->save();
-
-                    $character->clearCacheData();
-
-                    // delete log cache key as well
-                    $f3->clear('LOGGED.user.character.id_' . $characterLog->characterId->id . '.systemId');
-                    $f3->clear('LOGGED.user.character.id_' . $characterLog->characterId->id . '.shipId');
-
                 }
             }
         }
-
-
     }
 
     /**
