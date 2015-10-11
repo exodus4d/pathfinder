@@ -37,10 +37,6 @@ class CharacterUpdate {
                 $characterLog->erase();
             }
         }
-
-
-
-
     }
 
 }
