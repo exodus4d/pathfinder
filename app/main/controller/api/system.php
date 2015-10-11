@@ -99,23 +99,19 @@ class System extends \Controller\AccessController {
 
         $systemModels = [];
 
-        // switch DB
-        $this->setDB('CCP');
+        $ccpDB = $this->getDB('CCP');
 
         $this->whereQuery = "WHERE
             map_sys." . $column . " IN (" . implode(',', $columnIDs) . ")";
 
         $query = $this->_getQuery();
 
-        $rows = $this->f3->get('DB')->exec($query, null, 60 * 60 * 24);
+        $rows = $ccpDB->exec($query, null, 60 * 60 * 24);
 
         // format result
         $mapper = new Mapper\CcpSystemsMapper($rows);
 
         $ccpSystemsData = $mapper->getData();
-
-        // switch DB
-        $this->setDB('PF');
 
         foreach($ccpSystemsData as $ccpSystemData){
             $system = Model\BasicModel::getNew('SystemModel');
@@ -132,12 +128,11 @@ class System extends \Controller\AccessController {
      */
     public function getSystems(){
 
-        // switch DB
-        $this->setDB('CCP');
+        $ccpDB = $this->getDB('CCP');
 
         $query = $this->_getQuery();
 
-        $rows = $this->f3->get('DB')->exec($query, null, 60 * 60 * 24);
+        $rows = $ccpDB->exec($query, null, 60 * 60 * 24);
 
         // format result
         $mapper = new Mapper\CcpSystemsMapper($rows);
@@ -152,9 +147,7 @@ class System extends \Controller\AccessController {
      */
     public function search($f3, $params){
 
-        // switch DB
-        \DB\Database::instance();
-        $this->setDB('CCP');
+        $ccpDB = $this->getDB('CCP');
 
         $searchToken = '';
         // check for search parameter
@@ -167,7 +160,7 @@ class System extends \Controller\AccessController {
 
         $query = $this->_getQuery();
 
-        $rows = $f3->get('DB')->exec($query);
+        $rows = $ccpDB->exec($query);
 
         // format result
         $mapper = new Mapper\CcpSystemsMapper($rows);

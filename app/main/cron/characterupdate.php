@@ -21,8 +21,6 @@ class CharacterUpdate {
      */
     function deleteLogData($f3){
 
-        DB\Database::instance()->setDB('PF');
-
         $characterLogModel = Model\BasicModel::getNew('CharacterLogModel');
 
         // find "old" character logs

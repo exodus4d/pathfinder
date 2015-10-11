@@ -11,10 +11,15 @@ namespace Model;
 use DB\SQL\Schema;
 use Exception;
 use Controller;
+use DB;
 
 class BasicModel extends \DB\Cortex {
 
-    protected $db = 'DB';
+    /**
+     * Hive key with DB object
+     * @var string
+     */
+    protected $db = 'DB_PF';
 
     /**
      * caching time of field schema - seconds
@@ -231,8 +236,9 @@ class BasicModel extends \DB\Cortex {
      */
     protected function setUpdated(){
         if($this->_id > 0){
-            $f3 = self::getF3();
-            $f3->get('DB')->exec(
+            $pfDB = DB\Database::instance()->getDB('PF');
+
+            $pfDB->exec(
                 ["UPDATE " . $this->table . " SET updated=NOW() WHERE id=:id"],
                 [
                     [':id' => $this->_id]
@@ -386,7 +392,6 @@ class BasicModel extends \DB\Cortex {
             }
 
         }
-
     }
 
     /**
@@ -401,7 +406,7 @@ class BasicModel extends \DB\Cortex {
 
         $model = '\\' . __NAMESPACE__ . '\\' . $model;
         if(class_exists($model)){
-            $class = new $model( self::getF3()->get('DB'), null, null, $ttl );
+            $class = new $model( null, null, null, $ttl );
         }else{
             throw new \Exception('No model class found');
         }

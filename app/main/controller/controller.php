@@ -65,9 +65,10 @@ class Controller {
     /**
      * set change the DB connection
      * @param string $database
+     * @return mixed|void
      */
-    protected function setDB($database = 'PF'){
-        DB\Database::instance()->setDB($database);
+    protected function getDB($database = 'PF'){
+        return DB\Database::instance()->getDB($database);
     }
 
     /**
