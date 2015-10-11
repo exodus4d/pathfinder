@@ -1331,14 +1331,12 @@ define([
             };
 
             // prepare delete request
-
             var map = connections[0]._jsPlumb.instance;
             var mapContainer = $( map.getContainer() );
             mapContainer.getMapOverlay('timer').startMapUpdateCounter();
 
-
             var connectionIds = [];
-            // systemIds for delete request
+            // connectionIds for delete request
             for(var i = 0; i < connections.length; i++){
                 var connectionId = connections[i].getParameter('connectionId');
                 // drag&drop a new connection does not have an id yet, if connection is not established correct

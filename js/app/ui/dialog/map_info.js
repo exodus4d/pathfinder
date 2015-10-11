@@ -428,6 +428,12 @@ define([
                                         tempTableElement.DataTable().rows(deleteRowElement).remove().draw();
 
                                         Util.showNotify({title: 'System deleted', text: rowData.name, type: 'success'});
+
+                                        // refresh connection table (connections might have changed) ------------------------------
+                                        var connectionsElement = $('#' + config.mapInfoConnectionsId);
+                                        var mapDataNew = activeMap.getMapDataFromClient({forceData: true});
+
+                                        connectionsElement.loadConnectionInfoTable(mapDataNew);
                                     }
                                 }]);
                             }
