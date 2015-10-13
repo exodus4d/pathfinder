@@ -4,27 +4,37 @@
 
 define([
     'jquery',
+    'app/init',
     'app/util',
+    'app/ccp',
     'bootbox'
-], function($, Util, bootbox) {
+], function($, Init, Util, CCP, bootbox) {
 
     'use strict';
 
     var config = {
         // global dialog
         dialogNavigationClass: 'pf-dialog-navigation-list',                     // class for dialog navigation bar
-        dialogNavigationListItemClass: 'pf-dialog-navigation-list-item',        // class for map manual li main navigation elements
 
-        // map info dialog
+        // map info dialog/tabs
+        dialogMapInfoSummaryId: 'pf-map-info-dialog-summary',                   // id for map "summary" container
+        dialogMapInfoUsersId: 'pf-map-info-dialog-users',                       // id for map "user" container
+        dialogMapInfoRefreshId: 'pf-map-info-dialog-refresh',                   // id for map "refresh" container
+
+        // "summary" container
         mapInfoId: 'pf-map-info',                                               // id for map info
         mapInfoSystemsId: 'pf-map-info-systems',                                // id for map info systems box
         mapInfoConnectionsId: 'pf-map-info-connections',                        // id for map info connections box
+        mapInfoUsersId: 'pf-map-info-users',                                    // id for map info users box
+
         mapInfoTableClass: 'pf-map-info-table',                                 // class for data
         mapInfoLifetimeCounterClass: 'pf-map-info-lifetime-counter',            // class for map lifetime counter
 
         // dataTable
+        tableImageCellClass: 'pf-table-image-cell',                             // class for table "image" cells
+        tableImageSmallCellClass: 'pf-table-image-small-cell',                  // class for table "small image" cells
         tableActionCellClass: 'pf-table-action-cell',                           // class for table "action" cells
-        tableCounterCellClass: 'pf-table-counter-cell',                         // cell for table "counter" cells
+        tableCounterCellClass: 'pf-table-counter-cell',                         // class for table "counter" cells
 
         systemIdPrefix: 'pf-system-',                                           // id prefix for a system
 
@@ -598,6 +608,176 @@ define([
         });
     };
 
+    $.fn.loadUsersInfoTable = function(mapData){
+        var usersElement = $(this);
+
+        usersElement.empty();
+
+        var userTable = $('<table>', {
+            class: ['compact', 'stripe', 'order-column', 'row-border', config.mapInfoTableClass].join(' ')
+        });
+        usersElement.append(userTable);
+
+        usersElement.showLoadingAnimation(config.loadingOptions);
+
+        // table init complete
+        userTable.on( 'init.dt', function () {
+            usersElement.hideLoadingAnimation();
+        });
+
+        // users table ========================================================
+        // prepare users data for dataTables
+        var currentMapUserData = Util.getCurrentMapUserData( mapData.config.id );
+        var usersData = [];
+
+        if(
+            currentMapUserData &&
+            currentMapUserData.data &&
+            currentMapUserData.data.systems
+        ){
+            for(var i = 0; i < currentMapUserData.data.systems.length; i++){
+                var tempSystemUserData = currentMapUserData.data.systems[i];
+                for(var j = 0; j < tempSystemUserData.user.length; j++){
+                    usersData.push( tempSystemUserData.user[j] );
+                }
+            }
+        }
+
+
+        var userDataTable = userTable.dataTable( {
+            pageLength: 20,
+            paging: true,
+            lengthMenu: [[5, 10, 20, 50, -1], [5, 10, 20, 50, 'All']],
+            ordering: true,
+            order: [ 1, 'asc' ],
+            autoWidth: false,
+            hover: false,
+            data: usersData,
+            language: {
+                emptyTable:  'No active pilots',
+                zeroRecords: 'No active pilots found',
+                lengthMenu:  'Show _MENU_ pilots',
+                info:        'Showing _START_ to _END_ of _TOTAL_ pilots'
+            },
+            columnDefs: [
+                {
+                    targets: 0,
+                    title: '',
+                    width: '26px',
+                    orderable: false,
+                    searchable: false,
+                    className: ['text-center', config.tableImageCellClass].join(' '),
+                    data: 'log.ship',
+                    render: {
+                        _: function(data, type, row, meta){
+                            return '<img src="' + Init.url.ccpImageServer + 'Render/' + data.id + '_32.png" />';
+                        }
+                    }
+                },{
+                    targets: 1,
+                    title: 'ship',
+                    orderable: true,
+                    searchable: true,
+                    data: 'log.ship',
+                    render: {
+                        _: 'typeName',
+                        sort: 'typeName'
+                    }
+                },{
+                    targets: 2,
+                    title: '',
+                    width: '26px',
+                    orderable: false,
+                    searchable: false,
+                    className: [config.tableImageCellClass].join(' '),
+                    data: 'id',
+                    render: {
+                        _: function(data, type, row, meta){
+                            return '<img src="' + Init.url.ccpImageServer + 'Character/' + data + '_32.jpg" />';
+                        }
+                    }
+                },{
+                    targets: 3,
+                    title: 'pilot',
+                    orderable: true,
+                    searchable: true,
+                    data: 'name'
+                },{
+                    targets: 4,
+                    title: '',
+                    width: '26px',
+                    orderable: false,
+                    searchable: false,
+                    className: [config.tableImageCellClass, config.tableImageSmallCellClass].join(' '),
+                    data: 'corporation',
+                    render: {
+                        _: function(data, type, row, meta){
+                            return '<img src="' + Init.url.ccpImageServer + 'Corporation/' + data.id + '_32.png" />';
+                        }
+                    }
+                },{
+                    targets: 5,
+                    title: 'corporation',
+                    orderable: true,
+                    searchable: true,
+                    data: 'corporation',
+                    render: {
+                        _: 'name'
+                    }
+                },{
+                    targets: 6,
+                    title: 'system',
+                    orderable: true,
+                    searchable: true,
+                    data: 'log.system',
+                    render: {
+                        _: 'name',
+                        sort: 'name'
+                    }
+                },{
+                    targets: 7,
+                    title: '',
+                    orderable: false,
+                    searchable: false,
+                    width: '26px',
+                    className: ['text-center', config.tableActionCellClass].join(' '),
+                    data: 'id',
+                    render: {
+                        _: function(data, type, row, meta){
+                            return '<i class="fa fa-fw fa-comment"></i>';
+                        }
+                    },
+                    visible: (CCP.isInGameBrowser() === true),
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex) {
+                        $(cell).on('click', function(e) {
+                            CCPEVE.startConversation(cellData);
+                        });
+                    }
+                },{
+                    targets: 8,
+                    title: '',
+                    orderable: false,
+                    searchable: false,
+                    width: '26px',
+                    className: ['text-center', config.tableImageCellClass, config.tableImageSmallCellClass, config.tableActionCellClass].join(' '),
+                    data: 'id',
+                    render: {
+                        _: function(data, type, row, meta){
+                            return '<img src="' + Init.url.ccpImageServer + 'Type/20070_32.png" />';
+                        }
+                    },
+                    visible: (CCP.isInGameBrowser() === true),
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex) {
+                        $(cell).on('click', function(e) {
+                            CCPEVE.inviteToFleet(cellData);
+                        });
+                    }
+                }
+            ]
+        });
+
+    };
+
     /**
      * shows the map information modal dialog
      */
@@ -610,11 +790,14 @@ define([
             requirejs(['text!templates/dialog/map_info.html', 'mustache'], function(template, Mustache) {
 
                 var data = {
+                    dialogSummaryContainerId: config.dialogMapInfoSummaryId,
+                    dialogUsersContainerId: config.dialogMapInfoUsersId,
+                    dialogRefreshContainerId: config.dialogMapInfoRefreshId,
                     dialogNavigationClass: config.dialogNavigationClass,
-                    dialogNavLiClass: config.dialogNavigationListItemClass,
                     mapInfoId: config.mapInfoId,
                     mapInfoSystemsId: config.mapInfoSystemsId,
-                    mapInfoConnectionsId: config.mapInfoConnectionsId
+                    mapInfoConnectionsId: config.mapInfoConnectionsId,
+                    mapInfoUsersId: config.mapInfoUsersId
                 };
 
                 var content = Mustache.render(template, data);
@@ -640,12 +823,12 @@ define([
                     var mapElement = $('#' + config.mapInfoId);
                     var systemsElement = $('#' + config.mapInfoSystemsId);
                     var connectionsElement = $('#' + config.mapInfoConnectionsId);
+                    var usersElement = $('#' + config.mapInfoUsersId);
 
-                    // set navigation button observer
-                    var mainNavigationLinks = $('.' + config.dialogNavigationClass).find('a');
-                    mainNavigationLinks.on('click', function(){
+
+                    // set refresh button observer
+                    $('#' + config.dialogMapInfoRefreshId).on('click', function(){
                         var menuAction = $(this).attr('data-action');
-
                         if(menuAction === 'refresh'){
                             // get new map data
                             var mapData = activeMap.getMapDataFromClient({forceData: true});
@@ -653,6 +836,7 @@ define([
                             mapElement.loadMapInfoData(mapData);
                             systemsElement.loadSystemInfoTable(mapData);
                             connectionsElement.loadConnectionInfoTable(mapData);
+                            usersElement.loadUsersInfoTable(mapData);
                         }
                     });
 
@@ -664,6 +848,9 @@ define([
 
                     // load connection table
                     connectionsElement.loadConnectionInfoTable(mapData);
+
+                    // load users table
+                    usersElement.loadUsersInfoTable(mapData);
                 });
 
             });
