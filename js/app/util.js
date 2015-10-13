@@ -1318,6 +1318,48 @@ define([
     };
 
     /**
+     * set currentMapUserData as "global" variable (count of active pilots)
+     * this function should be called continuously after data change
+     * to keep the data always up2data
+     * @param currentMapUserData
+     */
+    var setCurrentMapUserData = function(mapUserData){
+        Init.currentMapUserData = mapUserData;
+
+        return getCurrentMapUserData();
+    };
+
+    /**
+     * get currentMapUserData from "global" variable for specific map or all maps
+     * @param mapId
+     * @returns {boolean}
+     */
+    var getCurrentMapUserData = function(mapId){
+
+        var currentMapUserData = false;
+
+        if( mapId === parseInt(mapId, 10) ){
+            // search for a specific map
+            for(var i = 0; i < Init.currentMapUserData.length; i++){
+                if(Init.currentMapUserData[i].config.id === mapId){
+                    currentMapUserData = Init.currentMapUserData[i];
+                    break;
+                }
+            }
+        }else{
+            // get data for all maps
+            currentMapUserData = Init.currentMapUserData;
+        }
+
+        if(currentMapUserData !== false){
+            // return a fresh (deep) copy of that, in case of further modifications
+            currentMapUserData = $.extend(true, {}, currentMapUserData);
+        }
+
+        return currentMapUserData;
+    };
+
+    /**
      * set currentMapData as "global" variable
      * this function should be called continuously after data change
      * to keep the data always up2data
@@ -1570,6 +1612,8 @@ define([
         getAllSignatureNames: getAllSignatureNames,
         getSignatureTypeIdByName: getSignatureTypeIdByName,
         getAreaIdBySecurity: getAreaIdBySecurity,
+        setCurrentMapUserData: setCurrentMapUserData,
+        getCurrentMapUserData: getCurrentMapUserData,
         setCurrentMapData: setCurrentMapData,
         getCurrentMapData: getCurrentMapData,
         setCurrentUserData: setCurrentUserData,

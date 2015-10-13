@@ -3,12 +3,12 @@
     <nav class="navbar navbar-default" role="navigation">
         <div class="navbar-header pull-left">
             <ul class="nav navbar-nav {{dialogNavigationClass}}" role="tablist">
-                <li class="{{#openTabNew}}active{{/openTabNew}}"><a role="tab" data-toggle="tab" data-name="newMap" href="#{{dialogMapCreateContainerId}}"><i class="fa fa-plus fa-lg fa-fw"></i>&nbsp;New map</a></li>
+                <li class="{{#openTabNew}}active{{/openTabNew}}"><a role="tab" data-toggle="tab" data-name="newMap" href="#{{dialogMapCreateContainerId}}"><i class="fa fa-plus fa-fw"></i>&nbsp;New map</a></li>
                 {{^hideEditTab}}
-                    <li class="{{#openTabEdit}}active{{/openTabEdit}}"><a role="tab" data-toggle="tab" data-name="editMap" href="#{{dialogMapEditContainerId}}"><i class="fa fa-edit fa-lg fa-fw"></i>&nbsp;Edit map</a></li>
+                    <li class="{{#openTabEdit}}active{{/openTabEdit}}"><a role="tab" data-toggle="tab" data-name="editMap" href="#{{dialogMapEditContainerId}}"><i class="fa fa-edit fa-fw"></i>&nbsp;Edit map</a></li>
                 {{/hideEditTab}}
                 {{^hideSettingsTab}}
-                    <li class="{{#openTabSettings}}active{{/openTabSettings}}"><a role="tab" data-toggle="tab" data-name="settings" href="#{{dialogMapSettingsContainerId}}"><i class="fa fa-gears fa-lg fa-fw"></i>&nbsp;Settings</a></li>
+                    <li class="{{#openTabSettings}}active{{/openTabSettings}}"><a role="tab" data-toggle="tab" data-name="settings" href="#{{dialogMapSettingsContainerId}}"><i class="fa fa-gears fa-fw"></i>&nbsp;Settings</a></li>
                 {{/hideSettingsTab}}
             </ul>
         </div>

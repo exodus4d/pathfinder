@@ -83,43 +83,6 @@
   }
 }
 
-// global datatable styles
-.dataTable{
-  .pf-table-action-cell{
-    cursor: pointer;
-  }
-
-  th{
-    &.sorting,
-    &.sorting_asc,
-    &.sorting_desc{
-      // prevent overlapping of text and sort icon (if text-right align)
-      padding-right: 18px !important;
-    }
-  }
-
-  // signature timer/date counter
-  td{
-
-    &.pf-table-counter-cell{
-      color: $gray-light;
-
-      .pf-digit-counter-small{
-        width: 20px;
-        display: inline-block;
-        font-size: 10px;
-      }
-
-      .pf-digit-counter-large{
-        width: 26px;
-        display: inline-block;
-        font-size: 10px;
-      }
-    }
-  }
-
-}
-
 // system graph module =====================================================
 .pf-system-graph-module{
 
