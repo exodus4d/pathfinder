@@ -71,16 +71,18 @@ class Route extends \Controller\AccessController {
             $this->f3->exists($cacheKeyIdArray)
         ){
             // get cached values
+
             $this->nameArray = $this->f3->get($cacheKeyNamedArray);
             $this->jumpArray = $this->f3->get($cacheKeyJumpArray);
             $this->idArray = $this->f3->get($cacheKeyIdArray);
         }else{
             // nothing cached
 
+            $pfDB = $this->getDB('PF');
+
             $query = "SELECT * FROM system_neighbour";
 
-            $rows = $this->f3->get('DB')->exec($query, null, $this->jumpDataCacheTime);
-
+            $rows = $pfDB->exec($query, null, $this->jumpDataCacheTime);
 
             foreach($rows as $row){
                 $regionId = $row['regionId'];
@@ -202,8 +204,8 @@ class Route extends \Controller\AccessController {
      */
     private function setupSystemJumpTable(){
 
-        // switch DB
-        $this->setDB('CCP');
+        $pfDB = $this->getDB('PF');
+        $ccpDB = $this->getDB('CCP');
 
         $query = "SELECT
                 map_sys.solarSystemID system_id,
@@ -228,18 +230,17 @@ class Route extends \Controller\AccessController {
 	          system_neighbours IS NOT NULL
             ";
 
-        $rows = $this->f3->get('DB')->exec($query);
+        $rows = $ccpDB->exec($query);
 
         if(count($rows) > 0){
             // switch DB back to pathfinder DB
-            $this->setDB('PF');
 
             // clear cache table
             $query = "TRUNCATE system_neighbour";
-            $this->f3->get('DB')->exec($query);
+            $pfDB->exec($query);
 
             foreach($rows as $row){
-                $this->f3->get('DB')->exec("
+                $pfDB->exec("
               INSERT INTO
                 system_neighbour(
                   regionId,

@@ -224,15 +224,25 @@ define([
                                 $(document).triggerMenuEvent('ShowSettingsDialog');
                             }
 
+                            // store current map user data (cache)
+                            if(data.mapUserData !== undefined){
+                                Util.setCurrentMapUserData(data.mapUserData);
+                            }
+
                             // start log
                             Util.timeStart(logKeyClientUserData);
 
                             // active character data found
-                            mapModule.updateMapModuleData(data);
+                            mapModule.updateMapModuleData();
 
                             // log client user data update time
                             duration = Util.timeStop(logKeyClientUserData);
                             Util.log(logKeyClientUserData, {duration: duration, type: 'client', description:'update users'});
+
+                            // update system info panels
+                            if(data.system){
+                                mapModule.updateSystemModuleData(data.system);
+                            }
 
                             // get the current update delay (this can change if a user is inactive)
                             var mapUserUpdateDelay = Util.getCurrentTriggerDelay( logKeyServerUserData, 0 );

@@ -24,7 +24,7 @@ class MapUpdate {
      */
     function deactivateMapData($f3){
 
-        DB\Database::instance()->setDB('PF');
+        $pfDB = DB\Database::instance()->getDB('PF');
 
         $sqlDeactivateExpiredMaps = "UPDATE map SET
                 active = 0
@@ -35,8 +35,8 @@ class MapUpdate {
 
         $privateMapLifetime = (int)$f3->get('PATHFINDER.MAP.PRIVATE.LIFETIME');
 
-        $f3->get('DB')->exec($sqlDeactivateExpiredMaps, ['lifetime' => $privateMapLifetime]);
-        $deactivatedMapsCount = $f3->get('DB')->count();
+        $pfDB->exec($sqlDeactivateExpiredMaps, ['lifetime' => $privateMapLifetime]);
+        $deactivatedMapsCount = $pfDB->count();
 
         // Log ------------------------
         $log = Controller\LogController::getLogger('cron_' . __FUNCTION__);
@@ -50,7 +50,7 @@ class MapUpdate {
      */
     function deleteMapData($f3){
 
-        DB\Database::instance()->setDB('PF');
+        $pfDB = DB\Database::instance()->getDB('PF');
 
         $sqlDeleteDisabledMaps = "DELETE FROM
                 map
@@ -58,9 +58,9 @@ class MapUpdate {
                 map.active = 0 AND
                 TIMESTAMPDIFF(DAY, map.updated, NOW() ) > :deletion_time";
 
-        $f3->get('DB')->exec($sqlDeleteDisabledMaps, ['deletion_time' => self::DAYS_UNTIL_MAP_DELETION]);
+        $pfDB->exec($sqlDeleteDisabledMaps, ['deletion_time' => self::DAYS_UNTIL_MAP_DELETION]);
 
-        $deletedMapsCount = $f3->get('DB')->count();
+        $deletedMapsCount = $pfDB->count();
 
         // Log ------------------------
         $log = Controller\LogController::getLogger('cron_' . __FUNCTION__);

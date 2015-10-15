@@ -9,6 +9,8 @@
 namespace cron;
 use Controller;
 use DB;
+use Model;
+
 
 class CharacterUpdate {
 
@@ -19,10 +21,20 @@ class CharacterUpdate {
      */
     function deleteLogData($f3){
 
-        DB\Database::instance()->setDB('PF');
+        $characterLogModel = Model\BasicModel::getNew('CharacterLogModel');
 
-        $sqlDeleteCharacterLogs = "TRUNCATE TABLE character_log";
-        $f3->get('DB')->exec($sqlDeleteCharacterLogs);
+        // find "old" character logs
+        $characterLogs = $characterLogModel->find([
+            'TIMESTAMPDIFF(SECOND, updated, NOW() ) > :lifetime',
+            ':lifetime' => (int)$f3->get('PATHFINDER.CACHE.CHARACTER_LOG')
+        ]);
+
+        if(is_object($characterLogs)){
+            foreach($characterLogs as $characterLog){
+                // delete log and all cached values
+                $characterLog->erase();
+            }
+        }
     }
 
 }

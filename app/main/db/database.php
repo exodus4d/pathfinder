@@ -16,16 +16,19 @@ class Database extends \Prefab {
     function __construct($database = 'PF'){
         // set database
         $this->setDB($database);
-        $this->setDB($database);
     }
 
     /**
      * set database
      * @param string $database
+     * @return SQL
      */
     public function setDB($database = 'PF'){
 
         $f3 = \Base::instance();
+
+        // "Hive" Key for DB storage
+        $dbHiveKey = $this->getDbHiveKey($database);
 
         if($database === 'CCP'){
             // CCP DB
@@ -34,32 +37,62 @@ class Database extends \Prefab {
             $user = Controller\Controller::getEnvironmentData('DB_CCP_USER');
             $password = Controller\Controller::getEnvironmentData('DB_CCP_PASS');
         }else{
-            // Pathfinder DB
+            // Pathfinder(PF) DB
             $dns = Controller\Controller::getEnvironmentData('DB_DNS');
             $name = Controller\Controller::getEnvironmentData('DB_NAME');
             $user = Controller\Controller::getEnvironmentData('DB_USER');
             $password = Controller\Controller::getEnvironmentData('DB_PASS');
         }
 
-        // check for DB switch. If current DB equal new DB -> no switch needed
+        // check if DB connection already exists
         if(
-            !$f3->exists('DB') ||
-            $name !== $f3->get('DB')->name()
+            !$f3->exists( $dbHiveKey ) ||
+            $name !== $f3->get( $dbHiveKey )->name()
         ){
-
             $db = $this->connect($dns, $name, $user, $password);
 
-            $f3->set('DB', $db);
-
             // set DB timezone to UTC +00:00 (eve server time)
-            $f3->get('DB')->exec('SET @@session.time_zone = "+00:00";');
+            $db->exec('SET @@session.time_zone = "+00:00";');
 
             // disable innoDB schema (relevant vor MySql 5.5)
             // not necessary for MySql > v.5.6
-            //$f3->get('DB')->exec('SET GLOBAL innodb_stats_on_metadata = OFF;');
-        }
+            // $db->exec('SET GLOBAL innodb_stats_on_metadata = OFF;');
 
+            // store DB object
+            $f3->set($dbHiveKey, $db);
+
+            return $db;
+        }else{
+            return $f3->get( $dbHiveKey );
+        }
     }
+
+    /**
+     * get database
+     * @param string $database
+     * @return mixed|void
+     */
+    public function getDB($database = 'PF'){
+
+        $f3 = \Base::instance();
+        $dbHiveKey = $this->getDbHiveKey($database);
+
+        if( $f3->exists( $dbHiveKey ) ){
+            return $f3->get( $dbHiveKey );
+        }else{
+            return $this->setDB($database);
+        }
+    }
+
+    /**
+     * get a unique hive key for each DB connection
+     * @param $database
+     * @return string
+     */
+    protected function getDbHiveKey($database){
+        return 'DB_' . $database;
+    }
+
 
     /**
      * connect to a database

@@ -1331,14 +1331,12 @@ define([
             };
 
             // prepare delete request
-
             var map = connections[0]._jsPlumb.instance;
             var mapContainer = $( map.getContainer() );
             mapContainer.getMapOverlay('timer').startMapUpdateCounter();
 
-
             var connectionIds = [];
-            // systemIds for delete request
+            // connectionIds for delete request
             for(var i = 0; i < connections.length; i++){
                 var connectionId = connections[i].getParameter('connectionId');
                 // drag&drop a new connection does not have an id yet, if connection is not established correct
@@ -2744,19 +2742,6 @@ define([
         }
         var defaultSystemStatus = Init.systemStatus[ tempKeys[0] ].id;
 
-        // dialog data -------------------------------------------------------------------------------------------------
-        var data = {
-            id: config.systemDialogId,
-            selectClass: config.systemDialogSelectClass
-        };
-
-        // current character log data ----------------------------------------------------------------------------------
-        var currentCharacterLog = Util.getCurrentCharacterLog();
-
-        if(currentCharacterLog !== false){
-            // set current position as "default" system to add
-            data.currentSystem = currentCharacterLog.system;
-        }
 
         // get current map data -> disable systems that are already on it ----------------------------------------------
         var mapData = mapContainer.getMapDataFromClient({forceData: true});
@@ -2765,6 +2750,25 @@ define([
         for(var i = 0; i < mapSystems.length; i++ ){
             mapSystemIds.push( mapSystems[i].systemId );
         }
+
+        // dialog data -------------------------------------------------------------------------------------------------
+        var data = {
+            id: config.systemDialogId,
+            selectClass: config.systemDialogSelectClass
+        };
+
+        // set current position as "default" system to add -------------------------------------------------------------
+        var currentCharacterLog = Util.getCurrentCharacterLog();
+
+        if(
+            currentCharacterLog !== false &&
+            mapSystemIds.indexOf( currentCharacterLog.system.id ) === -1
+        ){
+            // current system is NOT already on this map
+            // set current position as "default" system to add
+            data.currentSystem = currentCharacterLog.system;
+        }
+
 
         requirejs(['text!templates/dialog/system.html', 'mustache'], function(template, Mustache) {
 

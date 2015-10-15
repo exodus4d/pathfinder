@@ -192,11 +192,9 @@ define([
 
     /**
      * updates only visible/active map module
-     * @param userData
      * @returns {boolean}
      */
-
-    $.fn.updateMapModuleData = function(mapModuleData){
+    $.fn.updateMapModuleData = function(){
         var mapModule = $(this);
 
         // get all active map elements for module
@@ -205,45 +203,35 @@ define([
         if(mapElement !== false){
             var mapId = mapElement.data('id');
 
-            // get user data for each active map
-            var mapUserData = null;
-
-            if(mapModuleData.mapUserData){
-                for(var j = 0; j < mapModuleData.mapUserData.length; j++){
-
-                    var tempMapUserData = mapModuleData.mapUserData[j];
-                    if(tempMapUserData.config.id === mapId){
-                        // map userData found
-                        mapUserData = tempMapUserData;
-                        break;
-                    }
-                }
-            }
-
+            var currentMapUserData = Util.getCurrentMapUserData(mapId);
 
             // update map with current user data
-            if(mapUserData){
-                mapElement.updateUserData(mapUserData);
+            if(currentMapUserData){
+                mapElement.updateUserData(currentMapUserData);
             }
-
-            // check if current open system is still the requested info system
-            var currentSystemData = Util.getCurrentSystemData();
-
-            if(
-                currentSystemData &&
-                mapModuleData.system
-            ){
-                if(mapModuleData.system.id === currentSystemData.systemData.id){
-                    // trigger system update event
-                    $(document).trigger('pf:updateSystemModules', [mapModuleData.system]);
-                }
-
-
-            }
-
         }
 
         return true;
+    };
+
+    /**
+     * update system info panels (below map)
+     * @param systemData
+     */
+    $.fn.updateSystemModuleData = function(systemData){
+        var mapModule = $(this);
+
+        if(systemData){
+            // check if current open system is still the requested info system
+            var currentSystemData = Util.getCurrentSystemData();
+
+            if(currentSystemData){
+                if(systemData.id === currentSystemData.systemData.id){
+                    // trigger system update event
+                    $(document).trigger('pf:updateSystemModules', [systemData]);
+                }
+            }
+        }
     };
 
     /**

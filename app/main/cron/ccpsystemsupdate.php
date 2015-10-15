@@ -36,17 +36,14 @@ class CcpSystemsUpdate {
      */
     private function prepareSystemLogTables(){
 
-        $f3 = \Base::instance();
-
         // get information for all systems from CCP DB
         $systemController = new Controller\Api\System();
         $systemsData = $systemController->getSystems();
 
-        // switch DB back to pathfinder
-        DB\Database::instance()->setDB('PF');
+        $pfDB = DB\Database::instance()->getDB('PF');
 
         // insert systems into each log table if not exist
-        $f3->get('DB')->begin();
+        $pfDB->begin();
         foreach($this->logTables as $tableName){
 
             // insert systems into jump log table
@@ -56,14 +53,14 @@ class CcpSystemsUpdate {
             foreach($systemsData as $systemData){
                 // skip WH systems -> no jump data available
                 if($systemData['type']['name'] == 'k-space'){
-                    $f3->get('DB')->exec($sqlInsertSystem, array(
+                    $pfDB->exec($sqlInsertSystem, array(
                         ':systemId' => $systemData['systemId']
                     ), 0, false);
                 }
             }
 
         }
-        $f3->get('DB')->commit();
+        $pfDB->commit();
 
         return $systemsData;
     }
@@ -82,6 +79,7 @@ class CcpSystemsUpdate {
         $time_end = microtime(true);
         $execTimePrepareSystemLogTables = $time_end - $time_start;
 
+        $pfDB = DB\Database::instance()->getDB('PF');
 
         // get current jump Data -------------------------------------------------------
         $time_start = microtime(true);
@@ -141,7 +139,7 @@ class CcpSystemsUpdate {
         // update system log tables -----------------------------------------------------
         $time_start = microtime(true);
         // make sure last update is (at least) 1h ago
-        $f3->get('DB')->begin();
+        $pfDB->begin();
 
         foreach($this->logTables as $key => $tableName){
             $sql = "UPDATE
@@ -187,7 +185,7 @@ class CcpSystemsUpdate {
                         $currentJumps = $jumpData[$systemData['systemId']];
                     }
 
-                    $f3->get('DB')->exec($sql, array(
+                    $pfDB->exec($sql, array(
                         ':systemId' => $systemData['systemId'],
                         ':value' => $currentJumps
                     ), 0, false);
@@ -201,14 +199,14 @@ class CcpSystemsUpdate {
                         $currentKills = $currentKillData[$key];
                     }
 
-                    $f3->get('DB')->exec($sql, array(
+                    $pfDB->exec($sql, array(
                         ':systemId' => $systemData['systemId'],
                         ':value' => $currentKills
                     ), 0, false);
                 }
             }
         }
-        $f3->get('DB')->commit();
+        $pfDB->commit();
 
         $time_end = microtime(true);
         $execTimeUpdateTables = $time_end - $time_start;

@@ -77,6 +77,16 @@ define([
                                     disabled = true;
                                 }
 
+                                // "fix" security level
+                                if(
+                                    trueSec > 0 &&
+                                    trueSec < 0.1
+                                ){
+                                    trueSec = 0.1;
+                                }else{
+                                    trueSec = Math.round(trueSec * 10) / 10;
+                                }
+
                                 return {
                                     id: systemId,
                                     text: item.name,

@@ -65,9 +65,10 @@ class Controller {
     /**
      * set change the DB connection
      * @param string $database
+     * @return mixed|void
      */
-    protected function setDB($database = 'PF'){
-        DB\Database::instance()->setDB($database);
+    protected function getDB($database = 'PF'){
+        return DB\Database::instance()->getDB($database);
     }
 
     /**
@@ -79,18 +80,70 @@ class Controller {
     protected function _getUser($ttl = 5){
 
         $user = false;
-        $userId = $this->f3->get('SESSION.user.id');
 
-        if($userId > 0){
-            $userModel = Model\BasicModel::getNew('UserModel');
-            $userModel->getById($userId, $ttl);
+        if( $this->f3->exists('SESSION.user.id') ){
+            $userId = (int)$this->f3->get('SESSION.user.id');
 
-            if( !$userModel->dry() ){
-                $user = $userModel;
+            if($userId > 0){
+                $userModel = Model\BasicModel::getNew('UserModel');
+                $userModel->getById($userId, $ttl);
+
+                if( !$userModel->dry() ){
+                    $user = $userModel;
+                }
             }
         }
 
         return $user;
+    }
+
+    /**
+     * log the current user out
+     * @param $f3
+     */
+    public function logOut($f3){
+
+        // destroy session
+        $f3->clear('SESSION');
+
+        if( !$f3->get('AJAX') ){
+            // redirect to landing page
+            $f3->reroute('@landing');
+        }else{
+            $return = (object) [];
+            $return->reroute = self::getEnvironmentData('URL') . $f3->alias('landing');
+            $return->error[] = $this->getUserLoggedOffError();
+
+            echo json_encode($return);
+            die();
+        }
+    }
+
+    /**
+     * verifies weather a given username and password is valid
+     * @param $userName
+     * @param $password
+     * @return Model\UserModel|null
+     */
+    protected function _verifyUser($userName, $password) {
+
+        $validUser = null;
+
+        $user =  Model\BasicModel::getNew('UserModel', 0);
+
+        $user->getByName($userName);
+
+        // check userName is valid
+        if( !$user->dry() ){
+            // check if password is valid
+            $isValid = $user->verify($password);
+
+            if($isValid === true){
+                $validUser = $user;
+            }
+        }
+
+        return $validUser;
     }
 
     /**
@@ -152,55 +205,6 @@ class Controller {
         return $isIGB;
     }
 
-    /**
-     * verifies weather a given username and password is valid
-     * @param $userName
-     * @param $password
-     * @return Model\UserModel|null
-     */
-    protected function _verifyUser($userName, $password) {
-
-        $validUser = null;
-
-        $user =  Model\BasicModel::getNew('UserModel', 0);
-
-        $user->getByName($userName);
-
-        // check userName is valid
-        if( !$user->dry() ){
-            // check if password is valid
-            $isValid = $user->verify($password);
-
-            if($isValid === true){
-                $validUser = $user;
-            }
-        }
-
-        return $validUser;
-    }
-
-    /**
-     * log the current user out
-     * @param $f3
-     */
-    public function logOut($f3){
-
-        // destroy session
-        $f3->clear('SESSION.user');
-        $f3->sync('SESSION');
-
-        if( !$f3->get('AJAX') ){
-            // redirect to landing page
-            $f3->reroute('@landing');
-        }else{
-            $return = (object) [];
-            $return->reroute = self::getEnvironmentData('URL') . $f3->alias('landing');
-            $return->error[] = $this->getUserLoggedOffError();
-
-            echo json_encode($return);
-            die();
-        }
-    }
 
     /**
      * get error object is a user is not found/logged of
@@ -238,8 +242,8 @@ class Controller {
      * @return mixed
      */
     static function formatHiveKey($key){
-        $illegalCharacters = ['-'];
-        return str_replace($illegalCharacters, '', $key);
+        $illegalCharacters = ['-', ' '];
+        return strtolower( str_replace($illegalCharacters, '', $key) );
     }
 
     /**
