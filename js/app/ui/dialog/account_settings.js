@@ -110,15 +110,13 @@ define([
      */
     $.fn.showSettingsDialog = function(options){
 
-        // check if there is already a settings dialog open
-        var settingsDialog = $('#' + config.settingsDialogId);
-
-        if(settingsDialog.length > 0){
+        // check if there are other dialogs open
+        var openDialogs = Util.getOpenDialogs();
+        if(openDialogs.length > 0){
             return false;
         }
 
         var reroutePath = '';
-
 
         // check navigation buttons and show/hide them
         var checkNavigationButton = function(dialog){

@@ -36,6 +36,9 @@ define([
             duration: 180
         },
 
+        // dialogs
+        dialogClass: 'modal-dialog',                                            // class for all dialogs (bootstrap)
+
         // map module
         mapModuleId: 'pf-map-module',                                           // id for main map module
         mapTabBarId: 'pf-map-tabs'                                              // id for map tab bar
@@ -1499,6 +1502,15 @@ define([
         return Init.currentSystemData;
     };
 
+
+    /**
+     * get all "open" dialog elements
+     * @returns {*|jQuery}
+     */
+    var getOpenDialogs = function(){
+        return $('.' + config.dialogClass).filter(':visible');
+    };
+
     /**
      * formats a price string into an ISK Price
      * @param price
@@ -1623,6 +1635,7 @@ define([
         getCurrentUserInfo: getCurrentUserInfo,
         getCurrentCharacterLog: getCurrentCharacterLog,
         convertDateToString: convertDateToString,
+        getOpenDialogs: getOpenDialogs,
         formatPrice: formatPrice,
         redirect: redirect,
         logout: logout
