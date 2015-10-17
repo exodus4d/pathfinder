@@ -2019,7 +2019,6 @@ define([
         };
 
         system.singleDoubleClick(single, double);
-
     };
 
     /**

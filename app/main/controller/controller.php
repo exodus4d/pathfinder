@@ -78,7 +78,6 @@ class Controller {
      * @throws \Exception
      */
     protected function _getUser($ttl = 5){
-
         $user = false;
 
         if( $this->f3->exists('SESSION.user.id') ){

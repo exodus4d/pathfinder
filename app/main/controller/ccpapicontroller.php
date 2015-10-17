@@ -110,11 +110,11 @@ class CcpApiController extends Controller{
                     $newCharacter = true;
 
                     $characterId = (int)$attributeData['characterID'];
-                    $characterModel->getById($characterId);
+                    $characterModel->getById($characterId, 0);
 
                     // check if corporation already exists
                     if($attributeData['corporationID'] > 0){
-                        $corporationModel->getById($attributeData['corporationID']);
+                        $corporationModel->getById($attributeData['corporationID'], 0);
                         if( $corporationModel->dry() ){
                             $corporationModel->id = $attributeData['corporationID'];
                             $corporationModel->name = $attributeData['corporationName'];
@@ -125,7 +125,7 @@ class CcpApiController extends Controller{
 
                     // check if alliance already exists
                     if($attributeData['allianceID'] > 0){
-                        $allianceModel->getById($attributeData['allianceID']);
+                        $allianceModel->getById($attributeData['allianceID'], 0);
                         if( $allianceModel->dry() ){
                             $allianceModel->id = $attributeData['allianceID'];
                             $allianceModel->name = $attributeData['allianceName'];

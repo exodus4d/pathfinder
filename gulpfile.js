@@ -21,7 +21,8 @@ var _src = {
     JS_LIBS: './js/lib/**/*',
     JS_BUILD: './build_js',
     JS_DIST: './public/js',
-    PACKAGE: './package.json'
+    PACKAGE: './package.json',
+    CACHE: './tmp/**/*.*'
 };
 
 // Gulp plumber error handler
@@ -154,6 +155,14 @@ gulp.task('watch', function(tag) {
     ], ['jshint', 'copyBuildFiles']);
 
 
+});
+
+/**
+ * clear all backend (fat free framework) cache files
+ */
+gulp.task('clearCache', function() {
+    'use strict';
+    return gulp.src( _src.CACHE ).pipe( clean() );
 });
 
 
