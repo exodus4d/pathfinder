@@ -21,7 +21,6 @@ class User extends Controller\Controller{
      */
     private static $captchaReason = ['createAccount', 'deleteAccount'];
 
-
     /**
      * login function
      * @param $f3
