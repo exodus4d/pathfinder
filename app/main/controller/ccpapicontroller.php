@@ -112,6 +112,9 @@ class CcpApiController extends Controller{
                     $characterId = (int)$attributeData['characterID'];
                     $characterModel->getById($characterId, 0);
 
+                    $corporationModelTemp = null;
+                    $allianceModelTemp = null;
+
                     // check if corporation already exists
                     if($attributeData['corporationID'] > 0){
                         $corporationModel->getById($attributeData['corporationID'], 0);
@@ -153,7 +156,6 @@ class CcpApiController extends Controller{
                                 $userApiModel->userCharacters->next();
                             }
                         }
-
                         $userApiModel->userCharacters->rewind();
                     }
 
