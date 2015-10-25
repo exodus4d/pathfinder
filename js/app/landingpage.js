@@ -106,7 +106,7 @@ define([
                         // login error
                         if(data.error !== undefined){
                             $('.' + config.splashOverlayClass).hideSplashOverlay();
-                            loginFormMessageContainer.showMessage({title: 'Login failed', text: ' Invalid username and password', type: 'error'});
+                            loginFormMessageContainer.showMessage({title: 'Login failed', text: ' Invalid username or password', type: 'error'});
 
                         }else if(data.reroute !== undefined){
                             window.location = data.reroute;
@@ -147,6 +147,9 @@ define([
 
     };
 
+    /**
+     * show "registration key" dialog (see "Invite" feature)
+     */
     var showRequestRegistrationKeyDialog = function(){
         var data = {
             id: config.signatureReaderDialogId,

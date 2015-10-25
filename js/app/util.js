@@ -1043,20 +1043,39 @@ define([
         // character status can not be checked if there are no reference data
         // e.g. during registration process (landing page)
         if(Init.characterStatus){
+            // get info for current "main" character
             var corporationId = getCurrentUserInfo('corporationId');
             var allianceId = getCurrentUserInfo('allianceId');
 
-            // compare current user data with given user data
-            if(
-                characterData.corporation &&
-                characterData.corporation.id === corporationId
-            ){
-                statusInfo = Init.characterStatus.corporation[option];
-            }else if(
-                characterData.alliance &&
-                characterData.alliance.id === allianceId
-            ){
-                statusInfo = Init.characterStatus.alliance[option];
+            // get all user characters
+            var userData = getCurrentUserData();
+
+            if(userData){
+                // check if character is one of his own characters
+                var userCharactersData = userData.characters;
+
+                for(var i = 0; i < userCharactersData.length; i++){
+                    if(userCharactersData[i].id === characterData.id){
+                        statusInfo = Init.characterStatus.own[option];
+                        break;
+                    }
+                }
+
+            }
+
+            if(statusInfo === ''){
+                // compare current user data with given user data
+                if(
+                    characterData.corporation &&
+                    characterData.corporation.id === corporationId
+                ){
+                    statusInfo = Init.characterStatus.corporation[option];
+                }else if(
+                    characterData.alliance &&
+                    characterData.alliance.id === allianceId
+                ){
+                    statusInfo = Init.characterStatus.alliance[option];
+                }
             }
         }
 

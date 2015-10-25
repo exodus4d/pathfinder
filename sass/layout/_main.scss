@@ -132,12 +132,6 @@ select:active, select:hover {
   }
 }
 
-::-moz-placeholder           { color: $gray-light;   // Firefox
-  opacity: 1; } // See https://github.com/twbs/bootstrap/pull/11526
-:-ms-input-placeholder       { color: $gray-light; } // Internet Explorer 10+
-::-webkit-input-placeholder  { color: $gray-light; } // Safari and Chrome
-
-
 // global datatable styles ==========================================
 .dataTable{
 
@@ -421,6 +415,10 @@ select:active, select:hover {
 
 .pf-user-status-ally{
   color: $blue;
+}
+
+.pf-user-status-own{
+  color: $indigo;
 }
 
 // WH effects ==================================================

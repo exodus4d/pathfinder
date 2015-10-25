@@ -94,7 +94,7 @@
                 <div class="row">
                     <div class="col-sm-3 col-sm-offset-3">
                         <div class="form-group">
-                            <input type="text" class="form-control" name="userName" id="userName" placeholder="Username" autocomplete="off" tabindex="1" data-error="Username required" required>
+                            <input type="text" class="form-control" name="userName" id="userName" placeholder="Username" autocomplete="off" tabindex="1" data-error="Username required" autofocus required>
                             <div class="help-block with-errors text-left"></div>
                         </div>
                     </div>
@@ -131,10 +131,10 @@
 
             <div class="row text-center">
                 <div class="col-sm-6 col-sm-offset-3">
-                    <div class="col-sm-4 col-sm-offset-2" data-placement="left" title="{{@registrationStatusTitle}}">
+                    <div class="col-xs-6 col-sm-4 col-sm-offset-2" data-placement="left" title="{{@registrationStatusTitle}}">
                         <button type="button" class="pf-register-button btn-block btn btn-primary {{@registrationStatusButton}}" tabindex="-1"><i class="fa fa-fw fa-user-plus"></i> Sign up</button>
                     </div>
-                    <div class="col-sm-4">
+                    <div class="col-xs-6 col-sm-4">
                         <button type="submit" class="pf-login-button btn-block btn btn-success" tabindex="3"><i class="fa fa-fw fa-sign-in"></i> Log in</button>
                     </div>
                 </div>
@@ -601,7 +601,7 @@
                         </div>
                         <div class="price-features">
                             <ul class="list-unstyled text-left">
-                                <li><i class="fa fa-fw fa-history txt-color txt-color-orange"></i> Map lifetime <span class="badge">48</span> h</li>
+                                <li><i class="fa fa-fw fa-history txt-color txt-color-orange"></i> Map lifetime <span class="badge">{{ @PATHFINDER.MAP.PRIVATE.LIFETIME }}</span> days</li>
                                 <li><i class="fa fa-fw fa-check txt-color txt-color-green"></i> Create up to <span class="badge">3</span> private maps</li>
                                 <li><i class="fa fa-fw fa-check txt-color txt-color-green"></i> Share maps with up to <span class="badge">10</span> users</li>
                                 <li><i class="fa fa-fw fa-check txt-color txt-color-green"></i> System information module</li>
