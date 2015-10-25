@@ -35,8 +35,8 @@ class Map extends \Controller\AccessController {
     public function init($f3){
 
         // expire time in seconds
-        $expireTimeHead =  60 * 60 * 24;
-        $expireTimeSQL = 60 * 60 * 24;
+        $expireTimeHead =  60 * 60 * 12;
+        $expireTimeSQL = 60 * 60 * 12;
 
         $f3->expire($expireTimeHead);
 
