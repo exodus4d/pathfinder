@@ -68,10 +68,10 @@
                         <div class="row">
                             <div class="col-sm-12">
                                 <div class="form-group">
-                                    <label for="email" class="col-sm-3 control-label">Username</label>
+                                    <label for="name" class="col-sm-3 control-label">Username</label>
                                     <div class="col-sm-6">
                                         <div class="input-group" title="Choose your unique username" data-placement="right">
-                                            <input name="name" type="text" class="form-control" id="name" value="" placeholder="Your username" data-error="Username required" data-minlength="5" data-minlength-error="Min. of 5 characters" autocomplete="off" required>
+                                            <input name="name" type="text" class="form-control" id="name" value="" placeholder="Your username" data-error="Username required" data-minlength="5" data-minlength-error="Min. of 5 characters" autocomplete="nickname" required>
                                             <span class="input-group-addon"><i class="fa fa-fw fa-user"></i></span>
                                         </div>
                                         <div class="help-block with-errors"></div>
@@ -104,7 +104,7 @@
                                     <label for="email" class="col-sm-3 control-label">New Email</label>
                                     <div class="col-sm-6">
                                         <div class="input-group" title="Enter your email. It will be kept private!" data-placement="right">
-                                            <input name="email" type="email" class="form-control" id="email" value="" placeholder="your@email.com" data-error="Email required" autocomplete="off" {{#register}}required{{/register}} >
+                                            <input name="email" type="email" class="form-control" id="email" value="" placeholder="your@email.com" data-error="Email required" autocomplete="email" {{#register}}required{{/register}} >
                                             <span class="input-group-addon"><i class="fa fa-fw fa-envelope"></i></span>
                                         </div>
                                         <div class="help-block with-errors"></div>
@@ -119,7 +119,7 @@
                                     <label for="email_confirm" class="col-sm-3 control-label">Confirm Email</label>
                                     <div class="col-sm-6">
                                         <div class="input-group" title="Confirm your email" data-placement="right">
-                                            <input name="email_confirm" type="email" class="form-control" id="email_confirm" value="" placeholder="your@email.com" data-error="Email required" data-match="#email" data-match-error="Email fields do not match" autocomplete="off" {{#register}}required{{/register}}>
+                                            <input name="email_confirm" type="email" class="form-control" id="email_confirm" value="" placeholder="your@email.com" data-error="Email required" data-match="#email" data-match-error="Email fields do not match" autocomplete="email" {{#register}}required{{/register}}>
                                             <span class="input-group-addon"><i class="fa fa-fw fa-envelope"></i></span>
                                         </div>
                                         <div class="help-block with-errors"></div>
@@ -152,7 +152,7 @@
                                     <label for="password" class="col-sm-3 control-label">New Password</label>
                                     <div class="col-sm-6">
                                         <div class="input-group" title="Enter your password. Do not use your EVE password" data-placement="right">
-                                            <input name="password" type="password" class="form-control" id="password" placeholder="" data-minlength="6" data-minlength-error="Min. of 6 characters" {{#register}}required{{/register}}>
+                                            <input name="password" type="password" class="form-control" id="password" placeholder="" data-minlength="6" data-minlength-error="Min. of 6 characters" autocomplete="new-password" {{#register}}required{{/register}}>
                                             <span class="input-group-addon"><i class="fa fa-fw fa-lock"></i></span>
                                         </div>
                                         <div class="help-block with-errors"></div>
@@ -167,7 +167,7 @@
                                     <label for="password_confirm" class="col-sm-3 control-label">Confirm Password</label>
                                     <div class="col-sm-6">
                                         <div class="input-group" title="Confirm your password" data-placement="right">
-                                            <input name="password_confirm" type="password" class="form-control" id="password_confirm" placeholder="" data-minlength="6" data-minlength-error="Min. of 6 characters" data-match="#password" data-match-error="Password fields do not match" {{#register}}required{{/register}}>
+                                            <input name="password_confirm" type="password" class="form-control" id="password_confirm" placeholder="" data-minlength="6" data-minlength-error="Min. of 6 characters" data-match="#password" data-match-error="Password fields do not match" autocomplete="new-password" {{#register}}required{{/register}}>
                                             <span class="input-group-addon"><i class="fa fa-fw fa-lock"></i></span>
                                         </div>
                                         <div class="help-block with-errors"></div>

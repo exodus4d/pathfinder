@@ -18,7 +18,6 @@ input, select{
     @include box-shadow(0 0 0 50px $gray-dark inset !important);
     -webkit-text-fill-color: $gray-lighter;
   }
-
 }
 
 // fix for bootstrap-toggle plugin

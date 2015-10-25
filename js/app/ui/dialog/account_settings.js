@@ -35,6 +35,12 @@ define([
             icon: {
                 size: 'fa-2x'
             }
+        },
+
+        // character status
+        settingsCharacterStatusOwn : {                                          // "own" -> my characters
+            name: 'own',
+            class: 'pf-user-status-own'
         }
 
     };
@@ -110,15 +116,13 @@ define([
      */
     $.fn.showSettingsDialog = function(options){
 
-        // check if there is already a settings dialog open
-        var settingsDialog = $('#' + config.settingsDialogId);
-
-        if(settingsDialog.length > 0){
+        // check if there are other dialogs open
+        var openDialogs = Util.getOpenDialogs();
+        if(openDialogs.length > 0){
             return false;
         }
 
         var reroutePath = '';
-
 
         // check navigation buttons and show/hide them
         var checkNavigationButton = function(dialog){
@@ -390,12 +394,13 @@ define([
                             var gridClass = ((12 / characterCount) < 4)? 4 : 12 / characterCount ;
 
                             // add character status information for each character
+                            var statusInfo = {};
+                            statusInfo.class = config.settingsCharacterStatusOwn.class;
+                            statusInfo.label = config.settingsCharacterStatusOwn.name;
+
                             var mainCharacter = 0;
                             for(var i = 0; i < characters.length; i++){
-                                var statusInfo = {};
-                                statusInfo.class = Util.getStatusInfoForCharacter(characters[i], 'class');
-                                statusInfo.label = Util.getStatusInfoForCharacter(characters[i], 'name');
-                                characters[i].status =statusInfo;
+                                characters[i].status = statusInfo;
 
                                 if(characters[i].isMain === 1){
                                     mainCharacter = characters[i].id;

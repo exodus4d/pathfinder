@@ -21,7 +21,6 @@ class User extends Controller\Controller{
      */
     private static $captchaReason = ['createAccount', 'deleteAccount'];
 
-
     /**
      * login function
      * @param $f3
@@ -310,7 +309,7 @@ class User extends Controller\Controller{
             $settingsData = $data['settingsData'];
 
             try{
-                $user = $this->_getUser();
+                $user = $this->_getUser(0);
 
                 // captcha is send -> check captcha
                 if(
@@ -433,6 +432,9 @@ class User extends Controller\Controller{
                         foreach($apiModels as $apiModel){
                             $apiModel->delete();
                         }
+
+                        // get fresh updated user object (API info may have has changed)
+                        $user = $this->_getUser(0);
                     }
 
                     // set main character

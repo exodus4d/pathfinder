@@ -20,15 +20,16 @@ class AccessController extends Controller {
      * @param $f3
      */
     function beforeroute($f3) {
+        parent::beforeroute($f3);
 
+        // Any CMS route of a child class of this one, requires a
+        // valid logged in user!
         $loginCheck = $this->_checkLogIn();
 
         if( !$loginCheck ){
             // no user found or LogIn timer expired
             $this->logOut($f3);
         }
-
-        parent::beforeroute($f3);
     }
 
     /**

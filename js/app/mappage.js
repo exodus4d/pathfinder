@@ -219,7 +219,7 @@ define([
                             if(userData.character === undefined){
                                 // no active character found -> show settings dialog
 
-                                Util.showNotify({title: 'Main character missing', text: 'Check API and set a main character', type: 'error'});
+                                Util.showNotify({title: 'Main character not set', text: 'Check your API data and set a main character', type: 'error'});
 
                                 $(document).triggerMenuEvent('ShowSettingsDialog');
                             }

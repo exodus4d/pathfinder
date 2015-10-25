@@ -364,11 +364,13 @@ class BasicModel extends \DB\Cortex {
      */
     public function updateCacheData($cacheData, $dataCacheKeyPrefix = '', $data_ttl = 300){
 
+        $cacheDataTmp = (array)$cacheData;
+
         // check if data should be cached
         // and cacheData is not empty
         if(
             $data_ttl > 0 &&
-            !empty( (array)$cacheData )
+            !empty( $cacheDataTmp )
         ){
             $cacheKey = $this->getCacheKey($dataCacheKeyPrefix);
 

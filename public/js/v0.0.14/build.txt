@@ -51,6 +51,8 @@ lib/datatables/jquery.dataTables.min.js
 lib/datatables/extensions/tabletools/js/dataTables.tableTools.js
 lib/datatables/extensions/responsive/dataTables.responsive.js
 lib/dom.jsPlumb-1.7.6-min.js
+lib/farahey-0.5.js
+app/map/magnetizing.js
 lib/jquery.dragToSelect.js
 lib/select2.min.js
 app/map/contextmenu.js

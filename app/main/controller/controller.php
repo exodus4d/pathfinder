@@ -45,6 +45,9 @@ class Controller {
      */
     function beforeroute($f3) {
 
+        // init user session
+        $this->initSession();
+
         // check if user is in game
         $f3->set('isIngame', self::isIGB() );
 
@@ -72,13 +75,20 @@ class Controller {
     }
 
     /**
+     * init new Session handler
+     */
+    protected function initSession(){
+        // init DB Session (not file based)
+        new \DB\SQL\Session($this->getDB('PF'));
+    }
+
+    /**
      * get current user model
      * @param int $ttl
      * @return bool|null
      * @throws \Exception
      */
     protected function _getUser($ttl = 5){
-
         $user = false;
 
         if( $this->f3->exists('SESSION.user.id') ){

@@ -19,12 +19,27 @@ define([
         // map overlays
         mapOverlayClass: 'pf-map-overlay',                              // class for all map overlays
         mapOverlayTimerClass: 'pf-map-overlay-timer',                   // class for map overlay timer e.g. map timer
-        mapOverlayInfoClass: 'pf-map-overlay-info',                     // class for map overlay info e.g. map info
+        mapOverlayInfoClass: 'pf-map-overlay-info'                      // class for map overlay info e.g. map info
 
-        // map overlay icons
-        mapOverlayFilterClass: 'pf-map-overlay-filter',                 // class for "filter" icon within a overlay
-        mapOverlayGridClass: 'pf-map-overlay-grid'                      // class for "grid" icon within a overlay
+    };
 
+    // overlay options (all available map options shown in overlay)
+    var options = {
+        filter: {
+            title: 'active filter',
+            class: 'pf-map-overlay-filter',
+            iconClass: ['fa', 'fa-fw', 'fa-filter']
+        },
+        mapSnapToGrid: {
+            title: 'active grid',
+            class: 'pf-map-overlay-grid',
+            iconClass: ['glyphicon', 'glyphicon-th']
+        },
+        mapMagnetizer: {
+            title: 'active magnetizer',
+            class: 'pf-map-overlay-magnetizer',
+            iconClass: ['fa', 'fa-fw', 'fa-magnet']
+        }
     };
 
     /**
@@ -172,24 +187,18 @@ define([
     /**
      * update (show/hide) a overlay icon in the "info"-overlay
      * show/hide the overlay itself is no icons are visible
-     * @param iconName
+     * @param option
      * @param viewType
      */
-    $.fn.updateOverlayIcon = function(iconName, viewType){
+    $.fn.updateOverlayIcon = function(option, viewType){
         var mapOverlayInfo = $(this);
 
         var showOverlay = false;
 
+        var mapOverlayIconClass = options[option].class;
+
         // look for the overlay icon that should be updated
-        var iconElement = null;
-        switch(iconName){
-            case 'filter':
-                iconElement = mapOverlayInfo.find('.' + config.mapOverlayFilterClass);
-                break;
-            case 'grid':
-                iconElement = mapOverlayInfo.find('.' + config.mapOverlayGridClass);
-                break;
-        }
+        var iconElement = mapOverlayInfo.find('.' + mapOverlayIconClass);
 
         if(iconElement){
             if(viewType === 'show'){
@@ -198,7 +207,7 @@ define([
             }else if(viewType === 'hide'){
                 iconElement.hide();
 
-                // check if ther is any visible icon remaining
+                // check if there is any visible icon remaining
                 var visibleIcons = mapOverlayInfo.find('i:visible');
                 if(visibleIcons.length > 0){
                     showOverlay = true;
@@ -228,33 +237,33 @@ define([
      */
     $.fn.initMapOverlays = function(){
         return this.each(function(){
-            var parentElemtn = $(this);
+            var parentElement = $(this);
 
             var mapOverlayTimer = $('<div>', {
                 class: [config.mapOverlayClass, config.mapOverlayTimerClass].join(' ')
             });
-            parentElemtn.append(mapOverlayTimer);
+            parentElement.append(mapOverlayTimer);
 
             // ---------------------------------------------------------------------------
             // add map overlay info. after scrollbar is initialized
             var mapOverlayInfo = $('<div>', {
                 class: [config.mapOverlayClass, config.mapOverlayInfoClass].join(' ')
-            }).append(
-                $('<i>', {
-                    class: ['fa', 'fa-fw', 'fa-filter', 'pull-right', config.mapOverlayFilterClass].join(' ')
-                }).attr('title', 'active filter').tooltip({
-                    placement: 'left',
-                    container: 'body'
-                })
-            ).append(
-                $('<i>', {
-                    class: ['glyphicon', 'glyphicon-th', 'pull-right', config.mapOverlayGridClass].join(' ')
-                }).attr('title', 'active grid').tooltip({
-                    placement: 'left',
-                    container: 'body'
-                })
-            );
-            parentElemtn.append(mapOverlayInfo);
+            });
+
+            // add all overlay elements
+            for (var prop in options) {
+                if(options.hasOwnProperty(prop)){
+                    mapOverlayInfo.append(
+                        $('<i>', {
+                            class: options[prop].iconClass.concat( ['pull-right', options[prop].class] ).join(' ')
+                        }).attr('title', options[prop].title).tooltip({
+                            placement: 'left',
+                            container: 'body'
+                        })
+                    );
+                }
+            }
+            parentElement.append(mapOverlayInfo);
 
             // reset map update timer
             mapOverlayTimer.setMapUpdateCounter(100, config.logTimerCount);

@@ -7,7 +7,7 @@ define([
     'app/init',
     'app/util',
     'app/render',
-    'bootbox',
+    'bootbox'
 ], function($, Init, Util, Render, bootbox) {
     'use strict';
 
