@@ -184,7 +184,7 @@ CREATE TABLE `character_status` (
   KEY `created` (`created`),
   KEY `updated` (`updated`),
   KEY `active` (`active`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -193,7 +193,7 @@ CREATE TABLE `character_status` (
 
 LOCK TABLES `character_status` WRITE;
 /*!40000 ALTER TABLE `character_status` DISABLE KEYS */;
-INSERT INTO `character_status` VALUES (1,'2015-04-01 19:09:47','2015-04-01 19:09:47',1,'corporation','pf-user-status-corp'),(2,'2015-04-01 19:09:47','2015-04-01 19:09:47',1,'alliance','pf-user-status-ally');
+INSERT INTO `character_status` VALUES (1,'2015-04-01 19:09:47','2015-04-01 19:09:47',1,'corporation','pf-user-status-corp'),(2,'2015-04-01 19:09:47','2015-04-01 19:09:47',1,'alliance','pf-user-status-ally'),(3,'2015-04-01 19:09:47','2015-04-01 19:09:47',1,'own','pf-user-status-own');
 /*!40000 ALTER TABLE `character_status` ENABLE KEYS */;
 UNLOCK TABLES;
 

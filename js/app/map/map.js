@@ -3504,7 +3504,6 @@ define([
                     switchTabCallback( mapConfig.config.name, mapContainer );
                 });
             }
-
         });
     };
 
