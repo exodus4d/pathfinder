@@ -1,3 +1,7 @@
+/**
+ * Main map functionality
+ */
+
 define([
     'jquery',
     'app/init',
@@ -5,12 +9,12 @@ define([
     'app/render',
     'bootbox',
     'app/ccp',
-    'jsPlumb',
+    'app/map/magnetizing',
     'dragToSelect',
     'select2',
     'app/map/contextmenu',
     'app/map/overlay'
-], function($, Init, Util, Render, bootbox, CCP) {
+], function($, Init, Util, Render, bootbox, CCP, MagnetizerWrapper) {
 
     'use strict';
 
@@ -22,7 +26,8 @@ define([
         },
 
         mapSnapToGridDimension: 20,                                     // px for grid snapping (grid YxY)
-        mapSnapToGrid: false,                                           // Snap systems to grid while dragging
+        mapSnapToGrid: false,                                           // "Snap to Grid" feature for drag&drop systems on map (optional)
+        mapMagnetizer: false,                                           // "Magnetizer" feature for drag&drop systems on map (optional)
         mapTabContentClass: 'pf-map-tab-content',                       // Tab-Content element (parent element)
         mapWrapperClass: 'pf-map-wrapper',                              // wrapper div (scrollable)
         headMapTrackingId: 'pf-head-map-tracking',                      // id for "map tracking" toggle (checkbox)
@@ -616,6 +621,8 @@ define([
 
         var mapContainer = mapConfig.map.getContainer();
 
+        var newSystems = 0;
+
         if(mapContainer === undefined){
             // add new map
 
@@ -688,6 +695,7 @@ define([
 
                 if( addNewSystem === true){
                     drawSystem(mapConfig.map, systemData);
+                    newSystems++;
                 }
             }
 
@@ -780,6 +788,16 @@ define([
                 }
 
             });
+
+
+            // init/update map "magnetization" feature if new systems where added
+            if(
+                config.mapMagnetizer === true &&
+                newSystems > 0
+            ){
+                mapContainer.initMagnetizer();
+            }
+
         }
 
         return mapContainer;
@@ -876,7 +894,10 @@ define([
 
                     connectorElements.velocity('transition.fadeIn', {
                         stagger: 30,
-                        duration: 120
+                        duration: 120,
+                        complete: function(){
+                            callback();
+                        }
                     });
 
                     // show overlay elements (if some exist)
@@ -884,10 +905,7 @@ define([
                         overlayElements.delay(500).velocity('transition.fadeIn', {
                             stagger: 50,
                             duration: 180,
-                            display: 'auto',
-                            complete: function(){
-                                callback();
-                            }
+                            display: 'auto'
                         });
                     }
                 }
@@ -1677,7 +1695,7 @@ define([
             constrain: true,
             //scroll: true,                                         // not working because of customized scrollbar
             filter: '.' + config.systemHeadNameClass,               // disable drag on "system name"
-            snapThreshold: config.mapSnapToGridDimension,           // distance for grid snapping "magnet" effect
+            snapThreshold: config.mapSnapToGridDimension,           // distance for grid snapping "magnet" effect (optional)
             start: function(params, a, b){
                 var dragSystem = $(params.el);
 
@@ -1707,9 +1725,13 @@ define([
                 // move them to the "top"
                 $(selectedSystems).updateSystemZIndex();
             },
-            drag: function(){
+            drag: function(p){
                 // start map update timer
                 mapOverlayTimer.startMapUpdateCounter();
+
+                // update system positions for "all" systems that are effected by drag&drop
+                // this requires "magnet" feature to be active! (optional)
+                MagnetizerWrapper.executeAtEvent(map, p.e);
             },
             stop: function(params){
                 var dragSystem = $(params.el);
@@ -1735,7 +1757,6 @@ define([
 
                     // set all selected systems as "changes" for update
                     tempSystem.markAsChanged();
-
 
                     // set new position for popover edit field (system name)
                     var tempPosition = tempSystem.position();
@@ -2035,7 +2056,6 @@ define([
                 // connection element
                 this.setParameter('updated', 0);
             }
-
         });
     };
 
@@ -2419,32 +2439,44 @@ define([
 
         // catch events =========================================================
 
-        // toggle "snap to grid" option
-        $(mapContainer).on('pf:menuGrid', function(e, data){
+        // toggle global map option (e.g. "grid snap", "magnetization"
+        $(mapContainer).on('pf:menuMapOption', function(e, data){
 
             var currentMapElement = $(this);
 
-            config.mapSnapToGrid = !config.mapSnapToGrid;
+            // toggle map option
+            config[data.option] = !config[data.option];
 
-            // toggle grid class
-            currentMapElement.toggleClass(config.mapGridClass);
+            // toggle map class (e.g. for grid)
+            if(data.class){
+                currentMapElement.toggleClass( config[data.class] );
+            }
 
             // toggle button class
             $(data.button).toggleClass('active');
 
             var notificationText = 'disabled';
-            if(config.mapSnapToGrid){
+            if( config[data.option] ){
+
+                // call optional jQuery extension on mapElement
+                if(data.onEnable){
+                    $.fn[ data.onEnable ].apply( currentMapElement );
+                }
+
+                // show map overlay info icon
                 notificationText = 'enabled';
-
-                // show map overlay grid info
-                currentMapElement.getMapOverlay('info').updateOverlayIcon('grid', 'show');
+                currentMapElement.getMapOverlay('info').updateOverlayIcon(data.option, 'show');
             }else{
+                // call optional jQuery extension on mapElement
+                if(data.onDisable){
+                    $.fn[ data.onDisable ].apply( currentMapElement );
+                }
 
-                // hide map overlay grid info
-                currentMapElement.getMapOverlay('info').updateOverlayIcon('grid', 'hide');
+                // hide map overlay info icon
+                currentMapElement.getMapOverlay('info').updateOverlayIcon(data.option, 'hide');
             }
 
-            Util.showNotify({title: 'Grid snapping', text: notificationText, type: 'info'});
+            Util.showNotify({title: data.description, text: notificationText, type: 'info'});
         });
 
         // delete system event
@@ -2902,6 +2934,15 @@ define([
 
             Util.showNotify({title: 'New system', text: newSystemData.name, type: 'success'});
 
+            // re-init "magnetizer" with new added system
+            if(config.mapMagnetizer === true){
+                var mapContainer = this.map.getContainer();
+                $(mapContainer).initMagnetizer();
+
+                // re/arrange systems (prevent overlapping)
+                MagnetizerWrapper.executeAtCenter(this.map);
+            }
+
             if(callback){
                 callback();
             }
@@ -3319,19 +3360,19 @@ define([
             jsPlumb.Defaults.LogEnabled = true;
 
             var newJsPlumbInstance =  jsPlumb.getInstance({
-                Anchor: 'Continuous',                                                       // anchors on each site
-                Container: null,                                                            // will be set as soon as container is connected to DOM
+                Anchor: 'Continuous',                                               // anchors on each site
+                Container: null,                                                    // will be set as soon as container is connected to DOM
                 PaintStyle:{
-                    lineWidth: 4,                                                           // width of a Connector's line. An integer.
-                    strokeStyle: 'red',                                                     // color for a Connector
-                    outlineColor: 'red',                                                    // color of the outline for an Endpoint or Connector. see fillStyle examples.
-                    outlineWidth: 2                                                         // width of the outline for an Endpoint or Connector. An integer.
+                    lineWidth: 4,                                                   // width of a Connector's line. An integer.
+                    strokeStyle: 'red',                                             // color for a Connector
+                    outlineColor: 'red',                                            // color of the outline for an Endpoint or Connector. see fillStyle examples.
+                    outlineWidth: 2                                                 // width of the outline for an Endpoint or Connector. An integer.
                 },
-                Connector:[ 'Bezier', { curviness: 40 } ],                                  // default connector style (this is not used!) all connections have their own style (by scope)
+                Connector:[ 'Bezier', { curviness: 40 } ],                          // default connector style (this is not used!) all connections have their own style (by scope)
                 Endpoints: [ [ 'Dot', { radius: 5 } ], [ 'Dot', { radius: 5 } ] ],
                 // Endpoint: 'Blank', // does not work... :(
-                ReattachConnections: false,                                                 // re-attach connection if dragged with mouse to "nowhere"
-                Scope: Init.defaultMapScope,                                                // default map scope for connections
+                ReattachConnections: false,                                         // re-attach connection if dragged with mouse to "nowhere"
+                Scope: Init.defaultMapScope,                                        // default map scope for connections
                 LogEnabled: true
             });
 
@@ -3447,8 +3488,12 @@ define([
             }
 
             // callback function after tab switch
-            function switchTabCallback( mapName ){
+            function switchTabCallback( mapName, mapContainer ){
                 Util.showNotify({title: 'Map initialized', text: mapName  + ' - loaded', type: 'success'});
+
+                if( config.mapMagnetizer === true ){
+                    mapContainer.initMagnetizer();
+                }
 
                 return false;
             }
@@ -3456,9 +3501,10 @@ define([
             if(options.showAnimation){
                 // show nice visualization effect
                 mapContainer.visualizeMap('show', function(){
-                    switchTabCallback( mapConfig.config.name );
+                    switchTabCallback( mapConfig.config.name, mapContainer );
                 });
             }
+
         });
     };
 

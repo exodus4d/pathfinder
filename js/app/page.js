@@ -280,12 +280,39 @@ define([
                     class: 'list-group-item',
                     href: '#'
                 }).html('&nbsp;&nbsp;&nbsp;Grid snapping').prepend(
-                        $('<i>',{
-                            class: 'glyphicon glyphicon-th'
-                        })
-                    ).on('click', function(){
-                        Util.getMapModule().getActiveMap().triggerMenuEvent('Grid', {button: this});
+                    $('<i>',{
+                        class: 'glyphicon glyphicon-th'
                     })
+                ).on('click', function(){
+                    Util.getMapModule().getActiveMap().triggerMenuEvent('MapOption', {
+                        option: 'mapSnapToGrid',
+                        button: this,
+                        description: 'Grid snapping',
+                        class: 'mapGridClass'
+                    });
+                })
+            ).append(
+                $('<a>', {
+                    class: 'list-group-item',
+                    href: '#'
+                }).html('&nbsp;&nbsp;&nbsp;Magnetizing').prepend(
+                    $('<i>',{
+                        class: 'fa fa-magnet fa-fw'
+                    })
+                ).on('click', function(){
+                    Util.getMapModule().getActiveMap().triggerMenuEvent('MapOption', {
+                        option: 'mapMagnetizer',
+                        button: this,
+                        description: 'Magnetizer',
+                        onEnable: 'initMagnetizer',     // jQuery extension function
+                        onDisable: 'destroyMagnetizer'  // jQuery extension function
+                    });
+                }).append(
+                    $('<span>',{
+                        class: ['badge', 'bg-color', 'bg-color-orange', 'pull-right'].join(' '),
+                        html: '&beta;'
+                    })
+                )
             ).append(
                 $('<a>', {
                     class: 'list-group-item',
