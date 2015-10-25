@@ -1060,7 +1060,6 @@ define([
                         break;
                     }
                 }
-
             }
 
             if(statusInfo === ''){
