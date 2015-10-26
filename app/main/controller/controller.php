@@ -322,4 +322,12 @@ class Controller {
         die();
     }
 
+    /**
+     * Callback for framework "unload"
+     * -> config.ini
+     */
+    public function unload(){
+
+    }
+
 } 
