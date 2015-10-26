@@ -282,8 +282,9 @@ class Controller {
     public function showError($f3){
 
         // set HTTP status
-        if(!empty($f3->get('ERROR.code'))){
-            $f3->status($f3->get('ERROR.code'));
+        $errorCode = $f3->get('ERROR.code');
+        if(!empty($errorCode)){
+            $f3->status($errorCode);
         }
 
         if($f3->get('AJAX')){
@@ -293,7 +294,7 @@ class Controller {
             $return = (object) [];
             $error = (object) [];
             $error->type = 'error';
-            $error->code = $f3->get('ERROR.code');
+            $error->code = $errorCode;
             $error->status = $f3->get('ERROR.status');
             $error->message = $f3->get('ERROR.text');
 
