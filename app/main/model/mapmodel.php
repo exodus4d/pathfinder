@@ -63,9 +63,20 @@ class MapModel extends BasicModel {
 
         foreach((array)$data as $key => $value){
 
+            if($key == 'created'){
+                continue;
+            }
+
             if(!is_array($value)){
                 if($this->exists($key)){
                     $this->$key = $value;
+                }
+            }else{
+                // special array data
+                if($key == 'scope'){
+                    $this->scopeId = (int)$value['id'];
+                }elseif($key == 'type'){
+                    $this->typeId = (int)$value['id'];
                 }
             }
         }
@@ -156,17 +167,29 @@ class MapModel extends BasicModel {
     }
 
     /**
+     * setter for id
+     * @param $id
+     */
+    public function set_id($id){
+        // map id should never been set automatically
+        // -> no return
+    }
+
+    /**
      * search for a system by id
      * @param $systemId
      * @return null
      */
     public function getSystem($systemId){
-        $systems = $this->getSystems();
         $searchSystem = null;
-        foreach($systems as $system){
-            if($system->id == $systemId){
-                $searchSystem = $system;
-                break;
+
+        if($systemId > 0){
+            $systems = $this->getSystems();
+            foreach($systems as $system){
+                if($system->id == $systemId){
+                    $searchSystem = $system;
+                    break;
+                }
             }
         }
 

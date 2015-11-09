@@ -142,6 +142,125 @@ class Map extends \Controller\AccessController {
     }
 
     /**
+     * import new map data
+     * @param $f3
+     */
+    public function import($f3){
+        $importData = (array)$f3->get('POST');
+
+        $return = (object) [];
+        $return->error = [];
+
+        if(
+            isset($importData['typeId']) &&
+            count($importData['mapData']) > 0
+        ){
+            $user = $this->_getUser();
+
+            if($user){
+                $activeCharacter = $user->getActiveUserCharacter();
+
+                $map = Model\BasicModel::getNew('MapModel');
+                $system = Model\BasicModel::getNew('SystemModel');
+                $connection = Model\BasicModel::getNew('ConnectionModel');
+
+                foreach($importData['mapData'] as $mapData){
+                    if(
+                        isset($mapData['config']) &&
+                        isset($mapData['data'])
+                    ){
+
+
+                        if(
+                            isset($mapData['data']['systems']) &&
+                            isset($mapData['data']['connections'])
+                        ){
+                            $map->setData($mapData['config']);
+                            $map->typeId = (int)$importData['typeId'];
+                            $map->save();
+
+                            // new system IDs will be generated
+                            // therefore we need to temp store a mapping between IDs
+                            $tempSystemIdMapping = [];
+
+                            foreach($mapData['data']['systems'] as $systemData){
+                                $system->setData($systemData);
+                                $system->mapId = $map;
+                                $system->createdCharacterId = $activeCharacter->characterId;
+                                $system->updatedCharacterId = $activeCharacter->characterId;
+                                $system->save();
+
+                                $tempSystemIdMapping[$systemData['id']] = $system->id;
+                                $system->reset();
+                            }
+
+                            foreach($mapData['data']['connections'] as $connectionData){
+                                // check if source and target IDs match with new system ID
+                                if(
+                                    isset( $tempSystemIdMapping[$connectionData['source']] ) &&
+                                    isset( $tempSystemIdMapping[$connectionData['target']] )
+                                ){
+                                    $connection->setData($connectionData);
+                                    $connection->mapId = $map;
+                                    $connection->source = $tempSystemIdMapping[$connectionData['source']];
+                                    $connection->target = $tempSystemIdMapping[$connectionData['target']];
+                                    $connection->save();
+
+                                    $connection->reset();
+                                }
+                            }
+
+                            // map access info should not automatically imported
+                            if($map->isPrivate()){
+                                $map->setAccess($user);
+                            }elseif($map->isCorporation()){
+                                $corporation = $activeCharacter->getCharacter()->getCorporation();
+                                if($corporation){
+                                    $map->setAccess($corporation);
+                                }
+                            }elseif($map->isAlliance()){
+                                $alliance = $activeCharacter->getCharacter()->getAlliance();
+                                if($alliance){
+                                    $map->setAccess($alliance);
+                                }
+                            }
+
+                        }else{
+                            // systems || connections missing
+                            $missingConfigError = (object) [];
+                            $missingConfigError->type = 'error';
+                            $missingConfigError->message = 'Map data not valid (systems || connections) missing';
+                            $return->error[] = $missingConfigError;
+                        }
+
+                    }else{
+                        // map config || systems/connections missing
+                        $missingConfigError = (object) [];
+                        $missingConfigError->type = 'error';
+                        $missingConfigError->message = 'Map data not valid (config || data) missing';
+                        $return->error[] = $missingConfigError;
+                    }
+
+
+                    $map->reset();
+                }
+            }else{
+                // user not found
+                $return->error[] = $this->getUserLoggedOffError();
+            }
+        }else{
+            // map data missing
+            $missingDataError = (object) [];
+            $missingDataError->type = 'error';
+            $missingDataError->message = 'Map data missing';
+            $return->error[] = $missingDataError;
+        }
+
+
+        echo json_encode($return);
+    }
+
+    /**
      * save a new map or update an existing map
      * @param $f3
      */
@@ -337,7 +456,7 @@ class Map extends \Controller\AccessController {
         $return->error = [];
 
         if($user){
-            // -> get active user object
+            // -> get active character
             $activeCharacter = $user->getActiveUserCharacter();
 
             $cacheKey = 'user_map_data_' . $activeCharacter->id;

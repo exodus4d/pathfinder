@@ -67,6 +67,15 @@ class ConnectionModel extends BasicModel{
     }
 
     /**
+     * setter for id
+     * @param $id
+     */
+    public function set_id($id){
+        // connection id should never been set automatically
+        // -> no return
+    }
+
+    /**
      * check object for model access
      * @param $accessObject
      * @return bool

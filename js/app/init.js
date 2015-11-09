@@ -27,6 +27,7 @@ define(['jquery'], function($) {
             // map API
             saveMap: 'api/map/save',                                // ajax URL - save/update map
             deleteMap: 'api/map/delete',                            // ajax URL - delete map
+            importMap: 'api/map/import',                            // ajax URL - import map
             // system API
             searchSystem: 'api/system/search',                      // ajax URL - search system by name
             saveSystem: 'api/system/save',                          // ajax URL - saves system to map

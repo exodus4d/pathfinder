@@ -3,13 +3,32 @@
     <nav class="navbar navbar-default" role="navigation">
         <div class="navbar-header pull-left">
             <ul class="nav navbar-nav {{dialogNavigationClass}}" role="tablist">
-                <li class="{{#openTabNew}}active{{/openTabNew}}"><a role="tab" data-toggle="tab" data-name="newMap" href="#{{dialogMapCreateContainerId}}"><i class="fa fa-plus fa-fw"></i>&nbsp;New map</a></li>
+                <li class="{{#openTabNew}}active{{/openTabNew}}">
+                    <a role="tab" data-toggle="tab" data-name="newMap" href="#{{dialogMapCreateContainerId}}">
+                        <i class="fa fa-plus fa-fw"></i>&nbsp;New map
+                    </a>
+                </li>
                 {{^hideEditTab}}
-                    <li class="{{#openTabEdit}}active{{/openTabEdit}}"><a role="tab" data-toggle="tab" data-name="editMap" href="#{{dialogMapEditContainerId}}"><i class="fa fa-edit fa-fw"></i>&nbsp;Edit map</a></li>
+                    <li class="{{#openTabEdit}}active{{/openTabEdit}}">
+                        <a role="tab" data-toggle="tab" data-name="editMap" href="#{{dialogMapEditContainerId}}">
+                            <i class="fa fa-edit fa-fw"></i>&nbsp;Edit map
+                        </a>
+                    </li>
                 {{/hideEditTab}}
                 {{^hideSettingsTab}}
-                    <li class="{{#openTabSettings}}active{{/openTabSettings}}"><a role="tab" data-toggle="tab" data-name="settings" href="#{{dialogMapSettingsContainerId}}"><i class="fa fa-gears fa-fw"></i>&nbsp;Settings</a></li>
+                    <li class="{{#openTabSettings}}active{{/openTabSettings}}">
+                        <a role="tab" data-toggle="tab" data-name="settings" href="#{{dialogMapSettingsContainerId}}">
+                            <i class="fa fa-gears fa-fw"></i>&nbsp;Settings
+                        </a>
+                    </li>
                 {{/hideSettingsTab}}
+                {{^hideDownloadTab}}
+                    <li class="{{#openTabDownload}}active{{/openTabDownload}} {{#isInGameBrowser}}disabled{{/isInGameBrowser}}" {{#isInGameBrowser}}title="Not working in IGB"{{/isInGameBrowser}}>
+                        <a role="tab" data-toggle="tab" data-name="download" href="#{{dialogMapDownloadContainerId}}" {{#isInGameBrowser}}class="disabled"{{/isInGameBrowser}}>
+                            <i class="fa fa-exchange fa-fw"></i>&nbsp;Import/Export
+                        </a>
+                    </li>
+                {{/hideDownloadTab}}
             </ul>
         </div>
     </nav>
@@ -17,108 +36,181 @@
     <div class="tab-content">
         <div role="tabpanel" class="tab-pane fade {{#openTabNew}}in active{{/openTabNew}}" id="{{dialogMapCreateContainerId}}"></div>
         <div role="tabpanel" class="tab-pane fade {{#openTabEdit}}in active{{/openTabEdit}}" id="{{dialogMapEditContainerId}}"></div>
-        <div role="tabpanel" class="tab-pane fade {{#openTabSettings}}in active{{/openTabSettings}}" id="{{dialogMapSettingsContainerId}}">
-            <form role="form" class="form-horizontal">
-                <h2><i class="fa fa-share-alt fa-fw"></i> Share settings</h2>
 
-                <div class="row">
-                    <div class="col-sm-11">
-                        <blockquote>
-                            <p>
-                                Use this feature with caution! - Shared map entities have full map access.
-                                They even can take over control by removing other entities from this list.
-                            </p>
-                            <small>Reduce this risk by creating a new map for joined OPs.
-                            </small>
-                        </blockquote>
+        {{^hideSettingsTab}}
+            <div role="tabpanel" class="tab-pane fade {{#openTabSettings}}in active{{/openTabSettings}}" id="{{dialogMapSettingsContainerId}}">
+                <form role="form" class="form-horizontal">
+                    <h4><i class="fa fa-share-alt fa-fw"></i> Share settings</h4>
+
+                    <div class="row">
+                        <div class="col-sm-11">
+                            <blockquote>
+                                <p>
+                                    Use this feature with caution! - Shared map entities have full map access.
+                                    They even can take over control by removing other entities from this list.
+                                </p>
+                                <small>Reduce this risk by creating a new map for joined OPs.
+                                </small>
+                            </blockquote>
+                        </div>
                     </div>
-                </div>
 
-                {{! user search ----------------------------------------------------- }}
-                {{#accessUser.length}}
-                <div class="row">
-                    <div class="col-sm-12">
-                        <div class="form-group">
-                            <label class="col-sm-2 control-label" for="{{userSelectId}}">Username</label>
-                            <div class="col-sm-10">
-                                <div class="input-group" title="add/remove user">
-                                    <label for="{{userSelectId}}"></label>
-                                    <select id="{{userSelectId}}"  name="mapUsers[]" multiple="multiple">
-                                        {{#accessUser}}
+                    {{! user search ----------------------------------------------------- }}
+                    {{#accessUser.length}}
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label" for="{{userSelectId}}">Username</label>
+                                <div class="col-sm-10">
+                                    <div class="input-group" title="add/remove user">
+                                        <label for="{{userSelectId}}"></label>
+                                        <select id="{{userSelectId}}"  name="mapUsers[]" multiple="multiple">
+                                            {{#accessUser}}
                                             <option value="{{id}}" selected>{{name}}</option>
-                                        {{/accessUser}}
-                                    </select>
-                                    <span class="help-block with-errors">Search user name (max {{maxUser}})</span>
+                                            {{/accessUser}}
+                                        </select>
+                                        <span class="help-block with-errors">Search user name (max {{maxUser}})</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                {{/accessUser.length}}
+                    {{/accessUser.length}}
 
-                {{! corporation search ---------------------------------------------- }}
-                {{#accessCorporation.length}}
-                <div class="row">
-                    <div class="col-sm-9">
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label" for="{{corporationSelectId}}">Corporations</label>
-                            <div class="col-sm-9">
-                                <div class="input-group" title="add/remove corporations">
-                                    <label for="{{corporationSelectId}}"></label>
-                                    <select id="{{corporationSelectId}}" name="mapCorporations[]" multiple="multiple">
-                                        {{#accessCorporation}}
+                    {{! corporation search ---------------------------------------------- }}
+                    {{#accessCorporation.length}}
+                    <div class="row">
+                        <div class="col-sm-9">
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label" for="{{corporationSelectId}}">Corporations</label>
+                                <div class="col-sm-9">
+                                    <div class="input-group" title="add/remove corporations">
+                                        <label for="{{corporationSelectId}}"></label>
+                                        <select id="{{corporationSelectId}}" name="mapCorporations[]" multiple="multiple">
+                                            {{#accessCorporation}}
                                             <option value="{{id}}" selected="selected" >{{name}}</option>
-                                        {{/accessCorporation}}
-                                    </select>
-                                    <span class="help-block with-errors">Search corporation name (max {{maxCorporation}})</span>
+                                            {{/accessCorporation}}
+                                        </select>
+                                        <span class="help-block with-errors">Search corporation name (max {{maxCorporation}})</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                {{/accessCorporation.length}}
+                    {{/accessCorporation.length}}
 
-                {{! alliance search ------------------------------------------------- }}
-                {{#accessAlliance.length}}
-                <div class="row">
-                    <div class="col-sm-12">
-                        <div class="form-group">
-                            <label class="col-sm-2 control-label" for="{{allianceSelectId}}">Alliances</label>
-                            <div class="col-sm-10">
-                                <div class="input-group" title="add/remove alliances">
-                                    <label for="{{allianceSelectId}}"></label>
-                                    <select id="{{allianceSelectId}}" name="mapAlliances[]" multiple="multiple" >
-                                        {{#accessAlliance}}
-                                        <option value="{{id}}" selected="selected" >{{name}}</option>
-                                        {{/accessAlliance}}
-                                    </select>
-                                    <span class="help-block with-errors">Search alliance name (max {{maxAlliance}})</span>
+                    {{! alliance search ------------------------------------------------- }}
+                    {{#accessAlliance.length}}
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label" for="{{allianceSelectId}}">Alliances</label>
+                                <div class="col-sm-10">
+                                    <div class="input-group" title="add/remove alliances">
+                                        <label for="{{allianceSelectId}}"></label>
+                                        <select id="{{allianceSelectId}}" name="mapAlliances[]" multiple="multiple" >
+                                            {{#accessAlliance}}
+                                            <option value="{{id}}" selected="selected" >{{name}}</option>
+                                            {{/accessAlliance}}
+                                        </select>
+                                        <span class="help-block with-errors">Search alliance name (max {{maxAlliance}})</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                {{/accessAlliance.length}}
+                    {{/accessAlliance.length}}
 
-                <input type="hidden" name="id" value="0" />
-            </form>
+                    <input type="hidden" name="id" value="{{ mapData.config.id }}" />
+
+                </form>
+            </div>
+        {{/hideSettingsTab}}
 
 
+        {{^hideDownloadTab}}
+            <div role="tabpanel" class="tab-pane fade {{#openTabDownload}}in active{{/openTabDownload}}" id="{{dialogMapDownloadContainerId}}">
+
+                <h4 class="pf-dynamic-area">Map export</h4>
+                <form role="form" class="form-horizontal" id="{{dialogMapExportFormId}}">
+
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="{{fieldExportId}}">Export name</label>
+                        <div class="col-sm-10">
+                            <div class="input-group">
+                                <input class="form-control" id="{{fieldExportId}}" type="text" name="{{fieldExportId}}" value="{{#formatFilename}}{{mapData.config.name}}{{/formatFilename}}" pattern="^[_a-zA-Z0-9]{1,}$" data-minlength="3" data-minlength-error="Min. of 3 characters" data-error="Invalid format: _ a-z A-Z 0-9" required>
+                                <div class="input-group-btn">
+                                    <a type="button" id="{{buttonExportId}}" class="btn btn-default" href="" download="data.json">
+                                        <i class="fa fa-fw fa-upload"></i> Export
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+
+                </form>
+
+                <h4 class="pf-dynamic-area">Map Import</h4>
+                <form role="form" class="form-horizontal" id="{{dialogMapImportFormId}}">
+
+
+                    <div class="form-group">
+                        <label for="type" class="col-sm-2 control-label">Type</label>
+                        <div class="col-sm-3">
+                            <select name="typeId" id="type" class="form-control" title="Alliance/Corporation maps require character authentication" data-placement="top">
+                                {{#type}}
+                                <option value="{{id}}">{{label}}</option>
+                                {{/type}}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="{{fieldImportId}}">Import file</label>
+                        <div class="col-sm-10">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="input-group">
+                                        <input class="form-control" id="{{fieldImportId}}" type="file" name="{{fieldImportId}}" accept=".json" data-error="Select a valid file" required>
+                                        <div class="input-group-btn">
+                                            <button type="button" id="{{buttonImportId}}" class="btn btn-default">
+                                                <i class="fa fa-fw fa-download"></i> Import
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pf-form-dropzone">Drop map file here</div>
+
+                    <h4 id="{{dialogMapImportInfoId}}" class="pf-dynamic-area" style="display: none;"></h4>
+
+                    <div class="{{formErrorContainerClass}} alert alert-danger" style="display: none;">
+                        <span class="txt-color txt-color-danger">Error</span>
+                        <small> (important non-critical information)</small>
+                    </div>
+                </form>
+            </div>
+        {{/hideDownloadTab}}
+
+
+        <div class="{{formInfoContainerClass}} alert alert-info" style="display: none;">
+            <span class="txt-color txt-color-information">Information</span>
+            <small> (important non-critical information)</small>
         </div>
-    </div>
 
-    <div class="{{formInfoContainerClass}} alert alert-info" style="display: none;">
-        <span class="txt-color txt-color-information">Information</span>
-        <small> (important non-critical information)</small>
-    </div>
+        <div class="{{formWarningContainerClass}} alert alert-warning" style="display: none;">
+            <span class="txt-color txt-color-warning">Warning</span>
+            <small> (important non-critical information)</small>
+        </div>
 
-    <div class="{{formWarningContainerClass}} alert alert-warning" style="display: none;">
-        <span class="txt-color txt-color-warning">Warning</span>
-        <small> (important non-critical information)</small>
-    </div>
-
-    <div class="{{formErrorContainerClass}} alert alert-danger" style="display: none;">
-        <span class="txt-color txt-color-danger">Error</span>
-        <small> (important non-critical information)</small>
+        <div class="{{formErrorContainerClass}} alert alert-danger" style="display: none;">
+            <span class="txt-color txt-color-danger">Error</span>
+            <small> (important non-critical information)</small>
+        </div>
     </div>
 </div>

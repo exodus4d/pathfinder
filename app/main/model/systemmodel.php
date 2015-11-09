@@ -45,6 +45,10 @@ class SystemModel extends BasicModel {
 
         foreach((array)$systemData as $key => $value){
 
+            if($key == 'created'){
+                continue;
+            }
+
             if(!is_array($value)){
                 if($this->exists($key)){
                     $this->$key = $value;
@@ -136,6 +140,15 @@ class SystemModel extends BasicModel {
         }
 
         return $systemData;
+    }
+
+    /**
+     * setter for id
+     * @param $id
+     */
+    public function set_id($id){
+        // map id should never been set automatically
+        // -> no return
     }
 
     /**

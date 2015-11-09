@@ -236,8 +236,8 @@
 }
 
 // sharing dialog =========================================
-#pf-sharing-dialog{
-  .pf-dynamic-area{
+h2, h4{
+  &.pf-dynamic-area{
     min-height: 0;
   }
 }
