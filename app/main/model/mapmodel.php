@@ -202,7 +202,11 @@ class MapModel extends BasicModel {
      */
     public function getSystems(){
         // orderBy x-Coordinate for cleaner frontend animation (left to right)
-        $this->filter('systems', ['active = ?', 1], ['order' => 'posX']);
+        $this->filter('systems',
+            ['active = :active AND id > 0',
+                ':active' => 1
+        ],
+            ['order' => 'posX']);
 
         $systems = [];
         if($this->systems){
@@ -233,7 +237,10 @@ class MapModel extends BasicModel {
      * @return array|mixed
      */
     public function getConnections(){
-        $this->filter('connections', ['active = ?', 1]);
+        $this->filter('connections', [
+            'active = :active AND source > 0 AND target > 0',
+            ':active' => 1
+        ]);
 
         $connections = [];
         if($this->connections){

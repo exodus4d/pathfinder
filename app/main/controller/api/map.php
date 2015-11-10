@@ -175,6 +175,10 @@ class Map extends \Controller\AccessController {
                             isset($mapData['data']['systems']) &&
                             isset($mapData['data']['connections'])
                         ){
+                            if(isset($mapData['id'])){
+                                unset($mapData['id']);
+                            }
+
                             $map->setData($mapData['config']);
                             $map->typeId = (int)$importData['typeId'];
                             $map->save();
@@ -184,6 +188,9 @@ class Map extends \Controller\AccessController {
                             $tempSystemIdMapping = [];
 
                             foreach($mapData['data']['systems'] as $systemData){
+                                if(isset($systemData['id'])){
+                                    unset($systemData['id']);
+                                }
                                 $system->setData($systemData);
                                 $system->mapId = $map;
                                 $system->createdCharacterId = $activeCharacter->characterId;
@@ -200,6 +207,10 @@ class Map extends \Controller\AccessController {
                                     isset( $tempSystemIdMapping[$connectionData['source']] ) &&
                                     isset( $tempSystemIdMapping[$connectionData['target']] )
                                 ){
+                                    if(isset($connectionData['id'])){
+                                        unset($connectionData['id']);
+                                    }
+
                                     $connection->setData($connectionData);
                                     $connection->mapId = $map;
                                     $connection->source = $tempSystemIdMapping[$connectionData['source']];
@@ -502,10 +513,10 @@ class Map extends \Controller\AccessController {
                             foreach($systems as $i => $systemData){
 
                                 // check if current system belongs to the current map
-                                $map->filter('systems', array('id = ?', $systemData['id'] ));
+                                $map->filter('systems', ['id = ?', $systemData['id'] ]);
                                 $filteredMap = $map->find(
-                                    array('id = ?', $map->id ),
-                                    array('limit' => 1)
+                                    ['id = ?', $map->id ],
+                                    ['limit' => 1]
                                 );
 
                                 // this should never fail
@@ -531,10 +542,10 @@ class Map extends \Controller\AccessController {
                             foreach($connections as $i => $connectionData){
 
                                 // check if the current connection belongs to the current map
-                                $map->filter('connections', array('id = ?', $connectionData['id'] ));
+                                $map->filter('connections', ['id = ?', $connectionData['id'] ]);
                                 $filteredMap = $map->find(
-                                    array('id = ?', $map->id ),
-                                    array('limit' => 1)
+                                    ['id = ?', $map->id ],
+                                    ['limit' => 1]
                                 );
 
                                 // this should never fail
