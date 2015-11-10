@@ -143,15 +143,6 @@ class SystemModel extends BasicModel {
     }
 
     /**
-     * setter for id
-     * @param $id
-     */
-    public function set_id($id){
-        // map id should never been set automatically
-        // -> no return
-    }
-
-    /**
      * setter for system security value
      * @param $trueSec
      * @return float

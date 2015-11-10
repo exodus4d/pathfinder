@@ -167,15 +167,6 @@ class MapModel extends BasicModel {
     }
 
     /**
-     * setter for id
-     * @param $id
-     */
-    public function set_id($id){
-        // map id should never been set automatically
-        // -> no return
-    }
-
-    /**
      * search for a system by id
      * @param $systemId
      * @return null
