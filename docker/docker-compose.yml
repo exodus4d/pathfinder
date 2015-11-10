@@ -1,7 +1,7 @@
 eve-pathfinder:
   build: .
   ports:
-    - "8080:80"
+    - "80:80"
   links:
     - db:mysql
 db:

@@ -46,7 +46,7 @@ and running it. It will take a while the first time you run this.
 That's it! Your pathfinder application is up and running and can be accessed on a
 web browser. Just point to:
 
-	http::/<your_pc_ip>:8080
+	http::/<your_pc_ip>
 
 You can change the outbound port easily in `docker-compose.yml`
 
