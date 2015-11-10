@@ -175,7 +175,7 @@ class Controller {
         $data = (object) [];
         $data->trusted = false;
         $data->values = [];
-        $headerData = apache_request_headers();
+        $headerData = self::getRequestHeaders();
 
         foreach($headerData as $key => $value){
             $key = strtolower($key);
@@ -197,6 +197,24 @@ class Controller {
         }
 
         return $data;
+    }
+
+    /**
+     * Helper function to return all headers because
+     * getallheaders() is not available under nginx
+     *
+     * @return array (string $key -> string $value)
+     */
+    static function getRequestHeaders(){
+        $headers = '';
+        foreach ($_SERVER as $name => $value)
+        {
+            if (substr($name, 0, 5) == 'HTTP_')
+            {
+                $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+            }
+        }
+        return $headers;
     }
 
     /**
