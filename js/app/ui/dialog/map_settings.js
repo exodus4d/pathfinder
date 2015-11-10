@@ -390,7 +390,7 @@ define([
 
                             // onLoad for FileReader API
                             var readerOnLoad = function(readEvent) {
-                                console.log(readEvent)
+
                                 // get file content
                                 try{
                                     importData.mapData.push( JSON.parse( readEvent.target.result ) );
