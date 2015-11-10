@@ -206,14 +206,23 @@ class Controller {
      * @return array (string $key -> string $value)
      */
     static function getRequestHeaders(){
-        $headers = '';
-        foreach ($_SERVER as $name => $value)
-        {
-            if (substr($name, 0, 5) == 'HTTP_')
-            {
-                $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+        $headers = [];
+
+        if(function_exists('apache_request_headers') ){
+            // Apache Webserver
+            $headers = apache_request_headers();
+        }else{
+            // Other webserver, e.g. nginx
+            // Unfortunately this "fallback" does not work for me (Apache)
+            // Therefore we can´t use this for all servers
+            // https://github.com/exodus4d/pathfinder/issues/58
+            foreach($_SERVER as $name => $value){
+                if(substr($name, 0, 5) == 'HTTP_'){
+                    $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+                }
             }
         }
+
         return $headers;
     }
 
