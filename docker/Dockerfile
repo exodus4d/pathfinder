@@ -51,7 +51,7 @@ RUN sed -i -e "s@{MYSQL_PASS}@${MYSQL_PASS}@" app/pathfinder.ini
 RUN sed -i -e "s@{USER}@${USER}@" app/pathfinder.ini
 RUN npm install
 RUN npm install --global gulp
-RUN gulp ${ENVIRONMENT}
+RUN gulp ${ENVIRONMENT} --tag v0.0.15
 
 # Expose 80, create entrypoint
 EXPOSE 80
