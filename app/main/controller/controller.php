@@ -175,7 +175,7 @@ class Controller {
         $data = (object) [];
         $data->trusted = false;
         $data->values = [];
-        $headerData = apache_request_headers();
+        $headerData = self::getRequestHeaders();
 
         foreach($headerData as $key => $value){
             $key = strtolower($key);
@@ -197,6 +197,33 @@ class Controller {
         }
 
         return $data;
+    }
+
+    /**
+     * Helper function to return all headers because
+     * getallheaders() is not available under nginx
+     *
+     * @return array (string $key -> string $value)
+     */
+    static function getRequestHeaders(){
+        $headers = [];
+
+        if(function_exists('apache_request_headers') ){
+            // Apache Webserver
+            $headers = apache_request_headers();
+        }else{
+            // Other webserver, e.g. nginx
+            // Unfortunately this "fallback" does not work for me (Apache)
+            // Therefore we can´t use this for all servers
+            // https://github.com/exodus4d/pathfinder/issues/58
+            foreach($_SERVER as $name => $value){
+                if(substr($name, 0, 5) == 'HTTP_'){
+                    $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+                }
+            }
+        }
+
+        return $headers;
     }
 
     /**
@@ -282,8 +309,9 @@ class Controller {
     public function showError($f3){
 
         // set HTTP status
-        if(!empty($f3->get('ERROR.code'))){
-            $f3->status($f3->get('ERROR.code'));
+        $errorCode = $f3->get('ERROR.code');
+        if(!empty($errorCode)){
+            $f3->status($errorCode);
         }
 
         if($f3->get('AJAX')){
@@ -293,7 +321,7 @@ class Controller {
             $return = (object) [];
             $error = (object) [];
             $error->type = 'error';
-            $error->code = $f3->get('ERROR.code');
+            $error->code = $errorCode;
             $error->status = $f3->get('ERROR.status');
             $error->message = $f3->get('ERROR.text');
 
@@ -320,6 +348,14 @@ class Controller {
         }
 
         die();
+    }
+
+    /**
+     * Callback for framework "unload"
+     * -> config.ini
+     */
+    public function unload(){
+
     }
 
 } 

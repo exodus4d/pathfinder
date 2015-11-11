@@ -115,7 +115,6 @@ class BasicModel extends \DB\Cortex {
         }
     }
 
-
     /**
      * extent the fieldConf Array with static fields for each table
      */
@@ -128,7 +127,7 @@ class BasicModel extends \DB\Cortex {
                     'type' => Schema::DT_TIMESTAMP
                 ],
                 'updated' => [
-                    'type' => Schema::DT_TIMESTAMP
+                    'type' => Schema::DF_CURRENT_TIMESTAMP
                 ]
             ];
 

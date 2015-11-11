@@ -18,7 +18,38 @@ input, select{
     @include box-shadow(0 0 0 50px $gray-dark inset !important);
     -webkit-text-fill-color: $gray-lighter;
   }
+
+  // file input
+  &::-webkit-file-upload-button{
+    background-color: transparent;
+    border: none;
+    color: $gray-light;
+    outline: none;
+  }
 }
+
+// drag&drop zone
+.pf-form-dropzone{
+  border: 2px dashed $gray-darker;
+  height: 100px;
+  background-color: darken($gray, 3%);
+  text-align: center;
+  font-size: 20px;
+  line-height: 100px;
+  margin: 15px 0;
+  color: $gray-darker;
+  @include border-radius(10px);
+  @include transition( color 0.18s ease-out, border-color 0.18s ease-out);
+
+  &:hover{
+    color: $teal-lighter;
+    border-color: $teal-lighter;
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
+    cursor: grabbing;
+  }
+}
+
 
 // fix for bootstrap-toggle plugin
 .toggle{

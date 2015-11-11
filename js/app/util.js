@@ -202,7 +202,11 @@ define([
         return this.each(function(){
             var field = $(this);
 
-            field.val('');
+            if( !field.is('select') ){
+                // "input"
+                field.val('');
+            }
+
             field.parents('.form-group').removeClass('has-error has-success');
         });
     };
@@ -293,6 +297,12 @@ define([
             case 'info':
                 messageElement = formElement.find('.' + config.formInfoContainerClass);
                 break;
+            case 'all':
+                messageElement = formElement.find(
+                    '.' + config.formErrorContainerClass + ', ' +
+                    '.' + config.formWarningContainerClass + ', ' +
+                    '.' + config.formInfoContainerClass
+                );
         }
 
         if(messageElement){
@@ -1603,7 +1613,6 @@ define([
                 redirect(data.reroute, ['logout']);
             }
         }).fail(function( jqXHR, status, error) {
-
             var reason = status + ' ' + error;
             showNotify({title: jqXHR.status + ': logout', text: reason, type: 'error'});
         });

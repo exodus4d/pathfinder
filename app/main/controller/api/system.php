@@ -26,8 +26,8 @@ class System extends \Controller\AccessController {
                 SELECT
                     LOWER( system_effect.typeName )
                 FROM
-                    invtypes system_effect INNER JOIN
-                    mapdenormalize map_norm ON
+                    invTypes system_effect INNER JOIN
+                    mapDenormalize map_norm ON
                         map_norm.typeID = system_effect.typeID
                 WHERE
                     system_effect.groupID = 995 AND
@@ -39,16 +39,16 @@ class System extends \Controller\AccessController {
                 SELECT
                     map_worm_class.wormholeClassID  system_class
                 FROM
-                     maplocationwormholeclasses map_worm_class
+                     mapLocationWormholeClasses map_worm_class
                 WHERE
                     map_worm_class.locationID = map_sys.regionID
                 LIMIT 1
               ), 7) security
         FROM
-            mapsolarsystems map_sys INNER JOIN
-	        mapconstellations map_con ON
+            mapSolarSystems map_sys INNER JOIN
+	        mapConstellations map_con ON
 		      map_con.constellationID = map_sys.constellationID INNER JOIN
-	        mapregions map_reg ON
+	        mapRegions map_reg ON
 		      map_reg.regionID = map_sys.regionID";
 
     private $whereQuery = "";

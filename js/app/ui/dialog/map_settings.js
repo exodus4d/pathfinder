@@ -7,8 +7,9 @@ define([
     'app/init',
     'app/util',
     'app/render',
-    'bootbox'
-], function($, Init, Util, Render, bootbox) {
+    'bootbox',
+    'app/ccp'
+], function($, Init, Util, Render, bootbox, CCP) {
     'use strict';
 
     var config = {
@@ -17,11 +18,36 @@ define([
         dialogMapCreateContainerId: 'pf-map-dialog-create',                             // id for the "new map" container
         dialogMapEditContainerId: 'pf-map-dialog-edit',                                 // id for the "edit" container
         dialogMapSettingsContainerId: 'pf-map-dialog-settings',                         // id for the "settings" container
+        dialogMapDownloadContainerId: 'pf-map-dialog-download',                         // id for the "download" container
 
         userSelectId: 'pf-map-dialog-user-select',                                      // id for "user" select
         corporationSelectId: 'pf-map-dialog-corporation-select',                        // id for "corporation" select
-        allianceSelectId: 'pf-map-dialog-alliance-select'                               // id for "alliance" select
+        allianceSelectId: 'pf-map-dialog-alliance-select',                              // id for "alliance" select
 
+        dialogMapExportFormId: 'pf-map-dialog-form-export',                             // id for "export" form
+        dialogMapImportFormId: 'pf-map-dialog-form-import',                             // id for "import" form
+
+        buttonExportId: 'pf-map-dialog-button-export',                                  // id for "export" button
+        buttonImportId: 'pf-map-dialog-button-import',                                  // id for "import" button
+
+        fieldExportId: 'pf-map-filename-export',                                        // id for "export" filename field
+        fieldImportId: 'pf-map-filename-import',                                        // id for "import" filename field
+        dialogMapImportInfoId: 'pf-map-import-container',                               // id for "info" container
+        dragDropElementClass: 'pf-form-dropzone'                                        // class for "drag&drop" zone
+    };
+
+    /**
+     * format a given string into a valid filename
+     * @param filename
+     * @returns {string}
+     */
+    var formatFilename = function(filename){
+        filename = filename.replace(/[^a-zA-Z0-9]/g,'_');
+
+        var nowDate = new Date();
+        var filenameDate = nowDate.toISOString().slice(0,10).replace(/-/g, '_');
+
+        return  (filename + '_' + filenameDate).replace(/__/g,'_');
     };
 
     /**
@@ -46,15 +72,20 @@ define([
                 // if there are no maps -> hide settings tab
                 var hideSettingsTab = false;
                 var hideEditTab = false;
+                var hideDownloadTab = false;
 
                 if(mapData === false){
                     hideSettingsTab = true;
                     hideEditTab = true;
+                    hideDownloadTab = true;
                 }
+
+                // available map "types" for a new or existing map
+                var mapTypes = Util.getMapTypes(true);
 
                 var data = {
                     scope: Util.getMapScopes(),
-                    type: Util.getMapTypes(true),
+                    type: mapTypes,
                     icon: Util.getMapIcons(),
                     formErrorContainerClass: Util.config.formErrorContainerClass,
                     formWarningContainerClass: Util.config.formWarningContainerClass,
@@ -89,18 +120,29 @@ define([
                 // render main dialog -----------------------------------------------------
                 data = {
                     id: config.newMapDialogId,
+                    mapData: mapData,
+                    type: mapTypes,
+                    isInGameBrowser: CCP.isInGameBrowser(),
+
+                    // message container
+                    formErrorContainerClass: Util.config.formErrorContainerClass,
+                    formWarningContainerClass: Util.config.formWarningContainerClass,
+                    formInfoContainerClass: Util.config.formInfoContainerClass,
 
                     // default open tab ----------
                     openTabNew: options.tab === 'new',
                     openTabEdit: options.tab === 'edit',
                     openTabSettings: options.tab === 'settings',
+                    openTabDownload: options.tab === 'download',
 
                     dialogMapCreateContainerId: config.dialogMapCreateContainerId,
                     dialogMapEditContainerId: config.dialogMapEditContainerId,
                     dialogMapSettingsContainerId: config.dialogMapSettingsContainerId,
+                    dialogMapDownloadContainerId: config.dialogMapDownloadContainerId,
 
                     hideEditTab: hideEditTab,
                     hideSettingsTab: hideSettingsTab,
+                    hideDownloadTab: hideDownloadTab,
 
                     // settings tab --------------
                     userSelectId: config.userSelectId,
@@ -115,17 +157,28 @@ define([
                     // access limitations --------
                     maxUser: Init.maxSharedCount.user,
                     maxCorporation: Init.maxSharedCount.corporation,
-                    maxAlliance: Init.maxSharedCount.alliance
+                    maxAlliance: Init.maxSharedCount.alliance,
+
+                    // download tab --------------
+                    dialogMapExportFormId: config.dialogMapExportFormId,
+                    dialogMapImportFormId: config.dialogMapImportFormId,
+                    buttonExportId: config.buttonExportId,
+                    buttonImportId: config.buttonImportId,
+                    fieldExportId: config.fieldExportId,
+                    fieldImportId: config.fieldImportId,
+                    dialogMapImportInfoId: config.dialogMapImportInfoId,
+
+                    formatFilename: function(){
+                        // format filename from "map name" (initial)
+                        return function (mapName, render) {
+                            var filename = render(mapName);
+                            return formatFilename(filename);
+                        };
+                    }
                 };
 
                 var contentDialog = Mustache.render(templateMapDialog, data);
                 contentDialog = $(contentDialog);
-
-                // set mapId for "settings" tab
-                if(mapData !== false){
-                    contentDialog.find('input[name="id"]').val( mapData.config.id );
-                }
-
 
                 // set tab content
                 $('#' + config.dialogMapCreateContainerId, contentDialog).html(contentNewMap);
@@ -185,7 +238,7 @@ define([
 
                                         dialogContent.hideLoadingAnimation();
 
-                                        if(responseData.error.length > 0){
+                                        if(responseData.error.length){
                                             form.showFormMessage(responseData.error);
                                         }else{
                                             // success
@@ -216,15 +269,23 @@ define([
 
 
                 // after modal is shown =======================================================================
-                mapInfoDialog.on('shown.bs.modal', function(e) {
+                mapInfoDialog.on('shown.bs.modal', function(e){
 
                     mapInfoDialog.initTooltips();
+
+                    // prevent "disabled" tabs from being clicked... "bootstrap" bugFix...
+                    mapInfoDialog.find('.navbar a[data-toggle=tab]').on('click', function(e){
+                        if ($(this).hasClass('disabled')){
+                            e.preventDefault();
+                            return false;
+                        }
+                    });
 
                     // set form validator
                     mapInfoDialog.find('form').initFormValidation();
 
                     // events for tab change
-                    mapInfoDialog.find('.navbar a').on('shown.bs.tab', function (e) {
+                    mapInfoDialog.find('.navbar a').on('shown.bs.tab', function(e){
 
                         var selectElementUser = mapInfoDialog.find('#' + config.userSelectId);
                         var selectElementCorporation = mapInfoDialog.find('#' + config.corporationSelectId);
@@ -232,7 +293,6 @@ define([
 
                         if($(e.target).attr('href') === '#' + config.dialogMapSettingsContainerId){
                             // "settings" tab
-
                             initSettingsSelectFields(mapInfoDialog);
                         }else{
                             if( $(selectElementUser).data('select2') !== undefined ){
@@ -247,6 +307,13 @@ define([
                                 $(selectElementAlliance).select2('destroy');
                             }
                         }
+
+                        // no "save" dialog  button on "in/export" tab
+                        if($(e.target).attr('href') === '#' + config.dialogMapDownloadContainerId){
+                            mapInfoDialog.find('button.btn-success').hide();
+                        }else{
+                            mapInfoDialog.find('button.btn-success').show();
+                        }
                     });
 
                     // show form messages -------------------------------------
@@ -259,15 +326,221 @@ define([
                         // no map data found (probably new user
                         form.showFormMessage([{type: 'warning', message: 'No maps found. Create a new map before you can start'}]);
                     }
+
+                    // init select fields in case "settings" tab is open by default
+                    if(options.tab === 'settings'){
+                        initSettingsSelectFields(mapInfoDialog);
+                    }
+
+                    // init "download tab" ========================================================================
+                    var downloadTabElement = mapInfoDialog.find('#' + config.dialogMapDownloadContainerId);
+                    if(downloadTabElement.length){
+                        // tab exists
+
+                        // export map data ------------------------------------------------------------------------
+                        downloadTabElement.find('#' + config.buttonExportId).on('click', { mapData: mapData }, function(e){
+
+                            var exportForm = $('#' + config.dialogMapExportFormId);
+                            var validExportForm = exportForm.isValidForm();
+
+                            if(validExportForm){
+                                // set map data right before download
+                                $(this).setExportMapData(e.data.mapData);
+                            }else{
+                                e.preventDefault();
+                            }
+                        });
+
+                        // import map data ------------------------------------------------------------------------
+                        // check if "FileReader" API is supported
+                        var importFormElement = downloadTabElement.find('#' + config.dialogMapImportFormId);
+                        if(window.File && window.FileReader && window.FileList && window.Blob){
+
+                            // show file info in UI
+                            downloadTabElement.find('#' + config.fieldImportId).on('change', function(e){
+                                e.stopPropagation();
+                                e.preventDefault();
+
+                                var infoContainerElement = importFormElement.find('#' + config.dialogMapImportInfoId);
+                                infoContainerElement.hide().empty();
+                                importFormElement.hideFormMessage('all');
+
+                                var output = [];
+                                var files = e.target.files;
+
+                                for (var i = 0, f; !!(f = files[i]); i++) {
+                                    output.push(( i + 1 ) + '. file: ' + f.name + ' - ' +
+                                        f.size + ' bytes; last modified: ' +
+                                        f.lastModifiedDate.toLocaleDateString() );
+                                }
+
+                                if(output.length > 0){
+                                    infoContainerElement.html( output ).show();
+                                }
+
+                                importFormElement.validator('validate');
+                            });
+
+                            // drag&drop
+                            var importData = {};
+                            importData.mapData = [];
+                            var files = [];
+                            var filesCount = 0;
+                            var filesCountFail = 0;
+
+                            // onLoad for FileReader API
+                            var readerOnLoad = function(readEvent) {
+
+                                // get file content
+                                try{
+                                    importData.mapData.push( JSON.parse( readEvent.target.result ) );
+                                }catch(error){
+                                    filesCountFail++;
+                                    importFormElement.showFormMessage([{type: 'error', message: 'File can not be parsed'}]);
+                                }
+
+                                // start import when all files are parsed
+                                if(
+                                    filesCount === files.length &&
+                                    filesCountFail === 0
+                                ){
+                                    importMaps(importData);
+                                }
+                            };
+
+                            var handleDragOver = function(dragEvent) {
+                                dragEvent.stopPropagation();
+                                dragEvent.preventDefault();
+                                dragEvent.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
+                            };
+
+                            var handleFileSelect = function(evt){
+                                evt.stopPropagation();
+                                evt.preventDefault();
+
+                                importData = importFormElement.getFormValues();
+                                importData.mapData = [];
+                                filesCount = 0;
+                                filesCountFail = 0;
+
+                                files = evt.dataTransfer.files; // FileList object.
+
+                                for (var file; !!(file = files[filesCount]); filesCount++){
+                                    var reader = new FileReader();
+                                    reader.onload = readerOnLoad;
+                                    reader.readAsText(file);
+                                }
+                            };
+
+                            var dropZone = downloadTabElement.find('.' + config.dragDropElementClass);
+                            dropZone[0].addEventListener('dragover', handleDragOver, false);
+                            dropZone[0].addEventListener('drop', handleFileSelect, false);
+
+                            // import "button"
+                            downloadTabElement.find('#' + config.buttonImportId).on('click', function(e) {
+
+                                importFormElement.validator('validate');
+                                var validImportForm = importFormElement.isValidForm();
+
+                                if(validImportForm){
+                                    importData = importFormElement.getFormValues();
+                                    importData.mapData = [];
+
+                                    var fileElement = downloadTabElement.find('#' + config.fieldImportId);
+                                    files = fileElement[0].files;
+                                    filesCount = 0;
+                                    filesCountFail = 0;
+
+                                    for (var file; !!(file = files[filesCount]); filesCount++){
+                                        var reader = new FileReader();
+                                        reader.onload = readerOnLoad;
+                                        reader.readAsText(file);
+                                    }
+                                }
+                            });
+                        }else{
+                            importFormElement.showFormMessage([{type: 'error', message: 'The File APIs are not fully supported in this browser.'}]);
+                        }
+                    }
                 });
-
-                // init select fields in case "settings" tab is open by default
-                if(options.tab === 'settings'){
-                    initSettingsSelectFields(mapInfoDialog);
-                }
-
             });
         }
+    };
+
+    /**
+     * import new map(s) data
+     * @param importData
+     */
+    var importMaps = function(importData){
+
+        var importForm = $('#' + config.dialogMapImportFormId);
+        importForm.hideFormMessage('all');
+
+        // lock dialog
+        var dialogContent = importForm.parents('.modal-content');
+        dialogContent.showLoadingAnimation();
+
+        $.ajax({
+            type: 'POST',
+            url: Init.path.importMap,
+            data: importData,
+            dataType: 'json'
+        }).done(function(responseData){
+            if(responseData.error.length){
+                //   form.showFormMessage(responseData.error);
+                importForm.showFormMessage(responseData.error);
+            }else{
+                // success
+
+                Util.showNotify({title: 'Import finished', text: 'Map(s) imported', type: 'success'});
+            }
+        }).fail(function( jqXHR, status, error) {
+            var reason = status + ' ' + error;
+            Util.showNotify({title: jqXHR.status + ': importMap', text: reason, type: 'error'});
+        }).always(function() {
+            importForm.find('input, select').resetFormFields().trigger('change');
+            dialogContent.hideLoadingAnimation();
+        });
+    };
+
+    /**
+     * set json map data for export to an element (e.g. <a>-Tag or button) for download
+     * @param mapData
+     * @returns {*}
+     */
+    $.fn.setExportMapData = function(mapData){
+
+        var fieldExport = $('#' + config.fieldExportId);
+        var filename = '';
+        var mapDataEncoded = '';
+
+        if(fieldExport.length){
+            filename = fieldExport.val();
+
+            if(filename.length > 0){
+                // remove object properties that should not be included in export
+                // -> e.g. jsPlumb object,...
+                var allowedKeys = ['config', 'data'];
+
+                var replace = function(obj, keys) {
+                    var dup = {};
+                    for (var key in obj) {
+                        if (keys.indexOf(key) !== -1) {
+                            dup[key] = obj[key];
+                        }
+                    }
+                    return dup;
+                };
+
+                mapDataEncoded = 'text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify( replace(mapData, allowedKeys) ));
+            }
+        }
+
+        return this.each(function(){
+            var exportButton = $(this);
+            exportButton.attr('href', 'data:' + mapDataEncoded);
+            exportButton.attr('download', filename + '.json');
+        });
     };
 
 

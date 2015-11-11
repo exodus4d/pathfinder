@@ -63,9 +63,20 @@ class MapModel extends BasicModel {
 
         foreach((array)$data as $key => $value){
 
+            if($key == 'created'){
+                continue;
+            }
+
             if(!is_array($value)){
                 if($this->exists($key)){
                     $this->$key = $value;
+                }
+            }else{
+                // special array data
+                if($key == 'scope'){
+                    $this->scopeId = (int)$value['id'];
+                }elseif($key == 'type'){
+                    $this->typeId = (int)$value['id'];
                 }
             }
         }
@@ -161,12 +172,15 @@ class MapModel extends BasicModel {
      * @return null
      */
     public function getSystem($systemId){
-        $systems = $this->getSystems();
         $searchSystem = null;
-        foreach($systems as $system){
-            if($system->id == $systemId){
-                $searchSystem = $system;
-                break;
+
+        if($systemId > 0){
+            $systems = $this->getSystems();
+            foreach($systems as $system){
+                if($system->id == $systemId){
+                    $searchSystem = $system;
+                    break;
+                }
             }
         }
 
@@ -179,7 +193,11 @@ class MapModel extends BasicModel {
      */
     public function getSystems(){
         // orderBy x-Coordinate for cleaner frontend animation (left to right)
-        $this->filter('systems', ['active = ?', 1], ['order' => 'posX']);
+        $this->filter('systems',
+            ['active = :active AND id > 0',
+                ':active' => 1
+        ],
+            ['order' => 'posX']);
 
         $systems = [];
         if($this->systems){
@@ -210,7 +228,10 @@ class MapModel extends BasicModel {
      * @return array|mixed
      */
     public function getConnections(){
-        $this->filter('connections', ['active = ?', 1]);
+        $this->filter('connections', [
+            'active = :active AND source > 0 AND target > 0',
+            ':active' => 1
+        ]);
 
         $connections = [];
         if($this->connections){

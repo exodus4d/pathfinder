@@ -45,6 +45,10 @@ class SystemModel extends BasicModel {
 
         foreach((array)$systemData as $key => $value){
 
+            if($key == 'created'){
+                continue;
+            }
+
             if(!is_array($value)){
                 if($this->exists($key)){
                     $this->$key = $value;
