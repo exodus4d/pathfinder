@@ -175,8 +175,8 @@ class Map extends \Controller\AccessController {
                             isset($mapData['data']['systems']) &&
                             isset($mapData['data']['connections'])
                         ){
-                            if(isset($mapData['id'])){
-                                unset($mapData['id']);
+                            if(isset($mapData['config']['id'])){
+                                unset($mapData['config']['id']);
                             }
 
                             $map->setData($mapData['config']);
@@ -189,17 +189,20 @@ class Map extends \Controller\AccessController {
 
                             foreach($mapData['data']['systems'] as $systemData){
                                 if(isset($systemData['id'])){
+                                    $oldId = (int)$systemData['id'];
                                     unset($systemData['id']);
-                                }
-                                $system->setData($systemData);
-                                $system->mapId = $map;
-                                $system->createdCharacterId = $activeCharacter->characterId;
-                                $system->updatedCharacterId = $activeCharacter->characterId;
-                                $system->save();
 
-                                $tempSystemIdMapping[$systemData['id']] = $system->id;
-                                $system->reset();
+                                    $system->setData($systemData);
+                                    $system->mapId = $map;
+                                    $system->createdCharacterId = $activeCharacter->characterId;
+                                    $system->updatedCharacterId = $activeCharacter->characterId;
+                                    $system->save();
+
+                                    $tempSystemIdMapping[$oldId] = $system->id;
+                                    $system->reset();
+                                }
                             }
+
 
                             foreach($mapData['data']['connections'] as $connectionData){
                                 // check if source and target IDs match with new system ID
