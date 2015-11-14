@@ -54,7 +54,7 @@ define([
                     duration: animationInDuration,
                     complete: function(){
                         // set context menu "click" observer
-                        $(this).off('click').one('click', {component: component, position:{x: getLeftLocation(originalEvent), y: getTopLocation(originalEvent)}}, function (e) {
+                        $(this).off('click').one('click', {component: component, position:{x: originalEvent.offsetX, y: originalEvent.offsetY}}, function (e) {
                             // hide contextmenu
                             $(this).hide();
 
@@ -63,7 +63,6 @@ define([
                                 component: e.data.component,
                                 position: e.data.position
                             };
-
 
                             settings.menuSelected.call(this, params);
                         });
