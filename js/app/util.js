@@ -522,7 +522,6 @@ define([
                 };
 
                 requirejs(['text!templates/tooltip/character_info.html', 'mustache'], function(template, Mustache) {
-
                     var content = Mustache.render(template, data);
 
                     element.popover({
@@ -541,11 +540,44 @@ define([
                     // set new popover content
                     var popover = element.data('bs.popover');
                     popover.options.content = content;
-
                 });
 
             }
         }
+    };
+
+    /**
+     * add a wormhole tooltip with wh specific data to elements
+     * @param tooltipData
+     * @returns {*}
+     */
+    $.fn.addWormholeInfoTooltip = function(tooltipData){
+        return this.each(function() {
+            var element = $(this);
+
+            requirejs(['text!templates/tooltip/wormhole_info.html', 'mustache'], function (template, Mustache) {
+                var content = Mustache.render(template, tooltipData);
+
+                element.popover({
+                    placement: 'top',
+                    html: true,
+                    trigger: 'hover',
+                    content: '',
+                    container: 'body',
+                    title: tooltipData.name +
+                        '<span class="pull-right ' + tooltipData.class +'">' + tooltipData.security + '</span>',
+                    delay: {
+                        show: 250,
+                        hide: 0
+                    }
+                });
+
+                // set new popover content
+                var popover = element.data('bs.popover');
+                popover.options.content = content;
+            });
+
+        });
     };
 
     /**

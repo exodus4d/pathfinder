@@ -17,9 +17,9 @@ class UserModel extends BasicModel {
     protected $table = 'user';
 
     protected $fieldConf = [
-        'lastLogin' => array(
+        'lastLogin' => [
             'type' => Schema::DT_TIMESTAMP
-        ),
+        ],
         'apis' => [
             'has-many' => ['Model\UserApiModel', 'userId']
         ],

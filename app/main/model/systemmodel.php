@@ -307,8 +307,8 @@ class SystemModel extends BasicModel {
 
         // check if this system is a wormhole
         if($this->isWormhole()){
-            $systemStaticModel = self::getNew('SystemStaticModel');
-            $systemStatics = $systemStaticModel->find([
+            $systemWormholeModel = self::getNew('SystemWormholeModel');
+            $systemStatics = $systemWormholeModel->find([
                 'constellationId = :constellationId',
                 ':constellationId' => $this->constellationId
             ]);
