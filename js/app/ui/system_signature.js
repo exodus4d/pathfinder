@@ -171,15 +171,18 @@ define([
      * Updates a signature table, changes all signatures where name matches
      * add all new signatures as a row
      *
-     * @param signatureData
+     * @param signatureDataOrig
      * @param deleteOutdatedSignatures -> set to "true" if signatures should be deleted that are not included in "signatureData"
      */
-    $.fn.updateSignatureTable = function(signatureData, deleteOutdatedSignatures){
+    $.fn.updateSignatureTable = function(signatureDataOrig, deleteOutdatedSignatures){
 
         // check if table update is allowed
         if(disableTableUpdate === true){
             return;
         }
+
+        // clone signature array because of further manipulation
+        var signatureData = $.extend([], signatureDataOrig);
 
         // disable update until function is ready;
         disableTableUpdate = true;
@@ -241,20 +244,19 @@ define([
 
         // delete signatures ====================================================
         if(deleteOutdatedSignatures === true){
+
+            // callback function after row deleted
+            var toggleTableRowCallback = function(tempRowElement){
+                // hide open editable fields on the row before removing them
+                tempRowElement.find('.editable').editable('destroy');
+
+                // delete signature row
+                signatureTableApi.row(tempRowElement).remove().draw();
+            };
+
             for(var l = 0; l < tableData.length; l++){
-
                 var rowElement = signatureTableApi.row(tableData[l].index).nodes().to$();
-
-                rowElement.toggleTableRow(function(tempRowElement){
-
-                    // hide open editable fields on the row before removing them
-                    tempRowElement.find('.editable').editable('destroy');
-
-                    // delete signature row
-                    signatureTableApi.row(tempRowElement).remove().draw();
-                });
-
-
+                rowElement.toggleTableRow(toggleTableRowCallback);
                 notificationCounter.deleted++;
             }
         }
@@ -432,6 +434,14 @@ define([
                     }
                 }
             });
+
+            // dialog shown event
+            signatureReaderDialog.on('shown.bs.modal', function(e) {
+                // set focus on sig-input textarea
+                signatureReaderDialog.find('textarea').focus();
+            });
+
+
         });
     };
 
@@ -453,6 +463,9 @@ define([
             if(signatureData.length > 0){
                 // save signature data
 
+                // lock update function until request is finished
+                disableTableUpdate = true;
+
                 // lock copy during request (prevent spamming (ctrl + c )
                 disableCopyFromClipboard = true;
 
@@ -466,6 +479,8 @@ define([
                     data: requestData,
                     dataType: 'json'
                 }).done(function(responseData){
+                    disableTableUpdate = false;
+
                     // updates table with new/updated signature information
                     moduleElement.updateSignatureTable(responseData.signatures, false);
                 }).fail(function( jqXHR, status, error) {
@@ -473,6 +488,7 @@ define([
                     Util.showNotify({title: jqXHR.status + ': Update signatures', text: reason, type: 'warning'});
                     $(document).setProgramStatus('problem');
                 }).always(function() {
+                    disableTableUpdate = false;
                     disableCopyFromClipboard = false;
                 });
             }

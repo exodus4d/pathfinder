@@ -77,11 +77,15 @@ class Signature extends \Controller\AccessController{
             $user = $this->_getUser();
 
             if($user){
-                $activeCharacter = $user->getActiveUserCharacter();
+                $activeUserCharacter = $user->getActiveUserCharacter();
+                $activeCharacter = $activeUserCharacter->getCharacter();
                 $system = Model\BasicModel::getNew('SystemModel');
 
                 // update/add all submitted signatures
                 foreach($signatureData as $data){
+                    // this key should not be saved (it is an obj)
+                    unset($data['updated']);
+
                     $system->getById( (int)$data['systemId']);
 
                     if(!$system->dry()){
@@ -99,12 +103,11 @@ class Signature extends \Controller\AccessController{
                             $signature = Model\BasicModel::getNew('SystemSignatureModel');
                         }
 
-                        $signature->updatedCharacterId = $activeCharacter->getCharacter();
-
                         if($signature->dry()){
                             // new signature
                             $signature->systemId = $system;
-                            $signature->createdCharacterId = $activeCharacter->getCharacter();
+                            $signature->updatedCharacterId = $activeCharacter;
+                            $signature->createdCharacterId = $activeCharacter;
                             $signature->setData($data);
                         }else{
                             // update signature
@@ -126,10 +129,13 @@ class Signature extends \Controller\AccessController{
                             }else{
                                 // update complete signature (signature reader dialog)
 
+                                // systemId should not be updated
+                                unset( $data['systemId'] );
+
                                 // description should not be updated
                                 unset( $data['description'] );
 
-                                // wormhole typeID can´t figured out/saved by the sig reader dialog
+                                // wormhole typeID can not figured out/saved by the sig reader dialog
                                 if($data['groupId'] == 5){
                                     unset( $data['typeId'] );
                                 }
@@ -137,9 +143,12 @@ class Signature extends \Controller\AccessController{
                                 $newData = $data;
                             }
 
-                            $signature->setData($newData);
+                            if( $signature->hasChanged($newData) ){
+                                // Character should only be changed if something else has changed
+                                $signature->updatedCharacterId = $activeCharacter;
+                                $signature->setData($newData);
+                            }
                         }
-
 
                         $signature->save();
 

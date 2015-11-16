@@ -69,10 +69,31 @@ class SystemSignatureModel extends BasicModel {
                 'character' => $this->updatedCharacterId->getData(),
                 'updated' => strtotime($this->updated)
             ]
-
         ];
 
         return $signatureData;
+    }
+
+    /**
+     * compares a new data set (array) with the current values
+     * and checks if something has changed
+     * @param $signatureData
+     * @return bool
+     */
+    public function hasChanged($signatureData){
+        $hasChanged = false;
+
+        foreach((array)$signatureData as $key => $value){
+            if(
+                $this->exists($key) &&
+                $this->$key != $value
+            ){
+                $hasChanged = true;
+                break;
+            }
+        }
+
+        return $hasChanged;
     }
 
     /**
