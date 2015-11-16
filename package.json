@@ -1,8 +1,8 @@
 {
   "name": "pathfinder-eve",
   "version": "0.0.10",
-  "engines" : {
-    "node" : "4.0.x"
+  "engines": {
+    "node": "4.0.x"
   },
   "description": "Pathfinder is a system mapping tool for EVE ONLINE",
   "main": "index.php",
@@ -12,12 +12,12 @@
   "devDependencies": {
     "gulp": "^3.9.0",
     "gulp-clean": "^0.3.1",
-    "gulp-if": "^1.2.5",
+    "gulp-if": "^2.0.0",
     "gulp-jshint": "^1.11.2",
     "gulp-notify": "^2.2.0",
     "gulp-param": "^0.6.3",
     "gulp-plumber": "^1.0.1",
-    "jshint": "^2.8.0",
+    "jshint": "^2.9.1-rc1",
     "jshint-stylish": "^2.0.1",
     "run-sequence": "^1.1.2"
   },
@@ -39,7 +39,7 @@
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/exodus4d/pathfinder/issues",
-    "email" : "pathfinder@exodus4d.de"
+    "email": "pathfinder@exodus4d.de"
   },
   "homepage": "https://github.com/exodus4d/pathfinder#readme",
   "private": true
