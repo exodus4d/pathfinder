@@ -77,10 +77,11 @@ define([
 
 
         // login buttons ------------------------------------------------
-        $('.' + config.loginButtonClass).on('click', function(e){
+        var loginForm = $('#' + config.loginFormId);
+
+        loginForm.on('submit', function(e){
             e.preventDefault();
 
-            var loginForm = $('#' + config.loginFormId);
             var loginFormMessageContainer = $('#' + config.loginMessageContainerId);
 
             // validate form
@@ -144,7 +145,6 @@ define([
         };
 
         $('[title]').not('.slide img').tooltip(mapTooltipOptions);
-
     };
 
     /**
