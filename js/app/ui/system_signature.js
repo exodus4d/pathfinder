@@ -697,7 +697,7 @@ define([
 
                     var selectedRows = getSelectedRows(signatureTable);
 
-                    bootbox.confirm('Delete ' + selectedRows.length + ' signature?', function(result) {
+                    bootbox.confirm('Delete ' + selectedRows.data().length + ' signature?', function(result) {
                         if(result){
                             deleteSignatures(selectedRows);
                         }
@@ -1803,6 +1803,7 @@ define([
      */
     var getSelectedRows = function(table){
         var tableApi = table.api();
+
         var selectedRows = tableApi.rows('.selected');
 
         return selectedRows;
