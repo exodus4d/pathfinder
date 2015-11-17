@@ -68,6 +68,7 @@ class CcpSystemsMapper extends \RecursiveArrayIterator {
                 $iterator['security'] == 8 ||
                 $iterator['security'] == 9
             ){
+                // k-space system
                 $trueSec = round($iterator['trueSec'], 3);
 
                 if($trueSec <= 0){
@@ -82,8 +83,21 @@ class CcpSystemsMapper extends \RecursiveArrayIterator {
                         $security = 'H';
                     }
                 }
-            }else{
+            }elseif(
+                $iterator['security'] == 1 ||
+                $iterator['security'] == 2 ||
+                $iterator['security'] == 3 ||
+                $iterator['security'] == 4 ||
+                $iterator['security'] == 5 ||
+                $iterator['security'] == 6
+            ){
+                // standard wormhole system
                 $security = 'C' . $iterator['security'];
+            }elseif(
+                $iterator['security'] == 13
+            ){
+                // shattered wormhole system
+                $security = 'SH';
             }
 
             return $security;

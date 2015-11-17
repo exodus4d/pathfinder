@@ -1366,6 +1366,9 @@ define([
             case '0.0':
                 areaId = 12;
                 break;
+            case 'SH':
+                areaId = 13;
+                break;
             default:
                 // w-space
                 for(var i = 1; i <= 6; i++){

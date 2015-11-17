@@ -7,9 +7,8 @@ define([
     'app/init',
     'app/util',
     'app/render',
-    'config/signature_type',
     'bootbox'
-], function($, Init, Util, Render, SignatureType, bootbox) {
+], function($, Init, Util, Render, bootbox) {
     'use strict';
 
     var config = {

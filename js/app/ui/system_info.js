@@ -194,12 +194,20 @@ define([
 
         parentElement.prepend(moduleElement);
 
+        // shattered wormhole info data
+        var shatteredWormholeInfo = false;
 
         // add security class for statics
-        if(systemData.statics){
+        if(
+            systemData.statics &&
+            systemData.statics.length > 0
+        ){
             for(var i = 0; i < systemData.statics.length; i++){
                 systemData.statics[i].class = Util.getSecurityClassForSystem( systemData.statics[i].security );
             }
+        }else if(systemData.type.id === 1){
+            // system type "wormhole" but no statics => "shattered wormhole"
+            shatteredWormholeInfo = true;
         }
 
         var effectName = Util.getEffectInfoForSystem(systemData.effect, 'name');
@@ -413,6 +421,8 @@ define([
             moduleToolbarActionId: config.moduleToolbarActionId,
             descriptionTextareaClass: config.descriptionTextareaElementClass,
             descriptionTooltipClass: config.descriptionTextareaTooltipClass,
+
+            shatteredWormholeInfo: shatteredWormholeInfo,
 
             ajaxConstellationInfoUrl: Init.path.getConstellationData,
 
