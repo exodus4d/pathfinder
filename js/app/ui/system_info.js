@@ -28,6 +28,7 @@ define([
         systemInfoEffectInfoClass: 'pf-system-info-effect',                     // class for "effect" information element
         systemInfoStatusLabelClass: 'pf-system-info-status-label',              // class for "status" information element
         systemInfoStatusAttributeName: 'data-status',                           // attribute name for status label
+        systemInfoWormholeClass: 'pf-system-info-wormhole-',                    // class prefix for static wormhole element
 
         // description field
         descriptionArea: 'pf-system-info-description-area',                     // class for "description" area
@@ -55,6 +56,7 @@ define([
 
         });
     };
+
 
     /**
      * shows the tool action element by animation
@@ -191,6 +193,22 @@ define([
         moduleElement.data('id', systemData.id);
 
         parentElement.prepend(moduleElement);
+
+        // shattered wormhole info data
+        var shatteredWormholeInfo = false;
+
+        // add security class for statics
+        if(
+            systemData.statics &&
+            systemData.statics.length > 0
+        ){
+            for(var i = 0; i < systemData.statics.length; i++){
+                systemData.statics[i].class = Util.getSecurityClassForSystem( systemData.statics[i].security );
+            }
+        }else if(systemData.type.id === 1){
+            // system type "wormhole" but no statics => "shattered wormhole"
+            shatteredWormholeInfo = true;
+        }
 
         var effectName = Util.getEffectInfoForSystem(systemData.effect, 'name');
         var effectClass = Util.getEffectInfoForSystem(systemData.effect, 'class');
@@ -338,6 +356,15 @@ define([
                         });
                     }
 
+                    // init static wormhole information ----------------------------------------------------------
+                    if(systemData.statics){
+                        for(var i = 0; i < systemData.statics.length; i++){
+                            var staticData = systemData.statics[i];
+                            var staticRowElement = tempModuleElement.find('.' + config.systemInfoWormholeClass + staticData.name);
+                            staticRowElement.addWormholeInfoTooltip(staticData);
+                        }
+                    }
+
                     // constellation popover ---------------------------------------------------------------------
                     tempModuleElement.find('a.popup-ajax').popover({
                         html: true,
@@ -349,7 +376,6 @@ define([
                             return details_in_popup(this);
                         }
                     });
-
 
                     function details_in_popup(popoverElement){
                         popoverElement = $(popoverElement);
@@ -373,18 +399,12 @@ define([
             }
         };
 
-        // add security class for statics
-        if(systemData.statics){
-            for(var i = 0; i < systemData.statics.length; i++){
-                systemData.statics[i].class = Util.getSecurityClassForSystem( systemData.statics[i].security );
-            }
-        }
-
         var moduleData = {
             system: systemData,
             tableClass: config.systemInfoTableClass,
             nameInfoClass: config.systemInfoNameInfoClass,
             effectInfoClass: config.systemInfoEffectInfoClass,
+            wormholePrefixClass: config.systemInfoWormholeClass,
             statusInfoClass: config.systemInfoStatusLabelClass,
 
             systemTypeName: Util.getSystemTypeInfo(systemData.type.id, 'name'),
@@ -401,6 +421,8 @@ define([
             moduleToolbarActionId: config.moduleToolbarActionId,
             descriptionTextareaClass: config.descriptionTextareaElementClass,
             descriptionTooltipClass: config.descriptionTextareaTooltipClass,
+
+            shatteredWormholeInfo: shatteredWormholeInfo,
 
             ajaxConstellationInfoUrl: Init.path.getConstellationData,
 

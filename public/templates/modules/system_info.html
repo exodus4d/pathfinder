@@ -87,12 +87,22 @@
                 {{/effectName}}
                 {{#system.statics}}
                 <tr>
-                    <td></td>
+                    <td class="text-right pf-help {{wormholePrefixClass}}{{name}}">
+                        <i class="fa fa-fw fa-question-circle"></i>
+                    </td>
                     <td>Static</td>
                     <td class="text-right">{{name}}</td>
                     <td class="text-right {{class}}">{{security}}</td>
                 </tr>
                 {{/system.statics}}
+                {{#shatteredWormholeInfo}}
+                <tr>
+                    <td class="text-right pf-help"></td>
+                    <td>Shattered System</td>
+                    <td class="text-right pf-font-capitalize {{securityClass}}">Unknown statics</td>
+                    <td class="text-right"></td>
+                </tr>
+                {{/shatteredWormholeInfo}}
                 </tbody>
             </table>
         </div>

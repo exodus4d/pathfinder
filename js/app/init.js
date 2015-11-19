@@ -147,6 +147,9 @@ define(['jquery'], function($) {
                 security: {
                     class: 'pf-system-sec'
                 },
+                'SH': {
+                    class: 'pf-system-sec-unknown'
+                },
                 'H': {
                      class: 'pf-system-sec-highSec'
                 },
@@ -352,6 +355,16 @@ define(['jquery'], function($) {
                 1: 'E004 - C1',
                 2: 'Z006 - C3',
                 5: 'Q003 - 0.0'
+            },
+            13: {   // Shattered Wormholes (some of them are static)
+                1: 'E004 - C1',
+                2: 'L005 - C2',
+                3: 'Z006 - C3',
+                4: 'M001 - C4',
+                5: 'C008 - C5',
+                6: 'G008 - C6',
+                7: 'Q003 - C7'
+
             }
         },
         // incoming wormholes

@@ -254,6 +254,42 @@ define([], function() {
                 7: {    // Ghost
                     1: 'Superior Blood Raider Covert Research Facility' //*
                 }
+            },
+            13: {   // Shattered Wormholes
+                5: {    // Wormhole (some of them are static)
+                    1: 'P060 - C1',
+                    2: 'Z647 - C1',
+                    3: 'D382 - C2',
+                    4: 'L005 - C2',
+                    5: 'N766 - C2',
+                    6: 'C247 - C3',
+                    7: 'K346 - C3',
+                    8: 'M267 - C3',
+                    9: 'O477 - C3',
+                    10: 'X877 - C4',
+                    11: 'Y683 - C4',
+                    12: 'H296 - C5',
+                    13: 'H900 - C5',
+                    14: 'H296 - C5',
+                    15: 'N062 - C5',
+                    16: 'V911 - C5',
+                    17: 'U574 - C6',
+                    18: 'V753 - C6',
+                    19: 'W237 - C6',
+                    20: 'B274 - HS',
+                    21: 'D792 - HS',
+                    22: 'D845 - HS',
+                    23: 'N110 - HS',
+                    24: 'A239 - LS',
+                    25: 'C391 - LS',
+                    26: 'J244 - LS',
+                    27: 'U201 - LS',
+                    28: 'U210 - LS',
+                    29: 'C248 - NS',
+                    30: 'E545 - NS',
+                    31: 'K346 - NS',
+                    32: 'Z060 - NS'
+                }
             }
         }, // system type (k-space)
         2:  {

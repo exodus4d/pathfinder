@@ -2,9 +2,10 @@
 Mapping tool for [*EVE ONLINE*](https://www.eveonline.com)
 
 - Project [https://www.pathfinder.exodus4d.de](https://www.pathfinder.exodus4d.de)
-- Community [google +](https://plus.google.com/u/0/b/110257318165279088853/110257318165279088853)
+- Official Forum post [https://forums.eveonline.com](https://forums.eveonline.com/default.aspx?g=posts&m=6021776#post6021776)
 - Screenshots [imgur.com](http://imgur.com/a/k2aVa)
-- Media [youtube.com](https://www.youtube.com/channel/UC7HU7XEoMbqRwqxDTbMjSPg)
+- Video [youtube.com](https://www.youtube.com/channel/UC7HU7XEoMbqRwqxDTbMjSPg)
+- Community [google +](https://plus.google.com/u/0/b/110257318165279088853/110257318165279088853)
 - Licence [MIT](http://opensource.org/licenses/MIT)
 
 ##### IMPORTANT Information
@@ -23,10 +24,6 @@ If you are looking for installation help, please check the [wiki](https://github
       |-- cron.ini          --> config cronjobs
       |-- pathfinder.ini    --> config pathfinder
       |-- routes.ini        --> config routes
-  |-- (0755) build_js       --> JS build folder and source maps (minified, uglified)
-      |-- app               --> "PATHFINDER" core files
-      |-- lib               --> 3rd partie extension/library
-      |-- build.txt         --> generated build summary
   |-- (0755) js             --> JS source files (raw)
       |-- app               --> "PASTHFINDER" core files (not used for production )
       |-- lib               --> 3rd partie extension/library (not used for production )
@@ -39,7 +36,7 @@ If you are looking for installation help, please check the [wiki](https://github
       |-- css               --> CSS dist/build folder (minified)
       |-- fonts             --> (icon)-Fonts
       |-- img               --> images
-      |-- js                --> JS dist/build folder
+      |-- js                --> JS dist/build folder and source maps (minified, uglified)
       |-- templates         --> templates
   |-- sass                  --> SCSS source (not used for production )
       |-- ...
