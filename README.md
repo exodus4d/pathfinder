@@ -8,15 +8,20 @@ Mapping tool for [*EVE ONLINE*](https://www.eveonline.com)
 - Community [google +](https://plus.google.com/u/0/b/110257318165279088853/110257318165279088853)
 - Licence [MIT](http://opensource.org/licenses/MIT)
 
-##### IMPORTANT Information
-**This project is still in beta phase and is not officially released! Feel free to check the code for bugs and security issues. Issues should be reported in the [Issue](https://github.com/exodus4d/pathfinder/issues) section.**
+##### IMPORTANT Information:
+**The setup and installation process in ``v.0.0.17`` and is not backwards compatible with previous beta releases (check wiki)!**
 
-If you are looking for installation help, please check the [wiki](https://github.com/exodus4d/pathfinder/wiki) (DRAFT). More information will be added once the beta is over and the first stable build is released.
+**This project is still in beta phase and is not officially released!
+  Feel free to check the code for bugs and security issues.
+  Issues should be reported in the [Issue](https://github.com/exodus4d/pathfinder/issues) section.**
+
+If you are looking for installation help, please check the [wiki](https://github.com/exodus4d/pathfinder/wiki) (DRAFT).
+More information will be added once the beta is over and the first stable build is released.
 
 ## Project structure
 
 ```
-  |-- (0755) app              --> backend [*.php]
+  |-- (0755) app            --> backend [*.php]
       |-- app               --> "Fat Free Framework" extensions
       |-- lib               --> "Fat Free Framework"
       |-- main              --> "PATHFINDER" root
@@ -24,6 +29,9 @@ If you are looking for installation help, please check the [wiki](https://github
       |-- cron.ini          --> config cronjobs
       |-- pathfinder.ini    --> config pathfinder
       |-- routes.ini        --> config routes
+  |-- (0755) export         --> DB export data
+      |-- sql               --> static DB data for import (pathfinder.sql)
+  |-- (0755) favicon        --> Favicons
   |-- (0755) js             --> JS source files (raw)
       |-- app               --> "PASTHFINDER" core files (not used for production )
       |-- lib               --> 3rd partie extension/library (not used for production )
@@ -42,7 +50,7 @@ If you are looking for installation help, please check the [wiki](https://github
       |-- ...
   |-- (0777) tmp            --> cache folder
       |-- ...
-  |-- (0755) .htaccess      --> reroute/caching rules
+  |-- (0755) .htaccess      --> reroute/caching rules ("Apache" only!)
   |-- (0755) index.php
 
   --------------------------

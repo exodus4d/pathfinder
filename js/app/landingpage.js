@@ -460,7 +460,6 @@ define([
         var isLogOut = location.search.split('logout')[1];
         if(isLogOut !== undefined){
 
-            console.log(location.search);
             // show logout dialog
             var options = {
                 buttons: {
