@@ -16,9 +16,8 @@ class AppController extends Controller {
      * @param $f3
      */
     public function showLandingpage($f3) {
-
         // main page content
-        $f3->set('pageContent','templates/view/landingpage.html');
+        $f3->set('pageContent', $f3->get('PATHFINDER.VIEW.LANDINGPAGE'));
 
         // body element class
         $this->f3->set('bodyClass', 'pf-body pf-landing');
@@ -29,7 +28,7 @@ class AppController extends Controller {
         // JS main file
         $f3->set('jsView', 'landingpage');
 
-        $this->setTemplate('templates/view/index.html');
+        $this->setTemplate( $f3->get('PATHFINDER.VIEW.INDEX') );
     }
 
 } 

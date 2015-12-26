@@ -1,5 +1,10 @@
 .pf-icon{
   display: inline-block;
+
+  &.disabled{
+    opacity: 0.5;
+    color: $gray-light;
+  }
 }
 
 .pf-icon-dotlan{

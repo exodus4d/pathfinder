@@ -73,6 +73,7 @@ gulp.task('requirejs', ['jshint'], function() {
  * http://jshint.com/docs/options/
  */
 gulp.task('jshint', function(){
+
     return gulp.src([
         _src.JS_SRC,
         '!' + _src.JS_LIBS
@@ -153,18 +154,7 @@ gulp.task('watch', function(tag) {
         _src.JS_SRC,
         '!' + _src.JS_LIBS,
     ], ['jshint', 'copyBuildFiles']);
-
-
 });
-
-/**
- * clear all backend (fat free framework) cache files
- */
-gulp.task('clearCache', function() {
-    'use strict';
-    return gulp.src( _src.CACHE ).pipe( clean() );
-});
-
 
 /*******************************************/
 // Default Tasks
@@ -203,4 +193,12 @@ gulp.task('default', function(tag) {
         'copyBuildFiles',
         'watch'
     );
+});
+
+/**
+ * clear all backend (fat free framework) cache files
+ */
+gulp.task('clearCache', function() {
+    'use strict';
+    return gulp.src( _src.CACHE ).pipe( clean() );
 });

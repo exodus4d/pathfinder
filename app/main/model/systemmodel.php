@@ -8,6 +8,7 @@
 
 namespace Model;
 
+use DB\SQL\Schema;
 
 class SystemModel extends BasicModel {
 
@@ -17,24 +18,144 @@ class SystemModel extends BasicModel {
     protected $table = 'system';
 
     protected $fieldConf = [
+        'active' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => true,
+            'index' => true
+        ],
         'mapId' => [
-            'belongs-to-one' => 'Model\MapModel'
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'belongs-to-one' => 'Model\MapModel',
+            'constraint' => [
+                [
+                    'table' => 'map',
+                    'on-delete' => 'CASCADE'
+                ]
+            ]
+        ],
+        'systemId' => [
+            'type' => Schema::DT_INT,
+            'index' => true,
+        ],
+        'name' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
+        ],
+        'alias' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
+        ],
+        'regionId' => [
+            'type' => Schema::DT_INT,
+            'index' => true,
+        ],
+        'region' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
+        ],
+        'constellationId' => [
+            'type' => Schema::DT_INT,
+            'index' => true,
+        ],
+        'constellation' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
+        ],
+        'effect' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
         ],
         'typeId' => [
-            'belongs-to-one' => 'Model\SystemTypeModel'
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'belongs-to-one' => 'Model\SystemTypeModel',
+            'constraint' => [
+                [
+                    'table' => 'system_type',
+                    'on-delete' => 'CASCADE'
+                ]
+            ]
+        ],
+        'security' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
+        ],
+        'trueSec' => [
+            'type' => Schema::DT_FLOAT,
+            'nullable' => false,
+            'default' => 1
         ],
         'statusId' => [
-            'belongs-to-one' => 'Model\SystemStatusModel'
+            'type' => Schema::DT_INT,
+            'nullable' => false,
+            'default' => 1,
+            'index' => true,
+            'belongs-to-one' => 'Model\SystemStatusModel',
+            'constraint' => [
+                [
+                    'table' => 'system_status',
+                    'on-delete' => 'CASCADE'
+                ]
+            ]
+        ],
+        'locked' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => 0
+        ],
+        'rally' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => 0
+        ],
+        'description' => [
+            'type' => Schema::DT_VARCHAR512,
+            'nullable' => false,
+            'default' => ''
+        ],
+        'posX' => [
+            'type' => Schema::DT_INT,
+            'nullable' => false,
+            'default' => 0
+        ],
+        'posY' => [
+            'type' => Schema::DT_INT,
+            'nullable' => false,
+            'default' => 0
         ],
         'createdCharacterId' => [
-            'belongs-to-one' => 'Model\CharacterModel'
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'belongs-to-one' => 'Model\CharacterModel',
+            'constraint' => [
+                [
+                    'table' => 'character',
+                    'on-delete' => 'CASCADE'
+                ]
+            ]
         ],
         'updatedCharacterId' => [
-            'belongs-to-one' => 'Model\CharacterModel'
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'belongs-to-one' => 'Model\CharacterModel',
+            'constraint' => [
+                [
+                    'table' => 'character',
+                    'on-delete' => 'CASCADE'
+                ]
+            ]
         ],
         'signatures' => [
             'has-many' => ['Model\SystemSignatureModel', 'systemId']
-        ],
+        ]
     ];
 
     /**
@@ -331,6 +452,23 @@ class SystemModel extends BasicModel {
 
         // clear map cache as well
         $this->mapId->clearCacheData();
+    }
+
+    /**
+     * overwrites parent
+     * @param null $db
+     * @param null $table
+     * @param null $fields
+     * @return bool
+     */
+    public static function setup($db=null, $table=null, $fields=null){
+        $status = parent::setup($db,$table,$fields);
+
+        if($status === true){
+            $status = parent::setMultiColumnIndex(['mapId', 'systemId'], true);
+        }
+
+        return $status;
     }
 
 } 

@@ -225,20 +225,17 @@ define([
                                 currentActiveLink.addClass('btn-primary');
 
                                 currentActiveTab.next('li').find('a').tab('show');
-
                             };
 
                             // validate form
                             form.validator('validate');
                             var formValid = form.isValidForm();
 
-
                             if(!formValid){
                                 currentActiveTab.removeClass('disabled');
                                 currentActiveLink.removeClass('btn-default btn-primary');
                                 currentActiveLink.addClass('btn-danger');
                             }else{
-
                                 var tabFormValues = form.getFormValues();
 
                                 if(! $.isEmptyObject(tabFormValues) ){
@@ -299,7 +296,7 @@ define([
                                         selectCharacterDialog.find('.modal-content').hideLoadingAnimation();
 
                                         var reason = status + ' ' + error;
-                                        Util.showNotify({title: jqXHR.status + ': saveConfig', text: reason, type: 'error'});
+                                        Util.showNotify({title: jqXHR.status + ': saveAccount', text: reason, type: 'error'});
 
                                         // set new captcha for any request
                                         // captcha is required for sensitive data (not for all)

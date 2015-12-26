@@ -11,10 +11,6 @@ use Model;
 
 class AccessController extends Controller {
 
-    function __construct() {
-        parent::__construct();
-    }
-
     /**
      * event handler
      * @param $f3

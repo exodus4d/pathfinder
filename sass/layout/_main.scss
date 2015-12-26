@@ -196,6 +196,20 @@ select:active, select:hover {
 }
 
 // table styles =====================================================
+table{
+  tr{
+    &.collapsing{
+      @include transition( height .01s ease );
+    }
+
+    &.collapse{
+      &.in{
+        display: table-row !important;
+      }
+    }
+  }
+}
+
 
 // table icon toolbar
 .pf-table-tools{
@@ -265,7 +279,6 @@ select:active, select:hover {
     opacity: 0;
     will-change: opacity, top;
     @include transition( top 0.15s ease-out, opacity 0.15s ease-out );
-
   }
 
 }

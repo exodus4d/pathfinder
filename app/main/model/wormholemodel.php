@@ -8,9 +8,53 @@
 
 namespace Model;
 
+use DB\SQL\Schema;
+
 class WormholeModel extends BasicModel {
 
     protected $table = 'wormhole';
+
+    protected $fieldConf = [
+        'name' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => '',
+            'index' => true,
+            'unique' => true
+        ],
+        'security' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
+        ],
+        'massTotal' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
+        ],
+        'massIndividual' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
+        ],
+        'massRegeneration' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
+        ],
+        'maxStableTime' => [
+            'type' => Schema::DT_INT,
+            'nullable' => false,
+            'default' => 1,
+            'index' => true,
+        ]
+    ];
+
+    /**
+     * No static columns added
+     * @var bool
+     */
+    protected $addStaticFields = false;
 
     /**
      * format mass values
@@ -57,4 +101,5 @@ class WormholeModel extends BasicModel {
 
         return $systemStaticData;
     }
+
 }

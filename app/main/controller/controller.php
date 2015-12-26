@@ -15,14 +15,6 @@ class Controller {
     protected $f3;
     private $template;
 
-    function __construct(){
-
-        $this->f3 = \Base::instance();
-
-        // initiate DB connection
-        DB\Database::instance('PF');
-    }
-
     /**
      * @param mixed $template
      */
@@ -37,6 +29,20 @@ class Controller {
         return $this->template;
     }
 
+    /**
+     * set global f3 instance
+     * @param null $f3
+     * @return null|static
+     */
+    protected function getF3($f3 = null){
+        if(is_object($f3)){
+            $this->f3 = $f3;
+        }else{
+            $this->f3 = \Base::instance();
+        }
+
+        return $this->f3;
+    }
 
     /**
      * event handler for all "views"
@@ -44,6 +50,11 @@ class Controller {
      * @param $f3
      */
     function beforeroute($f3) {
+
+        $this->getF3($f3);
+
+        // initiate DB connection
+        DB\Database::instance('PF');
 
         // init user session
         $this->initSession();
@@ -56,12 +67,12 @@ class Controller {
     }
 
     /**
-     * event handler
+     * event handler after routing
+     * -> render view
      */
-    function afterroute() {
+    public function afterroute($f3) {
         if($this->template){
             echo \Template::instance()->render( $this->template );
-
         }
     }
 
@@ -95,7 +106,7 @@ class Controller {
             $userId = (int)$this->f3->get('SESSION.user.id');
 
             if($userId > 0){
-                $userModel = Model\BasicModel::getNew('UserModel');
+                $userModel = Model\BasicModel::getNew('UserModel', $ttl);
                 $userModel->getById($userId, $ttl);
 
                 if( !$userModel->dry() ){
@@ -120,9 +131,17 @@ class Controller {
             // redirect to landing page
             $f3->reroute('@landing');
         }else{
+            $params = $f3->get('POST');
             $return = (object) [];
-            $return->reroute = self::getEnvironmentData('URL') . $f3->alias('landing');
-            $return->error[] = $this->getUserLoggedOffError();
+            if(
+                isset($params['reroute']) &&
+                (bool)$params['reroute']
+            ){
+                $return->reroute = self::getEnvironmentData('URL') . $f3->alias('landing');
+            }else{
+                // no reroute -> errors can be shown
+                $return->error[] = $this->getUserLoggedOffError();
+            }
 
             echo json_encode($return);
             die();
@@ -242,7 +261,6 @@ class Controller {
         return $isIGB;
     }
 
-
     /**
      * get error object is a user is not found/logged of
      * @return object
@@ -290,8 +308,8 @@ class Controller {
      */
     static function getEnvironmentData($key){
         $f3 = \Base::instance();
-        $environment = $f3->get('PATHFINDER.ENVIRONMENT.SERVER');
-        $environmentKey = 'PATHFINDER.ENVIRONMENT[' . $environment . '][' . $key . ']';
+        $environment = self::getEnvironment();
+        $environmentKey = 'ENVIRONMENT[' . $environment . '][' . $key . ']';
         $data = null;
 
         if( $f3->exists($environmentKey) ){
@@ -301,61 +319,80 @@ class Controller {
         return $data;
     }
 
+    /**
+     * get current server environment status
+     * -> "DEVELOP" or "PRODUCTION"
+     * @return mixed
+     */
+    static function getEnvironment(){
+        $f3 = \Base::instance();
+        return $f3->get('ENVIRONMENT.SERVER');
+    }
 
     /**
-     * function is called on each error
+     * check if current server is "PRODUCTION"
+     * @return bool
+     */
+    static function isProduction(){
+        return self::getEnvironment() == 'PRODUCTION';
+    }
+
+    /**
+     * onError() callback function
      * @param $f3
      */
     public function showError($f3){
-
         // set HTTP status
         $errorCode = $f3->get('ERROR.code');
         if(!empty($errorCode)){
             $f3->status($errorCode);
         }
 
-        if($f3->get('AJAX')){
-            // error on ajax call
-            header('Content-type: application/json');
+        // collect error info ---------------------------------------
+        $return = (object) [];
+        $error = (object) [];
+        $error->type = 'error';
+        $error->code = $errorCode;
+        $error->status = $f3->get('ERROR.status');
+        $error->message = $f3->get('ERROR.text');
 
-            $return = (object) [];
-            $error = (object) [];
-            $error->type = 'error';
-            $error->code = $errorCode;
-            $error->status = $f3->get('ERROR.status');
-            $error->message = $f3->get('ERROR.text');
-
-            // append stack trace for greater debug level
-            if( $f3->get('DEBUG') === 3){
-                $error->trace = $f3->get('ERROR.trace');
-            }
-
-            // check if error is a PDO Exception
-            if(strpos(strtolower( $f3->get('ERROR.text') ), 'duplicate') !== false){
-                preg_match_all('/\'([^\']+)\'/', $f3->get('ERROR.text'), $matches, PREG_SET_ORDER);
-
-                if(count($matches) === 2){
-                    $error->field = $matches[1][1];
-                    $error->message = 'Value "' . $matches[0][1] . '" already exists';
-                }
-            }
-
-            $return->error[] = $error;
-
-            echo json_encode($return);
-        }else{
-            echo $f3->get('ERROR.text');
+        // append stack trace for greater debug level
+        if( $f3->get('DEBUG') === 3){
+            $error->trace = $f3->get('ERROR.trace');
         }
 
-        die();
+        // check if error is a PDO Exception
+        if(strpos(strtolower( $f3->get('ERROR.text') ), 'duplicate') !== false){
+            preg_match_all('/\'([^\']+)\'/', $f3->get('ERROR.text'), $matches, PREG_SET_ORDER);
+
+            if(count($matches) === 2){
+                $error->field = $matches[1][1];
+                $error->message = 'Value "' . $matches[0][1] . '" already exists';
+            }
+        }
+        $return->error[] = $error;
+
+        // return error information ---------------------------------
+        if($f3->get('AJAX')){
+            header('Content-type: application/json');
+            echo json_encode($return);
+        }else{
+            // render error in template
+            $f3->set('errorData', [$error]);
+
+            // show Errors in Dev environment
+            if( !self::isProduction() ){
+                var_dump($error);
+            }
+        }
     }
 
     /**
      * Callback for framework "unload"
      * -> config.ini
      */
-    public function unload(){
-
+    public function unload($f3){
+        return true;
     }
 
 } 

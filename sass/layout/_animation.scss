@@ -90,3 +90,12 @@
   }
   100% {}
 };
+
+// rotate =============================================
+.pf-animate-rotate{
+  @include transition( all 0.08s linear );
+}
+
+.pf-animate-rotate.right{
+  @include rotate( 90deg );
+}

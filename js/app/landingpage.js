@@ -22,8 +22,9 @@ define([
     'use strict';
 
     var config = {
-        // header
         splashOverlayClass: 'pf-splash',                                        // class for "splash" overlay
+
+        // header
         headerContainerId: 'pf-header-container',                               // id for header container
         logoContainerId: 'pf-logo-container',                                   // id for main header logo container
         headHeaderMapId: 'pf-header-map',                                       // id for header image (svg animation)
@@ -66,7 +67,11 @@ define([
             e.preventDefault();
 
             // logout current user (if there e.g. to register a second account)
-            Util.logout();
+            Util.logout({
+                ajaxData: {
+                    reroute: 0
+                }
+            });
 
             // show register/settings dialog
             $.fn.showSettingsDialog({
@@ -444,7 +449,7 @@ define([
     };
 
     /**
-     * main init landing page
+     * main init "landing" page
      */
     $(function(){
 
@@ -454,6 +459,8 @@ define([
         // show log off message
         var isLogOut = location.search.split('logout')[1];
         if(isLogOut !== undefined){
+
+            console.log(location.search);
             // show logout dialog
             var options = {
                 buttons: {

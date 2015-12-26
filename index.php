@@ -8,6 +8,9 @@ $f3->config('app/config.ini');
 // load route config
 $f3->config('app/routes.ini');
 
+// load environment config
+$f3->config('app/environment.ini');
+
 // load pathfinder config
 $f3->config('app/pathfinder.ini');
 

@@ -7,6 +7,10 @@
 // splash loading animation ============================================================================
 
 .pf-color-line{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
   height: 3px;
   @include background-image(linear-gradient(to right, $green-light, $green-light 100%));
 }
@@ -23,10 +27,13 @@
   will-change: opacity;
 
   .pf-splash-title{
+    position: fixed;
+    left: 50%;
+    top: 30%;
     text-align: center;
     max-width: 500px;
-    margin: 15% auto;
     padding: 20px;
+    @include transform( translate(-50%, -50%) );
   }
 }
 
@@ -433,6 +440,11 @@
     padding: 20px 15px;
     min-height: 205px;
     line-height: 22px;
+  }
+
+  // table
+  table tr td {
+    line-height: 1;
   }
 }
 

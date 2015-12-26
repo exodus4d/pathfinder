@@ -8,14 +8,53 @@
 
 namespace Model;
 
+use DB\SQL\Schema;
 
 class CharacterLogModel extends BasicModel {
 
     protected $table = 'character_log';
 
     protected $fieldConf = [
+        'active' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => true,
+            'index' => true
+        ],
         'characterId' => [
-            'belongs-to-one' => 'Model\CharacterModel'
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'unique' => true,
+            'belongs-to-one' => 'Model\CharacterModel',
+            'constraint' => [
+                [
+                    'table' => 'character',
+                    'on-delete' => 'CASCADE'
+                ]
+            ]
+        ],
+        'systemId' => [
+            'type' => Schema::DT_INT,
+            'index' => true
+        ],
+        'systemName' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
+        ],
+        'shipId' => [
+            'type' => Schema::DT_INT,
+            'index' => true
+        ],
+        'shipName' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
+        ],
+        'shipTypeName' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
         ]
     ];
 

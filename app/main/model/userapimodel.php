@@ -7,6 +7,8 @@
  */
 
 namespace Model;
+
+use DB\SQL\Schema;
 use Controller;
 
 class UserApiModel extends BasicModel {
@@ -14,12 +16,36 @@ class UserApiModel extends BasicModel {
     protected $table = 'user_api';
 
     protected $fieldConf = [
+        'active' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => true,
+            'index' => true
+        ],
         'userId' => [
-            'belongs-to-one' => 'Model\UserModel'
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'belongs-to-one' => 'Model\UserModel',
+            'constraint' => [
+                [
+                    'table' => 'user',
+                    'on-delete' => 'CASCADE'
+                ]
+            ]
+        ],
+        'keyId' => [
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'unique' => true
+        ],
+        'vCode' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => '',
         ],
         'userCharacters' => [
             'has-many' => ['Model\UserCharacterModel', 'apiId']
-        ]
+        ],
     ];
 
     /**

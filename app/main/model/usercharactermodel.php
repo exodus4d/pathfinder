@@ -8,20 +8,57 @@
 
 namespace Model;
 
+use DB\SQL\Schema;
 
 class UserCharacterModel extends BasicModel {
 
     protected $table = 'user_character';
 
     protected $fieldConf = [
+        'active' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => true,
+            'index' => true
+        ],
         'userId' => [
-            'belongs-to-one' => 'Model\UserModel'
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'belongs-to-one' => 'Model\UserModel',
+            'constraint' => [
+                [
+                    'table' => 'user',
+                    'on-delete' => 'CASCADE'
+                ]
+            ]
         ],
         'apiId' => [
-            'belongs-to-one' => 'Model\UserApiModel'
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'belongs-to-one' => 'Model\UserApiModel',
+            'constraint' => [
+                [
+                    'table' => 'user_api',
+                    'on-delete' => 'CASCADE'
+                ]
+            ]
         ],
         'characterId' => [
-            'belongs-to-one' => 'Model\CharacterModel'
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'belongs-to-one' => 'Model\CharacterModel',
+            'constraint' => [
+                [
+                    'table' => 'character',
+                    'on-delete' => 'CASCADE'
+                ]
+            ]
+        ],
+        'isMain' => [
+            'type' => Schema::DT_BOOLEAN,
+            'nullable' => false,
+            'default' => false,
+            'index' => true
         ]
     ];
 
@@ -96,6 +133,26 @@ class UserCharacterModel extends BasicModel {
      */
     public function getCharacter(){
         return $this->characterId;
+    }
+
+    /**
+     * overwrites parent
+     * @param null $db
+     * @param null $table
+     * @param null $fields
+     * @return bool
+     */
+    public static function setup($db=null, $table=null, $fields=null){
+        $status = parent::setup($db,$table,$fields);
+
+        if($status === true){
+            $status = parent::setMultiColumnIndex(['userId', 'apiId', 'characterId'], true);
+            if($status === true){
+                $status = parent::setMultiColumnIndex(['userId', 'apiId']);
+            }
+        }
+
+        return $status;
     }
 
 } 

@@ -51,15 +51,17 @@ class Database extends \Prefab {
         ){
             $db = $this->connect($dns, $name, $user, $password);
 
-            // set DB timezone to UTC +00:00 (eve server time)
-            $db->exec('SET @@session.time_zone = "+00:00";');
+            if( !is_null($db) ){
+                // set DB timezone to UTC +00:00 (eve server time)
+                $db->exec('SET @@session.time_zone = "+00:00";');
 
-            // disable innoDB schema (relevant vor MySql 5.5)
-            // not necessary for MySql > v.5.6
-            // $db->exec('SET GLOBAL innodb_stats_on_metadata = OFF;');
+                // disable innoDB schema (relevant vor MySql 5.5)
+                // not necessary for MySql > v.5.6
+                // $db->exec('SET GLOBAL innodb_stats_on_metadata = OFF;');
 
-            // store DB object
-            $f3->set($dbHiveKey, $db);
+                // store DB object
+                $f3->set($dbHiveKey, $db);
+            }
 
             return $db;
         }else{
@@ -104,6 +106,8 @@ class Database extends \Prefab {
      */
     protected function connect($dns, $name, $user, $password){
 
+        $db = null;
+
         try {
             $db = new SQL(
                 $dns . $name,
@@ -115,6 +119,7 @@ class Database extends \Prefab {
             );
         }catch(\PDOException $e){
             // DB connection error
+            // -> log it
             LogController::getLogger('error')->write($e->getMessage());
         }
 

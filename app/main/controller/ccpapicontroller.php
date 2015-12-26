@@ -24,9 +24,9 @@ class CcpApiController extends Controller{
     protected function getUserAgent(){
         $userAgent = '';
 
-        $userAgent .= $this->f3->get('PATHFINDER.NAME');
-        $userAgent .=  ' - ' . $this->f3->get('PATHFINDER.VERSION');
-        $userAgent .=  ' | ' . $this->f3->get('PATHFINDER.CONTACT');
+        $userAgent .= $this->getF3()->get('PATHFINDER.NAME');
+        $userAgent .=  ' - ' . $this->getF3()->get('PATHFINDER.VERSION');
+        $userAgent .=  ' | ' . $this->getF3()->get('PATHFINDER.CONTACT');
         $userAgent .=  ' (' . $_SERVER['SERVER_NAME'] . ')';
 
         return $userAgent;
@@ -55,7 +55,7 @@ class CcpApiController extends Controller{
      */
     public function requestCharacters($keyID, $vCode){
 
-        $apiPath = $this->f3->get('PATHFINDER.API.CCP_XML') . '/account/APIKeyInfo.xml.aspx';
+        $apiPath = $this->getF3()->get('PATHFINDER.API.CCP_XML') . '/account/APIKeyInfo.xml.aspx';
 
         $xml = false;
 

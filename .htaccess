@@ -11,10 +11,13 @@ RewriteCond %{HTTP_HOST} !=localhost
 # the subsequent rule will catch it.
 RewriteRule .* https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# Now, rewrite any request to the wrong domain to use www.
+# Now, rewrite any request to the wrong domain to force www.
 RewriteCond %{HTTP_HOST} !^www\.
+# skip "localhost" (dev environment)...
 RewriteCond %{HTTP_HOST} !=localhost
+# skip IP calls (dev environment)
 RewriteCond %{HTTP_HOST} !^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$
+# rewrite everything else to "https://" and "www."
 RewriteRule .* https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 

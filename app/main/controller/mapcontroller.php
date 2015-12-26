@@ -10,11 +10,6 @@ namespace Controller;
 
 class MapController extends \Controller\AccessController {
 
-    function __construct() {
-        parent::__construct();
-    }
-
-
     public function showMap($f3) {
 
         $f3->set('pageContent', false);
@@ -28,7 +23,7 @@ class MapController extends \Controller\AccessController {
         // JS main file
         $this->f3->set('jsView', 'mappage');
 
-         $this->setTemplate('templates/view/index.html');
+         $this->setTemplate( $f3->get('PATHFINDER.VIEW.INDEX') );
     }
 
 } 

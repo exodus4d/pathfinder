@@ -5,16 +5,7 @@
 </check>
 
 {* splash page *}
-<div class="pf-splash">
-    <div class="pf-color-line"></div>
-    <div class="pf-splash-title">
-        <h1>PATHFINDER - System Mapping Tool</h1>
-        <p>
-            <em class="pf-brand">pathfinder</em> is an open source mapping tool for <em class="pf-brand"><a href="http://www.eveonline.com/" target="_blank">EVE ONLINE</a></em>.
-        </p>
-        <img src="public/img/loading-bars.svg" width="48" height="48">
-    </div>
-</div>
+<include href="templates/ui/splash.html"/>
 
 <nav id="pf-navbar" class="navbar navbar-default navbar-fixed-top pf-head">
     <div class="container">
@@ -113,6 +104,20 @@
                     <div id="pf-login-message-container" class="col-sm-8 col-sm-offset-2"></div>
                 </div>
             </div>
+
+            {* check for setup mode *}
+            <check if="{{ array_key_exists('/setup', @ROUTES) }}">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-sm-8 col-sm-offset-2">
+                            <div class="alert alert-warning" >
+                                <span class="txt-color txt-color-warning">Setup mode active</span>
+                                <small>Disable setup route in routes.ini in production environment! <a href="/setup">Setup</a></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </check>
 
             {* IGB warning *}
             <check if="{{ @isIngame == 1 }}">

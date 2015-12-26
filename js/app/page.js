@@ -612,7 +612,11 @@ define([
 
         $(document).on('pf:menuLogout', function(e, data){
             // logout
-            Util.logout();
+            Util.logout({
+                ajaxData: {
+                    reroute: 1
+                }
+            });
             return false;
         });
 
