@@ -379,11 +379,6 @@ class Controller {
         }else{
             // render error in template
             $f3->set('errorData', [$error]);
-
-            // show Errors in Dev environment
-            if( !self::isProduction() ){
-                var_dump($error);
-            }
         }
     }
 
