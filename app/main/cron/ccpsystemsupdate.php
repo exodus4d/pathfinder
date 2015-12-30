@@ -145,6 +145,7 @@ class CcpSystemsUpdate {
             $sql = "UPDATE
                     " . $tableName . "
                 SET
+                    updated = now(),
                     value24 = value23,
                     value23 = value22,
                     value22 = value21,

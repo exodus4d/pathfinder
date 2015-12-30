@@ -1,5 +1,4 @@
 <?php
-
 $f3 = require('app/lib/base.php');
 
 // load main config

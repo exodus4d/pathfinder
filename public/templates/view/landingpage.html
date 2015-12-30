@@ -106,7 +106,7 @@
             </div>
 
             {* check for setup mode *}
-            <check if="{{ array_key_exists('/setup', @ROUTES) }}">
+            <check if="{{ array_key_exists('/setup', @ROUTES) && @PATHFINDER.SHOW_SETUP_WARNING }}">
                 <div class="container-fluid">
                     <div class="row">
                         <div class="col-sm-8 col-sm-offset-2">

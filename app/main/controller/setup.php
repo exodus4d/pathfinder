@@ -635,13 +635,14 @@ class Setup extends Controller {
     protected function checkDBConfig($f3, $db){
 
         // some db like "Maria DB" have some strange version strings....
-        $dbVersion = $db->version();
-        if(strpos('maria', $dbVersion) !== 1){
-            $dbTempVersion = explode('-', $dbVersion);
-            if(count($dbTempVersion) > 2){
-                $dbVersion = $dbTempVersion[1];
-            }else{
-                $dbVersion = $dbTempVersion[0];
+        $dbVersionString = $db->version();
+        $dbVersionParts = explode('-', $dbVersionString);
+        $dbVersion = '???';
+        foreach($dbVersionParts as $dbVersionPart){
+            // check if this is a valid version number
+            // hint: MariaDB´s version is always the last valid version number...
+            if( version_compare( $dbVersionPart, '0.0.1', '>=' ) > 0 ){
+                $dbVersion = $dbVersionPart;
             }
         }
 
