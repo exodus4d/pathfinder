@@ -81,9 +81,7 @@ class Setup extends Controller {
     function beforeroute($f3) {
         // load "requirements" info in "setup" route only
         $f3->config('app/requirements.ini');
-    }
 
-    public function afterroute($f3) {
         // body element class
         $f3->set('bodyClass', 'pf-body pf-landing');
 
@@ -92,7 +90,9 @@ class Setup extends Controller {
 
         // js path (build/minified or raw uncompressed files)
         $f3->set('pathJs', 'public/js/' . $f3->get('PATHFINDER.VERSION') );
+    }
 
+    public function afterroute($f3) {
         // js view (file)
         $f3->set('jsView', 'setup');
 
@@ -123,20 +123,6 @@ class Setup extends Controller {
             $f3->reroute('@setup');
             return;
         }elseif(
-            isset($params['export']) &&
-            isset($params['table']) &&
-            !empty($params['table'])
-        ){
-            $f3->set('errorData', $this->exportTableData($params['table']));
-        }elseif(
-            isset($params['import']) &&
-            isset($params['table']) &&
-            !empty($params['table'])
-        ){
-            $f3->set('successData', $this->importTableData($params['table']));
-        }
-
-        if(
             isset($params['fixCols']) &&
             !empty($params['fixCols'])
         ){

@@ -80,7 +80,6 @@ define([
             });
         });
 
-
         // login buttons ------------------------------------------------
         var loginForm = $('#' + config.loginFormId);
 
@@ -108,7 +107,6 @@ define([
                         data: loginData,
                         dataType: 'json'
                     }).done(function(data){
-
                         // login error
                         if(data.error !== undefined){
                             $('.' + config.splashOverlayClass).hideSplashOverlay();
@@ -516,7 +514,6 @@ define([
                 });
             }, false);
         }
-
 
         setPageObserver();
 

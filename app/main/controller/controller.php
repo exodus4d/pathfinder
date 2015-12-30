@@ -50,7 +50,6 @@ class Controller {
      * @param $f3
      */
     function beforeroute($f3) {
-
         $this->getF3($f3);
 
         // initiate DB connection
@@ -59,20 +58,27 @@ class Controller {
         // init user session
         $this->initSession();
 
-        // check if user is in game
-        $f3->set('isIngame', self::isIGB() );
+        if( !$f3->get('AJAX') ){
+            // set page parameters for static page render
+            // check if user is in game (IGB active)
+            $f3->set('isIngame', self::isIGB() );
 
-        // js path (build/minified or raw uncompressed files)
-        $f3->set('pathJs', 'public/js/' . $f3->get('PATHFINDER.VERSION') );
+            // js path (build/minified or raw uncompressed files)
+            $f3->set('pathJs', 'public/js/' . $f3->get('PATHFINDER.VERSION') );
+
+            $this->setTemplate( $f3->get('PATHFINDER.VIEW.INDEX') );
+        }
     }
 
     /**
      * event handler after routing
      * -> render view
      */
-    public function afterroute($f3) {
-        if($this->template){
-            echo \Template::instance()->render( $this->template );
+    public function afterroute($f3){
+        if($this->getTemplate()){
+            // Ajax calls don´t need a page render..
+            // this happens on client side
+            echo \Template::instance()->render( $this->getTemplate() );
         }
     }
 
@@ -90,7 +96,9 @@ class Controller {
      */
     protected function initSession(){
         // init DB Session (not file based)
-        new \DB\SQL\Session($this->getDB('PF'));
+        if( $this->getDB('PF') instanceof \DB\SQL){
+            new \DB\SQL\Session($this->getDB('PF'));
+        }
     }
 
     /**
@@ -338,7 +346,34 @@ class Controller {
     }
 
     /**
+     * get a program URL by alias
+     * -> if no $alias given -> get "default" route (index.php)
+     * @param null $alias
+     * @return bool
+     */
+    protected function getRouteUrl($alias = null){
+        $url = false;
+
+        if(!empty($alias)){
+            // check given alias is a valid (registered) route
+            if(array_key_exists($alias, $this->getF3()->get('ALIASES'))){
+                $url = $this->getF3()->alias($alias);
+            }
+        }elseif($this->getF3()->get('ALIAS')){
+            // get current URL
+            $url = $this->getF3()->alias( $this->getF3()->get('ALIAS') );
+        }else{
+            // get main (index.php) URL
+            $url = $this->getF3()->alias('landing');
+        }
+
+        return $url;
+    }
+
+    /**
      * onError() callback function
+     * -> on AJAX request -> return JSON with error information
+     * -> on HTTP request -> render error page
      * @param $f3
      */
     public function showError($f3){
@@ -377,8 +412,19 @@ class Controller {
             header('Content-type: application/json');
             echo json_encode($return);
         }else{
-            // render error in template
-            $f3->set('errorData', [$error]);
+            // set error data for template rendering
+            $error->redirectUrl = $this->getRouteUrl();
+            $f3->set('errorData', $error);
+
+            if( preg_match('/^4[0-9]{2}$/', $error->code) ){
+                // 4xx error -> render error page
+                $f3->set('pageContent', $f3->get('PATHFINDER.STATUS.4XX'));
+            }elseif( preg_match('/^5[0-9]{2}$/', $error->code) ){
+                $f3->set('pageContent', $f3->get('PATHFINDER.STATUS.5XX'));
+            }
+
+            echo \Template::instance()->render( $f3->get('PATHFINDER.VIEW.INDEX') );
+            die();
         }
     }
 

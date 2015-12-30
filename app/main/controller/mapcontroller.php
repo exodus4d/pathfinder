@@ -22,8 +22,6 @@ class MapController extends \Controller\AccessController {
 
         // JS main file
         $this->f3->set('jsView', 'mappage');
-
-         $this->setTemplate( $f3->get('PATHFINDER.VIEW.INDEX') );
     }
 
 } 

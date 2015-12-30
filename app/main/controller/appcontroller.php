@@ -27,8 +27,6 @@ class AppController extends Controller {
 
         // JS main file
         $f3->set('jsView', 'landingpage');
-
-        $this->setTemplate( $f3->get('PATHFINDER.VIEW.INDEX') );
     }
 
 } 

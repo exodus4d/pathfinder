@@ -1,7 +1,7 @@
 {* splash page *}
 <include href="templates/ui/splash.html"/>
 
-<section >
+<section>
     <div class="container">
 
         <div class="row text-center">
@@ -15,13 +15,11 @@
 
         {* Errors *}
         <check if="{{ @errorData }}">
-            <repeat group="{{ @errorData }}" value="{{ @error }}">
                 <div class="alert alert-danger">
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close"><i class="fa fa-close"></i></button>
-                    <span class="txt-color txt-color-danger">({{ @error->code }}) {{ @error->status }}</span>
-                    <small> {{ @error->message }}</small>
+                    <span class="txt-color txt-color-danger">({{ @errorData->code }}) {{ @errorData->status }}</span>
+                    <small> {{ @errorData->message }}</small>
                 </div>
-            </repeat>
         </check>
 
         {* Success *}

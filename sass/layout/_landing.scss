@@ -13,6 +13,14 @@
   width: 100%;
   height: 3px;
   @include background-image(linear-gradient(to right, $green-light, $green-light 100%));
+
+  &.warning{
+    @include background-image(linear-gradient(to right, $brand-warning, $brand-warning 100%));
+  }
+
+  &.danger{
+    @include background-image(linear-gradient(to right, $brand-danger, $brand-danger 100%));
+  }
 }
 
 .pf-splash{
