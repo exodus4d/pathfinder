@@ -86,6 +86,7 @@ lib/mustache.min.js
 app/render.js
 lib/blueimp-helper.js
 lib/blueimp-gallery.js
+lib/jquery.lazyload.min.js
 lib/EasePack.min.js
 lib/TweenLite.min.js
 app/ui/header.js

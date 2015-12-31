@@ -10,6 +10,7 @@ define([
     'app/ccp',
     'blueImpGallery',
     'bootbox',
+    'lazyload',
     'app/ui/header',
     'app/ui/logo',
     'app/ui/demo_map',
@@ -48,6 +49,7 @@ define([
 
         // gallery
         galleryId: 'pf-gallery',                                                // id for gallery container
+        galleryThumbImageClass: 'pf-landing-image-preview',                     // class for gallery thumb images
         galleryThumbContainerId: 'pf-landing-gallery-thumb-container',          // id for gallery thumb images
         galleryCarouselId: 'pf-landing-gallery-carousel',                       // id for "carousel" element
 
@@ -492,14 +494,19 @@ define([
             showRequestRegistrationKeyDialog();
         }
 
-        // init scrollspy
-        initScrollspy();
+        // init "lazy loading" for images
+        $('.' + config.galleryThumbImageClass).lazyload({
+            threshold : 300
+        });
 
         // hide splash loading animation
         $('.' + config.splashOverlayClass).hideSplashOverlay();
 
         // init carousel
         initCarousel();
+
+        // init scrollspy
+        initScrollspy();
 
         // init gallery
         initGallery();
