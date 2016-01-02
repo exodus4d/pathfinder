@@ -145,6 +145,7 @@ class Setup extends Controller {
      * @param $tableIndex
      * @return array
      */
+    /*
     protected function importTableData($tableIndex){
         $importStatus = [];
 
@@ -167,6 +168,7 @@ class Setup extends Controller {
 
         return $importStatus;
     }
+    */
 
     /**
      * export/download table data as *.csv
@@ -174,6 +176,7 @@ class Setup extends Controller {
      * @param $tableIndex
      * @return array
      */
+    /*
     protected function exportTableData($tableIndex){
         $exportStatus = [];
 
@@ -196,6 +199,7 @@ class Setup extends Controller {
 
         return $exportStatus;
     }
+    */
 
     /**
      * get server information
@@ -243,30 +247,19 @@ class Setup extends Controller {
 
 
         // server type ------------------------------------------------------------------
-        $serverType = '???';
-        $serverVersion = '???';
-        $requiredServerVersion = '???';
-        if(strpos('nginx', $_SERVER['SERVER_SOFTWARE']) !== 1){
-            $serverType = reset(explode('/', $_SERVER['SERVER_SOFTWARE']));
-            $serverVersion = end(explode('/', $_SERVER['SERVER_SOFTWARE']));
-
-            $requiredServerVersion = $f3->get('REQUIREMENTS.SERVER.NGINX.VERSION');
-        }else{
-            print_r('TODO Apache');
-        }
-
+        $serverData = self::getServerData();
 
         $checkRequirements = [
             'servertype' => [
                 'label' => 'Server type',
-                'version' => $serverType,
+                'version' => $serverData->type,
                 'check' => true
             ],
             'serverversion' => [
                 'label' => 'Server version',
-                'required' => $requiredServerVersion,
-                'version' => $serverVersion,
-                'check' => version_compare( $serverVersion, $requiredServerVersion, '>=')
+                'required' => $serverData->requiredVersion,
+                'version' => $serverData->version,
+                'check' => version_compare( $serverData->version, $serverData->requiredVersion, '>=')
             ],
             'php' => [
                 'label' => 'PHP',
@@ -296,7 +289,7 @@ class Setup extends Controller {
             ]
         ];
 
-        if($serverType != 'nginx'){
+        if($serverData->type != 'nginx'){
             // mod_rewrite check ------------------------------------------------------------
             $modRewriteCheck = false;
             $modRewriteVersion = 'disabled';

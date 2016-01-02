@@ -31,7 +31,8 @@
             <ul class="nav navbar-nav navbar-right" role="tablist">
                 <li><a class="page-scroll" data-anchor="#pf-landing-top" href="#">Home</a></li>
                 <li> <a class="page-scroll" data-anchor="#pf-landing-gallery" href="#">Features</a></li>
-                <li> <a class="page-scroll" data-anchor="#pf-landing-pricing" href="#">Pricing</a></li>
+                <li> <a class="page-scroll" data-anchor="#pf-landing-maps" href="#">Maps</a></li>
+                <li> <a class="page-scroll" data-anchor="#pf-landing-install" href="#">Install</a></li>
                 <li> <a class="page-scroll" data-anchor="#pf-landing-about" href="#">About</a></li>
                 <li> <a class="page-scroll" data-anchor="#pf-landing-faq" href="#">FAQ</a></li>
                 <li> <a class="pf-navbar-license" href="#">License</a></li>
@@ -516,61 +517,31 @@
 
         </div>
 
-
-    </div>
-</section>
-
-
-{* beta *}
-<section id="pf-landing-beta">
-
-    <div class="container">
         <div class="row text-center">
             <div class="col-md-6 col-md-offset-3">
-                <h2><span class="txt-color txt-color-warning"><i class="fa fa-fw fa-warning"></i> BETA</span> {{ @PATHFINDER.VERSION }}</h2>
                 <p class="lead">
-                    <em>PATHFINDER</em> is still a  <em>BETA</em> version.
-                    Please read and confirm with the following rules that apply during public beta testing.
+                    This video, will guide you through the basic functions in <em>PATHFINDER</em>.
                 </p>
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-sm-offset-3 col-xs-12 col-sm-6">
-                <h4><i class="fa fa-fw fa-angle-double-right"></i>Rules for beta testing phase</h4>
-                <ul class="fa-ul pf-landing-list">
-                    <li><i></i>You can create a fresh CCP API Key (limited access) for registration</li>
-                    <li><i></i>Please help testing and report any problem/bug you find</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i><em>PATHFINDER</em> is free for all [<a target="_blank" href="{{ @PATHFINDER.REPO }}">open source</a>], let us make it a better application</li>
-                            <li><i></i>If you are a native English speaker, great! Feel free to read over my bad English :)</li>
-                            <li><i></i>A forum post with your constructive criticism/opinion will help as well</li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
         <div class="row text-center hidden-sm">
-
             <iframe width="853" height="480" src="https://www.youtube.com/embed/Cc3jcN_jx04?modestbranding=1&rel=0&showinfo=0" frameborder="0" allowfullscreen></iframe>
-
         </div>
 
     </div>
 </section>
 
 
-{* pricing *}
-<section id="pf-landing-pricing">
+{* map types *}
+<section id="pf-landing-maps">
     <div class="container">
         <div class="row text-center">
             <div class="col-md-6 col-md-offset-3">
-                <h2><span class="text-primary">Pricing</span> and Bundles</h2>
+                <h2><span class="text-primary">Map</span> types</h2>
                 <p class="lead">
-                    Choose the bundle that meets the requirements you need. If you just want to try out <em>PATHFINDER</em>, start with the <em>Basic</em> bundle.
-                    It will <u>always</u> be free of charge and is the most suitable for solo players or smaller groups.
+                    The following map types are available. Each map you create can be converted into any of these types at any time.
+                    The access level of a map depends on their type. e.g. "Corporation" maps can be seen/edited by any pilot in your corporation.
                 </p>
             </div>
         </div>
@@ -579,14 +550,14 @@
         <div class="row text-center">
             <div class="col-xs-12 col-sm-6 col-md-4 pf-landing-pricing-panel">
                 <div class="panel panel-default pricing-big pf-animate pf-animate-on-visible">
-                    <div class="ribbon-wrapper fade"><div class="ribbon ribbon-orange">BETA</div></div>
+                    <div class="ribbon-wrapper fade"><div class="ribbon ribbon-green">FREE</div></div>
 
                     <div class="panel-heading">
-                        <h3 class="panel-title">Basic</h3>
+                        <h3 class="panel-title">Private</h3>
                     </div>
                     <div class="panel-body no-padding text-align-center">
                         <div class="the-price">
-                            <h6 class="txt-color txt-color-green">FREE</h6>
+                            <h6 class="txt-color txt-color-tealLighter"><span class="subscript">Map features</span></h6>
                         </div>
                         <div class="price-features">
                             <ul class="list-unstyled text-left">
@@ -608,14 +579,14 @@
 
             <div class="col-xs-12 col-sm-6 col-md-4 pf-landing-pricing-panel">
                 <div class="panel panel-primary pricing-big pf-animate pf-animate-on-visible">
-                    <div class="ribbon-wrapper fade"><div class="ribbon ribbon-orange">BETA</div></div>
+                    <div class="ribbon-wrapper fade"><div class="ribbon ribbon-green">FREE</div></div>
 
                     <div class="panel-heading">
                         <h3 class="panel-title">Corporation</h3>
                     </div>
                     <div class="panel-body no-padding text-align-center">
                         <div class="the-price">
-                            <h6 class="txt-color txt-color-tealLighter"><span class="subscript">ISK</span> t.b.a <span class="subscript">/mo</span></h6>
+                            <h6 class="txt-color txt-color-tealLighter"><span class="subscript">Map features</span></h6>
                         </div>
                         <div class="price-features">
                             <ul class="list-unstyled text-left">
@@ -635,14 +606,14 @@
 
             <div class="col-xs-12 col-sm-6  col-sm-offset-3 col-md-4 col-md-offset-0 pf-landing-pricing-panel">
                 <div class="panel panel-primary pricing-big pf-animate pf-animate-on-visible">
-                    <div class="ribbon-wrapper fade"><div class="ribbon ribbon-orange">BETA</div></div>
+                    <div class="ribbon-wrapper fade"><div class="ribbon ribbon-green">FREE</div></div>
 
                     <div class="panel-heading">
                         <h3 class="panel-title">Alliance</h3>
                     </div>
                     <div class="panel-body no-padding text-align-center">
                         <div class="the-price">
-                            <h6 class="txt-color txt-color-tealLighter"><span class="subscript">ISK</span> t.b.a <span class="subscript">/mo</span></h6>
+                            <h6 class="txt-color txt-color-tealLighter"><span class="subscript">Map features</span></h6>
                         </div>
                         <div class="price-features">
                             <ul class="list-unstyled text-left">
@@ -660,11 +631,71 @@
                 </div>
             </div>
         </div>
+    </div>
+</section>
 
-        <div class="alert alert-info fade in">
-            <span class="txt-color txt-color-info">Hint</span>
-            <small> During beta testing, all bundles are activated and free for any pilot! Enjoy testing and don´t forget to give feedback.</small>
+{* install *}
+<section id="pf-landing-install">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-6 col-md-offset-3">
+                <h2><span class="text-primary">Install</span> and hosting</h2>
+                <p class="lead">
+                    If your are planning to install or self hosting <em>PATHFINDER</em>, all required information can be found on the project <a target="_blank" href="{{ @PATHFINDER.REPO }}/wiki">wiki</a>.
+                    Updating or bootstrapping the DB gets very simple with the new "Setup UI" and can be done by on-click.
+                </p>
+            </div>
         </div>
+
+        <div class="row">
+            <div class="col-xs-12 col-sm-3 col-lg-2">
+                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/install_settings.jpg" data-description="Server settings" data-gallery="#pf-gallery">
+                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/install_settings.jpg" width="160" height="160" alt="Statistics">
+                </a>
+            </div>
+
+            <div class="col-xs-12 col-sm-9 col-lg-4">
+                <h4><i class="fa fa-fw fa-server"></i>Requirements check</h4>
+                <ul class="fa-ul pf-landing-list">
+                    <li><i></i>Checks your server type/status</li>
+                    <li><i></i>Checks your installed PHP version</li>
+                    <li>
+                        <ul class="fa-ul">
+                            <li><i></i>Checks for required PHP extensions</li>
+                        </ul>
+                    </li>
+                    <li><i></i>Checks your program settings</li>
+                </ul>
+            </div>
+
+            <div class="clearfix visible-xs visible-sm visible-md"></div>
+
+            <div class="col-xs-12 col-sm-3 col-lg-2">
+                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/install_db.jpg" data-description="Database settings" data-gallery="#pf-gallery">
+                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/install_db.jpg" width="160" height="160" alt="Signature table">
+                </a>
+            </div>
+
+            <div class="col-xs-12 col-sm-9 col-lg-4">
+                <h4><i class="fa fa-fw fa-database"></i>Database setup</h4>
+                <ul class="fa-ul pf-landing-list">
+                    <li><i></i>Check DB connections</li>
+                    <li><i></i>Check DB version</li>
+                    <li><i></i>Check DB settings</li>
+                    <li><i></i>Bootstrap or update your current Database with one click</li>
+                    <li>
+                        <ul class="fa-ul">
+                            <li><i></i>Check tables/columns for updates</li>
+                            <li><i></i>Check column indexes/unique keys</li>
+                            <li><i></i>Check foreign key constraints</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+
+
     </div>
 </section>
 
