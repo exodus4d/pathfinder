@@ -235,11 +235,16 @@ class Controller {
     static function getRequestHeaders(){
         $headers = [];
 
-        if(function_exists('apache_request_headers') ){
+        $serverData = self::getServerData();
+
+        if(
+            function_exists('apache_request_headers') &&
+            $serverData->type === 'apache'
+        ){
             // Apache Webserver
             $headers = apache_request_headers();
         }else{
-            // Other webserver, e.g. nginx
+            // Other webserver, e.g. Nginx
             // Unfortunately this "fallback" does not work for me (Apache)
             // Therefore we can´t use this for all servers
             // https://github.com/exodus4d/pathfinder/issues/58
@@ -249,8 +254,48 @@ class Controller {
                 }
             }
         }
-
+        
         return $headers;
+    }
+
+    /**
+     * get some server information
+     * @return array
+     */
+    static function getServerData(){
+        $f3 = \Base::instance();
+        $cacheKey = 'PF_SERVER_INFO';
+
+        if( !$f3->exists($cacheKey) ){
+            $serverData = (object) [];
+            $serverData->type = '???';
+            $serverData->version = '???';
+            $serverData->requiredVersion = '???';
+
+            if(strpos('nginx', strtolower($_SERVER['SERVER_SOFTWARE']) ) !== 1){
+                // Nginx server
+                $serverSoftwareArgs = explode('/', strtolower( $_SERVER['SERVER_SOFTWARE']) );
+                $serverData->type = reset($serverSoftwareArgs);
+                $serverData->version = end($serverSoftwareArgs);
+                $serverData->requiredVersion = $f3->get('REQUIREMENTS.SERVER.NGINX.VERSION');
+            }elseif(strpos('apache', strtolower($_SERVER['SERVER_SOFTWARE']) ) !== 1){
+                // Apache server
+                $matches = preg_split('/[\s,\/ ]+/', strtolower( apache_get_version() ) );
+                if(count($matches)){
+                    $serverData->type = $matches[0];
+                    if(count($matches) > 1){
+                        $serverData->version = $matches[1];
+                    }
+                }
+
+                $serverData->requiredVersion = $f3->get('REQUIREMENTS.SERVER.APACHE.VERSION');
+            }
+
+            // cache data for one day
+            $f3->set($cacheKey, $serverData, 60 * 60 * 24);
+        }
+
+        return $f3->get($cacheKey);
     }
 
     /**

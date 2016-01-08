@@ -140,68 +140,6 @@ class Setup extends Controller {
     }
 
     /**
-     * import/upload table data from *.csv
-     * path: export/db/$tableName.svg
-     * @param $tableIndex
-     * @return array
-     */
-    /*
-    protected function importTableData($tableIndex){
-        $importStatus = [];
-
-        // check if tableIndex exists as model class
-        if(array_key_exists($tableIndex, $this->databases['PF']['models'])){
-            $db = DB\Database::instance()->getDB('PF');
-            $modelClass = $this->databases['PF']['models'][$tableIndex];
-            $model = new $modelClass($db);
-            $status = $model->importData();
-
-            if($status){
-                $importStatus[] = [
-                    'status' => $model->getTable(),
-                    'message' =>    'Added: ' . $status['added'] . ' ' .
-                        'Updated: ' . $status['updated'] . ' ' .
-                        'Deleted: ' . $status['deleted']
-                ];
-            }
-        }
-
-        return $importStatus;
-    }
-    */
-
-    /**
-     * export/download table data as *.csv
-     * target dir export/db/$tableName.svg
-     * @param $tableIndex
-     * @return array
-     */
-    /*
-    protected function exportTableData($tableIndex){
-        $exportStatus = [];
-
-        // check if tableIndex exists as model class
-        if(array_key_exists($tableIndex, $this->databases['PF']['models'])){
-            $db = DB\Database::instance()->getDB('PF');
-            $modelClass = $this->databases['PF']['models'][$tableIndex];
-            $model = new $modelClass($db);
-            $status = $model->exportData();
-
-            if( !$status ){
-                // error
-                $error = (object) [];
-                $error->code = 503;
-                $error->status = $model->getTable();
-                $error->message = 'No data for export found. Table empty?';
-                $exportStatus[] = $error;
-            }
-        }
-
-        return $exportStatus;
-    }
-    */
-
-    /**
      * get server information
      * @param $f3
      * @return array
