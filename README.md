@@ -1,7 +1,7 @@
 ## *PATHFINDER*
 Mapping tool for [*EVE ONLINE*](https://www.eveonline.com)
 
-- Project [https://www.pathfinder.exodus4d.de](https://www.pathfinder.exodus4d.de)
+- Project [https://www.pathfinder-w.space](https://www.pathfinder-w.space)
 - Official Forum post [https://forums.eveonline.com](https://forums.eveonline.com/default.aspx?g=posts&m=6021776#post6021776)
 - Screenshots [imgur.com](http://imgur.com/a/k2aVa)
 - Video [youtube.com](https://www.youtube.com/channel/UC7HU7XEoMbqRwqxDTbMjSPg)

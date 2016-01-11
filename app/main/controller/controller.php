@@ -145,7 +145,7 @@ class Controller {
                 isset($params['reroute']) &&
                 (bool)$params['reroute']
             ){
-                $return->reroute = self::getEnvironmentData('URL') . $f3->alias('landing');
+                $return->reroute = rtrim(self::getEnvironmentData('URL'), '/') . $f3->alias('landing');
             }else{
                 // no reroute -> errors can be shown
                 $return->error[] = $this->getUserLoggedOffError();

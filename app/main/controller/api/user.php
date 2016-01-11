@@ -48,7 +48,7 @@ class User extends Controller\Controller{
             $user->updateApiData();
 
             // route user to map app
-            $return->reroute = self::getEnvironmentData('URL') . $f3->alias('map');
+            $return->reroute = rtrim(self::getEnvironmentData('URL'), '/') . $f3->alias('map');
         }
 
         echo json_encode($return);
@@ -460,7 +460,7 @@ class User extends Controller\Controller{
                         $this->logUserIn( $user->name, $settingsData['password'] );
 
                         // return reroute path
-                        $return->reroute = self::getEnvironmentData('URL') . $this->f3->alias('map');
+                        $return->reroute = rtrim(self::getEnvironmentData('URL'), '/') . $this->f3->alias('map');
                     }
 
                     // get fresh updated user object
