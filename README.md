@@ -9,13 +9,12 @@ Mapping tool for [*EVE ONLINE*](https://www.eveonline.com)
 - Licence [MIT](http://opensource.org/licenses/MIT)
 
 ##### IMPORTANT Information:
-**The setup and installation process in ``v.0.0.17`` and is not backwards compatible with previous beta releases (check wiki)!**
+**The setup and installation process in ``1.0.0RC1`` and is not backwards compatible with previous beta releases (check wiki)!**
 
-**This project is still in beta phase and is not officially released!
-  Feel free to check the code for bugs and security issues.
-  Issues should be reported in the [Issue](https://github.com/exodus4d/pathfinder/issues) section.**
+**Feel free to check the code for bugs and security issues.
+Issues should be reported in the [Issue](https://github.com/exodus4d/pathfinder/issues) section.**
 
-If you are looking for installation help, please check the [wiki](https://github.com/exodus4d/pathfinder/wiki) (DRAFT).
+If you are looking for installation help, please check the [wiki](https://github.com/exodus4d/pathfinder/wiki).
 More information will be added once the beta is over and the first stable build is released.
 
 ## Project structure
@@ -26,9 +25,11 @@ More information will be added once the beta is over and the first stable build 
       |-- lib               --> "Fat Free Framework"
       |-- main              --> "PATHFINDER" root
       |-- config.ini        --> config "f3" framework
-      |-- cron.ini          --> config cronjobs
-      |-- pathfinder.ini    --> config pathfinder
-      |-- routes.ini        --> config routes
+      |-- cron.ini          --> config - cronjobs
+      |-- environment.ini   --> config - system environment
+      |-- pathfinder.ini    --> config - pathfinder
+      |-- requirements.ini  --> config - system requirements
+      |-- routes.ini        --> config - routes
   |-- (0755) export         --> DB export data
       |-- sql               --> static DB data for import (pathfinder.sql)
   |-- (0755) favicon        --> Favicons

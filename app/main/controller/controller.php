@@ -260,39 +260,43 @@ class Controller {
 
     /**
      * get some server information
-     * @return array
+     * @param int $ttl cache time (default: 1h)
+     * @return object
      */
-    static function getServerData(){
+    static function getServerData($ttl = 3600){
         $f3 = \Base::instance();
         $cacheKey = 'PF_SERVER_INFO';
 
         if( !$f3->exists($cacheKey) ){
             $serverData = (object) [];
-            $serverData->type = '???';
-            $serverData->version = '???';
-            $serverData->requiredVersion = '???';
+            $serverData->type = 'unknown';
+            $serverData->version = 'unknown';
+            $serverData->requiredVersion = 'unknown';
+            $serverData->phpInterfaceType = php_sapi_name();
 
-            if(strpos('nginx', strtolower($_SERVER['SERVER_SOFTWARE']) ) !== 1){
+            if(strpos(strtolower($_SERVER['SERVER_SOFTWARE']), 'nginx' ) !== false){
                 // Nginx server
                 $serverSoftwareArgs = explode('/', strtolower( $_SERVER['SERVER_SOFTWARE']) );
                 $serverData->type = reset($serverSoftwareArgs);
                 $serverData->version = end($serverSoftwareArgs);
                 $serverData->requiredVersion = $f3->get('REQUIREMENTS.SERVER.NGINX.VERSION');
-            }elseif(strpos('apache', strtolower($_SERVER['SERVER_SOFTWARE']) ) !== 1){
+            }elseif(strpos(strtolower($_SERVER['SERVER_SOFTWARE']), 'apache' ) !== false){
                 // Apache server
-                $matches = preg_split('/[\s,\/ ]+/', strtolower( apache_get_version() ) );
-                if(count($matches)){
-                    $serverData->type = $matches[0];
+                $serverData->type = 'apache';
+                $serverData->requiredVersion = $f3->get('REQUIREMENTS.SERVER.APACHE.VERSION');
+
+                // try to get the apache version...
+                if(function_exists('apache_get_version')){
+                    // function does not exists if PHP is running as CGI/FPM module!
+                    $matches = preg_split('/[\s,\/ ]+/', strtolower( apache_get_version() ) );
                     if(count($matches) > 1){
                         $serverData->version = $matches[1];
                     }
                 }
-
-                $serverData->requiredVersion = $f3->get('REQUIREMENTS.SERVER.APACHE.VERSION');
             }
 
             // cache data for one day
-            $f3->set($cacheKey, $serverData, 60 * 60 * 24);
+            $f3->set($cacheKey, $serverData, $ttl);
         }
 
         return $f3->get($cacheKey);
@@ -368,7 +372,6 @@ class Controller {
         if( $f3->exists($environmentKey) ){
             $data = $f3->get($environmentKey);
         }
-
         return $data;
     }
 
@@ -388,6 +391,22 @@ class Controller {
      */
     static function isProduction(){
         return self::getEnvironment() == 'PRODUCTION';
+    }
+
+    /**
+     * get required MySQL variable value
+     * @param $key
+     * @return mixed|null
+     */
+    static function getRequiredMySqlVariables($key){
+        $f3 = \Base::instance();
+        $requiredMySqlVarKey = 'REQUIREMENTS[MYSQL][VARS][' . $key . ']';
+        $data = null;
+
+        if( $f3->exists($requiredMySqlVarKey) ){
+            $data = $f3->get($requiredMySqlVarKey);
+        }
+        return $data;
     }
 
     /**
@@ -475,7 +494,7 @@ class Controller {
 
     /**
      * Callback for framework "unload"
-     * -> config.ini
+     * check -> config.ini
      */
     public function unload($f3){
         return true;

@@ -55,7 +55,6 @@ em{
   @extend .txt-color-gray;
   @include transition( color 0.08s ease-out );
 
-
   &:hover{
     @extend .txt-color-blue;
   }

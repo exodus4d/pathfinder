@@ -131,21 +131,26 @@
                             <tbody>
                             <repeat group="{{ @checkRequirements }}" value="{{ @requirement }}">
                                 <tr>
-                                    <td>{{@requirement.label}}</td>
+                                    <td>
+                                        {{@requirement.label}}
+                                        <check if="{{ @requirement.tooltip }}">
+                                            <i class="fa fa-fw fa-question-circle" title="{{ @requirement.tooltip }}"></i>
+                                        </check>
+                                    </td>
                                     <td class="text-right">
                                         <check if="{{ @requirement.required }}">
-                                            <kbd>{{@requirement.prefix}}{{@requirement.required}}</kbd>
+                                            <kbd>{{@requirement.required}}</kbd>
                                         </check>
                                     </td>
                                     <td class="text-right">
                                         <check if="{{ @requirement.check }}">
                                             <true>
-                                                <kbd class="txt-color txt-color-success">{{@requirement.prefix}}{{@requirement.version}}</kbd>
+                                                <kbd class="txt-color txt-color-success">{{@requirement.version}}</kbd>
                                             </true>
                                             <false>
-                                                <kbd class="txt-color txt-color-warning">{{@requirement.prefix}}{{@requirement.version}}</kbd>
+                                                <kbd class="txt-color txt-color-warning">{{@requirement.version}}</kbd>
                                                 {* Check failed *}
-                                                <set requirementsFulfilled="Missing feature" />
+                                                <set requirementsFulfilled="Warnings" />
                                             </false>
                                         </check>
                                     </td>

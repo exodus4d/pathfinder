@@ -79,14 +79,14 @@ class Setup extends Controller {
      * @param $f3
      */
     function beforeroute($f3) {
-        // load "requirements" info in "setup" route only
-        $f3->config('app/requirements.ini');
-
-        // body element class
-        $f3->set('bodyClass', 'pf-body pf-landing');
+        // page title
+        $f3->set('pageTitle', 'Setup');
 
         // main page content
         $f3->set('pageContent', $f3->get('PATHFINDER.VIEW.SETUP'));
+
+        // body element class
+        $f3->set('bodyClass', 'pf-body pf-landing');
 
         // js path (build/minified or raw uncompressed files)
         $f3->set('pathJs', 'public/js/' . $f3->get('PATHFINDER.VERSION') );
@@ -185,32 +185,36 @@ class Setup extends Controller {
 
 
         // server type ------------------------------------------------------------------
-        $serverData = self::getServerData();
+        $serverData = self::getServerData(0);
 
         $checkRequirements = [
-            'servertype' => [
+            'serverType' => [
                 'label' => 'Server type',
                 'version' => $serverData->type,
                 'check' => true
             ],
-            'serverversion' => [
+            'serverVersion' => [
                 'label' => 'Server version',
                 'required' => $serverData->requiredVersion,
                 'version' => $serverData->version,
-                'check' => version_compare( $serverData->version, $serverData->requiredVersion, '>=')
+                'check' => version_compare( $serverData->version, $serverData->requiredVersion, '>='),
+                'tooltip' => 'If not specified, please check your \'ServerTokens\' server config. (not critical)'
+            ],
+            'phpInterface' => [
+                'label' => 'PHP interface type',
+                'version' => $serverData->phpInterfaceType,
+                'check' => empty($serverData->phpInterfaceType) ? false : true
             ],
             'php' => [
                 'label' => 'PHP',
                 'required' => $f3->get('REQUIREMENTS.PHP.VERSION'),
                 'version' => phpversion(),
-                'prefix' => 'v.',
                 'check' => version_compare( phpversion(), $f3->get('REQUIREMENTS.PHP.VERSION'), '>=')
             ],
             'pcre' => [
                 'label' => 'PCRE',
                 'required' => $f3->get('REQUIREMENTS.PHP.PCRE_VERSION'),
                 'version' => strstr(PCRE_VERSION, ' ', true),
-                'prefix' => 'v.',
                 'check' => version_compare( strstr(PCRE_VERSION, ' ', true), $f3->get('REQUIREMENTS.PHP.PCRE_VERSION'), '>=')
             ],
             'gd' => [
@@ -228,9 +232,14 @@ class Setup extends Controller {
         ];
 
         if($serverData->type != 'nginx'){
+            // default msg if module status not available
+            $modNotFoundMsg = 'Module status can not be identified. '
+                . 'This can happen if PHP runs as \'FastCGI\'. Please check manual! ';
+
             // mod_rewrite check ------------------------------------------------------------
             $modRewriteCheck = false;
             $modRewriteVersion = 'disabled';
+            $modRewriteTooltip = false;
             if(function_exists('apache_get_modules')){
                 if(in_array('mod_rewrite',apache_get_modules())){
                     $modRewriteCheck = true;
@@ -238,19 +247,22 @@ class Setup extends Controller {
                 }
             }else{
                 // e.g. Nginx server
-                $modRewriteVersion = '???';
+                $modRewriteVersion = 'unknown';
+                $modRewriteTooltip = $modNotFoundMsg;
             }
 
             $checkRequirements['mod_rewrite'] = [
                 'label' => 'mod_rewrite',
                 'required' => 'enabled',
                 'version' => $modRewriteVersion,
-                'check' => $modRewriteCheck
+                'check' => $modRewriteCheck,
+                'tooltip' => $modRewriteTooltip
             ];
 
             // mod_headers check ------------------------------------------------------------
             $modHeadersCheck = false;
             $modHeadersVersion = 'disabled';
+            $modHeadersTooltip = false;
             if(function_exists('apache_get_modules')){
                 if(in_array('mod_headers',apache_get_modules())){
                     $modHeadersCheck = true;
@@ -258,14 +270,16 @@ class Setup extends Controller {
                 }
             }else{
                 // e.g. Nginx server
-                $modHeadersVersion = '???';
+                $modHeadersVersion = 'unknown';
+                $modHeadersTooltip = $modNotFoundMsg;
             }
 
             $checkRequirements['mod_headers'] = [
                 'label' => 'mod_headers',
                 'required' => 'enabled',
                 'version' => $modHeadersVersion,
-                'check' => $modHeadersCheck
+                'check' => $modHeadersCheck,
+                'tooltip' => $modHeadersTooltip
             ];
         }
 
@@ -290,7 +304,7 @@ class Setup extends Controller {
             // DB connection status
             $dbConnected = false;
             // DB type (e.g. MySql,..)
-            $dbDriver = '???';
+            $dbDriver = 'unknown';
             // enable database ::setup() function in UI
             $dbSetupEnable = false;
             // check  of everything is OK (connection, tables, columns, indexes,..)
@@ -554,7 +568,7 @@ class Setup extends Controller {
         // some db like "Maria DB" have some strange version strings....
         $dbVersionString = $db->version();
         $dbVersionParts = explode('-', $dbVersionString);
-        $dbVersion = '???';
+        $dbVersion = 'unknown';
         foreach($dbVersionParts as $dbVersionPart){
             // check if this is a valid version number
             // hint: MariaDB´s version is always the last valid version number...
@@ -566,23 +580,27 @@ class Setup extends Controller {
         $dbConfig = [
             'version' => [
                 'label' => 'DB version',
-                'required' => 'v.' . $f3->get('REQUIREMENTS.MYSQL.VERSION'),
-                'version' => 'v.' . $dbVersion,
+                'required' => $f3->get('REQUIREMENTS.MYSQL.VERSION'),
+                'version' => $dbVersion,
                 'check' => version_compare($dbVersion, $f3->get('REQUIREMENTS.MYSQL.VERSION'), '>=' )
             ]
         ];
 
         // get specific MySQL config Value
         $getDBConfigValue = function($db, $param){
-            $result = $db->exec('SELECT @@' . $param);
-            return !empty($result)? reset(reset($result)) : '???';
+            $result = $db->exec([
+                //"USE " . $db->name(),
+                "SHOW VARIABLES LIKE '" . strtolower($param) . "'"
+            ]);
+            $tmpResult = reset($result);
+            return !empty($result)? end($tmpResult) : 'unknown';
         };
 
-        $mySQLConfigParams = $f3->get('REQUIREMENTS.MYSQL.OPTIONS');
+        $mySQLConfigParams = $f3->get('REQUIREMENTS.MYSQL.VARS');
         foreach($mySQLConfigParams as $param => $requiredValue){
             $value = $getDBConfigValue($db, $param);
             $dbConfig[] = [
-                'label' => $param,
+                'label' => strtolower($param),
                 'required' => $requiredValue,
                 'version' => $value,
                 'check' => !empty($requiredValue) ? ($requiredValue == $value) : true
@@ -605,6 +623,13 @@ class Setup extends Controller {
 
         $checkTables = [];
         if($db){
+            // set/change default "character set" and "collation"
+            $db->exec('ALTER DATABASE ' . $db->name()
+                . ' CHARACTER SET ' . self::getRequiredMySqlVariables('CHARACTER_SET_DATABASE')
+                . ' COLLATE ' . self::getRequiredMySqlVariables('COLLATION_DATABASE')
+            );
+
+            // setup tables
             foreach($this->databases[$dbKey]['models'] as $modelClass){
                 $checkTables[] = call_user_func($modelClass . '::setup');
             }
