@@ -18,9 +18,7 @@
             </button>
 
             <p class="navbar-text">
-                <a target="_blank" href="{{ @PATHFINDER.REPO }}">
-                    <span class="badge txt-color txt-color-grayLight">{{ @PATHFINDER.VERSION }}</span>
-                </a>
+                <span class="badge txt-color txt-color-grayLight">{{ @PATHFINDER.VERSION }}</span>
             </p>
 
             <ul class="nav navbar-nav navbar-right" role="tablist">
@@ -514,7 +512,7 @@
 
         </div>
 
-        <div class="row text-center">
+        <div class="row text-center hidden-xs">
             <div class="col-md-6 col-md-offset-3">
                 <p class="lead">
                     This video, will guide you through the basic functions in <em>PATHFINDER</em>.
@@ -522,8 +520,12 @@
             </div>
         </div>
 
-        <div class="row text-center hidden-sm">
-            <iframe width="853" height="480" src="https://www.youtube.com/embed/Cc3jcN_jx04?modestbranding=1&rel=0&showinfo=0" frameborder="0" allowfullscreen></iframe>
+        <div class="row text-center hidden-xs">
+            <div class="pricing-big youtube"
+                 id="Cc3jcN_jx04"
+                 data-params="modestbranding=1&showinfo=0&controls=0&vq=hd720"
+                 style="width: 640px; height: 360px;">
+            </div>
         </div>
 
     </div>
@@ -542,7 +544,6 @@
                 </p>
             </div>
         </div>
-
 
         <div class="row text-center">
             <div class="col-xs-12 col-sm-6 col-md-4 pf-landing-pricing-panel">
@@ -755,45 +756,45 @@
                 </p>
                 <h3>Frontend</h3>
                 <ul class="fa-ul pf-landing-list">
-                    <li><i></i><em><a target="_blank" href="http://getbootstrap.com/">Bootstrap</a></em> as a HTML, CSS framework</li>
-                    <li><i></i><em><a target="_blank" href="http://sass-lang.com/">SASS</a></em> and <em><a target="_blank" href="http://compass-style.org/">Compass</a></em> as a CSS preprocessor</li>
-                    <li><i></i><em><a target="_blank" href="http://requirejs.org/">RequireJs</a></em> as an AMD loader and builder for Javascript</li>
-                    <li><i></i><em><a target="_blank" href="https://jquery.com/">jQuery</a></em> as the main Javascript library</li>
+                    <li><i></i>"<em>Bootstrap</em>" as a HTML, CSS framework</li>
+                    <li><i></i>"<em>SASS</em>" and "<em>Compass</em>" as a CSS preprocessor</li>
+                    <li><i></i>"<em>RequireJs</em>" as an AMD loader and builder for Javascript</li>
+                    <li><i></i>"<em>jQuery</em>" as the main Javascript library</li>
                     <li>
                         <ul class="fa-ul">
                             <li><i></i>≈ 50 self written jQuery plugins</li>
                             <li><i></i>≈ 40 open source plugins</li>
                         </ul>
                     </li>
-                    <li><i></i><em><a target="_blank" href="https://nodejs.org/">Node.js</a></em> and <em><a target="_blank" href="http://gulpjs.com/">Gulp</a></em> as js task runner and CI-build environment</li>
+                    <li><i></i>"<em>Node.js</em>" and "<em>Gulp</em>" as js task runner and CI-build environment</li>
 
                     <li><i></i>Code quality and automated testing</li>
                     <li>
                         <ul class="fa-ul">
-                            <li><i></i><em><a target="_blank" href="http://jshint.com/">JSHint</a></em></li>
-                            <li><i></i><em><a target="_blank" href="http://jasmine.github.io/">Jasmine</a></em></li>
+                            <li><i></i>"<em>JSHint</em>"</li>
+                            <li><i></i>"<em>Jasmine</em>"</li>
                         </ul>
                     </li>
                     <li><i></i>You should know about some HTML5 APIs</li>
                     <li>
                         <ul class="fa-ul">
-                            <li><i></i><em><a target="_blank" href="http://www.w3.org/TR/webstorage/">Local Storage</a></em></li>
-                            <li><i></i><em><a target="_blank" href="http://www.w3.org/TR/page-visibility/">Page Visibility</a></em></li>
-                            <li><i></i><em><a target="_blank" href="http://www.w3.org/TR/notifications/">Web Notifications</a></em></li>
-                            <li><i></i><em><a target="_blank" href="http://www.w3.org/TR/fullscreen/">Fullscreen</a></em></li>
+                            <li><i></i>"<em>Local Storage</em>"</li>
+                            <li><i></i>"<em>Page Visibility</em>"</li>
+                            <li><i></i>"<em>Web Notifications</em>"</li>
+                            <li><i></i>"<em>Fullscreen</em>"</li>
                         </ul>
                     </li>
                 </ul>
 
                 <h3>Backend</h3>
                 <ul class="fa-ul pf-landing-list">
-                    <li><i></i><em><a target="_blank" href="http://fatfreeframework.com/">Fat-Free Framework</a></em> as a lightweight PHP framework and ORM mapper</li>
-                    <li><i></i><em><a target="_blank" href="https://www.mysql.de/">MySQL</a>, <a target="_blank" href="https://www.sqlite.org/">SQLite</a> or <a target="_blank" href="http://www.postgresql.org/">PostgreSQL</a></em> as databases (configurable)</li>
-                    <li><i></i><em><a target="_blank" href="http://memcached.org/">Memcache</a>, <a target="_blank" href="http://php.net/manual/de/book.apc.php">APC</a> or <a target="_blank" href="http://xcache.lighttpd.net/">XCache </a></em> as a 2nd level cache engine (configurable)</li>
+                    <li><i></i>"<em>Fat-Free Framework</em>" as a lightweight PHP framework and ORM mapper</li>
+                    <li><i></i>"<em>MySQL</em> as databases (configurable)</li>
+                    <li><i></i>"<em>Memcache, APC or XCache</em> as a 2nd level cache engine (configurable)</li>
                     <li><i></i>Code quality and automated testing</li>
                     <li>
                         <ul class="fa-ul">
-                            <li><i></i><em><a target="_blank" href="https://phpunit.de/">PHPUnit</a></em></li>
+                            <li><i></i>"<em>PHPUnit</em>"</li>
                         </ul>
                     </li>
                     <li><i></i>You should know about relational databases, MVC pattern and ORM strategies</li>
