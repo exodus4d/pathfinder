@@ -484,7 +484,7 @@
                                         </td>
                                         <td></td>
                                         <td class="text-center">
-                                            <check if="{{ @tableData.statusCheckCount == 0 }}">
+                                            <check if="{{ @tableData.statusCheckCount == 0 && @tableData.exists }}">
                                                 <true>
                                                     <i class="fa fa-lg fa-fw fa-check txt-color txt-color-success"></i>
                                                 </true>
