@@ -257,29 +257,35 @@ table{
 }
 
 //  navbar li ====================================================
-.navbar-nav li{
+.navbar-nav {
+  li{
+    &:hover, &.active{
 
-  &:hover, &.active{
+      &:before{
+        top: -4px;
+        opacity: 1;
+      }
+
+    }
 
     &:before{
-      top: -4px;
-      opacity: 1;
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 2px;
+      background-color: $green;
+      top: 0;
+      opacity: 0;
+      will-change: opacity, top;
+      @include transition( top 0.15s ease-out, opacity 0.15s ease-out );
     }
 
   }
+}
 
-  &:before{
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 2px;
-    background-color: $green;
-    top: 0;
-    opacity: 0;
-    will-change: opacity, top;
-    @include transition( top 0.15s ease-out, opacity 0.15s ease-out );
-  }
 
+.pf-navbar-version-info{
+  cursor: pointer;
 }
 
 // page menu =====================================================

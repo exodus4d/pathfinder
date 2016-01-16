@@ -96,6 +96,7 @@ app/ui/demo_map.js
 app/ui/dialog/account_settings.js
 app/ui/dialog/notification.js
 app/ui/dialog/manual.js
+app/ui/dialog/releases.js
 app/ui/dialog/credit.js
 app/landingpage.js
 lib/requirejs/text.js

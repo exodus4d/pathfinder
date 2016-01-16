@@ -43,7 +43,9 @@ define(['jquery'], function($) {
             saveSignatureData: 'api/signature/save',                // ajax URL - save signature data for system
             deleteSignatureData: 'api/signature/delete',            // ajax URL - delete signature data for system
             // route API
-            searchRoute: 'api/route/search'                         // ajax URL - search system routes
+            searchRoute: 'api/route/search',                        // ajax URL - search system routes
+            // GitHub API
+            gitHubReleases: 'api/github/releases'                   // ajax URL - get release info from GitHub
         },
         url: {
             ccpImageServer: 'https://image.eveonline.com/',         // CCP image Server

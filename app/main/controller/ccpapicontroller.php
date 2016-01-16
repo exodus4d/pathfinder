@@ -17,22 +17,6 @@ use Model;
 class CcpApiController extends Controller{
 
     /**
-     * get a custom userAgent string for API calls
-     * (recommended by CCP)
-     * @return string
-     */
-    protected function getUserAgent(){
-        $userAgent = '';
-
-        $userAgent .= $this->getF3()->get('PATHFINDER.NAME');
-        $userAgent .=  ' - ' . $this->getF3()->get('PATHFINDER.VERSION');
-        $userAgent .=  ' | ' . $this->getF3()->get('PATHFINDER.CONTACT');
-        $userAgent .=  ' (' . $_SERVER['SERVER_NAME'] . ')';
-
-        return $userAgent;
-    }
-
-    /**
      * get HTTP request options for API (curl) request
      * @return array
      */

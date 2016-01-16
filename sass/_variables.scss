@@ -728,14 +728,14 @@ $close-text-shadow:           0 1px 0 #fff;
 //
 //##
 
-$code-color:                  #c7254e;
-$code-bg:                     #f9f2f4;
+$code-color:                  $gray-darkest;
+$code-bg:                     $gray-light;
 
 $kbd-color:                   $gray-lighter;
 $kbd-bg:                      $gray-darker;
 
-$pre-bg:                      #f5f5f5;
-$pre-color:                   $gray-dark;
+$pre-bg:                      $gray-light;
+$pre-color:                   $gray-darkest;
 $pre-border-color:            #ccc;
 $pre-scrollable-max-height:   340px;
 

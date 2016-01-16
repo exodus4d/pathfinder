@@ -435,6 +435,21 @@ class Controller {
     }
 
     /**
+     * get a custom userAgent string for API calls
+     * @return string
+     */
+    protected function getUserAgent(){
+        $userAgent = '';
+
+        $userAgent .= $this->getF3()->get('PATHFINDER.NAME');
+        $userAgent .=  ' - ' . $this->getF3()->get('PATHFINDER.VERSION');
+        $userAgent .=  ' | ' . $this->getF3()->get('PATHFINDER.CONTACT');
+        $userAgent .=  ' (' . $_SERVER['SERVER_NAME'] . ')';
+
+        return $userAgent;
+    }
+
+    /**
      * onError() callback function
      * -> on AJAX request -> return JSON with error information
      * -> on HTTP request -> render error page
@@ -475,6 +490,7 @@ class Controller {
         if($f3->get('AJAX')){
             header('Content-type: application/json');
             echo json_encode($return);
+            die();
         }else{
             // set error data for template rendering
             $error->redirectUrl = $this->getRouteUrl();

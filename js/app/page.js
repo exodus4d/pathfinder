@@ -481,7 +481,8 @@ define([
 
         var moduleData = {
             id: config.pageFooterId,
-            footerLicenceLinkClass: config.footerLicenceLinkClass
+            footerLicenceLinkClass: config.footerLicenceLinkClass,
+            currentYear: new Date().getFullYear()
         };
 
         var headRendered = Mustache.render(TplFooter, moduleData);

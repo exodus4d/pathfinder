@@ -17,6 +17,7 @@ define([
     'dialog/account_settings',
     'dialog/notification',
     'dialog/manual',
+    'dialog/releases',
     'dialog/credit'
 ], function($, Init, Util, Render, CCP, Gallery, bootbox) {
 
@@ -39,7 +40,8 @@ define([
         // navigation
         navigationElementId: 'pf-navbar',                                       // id for navbar element
         navigationLinkManualClass: 'pf-navbar-manual',                          // class for "manual" trigger link
-        navigationLinkLicenseClass : 'pf-navbar-license',                       // class for "license" trigger link
+        navigationLinkLicenseClass: 'pf-navbar-license',                        // class for "license" trigger link
+        navigationVersionLinkClass: 'pf-navbar-version-info',                   // class for "version information"
 
         // login form
         loginFormId: 'pf-login-form',                                           // id for login form
@@ -128,6 +130,11 @@ define([
                     });
                 });
             }
+        });
+
+        // releases -----------------------------------------------------
+        $('.' + config.navigationVersionLinkClass).on('click', function(e){
+            $.fn.releasesDialog();
         });
 
         // manual -------------------------------------------------------

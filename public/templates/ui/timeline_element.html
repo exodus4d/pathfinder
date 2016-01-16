@@ -1,0 +1,19 @@
+<li class="{{#isOdd}}timeline-inverted{{/isOdd}} {{#isFirst}}timeline-first{{/isFirst}}">
+    <div class="timeline-badge"><i class="fa fa-lg fa-github fa-fw"></i></div>
+    <div class="timeline-panel">
+        <div class="timeline-heading">
+            <h4 class="timeline-title">
+                <a href="{{releaseData.html_url}}" target="_blank">{{ releaseData.name }}</a>
+
+                <span class="text-muted pull-right">
+                    {{ #releaseData.prerelease }}
+                        <span class="label label-danger">Pre-release</span>
+                    {{ /releaseData.prerelease }}
+                    <i class="fa fa-calendar fa-fw"></i> {{ releaseDate }}
+                </span>
+            </h4>
+            <p><small class="text-muted"></small></p>
+        </div>
+        <div class="timeline-body">{{{ releaseData.body }}}</div>
+    </div>
+</li>

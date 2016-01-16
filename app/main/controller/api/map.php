@@ -465,7 +465,7 @@ class Map extends \Controller\AccessController {
         $responseTTL = $f3->get('PATHFINDER.TIMER.UPDATE_SERVER_MAP.DELAY') / 1000;
         $mapData = (array)$f3->get('POST.mapData');
 
-        $user = $this->_getUser(0);
+        $user = $this->_getUser();
         $return = (object) [];
         $return->error = [];
 
@@ -628,7 +628,7 @@ class Map extends \Controller\AccessController {
         $return = (object) [];
         $return->error = [];
 
-        $user = $this->_getUser(0);
+        $user = $this->_getUser();
 
         if($user){
 
