@@ -55,12 +55,12 @@ class ConnectionModel extends BasicModel{
             ]
         ],
         'scope' => [
-            'type' => self::DT_JSON
-        ],
-        'type' => [
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
             'default' => ''
+        ],
+        'type' => [
+            'type' => self::DT_JSON
         ]
     ];
 

@@ -20,6 +20,11 @@ define([
      * @param releasesDialog
      */
     var loadDialogData = function(releasesDialog){
+
+        // lock dialog
+        var dialogContent = releasesDialog.find('.modal-content');
+        dialogContent.showLoadingAnimation();
+
         $.ajax({
             type: 'POST',
             url: Init.path.gitHubReleases,
@@ -41,10 +46,25 @@ define([
                     var content = Mustache.render(template, data);
                     releasesDialog.find('ul.timeline').append(content);
                 }
+
+               // console.log()
+
+                $('.timeline > li').velocity('transition.expandIn', {
+                    stagger: 300,
+                    duration: 240,
+                    //display: 'auto',
+                    complete: function(){
+
+                    }
+                });
+
+
             });
         }).fail(function( jqXHR, status, error) {
             var reason = status + ' ' + jqXHR.status + ': ' + error;
             Util.showNotify({title: jqXHR.status + ': login', text: reason, type: 'error'});
+        }).always(function() {
+            dialogContent.hideLoadingAnimation();
         });
     };
 
