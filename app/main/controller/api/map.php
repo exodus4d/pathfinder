@@ -318,7 +318,7 @@ class Map extends \Controller\AccessController {
 
                                 if(
                                     !$tempUser->dry() &&
-                                    $tempUser->sharing == 1 // check if map sharing is enabled
+                                    $tempUser->shared == 1 // check if map shared is enabled
                                 ){
                                     $map->setAccess($tempUser);
                                 }
@@ -355,7 +355,7 @@ class Map extends \Controller\AccessController {
 
                                         if(
                                             !$tempCorporation->dry() &&
-                                            $tempCorporation->sharing == 1 // check if map sharing is enabled
+                                            $tempCorporation->shared == 1 // check if map shared is enabled
                                         ){
                                             $map->setAccess($tempCorporation);
                                         }
@@ -393,7 +393,7 @@ class Map extends \Controller\AccessController {
 
                                         if(
                                             !$tempAlliance->dry() &&
-                                            $tempAlliance->sharing == 1 // check if map sharing is enabled
+                                            $tempAlliance->shared == 1 // check if map shared is enabled
                                         ){
                                             $map->setAccess($tempAlliance);
                                         }

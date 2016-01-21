@@ -26,7 +26,7 @@ class CorporationModel extends BasicModel {
             'nullable' => false,
             'default' => ''
         ],
-        'sharing' => [
+        'shared' => [
             'type' => Schema::DT_BOOL,
             'nullable' => false,
             'default' => 0
@@ -48,7 +48,7 @@ class CorporationModel extends BasicModel {
 
         $cooperationData->id = $this->id;
         $cooperationData->name = $this->name;
-        $cooperationData->sharing = $this->sharing;
+        $cooperationData->shared = $this->shared;
 
         return $cooperationData;
     }

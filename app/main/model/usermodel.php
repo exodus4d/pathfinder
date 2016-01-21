@@ -96,8 +96,8 @@ class UserModel extends BasicModel {
         // add sensitive user data
         $userData->email = $this->email;
 
-        // user sharing info
-        $userData->sharing = $this->sharing;
+        // user shared info
+        $userData->shared = $this->shared;
 
         // api data
         $APIs = $this->getAPIs();

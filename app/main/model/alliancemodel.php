@@ -26,7 +26,7 @@ class AllianceModel extends BasicModel {
             'nullable' => false,
             'default' => ''
         ],
-        'sharing' => [
+        'shared' => [
             'type' => Schema::DT_BOOL,
             'nullable' => false,
             'default' => 0
@@ -48,7 +48,7 @@ class AllianceModel extends BasicModel {
 
         $allianceData->id = $this->id;
         $allianceData->name = $this->name;
-        $allianceData->sharing = $this->sharing;
+        $allianceData->shared = $this->shared;
 
         return $allianceData;
     }

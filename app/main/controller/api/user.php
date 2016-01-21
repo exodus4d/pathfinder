@@ -198,7 +198,7 @@ class User extends Controller\Controller{
                 }
             }
 
-            $user->sharing = $privateSharing;
+            $user->shared = $privateSharing;
             $user->save();
 
             // update corp/ally ---------------------------------------------------------------
@@ -210,12 +210,12 @@ class User extends Controller\Controller{
                 $alliance = $activeUserCharacter->getCharacter()->getAlliance();
 
                 if(is_object($corporation)){
-                    $corporation->sharing = $corporationSharing;
+                    $corporation->shared = $corporationSharing;
                     $corporation->save();
                 }
 
                 if(is_object($alliance)){
-                    $alliance->sharing = $allianceSharing;
+                    $alliance->shared = $allianceSharing;
                     $alliance->save();
                 }
             }
