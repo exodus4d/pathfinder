@@ -25,11 +25,10 @@ class UserModel extends BasicModel {
             'type' => Schema::DT_BOOL,
             'nullable' => false,
             'default' => true,
-            'index' => true,
-            'unique' => true
+            'index' => true
         ],
         'name' => [
-            'type' => Schema::DT_VARCHAR256,
+            'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
             'default' => '',
             'index' => true,
