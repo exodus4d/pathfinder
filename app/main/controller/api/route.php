@@ -73,27 +73,29 @@ class Route extends \Controller\AccessController {
 
             $rows = $pfDB->exec($query, null, $this->jumpDataCacheTime);
 
-            foreach($rows as $row){
-                $regionId = $row['regionId'];
-                $constId = $row['constellationId'];
-                $systemName = strtoupper($row['systemName']);
-                $systemId = $row['systemId'];
-                $secStatus = $row['trueSec'];
+            if(count($rows) > 0){
+                foreach($rows as $row){
+                    $regionId = $row['regionId'];
+                    $constId = $row['constellationId'];
+                    $systemName = strtoupper($row['systemName']);
+                    $systemId = $row['systemId'];
+                    $secStatus = $row['trueSec'];
 
-                $this->nameArray[$systemId][0] = $systemName;
-                $this->nameArray[$systemId][1] = $regionId;
-                $this->nameArray[$systemId][2] = $constId;
-                $this->nameArray[$systemId][3] = $secStatus;
+                    $this->nameArray[$systemId][0] = $systemName;
+                    $this->nameArray[$systemId][1] = $regionId;
+                    $this->nameArray[$systemId][2] = $constId;
+                    $this->nameArray[$systemId][3] = $secStatus;
 
-                $this->idArray[strtoupper($systemName)] = $systemId;
+                    $this->idArray[strtoupper($systemName)] = $systemId;
 
-                $this->jumpArray[$systemName]= explode(":", strtoupper($row['jumpNodes']));
-                array_push($this->jumpArray[$systemName],$systemId);
+                    $this->jumpArray[$systemName]= explode(":", strtoupper($row['jumpNodes']));
+                    array_push($this->jumpArray[$systemName],$systemId);
+                }
+
+                $f3->set($cacheKeyNamedArray, $this->nameArray, $this->jumpDataCacheTime);
+                $f3->set($cacheKeyJumpArray, $this->jumpArray, $this->jumpDataCacheTime);
+                $f3->set($cacheKeyIdArray, $this->idArray, $this->jumpDataCacheTime);
             }
-
-            $f3->set($cacheKeyNamedArray, $this->nameArray, $this->jumpDataCacheTime);
-            $f3->set($cacheKeyJumpArray, $this->jumpArray, $this->jumpDataCacheTime);
-            $f3->set($cacheKeyIdArray, $this->idArray, $this->jumpDataCacheTime);
         }
     }
 
