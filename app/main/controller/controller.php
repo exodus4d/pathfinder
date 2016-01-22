@@ -15,14 +15,6 @@ class Controller {
     protected $f3;
     private $template;
 
-    function __construct(){
-
-        $this->f3 = \Base::instance();
-
-        // initiate DB connection
-        DB\Database::instance('PF');
-    }
-
     /**
      * @param mixed $template
      */
@@ -37,6 +29,20 @@ class Controller {
         return $this->template;
     }
 
+    /**
+     * set global f3 instance
+     * @param null $f3
+     * @return null|static
+     */
+    protected function getF3($f3 = null){
+        if(is_object($f3)){
+            $this->f3 = $f3;
+        }else{
+            $this->f3 = \Base::instance();
+        }
+
+        return $this->f3;
+    }
 
     /**
      * event handler for all "views"
@@ -44,24 +50,35 @@ class Controller {
      * @param $f3
      */
     function beforeroute($f3) {
+        $this->getF3($f3);
+
+        // initiate DB connection
+        DB\Database::instance('PF');
 
         // init user session
         $this->initSession();
 
-        // check if user is in game
-        $f3->set('isIngame', self::isIGB() );
+        if( !$f3->get('AJAX') ){
+            // set page parameters for static page render
+            // check if user is in game (IGB active)
+            $f3->set('isIngame', self::isIGB() );
 
-        // js path (build/minified or raw uncompressed files)
-        $f3->set('pathJs', 'public/js/' . $f3->get('PATHFINDER.VERSION') );
+            // js path (build/minified or raw uncompressed files)
+            $f3->set('pathJs', 'public/js/' . $f3->get('PATHFINDER.VERSION') );
+
+            $this->setTemplate( $f3->get('PATHFINDER.VIEW.INDEX') );
+        }
     }
 
     /**
-     * event handler
+     * event handler after routing
+     * -> render view
      */
-    function afterroute() {
-        if($this->template){
-            echo \Template::instance()->render( $this->template );
-
+    public function afterroute($f3){
+        if($this->getTemplate()){
+            // Ajax calls don´t need a page render..
+            // this happens on client side
+            echo \Template::instance()->render( $this->getTemplate() );
         }
     }
 
@@ -79,7 +96,9 @@ class Controller {
      */
     protected function initSession(){
         // init DB Session (not file based)
-        new \DB\SQL\Session($this->getDB('PF'));
+        if( $this->getDB('PF') instanceof \DB\SQL){
+            new \DB\SQL\Session($this->getDB('PF'));
+        }
     }
 
     /**
@@ -95,7 +114,7 @@ class Controller {
             $userId = (int)$this->f3->get('SESSION.user.id');
 
             if($userId > 0){
-                $userModel = Model\BasicModel::getNew('UserModel');
+                $userModel = Model\BasicModel::getNew('UserModel', $ttl);
                 $userModel->getById($userId, $ttl);
 
                 if( !$userModel->dry() ){
@@ -120,9 +139,17 @@ class Controller {
             // redirect to landing page
             $f3->reroute('@landing');
         }else{
+            $params = $f3->get('POST');
             $return = (object) [];
-            $return->reroute = self::getEnvironmentData('URL') . $f3->alias('landing');
-            $return->error[] = $this->getUserLoggedOffError();
+            if(
+                isset($params['reroute']) &&
+                (bool)$params['reroute']
+            ){
+                $return->reroute = rtrim(self::getEnvironmentData('URL'), '/') . $f3->alias('landing');
+            }else{
+                // no reroute -> errors can be shown
+                $return->error[] = $this->getUserLoggedOffError();
+            }
 
             echo json_encode($return);
             die();
@@ -208,11 +235,16 @@ class Controller {
     static function getRequestHeaders(){
         $headers = [];
 
-        if(function_exists('apache_request_headers') ){
+        $serverData = self::getServerData();
+
+        if(
+            function_exists('apache_request_headers') &&
+            $serverData->type === 'apache'
+        ){
             // Apache Webserver
             $headers = apache_request_headers();
         }else{
-            // Other webserver, e.g. nginx
+            // Other webserver, e.g. Nginx
             // Unfortunately this "fallback" does not work for me (Apache)
             // Therefore we can´t use this for all servers
             // https://github.com/exodus4d/pathfinder/issues/58
@@ -222,8 +254,52 @@ class Controller {
                 }
             }
         }
-
+        
         return $headers;
+    }
+
+    /**
+     * get some server information
+     * @param int $ttl cache time (default: 1h)
+     * @return object
+     */
+    static function getServerData($ttl = 3600){
+        $f3 = \Base::instance();
+        $cacheKey = 'PF_SERVER_INFO';
+
+        if( !$f3->exists($cacheKey) ){
+            $serverData = (object) [];
+            $serverData->type = 'unknown';
+            $serverData->version = 'unknown';
+            $serverData->requiredVersion = 'unknown';
+            $serverData->phpInterfaceType = php_sapi_name();
+
+            if(strpos(strtolower($_SERVER['SERVER_SOFTWARE']), 'nginx' ) !== false){
+                // Nginx server
+                $serverSoftwareArgs = explode('/', strtolower( $_SERVER['SERVER_SOFTWARE']) );
+                $serverData->type = reset($serverSoftwareArgs);
+                $serverData->version = end($serverSoftwareArgs);
+                $serverData->requiredVersion = $f3->get('REQUIREMENTS.SERVER.NGINX.VERSION');
+            }elseif(strpos(strtolower($_SERVER['SERVER_SOFTWARE']), 'apache' ) !== false){
+                // Apache server
+                $serverData->type = 'apache';
+                $serverData->requiredVersion = $f3->get('REQUIREMENTS.SERVER.APACHE.VERSION');
+
+                // try to get the apache version...
+                if(function_exists('apache_get_version')){
+                    // function does not exists if PHP is running as CGI/FPM module!
+                    $matches = preg_split('/[\s,\/ ]+/', strtolower( apache_get_version() ) );
+                    if(count($matches) > 1){
+                        $serverData->version = $matches[1];
+                    }
+                }
+            }
+
+            // cache data for one day
+            $f3->set($cacheKey, $serverData, $ttl);
+        }
+
+        return $f3->get($cacheKey);
     }
 
     /**
@@ -241,7 +317,6 @@ class Controller {
 
         return $isIGB;
     }
-
 
     /**
      * get error object is a user is not found/logged of
@@ -290,72 +365,155 @@ class Controller {
      */
     static function getEnvironmentData($key){
         $f3 = \Base::instance();
-        $environment = $f3->get('PATHFINDER.ENVIRONMENT.SERVER');
-        $environmentKey = 'PATHFINDER.ENVIRONMENT[' . $environment . '][' . $key . ']';
+        $environment = self::getEnvironment();
+        $environmentKey = 'ENVIRONMENT[' . $environment . '][' . $key . ']';
         $data = null;
 
         if( $f3->exists($environmentKey) ){
             $data = $f3->get($environmentKey);
         }
-
         return $data;
     }
 
+    /**
+     * get current server environment status
+     * -> "DEVELOP" or "PRODUCTION"
+     * @return mixed
+     */
+    static function getEnvironment(){
+        $f3 = \Base::instance();
+        return $f3->get('ENVIRONMENT.SERVER');
+    }
 
     /**
-     * function is called on each error
+     * check if current server is "PRODUCTION"
+     * @return bool
+     */
+    static function isProduction(){
+        return self::getEnvironment() == 'PRODUCTION';
+    }
+
+    /**
+     * get required MySQL variable value
+     * @param $key
+     * @return mixed|null
+     */
+    static function getRequiredMySqlVariables($key){
+        $f3 = \Base::instance();
+        $requiredMySqlVarKey = 'REQUIREMENTS[MYSQL][VARS][' . $key . ']';
+        $data = null;
+
+        if( $f3->exists($requiredMySqlVarKey) ){
+            $data = $f3->get($requiredMySqlVarKey);
+        }
+        return $data;
+    }
+
+    /**
+     * get a program URL by alias
+     * -> if no $alias given -> get "default" route (index.php)
+     * @param null $alias
+     * @return bool
+     */
+    protected function getRouteUrl($alias = null){
+        $url = false;
+
+        if(!empty($alias)){
+            // check given alias is a valid (registered) route
+            if(array_key_exists($alias, $this->getF3()->get('ALIASES'))){
+                $url = $this->getF3()->alias($alias);
+            }
+        }elseif($this->getF3()->get('ALIAS')){
+            // get current URL
+            $url = $this->getF3()->alias( $this->getF3()->get('ALIAS') );
+        }else{
+            // get main (index.php) URL
+            $url = $this->getF3()->alias('landing');
+        }
+
+        return $url;
+    }
+
+    /**
+     * get a custom userAgent string for API calls
+     * @return string
+     */
+    protected function getUserAgent(){
+        $userAgent = '';
+
+        $userAgent .= $this->getF3()->get('PATHFINDER.NAME');
+        $userAgent .=  ' - ' . $this->getF3()->get('PATHFINDER.VERSION');
+        $userAgent .=  ' | ' . $this->getF3()->get('PATHFINDER.CONTACT');
+        $userAgent .=  ' (' . $_SERVER['SERVER_NAME'] . ')';
+
+        return $userAgent;
+    }
+
+    /**
+     * onError() callback function
+     * -> on AJAX request -> return JSON with error information
+     * -> on HTTP request -> render error page
      * @param $f3
      */
     public function showError($f3){
-
         // set HTTP status
         $errorCode = $f3->get('ERROR.code');
         if(!empty($errorCode)){
             $f3->status($errorCode);
         }
 
-        if($f3->get('AJAX')){
-            // error on ajax call
-            header('Content-type: application/json');
+        // collect error info ---------------------------------------
+        $return = (object) [];
+        $error = (object) [];
+        $error->type = 'error';
+        $error->code = $errorCode;
+        $error->status = $f3->get('ERROR.status');
+        $error->message = $f3->get('ERROR.text');
 
-            $return = (object) [];
-            $error = (object) [];
-            $error->type = 'error';
-            $error->code = $errorCode;
-            $error->status = $f3->get('ERROR.status');
-            $error->message = $f3->get('ERROR.text');
-
-            // append stack trace for greater debug level
-            if( $f3->get('DEBUG') === 3){
-                $error->trace = $f3->get('ERROR.trace');
-            }
-
-            // check if error is a PDO Exception
-            if(strpos(strtolower( $f3->get('ERROR.text') ), 'duplicate') !== false){
-                preg_match_all('/\'([^\']+)\'/', $f3->get('ERROR.text'), $matches, PREG_SET_ORDER);
-
-                if(count($matches) === 2){
-                    $error->field = $matches[1][1];
-                    $error->message = 'Value "' . $matches[0][1] . '" already exists';
-                }
-            }
-
-            $return->error[] = $error;
-
-            echo json_encode($return);
-        }else{
-            echo $f3->get('ERROR.text');
+        // append stack trace for greater debug level
+        if( $f3->get('DEBUG') === 3){
+            $error->trace = $f3->get('ERROR.trace');
         }
 
-        die();
+        // check if error is a PDO Exception
+        if(strpos(strtolower( $f3->get('ERROR.text') ), 'duplicate') !== false){
+            preg_match_all('/\'([^\']+)\'/', $f3->get('ERROR.text'), $matches, PREG_SET_ORDER);
+
+            if(count($matches) === 2){
+                $error->field = $matches[1][1];
+                $error->message = 'Value "' . $matches[0][1] . '" already exists';
+            }
+        }
+        $return->error[] = $error;
+
+        // return error information ---------------------------------
+        if($f3->get('AJAX')){
+            header('Content-type: application/json');
+            echo json_encode($return);
+            die();
+        }else{
+            // set error data for template rendering
+            $error->redirectUrl = $this->getRouteUrl();
+            $f3->set('errorData', $error);
+
+            if( preg_match('/^4[0-9]{2}$/', $error->code) ){
+                // 4xx error -> render error page
+                $f3->set('pageContent', $f3->get('PATHFINDER.STATUS.4XX'));
+            }elseif( preg_match('/^5[0-9]{2}$/', $error->code) ){
+                $f3->set('pageContent', $f3->get('PATHFINDER.STATUS.5XX'));
+            }
+
+            echo \Template::instance()->render( $f3->get('PATHFINDER.VIEW.INDEX') );
+            die();
+        }
     }
 
     /**
      * Callback for framework "unload"
-     * -> config.ini
+     * check -> config.ini
      */
-    public function unload(){
-
+    public function unload($f3){
+        return true;
     }
 
 } 

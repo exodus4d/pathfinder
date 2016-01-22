@@ -8,11 +8,29 @@
 
 namespace Model;
 
+use DB\SQL\Schema;
+
 class AllianceModel extends BasicModel {
 
     protected $table = 'alliance';
 
     protected $fieldConf = [
+        'active' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => true,
+            'index' => true
+        ],
+        'name' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
+        ],
+        'shared' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => 0
+        ],
         'allianceCharacters' => [
             'has-many' => ['Model\CharacterModel', 'allianceId']
         ],
@@ -30,7 +48,7 @@ class AllianceModel extends BasicModel {
 
         $allianceData->id = $this->id;
         $allianceData->name = $this->name;
-        $allianceData->sharing = $this->sharing;
+        $allianceData->shared = $this->shared;
 
         return $allianceData;
     }

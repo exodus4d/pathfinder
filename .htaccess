@@ -1,7 +1,10 @@
-# Enable rewrite engine and route requests to framework
+# HTTPS over SSL version
+# Information: https://github.com/exodus4d/pathfinder/wiki/Apache
+
+# Enable rewrite engine and route requests to framework ===========================================
 RewriteEngine On
 
-# HTTP to HTTPS ----------------------------------------------------------------
+# HTTP to HTTPS ===================================================================================
 RewriteCond %{HTTPS} off
 RewriteCond %{HTTP_HOST} !^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$
 RewriteCond %{HTTP_HOST} !=localhost
@@ -11,22 +14,25 @@ RewriteCond %{HTTP_HOST} !=localhost
 # the subsequent rule will catch it.
 RewriteRule .* https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# Now, rewrite any request to the wrong domain to use www.
+# Rewrite NONE www. to force www. =================================================================
 RewriteCond %{HTTP_HOST} !^www\.
+# skip "localhost" (dev environment)...
 RewriteCond %{HTTP_HOST} !=localhost
+# skip IP calls (dev environment)
 RewriteCond %{HTTP_HOST} !^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$
+# rewrite everything else to "https://" and "www."
 RewriteRule .* https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-
 
 # Some servers require you to specify the `RewriteBase` directive
 # In such cases, it should be the path (relative to the document root)
-# containing this .htaccess file
-#
-#RewriteBase /app/
+# containing this .htaccess file:
+# RewriteBase /app/
 
+# Protect system files ============================================================================
 RewriteCond %{ENV:REDIRECT_STATUS} ^$
 RewriteRule ^(lib|tmp)\/|\.(ini|php)$ - [R=404]
 
+# Rewrite "everything" to index.php (dispatcher) ==================================================
 RewriteCond %{REQUEST_FILENAME} !-l
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
@@ -34,18 +40,19 @@ RewriteRule .* index.php [L,QSA]
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
 
 
-# PHP global Vars
+# PHP global Vars (can be set in php.ini as well,...) =============================================
 php_value max_input_vars 5000
 php_value suhosin.get.max_vars 5000
 php_value suhosin.post.max_vars 5000
 php_value suhosin.request.max_vars 5000
 
-
-# PHP error logs
+# Activate PHP error log ==========================================================================
 php_flag log_errors on
-# php_value error_log "/www/htdocs/w0128162/www.pathfinder.exodus4d.de/logs/php_errors.log"
+# php_value error_log "/www/htdocs/www.pathfinder-w.space/logs/php_errors.log"
 
-# caching
+# Cache Header ====================================================================================
+# You should not change anything in here!
+# New versioned files come with a unique path (e.g. ../js/v1.0.0/..) to force client cache busting.
 <ifmodule mod_expires.c>
     # fonts
     <Filesmatch "\.(eot|woff2|woff|ttf|ttf|svg)$">
@@ -84,5 +91,3 @@ php_flag log_errors on
         ExpiresDefault "access plus 1 week"
     </Filesmatch>
 </ifmodule>
-
-

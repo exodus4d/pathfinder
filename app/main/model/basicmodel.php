@@ -36,6 +36,13 @@ class BasicModel extends \DB\Cortex {
     protected $rel_ttl = 0;
 
     /**
+     * ass static columns for this table
+     * -> can be overwritten in child models
+     * @var bool
+     */
+    protected $addStaticFields = true;
+
+    /**
      * field validation array
      * @var array
      */
@@ -48,10 +55,23 @@ class BasicModel extends \DB\Cortex {
      */
     private $dataCacheKeyPrefix = 'DATACACHE';
 
+    /**
+     * enables data export for this table
+     * -> can be overwritten in child models
+     * @var bool
+     */
+    public static $enableDataExport = false;
+
+    /**
+     * enables data import for this table
+     * -> can be overwritten in child models
+     * @var bool
+     */
+    public static $enableDataImport = false;
+
 
     public function __construct($db = NULL, $table = NULL, $fluid = NULL, $ttl = 0){
 
-        // add static fields to this mapper
         $this->addStaticFieldConfig();
 
         parent::__construct($db, $table, $fluid, $ttl);
@@ -120,18 +140,24 @@ class BasicModel extends \DB\Cortex {
      */
     private function addStaticFieldConfig(){
 
-        if(is_array($this->fieldConf)){
-
+        // add static fields to this mapper
+        // static tables (fixed data) do not require them...
+        if($this->addStaticFields){
             $staticFieldConfig = [
                 'created' => [
-                    'type' => Schema::DT_TIMESTAMP
+                    'type' => Schema::DT_TIMESTAMP,
+                    'default' => Schema::DF_CURRENT_TIMESTAMP,
+                    'index' => true
                 ],
                 'updated' => [
-                    'type' => Schema::DF_CURRENT_TIMESTAMP
+                    'type' => Schema::DT_TIMESTAMP,
+                    'default' => Schema::DF_CURRENT_TIMESTAMP,
+                    'index' => true
                 ]
             ];
 
-            $this->fieldConf = array_merge($this->fieldConf, $staticFieldConfig);
+
+            $this->fieldConf = array_merge($staticFieldConfig, $this->fieldConf);
         }
     }
 
@@ -263,13 +289,7 @@ class BasicModel extends \DB\Cortex {
      * @return bool
      */
     public function isActive(){
-        $isActive = false;
-
-        if($this->active === 1){
-            $isActive = true;
-        }
-
-        return $isActive;
+        return (bool)$this->active;
     }
 
     /**
@@ -396,6 +416,16 @@ class BasicModel extends \DB\Cortex {
     }
 
     /**
+     * get the current class name
+     * -> namespace not included
+     * @return string
+     */
+    public static function getClassName(){
+        $parts = explode('\\', static::class);
+        return end($parts);
+    }
+
+    /**
      * factory for all Models
      * @param $model
      * @param int $ttl
@@ -429,7 +459,171 @@ class BasicModel extends \DB\Cortex {
      */
     public static function log($text){
         Controller\LogController::getLogger('debug')->write($text);
+    }
 
+    /**
+     * export and download table data as *.csv
+     * this is primarily used for static tables
+     * @return bool
+     */
+    public function exportData(){
+        $status = false;
+
+        if(static::$enableDataExport){
+            $tableModifier = static::getTableModifier();
+            $headers = $tableModifier->getCols();
+
+            // just get the records with existing columns
+            // -> no "virtual" fields or "new" columns
+            $this->fields($headers);
+            $allRecords = $this->find();
+
+            if($allRecords){
+                $tableData = $allRecords->castAll();
+
+                // format data -> "id" must be first key
+                foreach($tableData as &$rowData){
+                    $rowData = [$this->primary => $rowData['_id']] + $rowData;
+                    unset($rowData['_id']);
+                }
+
+                $sheet = \Sheet::instance();
+                $data = $sheet->dumpCSV($tableData, $headers);
+
+                header('Expires: 0');
+                header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+                header('Content-Type: text/csv;charset=UTF-8');
+                header('Content-Disposition: attachment;filename=' . $this->getTable() . '.csv');
+                echo $data;
+                exit();
+            }
+        }
+
+        return $status;
+    }
+
+    /**
+     * import table data from a *.csv file
+     * @return bool
+     */
+    public function importData(){
+        $status = false;
+
+        if(static::$enableDataImport){
+            $filePath = 'export/sql/' . $this->getTable() . '.csv';
+
+            if(is_file($filePath)){
+                $handle = @fopen($filePath, 'r');
+                $keys = array_map('lcfirst', array_filter(fgetcsv($handle, 0, ';')));
+
+                if(count($keys) > 0){
+                    $tableData = [];
+                    while (!feof($handle)) {
+                        $tableData[] = array_combine($keys, array_filter(fgetcsv($handle, 0, ';')));
+                    }
+                    // import row data
+                    $status = $this->importStaticData($tableData);
+                    $this->getF3()->status(202);
+                }else{
+                    $this->getF3()->error(502, 'File could not be read');
+                }
+            }else{
+                $this->getF3()->error(404, 'File not found: ' . $filePath);
+            }
+        }
+
+        return $status;
+    }
+
+    /**
+     * insert/update static data into this table
+     * WARNING: rows will be deleted if not part of $tableData !
+     * @param array $tableData
+     * @return array
+     */
+    protected function importStaticData($tableData = []){
+        $rowIDs = [];
+
+        $addedCount = 0;
+        $updatedCount = 0;
+        $deletedCount = 0;
+
+        foreach($tableData as $rowData){
+            // search for existing record and update columns
+            $this->getById($rowData['id']);
+            if($this->dry()){
+                $addedCount++;
+            }else{
+                $updatedCount++;
+            }
+            $this->copyfrom($rowData);
+            $this->save();
+            $rowIDs[] = $this->id;
+            $this->reset();
+        }
+
+        // remove old data
+        $oldRows = $this->find('id NOT IN (' . implode(',', $rowIDs) . ')');
+        if($oldRows){
+            foreach($oldRows as $oldRow){
+                $oldRow->erase();
+                $deletedCount++;
+            }
+        }
+        return ['added' => $addedCount, 'updated' => $updatedCount, 'deleted' => $deletedCount];
+    }
+
+    /**
+     * get tableModifier class for this table
+     * @return bool|DB\SQL\TableModifier
+     */
+    public static function getTableModifier(){
+        $df = parent::resolveConfiguration();
+        $schema = new Schema($df['db']);
+        $tableModifier = $schema->alterTable( $df['table'] );
+        return $tableModifier;
+    }
+
+    /**
+     * Check whether a (multi)-column index exists or not on a table
+     * related to this model
+     * @param array $fields
+     * @return bool|array
+     */
+    public static function indexExists(array $fields=array()){
+        $tableModifier = self::getTableModifier();
+        $df = parent::resolveConfiguration();
+
+        $check = false;
+        $indexKey = $df['table'] . '___' . implode('__', $fields);
+        $indexList = $tableModifier->listIndex();
+        if(array_key_exists( $indexKey, $indexList)){
+            $check = $indexList[$indexKey];
+        }
+
+        return $check;
+    }
+
+    /**
+     * set a multi-column index for this table
+     * @param array $fields
+     * @param bool $unique
+     * @param int $length
+     * @return bool
+     */
+    public static function setMultiColumnIndex(array $fields=array(), $unique = false, $length = 20){
+        $status = false;
+        $tableModifier = self::getTableModifier();
+
+        if( self::indexExists($fields) === false ){
+            $tableModifier->addIndex($fields, $unique, $length);
+            $buildStatus = $tableModifier->build();
+            if($buildStatus === 0){
+                $status = true;
+            }
+        }
+
+        return $status;
     }
 
 } 

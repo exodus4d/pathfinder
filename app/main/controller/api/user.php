@@ -48,7 +48,7 @@ class User extends Controller\Controller{
             $user->updateApiData();
 
             // route user to map app
-            $return->reroute = self::getEnvironmentData('URL') . $f3->alias('map');
+            $return->reroute = rtrim(self::getEnvironmentData('URL'), '/') . $f3->alias('map');
         }
 
         echo json_encode($return);
@@ -108,16 +108,19 @@ class User extends Controller\Controller{
         ){
             $reason = $data['reason'];
 
-            $img = new \Image();
+            $im = imagecreatetruecolor(1, 1);
+            $colorText = imagecolorallocate($im, 102, 200, 79);
+            $colorBG = imagecolorallocate($im, 49, 51, 53);
 
+            $img = new \Image();
             $imgDump = $img->captcha(
                 'fonts/oxygen-bold-webfont.ttf',
                 14,
                 6,
                 'SESSION.' . $reason,
                 '',
-                '0x66C84F',
-                '0x313335'
+                $colorText,
+                $colorBG
             )->dump();
 
             $return->img = $f3->base64( $imgDump,  'image/png');
@@ -157,8 +160,7 @@ class User extends Controller\Controller{
      */
     public function logOut($f3){
         $this->deleteLog($f3);
-
-        return parent::logOut($f3);
+        parent::logOut($f3);
     }
 
     /**
@@ -196,7 +198,7 @@ class User extends Controller\Controller{
                 }
             }
 
-            $user->sharing = $privateSharing;
+            $user->shared = $privateSharing;
             $user->save();
 
             // update corp/ally ---------------------------------------------------------------
@@ -208,12 +210,12 @@ class User extends Controller\Controller{
                 $alliance = $activeUserCharacter->getCharacter()->getAlliance();
 
                 if(is_object($corporation)){
-                    $corporation->sharing = $corporationSharing;
+                    $corporation->shared = $corporationSharing;
                     $corporation->save();
                 }
 
                 if(is_object($alliance)){
-                    $alliance->sharing = $allianceSharing;
+                    $alliance->shared = $allianceSharing;
                     $alliance->save();
                 }
             }
@@ -279,10 +281,10 @@ class User extends Controller\Controller{
     }
 
     /**
-     * save/update user data
+     * save/update user account data
      * @param $f3
      */
-    public function saveConfig($f3){
+    public function saveAccount($f3){
         $data = $f3->get('POST');
 
         $return = (object) [];
@@ -297,9 +299,6 @@ class User extends Controller\Controller{
 
         // check for new user
         $loginAfterSave = false;
-
-        // send registration mail
-        $sendRegistrationMail = false;
 
         // valid registration key Model is required for new registration
         // if "invite" feature is enabled
@@ -335,7 +334,6 @@ class User extends Controller\Controller{
                             // new user registration
                             $user = $mapType = Model\BasicModel::getNew('UserModel');
                             $loginAfterSave = true;
-                            $sendRegistrationMail = true;
 
                             // set username
                             if(
@@ -366,9 +364,6 @@ class User extends Controller\Controller{
                             $settingsData['password'] == $settingsData['password_confirm']
                         ){
                             $user->password = $settingsData['password'];
-
-                            // pw changed -> send mail
-                            $sendRegistrationMail = true;
                         }
                     }else{
                         // captcha was send but not valid -> return error
@@ -465,18 +460,12 @@ class User extends Controller\Controller{
                         $this->logUserIn( $user->name, $settingsData['password'] );
 
                         // return reroute path
-                        $return->reroute = self::getEnvironmentData('URL') . $this->f3->alias('map');
+                        $return->reroute = rtrim(self::getEnvironmentData('URL'), '/') . $this->f3->alias('map');
                     }
 
                     // get fresh updated user object
                     $user = $this->_getUser(0);
                     $newUserData = $user->getData();
-
-                    // send registration mail with account information
-                    if($sendRegistrationMail){
-                        $this->sendRegistration($user, $settingsData['password']);
-                    }
-
                 }
             }catch(Exception\ValidationException $e){
                 $validationError = (object) [];
@@ -497,23 +486,6 @@ class User extends Controller\Controller{
 
         }
         echo json_encode($return);
-    }
-
-    /**
-     * send registration mail to user
-     * @param $user
-     * @param $password
-     * @return mixed
-     */
-    protected function sendRegistration($user, $password){
-
-        $msg = 'Username: ' . $user->name . '<br>';
-        $msg .= 'Password: ' . $password . '<br>';
-
-        $mailController = new MailController();
-        $status = $mailController->sendRegistration($user->email, $msg);
-
-        return $status;
     }
 
     /**

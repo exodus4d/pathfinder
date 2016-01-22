@@ -21,7 +21,7 @@ class Route extends \Controller\AccessController {
      * cache time for static jump data
      * @var int
      */
-    private $jumpDataCacheTime = 0;
+    private $jumpDataCacheTime = 86400;
 
     /**
      * array system information grouped by systemId
@@ -41,19 +41,6 @@ class Route extends \Controller\AccessController {
      */
     private $idArray = [];
 
-
-
-
-    function __construct() {
-        parent::__construct();
-
-        // set cache time for static jump data
-        $this->jumpDataCacheTime = 60 * 60 * 24;
-
-        // set static system jump data
-        $this->setSystemJumpData();
-    }
-
     /**
      * set static system jump data for this instance
      * the data is fixed and should not change
@@ -61,20 +48,22 @@ class Route extends \Controller\AccessController {
     private function setSystemJumpData(){
         $cacheKey = 'staticJumpData';
 
+        $f3 = $this->getF3();
+
         $cacheKeyNamedArray = $cacheKey . '.nameArray';
         $cacheKeyJumpArray = $cacheKey . '.jumpArray';
         $cacheKeyIdArray = $cacheKey . '.idArray';
 
         if(
-            $this->f3->exists($cacheKeyNamedArray) &&
-            $this->f3->exists($cacheKeyJumpArray) &&
-            $this->f3->exists($cacheKeyIdArray)
+            $f3->exists($cacheKeyNamedArray) &&
+            $f3->exists($cacheKeyJumpArray) &&
+            $f3->exists($cacheKeyIdArray)
         ){
             // get cached values
 
-            $this->nameArray = $this->f3->get($cacheKeyNamedArray);
-            $this->jumpArray = $this->f3->get($cacheKeyJumpArray);
-            $this->idArray = $this->f3->get($cacheKeyIdArray);
+            $this->nameArray = $f3->get($cacheKeyNamedArray);
+            $this->jumpArray = $f3->get($cacheKeyJumpArray);
+            $this->idArray = $f3->get($cacheKeyIdArray);
         }else{
             // nothing cached
 
@@ -84,27 +73,29 @@ class Route extends \Controller\AccessController {
 
             $rows = $pfDB->exec($query, null, $this->jumpDataCacheTime);
 
-            foreach($rows as $row){
-                $regionId = $row['regionId'];
-                $constId = $row['constellationId'];
-                $systemName = strtoupper($row['systemName']);
-                $systemId = $row['systemId'];
-                $secStatus = $row['trueSec'];
+            if(count($rows) > 0){
+                foreach($rows as $row){
+                    $regionId = $row['regionId'];
+                    $constId = $row['constellationId'];
+                    $systemName = strtoupper($row['systemName']);
+                    $systemId = $row['systemId'];
+                    $secStatus = $row['trueSec'];
 
-                $this->nameArray[$systemId][0] = $systemName;
-                $this->nameArray[$systemId][1] = $regionId;
-                $this->nameArray[$systemId][2] = $constId;
-                $this->nameArray[$systemId][3] = $secStatus;
+                    $this->nameArray[$systemId][0] = $systemName;
+                    $this->nameArray[$systemId][1] = $regionId;
+                    $this->nameArray[$systemId][2] = $constId;
+                    $this->nameArray[$systemId][3] = $secStatus;
 
-                $this->idArray[strtoupper($systemName)] = $systemId;
+                    $this->idArray[strtoupper($systemName)] = $systemId;
 
-                $this->jumpArray[$systemName]= explode(":", strtoupper($row['jumpNodes']));
-                array_push($this->jumpArray[$systemName],$systemId);
+                    $this->jumpArray[$systemName]= explode(":", strtoupper($row['jumpNodes']));
+                    array_push($this->jumpArray[$systemName],$systemId);
+                }
+
+                $f3->set($cacheKeyNamedArray, $this->nameArray, $this->jumpDataCacheTime);
+                $f3->set($cacheKeyJumpArray, $this->jumpArray, $this->jumpDataCacheTime);
+                $f3->set($cacheKeyIdArray, $this->idArray, $this->jumpDataCacheTime);
             }
-
-            $this->f3->set($cacheKeyNamedArray, $this->nameArray, $this->jumpDataCacheTime);
-            $this->f3->set($cacheKeyJumpArray, $this->jumpArray, $this->jumpDataCacheTime);
-            $this->f3->set($cacheKeyIdArray, $this->idArray, $this->jumpDataCacheTime);
         }
     }
 
@@ -202,6 +193,7 @@ class Route extends \Controller\AccessController {
      * This function is just for setting up the cache table 'system_neighbour' which is used
      * for system jump calculation. Call this function manually if CCP adds Systems/Stargates
      */
+/*
     private function setupSystemJumpTable(){
 
         $pfDB = $this->getDB('PF');
@@ -269,7 +261,7 @@ class Route extends \Controller\AccessController {
             }
         }
     }
-
+*/
     /**
      * find a route between two systems (system names)
      * $searchDepth for recursive route search (5000 would be best but slow)
@@ -291,6 +283,9 @@ class Route extends \Controller\AccessController {
             !empty($systemFrom) &&
             !empty($systemTo)
         ){
+
+            $this->setSystemJumpData();
+
             $from = strtoupper( $systemFrom );
             $to = strtoupper( $systemTo );
 
@@ -377,7 +372,14 @@ class Route extends \Controller\AccessController {
             }else{
                 // no cached route data found
                 $foundRoutData = $this->findRoute($routeData['systemFrom'], $routeData['systemTo']);
-                $f3->set($cacheKey, $foundRoutData, $this->jumpDataCacheTime);
+
+                // cache if route was found
+                if(
+                    isset($foundRoutData['routePossible']) &&
+                    $foundRoutData['routePossible'] === true
+                ){
+                    $f3->set($cacheKey, $foundRoutData, $this->jumpDataCacheTime);
+                }
 
                 $return->routesData[] = $foundRoutData;
             }

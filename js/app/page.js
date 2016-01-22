@@ -481,7 +481,8 @@ define([
 
         var moduleData = {
             id: config.pageFooterId,
-            footerLicenceLinkClass: config.footerLicenceLinkClass
+            footerLicenceLinkClass: config.footerLicenceLinkClass,
+            currentYear: new Date().getFullYear()
         };
 
         var headRendered = Mustache.render(TplFooter, moduleData);
@@ -612,7 +613,11 @@ define([
 
         $(document).on('pf:menuLogout', function(e, data){
             // logout
-            Util.logout();
+            Util.logout({
+                ajaxData: {
+                    reroute: 1
+                }
+            });
             return false;
         });
 

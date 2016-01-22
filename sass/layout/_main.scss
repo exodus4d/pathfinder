@@ -55,7 +55,6 @@ em{
   @extend .txt-color-gray;
   @include transition( color 0.08s ease-out );
 
-
   &:hover{
     @extend .txt-color-blue;
   }
@@ -196,6 +195,20 @@ select:active, select:hover {
 }
 
 // table styles =====================================================
+table{
+  tr{
+    &.collapsing{
+      @include transition( height .01s ease );
+    }
+
+    &.collapse{
+      &.in{
+        display: table-row !important;
+      }
+    }
+  }
+}
+
 
 // table icon toolbar
 .pf-table-tools{
@@ -244,30 +257,35 @@ select:active, select:hover {
 }
 
 //  navbar li ====================================================
-.navbar-nav li{
+.navbar-nav {
+  li{
+    &:hover, &.active{
 
-  &:hover, &.active{
+      &:before{
+        top: -4px;
+        opacity: 1;
+      }
+
+    }
 
     &:before{
-      top: -4px;
-      opacity: 1;
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 2px;
+      background-color: $green;
+      top: 0;
+      opacity: 0;
+      will-change: opacity, top;
+      @include transition( top 0.15s ease-out, opacity 0.15s ease-out );
     }
 
   }
+}
 
-  &:before{
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 2px;
-    background-color: $green;
-    top: 0;
-    opacity: 0;
-    will-change: opacity, top;
-    @include transition( top 0.15s ease-out, opacity 0.15s ease-out );
 
-  }
-
+.pf-navbar-version-info{
+  cursor: pointer;
 }
 
 // page menu =====================================================

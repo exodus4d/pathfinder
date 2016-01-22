@@ -98,19 +98,23 @@ define([
             dragOptions:{
             },
             connectionsDetachable: true,            // dragOptions are set -> allow detaching them
-            maxConnections: 10                     // due to isTarget is true, this is the max count of !out!-going connections
+            maxConnections: 10,                      // due to isTarget is true, this is the max count of !out!-going connections
+           // isSource:true,
+            anchor: 'Continuous'
         },
         target: {
             filter: '.' + config.systemHeadNameClass,
             isSource:true,
             //isTarget:true,
-            allowLoopback: false,                   // loopback connections are not allowed
+            //allowLoopback: false,                   // loopback connections are not allowed
             cssClass: config.endpointTargetClass,
             dropOptions: {
-                tolerance: 'touch',
                 hoverClass: config.systemActiveClass,
-                activeClass: 'dragActive',
-            }
+                activeClass: 'dragActive'
+            },
+           // isTarget:true,
+           // uniqueEndpoint: false,
+            anchor: 'Continuous'
         },
         connectionTypes: Init.connectionTypes
     };
@@ -317,7 +321,6 @@ define([
 
     /**
      * show/hide systems tooltip
-     * @param systems
      * @param show
      * @param options
      */
@@ -350,7 +353,7 @@ define([
             }else if(show === 'show'){
 
                 // check if tooltip is currently visible
-                var tooltipActive = (system.attr('aria-describedby') !== undefined ? true : false);
+                var tooltipActive = (system.attr('aria-describedby') !== undefined);
 
                 if(options === undefined){
                     options = {};
@@ -858,9 +861,9 @@ define([
         mapElement.getMapOverlay('timer').startMapUpdateCounter();
 
         var systemElements = mapElement.find('.' + config.systemClass);
-        var endpointElements =  mapElement.find('._jsPlumb_endpoint');
-        var connectorElements = mapElement.find('._jsPlumb_connector');
-        var overlayElements = mapElement.find('._jsPlumb_overlay, .tooltip');
+        var endpointElements =  mapElement.find('.jsplumb-endpoint');
+        var connectorElements = mapElement.find('.jsplumb-connector');
+        var overlayElements = mapElement.find('.jsplumb-overlay, .tooltip');
 
         // if map empty (no systems), execute callback and return
         // no visual effects in IGB (glitches)
@@ -1004,9 +1007,9 @@ define([
 
     /**
      * draw a system with its data to a map
-     * @param map object
+     * @param map
      * @param systemData
-     * @param {String[]} optional Systems for connection
+     * @param connectedSystem
      */
     var drawSystem = function(map, systemData, connectedSystem){
 
@@ -1165,7 +1168,6 @@ define([
 
     /**
      * update z-index for a system (dragged systems should be always on top)
-     * @param system
      */
     $.fn.updateSystemZIndex = function(){
         return this.each(function(){
@@ -1333,6 +1335,7 @@ define([
     /**
      * delete a connection and all related data
      * @param connections
+     * @param callback
      */
     $.fn.deleteConnections = function(connections, callback){
         if(connections.length > 0){
@@ -1660,7 +1663,7 @@ define([
                     {subIcon: 'fa-info', subAction: 'ingame_show_info', subText: 'show info'},
                     {subDivider: true, action: 'ingame'},
                     {subIcon: 'fa-flag', subAction: 'ingame_add_waypoint', subText: 'add waypoint'},
-                    {subIcon: 'fa-flag-checkered', subAction: 'ingame_set_destination', subText: 'set destination'},
+                    {subIcon: 'fa-flag-checkered', subAction: 'ingame_set_destination', subText: 'set destination'}
                 ]},
                 {divider: true, action: 'delete_system'},
                 {icon: 'fa-eraser', action: 'delete_system', text: 'delete system'}
@@ -1746,32 +1749,31 @@ define([
                 // show tooltip
                 dragSystem.toggleSystemTooltip('show', {show: true});
 
+                // mark as "changed"
+                dragSystem.markAsChanged();
+
+                // set new position for popover edit field (system name)
+                var newPosition = dragSystem.position();
+
+                var placement = 'top';
+                if(newPosition.top < 100){
+                    placement = 'bottom';
+                }
+                if(newPosition.left < 100){
+                    placement = 'right';
+                }
+                dragSystem.find('.' + config.systemHeadNameClass).editable('option', 'placement', placement);
+
                 // drag system is not always selected
                 var selectedSystems = mapContainer.getSelectedSystems().get();
                 selectedSystems = selectedSystems.concat( dragSystem.get() );
                 selectedSystems = $.unique( selectedSystems );
 
-
                 for(var i = 0; i < selectedSystems.length; i++){
                     var tempSystem = $(selectedSystems[i]);
-
-                    // set all selected systems as "changes" for update
-                    tempSystem.markAsChanged();
-
-                    // set new position for popover edit field (system name)
-                    var tempPosition = tempSystem.position();
-
-                    var placement = 'top';
-                    if(tempPosition.top < 100){
-                        placement = 'bottom';
-                    }
-                    if(tempPosition.left < 100){
-                        placement = 'right';
-                    }
-
-                    tempSystem.find('.' + config.systemHeadNameClass).editable('option', 'placement', placement);
+                    // repaint connections -> just in case something fails...
+                    map.revalidate( tempSystem.attr('id') );
                 }
-
             }
         });
 
@@ -1964,7 +1966,7 @@ define([
                         break;
                     case 'delete_system':
                         // confirm dialog
-                        var systemDeleteDialog = bootbox.confirm('Delete system and all its connections?', function(result) {
+                        bootbox.confirm('Delete system and all its connections?', function(result) {
                             if(result){
                                 var systemName = currentSystem.getSystemInfo(['alias']);
                                 deleteSystems(map, [currentSystem], function(){
@@ -2130,12 +2132,8 @@ define([
      * @returns {*}
      */
     $.fn.getSelectedSystems = function(){
-
         var mapElement = $(this);
-
-        var systems = mapElement.find('.' + config.systemSelectedClass);
-
-        return systems;
+        return mapElement.find('.' + config.systemSelectedClass);
     };
 
     /**
@@ -2435,7 +2433,6 @@ define([
             onRefresh: function(){
             }
         });
-
 
         // catch events =========================================================
 
@@ -3362,15 +3359,14 @@ define([
             var newJsPlumbInstance =  jsPlumb.getInstance({
                 Anchor: 'Continuous',                                               // anchors on each site
                 Container: null,                                                    // will be set as soon as container is connected to DOM
-                PaintStyle:{
+                PaintStyle: {
                     lineWidth: 4,                                                   // width of a Connector's line. An integer.
                     strokeStyle: 'red',                                             // color for a Connector
                     outlineColor: 'red',                                            // color of the outline for an Endpoint or Connector. see fillStyle examples.
                     outlineWidth: 2                                                 // width of the outline for an Endpoint or Connector. An integer.
                 },
-                Connector:[ 'Bezier', { curviness: 40 } ],                          // default connector style (this is not used!) all connections have their own style (by scope)
-                Endpoints: [ [ 'Dot', { radius: 5 } ], [ 'Dot', { radius: 5 } ] ],
-                // Endpoint: 'Blank', // does not work... :(
+                Connector: [ 'Bezier', { curviness: 40 } ],                         // default connector style (this is not used!) all connections have their own style (by scope)
+                Endpoint: [ 'Dot', { radius: 5 } ],
                 ReattachConnections: false,                                         // re-attach connection if dragged with mouse to "nowhere"
                 Scope: Init.defaultMapScope,                                        // default map scope for connections
                 LogEnabled: true

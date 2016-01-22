@@ -58,7 +58,7 @@ class Access extends \Controller\AccessController {
                 $accessList = $accessModel->find( array(
                     "LOWER(name) LIKE :token AND " .
                     "active = 1 AND " .
-                    "sharing = 1 ",
+                    "shared = 1 ",
                     ':token' => '%' . $searchToken . '%'
                 ));
 

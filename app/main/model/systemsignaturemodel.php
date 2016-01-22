@@ -8,20 +8,73 @@
 
 namespace Model;
 
+use DB\SQL\Schema;
 
 class SystemSignatureModel extends BasicModel {
 
     protected $table = 'system_signature';
 
     protected $fieldConf = [
+        'active' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => true,
+            'index' => true
+        ],
         'systemId' => [
-            'belongs-to-one' => 'Model\SystemModel'
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'belongs-to-one' => 'Model\SystemModel',
+            'constraint' => [
+                [
+                    'table' => 'system',
+                    'on-delete' => 'CASCADE'
+                ]
+            ]
+        ],
+        'groupId' => [
+            'type' => Schema::DT_INT,
+            'nullable' => false,
+            'default' => 1,
+            'index' => true,
+        ],
+        'typeId' => [
+            'type' => Schema::DT_INT,
+            'nullable' => false,
+            'default' => 1,
+            'index' => true,
+        ],
+        'name' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
+        ],
+        'description' => [
+            'type' => Schema::DT_VARCHAR512,
+            'nullable' => false,
+            'default' => ''
         ],
         'createdCharacterId' => [
-            'belongs-to-one' => 'Model\CharacterModel'
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'belongs-to-one' => 'Model\CharacterModel',
+            'constraint' => [
+                [
+                    'table' => 'character',
+                    'on-delete' => 'CASCADE'
+                ]
+            ]
         ],
         'updatedCharacterId' => [
-            'belongs-to-one' => 'Model\CharacterModel'
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'belongs-to-one' => 'Model\CharacterModel',
+            'constraint' => [
+                [
+                    'table' => 'character',
+                    'on-delete' => 'CASCADE'
+                ]
+            ]
         ]
     ];
 
@@ -113,5 +166,22 @@ class SystemSignatureModel extends BasicModel {
                 $this->erase();
             }
         }
+    }
+
+    /**
+     * overwrites parent
+     * @param null $db
+     * @param null $table
+     * @param null $fields
+     * @return bool
+     */
+    public static function setup($db=null, $table=null, $fields=null){
+        $status = parent::setup($db,$table,$fields);
+
+        if($status === true){
+            $status = parent::setMultiColumnIndex(['systemId', 'typeId', 'groupId']);
+        }
+
+        return $status;
     }
 } 

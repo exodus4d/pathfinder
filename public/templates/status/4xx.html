@@ -1,0 +1,15 @@
+<div class="pf-splash">
+    <div class="pf-color-line warning"></div>
+    <div class="pf-splash-title">
+        <h1>
+            <span class="txt-color txt-color-warning">
+                <i class="fa fa-fw fa-warning"></i> Error - {{ @errorData->code }}
+            </span>
+        </h1>
+        <p class="lead">
+            Status: "<b>{{ @errorData->status }}</b>".
+            Use your browsers Back button to navigate to the page you have previously come
+            <a href="{{ @errorData->redirectUrl }}">from</a>.
+        </p>
+    </div>
+</div>

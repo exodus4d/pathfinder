@@ -10,20 +10,23 @@ define([
     'app/ccp',
     'blueImpGallery',
     'bootbox',
+    'lazyload',
     'app/ui/header',
     'app/ui/logo',
     'app/ui/demo_map',
     'dialog/account_settings',
     'dialog/notification',
     'dialog/manual',
+    'dialog/releases',
     'dialog/credit'
 ], function($, Init, Util, Render, CCP, Gallery, bootbox) {
 
     'use strict';
 
     var config = {
-        // header
         splashOverlayClass: 'pf-splash',                                        // class for "splash" overlay
+
+        // header
         headerContainerId: 'pf-header-container',                               // id for header container
         logoContainerId: 'pf-logo-container',                                   // id for main header logo container
         headHeaderMapId: 'pf-header-map',                                       // id for header image (svg animation)
@@ -37,7 +40,8 @@ define([
         // navigation
         navigationElementId: 'pf-navbar',                                       // id for navbar element
         navigationLinkManualClass: 'pf-navbar-manual',                          // class for "manual" trigger link
-        navigationLinkLicenseClass : 'pf-navbar-license',                       // class for "license" trigger link
+        navigationLinkLicenseClass: 'pf-navbar-license',                        // class for "license" trigger link
+        navigationVersionLinkClass: 'pf-navbar-version-info',                   // class for "version information"
 
         // login form
         loginFormId: 'pf-login-form',                                           // id for login form
@@ -47,6 +51,7 @@ define([
 
         // gallery
         galleryId: 'pf-gallery',                                                // id for gallery container
+        galleryThumbImageClass: 'pf-landing-image-preview',                     // class for gallery thumb images
         galleryThumbContainerId: 'pf-landing-gallery-thumb-container',          // id for gallery thumb images
         galleryCarouselId: 'pf-landing-gallery-carousel',                       // id for "carousel" element
 
@@ -66,7 +71,11 @@ define([
             e.preventDefault();
 
             // logout current user (if there e.g. to register a second account)
-            Util.logout();
+            Util.logout({
+                ajaxData: {
+                    reroute: 0
+                }
+            });
 
             // show register/settings dialog
             $.fn.showSettingsDialog({
@@ -74,7 +83,6 @@ define([
                 invite : parseInt( $('body').data('invite') )
             });
         });
-
 
         // login buttons ------------------------------------------------
         var loginForm = $('#' + config.loginFormId);
@@ -103,7 +111,6 @@ define([
                         data: loginData,
                         dataType: 'json'
                     }).done(function(data){
-
                         // login error
                         if(data.error !== undefined){
                             $('.' + config.splashOverlayClass).hideSplashOverlay();
@@ -123,6 +130,11 @@ define([
                     });
                 });
             }
+        });
+
+        // releases -----------------------------------------------------
+        $('.' + config.navigationVersionLinkClass).on('click', function(e){
+            $.fn.releasesDialog();
         });
 
         // manual -------------------------------------------------------
@@ -397,6 +409,35 @@ define([
         });
     };
 
+    var initYoutube = function(){
+
+        $(".youtube").each(function() {
+            // Based on the YouTube ID, we can easily find the thumbnail image
+            $(this).css('background-image', 'url(https://i.ytimg.com/vi/' + this.id + '/sddefault.jpg)');
+
+            // Overlay the Play icon to make it look like a video player
+            $(this).append($('<div/>', {'class': 'play'}));
+
+            $(document).delegate('#'+this.id, 'click', function() {
+                // Create an iFrame with autoplay set to true
+                var iframe_url = "https://www.youtube.com/embed/" + this.id + "?autoplay=1&autohide=1";
+                if ($(this).data('params')) iframe_url+='&'+$(this).data('params');
+
+                // The height and width of the iFrame should be the same as parent
+                var iframe = $('<iframe/>', {
+                    frameborder: '0',
+                    src: iframe_url,
+                    width: $(this).width(),
+                    height: $(this).height(),
+                    class: 'pricing-big'
+                });
+
+                // Replace the YouTube thumbnail with YouTube HTML5 Player
+                $(this).replaceWith(iframe);
+            });
+        });
+    };
+
 
     /**
      * init scrollspy for navigation bar
@@ -444,7 +485,7 @@ define([
     };
 
     /**
-     * main init landing page
+     * main init "landing" page
      */
     $(function(){
 
@@ -454,6 +495,7 @@ define([
         // show log off message
         var isLogOut = location.search.split('logout')[1];
         if(isLogOut !== undefined){
+
             // show logout dialog
             var options = {
                 buttons: {
@@ -488,8 +530,10 @@ define([
             showRequestRegistrationKeyDialog();
         }
 
-        // init scrollspy
-        initScrollspy();
+        // init "lazy loading" for images
+        $('.' + config.galleryThumbImageClass).lazyload({
+            threshold : 300
+        });
 
         // hide splash loading animation
         $('.' + config.splashOverlayClass).hideSplashOverlay();
@@ -497,8 +541,14 @@ define([
         // init carousel
         initCarousel();
 
+        // init scrollspy
+        initScrollspy();
+
         // init gallery
         initGallery();
+
+        // init youtube videos
+        initYoutube();
 
         // show logo -> hide animation in IGB
         if( !CCP.isInGameBrowser() ){
@@ -510,7 +560,6 @@ define([
                 });
             }, false);
         }
-
 
         setPageObserver();
 

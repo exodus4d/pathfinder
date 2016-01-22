@@ -489,7 +489,6 @@ define([
             tooltipData.created.character &&
             tooltipData.updated.character
         ){
-
             var createdData = tooltipData.created;
             var updatedData = tooltipData.updated;
 
@@ -1626,7 +1625,10 @@ define([
         var currentUrl = document.URL;
 
         if(url !== currentUrl){
-            if(params.length > 0){
+            if(
+                params &&
+                params.length > 0
+            ){
                 url += '?' + params.join('&');
             }
             window.location = url;
@@ -1635,16 +1637,24 @@ define([
 
     /**
      * send logout request
+     * @param  params
      */
-    var logout = function(){
+    var logout = function(params){
+        var data = {};
+        if(
+            params &&
+            params.ajaxData
+        ){
+            data = params.ajaxData;
+        }
 
         $.ajax({
             type: 'POST',
             url: Init.path.logOut,
-            data: {},
+            data: data,
             dataType: 'json'
         }).done(function(data){
-            if(data.reroute !== undefined){
+            if(data.reroute){
                 redirect(data.reroute, ['logout']);
             }
         }).fail(function( jqXHR, status, error) {

@@ -49,3 +49,4 @@ Temporary Items
 .idea
 .sass-cache
 .usage
+*.gz

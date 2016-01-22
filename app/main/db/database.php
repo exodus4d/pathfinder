@@ -30,36 +30,35 @@ class Database extends \Prefab {
         // "Hive" Key for DB storage
         $dbHiveKey = $this->getDbHiveKey($database);
 
-        if($database === 'CCP'){
-            // CCP DB
-            $dns = Controller\Controller::getEnvironmentData('DB_CCP_DNS');
-            $name = Controller\Controller::getEnvironmentData('DB_CCP_NAME');
-            $user = Controller\Controller::getEnvironmentData('DB_CCP_USER');
-            $password = Controller\Controller::getEnvironmentData('DB_CCP_PASS');
-        }else{
-            // Pathfinder(PF) DB
-            $dns = Controller\Controller::getEnvironmentData('DB_DNS');
-            $name = Controller\Controller::getEnvironmentData('DB_NAME');
-            $user = Controller\Controller::getEnvironmentData('DB_USER');
-            $password = Controller\Controller::getEnvironmentData('DB_PASS');
-        }
-
         // check if DB connection already exists
-        if(
-            !$f3->exists( $dbHiveKey ) ||
-            $name !== $f3->get( $dbHiveKey )->name()
-        ){
+        if( !$f3->exists( $dbHiveKey ) ){
+            if($database === 'CCP'){
+                // CCP DB
+                $dns = Controller\Controller::getEnvironmentData('DB_CCP_DNS');
+                $name = Controller\Controller::getEnvironmentData('DB_CCP_NAME');
+                $user = Controller\Controller::getEnvironmentData('DB_CCP_USER');
+                $password = Controller\Controller::getEnvironmentData('DB_CCP_PASS');
+            }else{
+                // Pathfinder(PF) DB
+                $dns = Controller\Controller::getEnvironmentData('DB_DNS');
+                $name = Controller\Controller::getEnvironmentData('DB_NAME');
+                $user = Controller\Controller::getEnvironmentData('DB_USER');
+                $password = Controller\Controller::getEnvironmentData('DB_PASS');
+            }
+
             $db = $this->connect($dns, $name, $user, $password);
 
-            // set DB timezone to UTC +00:00 (eve server time)
-            $db->exec('SET @@session.time_zone = "+00:00";');
+            if( !is_null($db) ){
+                // set DB timezone to UTC +00:00 (eve server time)
+                $db->exec('SET @@session.time_zone = "+00:00";');
 
-            // disable innoDB schema (relevant vor MySql 5.5)
-            // not necessary for MySql > v.5.6
-            // $db->exec('SET GLOBAL innodb_stats_on_metadata = OFF;');
+                // set default storage engine
+                $db->exec('SET @@session.default_storage_engine = "' .
+                    Controller\Controller::getRequiredMySqlVariables('DEFAULT_STORAGE_ENGINE') . '"');
 
-            // store DB object
-            $f3->set($dbHiveKey, $db);
+                // store DB object
+                $f3->set($dbHiveKey, $db);
+            }
 
             return $db;
         }else{
@@ -104,6 +103,8 @@ class Database extends \Prefab {
      */
     protected function connect($dns, $name, $user, $password){
 
+        $db = null;
+
         try {
             $db = new SQL(
                 $dns . $name,
@@ -115,6 +116,7 @@ class Database extends \Prefab {
             );
         }catch(\PDOException $e){
             // DB connection error
+            // -> log it
             LogController::getLogger('error')->write($e->getMessage());
         }
 

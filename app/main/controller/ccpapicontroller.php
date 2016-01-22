@@ -17,22 +17,6 @@ use Model;
 class CcpApiController extends Controller{
 
     /**
-     * get a custom userAgent string for API calls
-     * (recommended by CCP)
-     * @return string
-     */
-    protected function getUserAgent(){
-        $userAgent = '';
-
-        $userAgent .= $this->f3->get('PATHFINDER.NAME');
-        $userAgent .=  ' - ' . $this->f3->get('PATHFINDER.VERSION');
-        $userAgent .=  ' | ' . $this->f3->get('PATHFINDER.CONTACT');
-        $userAgent .=  ' (' . $_SERVER['SERVER_NAME'] . ')';
-
-        return $userAgent;
-    }
-
-    /**
      * get HTTP request options for API (curl) request
      * @return array
      */
@@ -55,7 +39,7 @@ class CcpApiController extends Controller{
      */
     public function requestCharacters($keyID, $vCode){
 
-        $apiPath = $this->f3->get('PATHFINDER.API.CCP_XML') . '/account/APIKeyInfo.xml.aspx';
+        $apiPath = $this->getF3()->get('PATHFINDER.API.CCP_XML') . '/account/APIKeyInfo.xml.aspx';
 
         $xml = false;
 

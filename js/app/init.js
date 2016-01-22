@@ -15,7 +15,7 @@ define(['jquery'], function($) {
             logIn: 'api/user/logIn',                                // ajax URL - login
             logOut: 'api/user/logOut',                              // ajax URL - logout
             deleteLog: 'api/user/deleteLog',                        // ajax URL - delete character log
-            saveUserConfig: 'api/user/saveConfig',                  // ajax URL - saves custom configuration
+            saveUserConfig: 'api/user/saveAccount',                 // ajax URL - saves/update user account
             saveSharingConfig: 'api/user/saveSharingConfig',        // ajax URL - save "sharing settings" dialog
             deleteAccount: 'api/user/deleteAccount',                // ajax URL - delete Account data
             // access API
@@ -43,7 +43,9 @@ define(['jquery'], function($) {
             saveSignatureData: 'api/signature/save',                // ajax URL - save signature data for system
             deleteSignatureData: 'api/signature/delete',            // ajax URL - delete signature data for system
             // route API
-            searchRoute: 'api/route/search'                         // ajax URL - search system routes
+            searchRoute: 'api/route/search',                        // ajax URL - search system routes
+            // GitHub API
+            gitHubReleases: 'api/github/releases'                   // ajax URL - get release info from GitHub
         },
         url: {
             ccpImageServer: 'https://image.eveonline.com/',         // CCP image Server

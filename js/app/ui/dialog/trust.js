@@ -72,7 +72,7 @@ define([
                         }
                     },
                     trust: {
-                        label: '<i class="fa fa-fw fa-lock"></i> trust set',
+                        label: '<i class="fa fa-fw fa-lock"></i> set "Trust"',
                         className: 'btn-primary',
                         callback: function(){
                             var dialog = $(this);

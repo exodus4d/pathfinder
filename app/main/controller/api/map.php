@@ -318,7 +318,7 @@ class Map extends \Controller\AccessController {
 
                                 if(
                                     !$tempUser->dry() &&
-                                    $tempUser->sharing == 1 // check if map sharing is enabled
+                                    $tempUser->shared == 1 // check if map shared is enabled
                                 ){
                                     $map->setAccess($tempUser);
                                 }
@@ -355,7 +355,7 @@ class Map extends \Controller\AccessController {
 
                                         if(
                                             !$tempCorporation->dry() &&
-                                            $tempCorporation->sharing == 1 // check if map sharing is enabled
+                                            $tempCorporation->shared == 1 // check if map shared is enabled
                                         ){
                                             $map->setAccess($tempCorporation);
                                         }
@@ -393,7 +393,7 @@ class Map extends \Controller\AccessController {
 
                                         if(
                                             !$tempAlliance->dry() &&
-                                            $tempAlliance->sharing == 1 // check if map sharing is enabled
+                                            $tempAlliance->shared == 1 // check if map shared is enabled
                                         ){
                                             $map->setAccess($tempAlliance);
                                         }
@@ -465,7 +465,7 @@ class Map extends \Controller\AccessController {
         $responseTTL = $f3->get('PATHFINDER.TIMER.UPDATE_SERVER_MAP.DELAY') / 1000;
         $mapData = (array)$f3->get('POST.mapData');
 
-        $user = $this->_getUser(0);
+        $user = $this->_getUser();
         $return = (object) [];
         $return->error = [];
 
@@ -628,7 +628,7 @@ class Map extends \Controller\AccessController {
         $return = (object) [];
         $return->error = [];
 
-        $user = $this->_getUser(0);
+        $user = $this->_getUser();
 
         if($user){
 

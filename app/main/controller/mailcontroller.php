@@ -28,21 +28,6 @@ class MailController extends \SMTP{
     }
 
     /**
-     * send registration mail
-     * @param $to
-     * @param $msg
-     * @return bool
-     */
-    public function sendRegistration($to, $msg){
-        $this->set('To', '<' . $to . '>');
-        $this->set('From', 'Pathfinder <' . Controller::getEnvironmentData('SMTP_FROM') . '>');
-        $this->set('Subject', 'Account information');
-        $status = $this->send($msg);
-
-        return $status;
-    }
-
-    /**
      * send invite key mail
      * @param $to
      * @param $msg

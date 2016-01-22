@@ -18,7 +18,7 @@ code {
   color: $code-color;
   background-color: $code-bg;
   white-space: nowrap;
-  border-radius: $border-radius-base;
+  border-radius: $border-radius-small;
 }
 
 // User input typically entered via keyboard
@@ -42,8 +42,8 @@ pre {
   word-wrap: break-word;
   color: $pre-color;
   background-color: $pre-bg;
-  border: 1px solid $pre-border-color;
-  border-radius: $border-radius-base;
+ // border: 1px solid $pre-border-color;
+  border-radius: $border-radius-small;
 
   // Account for some code outputs that place code tags in pre tags
   code {

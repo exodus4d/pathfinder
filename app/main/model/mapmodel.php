@@ -8,16 +8,51 @@
 
 namespace Model;
 
+use DB\SQL\Schema;
+
 class MapModel extends BasicModel {
 
     protected $table = 'map';
 
     protected $fieldConf = [
+        'active' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => true,
+            'index' => true,
+            'after' => 'updated'
+        ],
         'scopeId' => [
-            'belongs-to-one' => 'Model\MapScopeModel'
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'belongs-to-one' => 'Model\MapScopeModel',
+            'constraint' => [
+                [
+                    'table' => 'map_scope',
+                    'on-delete' => 'CASCADE'
+                ]
+            ]
         ],
         'typeId' => [
-            'belongs-to-one' => 'Model\MapTypeModel'
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'belongs-to-one' => 'Model\MapTypeModel',
+            'constraint' => [
+                [
+                    'table' => 'map_type',
+                    'on-delete' => 'CASCADE'
+                ]
+            ]
+        ],
+        'name' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
+        ],
+        'icon' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
         ],
         'systems' => [
             'has-many' => ['Model\SystemModel', 'mapId']
@@ -31,8 +66,8 @@ class MapModel extends BasicModel {
         'mapCorporations' => [
             'has-many' => ['Model\CorporationMapModel', 'mapId']
         ],
-        'mapAlliances' => ['has-many' => [
-            'Model\AllianceMapModel', 'mapId']
+        'mapAlliances' => [
+            'has-many' => ['Model\AllianceMapModel', 'mapId']
         ]
     ];
 

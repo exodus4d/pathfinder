@@ -88,6 +88,11 @@
                 'app'
             ]
         },{
+            name: 'setup',
+            excludeShallow: [
+                'app'
+            ]
+        },{
             name: 'app/notification',
             excludeShallow: [
                 'app',

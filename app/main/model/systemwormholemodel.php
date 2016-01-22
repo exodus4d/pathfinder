@@ -8,15 +8,28 @@
 
 namespace Model;
 
+use DB\SQL\Schema;
 
 class SystemWormholeModel extends BasicModel {
 
     protected $table = 'system_wormhole';
 
     protected $fieldConf = [
+        'constellationId' => [
+            'type' => Schema::DT_INT,
+            'index' => true,
+        ],
         'wormholeId' => [
-            'belongs-to-one' => 'Model\WormholeModel'
-        ]
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'belongs-to-one' => 'Model\WormholeModel',
+            'constraint' => [
+                [
+                    'table' => 'wormhole',
+                    'on-delete' => 'CASCADE'
+                ]
+            ]
+        ],
     ];
 
     /**

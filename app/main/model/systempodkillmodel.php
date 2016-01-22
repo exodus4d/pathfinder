@@ -8,8 +8,23 @@
 
 namespace Model;
 
+use DB\SQL\Schema;
 
-class SystemPodKillModel extends BasicModel {
+class SystemPodKillModel extends SystemApiBasicModel {
 
     protected $table = 'system_kills_pods';
+
+    protected $fieldConf = [
+        'active' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => true,
+            'index' => true
+        ],
+        'systemId' => [
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'unique' => true
+        ]
+    ];
 }

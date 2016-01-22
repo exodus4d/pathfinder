@@ -8,11 +8,29 @@
 
 namespace Model;
 
+use DB\SQL\Schema;
+
 class CorporationModel extends BasicModel {
 
     protected $table = 'corporation';
 
     protected $fieldConf = [
+        'active' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => true,
+            'index' => true
+        ],
+        'name' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
+        ],
+        'shared' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => 0
+        ],
         'corporationCharacters' => [
             'has-many' => ['Model\CharacterModel', 'corporationId']
         ],
@@ -30,7 +48,7 @@ class CorporationModel extends BasicModel {
 
         $cooperationData->id = $this->id;
         $cooperationData->name = $this->name;
-        $cooperationData->sharing = $this->sharing;
+        $cooperationData->shared = $this->shared;
 
         return $cooperationData;
     }

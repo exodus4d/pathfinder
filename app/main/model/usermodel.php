@@ -18,7 +18,38 @@ class UserModel extends BasicModel {
 
     protected $fieldConf = [
         'lastLogin' => [
-            'type' => Schema::DT_TIMESTAMP
+            'type' => Schema::DT_TIMESTAMP,
+            'index' => true
+        ],
+        'active' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => true,
+            'index' => true
+        ],
+        'name' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => '',
+            'index' => true,
+            'unique' => true
+        ],
+        'email' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => '',
+            'index' => true,
+            'unique' => true
+        ],
+        'password' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
+        ],
+        'shared' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => '0'
         ],
         'apis' => [
             'has-many' => ['Model\UserApiModel', 'userId']
@@ -64,8 +95,8 @@ class UserModel extends BasicModel {
         // add sensitive user data
         $userData->email = $this->email;
 
-        // user sharing info
-        $userData->sharing = $this->sharing;
+        // user shared info
+        $userData->shared = $this->shared;
 
         // api data
         $APIs = $this->getAPIs();
@@ -180,7 +211,6 @@ class UserModel extends BasicModel {
      * @return array
      */
     public function getMaps(){
-
         $f3 = self::getF3();
 
         $this->filter(

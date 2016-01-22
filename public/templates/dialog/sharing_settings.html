@@ -23,7 +23,7 @@
                 <div class="col-sm-9">
                     <div class="checkbox col-sm-10">
                         <label for="privateSharing">
-                            <input id="privateSharing" type="checkbox" name="privateSharing" data-toggle="toggle" value="1" {{#userData.sharing}}checked{{/userData.sharing}}>
+                            <input id="privateSharing" type="checkbox" name="privateSharing" data-toggle="toggle" value="1" {{#userData.shared}}checked{{/userData.shared}}>
                             &nbsp;map invite for private maps
                         </label>
                     </div>
@@ -41,7 +41,7 @@
                     <div class="col-sm-9">
                         <div class="checkbox col-sm-10">
                             <label for="corporationSharing">
-                                <input id="corporationSharing" type="checkbox" name="corporationSharing" data-toggle="toggle" value="1" {{#sharing}}checked{{/sharing}}>
+                                <input id="corporationSharing" type="checkbox" name="corporationSharing" data-toggle="toggle" value="1" {{#shared}}checked{{/shared}}>
                                 &nbsp;map invite for corporation maps
                             </label>
                         </div>
@@ -60,7 +60,7 @@
                     <div class="col-sm-9">
                         <div class="checkbox col-sm-10">
                             <label for="allianceSharing">
-                                <input id="allianceSharing" type="checkbox" name="allianceSharing" data-toggle="toggle" value="1" {{#sharing}}checked{{/sharing}}>
+                                <input id="allianceSharing" type="checkbox" name="allianceSharing" data-toggle="toggle" value="1" {{#shared}}checked{{/shared}}>
                                 &nbsp;map invite for alliance maps
                             </label>
                         </div>

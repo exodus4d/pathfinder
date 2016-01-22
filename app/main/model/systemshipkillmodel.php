@@ -8,8 +8,24 @@
 
 namespace Model;
 
+use DB\SQL\Schema;
 
-class SystemShipKillModel extends BasicModel {
+class SystemShipKillModel extends SystemApiBasicModel {
 
     protected $table = 'system_kills_ships';
+
+    protected $fieldConf = [
+        'active' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => true,
+            'index' => true
+        ],
+        'systemId' => [
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'unique' => true
+        ]
+    ];
+
 }

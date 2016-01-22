@@ -8,17 +8,40 @@
 
 namespace Model;
 
+use DB\SQL\Schema;
 
 class UserMapModel extends BasicModel {
 
     protected $table = 'user_map';
 
     protected $fieldConf = [
+        'active' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => true,
+            'index' => true
+        ],
         'userId' => [
-            'belongs-to-one' => 'Model\UserModel'
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'belongs-to-one' => 'Model\UserModel',
+            'constraint' => [
+                [
+                    'table' => 'user',
+                    'on-delete' => 'CASCADE'
+                ]
+            ]
         ],
         'mapId' => [
-            'belongs-to-one' => 'Model\MapModel'
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'belongs-to-one' => 'Model\MapModel',
+            'constraint' => [
+                [
+                    'table' => 'map',
+                    'on-delete' => 'CASCADE'
+                ]
+            ]
         ]
     ];
 
@@ -30,6 +53,23 @@ class UserMapModel extends BasicModel {
 
         // clear map cache as well
         $this->mapId->clearCacheData();
+    }
+
+    /**
+     * overwrites parent
+     * @param null $db
+     * @param null $table
+     * @param null $fields
+     * @return bool
+     */
+    public static function setup($db=null, $table=null, $fields=null){
+        $status = parent::setup($db,$table,$fields);
+
+        if($status === true){
+            $status = parent::setMultiColumnIndex(['userId', 'mapId'], true);
+        }
+
+        return $status;
     }
 
 } 

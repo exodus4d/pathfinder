@@ -8,17 +8,54 @@
 
 namespace Model;
 
+use DB\SQL\Schema;
 
 class CharacterModel extends BasicModel {
 
     protected $table = 'character';
 
     protected $fieldConf = [
+        'active' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => true,
+            'index' => true
+        ],
+        'name' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
+        ],
         'corporationId' => [
-            'belongs-to-one' => 'Model\CorporationModel'
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'belongs-to-one' => 'Model\CorporationModel',
+            'constraint' => [
+                [
+                    'table' => 'corporation',
+                    'on-delete' => 'SET NULL'
+                ]
+            ]
         ],
         'allianceId' => [
-            'belongs-to-one' => 'Model\AllianceModel'
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'belongs-to-one' => 'Model\AllianceModel',
+            'constraint' => [
+                [
+                    'table' => 'alliance',
+                    'on-delete' => 'SET NULL'
+                ]
+            ]
+        ],
+        'factionId' => [
+            'type' => Schema::DT_INT,
+            'index' => true
+        ],
+        'factionName' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
         ],
         'characterLog' => [
             'has-one' => ['Model\CharacterLogModel', 'characterId']

@@ -13,12 +13,12 @@
  *              |  |    < |    <|  -__|-- __|
  *              |__|__|__||__|__|_____|_____|
  *
- *  Copyright (c) 2014 by ikkez
+ *  Copyright (c) 2015 by ikkez
  *  Christian Knuth <ikkez0n3@gmail.com>
  *  https://github.com/ikkez/F3-Sugar/
  *
  *  @package DB
- *  @version 2.1.1
+ *  @version 2.2.0-dev
  **/
 
 
@@ -30,75 +30,85 @@ class Schema extends DB_Utils {
 
     public
         $dataTypes = array(
-            'BOOLEAN' =>    array('mysql|sqlite2?|pgsql' => 'BOOLEAN',
-                                  'mssql|sybase|dblib|odbc|sqlsrv' => 'bit',
-                                  'ibm' => 'numeric(1,0)',
-            ),
-            'INT1' =>       array('mysql' => 'TINYINT UNSIGNED',
-                                  'sqlite2?' => 'integer',
-                                  'mssql|sybase|dblib|odbc|sqlsrv' => 'tinyint',
-                                  'pgsql|ibm' => 'smallint',
-            ),
-            'INT2' =>       array('mysql' => 'SMALLINT',
-                                  'sqlite2?' => 'integer',
-                                  'pgsql|ibm|mssql|sybase|dblib|odbc|sqlsrv' => 'smallint',
-            ),
-            'INT4' =>       array('sqlite2?|pgsql|sybase|odbc|sqlsrv|imb' => 'integer',
-                                  'mysql|mssql|dblib' => 'int',
-            ),
-            'INT8' =>       array('sqlite2?' => 'integer',
-                                  'pgsql|mysql|mssql|sybase|dblib|odbc|sqlsrv|imb' => 'bigint',
-            ),
-            'FLOAT' =>      array('mysql|sqlite2?' => 'FLOAT',
-                                  'pgsql' => 'double precision',
-                                  'mssql|sybase|dblib|odbc|sqlsrv' => 'float',
-                                  'imb' => 'decfloat'
-            ),
-            'DOUBLE' =>     array('mysql|sqlite2?|ibm' => 'DOUBLE',
-                                  'pgsql|sybase|odbc|sqlsrv' => 'double precision',
-                                  'mssql|dblib' => 'decimal',
-            ),
-            'VARCHAR128' => array('mysql|pgsql|sqlite2?|ibm|mssql|sybase|dblib|odbc|sqlsrv' => 'varchar(128)',
-            ),
-            'VARCHAR256' => array('mysql|pgsql|sqlite2?|ibm|mssql|sybase|dblib|odbc|sqlsrv' => 'varchar(255)',
-            ),
-            'VARCHAR512' => array('mysql|pgsql|sqlite2?|ibm|mssql|sybase|dblib|odbc|sqlsrv' => 'varchar(512)',
-            ),
-            'TEXT' =>       array('mysql|sqlite2?|pgsql|mssql' => 'text',
-                                  'sybase|dblib|odbc|sqlsrv' => 'nvarchar(max)',
-                                  'ibm' => 'BLOB SUB_TYPE TEXT',
-            ),
-            'LONGTEXT' =>   array('mysql' => 'LONGTEXT',
-                                  'sqlite2?|pgsql|mssql' => 'text',
-                                  'sybase|dblib|odbc|sqlsrv' => 'nvarchar(max)',
-                                  'ibm' => 'CLOB(2000000000)',
-            ),
-            'DATE' =>       array('mysql|sqlite2?|pgsql|mssql|sybase|dblib|odbc|sqlsrv|ibm' => 'date',
-            ),
-            'DATETIME' =>   array('pgsql' => 'timestamp without time zone',
-                                  'mysql|sqlite2?|mssql|sybase|dblib|odbc|sqlsrv' => 'datetime',
-                                  'ibm' => 'timestamp',
-            ),
-            'TIMESTAMP' =>  array('mysql|ibm' => 'timestamp',
-                                  'pgsql|odbc' => 'timestamp without time zone',
-                                  'sqlite2?|mssql|sybase|dblib|sqlsrv'=>'DATETIME',
-            ),
-            'BLOB' =>       array('mysql|odbc|sqlite2?|ibm' => 'blob',
-                                  'pgsql' => 'bytea',
-                                  'mssql|sybase|dblib' => 'image',
-                                  'sqlsrv' => 'varbinary(max)',
-            ),
+        'BOOLEAN' =>    array('mysql' => 'tinyint(1)',
+            'sqlite2?|pgsql' => 'BOOLEAN',
+            'mssql|sybase|dblib|odbc|sqlsrv' => 'bit',
+            'ibm' => 'numeric(1,0)',
         ),
+        'INT1' =>       array('mysql' => 'tinyint(4)',
+            'sqlite2?' => 'integer(4)',
+            'mssql|sybase|dblib|odbc|sqlsrv' => 'tinyint',
+            'pgsql|ibm' => 'smallint',
+        ),
+        'INT2' =>       array('mysql' => 'smallint(6)',
+            'sqlite2?' => 'integer(6)',
+            'pgsql|ibm|mssql|sybase|dblib|odbc|sqlsrv' => 'smallint',
+        ),
+        'INT4' =>       array('sqlite2?' => 'integer(11)',
+            'pgsql|imb' => 'integer',
+            'mysql' => 'int(11)',
+            'mssql|dblib|sybase|odbc|sqlsrv' => 'int',
+        ),
+        'INT8' =>       array('sqlite2?' => 'integer(20)',
+            'pgsql|mssql|sybase|dblib|odbc|sqlsrv|imb' => 'bigint',
+            'mysql' => 'bigint(20)',
+        ),
+        'FLOAT' =>      array('mysql|sqlite2?' => 'FLOAT',
+            'pgsql' => 'double precision',
+            'mssql|sybase|dblib|odbc|sqlsrv' => 'float',
+            'imb' => 'decfloat'
+        ),
+        'DOUBLE' =>     array('mysql|sqlite2?|ibm' => 'DOUBLE',
+            'pgsql' => 'double precision',
+            'mssql|dblib|sybase|odbc|sqlsrv' => 'decimal',
+        ),
+        'VARCHAR128' => array('mysql|sqlite2?|ibm|mssql|sybase|dblib|odbc|sqlsrv' => 'varchar(128)',
+            'pgsql' => 'character varying(128)',
+        ),
+        'VARCHAR256' => array('mysql|sqlite2?|ibm|mssql|sybase|dblib|odbc|sqlsrv' => 'varchar(255)',
+            'pgsql' => 'character varying(255)',
+        ),
+        'VARCHAR512' => array('mysql|sqlite2?|ibm|mssql|sybase|dblib|odbc|sqlsrv' => 'varchar(512)',
+            'pgsql' => 'character varying(512)',
+        ),
+        'TEXT' =>       array('mysql|sqlite2?|pgsql|mssql' => 'text',
+            'sybase|dblib|odbc|sqlsrv' => 'nvarchar(max)',
+            'ibm' => 'BLOB SUB_TYPE TEXT',
+        ),
+        'LONGTEXT' =>   array('mysql' => 'LONGTEXT',
+            'sqlite2?|pgsql|mssql' => 'text',
+            'sybase|dblib|odbc|sqlsrv' => 'nvarchar(max)',
+            'ibm' => 'CLOB(2000000000)',
+        ),
+        'DATE' =>       array('mysql|sqlite2?|pgsql|mssql|sybase|dblib|odbc|sqlsrv|ibm' => 'date',
+        ),
+        'DATETIME' =>   array('pgsql' => 'timestamp without time zone',
+            'mysql|sqlite2?|mssql|sybase|dblib|odbc|sqlsrv' => 'datetime',
+            'ibm' => 'timestamp',
+        ),
+        'TIMESTAMP' =>  array('mysql|ibm' => 'timestamp',
+            'pgsql|odbc' => 'timestamp without time zone',
+            'sqlite2?|mssql|sybase|dblib|sqlsrv'=>'DATETIME',
+        ),
+        'BLOB' =>       array('mysql|odbc|sqlite2?|ibm' => 'blob',
+            'pgsql' => 'bytea',
+            'mssql|sybase|dblib' => 'image',
+            'sqlsrv' => 'varbinary(max)',
+        ),
+    ),
         $defaultTypes = array(
-            'CUR_STAMP' =>  array('mysql' => 'CURRENT_TIMESTAMP',
-                                  'mssql|sybase|dblib|odbc|sqlsrv' => 'getdate()',
-                                  'pgsql' => 'LOCALTIMESTAMP(0)',
-                                  'sqlite2?' => "(datetime('now','localtime'))",
-            ),
-        );
+        'CUR_STAMP' =>  array('mysql' => 'CURRENT_TIMESTAMP',
+            'mssql|sybase|dblib|odbc|sqlsrv' => 'getdate()',
+            'pgsql' => 'LOCALTIMESTAMP(0)',
+            'sqlite2?' => "(datetime('now','localtime'))",
+        ),
+    );
 
     public
         $name;
+
+    public static
+        $strict = FALSE;
 
     /** @var \Base */
     protected $fw;
@@ -257,12 +267,47 @@ class Schema extends DB_Utils {
         return ($exec) ? $this->db->exec($query) : $query;
     }
 
+    /**
+     * clear a table
+     * @param $name
+     * @param bool $exec
+     * @return array|bool|FALSE|int|string
+     */
+    public function truncateTable($name, $exec = true) {
+        if (is_object($name) && $name instanceof TableBuilder)
+            $name = $name->name;
+        $cmd = array(
+            'mysql|ibm|pgsql|sybase|dblib|mssql|sqlsrv|odbc' =>
+                'TRUNCATE TABLE '.$this->db->quotekey($name).';',
+            'sqlite2?' => array(
+                'DELETE FROM '.$this->db->quotekey($name).';',
+                'UPDATE SQLITE_SEQUENCE SET seq = 0 WHERE name = '.$this->db->quotekey($name).';',
+            ),
+        );
+        $query = $this->findQuery($cmd);
+        return ($exec) ? $this->db->exec($query) : $query;
+    }
+
+    /**
+     * check if a data type is compatible with a given column definition
+     * @param string $colType (i.e: BOOLEAN)
+     * @param string $colDef (i.e: tinyint(1))
+     * @return int
+     */
+    public function isCompatible($colType,$colDef) {
+        $raw_type=$this->findQuery($this->dataTypes[strtoupper($colType)]);
+        preg_match_all('/(?P<type>\w+)($|\((?P<length>(\d+|(.*)))\))/', $raw_type, $match);
+        return (bool) preg_match_all('/'.preg_quote($match['type'][0]).'($|\('.
+            preg_quote($match['length'][0]).'\))/i',$colDef);
+    }
 }
 
 abstract class TableBuilder extends DB_Utils {
 
     protected   $columns, $pkeys, $queries, $increments, $rebuild_cmd, $suppress;
-    public      $name, $schema;
+    public      $name;
+    /** @var Schema */
+    public      $schema;
 
     const
         TEXT_NoDefaultForTEXT = "Column `%s` of type TEXT can't have a default value.",
@@ -499,6 +544,7 @@ class TableModifier extends TableBuilder {
      */
     public function build($exec = TRUE)
     {
+
         // check if table exists
         if (!in_array($this->name, $this->schema->getTables()))
             trigger_error(sprintf(self::TEXT_TableNotExisting, $this->name));
@@ -511,6 +557,7 @@ class TableModifier extends TableBuilder {
         $this->queries = array();
         // add new columns
         foreach ($this->columns as $cname => $column) {
+            /** @var Column $column */
             // not nullable fields should have a default value, when altering a table
             if ($column->default === false && $column->nullable === false) {
                 trigger_error(sprintf(self::TEXT_NotNullFieldNeedsDefault, $column->name));
@@ -573,7 +620,7 @@ class TableModifier extends TableBuilder {
                 $after[$column->after][] = $cname;
         // find rename commands
         $rename = (!empty($this->rebuild_cmd) && array_key_exists('rename',$this->rebuild_cmd))
-                  ? $this->rebuild_cmd['rename'] : array();
+            ? $this->rebuild_cmd['rename'] : array();
         // get primary-key fields
         foreach ($existing_columns as $key => $col)
             if ($col['pkey'])
@@ -617,7 +664,7 @@ class TableModifier extends TableBuilder {
                                 unset($indexes[$col]);
                         }
                     }
-                }       
+                }
         // create new table
         $oname = $this->name;
         $this->queries[] = $this->rename($oname.'_temp', false);
@@ -627,8 +674,13 @@ class TableModifier extends TableBuilder {
             $colName = array_key_exists($name, $rename) ? $rename[$name] : $name;
             // update column datatype
             if (array_key_exists('update',$this->rebuild_cmd)
-                && in_array($name,array_keys($this->rebuild_cmd['update'])))
-                $col['type']=$this->rebuild_cmd['update'][$name];
+                && in_array($name,array_keys($this->rebuild_cmd['update']))) {
+                $cdat = $this->rebuild_cmd['update'][$name];
+                if ($cdat instanceof Column)
+                    $col = $cdat->getColumnArray();
+                else
+                    $col['type'] = $cdat;
+            }
             $newTable->addColumn($colName, $col)->passThrough();
             // add new fields with after flag
             if (array_key_exists($name,$after))
@@ -644,7 +696,7 @@ class TableModifier extends TableBuilder {
         // add existing indexes
         foreach (array_reverse($indexes) as $name=>$conf) {
             if (is_int(strpos($name, '___')))
-               list($tname,$name) = explode('___', $name);
+                list($tname,$name) = explode('___', $name);
             if (is_int(strpos($name, '__')))
                 $name = explode('__', $name);
             if ($exec) {
@@ -683,11 +735,11 @@ class TableModifier extends TableBuilder {
         $triggerName = $this->db->quotekey($this->name.'_insert');
         $queries[] = "DROP TRIGGER IF EXISTS $triggerName;";
         $queries[] = 'CREATE TRIGGER '.$triggerName.' AFTER INSERT ON '.$table.
-                     ' WHEN (NEW.'.$pkey.' IS NULL) BEGIN'.
-                     ' UPDATE '.$table.' SET '.$pkey.' = ('.
-                     ' select coalesce( max( '.$pkey.' ), 0 ) + 1 from '.$table.
-                     ') WHERE ROWID = NEW.ROWID;'.
-                     ' END;';
+            ' WHEN (NEW.'.$pkey.' IS NULL) BEGIN'.
+            ' UPDATE '.$table.' SET '.$pkey.' = ('.
+            ' select coalesce( max( '.$pkey.' ), 0 ) + 1 from '.$table.
+            ') WHERE ROWID = NEW.ROWID;'.
+            ' END;';
         return $queries;
     }
 
@@ -705,9 +757,9 @@ class TableModifier extends TableBuilder {
             foreach ($schema as $name => &$cols) {
                 $default = ($cols['default'] === '') ? null : $cols['default'];
                 if (!is_null($default) && (
-                    (is_int(strpos($curdef=$this->findQuery($this->schema->defaultTypes['CUR_STAMP']),
-                    $default)) || is_int(strpos($default,$curdef)))
-                    || $default == "('now'::text)::timestamp(0) without time zone"))
+                        (is_int(strpos($curdef=$this->findQuery($this->schema->defaultTypes['CUR_STAMP']),
+                                $default)) || is_int(strpos($default,$curdef)))
+                        || $default == "('now'::text)::timestamp(0) without time zone"))
                 {
                     $default = 'CUR_STAMP';
                 } elseif (!is_null($default)) {
@@ -727,6 +779,17 @@ class TableModifier extends TableBuilder {
                 $cols['default'] = $default;
             }
         return $schema;
+    }
+
+    /**
+     * check if a data type is compatible with an existing column type
+     * @param string $colType (i.e: BOOLEAN)
+     * @param string $column (i.e: active)
+     * @return bool
+     */
+    public function isCompatible($colType,$column) {
+        $cols = $this->getCols(true);
+        return $this->schema->isCompatible($colType,$cols[$column]['type']);
     }
 
     /**
@@ -771,7 +834,7 @@ class TableModifier extends TableBuilder {
             trigger_error('cannot rename column. it does not exist.');
         if (in_array($new_name, array_keys($existing_columns)))
             trigger_error('cannot rename column. new column already exist.');
-        
+
         if (preg_match('/sqlite2?/', $this->db->driver()))
             // SQlite does not support drop or rename column directly
             $this->rebuild_cmd['rename'][$name] = $new_name;
@@ -801,28 +864,55 @@ class TableModifier extends TableBuilder {
 
     /**
      * modifies column datatype
-     * @param      $name
-     * @param      $datatype
+     * @param string $name
+     * @param string|Column $datatype
      * @param bool $force
      * @return bool
      */
     public function updateColumn($name, $datatype, $force = false)
     {
+        if ($datatype instanceof Column) {
+            $col = $datatype;
+            $datatype = $col->type;
+            $force = $col->passThrough;
+        }
         if(!$force)
             $datatype = $this->findQuery($this->schema->dataTypes[strtoupper($datatype)]);
         $table = $this->db->quotekey($this->name);
         $column = $this->db->quotekey($name);
         if (preg_match('/sqlite2?/', $this->db->driver())){
-            $this->rebuild_cmd['update'][$name] = $datatype;
+            $this->rebuild_cmd['update'][$name] = isset($col)?$col:$datatype;
         } else {
+            $dat = isset($col) ? $col->getColumnQuery() :
+                $column.' '.$datatype;
             $cmd = array(
-            'mysql' =>
-                "ALTER TABLE $table MODIFY COLUMN $column $datatype;",
-            'pgsql' =>
-                "ALTER TABLE $table ALTER COLUMN $column TYPE $datatype;",
-            'sqlsrv|mssql|sybase|dblib|ibm' =>
-                "ALTER TABLE $table ALTER COLUMN $column $datatype;",
+                'mysql' =>
+                    "ALTER TABLE $table MODIFY COLUMN $dat;",
+                'pgsql' =>
+                    "ALTER TABLE $table ALTER COLUMN $column TYPE $datatype;",
+                'sqlsrv|mssql|sybase|dblib|ibm' =>
+                    "ALTER TABLE $table ALTER COLUMN $column $datatype;",
             );
+            if (isset($col)) {
+                $cmd['pgsql'] = array($cmd['pgsql']);
+                $cmd['pgsql'][] = "ALTER TABLE $table ALTER COLUMN $column SET DEFAULT ".$col->getDefault().";";
+                if ($col->nullable)
+                    $cmd['pgsql'][] = "ALTER TABLE $table ALTER COLUMN $column DROP NOT NULL;";
+                else
+                    $cmd['pgsql'][] = "ALTER TABLE $table ALTER COLUMN $column SET NOT NULL;";
+                $df_key = 'DF_'.$this->name.'_'.$name;
+                $cmd['sqlsrv|mssql|sybase|dblib|ibm'] = array(
+                    "ALTER TABLE $table ALTER COLUMN $column $datatype ".$col->getNullable().";",
+                    "DECLARE @ConstraintName nvarchar(200)
+                    SELECT @ConstraintName = Name FROM SYS.DEFAULT_CONSTRAINTS WHERE PARENT_OBJECT_ID = OBJECT_ID('$this->name')
+                     AND PARENT_COLUMN_ID = (SELECT column_id FROM sys.columns WHERE NAME = N'$name'
+                     AND object_id = OBJECT_ID(N'$this->name'))
+                    IF @ConstraintName IS NOT NULL
+                    EXEC('ALTER TABLE $this->name DROP CONSTRAINT ' + @ConstraintName)
+                    ",
+                    "ALTER TABLE $table ADD CONSTRAINT $df_key DEFAULT ".$col->getDefault()." FOR $column;",
+                );
+            }
             $this->queries[] = $this->findQuery($cmd);
         }
     }
@@ -937,10 +1027,10 @@ class TableModifier extends TableBuilder {
 class Column extends DB_Utils {
 
     public      $name, $type, $nullable, $default, $after, $index, $unique, $passThrough, $pkey;
-    protected   $table, $schema;
+    protected   $table, $schema, $type_val;
 
     const
-        TEXT_NoDataType = 'The specified datatype %s is not defined in %s driver',
+        TEXT_NoDataType = 'The specified datatype %s is not defined in %s driver. Add passThrough option to enforce this datatype.',
         TEXT_CurrentStampDataType = 'Current timestamp as column default is only possible for TIMESTAMP datatype';
 
     /**
@@ -1073,13 +1163,23 @@ class Column extends DB_Utils {
     }
 
     /**
+     * feed column from array or hive key
+     * @param string|array $args
+     */
+    public function copyfrom($args) {
+        if (($args || \Base::instance()->exists($args,$args))
+            && is_array($args))
+            foreach ($args as $arg => $val)
+                $this->{$arg} = $val;
+    }
+
+    /**
      * returns an array of this column configuration
      * @return array
      */
-    public function getColumnArray()
-    {
+    public function getColumnArray() {
         $fields = array('name','type','passThrough','default','nullable',
-                        'index','unique','after','pkey');
+            'index','unique','after','pkey');
         $fields = array_flip($fields);
         foreach($fields as $key => &$val)
             $val = $this->{$key};
@@ -1088,54 +1188,54 @@ class Column extends DB_Utils {
     }
 
     /**
+     * return resolved column datatype
+     * @return bool|string
+     */
+    public function getTypeVal() {
+        if (!$this->type)
+            trigger_error(sprintf('Cannot build a column query for `%s`: no column type set',$this->name));
+        if ($this->passThrough)
+            $this->type_val = $this->type;
+        else {
+            $this->type_val = $this->findQuery($this->schema->dataTypes[strtoupper($this->type)]);
+            if (!$this->type_val) {
+                if (Schema::$strict) {
+                    trigger_error(sprintf(self::TEXT_NoDataType, strtoupper($this->type),
+                        $this->db->driver()));
+                    return FALSE;
+                } else {
+                    // auto pass-through if not found
+                    $this->type_val = $this->type;
+                }
+            }
+        }
+        return $this->type_val;
+    }
+
+    /**
      * generate SQL column definition query
      * @return bool|string
      */
-    public function getColumnQuery()
-    {
-        if (!$this->type)
-            trigger_error(sprintf('Cannot build a column query for `%s`: no column type set',$this->name));
+    public function getColumnQuery() {
         // prepare column types
-        if ($this->passThrough)
-            $type_val = $this->type;
-        else {
-            $type_val = $this->findQuery($this->schema->dataTypes[strtoupper($this->type)]);
-            if (!$type_val) {
-                trigger_error(sprintf(self::TEXT_NoDataType, strtoupper($this->type),
-                    $this->db->driver()));
-                return FALSE;
-            }
-        }
+        $type_val = $this->getTypeVal();
         // build query
         $query = $this->db->quotekey($this->name).' '.$type_val.' '.
-            ($this->nullable ? 'NULL' : 'NOT NULL');
+            $this->getNullable();
+        // unify default for booleans
+        if (preg_match('/bool/i', $type_val) && $this->default!==null)
+            $this->default = (int) $this->default;
         // default value
         if ($this->default !== false) {
             $def_cmds = array(
-                'sqlite2?|mysql|pgsql|mssql|sybase|dblib|odbc|sqlsrv' => 'DEFAULT',
+                'sqlite2?|mysql|pgsql' => 'DEFAULT',
+                'mssql|sybase|dblib|odbc|sqlsrv' => 'constraint DF_'.$this->table->name.'_'.$this->name.' DEFAULT',
                 'ibm' => 'WITH DEFAULT',
             );
-            $def_cmd = $this->findQuery($def_cmds).' ';
-            // timestamp default
-            if ($this->default === Schema::DF_CURRENT_TIMESTAMP) {
-                // check for right datatpye
-                $stamp_type = $this->findQuery($this->schema->dataTypes['TIMESTAMP']);
-                if ($this->type != 'TIMESTAMP' && // TODO: check that condition
-                    ($this->passThrough && strtoupper($this->type) != strtoupper($stamp_type))
-                )
-                    trigger_error(self::TEXT_CurrentStampDataType);
-                $def_cmd .= $this->findQuery($this->schema->defaultTypes[strtoupper($this->default)]);
-            } else {
-                // static defaults
-                $pdo_type = preg_match('/int|bool/i', $type_val, $parts) ?
-                    constant('\PDO::PARAM_'.strtoupper($parts[0])) : \PDO::PARAM_STR;
-                $def_cmd .= ($this->default === NULL ? 'NULL' :
-                    $this->db->quote(htmlspecialchars($this->default, ENT_QUOTES,
-                        $this->f3->get('ENCODING')), $pdo_type));
-            }
+            $def_cmd = $this->findQuery($def_cmds).' '.$this->getDefault();
             $query .= ' '.$def_cmd;
         }
-        if (!empty($this->after)) {
+        if (!empty($this->after) && $this->table instanceof TableModifier) {
             // `after` feature only works for mysql
             if (preg_match('/mysql/', $this->db->driver())) {
                 $after_cmd = 'AFTER '.$this->db->quotekey($this->after);
@@ -1143,6 +1243,39 @@ class Column extends DB_Utils {
             }
         }
         return $query;
+    }
+
+    /**
+     * return query part for nullable
+     * @return string
+     */
+    public function getNullable() {
+        return $this->nullable ? 'NULL' : 'NOT NULL';
+    }
+
+    /**
+     * return query part for default value
+     * @return string
+     */
+    public function getDefault() {
+        // timestamp default
+        if ($this->default === Schema::DF_CURRENT_TIMESTAMP) {
+            // check for right datatpye
+            $stamp_type = $this->findQuery($this->schema->dataTypes['TIMESTAMP']);
+            if ($this->type != 'TIMESTAMP' &&
+                ($this->passThrough && strtoupper($this->type) != strtoupper($stamp_type))
+            )
+                trigger_error(self::TEXT_CurrentStampDataType);
+            return $this->findQuery($this->schema->defaultTypes[strtoupper($this->default)]);
+        } else {
+            // static defaults
+            $type_val = $this->getTypeVal();
+            $pdo_type = preg_match('/int|bool/i', $type_val, $parts) ?
+                constant('\PDO::PARAM_'.strtoupper($parts[0])) : \PDO::PARAM_STR;
+            return ($this->default === NULL ? 'NULL' :
+                $this->db->quote(htmlspecialchars($this->default, ENT_QUOTES,
+                    $this->f3->get('ENCODING')), $pdo_type));
+        }
     }
 }
 
@@ -1164,19 +1297,11 @@ class DB_Utils {
      * @param $cmd array
      * @return bool|string
      */
-    protected function findQuery($cmd)
-    {
-        $match = FALSE;
+    public function findQuery($cmd) {
         foreach ($cmd as $backend => $val)
-            if (preg_match('/'.$backend.'/', $this->db->driver())) {
-                $match = TRUE;
-                break;
-            }
-        if (!$match) {
-            trigger_error(sprintf(self::TEXT_ENGINE_NOT_SUPPORTED, $this->db->driver()));
-            return FALSE;
-        }
-        return $val;
+            if (preg_match('/'.$backend.'/', $this->db->driver()))
+                return $val;
+        trigger_error(sprintf(self::TEXT_ENGINE_NOT_SUPPORTED, $this->db->driver()));
     }
 
     public function __construct(SQL $db) {

@@ -16,20 +16,20 @@ class AppController extends Controller {
      * @param $f3
      */
     public function showLandingpage($f3) {
+        // page title
+        $f3->set('pageTitle', 'Login');
 
         // main page content
-        $f3->set('pageContent','templates/view/landingpage.html');
+        $f3->set('pageContent', $f3->get('PATHFINDER.VIEW.LANDINGPAGE'));
 
         // body element class
-        $this->f3->set('bodyClass', 'pf-body pf-landing');
+        $f3->set('bodyClass', 'pf-body pf-landing');
 
         // landing page is always IGB trusted
         $f3->set('trusted', 1);
 
         // JS main file
         $f3->set('jsView', 'landingpage');
-
-        $this->setTemplate('templates/view/index.html');
     }
 
 } 

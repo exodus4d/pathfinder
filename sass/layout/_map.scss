@@ -115,11 +115,7 @@ $mapWidth: 2500px ;
   font-family: $font-family-bold;
 
   // jsPlumb classes ==========================================================
-  ._jsPlumb_target, ._jsPlumb_source{
-
-  }
-
-  ._jsPlumb_overlay{
+  .jsplumb-overlay{
     opacity: 1;
     pointer-events: none; // click through overlays
     will-change: opacity;
@@ -132,20 +128,20 @@ $mapWidth: 2500px ;
   }
 
   // hover effects ============================================================
-  ._jsPlumb_hover{
+  .jsplumb-hover{
 
     // hover effect for connections
-    &._jsPlumb_overlay{      
+    &.jsplumb-overlay{
       opacity: 0 !important; // hide opacity on hover
     }    
 
-    &:not(._jsPlumb_overlay){
+    &:not(.jsplumb-overlay){
       @include bounce-up-down; // label should not bounce
     }
   }
 
   // hover effect for systems
-  ._jsPlumb_target_hover, ._jsPlumb_source_hover{
+  .jsplumb-target-hover, .jsplumb-source-hover{
     @include bounce-up-down;
     @include box-shadow(0 6px 12px rgba(0,0,0,.3));
   }
@@ -333,27 +329,27 @@ $mapWidth: 2500px ;
     }
 
     // hover class (e.g. connection is hovered -> endpoints get this class)
-    &._jsPlumb_hover{
+    &.jsplumb-hover{
       // increase z-index -> prevent overlapping multiple endpoints
       z-index: 95;
     }
 
     // while dragging
-    &._jsPlumb_dragging{
+    &.jsplumb-dragging{
       circle {
         stroke: $orange;
       }
     }
   }
 
-  ._jsPlumb_endpoint_drop_allowed{
+  .jsplumb-endpoint-drop-allowed{
     circle {
       stroke: $green !important;
       fill: $green !important;
     }
   }
 
-  ._jsPlumb_endpoint_drop_forbidden{
+  .jsplumb-endpoint-drop-forbidden{
     circle {
       stroke: $red-darker !important;
       fill: $red-darker !important;
@@ -362,7 +358,7 @@ $mapWidth: 2500px ;
 
   // Connections ==============================================================
 
-  svg._jsPlumb_connector{
+  svg.jsplumb-connector{
     cursor: pointer;
     stroke-linecap: round; // line endings
     @include transition( stroke 0.18s ease-out) ;
@@ -380,7 +376,7 @@ $mapWidth: 2500px ;
       stroke: $gray-light; // outer line
     }
 
-    &._jsPlumb_hover{
+    &.jsplumb-hover{
       z-index: 80;
 
       path:first-child{
@@ -388,7 +384,7 @@ $mapWidth: 2500px ;
       }
     }
 
-    &._jsPlumb_dragging{
+    &.jsplumb-dragging{
       @include transition( opacity 0.18s ease-out) ;
       opacity: 0.4;
       z-index: 80;

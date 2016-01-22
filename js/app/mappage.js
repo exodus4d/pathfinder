@@ -16,6 +16,9 @@ define([
 
     'use strict';
 
+    /**
+     * main init "map" page
+     */
     $(function(){
         // load page
         $('body').loadPageStructure();
