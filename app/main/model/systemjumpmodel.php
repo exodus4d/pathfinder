@@ -18,7 +18,7 @@ class SystemJumpModel extends SystemApiBasicModel {
         'active' => [
             'type' => Schema::DT_BOOL,
             'nullable' => false,
-            'default' => true,
+            'default' => 1,
             'index' => true
         ],
         'systemId' => [
