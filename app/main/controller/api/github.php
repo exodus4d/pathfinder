@@ -40,7 +40,7 @@ class GitHub extends Controller\Controller {
     public function releases($f3){
         $cacheKey = 'CACHE_GITHUB_RELEASES';
         $ttl = 60 * 30; // 30min
-        $releaseCount = 5;
+        $releaseCount = 3;
 
         if( !$f3->exists($cacheKey) ){
             $apiPath = $this->getF3()->get('PATHFINDER.API.GIT_HUB') . '/repos/exodus4d/pathfinder/releases';
@@ -62,7 +62,11 @@ class GitHub extends Controller\Controller {
                 $md = \Markdown::instance();
                 foreach($releasesData as &$releaseData){
                     if(isset($releaseData->body)){
-                        $releaseData->body = $md->convert( $releaseData->body );
+
+                        // convert list style
+                        $body = str_replace(' - ', '* ', $releaseData->body );
+
+                        $releaseData->body = $md->convert( $body );
                     }
                 }
                 $f3->set($cacheKey, $releasesData, $ttl);
