@@ -35,7 +35,7 @@
 
     <meta property="og:title" content="EVE ONLINE mapping tool">
     <meta property="og:site_name" content="PATHFINDER">
-    <meta property="og:image" content="{{ @URL }}/public/img/logo.png">
+    <meta property="og:image" content="{{ @BASE }}/public/img/logo.png">
     <meta property="og:url" content="{{ @URL }}">
     <meta property="og:locale" content="en_US">
     <meta property="og:locale:alternate" content="de_DE">
@@ -52,7 +52,7 @@
     {* Youtube verification code *}
     <meta name="google-site-verification" content="sHoh0gfMw3x1wiwLTK5OsKsxt7kRgxi69hRgWEGh9DQ" />
 
-    <link rel="stylesheet" type="text/css" media="screen" href="/public/css/pathfinder.css?{{ @PATHFINDER.VERSION }}">
+    <link rel="stylesheet" type="text/css" media="screen" href="{{ @BASE }}/public/css/pathfinder.css?{{ @PATHFINDER.VERSION }}">
 
 </head>
 <body class="{{ @bodyClass }}" data-trusted="{{ @trusted }}" data-js-path="{{ @pathJs }}" data-script="{{ @jsView }}" data-invite="{{ @PATHFINDER.REGISTRATION.INVITE }}" data-version="{{ @PATHFINDER.VERSION }}">
@@ -61,7 +61,7 @@
 
     <!-- Hey dude! Where is all the magic? -->
 
-    <script data-main="/js/app" src="/js/lib/require.js" ></script>
+    <script data-main="{{ @BASE }}/js/app" src="{{ @BASE }}/js/lib/require.js" ></script>
 </body>
 
 </html>
