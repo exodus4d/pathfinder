@@ -1,0 +1,10 @@
+eve-pathfinder:
+  build: .
+  ports:
+    - "80:80"
+  links:
+    - db:mysql
+db:
+  image: mysql
+  environment:
+    MYSQL_ROOT_PASSWORD: changeme
