@@ -8,9 +8,9 @@
 
 namespace Data\Mapper;
 
-class CcpSystemsMapper extends \RecursiveArrayIterator {
+class CcpSystemsMapper extends AbstractIterator {
 
-    static $map = [
+    protected static $map = [
         'system_id' => 'systemId',
         'system_name' => 'name',
         'system_security' => 'trueSec',
@@ -19,11 +19,6 @@ class CcpSystemsMapper extends \RecursiveArrayIterator {
         'region_id' => ['region' => 'id'],
         'region_name' => ['region' => 'name']
     ];
-
-    function __construct($data){
-
-        parent::__construct($data, \RecursiveIteratorIterator::SELF_FIRST);
-    }
 
     /**
      * get formatted data
@@ -131,11 +126,7 @@ class CcpSystemsMapper extends \RecursiveArrayIterator {
         return iterator_to_array($this, false);
     }
 
-    /**
-     * recursive iterator function called on every node
-     * @param $iterator
-     * @return mixed
-     */
+
     static function recursiveIterator($iterator){
 
         while ( $iterator -> valid() ) {

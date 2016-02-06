@@ -31,6 +31,11 @@ class CorporationModel extends BasicModel {
             'nullable' => false,
             'default' => 0
         ],
+        'isNPC' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => 0
+        ],
         'corporationCharacters' => [
             'has-many' => ['Model\CharacterModel', 'corporationId']
         ],
