@@ -22,15 +22,10 @@ WORKDIR /home/${USER}
 # Clones source
 
 # Concat latest eve mysql dump into single file
-#RUN wget https://www.fuzzwork.co.uk/dump/mysql-latest.tar.bz2
-#RUN mkdir evedump && tar xvf mysql-latest.tar.bz2 -C evedump
-#RUN touch evedump.sql && find ./evedump -type f -name "*.sql" -exec sh -c "cat {} > evedump.sql" \;
-#RUN rm -rf evedump && rm -rf mysql-latest.tar.bz2
-
-RUN mkdir /home/${USER}/pathfinder
-ADD ./ /home/${USER}/pathfinder/
-
-RUN cp /home/${USER}/pathfinder/docker/evedump.sql /home/${USER}/
+RUN wget https://www.fuzzwork.co.uk/dump/mysql-latest.tar.bz2
+RUN mkdir evedump && tar xvf mysql-latest.tar.bz2 -C evedump
+RUN touch evedump.sql && find ./evedump -type f -name "*.sql" -exec sh -c "cat {} > evedump.sql" \;
+RUN rm -rf evedump && rm -rf mysql-latest.tar.bz2
 
 USER root
 
