@@ -99,6 +99,9 @@ class CcpSsoController extends Controller {
 
                     if( !is_null($characterModel) ){
                         // everything OK -> login succeeded
+                        var_dump( $characterModel->cast() );
+                        die();
+
                     }
                 }
             }
