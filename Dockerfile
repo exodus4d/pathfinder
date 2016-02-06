@@ -3,7 +3,7 @@ MAINTAINER Andrew Munro <synestry@gmail.com>
 
 ENV ENVIRONMENT production
 ENV USER pathfinder
-ENV URL http://localhost
+ENV URL http://192.168.99.100/
 ENV NGINX_HOSTNAME localhost
 ENV MYSQL_PASS changeme
 
@@ -26,6 +26,8 @@ RUN wget https://www.fuzzwork.co.uk/dump/mysql-latest.tar.bz2
 RUN mkdir evedump && tar xvf mysql-latest.tar.bz2 -C evedump
 RUN touch evedump.sql && find ./evedump -type f -name "*.sql" -exec sh -c "cat {} > evedump.sql" \;
 RUN rm -rf evedump && rm -rf mysql-latest.tar.bz2
+
+ADD ./ /home/${USER}/pathfinder/
 
 USER root
 
