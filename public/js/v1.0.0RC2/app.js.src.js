@@ -17,7 +17,7 @@ requirejs.config({
         img: '../../img',                                               // images dir
 
         // main views
-        landingpage: './app/landingpage',                               // initial start "landing page" view
+        login: './app/login',                                           // initial start "login page" view
         mappage: './app/mappage',                                       // initial start "map page" view
         setup: './app/setup',                                           // initial start "setup page" view
 
@@ -28,7 +28,7 @@ requirejs.config({
         velocity: 'lib/velocity.min',                                   // v1.2.2 animation engine - http://julian.com/research/velocity/
         velocityUI: 'lib/velocity.ui.min',                              // v5.0.4 plugin for velocity - http://julian.com/research/velocity/#uiPack
         slidebars: 'lib/slidebars',                                     // v0.10 Slidebars - side menu plugin http://plugins.adchsm.me/slidebars/
-        jsPlumb: 'lib/jsPlumb-2.0.5-min',                               // v2.0.5 jsPlumb (Vanilla)- main map draw plugin https://jsplumbtoolkit.com/
+        jsPlumb: 'lib/dom.jsPlumb-1.7.6',                               // v1.7.6 jsPlumb (Vanilla)- main map draw plugin https://jsplumbtoolkit.com/
         farahey: 'lib/farahey-0.5',                                     // v0.5 jsPlumb "magnetizing" extension - https://github.com/jsplumb/farahey
         customScrollbar: 'lib/jquery.mCustomScrollbar.concat.min',      // v3.0.9 Custom scroll bars - http://manos.malihu.gr/
         datatables: 'lib/datatables/jquery.dataTables.min',             // v1.10.7 DataTables - https://datatables.net/

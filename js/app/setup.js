@@ -1,5 +1,5 @@
 /**
- * Main landingPage application
+ * Main setupPage application
  */
 
 define([

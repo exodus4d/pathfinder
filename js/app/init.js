@@ -373,7 +373,10 @@ define(['jquery'], function($) {
         incomingWormholes: {
             1: 'K162 - C1/2/3 (unknown)',
             2: 'K162 - C4/5 (dangerous)',
-            3: 'K162 - C6 (deadly)'
+            3: 'K162 - C6 (deadly)',
+            4: 'K162 - HS',
+            5: 'K162 - LS',
+            6: 'K162 - 0.0'
         }
 
     };

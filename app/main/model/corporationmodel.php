@@ -18,7 +18,7 @@ class CorporationModel extends BasicModel {
         'active' => [
             'type' => Schema::DT_BOOL,
             'nullable' => false,
-            'default' => true,
+            'default' => 1,
             'index' => true
         ],
         'name' => [
@@ -27,6 +27,11 @@ class CorporationModel extends BasicModel {
             'default' => ''
         ],
         'shared' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => 0
+        ],
+        'isNPC' => [
             'type' => Schema::DT_BOOL,
             'nullable' => false,
             'default' => 0

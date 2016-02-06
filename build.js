@@ -76,13 +76,13 @@
         //of its dependencies includes i18n bundles, they may not be included in the
         //built file unless the locale: section is set above.
         {
-            name: 'mappage',
+            name: 'login',
             include: ['text'],
             excludeShallow: [
                 'app'
             ]
         },{
-            name: 'landingpage',
+            name: 'mappage',
             include: ['text'],
             excludeShallow: [
                 'app'

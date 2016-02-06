@@ -10,7 +10,7 @@ namespace Controller;
 
 class MapController extends \Controller\AccessController {
 
-    public function showMap($f3) {
+    public function init($f3) {
 
         // page title
         $f3->set('pageTitle', 'Maps');

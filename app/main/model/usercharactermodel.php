@@ -18,7 +18,7 @@ class UserCharacterModel extends BasicModel {
         'active' => [
             'type' => Schema::DT_BOOL,
             'nullable' => false,
-            'default' => true,
+            'default' => 1,
             'index' => true
         ],
         'userId' => [
@@ -57,7 +57,7 @@ class UserCharacterModel extends BasicModel {
         'isMain' => [
             'type' => Schema::DT_BOOLEAN,
             'nullable' => false,
-            'default' => false,
+            'default' => 0,
             'index' => true
         ]
     ];

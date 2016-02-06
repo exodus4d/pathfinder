@@ -24,7 +24,7 @@ class UserModel extends BasicModel {
         'active' => [
             'type' => Schema::DT_BOOL,
             'nullable' => false,
-            'default' => true,
+            'default' => 1,
             'index' => true
         ],
         'name' => [
@@ -49,7 +49,7 @@ class UserModel extends BasicModel {
         'shared' => [
             'type' => Schema::DT_BOOL,
             'nullable' => false,
-            'default' => '0'
+            'default' => 0
         ],
         'apis' => [
             'has-many' => ['Model\UserApiModel', 'userId']

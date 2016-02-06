@@ -137,7 +137,7 @@ class Controller {
 
         if( !$f3->get('AJAX') ){
             // redirect to landing page
-            $f3->reroute('@landing');
+            $f3->reroute('@login');
         }else{
             $params = $f3->get('POST');
             $return = (object) [];
@@ -145,7 +145,7 @@ class Controller {
                 isset($params['reroute']) &&
                 (bool)$params['reroute']
             ){
-                $return->reroute = rtrim(self::getEnvironmentData('URL'), '/') . $f3->alias('landing');
+                $return->reroute = rtrim(self::getEnvironmentData('URL'), '/') . $f3->alias('login');
             }else{
                 // no reroute -> errors can be shown
                 $return->error[] = $this->getUserLoggedOffError();
@@ -428,7 +428,7 @@ class Controller {
             $url = $this->getF3()->alias( $this->getF3()->get('ALIAS') );
         }else{
             // get main (index.php) URL
-            $url = $this->getF3()->alias('landing');
+            $url = $this->getF3()->alias('login');
         }
 
         return $url;
@@ -440,7 +440,6 @@ class Controller {
      */
     protected function getUserAgent(){
         $userAgent = '';
-
         $userAgent .= $this->getF3()->get('PATHFINDER.NAME');
         $userAgent .=  ' - ' . $this->getF3()->get('PATHFINDER.VERSION');
         $userAgent .=  ' | ' . $this->getF3()->get('PATHFINDER.CONTACT');
