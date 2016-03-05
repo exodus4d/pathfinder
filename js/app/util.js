@@ -1082,7 +1082,7 @@ define([
         var statusInfo = '';
 
         // character status can not be checked if there are no reference data
-        // e.g. during registration process (landing page)
+        // e.g. during registration process (login page)
         if(Init.characterStatus){
             // get info for current "main" character
             var corporationId = getCurrentUserInfo('corporationId');
@@ -1472,7 +1472,7 @@ define([
         Init.currentUserData = userData;
 
         // check if function is available
-        // this is not the case for "landing" page
+        // this is not the case in "login" page
         if( $.fn.updateHeaderUserData ){
             $.fn.updateHeaderUserData();
         }
