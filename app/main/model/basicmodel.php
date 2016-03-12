@@ -13,7 +13,7 @@ use Exception;
 use Controller;
 use DB;
 
-class BasicModel extends \DB\Cortex {
+abstract class BasicModel extends \DB\Cortex {
 
     /**
      * Hive key with DB object
@@ -81,14 +81,16 @@ class BasicModel extends \DB\Cortex {
             $self->clearCacheData();
         });
 
-        // model updated
         $this->afterupdate( function($self){
             $self->clearCacheData();
         });
 
-        // model updated
         $this->beforeinsert( function($self){
             $self->beforeInsertEvent($self);
+        });
+
+        $this->aftererase( function($self){
+            $self->aftereraseEvent($self);
         });
     }
 
@@ -226,7 +228,7 @@ class BasicModel extends \DB\Cortex {
         $cacheKey = null;
 
         // set a model unique cache key if the model is saved
-        if( $this->_id > 0){
+        if( $this->id > 0){
             // check if there is a given key prefix
             // -> if not, use the standard key.
             // this is useful for caching multiple data sets according to one row entry
@@ -338,11 +340,20 @@ class BasicModel extends \DB\Cortex {
     }
 
     /**
-     * function should be overwritten in child classes with access restriction
-     * @param $accessObject
+     * Event "Hook" function
+     * can be overwritten
      * @return bool
      */
-    public function hasAccess($accessObject){
+    public function aftereraseEvent($self){
+        return true;
+    }
+
+    /**
+     * function should be overwritten in child classes with access restriction
+     * @param UserModel $user
+     * @return bool
+     */
+    public function hasAccess(UserModel $user){
         return true;
     }
 
@@ -357,7 +368,7 @@ class BasicModel extends \DB\Cortex {
     /**
      * get cached data from this model
      * @param string $dataCacheKeyPrefix - optional key prefix
-     * @return mixed|null
+     * @return \stdClass|null
      */
     protected function getCacheData($dataCacheKeyPrefix = ''){
 
@@ -427,9 +438,9 @@ class BasicModel extends \DB\Cortex {
 
     /**
      * factory for all Models
-     * @param $model
+     * @param string $model
      * @param int $ttl
-     * @return null
+     * @return BasicModel
      * @throws \Exception
      */
     public static function getNew($model, $ttl = 86400){
@@ -447,7 +458,7 @@ class BasicModel extends \DB\Cortex {
 
     /**
      * get the framework instance (singleton)
-     * @return static
+     * @return \Base
      */
     public static function getF3(){
         return \Base::instance();
@@ -455,7 +466,7 @@ class BasicModel extends \DB\Cortex {
 
     /**
      * debug log function
-     * @param $text
+     * @param string $text
      */
     public static function log($text){
         Controller\LogController::getLogger('debug')->write($text);

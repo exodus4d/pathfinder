@@ -10,6 +10,7 @@ namespace Model;
 
 use DB\SQL\Schema;
 use Controller;
+use Controller\Api;
 use Exception;
 
 class UserModel extends BasicModel {
@@ -17,10 +18,6 @@ class UserModel extends BasicModel {
     protected $table = 'user';
 
     protected $fieldConf = [
-        'lastLogin' => [
-            'type' => Schema::DT_TIMESTAMP,
-            'index' => true
-        ],
         'active' => [
             'type' => Schema::DT_BOOL,
             'nullable' => false,
@@ -31,15 +28,12 @@ class UserModel extends BasicModel {
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
             'default' => '',
-            'index' => true,
-            'unique' => true
+            'index' => true
         ],
         'email' => [
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
-            'default' => '',
-            'index' => true,
-            'unique' => true
+            'default' => ''
         ],
         'password' => [
             'type' => Schema::DT_VARCHAR128,
@@ -69,11 +63,6 @@ class UserModel extends BasicModel {
                 'max' => 25
             ]
         ],
-        'email' => [
-            'length' => [
-                'min' => 5
-            ]
-        ],
         'password' => [
             'length' => [
                 'min' => 6
@@ -83,9 +72,9 @@ class UserModel extends BasicModel {
 
     /**
      * get all data for this user
-     * ! caution ! this function returns sensitive data!
+     * -> ! caution ! this function returns sensitive data! (e.g. email,..)
      * -> user getSimpleData() for faster performance and public user data
-     * @return object
+     * @return \stdClass
      */
     public function getData(){
 
@@ -98,24 +87,19 @@ class UserModel extends BasicModel {
         // user shared info
         $userData->shared = $this->shared;
 
-        // api data
-        $APIs = $this->getAPIs();
-        foreach($APIs as $api){
-            $userData->api[] = $api->getData();
-        }
-
         // all chars
         $userData->characters = [];
-        $userCharacters = $this->getUserCharacters();
-        foreach($userCharacters as $userCharacter){
-            $userData->characters[] = $userCharacter->getData();
+        $characters = $this->getCharacters();
+        foreach($characters as $character){
+            /**
+             * @var $character CharacterModel
+             */
+            $userData->characters[] = $character->getData();
         }
 
         // set active character with log data
-        $activeUserCharacter = $this->getActiveUserCharacter();
-        if($activeUserCharacter){
-            $userData->character = $activeUserCharacter->getData(true);
-        }
+        $activeCharacter = $this->getActiveCharacter();
+        $userData->character = $activeCharacter->getData(true);
 
         return $userData;
     }
@@ -123,7 +107,7 @@ class UserModel extends BasicModel {
     /**
      * get public user data
      * - check out getData() for all user data
-     * @return object
+     * @return \stdClass
      */
     public function getSimpleData(){
         $userData = (object) [];
@@ -135,11 +119,15 @@ class UserModel extends BasicModel {
 
     /**
      * validate and set a email address for this user
-     * @param $email
-     * @return mixed
+     * -> empty email is allowed!
+     * @param string $email
+     * @return string
      */
     public function set_email($email){
-        if (\Audit::instance()->email($email) == false) {
+        if (
+            !empty($email) &&
+            \Audit::instance()->email($email) == false
+        ) {
             // no valid email address
             $this->throwValidationError('email');
         }
@@ -148,8 +136,8 @@ class UserModel extends BasicModel {
 
     /**
      * set a password hash for this user
-     * @param $password
-     * @return FALSE|string
+     * @param string $password
+     * @return string
      */
     public function set_password($password){
         if(strlen($password) < 6){
@@ -208,10 +196,9 @@ class UserModel extends BasicModel {
 
     /**
      * get all accessible map models for this user
-     * @return array
+     * @return MapModel[]
      */
     public function getMaps(){
-        $f3 = self::getF3();
 
         $this->filter(
             'userMaps',
@@ -222,34 +209,29 @@ class UserModel extends BasicModel {
         $maps = [];
         if($this->userMaps){
             $mapCountPrivate = 0;
-            foreach($this->userMaps as $userMap){
+            foreach($this->userMaps as &$userMap){
                 if(
                     $userMap->mapId->isActive() &&
-                    $mapCountPrivate < $f3->get('PATHFINDER.MAX_MAPS_PRIVATE')
+                    $mapCountPrivate < self::getF3()->get('PATHFINDER.MAX_MAPS_PRIVATE')
                 ){
-                    $maps[] = $userMap->mapId;
+                    $maps[] = &$userMap->mapId;
                     $mapCountPrivate++;
                 }
             }
         }
 
-        $activeUserCharacter = $this->getActiveUserCharacter();
+        // get current active character
+        $controller = new Controller\Controller();
+        $activeCharacter = $controller->getCharacter();
+        $corporation = $activeCharacter->getCorporation();
+        $alliance = $activeCharacter->getAlliance();
 
-        if($activeUserCharacter){
-            $character = $activeUserCharacter->getCharacter();
-            $corporation = $character->getCorporation();
-            $alliance = $character->getAlliance();
+        if($alliance){
+            $maps = array_merge($maps, $alliance->getMaps());
+        }
 
-            if($alliance){
-                $allianceMaps = $alliance->getMaps();
-                $maps = array_merge($maps, $allianceMaps);
-            }
-
-            if($corporation){
-                $corporationMaps = $corporation->getMaps();
-                $maps = array_merge($maps, $corporationMaps);
-
-            }
+        if($corporation){
+            $maps = array_merge($maps,  $corporation->getMaps());
         }
 
         return $maps;
@@ -257,13 +239,16 @@ class UserModel extends BasicModel {
 
     /**
      * get mapModel by id and check if user has access
-     * @param $mapId
-     * @return null
-     * @throws \Exception
+     * @param int $mapId
+     * @return MapModel|null
+     * @throws Exception
      */
-    public function getMap($mapId){
+    public function getMap(int $mapId){
+        /**
+         * @var $map MapModel
+         */
         $map = self::getNew('MapModel');
-        $map->getById( (int)$mapId );
+        $map->getById( $mapId );
 
         $returnMap = null;
         if($map->hasAccess($this)){
@@ -324,35 +309,14 @@ class UserModel extends BasicModel {
     /**
      * get all userCharacters models for a user
      * characters will be checked/updated on login by CCP API call
-     * @return array|mixed
+     * @return UserCharacterModel[]
      */
     public function getUserCharacters(){
+        $this->filter('userCharacters', ['active = ?', 1]);
 
-        $this->filter('apis', ['active = ?', 1]);
-
-        // if a user has multiple API keys saved for ONE character,
-        // skip double characters!
         $userCharacters = [];
-
-        if($this->apis){
-            $this->apis->rewind();
-            while($this->apis->valid()){
-
-                $this->apis->current()->filter('userCharacters', ['active = ?', 1]);
-
-                if($this->apis->current()->userCharacters){
-                    $this->apis->current()->userCharacters->rewind();
-                    while($this->apis->current()->userCharacters->valid()){
-
-                        $tempCharacterId = $this->apis->current()->userCharacters->current()->characterId->get('id');
-                        if( !isset($userCharacters[ $tempCharacterId ]) ){
-                            $userCharacters[ $tempCharacterId ] = $this->apis->current()->userCharacters->current();
-                        }
-                        $this->apis->current()->userCharacters->next();
-                    }
-                }
-                $this->apis->next();
-            }
+        if($this->userCharacters){
+            $userCharacters = $this->userCharacters;
         }
 
         return $userCharacters;
@@ -377,82 +341,72 @@ class UserModel extends BasicModel {
     }
 
     /**
-     * get the active user character for this user
-     * either there is an active Character (IGB) or the character labeled as "main"
-     * @return null
+     * get the current active character for this user
+     * -> EITHER - the current active one for the current user
+     * -> OR - get the first active one
+     * @return null|CharacterModel
      */
-    public function getActiveUserCharacter(){
-        $activeUserCharacter = null;
+    public function getActiveCharacter(){
+        $activeCharacter = null;
+        $controller = new Controller\Controller();
+        $currentActiveCharacter = $controller->getCharacter();
 
-        $headerData = Controller\CcpApiController::getIGBHeaderData();
-
-        // check if IGB Data is available
-        if( !empty($headerData->values) ){
-            // search for the active character by IGB Header Data
-
-            $this->filter('userCharacters',
-                [
-                    'active = :active AND characterId = :characterId',
-                    ':active' => 1,
-                    ':characterId' => intval($headerData->values['charid'])
-                ],
-                ['limit' => 1]
-            );
-
-            if($this->userCharacters){
-                // check if userCharacter has active log
-                $userCharacter = current($this->userCharacters);
-
-                if( $userCharacter->getCharacter()->getLog() ){
-                    $activeUserCharacter = $userCharacter;
-                }
+        if(
+            !is_null($currentActiveCharacter) &&
+            $currentActiveCharacter->getUser()->_id === $this->id
+        ){
+            $activeCharacter = &$currentActiveCharacter;
+        }else{
+            // set "first" found as active for this user
+            if($activeCharacters = $this->getActiveCharacters()){
+                $activeCharacter = &$activeCharacters[0];
             }
         }
 
-        // if no  active character is found
-        // e.g. not online in IGB
-        // -> get main Character
-        if(is_null($activeUserCharacter)){
-            $activeUserCharacter = $this->getMainUserCharacter();
-        }
-
-        return $activeUserCharacter;
+        return $activeCharacter;
     }
 
     /**
-     * get all active user characters (with log entry)
-     * hint: a user can have multiple active characters
-     * @return array
+     * get all characters for this user
+     * @return CharacterModel[]
      */
-    public function getActiveUserCharacters(){
+    public function getCharacters(){
+        $userCharacters = $this->getUserCharacters();
+        $characters = [];
+        foreach($userCharacters as $userCharacter){
+            /**
+             * @var $userCharacter UserCharacterModel
+             */
+            if( $currentCharacter = $userCharacter->getCharacter() ){
+                // check if userCharacter has a valid character
+                // -> this should never fail!
+                $characters[] = $currentCharacter;
+            }
+        }
+
+        return $characters;
+    }
+
+    /**
+     * get all active characters (with log entry)
+     * hint: a user can have multiple active characters
+     * @return CharacterModel[]
+     */
+    public function getActiveCharacters(){
         $userCharacters = $this->getUserCharacters();
 
-        $activeUserCharacters = [];
+        $activeCharacters = [];
         foreach($userCharacters as $userCharacter){
-            $characterLog = $userCharacter->getCharacter()->getLog();
-
-            if($characterLog){
-                $activeUserCharacters[] = $userCharacter;
+            /**
+             * @var $userCharacter UserCharacterModel
+             */
+            $characterModel = $userCharacter->getCharacter();
+            if($characterLog = $characterModel->getLog()){
+                $activeCharacters[] = $characterModel;
             }
         }
 
-        return $activeUserCharacters;
-    }
-
-    /**
-     * update/check API information.
-     * request API information from CCP
-     */
-    public function updateApiData(){
-        $this->filter('apis', ['active = ?', 1]);
-
-        if($this->apis){
-            $this->apis->rewind();
-            while($this->apis->valid()){
-                $this->apis->current()->updateCharacters();
-                $this->apis->next();
-            }
-        }
+        return $activeCharacters;
     }
 
     /**
@@ -460,8 +414,10 @@ class UserModel extends BasicModel {
      * @param int $ttl cache time in seconds
      * @throws \Exception
      */
+    /*
     public function updateCharacterLog($ttl = 0){
-        $headerData = Controller\CcpApiController::getIGBHeaderData();
+
+        $headerData = Controller\Controller::getIGBHeaderData();
 
         // check if IGB Data is available
         if( !empty($headerData->values) ){
@@ -551,6 +507,7 @@ class UserModel extends BasicModel {
             }
         }
     }
+    */
 
 
 } 

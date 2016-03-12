@@ -313,23 +313,23 @@ class SystemModel extends BasicModel {
 
     /**
      * check object for model access
-     * @param $accessObject
-     * @return bool
+     * @param UserModel $user
+     * @return mixed
      */
-    public function hasAccess($accessObject){
-        return $this->mapId->hasAccess($accessObject);
+    public function hasAccess(UserModel $user){
+        return $this->mapId->hasAccess($user);
     }
 
     /**
      * delete a system from a map
      * hint: signatures and connections will be deleted on cascade
-     * @param $accessObject
+     * @param UserModel $user
      */
-    public function delete($accessObject){
+    public function delete(UserModel $user){
 
         if(! $this->dry()){
             // check if user has access
-            if($this->hasAccess($accessObject)){
+            if($this->hasAccess($user)){
                 $this->erase();
             }
         }
@@ -367,14 +367,14 @@ class SystemModel extends BasicModel {
 
     /**
      * get Signature by id and check for access
-     * @param $accessObject
+     * @param UserModel $user
      * @param $id
      * @return bool|null
      */
-    public function getSignatureById($accessObject, $id){
+    public function getSignatureById(UserModel $user, $id){
         $signature = null;
 
-        if($this->hasAccess($accessObject)){
+        if($this->hasAccess($user)){
             $this->filter('signatures', ['active = ? AND id = ?', 1, $id]);
             if($this->signatures){
                 $signature = reset( $this->signatures );
@@ -386,14 +386,14 @@ class SystemModel extends BasicModel {
 
     /**
      * get a signature by its "unique" 3-digit name
-     * @param $accessObject
+     * @param UserModel $user
      * @param $name
      * @return mixed|null
      */
-    public function getSignatureByName($accessObject, $name){
+    public function getSignatureByName(UserModel $user, $name){
         $signature = null;
 
-        if($this->hasAccess($accessObject)){
+        if($this->hasAccess($user)){
             $this->filter('signatures', ['active = ? AND name = ?', 1, $name]);
             if($this->signatures){
                 $signature = reset( $this->signatures );

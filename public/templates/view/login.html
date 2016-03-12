@@ -75,31 +75,21 @@
                 <h2><span class="text-primary">Please</span> log in</h2>
             </div>
         </div>
+
         <form id="pf-login-form" class="" role="form" method="post" action="#">
-
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col-xs-12 col-sm-3 col-sm-offset-3">
-                        <div class="form-group">
-                            <input type="text" class="form-control" name="userName" id="userName" placeholder="Username" autocomplete="off" tabindex="1" data-error="Username required" autofocus required>
-                            <div class="help-block with-errors text-left"></div>
-                        </div>
-                    </div>
-                    <div class="col-xs-12 col-sm-3">
-                        <div class="form-group">
-                            <input type="password" class="form-control" name="userPassword" id="userPassword" placeholder="Password" autocomplete="off" tabindex="2" data-error="Password required" required>
-                            <div class="help-block with-errors text-left"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             {* login message container *}
-            <div class="container-fluid">
-                <div class="row ">
-                    <div id="pf-login-message-container" class="col-sm-8 col-sm-offset-2"></div>
+            <check if="{{ @SESSION.SSO.ERROR }}">
+                <div class="container-fluid">
+                    <div class="row ">
+                        <div class="col-sm-8 col-sm-offset-2">
+                            <div class="alert alert-danger" >
+                                <span class="txt-color txt-color-danger">Access denied</span>
+                                <small>{{ @SESSION.SSO.ERROR }}</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </check>
 
             {* check for setup mode *}
             <check if="{{ array_key_exists('/setup', @ROUTES) && @PATHFINDER.SHOW_SETUP_WARNING }}">
@@ -130,22 +120,19 @@
                 </div>
             </check>
 
-            {* signUp/logIn buttons *}
-            <div class="row text-center">
-                <div class="col-xs-12 col-sm-6 col-sm-offset-3">
-                    <div class="col-xs-6 col-sm-4 col-sm-offset-2" data-placement="left" title="{{@registrationStatusTitle}}">
-                        <button type="button" class="pf-register-button btn-block btn btn-primary {{@registrationStatusButton}}" tabindex="-1"><i class="fa fa-fw fa-user-plus"></i> Sign up</button>
-                    </div>
-                    <div class="col-xs-6 col-sm-4">
-                        <button type="submit" class="pf-login-button btn-block btn btn-success" tabindex="3"><i class="fa fa-fw fa-sign-in"></i> Log in</button>
+            {* SSO login *}
+            <div class="container-fluid">
+                <div class="row text-center">
+                    <div class="col-xs-12">
+                        <a class="pf-sso-login-button {{@registrationStatusButton}}" href="{{ 'sso','action=requestAuthorization' | alias }}" type="button" tabindex="3" title="{{@registrationStatusTitle}}">&nbsp;</a><br>
+                        <a class="font-lg" target="_blank" href="http://community.eveonline.com/news/dev-blogs/eve-online-sso-and-what-you-need-to-know">What is this?</a>
                     </div>
                 </div>
             </div>
         </form>
+
     </div>
 </section>
-
-<a href="{{ 'sso','action=requestAuthorization' | alias }}">SSO login</a>
 
 {* features/ gallery *}
 <section id="pf-landing-gallery">

@@ -14,6 +14,14 @@ class CharacterLogModel extends BasicModel {
 
     protected $table = 'character_log';
 
+    /**
+     * caching for relational data
+     * -> 10s matches REST API - Expire: Header-Data
+     *    for "Location" calls
+     * @var int
+     */
+    protected $rel_ttl = 10;
+
     protected $fieldConf = [
         'active' => [
             'type' => Schema::DT_BOOL,
@@ -66,6 +74,17 @@ class CharacterLogModel extends BasicModel {
         $this->beforeerase(function($self){
             $self->clearCacheData();
         });
+    }
+
+    /**
+     * set log data from object
+     * @param object $logData
+     */
+    public function setData($logData){
+        if( !empty($logData->system) ){
+            $this->systemId = $logData->system['id'];
+            $this->systemName = $logData->system['name'];
+        }
     }
 
     /**

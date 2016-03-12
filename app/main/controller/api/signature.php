@@ -14,14 +14,12 @@ class Signature extends \Controller\AccessController{
 
     /**
      * event handler
-     * @param $f3
+     * @param \Base $f3
      */
-    function beforeroute($f3) {
-
-        parent::beforeroute($f3);
-
+    function beforeroute(\Base $f3) {
         // set header for all routes
         header('Content-type: application/json');
+        parent::beforeroute($f3);
     }
 
     /**
@@ -31,18 +29,18 @@ class Signature extends \Controller\AccessController{
     public function getAll($f3){
         $signatureData = [];
         $systemIds = $f3->get('POST.systemIds');
+        $activeCharacter = $this->getCharacter();
 
-        $user = $this->_getUser();
-
+        /**
+         * @var Model\SystemModel $system
+         */
         $system = Model\BasicModel::getNew('SystemModel');
-
         foreach($systemIds as $systemId){
             $system->getById($systemId);
 
             if(!$system->dry()){
-
                 // check access
-                if($system->hasAccess($user)){
+                if( $system->hasAccess($activeCharacter->getUser()) ){
                     $signatureData = $system->getSignaturesData();
                 }
             }
@@ -74,11 +72,14 @@ class Signature extends \Controller\AccessController{
         }
 
         if( !is_null($signatureData) ){
-            $user = $this->_getUser();
+            $activeCharacter = $this->getCharacter();
 
-            if($user){
-                $activeUserCharacter = $user->getActiveUserCharacter();
-                $activeCharacter = $activeUserCharacter->getCharacter();
+            if($activeCharacter){
+                $user = $activeCharacter->getUser();
+
+                /**
+                 * @var Model\SystemModel $system
+                 */
                 $system = Model\BasicModel::getNew('SystemModel');
 
                 // update/add all submitted signatures
@@ -173,23 +174,23 @@ class Signature extends \Controller\AccessController{
 
     /**
      * delete signatures
-     * @param $f3
+     * @param \Base $f3
      */
     public function delete($f3){
         $signatureIds = $f3->get('POST.signatureIds');
+        $activeCharacter = $this->getCharacter();
 
-        $user = $this->_getUser();
+        /**
+         * @var Model\SystemSignatureModel $signature
+         */
         $signature = Model\BasicModel::getNew('SystemSignatureModel');
-
         foreach($signatureIds as $signatureId){
             $signature->getById($signatureId);
-
-            $signature->delete($user);
+            $signature->delete( $activeCharacter->getUser() );
             $signature->reset();
         }
 
         echo json_encode([]);
     }
-
 
 } 

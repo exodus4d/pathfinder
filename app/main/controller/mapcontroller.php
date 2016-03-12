@@ -8,8 +8,11 @@
 
 namespace Controller;
 
-class MapController extends \Controller\AccessController {
+class MapController extends AccessController {
 
+    /**
+     * @param \Base $f3
+     */
     public function init($f3) {
 
         // page title

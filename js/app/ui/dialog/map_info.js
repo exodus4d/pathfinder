@@ -642,7 +642,7 @@ define([
                 }
             }
         }
-
+console.log(usersData);
 
         var userDataTable = userTable.dataTable( {
             pageLength: 20,

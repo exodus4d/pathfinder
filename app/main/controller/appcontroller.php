@@ -7,15 +7,26 @@
  */
 
 namespace Controller;
-
+use Controller\Ccp as Ccp;
 
 class AppController extends Controller {
 
     /**
-     * show main login (index) page
-     * @param $f3
+     * event handler after routing
+     * @param \Base $f3
      */
-    public function init($f3) {
+    public function afterroute(\Base $f3){
+        parent::afterroute($f3);
+
+        // clear all SSO related temp data
+        $f3->clear(Ccp\Sso::SESSION_KEY_SSO);
+    }
+
+    /**
+     * show main login (index) page
+     * @param \Base $f3
+     */
+    public function init(\Base $f3) {
         // page title
         $f3->set('pageTitle', 'Login');
 

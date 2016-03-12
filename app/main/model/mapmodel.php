@@ -8,6 +8,7 @@
 
 namespace Model;
 
+use Controller\Api\User;
 use DB\SQL\Schema;
 
 class MapModel extends BasicModel {
@@ -117,16 +118,14 @@ class MapModel extends BasicModel {
         }
     }
 
-
     /**
      * get map data
      * -> this includes system and connection data as well!
-     * @return array
+     * @return \stdClass
      */
     public function getData(){
-
-       // check if there is cached data
-       $mapDataAll = $this->getCacheData();
+        // check if there is cached data
+        $mapDataAll = $this->getCacheData();
 
         if(is_null($mapDataAll)){
             // no cached map data found
@@ -355,25 +354,34 @@ class MapModel extends BasicModel {
 
     /**
      * clear access for a given type of objects
-     * @param $clearKeys
+     * @param array $clearKeys
      */
     public function clearAccess($clearKeys = ['user', 'corporation', 'alliance']){
 
         foreach($clearKeys as $key){
             switch($key){
                 case 'user':
-                    foreach((array)$this->mapUsers as $obj){
-                        $obj->erase();
+                    foreach((array)$this->mapUsers as $userMapModel){
+                        /**
+                         * @var UserMapModel $userMapModel
+                         */
+                        $userMapModel->erase();
                     };
                     break;
                 case 'corporation':
-                    foreach((array)$this->mapCorporations as $obj){
-                        $obj->erase();
+                    foreach((array)$this->mapCorporations as $corporationMapModel){
+                        /**
+                         * @var CorporationMapModel $corporationMapModel
+                         */
+                        $corporationMapModel->erase();
                     };
                     break;
                 case 'alliance':
-                    foreach((array)$this->mapAlliances as $obj){
-                        $obj->erase();
+                    foreach((array)$this->mapAlliances as $allianceMapModel){
+                        /**
+                         * @var AllianceMapModel $allianceMapModel
+                         */
+                        $allianceMapModel->erase();
                     };
                     break;
             }
@@ -382,21 +390,16 @@ class MapModel extends BasicModel {
 
     /**
      * checks weather a user has access to this map or not
-     * @param $user
+     * @param UserModel $user
      * @return bool
      */
-    public function hasAccess($user){
+    public function hasAccess(UserModel $user){
         $hasAccess = false;
 
-        if(
-            !$this->dry() &&
-            $user instanceof UserModel
-        ){
-
+        if( !$this->dry() ){
             // get all maps the user has access to
             // this includes corporation and alliance maps
             $maps = $user->getMaps();
-
             foreach($maps as $map){
                 if($map->id === $this->id){
                     $hasAccess = true;
@@ -411,7 +414,7 @@ class MapModel extends BasicModel {
     /**
      * get all user models that have access to this map
      * note: This function is just for "private" maps
-     * @return array
+     * @return UserModel[]
      */
     public function getUsers(){
         $users = [];
@@ -431,7 +434,7 @@ class MapModel extends BasicModel {
 
     /**
      * get all character models that are currently online "viewing" this map
-     * @return array
+     * @return CharacterModel[]
      */
     private function getCharacters(){
         $characters = [];
@@ -439,24 +442,29 @@ class MapModel extends BasicModel {
         if($this->isPrivate()){
             $users = $this->getUsers();
 
+            // add active character for each user
             foreach($users as $user){
-                // get all active character logs for a user
-                $tempActiveUserCharacters = $user->getActiveUserCharacters();
-
-                foreach($tempActiveUserCharacters as $tempActiveUserCharacter){
-                    $characters[] = $tempActiveUserCharacter;
-                }
+                /**
+                 * @var UserModel $user
+                 */
+                $characters = array_merge($characters, $user->getActiveCharacters());
             }
         }elseif($this->isCorporation()){
             $corporations = $this->getCorporations();
 
             foreach($corporations as $corporation){
+                /**
+                 * @var CorporationModel $corporation
+                 */
                 $characters = array_merge($characters, $corporation->getCharacters());
             }
         }elseif($this->isAlliance()){
             $alliances = $this->getAlliances();
 
             foreach($alliances as $alliance){
+                /**
+                 * @var AllianceModel $alliance
+                 */
                 $characters = array_merge($characters, $alliance->getCharacters());
             }
         }
@@ -531,16 +539,15 @@ class MapModel extends BasicModel {
         return $alliances;
     }
 
-
     /**
      * delete this map and all dependencies
-     * @param $accessObject
+     * @param UserModel $user
      */
-    public function delete($accessObject){
+    public function delete(UserModel $user){
 
         if(!$this->dry()){
-            // check if editor has access
-            if($this->hasAccess($accessObject)){
+            // check if user has access
+            if($this->hasAccess($user)){
                 // all map related tables will be deleted on cascade
 
                 // delete map

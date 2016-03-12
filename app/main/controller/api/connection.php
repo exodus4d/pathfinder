@@ -7,27 +7,26 @@
  */
 
 namespace Controller\Api;
+use Controller;
 use Model;
 
-class Connection extends \Controller\AccessController{
+class Connection extends Controller\AccessController{
 
     /**
-     * @param $f3
+     * @param \Base $f3
      */
-    function beforeroute($f3) {
-
-        parent::beforeroute($f3);
-
+    function beforeroute(\Base $f3) {
         // set header for all routes
         header('Content-type: application/json');
+        parent::beforeroute($f3);
     }
 
     /**
      * save a new connection or updates an existing (drag/drop) between two systems
      * if a connection is changed (drag&drop) to another system. -> this function is called for update
-     * @param $f3
+     * @param \Base $f3
      */
-    public function save($f3){
+    public function save(\Base $f3){
         $postData = (array)$f3->get('POST');
         $newConnectionData = [];
 
@@ -38,10 +37,15 @@ class Connection extends \Controller\AccessController{
             $mapData = (array)$postData['mapData'];
             $connectionData = (array)$postData['connectionData'];
 
-            $user = $this->_getUser();
+            $activeCharacter = $this->getCharacter();
 
-            if($user){
+            if($activeCharacter){
+                $user = $activeCharacter->getUser();
+
                 // get map model and check map access
+                /**
+                 * @var Model\MapModel $map
+                 */
                 $map = Model\BasicModel::getNew('MapModel');
                 $map->getById( (int)$mapData['id'] );
 
@@ -90,16 +94,22 @@ class Connection extends \Controller\AccessController{
         echo json_encode($newConnectionData);
     }
 
-    public function delete($f3){
+    /**
+     * delete connection
+     * @param \Base $f3
+     * @throws \Exception
+     */
+    public function delete(\Base $f3){
         $connectionIds = $f3->get('POST.connectionIds');
+        $activeCharacter = $this->getCharacter();
 
-        $user = $this->_getUser();
+        /**
+         * @var Model\ConnectionModel $connection
+         */
         $connection = Model\BasicModel::getNew('ConnectionModel');
-
         foreach($connectionIds as $connectionId){
-
             $connection->getById($connectionId);
-            $connection->delete($user);
+            $connection->delete( $activeCharacter->getUser() );
 
             $connection->reset();
         }

@@ -61,15 +61,6 @@ class UserApiModel extends BasicModel {
     }
 
     /**
-     * @return int
-     */
-    public function updateCharacters(){
-        $apiController = new Controller\CcpApiController();
-
-        return $apiController->updateCharacters($this);
-    }
-
-    /**
      * get all characters for this API
      * @return array|mixed
      */

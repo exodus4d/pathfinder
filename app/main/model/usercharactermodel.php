@@ -46,6 +46,7 @@ class UserCharacterModel extends BasicModel {
         'characterId' => [
             'type' => Schema::DT_INT,
             'index' => true,
+            'unique' => true,
             'belongs-to-one' => 'Model\CharacterModel',
             'constraint' => [
                 [
@@ -79,33 +80,21 @@ class UserCharacterModel extends BasicModel {
     }
 
     /**
-     * get all character data
-     * @param $addCharacterLogData
-     * @return array
+     * event "Hook"
+     * -> remove user if there are no other characters bound to this user
+     * @param $self
+     * @return bool
      */
-    public function getData($addCharacterLogData = false){
-
-        // get characterModel
-        $characterModel = $this->getCharacter();
-
-        // get static character data
-        $characterData = $characterModel->getData($addCharacterLogData);
-
-        // add user specific character data
-        $characterData->isMain = $this->isMain;
-
-        // check for corporation
-        if( is_object( $characterModel->corporationId ) ){
-            $characterData->corporation = $characterModel->corporationId->getData();
+    public function aftereraseEvent($self){
+        if(
+            is_object($self->userId) &&
+            is_null($self->userId->userCharacters)
+        ){
+            $self->userId->erase();
         }
-
-        // check for alliance
-        if( is_object( $characterModel->allianceId ) ){
-            $characterData->alliance = $characterModel->allianceId->getData();
-        }
-
-        return $characterData;
+        return true;
     }
+
 
     /**
      * check if this character is Main character or not

@@ -15,87 +15,76 @@ use DB;
 
 class User extends Controller\Controller{
 
+    // user specific session keys
+    const SESSION_KEY_USER                          = 'SESSION.USER';
+    const SESSION_KEY_USER_ID                       = 'SESSION.USER.ID';
+    const SESSION_KEY_USER_NAME                     = 'SESSION.USER.NAME';
+
+    // character specific session keys
+    const SESSION_KEY_CHARACTER                     = 'SESSION.CHARACTER';
+    const SESSION_KEY_CHARACTER_ID                  = 'SESSION.CHARACTER.ID';
+    const SESSION_KEY_CHARACTER_NAME                = 'SESSION.CHARACTER.NAME';
+    const SESSION_KEY_CHARACTER_TIME                = 'SESSION.CHARACTER.TIME';
+
+    const SESSION_KEY_CHARACTER_ACCESS_TOKEN        = 'SESSION.CHARACTER.ACCESS_TOKEN';
+    const SESSION_KEY_CHARACTER_REFRESH_TOKEN       = 'SESSION.CHARACTER.REFRESH_TOKEN';
+
+    // log text
+    const LOG_LOGGED_IN                             = 'userId: %s, userName: %s, charId: %s, charName: %s';
+
     /**
      * valid reasons for captcha images
-     * @var array
+     * @var string array
      */
     private static $captchaReason = ['createAccount', 'deleteAccount'];
 
     /**
-     * login function
-     * @param $f3
+     * login a valid character
+     * @param Model\CharacterModel $characterModel
+     * @return bool
      */
-    public function logIn($f3){
-        $data = $data = $f3->get('POST');
+    protected function loginByCharacter(Model\CharacterModel &$characterModel){
+        $login = false;
 
-        $return = (object) [];
-
-        $user = null;
-
-        if($data['loginData']){
-            $loginData = $data['loginData'];
-            $user = $this->logUserIn( $loginData['userName'], $loginData['userPassword'] );
-        }
-
-        // set "vague" error
-        if(is_null($user)){
-            $return->error = [];
-            $loginError = (object) [];
-            $loginError->type = 'login';
-            $return->error[] = $loginError;
-        }else{
-            // update/check api data
-            $user->updateApiData();
-
-            // route user to map app
-            $return->reroute = rtrim(self::getEnvironmentData('URL'), '/') . $f3->alias('map');
-        }
-
-        echo json_encode($return);
-    }
-
-    /**
-     * core function for user login
-     * @param $userName
-     * @param $password
-     * @return Model\UserModel|null
-     */
-    private function logUserIn($userName, $password){
-
-        // try to verify user
-        $user = $this->_verifyUser($userName, $password);
-
-        if( !is_null($user)){
-            // user is verified -> ready for login
-
-            // set Session login
-            $dateTime = new \DateTime();
-
-            $this->f3->set('SESSION.user', [
-                'time' => $dateTime->getTimestamp(),
-                'name' => $user->name,
-                'id' => $user->id
+        if($user = $characterModel->getUser()){
+            // set user/character data to session -------------------
+            $this->f3->set(self::SESSION_KEY_USER, [
+                'ID' => $user->_id,
+                'NAME' => $user->name
             ]);
 
-            // save user login information
-            $user->touch('lastLogin');
-            $user->save();
+            $dateTime = new \DateTime();
+            $this->f3->set(self::SESSION_KEY_CHARACTER, [
+                'ID' => $characterModel->_id,
+                'NAME' => $characterModel->name,
+                'TIME' => $dateTime->getTimestamp()
+            ]);
 
-            // save log
-            $logText = "id: %s, name: %s, ip: %s";
+            // save user login information ---------------------------
+            $characterModel->touch('lastLogin');
+            $characterModel->save();
+
+            // write login log --------------------------------------
             self::getLogger( $this->f3->get('PATHFINDER.LOGFILES.LOGIN') )->write(
-                sprintf($logText, $user->id, $user->name, $this->f3->get('IP'))
+                sprintf(self::LOG_LOGGED_IN,
+                    $user->_id,
+                    $user->name,
+                    $characterModel->_id,
+                    $characterModel->name
+                )
             );
+
+            $login = true;
         }
 
-        return $user;
+        return $login;
     }
 
     /**
      * get captcha image and store key to session
-     * @param $f3
+     * @param \Base $f3
      */
-    public function getCaptcha($f3){
+    public function getCaptcha(\Base $f3){
         $data = $f3->get('POST');
 
         $return = (object) [];
@@ -136,29 +125,22 @@ class User extends Controller\Controller{
 
     /**
      * delete the character log entry for the current active (main) character
-     * @param $f3
+     * @param \Base $f3
      */
-    public function deleteLog($f3){
-
-        $user = $this->_getUser();
-        if($user){
-            $activeUserCharacter = $user->getActiveUserCharacter();
-
-            if($activeUserCharacter){
-                $character = $activeUserCharacter->getCharacter();
-
-                if($characterLog = $character->getLog()){
-                    $characterLog->erase();
-                }
+    public function deleteLog(\Base $f3){
+        $activeCharacter = $this->getCharacter();
+        if($activeCharacter){
+            if($characterLog = $activeCharacter->getLog()){
+                $characterLog->erase();
             }
         }
     }
 
     /**
      * log the current user out + clear character system log data
-     * @param $f3
+     * @param \Base $f3
      */
-    public function logOut($f3){
+    public function logOut(\Base $f3){
         $this->deleteLog($f3);
         parent::logOut($f3);
     }
@@ -166,9 +148,9 @@ class User extends Controller\Controller{
     /**
      * save/update "map sharing" configurations for all map types
      * the user has access to
-     * @param $f3
+     * @param \Base $f3
      */
-    public function saveSharingConfig($f3){
+    public function saveSharingConfig(\Base $f3){
         $data = $f3->get('POST');
 
         $return = (object) [];
@@ -177,9 +159,10 @@ class User extends Controller\Controller{
         $corporationSharing = 0;
         $allianceSharing = 0;
 
-        $user = $this->_getUser();
+        $activeCharacter = $this->getCharacter();
 
-        if($user){
+        if($activeCharacter){
+            $user = $activeCharacter->getUser();
 
             // form values
             if(isset($data['formData'])){
@@ -202,22 +185,17 @@ class User extends Controller\Controller{
             $user->save();
 
             // update corp/ally ---------------------------------------------------------------
+            $corporation = $activeCharacter->getCorporation();
+            $alliance = $activeCharacter->getAlliance();
 
-            $activeUserCharacter = $user->getActiveUserCharacter();
+            if(is_object($corporation)){
+                $corporation->shared = $corporationSharing;
+                $corporation->save();
+            }
 
-            if(is_object($activeUserCharacter)){
-                $corporation = $activeUserCharacter->getCharacter()->getCorporation();
-                $alliance = $activeUserCharacter->getCharacter()->getAlliance();
-
-                if(is_object($corporation)){
-                    $corporation->shared = $corporationSharing;
-                    $corporation->save();
-                }
-
-                if(is_object($alliance)){
-                    $alliance->shared = $allianceSharing;
-                    $alliance->save();
-                }
+            if(is_object($alliance)){
+                $alliance->shared = $allianceSharing;
+                $alliance->save();
             }
 
             $return->userData = $user->getData();
@@ -282,9 +260,9 @@ class User extends Controller\Controller{
 
     /**
      * save/update user account data
-     * @param $f3
+     * @param \Base $f3
      */
-    public function saveAccount($f3){
+    public function saveAccount(\Base $f3){
         $data = $f3->get('POST');
 
         $return = (object) [];
@@ -308,7 +286,8 @@ class User extends Controller\Controller{
             $settingsData = $data['settingsData'];
 
             try{
-                $user = $this->_getUser(0);
+                $activeCharacter = $this->getCharacter(0);
+                $user = $activeCharacter->getUser();
 
                 // captcha is send -> check captcha
                 if(
@@ -320,7 +299,7 @@ class User extends Controller\Controller{
                     if($settingsData['captcha'] === $captcha){
                         // change/set sensitive user data requires captcha!
 
-                        if($user === false){
+                        if(is_null($user)){
 
                             // check if registration key invite function is enabled
                             if($f3->get('PATHFINDER.REGISTRATION.INVITE') === 1 ){
@@ -332,7 +311,7 @@ class User extends Controller\Controller{
                             }
 
                             // new user registration
-                            $user = $mapType = Model\BasicModel::getNew('UserModel');
+                            $user = Model\BasicModel::getNew('UserModel');
                             $loginAfterSave = true;
 
                             // set username
@@ -429,7 +408,7 @@ class User extends Controller\Controller{
                         }
 
                         // get fresh updated user object (API info may have has changed)
-                        $user = $this->_getUser(0);
+                        //$user = $this->_getUser(0);
                     }
 
                     // set main character
@@ -457,14 +436,13 @@ class User extends Controller\Controller{
 
                     // log user in (in case he is new
                     if($loginAfterSave){
-                        $this->logUserIn( $user->name, $settingsData['password'] );
+                        $this->logInByData( $user->name, $settingsData['password'] );
 
                         // return reroute path
                         $return->reroute = rtrim(self::getEnvironmentData('URL'), '/') . $this->f3->alias('map');
                     }
 
                     // get fresh updated user object
-                    $user = $this->_getUser(0);
                     $newUserData = $user->getData();
                 }
             }catch(Exception\ValidationException $e){
@@ -491,10 +469,10 @@ class User extends Controller\Controller{
     /**
      * send mail with registration key
      * -> check INVITE in pathfinder.ini
-     * @param $f3
+     * @param \Base $f3
      * @throws Exception
      */
-    public function sendInvite($f3){
+    public function sendInvite(\Base $f3){
         $data = $f3->get('POST.settingsData');
         $return = (object) [];
 
@@ -593,9 +571,9 @@ class User extends Controller\Controller{
 
     /**
      * delete current user account from DB
-     * @param $f3
+     * @param \Base $f3
      */
-    public function deleteAccount($f3){
+    public function deleteAccount(\Base $f3){
         $data = $f3->get('POST.formData');
         $return = (object) [];
 
@@ -609,8 +587,8 @@ class User extends Controller\Controller{
             !empty($data['captcha']) &&
             $data['captcha'] === $captcha
         ){
-            $user = $this->_getUser(0);
-
+            $activeCharacter = $this->getCharacter(0);
+            $user = $activeCharacter->getUser();
             $validUser = $this->_verifyUser( $user->name, $data['password']);
 
             if(
