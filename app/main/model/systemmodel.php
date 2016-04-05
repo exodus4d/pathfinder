@@ -177,18 +177,18 @@ class SystemModel extends BasicModel {
             }else{
                 // special array data
                 if($key == 'constellation'){
-                    $this->constellationId = $value['id'];
+                    $this->constellationId = (int)$value['id'];
                     $this->constellation = $value['name'];
                 }elseif($key == 'region'){
-                    $this->regionId = $value['id'];
+                    $this->regionId = (int)$value['id'];
                     $this->region = $value['name'];
                 }elseif($key == 'type'){
-                    $this->typeId = $value['id'];
+                    $this->typeId = (int)$value['id'];
                 }elseif($key == 'status'){
-                    $this->statusId = $value['id'];
+                    $this->statusId = (int)$value['id'];
                 }elseif($key == 'position'){
-                    $this->posX = $value['x'];
-                    $this->posY = $value['y'];
+                    $this->posX = (int)$value['x'];
+                    $this->posY = (int)$value['y'];
                 }
             }
         }
@@ -313,23 +313,22 @@ class SystemModel extends BasicModel {
 
     /**
      * check object for model access
-     * @param $accessObject
-     * @return bool
+     * @param CharacterModel $characterModel
+     * @return mixed
      */
-    public function hasAccess($accessObject){
-        return $this->mapId->hasAccess($accessObject);
+    public function hasAccess(CharacterModel $characterModel){
+        return $this->mapId->hasAccess($characterModel);
     }
 
     /**
      * delete a system from a map
      * hint: signatures and connections will be deleted on cascade
-     * @param $accessObject
+     * @param CharacterModel $characterModel
      */
-    public function delete($accessObject){
-
-        if(! $this->dry()){
-            // check if user has access
-            if($this->hasAccess($accessObject)){
+    public function delete(CharacterModel $characterModel){
+        if( !$this->dry() ){
+            // check if character has access
+            if($this->hasAccess($characterModel)){
                 $this->erase();
             }
         }
@@ -367,14 +366,14 @@ class SystemModel extends BasicModel {
 
     /**
      * get Signature by id and check for access
-     * @param $accessObject
+     * @param CharacterModel $characterModel
      * @param $id
      * @return bool|null
      */
-    public function getSignatureById($accessObject, $id){
+    public function getSignatureById(CharacterModel $characterModel, $id){
         $signature = null;
 
-        if($this->hasAccess($accessObject)){
+        if($this->hasAccess($characterModel)){
             $this->filter('signatures', ['active = ? AND id = ?', 1, $id]);
             if($this->signatures){
                 $signature = reset( $this->signatures );
@@ -386,14 +385,14 @@ class SystemModel extends BasicModel {
 
     /**
      * get a signature by its "unique" 3-digit name
-     * @param $accessObject
+     * @param CharacterModel $characterModel
      * @param $name
      * @return mixed|null
      */
-    public function getSignatureByName($accessObject, $name){
+    public function getSignatureByName(CharacterModel $characterModel, $name){
         $signature = null;
 
-        if($this->hasAccess($accessObject)){
+        if($this->hasAccess($characterModel)){
             $this->filter('signatures', ['active = ? AND name = ?', 1, $name]);
             if($this->signatures){
                 $signature = reset( $this->signatures );

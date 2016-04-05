@@ -8,13 +8,20 @@
 
 namespace Model;
 
+use Controller;
+use Controller\Ccp;
 use DB\SQL\Schema;
+use Data\Mapper as Mapper;
 
 class CharacterModel extends BasicModel {
 
     protected $table = 'character';
 
     protected $fieldConf = [
+        'lastLogin' => [
+            'type' => Schema::DT_TIMESTAMP,
+            'index' => true
+        ],
         'active' => [
             'type' => Schema::DT_BOOL,
             'nullable' => false,
@@ -25,6 +32,22 @@ class CharacterModel extends BasicModel {
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
             'default' => ''
+        ],
+        'ownerHash' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
+        ],
+        'crestAccessToken' => [
+            'type' => Schema::DT_VARCHAR256
+        ],
+        'crestAccessTokenUpdated' => [
+            'type' => Schema::DT_TIMESTAMP,
+            'default' => Schema::DF_CURRENT_TIMESTAMP,
+            'index' => true
+        ],
+        'crestRefreshToken' => [
+            'type' => Schema::DT_VARCHAR256
         ],
         'corporationId' => [
             'type' => Schema::DT_INT,
@@ -57,29 +80,46 @@ class CharacterModel extends BasicModel {
             'nullable' => false,
             'default' => ''
         ],
+        'shared' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => 0
+        ],
+        'userCharacter' => [
+            'has-one' => ['Model\UserCharacterModel', 'characterId']
+        ],
         'characterLog' => [
             'has-one' => ['Model\CharacterLogModel', 'characterId']
+        ],
+        'characterMaps' => [
+            'has-many' => ['Model\CharacterMapModel', 'characterId']
         ]
     ];
 
     /**
      * get character data
      * @param bool|false $addCharacterLogData
-     * @return object
+     * @return \stdClass
      */
     public function getData($addCharacterLogData = false){
+        $characterData = null;
+
+        $cacheKeyModifier = '';
 
         // check if there is cached data
-        // temporary disabled (performance test)
-        $characterData = null; //$this->getCacheData();
+        if($addCharacterLogData){
+            $cacheKeyModifier = strtoupper($this->table) . '_LOG';
+        }
+
+        $characterData = $this->getCacheData($cacheKeyModifier);
 
         if(is_null($characterData)){
+
             // no cached character data found
-
             $characterData = (object) [];
-
             $characterData->id = $this->id;
             $characterData->name = $this->name;
+            $characterData->shared = $this->shared;
 
             if($addCharacterLogData){
                 if($logModel = $this->getLog()){
@@ -100,10 +140,48 @@ class CharacterModel extends BasicModel {
             // max caching time for a system
             // the cached date has to be cleared manually on any change
             // this includes system, connection,... changes (all dependencies)
-            $this->updateCacheData($characterData, '', 300);
+            $this->updateCacheData($characterData, $cacheKeyModifier, 10);
         }
 
         return $characterData;
+    }
+
+    /**
+     * set unique "ownerHash" for this character
+     * -> Hash will change when  character is transferred (sold)
+     * @param string $ownerHash
+     * @return string
+     */
+    public function set_ownerHash($ownerHash){
+        if (
+            $this->hasUserCharacter() &&
+            $this->ownerHash !== $ownerHash
+        ){
+            $this->userCharacter->erase();
+        }
+        return $ownerHash;
+    }
+
+    /**
+     * set CREST accessToken for current session
+     * -> update "tokenUpdated" column on change
+     * -> this is required for expire checking!
+     * @param string $accessToken
+     * @return string
+     */
+    public function set_crestAccessToken($accessToken){
+        if($this->crestAccessToken !== $accessToken){
+            $this->touch('crestAccessTokenUpdated');
+        }
+        return $accessToken;
+    }
+
+    /**
+     * check whether this character has already a user assigned to it
+     * @return bool
+     */
+    public function hasUserCharacter(){
+        return is_object($this->userCharacter);
     }
 
     /**
@@ -111,13 +189,7 @@ class CharacterModel extends BasicModel {
      * @return bool
      */
     public function hasCorporation(){
-        $hasCorporation = false;
-
-        if($this->corporationId){
-            $hasCorporation = true;
-        }
-
-        return $hasCorporation;
+        return is_object($this->corporationId);
     }
 
     /**
@@ -125,46 +197,198 @@ class CharacterModel extends BasicModel {
      * @return bool
      */
     public function hasAlliance(){
-        $hasAlliance = false;
+        return is_object($this->allianceId);
+    }
 
-        if($this->allianceId){
-            $hasAlliance = true;
+    /**
+     * @return UserModel|null
+     */
+    public function getUser(){
+        $user = null;
+        if($this->hasUserCharacter()){
+            /**
+             * @var $user UserModel
+             */
+            $user = $this->userCharacter->userId;
         }
-
-        return $hasAlliance;
+        return $user;
     }
 
     /**
      * get the corporation for this user
-     * @return mixed|null
+     * @return \Model\CorporationModel|null
      */
     public function getCorporation(){
-        $corporation = null;
-
-        if($this->hasCorporation()){
-            $corporation = $this->corporationId;
-        }
-
-        return $corporation;
+        return $this->corporationId;
     }
 
     /**
      * get the alliance of this user
-     * @return mixed|null
+     * @return \Model\AllianceModel|null
      */
     public function getAlliance(){
-        $alliance = null;
+        return $this->allianceId;
+    }
 
-        if($this->hasAlliance()){
-            $alliance = $this->allianceId;
+    /**
+     * get CREST API "access_token" from OAuth
+     * @return bool|string
+     */
+    private function getAccessToken(){
+        $accessToken = false;
+
+        // check if there is already an "accessToken" for this user
+        // check expire timer for stored "accessToken"
+        if(
+            !empty($this->crestAccessToken) &&
+            !empty($this->crestAccessTokenUpdated)
+        ){
+            $timezone = new \DateTimeZone( $this->getF3()->get('TZ') );
+            $tokenTime = \DateTime::createFromFormat(
+                'Y-m-d H:i:s',
+                $this->crestAccessTokenUpdated,
+                $timezone
+            );
+            // add expire time buffer for this "accessToken"
+            // token should be marked as "deprecated" BEFORE it actually expires.
+            $timeBuffer = 2 * 60;
+            $tokenTime->add(new \DateInterval('PT' . (Ccp\Sso::ACCESS_KEY_EXPIRE_TIME - $timeBuffer) . 'S'));
+
+            $now = new \DateTime('now', $timezone);
+            if($tokenTime->getTimestamp() > $now->getTimestamp()){
+                $accessToken = $this->crestAccessToken;
+            }
         }
 
-        return $alliance;
+        // if no "accessToken" was found -> get a fresh one by an existing "refreshToken"
+        if(
+            !$accessToken &&
+            !empty($this->crestRefreshToken)
+        ){
+            // no accessToken found OR token is deprecated
+            $ssoController = new Ccp\Sso();
+            $accessData =  $ssoController->refreshAccessToken($this->crestRefreshToken);
+
+            if(
+                isset($accessData->accessToken) &&
+                isset($accessData->refreshToken)
+            ){
+                $this->crestAccessToken = $accessData->accessToken;
+                $this->save();
+
+                $accessToken = $this->crestAccessToken;
+            }
+        }
+
+        return $accessToken;
+    }
+
+    /**
+     * checks whether this character is authorized to log in
+     * -> check corp/ally whitelist config (pathfinder.ini)
+     * @return bool
+     */
+    public function isAuthorized(){
+        $isAuthorized = false;
+        $f3 = self::getF3();
+
+        $whitelistCorporations = $whitelistAlliance = [];
+        if( !empty($f3->get('PATHFINDER.LOGIN.CORPORATION')) ){
+            $whitelistCorporations = array_map('trim',(array) $f3->get('PATHFINDER.LOGIN.CORPORATION') );
+        }
+        if( !empty($f3->get('PATHFINDER.LOGIN.ALLIANCE')) ){
+            $whitelistAlliance = array_map('trim',(array) $f3->get('PATHFINDER.LOGIN.ALLIANCE') );
+        }
+
+        if(
+            empty($whitelistCorporations) &&
+            empty($whitelistAlliance)
+        ){
+            // no corp/ally restrictions set -> any character is allowed to login
+            $isAuthorized = true;
+        }else{
+            // check if character corporation is set in whitelist
+            if(
+                !empty($whitelistCorporations) &&
+                $this->hasCorporation() &&
+                in_array($this->getCorporation()->_id, $whitelistCorporations)
+            ){
+                $isAuthorized = true;
+            }
+
+            // check if character alliance is set in whitelist
+            if(
+                !$isAuthorized &&
+                !empty($whitelistAlliance) &&
+                $this->hasAlliance() &&
+                in_array($this->getAlliance()->_id, $whitelistAlliance)
+            ){
+                $isAuthorized = true;
+            }
+        }
+
+        return $isAuthorized;
+    }
+
+    /**
+     * update character log (active system, ...)
+     * -> HTTP Header Data (if IGB)
+     * -> CREST API request for character log data (if not IGB)
+     * @return CharacterModel
+     */
+    public function updateLog(){
+
+        $logData = [];
+        $headerData = Controller\Controller::getIGBHeaderData();
+
+        // check if IGB Data is available
+        if(
+            $headerData->trusted === true &&
+            !empty($headerData->values)
+        ){
+            // format header data
+            $formattedHeaderData = (new Mapper\IgbHeader($headerData->values))->getData();
+
+            // just for security -> check if Header Data matches THIS character
+            if(
+                isset($formattedHeaderData['character']) &&
+                $formattedHeaderData['character']['id'] == $this->_id
+            ){
+                $logData =  $formattedHeaderData;
+            }
+        }else{
+            // get Location Data from CREST endpoint
+            // user is NOT with IGB online OR has not jet set "trusted" page
+            $ssoController = new Ccp\Sso();
+            $logData = $ssoController->getCharacterLocationData($this->getAccessToken());
+        }
+
+        if( empty($logData) ){
+            // character is not in-game
+            if(is_object($this->characterLog)){
+                // delete existing log
+                $this->characterLog->erase();
+                $this->save();
+            }
+        }else{
+            // character is currently in-game
+            if( !$characterLog = $this->getLog() ){
+                // create new log
+                $characterLog = $this->rel('characterLog');
+                $characterLog->characterId = $this->_id;
+            }
+            $characterLog->setData($logData);
+            $characterLog->save();
+
+            $this->characterLog = $characterLog;
+        }
+
+        return $this;
     }
 
     /**
      * get the character log entry for this character
-     * @return bool|null
+     * @return bool|CharacterLogModel
      */
     public function getLog(){
 
@@ -173,10 +397,65 @@ class CharacterModel extends BasicModel {
             is_object($this->characterLog) &&
             !$this->characterLog->dry()
         ){
-            $characterLog = $this->characterLog;
+            $characterLog = &$this->characterLog;
         }
 
         return $characterLog;
+    }
+
+    /**
+     * get mapModel by id and check if user has access
+     * @param int $mapId
+     * @return MapModel|null
+     */
+    public function getMap(int $mapId){
+        /**
+         * @var $map MapModel
+         */
+        $map = self::getNew('MapModel');
+        $map->getById( $mapId );
+
+        $returnMap = null;
+        if($map->hasAccess($this)){
+            $returnMap = $map;
+        }
+
+        return $returnMap;
+    }
+
+    /**
+     * get all accessible map models for this character
+     * @return MapModel[]
+     */
+    public function getMaps(){
+
+        $this->filter(
+            'characterMaps',
+            ['active = ?', 1],
+            ['order' => 'created']
+        );
+
+        $maps = [];
+        if($this->characterMaps){
+            $mapCountPrivate = 0;
+            foreach($this->characterMaps as &$characterMap){
+                if($mapCountPrivate < self::getF3()->get('PATHFINDER.MAX_MAPS_PRIVATE')){
+                    $maps[] = &$characterMap->mapId;
+                    $mapCountPrivate++;
+                }
+            }
+        }
+
+        // get
+        if($alliance = $this->getAlliance()){
+            $maps = array_merge($maps, $alliance->getMaps());
+        }
+
+        if($corporation = $this->getCorporation()){
+            $maps = array_merge($maps,  $corporation->getMaps());
+        }
+
+        return $maps;
     }
 
 } 

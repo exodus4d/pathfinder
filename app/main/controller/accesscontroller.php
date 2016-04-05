@@ -7,20 +7,21 @@
  */
 
 namespace Controller;
+use Controller\Api as Api;
 use Model;
 
 class AccessController extends Controller {
 
     /**
      * event handler
-     * @param $f3
+     * @param \Base $f3
      */
-    function beforeroute($f3) {
+    function beforeroute(\Base $f3) {
         parent::beforeroute($f3);
 
         // Any CMS route of a child class of this one, requires a
         // valid logged in user!
-        $loginCheck = $this->_checkLogIn();
+        $loginCheck = $this->checkLogIn($f3);
 
         if( !$loginCheck ){
             // no user found or LogIn timer expired
@@ -30,16 +31,16 @@ class AccessController extends Controller {
 
     /**
      * checks weather a user is currently logged in
+     * @param \Base $f3
      * @return bool
      */
-    private function _checkLogIn(){
-
+    private function checkLogIn($f3){
         $loginCheck = false;
 
-        if($this->f3->get('SESSION.user.time') > 0){
+        if($f3->get(Api\User::SESSION_KEY_CHARACTER_TIME) > 0){
             // check logIn time
             $logInTime = new \DateTime();
-            $logInTime->setTimestamp($this->f3->get('SESSION.user.time'));
+            $logInTime->setTimestamp( $f3->get(Api\User::SESSION_KEY_CHARACTER_TIME) );
             $now = new \DateTime();
 
             $timeDiff = $now->diff($logInTime);
@@ -48,7 +49,7 @@ class AccessController extends Controller {
             $minutes += $timeDiff->h * 60;
             $minutes += $timeDiff->i;
 
-            if($minutes <= $this->f3->get('PATHFINDER.TIMER.LOGGED')){
+            if($minutes <= $f3->get('PATHFINDER.TIMER.LOGGED')){
                 $loginCheck = true;
             }
         }

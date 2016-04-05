@@ -314,9 +314,45 @@
 // login ----------------------------------------------------------------------
 #pf-landing-login{
   padding-top: 40px;
+  padding-bottom: 30px;
 
   .row{
-    margin-bottom: 0px;
+    margin-bottom: 0;
+  }
+
+  .pf-sso-login-button{
+    position: relative;
+    display: inline-block;
+    width: 270px;
+    height: 45px;
+    border: none;
+    margin-bottom: 10px;
+    background-color: transparent;
+    background-image: url("#{$base-url}/landing/eve_sso_login_buttons_large_black_hover.png");
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    @include transition(box-shadow 0.12s ease-out);
+    will-change: box-shadow;
+
+    &:after {
+      content: ' ';
+      position: absolute;
+      width: 270px;
+      height: 45px;
+      left: 0;
+      top: 0;
+      background-image: url("#{$base-url}/landing/eve_sso_login_buttons_large_black.png");
+      @include transition(opacity 0.12s ease-in-out);
+      will-change: opacity;
+    }
+
+    &:hover {
+      box-shadow: 0 4px 5px rgba(0, 0, 0, 0.2);
+
+      &:after{
+        opacity: 0;
+      }
+    }
   }
 }
 

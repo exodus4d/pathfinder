@@ -63,6 +63,7 @@ em{
 // icon buttons =====================================================
 .pf-dialog-icon-button{
   cursor: pointer;
+  margin-top: 2px;
   @include transition(color 0.15s ease-out);
 
   &:not(.collapsed), &:hover{
