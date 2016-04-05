@@ -84,54 +84,6 @@ define([
             });
         });
 
-        // login buttons ------------------------------------------------
-        var loginForm = $('#' + config.loginFormId);
-
-        loginForm.on('submit', function(e){
-            e.preventDefault();
-
-            var loginFormMessageContainer = $('#' + config.loginMessageContainerId);
-
-            // validate form
-            loginForm.validator('validate');
-
-            // check weather the form is valid
-            var formValid = loginForm.isValidForm();
-
-            if(formValid === true){
-
-                // show splash overlay
-                $('.' + config.splashOverlayClass).showSplashOverlay(function(){
-
-                    var loginData = {loginData: loginForm.getFormValues()};
-
-                    $.ajax({
-                        type: 'POST',
-                        url: Init.path.logIn,
-                        data: loginData,
-                        dataType: 'json'
-                    }).done(function(data){
-                        // login error
-                        if(data.error !== undefined){
-                            $('.' + config.splashOverlayClass).hideSplashOverlay();
-                            loginFormMessageContainer.showMessage({title: 'Login failed', text: ' Invalid username or password', type: 'error'});
-
-                        }else if(data.reroute !== undefined){
-                            window.location = data.reroute;
-                        }
-                    }).fail(function( jqXHR, status, error) {
-                        $('.' + config.splashOverlayClass).hideSplashOverlay();
-
-                        var reason = status + ' ' + error;
-                        Util.showNotify({title: jqXHR.status + ': login', text: reason, type: 'error'});
-
-                        // show Form message
-                        loginFormMessageContainer.showMessage({title: 'Login failed', text: ' internal server error', type: 'error'});
-                    });
-                });
-            }
-        });
-
         // releases -----------------------------------------------------
         $('.' + config.navigationVersionLinkClass).on('click', function(e){
             $.fn.releasesDialog();

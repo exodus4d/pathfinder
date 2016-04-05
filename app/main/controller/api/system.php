@@ -192,7 +192,6 @@ class System extends \Controller\AccessController {
             $activeCharacter = $this->getCharacter();
 
             if($activeCharacter){
-                $user = $activeCharacter->getUser();
                 $systemData = (array)$postData['systemData'];
                 $mapData = (array)$postData['mapData'];
 
@@ -205,7 +204,7 @@ class System extends \Controller\AccessController {
                     $system = Model\BasicModel::getNew('SystemModel');
                     $system->getById($systemData['id']);
                     if( !$system->dry() ){
-                        if( $system->hasAccess($user) ){
+                        if( $system->hasAccess($activeCharacter) ){
                             // system model found
                             $systemModel = $system;
                         }
@@ -219,7 +218,7 @@ class System extends \Controller\AccessController {
                     $map = Model\BasicModel::getNew('MapModel');
                     $map->getById($mapData['id']);
                     if( !$map->dry() ){
-                        if( $map->hasAccess($user) ){
+                        if( $map->hasAccess($activeCharacter) ){
 
                             $systemData['mapId'] = $map;
 
@@ -270,9 +269,9 @@ class System extends \Controller\AccessController {
                 $systemLogModel = Model\BasicModel::getNew($ModelClass);
 
                 // 10min cache (could be up to 1h cache time)
-                $systemLogModel->getByForeignKey('systemId', $systemId, array(), 60 * 10);
+                $systemLogModel->getByForeignKey('systemId', $systemId, [], 60 * 10);
 
-                if(!$systemLogModel->dry()){
+                if( !$systemLogModel->dry() ){
                     $counter = 0;
                     for( $i = $logEntryCount; $i >= 1; $i--){
                         $column = 'value' . $i;
@@ -340,17 +339,15 @@ class System extends \Controller\AccessController {
      */
     public function delete(\Base $f3){
         $systemIds = $f3->get('POST.systemIds');
-        $activeCharacter = $this->getCharacter();
 
-        if($activeCharacter){
-            $user = $activeCharacter->getUser();
+        if($activeCharacter = $this->getCharacter()){
             /**
              * @var Model\SystemModel $system
              */
             $system = Model\BasicModel::getNew('SystemModel');
             foreach((array)$systemIds as $systemId){
                 $system->getById($systemId);
-                $system->delete($user);
+                $system->delete($activeCharacter);
                 $system->reset();
             }
         }

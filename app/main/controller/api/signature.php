@@ -40,7 +40,7 @@ class Signature extends \Controller\AccessController{
 
             if(!$system->dry()){
                 // check access
-                if( $system->hasAccess($activeCharacter->getUser()) ){
+                if( $system->hasAccess($activeCharacter) ){
                     $signatureData = $system->getSignaturesData();
                 }
             }
@@ -75,7 +75,6 @@ class Signature extends \Controller\AccessController{
             $activeCharacter = $this->getCharacter();
 
             if($activeCharacter){
-                $user = $activeCharacter->getUser();
 
                 /**
                  * @var Model\SystemModel $system
@@ -95,9 +94,9 @@ class Signature extends \Controller\AccessController{
                         $signature = null;
                         if( isset($data['pk']) ){
                             // try to get system by "primary key"
-                            $signature = $system->getSignatureById($user, (int)$data['pk']);
+                            $signature = $system->getSignatureById($activeCharacter, (int)$data['pk']);
                         }elseif( isset($data['name']) ){
-                            $signature = $system->getSignatureByName($user, $data['name']);
+                            $signature = $system->getSignatureByName($activeCharacter, $data['name']);
                         }
 
                         if( is_null($signature) ){
@@ -186,7 +185,7 @@ class Signature extends \Controller\AccessController{
         $signature = Model\BasicModel::getNew('SystemSignatureModel');
         foreach($signatureIds as $signatureId){
             $signature->getById($signatureId);
-            $signature->delete( $activeCharacter->getUser() );
+            $signature->delete( $activeCharacter );
             $signature->reset();
         }
 

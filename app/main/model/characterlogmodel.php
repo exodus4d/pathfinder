@@ -41,11 +41,43 @@ class CharacterLogModel extends BasicModel {
                 ]
             ]
         ],
+
+        // --------------------------------------------------------------------
+
         'systemId' => [
             'type' => Schema::DT_INT,
             'index' => true
         ],
         'systemName' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
+        ],
+        'constellationId' => [
+            'type' => Schema::DT_INT,
+            'index' => true
+        ],
+        'constellationName' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
+        ],
+        'regionId' => [
+            'type' => Schema::DT_INT,
+            'index' => true
+        ],
+        'regionName' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
+        ],
+
+        // --------------------------------------------------------------------
+        'shipTypeId' => [
+            'type' => Schema::DT_INT,
+            'index' => true
+        ],
+        'shipTypeName' => [
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
             'default' => ''
@@ -59,32 +91,69 @@ class CharacterLogModel extends BasicModel {
             'nullable' => false,
             'default' => ''
         ],
-        'shipTypeName' => [
+        'stationId' => [
+            'type' => Schema::DT_INT,
+            'index' => true
+        ],
+        'stationName' => [
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
             'default' => ''
         ]
     ];
 
-    public function __construct($db = NULL, $table = NULL, $fluid = NULL, $ttl = 0){
-
-        parent::__construct($db, $table, $fluid, $ttl);
-
-        // events -----------------------------------------
-        $this->beforeerase(function($self){
-            $self->clearCacheData();
-        });
-    }
-
     /**
-     * set log data from object
-     * @param object $logData
+     * set log data from array
+     * @param array $logData
      */
     public function setData($logData){
-        if( !empty($logData->system) ){
-            $this->systemId = $logData->system['id'];
-            $this->systemName = $logData->system['name'];
+
+        if( isset($logData['system']) ){
+            $this->systemId = (int)$logData['system']['id'];
+            $this->systemName = $logData['system']['name'];
+        }else{
+            $this->systemId = null;
+            $this->systemName = '';
         }
+
+        if( isset($logData['constellation']) ){
+            $this->constellationId = (int)$logData['constellation']['id'];
+            $this->constellationName = $logData['constellation']['name'];
+        }else{
+            $this->constellationId = null;
+            $this->constellationName = '';
+        }
+
+        if( isset($logData['region']) ){
+            $this->regionId = (int)$logData['region']['id'];
+            $this->regionName = $logData['region']['name'];
+        }else{
+            $this->regionId = null;
+            $this->regionName = '';
+        }
+
+        // --------------------------------------------------------------------
+
+        if( isset($logData['ship']) ){
+            $this->shipTypeId = (int)$logData['ship']['typeId'];
+            $this->shipTypeName = $logData['ship']['typeName'];
+            $this->shipId = (int)$logData['ship']['id'];
+            $this->shipName = $logData['ship']['name'];
+        }else{
+            $this->shipTypeId = null;
+            $this->shipTypeName = '';
+            $this->shipId = null;
+            $this->shipName = '';
+        }
+
+        if( isset($logData['station']) ){
+            $this->stationId = (int)$logData['station']['id'];
+            $this->stationName = $logData['station']['name'];
+        }else{
+            $this->stationId = null;
+            $this->stationName = '';
+        }
+
     }
 
     /**
@@ -95,30 +164,30 @@ class CharacterLogModel extends BasicModel {
 
         $logData = (object) [];
         $logData->system = (object) [];
-        $logData->system->id = $this->systemId;
+        $logData->system->id = (int)$this->systemId;
         $logData->system->name = $this->systemName;
 
+        $logData->constellation = (object) [];
+        $logData->constellation->id = (int)$this->constellationId;
+        $logData->constellation->name = $this->constellationName;
+
+        $logData->region = (object) [];
+        $logData->region->id = (int)$this->regionId;
+        $logData->region->name = $this->regionName;
+
+        // --------------------------------------------------------------------
+
         $logData->ship = (object) [];
+        $logData->ship->typeId = (int)$this->shipTypeId;
+        $logData->ship->typeName = $this->shipTypeName;
         $logData->ship->id = $this->shipId;
         $logData->ship->name = $this->shipName;
-        $logData->ship->typeName = $this->shipTypeName;
+
+        $logData->station = (object) [];
+        $logData->station->id = (int)$this->stationId;
+        $logData->station->name = $this->stationName;
 
         return $logData;
     }
 
-    /**
-     * see parent
-     */
-    public function clearCacheData(){
-        parent::clearCacheData();
-
-        // delete log cache key as well
-        $f3 = self::getF3();
-        $character = $this->characterId;
-
-        $character->clearCacheData();
-        $f3->clear('LOGGED.user.character.id_' . $character->id);
-
-        return true;
-    }
 } 

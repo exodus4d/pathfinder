@@ -166,7 +166,7 @@ class CcpSystemsMapper extends AbstractIterator {
 
                             // just value change no key change
                             $removeOldEntry = false;
-                            $iterator -> next();
+                            $iterator->next();
                         }else{
                             // a -> b mapping
                             $iterator->offsetSet( self::$map[$iterator->key()], $iterator->current() );

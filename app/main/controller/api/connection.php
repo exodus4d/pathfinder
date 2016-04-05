@@ -40,7 +40,6 @@ class Connection extends Controller\AccessController{
             $activeCharacter = $this->getCharacter();
 
             if($activeCharacter){
-                $user = $activeCharacter->getUser();
 
                 // get map model and check map access
                 /**
@@ -49,7 +48,7 @@ class Connection extends Controller\AccessController{
                 $map = Model\BasicModel::getNew('MapModel');
                 $map->getById( (int)$mapData['id'] );
 
-                if( $map->hasAccess($user) ){
+                if( $map->hasAccess($activeCharacter) ){
                     $source = $map->getSystem( (int)$connectionData['source'] );
                     $target = $map->getSystem( (int)$connectionData['target'] );
 
@@ -57,6 +56,9 @@ class Connection extends Controller\AccessController{
                         !is_null($source) &&
                         !is_null($target)
                     ){
+                        /**
+                         * @var $connection Model\ConnectionModel
+                         */
                         $connection = Model\BasicModel::getNew('ConnectionModel');
                         $connection->getById( (int)$connectionData['id'] );
 
@@ -103,16 +105,19 @@ class Connection extends Controller\AccessController{
         $connectionIds = $f3->get('POST.connectionIds');
         $activeCharacter = $this->getCharacter();
 
-        /**
-         * @var Model\ConnectionModel $connection
-         */
-        $connection = Model\BasicModel::getNew('ConnectionModel');
-        foreach($connectionIds as $connectionId){
-            $connection->getById($connectionId);
-            $connection->delete( $activeCharacter->getUser() );
+        if($activeCharacter = $this->getCharacter()){
+            /**
+             * @var Model\ConnectionModel $connection
+             */
+            $connection = Model\BasicModel::getNew('ConnectionModel');
+            foreach($connectionIds as $connectionId){
+                $connection->getById($connectionId);
+                $connection->delete( $activeCharacter );
 
-            $connection->reset();
+                $connection->reset();
+            }
         }
+
 
         echo json_encode([]);
     }

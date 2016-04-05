@@ -602,12 +602,12 @@ define([
         system.attr('data-mapid', parseInt(mapContainer.data('id')));
 
         // locked system
-        if( Boolean( system.data( 'locked') ) !== Boolean( parseInt( data.locked ) )){
+        if( Boolean( system.data( 'locked') ) !== data.locked ){
             system.toggleLockSystem(false, {hideNotification: true, hideCounter: true, map: map});
         }
 
         // rally system
-        if( Boolean( system.data( 'rally') ) !== Boolean( parseInt( data.rally ) )){
+        if( Boolean( system.data( 'rally') ) !==  data.rally ){
             system.toggleRallyPoint(false, {hideNotification: true, hideCounter: true});
         }
 
@@ -3099,12 +3099,10 @@ define([
             // this is restricted to IGB-usage! CharacterLog data is always set through the IGB
             // ->this prevent adding the same system multiple times, if a user is online with IGB AND OOG
             if(
-                CCP.isInGameBrowser() === true &&
                 currentUserOnMap === false &&
                 currentCharacterLog &&
                 mapTracking
             ){
-
                 // add new system to the map
                 var requestData = {
                     systemData: {
@@ -3344,6 +3342,15 @@ define([
         return data;
     };
 
+    /**
+     * removes a map instance from local cache
+     * @param mapId
+     */
+    var clearMapInstance = function(mapId){
+        if(typeof activeInstances[mapId] === 'object'){
+            delete activeInstances[mapId];
+        }
+    };
 
     /**
      * get a new jsPlumb map instance or or get a cached one for update
@@ -3581,6 +3588,10 @@ define([
         return this.each(function(){
             $(this).mCustomScrollbar('scrollTo', position);
         });
+    };
+
+    return {
+        clearMapInstance: clearMapInstance
     };
 
 });

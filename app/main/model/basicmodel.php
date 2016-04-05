@@ -108,18 +108,27 @@ abstract class BasicModel extends \DB\Cortex {
             return;
         }
 
-        if($key != 'updated'){
+        if(
+            !$this->dry() &&
+            $key != 'updated'
+        ){
             if( $this->exists($key) ){
                 $currentVal = $this->get($key);
 
                 // if current value is not a relational object
                 // and value has changed -> update table col
-                if(
-                    !is_object($currentVal) &&
-                    $currentVal != $val
-                ){
+                if(is_object($currentVal)){
+                    if(
+                        is_numeric($val) &&
+                        is_subclass_of($currentVal, 'Model\BasicModel') &&
+                        $currentVal->_id !== (int)$val
+                    ){
+                        $this->touch('updated');
+                    }
+                }elseif($currentVal != $val){
                     $this->touch('updated');
                 }
+
             }
         }
 
@@ -248,6 +257,67 @@ abstract class BasicModel extends \DB\Cortex {
     }
 
     /**
+     * get cached data from this model
+     * @param string $dataCacheKeyPrefix - optional key prefix
+     * @return \stdClass|null
+     */
+    protected function getCacheData($dataCacheKeyPrefix = ''){
+
+        $cacheKey = $this->getCacheKey($dataCacheKeyPrefix);
+        $cacheData = null;
+
+        if( !is_null($cacheKey) ){
+            $f3 = self::getF3();
+
+            if( $f3->exists($cacheKey) ){
+                $cacheData = $f3->get( $cacheKey );
+            }
+        }
+
+        return $cacheData;
+    }
+
+    /**
+     * update/set the getData() cache for this object
+     * @param $cacheData
+     * @param string $dataCacheKeyPrefix
+     * @param int $data_ttl
+     */
+    public function updateCacheData($cacheData, $dataCacheKeyPrefix = '', $data_ttl = 300){
+
+        $cacheDataTmp = (array)$cacheData;
+
+        // check if data should be cached
+        // and cacheData is not empty
+        if(
+            $data_ttl > 0 &&
+            !empty( $cacheDataTmp )
+        ){
+            $cacheKey = $this->getCacheKey($dataCacheKeyPrefix);
+
+            if( !is_null($cacheKey) ){
+                self::getF3()->set($cacheKey, $cacheData, $data_ttl);
+            }
+        }
+    }
+
+    /**
+     * unset the getData() cache for this object
+     */
+    public function clearCacheData(){
+        $cacheKey = $this->getCacheKey();
+
+        if( !is_null($cacheKey) ){
+            $f3 = self::getF3();
+
+            if( $f3->exists($cacheKey) ){
+                $f3->clear($cacheKey);
+            }
+
+        }
+    }
+
+    /**
      * Throws a validation error for a giben column
      * @param $col
      * @throws \Exception\ValidationException
@@ -350,10 +420,10 @@ abstract class BasicModel extends \DB\Cortex {
 
     /**
      * function should be overwritten in child classes with access restriction
-     * @param UserModel $user
+     * @param CharacterModel $characterModel
      * @return bool
      */
-    public function hasAccess(UserModel $user){
+    public function hasAccess(CharacterModel $characterModel){
         return true;
     }
 
@@ -363,113 +433,6 @@ abstract class BasicModel extends \DB\Cortex {
      */
     public function isValid(){
         return true;
-    }
-
-    /**
-     * get cached data from this model
-     * @param string $dataCacheKeyPrefix - optional key prefix
-     * @return \stdClass|null
-     */
-    protected function getCacheData($dataCacheKeyPrefix = ''){
-
-        $cacheKey = $this->getCacheKey($dataCacheKeyPrefix);
-        $cacheData = null;
-
-        if( !is_null($cacheKey) ){
-            $f3 = self::getF3();
-
-            if( $f3->exists($cacheKey) ){
-                $cacheData = $f3->get( $cacheKey );
-            }
-        }
-
-        return $cacheData;
-    }
-
-    /**
-     * update/set the getData() cache for this object
-     * @param $cacheData
-     * @param string $dataCacheKeyPrefix
-     * @param int $data_ttl
-     */
-    public function updateCacheData($cacheData, $dataCacheKeyPrefix = '', $data_ttl = 300){
-
-        $cacheDataTmp = (array)$cacheData;
-
-        // check if data should be cached
-        // and cacheData is not empty
-        if(
-            $data_ttl > 0 &&
-            !empty( $cacheDataTmp )
-        ){
-            $cacheKey = $this->getCacheKey($dataCacheKeyPrefix);
-
-            if( !is_null($cacheKey) ){
-                self::getF3()->set($cacheKey, $cacheData, $data_ttl);
-            }
-        }
-    }
-
-    /**
-     * unset the getData() cache for this object
-     */
-    public function clearCacheData(){
-        $cacheKey = $this->getCacheKey();
-
-        if( !is_null($cacheKey) ){
-            $f3 = self::getF3();
-
-            if( $f3->exists($cacheKey) ){
-                $f3->clear($cacheKey);
-            }
-
-        }
-    }
-
-    /**
-     * get the current class name
-     * -> namespace not included
-     * @return string
-     */
-    public static function getClassName(){
-        $parts = explode('\\', static::class);
-        return end($parts);
-    }
-
-    /**
-     * factory for all Models
-     * @param string $model
-     * @param int $ttl
-     * @return BasicModel
-     * @throws \Exception
-     */
-    public static function getNew($model, $ttl = 86400){
-        $class = null;
-
-        $model = '\\' . __NAMESPACE__ . '\\' . $model;
-        if(class_exists($model)){
-            $class = new $model( null, null, null, $ttl );
-        }else{
-            throw new \Exception('No model class found');
-        }
-
-        return $class;
-    }
-
-    /**
-     * get the framework instance (singleton)
-     * @return \Base
-     */
-    public static function getF3(){
-        return \Base::instance();
-    }
-
-    /**
-     * debug log function
-     * @param string $text
-     */
-    public static function log($text){
-        Controller\LogController::getLogger('debug')->write($text);
     }
 
     /**
@@ -582,6 +545,52 @@ abstract class BasicModel extends \DB\Cortex {
             }
         }
         return ['added' => $addedCount, 'updated' => $updatedCount, 'deleted' => $deletedCount];
+    }
+
+    /**
+     * get the current class name
+     * -> namespace not included
+     * @return string
+     */
+    public static function getClassName(){
+        $parts = explode('\\', static::class);
+        return end($parts);
+    }
+
+    /**
+     * factory for all Models
+     * @param string $model
+     * @param int $ttl
+     * @return BasicModel
+     * @throws \Exception
+     */
+    public static function getNew($model, $ttl = 86400){
+        $class = null;
+
+        $model = '\\' . __NAMESPACE__ . '\\' . $model;
+        if(class_exists($model)){
+            $class = new $model( null, null, null, $ttl );
+        }else{
+            throw new \Exception('No model class found');
+        }
+
+        return $class;
+    }
+
+    /**
+     * get the framework instance (singleton)
+     * @return \Base
+     */
+    public static function getF3(){
+        return \Base::instance();
+    }
+
+    /**
+     * debug log function
+     * @param string $text
+     */
+    public static function log($text){
+        Controller\LogController::getLogger('debug')->write($text);
     }
 
     /**

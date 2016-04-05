@@ -317,15 +317,17 @@ define([
 
     /**
      * init form elements for validation (bootstrap3 validation)
-     * @returns {any|JQuery|*}
+     * @param options
+     * @returns {*}
      */
-    $.fn.initFormValidation = function(){
+    $.fn.initFormValidation = function(options){
+        options = (typeof options === 'undefined')? {} : options;
 
         return this.each(function(){
             var form = $(this);
 
             // init form validation
-            form.validator();
+            form.validator(options);
 
             // validation event listener
             form.on('valid.bs.validator', function(validatorObj){
@@ -342,7 +344,6 @@ define([
                     inputGroup.removeClass('has-success').addClass('has-error');
                 }
             });
-
         });
     };
 
@@ -546,6 +547,84 @@ define([
     };
 
     /**
+     * add character switch popover
+     * @param userData
+     */
+    $.fn.initCharacterSwitchPopover = function(userData){
+        var elements = $(this);
+        var eventNamespace = 'hideCharacterPopup';
+
+        requirejs(['text!templates/tooltip/character_switch.html', 'mustache'], function (template, Mustache) {
+
+            var data = {
+                routes:  Init.routes,
+                userData: userData,
+                otherCharacters: $.grep( userData.characters, function( character ) {
+                    // exclude current active character
+                    return character.id !== userData.character.id;
+                })
+            };
+
+            var content = Mustache.render(template, data);
+
+            return elements.each(function() {
+                var element = $(this);
+
+                // destroy "popover" and remove "click" event for animation
+                element.popover('destroy').off();
+
+                // init popover and add specific class to it (for styling)
+                element.popover({
+                    html: true,
+                    title: 'select character',
+                    trigger: 'click',
+                    placement: 'bottom',
+                    content: content,
+                    animation: false
+                }).data('bs.popover').tip().addClass('pf-character-info-popover');
+
+                element.on('click', function(e) {
+                    e.preventDefault();
+                    var easeEffect = $(this).attr('data-easein');
+                    var popover = $(this).data('bs.popover').tip();
+                    var velocityOptions = {
+                        duration: CCP.isInGameBrowser() ? 0 : Init.animationSpeed.dialogEvents
+                    };
+
+                    switch(easeEffect){
+                        case 'shake':
+                        case 'pulse':
+                        case 'tada':
+                        case 'flash':
+                        case 'bounce':
+                        case 'swing':
+                            popover.velocity('callout.' + easeEffect, velocityOptions);
+                            break;
+                        default:
+                            popover.velocity('transition.' + easeEffect, velocityOptions);
+                            break;
+                    }
+                });
+
+                // hide popup on clicking "somewhere" outside
+                $('body').off('click.' + eventNamespace).on('click.' + eventNamespace, function (e) {
+
+                    //the 'is' for buttons that trigger popups
+                    //the 'has' for icons within a button that triggers a popup
+                    if (
+                        !$(element).is(e.target) &&
+                        $(element).has(e.target).length === 0 &&
+                        $('.popover').has(e.target).length === 0
+                    ){
+                        $(element).popover('hide');
+                    }
+                });
+
+            });
+        });
+    };
+
+    /**
      * add a wormhole tooltip with wh specific data to elements
      * @param tooltipData
      * @returns {*}
@@ -575,7 +654,6 @@ define([
                 var popover = element.data('bs.popover');
                 popover.options.content = content;
             });
-
         });
     };
 
@@ -1129,7 +1207,6 @@ define([
      * @returns {string}
      */
     var getSystemEffectTable = function(data){
-
         var table = '';
 
         if(data.length > 0){

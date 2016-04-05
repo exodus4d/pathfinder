@@ -16,6 +16,7 @@ define(['jquery'], function($) {
             logOut: 'api/user/logOut',                              // ajax URL - logout
             deleteLog: 'api/user/deleteLog',                        // ajax URL - delete character log
             saveUserConfig: 'api/user/saveAccount',                 // ajax URL - saves/update user account
+            getUserData: 'api/user/getData',                        // ajax URL - get user data
             saveSharingConfig: 'api/user/saveSharingConfig',        // ajax URL - save "sharing settings" dialog
             deleteAccount: 'api/user/deleteAccount',                // ajax URL - delete Account data
             // access API

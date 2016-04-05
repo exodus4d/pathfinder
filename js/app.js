@@ -45,7 +45,7 @@ requirejs.config({
         hoverIntent: 'lib/jquery.hoverIntent.minified',                 // v1.8.0 Hover intention - http://cherne.net/brian/resources/jquery.hoverIntent.html
         fullScreen: 'lib/jquery.fullscreen.min',                        // v0.5.0 Full screen mode - https://github.com/private-face/jquery.fullscreen
         select2: 'lib/select2.min',                                     // v4.0.0 Drop Down customization - https://select2.github.io/
-        validator: 'lib/validator.min',                                 // v0.7.2 Validator for Bootstrap 3 - https://github.com/1000hz/bootstrap-validator
+        validator: 'lib/validator.min',                                 // v0.10.1 Validator for Bootstrap 3 - https://github.com/1000hz/bootstrap-validator
         lazylinepainter: 'lib/jquery.lazylinepainter-1.5.1.min',        // v1.5.1 SVG line animation plugin - http://lazylinepainter.info/
         blueImpGallery: 'lib/blueimp-gallery',                          // v2.15.2 Image Gallery - https://github.com/blueimp/Gallery/
         blueImpGalleryHelper: 'lib/blueimp-helper',                     // helper function for Blue Imp Gallery

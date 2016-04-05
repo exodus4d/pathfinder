@@ -8,8 +8,10 @@
 
 namespace Model;
 
+use Controller;
 use Controller\Ccp;
 use DB\SQL\Schema;
+use Data\Mapper as Mapper;
 
 class CharacterModel extends BasicModel {
 
@@ -78,11 +80,19 @@ class CharacterModel extends BasicModel {
             'nullable' => false,
             'default' => ''
         ],
+        'shared' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => 0
+        ],
         'userCharacter' => [
             'has-one' => ['Model\UserCharacterModel', 'characterId']
         ],
         'characterLog' => [
             'has-one' => ['Model\CharacterLogModel', 'characterId']
+        ],
+        'characterMaps' => [
+            'has-many' => ['Model\CharacterMapModel', 'characterId']
         ]
     ];
 
@@ -92,16 +102,24 @@ class CharacterModel extends BasicModel {
      * @return \stdClass
      */
     public function getData($addCharacterLogData = false){
+        $characterData = null;
+
+        $cacheKeyModifier = '';
 
         // check if there is cached data
-        // temporary disabled (performance test)
-        $characterData = $this->getCacheData();
+        if($addCharacterLogData){
+            $cacheKeyModifier = strtoupper($this->table) . '_LOG';
+        }
+
+        $characterData = $this->getCacheData($cacheKeyModifier);
 
         if(is_null($characterData)){
+
             // no cached character data found
             $characterData = (object) [];
             $characterData->id = $this->id;
             $characterData->name = $this->name;
+            $characterData->shared = $this->shared;
 
             if($addCharacterLogData){
                 if($logModel = $this->getLog()){
@@ -122,7 +140,7 @@ class CharacterModel extends BasicModel {
             // max caching time for a system
             // the cached date has to be cleared manually on any change
             // this includes system, connection,... changes (all dependencies)
-            $this->updateCacheData($characterData, '', 300);
+            $this->updateCacheData($characterData, $cacheKeyModifier, 10);
         }
 
         return $characterData;
@@ -314,37 +332,58 @@ class CharacterModel extends BasicModel {
 
     /**
      * update character log (active system, ...)
-     * -> CREST API request for character log data
+     * -> HTTP Header Data (if IGB)
+     * -> CREST API request for character log data (if not IGB)
      * @return CharacterModel
      */
     public function updateLog(){
 
-        $characterModel = $this;
-        $ssoController = new Ccp\Sso();
+        $logData = [];
+        $headerData = Controller\Controller::getIGBHeaderData();
 
-        $locationData = $ssoController->getCharacterLocationData($this->getAccessToken());
+        // check if IGB Data is available
+        if(
+            $headerData->trusted === true &&
+            !empty($headerData->values)
+        ){
+            // format header data
+            $formattedHeaderData = (new Mapper\IgbHeader($headerData->values))->getData();
 
-        if( empty((array)$locationData) ){
+            // just for security -> check if Header Data matches THIS character
+            if(
+                isset($formattedHeaderData['character']) &&
+                $formattedHeaderData['character']['id'] == $this->_id
+            ){
+                $logData =  $formattedHeaderData;
+            }
+        }else{
+            // get Location Data from CREST endpoint
+            // user is NOT with IGB online OR has not jet set "trusted" page
+            $ssoController = new Ccp\Sso();
+            $logData = $ssoController->getCharacterLocationData($this->getAccessToken());
+        }
+
+        if( empty($logData) ){
             // character is not in-game
             if(is_object($this->characterLog)){
                 // delete existing log
                 $this->characterLog->erase();
-                $characterModel = $this->save();
+                $this->save();
             }
         }else{
             // character is currently in-game
             if( !$characterLog = $this->getLog() ){
                 // create new log
                 $characterLog = $this->rel('characterLog');
-                $characterLog->characterId = $this;
+                $characterLog->characterId = $this->_id;
             }
-            $characterLog->setData($locationData);
+            $characterLog->setData($logData);
             $characterLog->save();
+
             $this->characterLog = $characterLog;
-            $characterModel = $this->save();
         }
 
-        return $characterModel;
+        return $this;
     }
 
     /**
@@ -358,10 +397,65 @@ class CharacterModel extends BasicModel {
             is_object($this->characterLog) &&
             !$this->characterLog->dry()
         ){
-            $characterLog = $this->characterLog;
+            $characterLog = &$this->characterLog;
         }
 
         return $characterLog;
+    }
+
+    /**
+     * get mapModel by id and check if user has access
+     * @param int $mapId
+     * @return MapModel|null
+     */
+    public function getMap(int $mapId){
+        /**
+         * @var $map MapModel
+         */
+        $map = self::getNew('MapModel');
+        $map->getById( $mapId );
+
+        $returnMap = null;
+        if($map->hasAccess($this)){
+            $returnMap = $map;
+        }
+
+        return $returnMap;
+    }
+
+    /**
+     * get all accessible map models for this character
+     * @return MapModel[]
+     */
+    public function getMaps(){
+
+        $this->filter(
+            'characterMaps',
+            ['active = ?', 1],
+            ['order' => 'created']
+        );
+
+        $maps = [];
+        if($this->characterMaps){
+            $mapCountPrivate = 0;
+            foreach($this->characterMaps as &$characterMap){
+                if($mapCountPrivate < self::getF3()->get('PATHFINDER.MAX_MAPS_PRIVATE')){
+                    $maps[] = &$characterMap->mapId;
+                    $mapCountPrivate++;
+                }
+            }
+        }
+
+        // get
+        if($alliance = $this->getAlliance()){
+            $maps = array_merge($maps, $alliance->getMaps());
+        }
+
+        if($corporation = $this->getCorporation()){
+            $maps = array_merge($maps,  $corporation->getMaps());
+        }
+
+        return $maps;
     }
 
 } 

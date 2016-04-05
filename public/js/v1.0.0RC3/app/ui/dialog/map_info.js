@@ -642,7 +642,6 @@ define([
                 }
             }
         }
-console.log(usersData);
 
         var userDataTable = userTable.dataTable( {
             pageLength: 20,
@@ -670,7 +669,7 @@ console.log(usersData);
                     data: 'log.ship',
                     render: {
                         _: function(data, type, row, meta){
-                            return '<img src="' + Init.url.ccpImageServer + 'Render/' + data.id + '_32.png" />';
+                            return '<img src="' + Init.url.ccpImageServer + 'Render/' + data.typeId + '_32.png" />';
                         }
                     }
                 },{
@@ -736,6 +735,16 @@ console.log(usersData);
                     }
                 },{
                     targets: 7,
+                    title: 'station',
+                    orderable: true,
+                    searchable: true,
+                    data: 'log.station',
+                    render: {
+                        _: 'name',
+                        sort: 'name'
+                    }
+                },{
+                    targets: 8,
                     title: '',
                     orderable: false,
                     searchable: false,
@@ -754,7 +763,7 @@ console.log(usersData);
                         });
                     }
                 },{
-                    targets: 8,
+                    targets: 9,
                     title: '',
                     orderable: false,
                     searchable: false,

@@ -120,7 +120,7 @@ class Controller {
      * @return Model\CharacterModel|null
      * @throws \Exception
      */
-    public function getCharacter($ttl = 5){
+    public function getCharacter($ttl = 0){
         $character = null;
 
         if( $this->getF3()->exists(Api\User::SESSION_KEY_CHARACTER_ID) ){
@@ -168,33 +168,6 @@ class Controller {
             // redirect to landing page
             $f3->reroute('@login');
         }
-    }
-
-    /**
-     * verifies weather a given username and password is valid
-     * @param string $userName
-     * @param string $password
-     * @return Model\UserModel|null
-     */
-    protected function _verifyUser($userName, $password) {
-        $validUser = null;
-
-        /**
-         * @var $user \Model\UserModel
-         */
-        $user =  Model\BasicModel::getNew('UserModel', 0);
-        $user->getByName($userName);
-
-        // check userName is valid
-        if( !$user->dry() ){
-            // check if password is valid
-            $isValid = $user->verify($password);
-            if($isValid === true){
-                $validUser = $user;
-            }
-        }
-
-        return $validUser;
     }
 
     /**

@@ -14,7 +14,6 @@ define([
     'text!templates/modules/footer.html',
     'dialog/notification',
     'dialog/trust',
-    'dialog/sharing_settings',
     'dialog/map_info',
     'dialog/account_settings',
     'dialog/manual',
@@ -143,13 +142,13 @@ define([
                 $('<a>', {
                     class: 'list-group-item',
                     href: '#'
-                }).html('&nbsp;&nbsp;Sharing settings').prepend(
+                }).html('&nbsp;&nbsp;Settings').prepend(
                     $('<i>',{
-                        class: 'fa fa-share-alt fa-fw'
+                        class: 'fa fa-gears fa-fw'
                     })
                 ).on('click', function(){
-                        $(document).triggerMenuEvent('ShowSharingSettings');
-                    })
+                    $(document).triggerMenuEvent('ShowSettingsDialog');
+                })
             ).append(
                 $('<a>', {
                     class: 'list-group-item',
@@ -400,11 +399,6 @@ define([
             slideMenu.slidebars.toggle('right');
         });
 
-        // settings
-        $('.' + config.headUserCharacterClass).find('a').on('click', function(){
-            $(document).triggerMenuEvent('ShowSettingsDialog');
-        });
-
         // active pilots
         $('.' + config.headActiveUserClass).find('a').on('click', function(){
             $(document).triggerMenuEvent('ShowMapInfo');
@@ -439,11 +433,8 @@ define([
         });
 
         // set default values for map tracking checkbox
-        if(CCP.isInGameBrowser() === false){
-            mapTrackingCheckbox.bootstrapToggle('disable');
-        }else{
-            mapTrackingCheckbox.bootstrapToggle('on');
-        }
+        // -> always "enable"
+        mapTrackingCheckbox.bootstrapToggle('on');
 
         mapTrackingCheckbox.on('change', function(e) {
             var value = $(this).is(':checked');
@@ -502,13 +493,6 @@ define([
      */
     var setDocumentObserver = function(){
 
-        // tab close/reload detected
-        window.addEventListener('beforeunload', function (e) {
-
-            // logout
-            deleteLog();
-        });
-
         // on "full-screen" change event
         $(document).on('fscreenchange', function(e, state, elem){
 
@@ -524,12 +508,6 @@ define([
             }else{
                 menuButton.removeClass('active');
             }
-        });
-
-        $(document).on('pf:menuShowSharingSettings', function(e){
-            // show sharing settings dialog
-            $.fn.showSharingSettingsDialog();
-            return false;
         });
 
         $(document).on('pf:menuShowSystemEffectInfo', function(e){
@@ -670,11 +648,21 @@ define([
                     title: 'Shutdown',
                     headline: 'Emergency shutdown',
                     text: [
-                        'Sorry! Under normal circumstances that should not happen',
                         data.reason
-                    ]
+                    ],
+                    textSmaller: []
                 }
             };
+
+            // add error information (if available)
+            if(
+                data.error &&
+                data.error.length
+            ){
+                for(var i = 0; i < data.error.length; i++){
+                    options.content.textSmaller.push(data.error[i].message);
+                }
+            }
 
             $.fn.showNotificationDialog(options);
 
@@ -752,7 +740,7 @@ define([
             newCharacterName = userData.character.name;
 
             if(userData.character.log){
-                newShipId = userData.character.log.ship.id;
+                newShipId = userData.character.log.ship.typeId;
                 newShipName = userData.character.log.ship.typeName;
             }
         }
@@ -769,6 +757,9 @@ define([
             animateHeaderElement(userInfoElement, function(){
                 userInfoElement.find('span').text( newCharacterName );
                 userInfoElement.find('img').attr('src', Init.url.ccpImageServer + 'Character/' + newCharacterId + '_32.jpg' );
+
+                // init "character switch" popover
+                userInfoElement.initCharacterSwitchPopover(userData);
             }, showCharacterElement);
 
             // set new id for next check

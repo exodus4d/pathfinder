@@ -103,11 +103,11 @@ class ConnectionModel extends BasicModel{
 
     /**
      * check object for model access
-     * @param UserModel $user
+     * @param CharacterModel $characterModel
      * @return mixed
      */
-    public function hasAccess(UserModel $user){
-        return $this->mapId->hasAccess($user);
+    public function hasAccess(CharacterModel $characterModel){
+        return $this->mapId->hasAccess($characterModel);
     }
 
     /**
@@ -127,13 +127,12 @@ class ConnectionModel extends BasicModel{
 
     /**
      * delete a connection
-     * @param UserModel $user
+     * @param CharacterModel $characterModel
      */
-    public function delete(UserModel $user){
-
-        if(!$this->dry()){
-            // check if editor has access
-            if($this->hasAccess($user)){
+    public function delete(CharacterModel $characterModel){
+        if( !$this->dry() ){
+            // check if character has access
+            if($this->hasAccess($characterModel)){
                 $this->erase();
             }
         }

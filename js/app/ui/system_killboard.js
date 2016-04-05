@@ -333,34 +333,34 @@ define([
             $.ajax({
                 url: url,
                 type: 'GET',
-                dataType: 'jsonp'
-            }).done(function(kbData){
+                dataType: 'json'
+            }).done(function(kbData) {
 
                 // the API wont return more than 200KMs ! - remember last bar block with complete KM information
                 var lastCompleteDiffHourData = 0;
 
 
                 // loop kills and count kills by hour
-                for(var i = 0; i < kbData.length; i++){
+                for (var i = 0; i < kbData.length; i++) {
                     var killmailData = kbData[i];
 
                     var killDate = getDateObjectByTimeString(killmailData.killTime);
 
                     // get time diff
-                    var timeDiffMin = Math.round( ( serverDate - killDate ) / 1000 / 60 );
-                    var timeDiffHour = Math.round( timeDiffMin / 60 );
+                    var timeDiffMin = Math.round(( serverDate - killDate ) / 1000 / 60);
+                    var timeDiffHour = Math.round(timeDiffMin / 60);
 
                     // update chart data
-                    if(chartData[timeDiffHour]){
+                    if (chartData[timeDiffHour]) {
                         chartData[timeDiffHour].kills++;
 
                         // add kill mail data
-                        if(chartData[timeDiffHour].killmails === undefined){
+                        if (chartData[timeDiffHour].killmails === undefined) {
                             chartData[timeDiffHour].killmails = [];
                         }
                         chartData[timeDiffHour].killmails.push(killmailData);
 
-                        if(timeDiffHour > lastCompleteDiffHourData){
+                        if (timeDiffHour > lastCompleteDiffHourData) {
                             lastCompleteDiffHourData = timeDiffHour;
                         }
                     }
@@ -368,7 +368,7 @@ define([
                 }
 
                 // remove empty chart Data
-                if(kbData.length >= maxKillmailCount){
+                if (kbData.length >= maxKillmailCount) {
                     chartData = chartData.splice(0, lastCompleteDiffHourData + 1);
                 }
 
@@ -378,7 +378,7 @@ define([
                 cache.systemKillsGraphData[cacheKey].count = kbData.length;
 
                 // draw table
-                drawGraph( cache.systemKillsGraphData[cacheKey] );
+                drawGraph(cache.systemKillsGraphData[cacheKey]);
 
                 // show killmail information
                 showKillmails(moduleElement, cache.systemKillsGraphData[cacheKey]);

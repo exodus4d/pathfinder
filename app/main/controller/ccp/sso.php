@@ -34,6 +34,10 @@ class Sso extends Api\User{
     const SESSION_KEY_SSO                           = 'SESSION.SSO';
     const SESSION_KEY_SSO_ERROR                     = 'SESSION.SSO.ERROR';
     const SESSION_KEY_SSO_STATE                     = 'SESSION.SSO.STATE';
+    const SESSION_KEY_SSO_CHARACTER_ID              = 'SESSION.SSO.CHARACTER.ID';
+
+    // cache keys
+    const CACHE_KEY_LOCATION_DATA                   = 'CACHED.LOCATION.%s';
 
     // error messages
     const ERROR_CCP_SSO_URL                         = 'Invalid "ENVIRONMENT.[ENVIRONMENT].SSO_CCP_URL" url. %s';
@@ -44,6 +48,9 @@ class Sso extends Api\User{
     const ERROR_GET_ENDPOINT                        = 'Unable to get endpoint data. $s';
     const ERROR_FIND_ENDPOINT                       = 'Unable to find endpoint: %s';
     const ERROR_LOGIN_FAILED                        = 'Failed authentication due to technical problems: %s';
+    const ERROR_CHARACTER_FORBIDDEN                 = 'Character "%s" is not authorized to log in';
+    const ERROR_CHARACTER_MISMATCH                  = 'The character "%s" you tried to log in, does not match';
+    const ERROR_SERVICE_TIMEOUT                     = 'CCP SSO service timeout (%ss). Try again later';
 
     /**
      * CREST "Scopes" are used by pathfinder
@@ -62,6 +69,12 @@ class Sso extends Api\User{
      * @param \Base $f3
      */
     public function requestAuthorization($f3){
+        $params = $f3->get('GET');
+
+        if(isset($params['characterId'])){
+            // restrict login to this characterId e.g. for character switch
+            $f3->set(self::SESSION_KEY_SSO_CHARACTER_ID, (int)trim($params['characterId']) );
+        }
 
         // used for "state" check between request and callback
         $state = bin2hex(mcrypt_create_iv(12, MCRYPT_DEV_URANDOM));
@@ -89,6 +102,10 @@ class Sso extends Api\User{
     public function callbackAuthorization($f3){
         $getParams = (array)$f3->get('GET');
 
+        // users can log in either from @login (new user) or @map (existing user) root alias
+        // -> in case login fails, users should be redirected differently
+        $authFromMapAlias = false;
+
         if($f3->exists(self::SESSION_KEY_SSO_STATE)){
             // check response and validate 'state'
             if(
@@ -98,8 +115,15 @@ class Sso extends Api\User{
                 !empty($getParams['state']) &&
                 $f3->get(self::SESSION_KEY_SSO_STATE) === $getParams['state']
             ){
-                // clear 'state' for new next request
+                // $requestedCharacterId can be [-1 => add char, 0 => new user, >0 => specific user]
+                $requiredCharacterId = (int)$f3->get(self::SESSION_KEY_SSO_CHARACTER_ID);
+                if($requiredCharacterId !== 0){
+                    $authFromMapAlias = true;
+                }
+
+                // clear 'state' for new next login request
                 $f3->clear(self::SESSION_KEY_SSO_STATE);
+                $f3->clear(self::SESSION_KEY_SSO_CHARACTER_ID);
 
                 $accessData = $this->getCrestAccessData($getParams['code']);
 
@@ -111,74 +135,91 @@ class Sso extends Api\User{
                     $verificationCharacterData = $this->verifyCharacterData($accessData->accessToken);
 
                     if( !is_null($verificationCharacterData)){
-                        // verification data available. Data is needed for "ownerHash" check
 
-                        // get character data from CREST
-                        $characterData = $this->getCharacterData($accessData->accessToken);
+                        // check if login is restricted to a characterID
+                        if(
+                            $requiredCharacterId <= 0 ||
+                            $verificationCharacterData->CharacterID === $requiredCharacterId
+                        ){
+                            // verification available data. Data is needed for "ownerHash" check
 
-                        if(isset($characterData->character)){
-                            // add "ownerHash" and CREST tokens
-                            $characterData->character['ownerHash'] = $verificationCharacterData->CharacterOwnerHash;
-                            $characterData->character['crestAccessToken'] = $accessData->accessToken;
-                            $characterData->character['crestRefreshToken'] = $accessData->refreshToken;
+                            // get character data from CREST
+                            $characterData = $this->getCharacterData($accessData->accessToken);
 
-                            // add/update static character data
-                            $characterModel = $this->updateCharacter($characterData);
+                            if(isset($characterData->character)){
+                                // add "ownerHash" and CREST tokens
+                                $characterData->character['ownerHash'] = $verificationCharacterData->CharacterOwnerHash;
+                                $characterData->character['crestAccessToken'] = $accessData->accessToken;
+                                $characterData->character['crestRefreshToken'] = $accessData->refreshToken;
 
-                            if( !is_null($characterModel) ){
-                                // check if character is authorized to log in
-                                if($characterModel->isAuthorized()){
+                                // add/update static character data
+                                $characterModel = $this->updateCharacter($characterData);
 
-                                    // character is authorized to log in
-                                    // -> update character log (current location,...)
-                                    $characterModel = $characterModel->updateLog();
+                                if( !is_null($characterModel) ){
+                                    // check if character is authorized to log in
+                                    if($characterModel->isAuthorized()){
 
-                                    // check if there is already a user created who owns this char
-                                    $user = $characterModel->getUser();
+                                        // character is authorized to log in
+                                        // -> update character log (current location,...)
+                                        $characterModel = $characterModel->updateLog();
 
-                                    if(is_null($user)){
-                                        // no user found -> create one and connect to character
-                                        /**
-                                         * @var Model\UserModel $user
-                                         */
-                                        $user = Model\BasicModel::getNew('UserModel');
-                                        $user->name = $characterModel->name;
-                                        $user->save();
+                                        // check if there is already an active user logged in
+                                        if($activeCharacter = $this->getCharacter()){
+                                            // connect character with current user
+                                            $user = $activeCharacter->getUser();
+                                        }elseif( is_null( $user = $characterModel->getUser()) ){
+                                            // no user found (new character) -> create new user and connect to character
+                                            $user = Model\BasicModel::getNew('UserModel');
+                                            $user->name = $characterModel->name;
+                                            $user->save();
+                                        }
 
-                                        /**
-                                         * @var Model\UserCharacterModel $userCharactersModel
-                                         */
-                                        $userCharactersModel = Model\BasicModel::getNew('UserCharacterModel');
+                                        if( is_null($userCharactersModel = $characterModel->userCharacter) ){
+                                            $userCharactersModel = Model\BasicModel::getNew('UserCharacterModel');
+                                            $userCharactersModel->characterId = $characterModel;
+                                        }
+
+                                        // user might have changed
                                         $userCharactersModel->userId = $user;
-                                        $userCharactersModel->characterId = $characterModel;
                                         $userCharactersModel->save();
 
                                         // get updated character model
                                         $characterModel = $userCharactersModel->getCharacter();
-                                    }
 
-                                    // login by character
-                                    $loginCheck = $this->loginByCharacter($characterModel);
+                                        // login by character
+                                        $loginCheck = $this->loginByCharacter($characterModel);
 
-                                    if($loginCheck){
-                                        // route to "map"
-                                        $f3->reroute('@map');
+                                        if($loginCheck){
+                                            // route to "map"
+                                            $f3->reroute('@map');
+                                        }else{
+                                            $f3->set(self::SESSION_KEY_SSO_ERROR, sprintf(self::ERROR_LOGIN_FAILED, $characterModel->name));
+                                        }
                                     }else{
-                                        $f3->set(self::SESSION_KEY_SSO_ERROR, sprintf(self::ERROR_LOGIN_FAILED, $characterModel->name));
+                                        // character is not authorized to log in
+                                        $f3->set(self::SESSION_KEY_SSO_ERROR, sprintf(self::ERROR_CHARACTER_FORBIDDEN, $characterModel->name));
                                     }
-                                }else{
-                                    // character is not authorized to log in
-                                    $f3->set(self::SESSION_KEY_SSO_ERROR, 'Character "' . $characterModel->name . '" is not authorized to log in.');
                                 }
                             }
+                        }else{
+                            // characterID is not allowed to login
+                            $f3->set(self::SESSION_KEY_SSO_ERROR, sprintf(self::ERROR_CHARACTER_MISMATCH, $verificationCharacterData->CharacterName));
                         }
                     }
+                }else{
+                    // CREST "accessData" missing (e.g. timeout)
+                    $f3->set(self::SESSION_KEY_SSO_ERROR, sprintf(self::ERROR_SERVICE_TIMEOUT, self::CREST_TIMEOUT));
                 }
             }
         }
 
-        // on error -> route back to login form
-        $f3->reroute('@login');
+        if($authFromMapAlias){
+            // on error -> route back to map
+            $f3->reroute('@map');
+        }else{
+            // on error -> route back to login form
+            $f3->reroute('@login');
+        }
     }
 
     /**
@@ -266,16 +307,18 @@ class Sso extends Api\User{
             $apiResponse = Lib\Web::instance()->request($verifyAuthCodeUrl, $requestOptions);
 
             if($apiResponse['body']){
-                $authCodeRequestData = json_decode($apiResponse['body']);
+                $authCodeRequestData = json_decode($apiResponse['body'], true);
 
-                if(isset($authCodeRequestData->access_token)){
-                    // this token is required for endpoints that require Auth
-                    $accessData->accessToken =  $authCodeRequestData->access_token;
-                }
+                if( !empty($authCodeRequestData) ){
+                    if( isset($authCodeRequestData['access_token']) ){
+                        // this token is required for endpoints that require Auth
+                        $accessData->accessToken =  $authCodeRequestData['access_token'];
+                    }
 
-                if(isset($authCodeRequestData->refresh_token)){
-                    // this token is used to refresh/get a new access_token when expires
-                    $accessData->refreshToken =  $authCodeRequestData->refresh_token;
+                    if(isset($authCodeRequestData['refresh_token'])){
+                        // this token is used to refresh/get a new access_token when expires
+                        $accessData->refreshToken =  $authCodeRequestData['refresh_token'];
+                    }
                 }
             }else{
                 self::getCrestLogger()->write(
@@ -450,25 +493,37 @@ class Sso extends Api\User{
     }
 
     /**
-     * get current character location data
+     * get current character location data (result is cached!)
      * -> solarSystem data where character is currently active
      * @param $accessToken
-     * @return object
+     * @param int $ttl
+     * @return array
      */
-    public function getCharacterLocationData($accessToken){
-        $endpoints = $this->getEndpoints($accessToken);
-        $locationData = (object) [];
+    public function getCharacterLocationData($accessToken, $ttl = 10){
+        $locationData = [];
 
-        $endpoint = $this->walkEndpoint($accessToken, $endpoints, [
-            'decode',
-            'character',
-            'location'
-        ]);
+        // in addition to the cURL caching (based on cache-control headers,
+        // the final location data is cached additionally -> speed up
+        $cacheKey = sprintf(self::CACHE_KEY_LOCATION_DATA, 'TOKEN_' . hash('md5', $accessToken));
 
-        if( !empty($endpoint) ){
-            if(isset($endpoint['solarSystem'])){
-                $locationData->system = (new Mapper\CrestSystem($endpoint['solarSystem']))->getData();
+        if( !$this->getF3()->exists($cacheKey) ){
+            $endpoints = $this->getEndpoints($accessToken);
+
+            $endpoint = $this->walkEndpoint($accessToken, $endpoints, [
+                'decode',
+                'character',
+                'location'
+            ]);
+
+            if( !empty($endpoint) ){
+                if(isset($endpoint['solarSystem'])){
+                    $locationData['system'] = (new Mapper\CrestSystem($endpoint['solarSystem']))->getData();
+                }
             }
+
+            $this->getF3()->set($cacheKey, $locationData, $ttl);
+        }else{
+            $locationData = $this->getF3()->get($cacheKey);
         }
 
         return $locationData;

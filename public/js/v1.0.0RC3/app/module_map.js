@@ -2,6 +2,7 @@ define([
     'jquery',
     'app/init',
     'app/util',
+    'app/map/map',
     'app/counter',
     'app/ui/system_info',
     'app/ui/system_graph',
@@ -9,9 +10,8 @@ define([
     'app/ui/system_route',
     'app/ui/system_killboard',
     'datatablesTableTools',
-    'datatablesResponsive',
-    'app/map/map'
-], function($, Init, Util) {
+    'datatablesResponsive'
+], function($, Init, Util, Map) {
 
     'use strict';
 
@@ -259,6 +259,11 @@ define([
         });
     };
 
+    /**
+     * get a fresh tab element
+     * @param options
+     * @returns {*|jQuery|HTMLElement}
+     */
     var getTabElement = function(options){
 
         var tabElement = $('<div>', {
@@ -395,7 +400,7 @@ define([
         // update Tab element -> set data
         linkElement.updateTabData(options);
 
-        // tabs content ====================================
+        // tabs content =======================================================
         var contentElement = $('<div>', {
             id: config.mapTabIdPrefix + parseInt( options.id ),
             class: [config.mapTabContentClass].join(' ')
@@ -405,8 +410,7 @@ define([
 
         tabContent.append(contentElement);
 
-
-        // init tab =========================================================
+        // init tab ===========================================================
         linkElement.on('click', function(e){
             e.preventDefault();
 
@@ -482,8 +486,11 @@ define([
             liElement.remove();
             contentElement.remove();
 
+            // remove map instance from local cache
+            Map.clearMapInstance(mapId);
+
             if(findNewActiveTab === true){
-                tabElement.find('a:first').tab('show');
+                tabElement.find('.' + config.mapTabClass + ':not(.pull-right):first a').tab('show');
             }
         }
 
@@ -540,6 +547,9 @@ define([
             // tab element already exists
             var tabElements = mapModuleElement.getMapTabElements();
 
+            // map ID that is currently active
+            var activeMapId = 0;
+
             // mapIds that are currently active
             var activeMapIds = [];
 
@@ -582,6 +592,15 @@ define([
 
                     var newTabElements = tabMapElement.addTab(data.config);
 
+                    // check if there is any active map yet (this is not the case
+                    // when ALL maps are removed AND new maps are added in one call
+                    // e.g. character switch)
+                    if(tabMapElement.find('.' + config.mapTabClass + '.active:not(.pull-right)').length === 0){
+                        tabMapElement.find('.' + config.mapTabClass + ':not(.pull-right):first a').tab('show');
+
+                        activeMapId = data.config.id;
+                    }
+
                     // set observer for manually triggered map events
                     newTabElements.contentElement.setTabContentObserver();
 
@@ -596,7 +615,9 @@ define([
             });
 
             // get current active map
-            var activeMapId = Util.getMapModule().getActiveMap().data('id');
+            if(activeMapId === 0){
+                activeMapId = Util.getMapModule().getActiveMap().data('id');
+            }
             var activeMapData = Util.getCurrentMapData(activeMapId);
 
             if(activeMapData !== false){

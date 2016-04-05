@@ -15,6 +15,10 @@ use DB;
 
 class User extends Controller\Controller{
 
+    // captcha specific session keys
+    const SESSION_CAPTCHA_ACCOUNT_UPDATE            = 'SESSION.CAPTCHA.ACCOUNT.UPDATE';
+    const SESSION_CAPTCHA_ACCOUNT_DELETE            = 'SESSION.CAPTCHA.ACCOUNT.DELETE';
+
     // user specific session keys
     const SESSION_KEY_USER                          = 'SESSION.USER';
     const SESSION_KEY_USER_ID                       = 'SESSION.USER.ID';
@@ -36,7 +40,7 @@ class User extends Controller\Controller{
      * valid reasons for captcha images
      * @var string array
      */
-    private static $captchaReason = ['createAccount', 'deleteAccount'];
+    private static $captchaReason = [self::SESSION_CAPTCHA_ACCOUNT_UPDATE, self::SESSION_CAPTCHA_ACCOUNT_DELETE];
 
     /**
      * login a valid character
@@ -106,7 +110,7 @@ class User extends Controller\Controller{
                 'fonts/oxygen-bold-webfont.ttf',
                 14,
                 6,
-                'SESSION.' . $reason,
+                $reason,
                 '',
                 $colorText,
                 $colorBG
@@ -155,14 +159,12 @@ class User extends Controller\Controller{
 
         $return = (object) [];
 
-        $privateSharing = 0;
-        $corporationSharing = 0;
-        $allianceSharing = 0;
-
         $activeCharacter = $this->getCharacter();
 
         if($activeCharacter){
-            $user = $activeCharacter->getUser();
+            $privateSharing = 0;
+            $corporationSharing = 0;
+            $allianceSharing = 0;
 
             // form values
             if(isset($data['formData'])){
@@ -181,8 +183,8 @@ class User extends Controller\Controller{
                 }
             }
 
-            $user->shared = $privateSharing;
-            $user->save();
+            $activeCharacter->shared = $privateSharing;
+            $activeCharacter = $activeCharacter->save();
 
             // update corp/ally ---------------------------------------------------------------
             $corporation = $activeCharacter->getCorporation();
@@ -198,6 +200,7 @@ class User extends Controller\Controller{
                 $alliance->save();
             }
 
+            $user = $activeCharacter->getUser();
             $return->userData = $user->getData();
         }
 
@@ -205,61 +208,9 @@ class User extends Controller\Controller{
     }
 
     /**
-     * search for a registration key model
-     * e.g. for new user registration with "invite" feature enabled
-     * @param $email
-     * @param $registrationKey
-     * @return bool|Model\RegistrationKeyModel
-     * @throws Exception
-     */
-    protected function getRegistrationKey($email, $registrationKey){
-        $registrationKeyModel = Model\BasicModel::getNew('RegistrationKeyModel');
-        $registrationKeyModel->load([
-            'registrationKey = :registrationKey AND
-            email = :email AND
-            used = 0 AND
-            active = 1',
-            ':registrationKey' => $registrationKey,
-            ':email' => $email
-        ]);
-
-        if( $registrationKeyModel->dry() ){
-            return false;
-        }else{
-            return $registrationKeyModel;
-        }
-    }
-
-    /**
-     * check if there is already an active Key for a mail
-     * @param $email
-     * @param bool|false $used
-     * @return bool|null
-     * @throws Exception
-     */
-    protected function findRegistrationKey($email, $used = false){
-
-        $queryPart = 'email = :email AND active = 1';
-
-        if(is_int($used)){
-            $queryPart .= ' AND used = ' . $used;
-        }
-
-        $registrationKeyModel = Model\BasicModel::getNew('RegistrationKeyModel');
-        $registrationKeyModels = $registrationKeyModel->find([
-            $queryPart,
-            ':email' => $email
-        ]);
-
-        if( is_object($registrationKeyModels) ){
-            return $registrationKeyModels;
-        }else{
-            return false;
-        }
-    }
-
-    /**
-     * save/update user account data
+     * update user account data
+     * -> a fresh user automatically generated on first login with a new character
+     * -> see CREST SSO login
      * @param \Base $f3
      */
     public function saveAccount(\Base $f3){
@@ -268,183 +219,100 @@ class User extends Controller\Controller{
         $return = (object) [];
         $return->error = [];
 
-        $captcha = $f3->get('SESSION.createAccount');
+        $captcha = $f3->get(self::SESSION_CAPTCHA_ACCOUNT_UPDATE);
 
         // reset captcha -> forces user to enter new one
-        $f3->clear('SESSION.createAccount');
+        $f3->clear(self::SESSION_CAPTCHA_ACCOUNT_UPDATE);
 
         $newUserData = null;
 
-        // check for new user
-        $loginAfterSave = false;
-
-        // valid registration key Model is required for new registration
-        // if "invite" feature is enabled
-        $registrationKeyModel = false;
-
-        if( isset($data['settingsData']) ){
-            $settingsData = $data['settingsData'];
+        if( isset($data['formData']) ){
+            $formData = $data['formData'];
 
             try{
-                $activeCharacter = $this->getCharacter(0);
-                $user = $activeCharacter->getUser();
+                if($activeCharacter = $this->getCharacter(0)){
+                    $user = $activeCharacter->getUser();
 
-                // captcha is send -> check captcha
-                if(
-                    isset($settingsData['captcha']) &&
-                    !empty($settingsData['captcha'])
-                ){
-
-
-                    if($settingsData['captcha'] === $captcha){
-                        // change/set sensitive user data requires captcha!
-
-                        if(is_null($user)){
-
-                            // check if registration key invite function is enabled
-                            if($f3->get('PATHFINDER.REGISTRATION.INVITE') === 1 ){
-                                $registrationKeyModel = $this->getRegistrationKey( $settingsData['email'], $settingsData['registrationKey'] );
-
-                                if($registrationKeyModel === false){
-                                    throw new Exception\RegistrationException('Registration key invalid', 'registrationKey');
-                                }
-                            }
-
-                            // new user registration
-                            $user = Model\BasicModel::getNew('UserModel');
-                            $loginAfterSave = true;
+                    // captcha is send -> check captcha ---------------------------------
+                    if(
+                        isset($formData['captcha']) &&
+                        !empty($formData['captcha'])
+                    ){
+                        if($formData['captcha'] === $captcha){
+                            // change/set sensitive user data requires captcha!
 
                             // set username
                             if(
-                                isset($settingsData['name']) &&
-                                !empty($settingsData['name'])
+                                isset($formData['name']) &&
+                                !empty($formData['name'])
                             ){
-                                $user->name = $settingsData['name'];
-                            }
-                        }
-
-                        // change/set email
-                        if(
-                            isset($settingsData['email']) &&
-                            isset($settingsData['email_confirm']) &&
-                            !empty($settingsData['email']) &&
-                            !empty($settingsData['email_confirm']) &&
-                            $settingsData['email'] == $settingsData['email_confirm']
-                        ){
-                            $user->email = $settingsData['email'];
-                        }
-
-                        // change/set password
-                        if(
-                            isset($settingsData['password']) &&
-                            isset($settingsData['password_confirm']) &&
-                            !empty($settingsData['password']) &&
-                            !empty($settingsData['password_confirm']) &&
-                            $settingsData['password'] == $settingsData['password_confirm']
-                        ){
-                            $user->password = $settingsData['password'];
-                        }
-                    }else{
-                        // captcha was send but not valid -> return error
-                        $captchaError = (object) [];
-                        $captchaError->type = 'error';
-                        $captchaError->message = 'Captcha does not match';
-                        $return->error[] = $captchaError;
-                    }
-                }
-
-                // saving additional user info requires valid user object (no captcha required)
-                if($user){
-
-                    // save API data
-                    if(
-                        isset($settingsData['keyId']) &&
-                        isset($settingsData['vCode']) &&
-                        is_array($settingsData['keyId']) &&
-                        is_array($settingsData['vCode'])
-                    ){
-
-                        // get all existing API models for this user
-                        $apiModels = $user->getAPIs();
-
-                        foreach($settingsData['keyId'] as $i => $keyId){
-                            $api = null;
-
-                            // search for existing API model
-                            foreach($apiModels as $key => $apiModel){
-                                if($apiModel->keyId == $keyId){
-                                    $api = $apiModel;
-                                    // make sure model is up2data -> cast()
-                                    $api->cast();
-                                    unset($apiModels[$key]);
-                                    break;
-                                }
+                                $user->name = $formData['name'];
                             }
 
-                            if(is_null($api)){
-                                // new API Key
-                                $api = Model\BasicModel::getNew('UserApiModel');
-                                $api->userId = $user;
+                            // set email
+                            if(
+                                isset($formData['email']) &&
+                                isset($formData['email_confirm']) &&
+                                !empty($formData['email']) &&
+                                !empty($formData['email_confirm']) &&
+                                $formData['email'] == $formData['email_confirm']
+                            ){
+                                $user->email = $formData['email'];
                             }
 
-                            $api->keyId = $keyId;
-                            $api->vCode = $settingsData['vCode'][$i];
-                            $api->save();
+                            // save/update user model
+                            // this will fail if model validation fails!
+                            $user->save();
 
-                            $characterCount = $api->updateCharacters();
+                        }else{
+                            // captcha was send but not valid -> return error
+                            $captchaError = (object) [];
+                            $captchaError->type = 'error';
+                            $captchaError->message = 'Captcha does not match';
+                            $return->error[] = $captchaError;
+                        }
+                    }
 
-                            if($characterCount == 0){
-                                // no characters found -> return warning
-                                $characterError = (object) [];
-                                $characterError->type = 'warning';
-                                $characterError->message = 'API verification failed. No Characters found for KeyId ' . $api->keyId;
-                                $return->error[] = $characterError;
-                            }
+                    // sharing config ---------------------------------------------------
+                    if(isset($formData['share'])){
+                        $privateSharing = 0;
+                        $corporationSharing = 0;
+                        $allianceSharing = 0;
+
+                        if(isset($formData['privateSharing'])){
+                            $privateSharing = 1;
                         }
 
-                        // delete API models that no longer exists
-                        foreach($apiModels as $apiModel){
-                            $apiModel->delete();
+                        if(isset($formData['corporationSharing'])){
+                            $corporationSharing = 1;
                         }
 
-                        // get fresh updated user object (API info may have has changed)
-                        //$user = $this->_getUser(0);
-                    }
+                        if(isset($formData['allianceSharing'])){
+                            $allianceSharing = 1;
+                        }
 
-                    // set main character
-                    if( isset($settingsData['mainCharacterId']) ){
-                        $user->setMainCharacterId((int)$settingsData['mainCharacterId']);
-                    }
+                        // update private/corp/ally
+                        $corporation = $activeCharacter->getCorporation();
+                        $alliance = $activeCharacter->getAlliance();
 
-                    // check if the user already has a main character
-                    // if not -> save the next best character as main
-                    $mainUserCharacter = $user->getMainUserCharacter();
+                        if(is_object($corporation)){
+                            $corporation->shared = $corporationSharing;
+                            $corporation->save();
+                        }
 
-                    // set main character if no main character exists
-                    if(is_null($mainUserCharacter)){
-                        $user->setMainCharacterId();
-                    }
+                        if(is_object($alliance)){
+                            $alliance->shared = $allianceSharing;
+                            $alliance->save();
+                        }
 
-                    // save/update user model
-                    // this will fail if model validation fails!
-                    $user->save();
-
-                    if(is_object($registrationKeyModel)){
-                        $registrationKeyModel->used = 1;
-                        $registrationKeyModel->save();
-                    }
-
-                    // log user in (in case he is new
-                    if($loginAfterSave){
-                        $this->logInByData( $user->name, $settingsData['password'] );
-
-                        // return reroute path
-                        $return->reroute = rtrim(self::getEnvironmentData('URL'), '/') . $this->f3->alias('map');
+                        $activeCharacter->shared = $privateSharing;
+                        $activeCharacter->save();
                     }
 
                     // get fresh updated user object
                     $newUserData = $user->getData();
                 }
+
             }catch(Exception\ValidationException $e){
                 $validationError = (object) [];
                 $validationError->type = 'error';
@@ -461,109 +329,6 @@ class User extends Controller\Controller{
 
             // return new/updated user data
             $return->userData = $newUserData;
-
-        }
-        echo json_encode($return);
-    }
-
-    /**
-     * send mail with registration key
-     * -> check INVITE in pathfinder.ini
-     * @param \Base $f3
-     * @throws Exception
-     */
-    public function sendInvite(\Base $f3){
-        $data = $f3->get('POST.settingsData');
-        $return = (object) [];
-
-        // check invite limit
-        // get handed out key count
-        $tempRegistrationKeyModel = Model\BasicModel::getNew('RegistrationKeyModel');
-        $tempRegistrationKeyModels = $tempRegistrationKeyModel->find([ '
-            email != "" AND
-            active = 1'
-        ]);
-
-        $totalKeys = 0;
-        if(is_object($tempRegistrationKeyModels)){
-            $totalKeys = $tempRegistrationKeyModels->count();
-        }
-
-        if(
-            $f3->get('PATHFINDER.REGISTRATION.INVITE') == 1 &&
-            $totalKeys < $f3->get('PATHFINDER.REGISTRATION.INVITE_LIMIT')
-        ){
-            // key limit not reached
-
-            if(
-                isset($data['email']) &&
-                !empty($data['email'])
-            ){
-                $email = trim($data['email']);
-
-                // check if mail is valid
-                if( \Audit::instance()->email($email) ){
-
-                    // new key for this mail is allowed
-                    $registrationKeyModel = $this->findRegistrationKey($email, 0);
-
-                    if($registrationKeyModel === false){
-
-                        // check for total number of invites (active and inactive) -> prevent spamming
-                        $allRegistrationKeysByMail = $this->findRegistrationKey($email);
-
-                        if(
-                            $allRegistrationKeysByMail == false ||
-                            $allRegistrationKeysByMail->count() < 3
-                        ){
-
-                            // get a fresh key
-                            $registrationKeyModel = Model\BasicModel::getNew('RegistrationKeyModel');
-                            $registrationKeyModel->load(['
-                                used = 0 AND
-                                active = 1 AND
-                                email = "" ',
-                                ':email' => $email
-                            ], ['limit' => 1]);
-
-                        }else{
-                            $validationError = (object) [];
-                            $validationError->type = 'warning';
-                            $validationError->message = 'The number of keys is limited by Email. You can not get more keys';
-                            $return->error[] = $validationError;
-                        }
-
-                    }else{
-                        $registrationKeyModel = $registrationKeyModel[0];
-                    }
-
-                    // send "old" key again or send a new key
-                    if( is_object($registrationKeyModel) ){
-                        $msg = 'Your personal Registration Key: ' . $registrationKeyModel->registrationKey;
-
-                        $mailController = new MailController();
-                        $status = $mailController->sendInviteKey($email, $msg);
-
-                        if( $status ){
-                            $registrationKeyModel->email = $email;
-                            $registrationKeyModel->ip = $this->f3->get('IP');
-                            $registrationKeyModel->save();
-                        }
-                    }
-
-                }else{
-                    $validationError = (object) [];
-                    $validationError->type = 'error';
-                    $validationError->field = 'email';
-                    $validationError->message = 'Email is not valid';
-                    $return->error[] = $validationError;
-                }
-            }
-        }else{
-            $validationError = (object) [];
-            $validationError->type = 'warning';
-            $validationError->message = 'The pool of beta keys has been exhausted, please try again in a few days/weeks';
-            $return->error[] = $validationError;
         }
 
         echo json_encode($return);
@@ -577,10 +342,10 @@ class User extends Controller\Controller{
         $data = $f3->get('POST.formData');
         $return = (object) [];
 
-        $captcha = $f3->get('SESSION.deleteAccount');
+        $captcha = $f3->get(self::SESSION_CAPTCHA_ACCOUNT_DELETE);
 
         // reset captcha -> forces user to enter new one
-        $f3->clear('SESSION.deleteAccount');
+        $f3->clear(self::SESSION_CAPTCHA_ACCOUNT_DELETE);
 
         if(
             isset($data['captcha']) &&
@@ -589,13 +354,8 @@ class User extends Controller\Controller{
         ){
             $activeCharacter = $this->getCharacter(0);
             $user = $activeCharacter->getUser();
-            $validUser = $this->_verifyUser( $user->name, $data['password']);
 
-            if(
-                is_object($validUser) &&
-                is_object($user) &&
-                $user->id === $validUser->id
-            ){
+            if($user){
                 // send delete account mail
                 $msg = 'Hello ' . $user->name . ',<br><br>';
                 $msg .= 'your account data has been successfully deleted.';
@@ -616,12 +376,6 @@ class User extends Controller\Controller{
                     $this->logOut($f3);
                     die();
                 }
-            }else{
-                // password does not match current user pw
-                $passwordError = (object) [];
-                $passwordError->type = 'error';
-                $passwordError->message = 'Invalid password';
-                $return->error[] = $passwordError;
             }
         }else{
             // captcha not valid -> return error

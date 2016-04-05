@@ -7,25 +7,24 @@
  */
 
 namespace controller\api;
+use Controller;
 use Model;
 
-class Access extends \Controller\AccessController {
+class Access extends Controller\AccessController {
 
     /**
      * event handler
-     * @param $f3
+     * @param \Base $f3
      */
-    function beforeroute($f3) {
-
-        parent::beforeroute($f3);
-
+    function beforeroute(\Base $f3) {
         // set header for all routes
         header('Content-type: application/json');
+        parent::beforeroute($f3);
     }
 
     /**
-     * search user/corporation or alliance by name
-     * @param $f3
+     * search character/corporation or alliance by name
+     * @param \Base $f3
      * @param $params
      */
     public function search($f3, $params){
@@ -41,8 +40,8 @@ class Access extends \Controller\AccessController {
 
             $accessModel = null;
             switch($searchType){
-                case 'user':
-                    $accessModel = Model\BasicModel::getNew('UserModel');
+                case 'character':
+                    $accessModel = Model\BasicModel::getNew('CharacterModel');
                     break;
                 case 'corporation':
                     $accessModel = Model\BasicModel::getNew('CorporationModel');
@@ -55,12 +54,12 @@ class Access extends \Controller\AccessController {
             if( is_object($accessModel) ){
 
                 // find "active" entries that have their "sharing" option activated
-                $accessList = $accessModel->find( array(
+                $accessList = $accessModel->find( [
                     "LOWER(name) LIKE :token AND " .
                     "active = 1 AND " .
                     "shared = 1 ",
                     ':token' => '%' . $searchToken . '%'
-                ));
+                ]);
 
                 if($accessList){
                     foreach($accessList as $accessObject){

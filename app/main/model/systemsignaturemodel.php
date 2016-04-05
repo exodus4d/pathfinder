@@ -151,21 +151,21 @@ class SystemSignatureModel extends BasicModel {
 
     /**
      * check object for model access
-     * @param UserModel $user
+     * @param CharacterModel $characterModel
      * @return bool
      */
-    public function hasAccess(UserModel $user){
-        return $this->systemId->hasAccess($user);
+    public function hasAccess(CharacterModel $characterModel){
+        return $this->systemId->hasAccess($characterModel);
     }
 
     /**
      * delete signature
-     * @param UserModel $user
+     * @param CharacterModel $characterModel
      */
-    public function delete(UserModel $user){
-        if(!$this->dry()){
-            // check if editor has access
-            if($this->hasAccess($user)){
+    public function delete(CharacterModel $characterModel){
+        if( !$this->dry() ){
+            // check if character has access
+            if($this->hasAccess($characterModel)){
                 $this->erase();
             }
         }

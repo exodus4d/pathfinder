@@ -7,9 +7,14 @@
             </span>
         </h1>
         <p class="lead">
-            Status: "<b>{{ @errorData->status }}</b>".
             Oooops, Something went wrong!
-            You have experienced a technical error. We apologize.
+            You have experienced a technical error. We apologize.<br><br>
+
+            Status: '{{ @errorData->status }}'<br>
+
+            <check if="{{ @errorData->message }}">
+                Message: {{ @errorData->message }}
+            </check>
         </p>
     </div>
 </div>

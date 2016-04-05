@@ -30,17 +30,14 @@ class Setup extends Controller {
                 'Model\SystemStatusModel',
                 'Model\SystemNeighbourModel',
                 'Model\WormholeModel',
-                'Model\RegistrationKeyModel',
 
                 'Model\CharacterStatusModel',
                 'Model\ConnectionScopeModel',
 
-                'Model\UserMapModel',
                 'Model\CharacterMapModel',
                 'Model\AllianceMapModel',
                 'Model\CorporationMapModel',
 
-                'Model\UserApiModel',
                 'Model\UserCharacterModel',
                 'Model\CharacterModel',
                 'Model\CharacterLogModel',

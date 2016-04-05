@@ -32,17 +32,6 @@ class UserCharacterModel extends BasicModel {
                 ]
             ]
         ],
-        'apiId' => [
-            'type' => Schema::DT_INT,
-            'index' => true,
-            'belongs-to-one' => 'Model\UserApiModel',
-            'constraint' => [
-                [
-                    'table' => 'user_api',
-                    'on-delete' => 'CASCADE'
-                ]
-            ]
-        ],
         'characterId' => [
             'type' => Schema::DT_INT,
             'index' => true,
@@ -54,12 +43,6 @@ class UserCharacterModel extends BasicModel {
                     'on-delete' => 'CASCADE'
                 ]
             ]
-        ],
-        'isMain' => [
-            'type' => Schema::DT_BOOLEAN,
-            'nullable' => false,
-            'default' => 0,
-            'index' => true
         ]
     ];
 
@@ -68,9 +51,7 @@ class UserCharacterModel extends BasicModel {
      * @param $characterData
      */
     public function setData($characterData){
-
         foreach((array)$characterData as $key => $value){
-
             if(!is_array($value)){
                 if($this->exists($key)){
                     $this->$key = $value;
@@ -95,27 +76,6 @@ class UserCharacterModel extends BasicModel {
         return true;
     }
 
-
-    /**
-     * check if this character is Main character or not
-     * @return bool
-     */
-    public function isMain(){
-        $isMain = false;
-        if($this->isMain == 1){
-            $isMain = true;
-        }
-
-        return $isMain;
-    }
-
-    /**
-     * set this character as main character
-     */
-    public function setMain($value = 0){
-        $this->isMain = $value;
-    }
-
     /**
      * get the character model of this character
      * @return mixed
@@ -135,10 +95,7 @@ class UserCharacterModel extends BasicModel {
         $status = parent::setup($db,$table,$fields);
 
         if($status === true){
-            $status = parent::setMultiColumnIndex(['userId', 'apiId', 'characterId'], true);
-            if($status === true){
-                $status = parent::setMultiColumnIndex(['userId', 'apiId']);
-            }
+            $status = parent::setMultiColumnIndex(['userId', 'characterId'], true);
         }
 
         return $status;

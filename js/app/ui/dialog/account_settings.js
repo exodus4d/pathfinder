@@ -1,5 +1,5 @@
 /**
- *  user register/settings dialog
+ *  user settings/share dialog
  */
 
 define([
@@ -12,22 +12,13 @@ define([
     'use strict';
 
     var config = {
-        dialogWizardNavigationClass: 'pf-wizard-navigation',                    // class for wizard navigation bar
-
         // select character dialog
         settingsDialogId: 'pf-settings-dialog',                                 // id for "settings" dialog
-        settingsImageWrapperClass: 'pf-dialog-image-wrapper',                   // class for image wrapper (animated)
-        settingsImageInfoClass: 'pf-dialog-character-info',                     // class for character info layer (visible on hover)
-        settingsMainClass: 'pf-dialog-character-main',                          // class for main character highlighting
-        settingsNavigationButtonClass: 'pf-dialog-navigation-button',           // class for all navigation buttons
-        settingsFinishButtonClass: 'pf-dialog-finish-button',                   // class for "finish" button
-        settingsPrevButtonClass: 'pf-dialog-prev-button',                       // class for "prev" button
-        settingsNextButtonClass: 'pf-dialog-next-button',                       // class for "next" button
-        settingsCloneApiRowClass: 'pf-dialog-api-row',                          // class for form row with API data (will be cloned)
-        settingsCloneRowButtonClass: 'pf-dialog-clone-button',                  // class for clone button (api row)
-        settingsDeleteRowButtonClass: 'pf-dialog-delete-button',                // class for delete button (api row)
+        settingsAccountContainerId: 'pf-settings-dialog-account',               // id for the "account" container
+        settingsShareContainerId: 'pf-settings-dialog-share',                   // id for the "share" container
 
         // captcha
+        captchaKeyUpdateAccount: 'SESSION.CAPTCHA.ACCOUNT.UPDATE',              // key for captcha reason
         captchaImageWrapperId: 'pf-dialog-captcha-wrapper',                     // id for "captcha image" wrapper
         captchaImageId: 'pf-dialog-captcha-image',                              // id for "captcha image"
 
@@ -35,79 +26,8 @@ define([
             icon: {
                 size: 'fa-2x'
             }
-        },
-
-        // character status
-        settingsCharacterStatusOwn : {                                          // "own" -> my characters
-            name: 'own',
-            class: 'pf-user-status-own'
         }
-
     };
-
-    /**
-     * get active Tab link element for a dialog
-     * @param dialog
-     * @returns {JQuery|*}
-     */
-    var getActiveTabElement = function(dialog){
-        var navigationBarElement = $(dialog).find('.' + config.dialogWizardNavigationClass);
-        var currentActiveTab = navigationBarElement.find('li.active');
-
-        return currentActiveTab;
-    };
-
-    /**
-     * init popovers in dialog
-     * @param dialogElement
-     */
-    var initPopover = function(dialogElement){
-
-        var apiCloneButtons = dialogElement.find('.' + config.settingsCloneRowButtonClass);
-        var apiDeleteButtons = dialogElement.find('.' + config.settingsDeleteRowButtonClass);
-
-        var confirmationSettings = {
-            container: 'body',
-            placement: 'left',
-            btnCancelClass: 'btn btn-sm btn-default',
-            btnCancelLabel: 'cancel',
-            btnCancelIcon: 'fa fa-fw fa-ban'
-        };
-
-        // add API key row
-        var cloneConfirmationSettings = $.extend({
-            title: 'Add additional key',
-            btnOkClass: 'btn btn-sm btn-success',
-            btnOkLabel: 'confirm',
-            btnOkIcon: 'fa fa-fw fa-check',
-            onConfirm: function(e) {
-                var cloneRow = dialogElement.find('.' + config.settingsCloneApiRowClass).last();
-                var newApiRow = cloneRow.clone();
-
-                newApiRow.find('.form-group').removeClass('has-success has-error');
-                newApiRow.find('input').val('');
-                cloneRow.after(newApiRow);
-
-                // init new row with popups
-                initPopover(dialogElement);
-            }
-        }, confirmationSettings);
-
-        // delete API key row
-        var deleteConfirmationSettings = $.extend({
-            title: 'Delete key',
-            btnOkClass: 'btn btn-sm btn-danger',
-            btnOkLabel: 'delete',
-            btnOkIcon: 'fa fa-fw fa-close',
-            onConfirm: function(e, target) {
-                $(target).parents('.row').remove();
-            }
-        }, confirmationSettings);
-
-        $(apiCloneButtons).confirmation(cloneConfirmationSettings);
-        $(apiDeleteButtons).confirmation(deleteConfirmationSettings);
-    };
-
 
     /**
      * show "register/settings" dialog
@@ -122,213 +42,124 @@ define([
             return false;
         }
 
-        var reroutePath = '';
-
-        // check navigation buttons and show/hide them
-        var checkNavigationButton = function(dialog){
-            var navigationBarElement = $(dialog).find('.' + config.dialogWizardNavigationClass);
-            var currentActiveTab = navigationBarElement.find('li.active');
-
-            var hidePrevButton = currentActiveTab.prevAll().length > 0 ? false : true;
-            var hideNextButton = currentActiveTab.nextAll().length > 0 ? false : true;
-
-            if(hidePrevButton){
-                $('.' + config.settingsPrevButtonClass).hide();
-            }else{
-                $('.' + config.settingsPrevButtonClass).show();
-            }
-
-            if(hideNextButton){
-                $('.' + config.settingsNextButtonClass).hide();
-            }else{
-                $('.' + config.settingsNextButtonClass).show();
-            }
-        };
-
         requirejs(['text!templates/dialog/settings.html', 'mustache'], function(template, Mustache) {
-
-            // if this is a new registration there is no API key -> fake an empty API to make fields visible
-            if(options.register === 1){
-                Init.currentUserData = {};
-                Init.currentUserData.api = [{
-                    keyId: '',
-                    vCode: ''
-                }];
-            }else if(Init.currentUserData.api === undefined){
-                Init.currentUserData.api = [{
-                    keyId: '',
-                    vCode: ''
-                }];
-            }
 
             var data = {
                 id: config.settingsDialogId,
-                register: options.register === 1 ? 1 : 0,
-                invite : options.invite === 1 ? 1 : 0,
-                navigationClass: config.dialogWizardNavigationClass,
+                settingsAccountContainerId: config.settingsAccountContainerId,
+                settingsShareContainerId: config.settingsShareContainerId,
                 userData: Init.currentUserData,
-                cloneApiRowClass: config.settingsCloneApiRowClass,
-                cloneRowButtonClass: config.settingsCloneRowButtonClass,
-                deleteRowButtonClass: config.settingsDeleteRowButtonClass,
                 captchaImageWrapperId: config.captchaImageWrapperId,
                 captchaImageId: config.captchaImageId,
                 formErrorContainerClass: Util.config.formErrorContainerClass,
-                formWarningContainerClass: Util.config.formWarningContainerClass
+                ccpImageServer: Init.url.ccpImageServer
             };
 
             var content = Mustache.render(template, data);
 
-            var selectCharacterDialog = bootbox.dialog({
-                title: options.register === 1 ? 'Registration' : 'Account settings',
+            var accountSettingsDialog = bootbox.dialog({
+                title: 'Account settings',
                 message: content,
                 buttons: {
                     close: {
-                        label: 'finish',
-                        className: ['btn-success', 'pull-right', config.settingsFinishButtonClass].join(' '),
-                        callback: function(e){
-
-                            if(options.register === 1){
-                                if(reroutePath !== undefined){
-                                    // root user to main app
-                                    window.location = reroutePath;
-                                }
-                            }else{
-                                // close dialog
-                                return true;
-                            }
-                        }
+                        label: 'cancel',
+                        className: 'btn-default'
                     },
-                    prev: {
-                        label: '<i class="fa fa-fw fa-angle-left"></i>back',
-                        className: ['btn-default', 'pull-left', config.settingsNavigationButtonClass, config.settingsPrevButtonClass].join(' '),
-                        callback: function (e) {
-                            var currentActiveTab = getActiveTabElement(this);
-                            currentActiveTab.removeClass('finished');
-                            currentActiveTab.prev('li').find('a').tab('show');
+                    success: {
+                        label: '<i class="fa fa-check fa-fw"></i>&nbsp;save',
+                        className: 'btn-success',
+                        callback: function() {
 
-                            return false;
-                        }
-                    },
-                    next: {
-                        label: 'next<i class="fa fa-fw fa-angle-right"></i>',
-                        className: ['btn-primary', 'pull-right', config.settingsNavigationButtonClass, config.settingsNextButtonClass].join(' '),
-                        callback: function (e) {
-                            var dialogElement = $(this);
-                            var currentActiveTab = getActiveTabElement(dialogElement);
-                            var currentActiveLink = currentActiveTab.find('a');
-                            var tabContentElement = $(currentActiveLink.attr('href'));
-                            var form = tabContentElement.find('form');
-
-                            var changeTab = function(){
-                                currentActiveTab.addClass('finished');
-                                currentActiveLink.removeClass('btn-danger btn-default');
-                                currentActiveLink.addClass('btn-primary');
-
-                                currentActiveTab.next('li').find('a').tab('show');
-                            };
+                            // get the current active form
+                            var form = $('#' + config.settingsDialogId).find('form').filter(':visible');
 
                             // validate form
                             form.validator('validate');
+
+                            // check weather the form is valid
                             var formValid = form.isValidForm();
 
-                            if(!formValid){
-                                currentActiveTab.removeClass('disabled');
-                                currentActiveLink.removeClass('btn-default btn-primary');
-                                currentActiveLink.addClass('btn-danger');
-                            }else{
+                            if(formValid === true){
                                 var tabFormValues = form.getFormValues();
 
-                                if(! $.isEmptyObject(tabFormValues) ){
+                                // send Tab data and store values
+                                var requestData = {
+                                    formData: tabFormValues
+                                };
 
-                                    // send Tab data and store values
-                                    var requestData = {
-                                        settingsData: tabFormValues
-                                    };
+                                accountSettingsDialog.find('.modal-content').showLoadingAnimation();
 
-                                    selectCharacterDialog.find('.modal-content').showLoadingAnimation();
+                                $.ajax({
+                                    type: 'POST',
+                                    url: Init.path.saveUserConfig,
+                                    data: requestData,
+                                    dataType: 'json'
+                                }).done(function(responseData){
+                                    accountSettingsDialog.find('.modal-content').hideLoadingAnimation();
 
-                                    $.ajax({
-                                        type: 'POST',
-                                        url: Init.path.saveUserConfig,
-                                        data: requestData,
-                                        dataType: 'json'
-                                    }).done(function(responseData){
-                                        selectCharacterDialog.find('.modal-content').hideLoadingAnimation();
+                                    // set new captcha for any request
+                                    // captcha is required for sensitive data (not for all data)
+                                    if(
+                                        responseData.error &&
+                                        responseData.error.length > 0
+                                    ){
+                                        form.showFormMessage(responseData.error);
 
-                                        // set new captcha for any request
-                                        // captcha is required for sensitive data (not for all data)
-                                        if(
-                                            responseData.error &&
-                                            responseData.error.length > 0
-                                        ){
-                                            form.showFormMessage(responseData.error);
-
-                                            $('#' + config.captchaImageWrapperId).showCaptchaImage('createAccount', function(){
-                                                $('#captcha').resetFormFields();
-                                            });
-                                        }else{
-                                            // store new/updated user data -> update head
-                                            if(responseData.userData){
-                                                Util.setCurrentUserData(responseData.userData);
-                                            }
-
-                                            // store reroute path after registration  finished
-                                            if(responseData.reroute){
-                                                reroutePath = responseData.reroute;
-                                            }
-
-                                            dialogElement.find('.alert').velocity('transition.slideDownOut',{
-                                                duration: 500,
-                                                complete: function(){
-                                                    // switch tab
-                                                    changeTab();
-
-                                                    $('#' + config.captchaImageWrapperId).showCaptchaImage('createAccount', function(){
-                                                        $('#captcha').resetFormFields();
-                                                    });
-                                                }
-                                            });
-
-                                            Util.showNotify({title: 'Account saved', type: 'success'});
-                                        }
-
-                                    }).fail(function( jqXHR, status, error) {
-                                        selectCharacterDialog.find('.modal-content').hideLoadingAnimation();
-
-                                        var reason = status + ' ' + error;
-                                        Util.showNotify({title: jqXHR.status + ': saveAccount', text: reason, type: 'error'});
-
-                                        // set new captcha for any request
-                                        // captcha is required for sensitive data (not for all)
-                                        $('#' + config.captchaImageWrapperId).showCaptchaImage('createAccount', function(){
+                                        $('#' + config.captchaImageWrapperId).showCaptchaImage(config.captchaKeyUpdateAccount, function(){
                                             $('#captcha').resetFormFields();
                                         });
+                                    }else{
+                                        // store new/updated user data -> update head
+                                        if(responseData.userData){
+                                            Util.setCurrentUserData(responseData.userData);
+                                        }
 
-                                        // check for DB errors
-                                        if(jqXHR.status === 500){
-
-                                            if(jqXHR.responseText){
-                                                var errorObj = $.parseJSON(jqXHR.responseText);
-
-                                                if(
-                                                    errorObj.error &&
-                                                    errorObj.error.length > 0
-                                                ){
-                                                    form.showFormMessage(errorObj.error);
-                                                }
+                                        form.find('.alert').velocity('transition.slideDownOut',{
+                                            duration: 500,
+                                            complete: function(){
+                                                $('#' + config.captchaImageWrapperId).showCaptchaImage(config.captchaKeyUpdateAccount, function(){
+                                                    $('#captcha').resetFormFields();
+                                                });
                                             }
-                                        }
+                                        });
 
-                                        if( options.register !== 1 ){
-                                            $(document).setProgramStatus('problem');
-                                        }
+                                        Util.showNotify({title: 'Account saved', type: 'success'});
 
+                                        // close dialog/menu
+                                        $(document).trigger('pf:closeMenu', [{}]);
+                                        accountSettingsDialog.modal('hide');
+                                    }
+
+                                }).fail(function( jqXHR, status, error) {
+                                    accountSettingsDialog.find('.modal-content').hideLoadingAnimation();
+
+                                    var reason = status + ' ' + error;
+                                    Util.showNotify({title: jqXHR.status + ': saveAccountSettings', text: reason, type: 'error'});
+
+                                    // set new captcha for any request
+                                    // captcha is required for sensitive data (not for all)
+                                    $('#' + config.captchaImageWrapperId).showCaptchaImage(config.captchaKeyUpdateAccount, function(){
+                                        $('#captcha').resetFormFields();
                                     });
 
-                                }else{
-                                    // no request required -> change tab
-                                    changeTab();
-                                }
+                                    // check for DB errors
+                                    if(jqXHR.status === 500){
+
+                                        if(jqXHR.responseText){
+                                            var errorObj = $.parseJSON(jqXHR.responseText);
+
+                                            if(
+                                                errorObj.error &&
+                                                errorObj.error.length > 0
+                                            ){
+                                                form.showFormMessage(errorObj.error);
+                                            }
+                                        }
+                                    }
+
+                                    $(document).setProgramStatus('problem');
+
+                                });
                             }
 
                             return false;
@@ -338,163 +169,42 @@ define([
             });
 
             // after modal is shown =======================================================================
-            selectCharacterDialog.on('shown.bs.modal', function(e) {
+            accountSettingsDialog.on('shown.bs.modal', function(e) {
 
                 var dialogElement = $(this);
-                var tabLinkElements = dialogElement.find('a[data-toggle="tab"]');
                 var form = dialogElement.find('form');
 
                 // request captcha image and show
-                $('#' + config.captchaImageWrapperId).showCaptchaImage('createAccount');
+                var captchaImageWrapperContainer = $('#' + config.captchaImageWrapperId);
+                captchaImageWrapperContainer.showCaptchaImage(config.captchaKeyUpdateAccount);
+
+                // init captcha refresh button
+                captchaImageWrapperContainer.find('i').on('click', function(){
+                    captchaImageWrapperContainer.showCaptchaImage(config.captchaKeyUpdateAccount);
+                });
+
 
                 // init dialog tooltips
                 dialogElement.initTooltips();
 
-                // init popups
-                initPopover( dialogElement );
-
-                // init form validation
                 form.initFormValidation();
+            });
 
-                // on Tab switch ======================================================================
-                tabLinkElements.on('shown.bs.tab', function (e) {
+            // events for tab change
+            accountSettingsDialog.find('.navbar a').on('shown.bs.tab', function(e){
 
-                    // check navigation buttons (hide/show)
-                    checkNavigationButton(dialogElement);
-
-                    $(e.target).removeClass('disabled');
-
-                    // hide finish button
-                    dialogElement.find('.' + config.settingsFinishButtonClass).hide();
-
-
-                    if($(e.target).text() < $(e.relatedTarget).text()){
-                        var currentActiveTab = getActiveTabElement(dialogElement);
-                        var nextTabElements = currentActiveTab.nextAll();
-
-                        // disable all next tabs
-                        currentActiveTab.removeClass('finished');
-                        nextTabElements.removeClass('finished');
-                        nextTabElements.find('a').removeClass('btn-primary btn-danger').addClass('btn-default disabled');
-                    }
-
-                    if($(e.target).text() === '3'){
-
-                        // load character tab -----------------------------------------------
-
-                        requirejs(['text!templates/form/character_panel.html', 'mustache'], function(template, Mustache) {
-
-                            // all characters for the current user
-                            var characters = Init.currentUserData.characters;
-                            // calculate grid class
-                            var characterCount = characters.length;
-                            var gridClass = ((12 / characterCount) < 4)? 4 : 12 / characterCount ;
-
-                            // add character status information for each character
-                            var statusInfo = {};
-                            statusInfo.class = config.settingsCharacterStatusOwn.class;
-                            statusInfo.label = config.settingsCharacterStatusOwn.name;
-
-                            var mainCharacter = 0;
-                            for(var i = 0; i < characters.length; i++){
-                                characters[i].status = statusInfo;
-
-                                if(characters[i].isMain === 1){
-                                    mainCharacter = characters[i].id;
-                                }else if(mainCharacter === 0){
-                                    // mark at least one character as "main" if no main char was found
-                                    // e.g. first account setup
-                                    mainCharacter = characters[i].id;
-                                }
-                            }
-
-                            var characterTemplateData = {
-                                imageWrapperClass: config.settingsImageWrapperClass,
-                                imageInfoClass: config.settingsImageInfoClass,
-                                imageWrapperMainClass: config.settingsMainClass,
-                                charactersData: characters,
-                                gridClass: 'col-sm-' + gridClass,
-                                mainCharacter: mainCharacter
-                            };
-
-                            var content = Mustache.render(template, characterTemplateData);
-
-                            var characterForm = dialogElement.find('#pf-dialog-settings-character form');
-
-                            // add form HTML
-                            characterForm.html(content);
-
-                            var imageWrapperElements = dialogElement.find('.' + config.settingsImageWrapperClass);
-
-                            // special effects :)
-                            imageWrapperElements.velocity('stop').delay(100).velocity('transition.flipBounceXIn', {
-                                display: 'inline-block',
-                                stagger: 60,
-                                drag: true,
-                                duration: 400,
-                                complete: function(){
-                                    // init new character tooltips
-                                    dialogElement.initTooltips();
-                                }
-                            });
-
-                            // Hover effect for character info layer
-                            imageWrapperElements.hoverIntent(function(e){
-                                var characterInfoElement = $(this).find('.' + config.settingsImageInfoClass);
-
-                                characterInfoElement.velocity('finish').velocity({
-                                    width: ['100%', [ 400, 15 ] ]
-                                },{
-                                    easing: 'easeInSine'
-                                });
-                            }, function(e){
-                                var characterInfoElement = $(this).find('.' + config.settingsImageInfoClass);
-
-                                characterInfoElement.velocity('finish').velocity({
-                                    width: 0
-                                },{
-                                    duration: 150,
-                                    easing: 'easeInOutSine'
-                                });
-
-                            });
-
-                            // click event on character image
-                            imageWrapperElements.on('click', function(e){
-                                var wrapperElement = $(this);
-                                var characterId = wrapperElement.data('id');
-
-                                // update layout if character is selected
-                                if(characterId > 0){
-                                    // update hidden field with new mainCharacterId
-                                    dialogElement.find('input[name="mainCharacterId"]').val(characterId);
-
-                                    imageWrapperElements.removeClass( config.settingsMainClass );
-                                    wrapperElement.addClass( config.settingsMainClass );
-                                }
-
-                            });
-
-                        });
-
-                    }else if($(e.target).text() === '4'){
-                        // show finish button
-                        dialogElement.find('.' + config.settingsFinishButtonClass).show();
-
-                        // show success message
-                        dialogElement.find('h1').velocity('stop').delay(200).velocity('transition.flipBounceXIn', {
-                            duration: 500
-                        }).delay(100).velocity('callout.pulse');
-                    }
-
+                // init "toggle" switches on current active tab
+                accountSettingsDialog.find( $(this).attr('href') ).find('input[type="checkbox"]').bootstrapToggle({
+                    on: '<i class="fa fa-fw fa-check"></i>&nbsp;Enable',
+                    off: 'Disable&nbsp;<i class="fa fa-fw fa-ban"></i>',
+                    onstyle: 'success',
+                    offstyle: 'warning',
+                    width: 90,
+                    height: 30
                 });
 
             });
 
-
-
         });
-
     };
-
 });

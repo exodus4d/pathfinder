@@ -39,10 +39,11 @@ class Map extends Controller\AccessController {
 
         $f3->expire($expireTimeHead);
 
-        $initData = [];
+        $return = (object) [];
+        $return->error = [];
 
         // static program data ------------------------------------------------
-        $initData['timer'] = $f3->get('PATHFINDER.TIMER');
+        $return->timer = $f3->get('PATHFINDER.TIMER');
 
         // get all available map types ----------------------------------------
         $mapType = Model\BasicModel::getNew('MapTypeModel');
@@ -59,7 +60,7 @@ class Map extends Controller\AccessController {
             $mapTypeData[$rowData->name] = $data;
 
         }
-        $initData['mapTypes'] = $mapTypeData;
+        $return->mapTypes = $mapTypeData;
 
         // get all available map scopes ---------------------------------------
         $mapScope = Model\BasicModel::getNew('MapScopeModel');
@@ -72,7 +73,7 @@ class Map extends Controller\AccessController {
             ];
             $mapScopeData[$rowData->name] = $data;
         }
-        $initData['mapScopes'] = $mapScopeData;
+        $return->mapScopes = $mapScopeData;
 
         // get all available system status ------------------------------------
         $systemStatus = Model\BasicModel::getNew('SystemStatusModel');
@@ -86,7 +87,7 @@ class Map extends Controller\AccessController {
             ];
             $systemScopeData[$rowData->name] = $data;
         }
-        $initData['systemStatus'] = $systemScopeData;
+        $return->systemStatus = $systemScopeData;
 
         // get all available system types -------------------------------------
         $systemType = Model\BasicModel::getNew('SystemTypeModel');
@@ -99,7 +100,7 @@ class Map extends Controller\AccessController {
             ];
             $systemTypeData[$rowData->name] = $data;
         }
-        $initData['systemType'] = $systemTypeData;
+        $return->systemType = $systemTypeData;
 
         // get available connection scopes ------------------------------------
         $connectionScope = Model\BasicModel::getNew('ConnectionScopeModel');
@@ -113,7 +114,7 @@ class Map extends Controller\AccessController {
             ];
             $connectionScopeData[$rowData->name] = $data;
         }
-        $initData['connectionScopes'] = $connectionScopeData;
+        $return->connectionScopes = $connectionScopeData;
 
         // get available character status -------------------------------------
         $characterStatus = Model\BasicModel::getNew('CharacterStatusModel');
@@ -127,17 +128,33 @@ class Map extends Controller\AccessController {
             ];
             $characterStatusData[$rowData->name] = $data;
         }
-        $initData['characterStatus'] = $characterStatusData;
+        $return->characterStatus = $characterStatusData;
 
         // get max number of shared entities per map --------------------------
         $maxSharedCount = [
-            'user' => $f3->get('PATHFINDER.MAX_SHARED_USER'),
+            'character' => $f3->get('PATHFINDER.MAX_SHARED_CHARACTER'),
             'corporation' => $f3->get('PATHFINDER.MAX_SHARED_CORPORATION'),
             'alliance' => $f3->get('PATHFINDER.MAX_SHARED_ALLIANCE'),
         ];
-        $initData['maxSharedCount'] = $maxSharedCount;
+        $return->maxSharedCount = $maxSharedCount;
 
-        echo json_encode($initData);
+        // get program routes -------------------------------------------------
+        $return->routes = [
+            'ssoLogin' => $this->getF3()->alias( 'sso', ['action' => 'requestAuthorization'] )
+        ];
+
+        // get SSO error messages that should be shown immediately ------------
+        // -> e.g. errors while character switch from previous HTTP requests
+        if( $f3->exists(Controller\Ccp\Sso::SESSION_KEY_SSO_ERROR) ){
+            $ssoError = (object) [];
+            $ssoError->type = 'error';
+            $ssoError->title = 'Login failed';
+            $ssoError->message = $f3->get(Controller\Ccp\Sso::SESSION_KEY_SSO_ERROR);
+            $return->error[] = $ssoError;
+            $f3->clear(Controller\Ccp\Sso::SESSION_KEY_SSO_ERROR);
+        }
+
+        echo json_encode($return);
     }
 
     /**
@@ -212,7 +229,6 @@ class Map extends Controller\AccessController {
                                     $system->reset();
                                 }
                             }
-
 
                             foreach($mapData['data']['connections'] as $connectionData){
                                 // check if source and target IDs match with new system ID
@@ -296,7 +312,6 @@ class Map extends Controller\AccessController {
             $activeCharacter = $this->getCharacter(0);
 
             if($activeCharacter){
-                $user = $activeCharacter->getUser();
 
                 /**
                  * @var $map Model\MapModel
@@ -306,7 +321,7 @@ class Map extends Controller\AccessController {
 
                 if(
                     $map->dry() ||
-                    $map->hasAccess($user)
+                    $map->hasAccess($activeCharacter)
                 ){
                     // new map
                     $map->setData($formData);
@@ -315,36 +330,36 @@ class Map extends Controller\AccessController {
                     // save global map access. Depends on map "type"
                     if($map->isPrivate()){
 
-                        // share map between users -> set access
-                        if(isset($formData['mapUsers'])){
+                        // share map between characters -> set access
+                        if(isset($formData['mapCharacters'])){
                             // avoid abuse -> respect share limits
-                            $accessUsers = array_slice( $formData['mapUsers'], 0, $f3->get('PATHFINDER.MAX_SHARED_USER') );
+                            $accessCharacters = array_slice( $formData['mapCharacters'], 0, $f3->get('PATHFINDER.MAX_SHARED_CHARACTER') );
 
                             // clear map access. In case something has removed from access list
                             $map->clearAccess();
 
                             /**
-                             * @var $tempUser Model\UserModel
+                             * @var $tempCharacter Model\CharacterModel
                              */
-                            $tempUser = Model\BasicModel::getNew('UserModel');
+                            $tempCharacter = Model\BasicModel::getNew('CharacterModel');
 
-                            foreach($accessUsers as $userId){
-                                $tempUser->getById( (int)$userId );
+                            foreach($accessCharacters as $characterId){
+                                $tempCharacter->getById( (int)$characterId );
 
                                 if(
-                                    !$tempUser->dry() &&
-                                    $tempUser->shared == 1 // check if map shared is enabled
+                                    !$tempCharacter->dry() &&
+                                    $tempCharacter->shared == 1 // check if map shared is enabled
                                 ){
-                                    $map->setAccess($tempUser);
+                                    $map->setAccess($tempCharacter);
                                 }
 
-                                $tempUser->reset();
+                                $tempCharacter->reset();
                             }
                         }
 
-                        // the current user itself should always have access
+                        // the current character itself should always have access
                         // just in case he removed himself :)
-                        $map->setAccess($user);
+                        $map->setAccess($activeCharacter);
                     }elseif($map->isCorporation()){
                         $corporation = $activeCharacter->getCorporation();
 
@@ -459,7 +474,7 @@ class Map extends Controller\AccessController {
              */
             $map = Model\BasicModel::getNew('MapModel');
             $map->getById($mapData['id']);
-            $map->delete( $activeCharacter->getUser() );
+            $map->delete( $activeCharacter );
         }
 
         echo json_encode([]);
@@ -480,15 +495,15 @@ class Map extends Controller\AccessController {
 
         if($activeCharacter){
 
-            $cacheKey = 'user_map_data_' . $activeCharacter->id;
+            $cacheKey = 'user_map_data_' . $activeCharacter->_id;
 
             // if there is any system/connection change data submitted -> save new data
             if(
-                !$f3->exists($cacheKey) ||
-                !empty($mapData)
+                !empty($mapData) ||
+                !$f3->exists($cacheKey)
             ){
                 // get current map data ========================================================
-                $maps = $activeCharacter->getUser()->getMaps();
+                $maps = $activeCharacter->getMaps();
 
                 // loop all submitted map data that should be saved
                 // -> currently there will only be ONE map data change submitted -> single loop
@@ -583,7 +598,7 @@ class Map extends Controller\AccessController {
 
                 // cache time(s) per user should be equal or less than this function is called
                 // prevent request flooding
-                $responseTTL = $f3->get('PATHFINDER.TIMER.UPDATE_SERVER_MAP.DELAY') / 1000;
+                $responseTTL = (int)$f3->get('PATHFINDER.TIMER.UPDATE_SERVER_MAP.DELAY') / 1000;
 
                 $f3->set($cacheKey, $return, $responseTTL);
             }else{
@@ -631,17 +646,16 @@ class Map extends Controller\AccessController {
     public function updateUserData(\Base $f3){
         $return = (object) [];
         $return->error = [];
-        $activeCharacter = $this->getCharacter();
+        $activeCharacter = $this->getCharacter(0);
 
         if($activeCharacter){
-            $user = $activeCharacter->getUser();
 
             if( !empty($f3->get('POST.mapIds')) ){
                 $mapIds = (array)$f3->get('POST.mapIds');
                 // check if data for specific system is requested
                 $systemData = (array)$f3->get('POST.systemData');
                 // update current location
-                $activeCharacter->updateLog();
+                $activeCharacter = $activeCharacter->updateLog();
 
                 // if data is requested extend the cache key in order to get new data
                 $requestSystemData = (object) [];
@@ -657,7 +671,7 @@ class Map extends Controller\AccessController {
                 $cacheKey = 'user_data_' . $tempId . '_' . $requestSystemData->systemId;
                 if( !$f3->exists($cacheKey) ){
                     foreach($mapIds as $mapId){
-                        $map = $user->getMap($mapId);
+                        $map = $activeCharacter->getMap($mapId);
 
                         if( !is_null($map) ){
                             $return->mapUserData[] = $map->getUserData();
@@ -677,7 +691,7 @@ class Map extends Controller\AccessController {
 
                     // cache time (seconds) should be equal or less than request trigger time
                     // prevent request flooding
-                    $responseTTL = $f3->get('PATHFINDER.TIMER.UPDATE_SERVER_USER_DATA.DELAY') / 1000;
+                    $responseTTL = (int)$f3->get('PATHFINDER.TIMER.UPDATE_SERVER_USER_DATA.DELAY') / 1000;
 
                     // cache response
                     $f3->set($cacheKey, $return, $responseTTL);
@@ -688,9 +702,10 @@ class Map extends Controller\AccessController {
                     $return = $f3->get($cacheKey);
                 }
             }
+
             // get current user data -> this should not be cached because each user has different personal data
             // even if they have multiple characters using the same map!
-            $return->userData = $user->getData();
+            $return->userData = $activeCharacter->getUser()->getData();
         }else{
             // user logged off
             $return->error[] = $this->getLogoutError();
