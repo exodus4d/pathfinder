@@ -1422,12 +1422,11 @@ define([
                 tempData.id = sigId;
 
                 // set status --------------------------------------------------------------------------------------
-                var status = '';
                 var statusClass = '';
                 if(data.updated.character !== undefined){
                     statusClass = Util.getStatusInfoForCharacter(data.updated.character, 'class');
                 }
-                status =  '<i class="fa fa-fw fa-circle pf-user-status ' + statusClass + '"></i>';
+                var status = '<i class="fa fa-fw fa-circle pf-user-status ' + statusClass + '"></i>';
 
                 tempData.status = {
                     status: status,
