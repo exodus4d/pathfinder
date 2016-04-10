@@ -1029,8 +1029,8 @@ define([
                         key > 0 &&
                         tempSelectOptions.hasOwnProperty(key)
                     ) {
-                        fixSelectOptions.push( {value: key, text: tempSelectOptions[key] } );
                         newSelectOptionsCount++;
+                        fixSelectOptions.push( {value: key, text: tempSelectOptions[key] } );
                     }
                 }
 
@@ -1055,8 +1055,8 @@ define([
                         frigKey > 0 &&
                         frigateHoles.hasOwnProperty(frigKey)
                     ) {
-                        frigateWHData.push( {value: newSelectOptionsCount, text: frigateHoles[frigKey]} );
                         newSelectOptionsCount++;
+                        frigateWHData.push( {value: newSelectOptionsCount, text: frigateHoles[frigKey]} );
                     }
                 }
 
@@ -1071,8 +1071,8 @@ define([
                         incomingKey > 0 &&
                         Init.incomingWormholes.hasOwnProperty(incomingKey)
                     ) {
-                        incomingWHData.push( {value: newSelectOptionsCount, text: Init.incomingWormholes[incomingKey]} );
                         newSelectOptionsCount++;
+                        incomingWHData.push( {value: newSelectOptionsCount, text: Init.incomingWormholes[incomingKey]} );
                     }
                 }
 
@@ -1093,8 +1093,8 @@ define([
                 for(var i = 0; i < systemData.statics.length; i++){
                     var staticWHName = systemData.statics[i].name + ' - ' + systemData.statics[i].security;
 
-                    staticWHData.push( {value: newSelectOptionsCount, text: staticWHName} );
                     newSelectOptionsCount++;
+                    staticWHData.push( {value: newSelectOptionsCount, text: staticWHName} );
                 }
 
                 if(staticWHData.length > 0){
