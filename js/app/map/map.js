@@ -869,6 +869,7 @@ define([
         // no visual effects in IGB (glitches)
         if(
             systemElements.length === 0 ||
+            systemElements.length > 20 ||
             endpointElements.length === 0 ||
             CCP.isInGameBrowser() === true
         ){
