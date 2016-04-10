@@ -942,18 +942,7 @@ define([
                 var systemTypeId = parseInt( signatureNameField.attr('data-systemTypeId') );
                 var areaId = parseInt( signatureNameField.attr('data-areaid') );
                 var groupId = parseInt( signatureNameField.attr('data-groupId') );
-
-                var cacheKey = [systemTypeId, areaId, groupId].join('_');
-
-                // check for cached signature names
-                if(sigNameCache.hasOwnProperty( cacheKey )){
-                    return sigNameCache[cacheKey];
-                }
-
-                var signatureNames = getAllSignatureNames(systemData, systemTypeId, areaId, groupId);
-
-                // get all available Signature Names
-                var availableSigs = sigNameCache[cacheKey] = signatureNames;
+                var availableSigs = getAllSignatureNames(systemData, systemTypeId, areaId, groupId);
 
                 return availableSigs;
             },
@@ -1019,43 +1008,89 @@ define([
      */
     var getAllSignatureNames = function(systemData, systemTypeId, areaId, groupId){
         var newSelectOptions = [];
+        var cacheKey = [systemTypeId, areaId, groupId].join('_');
         var newSelectOptionsCount = 0;
 
-        // set new Options ----------
-        // get all possible "static" signature names by the selected groupId
-        var tempSelectOptions = Util.getAllSignatureNames(systemTypeId, areaId, groupId);
+        // check for cached signature names
+        if(sigNameCache.hasOwnProperty( cacheKey )){
+            // cached signatures do not include static WHs!
+            newSelectOptions =  sigNameCache[cacheKey].slice(0);
+            newSelectOptionsCount = sumSignaturesRecursive('children', newSelectOptions);
+        }else{
+            // get new Options ----------
+            // get all possible "static" signature names by the selected groupId
+            var tempSelectOptions = Util.getAllSignatureNames(systemTypeId, areaId, groupId);
 
-        // format options into array with objects advantages: keep order, add more options (whs), use optgroup
-        if(tempSelectOptions){
-            var fixSelectOptions = [];
-            for (var key in tempSelectOptions) {
-                if (
-                    key > 0 &&
-                    tempSelectOptions.hasOwnProperty(key)
-                ) {
-                    //newSelectOptions.push({value: key, text: tempSelectOptions[key] });
-                    fixSelectOptions.push( {value: key, text: tempSelectOptions[key] } );
-                    newSelectOptionsCount++;
+            // format options into array with objects advantages: keep order, add more options (whs), use optgroup
+            if(tempSelectOptions){
+                var fixSelectOptions = [];
+                for (var key in tempSelectOptions) {
+                    if (
+                        key > 0 &&
+                        tempSelectOptions.hasOwnProperty(key)
+                    ) {
+                        fixSelectOptions.push( {value: key, text: tempSelectOptions[key] } );
+                        newSelectOptionsCount++;
+                    }
+                }
+
+                if(newSelectOptionsCount > 0){
+                    if(groupId === 5){
+                        // "wormhole" selected => multiple <optgroup> available
+                        newSelectOptions.push({ text: 'Wandering WHs', children: fixSelectOptions});
+                    }else{
+                        newSelectOptions = fixSelectOptions;
+                    }
                 }
             }
 
-            if(newSelectOptionsCount > 0){
-                if(groupId === 5){
-                    // "wormhole" selected => multiple <optgroup> available
-                    newSelectOptions.push({ text: 'Wandering WHs', children: fixSelectOptions});
-                }else{
-                    newSelectOptions = fixSelectOptions;
+            // wormhole (cached signatures)
+            if( groupId === 5 ){
+
+                // add possible frigate holes
+                var frigateHoles = getFrigateHolesBySystem(areaId);
+                var frigateWHData = [];
+                for(var frigKey in frigateHoles){
+                    if (
+                        frigKey > 0 &&
+                        frigateHoles.hasOwnProperty(frigKey)
+                    ) {
+                        frigateWHData.push( {value: newSelectOptionsCount, text: frigateHoles[frigKey]} );
+                        newSelectOptionsCount++;
+                    }
+                }
+
+                if(frigateWHData.length > 0){
+                    newSelectOptions.push({ text: 'Frigate WHs', children: frigateWHData});
+                }
+
+                // add possible incoming holes
+                var incomingWHData = [];
+                for(var incomingKey in Init.incomingWormholes){
+                    if (
+                        incomingKey > 0 &&
+                        Init.incomingWormholes.hasOwnProperty(incomingKey)
+                    ) {
+                        incomingWHData.push( {value: newSelectOptionsCount, text: Init.incomingWormholes[incomingKey]} );
+                        newSelectOptionsCount++;
+                    }
+                }
+
+                if(incomingWHData.length > 0){
+                    newSelectOptions.push({ text: 'Incoming WHs', children: incomingWHData});
                 }
             }
+
+            // update cache (clone array) -> further manipulation to this array, should not be cached
+            sigNameCache[cacheKey] = newSelectOptions.slice(0);
         }
 
-        // wormhole
+        // static wormholes (DO NOT CACHE) (not all C2 WHs have the same statics,...
         if( groupId === 5 ){
             // add static WH(s) for this system
             if(systemData.statics){
                 var staticWHData = [];
                 for(var i = 0; i < systemData.statics.length; i++){
-                    newSelectOptionsCount++;
                     var staticWHName = systemData.statics[i].name + ' - ' + systemData.statics[i].security;
 
                     staticWHData.push( {value: newSelectOptionsCount, text: staticWHName} );
@@ -1066,41 +1101,6 @@ define([
                     newSelectOptions.unshift({ text: 'Static WHs', children: staticWHData});
                 }
             }
-
-            // add possible frigate holes
-            var frigateHoles = getFrigateHolesBySystem(areaId);
-            var frigateWHData = [];
-            for(var frigKey in frigateHoles){
-                if (
-                    frigKey > 0 &&
-                    frigateHoles.hasOwnProperty(frigKey)
-                ) {
-                    frigateWHData.push( {value: newSelectOptionsCount, text: frigateHoles[frigKey]} );
-                    newSelectOptionsCount++;
-                }
-            }
-
-            if(frigateWHData.length > 0){
-                newSelectOptions.push({ text: 'Frigate WHs', children: frigateWHData});
-            }
-
-            // add possible incoming holes
-            var incomingWHData = [];
-            for(var incomingKey in Init.incomingWormholes){
-                if (
-                    incomingKey > 0 &&
-                    Init.incomingWormholes.hasOwnProperty(incomingKey)
-                ) {
-                    incomingWHData.push( {value: newSelectOptionsCount, text: Init.incomingWormholes[incomingKey]} );
-                    newSelectOptionsCount++;
-                }
-            }
-
-            if(incomingWHData.length > 0){
-                newSelectOptions.push({ text: 'Incoming WHs', children: incomingWHData});
-            }
-
-
         }
 
         // if selectOptions available -> add "empty" option as well
@@ -1108,8 +1108,40 @@ define([
             newSelectOptions.unshift({ value: 0, text: ''});
         }
 
-
         return newSelectOptions;
+    };
+
+    /**
+     * recursive sum array.length for a given object key
+     * -> e.g.
+     * {
+     *     first: {
+     *         count = [4, 2, 1]
+     *         test = { ... }
+     *     },
+     *     second: {
+     *         count = [12, 13]
+     *         test = { ... }
+     *     }
+     * }
+     * -> sumSignaturesRecursive('count', obj) => 5;
+     * @param key
+     * @param obj
+     * @returns {number}
+     */
+    var sumSignaturesRecursive = function(key, obj){
+        var sum = 0;
+
+        for (var prop in obj) {
+            if (obj.hasOwnProperty(prop) && key === prop) {
+                sum += obj[prop].length;
+            }
+            else if (Object.prototype.toString.call(obj[prop]) === '[object Object]') {
+                sum += sumSignaturesRecursive(key, obj[prop]);
+            }
+        }
+
+        return sum;
     };
 
     /**
