@@ -196,7 +196,7 @@ class System extends \Controller\AccessController {
                 $mapData = (array)$postData['mapData'];
 
                 if( isset($systemData['id']) ){
-                    // update existing system
+                    // update existing system (e.g. changed system description) -------------------
 
                     /**
                      * @var $system Model\SystemModel
@@ -210,24 +210,27 @@ class System extends \Controller\AccessController {
                         }
                     }
                 }elseif( isset($mapData['id']) ){
-                    // save NEW system
+                    // save NEW system ------------------------------------------------------------
 
                     /**
                      * @var $map Model\MapModel
                      */
                     $map = Model\BasicModel::getNew('MapModel');
                     $map->getById($mapData['id']);
-                    if( !$map->dry() ){
-                        if( $map->hasAccess($activeCharacter) ){
-
-                            $systemData['mapId'] = $map;
-
-                            // get static system data (CCP DB)
+                    if(
+                        !$map->dry() &&
+                        $map->hasAccess($activeCharacter)
+                    ){
+                        // make sure system is not already on map
+                        // --> (e.g. multiple simultaneously save() calls for the same system)
+                        if( is_null( $systemModel = $map->getSystemByCCPId($systemData['systemId']) ) ){
+                            // system not found on map -> get static system data (CCP DB)
                             $systemModel = array_values( $this->_getSystemModelByIds([$systemData['systemId']]) )[0];
-
                             $systemModel->createdCharacterId = $activeCharacter;
-
                         }
+
+                        // map is not changeable for a system! (security)
+                        $systemData['mapId'] = $map;
                     }
                 }
             }

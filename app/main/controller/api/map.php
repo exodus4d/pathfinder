@@ -679,7 +679,7 @@ class Map extends Controller\AccessController {
 
                             // request signature data for a system if user has map access!
                             if( $map->id === $requestSystemData->mapId ){
-                                $system = $map->getSystem( $requestSystemData->systemId );
+                                $system = $map->getSystemById( $requestSystemData->systemId );
 
                                 if( !is_null($system) ){
                                     // data for currently selected system

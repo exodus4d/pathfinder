@@ -49,8 +49,8 @@ class Connection extends Controller\AccessController{
                 $map->getById( (int)$mapData['id'] );
 
                 if( $map->hasAccess($activeCharacter) ){
-                    $source = $map->getSystem( (int)$connectionData['source'] );
-                    $target = $map->getSystem( (int)$connectionData['target'] );
+                    $source = $map->getSystemById( $connectionData['source'] );
+                    $target = $map->getSystemById( $connectionData['target'] );
 
                     if(
                         !is_null($source) &&

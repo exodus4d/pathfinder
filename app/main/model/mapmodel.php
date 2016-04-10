@@ -210,40 +210,61 @@ class MapModel extends BasicModel {
     }
 
     /**
-     * search for a system by id
-     * @param $systemId
-     * @return null
+     * search for a system by CCPs systemId
+     * @param int $systemId
+     * @return null|SystemModel
      */
-    public function getSystem($systemId){
-        $searchSystem = null;
-
-        if($systemId > 0){
-            $systems = $this->getSystems();
-            foreach($systems as $system){
-                if($system->id == $systemId){
-                    $searchSystem = $system;
-                    break;
-                }
-            }
+    public function getSystemByCCPId($systemId){
+        $system = null;
+        if( !empty($systems = $this->getSystems('systemId', (int)$systemId) ) ){
+            $system = $systems[0];
         }
 
-        return $searchSystem;
+        return $system;
     }
 
     /**
-     * get all system models in this map
+     * search for a system by id
+     * @param int $systemId
+     * @return null|SystemModel
+     */
+    public function getSystemById($systemId){
+        $system = null;
+        if( !empty($systems = $this->getSystems('id', (int)$systemId) ) ){
+            $system = $systems[0];
+        }
+
+        return $system;
+    }
+
+    /**
+     * get either all system models in this map
+     * -> or get a specific system by column filter
+     * @param string $column
+     * @param string $value
      * @return array|mixed
      */
-    public function getSystems(){
-        // orderBy x-Coordinate for cleaner frontend animation (left to right)
-        $this->filter('systems',
-            ['active = :active AND id > 0',
-                ':active' => 1
-            ],
+    public function getSystems($column = '', $value = ''){
+        $systems = [];
+
+        $filterQuery = ['active = :active AND id > 0',
+            ':active' => 1
+        ];
+
+        // add more filter options....
+        if(
+            !empty($column) &&
+            !empty($value)
+        ){
+            $filterQuery[0] .= ' AND ' . $column . ' = :value';
+            $filterQuery[':value'] = $value;
+        }
+
+        // orderBy x-Coordinate for smoother frontend animation (left to right)
+        $this->filter('systems', $filterQuery,
             ['order' => 'posX']
         );
 
-        $systems = [];
         if($this->systems){
             $systems = $this->systems;
         }
