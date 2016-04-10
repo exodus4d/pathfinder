@@ -94,13 +94,15 @@ class Web extends \Web {
      * -> caches response by returned HTTP Cache header data
      * @param string $url
      * @param array|null $options
+     * @param array $additionalOptions
      * @return array|FALSE|mixed
      */
-    public function request($url,array $options = null) {
+    public function request($url,array $options = null, $additionalOptions = []) {
         $f3 = \Base::instance();
 
         if( !$f3->exists( $hash = $this->getCacheKey($url, $options) ) ){
             $result = parent::request($url, $options);
+            $result['timeout'] = false;
             $statusCode = $this->getStatuscodeFromHeaders( $result['headers'] );
 
             switch($statusCode){
@@ -119,7 +121,6 @@ class Web extends \Web {
                 case 501:
                 case 502:
                 case 503:
-                case 504:
                 case 505:
                     $f3->error($statusCode, $this->getErrorMessageFromJsonResponse(
                         $options['method'],
@@ -127,8 +128,20 @@ class Web extends \Web {
                         json_decode($result['body'])
                     ));
                     break;
+                case 504:
                 case 0:
-                    // timeout
+                    // timeout -> response should not be cached
+                    $result['timeout'] = true;
+
+                    if($additionalOptions['suppressTimeoutErrors'] !== true){
+                        // set error...
+                        $f3->error(504, $this->getErrorMessageFromJsonResponse(
+                            $options['method'],
+                            $url
+                        ));
+                    }
+
+                    // log error
                     LogController::getLogger('error')->write(
                         sprintf(self::ERROR_TIMEOUT, $options['timeout'], $url)
                     );
@@ -149,12 +162,12 @@ class Web extends \Web {
 
     /**
      * get error message from response object
-     * @param string $method
-     * @param string $url
-     * @param \stdClass $responseBody
+     * @param $method
+     * @param $url
+     * @param null|\stdClass $responseBody
      * @return string
      */
-    protected function getErrorMessageFromJsonResponse($method, $url, $responseBody){
+    protected function getErrorMessageFromJsonResponse($method, $url, $responseBody = null){
         if( empty($responseBody->message) ){
             $message = sprintf(self::ERROR_DEFAULT_MSG, $method, $url);
         }else{

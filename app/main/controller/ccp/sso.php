@@ -174,6 +174,9 @@ class Sso extends Api\User{
                                             $user->save();
                                         }
 
+                                        /**
+                                         * @var $userCharactersModel Model\UserCharacterModel
+                                         */
                                         if( is_null($userCharactersModel = $characterModel->userCharacter) ){
                                             $userCharactersModel = Model\BasicModel::getNew('UserCharacterModel');
                                             $userCharactersModel->characterId = $characterModel;
@@ -377,24 +380,25 @@ class Sso extends Api\User{
     /**
      * get all available Endpoints
      * @param $accessToken
+     * @param array $additionalOptions
      * @return mixed|null
      */
-    protected function getEndpoints($accessToken){
+    protected function getEndpoints($accessToken, $additionalOptions = []){
         $crestUrl = self::getCrestEndpoint();
-        $contentType = 'application/vnd.ccp.eve.Api-v3+json';
-        $endpoint = $this->getEndpoint($accessToken, $crestUrl, $contentType);
+        $additionalOptions['contentType'] = 'application/vnd.ccp.eve.Api-v3+json';
+        $endpoint = $this->getEndpoint($accessToken, $crestUrl, $additionalOptions);
 
         return $endpoint;
     }
 
     /**
      * get a specific endpoint by its $resourceUrl
-     * @param $accessToken
-     * @param $resourceUrl
-     * @param string $contentType
+     * @param string $accessToken CREST access token
+     * @param string $resourceUrl endpoint API url
+     * @param array $additionalOptions optional request options (pathfinder specific)
      * @return mixed|null
      */
-    protected function getEndpoint($accessToken, $resourceUrl, $contentType = ''){
+    protected function getEndpoint($accessToken, $resourceUrl, $additionalOptions = []){
         $resourceUrlParts = parse_url($resourceUrl);
         $endpoint = null;
 
@@ -412,13 +416,16 @@ class Sso extends Api\User{
 
             // if specific contentType is required -> add it to request header
             // CREST versioning can be done by calling different "Accept:" Headers
-            if( !empty($contentType) ){
-                $requestOptions['header'][] = 'Accept: ' . $contentType;
+            if( isset($additionalOptions['contentType']) ){
+                $requestOptions['header'][] = 'Accept: ' . $additionalOptions['contentType'];
             }
 
-            $apiResponse = Lib\Web::instance()->request($resourceUrl, $requestOptions);
+            $apiResponse = Lib\Web::instance()->request($resourceUrl, $requestOptions, $additionalOptions);
 
-            if($apiResponse['headers']){
+            if(
+                $apiResponse['timeout'] === false &&
+                $apiResponse['headers']
+            ){
                 // check headers for  error
                 $this->checkResponseHeaders($apiResponse['headers'], $requestOptions);
 
@@ -441,9 +448,10 @@ class Sso extends Api\User{
      * @param $accessToken
      * @param $endpoint
      * @param array $path
-     * @return null|string
+     * @param array $additionalOptions
+     * @return null
      */
-    protected function walkEndpoint($accessToken, $endpoint, $path = []){
+    protected function walkEndpoint($accessToken, $endpoint, $path = [], $additionalOptions = []){
         $targetEndpoint = null;
 
         if( !empty($path) ){
@@ -451,8 +459,8 @@ class Sso extends Api\User{
             if(isset($endpoint[$newNode])){
                 $currentEndpoint = $endpoint[$newNode];
                 if(isset($currentEndpoint['href'])){
-                    $newEndpoint = $this->getEndpoint($accessToken, $currentEndpoint['href']);
-                    $targetEndpoint = $this->walkEndpoint($accessToken, $newEndpoint, $path);
+                    $newEndpoint = $this->getEndpoint($accessToken, $currentEndpoint['href'], $additionalOptions);
+                    $targetEndpoint = $this->walkEndpoint($accessToken, $newEndpoint, $path, $additionalOptions);
                 }else{
                     // leaf found
                     $targetEndpoint = $currentEndpoint;
@@ -471,16 +479,17 @@ class Sso extends Api\User{
     /**
      * get character data
      * @param $accessToken
-     * @return array
+     * @param array $additionalOptions
+     * @return object
      */
-    protected function getCharacterData($accessToken){
-        $endpoints = $this->getEndpoints($accessToken);
+    protected function getCharacterData($accessToken, $additionalOptions = []){
+        $endpoints = $this->getEndpoints($accessToken, $additionalOptions);
         $characterData = (object) [];
 
         $endpoint = $this->walkEndpoint($accessToken, $endpoints, [
             'decode',
             'character'
-        ]);
+        ], $additionalOptions);
 
         if( !empty($endpoint) ){
             $characterData->character = (new Mapper\CrestCharacter($endpoint))->getData();
@@ -497,31 +506,45 @@ class Sso extends Api\User{
      * -> solarSystem data where character is currently active
      * @param $accessToken
      * @param int $ttl
-     * @return array
+     * @param array $additionalOptions
+     * @return array|mixed
      */
-    public function getCharacterLocationData($accessToken, $ttl = 10){
-        $locationData = [];
+    public function getCharacterLocationData($accessToken, $ttl = 10, $additionalOptions = []){
+        // null == CREST call failed (e.g. timeout)
+        $locationData = [
+            'timeout' => false
+        ];
 
         // in addition to the cURL caching (based on cache-control headers,
         // the final location data is cached additionally -> speed up
         $cacheKey = sprintf(self::CACHE_KEY_LOCATION_DATA, 'TOKEN_' . hash('md5', $accessToken));
 
         if( !$this->getF3()->exists($cacheKey) ){
-            $endpoints = $this->getEndpoints($accessToken);
+            $endpoints = $this->getEndpoints($accessToken, $additionalOptions);
 
             $endpoint = $this->walkEndpoint($accessToken, $endpoints, [
                 'decode',
                 'character',
                 'location'
-            ]);
+            ], $additionalOptions);
 
-            if( !empty($endpoint) ){
+            if( !is_null($endpoint) ){
+                // request succeeded (e.g. no timeout)
+
                 if(isset($endpoint['solarSystem'])){
                     $locationData['system'] = (new Mapper\CrestSystem($endpoint['solarSystem']))->getData();
                 }
+
+                if(isset($endpoint['station'])){
+                    $locationData['station'] = (new Mapper\CrestStation($endpoint['station']))->getData();
+                }
+
+                $this->getF3()->set($cacheKey, $locationData, $ttl);
+            }else{
+                // timeout
+                $locationData['timeout'] = true;
             }
 
-            $this->getF3()->set($cacheKey, $locationData, $ttl);
         }else{
             $locationData = $this->getF3()->get($cacheKey);
         }

@@ -655,7 +655,8 @@ class Map extends Controller\AccessController {
                 // check if data for specific system is requested
                 $systemData = (array)$f3->get('POST.systemData');
                 // update current location
-                $activeCharacter = $activeCharacter->updateLog();
+                // -> suppress temporary timeout errors
+                $activeCharacter = $activeCharacter->updateLog(['suppressTimeoutErrors' => true]);
 
                 // if data is requested extend the cache key in order to get new data
                 $requestSystemData = (object) [];

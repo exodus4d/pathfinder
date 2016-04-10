@@ -35,13 +35,13 @@ class SystemSignatureModel extends BasicModel {
         'groupId' => [
             'type' => Schema::DT_INT,
             'nullable' => false,
-            'default' => 1,
+            'default' => 0,
             'index' => true,
         ],
         'typeId' => [
             'type' => Schema::DT_INT,
             'nullable' => false,
-            'default' => 1,
+            'default' => 0,
             'index' => true,
         ],
         'name' => [

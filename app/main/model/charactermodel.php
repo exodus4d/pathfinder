@@ -334,10 +334,13 @@ class CharacterModel extends BasicModel {
      * update character log (active system, ...)
      * -> HTTP Header Data (if IGB)
      * -> CREST API request for character log data (if not IGB)
-     * @return CharacterModel
+     * @param array $additionalOptions (optional) request options for cURL request
+     * @return $this
      */
-    public function updateLog(){
-
+    public function updateLog($additionalOptions = []){
+        // check if everything is OK
+        // -> do not update log in case of temporary CREST timeouts
+        $updateLogData = false;
         $logData = [];
         $headerData = Controller\Controller::getIGBHeaderData();
 
@@ -354,33 +357,40 @@ class CharacterModel extends BasicModel {
                 isset($formattedHeaderData['character']) &&
                 $formattedHeaderData['character']['id'] == $this->_id
             ){
+                $updateLogData = true;
                 $logData =  $formattedHeaderData;
             }
         }else{
             // get Location Data from CREST endpoint
             // user is NOT with IGB online OR has not jet set "trusted" page
             $ssoController = new Ccp\Sso();
-            $logData = $ssoController->getCharacterLocationData($this->getAccessToken());
+            $logData = $ssoController->getCharacterLocationData($this->getAccessToken(), 10, $additionalOptions);
+
+            if($logData['timeout'] === false){
+                $updateLogData = true;
+            }
         }
 
-        if( empty($logData) ){
-            // character is not in-game
-            if(is_object($this->characterLog)){
-                // delete existing log
-                $this->characterLog->erase();
-                $this->save();
-            }
-        }else{
-            // character is currently in-game
-            if( !$characterLog = $this->getLog() ){
-                // create new log
-                $characterLog = $this->rel('characterLog');
-                $characterLog->characterId = $this->_id;
-            }
-            $characterLog->setData($logData);
-            $characterLog->save();
+        if($updateLogData == true){
+            if( empty($logData['system']) ){
+                // character is not in-game
+                if(is_object($this->characterLog)){
+                    // delete existing log
+                    $this->characterLog->erase();
+                    $this->save();
+                }
+            }else{
+                // character is currently in-game
+                if( !$characterLog = $this->getLog() ){
+                    // create new log
+                    $characterLog = $this->rel('characterLog');
+                    $characterLog->characterId = $this->_id;
+                }
+                $characterLog->setData($logData);
+                $characterLog->save();
 
-            $this->characterLog = $characterLog;
+                $this->characterLog = $characterLog;
+            }
         }
 
         return $this;
