@@ -242,16 +242,17 @@ class SystemModel extends BasicModel {
             $systemData->position->x = $this->posX;
             $systemData->position->y = $this->posY;
 
-            if($this->createdCharacterId){
-                $systemData->created = (object) [];
+
+            $systemData->created = (object) [];
+            $systemData->created->created = strtotime($this->created);
+            if( is_object($this->createdCharacterId) ){
                 $systemData->created->character = $this->createdCharacterId->getData();
-                $systemData->created->created = strtotime($this->created);
             }
 
-            if($this->updatedCharacterId){
-                $systemData->updated = (object) [];
+            $systemData->updated = (object) [];
+            $systemData->updated->updated = strtotime($this->updated);
+            if( is_object($this->updatedCharacterId) ){
                 $systemData->updated->character = $this->updatedCharacterId->getData();
-                $systemData->updated->updated = strtotime($this->updated);
             }
 
             // max caching time for a system
