@@ -237,7 +237,7 @@ define([
             if(avgSecForClass < 0){
                 avgSecForClass = '0.0';
             }
-            console.log(avgSecForClass)
+
             var avgSecClass = config.systemSecurityClassPrefix + avgSecForClass.toString().replace('.', '-');
 
             tableRowData.system = rowData[0];
