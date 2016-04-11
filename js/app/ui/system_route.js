@@ -232,7 +232,13 @@ define([
             }
 
             var avgSec = ( avgSecTemp /  routeData.route.length).toFixed(2);
-            var avgSecClass = config.systemSecurityClassPrefix + ( avgSecTemp /  routeData.route.length).toFixed(1).toString().replace('.', '-');
+            var avgSecForClass = Number(avgSec).toFixed(1);
+
+            if(avgSecForClass < 0){
+                avgSecForClass = '0.0';
+            }
+            console.log(avgSecForClass)
+            var avgSecClass = config.systemSecurityClassPrefix + avgSecForClass.toString().replace('.', '-');
 
             tableRowData.system = rowData[0];
             tableRowData.jumps = rowData[1];
