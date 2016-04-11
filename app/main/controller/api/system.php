@@ -13,14 +13,15 @@ use Model;
 class System extends \Controller\AccessController {
 
     private $mainQuery = "SELECT
-            map_sys.constellationID connstallation_id,
-            map_sys.solarSystemID system_id,
-            map_sys.solarSystemName system_name,
-            ROUND( map_sys.security, 2) system_security,
-            map_con.constellationName constallation_name,
-	        map_reg.regionID region_id,
-	        map_reg.regionName region_name,
-	        '' type,
+            map_sys.constellationID `connstallation_id`,
+            map_sys.solarSystemID `system_id`,
+            map_sys.solarSystemName `system_name`,
+            map_sys.security `system_security`,
+            map_con.constellationName `constallation_name`,
+	        map_reg.regionID `region_id`,
+	        map_reg.regionName `region_name`,
+	        '0' `trueSec`,
+	        '' `type`,
             IFNULL(
               (
                 SELECT
@@ -33,7 +34,7 @@ class System extends \Controller\AccessController {
                     system_effect.groupID = 995 AND
                     map_norm.solarSystemID = map_sys.solarSystemID
                 LIMIT 1
-              ), '') effect,
+              ), '') `effect`,
             IFNULL(
               (
                 SELECT
@@ -43,7 +44,7 @@ class System extends \Controller\AccessController {
                 WHERE
                     map_worm_class.locationID = map_sys.regionID
                 LIMIT 1
-              ), 7) security
+              ), 7) `security`
         FROM
             mapSolarSystems map_sys INNER JOIN
 	        mapConstellations map_con ON
@@ -157,6 +158,15 @@ class System extends \Controller\AccessController {
         if( isset($params['arg1']) ){
             $searchToken = $params['arg1'];
         }
+
+        // some "edge cases for testing if rounding works correct
+        //$searchToken = 'H472-N'; // -0.000001 -> 0.0
+        //$searchToken = 'X1E-OQ'; // -0.099426 -> -0.10
+        //$searchToken = 'BKK4-H'; // -0.049954 -> -0.05
+        //$searchToken = 'Uhtafal'; // 0.499612 -> 0.5 (HS)
+        //$searchToken = 'Oshaima'; // 0.453128 -> 0.5 (HS)
+        //$searchToken = 'Ayeroilen'; // 0.446568 -> 0.4 (LS)
+        //$searchToken = 'Enderailen'; // 0.448785 -> 0.4 (LS)
 
         $this->whereQuery = "WHERE
             map_sys.solarSystemName LIKE '%" . $searchToken . "%'";

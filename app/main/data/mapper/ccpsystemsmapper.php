@@ -13,7 +13,6 @@ class CcpSystemsMapper extends AbstractIterator {
     protected static $map = [
         'system_id' => 'systemId',
         'system_name' => 'name',
-        'system_security' => 'trueSec',
         'connstallation_id' => ['constellation' => 'id'],
         'constallation_name' => ['constellation' => 'name'],
         'region_id' => ['region' => 'id'],
@@ -21,14 +20,19 @@ class CcpSystemsMapper extends AbstractIterator {
     ];
 
     /**
-     * get formatted data
+     * map iterator
      * @return array
      */
     public function getData(){
 
-        // format functions
-        self::$map['effect'] = function($iterator){
+        // "system trueSec" mapping -------------------------------------------
+        self::$map['trueSec'] = function($iterator){
+            $trueSec = round((float)$iterator['system_security'], 1);
+            return $trueSec;
+        };
 
+        // "system effect" mapping --------------------------------------------
+        self::$map['effect'] = function($iterator){
             $effect = $iterator['effect'];
 
             switch($iterator['effect']){
@@ -55,8 +59,9 @@ class CcpSystemsMapper extends AbstractIterator {
             return $effect;
         };
 
-        // format functions
+        // "system security" mapping ------------------------------------------
         self::$map['security'] = function($iterator){
+            $security = '';
 
             if(
                 $iterator['security'] == 7 ||
@@ -64,7 +69,7 @@ class CcpSystemsMapper extends AbstractIterator {
                 $iterator['security'] == 9
             ){
                 // k-space system
-                $trueSec = round($iterator['trueSec'], 3);
+                $trueSec = round($iterator['system_security'], 3);
 
                 if($trueSec <= 0){
                     $security = '0.0';
@@ -98,7 +103,7 @@ class CcpSystemsMapper extends AbstractIterator {
             return $security;
         };
 
-        // format functions
+        // "system type" mapping ----------------------------------------------
         self::$map['type'] = function($iterator){
 
             // TODO refactor
@@ -121,7 +126,6 @@ class CcpSystemsMapper extends AbstractIterator {
         };
 
         iterator_apply($this, 'self::recursiveIterator', [$this]);
-
 
         return iterator_to_array($this, false);
     }
