@@ -1688,7 +1688,7 @@ define([
      * @returns {string}
      */
     var convertDateToString = function(date){
-        var dateString = ('0'+date.getDate()).slice(-2) + '.' + ('0'+date.getMonth()).slice(-2) + '.' + date.getFullYear();
+        var dateString = ('0'+date.getMonth()).slice(-2) + '/' + ('0'+date.getDate()).slice(-2) + '/' + date.getFullYear();
         var timeString = ('0'+date.getHours()).slice(-2) + ':' + ('0'+date.getMinutes()).slice(-2);
         return   dateString + ' ' + timeString;
     };

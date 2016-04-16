@@ -184,7 +184,7 @@ define([
         var signatureData = $.extend([], signatureDataOrig);
 
         // disable update until function is ready;
-        disableTableUpdate = true;
+        lockSignatureTable();
 
         var moduleElement = $(this);
 
@@ -288,13 +288,35 @@ define([
             Util.showNotify({title: 'Signatures updated', text: notification, type: 'success'});
 
             // wait until add/remove animations are finished before enable table for auto update again
-            setTimeout(function(){ disableTableUpdate = false; }, 2000);
+            unlockSignatureTable(false);
         }else{
-            // enable table update
-            disableTableUpdate = false;
+            // enable table for next update
+            unlockSignatureTable(true);
         }
+    };
 
+    /**
+     * lock system signature table for
+     */
+    var lockSignatureTable = function(){
+        disableTableUpdate = true;
+    };
 
+    /**
+     * unlock system signature table from been locked
+     * -> make table "update-able" again
+     * @param instant
+     */
+    var unlockSignatureTable = function(instant){
+        if(disableTableUpdate === true){
+            if(instant === true){
+                disableTableUpdate = false;
+            }else{
+                // wait until add/remove animations are finished before enable table for auto update again
+                setTimeout(function(){ disableTableUpdate = false; }, 2000);
+            }
+
+        }
     };
 
     /**
@@ -463,7 +485,7 @@ define([
                 // save signature data
 
                 // lock update function until request is finished
-                disableTableUpdate = true;
+                lockSignatureTable();
 
                 // lock copy during request (prevent spamming (ctrl + c )
                 disableCopyFromClipboard = true;
@@ -478,7 +500,7 @@ define([
                     data: requestData,
                     dataType: 'json'
                 }).done(function(responseData){
-                    disableTableUpdate = false;
+                    unlockSignatureTable(true);
 
                     // updates table with new/updated signature information
                     moduleElement.updateSignatureTable(responseData.signatures, false);
@@ -487,7 +509,7 @@ define([
                     Util.showNotify({title: jqXHR.status + ': Update signatures', text: reason, type: 'warning'});
                     $(document).setProgramStatus('problem');
                 }).always(function() {
-                    disableTableUpdate = false;
+                    unlockSignatureTable(true);
                     disableCopyFromClipboard = false;
                 });
             }
@@ -766,7 +788,7 @@ define([
 
     /**
      * make a table or row editable
-     * @param systemInfoData
+     * @param systemData
      */
     $.fn.makeEditable = function(systemData){
 
@@ -905,29 +927,37 @@ define([
                     updateSignatureCell(rowElement, 6, newRowData.updated);
                 }
 
-                // find related "name" select (same row) and change options
-                var nameSelect = getNextEditableField(signatureTypeField);
+                // find related "type" select (same row) and change options
+                var typeSelect = getNextEditableField(signatureTypeField);
 
                 var systemTypeId = parseInt( signatureTypeField.attr('data-systemTypeId') );
                 var areaId = parseInt( signatureTypeField.attr('data-areaid') );
 
                 var newSelectOptions = getAllSignatureNames(systemData, systemTypeId, areaId, newValue);
-                nameSelect.editable('option', 'source', newSelectOptions);
-                nameSelect.editable('setValue', null);
+                typeSelect.editable('option', 'source', newSelectOptions);
+                typeSelect.editable('setValue', null);
 
                 if(
                     newValue > 0 &&
                     newSelectOptions.length > 0
                 ){
-                    nameSelect.editable('enable');
+                    typeSelect.editable('enable');
                 }else{
-                    nameSelect.editable('disable');
+                    typeSelect.editable('disable');
                 }
             }
         });
 
 
         // Select sig type (slave: depends on sig type) -----------------------------------------
+        sigTypeFields.on('init', function(e, editable) {
+            // check if there are initial options available
+            var options = editable.input.options.source.bind(e.target)();
+            if(options.length <= 0){
+                editable.disable();
+            }
+        });
+
         sigTypeFields.editable({ mode: 'popup',
             type: 'select',
             title: 'type',
@@ -937,11 +967,11 @@ define([
             showbuttons: false,
             params: modifyFieldParamsOnSend,
             source: function(){
-                var signatureNameField = $(this);
+                var signatureTypeField = $(this);
 
-                var systemTypeId = parseInt( signatureNameField.attr('data-systemTypeId') );
-                var areaId = parseInt( signatureNameField.attr('data-areaid') );
-                var groupId = parseInt( signatureNameField.attr('data-groupId') );
+                var systemTypeId = parseInt( signatureTypeField.attr('data-systemTypeId') );
+                var areaId = parseInt( signatureTypeField.attr('data-areaid') );
+                var groupId = parseInt( signatureTypeField.attr('data-groupId') );
                 var availableSigs = getAllSignatureNames(systemData, systemTypeId, areaId, groupId);
 
                 return availableSigs;
@@ -1673,7 +1703,10 @@ define([
                                     formFields.editable('submit', {
                                         url: Init.path.saveSignatureData,
                                         ajaxOptions: {
-                                            dataType: 'json' //assuming json response
+                                            dataType: 'json', //assuming json response
+                                            beforeSend: function( xhr, settings ){
+                                                lockSignatureTable();
+                                            }
                                         },
                                         data: {
                                             systemId: systemData.id, // additional data to submit
@@ -1681,6 +1714,7 @@ define([
                                         },
                                         error: $.fn.editable.defaults.error, // user default xEditable error function
                                         success: function (data, editableConfig) {
+                                            unlockSignatureTable(false);
 
                                             var newRowElement = addSignatureRow(systemData, data.signatures[0], true);
 
@@ -1917,7 +1951,7 @@ define([
                     duration: Init.animationSpeed.mapModule,
                     delay: Init.animationSpeed.mapModule,
                     complete: function(){
-                        disableTableUpdate = false;
+                        unlockSignatureTable(true);
                     }
                 });
 
@@ -1928,9 +1962,8 @@ define([
         var moduleElement = parentElement.find('.' + config.systemSigModuleClass);
 
         if(moduleElement.length > 0){
-
             // disable update
-            disableTableUpdate = true;
+            lockSignatureTable();
 
             moduleElement.velocity('transition.slideDownOut', {
                 duration: Init.animationSpeed.mapModule,
