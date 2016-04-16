@@ -135,8 +135,13 @@ class Signature extends \Controller\AccessController{
                                 // description should not be updated
                                 unset( $data['description'] );
 
+                                // prevent some data from overwrite manually changes
                                 // wormhole typeID can not figured out/saved by the sig reader dialog
-                                if($data['groupId'] == 5){
+                                // -> type could not be identified -> do not overwrite them (e.g. sig update)
+                                if(
+                                    $data['groupId'] == 5 ||
+                                    $data['typeId'] == 0
+                                ){
                                     unset( $data['typeId'] );
                                 }
 
@@ -155,6 +160,9 @@ class Signature extends \Controller\AccessController{
                         // get a fresh signature object with the new data. This is a bad work around!
                         // but i could not figure out what the problem was when using the signature model, saved above :(
                         // -> some caching problems
+                        /**
+                         * @var $newSignature Model\SystemSignatureModel
+                         */
                         $newSignature = Model\BasicModel::getNew('SystemSignatureModel');
                         $newSignature->getById( $signature->id, 0);
 
