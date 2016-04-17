@@ -415,15 +415,15 @@ class CharacterModel extends BasicModel {
 
     /**
      * get mapModel by id and check if user has access
-     * @param int $mapId
+     * @param $mapId
      * @return MapModel|null
      */
-    public function getMap(int $mapId){
+    public function getMap($mapId){
         /**
          * @var $map MapModel
          */
         $map = self::getNew('MapModel');
-        $map->getById( $mapId );
+        $map->getById( (int)$mapId );
 
         $returnMap = null;
         if($map->hasAccess($this)){

@@ -672,7 +672,7 @@ class Map extends Controller\AccessController {
                 $cacheKey = 'user_data_' . $tempId . '_' . $requestSystemData->systemId;
                 if( !$f3->exists($cacheKey) ){
                     foreach($mapIds as $mapId){
-                        $map = $activeCharacter->getMap($mapId);
+                        $map = $activeCharacter->getMap( (int)$mapId);
 
                         if( !is_null($map) ){
                             $return->mapUserData[] = $map->getUserData();
