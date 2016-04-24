@@ -117,8 +117,12 @@ class ConnectionModel extends BasicModel{
     public function isValid(){
         $isValid = true;
 
+        // check if source/target system are not equal
         // check if source/target belong to same map
-        if( $this->source->mapId->id !== $this->target->mapId->id ){
+        if(
+            $this->source->_id === $this->target->_id ||
+            $this->source->mapId->_id !== $this->target->mapId->_id
+        ){
             $isValid = false;
         }
 

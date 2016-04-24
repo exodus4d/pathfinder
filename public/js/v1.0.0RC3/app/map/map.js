@@ -869,6 +869,7 @@ define([
         // no visual effects in IGB (glitches)
         if(
             systemElements.length === 0 ||
+            systemElements.length > 20 ||
             endpointElements.length === 0 ||
             CCP.isInGameBrowser() === true
         ){
@@ -1301,30 +1302,36 @@ define([
             dataType: 'json',
             //context: connection
             context: {
-              connection: connection,
-              mapId: mapId
+                connection: connection,
+                map: map,
+                mapId: mapId
             }
         }).done(function(newConnectionData){
 
-            // update connection data e.g. "scope" has auto detected
-            connection = updateConnection(this.connection, connectionData, newConnectionData);
+            if( !$.isEmptyObject(newConnectionData) ){
+                // update connection data e.g. "scope" has auto detected
+                connection = updateConnection(this.connection, connectionData, newConnectionData);
 
-            // new connection should be cached immediately!
-            updateConnectionCache(this.mapId, connection);
+                // new connection should be cached immediately!
+                updateConnectionCache(this.mapId, connection);
 
-            // connection scope
-            var scope = Util.getScopeInfoForConnection(newConnectionData.scope, 'label');
+                // connection scope
+                var scope = Util.getScopeInfoForConnection(newConnectionData.scope, 'label');
 
-            var title = 'New connection established';
-            if(connectionData.id > 0){
-                title = 'Connection switched';
+                var title = 'New connection established';
+                if(connectionData.id > 0){
+                    title = 'Connection switched';
+                }
+
+                Util.showNotify({title: title, text: 'Scope: ' + scope, type: 'success'});
+            }else{
+                // some save errors
+                this.map.detach(this.connection, {fireEvent: false});
             }
 
-            Util.showNotify({title: title, text: 'Scope: ' + scope, type: 'success'});
         }).fail(function( jqXHR, status, error) {
-
             // remove this connection from map
-            this._jsPlumb.instance.detach(this);
+            this.map.detach(this.connection, {fireEvent: false});
 
             var reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': saveConnection', text: reason, type: 'warning'});

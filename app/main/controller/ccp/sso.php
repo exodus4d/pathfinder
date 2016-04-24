@@ -42,6 +42,7 @@ class Sso extends Api\User{
     // error messages
     const ERROR_CCP_SSO_URL                         = 'Invalid "ENVIRONMENT.[ENVIRONMENT].SSO_CCP_URL" url. %s';
     const ERROR_CCP_CREST_URL                       = 'Invalid "ENVIRONMENT.[ENVIRONMENT].CCP_CREST_URL" url. %s';
+    const ERROR_CCP_CLIENT_ID                       = 'Missing "ENVIRONMENT.[ENVIRONMENT].SSO_CCP_CLIENT_ID".';
     const ERROR_RESOURCE_DEPRECATED                 = 'Resource: %s has been marked as deprecated. %s';
     const ERROR_ACCESS_TOKEN                        = 'Unable to get a valid "access_token. %s';
     const ERROR_VERIFY_CHARACTER                    = 'Unable to verify character data. %s';
@@ -69,29 +70,38 @@ class Sso extends Api\User{
      * @param \Base $f3
      */
     public function requestAuthorization($f3){
-        $params = $f3->get('GET');
 
-        if(isset($params['characterId'])){
-            // restrict login to this characterId e.g. for character switch
-            $f3->set(self::SESSION_KEY_SSO_CHARACTER_ID, (int)trim($params['characterId']) );
+        if( !empty($ssoCcpClientId = Controller\Controller::getEnvironmentData('SSO_CCP_CLIENT_ID')) ){
+            $params = $f3->get('GET');
+
+            if(isset($params['characterId'])){
+                // restrict login to this characterId e.g. for character switch
+                $f3->set(self::SESSION_KEY_SSO_CHARACTER_ID, (int)trim($params['characterId']) );
+            }
+
+            // used for "state" check between request and callback
+            $state = bin2hex(mcrypt_create_iv(12, MCRYPT_DEV_URANDOM));
+            $f3->set(self::SESSION_KEY_SSO_STATE, $state);
+
+            $urlParams = [
+                'response_type' => 'code',
+                'redirect_uri' => Controller\Controller::getEnvironmentData('URL') . $f3->build('/sso/callbackAuthorization'),
+                'client_id' => Controller\Controller::getEnvironmentData('SSO_CCP_CLIENT_ID'),
+                'scope' => implode(' ', $this->requestScopes),
+                'state' => $state
+            ];
+
+            $ssoAuthUrl = self::getAuthorizationEndpoint() . '?' . http_build_query($urlParams, '', '&', PHP_QUERY_RFC3986 );
+
+            $f3->status(302);
+            $f3->reroute($ssoAuthUrl);
+        }else{
+            // SSO clientId missing
+            $f3->set(self::SESSION_KEY_SSO_ERROR, self::ERROR_CCP_CLIENT_ID);
+            self::getCrestLogger()->write(self::ERROR_CCP_CLIENT_ID);
+
+            $f3->reroute('@login');
         }
-
-        // used for "state" check between request and callback
-        $state = bin2hex(mcrypt_create_iv(12, MCRYPT_DEV_URANDOM));
-        $f3->set(self::SESSION_KEY_SSO_STATE, $state);
-
-        $urlParams = [
-            'response_type' => 'code',
-            'redirect_uri' => Controller\Controller::getEnvironmentData('URL') . $f3->build('/sso/callbackAuthorization'),
-            'client_id' => Controller\Controller::getEnvironmentData('SSO_CCP_CLIENT_ID'),
-            'scope' => implode(' ', $this->requestScopes),
-            'state' => $state
-        ];
-
-        $ssoAuthUrl = self::getAuthorizationEndpoint() . '?' . http_build_query($urlParams, '', '&', PHP_QUERY_RFC3986 );
-
-        $f3->status(302);
-        $f3->reroute($ssoAuthUrl);
     }
 
     /**

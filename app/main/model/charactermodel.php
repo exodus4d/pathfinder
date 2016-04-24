@@ -456,7 +456,6 @@ class CharacterModel extends BasicModel {
             }
         }
 
-        // get
         if($alliance = $this->getAlliance()){
             $maps = array_merge($maps, $alliance->getMaps());
         }

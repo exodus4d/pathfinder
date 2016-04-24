@@ -207,7 +207,8 @@ input[type="date"] {
 .radio-inline input[type="radio"],
 .checkbox input[type="checkbox"],
 .checkbox-inline input[type="checkbox"] {
-  float: left;
+  position: absolute;
+  //float: left;
   margin-left: -20px;
 }
 .radio + .radio,

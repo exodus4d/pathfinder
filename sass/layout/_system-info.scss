@@ -134,6 +134,10 @@
       & > .fa{
         font-size: 10px;
       }
+
+      .fa-refresh{
+        @extend .pf-dialog-icon-button;
+      }
     }
   }
 }

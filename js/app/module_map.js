@@ -129,7 +129,7 @@ define([
         firstCell.drawSignatureTableModule(currentSystemData.systemData);
 
         // draw system routes module
-        secondCell.drawSystemRouteModule(currentSystemData.systemData);
+        secondCell.drawSystemRouteModule(currentSystemData.mapId, currentSystemData.systemData);
 
         // draw system killboard module
         secondCell.drawSystemKillboardModule(currentSystemData.systemData);
@@ -153,7 +153,7 @@ define([
             var clickY = e.pageY - posY;
 
             // check for top-left click
-            if(clickX <= 6 && clickY <= 6){
+            if(clickX <= 8 && clickY <= 8){
 
                 // remember height
                 if(! moduleElement.data('origHeight')){
@@ -175,7 +175,7 @@ define([
                     });
                 }else{
                     moduleElement.velocity('finish').velocity({
-                        height: [ '40px', [ 400, 15 ] ]
+                        height: [ '36px', [ 400, 15 ] ]
                     },{
                         duration: 400,
                         easing: 'easeInSine',

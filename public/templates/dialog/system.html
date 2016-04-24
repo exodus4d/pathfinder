@@ -1,61 +1,58 @@
-<div class="row" id="{{id}}">
-    <div class="col-sm-12">
-        <form  role="form" class="form-horizontal">
+<div id="{{id}}">
+    <form  role="form" class="form-horizontal">
 
-            <div class="row">
-                <div class="col-sm-8">
-                    <div class="form-group">
-                        <label class="col-sm-2 control-label" for="form_system">System</label>
-                        <div class="col-sm-10">
-                            <div class="input-group">
-                                <label for="form_system"></label>
-                                <select id="form_system" name="systemId" class="{{selectClass}}" data-error="Choose a valid system" required>
-                                    {{#currentSystem}}
-                                    <option value="{{id}}">{{name}}</option>
-                                    {{/currentSystem}}
-                                </select>
-                                <span class="help-block with-errors">Search system name</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-sm-4">
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <div class="col-sm-offset-2 col-sm-10">
-                            <div class="checkbox">
-                                <label for="form_lock">
-                                    <input id="form_lock" name="locked" value="1" type="checkbox">
-                                    Lock system
-                                </label>
-                                <div class="help-block with-errors"></div>
-                            </div>
-
-                            <div class="checkbox">
-                                <label for="form_rally">
-                                    <input id="form_rally" name="rally" value="1" type="checkbox">
-                                    Rally point
-                                </label>
-                                <div class="help-block with-errors"></div>
-
-                            </div>
+        <div class="row">
+            <div class="col-xs-8">
+                <div class="form-group">
+                    <label class="col-sm-2 control-label" for="form_system">System</label>
+                    <div class="col-sm-10">
+                        <div class="input-group">
+                            <label for="form_system"></label>
+                            <select id="form_system" name="systemId" class="{{selectClass}}" data-error="Choose a valid system" required>
+                                {{#currentSystem}}
+                                <option value="{{id}}">{{name}}</option>
+                                {{/currentSystem}}
+                            </select>
+                            <span class="help-block with-errors">Search system name</span>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <div class="col-xs-4">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <div class="checkbox checkbox-primary">
+                            <input id="form_lock" name="locked" value="1" type="checkbox">
+                            <label for="form_lock">
+                                Lock system
+                            </label>
+                            <div class="help-block with-errors"></div>
+                        </div>
 
-            <div class="row">
-                <div class="col-sm-8">
-                    <div class="form-group">
-                        <label class="col-sm-2 control-label" for="form_status">Status</label>
-                        <div class="col-sm-6" style="min-height: 32px;">
-                            <a class="pf-editable pf-editable-system-status" href="#" id="form_status" data-type="select" data-name="statusId"></a>
+                        <div class="checkbox checkbox-primary">
+                            <input id="form_rally" name="rally" value="1" type="checkbox">
+                            <label for="form_rally">
+                                Rally point
+                            </label>
+                            <div class="help-block with-errors"></div>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-        </form>
-    </div>
+
+        <div class="row">
+            <div class="col-xs-8">
+                <div class="form-group">
+                    <label class="col-sm-2 control-label" for="form_status">Status</label>
+                    <div class="col-sm-6" style="min-height: 32px;">
+                        <a class="pf-editable pf-editable-system-status" href="#" id="form_status" data-type="select" data-name="statusId"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </form>
 </div>

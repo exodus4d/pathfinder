@@ -64,6 +64,7 @@ class Connection extends Controller\AccessController{
 
                         // search if systems are neighbors
                         $routeController = new Route();
+                        $routeController->initJumpData();
                         $route = $routeController->findRoute($connectionData['sourceName'], $connectionData['targetName'], 1);
 
                         if($route['routePossible'] == true){
@@ -103,7 +104,6 @@ class Connection extends Controller\AccessController{
      */
     public function delete(\Base $f3){
         $connectionIds = $f3->get('POST.connectionIds');
-        $activeCharacter = $this->getCharacter();
 
         if($activeCharacter = $this->getCharacter()){
             /**
@@ -117,7 +117,6 @@ class Connection extends Controller\AccessController{
                 $connection->reset();
             }
         }
-
 
         echo json_encode([]);
     }

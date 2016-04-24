@@ -404,7 +404,7 @@ table{
       top: 0;
       left: 0;
       border-style: solid;
-      border-width: 0 0 6px 6px;
+      border-width: 0 0 8px 8px;
       border-color: transparent transparent transparent $gray;
       cursor: pointer;
     }
@@ -419,6 +419,12 @@ table{
       background: rgba($gray-darker, 0.4);
     }
 
+    h5{
+      // icons in headline
+      .pf-module-icon-button{
+        margin-left: 5px;
+      }
+    }
   }
 
 }

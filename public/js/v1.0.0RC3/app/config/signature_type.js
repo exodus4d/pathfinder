@@ -192,13 +192,14 @@ define([], function() {
                 },
                 4: {    // Gas
                     1: 'Barren Perimeter Reservoir', //*
-                    2: 'Token Perimeter Reservoir', //*
-                    3: 'Sizeable Perimeter Reservoir', //*
-                    4: 'Ordinary Perimeter Reservoir', //*
-                    5: 'Bountiful Frontier Reservoir', //*
-                    6: 'Instrumental Core Reservoir', //*
-                    7: 'Vital Core Reservoir', //*
-                    8: 'Minor Perimeter Reservoir' //*
+                    2: 'Minor Perimeter Reservoir', //*
+                    3: 'Ordinary Perimeter Reservoir', //*
+                    4: 'Sizeable Perimeter Reservoir', //*
+                    5: 'Token Perimeter Reservoir', //*
+                    6: 'Bountiful Frontier Reservoir', //*
+                    7: 'Vast Frontier Reservoir', //*
+                    8: 'Instrumental Core Reservoir', //*
+                    9: 'Vital Core Reservoir' //*
                 },
                 5: {    // Wormhole
                     1: 'D792 - HS',
@@ -206,9 +207,16 @@ define([], function() {
                     3: 'Z142 - 0.0'
                 },
                 6: {    // ORE
-                    1: 'Ordinary Perimeter Deposit', //*
-                    2: 'Common Perimeter Deposit', //*
-                    3: 'Rarified Core Deposit' //*
+                    1: 'Average Frontier Deposit', //*
+                    2: 'Unexceptional Frontier Deposit', //*
+                    3: 'Uncommon Core Deposit', //*
+                    4: 'Ordinary Perimeter Deposit', //*
+                    5: 'Common Perimeter Deposit', //*
+                    6: 'Exceptional Core Deposit', //*
+                    7: 'Infrequent Core Deposit', //*
+                    8: 'Unusual Core Deposit', //*
+                    9: 'Rarified Core Deposit', //*
+                    10: 'Isolated Core Deposit' //*
                 },
                 7: {    // Ghost
 
@@ -230,14 +238,15 @@ define([], function() {
                     2: 'Unsecured Core Emergence' //*
                 },
                 4: {    // Gas
-                    1: 'Token Perimeter Reservoir', //*
+                    1: 'Barren Perimeter Reservoir', //*
                     2: 'Minor Perimeter Reservoir', //*
-                    3: 'Sizeable Perimeter Reservoir', //*
-                    4: 'Ordinary Perimeter Reservoir', //*
-                    5: 'Bountiful Frontier Reservoir', //*
-                    6: 'Vast Frontier Reservoir', //*
-                    7: 'Instrumental Core Reservoir', //*
-                    8: 'Vital Core Reservoir' //*
+                    3: 'Ordinary Perimeter Reservoir', //*
+                    4: 'Sizeable Perimeter Reservoir', //*
+                    5: 'Token Perimeter Reservoir', //*
+                    6: 'Bountiful Frontier Reservoir', //*
+                    7: 'Vast Frontier Reservoir', //*
+                    8: 'Instrumental Core Reservoir', //*
+                    9: 'Vital Core Reservoir' //*
                 },
                 5: {    // Wormhole
                     1: 'D792 - HS',

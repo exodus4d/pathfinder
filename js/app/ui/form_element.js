@@ -11,6 +11,23 @@ define([
     'use strict';
 
     /**
+     * init a select element as "select2" for map selection
+     */
+    $.fn.initMapSelect = function(){
+        var selectElement = $(this);
+
+        $.when(
+            selectElement.select2({
+                dropdownParent: 'body',
+                theme: 'pathfinder',
+                maximumSelectionLength: 5
+            })
+        );
+    };
+
+
+
+    /**
      * init a select element as an ajax based "select2" object for system search
      * @param options
      */
@@ -114,7 +131,7 @@ define([
                 theme: 'pathfinder',
                 minimumInputLength: 2,
                 templateResult: formatResultData,
-                placeholder: 'Systemname',
+                placeholder: 'System name',
                 allowClear: true,
                 escapeMarkup: function (markup) {
                     // let our custom formatter work
@@ -252,26 +269,6 @@ define([
             });
         });
 
-
     };
 
-
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

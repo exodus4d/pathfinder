@@ -1,6 +1,6 @@
 .modal-content {
 
-  // dialog headline ==============================================================
+  // dialog headline ==========================================================
   h2 {
     font-family: $font-family-sans-serif;
     letter-spacing: 0px;
@@ -9,19 +9,26 @@
     line-height: normal;
   }
 
-  // data tables ==================================================================
+  h2, h4{
+    &.pf-dynamic-area{
+      min-height: 0;
+      margin: 10px 0;
+    }
+  }
+
+  // data tables ==============================================================
   .dataTable, .table{
     font-size: 10px;
     font-family: $font-family-bold;
   }
 
-  // horizontal line ==============================================================
+  // horizontal line ==========================================================
   hr{
     margin: 5px 0 15px 0;
     border-color: $gray-light;
   }
 
-  // form wizard ==================================================================
+  // form wizard ==============================================================
   .pf-wizard-navigation{
     margin: 0;
 
@@ -79,7 +86,7 @@
   }
 }
 
-// settings dialog ======================================================================
+// settings dialog ============================================================
 #pf-settings-dialog{
 
   // smaller buttons
@@ -94,7 +101,7 @@
   }
 }
 
-// map settings dialog ====================================
+// map settings dialog ========================================================
 #pf-map-dialog{
   #pf-map-dialog-character-select,
   #pf-map-dialog-corporation-select,
@@ -103,26 +110,25 @@
   }
 }
 
-// map manual dialog ======================================
+#pf-route-dialog{
+  #pf-route-dialog-map-select{
+    width: 300px !important;
+  }
+}
+
+// map manual dialog ==========================================================
 #pf-manual-scrollspy{
   position: relative;
   height: 500px;
   overflow: auto;
 }
 
-// ad system dialog =======================================
+// ad system dialog ===========================================================
 .pf-system-dialog-select{
   width: 270px !important;
 }
 
-// sharing dialog =========================================
-h2, h4{
-  &.pf-dynamic-area{
-    min-height: 0;
-  }
-}
-
-// credits dialog =========================================
+// credits dialog =============================================================
 .pf-credits-dialog{
 
   .pf-credits-logo-background{

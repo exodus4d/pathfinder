@@ -164,12 +164,12 @@
                 </div>
 
                 {{#userData.character}}
-                    <h2 class="pf-dynamic-area"><img src="{{ccpImageServer}}Character/{{id}}_32.jpg">&nbsp;&nbsp;Private maps "<em class="pf-map-type-private">{{name}}</em>"</h2>
+                    <h4 class="pf-dynamic-area"><img src="{{ccpImageServer}}Character/{{id}}_32.jpg">&nbsp;&nbsp;Private maps "<em class="pf-map-type-private">{{name}}</em>"</h4>
 
 
                     <div class="row">
                         <div class="col-sm-9">
-                            <div class="checkbox col-sm-10">
+                            <div class="col-sm-10">
                                 <label for="privateSharing">
                                     <input id="privateSharing" type="checkbox" name="privateSharing" data-toggle="toggle" value="1" {{#shared}}checked{{/shared}}>
                                     &nbsp;map invite for private maps
@@ -182,12 +182,12 @@
                     </div>
 
                     {{#corporation}}
-                    <h2 class="pf-dynamic-area"><img src="{{ccpImageServer}}Corporation/{{id}}_32.png">&nbsp;&nbsp;Corporation maps "<em class="pf-map-type-corporation">{{name}}</em>"</h2>
+                    <h4 class="pf-dynamic-area"><img src="{{ccpImageServer}}Corporation/{{id}}_32.png">&nbsp;&nbsp;Corporation maps "<em class="pf-map-type-corporation">{{name}}</em>"</h4>
 
 
                     <div class="row">
                         <div class="col-sm-9">
-                            <div class="checkbox col-sm-10">
+                            <div class="col-sm-10">
                                 <label for="corporationSharing">
                                     <input id="corporationSharing" type="checkbox" name="corporationSharing" data-toggle="toggle" value="1" {{#shared}}checked{{/shared}}>
                                     &nbsp;map invite for corporation maps
@@ -202,11 +202,11 @@
                     {{/corporation}}
 
                     {{#alliance}}
-                    <h2 class="pf-dynamic-area"><img src="{{ccpImageServer}}Alliance/{{id}}_32.png">&nbsp;&nbsp;Alliance maps "<em class="pf-map-type-alliance">{{name}}</em>"</h2>
+                    <h4 class="pf-dynamic-area"><img src="{{ccpImageServer}}Alliance/{{id}}_32.png">&nbsp;&nbsp;Alliance maps "<em class="pf-map-type-alliance">{{name}}</em>"</h4>
 
                     <div class="row">
                         <div class="col-sm-9">
-                            <div class="checkbox col-sm-10">
+                            <div class="col-sm-10">
                                 <label for="allianceSharing">
                                     <input id="allianceSharing" type="checkbox" name="allianceSharing" data-toggle="toggle" value="1" {{#shared}}checked{{/shared}}>
                                     &nbsp;map invite for alliance maps

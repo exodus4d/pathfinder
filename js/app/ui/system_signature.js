@@ -43,15 +43,9 @@ define([
         sigTableEditSigDescriptionTextarea: 'pf-sig-table-edit-desc-text',      // class for editable fields (sig description)
         sigTableCreatedCellClass: 'pf-sig-table-created',                       // class for "created" cells
         sigTableUpdatedCellClass: 'pf-sig-table-updated',                       // class for "updated" cells
-        sigTableActionButtonClass: 'pf-sig-table-action-button',                // class for row action button
 
         sigTableCounterClass: 'pf-table-counter-cell',                          // class for "counter" cells
         sigTableActionCellClass: 'pf-table-action-cell',                        // class for "action" cells
-
-
-        // animation
-        animationPulseSuccessClass: 'pf-animation-pulse-success',               // animation class
-        animationPulseWarningClass: 'pf-animation-pulse-warning',               // animation class
 
         // xEditable
         editableDiscriptionInputClass: 'pf-editable-description'                // class for "description" textarea
@@ -207,7 +201,7 @@ define([
             for(var j = 0; j < tableData.length; j++){
                 if(signatureData[i].id === tableData[j].id){
 
-                    // check if row has updated
+                    // check if row was updated
                     if(signatureData[i].updated.updated > tableData[j].updated.updated){
 
                         // row element to remove
@@ -317,36 +311,6 @@ define([
             }
 
         }
-    };
-
-    /**
-     * highlight jquery elements
-     * add/remove css class for keyframe animation
-     * @returns {any|JQuery|*}
-     */
-    $.fn.pulseTableRow = function(status){
-
-        var animationClass = '';
-        switch(status){
-            case 'added':
-                animationClass = config.animationPulseSuccessClass;
-                break;
-            case 'changed':
-                animationClass = config.animationPulseWarningClass;
-                break;
-        }
-
-        return this.each(function(){
-            var element = $(this);
-            element.addClass( animationClass );
-
-            var timer = setTimeout(
-                function() {
-                    element.removeClass( animationClass );
-
-                    clearTimeout( timer );
-                }, 3000);
-        });
     };
 
     /**
@@ -1530,7 +1494,7 @@ define([
 
                 // action icon -------------------------------------------------------------------------------------
 
-                var actionButton = '<i class="fa ' + options.actionClass + ' ' + config.sigTableActionButtonClass + '"></i>';
+                var actionButton = '<i class="fa ' + options.actionClass + '"></i>';
                 tempData.action = {
                     action: options.action,
                     button: actionButton
@@ -1684,7 +1648,6 @@ define([
                         sort: 'action'
                     },
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
-
                         var tempTableElement = this;
                         var rowElement = $(cell).parents('tr');
 
@@ -1747,7 +1710,7 @@ define([
                                     btnCancelClass: 'btn btn-sm btn-default',
                                     btnCancelLabel: 'cancel',
                                     btnCancelIcon: 'fa fa-fw fa-ban',
-                                    title: 'Delete signature',
+                                    title: 'delete signature',
                                     btnOkClass: 'btn btn-sm btn-danger',
                                     btnOkLabel: 'delete',
                                     btnOkIcon: 'fa fa-fw fa-close',

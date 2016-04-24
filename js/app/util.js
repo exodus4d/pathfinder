@@ -41,12 +41,17 @@ define([
 
         // map module
         mapModuleId: 'pf-map-module',                                           // id for main map module
-        mapTabBarId: 'pf-map-tabs'                                              // id for map tab bar
+        mapTabBarId: 'pf-map-tabs',                                             // id for map tab bar
+
+        // animation
+        animationPulseSuccessClass: 'pf-animation-pulse-success',               // animation class
+        animationPulseWarningClass: 'pf-animation-pulse-warning'                // animation class
 
     };
 
     var stopTimerCache = {};                                                    // cache for stopwatch timer
 
+    var animationTimerCache = {};                                               // cache for table row animation timeout
 
     /*
      *  ===========================================================================================================
@@ -471,7 +476,7 @@ define([
         return this.each(function(){
 
             var tooltipElements = $(this).find('[title]');
-            tooltipElements.tooltip({
+            tooltipElements.tooltip('destroy').tooltip({
                 container:  this,
                 delay: 100
             });
@@ -724,6 +729,52 @@ define([
                     }, timeout || Init.timer.DBL_CLICK);
                 }
             });
+        });
+    };
+
+    /**
+     * highlight jquery elements
+     * add/remove css class for keyframe animation
+     * @returns {any|JQuery|*}
+     */
+    $.fn.pulseTableRow = function(status, clear){
+
+        var animationClass = '';
+        switch(status){
+            case 'added':
+                animationClass = config.animationPulseSuccessClass;
+                break;
+            case 'changed':
+                animationClass = config.animationPulseWarningClass;
+                break;
+        }
+
+        var clearTimer =  function(element) {
+            element.removeClass( animationClass );
+            var currentTimer = element.data('animationTimer');
+
+            if( animationTimerCache.hasOwnProperty(currentTimer) ){
+                clearTimeout( currentTimer );
+                delete animationTimerCache[currentTimer];
+                element.removeData('animationTimer');
+            }
+        };
+
+        return this.each(function(){
+            var element = $(this);
+
+            if( element.hasClass(animationClass) ){
+                // clear timer -> set new timer
+                clearTimer(element);
+            }
+
+            if(clear !== true){
+                element.addClass( animationClass );
+                var timer = setTimeout(clearTimer, 1500, element);
+                element.data('animationTimer', timer);
+                animationTimerCache[timer] = true;
+            }
+
         });
     };
 
