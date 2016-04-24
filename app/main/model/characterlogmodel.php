@@ -83,7 +83,7 @@ class CharacterLogModel extends BasicModel {
             'default' => ''
         ],
         'shipId' => [
-            'type' => Schema::DT_INT,
+            'type' => Schema::DT_BIGINT,
             'index' => true
         ],
         'shipName' => [
