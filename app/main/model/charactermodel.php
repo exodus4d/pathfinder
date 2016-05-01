@@ -9,7 +9,7 @@
 namespace Model;
 
 use Controller;
-use Controller\Ccp;
+use Controller\Ccp\Sso as Sso;
 use DB\SQL\Schema;
 use Data\Mapper as Mapper;
 
@@ -93,6 +93,9 @@ class CharacterModel extends BasicModel {
         ],
         'characterMaps' => [
             'has-many' => ['Model\CharacterMapModel', 'characterId']
+        ],
+        'characterTokens' => [
+            'has-many' => ['Model\CharacterAuthenticationModel', 'characterId']
         ]
     ];
 
@@ -234,7 +237,7 @@ class CharacterModel extends BasicModel {
      * get CREST API "access_token" from OAuth
      * @return bool|string
      */
-    private function getAccessToken(){
+    public function getAccessToken(){
         $accessToken = false;
 
         // check if there is already an "accessToken" for this user
@@ -252,7 +255,7 @@ class CharacterModel extends BasicModel {
             // add expire time buffer for this "accessToken"
             // token should be marked as "deprecated" BEFORE it actually expires.
             $timeBuffer = 2 * 60;
-            $tokenTime->add(new \DateInterval('PT' . (Ccp\Sso::ACCESS_KEY_EXPIRE_TIME - $timeBuffer) . 'S'));
+            $tokenTime->add(new \DateInterval('PT' . (Sso::ACCESS_KEY_EXPIRE_TIME - $timeBuffer) . 'S'));
 
             $now = new \DateTime('now', $timezone);
             if($tokenTime->getTimestamp() > $now->getTimestamp()){
@@ -266,7 +269,7 @@ class CharacterModel extends BasicModel {
             !empty($this->crestRefreshToken)
         ){
             // no accessToken found OR token is deprecated
-            $ssoController = new Ccp\Sso();
+            $ssoController = new Sso();
             $accessData =  $ssoController->refreshAccessToken($this->crestRefreshToken);
 
             if(
@@ -363,7 +366,7 @@ class CharacterModel extends BasicModel {
         }else{
             // get Location Data from CREST endpoint
             // user is NOT with IGB online OR has not jet set "trusted" page
-            $ssoController = new Ccp\Sso();
+            $ssoController = new Sso();
             $logData = $ssoController->getCharacterLocationData($this->getAccessToken(), 10, $additionalOptions);
 
             if($logData['timeout'] === false){
@@ -394,6 +397,64 @@ class CharacterModel extends BasicModel {
         }
 
         return $this;
+    }
+
+    /**
+     * update character data from CCPs CREST API
+     * @return array (some status messages)
+     */
+    public function updateFromCrest(){
+        $status = [];
+
+        if( $accessToken = $this->getAccessToken() ){
+            // et basic character data
+            // -> this is required for "ownerHash" hash check (e.g. character was sold,..)
+            // -> the "id" check is just for security and should NEVER fail!
+            $ssoController = new Sso();
+            if(
+                !is_null( $verificationCharacterData = $ssoController->verifyCharacterData($accessToken) ) &&
+                $verificationCharacterData->CharacterID === $this->_id
+            ){
+                // get character data from CREST
+                $characterData = $ssoController->getCharacterData($accessToken);
+                if( isset($characterData->character) ){
+                    $characterData->character['ownerHash'] = $verificationCharacterData->CharacterOwnerHash;
+
+                    $corporation = null;
+                    $alliance = null;
+                    if( isset($characterData->corporation) ){
+                        /**
+                         * @var $corporation CorporationModel
+                         */
+                        $corporation = $this->rel('corporationId');
+                        $corporation->getById($characterData->corporation['id'], 0);
+                        $corporation->copyfrom($characterData->corporation, ['name', 'isNPC']);
+                        $corporation->save();
+                    }
+
+                    if( isset($characterData->alliance) ){
+                        /**
+                         * @var $alliance AllianceModel
+                         */
+                        $alliance = $this->rel('allianceId');
+                        $alliance->getById($characterData->alliance['id'], 0);
+                        $alliance->copyfrom($characterData->alliance, ['name']);
+                        $alliance->save();
+                    }
+
+                    $this->copyfrom($characterData->character, ['name', 'ownerHash']);
+                    $this->set('corporationId', is_object($corporation) ? $corporation->get('id') : null);
+                    $this->set('allianceId', is_object($alliance) ? $corporation->get('id') : null);
+                    $this->save();
+                }
+            }else{
+                $status[] = sprintf(Sso::ERROR_VERIFY_CHARACTER, $this->name);
+            }
+        }else{
+            $status[] = sprintf(Sso::ERROR_ACCESS_TOKEN, $this->name);
+        }
+
+        return $status;
     }
 
     /**

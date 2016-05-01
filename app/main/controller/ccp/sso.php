@@ -52,6 +52,7 @@ class Sso extends Api\User{
     const ERROR_CHARACTER_FORBIDDEN                 = 'Character "%s" is not authorized to log in';
     const ERROR_CHARACTER_MISMATCH                  = 'The character "%s" you tried to log in, does not match';
     const ERROR_SERVICE_TIMEOUT                     = 'CCP SSO service timeout (%ss). Try again later';
+    const ERROR_COOKIE_LOGIN                        = 'Login from Cookie failed. Please retry by CCP SSO';
 
     /**
      * CREST "Scopes" are used by pathfinder
@@ -156,7 +157,7 @@ class Sso extends Api\User{
                             // get character data from CREST
                             $characterData = $this->getCharacterData($accessData->accessToken);
 
-                            if(isset($characterData->character)){
+                            if( isset($characterData->character) ){
                                 // add "ownerHash" and CREST tokens
                                 $characterData->character['ownerHash'] = $verificationCharacterData->CharacterOwnerHash;
                                 $characterData->character['crestAccessToken'] = $accessData->accessToken;
@@ -203,6 +204,9 @@ class Sso extends Api\User{
                                         $loginCheck = $this->loginByCharacter($characterModel);
 
                                         if($loginCheck){
+                                            // set "login" cookie
+                                            $this->setLoginCookie($characterModel);
+
                                             // route to "map"
                                             $f3->reroute('@map');
                                         }else{
@@ -233,6 +237,38 @@ class Sso extends Api\User{
             // on error -> route back to login form
             $f3->reroute('@login');
         }
+    }
+
+    /**
+     * login by cookie
+     * @param \Base $f3
+     */
+    public function login(\Base $f3){
+        $data = (array)$f3->get('GET');
+        $character = null;
+
+        if( !empty($data['cookie']) ){
+            if( !empty($cookieData = $this->getCookieByName($data['cookie']) )){
+                // cookie data is valid -> validate data against DB (security check!)
+                if( !empty($characters = $this->getCookieCharacters(array_slice($cookieData, 0, 1, true))) ){
+                    // character is valid and allowed to login
+                    $character = $characters[$data['cookie']];
+                }
+            }
+        }
+
+        if( is_object($character)){
+            // login by character
+            $loginCheck = $this->loginByCharacter($character);
+            if($loginCheck){
+                // route to "map"
+                $f3->reroute('@map');
+            }
+        }
+
+        // on error -> route back to login form
+        $f3->set(self::SESSION_KEY_SSO_ERROR, self::ERROR_COOKIE_LOGIN);
+        $f3->reroute('@login');
     }
 
     /**
@@ -357,7 +393,7 @@ class Sso extends Api\User{
      * @param $accessToken
      * @return mixed|null
      */
-    protected function verifyCharacterData($accessToken){
+    public function verifyCharacterData($accessToken){
         $verifyUserUrl = self::getVerifyUserEndpoint();
         $verifyUrlParts = parse_url($verifyUserUrl);
         $characterData = null;
@@ -492,7 +528,7 @@ class Sso extends Api\User{
      * @param array $additionalOptions
      * @return object
      */
-    protected function getCharacterData($accessToken, $additionalOptions = []){
+    public function getCharacterData($accessToken, $additionalOptions = []){
         $endpoints = $this->getEndpoints($accessToken, $additionalOptions);
         $characterData = (object) [];
 

@@ -40,6 +40,7 @@ class Setup extends Controller {
 
                 'Model\UserCharacterModel',
                 'Model\CharacterModel',
+                'Model\CharacterAuthenticationModel',
                 'Model\CharacterLogModel',
 
                 'Model\SystemModel',

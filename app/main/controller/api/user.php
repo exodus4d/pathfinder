@@ -85,6 +85,35 @@ class User extends Controller\Controller{
     }
 
     /**
+     * validate cookie character information
+     * -> return character data (if valid)
+     * @param \Base $f3
+     */
+    public function getCookieCharacter($f3){
+        $data = $f3->get('POST');
+
+        $return = (object) [];
+        $return->error = [];
+
+        if( !empty($data['cookie']) ){
+            if( !empty($cookieData = $this->getCookieByName($data['cookie']) )){
+                // cookie data is valid -> validate data against DB (security check!)
+                if( !empty($characters = $this->getCookieCharacters(array_slice($cookieData, 0, 1, true))) ){
+                    // character is valid and allowed to login
+                    $return->character = reset($characters)->getData();
+                }else{
+                    $characterError = (object) [];
+                    $characterError->type = 'warning';
+                    $characterError->message = 'This can happen through "invalid cookie data", "login restrictions", "CREST problems".';
+                    $return->error[] = $characterError;
+                }
+            }
+        }
+
+        echo json_encode($return);
+    }
+
+    /**
      * get captcha image and store key to session
      * @param \Base $f3
      */
@@ -147,64 +176,6 @@ class User extends Controller\Controller{
     public function logOut(\Base $f3){
         $this->deleteLog($f3);
         parent::logOut($f3);
-    }
-
-    /**
-     * save/update "map sharing" configurations for all map types
-     * the user has access to
-     * @param \Base $f3
-     */
-    public function saveSharingConfig(\Base $f3){
-        $data = $f3->get('POST');
-
-        $return = (object) [];
-
-        $activeCharacter = $this->getCharacter();
-
-        if($activeCharacter){
-            $privateSharing = 0;
-            $corporationSharing = 0;
-            $allianceSharing = 0;
-
-            // form values
-            if(isset($data['formData'])){
-                $formData = $data['formData'];
-
-                if(isset($formData['privateSharing'])){
-                    $privateSharing = 1;
-                }
-
-                if(isset($formData['corporationSharing'])){
-                    $corporationSharing = 1;
-                }
-
-                if(isset($formData['allianceSharing'])){
-                    $allianceSharing = 1;
-                }
-            }
-
-            $activeCharacter->shared = $privateSharing;
-            $activeCharacter = $activeCharacter->save();
-
-            // update corp/ally ---------------------------------------------------------------
-            $corporation = $activeCharacter->getCorporation();
-            $alliance = $activeCharacter->getAlliance();
-
-            if(is_object($corporation)){
-                $corporation->shared = $corporationSharing;
-                $corporation->save();
-            }
-
-            if(is_object($alliance)){
-                $alliance->shared = $allianceSharing;
-                $alliance->save();
-            }
-
-            $user = $activeCharacter->getUser();
-            $return->userData = $user->getData();
-        }
-
-        echo json_encode($return);
     }
 
     /**

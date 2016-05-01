@@ -8,6 +8,7 @@
 
 namespace Controller;
 use Controller\Ccp as Ccp;
+use Model;
 
 class AppController extends Controller {
 
@@ -43,6 +44,12 @@ class AppController extends Controller {
 
         // JS main file
         $f3->set('jsView', 'login');
+
+        // characters  from cookies
+        $f3->set('cookieCharacters', $this->getCookieByName(self::COOKIE_PREFIX_CHARACTER, true));
+        $f3->set('getCharacterGrid', function($characters){
+            return ( ((12 / count($characters)) <= 4) ? 4 : (12 / count($characters)) );
+        });
     }
 
 }

@@ -568,7 +568,6 @@ class Route extends \Controller\AccessController {
                             $item = false;
                         }
                         $data[0]->reset();
-
                     }
 
                 }, [$map, $validMaps, $activeCharacter]);

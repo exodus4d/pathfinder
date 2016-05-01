@@ -43,11 +43,15 @@ define([
         navigationLinkLicenseClass: 'pf-navbar-license',                        // class for "license" trigger link
         navigationVersionLinkClass: 'pf-navbar-version-info',                   // class for "version information"
 
-        // login form
-        loginFormId: 'pf-login-form',                                           // id for login form
-        loginButtonClass: 'pf-login-button',                                    // class for "login" button(s)
-        registerButtonClass: 'pf-register-button',                              // class for "register" button(s)
-        loginMessageContainerId: 'pf-login-message-container',                  // id for login form message container
+        // cookie hint
+        cookieHintId: 'pf-cookie-hint',                                         // id for "cookie hint" element
+
+        // character select
+        characterSelectionClass: 'pf-character-selection',                      // class for character panel wrapper
+        characterRowAnimateClass: 'pf-character-row-animate',                   // class for character panel row during animation
+        characterImageWrapperClass: 'pf-character-image-wrapper',               // class for image wrapper (animated)
+        characterImageInfoClass: 'pf-character-info',                           // class for character info layer (visible on hover)
+        dynamicMessageContainerClass: 'pf-dynamic-message-container',           // class for "dynamic" (JS) message container
 
         // gallery
         galleryId: 'pf-gallery',                                                // id for gallery container
@@ -59,49 +63,75 @@ define([
         animateElementClass: 'pf-animate-on-visible'                            // class for elements that will be animated to show
     };
 
+    /**
+     * set a cookie
+     * @param cname
+     * @param cvalue
+     * @param exdays
+     */
+    var setCookie = function(cname, cvalue, exdays) {
+        var d = new Date();
+        d.setTime(d.getTime() + (exdays*24*60*60*1000));
+        var expires = 'expires=' + d.toUTCString();
+        document.cookie = cname + '=' + cvalue + '; ' + expires;
+    };
+
+    /**
+     * get cookie value by name
+     * @param cname
+     * @returns {*}
+     */
+    var getCookie = function(cname) {
+        var name = cname + '=';
+        var ca = document.cookie.split(';');
+
+        for(var i = 0; i <ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) === ' ') {
+                c = c.substring(1);
+            }
+
+            if (c.indexOf(name) === 0) {
+                return c.substring(name.length,c.length);
+            }
+        }
+        return '';
+    };
+
 
     /**
      * set page observer
      */
     var setPageObserver = function(){
 
-        // login form =====================================================================================
-        // register buttons ---------------------------------------------
-        $('.' + config.registerButtonClass).on('click', function(e){
-            e.preventDefault();
+        // cookie hint --------------------------------------------------------
+        if(getCookie('cookie') !== '1'){
+            // hint not excepted
+            $('#' + config.cookieHintId).collapse('show');
+        }
 
-            // logout current user (if there e.g. to register a second account)
-            Util.logout({
-                ajaxData: {
-                    reroute: 0
-                }
-            });
-
-            // show register/settings dialog
-            $.fn.showSettingsDialog({
-                register: 1,
-                invite : parseInt( $('body').data('invite') )
-            });
+        $('#' + config.cookieHintId + ' .btn-success').on('click', function(){
+           setCookie('cookie', 1, 365);
         });
 
-        // releases -----------------------------------------------------
+        // releases -----------------------------------------------------------
         $('.' + config.navigationVersionLinkClass).on('click', function(e){
             $.fn.releasesDialog();
         });
 
-        // manual -------------------------------------------------------
+        // manual -------------------------------------------------------------
         $('.' + config.navigationLinkManualClass).on('click', function(e){
             e.preventDefault();
             $.fn.showMapManual();
         });
 
-        // license ------------------------------------------------------
+        // license ------------------------------------------------------------
         $('.' + config.navigationLinkLicenseClass).on('click', function(e){
             e.preventDefault();
             $.fn.showCreditsDialog(false, true);
         });
 
-        // tooltips -----------------------------------------------------
+        // tooltips -----------------------------------------------------------
         var mapTooltipOptions = {
             toggle: 'tooltip',
             container: 'body',
@@ -169,8 +199,6 @@ define([
                                             responseData.error.length > 0
                                         ){
                                             form.showFormMessage(responseData.error);
-
-
                                         }else{
                                             $('.modal').modal('hide');
                                             Util.showNotify({title: 'Registration Key send', text: 'Check your Mails', type: 'success'});
@@ -240,7 +268,7 @@ define([
             return newSlideContent[0];
         };
 
-        // initialize carousel ------------------------------------------
+        // initialize carousel ------------------------------------------------
         var carousel = new Gallery([
             {
                 title: 'IGB',
@@ -363,29 +391,31 @@ define([
 
     var initYoutube = function(){
 
-        $(".youtube").each(function() {
+        $('.youtube').each(function() {
             // Based on the YouTube ID, we can easily find the thumbnail image
             $(this).css('background-image', 'url(https://i.ytimg.com/vi/' + this.id + '/sddefault.jpg)');
 
             // Overlay the Play icon to make it look like a video player
             $(this).append($('<div/>', {'class': 'play'}));
 
-            $(document).delegate('#'+this.id, 'click', function() {
+            $(document).delegate('#' + this.id, 'click', function() {
                 // Create an iFrame with autoplay set to true
-                var iframe_url = "https://www.youtube.com/embed/" + this.id + "?autoplay=1&autohide=1";
-                if ($(this).data('params')) iframe_url+='&'+$(this).data('params');
+                var iFrameUrl = 'https://www.youtube.com/embed/' + this.id + '?autoplay=1&autohide=1';
+                if ( $(this).data('params') ){
+                    iFrameUrl += '&'+$(this).data('params');
+                }
 
                 // The height and width of the iFrame should be the same as parent
-                var iframe = $('<iframe/>', {
+                var iFrame = $('<iframe/>', {
                     frameborder: '0',
-                    src: iframe_url,
+                    src: iFrameUrl,
                     width: $(this).width(),
                     height: $(this).height(),
                     class: 'pricing-big'
                 });
 
                 // Replace the YouTube thumbnail with YouTube HTML5 Player
-                $(this).replaceWith(iframe);
+                $(this).replaceWith(iFrame);
             });
         });
     };
@@ -433,6 +463,148 @@ define([
                 duration: 300,
                 easing: 'swing'
             });
+        });
+    };
+
+    /**
+     * load character data from cookie information
+     * -> all validation is done server side!
+     */
+    var initCharacterSelect = function(){
+
+        /**
+         * init panel animation for an element
+         * @param imageWrapperElement
+         */
+        var initCharacterAnimation = function(imageWrapperElement){
+
+            imageWrapperElement.velocity('stop').delay(300).velocity('transition.flipBounceXIn', {
+                display: 'inline-block',
+                stagger: 60,
+                drag: true,
+                duration: 600
+            });
+
+            // Hover effect for character info layer
+            imageWrapperElement.hoverIntent(function(e){
+                var characterInfoElement = $(this).find('.' + config.characterImageInfoClass);
+
+                characterInfoElement.velocity('finish').velocity({
+                    width: ['100%', [ 400, 15 ] ]
+                },{
+                    easing: 'easeInSine'
+                });
+            }, function(e){
+                var characterInfoElement = $(this).find('.' + config.characterImageInfoClass);
+
+                characterInfoElement.velocity('finish').velocity({
+                    width: 0
+                },{
+                    duration: 150,
+                    easing: 'easeInOutSine'
+                });
+            });
+        };
+
+        // --------------------------------------------------------------------
+
+        /**
+         * update all character panels -> set CSS class (e.g. after some panels were added/removed,..)
+         */
+        var updateCharacterPanels = function(){
+            var characterRows = $('.' + config.characterSelectionClass + ' .pf-dynamic-area').parent();
+            var rowClassIdentifier = ((12 / characterRows.length ) <= 4) ? 4 : (12 / characterRows.length);
+            $(characterRows).removeClass().addClass('col-sm-' + rowClassIdentifier);
+        };
+
+        // --------------------------------------------------------------------
+
+        var removeCharacterPanel = function(panelElement){
+            $(panelElement).velocity('transition.expandOut', {
+                duration: 250,
+                complete: function () {
+                    // lock row for CSS animations while removing...
+                    $(this).parent().addClass(config.characterRowAnimateClass);
+
+                    $(this).parent().velocity({
+                        width: 0
+                    },{
+                        easing: 'ease',
+                        duration: 300,
+                        complete: function(){
+                            $(this).remove();
+                            // reset column CSS classes for all existing panels
+                            updateCharacterPanels();
+                        }
+                    });
+                }
+            });
+        };
+        // --------------------------------------------------------------------
+
+        // request character data for each character panel
+        $('.' + config.characterSelectionClass + ' .pf-dynamic-area').each(function(){
+            var characterElement = $(this);
+
+            characterElement.showLoadingAnimation();
+
+            var requestData = {
+                cookie: characterElement.data('cookie')
+            };
+
+            $.ajax({
+                type: 'POST',
+                url: Init.path.getCookieCharacterData,
+                data: requestData,
+                dataType: 'json',
+                context: {
+                    href: characterElement.data('href'),
+                    cookieName: requestData.cookie,
+                    characterElement: characterElement
+                }
+            }).done(function(responseData){
+                var characterElement = this.characterElement;
+                characterElement.hideLoadingAnimation();
+
+                if(
+                    responseData.error &&
+                    responseData.error.length > 0
+                ){
+                    $('.' + config.dynamicMessageContainerClass).showMessage({
+                        type: responseData.error[0].type,
+                        title: 'Character verification failed',
+                        text: responseData.error[0].message
+                    });
+                }
+
+                if(responseData.hasOwnProperty('character')){
+
+                    var data = {
+                        link: this.href,
+                        cookieName: this.cookieName,
+                        character: responseData.character
+                    };
+
+                    requirejs(['text!templates/ui/character_panel.html', 'mustache'], function(template, Mustache) {
+                        var content = Mustache.render(template, data);
+                        characterElement.html(content);
+
+                        // show character panel (animation settings)
+                        initCharacterAnimation(characterElement.find('.' + config.characterImageWrapperClass));
+                    });
+                }else{
+                    // character data not available -> remove panel
+                    removeCharacterPanel(this.characterElement);
+                }
+
+            }).fail(function( jqXHR, status, error) {
+                var characterElement = this.characterElement;
+                characterElement.hideLoadingAnimation();
+
+                // character data not available -> remove panel
+                removeCharacterPanel(this.characterElement);
+            });
+
         });
     };
 
@@ -489,6 +661,8 @@ define([
 
         // hide splash loading animation
         $('.' + config.splashOverlayClass).hideSplashOverlay();
+
+        initCharacterSelect();
 
         // init carousel
         initCarousel();

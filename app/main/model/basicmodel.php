@@ -375,18 +375,18 @@ abstract class BasicModel extends \DB\Cortex {
     /**
      * get dataSet by foreign column (single result)
      * @param $key
-     * @param $id
+     * @param $value
      * @param array $options
      * @param int $ttl
      * @return \DB\Cortex
      */
-    public function getByForeignKey($key, $id, $options = [], $ttl = 60){
+    public function getByForeignKey($key, $value, $options = [], $ttl = 60){
 
         $querySet = [];
         $query = [];
         if($this->exists($key)){
             $query[] = $key . " = :" . $key;
-            $querySet[':' . $key] = $id;
+            $querySet[':' . $key] = $value;
         }
 
         // check active column

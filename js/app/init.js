@@ -12,12 +12,11 @@ define(['jquery'], function($) {
             // user API
             getCaptcha: 'api/user/getCaptcha',                      // ajax URL - get captcha image
             sendInviteKey: 'api/user/sendInvite',                   // ajax URL - send registration key
+            getCookieCharacterData: 'api/user/getCookieCharacter',  // ajax URL - get character data from cookie
             logIn: 'api/user/logIn',                                // ajax URL - login
             logOut: 'api/user/logOut',                              // ajax URL - logout
             deleteLog: 'api/user/deleteLog',                        // ajax URL - delete character log
             saveUserConfig: 'api/user/saveAccount',                 // ajax URL - saves/update user account
-            getUserData: 'api/user/getData',                        // ajax URL - get user data
-            saveSharingConfig: 'api/user/saveSharingConfig',        // ajax URL - save "sharing settings" dialog
             deleteAccount: 'api/user/deleteAccount',                // ajax URL - delete Account data
             // access API
             searchAccess: 'api/access/search',                      // ajax URL - search user/corporation/ally by name
