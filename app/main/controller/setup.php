@@ -30,18 +30,17 @@ class Setup extends Controller {
                 'Model\SystemStatusModel',
                 'Model\SystemNeighbourModel',
                 'Model\WormholeModel',
-                'Model\RegistrationKeyModel',
 
                 'Model\CharacterStatusModel',
                 'Model\ConnectionScopeModel',
 
-                'Model\UserMapModel',
+                'Model\CharacterMapModel',
                 'Model\AllianceMapModel',
                 'Model\CorporationMapModel',
 
-                'Model\UserApiModel',
                 'Model\UserCharacterModel',
                 'Model\CharacterModel',
+                'Model\CharacterAuthenticationModel',
                 'Model\CharacterLogModel',
 
                 'Model\SystemModel',
@@ -76,9 +75,9 @@ class Setup extends Controller {
     /**
      * event handler for all "views"
      * some global template variables are set in here
-     * @param $f3
+     * @param \Base $f3
      */
-    function beforeroute($f3) {
+    function beforeroute(\Base $f3) {
         // page title
         $f3->set('pageTitle', 'Setup');
 
@@ -92,7 +91,7 @@ class Setup extends Controller {
         $f3->set('pathJs', 'public/js/' . $f3->get('PATHFINDER.VERSION') );
     }
 
-    public function afterroute($f3) {
+    public function afterroute(\Base $f3) {
         // js view (file)
         $f3->set('jsView', 'setup');
 
@@ -103,7 +102,7 @@ class Setup extends Controller {
     /**
      * main setup route handler
      * works as dispatcher for setup functions
-     * @param $f3
+     * @param \Base $f3
      */
     public function init($f3){
         $params = $f3->get('GET');
@@ -141,7 +140,7 @@ class Setup extends Controller {
 
     /**
      * get server information
-     * @param $f3
+     * @param \Base $f3
      * @return array
      */
     protected function getServerInformation($f3){
@@ -178,7 +177,7 @@ class Setup extends Controller {
     /**
      * check all required backend requirements
      * (Fat Free Framework)
-     * @param $f3
+     * @param \Base $f3
      * @return array
      */
     protected function checkRequirements($f3){
@@ -288,7 +287,7 @@ class Setup extends Controller {
 
     /**
      * get database connection information
-     * @param $f3
+     * @param \Base $f3
      * @param bool|false $exec
      * @return array
      */
@@ -413,6 +412,7 @@ class Setup extends Controller {
                             $changedType = false;
                             $changedUnique = false;
                             $changedIndex = false;
+                            $addConstraints = [];
 
                             // set (new) column information -------------------------------------------------------
                             $requiredTables[$requiredTableName]['fieldConf'][$columnName]['exists'] = true;
@@ -427,17 +427,22 @@ class Setup extends Controller {
                                     $constraint = $col->newConstraint($constraintData);
 
                                     $foreignKeyExists = $col->constraintExists($constraint);
+
+                                    // constraint information -> show in template
                                     $requiredTables[$requiredTableName]['foreignKeys'][] = [
                                         'exists' => $foreignKeyExists,
                                         'keyName' => $constraint->getConstraintName()
                                     ];
 
-                                    $col->addConstraint($constraint);
-
-                                    if(!$foreignKeyExists){
+                                    if($foreignKeyExists){
+                                        // drop constraint and re-add again at the and, in case something has changed
+                                        $col->dropConstraint($constraint);
+                                    }else{
                                         $tableStatusCheckCount++;
                                         $foreignKeyStatusCheck = false;
                                     }
+
+                                    $addConstraints[] = $constraint;
                                 }
                             }
 
@@ -452,11 +457,21 @@ class Setup extends Controller {
                                 $tableStatusCheckCount++;
                             }
 
-                            // check if column unique changed -----------------------------------------------------
+                            // check if column index changed ------------------------------------------------------
                             $indexUpdate = false;
                             $indexKey = (bool)$hasIndex;
                             $indexUnique = (bool)$hasUnique;
 
+                            if($currentColIndex != $fieldConf['index']){
+                                $changedIndex = true;
+                                $columnStatusCheck = false;
+                                $tableStatusCheckCount++;
+
+                                $indexUpdate = true;
+                                $indexKey = (bool) $fieldConf['index'];
+                            }
+
+                            // check if column unique changed -----------------------------------------------------
                             if($currentColIndexData['unique'] != $fieldConf['unique']){
                                 $changedUnique = true;
                                 $columnStatusCheck = false;
@@ -466,15 +481,6 @@ class Setup extends Controller {
                                 $indexUnique =(bool)$fieldConf['unique'];
                             }
 
-                            // check if column index changed ------------------------------------------------------
-                            if($currentColIndex != $fieldConf['index']){
-                                $changedIndex = true;
-                                $columnStatusCheck = false;
-                                $tableStatusCheckCount++;
-
-                                $indexUpdate = true;
-                                $indexKey = (bool) $fieldConf['index'];
-                            }
                             // build table with changed columns ---------------------------------------------------
                             if(!$columnStatusCheck || !$foreignKeyStatusCheck){
 
@@ -493,6 +499,12 @@ class Setup extends Controller {
                                         }
                                     }
                                     $tableModifier->updateColumn($columnName, $col);
+                                }
+
+                                // (re-)add constraints !after! index update is done
+                                // otherwise index update will fail if there are existing constraints
+                                foreach($addConstraints as $constraint){
+                                    $col->addConstraint($constraint);
                                 }
 
                                 $buildStatus = $tableModifier->build($exec);
@@ -559,7 +571,7 @@ class Setup extends Controller {
     }
 
     /** check MySQL params
-     * @param $f3
+     * @param \Base $f3
      * @param $db
      * @return array
      */

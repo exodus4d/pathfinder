@@ -13,14 +13,15 @@ use Model;
 class System extends \Controller\AccessController {
 
     private $mainQuery = "SELECT
-            map_sys.constellationID connstallation_id,
-            map_sys.solarSystemID system_id,
-            map_sys.solarSystemName system_name,
-            ROUND( map_sys.security, 2) system_security,
-            map_con.constellationName constallation_name,
-	        map_reg.regionID region_id,
-	        map_reg.regionName region_name,
-	        '' type,
+            map_sys.constellationID `connstallation_id`,
+            map_sys.solarSystemID `system_id`,
+            map_sys.solarSystemName `system_name`,
+            map_sys.security `system_security`,
+            map_con.constellationName `constallation_name`,
+	        map_reg.regionID `region_id`,
+	        map_reg.regionName `region_name`,
+	        '0' `trueSec`,
+	        '' `type`,
             IFNULL(
               (
                 SELECT
@@ -33,7 +34,7 @@ class System extends \Controller\AccessController {
                     system_effect.groupID = 995 AND
                     map_norm.solarSystemID = map_sys.solarSystemID
                 LIMIT 1
-              ), '') effect,
+              ), '') `effect`,
             IFNULL(
               (
                 SELECT
@@ -43,7 +44,7 @@ class System extends \Controller\AccessController {
                 WHERE
                     map_worm_class.locationID = map_sys.regionID
                 LIMIT 1
-              ), 7) security
+              ), 7) `security`
         FROM
             mapSolarSystems map_sys INNER JOIN
 	        mapConstellations map_con ON
@@ -63,9 +64,9 @@ class System extends \Controller\AccessController {
     private $limitQuery = "";
 
     /**
-     * @param $f3
+     * @param \Base $f3
      */
-    function beforeroute($f3) {
+    function beforeroute(\Base $f3) {
 
         parent::beforeroute($f3);
 
@@ -92,7 +93,8 @@ class System extends \Controller\AccessController {
      * get static system Data from CCPs Static DB export
      * search column for IDs can be (solarSystemID, regionID, constellationID)
      * @param array $columnIDs
-     * @return null
+     * @param string $column
+     * @return Model\SystemModel[]
      * @throws \Exception
      */
     protected function _getSystemModelByIds($columnIDs = [], $column = 'solarSystemID'){
@@ -110,10 +112,12 @@ class System extends \Controller\AccessController {
 
         // format result
         $mapper = new Mapper\CcpSystemsMapper($rows);
-
         $ccpSystemsData = $mapper->getData();
 
         foreach($ccpSystemsData as $ccpSystemData){
+            /**
+             * @var Model\SystemModel $system
+             */
             $system = Model\BasicModel::getNew('SystemModel');
             $system->setData($ccpSystemData);
             $systemModels[] = $system;
@@ -142,10 +146,10 @@ class System extends \Controller\AccessController {
 
     /**
      * search systems by name
-     * @param $f3
-     * @param $params
+     * @param \Base $f3
+     * @param array $params
      */
-    public function search($f3, $params){
+    public function search(\Base $f3, $params){
 
         $ccpDB = $this->getDB('CCP');
 
@@ -154,6 +158,15 @@ class System extends \Controller\AccessController {
         if( isset($params['arg1']) ){
             $searchToken = $params['arg1'];
         }
+
+        // some "edge cases for testing if rounding works correct
+        //$searchToken = 'H472-N'; // -0.000001 -> 0.0
+        //$searchToken = 'X1E-OQ'; // -0.099426 -> -0.10
+        //$searchToken = 'BKK4-H'; // -0.049954 -> -0.05
+        //$searchToken = 'Uhtafal'; // 0.499612 -> 0.5 (HS)
+        //$searchToken = 'Oshaima'; // 0.453128 -> 0.5 (HS)
+        //$searchToken = 'Ayeroilen'; // 0.446568 -> 0.4 (LS)
+        //$searchToken = 'Enderailen'; // 0.448785 -> 0.4 (LS)
 
         $this->whereQuery = "WHERE
             map_sys.solarSystemName LIKE '%" . $searchToken . "%'";
@@ -172,10 +185,9 @@ class System extends \Controller\AccessController {
 
     /**
      * save a new system to a a map
-     * @param $f3
+     * @param \Base $f3
      */
-    public function save($f3){
-
+    public function save(\Base $f3){
         $newSystemData = [];
 
         $postData = (array)$f3->get('POST');
@@ -187,56 +199,58 @@ class System extends \Controller\AccessController {
             isset($postData['systemData']) &&
             isset($postData['mapData'])
         ){
-            $user = $this->_getUser();
+            $activeCharacter = $this->getCharacter();
 
-            if($user){
+            if($activeCharacter){
                 $systemData = (array)$postData['systemData'];
                 $mapData = (array)$postData['mapData'];
 
-                $activeCharacter = $user->getActiveUserCharacter();
-
                 if( isset($systemData['id']) ){
-                    // update existing system
+                    // update existing system (e.g. changed system description) -------------------
 
+                    /**
+                     * @var $system Model\SystemModel
+                     */
                     $system = Model\BasicModel::getNew('SystemModel');
                     $system->getById($systemData['id']);
-
                     if( !$system->dry() ){
-                        if( $system->hasAccess($user) ){
+                        if( $system->hasAccess($activeCharacter) ){
                             // system model found
                             $systemModel = $system;
                         }
                     }
                 }elseif( isset($mapData['id']) ){
-                    // save NEW system
+                    // save NEW system ------------------------------------------------------------
 
+                    /**
+                     * @var $map Model\MapModel
+                     */
                     $map = Model\BasicModel::getNew('MapModel');
                     $map->getById($mapData['id']);
-
-                    if( !$map->dry() ){
-                        if( $map->hasAccess($user) ){
-
-                            $systemData['mapId'] = $map;
-
-                            // get static system data (CCP DB)
+                    if(
+                        !$map->dry() &&
+                        $map->hasAccess($activeCharacter)
+                    ){
+                        // make sure system is not already on map
+                        // --> (e.g. multiple simultaneously save() calls for the same system)
+                        if( is_null( $systemModel = $map->getSystemByCCPId($systemData['systemId']) ) ){
+                            // system not found on map -> get static system data (CCP DB)
                             $systemModel = array_values( $this->_getSystemModelByIds([$systemData['systemId']]) )[0];
-
-                            $systemModel->createdCharacterId = $activeCharacter->characterId;
-
+                            $systemModel->createdCharacterId = $activeCharacter;
                         }
+
+                        // map is not changeable for a system! (security)
+                        $systemData['mapId'] = $map;
                     }
                 }
             }
         }
 
-
         if( !is_null($systemModel) ){
             // set/update system
-
             $systemModel->setData($systemData);
-            $systemModel->updatedCharacterId = $activeCharacter->characterId;
+            $systemModel->updatedCharacterId = $activeCharacter;
             $systemModel->save();
-
             $newSystemData = $systemModel->getData();
         }
 
@@ -244,35 +258,11 @@ class System extends \Controller\AccessController {
     }
 
     /**
-     * delete  systems and all its connections
-     * @param $f3
-     */
-    public function delete($f3){
-        $systemIds = $f3->get('POST.systemIds');
-
-        $user = $this->_getUser();
-
-        if($user){
-            $system = Model\BasicModel::getNew('SystemModel');
-
-            foreach((array)$systemIds as $systemId){
-
-                $system->getById($systemId);
-                $system->delete($user);
-
-                $system->reset();
-            }
-        }
-
-        echo json_encode([]);
-    }
-
-    /**
      * get system log data from CCP API import
      * system Kills, Jumps,....
-     * @param $f3
+     * @param \Base $f3
      */
-    public function graphData($f3){
+    public function graphData(\Base $f3){
         $graphData = [];
         $systemIds = $f3->get('POST.systemIds');
 
@@ -288,14 +278,13 @@ class System extends \Controller\AccessController {
         ];
 
         foreach($systemIds as $systemId){
-
             foreach($logTables as $label => $ModelClass){
                 $systemLogModel = Model\BasicModel::getNew($ModelClass);
 
                 // 10min cache (could be up to 1h cache time)
-                $systemLogModel->getByForeignKey('systemId', $systemId, array(), 60 * 10);
+                $systemLogModel->getByForeignKey('systemId', $systemId, [], 60 * 10);
 
-                if(!$systemLogModel->dry()){
+                if( !$systemLogModel->dry() ){
                     $counter = 0;
                     for( $i = $logEntryCount; $i >= 1; $i--){
                         $column = 'value' . $i;
@@ -313,7 +302,6 @@ class System extends \Controller\AccessController {
                         $counter++;
                     }
                 }
-
             }
         }
 
@@ -322,25 +310,22 @@ class System extends \Controller\AccessController {
 
     /**
      * get system data for all systems within a constellation
-     * @param $f3
-     * @param $params
+     * @param \Base $f3
+     * @param array $params
      */
-    public function constellationData($f3, $params){
-
+    public function constellationData(\Base $f3, $params){
         $return = (object) [];
         $return->error = [];
         $return->systemData = [];
 
         $constellationId = 0;
+        $activeCharacter = $this->getCharacter();
 
-        $user = $this->_getUser();
-
-        if($user){
+        if($activeCharacter){
             // check for search parameter
             if( isset($params['arg1']) ){
                 $constellationId = (int)$params['arg1'];
             }
-
             $cacheKey = 'CACHE_CONSTELLATION_SYSTEMS_' . self::formatHiveKey($constellationId);
 
             if($f3->exists($cacheKey)){
@@ -361,7 +346,27 @@ class System extends \Controller\AccessController {
         echo json_encode($return);
     }
 
+    /**
+     * delete systems and all its connections
+     * @param \Base $f3
+     */
+    public function delete(\Base $f3){
+        $systemIds = $f3->get('POST.systemIds');
 
+        if($activeCharacter = $this->getCharacter()){
+            /**
+             * @var Model\SystemModel $system
+             */
+            $system = Model\BasicModel::getNew('SystemModel');
+            foreach((array)$systemIds as $systemId){
+                $system->getById($systemId);
+                $system->delete($activeCharacter);
+                $system->reset();
+            }
+        }
+
+        echo json_encode([]);
+    }
 }
 
 

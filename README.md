@@ -5,7 +5,7 @@ Mapping tool for [*EVE ONLINE*](https://www.eveonline.com)
 - Official Forum post [https://forums.eveonline.com](https://forums.eveonline.com/default.aspx?g=posts&m=6021776#post6021776)
 - Screenshots [imgur.com](http://imgur.com/a/k2aVa)
 - Video [youtube.com](https://www.youtube.com/channel/UC7HU7XEoMbqRwqxDTbMjSPg)
-- Community [google +](https://plus.google.com/u/0/b/110257318165279088853/110257318165279088853)
+- Community [google +](https://plus.google.com/+Pathfinder-wSpace)
 - Licence [MIT](http://opensource.org/licenses/MIT)
 
 ##### IMPORTANT Information:

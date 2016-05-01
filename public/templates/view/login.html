@@ -70,83 +70,99 @@
 {* login form *}
 <section id="pf-landing-login">
     <div class="container">
-        <div class="row text-center">
-            <div class="col-md-8 col-md-offset-2">
-                <h2><span class="text-primary">Please</span> log in</h2>
+
+        {* cookie characters *}
+        <check if="{{ @cookieCharacters }}">
+            <true>
+                <div class="row text-center">
+                    <div class="col-md-8 col-md-offset-2">
+                        <h2><span class="text-primary">Select</span> your character</h2>
+                    </div>
+                </div>
+
+                {* dynamic message container *}
+                <div class="container-fluid">
+                    <div class="row ">
+                        <div class="col-sm-8 col-sm-offset-2 pf-dynamic-message-container">
+                            {* client side message e.g. ajax errors *}
+                        </div>
+                    </div>
+                </div>
+
+                {* login message container *}
+                <check if="{{ @SESSION.SSO.ERROR }}">
+                    <div class="container-fluid">
+                        <div class="row ">
+                            <div class="col-sm-8 col-sm-offset-2">
+                                <div class="alert alert-danger" >
+                                    <span class="txt-color txt-color-danger">Access denied</span>
+                                    <small>{{ @SESSION.SSO.ERROR }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </check>
+
+                {* check for setup mode *}
+                <check if="{{ array_key_exists('/setup', @ROUTES) && @PATHFINDER.SHOW_SETUP_WARNING }}">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-sm-8 col-sm-offset-2">
+                                <div class="alert alert-warning" >
+                                    <span class="txt-color txt-color-warning">Setup mode active</span>
+                                    <small>Disable setup route in routes.ini in production environment! <a href="/setup">Setup</a></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </check>
+
+                {* IGB warning *}
+                <check if="{{ @isIngame == 1 }}">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-sm-8 col-sm-offset-2">
+                                <div class="alert alert-warning" >
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><i class="fa fa-close"></i></button>
+                                    <span class="txt-color txt-color-warning">Hint</span>
+                                    <small>Some functions may not work within the outdated IGB browser!</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </check>
+
+                <div class="row text-center pf-character-selection">
+                    <repeat group="{{ @cookieCharacters }}" key="{{ @cookieName }}" value="{{ @characterData }}">
+                        <div class="col-sm-{{ @getCharacterGrid( @cookieCharacters ) }}">
+                            <div class="pf-dynamic-area" data-cookie="{{ @cookieName }}" data-href="{{ 'sso','action=login' | alias }}">
+                                {* character data is dynamically *}
+                            </div>
+                        </div>
+                    </repeat>
+                </div>
+            </true>
+            <false>
+                <div class="row text-center">
+                    <div class="col-md-8 col-md-offset-2">
+                        <h2><span class="text-primary">Sign</span> up</h2>
+                    </div>
+                </div>
+            </false>
+        </check>
+
+        {* SSO login *}
+        <div class="container-fluid">
+            <div class="row text-center">
+                <div class="col-xs-12">
+                    <a class="pf-sso-login-button {{@registrationStatusButton}}" target="_self" href="{{ 'sso','action=requestAuthorization' | alias }}" type="button" tabindex="3" title="{{@registrationStatusTitle}}">&nbsp;</a><br>
+                    <a class="font-lg" target="_blank" href="http://community.eveonline.com/news/dev-blogs/eve-online-sso-and-what-you-need-to-know">What is this?</a>
+                </div>
             </div>
         </div>
-        <form id="pf-login-form" class="" role="form" method="post" action="#">
 
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col-sm-3 col-sm-offset-3">
-                        <div class="form-group">
-                            <input type="text" class="form-control" name="userName" id="userName" placeholder="Username" autocomplete="off" tabindex="1" data-error="Username required" autofocus required>
-                            <div class="help-block with-errors text-left"></div>
-                        </div>
-                    </div>
-                    <div class="col-sm-3">
-                        <div class="form-group">
-                            <input type="password" class="form-control" name="userPassword" id="userPassword" placeholder="Password" autocomplete="off" tabindex="2" data-error="Password required" required>
-                            <div class="help-block with-errors text-left"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {* login message container *}
-            <div class="container-fluid">
-                <div class="row ">
-                    <div id="pf-login-message-container" class="col-sm-8 col-sm-offset-2"></div>
-                </div>
-            </div>
-
-            {* check for setup mode *}
-            <check if="{{ array_key_exists('/setup', @ROUTES) && @PATHFINDER.SHOW_SETUP_WARNING }}">
-                <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-sm-8 col-sm-offset-2">
-                            <div class="alert alert-warning" >
-                                <span class="txt-color txt-color-warning">Setup mode active</span>
-                                <small>Disable setup route in routes.ini in production environment! <a href="/setup">Setup</a></small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </check>
-
-            {* IGB warning *}
-            <check if="{{ @isIngame == 1 }}">
-                <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-sm-8 col-sm-offset-2">
-                            <div class="alert alert-warning" >
-                                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><i class="fa fa-close"></i></button>
-                                <span class="txt-color txt-color-warning">Hint</span>
-                                <small>Some functions may not work within the outdated IGB browser!</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </check>
-
-            {* signUp/logIn buttons *}
-            <div class="row text-center">
-                <div class="col-sm-6 col-sm-offset-3">
-                    <div class="col-xs-6 col-sm-4 col-sm-offset-2" data-placement="left" title="{{@registrationStatusTitle}}">
-                        <button type="button" class="pf-register-button btn-block btn btn-primary {{@registrationStatusButton}}" tabindex="-1"><i class="fa fa-fw fa-user-plus"></i> Sign up</button>
-                    </div>
-                    <div class="col-xs-6 col-sm-4">
-                        <button type="submit" class="pf-login-button btn-block btn btn-success" tabindex="3"><i class="fa fa-fw fa-sign-in"></i> Log in</button>
-                    </div>
-                </div>
-            </div>
-        </form>
     </div>
 </section>
-{*
-<a href="{{ 'sso','action=requestAuthorization' | alias }}">SSO login</a>
-*}
 
 {* features/ gallery *}
 <section id="pf-landing-gallery">
@@ -907,6 +923,17 @@
     </div>
 </footer>
 
+{* cookie warning *}
+<footer class="navbar-default navbar-fixed-bottom collapse" id="pf-cookie-hint">
+    <div class="container-fluid">
+        <p class="navbar-text">
+            Pathfinder requires cookies to maintain your login state between browser sessions. Read <a target="_blank" href="https://github.com/exodus4d/pathfinder/issues/138">more</a>.
+        </p>
+        <div class="pull-right">
+            <button type="button" class="btn btn-default navbar-btn btn-success" data-toggle="collapse" data-target="#pf-cookie-hint" aria-expanded="false">That´s fine</button>
+        </div>
+    </div>
+</footer>
 
 {* hidden dialog *}
 <include href="templates/dialog/gallery.html" />

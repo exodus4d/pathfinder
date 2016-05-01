@@ -1,177 +1,90 @@
 <div id="{{id}}">
 
-    <div role="tabpanel">
-        <ul class="text-center {{navigationClass}} row" role="tablist">
-            <li class="col-sm-3 active">
-                <a class="btn btn-default btn-circle btn-sm" data-toggle="tab" href="#pf-dialog-settings-account">1</a>
-                <h6>Account Setup</h6>
-            </li>
-            <li class="col-sm-3">
-                <a class="btn btn-default btn-circle btn-sm disabled" data-toggle="tab" href="#pf-dialog-settings-api">2</a>
-                <h6>API Keys</h6>
-            </li>
-            <li class="col-sm-3">
-                <a class="btn btn-default btn-circle btn-sm disabled" data-toggle="tab" href="#pf-dialog-settings-character">3</a>
-                <h6>Characters</h6>
-            </li>
-            <li class="col-sm-3">
-                <a class="btn btn-default btn-circle btn-sm disabled" data-toggle="tab" href="#pf-dialog-settings-done">4</a>
-                <h6>Done</h6>
-            </li>
-        </ul>
+    <nav class="navbar navbar-default" role="navigation">
+        <div class="navbar-header pull-left">
+            <ul class="nav navbar-nav" role="tablist">
+                <li class="active">
+                    <a role="tab" data-toggle="tab" data-name="account" href="#{{settingsAccountContainerId}}">
+                        <i class="fa fa-user fa-fw"></i>&nbsp;Account
+                    </a>
+                </li>
+                <li>
+                    <a role="tab" data-toggle="tab" data-name="share" href="#{{settingsShareContainerId}}">
+                        <i class="fa fa-share-alt fa-fw"></i>&nbsp;Share
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
 
-        <hr>
-
-        <div class="tab-content">
-
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane fade in active" id="{{settingsAccountContainerId}}">
             {{! account tab ================================================================================================ }}
-            <div role="tabpanel" class="tab-pane fade in active" id="pf-dialog-settings-account">
-                <form role="form" class="form-horizontal">
-                    {{^register}}
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <div class="form-group">
-                                    <label class="col-sm-3 control-label">Username</label>
-                                    <div class="col-sm-9">
-                                        <p class="form-control-static">{{userData.name}}</p>
-                                    </div>
-                                </div>
+            <form role="form" class="form-horizontal">
+
+                {{! Username }}
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Username</label>
+                            <div class="col-sm-9">
+                                <p class="form-control-static">
+                                    <i class="fa fa-fw fa-lg fa-pencil pull-right pf-dialog-icon-button collapsed" data-toggle="collapse" data-target="#collapseUsername" aria-expanded="false" aria-controls="collapseUsername"></i>
+                                    {{userData.name}}
+                                </p>
                             </div>
                         </div>
-                    {{/register}}
+                    </div>
+                </div>
 
-                    {{#register}}
-
-                        {{#invite}}
-                        <div class="alert alert-info" style="margin-bottom: 20px">
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><i class="fa fa-close"></i></button>
-                            <span class="txt-color txt-color-information">Invite active</span>
-                            <small>You need a "Registration Key" to complete registration</small>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <div class="form-group">
-                                    <label for="registrationKey" class="col-sm-3 control-label">Registration Key</label>
-                                    <div class="col-sm-6">
-                                        <div class="input-group" title="Enter your personal registration kay" data-placement="right">
-                                            <input name="registrationKey" type="text" class="form-control" id="registrationKey" value="" placeholder="XXXXXX" data-error="Registration key required" data-minlength="40" data-minlength-error="Min. of 40 characters" autocomplete="off" required>
-                                            <span class="input-group-addon"><i class="fa fa-fw fa-certificate"></i></span>
-                                        </div>
-                                        <div class="help-block with-errors"></div>
+                <div id="collapseUsername" class="collapse">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label for="name" class="col-sm-3 control-label">New Username</label>
+                                <div class="col-sm-6">
+                                    <div class="input-group" title="Choose your unique username" data-placement="right">
+                                        <input name="name" type="text" class="form-control" id="name" value="" placeholder="Your username" data-error="Username required" data-minlength="5" data-minlength-error="Min. of 5 characters" data-username="true" autocomplete="nickname">
+                                        <span class="input-group-addon"><i class="fa fa-fw fa-user"></i></span>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                        {{/invite}}
-
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <div class="form-group">
-                                    <label for="name" class="col-sm-3 control-label">Username</label>
-                                    <div class="col-sm-6">
-                                        <div class="input-group" title="Choose your unique username" data-placement="right">
-                                            <input name="name" type="text" class="form-control" id="name" value="" placeholder="Your username" data-error="Username required" data-minlength="5" data-minlength-error="Min. of 5 characters" autocomplete="nickname" required>
-                                            <span class="input-group-addon"><i class="fa fa-fw fa-user"></i></span>
-                                        </div>
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    {{/register}}
-
-                    {{^register}}
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <div class="form-group">
-                                    <label class="col-sm-3 control-label">Email</label>
-                                    <div class="col-sm-9">
-                                        <p class="form-control-static">
-                                            <i class="fa fa-fw fa-lg fa-pencil pull-right pf-dialog-icon-button collapsed" data-toggle="collapse" data-target="#collapseEmail" aria-expanded="false" aria-controls="collapseEmail"></i>
-                                            {{userData.email}}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    {{/register}}
-
-                    <div id="collapseEmail" class="{{^register}}collapse{{/register}}">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <div class="form-group">
-                                    <label for="email" class="col-sm-3 control-label">New Email</label>
-                                    <div class="col-sm-6">
-                                        <div class="input-group" title="Enter your email. It will be kept private!" data-placement="right">
-                                            <input name="email" type="email" class="form-control" id="email" value="" placeholder="your@email.com" data-error="Email required" autocomplete="email" {{#register}}required{{/register}} >
-                                            <span class="input-group-addon"><i class="fa fa-fw fa-envelope"></i></span>
-                                        </div>
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <div class="form-group">
-                                    <label for="email_confirm" class="col-sm-3 control-label">Confirm Email</label>
-                                    <div class="col-sm-6">
-                                        <div class="input-group" title="Confirm your email" data-placement="right">
-                                            <input name="email_confirm" type="email" class="form-control" id="email_confirm" value="" placeholder="your@email.com" data-error="Email required" data-match="#email" data-match-error="Email fields do not match" autocomplete="email" {{#register}}required{{/register}}>
-                                            <span class="input-group-addon"><i class="fa fa-fw fa-envelope"></i></span>
-                                        </div>
-                                        <div class="help-block with-errors"></div>
-                                    </div>
+                                    <div class="help-block with-errors"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    {{^register}}
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <div class="form-group">
-                                    <label class="col-sm-3 control-label">Password</label>
-                                    <div class="col-sm-9">
-                                        <p class="form-control-static">
-                                            <i class="fa fa-fw fa-lg fa-pencil pull-right pf-dialog-icon-button collapsed"data-toggle="collapse" data-target="#collapsePassword" aria-expanded="false" aria-controls="collapsePassword"></i>
-                                            <i class="fa fa-fw fa-ellipsis-h"></i>
-                                        </p>
-                                    </div>
-                                </div>
+                {{! Email }}
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Email</label>
+                            <div class="col-sm-9">
+                                <p class="form-control-static">
+                                    <i class="fa fa-fw fa-lg fa-pencil pull-right pf-dialog-icon-button collapsed" data-toggle="collapse" data-target="#collapseEmail" aria-expanded="false" aria-controls="collapseEmail"></i>
+                                    {{#userData.email}}
+                                    {{userData.email}}
+                                    {{/userData.email}}
+                                    {{^userData.email}}
+                                    unknown
+                                    {{/userData.email}}
+                                </p>
                             </div>
                         </div>
-                    {{/register}}
+                    </div>
+                </div>
 
-                    <div id="collapsePassword" class="{{^register}}collapse{{/register}}">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <div class="form-group">
-                                    <label for="password" class="col-sm-3 control-label">New Password</label>
-                                    <div class="col-sm-6">
-                                        <div class="input-group" title="Enter your password. Do not use your EVE password" data-placement="right">
-                                            <input name="password" type="password" class="form-control" id="password" placeholder="" data-minlength="6" data-minlength-error="Min. of 6 characters" autocomplete="new-password" {{#register}}required{{/register}}>
-                                            <span class="input-group-addon"><i class="fa fa-fw fa-lock"></i></span>
-                                        </div>
-                                        <div class="help-block with-errors"></div>
+                <div id="collapseEmail" class="collapse">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label for="email" class="col-sm-3 control-label">New Email</label>
+                                <div class="col-sm-6">
+                                    <div class="input-group" title="Enter your email. It will be kept private!" data-placement="right">
+                                        <input name="email" type="email" class="form-control" id="email" value="" placeholder="your@email.com" data-error="Email required" autocomplete="email" required>
+                                        <span class="input-group-addon"><i class="fa fa-fw fa-envelope"></i></span>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <div class="form-group">
-                                    <label for="password_confirm" class="col-sm-3 control-label">Confirm Password</label>
-                                    <div class="col-sm-6">
-                                        <div class="input-group" title="Confirm your password" data-placement="right">
-                                            <input name="password_confirm" type="password" class="form-control" id="password_confirm" placeholder="" data-minlength="6" data-minlength-error="Min. of 6 characters" data-match="#password" data-match-error="Password fields do not match" autocomplete="new-password" {{#register}}required{{/register}}>
-                                            <span class="input-group-addon"><i class="fa fa-fw fa-lock"></i></span>
-                                        </div>
-                                        <div class="help-block with-errors"></div>
-                                    </div>
+                                    <div class="help-block with-errors"></div>
                                 </div>
                             </div>
                         </div>
@@ -180,124 +93,137 @@
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <label class="col-sm-3 control-label"></label>
+                                <label for="email_confirm" class="col-sm-3 control-label">Confirm Email</label>
                                 <div class="col-sm-6">
-                                    <p id="{{captchaImageWrapperId}}">
-                                        <img id="{{captchaImageId}}" src="">
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <div class="form-group">
-                                    <label for="captcha" class="col-sm-3 control-label">Captcha</label>
-                                    <div class="col-sm-6">
-                                        <div class="input-group" title="Enter the characters seen above" data-placement="right">
-                                            <input name="captcha" type="text" class="form-control" id="captcha" placeholder="" data-minlength="6" data-minlength-error="Min. of 6 characters" autocomplete="off" required>
-                                            <span class="input-group-addon"><i class="fa fa-fw fa-refresh"></i></span>
-                                        </div>
-                                        <div class="help-block with-errors"></div>
+                                    <div class="input-group" title="Confirm your email" data-placement="right">
+                                        <input name="email_confirm" type="email" class="form-control" id="email_confirm" value="" placeholder="your@email.com" data-error="Email required" data-match="#email" data-match-error="Email fields do not match" autocomplete="email" required>
+                                        <span class="input-group-addon"><i class="fa fa-fw fa-envelope"></i></span>
                                     </div>
+                                    <div class="help-block with-errors"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="{{formErrorContainerClass}} alert alert-danger" style="display: none;">
-                        <span class="txt-color txt-color-danger">Error</span>
-                        <small> (important non-critical information)</small>
-                    </div>
-
-                </form>
-            </div>
-
-            {{! api tab ================================================================================================ }}
-            <div role="tabpanel" class="tab-pane fade" id="pf-dialog-settings-api">
-                <form role="form" class="form-horizontal">
-
-                    <div class="row">
-                        <div class="col-sm-11">
-                            <blockquote>
-                                <p>
-                                    API Key(s) are required to use <em class="pf-brand">pathfinder</em>.
-                                    Don't have one? - Create a new key with an empty 'Access Mask' (8).
+                {{! Captcha }}
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label"></label>
+                            <div class="col-sm-9">
+                                <p id="{{captchaImageWrapperId}}" class="form-control-static">
+                                    <i class="fa fa-fw fa-lg fa-refresh pull-right pf-dialog-icon-button collapsed"></i>
+                                    <img id="{{captchaImageId}}" src="">
                                 </p>
-                                <small>Get your new/custom API Key from
-                                    <a href="https://community.eveonline.com/support/api-key/CreatePredefined?accessMask=8" target="_blank">here</a>
-                                    and come back to this page.
-                                </small>
-                            </blockquote>
-                        </div>
-                    </div>
-
-                    {{#userData.api}}
-                        <div class="row {{cloneApiRowClass}}">
-                            <div class="col-sm-4">
-                                <div class="form-group">
-                                    <label for="keyId" class="col-sm-4 control-label">Key ID</label>
-                                    <div class="col-sm-8">
-                                        <input name="keyId[]" type="text" value="{{keyId}}" class="form-control" id="keyId" placeholder="123456" data-error="Field is required" data-minlength="4" data-minlength-error="Min. of 4 characters" required>
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-sm-5">
-                                <div class="form-group">
-                                    <label for="vCode" class="col-sm-2 control-label">vCode</label>
-                                    <div class="col-sm-10">
-                                        <input name="vCode[]" type="text" value="{{vCode}}" class="form-control" id="vCode" placeholder="XXXXXXXXXX" data-error="Field is required" data-minlength="64" data-minlength-error="Min. of 64 characters" required>
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-sm-3">
-
-                                <button class="btn btn-danger collapsed pull-left {{deleteRowButtonClass}}">
-                                    <i class="fa fa-close"></i>
-                                </button>
-
-                                <button class="btn btn-default collapsed pull-right {{cloneRowButtonClass}}">
-                                    <i class="fa fa-fw fa-plus"></i>&nbsp;add
-                                </button>
                             </div>
 
                         </div>
-                    {{/userData.api}}
-
-                    <div class="{{formErrorContainerClass}} alert alert-danger" style="display: none;">
-                        <span class="txt-color txt-color-danger">Error</span>
-                        <small> (important non-critical information)</small>
                     </div>
+                </div>
 
-                    <div class="{{formWarningContainerClass}} alert alert-warning" style="display: none;">
-                        <span class="txt-color txt-color-warning">Warning</span>
-                        <small> (important non-critical information)</small>
+                <div class="row">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label for="captcha" class="col-sm-3 control-label">Captcha</label>
+                                <div class="col-sm-6">
+                                    <div class="input-group" title="Enter Captcha" data-placement="right">
+                                        <input name="captcha" type="text" class="form-control" id="captcha" placeholder="" data-error="Captcha required" data-minlength="6" maxlength="6" autocomplete="off"  required>
+                                        <span class="input-group-addon"><i class="fa fa-fw fa-picture-o"></i></span>
+                                    </div>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </form>
-            </div>
+                </div>
 
-            {{! character tab ================================================================================================ }}
-            <div role="tabpanel" class="tab-pane fade" id="pf-dialog-settings-character">
-                <form role="form" class="form-horizontal">
+                <div class="{{formErrorContainerClass}} alert alert-danger" style="display: none;">
+                    <span class="txt-color txt-color-danger">Error</span>
+                    <small> (important non-critical information)</small>
+                </div>
 
-                </form>
-            </div>
-            {{! finish tab ================================================================================================ }}
-            <div role="tabpanel" class="tab-pane fade" id="pf-dialog-settings-done">
-                <form role="form" class="form-horizontal">
-                    <h1 style="opacity: 0;" class="text-center txt-color txt-color-green"><strong><i class="fa fa-check fa-lg"></i> Complete</strong></h1>
-                    <h5 class="text-center">Click next to finish</h5>
-                </form>
-            </div>
-
+            </form>
         </div>
+        <div role="tabpanel" class="tab-pane" id="{{settingsShareContainerId}}">
+            {{! sharing tab ================================================================================================ }}
 
+            <form role="form" class="form-horizontal">
+
+                <div class="row">
+                    <div class="col-sm-11">
+                        <blockquote>
+                            <p>
+                                Before other pilots, corporations or alliances can invite you to their maps, you have to enable the associated option.
+                            </p>
+                            <small>Check out the "<a href="javascript:void(0);" onclick="$(document).triggerMenuEvent('Manual');">manual</a>" for more information
+                            </small>
+                        </blockquote>
+                    </div>
+                </div>
+
+                {{#userData.character}}
+                    <h4 class="pf-dynamic-area"><img src="{{ccpImageServer}}Character/{{id}}_32.jpg">&nbsp;&nbsp;Private maps "<em class="pf-map-type-private">{{name}}</em>"</h4>
+
+
+                    <div class="row">
+                        <div class="col-sm-9">
+                            <div class="col-sm-10">
+                                <label for="privateSharing">
+                                    <input id="privateSharing" type="checkbox" name="privateSharing" data-toggle="toggle" value="1" {{#shared}}checked{{/shared}}>
+                                    &nbsp;map invite for private maps
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+
+                        </div>
+                    </div>
+
+                    {{#corporation}}
+                    <h4 class="pf-dynamic-area"><img src="{{ccpImageServer}}Corporation/{{id}}_32.png">&nbsp;&nbsp;Corporation maps "<em class="pf-map-type-corporation">{{name}}</em>"</h4>
+
+
+                    <div class="row">
+                        <div class="col-sm-9">
+                            <div class="col-sm-10">
+                                <label for="corporationSharing">
+                                    <input id="corporationSharing" type="checkbox" name="corporationSharing" data-toggle="toggle" value="1" {{#shared}}checked{{/shared}}>
+                                    &nbsp;map invite for corporation maps
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+
+                        </div>
+                    </div>
+
+                    {{/corporation}}
+
+                    {{#alliance}}
+                    <h4 class="pf-dynamic-area"><img src="{{ccpImageServer}}Alliance/{{id}}_32.png">&nbsp;&nbsp;Alliance maps "<em class="pf-map-type-alliance">{{name}}</em>"</h4>
+
+                    <div class="row">
+                        <div class="col-sm-9">
+                            <div class="col-sm-10">
+                                <label for="allianceSharing">
+                                    <input id="allianceSharing" type="checkbox" name="allianceSharing" data-toggle="toggle" value="1" {{#shared}}checked{{/shared}}>
+                                    &nbsp;map invite for alliance maps
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+
+                        </div>
+                    </div>
+                    {{/alliance}}
+
+                    <input type="hidden" name="share">
+
+                {{/userData.character}}
+
+            </form>
+        </div>
     </div>
-
 </div>

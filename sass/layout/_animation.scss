@@ -38,21 +38,21 @@
 // pulse-out ==========================================
 
 .pf-animation-pulse-success{
-  @include animation( pulseBackgroundSuccess 3s 1 );
+  @include animation( pulseBackgroundSuccess 1.5s 1 );
   @include animation-timing-function( cubic-bezier(0.53, -0.03, 0.68, 0.38) );
 
   .sorting_1{
-    @include animation( pulseBackgroundSuccessActive 3s 1 );
+    @include animation( pulseBackgroundSuccessActive 1.5s 1 );
     @include animation-timing-function( cubic-bezier(0.53, -0.03, 0.68, 0.38) );
   }
 }
 
 .pf-animation-pulse-warning{
-  @include animation( pulseBackgroundWarning 3s 1 );
+  @include animation( pulseBackgroundWarning 1.5s 1 );
   @include animation-timing-function( cubic-bezier(0.53, -0.03, 0.68, 0.38) );
 
   .sorting_1{
-    @include animation( pulseBackgroundWarningActive 3s 1 );
+    @include animation( pulseBackgroundWarningActive 1.5s 1 );
     @include animation-timing-function( cubic-bezier(0.53, -0.03, 0.68, 0.38) );
   }
 }
@@ -60,7 +60,7 @@
 @include keyframes(pulseBackgroundSuccess){
   0%   {}
   5%  {
-    background-color: $green;
+    background-color: $green-dark;
     color: $gray-dark;
   }
   100% {}
@@ -68,7 +68,7 @@
 @include keyframes(pulseBackgroundSuccessActive){
   0%   {}
   5%  {
-    background-color: darken($green, 5%);
+    background-color: darken($green-dark, 5%);
     color: $gray-dark;
   }
   100% {}

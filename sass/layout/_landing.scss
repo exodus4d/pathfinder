@@ -314,9 +314,126 @@
 // login ----------------------------------------------------------------------
 #pf-landing-login{
   padding-top: 40px;
+  padding-bottom: 30px;
 
   .row{
-    margin-bottom: 0px;
+    margin-bottom: 0;
+  }
+
+  // character select panel animation (e.g. on delete)
+  .pf-character-selection > div:not(.pf-character-row-animate){
+    @include transition( width 0.2s ease, margin 0.2s ease);
+  }
+
+  .pf-dynamic-area{
+    display: inline-block;
+    margin: 10px 5px 20px 5px;
+    padding: 10px 10px 5px 10px;
+    min-width: 155px;
+    min-height: 184px;
+    @include border-radius(10px);
+    @include box-shadow(0 4px 10px rgba(0,0,0, 0.4));
+
+    // character images
+    .pf-character-image-wrapper{
+      opacity: 0;
+      width: 128px;
+      border: 2px solid $gray-light;
+      @include border-radius(8px);
+      @include transition( border-color 0.2s ease-out, box-shadow 0.2s ease-out);
+      @include transform( translate3d(0, 0, 0) );
+      will-change: border-color, transition;
+      overflow: hidden;
+      cursor: pointer;
+      display: inline-block;
+      background-color: $gray-darker;
+      box-sizing: content-box; // because of the borders and the fix img with of 128
+
+      &:hover{
+        border-color: $green-dark;
+
+        .pf-character-name{
+          color: $green-dark;
+        }
+
+        .pf-character-image{
+          @include filter(grayscale(50%))
+        }
+      }
+
+      .pf-character-select-image{
+        overflow: hidden;
+        width: 128px;
+        height: 128px;
+        position: relative;
+
+        // info element visible on hover
+        .pf-character-info{
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 0; // trigger by js
+          height: 100%;
+          color: $gray-lighter;
+          background: rgba($gray, 0.80);
+          overflow: hidden;
+          will-change: width, transition;
+          padding: 10px 0;
+
+          .pf-character-info-text{
+            line-height: 25px;
+          }
+        }
+      }
+
+      .pf-character-name{
+        font-size: 13px;
+        line-height: 30px;
+        border-top: 1px solid $gray-dark;
+        color: $gray-lighter;
+        @include transition( color 0.2s ease-out );
+      }
+
+      .pf-character-image{
+        @include transition(all 0.3s ease-out);
+        @include filter(grayscale(0%));
+      }
+    }
+  }
+
+  .pf-sso-login-button{
+    position: relative;
+    display: inline-block;
+    width: 270px;
+    height: 45px;
+    border: none;
+    margin-bottom: 10px;
+    background-color: transparent;
+    background-image: url("#{$base-url}/landing/eve_sso_login_buttons_large_black_hover.png");
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    @include transition(box-shadow 0.12s ease-out);
+    will-change: box-shadow;
+
+    &:after {
+      content: ' ';
+      position: absolute;
+      width: 270px;
+      height: 45px;
+      left: 0;
+      top: 0;
+      background-image: url("#{$base-url}/landing/eve_sso_login_buttons_large_black.png");
+      @include transition(opacity 0.12s ease-in-out);
+      will-change: opacity;
+    }
+
+    &:hover {
+      box-shadow: 0 4px 5px rgba(0, 0, 0, 0.2);
+
+      &:after{
+        opacity: 0;
+      }
+    }
   }
 }
 

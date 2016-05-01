@@ -1,35 +1,112 @@
-<div class="row" id="{{id}}">
-    <div class="col-sm-12">
-        <form  role="form" class="form-horizontal">
+<div id="{{id}}">
+    <form  role="form" class="form-horizontal">
 
-            <div class="row">
-                <div class="col-sm-5">
-                    <div class="form-group">
-                        <label class="col-sm-3 control-label">From</label>
-                        <div class="col-sm-9">
-                                <div class=" pull-right">
-                                    <p class="form-control-static">
-                                        <i class="fa fa-arrow-right"></i>
-                                    </p>
-                                </div>
-                                <p class="form-control-static">{{systemFrom}}</p>
+        <div class="row">
+            <div class="col-sm-5">
+                <div class="form-group">
+                    <label class="col-sm-3 col-xs-2 control-label">From</label>
+                    <div class="col-sm-9 col-xs-10">
+                            <div class=" pull-right">
+                                <p class="form-control-static">
+                                    <i class="fa fa-arrow-right"></i>
+                                </p>
+                            </div>
+                            <p class="form-control-static">{{systemFrom}}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-7">
+                <div class="form-group">
+                    <label class="col-sm-1 col-xs-2 control-label" for="to_system">To</label>
+                    <div class="col-sm-11 col-xs-10">
+                        <div class="input-group">
+                            <select id="to_system" name="systemTo" class="form-control {{selectClass}}" data-error="Choose a valid system" required/>
+                            <span class="help-block with-errors">Search system name</span>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <div class="col-sm-7">
-                    <div class="form-group">
-                        <label class="col-sm-1 control-label" for="to_system">To</label>
-                        <div class="col-sm-11">
-                            <div class="input-group">
-                                <select id="to_system" name="systemTo" class="form-control {{selectClass}}" data-error="Choose a valid system" required/>
-                                <span class="help-block with-errors">Search system name</span>
-                            </div>
+        {{! search options ----------------------------------------------------------- }}
+
+        <h4 class="pf-dynamic-area">Search options</h4>
+
+        <div class="row">
+            <div class="col-sm-4">
+                <div class="form-group">
+                    <div class="col-sm-offset-1 col-sm-11">
+                        <div class="col-sm-12 col-xs-6 checkbox checkbox-primary" title="include stargate connections">
+                            <input id="form_stargates" name="stargates" value="1" type="checkbox" checked>
+                            <label for="form_stargates">Stargates</label>
+                            <div class="help-block with-errors"></div>
+                        </div>
+
+                        <div class="col-sm-12 col-xs-6 checkbox checkbox-primary" title="include jump bridge connections">
+                            <input id="form_rally" name="jumpbridges" value="1" type="checkbox" checked>
+                            <label for="form_rally">Jump Bridges</label>
                         </div>
                     </div>
                 </div>
             </div>
 
-        </form>
-    </div>
+            <div class="col-sm-8">
+                <div class="form-group">
+                    <label class="col-sm-2 control-label" for="{{mapSelectId}}">Maps</label>
+                    <div class="col-sm-10">
+                        <div class="input-group" title="add/remove maps for search">
+                            <select id="{{mapSelectId}}" name="mapIds[]" multiple="multiple">
+                                {{#mapSelectOptions}}
+                                <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+                                {{/mapSelectOptions}}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="row">
+            <div class="col-sm-4">
+                <div class="form-group">
+                    <div class="col-sm-offset-1 col-sm-11">
+                        <div class="col-sm-12 col-xs-6 checkbox checkbox-primary" title="include wormhole connections">
+                            <input id="form_wormholes" name="wormholes" value="1" type="checkbox" checked>
+                            <label for="form_wormholes">Wormholes</label>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-4">
+                <div class="form-group">
+                    <div class="col-sm-offset-1 col-sm-11">
+                        <div class="col-sm-12 col-xs-6 checkbox checkbox-warning checkbox-circle" title="include reduced connections">
+                            <input id="form_wormholes_reduced" name="wormholesReduced" value="1" type="checkbox" checked>
+                            <label for="form_wormholes_reduced">Stage 1 (reduced)</label>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-4">
+                <div class="form-group">
+                    <div class="col-sm-offset-1 col-sm-11">
+                        <div class="col-sm-12 col-xs-6 checkbox checkbox-danger checkbox-circle" title="include critical connections">
+                            <input id="form_wormholes_critical" name="wormholesCritical" value="1" type="checkbox" checked>
+                            <label for="form_wormholes_critical">Stage 2 (critical)</label>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </form>
 </div>

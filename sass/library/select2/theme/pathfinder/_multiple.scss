@@ -14,6 +14,7 @@
     list-style: none;
     margin: 0;
     padding: 0 5px;
+    width: 100%;
   }
 
   .select2-selection__clear {
@@ -41,6 +42,10 @@
     &:hover {
       color: $remove-hover-color;
     }
+  }
+
+  .select2-selection__placeholder {
+    color: $gray-light;
   }
 }
 

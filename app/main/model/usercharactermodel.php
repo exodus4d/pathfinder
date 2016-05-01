@@ -32,20 +32,10 @@ class UserCharacterModel extends BasicModel {
                 ]
             ]
         ],
-        'apiId' => [
-            'type' => Schema::DT_INT,
-            'index' => true,
-            'belongs-to-one' => 'Model\UserApiModel',
-            'constraint' => [
-                [
-                    'table' => 'user_api',
-                    'on-delete' => 'CASCADE'
-                ]
-            ]
-        ],
         'characterId' => [
             'type' => Schema::DT_INT,
             'index' => true,
+            'unique' => true,
             'belongs-to-one' => 'Model\CharacterModel',
             'constraint' => [
                 [
@@ -53,12 +43,6 @@ class UserCharacterModel extends BasicModel {
                     'on-delete' => 'CASCADE'
                 ]
             ]
-        ],
-        'isMain' => [
-            'type' => Schema::DT_BOOLEAN,
-            'nullable' => false,
-            'default' => 0,
-            'index' => true
         ]
     ];
 
@@ -67,9 +51,7 @@ class UserCharacterModel extends BasicModel {
      * @param $characterData
      */
     public function setData($characterData){
-
         foreach((array)$characterData as $key => $value){
-
             if(!is_array($value)){
                 if($this->exists($key)){
                     $this->$key = $value;
@@ -79,52 +61,19 @@ class UserCharacterModel extends BasicModel {
     }
 
     /**
-     * get all character data
-     * @param $addCharacterLogData
-     * @return array
-     */
-    public function getData($addCharacterLogData = false){
-
-        // get characterModel
-        $characterModel = $this->getCharacter();
-
-        // get static character data
-        $characterData = $characterModel->getData($addCharacterLogData);
-
-        // add user specific character data
-        $characterData->isMain = $this->isMain;
-
-        // check for corporation
-        if( is_object( $characterModel->corporationId ) ){
-            $characterData->corporation = $characterModel->corporationId->getData();
-        }
-
-        // check for alliance
-        if( is_object( $characterModel->allianceId ) ){
-            $characterData->alliance = $characterModel->allianceId->getData();
-        }
-
-        return $characterData;
-    }
-
-    /**
-     * check if this character is Main character or not
+     * event "Hook"
+     * -> remove user if there are no other characters bound to this user
+     * @param $self
      * @return bool
      */
-    public function isMain(){
-        $isMain = false;
-        if($this->isMain == 1){
-            $isMain = true;
+    public function aftereraseEvent($self){
+        if(
+            is_object($self->userId) &&
+            is_null($self->userId->userCharacters)
+        ){
+            $self->userId->erase();
         }
-
-        return $isMain;
-    }
-
-    /**
-     * set this character as main character
-     */
-    public function setMain($value = 0){
-        $this->isMain = $value;
+        return true;
     }
 
     /**
@@ -146,10 +95,7 @@ class UserCharacterModel extends BasicModel {
         $status = parent::setup($db,$table,$fields);
 
         if($status === true){
-            $status = parent::setMultiColumnIndex(['userId', 'apiId', 'characterId'], true);
-            if($status === true){
-                $status = parent::setMultiColumnIndex(['userId', 'apiId']);
-            }
+            $status = parent::setMultiColumnIndex(['userId', 'characterId'], true);
         }
 
         return $status;

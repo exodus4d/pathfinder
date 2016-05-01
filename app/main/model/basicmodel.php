@@ -13,7 +13,7 @@ use Exception;
 use Controller;
 use DB;
 
-class BasicModel extends \DB\Cortex {
+abstract class BasicModel extends \DB\Cortex {
 
     /**
      * Hive key with DB object
@@ -81,14 +81,16 @@ class BasicModel extends \DB\Cortex {
             $self->clearCacheData();
         });
 
-        // model updated
         $this->afterupdate( function($self){
             $self->clearCacheData();
         });
 
-        // model updated
         $this->beforeinsert( function($self){
             $self->beforeInsertEvent($self);
+        });
+
+        $this->aftererase( function($self){
+            $self->aftereraseEvent($self);
         });
     }
 
@@ -106,18 +108,27 @@ class BasicModel extends \DB\Cortex {
             return;
         }
 
-        if($key != 'updated'){
+        if(
+            !$this->dry() &&
+            $key != 'updated'
+        ){
             if( $this->exists($key) ){
                 $currentVal = $this->get($key);
 
                 // if current value is not a relational object
                 // and value has changed -> update table col
-                if(
-                    !is_object($currentVal) &&
-                    $currentVal != $val
-                ){
+                if(is_object($currentVal)){
+                    if(
+                        is_numeric($val) &&
+                        is_subclass_of($currentVal, 'Model\BasicModel') &&
+                        $currentVal->_id !== (int)$val
+                    ){
+                        $this->touch('updated');
+                    }
+                }elseif($currentVal != $val){
                     $this->touch('updated');
                 }
+
             }
         }
 
@@ -226,7 +237,7 @@ class BasicModel extends \DB\Cortex {
         $cacheKey = null;
 
         // set a model unique cache key if the model is saved
-        if( $this->_id > 0){
+        if( $this->id > 0){
             // check if there is a given key prefix
             // -> if not, use the standard key.
             // this is useful for caching multiple data sets according to one row entry
@@ -243,6 +254,67 @@ class BasicModel extends \DB\Cortex {
         }
 
         return $cacheKey;
+    }
+
+    /**
+     * get cached data from this model
+     * @param string $dataCacheKeyPrefix - optional key prefix
+     * @return \stdClass|null
+     */
+    protected function getCacheData($dataCacheKeyPrefix = ''){
+
+        $cacheKey = $this->getCacheKey($dataCacheKeyPrefix);
+        $cacheData = null;
+
+        if( !is_null($cacheKey) ){
+            $f3 = self::getF3();
+
+            if( $f3->exists($cacheKey) ){
+                $cacheData = $f3->get( $cacheKey );
+            }
+        }
+
+        return $cacheData;
+    }
+
+    /**
+     * update/set the getData() cache for this object
+     * @param $cacheData
+     * @param string $dataCacheKeyPrefix
+     * @param int $data_ttl
+     */
+    public function updateCacheData($cacheData, $dataCacheKeyPrefix = '', $data_ttl = 300){
+
+        $cacheDataTmp = (array)$cacheData;
+
+        // check if data should be cached
+        // and cacheData is not empty
+        if(
+            $data_ttl > 0 &&
+            !empty( $cacheDataTmp )
+        ){
+            $cacheKey = $this->getCacheKey($dataCacheKeyPrefix);
+
+            if( !is_null($cacheKey) ){
+                self::getF3()->set($cacheKey, $cacheData, $data_ttl);
+            }
+        }
+    }
+
+    /**
+     * unset the getData() cache for this object
+     */
+    public function clearCacheData(){
+        $cacheKey = $this->getCacheKey();
+
+        if( !is_null($cacheKey) ){
+            $f3 = self::getF3();
+
+            if( $f3->exists($cacheKey) ){
+                $f3->clear($cacheKey);
+            }
+
+        }
     }
 
     /**
@@ -303,18 +375,18 @@ class BasicModel extends \DB\Cortex {
     /**
      * get dataSet by foreign column (single result)
      * @param $key
-     * @param $id
+     * @param $value
      * @param array $options
      * @param int $ttl
      * @return \DB\Cortex
      */
-    public function getByForeignKey($key, $id, $options = [], $ttl = 60){
+    public function getByForeignKey($key, $value, $options = [], $ttl = 60){
 
         $querySet = [];
         $query = [];
         if($this->exists($key)){
             $query[] = $key . " = :" . $key;
-            $querySet[':' . $key] = $id;
+            $querySet[':' . $key] = $value;
         }
 
         // check active column
@@ -338,11 +410,20 @@ class BasicModel extends \DB\Cortex {
     }
 
     /**
-     * function should be overwritten in child classes with access restriction
-     * @param $accessObject
+     * Event "Hook" function
+     * can be overwritten
      * @return bool
      */
-    public function hasAccess($accessObject){
+    public function aftereraseEvent($self){
+        return true;
+    }
+
+    /**
+     * function should be overwritten in child classes with access restriction
+     * @param CharacterModel $characterModel
+     * @return bool
+     */
+    public function hasAccess(CharacterModel $characterModel){
         return true;
     }
 
@@ -352,113 +433,6 @@ class BasicModel extends \DB\Cortex {
      */
     public function isValid(){
         return true;
-    }
-
-    /**
-     * get cached data from this model
-     * @param string $dataCacheKeyPrefix - optional key prefix
-     * @return mixed|null
-     */
-    protected function getCacheData($dataCacheKeyPrefix = ''){
-
-        $cacheKey = $this->getCacheKey($dataCacheKeyPrefix);
-        $cacheData = null;
-
-        if( !is_null($cacheKey) ){
-            $f3 = self::getF3();
-
-            if( $f3->exists($cacheKey) ){
-                $cacheData = $f3->get( $cacheKey );
-            }
-        }
-
-        return $cacheData;
-    }
-
-    /**
-     * update/set the getData() cache for this object
-     * @param $cacheData
-     * @param string $dataCacheKeyPrefix
-     * @param int $data_ttl
-     */
-    public function updateCacheData($cacheData, $dataCacheKeyPrefix = '', $data_ttl = 300){
-
-        $cacheDataTmp = (array)$cacheData;
-
-        // check if data should be cached
-        // and cacheData is not empty
-        if(
-            $data_ttl > 0 &&
-            !empty( $cacheDataTmp )
-        ){
-            $cacheKey = $this->getCacheKey($dataCacheKeyPrefix);
-
-            if( !is_null($cacheKey) ){
-                self::getF3()->set($cacheKey, $cacheData, $data_ttl);
-            }
-        }
-    }
-
-    /**
-     * unset the getData() cache for this object
-     */
-    public function clearCacheData(){
-        $cacheKey = $this->getCacheKey();
-
-        if( !is_null($cacheKey) ){
-            $f3 = self::getF3();
-
-            if( $f3->exists($cacheKey) ){
-                $f3->clear($cacheKey);
-            }
-
-        }
-    }
-
-    /**
-     * get the current class name
-     * -> namespace not included
-     * @return string
-     */
-    public static function getClassName(){
-        $parts = explode('\\', static::class);
-        return end($parts);
-    }
-
-    /**
-     * factory for all Models
-     * @param $model
-     * @param int $ttl
-     * @return null
-     * @throws \Exception
-     */
-    public static function getNew($model, $ttl = 86400){
-        $class = null;
-
-        $model = '\\' . __NAMESPACE__ . '\\' . $model;
-        if(class_exists($model)){
-            $class = new $model( null, null, null, $ttl );
-        }else{
-            throw new \Exception('No model class found');
-        }
-
-        return $class;
-    }
-
-    /**
-     * get the framework instance (singleton)
-     * @return static
-     */
-    public static function getF3(){
-        return \Base::instance();
-    }
-
-    /**
-     * debug log function
-     * @param $text
-     */
-    public static function log($text){
-        Controller\LogController::getLogger('debug')->write($text);
     }
 
     /**
@@ -571,6 +545,52 @@ class BasicModel extends \DB\Cortex {
             }
         }
         return ['added' => $addedCount, 'updated' => $updatedCount, 'deleted' => $deletedCount];
+    }
+
+    /**
+     * get the current class name
+     * -> namespace not included
+     * @return string
+     */
+    public static function getClassName(){
+        $parts = explode('\\', static::class);
+        return end($parts);
+    }
+
+    /**
+     * factory for all Models
+     * @param string $model
+     * @param int $ttl
+     * @return BasicModel
+     * @throws \Exception
+     */
+    public static function getNew($model, $ttl = 86400){
+        $class = null;
+
+        $model = '\\' . __NAMESPACE__ . '\\' . $model;
+        if(class_exists($model)){
+            $class = new $model( null, null, null, $ttl );
+        }else{
+            throw new \Exception('No model class found');
+        }
+
+        return $class;
+    }
+
+    /**
+     * get the framework instance (singleton)
+     * @return \Base
+     */
+    public static function getF3(){
+        return \Base::instance();
+    }
+
+    /**
+     * debug log function
+     * @param string $text
+     */
+    public static function log($text){
+        Controller\LogController::getLogger('debug')->write($text);
     }
 
     /**
