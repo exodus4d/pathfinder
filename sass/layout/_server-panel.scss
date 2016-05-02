@@ -1,0 +1,25 @@
+#pf-server-panel{
+  position: fixed;
+  top: 50px;
+  min-width: 100px;
+  left: 10px;
+  border-radius: 5px;
+  padding: 7px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+  background: {
+    color: rgba(43, 43, 43, 0.7);
+  }
+
+  h4{
+    margin: 5px 0 10px 0;
+  }
+
+  ul{
+    margin-bottom: 0;
+
+    li{
+      text-transform: lowercase;
+    }
+  }
+
+}

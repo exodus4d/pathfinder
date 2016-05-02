@@ -429,7 +429,7 @@ class Sso extends Api\User{
      * @param array $additionalOptions
      * @return mixed|null
      */
-    protected function getEndpoints($accessToken, $additionalOptions = []){
+    protected function getEndpoints($accessToken = '', $additionalOptions = []){
         $crestUrl = self::getCrestEndpoint();
         $additionalOptions['contentType'] = 'application/vnd.ccp.eve.Api-v3+json';
         $endpoint = $this->getEndpoint($accessToken, $crestUrl, $additionalOptions);
@@ -643,6 +643,44 @@ class Sso extends Api\User{
         }
 
         return $characterModel;
+    }
+
+    /**
+     * get CREST server status (online/offline)
+     * @return \stdClass object
+     */
+    public function getCrestServerStatus(){
+        $endpoints = $this->getEndpoints();
+
+        // set default status e.g. Endpoints don´t work
+        $data = (object) [];
+        $data->crestOffline = true;
+        $data->serverName = 'EVE ONLINE';
+        $data->serviceStatus = [
+            'eve' => 'offline',
+            'server' => 'offline',
+        ];
+        $data->userCounts = [
+            'eve' => 0
+        ];
+
+        $endpoint = $this->walkEndpoint('', $endpoints, ['serverName']);
+        if( !empty($endpoint) ){
+            $data->crestOffline = false;
+            $data->serverName = (string) $endpoint;
+        }
+        $endpoint = $this->walkEndpoint('', $endpoints, ['serviceStatus']);
+        if( !empty($endpoint) ){
+            $data->crestOffline = false;
+            $data->serviceStatus = (new Mapper\CrestServiceStatus($endpoint))->getData();
+        }
+
+        $endpoint = $this->walkEndpoint('', $endpoints, ['userCounts']);
+        if( !empty($endpoint) ){
+            $data->crestOffline = false;
+            $data->userCounts = (new Mapper\CrestUserCounts($endpoint))->getData();
+        }
+        return $data;
     }
 
     /**

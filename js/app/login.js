@@ -27,6 +27,7 @@ define([
         splashOverlayClass: 'pf-splash',                                        // class for "splash" overlay
 
         // header
+        headerId: 'pf-landing-top',                                             // id for header
         headerContainerId: 'pf-header-container',                               // id for header container
         logoContainerId: 'pf-logo-container',                                   // id for main header logo container
         headHeaderMapId: 'pf-header-map',                                       // id for header image (svg animation)
@@ -58,6 +59,9 @@ define([
         galleryThumbImageClass: 'pf-landing-image-preview',                     // class for gallery thumb images
         galleryThumbContainerId: 'pf-landing-gallery-thumb-container',          // id for gallery thumb images
         galleryCarouselId: 'pf-landing-gallery-carousel',                       // id for "carousel" element
+
+        // server panel
+        serverPanelId: 'pf-server-panel',                                       // id for EVE Online server status panel
 
         // animation
         animateElementClass: 'pf-animate-on-visible'                            // class for elements that will be animated to show
@@ -467,6 +471,41 @@ define([
     };
 
     /**
+     * get current EVE-Online server status
+     * -> show "server panel"
+     */
+    var initServerStatus = function(){
+        $.ajax({
+            type: 'POST',
+            url: Init.path.getServerStatus,
+            dataType: 'json'
+        }).done(function(responseData, textStatus, request){
+
+            if(responseData.hasOwnProperty('status')){
+                var data = responseData.status;
+                data.serverPanelId = config.serverPanelId;
+
+                var statusClass = '';
+                switch(data.serviceStatus.eve.toLowerCase()){
+                    case 'online': statusClass = 'txt-color-green'; break;
+                    case 'vip': statusClass = 'txt-color-orange'; break;
+                    case 'offline': statusClass = 'txt-color-redDarker'; break;
+                }
+                data.serviceStatus.style = statusClass;
+
+                requirejs(['text!templates/ui/server_panel.html', 'mustache'], function(template, Mustache) {
+                    var content = Mustache.render(template, data);
+                    $('#' + config.headerId).prepend(content);
+                    $('#' + config.serverPanelId).velocity('transition.slideLeftBigIn', {
+                        duration: 240
+                    });
+                });
+            }
+
+        }).fail(handleAjaxErrorResponse);
+    };
+
+    /**
      * load character data from cookie information
      * -> all validation is done server side!
      */
@@ -513,7 +552,7 @@ define([
          */
         var updateCharacterPanels = function(){
             var characterRows = $('.' + config.characterSelectionClass + ' .pf-dynamic-area').parent();
-            var rowClassIdentifier = ((12 / characterRows.length ) <= 4) ? 4 : (12 / characterRows.length);
+            var rowClassIdentifier = ((12 / characterRows.length ) <= 3) ? 3 : (12 / characterRows.length);
             $(characterRows).removeClass().addClass('col-sm-' + rowClassIdentifier);
         };
 
@@ -562,7 +601,7 @@ define([
                     cookieName: requestData.cookie,
                     characterElement: characterElement
                 }
-            }).done(function(responseData){
+            }).done(function(responseData, textStatus, request){
                 var characterElement = this.characterElement;
                 characterElement.hideLoadingAnimation();
 
@@ -606,6 +645,41 @@ define([
             });
 
         });
+    };
+
+
+    /**
+     * default ajax error handler
+     * -> show user notifications
+     * @param jqXHR
+     * @param status
+     * @param error
+     */
+    var handleAjaxErrorResponse = function(jqXHR, status, error){
+
+        var type = status;
+        var title = 'Status ' + jqXHR.status + ': ' + error;
+        var message = '';
+
+        if(jqXHR.responseText){
+            var errorObj = $.parseJSON(jqXHR.responseText);
+
+            if(
+                errorObj.error &&
+                errorObj.error.length > 0
+            ){
+                for(var i = 0; i < errorObj.error.length; i++){
+                    var errorData = errorObj.error[i];
+                    type = errorData.type;
+                    title = 'Status  ' + errorData.code + ': ' + errorData.status;
+                    message = errorData.message;
+
+                    Util.showNotify({title: title, text: message, type: type});
+                }
+            }
+        }else{
+            Util.showNotify({title: title, text: message, type: type});
+        }
     };
 
     /**
@@ -661,6 +735,9 @@ define([
 
         // hide splash loading animation
         $('.' + config.splashOverlayClass).hideSplashOverlay();
+
+        // init server status information
+        initServerStatus();
 
         initCharacterSelect();
 

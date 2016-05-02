@@ -8,6 +8,7 @@
 
 namespace Controller;
 use Controller\Api as Api;
+use Controller\Ccp\Sso;
 use Model;
 use DB;
 
@@ -242,29 +243,34 @@ class Controller {
 
                     // validate expire data
                     // validate token
-                    if(
-                        !$characterAuth->dry() &&
-                        strtotime($characterAuth->expires) >= $currentTime->getTimestamp() &&
-                        hash_equals($characterAuth->token, hash('sha256', $data[1]))
-                    ){
-                        // cookie information is valid
-                        // -> try to update character information from CREST
-                        // e.g. Corp has changed, this also ensures valid "access_token"
-                        /**
-                         * @var $character Model\CharacterModel
-                         */
-                        $character = $characterAuth->characterId;
-                        $updateStatus = $character->updateFromCrest();
-
-                        // check if character still has user (is not the case of "ownerHash" changed
-                        // check if character is still authorized to log in (e.g. corp/ally or config has changed
-                        // -> do NOT remove cookie on failure. This can be a temporary problem (e.g. CREST is down,..)
+                    if( !$characterAuth->dry() ){
                         if(
-                            empty($updateStatus) &&
-                            $character->hasUserCharacter() &&
-                            $character->isAuthorized()
+                            strtotime($characterAuth->expires) >= $currentTime->getTimestamp() &&
+                            hash_equals($characterAuth->token, hash('sha256', $data[1]))
                         ){
-                            $characters[$name] = $character;
+                            // cookie information is valid
+                            // -> try to update character information from CREST
+                            // e.g. Corp has changed, this also ensures valid "access_token"
+                            /**
+                             * @var $character Model\CharacterModel
+                             */
+                            $character = $characterAuth->characterId;
+                            $updateStatus = $character->updateFromCrest();
+
+                            // check if character still has user (is not the case of "ownerHash" changed
+                            // check if character is still authorized to log in (e.g. corp/ally or config has changed
+                            // -> do NOT remove cookie on failure. This can be a temporary problem (e.g. CREST is down,..)
+                            if(
+                                empty($updateStatus) &&
+                                $character->hasUserCharacter() &&
+                                $character->isAuthorized()
+                            ){
+                                $characters[$name] = $character;
+                            }
+                        }else{
+                            // clear existing authentication data from DB
+                            $characterAuth->erase();
+                            $invalidCookie = true;
                         }
                     }else{
                         $invalidCookie = true;
@@ -369,6 +375,31 @@ class Controller {
             // redirect to landing page
             $f3->reroute('@login');
         }
+    }
+
+    /**
+     * get EVE server status from CREST
+     * @param \Base $f3
+     */
+    public function getEveServerStatus(\Base $f3){
+        $return = (object) [];
+        $return->error = [];
+
+        // server status can be cached for some seconds
+        $cacheKey = 'eve_server_status';
+        if( !$f3->exists($cacheKey) ){
+            $sso = new Sso();
+            $return->status = $sso->getCrestServerStatus();
+
+            if( !$return->status->crestOffline ){
+                $f3->set($cacheKey, $return, 60);
+            }
+        }else{
+            // get from cache
+            $return = $f3->get($cacheKey);
+        }
+
+        echo json_encode($return);
     }
 
     /**
