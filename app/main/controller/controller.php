@@ -188,7 +188,7 @@ class Controller {
             $token = hash('sha256', $validator);
 
             // get unique cookie name for this character
-            $name = md5($character->name);
+            $name = $character->getCookieName();
 
             $authData = [
                 'characterId'   => $character,

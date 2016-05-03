@@ -458,6 +458,16 @@ class CharacterModel extends BasicModel {
     }
 
     /**
+     * get a unique cookie name for this character
+     * -> cookie name does not have to be "secure"
+     * -> but is should be unique
+     * @return string
+     */
+    public function getCookieName(){
+        return md5($this->name);
+    }
+
+    /**
      * get the character log entry for this character
      * @return bool|CharacterLogModel
      */
