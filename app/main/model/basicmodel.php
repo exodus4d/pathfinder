@@ -89,6 +89,10 @@ abstract class BasicModel extends \DB\Cortex {
             $self->beforeInsertEvent($self);
         });
 
+        $this->beforeerase( function($self){
+            $self->beforeeraseEvent($self);
+        });
+
         $this->aftererase( function($self){
             $self->aftereraseEvent($self);
         });
@@ -406,6 +410,15 @@ abstract class BasicModel extends \DB\Cortex {
      * return false will stop any further action
      */
     public function beforeInsertEvent(){
+        return true;
+    }
+
+    /**
+     * Event "Hook" function
+     * can be overwritten
+     * @return bool
+     */
+    public function beforeeraseEvent($self){
         return true;
     }
 

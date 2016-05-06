@@ -1778,7 +1778,7 @@ define([
 
         $.ajax({
             type: 'POST',
-            url: Init.path.logOut,
+            url: Init.path.logout,
             data: data,
             dataType: 'json'
         }).done(function(data){

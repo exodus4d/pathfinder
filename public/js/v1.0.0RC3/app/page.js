@@ -230,7 +230,7 @@ define([
                             class: 'fa fa-sign-in fa-fw'
                         })
                     ).on('click', function(){
-                        $(document).triggerMenuEvent('Logout');
+                        $(document).triggerMenuEvent('Logout', {clearCookies: 1});
                     })
             )
         );
@@ -590,10 +590,19 @@ define([
         });
 
         $(document).on('pf:menuLogout', function(e, data){
+
+            var clearCookies = false;
+            if( typeof data === 'object' ){
+                if( data.hasOwnProperty('clearCookies') ){
+                    clearCookies = data.clearCookies;
+                }
+            }
+
             // logout
             Util.logout({
                 ajaxData: {
-                    reroute: 1
+                    reroute: 1,
+                    clearCookies: clearCookies
                 }
             });
             return false;

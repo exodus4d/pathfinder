@@ -25,7 +25,7 @@ class AccessController extends Controller {
 
         if( !$loginCheck ){
             // no user found or LogIn timer expired
-            $this->logOut($f3);
+            $this->logout($f3);
         }
     }
 

@@ -197,7 +197,7 @@ class Controller {
                 'expires'       => $expireTime->format('Y-m-d H:i:s')
             ];
 
-            $authenticationModel = $character->rel('characterTokens');
+            $authenticationModel = $character->rel('characterAuthentications');
             $authenticationModel->copyfrom($authData);
             $authenticationModel->save();
 
@@ -349,15 +349,26 @@ class Controller {
     }
 
     /**
-     * log out current user
+     * log out current character
      * @param \Base $f3
      */
-    public function logOut(\Base $f3){
-        // destroy session
+    public function logout(\Base $f3){
+        $params = (array)$f3->get('POST');
+
+        // ----------------------------------------------------------
+        // delete server side cookie validation data
+        // for the current character as well
+        if(
+            $params['clearCookies'] === '1' &&
+            ( $activeCharacter = $this->getCharacter())
+        ){
+            $activeCharacter->logout();
+        }
+
+        // destroy session login data -------------------------------
         $f3->clear('SESSION');
 
         if( $f3->get('AJAX') ){
-            $params = $f3->get('POST');
             $return = (object) [];
             if(
                 isset($params['reroute']) &&
@@ -370,7 +381,6 @@ class Controller {
             }
 
             echo json_encode($return);
-            die();
         }else{
             // redirect to landing page
             $f3->reroute('@login');

@@ -94,7 +94,7 @@ class CharacterModel extends BasicModel {
         'characterMaps' => [
             'has-many' => ['Model\CharacterMapModel', 'characterId']
         ],
-        'characterTokens' => [
+        'characterAuthentications' => [
             'has-many' => ['Model\CharacterAuthenticationModel', 'characterId']
         ]
     ];
@@ -536,6 +536,17 @@ class CharacterModel extends BasicModel {
         }
 
         return $maps;
+    }
+
+    public function logout(){
+        if($this->characterAuthentications){
+            foreach($this->characterAuthentications as $characterAuthentication){
+                /**
+                 * @var $characterAuthentication CharacterAuthenticationModel
+                 */
+                $characterAuthentication->erase();
+            }
+        }
     }
 
 } 
