@@ -153,7 +153,7 @@
 
   // lists
   .pf-landing-list{
-    li i{
+    li > i{
       @extend .fa-li;
       @extend .fa;
       @extend .fa-fw;

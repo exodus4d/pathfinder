@@ -306,12 +306,7 @@ define([
                         onEnable: 'initMagnetizer',     // jQuery extension function
                         onDisable: 'destroyMagnetizer'  // jQuery extension function
                     });
-                }).append(
-                    $('<span>',{
-                        class: ['badge', 'bg-color', 'bg-color-orange', 'pull-right'].join(' '),
-                        html: '&beta;'
-                    })
-                )
+                })
             ).append(
                 $('<a>', {
                     class: 'list-group-item',
