@@ -156,12 +156,16 @@ class CharacterModel extends BasicModel {
      * @return string
      */
     public function set_ownerHash($ownerHash){
-        if (
-            $this->hasUserCharacter() &&
-            $this->ownerHash !== $ownerHash
-        ){
-            $this->userCharacter->erase();
+
+        if( $this->ownerHash !== $ownerHash ){
+            if( $this->hasUserCharacter() ){
+                $this->userCharacter->erase();
+            }
+
+            // delete all existing login-cookie data
+            $this->logout();
         }
+
         return $ownerHash;
     }
 

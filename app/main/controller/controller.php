@@ -113,7 +113,7 @@ class Controller {
      * init new Session handler
      */
     protected function initSession(){
-        // init DB Session (not file based)
+        // init DB based Session (not file based)
         if( $this->getDB('PF') instanceof DB\SQL){
             new DB\SQL\Session($this->getDB('PF'));
         }
@@ -213,6 +213,7 @@ class Controller {
      * get characters from given cookie data
      * -> validate cookie data
      * -> validate characters
+     * -> cf. Sso->requestAuthorization() ( equivalent DB based login)
      * @param array $cookieData
      * @return array
      * @throws \Exception
@@ -254,18 +255,23 @@ class Controller {
                             /**
                              * @var $character Model\CharacterModel
                              */
-                            $character = $characterAuth->characterId;
-                            $updateStatus = $character->updateFromCrest();
+                            $updateStatus = $characterAuth->characterId->updateFromCrest();
 
-                            // check if character still has user (is not the case of "ownerHash" changed
-                            // check if character is still authorized to log in (e.g. corp/ally or config has changed
-                            // -> do NOT remove cookie on failure. This can be a temporary problem (e.g. CREST is down,..)
-                            if(
-                                empty($updateStatus) &&
-                                $character->hasUserCharacter() &&
-                                $character->isAuthorized()
-                            ){
-                                $characters[$name] = $character;
+                            if( empty($updateStatus) ){
+                                // make sure character data is up2date!
+                                // -> this is not the case if e.g. userCharacters was removed "ownerHash" changed...
+                                $character = $characterAuth->rel('characterId');
+                                $character->getById($characterAuth->characterId->_id);
+
+                                // check if character still has user (is not the case of "ownerHash" changed
+                                // check if character is still authorized to log in (e.g. corp/ally or config has changed
+                                // -> do NOT remove cookie on failure. This can be a temporary problem (e.g. CREST is down,..)
+                                if(
+                                    $character->hasUserCharacter() &&
+                                    $character->isAuthorized()
+                                ){
+                                    $characters[$name] = $character;
+                                }
                             }
                         }else{
                             // clear existing authentication data from DB

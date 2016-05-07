@@ -68,6 +68,7 @@ class Sso extends Api\User{
 
     /**
      * redirect user to CCP SSO page and request authorization
+     * -> cf. Controller->getCookieCharacters() ( equivalent cookie based login)
      * @param \Base $f3
      */
     public function requestAuthorization($f3){
@@ -89,27 +90,34 @@ class Sso extends Api\User{
                 $character = Model\BasicModel::getNew('CharacterModel');
                 $character->getById($characterId, 0);
 
+                // check if character is valid and exists
                 if(
                     !$character->dry() &&
                     $character->hasUserCharacter() &&
-                    ($activeCharacter->getUser()->id === $character->getUser()->id)
+                    ($activeCharacter->getUser()->_id === $character->getUser()->_id)
                 ){
                     // requested character belongs to current user
                     // -> update character vom CREST (e.g. corp changed,..)
                     $updateStatus = $character->updateFromCrest();
 
-                    if(
-                        empty($updateStatus) &&
-                        $character->hasUserCharacter() &&
-                        $character->isAuthorized()
-                    ){
-                        $loginCheck = $this->loginByCharacter($character);
+                    if( empty($updateStatus) ){
 
-                        if($loginCheck){
-                            // set "login" cookie
-                            $this->setLoginCookie($character);
-                            // route to "map"
-                            $f3->reroute('@map');
+                        // make sure character data is up2date!
+                        // -> this is not the case if e.g. userCharacters was removed "ownerHash" changed...
+                        $character->getById($character->_id);
+
+                        if(
+                            $character->hasUserCharacter() &&
+                            $character->isAuthorized()
+                        ){
+                            $loginCheck = $this->loginByCharacter($character);
+
+                            if($loginCheck){
+                                // set "login" cookie
+                                $this->setLoginCookie($character);
+                                // route to "map"
+                                $f3->reroute('@map');
+                            }
                         }
                     }
                 }
