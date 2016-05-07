@@ -18,6 +18,7 @@ class Controller {
     const COOKIE_NAME_STATE                         = 'cookie';
     const COOKIE_PREFIX_CHARACTER                   = 'char';
 
+    const ERROR_SESSION_SUSPECT                     = 'Suspect id: [%30s], ip: [%40s], new ip: [%40s], User-Agent: %s ';
     /**
      * @var \Base
      */
@@ -113,9 +114,33 @@ class Controller {
      * init new Session handler
      */
     protected function initSession(){
+
         // init DB based Session (not file based)
         if( $this->getDB('PF') instanceof DB\SQL){
-            new DB\SQL\Session($this->getDB('PF'));
+            // init session with custom "onsuspect()" handler
+            new DB\SQL\Session($this->getDB('PF'), 'sessions', true, function($session, $sid){
+                $f3 = $this->getF3();
+                if( ($ip = $session->ip() )!= $f3->get('IP') ){
+                    // IP address changed -> not critical
+                    $this->getLogger(
+                        $f3->get('PATHFINDER.LOGFILES.SESSION_SUSPECT')
+                    )->write( sprintf(
+                        self::ERROR_SESSION_SUSPECT,
+                        $sid,
+                        $session->ip(),
+                        $f3->get('IP'),
+                        $f3->get('AGENT')
+                    ));
+
+                    // no more error handling here
+                    return true;
+                }elseif($session->agent() != $f3->get('AGENT') ){
+                    // The default behaviour destroys the suspicious session.
+                    return false;
+                }
+
+                return true;
+            });
         }
     }
 
