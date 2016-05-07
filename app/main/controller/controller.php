@@ -122,16 +122,18 @@ class Controller {
                 $f3 = $this->getF3();
                 if( ($ip = $session->ip() )!= $f3->get('IP') ){
                     // IP address changed -> not critical
-                    $this->getLogger(
-                        $f3->get('PATHFINDER.LOGFILES.SESSION_SUSPECT')
-                    )->write( sprintf(
-                        self::ERROR_SESSION_SUSPECT,
-                        $sid,
-                        $session->ip(),
-                        $f3->get('IP'),
-                        $f3->get('AGENT')
-                    ));
-
+                    $sessionSuspectLogFile = 'PATHFINDER.LOGFILES.SESSION_SUSPECT';
+                    if( !$f3->devoid($sessionSuspectLogFile) ){
+                        $this->getLogger(
+                            $f3->get($sessionSuspectLogFile)
+                        )->write( sprintf(
+                            self::ERROR_SESSION_SUSPECT,
+                            $sid,
+                            $session->ip(),
+                            $f3->get('IP'),
+                            $f3->get('AGENT')
+                        ));
+                    }
                     // no more error handling here
                     return true;
                 }elseif($session->agent() != $f3->get('AGENT') ){
