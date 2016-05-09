@@ -368,9 +368,12 @@ class CharacterModel extends BasicModel {
                 $updateLogData = true;
                 $logData =  $formattedHeaderData;
             }
-        }else{
-            // get Location Data from CREST endpoint
-            // user is NOT with IGB online OR has not jet set "trusted" page
+        }
+
+        if($updateLogData == false){
+            // ... IGB Header data not found OR character does not match current active character
+            // -> try to pull data from CREST
+
             $ssoController = new Sso();
             $logData = $ssoController->getCharacterLocationData($this->getAccessToken(), 10, $additionalOptions);
 
