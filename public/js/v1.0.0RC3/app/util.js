@@ -1628,15 +1628,10 @@ define([
 
         if(
             currentUserData &&
-            currentUserData.character
+            currentUserData.character &&
+            currentUserData.character.log
         ){
-            if(currentUserData.character.log){
-                characterLog = currentUserData.character.log;
-            }else if(CCP.isInGameBrowser() === true){
-                // if user is IGB online and log data is missing
-                // -> character API information not found!
-                showNotify({title: 'Character not found', text: 'Enter API information', type: 'error'});
-            }
+            characterLog = currentUserData.character.log;
         }
 
         return characterLog;

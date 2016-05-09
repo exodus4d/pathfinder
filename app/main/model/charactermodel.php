@@ -360,6 +360,7 @@ class CharacterModel extends BasicModel {
             $formattedHeaderData = (new Mapper\IgbHeader($headerData->values))->getData();
 
             // just for security -> check if Header Data matches THIS character
+            // in case current IGB-Character is NOT the one logged on -> don´t update log
             if(
                 isset($formattedHeaderData['character']) &&
                 $formattedHeaderData['character']['id'] == $this->_id
