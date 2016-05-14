@@ -252,7 +252,7 @@ class Map extends Controller\AccessController {
 
                             // map access info should not automatically imported
                             if($map->isPrivate()){
-                                $map->setAccess($user);
+                                $map->setAccess($activeCharacter);
                             }elseif($map->isCorporation()){
                                 if($corporation = $activeCharacter->getCorporation()){
                                     $map->setAccess($corporation);
