@@ -738,7 +738,7 @@ class Sso extends Api\User{
      */
     protected function checkResponseHeaders($headers, $requestUrl = '', $contentType = ''){
         $headers = (array)$headers;
-        if(preg_grep ('/^X-Deprecated/i', $headers)){
+        if( preg_grep('/^X-Deprecated/i', $headers) ){
             self::getCrestLogger()->write(sprintf(self::ERROR_RESOURCE_DEPRECATED, $requestUrl, $contentType));
         }
     }
