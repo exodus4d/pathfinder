@@ -8,6 +8,7 @@
 
 namespace Controller;
 use Controller\Api as Api;
+use Controller\Ccp\Sso;
 use Model;
 use DB;
 
@@ -17,6 +18,7 @@ class Controller {
     const COOKIE_NAME_STATE                         = 'cookie';
     const COOKIE_PREFIX_CHARACTER                   = 'char';
 
+    const ERROR_SESSION_SUSPECT                     = 'Suspect id: [%30s], ip: [%40s], new ip: [%40s], User-Agent: %s ';
     /**
      * @var \Base
      */
@@ -112,9 +114,35 @@ class Controller {
      * init new Session handler
      */
     protected function initSession(){
-        // init DB Session (not file based)
+
+        // init DB based Session (not file based)
         if( $this->getDB('PF') instanceof DB\SQL){
-            new DB\SQL\Session($this->getDB('PF'));
+            // init session with custom "onsuspect()" handler
+            new DB\SQL\Session($this->getDB('PF'), 'sessions', true, function($session, $sid){
+                $f3 = $this->getF3();
+                if( ($ip = $session->ip() )!= $f3->get('IP') ){
+                    // IP address changed -> not critical
+                    $sessionSuspectLogFile = 'PATHFINDER.LOGFILES.SESSION_SUSPECT';
+                    if( !$f3->devoid($sessionSuspectLogFile) ){
+                        $this->getLogger(
+                            $f3->get($sessionSuspectLogFile)
+                        )->write( sprintf(
+                            self::ERROR_SESSION_SUSPECT,
+                            $sid,
+                            $session->ip(),
+                            $f3->get('IP'),
+                            $f3->get('AGENT')
+                        ));
+                    }
+                    // no more error handling here
+                    return true;
+                }elseif($session->agent() != $f3->get('AGENT') ){
+                    // The default behaviour destroys the suspicious session.
+                    return false;
+                }
+
+                return true;
+            });
         }
     }
 
@@ -187,7 +215,7 @@ class Controller {
             $token = hash('sha256', $validator);
 
             // get unique cookie name for this character
-            $name = md5($character->name);
+            $name = $character->getCookieName();
 
             $authData = [
                 'characterId'   => $character,
@@ -196,7 +224,7 @@ class Controller {
                 'expires'       => $expireTime->format('Y-m-d H:i:s')
             ];
 
-            $authenticationModel = $character->rel('characterTokens');
+            $authenticationModel = $character->rel('characterAuthentications');
             $authenticationModel->copyfrom($authData);
             $authenticationModel->save();
 
@@ -212,6 +240,7 @@ class Controller {
      * get characters from given cookie data
      * -> validate cookie data
      * -> validate characters
+     * -> cf. Sso->requestAuthorization() ( equivalent DB based login)
      * @param array $cookieData
      * @return array
      * @throws \Exception
@@ -242,29 +271,39 @@ class Controller {
 
                     // validate expire data
                     // validate token
-                    if(
-                        !$characterAuth->dry() &&
-                        strtotime($characterAuth->expires) >= $currentTime->getTimestamp() &&
-                        hash_equals($characterAuth->token, hash('sha256', $data[1]))
-                    ){
-                        // cookie information is valid
-                        // -> try to update character information from CREST
-                        // e.g. Corp has changed, this also ensures valid "access_token"
-                        /**
-                         * @var $character Model\CharacterModel
-                         */
-                        $character = $characterAuth->characterId;
-                        $updateStatus = $character->updateFromCrest();
-
-                        // check if character still has user (is not the case of "ownerHash" changed
-                        // check if character is still authorized to log in (e.g. corp/ally or config has changed
-                        // -> do NOT remove cookie on failure. This can be a temporary problem (e.g. CREST is down,..)
+                    if( !$characterAuth->dry() ){
                         if(
-                            empty($updateStatus) &&
-                            $character->hasUserCharacter() &&
-                            $character->isAuthorized()
+                            strtotime($characterAuth->expires) >= $currentTime->getTimestamp() &&
+                            hash_equals($characterAuth->token, hash('sha256', $data[1]))
                         ){
-                            $characters[$name] = $character;
+                            // cookie information is valid
+                            // -> try to update character information from CREST
+                            // e.g. Corp has changed, this also ensures valid "access_token"
+                            /**
+                             * @var $character Model\CharacterModel
+                             */
+                            $updateStatus = $characterAuth->characterId->updateFromCrest();
+
+                            if( empty($updateStatus) ){
+                                // make sure character data is up2date!
+                                // -> this is not the case if e.g. userCharacters was removed "ownerHash" changed...
+                                $character = $characterAuth->rel('characterId');
+                                $character->getById($characterAuth->characterId->_id);
+
+                                // check if character still has user (is not the case of "ownerHash" changed
+                                // check if character is still authorized to log in (e.g. corp/ally or config has changed
+                                // -> do NOT remove cookie on failure. This can be a temporary problem (e.g. CREST is down,..)
+                                if(
+                                    $character->hasUserCharacter() &&
+                                    $character->isAuthorized()
+                                ){
+                                    $characters[$name] = $character;
+                                }
+                            }
+                        }else{
+                            // clear existing authentication data from DB
+                            $characterAuth->erase();
+                            $invalidCookie = true;
                         }
                     }else{
                         $invalidCookie = true;
@@ -343,15 +382,26 @@ class Controller {
     }
 
     /**
-     * log out current user
+     * log out current character
      * @param \Base $f3
      */
-    public function logOut(\Base $f3){
-        // destroy session
+    public function logout(\Base $f3){
+        $params = (array)$f3->get('POST');
+
+        // ----------------------------------------------------------
+        // delete server side cookie validation data
+        // for the current character as well
+        if(
+            $params['clearCookies'] === '1' &&
+            ( $activeCharacter = $this->getCharacter())
+        ){
+            $activeCharacter->logout();
+        }
+
+        // destroy session login data -------------------------------
         $f3->clear('SESSION');
 
         if( $f3->get('AJAX') ){
-            $params = $f3->get('POST');
             $return = (object) [];
             if(
                 isset($params['reroute']) &&
@@ -364,11 +414,35 @@ class Controller {
             }
 
             echo json_encode($return);
-            die();
         }else{
             // redirect to landing page
             $f3->reroute('@login');
         }
+    }
+
+    /**
+     * get EVE server status from CREST
+     * @param \Base $f3
+     */
+    public function getEveServerStatus(\Base $f3){
+        $return = (object) [];
+        $return->error = [];
+
+        // server status can be cached for some seconds
+        $cacheKey = 'eve_server_status';
+        if( !$f3->exists($cacheKey) ){
+            $sso = new Sso();
+            $return->status = $sso->getCrestServerStatus();
+
+            if( !$return->status->crestOffline ){
+                $f3->set($cacheKey, $return, 60);
+            }
+        }else{
+            // get from cache
+            $return = $f3->get($cacheKey);
+        }
+
+        echo json_encode($return);
     }
 
     /**

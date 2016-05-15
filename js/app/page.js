@@ -230,7 +230,7 @@ define([
                             class: 'fa fa-sign-in fa-fw'
                         })
                     ).on('click', function(){
-                        $(document).triggerMenuEvent('Logout');
+                        $(document).triggerMenuEvent('Logout', {clearCookies: 1});
                     })
             )
         );
@@ -306,12 +306,7 @@ define([
                         onEnable: 'initMagnetizer',     // jQuery extension function
                         onDisable: 'destroyMagnetizer'  // jQuery extension function
                     });
-                }).append(
-                    $('<span>',{
-                        class: ['badge', 'bg-color', 'bg-color-orange', 'pull-right'].join(' '),
-                        html: '&beta;'
-                    })
-                )
+                })
             ).append(
                 $('<a>', {
                     class: 'list-group-item',
@@ -590,10 +585,19 @@ define([
         });
 
         $(document).on('pf:menuLogout', function(e, data){
+
+            var clearCookies = false;
+            if( typeof data === 'object' ){
+                if( data.hasOwnProperty('clearCookies') ){
+                    clearCookies = data.clearCookies;
+                }
+            }
+
             // logout
             Util.logout({
                 ajaxData: {
-                    reroute: 1
+                    reroute: 1,
+                    clearCookies: clearCookies
                 }
             });
             return false;

@@ -91,6 +91,9 @@ class Signature extends \Controller\AccessController{
                     if(!$system->dry()){
                         // update/save signature
 
+                        /**
+                         * @var $signature Model\SystemSignatureModel
+                         */
                         $signature = null;
                         if( isset($data['pk']) ){
                             // try to get system by "primary key"

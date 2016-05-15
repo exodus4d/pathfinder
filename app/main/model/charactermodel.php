@@ -94,7 +94,7 @@ class CharacterModel extends BasicModel {
         'characterMaps' => [
             'has-many' => ['Model\CharacterMapModel', 'characterId']
         ],
-        'characterTokens' => [
+        'characterAuthentications' => [
             'has-many' => ['Model\CharacterAuthenticationModel', 'characterId']
         ]
     ];
@@ -156,12 +156,16 @@ class CharacterModel extends BasicModel {
      * @return string
      */
     public function set_ownerHash($ownerHash){
-        if (
-            $this->hasUserCharacter() &&
-            $this->ownerHash !== $ownerHash
-        ){
-            $this->userCharacter->erase();
+
+        if( $this->ownerHash !== $ownerHash ){
+            if( $this->hasUserCharacter() ){
+                $this->userCharacter->erase();
+            }
+
+            // delete all existing login-cookie data
+            $this->logout();
         }
+
         return $ownerHash;
     }
 
@@ -356,6 +360,7 @@ class CharacterModel extends BasicModel {
             $formattedHeaderData = (new Mapper\IgbHeader($headerData->values))->getData();
 
             // just for security -> check if Header Data matches THIS character
+            // in case current IGB-Character is NOT the one logged on -> don´t update log
             if(
                 isset($formattedHeaderData['character']) &&
                 $formattedHeaderData['character']['id'] == $this->_id
@@ -363,9 +368,12 @@ class CharacterModel extends BasicModel {
                 $updateLogData = true;
                 $logData =  $formattedHeaderData;
             }
-        }else{
-            // get Location Data from CREST endpoint
-            // user is NOT with IGB online OR has not jet set "trusted" page
+        }
+
+        if($updateLogData == false){
+            // ... IGB Header data not found OR character does not match current active character
+            // -> try to pull data from CREST
+
             $ssoController = new Sso();
             $logData = $ssoController->getCharacterLocationData($this->getAccessToken(), 10, $additionalOptions);
 
@@ -458,6 +466,16 @@ class CharacterModel extends BasicModel {
     }
 
     /**
+     * get a unique cookie name for this character
+     * -> cookie name does not have to be "secure"
+     * -> but is should be unique
+     * @return string
+     */
+    public function getCookieName(){
+        return md5($this->name);
+    }
+
+    /**
      * get the character log entry for this character
      * @return bool|CharacterLogModel
      */
@@ -526,6 +544,17 @@ class CharacterModel extends BasicModel {
         }
 
         return $maps;
+    }
+
+    public function logout(){
+        if($this->characterAuthentications){
+            foreach($this->characterAuthentications as $characterAuthentication){
+                /**
+                 * @var $characterAuthentication CharacterAuthenticationModel
+                 */
+                $characterAuthentication->erase();
+            }
+        }
     }
 
 } 

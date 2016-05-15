@@ -11,10 +11,11 @@ define(['jquery'], function($) {
             img: 'public/img/',                                     // path for images
             // user API
             getCaptcha: 'api/user/getCaptcha',                      // ajax URL - get captcha image
+            getServerStatus: 'api/user/getEveServerStatus',         // ajax URL - get EVE-Online server status
             sendInviteKey: 'api/user/sendInvite',                   // ajax URL - send registration key
             getCookieCharacterData: 'api/user/getCookieCharacter',  // ajax URL - get character data from cookie
             logIn: 'api/user/logIn',                                // ajax URL - login
-            logOut: 'api/user/logOut',                              // ajax URL - logout
+            logout: 'api/user/logout',                              // ajax URL - logout
             deleteLog: 'api/user/deleteLog',                        // ajax URL - delete character log
             saveUserConfig: 'api/user/saveAccount',                 // ajax URL - saves/update user account
             deleteAccount: 'api/user/deleteAccount',                // ajax URL - delete Account data

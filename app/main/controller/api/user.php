@@ -173,9 +173,9 @@ class User extends Controller\Controller{
      * log the current user out + clear character system log data
      * @param \Base $f3
      */
-    public function logOut(\Base $f3){
+    public function logout(\Base $f3){
         $this->deleteLog($f3);
-        parent::logOut($f3);
+        parent::logout($f3);
     }
 
     /**
@@ -344,7 +344,7 @@ class User extends Controller\Controller{
                     // remove user
                     $user->erase();
 
-                    $this->logOut($f3);
+                    $this->logout($f3);
                     die();
                 }
             }

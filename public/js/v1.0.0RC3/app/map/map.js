@@ -1157,7 +1157,7 @@ define([
             placement: 'top',
             onblur: 'submit',
             container: 'body',
-            toggle: 'manual',       // is triggered manually on dblclick
+            toggle: 'manual',       // is triggered manually on dblClick
             showbuttons: false
         });
 
@@ -1224,7 +1224,7 @@ define([
 
     /**
      * connect two systems
-     * @param mapConfig
+     * @param map
      * @param connectionData
      * @returns new connection
      */
@@ -1242,10 +1242,12 @@ define([
         var connection = map.connect({
             source: config.systemIdPrefix + mapId + '-' + connectionData.source,
             target: config.systemIdPrefix + mapId + '-' + connectionData.target,
+            /*
             parameters: {
                 connectionId: connectionId,
                 updated: connectionData.updated
             },
+            */
             type: null
             /* experimental (straight connections)
             anchors: [
@@ -1255,20 +1257,33 @@ define([
             */
         });
 
-        // add connection types -----------------------------------------------------
-        if(connectionData.type){
-            for(var i = 0; i < connectionData.type.length; i++){
-                connection.addType(connectionData.type[i]);
-            }
-        }
 
-        // add connection scope -----------------------------------------------------
-        // connection have the default map Scope scope
-        var scope = map.Defaults.Scope;
-        if(connectionData.scope){
-            scope = connectionData.scope;
+        // check if connection is valid (e.g. source/target exist
+        if( connection instanceof jsPlumb.Connection ){
+
+            // set connection parameters
+            // they should persist even through connection type change (e.g. wh -> stargate,..)
+            // therefore they shoule be part of the connection not of the connector
+            connection.setParameters({
+                connectionId: connectionId,
+                updated: connectionData.updated
+            });
+
+            // add connection types -----------------------------------------------------
+            if(connectionData.type){
+                for(var i = 0; i < connectionData.type.length; i++){
+                    connection.addType(connectionData.type[i]);
+                }
+            }
+
+            // add connection scope -----------------------------------------------------
+            // connection have the default map Scope scope
+            var scope = map.Defaults.Scope;
+            if(connectionData.scope){
+                scope = connectionData.scope;
+            }
+            setConnectionScope(connection, scope);
         }
-        setConnectionScope(connection, scope);
 
         // set Observer for new Connection -> is automatically set
 
@@ -1281,62 +1296,65 @@ define([
      */
     var saveConnection = function(connection){
 
-        var map = connection._jsPlumb.instance;
-        var mapContainer = $( map.getContainer() );
-        mapContainer.getMapOverlay('timer').startMapUpdateCounter();
+        if( connection instanceof jsPlumb.Connection ){
 
-        var mapId = mapContainer.data('id');
-        var connectionData = getDataByConnection(connection);
+            var map = connection._jsPlumb.instance;
+            var mapContainer = $( map.getContainer() );
+            mapContainer.getMapOverlay('timer').startMapUpdateCounter();
 
-        var requestData = {
-            mapData: {
-                id: mapId
-            },
-            connectionData: connectionData
-        };
+            var mapId = mapContainer.data('id');
+            var connectionData = getDataByConnection(connection);
 
-        $.ajax({
-            type: 'POST',
-            url: Init.path.saveConnection,
-            data: requestData,
-            dataType: 'json',
-            //context: connection
-            context: {
-                connection: connection,
-                map: map,
-                mapId: mapId
-            }
-        }).done(function(newConnectionData){
+            var requestData = {
+                mapData: {
+                    id: mapId
+                },
+                connectionData: connectionData
+            };
 
-            if( !$.isEmptyObject(newConnectionData) ){
-                // update connection data e.g. "scope" has auto detected
-                connection = updateConnection(this.connection, connectionData, newConnectionData);
+            $.ajax({
+                type: 'POST',
+                url: Init.path.saveConnection,
+                data: requestData,
+                dataType: 'json',
+                //context: connection
+                context: {
+                    connection: connection,
+                    map: map,
+                    mapId: mapId
+                }
+            }).done(function(newConnectionData){
 
-                // new connection should be cached immediately!
-                updateConnectionCache(this.mapId, connection);
+                if( !$.isEmptyObject(newConnectionData) ){
+                    // update connection data e.g. "scope" has auto detected
+                    connection = updateConnection(this.connection, connectionData, newConnectionData);
 
-                // connection scope
-                var scope = Util.getScopeInfoForConnection(newConnectionData.scope, 'label');
+                    // new connection should be cached immediately!
+                    updateConnectionCache(this.mapId, connection);
 
-                var title = 'New connection established';
-                if(connectionData.id > 0){
-                    title = 'Connection switched';
+                    // connection scope
+                    var scope = Util.getScopeInfoForConnection(newConnectionData.scope, 'label');
+
+                    var title = 'New connection established';
+                    if(connectionData.id > 0){
+                        title = 'Connection switched';
+                    }
+
+                    Util.showNotify({title: title, text: 'Scope: ' + scope, type: 'success'});
+                }else{
+                    // some save errors
+                    this.map.detach(this.connection, {fireEvent: false});
                 }
 
-                Util.showNotify({title: title, text: 'Scope: ' + scope, type: 'success'});
-            }else{
-                // some save errors
+            }).fail(function( jqXHR, status, error) {
+                // remove this connection from map
                 this.map.detach(this.connection, {fireEvent: false});
-            }
 
-        }).fail(function( jqXHR, status, error) {
-            // remove this connection from map
-            this.map.detach(this.connection, {fireEvent: false});
-
-            var reason = status + ' ' + error;
-            Util.showNotify({title: jqXHR.status + ': saveConnection', text: reason, type: 'warning'});
-            $(document).setProgramStatus('problem');
-        });
+                var reason = status + ' ' + error;
+                Util.showNotify({title: jqXHR.status + ': saveConnection', text: reason, type: 'warning'});
+                $(document).setProgramStatus('problem');
+            });
+        }
     };
 
     /**

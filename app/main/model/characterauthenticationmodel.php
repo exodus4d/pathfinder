@@ -9,6 +9,7 @@
 namespace Model;
 
 use DB\SQL\Schema;
+use Controller;
 
 class CharacterAuthenticationModel extends BasicModel{
 
@@ -51,4 +52,23 @@ class CharacterAuthenticationModel extends BasicModel{
             'index' => true
         ]
     ];
+
+
+    /**
+     * Event "Hook" function
+     * can be overwritten
+     * @param $self CharacterAuthenticationModel
+     * @return bool
+     */
+    public function beforeeraseEvent($self){
+        // clear existing client Cookies as well
+        $cookieName = Controller\Controller::COOKIE_PREFIX_CHARACTER;
+        $cookieName .= '_' . $this->characterId->getCookieName();
+        $self::getF3()->clear('COOKIE.' . $cookieName);
+
+        return true;
+    }
+
+
+
 }

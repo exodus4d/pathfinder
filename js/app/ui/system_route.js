@@ -355,7 +355,7 @@ define([
             reload: {
                 button: reloadButton
             },
-            delete: {
+            clear: {
                 button: deleteButton
             },
             maps: routeData.maps,
@@ -554,7 +554,7 @@ define([
                     searchable: false,
                     width: '10px',
                     class: ['text-center', config.sigTableActionCellClass].join(' '),
-                    data: 'delete',
+                    data: 'clear',
                     render: {
                         _: 'button'
                     },

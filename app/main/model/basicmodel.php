@@ -89,6 +89,10 @@ abstract class BasicModel extends \DB\Cortex {
             $self->beforeInsertEvent($self);
         });
 
+        $this->beforeerase( function($self){
+            $self->beforeeraseEvent($self);
+        });
+
         $this->aftererase( function($self){
             $self->aftereraseEvent($self);
         });
@@ -414,6 +418,15 @@ abstract class BasicModel extends \DB\Cortex {
      * can be overwritten
      * @return bool
      */
+    public function beforeeraseEvent($self){
+        return true;
+    }
+
+    /**
+     * Event "Hook" function
+     * can be overwritten
+     * @return bool
+     */
     public function aftereraseEvent($self){
         return true;
     }
@@ -587,10 +600,12 @@ abstract class BasicModel extends \DB\Cortex {
 
     /**
      * debug log function
-     * @param string $text
+     * @param $text
+     * @param string $logFile
      */
-    public static function log($text){
-        Controller\LogController::getLogger('debug')->write($text);
+    public static function log($text, $logFile = null){
+        $logFile = isset($logFile) ? $logFile : self::getF3()->get('PATHFINDER.LOGFILES.DEBUG');
+        Controller\LogController::getLogger($logFile)->write($text);
     }
 
     /**

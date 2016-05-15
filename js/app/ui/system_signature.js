@@ -235,7 +235,7 @@ define([
             }
         }
 
-        // delete signatures ====================================================
+        // delete signatures ------------------------------------------------------------------------------------------
         if(deleteOutdatedSignatures === true){
 
             // callback function after row deleted
@@ -254,7 +254,7 @@ define([
             }
         }
 
-        // add new signatures ===================================================
+        // add new signatures -----------------------------------------------------------------------------------------
         for(var k = 0; k < signatureData.length; k++){
             // and add "new" row
             var newRowElement = addSignatureRow(currentSystemData.systemData, signatureData[k], false);
@@ -266,7 +266,7 @@ define([
         }
 
 
-        // show notification ====================================================
+        // show notification ------------------------------------------------------------------------------------------
         if(
             notificationCounter.added > 0 ||
             notificationCounter.changed > 0 ||
@@ -612,7 +612,7 @@ define([
 
         var moduleElement = $(this);
 
-        // add toolbar buttons for table -------------------------------------
+        // add toolbar buttons for table ------------------------------------------------------------------------------
         var tableToolbar = $('<div>', {
             class: config.tableToolsClass
         }).append(
@@ -693,7 +693,7 @@ define([
 
         moduleElement.append(tableToolbar);
 
-        // add toolbar action for table ================================================================================
+        // add toolbar action for table -------------------------------------------------------------------------------
         var tableToolbarAction = $('<div>', {
             class: config.tableToolsActionClass
         });
@@ -718,7 +718,7 @@ define([
 
         table.makeEditable(systemData);
 
-        // scanned signatures progress bar =============================================================================
+        // scanned signatures progress bar ----------------------------------------------------------------------------
         var moduleConfig = {
             name: 'form/progress',
             position: tableToolbar,
@@ -736,7 +736,7 @@ define([
 
         Render.showModule(moduleConfig, moduleData);
 
-        // event listener for global "paste" signatures into the page ==================================================
+        // event listener for global "paste" signatures into the page -------------------------------------------------
         $(document).off('paste').on('paste', function(e){
 
             // do not read clipboard if pasting into form elements
@@ -829,7 +829,7 @@ define([
         });
 
 
-        // Input sig name ------------------------------------------------------------------------
+        // Input sig name ---------------------------------------------------------------------------------------------
         sigNameFields.editable({
             type: 'text',
             title: 'signature id',
@@ -856,7 +856,7 @@ define([
         });
 
 
-        // Select sig group (master) -------------------------------------------------------------
+        // Select sig group (master) ----------------------------------------------------------------------------------
         sigGroupFields.editable({
             type: 'select',
             title: 'group',
@@ -913,7 +913,7 @@ define([
         });
 
 
-        // Select sig type (slave: depends on sig type) -----------------------------------------
+        // Select sig type (slave: depends on sig type) ---------------------------------------------------------------
         sigTypeFields.on('init', function(e, editable) {
             // check if there are initial options available
             var options = editable.input.options.source.bind(e.target)();
@@ -952,7 +952,7 @@ define([
             }
         });
 
-        // Textarea sig description -------------------------------------------------------------
+        // Textarea sig description -----------------------------------------------------------------------------------
         sigDescriptionFields.editable({
             type: 'textarea',
             title: 'description',
@@ -987,7 +987,7 @@ define([
             tableElement.parents('.' + config.tableToolsActionClass).css( 'height', '-=35px' );
         });
 
-        // open next field dialog ---------------------------------------------------------------
+        // open next field dialog -------------------------------------------------------------------------------------
         openNextEditDialogOnSave(sigNameFields);
         openNextEditDialogOnSave(sigGroupFields);
     };
@@ -1073,6 +1073,10 @@ define([
                 if(incomingWHData.length > 0){
                     newSelectOptions.push({ text: 'Incoming WHs', children: incomingWHData});
                 }
+            }else{
+                // groups without "children" (optgroup) should be sorted by "value"
+                // this is completely optional and not necessary!
+                newSelectOptions = newSelectOptions.sortBy('text');
             }
 
             // update cache (clone array) -> further manipulation to this array, should not be cached
@@ -1099,7 +1103,7 @@ define([
 
         // if selectOptions available -> add "empty" option as well
         if(newSelectOptionsCount > 0){
-            newSelectOptions.unshift({ value: 0, text: ''});
+            newSelectOptions.unshift({ value: '0', text: ''});
         }
 
         return newSelectOptions;
@@ -1360,7 +1364,7 @@ define([
 
         var moduleElement = $(this);
 
-        // create new signature table -------------------------------------------
+        // create new signature table ---------------------------------------------------------------------------------
         var table = $('<table>', {
             class: ['display', 'compact', 'nowrap', config.sigTableClass, config.sigTablePrimaryClass].join(' ')
         });
@@ -1408,14 +1412,14 @@ define([
 
                 var tempData = {};
 
-                // set id ------------------------------------------------------------------------------------------
+                // set id ---------------------------------------------------------------------------------------------
                 var sigId = 0;
                 if(data.id > 0){
                     sigId = data.id;
                 }
                 tempData.id = sigId;
 
-                // set status --------------------------------------------------------------------------------------
+                // set status -----------------------------------------------------------------------------------------
                 var statusClass = '';
                 if(data.updated.character !== undefined){
                     statusClass = Util.getStatusInfoForCharacter(data.updated.character, 'class');
@@ -1427,7 +1431,7 @@ define([
                     status_sort: statusClass
                 };
 
-                // set name ----------------------------------------------------------------------------------------
+                // set name -------------------------------------------------------------------------------------------
                 var sigName = '<a href="#" class="' + config.sigTableEditSigNameInput + '" ';
                 if(data.id > 0){
                     sigName += 'data-pk="' + data.id + '" ';
@@ -1436,7 +1440,7 @@ define([
 
                 tempData.name = sigName;
 
-                // set group id ------------------------------------------------------------------------------------
+                // set group id ---------------------------------------------------------------------------------------
                 var sigGroup = '<a href="#" class="' + config.sigTableEditSigGroupSelect + '" ';
                 if(data.id > 0){
                     sigGroup += 'data-pk="' + data.id + '" ';
@@ -1451,7 +1455,7 @@ define([
                     group_sort: data.groupId
                 };
 
-                // set type id -------------------------------------------------------------------------------------
+                // set type id ----------------------------------------------------------------------------------------
                 var sigType = '<a href="#" class="' + config.sigTableEditSigTypeSelect + '" ';
                 if(data.id > 0){
                     sigType += 'data-pk="' + data.id + '" ';
@@ -1470,7 +1474,7 @@ define([
 
                 tempData.type = sigType;
 
-                // set description ---------------------------------------------------------------------------------
+                // set description ------------------------------------------------------------------------------------
                 var sigDescription = '<a href="#" class="' + config.sigTableEditSigDescriptionTextarea + '" ';
                 if(data.id > 0){
                     sigDescription += 'data-pk="' + data.id + '" ';
@@ -1479,20 +1483,20 @@ define([
 
                 tempData.description = sigDescription;
 
-                // set created -------------------------------------------------------------------------------------
+                // set created ----------------------------------------------------------------------------------------
                 tempData.created = data.created;
 
-                // set updated -------------------------------------------------------------------------------------
+                // set updated ----------------------------------------------------------------------------------------
                 tempData.updated = data.updated;
 
-                // info icon ---------------------------------------------------------------------------------------
+                // info icon ------------------------------------------------------------------------------------------
                 var infoButton = '';
                 if(data.id > 0){
                     infoButton = '<i class="fa fa-fw fa-question-circle"></i>';
                 }
                 tempData.info = infoButton;
 
-                // action icon -------------------------------------------------------------------------------------
+                // action icon ----------------------------------------------------------------------------------------
 
                 var actionButton = '<i class="fa ' + options.actionClass + '"></i>';
                 tempData.action = {
@@ -1653,7 +1657,7 @@ define([
 
                         switch(cellData.action){
                             case 'add':
-                                // add new signature ---------------------------------------------------------------
+                                // add new signature ------------------------------------------------------------------
                                 $(cell).on('click', function(e) {
                                     // submit all fields within a table row
                                     var formFields = rowElement.find('.editable');
@@ -1684,7 +1688,7 @@ define([
                                             // highlight
                                             newRowElement.pulseTableRow('added');
 
-                                            // prepare "add signature" table for new entry -> reset --------------------------------------------
+                                            // prepare "add signature" table for new entry -> reset -------------------
                                             var signatureData = formatSignatureData(systemData, [emptySignatureData], emptySignatureOptions);
 
                                             var dataSecondaryElement = $('.' + config.sigTableSecondaryClass);
@@ -1703,7 +1707,7 @@ define([
                                 });
                                 break;
                             case 'delete':
-                                // delete signature ----------------------------------------------------------------
+                                // delete signature -------------------------------------------------------------------
                                 var confirmationSettings = {
                                     container: 'body',
                                     placement: 'left',
@@ -1757,7 +1761,7 @@ define([
 
         });
 
-        // set multi row select -----------------------------------------------------------------
+        // set multi row select ---------------------------------------------------------------------------------------
         tablePrimaryElement.on('click', 'tr', function(e){
             if(e.ctrlKey) {
                 $(this).toggleClass('selected');
@@ -1767,7 +1771,7 @@ define([
             }
         });
 
-        // draw event for signature table -------------------------------------------------------
+        // draw event for signature table -----------------------------------------------------------------------------
         signatureTableApi.on('draw.dt', function(){
             // check delete button
             checkDeleteSignaturesButton();
@@ -1866,11 +1870,11 @@ define([
         // init dataTables
         initSignatureDataTable(systemData);
 
-        // draw "new signature" add table --------------------------------------------
+        // draw "new signature" add table -----------------------------------------------------------------------------
 
         moduleElement.drawSignatureTableToolbar(systemData);
 
-        // request signature data for system -----------------------------------------
+        // request signature data for system --------------------------------------------------------------------------
 
         var requestData = {
             systemIds: [systemData.id]
@@ -1921,6 +1925,20 @@ define([
             }
         };
 
+        // some custom array functions
+        var initArrayFunctions = function(){
+            /**
+             * sort array of objects by property name
+             * @param p
+             * @returns {Array.<T>}
+             */
+            Array.prototype.sortBy = function(p) {
+                return this.slice(0).sort(function(a,b) {
+                    return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0;
+                });
+            };
+        };
+
         // check if module already exists
         var moduleElement = parentElement.find('.' + config.systemSigModuleClass);
 
@@ -1944,6 +1962,9 @@ define([
                 }
             });
         }else{
+            // init array prototype functions
+            initArrayFunctions();
+
             moduleElement = getModule(parentElement, systemData);
             showModule(moduleElement);
         }
