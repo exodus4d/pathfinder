@@ -436,7 +436,7 @@ class CharacterModel extends BasicModel {
                          */
                         $corporation = $this->rel('corporationId');
                         $corporation->getById($characterData->corporation['id'], 0);
-                        $corporation->copyfrom($characterData->corporation, ['name', 'isNPC']);
+                        $corporation->copyfrom($characterData->corporation, ['id', 'name', 'isNPC']);
                         $corporation->save();
                     }
 
@@ -446,13 +446,13 @@ class CharacterModel extends BasicModel {
                          */
                         $alliance = $this->rel('allianceId');
                         $alliance->getById($characterData->alliance['id'], 0);
-                        $alliance->copyfrom($characterData->alliance, ['name']);
+                        $alliance->copyfrom($characterData->alliance, ['id', 'name']);
                         $alliance->save();
                     }
 
                     $this->copyfrom($characterData->character, ['name', 'ownerHash']);
                     $this->set('corporationId', is_object($corporation) ? $corporation->get('id') : null);
-                    $this->set('allianceId', is_object($alliance) ? $corporation->get('id') : null);
+                    $this->set('allianceId', is_object($alliance) ? $alliance->get('id') : null);
                     $this->save();
                 }
             }else{
@@ -517,7 +517,6 @@ class CharacterModel extends BasicModel {
      * @return MapModel[]
      */
     public function getMaps(){
-
         $this->filter(
             'characterMaps',
             ['active = ?', 1],
@@ -525,6 +524,15 @@ class CharacterModel extends BasicModel {
         );
 
         $maps = [];
+
+        if($alliance = $this->getAlliance()){
+            $maps = array_merge($maps, $alliance->getMaps());
+        }
+
+        if($corporation = $this->getCorporation()){
+            $maps = array_merge($maps,  $corporation->getMaps());
+        }
+
         if($this->characterMaps){
             $mapCountPrivate = 0;
             foreach($this->characterMaps as &$characterMap){
@@ -533,14 +541,6 @@ class CharacterModel extends BasicModel {
                     $mapCountPrivate++;
                 }
             }
-        }
-
-        if($alliance = $this->getAlliance()){
-            $maps = array_merge($maps, $alliance->getMaps());
-        }
-
-        if($corporation = $this->getCorporation()){
-            $maps = array_merge($maps,  $corporation->getMaps());
         }
 
         return $maps;

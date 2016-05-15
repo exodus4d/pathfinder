@@ -593,6 +593,9 @@ class Sso extends Api\User{
             if(isset($endpoint['corporation'])){
                 $characterData->corporation = (new Mapper\CrestCorporation($endpoint['corporation']))->getData();
             }
+            if(isset($endpoint['alliance'])){
+                $characterData->alliance = (new Mapper\CrestAlliance($endpoint['alliance']))->getData();
+            }
         }
 
         return $characterData;
