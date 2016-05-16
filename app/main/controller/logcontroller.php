@@ -31,7 +31,6 @@ class LogController extends Controller  {
             $f3->set($hiveKey, new \Log($logFile));
         }
 
-
         return $f3->get($hiveKey);
     }
 

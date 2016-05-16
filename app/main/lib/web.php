@@ -12,10 +12,7 @@ use controller\LogController;
 
 class Web extends \Web {
 
-    const ERROR_DEFAULT_MSG                 = 'method: \'%s\', url: \'%s\'';
-    const ERROR_STATUS_UNKNOWN              = 'HTTP response - unknown HTTP status: \'%s\'. url: \'%s\'';
-    const ERROR_TIMEOUT                     = 'Request timeout \'%ss\'. url: \'%s\'';
-
+    const ERROR_STATUS_LOG                  = 'HTTP %s: \'%s\' | url: %s \'%s\'%s';
 
     /**
      * end of line
@@ -28,7 +25,7 @@ class Web extends \Web {
      * @param array $headers
      * @return int
      */
-    protected function getStatuscodeFromHeaders($headers = []){
+    protected function getStatusCodeFromHeaders($headers = []){
         $statusCode = 0;
 
         if(
@@ -103,7 +100,7 @@ class Web extends \Web {
         if( !$f3->exists( $hash = $this->getCacheKey($url, $options) ) ){
             $result = parent::request($url, $options);
             $result['timeout'] = false;
-            $statusCode = $this->getStatuscodeFromHeaders( $result['headers'] );
+            $statusCode = $this->getStatusCodeFromHeaders( $result['headers'] );
 
             switch($statusCode){
                 case 200:
@@ -117,40 +114,62 @@ class Web extends \Web {
                         $f3->set($hash, $result, $ttl);
                     }
                     break;
+                case 401:
+                case 415:
+                    // unauthorized
+                    $errorMsg = $this->getErrorMessageFromJsonResponse(
+                        $statusCode,
+                        $options['method'],
+                        $url,
+                        json_decode($result['body'])
+                    );
+                    LogController::getLogger('error')->write($errorMsg);
+                    break;
                 case 500:
                 case 501:
                 case 502:
                 case 503:
                 case 505:
-                    $f3->error($statusCode, $this->getErrorMessageFromJsonResponse(
+                    $errorMsg = $this->getErrorMessageFromJsonResponse(
+                        $statusCode,
                         $options['method'],
                         $url,
                         json_decode($result['body'])
-                    ));
+                    );
+                    LogController::getLogger('error')->write($errorMsg);
+
+                    // trigger error
+                    $f3->error($statusCode, $errorMsg);
                     break;
                 case 504:
                 case 0:
                     // timeout -> response should not be cached
                     $result['timeout'] = true;
 
-                    if($additionalOptions['suppressTimeoutErrors'] !== true){
-                        // set error...
-                        $f3->error(504, $this->getErrorMessageFromJsonResponse(
-                            $options['method'],
-                            $url
-                        ));
-                    }
+                    $errorMsg = $this->getErrorMessageFromJsonResponse(
+                        504,
+                        $options['method'],
+                        $url,
+                        json_decode($result['body'])
+                    );
 
                     // log error
-                    LogController::getLogger('error')->write(
-                        sprintf(self::ERROR_TIMEOUT, $options['timeout'], $url)
-                    );
+                    LogController::getLogger('error')->write($errorMsg);
+
+                    if($additionalOptions['suppressTimeoutErrors'] !== true){
+                        // trigger error
+                        $f3->error(504, $errorMsg);
+                    }
                     break;
                 default:
                     // unknown status
-                    LogController::getLogger('error')->write(
-                        sprintf(self::ERROR_STATUS_UNKNOWN, $statusCode, $url)
+                    $errorMsg = $this->getErrorMessageFromJsonResponse(
+                        $statusCode,
+                        $options['method'],
+                        $url
                     );
+
+                    LogController::getLogger('error')->write($errorMsg);
                     break;
             }
         }else{
@@ -162,19 +181,25 @@ class Web extends \Web {
 
     /**
      * get error message from response object
-     * @param $method
-     * @param $url
+     * @param int $code
+     * @param string $method
+     * @param string $url
      * @param null|\stdClass $responseBody
      * @return string
      */
-    protected function getErrorMessageFromJsonResponse($method, $url, $responseBody = null){
+    protected function getErrorMessageFromJsonResponse($code, $method, $url, $responseBody = null){
         if( empty($responseBody->message) ){
-            $message = sprintf(self::ERROR_DEFAULT_MSG, $method, $url);
+            $message = @constant('Base::HTTP_' . $code);
         }else{
-            $message = $responseBody->message . ', url: \'' . $url . '\'';
+            $message = $responseBody->message;
         }
 
-        return $message;
+        $body = '';
+        if( !is_null($responseBody) ){
+            $body = ' | body: ' . print_r($responseBody, true);
+        }
+
+        return sprintf(self::ERROR_STATUS_LOG, $code, $message, $method, $url, $body);
     }
 
 }

@@ -479,19 +479,19 @@ class Sso extends Api\User{
     protected function getEndpoints($accessToken = '', $additionalOptions = []){
         $crestUrl = self::getCrestEndpoint();
         $additionalOptions['contentType'] = 'application/vnd.ccp.eve.Api-v3+json';
-        $endpoint = $this->getEndpoint($accessToken, $crestUrl, $additionalOptions);
+        $endpoint = $this->getEndpoint($crestUrl, $accessToken, $additionalOptions);
 
         return $endpoint;
     }
 
     /**
      * get a specific endpoint by its $resourceUrl
-     * @param string $accessToken CREST access token
      * @param string $resourceUrl endpoint API url
+     * @param string $accessToken CREST access token
      * @param array $additionalOptions optional request options (pathfinder specific)
      * @return mixed|null
      */
-    protected function getEndpoint($accessToken, $resourceUrl, $additionalOptions = []){
+    protected function getEndpoint($resourceUrl, $accessToken = '', $additionalOptions = []){
         $resourceUrlParts = parse_url($resourceUrl);
         $endpoint = null;
 
@@ -501,11 +501,15 @@ class Sso extends Api\User{
                 'method' => 'GET',
                 'user_agent' => $this->getUserAgent(),
                 'header' => [
-                    'Authorization: Bearer ' . $accessToken,
                     'Host: login.eveonline.com',
                     'Host: ' . $resourceUrlParts['host']
                 ]
             ];
+
+            // some endpoints don´t require an "access_token" (e.g. public crest data)
+            if( !empty($accessToken) ){
+                $requestOptions['header'][] = 'Authorization: Bearer ' . $accessToken;
+            }
 
             // if specific contentType is required -> add it to request header
             // CREST versioning can be done by calling different "Accept:" Headers
@@ -538,13 +542,13 @@ class Sso extends Api\User{
     /**
      * recursively walk down the CREST API tree by a given $path array
      * -> return "leaf" endpoint
-     * @param $accessToken
      * @param $endpoint
+     * @param $accessToken
      * @param array $path
      * @param array $additionalOptions
      * @return null
      */
-    protected function walkEndpoint($accessToken, $endpoint, $path = [], $additionalOptions = []){
+    protected function walkEndpoint($endpoint, $accessToken, $path = [], $additionalOptions = []){
         $targetEndpoint = null;
 
         if( !empty($path) ){
@@ -552,8 +556,8 @@ class Sso extends Api\User{
             if(isset($endpoint[$newNode])){
                 $currentEndpoint = $endpoint[$newNode];
                 if(isset($currentEndpoint['href'])){
-                    $newEndpoint = $this->getEndpoint($accessToken, $currentEndpoint['href'], $additionalOptions);
-                    $targetEndpoint = $this->walkEndpoint($accessToken, $newEndpoint, $path, $additionalOptions);
+                    $newEndpoint = $this->getEndpoint($currentEndpoint['href'], $accessToken, $additionalOptions);
+                    $targetEndpoint = $this->walkEndpoint($newEndpoint, $accessToken, $path, $additionalOptions);
                 }else{
                     // leaf found
                     $targetEndpoint = $currentEndpoint;
@@ -579,7 +583,7 @@ class Sso extends Api\User{
         $endpoints = $this->getEndpoints($accessToken, $additionalOptions);
         $characterData = (object) [];
 
-        $endpoint = $this->walkEndpoint($accessToken, $endpoints, [
+        $endpoint = $this->walkEndpoint($endpoints, $accessToken, [
             'decode',
             'character'
         ], $additionalOptions);
@@ -588,6 +592,9 @@ class Sso extends Api\User{
             $characterData->character = (new Mapper\CrestCharacter($endpoint))->getData();
             if(isset($endpoint['corporation'])){
                 $characterData->corporation = (new Mapper\CrestCorporation($endpoint['corporation']))->getData();
+            }
+            if(isset($endpoint['alliance'])){
+                $characterData->alliance = (new Mapper\CrestAlliance($endpoint['alliance']))->getData();
             }
         }
 
@@ -615,7 +622,7 @@ class Sso extends Api\User{
         if( !$this->getF3()->exists($cacheKey) ){
             $endpoints = $this->getEndpoints($accessToken, $additionalOptions);
 
-            $endpoint = $this->walkEndpoint($accessToken, $endpoints, [
+            $endpoint = $this->walkEndpoint($endpoints, $accessToken, [
                 'decode',
                 'character',
                 'location'
@@ -711,18 +718,18 @@ class Sso extends Api\User{
             'eve' => 0
         ];
 
-        $endpoint = $this->walkEndpoint('', $endpoints, ['serverName']);
+        $endpoint = $this->walkEndpoint($endpoints, '', ['serverName']);
         if( !empty($endpoint) ){
             $data->crestOffline = false;
             $data->serverName = (string) $endpoint;
         }
-        $endpoint = $this->walkEndpoint('', $endpoints, ['serviceStatus']);
+        $endpoint = $this->walkEndpoint($endpoints, '', ['serviceStatus']);
         if( !empty($endpoint) ){
             $data->crestOffline = false;
             $data->serviceStatus = (new Mapper\CrestServiceStatus($endpoint))->getData();
         }
 
-        $endpoint = $this->walkEndpoint('', $endpoints, ['userCounts']);
+        $endpoint = $this->walkEndpoint($endpoints, '', ['userCounts']);
         if( !empty($endpoint) ){
             $data->crestOffline = false;
             $data->userCounts = (new Mapper\CrestUserCounts($endpoint))->getData();
