@@ -23,7 +23,7 @@ class Sso extends Api\User{
     /**
      * @var int timeout (seconds) for API calls
      */
-    const CREST_TIMEOUT                             = 3;
+    const CREST_TIMEOUT                             = 4;
 
     /**
      * @var int expire time (seconds) for an valid "accessToken"
@@ -478,7 +478,7 @@ class Sso extends Api\User{
      */
     protected function getEndpoints($accessToken = '', $additionalOptions = []){
         $crestUrl = self::getCrestEndpoint();
-        $additionalOptions['contentType'] = 'application/vnd.ccp.eve.Api-v3+json';
+        $additionalOptions['accept'] = 'application/vnd.ccp.eve.Api-v3+json';
         $endpoint = $this->getEndpoint($crestUrl, $accessToken, $additionalOptions);
 
         return $endpoint;
@@ -513,8 +513,8 @@ class Sso extends Api\User{
 
             // if specific contentType is required -> add it to request header
             // CREST versioning can be done by calling different "Accept:" Headers
-            if( isset($additionalOptions['contentType']) ){
-                $requestOptions['header'][] = 'Accept: ' . $additionalOptions['contentType'];
+            if( isset($additionalOptions['accept']) ){
+                $requestOptions['header'][] = 'Accept: ' . $additionalOptions['accept'];
             }
 
             $apiResponse = Lib\Web::instance()->request($resourceUrl, $requestOptions, $additionalOptions);
@@ -622,6 +622,7 @@ class Sso extends Api\User{
         if( !$this->getF3()->exists($cacheKey) ){
             $endpoints = $this->getEndpoints($accessToken, $additionalOptions);
 
+            $additionalOptions['accept'] = 'application/vnd.ccp.eve.CharacterLocation-v1+json';
             $endpoint = $this->walkEndpoint($endpoints, $accessToken, [
                 'decode',
                 'character',

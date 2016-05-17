@@ -7,24 +7,25 @@
   "description": "Pathfinder is a system mapping tool for EVE ONLINE",
   "main": "index.php",
   "dependencies": {
-    "requirejs": "^2.1.20"
+
   },
   "devDependencies": {
-    "critical": "^0.7.0",
-    "gulp": "^3.9.0",
-    "gulp-clean": "^0.3.1",
-    "gulp-gzip": "^1.2.0",
-    "gulp-if": "^2.0.0",
-    "gulp-jshint": "^1.11.2",
-    "gulp-notify": "^2.2.0",
-    "gulp-param": "^0.6.3",
-    "gulp-plumber": "^1.0.1",
-    "jshint": "^2.9.1-rc1",
-    "jshint-stylish": "^2.0.1",
-    "run-sequence": "^1.1.2"
+    "critical": "^0.x",
+    "gulp": "^3.9.x",
+    "gulp-clean": "^0.3.x",
+    "gulp-gzip": "^1.x.x",
+    "gulp-if": "^2.0.x",
+    "gulp-jshint": "^2.0.x",
+    "gulp-notify": "^2.2.x",
+    "gulp-param": "^1.0.x",
+    "gulp-plumber": "^1.x.x",
+    "jshint": "^2.9.x",
+    "jshint-stylish": "^2.x.x",
+    "requirejs": "^2.x.x",
+    "run-sequence": "^1.1.x"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "gulp": "gulp"
   },
   "repository": {
     "type": "git",
