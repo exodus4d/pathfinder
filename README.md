@@ -1,4 +1,4 @@
-### *PATHFINDER*
+## *PATHFINDER*
 Mapping tool for [*EVE ONLINE*](https://www.eveonline.com)
 
 - Project URL [https://www.pathfinder-w.space](https://www.pathfinder-w.space)
@@ -18,10 +18,14 @@ Mapping tool for [*EVE ONLINE*](https://www.eveonline.com)
   - Database will be cleared from time to time
 - Installation guide:
   - [wiki](https://github.com/exodus4d/pathfinder/wiki)
+- Developer chat [Slack](https://slack.com) :
+  - https://pathfinder-eve-online.slack.com
+  - Please send me a mail for invite: pathfinder@exodus4d.de
 
 **Feel free to check the code for bugs and security issues.
 Issues should be reported in the [Issue](https://github.com/exodus4d/pathfinder/issues) section.**
 
+***
 
 ### Project structure
 
@@ -70,8 +74,9 @@ Issues should be reported in the [Issue](https://github.com/exodus4d/pathfinder/
   |-- README.md             --> This file :) (not used for production)
 ```
 
+***
+
 ### Thanks!
-I´m very proud that **you** are using *PATHFINDER*!
 
 It took me month of time in development until this project got into the first *BETA*. If you like it, please help to improve it.
 (report bugs, find security issues,...)
