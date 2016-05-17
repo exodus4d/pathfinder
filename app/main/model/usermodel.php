@@ -43,8 +43,8 @@ class UserModel extends BasicModel {
     protected $validate = [
         'name' => [
             'length' => [
-                'min' => 5,
-                'max' => 25
+                'min' => 3,
+                'max' => 50
             ]
         ]
     ];
