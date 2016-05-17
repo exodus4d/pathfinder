@@ -7,10 +7,11 @@
  */
 
 namespace Controller\Api;
+use Controller;
 use Model;
 
 
-class Signature extends \Controller\AccessController{
+class Signature extends Controller\AccessController{
 
     /**
      * event handler
@@ -24,24 +25,31 @@ class Signature extends \Controller\AccessController{
 
     /**
      * get signature data for systems
-     * @param $f3
+     * -> return value of this is limited to a "SINGLE" system
+     * @param \Base $f3
      */
     public function getAll($f3){
         $signatureData = [];
-        $systemIds = $f3->get('POST.systemIds');
-        $activeCharacter = $this->getCharacter();
+        $systemIds = (array)$f3->get('POST.systemIds');
 
-        /**
-         * @var Model\SystemModel $system
-         */
-        $system = Model\BasicModel::getNew('SystemModel');
-        foreach($systemIds as $systemId){
-            $system->getById($systemId);
+        if( !empty($systemIds) ){
+            $activeCharacter = $this->getCharacter();
 
-            if(!$system->dry()){
-                // check access
-                if( $system->hasAccess($activeCharacter) ){
-                    $signatureData = $system->getSignaturesData();
+            if($activeCharacter){
+                /**
+                 * @var Model\SystemModel $system
+                 */
+                $system = Model\BasicModel::getNew('SystemModel');
+                foreach($systemIds as $systemId){
+                    $system->getById($systemId);
+                    if(
+                        !$system->dry() &&
+                        $system->hasAccess($activeCharacter)
+                    ){
+                        $signatureData = $system->getSignaturesData();
+                    }
+
+                    $system->reset();
                 }
             }
         }

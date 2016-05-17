@@ -174,7 +174,6 @@ class Map extends Controller\AccessController {
             $activeCharacter = $this->getCharacter();
 
             if($activeCharacter){
-                $user = $activeCharacter->getUser();
 
                 /**
                  * @var $map Model\MapModel
