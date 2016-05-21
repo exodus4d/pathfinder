@@ -105,7 +105,6 @@ class Web extends \Web {
         $f3 = \Base::instance();
 
         if( !$f3->exists( $hash = $this->getCacheKey($url, $options) ) ){
-
             // retry same request until request limit is reached
             $retry = false;
 

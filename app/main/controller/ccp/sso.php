@@ -654,6 +654,67 @@ class Sso extends Api\User{
     }
 
     /**
+     * set new ingame waypoint
+     * @param Model\CharacterModel $character
+     * @param int $systemId
+     * @param array $options
+     * @return array
+     */
+    public function setWaypoint( Model\CharacterModel $character, $systemId, $options = []){
+        $crestUrlParts = parse_url( self::getCrestEndpoint() );
+        $waypointData = [];
+
+        if( $crestUrlParts ){
+            $endpointUrl = self::getCrestEndpoint() . '/characters/' . $character->_id . '/navigation/waypoints/';
+            $systemEndpoint = self::getCrestEndpoint() . '/solarsystems/' . $systemId . '/';
+
+            // request body
+            $content = [
+                'clearOtherWaypoints' => (bool)$options['clearOtherWaypoints'],
+                'first' => (bool)$options['first'],
+                'solarSystem' => [
+                    'href' => $systemEndpoint,
+                    'id' => (int)$systemId
+                ]
+            ];
+
+            $requestOptions = [
+                'timeout' => self::CREST_TIMEOUT,
+                'method' => 'POST',
+                'user_agent' => $this->getUserAgent(),
+                'header' => [
+                    'Scope: characterNavigationWrite',
+                    'Authorization: Bearer ' . $character->getAccessToken(),
+                    'Host: ' . $crestUrlParts['host'],
+                    'Content-Type: application/vnd.ccp.eve.PostWaypoint-v1+json;charset=utf-8',
+                ],
+                'content' => json_encode($content, JSON_UNESCAPED_SLASHES)
+            ];
+
+            $apiResponse = Lib\Web::instance()->request($endpointUrl, $requestOptions);
+
+            if( isset($apiResponse['body']) ){
+                $responseData = json_decode($apiResponse['body']);
+
+                if( empty($responseData) ){
+                    $waypointData['systemId'] = (int)$systemId;
+                }elseif(
+                    isset($responseData->message) &&
+                    isset($responseData->key)
+                ){
+                    // waypoint could not be set...
+                    $error = (object) [];
+                    $error->type = 'error';
+                    $error->message = $responseData->key;
+                    $waypointData['error'] = $error;
+                }
+            }
+        }
+
+        return $waypointData;
+    }
+
+    /**
      * update character
      * @param $characterData
      * @return \Model\CharacterModel
