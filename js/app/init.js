@@ -126,7 +126,7 @@ define(['jquery'], function($) {
                 },
                 redGiant: {
                     class: 'pf-system-effect-redgiant',
-                    name: 'red gaint'
+                    name: 'red giant'
                 },
                 pulsar: {
                     class: 'pf-system-effect-pulsar',
