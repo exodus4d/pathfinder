@@ -7,6 +7,7 @@
  */
 
 namespace Controller\Api;
+use Controller\Ccp\Sso;
 use Data\Mapper as Mapper;
 use Model;
 
@@ -318,10 +319,9 @@ class System extends \Controller\AccessController {
         $return->error = [];
         $return->systemData = [];
 
-        $constellationId = 0;
-        $activeCharacter = $this->getCharacter();
+        if(  $activeCharacter = $this->getCharacter() ){
+            $constellationId = 0;
 
-        if($activeCharacter){
             // check for search parameter
             if( isset($params['arg1']) ){
                 $constellationId = (int)$params['arg1'];
@@ -347,11 +347,50 @@ class System extends \Controller\AccessController {
     }
 
     /**
+     * set destination for specific systemIds
+     * @param \Base $f3
+     */
+    public function setDestination(\Base $f3){
+        $postData = (array)$f3->get('POST');
+
+        $return = (object) [];
+        $return->error = [];
+        $return->systemData = [];
+
+        if(
+            ($activeCharacter = $this->getCharacter()) &&
+            !empty($postData['systemData'])
+        ){
+            $return->clearOtherWaypoints = (bool)$postData['clearOtherWaypoints'];
+            $return->first = (bool)$postData['first'];
+
+             /**
+             * @var Sso $ssoController
+             */
+            $ssoController = self::getController('Sso');
+            foreach($postData['systemData'] as $systemData){
+                $waypointData = $ssoController->setWaypoint($activeCharacter, $systemData['systemId'], [
+                    'clearOtherWaypoints' => $return->clearOtherWaypoints,
+                    'first' => $return->first,
+                ]);
+                if($waypointData['systemId']){
+                    $return->systemData[] = $systemData;
+                }elseif( isset($waypointData['error']) ){
+                    $return->error[] = $waypointData['error'];
+                }
+            }
+        }
+
+        echo json_encode($return);
+    }
+
+
+    /**
      * delete systems and all its connections
      * @param \Base $f3
      */
     public function delete(\Base $f3){
-        $systemIds = $f3->get('POST.systemIds');
+        $systemIds = (array)$f3->get('POST.systemIds');
 
         if($activeCharacter = $this->getCharacter()){
             /**

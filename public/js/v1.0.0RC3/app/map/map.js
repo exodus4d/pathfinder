@@ -1683,12 +1683,15 @@ define([
                 {icon: 'fa-lock', action: 'lock_system', text: 'lock system'},
                 {icon: 'fa-users', action: 'set_rally', text: 'set rally point'},
                 {icon: 'fa-tags', text: 'set status', subitems: systemStatus},
+                {icon: 'fa-reply fa-rotate-180', text: 'waypoints', subitems: [
+                    {subIcon: 'fa-flag-checkered', subAction: 'set_destination', subText: 'set destination'},
+                    {subDivider: true, action: ''},
+                    {subIcon: 'fa-step-backward', subAction: 'add_first_waypoint', subText: 'add new [start]'},
+                    {subIcon: 'fa-step-forward', subAction: 'add_last_waypoint', subText: 'add new [end]'}
+                ]},
                 {divider: true, action: 'ingame'},
-                {icon: 'fa-reply fa-rotate-180', action: 'ingame', text: 'ingame actions', subitems: [
-                    {subIcon: 'fa-info', subAction: 'ingame_show_info', subText: 'show info'},
-                    {subDivider: true, action: 'ingame'},
-                    {subIcon: 'fa-flag', subAction: 'ingame_add_waypoint', subText: 'add waypoint'},
-                    {subIcon: 'fa-flag-checkered', subAction: 'ingame_set_destination', subText: 'set destination'}
+                {icon: 'fa-reply fa-rotate-180', action: 'ingame', text: 'ingame', subitems: [
+                    {subIcon: 'fa-info', subAction: 'ingame_show_info', subText: 'show info'}
                 ]},
                 {divider: true, action: 'delete_system'},
                 {icon: 'fa-eraser', action: 'delete_system', text: 'delete system'}
@@ -2009,15 +2012,11 @@ define([
 
                         CCPEVE.showInfo(5, systemData.systemId );
                         break;
-                    case 'ingame_set_destination':
+                    case 'set_destination':
+                    case 'add_first_waypoint':
+                    case 'add_last_waypoint':
                         systemData = system.getSystemData();
-
-                        CCPEVE.setDestination( systemData.systemId );
-                        break;
-                    case 'ingame_add_waypoint':
-                        systemData = system.getSystemData();
-
-                        CCPEVE.addWaypoint( systemData.systemId );
+                        setDestination(systemData, action);
                         break;
                 }
             }
@@ -2067,6 +2066,68 @@ define([
         };
 
         system.singleDoubleClick(single, double);
+    };
+
+
+    /**
+     * set new destination for a system
+     * -> CREST request
+     * @param systemData
+     * @param type
+     */
+    var setDestination = function(systemData, type){
+
+        var description = '';
+        switch(type){
+            case 'set_destination':
+                description = 'Set destination';
+                break;
+            case 'add_first_waypoint':
+                description = 'Set first waypoint';
+                break;
+            case 'add_last_waypoint':
+                description = 'Set new waypoint';
+                break;
+        }
+
+        $.ajax({
+            type: 'POST',
+            url: Init.path.setDestination,
+            data: {
+                clearOtherWaypoints: (type === 'set_destination') ? 1 : 0,
+                first: (type === 'add_last_waypoint') ? 0 : 1,
+                systemData: [{
+                    systemId: systemData.systemId,
+                    name: systemData.name
+                }]
+            },
+            context: {
+                description: description
+            },
+            dataType: 'json'
+        }).done(function(responseData){
+            if(
+                responseData.systemData &&
+                responseData.systemData.length > 0
+            ){
+                for (var j = 0; j < responseData.systemData.length; j++) {
+                    Util.showNotify({title: this.description, text: 'System: ' + responseData.systemData[j].name, type: 'success'});
+                }
+            }
+
+            if(
+                responseData.error &&
+                responseData.error.length > 0
+            ){
+                for(var i = 0; i < responseData.error.length; i++){
+                    Util.showNotify({title: this.description + ' error', text: 'System: ' + responseData.error[i].message, type: 'error'});
+                }
+            }
+
+        }).fail(function( jqXHR, status, error) {
+            var reason = status + ' ' + error;
+            Util.showNotify({title: jqXHR.status + ': ' + this.description, text: reason, type: 'warning'});
+        });
     };
 
     /**

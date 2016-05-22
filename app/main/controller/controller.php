@@ -8,7 +8,7 @@
 
 namespace Controller;
 use Controller\Api as Api;
-use Controller\Ccp\Sso;
+use Controller\Ccp\Sso as Sso;
 use Model;
 use DB;
 
@@ -445,134 +445,7 @@ class Controller {
         echo json_encode($return);
     }
 
-    /**
-     * check weather the page is IGB trusted or not
-     * @return boolean
-     */
-    static function isIGBTrusted(){
-        $igbHeaderData = self::getIGBHeaderData();
-        return $igbHeaderData->trusted;
-    }
 
-    /**
-     * get all eve IGB specific header data
-     * @return \stdClass
-     */
-    static function getIGBHeaderData(){
-        $data = (object) [];
-        $data->trusted = false;
-        $data->values = [];
-        $headerData = self::getRequestHeaders();
-
-        foreach($headerData as $key => $value){
-            $key = strtolower($key);
-            $key = str_replace('eve_', 'eve-', $key);
-
-
-            if (strpos($key, 'eve-') === 0) {
-                $key = str_replace('eve-', '', $key);
-
-                if (
-                    $key === 'trusted' &&
-                    $value === 'Yes'
-                ) {
-                    $data->trusted = true;
-                }
-
-                $data->values[$key] = $value;
-            }
-        }
-
-        return $data;
-    }
-
-    /**
-     * Helper function to return all headers because
-     * getallheaders() is not available under nginx
-     * @return array (string $key -> string $value)
-     */
-    static function getRequestHeaders(){
-        $headers = [];
-
-        $serverData = self::getServerData();
-
-        if(
-            function_exists('apache_request_headers') &&
-            $serverData->type === 'apache'
-        ){
-            // Apache Webserver
-            $headers = apache_request_headers();
-        }else{
-            // Other webserver, e.g. Nginx
-            // Unfortunately this "fallback" does not work for me (Apache)
-            // Therefore we can´t use this for all servers
-            // https://github.com/exodus4d/pathfinder/issues/58
-            foreach($_SERVER as $name => $value){
-                if(substr($name, 0, 5) == 'HTTP_'){
-                    $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
-                }
-            }
-        }
-        
-        return $headers;
-    }
-
-    /**
-     * get some server information
-     * @param int $ttl cache time (default: 1h)
-     * @return \stdClass
-     */
-    static function getServerData($ttl = 3600){
-        $f3 = \Base::instance();
-        $cacheKey = 'PF_SERVER_INFO';
-
-        if( !$f3->exists($cacheKey) ){
-            $serverData = (object) [];
-            $serverData->type = 'unknown';
-            $serverData->version = 'unknown';
-            $serverData->requiredVersion = 'unknown';
-            $serverData->phpInterfaceType = php_sapi_name();
-
-            if(strpos(strtolower($_SERVER['SERVER_SOFTWARE']), 'nginx' ) !== false){
-                // Nginx server
-                $serverSoftwareArgs = explode('/', strtolower( $_SERVER['SERVER_SOFTWARE']) );
-                $serverData->type = reset($serverSoftwareArgs);
-                $serverData->version = end($serverSoftwareArgs);
-                $serverData->requiredVersion = $f3->get('REQUIREMENTS.SERVER.NGINX.VERSION');
-            }elseif(strpos(strtolower($_SERVER['SERVER_SOFTWARE']), 'apache' ) !== false){
-                // Apache server
-                $serverData->type = 'apache';
-                $serverData->requiredVersion = $f3->get('REQUIREMENTS.SERVER.APACHE.VERSION');
-
-                // try to get the apache version...
-                if(function_exists('apache_get_version')){
-                    // function does not exists if PHP is running as CGI/FPM module!
-                    $matches = preg_split('/[\s,\/ ]+/', strtolower( apache_get_version() ) );
-                    if(count($matches) > 1){
-                        $serverData->version = $matches[1];
-                    }
-                }
-            }
-
-            // cache data for one day
-            $f3->set($cacheKey, $serverData, $ttl);
-        }
-
-        return $f3->get($cacheKey);
-    }
-
-    /**
-     * check if the current request was send from inGame
-     * @return bool
-     */
-    static function isIGB(){
-        $isIGB = false;
-        $igbHeaderData = self::getIGBHeaderData();
-        if(count($igbHeaderData->values) > 0){
-            $isIGB = true;
-        }
-        return $isIGB;
-    }
 
     /**
      * get error object is a user is not found/logged of
@@ -583,85 +456,6 @@ class Controller {
         $userError->type = 'error';
         $userError->message = 'User not found';
         return $userError;
-    }
-
-    /**
-     * get the current registration status
-     * 0=registration stop |1=new registration allowed
-     * @return int
-     */
-    static function getRegistrationStatus(){
-        return (int)\Base::instance()->get('PATHFINDER.REGISTRATION.STATUS');
-    }
-
-    /**
-     * get a log controller e.g. "debug"
-     * @param string $loggerType
-     * @return \Log
-     */
-    static function getLogger($loggerType){
-        return LogController::getLogger($loggerType);
-    }
-
-    /**
-     * removes illegal characters from a Hive-key that are not allowed
-     * @param $key
-     * @return string
-     */
-    static function formatHiveKey($key){
-        $illegalCharacters = ['-', ' '];
-        return strtolower( str_replace($illegalCharacters, '', $key) );
-    }
-
-    /**
-     * get environment specific configuration data
-     * @param string $key
-     * @return string|null
-     */
-    static function getEnvironmentData($key){
-        $f3 = \Base::instance();
-        $environment = self::getEnvironment();
-        $environmentKey = 'ENVIRONMENT[' . $environment . '][' . $key . ']';
-        $data = null;
-
-        if( $f3->exists($environmentKey) ){
-            $data = $f3->get($environmentKey);
-        }
-        return $data;
-    }
-
-    /**
-     * get current server environment status
-     * -> "DEVELOP" or "PRODUCTION"
-     * @return string
-     */
-    static function getEnvironment(){
-        $f3 = \Base::instance();
-        return $f3->get('ENVIRONMENT.SERVER');
-    }
-
-    /**
-     * check if current server is "PRODUCTION"
-     * @return bool
-     */
-    static function isProduction(){
-        return self::getEnvironment() == 'PRODUCTION';
-    }
-
-    /**
-     * get required MySQL variable value
-     * @param $key
-     * @return string|null
-     */
-    static function getRequiredMySqlVariables($key){
-        $f3 = \Base::instance();
-        $requiredMySqlVarKey = 'REQUIREMENTS[MYSQL][VARS][' . $key . ']';
-        $data = null;
-
-        if( $f3->exists($requiredMySqlVarKey) ){
-            $data = $f3->get($requiredMySqlVarKey);
-        }
-        return $data;
     }
 
     /**
@@ -770,6 +564,245 @@ class Controller {
      */
     public function unload(\Base $f3){
         return true;
+    }
+
+    /**
+     * get controller by class name
+     * -> controller class is searched within all controller directories
+     * @param $className
+     * @return null|\Controller\
+     * @throws \Exception
+     */
+    static function getController($className){
+        $controller = null;
+        // add subNamespaces for controller classes
+        $subNamespaces = ['Api', 'Ccp'];
+
+        for($i = 0; $i <= count($subNamespaces); $i++){
+            $path = [__NAMESPACE__];
+            $path[] = ( isset($subNamespaces[$i - 1]) ) ? $subNamespaces[$i - 1] : '';
+            $path[] = $className;
+            $classPath = implode('\\', array_filter($path));
+
+            if(class_exists($classPath)){
+                $controller = new $classPath();
+                break;
+            }
+        }
+
+        if( is_null($controller) ){
+            throw new \Exception( sprintf('Controller class "%s" not found!', $className) );
+        }
+
+        return $controller;
+    }
+
+    /**
+     * check weather the page is IGB trusted or not
+     * @return boolean
+     */
+    static function isIGBTrusted(){
+        $igbHeaderData = self::getIGBHeaderData();
+        return $igbHeaderData->trusted;
+    }
+
+    /**
+     * get all eve IGB specific header data
+     * @return \stdClass
+     */
+    static function getIGBHeaderData(){
+        $data = (object) [];
+        $data->trusted = false;
+        $data->values = [];
+        $headerData = self::getRequestHeaders();
+
+        foreach($headerData as $key => $value){
+            $key = strtolower($key);
+            $key = str_replace('eve_', 'eve-', $key);
+
+
+            if (strpos($key, 'eve-') === 0) {
+                $key = str_replace('eve-', '', $key);
+
+                if (
+                    $key === 'trusted' &&
+                    $value === 'Yes'
+                ) {
+                    $data->trusted = true;
+                }
+
+                $data->values[$key] = $value;
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * Helper function to return all headers because
+     * getallheaders() is not available under nginx
+     * @return array (string $key -> string $value)
+     */
+    static function getRequestHeaders(){
+        $headers = [];
+
+        $serverData = self::getServerData();
+
+        if(
+            function_exists('apache_request_headers') &&
+            $serverData->type === 'apache'
+        ){
+            // Apache Webserver
+            $headers = apache_request_headers();
+        }else{
+            // Other webserver, e.g. Nginx
+            // Unfortunately this "fallback" does not work for me (Apache)
+            // Therefore we can´t use this for all servers
+            // https://github.com/exodus4d/pathfinder/issues/58
+            foreach($_SERVER as $name => $value){
+                if(substr($name, 0, 5) == 'HTTP_'){
+                    $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+                }
+            }
+        }
+
+        return $headers;
+    }
+
+    /**
+     * get some server information
+     * @param int $ttl cache time (default: 1h)
+     * @return \stdClass
+     */
+    static function getServerData($ttl = 3600){
+        $f3 = \Base::instance();
+        $cacheKey = 'PF_SERVER_INFO';
+
+        if( !$f3->exists($cacheKey) ){
+            $serverData = (object) [];
+            $serverData->type = 'unknown';
+            $serverData->version = 'unknown';
+            $serverData->requiredVersion = 'unknown';
+            $serverData->phpInterfaceType = php_sapi_name();
+
+            if(strpos(strtolower($_SERVER['SERVER_SOFTWARE']), 'nginx' ) !== false){
+                // Nginx server
+                $serverSoftwareArgs = explode('/', strtolower( $_SERVER['SERVER_SOFTWARE']) );
+                $serverData->type = reset($serverSoftwareArgs);
+                $serverData->version = end($serverSoftwareArgs);
+                $serverData->requiredVersion = $f3->get('REQUIREMENTS.SERVER.NGINX.VERSION');
+            }elseif(strpos(strtolower($_SERVER['SERVER_SOFTWARE']), 'apache' ) !== false){
+                // Apache server
+                $serverData->type = 'apache';
+                $serverData->requiredVersion = $f3->get('REQUIREMENTS.SERVER.APACHE.VERSION');
+
+                // try to get the apache version...
+                if(function_exists('apache_get_version')){
+                    // function does not exists if PHP is running as CGI/FPM module!
+                    $matches = preg_split('/[\s,\/ ]+/', strtolower( apache_get_version() ) );
+                    if(count($matches) > 1){
+                        $serverData->version = $matches[1];
+                    }
+                }
+            }
+
+            // cache data for one day
+            $f3->set($cacheKey, $serverData, $ttl);
+        }
+
+        return $f3->get($cacheKey);
+    }
+
+    /**
+     * check if the current request was send from inGame
+     * @return bool
+     */
+    static function isIGB(){
+        $isIGB = false;
+        $igbHeaderData = self::getIGBHeaderData();
+        if(count($igbHeaderData->values) > 0){
+            $isIGB = true;
+        }
+        return $isIGB;
+    }
+
+    /**
+     * get the current registration status
+     * 0=registration stop |1=new registration allowed
+     * @return int
+     */
+    static function getRegistrationStatus(){
+        return (int)\Base::instance()->get('PATHFINDER.REGISTRATION.STATUS');
+    }
+
+    /**
+     * get a log controller e.g. "debug"
+     * @param string $loggerType
+     * @return \Log
+     */
+    static function getLogger($loggerType){
+        return LogController::getLogger($loggerType);
+    }
+
+    /**
+     * removes illegal characters from a Hive-key that are not allowed
+     * @param $key
+     * @return string
+     */
+    static function formatHiveKey($key){
+        $illegalCharacters = ['-', ' '];
+        return strtolower( str_replace($illegalCharacters, '', $key) );
+    }
+
+    /**
+     * get environment specific configuration data
+     * @param string $key
+     * @return string|null
+     */
+    static function getEnvironmentData($key){
+        $f3 = \Base::instance();
+        $environment = self::getEnvironment();
+        $environmentKey = 'ENVIRONMENT[' . $environment . '][' . $key . ']';
+        $data = null;
+
+        if( $f3->exists($environmentKey) ){
+            $data = $f3->get($environmentKey);
+        }
+        return $data;
+    }
+
+    /**
+     * get current server environment status
+     * -> "DEVELOP" or "PRODUCTION"
+     * @return string
+     */
+    static function getEnvironment(){
+        $f3 = \Base::instance();
+        return $f3->get('ENVIRONMENT.SERVER');
+    }
+
+    /**
+     * check if current server is "PRODUCTION"
+     * @return bool
+     */
+    static function isProduction(){
+        return self::getEnvironment() == 'PRODUCTION';
+    }
+
+    /**
+     * get required MySQL variable value
+     * @param $key
+     * @return string|null
+     */
+    static function getRequiredMySqlVariables($key){
+        $f3 = \Base::instance();
+        $requiredMySqlVarKey = 'REQUIREMENTS[MYSQL][VARS][' . $key . ']';
+        $data = null;
+
+        if( $f3->exists($requiredMySqlVarKey) ){
+            $data = $f3->get($requiredMySqlVarKey);
+        }
+        return $data;
     }
 
 } 

@@ -1,4 +1,4 @@
-/**
+6/**
  *  Init
  */
 
@@ -35,6 +35,7 @@ define(['jquery'], function($) {
             deleteSystem: 'api/system/delete',                      // ajax URL - delete system from map
             getSystemGraphData: 'api/system/graphData',             // ajax URL - get all system graph data
             getConstellationData: 'api/system/constellationData',   // ajax URL - get system constellation data
+            setDestination: 'api/system/setDestination',            // ajax URL - set destination
 
             // connection API
             saveConnection: 'api/connection/save',                  // ajax URL - save new connection to map
@@ -126,7 +127,7 @@ define(['jquery'], function($) {
                 },
                 redGiant: {
                     class: 'pf-system-effect-redgiant',
-                    name: 'red gaint'
+                    name: 'red giant'
                 },
                 pulsar: {
                     class: 'pf-system-effect-pulsar',
