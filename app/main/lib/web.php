@@ -15,6 +15,12 @@ class Web extends \Web {
     const ERROR_STATUS_LOG                  = 'HTTP %s: \'%s\' | url: %s \'%s\'%s';
 
     /**
+     * max number of CREST curls for a single endpoint until giving up...
+     * this is because CREST is not very stable
+     */
+    const RETRY_COUNT_MAX                   = 3;
+
+    /**
      * end of line
      * @var string
      */
@@ -92,12 +98,16 @@ class Web extends \Web {
      * @param string $url
      * @param array|null $options
      * @param array $additionalOptions
+     * @param int $retryCount request counter for failed crest call
      * @return array|FALSE|mixed
      */
-    public function request($url,array $options = null, $additionalOptions = []) {
+    public function request($url,array $options = null, $additionalOptions = [], $retryCount = 0 ) {
         $f3 = \Base::instance();
 
         if( !$f3->exists( $hash = $this->getCacheKey($url, $options) ) ){
+            // retry same request until request limit is reached
+            $retry = false;
+
             $result = parent::request($url, $options);
             $result['timeout'] = false;
             $statusCode = $this->getStatusCodeFromHeaders( $result['headers'] );
@@ -130,35 +140,43 @@ class Web extends \Web {
                 case 502:
                 case 503:
                 case 505:
-                    $errorMsg = $this->getErrorMessageFromJsonResponse(
-                        $statusCode,
-                        $options['method'],
-                        $url,
-                        json_decode($result['body'])
-                    );
-                    LogController::getLogger('error')->write($errorMsg);
+                    $retry = true;
 
-                    // trigger error
-                    $f3->error($statusCode, $errorMsg);
+                    if( $retryCount == self::RETRY_COUNT_MAX ){
+                        $errorMsg = $this->getErrorMessageFromJsonResponse(
+                            $statusCode,
+                            $options['method'],
+                            $url,
+                            json_decode($result['body'])
+                        );
+                        LogController::getLogger('error')->write($errorMsg);
+
+                        // trigger error
+                        $f3->error($statusCode, $errorMsg);
+                    }
                     break;
                 case 504:
                 case 0:
-                    // timeout -> response should not be cached
-                    $result['timeout'] = true;
+                    $retry = true;
 
-                    $errorMsg = $this->getErrorMessageFromJsonResponse(
-                        504,
-                        $options['method'],
-                        $url,
-                        json_decode($result['body'])
-                    );
+                    if( $retryCount == self::RETRY_COUNT_MAX ){
+                        // timeout -> response should not be cached
+                        $result['timeout'] = true;
 
-                    // log error
-                    LogController::getLogger('error')->write($errorMsg);
+                        $errorMsg = $this->getErrorMessageFromJsonResponse(
+                            504,
+                            $options['method'],
+                            $url,
+                            json_decode($result['body'])
+                        );
 
-                    if($additionalOptions['suppressTimeoutErrors'] !== true){
-                        // trigger error
-                        $f3->error(504, $errorMsg);
+                        // log error
+                        LogController::getLogger('error')->write($errorMsg);
+
+                        if($additionalOptions['suppressTimeoutErrors'] !== true){
+                            // trigger error
+                            $f3->error(504, $errorMsg);
+                        }
                     }
                     break;
                 default:
@@ -172,6 +190,15 @@ class Web extends \Web {
                     LogController::getLogger('error')->write($errorMsg);
                     break;
             }
+
+            if(
+                $retry &&
+                $retryCount < self::RETRY_COUNT_MAX
+            ){
+                $retryCount++;
+                $this->request($url, $options, $additionalOptions, $retryCount);
+            }
+
         }else{
             $result = $f3->get($hash);
         }

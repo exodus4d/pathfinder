@@ -66,7 +66,9 @@ define([
 
                     var rowElement = addRow(context, rowData);
 
-                    rowElement.initTooltips();
+                    rowElement.initTooltips({
+                        container: 'body'
+                    });
                 }
             }
 

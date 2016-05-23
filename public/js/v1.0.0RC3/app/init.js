@@ -35,6 +35,7 @@ define(['jquery'], function($) {
             deleteSystem: 'api/system/delete',                      // ajax URL - delete system from map
             getSystemGraphData: 'api/system/graphData',             // ajax URL - get all system graph data
             getConstellationData: 'api/system/constellationData',   // ajax URL - get system constellation data
+            setDestination: 'api/system/setDestination',            // ajax URL - set destination
 
             // connection API
             saveConnection: 'api/connection/save',                  // ajax URL - save new connection to map
@@ -126,7 +127,7 @@ define(['jquery'], function($) {
                 },
                 redGiant: {
                     class: 'pf-system-effect-redgiant',
-                    name: 'red gaint'
+                    name: 'red giant'
                 },
                 pulsar: {
                     class: 'pf-system-effect-pulsar',
@@ -330,34 +331,58 @@ define(['jquery'], function($) {
         // frigate wormholes
         frigateWormholes: {
             1: {    // C1
-
+                1: 'E004 - C1',
+                2: 'L005 - C2',
+                3: 'Z006 - C3',
+                4: 'M001 - C4',
+                5: 'C008 - C5',
+                6: 'G008 - C6',
+                7: 'Q003 - 0.0'
             },
             2: {    // C2
-                1: 'L005 - C2',
-                2: 'C008 - C5',
-                3: 'Q003 - 0.0'
+                1: 'E004 - C1',
+                2: 'L005 - C2',
+                3: 'Z006 - C3',
+                4: 'M001 - C4',
+                5: 'C008 - C5',
+                6: 'G008 - C6',
+                7: 'Q003 - 0.0'
             },
             3: {    // C3
                 1: 'E004 - C1',
                 2: 'L005 - C2',
-                3: 'M001 - C4'
+                3: 'Z006 - C3',
+                4: 'M001 - C4',
+                5: 'C008 - C5',
+                6: 'G008 - C6',
+                7: 'Q003 - 0.0'
             },
             4: {    // C4
-                1: 'L005 - C2',
-                2: 'G008 - C6',
-                3: 'Q003 - 0.0'
-            },
+                1: 'E004 - C1',
+                2: 'L005 - C2',
+                3: 'Z006 - C3',
+                4: 'M001 - C4',
+                5: 'C008 - C5',
+                6: 'G008 - C6',
+                7: 'Q003 - 0.0'
+	    },
             5: {    // C5
                 1: 'E004 - C1',
                 2: 'L005 - C2',
                 3: 'Z006 - C3',
-                4: 'C008 - C5',
-                5: 'Q003 - 0.0'
+                4: 'M001 - C4',
+                5: 'C008 - C5',
+                6: 'G008 - C6',
+                7: 'Q003 - 0.0'
             },
             6: {    // C6
                 1: 'E004 - C1',
-                2: 'Z006 - C3',
-                5: 'Q003 - 0.0'
+                2: 'L005 - C2',
+                3: 'Z006 - C3',
+                4: 'M001 - C4',
+                5: 'C008 - C5',
+                6: 'G008 - C6',
+                7: 'Q003 - 0.0'
             },
             13: {   // Shattered Wormholes (some of them are static)
                 1: 'E004 - C1',
@@ -366,8 +391,7 @@ define(['jquery'], function($) {
                 4: 'M001 - C4',
                 5: 'C008 - C5',
                 6: 'G008 - C6',
-                7: 'Q003 - C7'
-
+                7: 'Q003 - 0.0'
             }
         },
         // incoming wormholes
