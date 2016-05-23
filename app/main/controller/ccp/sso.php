@@ -589,12 +589,24 @@ class Sso extends Api\User{
         ], $additionalOptions);
 
         if( !empty($endpoint) ){
-            $characterData->character = (new Mapper\CrestCharacter($endpoint))->getData();
+            $crestCharacterData = (new Mapper\CrestCharacter($endpoint))->getData();
+            $characterData->character = $crestCharacterData
+            ;
             if(isset($endpoint['corporation'])){
                 $characterData->corporation = (new Mapper\CrestCorporation($endpoint['corporation']))->getData();
             }
+
+            // IMPORTANT: alliance data is not yet available over CREST!
+            // -> we need to request them over the XML api
+            /*
             if(isset($endpoint['alliance'])){
                 $characterData->alliance = (new Mapper\CrestAlliance($endpoint['alliance']))->getData();
+            }
+            */
+
+            $xmlCharacterData = (new Xml())->getPublicCharacterData( (int)$crestCharacterData['id'] );
+            if(isset($xmlCharacterData['alli'])){
+                $characterData->alliance = $xmlCharacterData['alli'];
             }
         }
 
