@@ -69,7 +69,7 @@ class CcpSystemsUpdate {
     /**
      * imports all relevant map stats from CCPs API
      * >> php index.php "/cron/importSystemData"
-     * @param $f3
+     * @param \Base $f3
      */
     function importSystemData($f3){
 
@@ -83,7 +83,7 @@ class CcpSystemsUpdate {
 
         // get current jump Data -------------------------------------------------------
         $time_start = microtime(true);
-        $apiPath = $f3->get('PATHFINDER.API.CCP_XML') . '/map/Jumps.xml.aspx';
+        $apiPath = $f3->get('ENVIRONMENT.PRODUCTION.CCP_XML') . '/map/Jumps.xml.aspx';
 
         $apiResponse = \Web::instance()->request($apiPath, $this->apiRequestOptions );
 
@@ -108,7 +108,7 @@ class CcpSystemsUpdate {
 
         // get current kill Data -------------------------------------------------------
         $time_start = microtime(true);
-        $apiPath = $f3->get('PATHFINDER.API.CCP_XML') . '/map/Kills.xml.aspx';
+        $apiPath = $f3->get('ENVIRONMENT.PRODUCTION.CCP_XML') . '/map/Kills.xml.aspx';
 
         $apiResponse = \Web::instance()->request($apiPath, $this->apiRequestOptions );
         $killData = [];
