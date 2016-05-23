@@ -30,6 +30,15 @@
     bottom: -3px;
   }
 
+  &.ribbon-default{
+    color: $gray-lighter;
+    background-color: darken($modal-content-bg, 3%);
+    @include background-image(linear-gradient(top, darken($modal-content-bg, 6%), darken($gray-dark, 3%)));
+
+    &:before, &:after{
+      border-top:   3px solid darken($gray-dark, 23%);
+    }
+  }
 
   &.ribbon-green{
     background-color: $green;

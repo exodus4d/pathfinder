@@ -464,24 +464,27 @@ define([
             lineWidth: 2,
             animate: 1000
         });
-
     };
 
     /**
      * init tooltips on an element
-     * @returns {any|JQuery|*}
+     * @param  {object} options
+     * @returns {*}
      */
-    $.fn.initTooltips = function(){
+    $.fn.initTooltips = function(options){
+
+        options = (typeof options === 'object') ? options : {};
+
+        var defaultOptions = {
+            container:  this,
+            delay: 100
+        };
+        options = $.extend(defaultOptions, options);
 
         return this.each(function(){
-
             var tooltipElements = $(this).find('[title]');
-            tooltipElements.tooltip('destroy').tooltip({
-                container:  this,
-                delay: 100
-            });
+            tooltipElements.tooltip('destroy').tooltip(options);
         });
-
     };
 
     /**
