@@ -536,7 +536,10 @@ class CharacterModel extends BasicModel {
         if($this->characterMaps){
             $mapCountPrivate = 0;
             foreach($this->characterMaps as &$characterMap){
-                if($mapCountPrivate < self::getF3()->get('PATHFINDER.MAX_MAPS_PRIVATE')){
+                if(
+                    $mapCountPrivate < self::getF3()->get('PATHFINDER.MAX_MAPS_PRIVATE') &&
+                    $characterMap->mapId->isActive()
+                ){
                     $maps[] = &$characterMap->mapId;
                     $mapCountPrivate++;
                 }
