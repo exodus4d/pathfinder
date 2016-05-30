@@ -9,6 +9,7 @@
 namespace Cron;
 use Controller;
 use DB;
+use lib\Config;
 
 class CcpSystemsUpdate {
 
@@ -83,7 +84,7 @@ class CcpSystemsUpdate {
 
         // get current jump Data -------------------------------------------------------
         $time_start = microtime(true);
-        $apiPath = $f3->get('ENVIRONMENT.PRODUCTION.CCP_XML') . '/map/Jumps.xml.aspx';
+        $apiPath = Config::getEnvironmentData('CCP_XML') . '/map/Jumps.xml.aspx';
 
         $apiResponse = \Web::instance()->request($apiPath, $this->apiRequestOptions );
 
@@ -108,7 +109,7 @@ class CcpSystemsUpdate {
 
         // get current kill Data -------------------------------------------------------
         $time_start = microtime(true);
-        $apiPath = $f3->get('ENVIRONMENT.PRODUCTION.CCP_XML') . '/map/Kills.xml.aspx';
+        $apiPath = Config::getEnvironmentData('CCP_XML') . '/map/Kills.xml.aspx';
 
         $apiResponse = \Web::instance()->request($apiPath, $this->apiRequestOptions );
         $killData = [];

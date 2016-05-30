@@ -9,6 +9,7 @@
 namespace Controller;
 use Controller\Api as Api;
 use Controller\Ccp\Sso as Sso;
+use lib\Config;
 use Model;
 use DB;
 
@@ -760,33 +761,7 @@ class Controller {
      * @return string|null
      */
     static function getEnvironmentData($key){
-        $f3 = \Base::instance();
-        $environment = self::getEnvironment();
-        $environmentKey = 'ENVIRONMENT[' . $environment . '][' . $key . ']';
-        $data = null;
-
-        if( $f3->exists($environmentKey) ){
-            $data = $f3->get($environmentKey);
-        }
-        return $data;
-    }
-
-    /**
-     * get current server environment status
-     * -> "DEVELOP" or "PRODUCTION"
-     * @return string
-     */
-    static function getEnvironment(){
-        $f3 = \Base::instance();
-        return $f3->get('ENVIRONMENT.SERVER');
-    }
-
-    /**
-     * check if current server is "PRODUCTION"
-     * @return bool
-     */
-    static function isProduction(){
-        return self::getEnvironment() == 'PRODUCTION';
+        return Config::getEnvironmentData($key);
     }
 
     /**

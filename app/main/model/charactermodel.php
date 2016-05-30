@@ -105,8 +105,6 @@ class CharacterModel extends BasicModel {
      * @return \stdClass
      */
     public function getData($addCharacterLogData = false){
-        $characterData = null;
-
         $cacheKeyModifier = '';
 
         // check if there is cached data
