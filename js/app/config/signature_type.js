@@ -100,7 +100,8 @@ define(['jquery'], function($) {
                     3: 'O883 - C3',
                     4: 'M609 - C4',
                     5: 'L614 - C5',
-                    6: 'S804 - C6'
+                    6: 'S804 - C6',
+		    7: 'F135 - Thera'
                 },
                 6: {    // ORE
                     1: 'Ordinary Perimeter Deposit', //*
@@ -137,8 +138,7 @@ define(['jquery'], function($) {
                     5: 'Ordinary Perimeter Reservoir' //*
                 },
                 5: {    // Wormhole
-                    // no *wandering* w-space -> k-space wormholes
-                    // all holes are statics or K162
+		    1: 'F135 - Thera'
                 },
                 6: {    // ORE
                     1: 'Ordinary Perimeter Deposit', //*
@@ -182,7 +182,8 @@ define(['jquery'], function($) {
                     3: 'N968 - C3',
                     4: 'T405 - C4',
                     5: 'N770 - C5',
-                    6: 'A982 - C6'
+                    6: 'A982 - C6',
+                    7: 'F135 - Thera'
                 },
                 6: {    // ORE
                     1: 'Ordinary Perimeter Deposit', //*
@@ -263,7 +264,8 @@ define(['jquery'], function($) {
                 5: {    // Wormhole
                     1: 'D792 - HS',
                     2: 'C140 - LS',
-                    3: 'Z142 - 0.0'
+                    3: 'Z142 - 0.0',
+		    4: 'F135 - Thera'
                 },
                 6: {    // ORE
                     1: 'Average Frontier Deposit', //*
@@ -310,7 +312,8 @@ define(['jquery'], function($) {
                 5: {    // Wormhole
                     1: 'D792 - HS',
                     2: 'C391 - LS',
-                    3: 'Z142 - 0.0'
+                    3: 'Z142 - 0.0',
+		    4: 'F135 - Thera'
                 },
                 6: {    // ORE
                     1: 'Ordinary Perimeter Deposit', //*
@@ -371,7 +374,8 @@ define(['jquery'], function($) {
                     5: 'B041 - C6',
                     6: 'A641 - HS',
                     7: 'R051 - LS',
-                    8: 'V283 - NS'
+                    8: 'V283 - NS',
+		    9: 'T458 - Thera'
                 }
             },
             11: {   // Low Sec
@@ -384,7 +388,8 @@ define(['jquery'], function($) {
                     5: 'U319 - C6',
                     6: 'B449 - HS',
                     7: 'N944 - LS',
-                    8: 'S199 - NS'
+                    8: 'S199 - NS',
+		    9: 'M164 - Thera'
                 }
             },
             12: {   // 0.0
@@ -397,7 +402,8 @@ define(['jquery'], function($) {
                     5: 'U319 - C6',
                     6: 'B449 - HS',
                     7: 'N944 - LS',
-                    8: 'S199 - NS'
+                    8: 'S199 - NS',
+		    9: 'L031 - Thera'
                 }
             }
         }
