@@ -11,6 +11,23 @@ define([
     'use strict';
 
     /**
+     * init a select element as "select2" for map selection
+     */
+    $.fn.initMapSelect = function(){
+        var selectElement = $(this);
+
+        $.when(
+            selectElement.select2({
+                dropdownParent: 'body',
+                theme: 'pathfinder',
+                maximumSelectionLength: 5
+            })
+        );
+    };
+
+
+
+    /**
      * init a select element as an ajax based "select2" object for system search
      * @param options
      */
@@ -114,7 +131,7 @@ define([
                 theme: 'pathfinder',
                 minimumInputLength: 2,
                 templateResult: formatResultData,
-                placeholder: 'Systemname',
+                placeholder: 'System name',
                 allowClear: true,
                 escapeMarkup: function (markup) {
                     // let our custom formatter work
@@ -131,7 +148,7 @@ define([
 
     /**
      * init a select element as an ajax based "select2" object for Access resources
-     * user (private map), corporation (corp map), alliance (ally map)
+     * character (private map), corporation (corp map), alliance (ally map)
      * @param options
      */
     $.fn.initAccessSelect = function(options){
@@ -162,8 +179,9 @@ define([
                 var previewContent = '';
 
                 switch(options.type){
-                    case 'user':
-                        previewContent = '<i class="fa fa-lg fa-user"></i>';
+                    case 'character':
+                        imagePath = Init.url.ccpImageServer + 'Character/' + data.id + '_32.jpg';
+                        previewContent = '<img src="' + imagePath + '" style="max-width: 100%" />';
                         break;
                     case 'corporation':
                         imagePath = Init.url.ccpImageServer + 'Corporation/' + data.id + '_32.png';
@@ -251,26 +269,6 @@ define([
             });
         });
 
-
     };
 
-
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

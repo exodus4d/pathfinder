@@ -1,6 +1,6 @@
 .modal-content {
 
-  // dialog headline ==============================================================
+  // dialog headline ==========================================================
   h2 {
     font-family: $font-family-sans-serif;
     letter-spacing: 0px;
@@ -9,19 +9,26 @@
     line-height: normal;
   }
 
-  // data tables ==================================================================
+  h2, h4{
+    &.pf-dynamic-area{
+      min-height: 0;
+      margin: 10px 0;
+    }
+  }
+
+  // data tables ==============================================================
   .dataTable, .table{
     font-size: 10px;
     font-family: $font-family-bold;
   }
 
-  // horizontal line ==============================================================
+  // horizontal line ==========================================================
   hr{
     margin: 5px 0 15px 0;
     border-color: $gray-light;
   }
 
-  // form wizard ==================================================================
+  // form wizard ==============================================================
   .pf-wizard-navigation{
     margin: 0;
 
@@ -77,16 +84,9 @@
     }
 
   }
-
-  // buttons ============================================================================
-  // hide some button until they get triggered by JS
-  .pf-dialog-finish-button, .pf-dialog-prev-button{
-    display: none;
-  }
-
 }
 
-// settings dialog ======================================================================
+// settings dialog ============================================================
 #pf-settings-dialog{
 
   // smaller buttons
@@ -94,155 +94,41 @@
     padding: 4px 7px 3px;
   }
 
-  // show add button only on last row
-  .pf-dialog-api-row:not(:nth-last-child(3)) .pf-dialog-clone-button{
-    display: none;
-  }
-
-  // hide delete button if there is just a single api row
-  .pf-dialog-api-row:nth-child(2):nth-last-child(3) .pf-dialog-delete-button{
-    display: none;
-  }
-
-
   // captcha image
   #pf-dialog-captcha-wrapper{
     margin: 0;
     padding: 3px 0;
   }
-  
-  .pf-dynamic-area{
-    display: inline-block;
-    margin: 10px 5px 20px 5px;
-    padding: 10px 10px 5px 10px;
-    @include border-radius(10px);
-
-    // character images
-    .pf-dialog-image-wrapper{
-      opacity: 0;
-      width: 128px;
-      border: 2px solid $gray-light;
-      @include border-radius(8px);
-      @include transition( border-color 0.2s ease-out, box-shadow 0.2s ease-out);
-      @include transform( translate3d(0, 0, 0) );
-      will-change: border-color, transition;
-      overflow: hidden;
-      cursor: pointer;
-      display: inline-block;
-      background-color: $gray-darker;
-      box-sizing: content-box; // because of the borders and the fix img with of 128
-
-      // not main character star
-      &:before{
-        content: "\f005";
-        font-family: FontAwesome;
-        position: absolute;
-        z-index: 10;
-        left: 6px;
-        top: 4px;
-        color: $gray-lighter;
-        @include transition(color 0.2s ease-out);
-      }
-
-      &.pf-dialog-character-main{
-        border-color: $orange-dark;
-
-        &:hover{
-          border-color: $orange;
-        }
-
-        // mein character star
-        &:before{
-          color: $orange;
-        }
-      }
-
-      &:hover{
-        border-color: $teal-dark;
-        @include box-shadow(0 4px 10px rgba(0,0,0, 0.4));
-
-        .pf-dialog-character-name{
-          color: $teal-lighter;
-        }
-
-        .pf-dialog-character-image{
-          @include filter(grayscale(50%))
-        }
-
-        &:before{
-          color: $orange;
-        }
-      }
-
-      .pf-dialog-image{
-        overflow: hidden;
-        width: 128px;
-        height: 128px;
-        position: relative;
-
-        // info element visible on hover
-        .pf-dialog-character-info{
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 0; // trigger by js
-          height: 100%;
-          background: rgba($gray, 0.80);
-          overflow: hidden;
-          will-change: width, transition;
-          padding: 10px 0;
-
-          .pf-dialog-character-info-text{
-            line-height: 25px;
-          }
-        }
-      }
-
-      .pf-dialog-character-name{
-        font-size: 13px;
-        line-height: 30px;
-        border-top: 1px solid $gray-dark;
-        @include transition( color 0.2s ease-out );
-      }
-
-      .pf-dialog-character-image{
-        @include transition(all 0.3s ease-out);
-        @include filter(grayscale(0%));
-      }
-    }
-  }
 }
 
-// map settings dialog ====================================
+// map settings dialog ========================================================
 #pf-map-dialog{
-
-  #pf-map-dialog-user-select,
+  #pf-map-dialog-character-select,
   #pf-map-dialog-corporation-select,
-  #pf-map-dialog-alliance-select,{
+  #pf-map-dialog-alliance-select{
     width: 300px;
   }
 }
 
-// map manual dialog ======================================
+#pf-route-dialog{
+  #pf-route-dialog-map-select{
+    width: 300px !important;
+  }
+}
+
+// map manual dialog ==========================================================
 #pf-manual-scrollspy{
   position: relative;
   height: 500px;
   overflow: auto;
 }
 
-// ad system dialog =======================================
+// ad system dialog ===========================================================
 .pf-system-dialog-select{
   width: 270px !important;
 }
 
-// sharing dialog =========================================
-h2, h4{
-  &.pf-dynamic-area{
-    min-height: 0;
-  }
-}
-
-// credits dialog =========================================
+// credits dialog =============================================================
 .pf-credits-dialog{
 
   .pf-credits-logo-background{

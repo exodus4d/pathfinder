@@ -15,6 +15,7 @@ define([
         deleteAccountId: 'pf-dialog-delete-account',                            // dialog id
 
         // captcha
+        captchaKeyDeleteAccount: 'SESSION.CAPTCHA.ACCOUNT.DELETE',              // key for captcha reason
         captchaImageWrapperId: 'pf-dialog-captcha-wrapper'                      // id for "captcha image" wrapper
     };
 
@@ -82,8 +83,8 @@ define([
                                         ){
                                             form.showFormMessage(responseData.error);
 
-                                            $('#' + config.captchaImageWrapperId).showCaptchaImage('deleteAccount', function(){
-                                                form.find('[name="captcha"], [name="password"]').resetFormFields();
+                                            $('#' + config.captchaImageWrapperId).showCaptchaImage(config.captchaKeyDeleteAccount, function(){
+                                                form.find('[name="captcha"]').resetFormFields();
                                             });
                                         }
 
@@ -106,7 +107,7 @@ define([
             // after modal is shown =======================================================================
             deleteAccountDialog.on('shown.bs.modal', function(e) {
                 // request captcha image and show
-                $('#' + config.captchaImageWrapperId).showCaptchaImage('deleteAccount');
+                $('#' + config.captchaImageWrapperId).showCaptchaImage(config.captchaKeyDeleteAccount);
             });
 
         });

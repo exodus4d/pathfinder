@@ -35,13 +35,13 @@ class SystemSignatureModel extends BasicModel {
         'groupId' => [
             'type' => Schema::DT_INT,
             'nullable' => false,
-            'default' => 1,
+            'default' => 0,
             'index' => true,
         ],
         'typeId' => [
             'type' => Schema::DT_INT,
             'nullable' => false,
-            'default' => 1,
+            'default' => 0,
             'index' => true,
         ],
         'name' => [
@@ -103,26 +103,29 @@ class SystemSignatureModel extends BasicModel {
     }
 
     /**
-     * get signature data as array
-     * @return array
+     * get signature data
+     * @return \stdClass
      */
     public function getData(){
 
-        $signatureData = [
-            'id' => $this->id,
-            'groupId' => $this->groupId,
-            'typeId' => $this->typeId,
-            'name' => $this->name,
-            'description' => $this->description,
-            'created' => [
-                'character' => $this->createdCharacterId->getData(),
-                'created' => strtotime($this->created)
-            ],
-            'updated' => [
-                'character' => $this->updatedCharacterId->getData(),
-                'updated' => strtotime($this->updated)
-            ]
-        ];
+        $signatureData                              = (object) [];
+        $signatureData->id                          = $this->id;
+        $signatureData->groupId                     = $this->groupId;
+        $signatureData->typeId                      = $this->typeId;
+        $signatureData->name                        = $this->name;
+        $signatureData->description                 = $this->description;
+
+        $signatureData->created                     = (object) [];
+        $signatureData->created->created            = strtotime($this->created);
+        if( is_object($this->createdCharacterId) ){
+            $signatureData->created->character      = $this->createdCharacterId->getData();
+        }
+
+        $signatureData->updated                     = (object) [];
+        $signatureData->updated->updated            = strtotime($this->updated);
+        if( is_object($this->updatedCharacterId) ){
+            $signatureData->updated->character      = $this->updatedCharacterId->getData();
+        }
 
         return $signatureData;
     }
@@ -151,18 +154,21 @@ class SystemSignatureModel extends BasicModel {
 
     /**
      * check object for model access
-     * @param $accessObject
+     * @param CharacterModel $characterModel
      * @return bool
      */
-    public function hasAccess($accessObject){
-        return $this->systemId->hasAccess($accessObject);
+    public function hasAccess(CharacterModel $characterModel){
+        return $this->systemId->hasAccess($characterModel);
     }
 
-    public function delete($accessObject){
-
-        if(!$this->dry()){
-            // check if editor has access
-            if($this->hasAccess($accessObject)){
+    /**
+     * delete signature
+     * @param CharacterModel $characterModel
+     */
+    public function delete(CharacterModel $characterModel){
+        if( !$this->dry() ){
+            // check if character has access
+            if($this->hasAccess($characterModel)){
                 $this->erase();
             }
         }

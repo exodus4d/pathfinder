@@ -150,57 +150,58 @@ define([
                 dataType: 'json'
             }).done(function(systemGraphsData){
 
-                // create new (hidden) module container
-                var moduleElement = $('<div>', {
-                    class: [config.moduleClass, config.systemGraphModuleClass].join(' '),
-                    css: {opacity: 0}
-                });
-
-                // insert at the correct position
-                if($(parentElement).children().length === 1){
-                    $(parentElement).append(moduleElement);
-                }else{
-                    $(parentElement).find('>:first-child').after(moduleElement);
-                }
-
-                // row element
-                var rowElement = $('<div>', {
-                    class: 'row'
-                });
-                moduleElement.append(rowElement);
-
-                $.each(systemGraphsData, function(systemId, graphsData){
-                    $.each(graphsData, function(graphKey, graphData){
-
-                        var colElement = $('<div>', {
-                            class: ['col-xs-12', 'col-sm-6', 'col-md-4'].join(' ')
-                        });
-
-                        var headlineElement = $('<h5>').text( getInfoForGraph(graphKey, 'headline') );
-
-                        colElement.append(headlineElement);
-
-                        var graphElement = $('<div>', {
-                            class: config.systemGraphClass
-                        });
-
-                        colElement.append(graphElement);
-
-                        rowElement.append(colElement);
-                        initGraph(graphElement, graphKey, graphData, eventLine);
+                if( !$.isEmptyObject(systemGraphsData) ){
+                    // create new (hidden) module container
+                    var moduleElement = $('<div>', {
+                        class: [config.moduleClass, config.systemGraphModuleClass].join(' '),
+                        css: {opacity: 0}
                     });
-                });
 
-                moduleElement.append($('<div>', {
-                    css: {'clear': 'both'}
-                }));
+                    // insert at the correct position
+                    if($(parentElement).children().length === 1){
+                        $(parentElement).append(moduleElement);
+                    }else{
+                        $(parentElement).find('>:first-child').after(moduleElement);
+                    }
 
-                // show module
-                moduleElement.velocity('transition.slideDownIn', {
-                    duration: Init.animationSpeed.mapModule,
-                    delay: Init.animationSpeed.mapModule
-                });
+                    // row element
+                    var rowElement = $('<div>', {
+                        class: 'row'
+                    });
+                    moduleElement.append(rowElement);
 
+                    $.each(systemGraphsData, function(systemId, graphsData){
+                        $.each(graphsData, function(graphKey, graphData){
+
+                            var colElement = $('<div>', {
+                                class: ['col-xs-12', 'col-sm-6', 'col-md-4'].join(' ')
+                            });
+
+                            var headlineElement = $('<h5>').text( getInfoForGraph(graphKey, 'headline') );
+
+                            colElement.append(headlineElement);
+
+                            var graphElement = $('<div>', {
+                                class: config.systemGraphClass
+                            });
+
+                            colElement.append(graphElement);
+
+                            rowElement.append(colElement);
+                            initGraph(graphElement, graphKey, graphData, eventLine);
+                        });
+                    });
+
+                    moduleElement.append($('<div>', {
+                        css: {'clear': 'both'}
+                    }));
+
+                    // show module
+                    moduleElement.velocity('transition.slideDownIn', {
+                        duration: Init.animationSpeed.mapModule,
+                        delay: Init.animationSpeed.mapModule
+                    });
+                }
             }).fail(function( jqXHR, status, error) {
                 var reason = status + ' ' + error;
                 Util.showNotify({title: jqXHR.status + ': System graph data', text: reason, type: 'warning'});

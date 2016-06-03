@@ -47,8 +47,6 @@ define([
                     releasesDialog.find('ul.timeline').append(content);
                 }
 
-               // console.log()
-
                 $('.timeline > li').velocity('transition.expandIn', {
                     stagger: 300,
                     duration: 240,

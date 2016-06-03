@@ -83,6 +83,7 @@ define([
             autoWidth: false,
             hover: false,
             pageLength: 15,
+            lengthMenu: [[10, 15, 25, 50, 50], [10, 15, 25, 50, 50]],
             data: logData,                      // load cached logs (if available)
             language: {
                 emptyTable:  'No entries',

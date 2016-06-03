@@ -643,7 +643,6 @@ define([
             }
         }
 
-
         var userDataTable = userTable.dataTable( {
             pageLength: 20,
             paging: true,
@@ -670,7 +669,7 @@ define([
                     data: 'log.ship',
                     render: {
                         _: function(data, type, row, meta){
-                            return '<img src="' + Init.url.ccpImageServer + 'Render/' + data.id + '_32.png" />';
+                            return '<img src="' + Init.url.ccpImageServer + 'Render/' + data.typeId + '_32.png" />';
                         }
                     }
                 },{
@@ -736,6 +735,16 @@ define([
                     }
                 },{
                     targets: 7,
+                    title: 'station',
+                    orderable: true,
+                    searchable: true,
+                    data: 'log.station',
+                    render: {
+                        _: 'name',
+                        sort: 'name'
+                    }
+                },{
+                    targets: 8,
                     title: '',
                     orderable: false,
                     searchable: false,
@@ -754,7 +763,7 @@ define([
                         });
                     }
                 },{
-                    targets: 8,
+                    targets: 9,
                     title: '',
                     orderable: false,
                     searchable: false,

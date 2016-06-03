@@ -70,83 +70,99 @@
 {* login form *}
 <section id="pf-landing-login">
     <div class="container">
-        <div class="row text-center">
-            <div class="col-md-8 col-md-offset-2">
-                <h2><span class="text-primary">Please</span> log in</h2>
+
+        {* cookie characters *}
+        <check if="{{ @cookieCharacters }}">
+            <true>
+                <div class="row text-center">
+                    <div class="col-md-8 col-md-offset-2">
+                        <h2><span class="text-primary">Select</span> your character</h2>
+                    </div>
+                </div>
+
+                {* dynamic message container *}
+                <div class="container-fluid">
+                    <div class="row ">
+                        <div class="col-sm-8 col-sm-offset-2 pf-dynamic-message-container">
+                            {* client side message e.g. ajax errors *}
+                        </div>
+                    </div>
+                </div>
+
+                {* login message container *}
+                <check if="{{ @SESSION.SSO.ERROR }}">
+                    <div class="container-fluid">
+                        <div class="row ">
+                            <div class="col-sm-8 col-sm-offset-2">
+                                <div class="alert alert-danger" >
+                                    <span class="txt-color txt-color-danger">Access denied</span>
+                                    <small>{{ @SESSION.SSO.ERROR }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </check>
+
+                {* check for setup mode *}
+                <check if="{{ array_key_exists('/setup', @ROUTES) && @PATHFINDER.SHOW_SETUP_WARNING }}">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-sm-8 col-sm-offset-2">
+                                <div class="alert alert-warning" >
+                                    <span class="txt-color txt-color-warning">Setup mode active</span>
+                                    <small>Disable setup route in routes.ini in production environment! <a href="/setup">Setup</a></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </check>
+
+                {* IGB warning *}
+                <check if="{{ @isIngame == 1 }}">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-sm-8 col-sm-offset-2">
+                                <div class="alert alert-warning" >
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><i class="fa fa-close"></i></button>
+                                    <span class="txt-color txt-color-warning">Hint</span>
+                                    <small>Some functions may not work within the outdated IGB browser!</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </check>
+
+                <div class="row text-center pf-character-selection">
+                    <repeat group="{{ @cookieCharacters }}" key="{{ @cookieName }}" value="{{ @characterData }}">
+                        <div class="col-sm-{{ @getCharacterGrid( @cookieCharacters ) }}">
+                            <div class="pf-dynamic-area" data-cookie="{{ @cookieName }}" data-href="{{ 'sso','action=login' | alias }}">
+                                {* character data is dynamically *}
+                            </div>
+                        </div>
+                    </repeat>
+                </div>
+            </true>
+            <false>
+                <div class="row text-center">
+                    <div class="col-md-8 col-md-offset-2">
+                        <h2><span class="text-primary">Sign</span> up</h2>
+                    </div>
+                </div>
+            </false>
+        </check>
+
+        {* SSO login *}
+        <div class="container-fluid">
+            <div class="row text-center">
+                <div class="col-xs-12">
+                    <a class="pf-sso-login-button {{@registrationStatusButton}}" target="_self" href="{{ 'sso','action=requestAuthorization' | alias }}" type="button" tabindex="3" title="{{@registrationStatusTitle}}">&nbsp;</a><br>
+                    <a class="font-lg" target="_blank" href="http://community.eveonline.com/news/dev-blogs/eve-online-sso-and-what-you-need-to-know">What is this?</a>
+                </div>
             </div>
         </div>
-        <form id="pf-login-form" class="" role="form" method="post" action="#">
 
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col-sm-3 col-sm-offset-3">
-                        <div class="form-group">
-                            <input type="text" class="form-control" name="userName" id="userName" placeholder="Username" autocomplete="off" tabindex="1" data-error="Username required" autofocus required>
-                            <div class="help-block with-errors text-left"></div>
-                        </div>
-                    </div>
-                    <div class="col-sm-3">
-                        <div class="form-group">
-                            <input type="password" class="form-control" name="userPassword" id="userPassword" placeholder="Password" autocomplete="off" tabindex="2" data-error="Password required" required>
-                            <div class="help-block with-errors text-left"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {* login message container *}
-            <div class="container-fluid">
-                <div class="row ">
-                    <div id="pf-login-message-container" class="col-sm-8 col-sm-offset-2"></div>
-                </div>
-            </div>
-
-            {* check for setup mode *}
-            <check if="{{ array_key_exists('/setup', @ROUTES) && @PATHFINDER.SHOW_SETUP_WARNING }}">
-                <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-sm-8 col-sm-offset-2">
-                            <div class="alert alert-warning" >
-                                <span class="txt-color txt-color-warning">Setup mode active</span>
-                                <small>Disable setup route in routes.ini in production environment! <a href="/setup">Setup</a></small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </check>
-
-            {* IGB warning *}
-            <check if="{{ @isIngame == 1 }}">
-                <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-sm-8 col-sm-offset-2">
-                            <div class="alert alert-warning" >
-                                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><i class="fa fa-close"></i></button>
-                                <span class="txt-color txt-color-warning">Hint</span>
-                                <small>Some functions may not work within the outdated IGB browser!</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </check>
-
-            {* signUp/logIn buttons *}
-            <div class="row text-center">
-                <div class="col-sm-6 col-sm-offset-3">
-                    <div class="col-xs-6 col-sm-4 col-sm-offset-2" data-placement="left" title="{{@registrationStatusTitle}}">
-                        <button type="button" class="pf-register-button btn-block btn btn-primary {{@registrationStatusButton}}" tabindex="-1"><i class="fa fa-fw fa-user-plus"></i> Sign up</button>
-                    </div>
-                    <div class="col-xs-6 col-sm-4">
-                        <button type="submit" class="pf-login-button btn-block btn btn-success" tabindex="3"><i class="fa fa-fw fa-sign-in"></i> Log in</button>
-                    </div>
-                </div>
-            </div>
-        </form>
     </div>
 </section>
-{*
-<a href="{{ 'sso','action=requestAuthorization' | alias }}">SSO login</a>
-*}
 
 {* features/ gallery *}
 <section id="pf-landing-gallery">
@@ -184,8 +200,8 @@
 
         <div class="row">
             <div class="col-xs-12 col-sm-3 col-lg-2">
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/settings_2.jpg" data-description="Account settings" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/settings_2.jpg" width="160" height="160" alt="Account settings">
+                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/login_1.jpg" data-description="Character login" data-gallery="#pf-gallery">
+                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/login_1.jpg" width="160" height="160" alt="Account settings">
                 </a>
                 <a class="pf-animate-on-visible pf-animate" href="public/img/landing/settings_1.jpg" data-description="Map access" data-gallery="#pf-gallery">
                     <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/settings_1.jpg" width="160" height="160" alt="Map access">
@@ -197,21 +213,22 @@
             <div class="col-xs-12 col-sm-9 col-lg-4">
                 <h4><i class="fa fa-fw fa-angle-double-right"></i>Pathfinder</h4>
                 <ul class="fa-ul pf-landing-list">
-                    <li><i></i>Support for IGB and OGB</li>
+                    <li><i></i>Multi browser support (IGB and OGB)</li>
                     <li><i></i><span class="txt-color txt-color-greenDark"><e class="fa fa-fw fa-lock"></e>SSL</span> encrypted connection</li>
-                    <li><i></i>Open Source Project</li>
+                    <li><i></i>User friendly <a class="pf-navbar-manual" href="#">manual</a></li>
+                    <li><i></i>Open Source Project <a target="_blank" href="{{ @PATHFINDER.REPO }}" alt="GitHub"><i class="fa fa-lg fa-github fa-fw"></i> Github</a></li>
                     <li>
                         <ul class="fa-ul">
-                            <li><i></i>Find bugs or security issues</li>
-                            <li><i></i>Host it on your own webserver</li>
+                            <li><i></i>Developer/install <a target="_blank" href="{{ @PATHFINDER.REPO }}/wiki">wiki</a></li>
                         </ul>
                     </li>
-                    <li><i></i>User friendly and detailed manual</li>
-                    <li><i></i>Multi API key support</li>
+                    <li><i></i><span class="label label-success">NEW</span> <em>CCP</em> s <em>SSO</em> login</li>
+                    <li><i></i><span class="label label-success">NEW</span> Cookie based <a target="_blank" href="https://github.com/exodus4d/pathfinder/issues/138#issuecomment-216036606">login system</a></li>
+                    <li><i></i><span class="label label-success">NEW</span> <a target="_blank" href="{{ @PATHFINDER.REPO }}/issues/84"><em>CREST</em> API support</a></li>
                     <li>
                         <ul class="fa-ul">
-                            <li><i></i>Add/change your keys on demand</li>
-                            <li><i></i>Set your Main character (OGB)</li>
+                            <li><i></i>Character/Location data is pulled from CREST</li>
+                            <li><i></i>IGB is no longer required</li>
                         </ul>
                     </li>
                     <li><i></i>HTML5 features</li>
@@ -219,21 +236,19 @@
                         <ul class="fa-ul">
                             <li><i></i>Full screen support (OBG)</li>
                             <li><i></i>Browser notification system (OGB)</li>
-                            <li><i></i>Advanced client-side caching - local storage (OGB)</li>
+                            <li><i></i>Advanced client-side caching - 'local storage' (OGB)</li>
                         </ul>
                     </li>
-                    <li><i></i>Optional "invite only" registration feature</li>
+                    <li><i></i>Advanced user access config</li>
                     <li>
                         <ul class="fa-ul">
-                            <li><i></i>If active, a unique Registration Key is required for registration</li>
-                            <li><i></i>This can limit the number of new accounts (e.g. beta)</li>
-                            <li><i></i>Access can be limited to a single corp/ally</li>
+                            <li><i></i>Access can be limited to specific corps/allys</li>
                         </ul>
                     </li>
                     <li><i></i>Integrated Task Manager</li>
                     <li>
                         <ul class="fa-ul">
-                            <li><i></i>visual live graphs</li>
+                            <li><i></i>Live performance graphs</li>
                             <li><i></i>Print/export client site log files for debugging</li>
                         </ul>
                     </li>
@@ -251,7 +266,6 @@
                     </li>
                     <li><i></i>Developed with state of the art web technology</li>
                     <li><i></i>Responsive layout (smartphone up to 4k screen)</li>
-                    <li><i></i>Expandable with your own plugins. If you have the required programming skills</li>
                 </ul>
             </div>
 
@@ -272,54 +286,53 @@
             <div class="col-xs-12 col-sm-9 col-lg-4">
                 <h4><i class="fa fa-fw fa-angle-double-right"></i>Map module</h4>
                 <ul class="fa-ul  pf-landing-list">
-                    <li><i></i>Live synchronisation between multiple clients</li>
-                    <li><i></i>Track/edit multiple maps at once</li>
+                    <li><i></i>Live synchronisation between clients</li>
+                    <li><i></i>Multiple map support</li>
                     <li><i></i>Share maps with other players or groups</li>
-                    <li><i></i>Invite other players to your maps</li>
+                    <li><i></i>Invite other players to maps</li>
                     <li><i></i>Advanced drag &amp; drop support</li>
                     <li>
                         <ul class="fa-ul">
-                            <li><i></i>Select systems by <kbd>click</kbd> + <kbd>drag</kbd></li>
+                            <li><i></i>Select multiple systems by <kbd>ctrl</kbd> + <kbd>click</kbd></li>
                             <li><i></i>Select and move multiple systems at once</li>
                             <li><i></i>Establish new connections by drag one system to another</li>
                             <li><i></i>Grid snapping</li>
+                            <li><i></i><span class="label label-success">NEW</span> Prevent systems from overlapping (magnetization)</li>
                         </ul>
                     </li>
                     <li><i></i>Track fleet movements</li>
                     <li>
                         <ul class="fa-ul">
-                            <li><i></i>Pilot names</li>
-                            <li><i></i>Ship classes for each pilot</li>
-                            <li><i></i>In/decreasing ship count per system</li>
+                            <li><i></i>Pilot/Ship names</li>
+                            <li><i></i>In-/decreasing pilot count per system</li>
+                            <li><i></i><span class="label label-success">NEW</span> Location tracking (<em>CREST</em>)</li>
                         </ul>
                     </li>
-                    <li><i></i>Multiple system status supported</li>
+                    <li><i></i>System status</li>
                     <li>
                         <ul class="fa-ul">
-                            <li><i></i>"Locked"</li>
-                            <li><i></i>"Rally point"</li>
-                            <li><i></i>"Friendly"</li>
-                            <li><i></i>"Occupied"</li>
-                            <li><i></i>"Hostile"</li>
-                            <li><i></i>"Empty"</li>
-                            <li><i></i>"Unscanned"</li>
+                            <li><i></i>'Locked', 'Rally point', 'Rally point', 'Friendly', 'Occupied', 'Hostile', 'Empty', 'Unscanned'</li>
                         </ul>
                     </li>
-                    <li><i></i>Multiple connection scopes available</li>
+                    <li><i></i>Connection scopes</li>
                     <li>
                         <ul class="fa-ul">
-                            <li><i></i>"Stargate"</li>
-                            <li><i></i>"Wormhole"</li>
-                            <li><i></i>"Jumpbridge"</li>
+                            <li><i></i>'Stargate', 'Wormhole', 'Jumpbridge'</li>
                         </ul>
                     </li>
-                    <li><i></i>Keyboard shortcut control</li>
+                    <li><i></i><span class="label label-success">NEW</span> In game actions (<em>CREST</em>)</li>
                     <li>
                         <ul class="fa-ul">
-                            <li><i></i>Easy system selection by holding <kbd>ctrl</kbd> + <kbd>click</kbd></li>
+                            <li><i></i>'Set destination', 'add waypoint'</li>
                         </ul>
                     </li>
-                    <li><i></i>Integrated live search for new systems</li>
+                    <li><i></i>Keyboard shortcuts</li>
+                    <li>
+                        <ul class="fa-ul">
+                            <li><i></i>Easy system selection by holding <kbd>ctrl</kbd> + <kbd>drag</kbd></li>
+                        </ul>
+                    </li>
+                    <li><i></i>Integrated live search for systems</li>
                     <li>
                         <ul class="fa-ul">
                             <li><i></i>TrueSec, Region, Constallation information</li>
@@ -374,13 +387,6 @@
                             <li><i></i><em>Wormhol.es</em></li>
                         </ul>
                     </li>
-                    <li><i></i>IGB action</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>Set waypoint</li>
-                            <li><i></i>Show information</li>
-                        </ul>
-                    </li>
                 </ul>
             </div>
 
@@ -399,19 +405,24 @@
                 <h4><i class="fa fa-fw fa-angle-double-right"></i>Signature module</h4>
                 <ul class="fa-ul pf-landing-list">
                     <li><i></i>Share system signature information</li>
-                    <li><i></i>Add multiple signatures at once <kbd>ctrl</kbd> + <kbd>c</kbd> from the scanning window</li>
+                    <li><i></i>Add/Update multiple signatures at once <kbd>ctrl</kbd> + <kbd>c</kbd></li>
                     <li><i></i>Check for new signatures within a second</li>
-                    <li><i></i>Get informed about new signatures in your current system</li>
-                    <li><i></i>Receive warnings if a system is not fully scanned</li>
+                    <li><i></i>Get notified about new signatures in your current system</li>
+                    <li><i></i>Receive warnings for not fully scanned systems</li>
                     <li><i></i>Speed up scanning and work with multiple pilots on the same scanning table</li>
-                    <li><i></i>Label signatures for later operations</li>
-                    <li><i></i>Estimated sec status for a route</li>
+                    <li><i></i>Label signatures for following operations</li>
+                    <li><i></i><span class="label label-success">NEW</span> Updated signature type information</li>
                     <li><i></i>Shown meta information for each signature</li>
                     <li>
                         <ul class="fa-ul">
                             <li><i></i>Creation data/time</li>
                             <li><i></i>Creation pilot/name</li>
                             <li><i></i>Pilot status</li>
+                            <li>
+                                <ul class="fa-ul">
+                                    <li><i></i>'Corporation', 'Alliance', 'Friendly'</li>
+                                </ul>
+                            </li>
                         </ul>
                     </li>
                 </ul>
@@ -432,12 +443,12 @@
             <div class="col-xs-12 col-sm-9 col-lg-4">
                 <h4><i class="fa fa-fw fa-angle-double-right"></i>Killboard module</h4>
                 <ul class="fa-ul pf-landing-list">
-                    <li><i></i><em>zkillboard.com</em> API integration</li>
-                    <li><i></i>Get additional, more detailed information about all recent activities in a system</li>
+                    <li><i></i><em><a target="_blank" href="https://github.com/zKillboard/zKillboard/wiki">zkillboard.com</a></em> API integration</li>
+                    <li><i></i>Detailed information about all recent activities in a system</li>
                     <li><i></i>Visual graph with recent kills and timestamp</li>
-                    <li><i></i>Deeplink to zKillboard.com</li>
+                    <li><i></i>Killmail deep links</li>
                     <li><i></i>This even works for wormholes where <em>CCP</em> does not provide any official API data</li>
-                    <li><i></i>Receive live warnings for new kills in your system</li>
+                    <li><i></i>Live warnings for recent kills in a system</li>
                     <li><i></i>IGB action</li>
                     <li>
                         <ul class="fa-ul">
@@ -461,10 +472,10 @@
             <div class="clearfix visible-xs visible-sm visible-md"></div>
 
             <div class="col-xs-12 col-sm-3 col-lg-2">
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/route_1.jpg" data-description="Routes" data-gallery="#pf-gallery">
+                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/route_1.jpg" data-description="Routes table" data-gallery="#pf-gallery">
                     <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/route_1.jpg" width="160" height="160" alt="Routes">
                 </a>
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/route_2.jpg" data-description="Add Route" data-gallery="#pf-gallery">
+                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/route_2.jpg" data-description="Add/filter routes dialog" data-gallery="#pf-gallery">
                     <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/route_2.jpg" width="160" height="160" alt="Add Route">
                 </a>
             </div>
@@ -473,15 +484,32 @@
                 <h4><i class="fa fa-fw fa-angle-double-right"></i>Route module</h4>
                 <ul class="fa-ul pf-landing-list">
                     <li><i></i>Search for routes between systems</li>
-                    <li><i></i>Predefined routes to trade hubs</li>
-                    <li><i></i>Add your personal routes</li>
-                    <li><i></i>Additional information for each system</li>
-                    <li><i></i>Sort routes by jump count</li>
+                    <li><i></i>Predefined trade hub routes</li>
                     <li>
                         <ul class="fa-ul">
-                            <li><i></i>Constellation name</li>
-                            <li><i></i>Region name</li>
-                            <li><i></i>True Sec</li>
+                            <li><i></i>'Jita', 'Amarr', 'Rens', 'Dodixie'</li>
+                        </ul>
+                    </li>
+                    <li><i></i>Add/Search custom routes</li>
+                    <li><i></i><span class="label label-success">NEW</span> Advanced search</li>
+                    <li>
+                        <ul class="fa-ul">
+                            <li><i></i>Search on multiple maps</li>
+                            <li><i></i>Filter routes by:</li>
+                            <li>
+                                <ul class="fa-ul">
+                                    <li><i></i>'Connection types' (e.g. 'Wormholes', &hellip; )</li>
+                                    <li><i></i>'Connection scopes' (e.g 'Critical Wormholes', &hellip; )</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><i></i>Average sec status for a routes</li>
+                    <li><i></i>Sort/Order routes by:</li>
+                    <li>
+                        <ul class="fa-ul">
+                            <li><i></i>System jumps</li>
+                            <li><i></i>Average sec status</li>
                         </ul>
                     </li>
                 </ul>
@@ -755,49 +783,49 @@
                     If you are planning to get deeper into the project or even think about hosting it on your own webserver, you should  be aware of some important key points.
                     <em>Pathfinder</em> is not comparable with any "out of the box" web applications or common CMS systems that come along with an auto-install feature.
                     If you don´t have any experience with the following technologies, stop thinking about your own hosted <em>Pathfinder</em> app.
-                    Unfortunately the IGB is required for some features, which are currently not supported by the official <em>EVE Online</em> API.
+                    Unfortunately the IGB is required for some features, which are not yet not supported by <em>CCP</em>´s <em>CREST</em> API.
                 </p>
                 <h3>Frontend</h3>
                 <ul class="fa-ul pf-landing-list">
-                    <li><i></i>"<em>Bootstrap</em>" as a HTML, CSS framework</li>
-                    <li><i></i>"<em>SASS</em>" and "<em>Compass</em>" as a CSS preprocessor</li>
-                    <li><i></i>"<em>RequireJs</em>" as an AMD loader and builder for Javascript</li>
-                    <li><i></i>"<em>jQuery</em>" as the main Javascript library</li>
+                    <li><i></i>'<em>Bootstrap</em>' as a HTML, CSS framework</li>
+                    <li><i></i>'<em>SASS</em>' and '<em>Compass</em>' as a CSS preprocessor</li>
+                    <li><i></i>'<em>RequireJs</em>' as an AMD loader and builder for Javascript</li>
+                    <li><i></i>'<em>jQuery</em>' as the main Javascript library</li>
                     <li>
                         <ul class="fa-ul">
                             <li><i></i>≈ 50 self written jQuery plugins</li>
                             <li><i></i>≈ 40 open source plugins</li>
                         </ul>
                     </li>
-                    <li><i></i>"<em>Node.js</em>" and "<em>Gulp</em>" as js task runner and CI-build environment</li>
+                    <li><i></i>'<em>Node.js</em>' and '<em>Gulp</em>' as js task runner and CI-build environment</li>
 
                     <li><i></i>Code quality and automated testing</li>
                     <li>
                         <ul class="fa-ul">
-                            <li><i></i>"<em>JSHint</em>"</li>
-                            <li><i></i>"<em>Jasmine</em>"</li>
+                            <li><i></i>'<em>JSHint</em>'</li>
+                            <li><i></i>'<em>Jasmine</em>'</li>
                         </ul>
                     </li>
                     <li><i></i>You should know about some HTML5 APIs</li>
                     <li>
                         <ul class="fa-ul">
-                            <li><i></i>"<em>Local Storage</em>"</li>
-                            <li><i></i>"<em>Page Visibility</em>"</li>
-                            <li><i></i>"<em>Web Notifications</em>"</li>
-                            <li><i></i>"<em>Fullscreen</em>"</li>
+                            <li><i></i>'<em>Local Storage</em>'</li>
+                            <li><i></i>'<em>Page Visibility</em>'</li>
+                            <li><i></i>'<em>Web Notifications</em>'</li>
+                            <li><i></i>'<em>Fullscreen</em>'</li>
                         </ul>
                     </li>
                 </ul>
 
                 <h3>Backend</h3>
                 <ul class="fa-ul pf-landing-list">
-                    <li><i></i>"<em>Fat-Free Framework</em>" as a lightweight PHP framework and ORM mapper</li>
-                    <li><i></i>"<em>MySQL</em> as databases (configurable)</li>
-                    <li><i></i>"<em>Memcache, APC or XCache</em> as a 2nd level cache engine (configurable)</li>
+                    <li><i></i>'<em>Fat-Free Framework</em>' as a lightweight PHP framework and ORM mapper</li>
+                    <li><i></i>'<em>MySQL</em>' (or '<em>MariaDB</em>') as databases (configurable)</li>
+                    <li><i></i>'<em>Memcache, APC or XCache</em>' as a 2nd level cache engine (configurable)</li>
                     <li><i></i>Code quality and automated testing</li>
                     <li>
                         <ul class="fa-ul">
-                            <li><i></i>"<em>PHPUnit</em>"</li>
+                            <li><i></i>'<em>PHPUnit</em>'</li>
                         </ul>
                     </li>
                     <li><i></i>You should know about relational databases, MVC pattern and ORM strategies</li>
@@ -836,31 +864,19 @@
                     Some features require the IGB-Header information (e.g. tracking live data for a pilot). Some other features require some HTML5 API´s which are not supported by the IGB.
                     You can even use the IGB and an OGB if you have a multiple screen setup for more usability.
                 </p>
-                <h3>Can i use multiple Accounts/APIs?</h3>
+                <h3>Can i use multiple accounts/characters?</h3>
                 <p>
-                    Yes. When you create an new account or update your existing account, you have the opportunity to enter multiple API keys.
-                    When you use the IGB, <em>Pathfinder</em> automatically detects the active pilot and you will see all available maps for this pilot.
-                    When you use the OGB, <em>Pathfinder</em> uses your "main character" as the current active one, which has to be set/update in course of the registration process.
-                    You can change/add/delete API information at any time.
-                    Take in mind:
+                    Yes, you can add as many characters to your account you want. By accepting the 'Cookie hint', your current logged-in characters
+                    are stored. If you don´t want cookies, you need to re-assign bei <em>CCP</em>´s SSO login the next time.<br>
+                    Cookies are valid for {{ @PATHFINDER.LOGIN.COOKIE_EXPIRE }} days and will be destroyed on 'logout'.
+                    Read <a target="_blank" href="https://github.com/exodus4d/pathfinder/issues/138#issuecomment-216036606">more</a>.
                 </p>
-                <ul class="fa-ul pf-landing-list">
-                    <li><i></i> "Personal"-maps are bound to a user (not character). Each of your characters should be able to see your "personal"-maps</li>
-                    <li><i></i> "Corporation/Alliance"-maps are bound to characters (not user). If you have multiple characters in different groups, only those maps should be visible that belong to your current active character</li>
-                </ul>
                 <h3>Are my data save?</h3>
                 <p>
                     Whoever said, his program is "bullet proof", is lying! But I promise to give my very best to protect any personal or map data that is stored on my server.
-                    User data is encoded by a strong <a target="_blank" href="https://en.wikipedia.org/wiki/Bcrypt">Blowfish-based Bcrypt</a> hashing algorithm.
-                    If you are familiar with the process of software development, feel free to check the source code and report any kind of security leak.
-                    <br>
-                    There are some points to minimize the risk:
+                    The login process is handled by <em>CCP</em>´s SSO. There is no account data (or even your <em>EVE Online</em> login data) stored or available to <em>Pathfinder</em>.<br>
+                    All client side cookie data is encrypted stored server side and is protected against manipulation or abuse.
                 </p>
-                <ul class="fa-ul pf-landing-list">
-                    <li><i></i> Make sure not to use your <em>EVE Online</em> log in data at any point</li>
-                    <li><i></i> Never share your account with anyone else</li>
-                    <li><i></i> Change your password once in a while</li>
-                </ul>
                 <h3>Can i report bugs or security issues?</h3>
                 <p>
                     Good work! I am very happy for any technical feedback and improvements.
@@ -879,9 +895,9 @@
                 </p>
                 <ul class="fa-ul pf-landing-list">
                     <li><i></i> A webserver with a <em><a target="_blank" href="https://en.wikipedia.org/wiki/LAMP_(software_bundle)">LAMP</a></em> environment</li>
-                    <li><i></i> PHP 5.3+</li>
+                    <li><i></i> PHP 5.6+</li>
                     <li><i></i> PHP framework <a target="_blank" href="http://fatfreeframework.com/system-requirements">requirements</a> </li>
-                    <li><i></i> MySQL 5.x+ </li>
+                    <li><i></i> MySQL 5.6+ </li>
                     <li><i></i> Some kind of server side caching technology (Memcache,APC,xCache) file caching will also work</li>
                 </ul>
             </div>
@@ -907,6 +923,17 @@
     </div>
 </footer>
 
+{* cookie warning *}
+<footer class="navbar-default navbar-fixed-bottom collapse" id="pf-cookie-hint">
+    <div class="container-fluid">
+        <p class="navbar-text">
+            Pathfinder requires cookies to maintain your login state between browser sessions. Read <a target="_blank" href="https://github.com/exodus4d/pathfinder/issues/138">more</a>.
+        </p>
+        <div class="pull-right">
+            <button type="button" class="btn btn-default navbar-btn btn-success" data-toggle="collapse" data-target="#pf-cookie-hint" aria-expanded="false">That´s fine</button>
+        </div>
+    </div>
+</footer>
 
 {* hidden dialog *}
 <include href="templates/dialog/gallery.html" />

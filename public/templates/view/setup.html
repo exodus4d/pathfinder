@@ -59,10 +59,6 @@
                                 <td class="text-right">{{ @PATHFINDER.VERSION }}</td>
                             </tr>
                             <tr>
-                                <td>Environment</td>
-                                <td class="text-right">{{ @ENVIRONMENT.SERVER }}</td>
-                            </tr>
-                            <tr>
                                 <td>Contact</td>
                                 <td class="text-right"><a href="{{ @PATHFINDER.CONTACT }}" target="_blank">{{ @PATHFINDER.CONTACT }}</a></td>
                             </tr>
@@ -73,6 +69,29 @@
                             </tbody>
                         </table>
 
+                        <div class="panel-footer text-left">
+                            <h3 class="panel-title">Configuration</h3>
+                        </div>
+
+                        <table class="table">
+                            <tbody>
+                            <repeat group="{{ @environmentInformation }}" value="{{ @environmentData }}">
+                                <tr>
+                                    <td>{{@environmentData.label}}</td>
+                                    <td class="text-right col-md-8">
+                                        <check if="{{ @environmentData.check }}">
+                                            <true>
+                                                <kbd>{{@environmentData.value | raw}}</kbd>
+                                            </true>
+                                            <false>
+                                                <kbd class="txt-color txt-color-danger">{{@environmentData.value | raw}}</kbd>
+                                            </false>
+                                        </check>
+                                    </td>
+                                </tr>
+                            </repeat>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -279,19 +298,6 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr>
-                                <td>Invite (private mode)</td>
-                                <td class="text-right">
-                                    <check if="{{ @PATHFINDER.REGISTRATION.INVITE }}">
-                                        <true>
-                                            <kbd class="txt-color txt-color-success">enabled</kbd>
-                                        </true>
-                                        <false>
-                                            <kbd class="txt-color txt-color-warning">disabled</kbd>
-                                        </false>
-                                    </check>
-                                </td>
-                            </tr>
                             <tr>
                                 <td>Max. invite limit</td>
                                 <td class="text-right"><kbd>{{ @PATHFINDER.REGISTRATION.INVITE_LIMIT }}</kbd></td>

@@ -6,11 +6,70 @@
  * proofed, signature names (copy & paste from scanning window)
  */
 
-define([], function() {
+define(['jquery'], function($) {
 
     'use strict';
 
-    // system effects
+    // signature sources
+    // http://de.sistersprobe.wikia.com/wiki/EVE_Sister_Core_Scanner_Probe_Wiki
+
+
+    // NullSec Relic sites, which can also spawn in C1, C2, C3 wormholes
+    var nullSecRelicSites = {
+        10: 'Ruined Angel Crystal Quarry',
+        11: 'Ruined Angel Monument Site',
+        12: 'Ruined Angel Science Outpost',
+        13: 'Ruined Angel Temple Site',
+        14: 'Ruined Blood Raider Crystal Quarry',
+        15: 'Ruined Blood Raider Monument Site',
+        16: 'Ruined Blood Raider Science Outpost',
+        17: 'Ruined Blood Raider Temple Site',
+        18: 'Ruined Guristas Crystal Quarry',
+        19: 'Ruined Guristas Monument Site',
+        20: 'Ruined Guristas Science Outpost',
+        21: 'Ruined Guristas Temple Site',
+        22: 'Ruined Sansha Crystal Quarry',
+        23: 'Ruined Sansha Monument Site',
+        24: 'Ruined Sansha Science Outpost',
+        25: 'Ruined Sansha Temple Site',
+        26: 'Ruined Serpentis Crystal Quarry',
+        27: 'Ruined Serpentis Monument Site',
+        28: 'Ruined Serpentis Science Outpost',
+        29: 'Ruined Serpentis Temple Site'
+    };
+
+    // NulSec Data sites, which can also spawn in C1, C2, C3 wormholes
+    var nullSecDataSites = {
+        10: 'Abandoned Research Complex DA005',
+        11: 'Abandoned Research Complex DA015',
+        12: 'Abandoned Research Complex DC007',
+        13: 'Abandoned Research Complex DC021',
+        14: 'Abandoned Research Complex DC035',
+        15: 'Abandoned Research Complex DG003',
+        16: 'Central Angel Command Center',
+        17: 'Central Angel Data Mining Site',
+        18: 'Central Angel Sparking Transmitter',
+        19: 'Central Angel Survey Site',
+        20: 'Central Blood Raider Command Center',
+        21: 'Central Blood Raider Data Mining Site',
+        22: 'Central Blood Raider Sparking Transmitter',
+        23: 'Central Blood Raider Survey Site',
+        24: 'Central Guristas Command Center',
+        25: 'Central Guristas Data Mining Center',
+        26: 'Central Guristas Sparking Transmitter',
+        27: 'Central Guristas Survey Site',
+        28: 'Central Sansha Command Center',
+        29: 'Central Sansha Data Mining Site',
+        30: 'Central Sansha Sparking Transmitter',
+        31: 'Central Sansha Survey Site',
+        32: 'Central Serpentis Command Center',
+        33: 'Central Serpentis Data Mining Site',
+        34: 'Central Serpentis Sparking Transmitter',
+        35: 'Central Serpentis Survey Site'
+    };
+
+
+    // signature types
     var signatureTypes = {
         1: { // system type (wh)
             1: {    // C1 (area id)
@@ -20,14 +79,14 @@ define([], function() {
                     3: 'Phase Catalyst Node',
                     4: 'The Line'
                 },
-                2: {    // Relic
-                    1: 'Forgotten Perimeter Coronation Platform',
-                    2: 'Forgotten Perimeter Power Array'
-                },
-                3: {    // Data
-                    1: 'Unsecured Perimeter Amplifier',
-                    2: 'Unsecured Perimeter Information Center '
-                },
+                2: $.extend({}, nullSecRelicSites, {    // Relic
+                    1: 'Forgotten Perimeter Coronation Platform', //*
+                    2: 'Forgotten Perimeter Power Array' //*
+                }),
+                3: $.extend({}, nullSecDataSites, {    // Data
+                    1: 'Unsecured Perimeter Amplifier', //*
+                    2: 'Unsecured Perimeter Information Center' //*
+                }),
                 4: {    // Gas
                     1: 'Barren Perimeter Reservoir', //*
                     2: 'Token Perimeter Reservoir', //*
@@ -62,14 +121,14 @@ define([], function() {
                     3: 'The Ruins of Enclave Cohort 27',
                     4: 'Sleeper Data Sanctuary'
                 },
-                2: {    // Relic
-                    1: 'Forgotten Perimeter Gateway',
-                    2: 'Forgotten Perimeter Habitation Coils'
-                },
-                3: {    // Data
-                    1: 'Unsecured Perimeter Comms Relay',
-                    2: 'Unsecured Perimeter Transponder Farm '
-                },
+                2: $.extend({}, nullSecRelicSites, {    // Relic
+                    1: 'Forgotten Perimeter Gateway', //*
+                    2: 'Forgotten Perimeter Habitation Coils' //*
+                }),
+                3: $.extend({}, nullSecDataSites, {    // Data
+                    1: 'Unsecured Perimeter Comms Relay', //*
+                    2: 'Unsecured Perimeter Transponder Farm' //*
+                }),
                 4: {    // Gas
                     1: 'Barren Perimeter Reservoir', //*
                     2: 'Token Perimeter Reservoir', //*
@@ -100,14 +159,14 @@ define([], function() {
                     3: 'Solar Cell',
                     4: 'The Oruze Construct'
                 },
-                2: {    // Relic
-                    1: 'Forgotten Frontier Quarantine Outpost',
-                    2: 'Forgotten Frontier Recursive Depot'
-                },
-                3: {    // Data
-                    1: 'Unsecured Frontier Database',
-                    2: 'Unsecured Frontier Receiver'
-                },
+                2: $.extend({}, nullSecRelicSites, {    // Relic
+                    1: 'Forgotten Frontier Quarantine Outpost', //*
+                    2: 'Forgotten Frontier Recursive Depot' //*
+                }),
+                3: $.extend({}, nullSecDataSites, {    // Data
+                    1: 'Unsecured Frontier Database', //*
+                    2: 'Unsecured Frontier Receiver' //*
+                }),
                 4: {    // Gas
                     1: 'Barren Perimeter Reservoir', //*
                     2: 'Token Perimeter Reservoir', //*
@@ -192,13 +251,14 @@ define([], function() {
                 },
                 4: {    // Gas
                     1: 'Barren Perimeter Reservoir', //*
-                    2: 'Token Perimeter Reservoir', //*
-                    3: 'Sizeable Perimeter Reservoir', //*
-                    4: 'Ordinary Perimeter Reservoir', //*
-                    5: 'Bountiful Frontier Reservoir', //*
-                    6: 'Instrumental Core Reservoir', //*
-                    7: 'Vital Core Reservoir', //*
-                    8: 'Minor Perimeter Reservoir' //*
+                    2: 'Minor Perimeter Reservoir', //*
+                    3: 'Ordinary Perimeter Reservoir', //*
+                    4: 'Sizeable Perimeter Reservoir', //*
+                    5: 'Token Perimeter Reservoir', //*
+                    6: 'Bountiful Frontier Reservoir', //*
+                    7: 'Vast Frontier Reservoir', //*
+                    8: 'Instrumental Core Reservoir', //*
+                    9: 'Vital Core Reservoir' //*
                 },
                 5: {    // Wormhole
                     1: 'D792 - HS',
@@ -206,9 +266,16 @@ define([], function() {
                     3: 'Z142 - 0.0'
                 },
                 6: {    // ORE
-                    1: 'Ordinary Perimeter Deposit', //*
-                    2: 'Common Perimeter Deposit', //*
-                    3: 'Rarified Core Deposit' //*
+                    1: 'Average Frontier Deposit', //*
+                    2: 'Unexceptional Frontier Deposit', //*
+                    3: 'Uncommon Core Deposit', //*
+                    4: 'Ordinary Perimeter Deposit', //*
+                    5: 'Common Perimeter Deposit', //*
+                    6: 'Exceptional Core Deposit', //*
+                    7: 'Infrequent Core Deposit', //*
+                    8: 'Unusual Core Deposit', //*
+                    9: 'Rarified Core Deposit', //*
+                    10: 'Isolated Core Deposit' //*
                 },
                 7: {    // Ghost
 
@@ -230,14 +297,15 @@ define([], function() {
                     2: 'Unsecured Core Emergence' //*
                 },
                 4: {    // Gas
-                    1: 'Token Perimeter Reservoir', //*
+                    1: 'Barren Perimeter Reservoir', //*
                     2: 'Minor Perimeter Reservoir', //*
-                    3: 'Sizeable Perimeter Reservoir', //*
-                    4: 'Ordinary Perimeter Reservoir', //*
-                    5: 'Bountiful Frontier Reservoir', //*
-                    6: 'Vast Frontier Reservoir', //*
-                    7: 'Instrumental Core Reservoir', //*
-                    8: 'Vital Core Reservoir' //*
+                    3: 'Ordinary Perimeter Reservoir', //*
+                    4: 'Sizeable Perimeter Reservoir', //*
+                    5: 'Token Perimeter Reservoir', //*
+                    6: 'Bountiful Frontier Reservoir', //*
+                    7: 'Vast Frontier Reservoir', //*
+                    8: 'Instrumental Core Reservoir', //*
+                    9: 'Vital Core Reservoir' //*
                 },
                 5: {    // Wormhole
                     1: 'D792 - HS',

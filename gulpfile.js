@@ -6,7 +6,6 @@ var plumber = require('gulp-plumber');
 var gzip   = require('gulp-gzip');
 var gulpif = require('gulp-if');
 var clean = require('gulp-clean');
-var critical = require('critical');
 
 var runSequence = require('run-sequence');
 var exec = require('child_process').exec;
@@ -91,13 +90,7 @@ gulp.task('jshint', function(){
             errorHandler: onError
         }))
         .pipe(jshint())
-        .pipe(jshint.reporter(stylish))
-        .pipe(notify({
-                icon: path.resolve(__dirname, _src.ICON),
-                title: 'JSHint',
-                message: 'Task complete',
-                onLast: true
-        }));
+        .pipe(jshint.reporter(stylish));
     // .pipe(jshint.reporter('fail')); // uncomment this line to stop build on error
 });
 
@@ -246,25 +239,6 @@ gulp.task('default', function(tag) {
         'watchCSSFiles'
     );
 });
-
-/*
-// This removes all CSS styles "above the fold" from *.css and inlines them
-// -> to improve pagespeed. The remaining (main) css file will be lazy loaded afterwards...
-// https://github.com/addyosmani/critical
-gulp.task('critical', function (cb) {
-    critical.generate({
-        inline: true,
-        base: './',
-        src: './public/templates/view/index.html',
-        dest: './public/templates/view/index-critical.html',
-        extract: true,
-        minify: true,
-        width: 2560,
-        height: 1440
-    });
-});
-*/
-
 
 /**
  * clear all backend (fat free framework) cache files

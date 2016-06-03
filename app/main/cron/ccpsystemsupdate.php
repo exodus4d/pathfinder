@@ -9,6 +9,7 @@
 namespace Cron;
 use Controller;
 use DB;
+use lib\Config;
 
 class CcpSystemsUpdate {
 
@@ -69,7 +70,7 @@ class CcpSystemsUpdate {
     /**
      * imports all relevant map stats from CCPs API
      * >> php index.php "/cron/importSystemData"
-     * @param $f3
+     * @param \Base $f3
      */
     function importSystemData($f3){
 
@@ -83,7 +84,7 @@ class CcpSystemsUpdate {
 
         // get current jump Data -------------------------------------------------------
         $time_start = microtime(true);
-        $apiPath = $f3->get('PATHFINDER.API.CCP_XML') . '/map/Jumps.xml.aspx';
+        $apiPath = Config::getEnvironmentData('CCP_XML') . '/map/Jumps.xml.aspx';
 
         $apiResponse = \Web::instance()->request($apiPath, $this->apiRequestOptions );
 
@@ -108,7 +109,7 @@ class CcpSystemsUpdate {
 
         // get current kill Data -------------------------------------------------------
         $time_start = microtime(true);
-        $apiPath = $f3->get('PATHFINDER.API.CCP_XML') . '/map/Kills.xml.aspx';
+        $apiPath = Config::getEnvironmentData('CCP_XML') . '/map/Kills.xml.aspx';
 
         $apiResponse = \Web::instance()->request($apiPath, $this->apiRequestOptions );
         $killData = [];

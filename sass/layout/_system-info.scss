@@ -2,11 +2,11 @@
 
 
 // popover =================================================================
-.pf-system-info-popover{
+.pf-character-info-popover{
   display: initial;
 
-  img{
-    width: 39px
+  .popover-content{
+    padding: 0; // overwrite default popover padding
   }
 
   h6{
@@ -19,6 +19,34 @@
     margin-top: 7px;
     margin-bottom: 10px;
   }
+
+  .list-group{
+    margin: 0;
+
+    .list-group-item{
+      color: $gray-dark;
+
+      &:hover{
+        color: $gray-darkest;
+      }
+
+      &.disabled{
+        background-color: $gray;
+        color: $gray-light;
+        cursor: not-allowed;
+      }
+
+      img{
+        width: 30px;
+        margin: -8px 10px -6px -8px;
+        border-radius: 0;
+      }
+
+      i{
+        margin-right: 20px;
+      }
+    }
+  }
 }
 
 // system info module ======================================================
@@ -27,6 +55,7 @@
   // breadcrumb
   h5{
     text-transform: capitalize;
+    line-height: 16px;
   }
 
   // dynamic area specific for the description field
@@ -104,6 +133,10 @@
       
       & > .fa{
         font-size: 10px;
+      }
+
+      .fa-refresh{
+        @extend .pf-dialog-icon-button;
       }
     }
   }

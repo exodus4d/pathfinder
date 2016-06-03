@@ -20,7 +20,7 @@ class MapUpdate {
     /**
      * deactivate all "private" maps whose lifetime is over
      * >> php index.php "/cron/deactivateMapData"
-     * @param $f3
+     * @param \Base $f3
      */
     function deactivateMapData($f3){
 
@@ -46,7 +46,7 @@ class MapUpdate {
     /**
      * delete all deactivated maps
      * >> php index.php "/cron/deleteMapData"
-     * @param $f3
+     * @param \Base $f3
      */
     function deleteMapData($f3){
 

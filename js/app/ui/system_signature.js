@@ -43,15 +43,9 @@ define([
         sigTableEditSigDescriptionTextarea: 'pf-sig-table-edit-desc-text',      // class for editable fields (sig description)
         sigTableCreatedCellClass: 'pf-sig-table-created',                       // class for "created" cells
         sigTableUpdatedCellClass: 'pf-sig-table-updated',                       // class for "updated" cells
-        sigTableActionButtonClass: 'pf-sig-table-action-button',                // class for row action button
 
         sigTableCounterClass: 'pf-table-counter-cell',                          // class for "counter" cells
         sigTableActionCellClass: 'pf-table-action-cell',                        // class for "action" cells
-
-
-        // animation
-        animationPulseSuccessClass: 'pf-animation-pulse-success',               // animation class
-        animationPulseWarningClass: 'pf-animation-pulse-warning',               // animation class
 
         // xEditable
         editableDiscriptionInputClass: 'pf-editable-description'                // class for "description" textarea
@@ -184,7 +178,7 @@ define([
         var signatureData = $.extend([], signatureDataOrig);
 
         // disable update until function is ready;
-        disableTableUpdate = true;
+        lockSignatureTable();
 
         var moduleElement = $(this);
 
@@ -207,7 +201,7 @@ define([
             for(var j = 0; j < tableData.length; j++){
                 if(signatureData[i].id === tableData[j].id){
 
-                    // check if row has updated
+                    // check if row was updated
                     if(signatureData[i].updated.updated > tableData[j].updated.updated){
 
                         // row element to remove
@@ -241,7 +235,7 @@ define([
             }
         }
 
-        // delete signatures ====================================================
+        // delete signatures ------------------------------------------------------------------------------------------
         if(deleteOutdatedSignatures === true){
 
             // callback function after row deleted
@@ -260,7 +254,7 @@ define([
             }
         }
 
-        // add new signatures ===================================================
+        // add new signatures -----------------------------------------------------------------------------------------
         for(var k = 0; k < signatureData.length; k++){
             // and add "new" row
             var newRowElement = addSignatureRow(currentSystemData.systemData, signatureData[k], false);
@@ -272,7 +266,7 @@ define([
         }
 
 
-        // show notification ====================================================
+        // show notification ------------------------------------------------------------------------------------------
         if(
             notificationCounter.added > 0 ||
             notificationCounter.changed > 0 ||
@@ -288,43 +282,35 @@ define([
             Util.showNotify({title: 'Signatures updated', text: notification, type: 'success'});
 
             // wait until add/remove animations are finished before enable table for auto update again
-            setTimeout(function(){ disableTableUpdate = false; }, 2000);
+            unlockSignatureTable(false);
         }else{
-            // enable table update
-            disableTableUpdate = false;
+            // enable table for next update
+            unlockSignatureTable(true);
         }
-
-
     };
 
     /**
-     * highlight jquery elements
-     * add/remove css class for keyframe animation
-     * @returns {any|JQuery|*}
+     * lock system signature table for
      */
-    $.fn.pulseTableRow = function(status){
+    var lockSignatureTable = function(){
+        disableTableUpdate = true;
+    };
 
-        var animationClass = '';
-        switch(status){
-            case 'added':
-                animationClass = config.animationPulseSuccessClass;
-                break;
-            case 'changed':
-                animationClass = config.animationPulseWarningClass;
-                break;
+    /**
+     * unlock system signature table from been locked
+     * -> make table "update-able" again
+     * @param instant
+     */
+    var unlockSignatureTable = function(instant){
+        if(disableTableUpdate === true){
+            if(instant === true){
+                disableTableUpdate = false;
+            }else{
+                // wait until add/remove animations are finished before enable table for auto update again
+                setTimeout(function(){ disableTableUpdate = false; }, 2000);
+            }
+
         }
-
-        return this.each(function(){
-            var element = $(this);
-            element.addClass( animationClass );
-
-            var timer = setTimeout(
-                function() {
-                    element.removeClass( animationClass );
-
-                    clearTimeout( timer );
-                }, 3000);
-        });
     };
 
     /**
@@ -463,7 +449,7 @@ define([
                 // save signature data
 
                 // lock update function until request is finished
-                disableTableUpdate = true;
+                lockSignatureTable();
 
                 // lock copy during request (prevent spamming (ctrl + c )
                 disableCopyFromClipboard = true;
@@ -478,7 +464,7 @@ define([
                     data: requestData,
                     dataType: 'json'
                 }).done(function(responseData){
-                    disableTableUpdate = false;
+                    unlockSignatureTable(true);
 
                     // updates table with new/updated signature information
                     moduleElement.updateSignatureTable(responseData.signatures, false);
@@ -487,7 +473,7 @@ define([
                     Util.showNotify({title: jqXHR.status + ': Update signatures', text: reason, type: 'warning'});
                     $(document).setProgramStatus('problem');
                 }).always(function() {
-                    disableTableUpdate = false;
+                    unlockSignatureTable(true);
                     disableCopyFromClipboard = false;
                 });
             }
@@ -626,7 +612,7 @@ define([
 
         var moduleElement = $(this);
 
-        // add toolbar buttons for table -------------------------------------
+        // add toolbar buttons for table ------------------------------------------------------------------------------
         var tableToolbar = $('<div>', {
             class: config.tableToolsClass
         }).append(
@@ -707,7 +693,7 @@ define([
 
         moduleElement.append(tableToolbar);
 
-        // add toolbar action for table ================================================================================
+        // add toolbar action for table -------------------------------------------------------------------------------
         var tableToolbarAction = $('<div>', {
             class: config.tableToolsActionClass
         });
@@ -732,7 +718,7 @@ define([
 
         table.makeEditable(systemData);
 
-        // scanned signatures progress bar =============================================================================
+        // scanned signatures progress bar ----------------------------------------------------------------------------
         var moduleConfig = {
             name: 'form/progress',
             position: tableToolbar,
@@ -750,7 +736,7 @@ define([
 
         Render.showModule(moduleConfig, moduleData);
 
-        // event listener for global "paste" signatures into the page ==================================================
+        // event listener for global "paste" signatures into the page -------------------------------------------------
         $(document).off('paste').on('paste', function(e){
 
             // do not read clipboard if pasting into form elements
@@ -766,7 +752,7 @@ define([
 
     /**
      * make a table or row editable
-     * @param systemInfoData
+     * @param systemData
      */
     $.fn.makeEditable = function(systemData){
 
@@ -843,7 +829,7 @@ define([
         });
 
 
-        // Input sig name ------------------------------------------------------------------------
+        // Input sig name ---------------------------------------------------------------------------------------------
         sigNameFields.editable({
             type: 'text',
             title: 'signature id',
@@ -870,7 +856,7 @@ define([
         });
 
 
-        // Select sig group (master) -------------------------------------------------------------
+        // Select sig group (master) ----------------------------------------------------------------------------------
         sigGroupFields.editable({
             type: 'select',
             title: 'group',
@@ -905,29 +891,37 @@ define([
                     updateSignatureCell(rowElement, 6, newRowData.updated);
                 }
 
-                // find related "name" select (same row) and change options
-                var nameSelect = getNextEditableField(signatureTypeField);
+                // find related "type" select (same row) and change options
+                var typeSelect = getNextEditableField(signatureTypeField);
 
                 var systemTypeId = parseInt( signatureTypeField.attr('data-systemTypeId') );
                 var areaId = parseInt( signatureTypeField.attr('data-areaid') );
 
                 var newSelectOptions = getAllSignatureNames(systemData, systemTypeId, areaId, newValue);
-                nameSelect.editable('option', 'source', newSelectOptions);
-                nameSelect.editable('setValue', null);
+                typeSelect.editable('option', 'source', newSelectOptions);
+                typeSelect.editable('setValue', null);
 
                 if(
                     newValue > 0 &&
                     newSelectOptions.length > 0
                 ){
-                    nameSelect.editable('enable');
+                    typeSelect.editable('enable');
                 }else{
-                    nameSelect.editable('disable');
+                    typeSelect.editable('disable');
                 }
             }
         });
 
 
-        // Select sig type (slave: depends on sig type) -----------------------------------------
+        // Select sig type (slave: depends on sig type) ---------------------------------------------------------------
+        sigTypeFields.on('init', function(e, editable) {
+            // check if there are initial options available
+            var options = editable.input.options.source.bind(e.target)();
+            if(options.length <= 0){
+                editable.disable();
+            }
+        });
+
         sigTypeFields.editable({ mode: 'popup',
             type: 'select',
             title: 'type',
@@ -937,23 +931,12 @@ define([
             showbuttons: false,
             params: modifyFieldParamsOnSend,
             source: function(){
-                var signatureNameField = $(this);
+                var signatureTypeField = $(this);
 
-                var systemTypeId = parseInt( signatureNameField.attr('data-systemTypeId') );
-                var areaId = parseInt( signatureNameField.attr('data-areaid') );
-                var groupId = parseInt( signatureNameField.attr('data-groupId') );
-
-                var cacheKey = [systemTypeId, areaId, groupId].join('_');
-
-                // check for cached signature names
-                if(sigNameCache.hasOwnProperty( cacheKey )){
-                    return sigNameCache[cacheKey];
-                }
-
-                var signatureNames = getAllSignatureNames(systemData, systemTypeId, areaId, groupId);
-
-                // get all available Signature Names
-                var availableSigs = sigNameCache[cacheKey] = signatureNames;
+                var systemTypeId = parseInt( signatureTypeField.attr('data-systemTypeId') );
+                var areaId = parseInt( signatureTypeField.attr('data-areaid') );
+                var groupId = parseInt( signatureTypeField.attr('data-groupId') );
+                var availableSigs = getAllSignatureNames(systemData, systemTypeId, areaId, groupId);
 
                 return availableSigs;
             },
@@ -969,7 +952,7 @@ define([
             }
         });
 
-        // Textarea sig description -------------------------------------------------------------
+        // Textarea sig description -----------------------------------------------------------------------------------
         sigDescriptionFields.editable({
             type: 'textarea',
             title: 'description',
@@ -1004,7 +987,7 @@ define([
             tableElement.parents('.' + config.tableToolsActionClass).css( 'height', '-=35px' );
         });
 
-        // open next field dialog ---------------------------------------------------------------
+        // open next field dialog -------------------------------------------------------------------------------------
         openNextEditDialogOnSave(sigNameFields);
         openNextEditDialogOnSave(sigGroupFields);
     };
@@ -1019,97 +1002,144 @@ define([
      */
     var getAllSignatureNames = function(systemData, systemTypeId, areaId, groupId){
         var newSelectOptions = [];
+        var cacheKey = [systemTypeId, areaId, groupId].join('_');
         var newSelectOptionsCount = 0;
 
-        // set new Options ----------
-        // get all possible "static" signature names by the selected groupId
-        var tempSelectOptions = Util.getAllSignatureNames(systemTypeId, areaId, groupId);
+        // check for cached signature names
+        if(sigNameCache.hasOwnProperty( cacheKey )){
+            // cached signatures do not include static WHs!
+            newSelectOptions =  sigNameCache[cacheKey].slice(0);
+            newSelectOptionsCount = sumSignaturesRecursive('children', newSelectOptions);
+        }else{
+            // get new Options ----------
+            // get all possible "static" signature names by the selected groupId
+            var tempSelectOptions = Util.getAllSignatureNames(systemTypeId, areaId, groupId);
 
-        // format options into array with objects advantages: keep order, add more options (whs), use optgroup
-        if(tempSelectOptions){
-            var fixSelectOptions = [];
-            for (var key in tempSelectOptions) {
-                if (
-                    key > 0 &&
-                    tempSelectOptions.hasOwnProperty(key)
-                ) {
-                    //newSelectOptions.push({value: key, text: tempSelectOptions[key] });
-                    fixSelectOptions.push( {value: key, text: tempSelectOptions[key] } );
-                    newSelectOptionsCount++;
+            // format options into array with objects advantages: keep order, add more options (whs), use optgroup
+            if(tempSelectOptions){
+                var fixSelectOptions = [];
+                for (var key in tempSelectOptions) {
+                    if (
+                        key > 0 &&
+                        tempSelectOptions.hasOwnProperty(key)
+                    ) {
+                        newSelectOptionsCount++;
+                        fixSelectOptions.push( {value: key, text: tempSelectOptions[key] } );
+                    }
+                }
+
+                if(newSelectOptionsCount > 0){
+                    if(groupId === 5){
+                        // "wormhole" selected => multiple <optgroup> available
+                        newSelectOptions.push({ text: 'Wandering WHs', children: fixSelectOptions});
+                    }else{
+                        newSelectOptions = fixSelectOptions;
+                    }
                 }
             }
 
-            if(newSelectOptionsCount > 0){
-                if(groupId === 5){
-                    // "wormhole" selected => multiple <optgroup> available
-                    newSelectOptions.push({ text: 'Wandering WHs', children: fixSelectOptions});
-                }else{
-                    newSelectOptions = fixSelectOptions;
+            // wormhole (cached signatures)
+            if( groupId === 5 ){
+
+                // add possible frigate holes
+                var frigateHoles = getFrigateHolesBySystem(areaId);
+                var frigateWHData = [];
+                for(var frigKey in frigateHoles){
+                    if (
+                        frigKey > 0 &&
+                        frigateHoles.hasOwnProperty(frigKey)
+                    ) {
+                        newSelectOptionsCount++;
+                        frigateWHData.push( {value: newSelectOptionsCount, text: frigateHoles[frigKey]} );
+                    }
                 }
+
+                if(frigateWHData.length > 0){
+                    newSelectOptions.push({ text: 'Frigate WHs', children: frigateWHData});
+                }
+
+                // add possible incoming holes
+                var incomingWHData = [];
+                for(var incomingKey in Init.incomingWormholes){
+                    if (
+                        incomingKey > 0 &&
+                        Init.incomingWormholes.hasOwnProperty(incomingKey)
+                    ) {
+                        newSelectOptionsCount++;
+                        incomingWHData.push( {value: newSelectOptionsCount, text: Init.incomingWormholes[incomingKey]} );
+                    }
+                }
+
+                if(incomingWHData.length > 0){
+                    newSelectOptions.push({ text: 'Incoming WHs', children: incomingWHData});
+                }
+            }else{
+                // groups without "children" (optgroup) should be sorted by "value"
+                // this is completely optional and not necessary!
+                newSelectOptions = newSelectOptions.sortBy('text');
             }
+
+            // update cache (clone array) -> further manipulation to this array, should not be cached
+            sigNameCache[cacheKey] = newSelectOptions.slice(0);
         }
 
-        // wormhole
+        // static wormholes (DO NOT CACHE) (not all C2 WHs have the same statics,...
         if( groupId === 5 ){
             // add static WH(s) for this system
             if(systemData.statics){
                 var staticWHData = [];
                 for(var i = 0; i < systemData.statics.length; i++){
-                    newSelectOptionsCount++;
                     var staticWHName = systemData.statics[i].name + ' - ' + systemData.statics[i].security;
 
-                    staticWHData.push( {value: newSelectOptionsCount, text: staticWHName} );
                     newSelectOptionsCount++;
+                    staticWHData.push( {value: newSelectOptionsCount, text: staticWHName} );
                 }
 
                 if(staticWHData.length > 0){
                     newSelectOptions.unshift({ text: 'Static WHs', children: staticWHData});
                 }
             }
-
-            // add possible frigate holes
-            var frigateHoles = getFrigateHolesBySystem(areaId);
-            var frigateWHData = [];
-            for(var frigKey in frigateHoles){
-                if (
-                    frigKey > 0 &&
-                    frigateHoles.hasOwnProperty(frigKey)
-                ) {
-                    frigateWHData.push( {value: newSelectOptionsCount, text: frigateHoles[frigKey]} );
-                    newSelectOptionsCount++;
-                }
-            }
-
-            if(frigateWHData.length > 0){
-                newSelectOptions.push({ text: 'Frigate WHs', children: frigateWHData});
-            }
-
-            // add possible incoming holes
-            var incomingWHData = [];
-            for(var incomingKey in Init.incomingWormholes){
-                if (
-                    incomingKey > 0 &&
-                    Init.incomingWormholes.hasOwnProperty(incomingKey)
-                ) {
-                    incomingWHData.push( {value: newSelectOptionsCount, text: Init.incomingWormholes[incomingKey]} );
-                    newSelectOptionsCount++;
-                }
-            }
-
-            if(incomingWHData.length > 0){
-                newSelectOptions.push({ text: 'Incoming WHs', children: incomingWHData});
-            }
-
-
         }
 
         // if selectOptions available -> add "empty" option as well
         if(newSelectOptionsCount > 0){
-            newSelectOptions.unshift({ value: 0, text: ''});
+            newSelectOptions.unshift({ value: '0', text: ''});
         }
 
-
         return newSelectOptions;
+    };
+
+    /**
+     * recursive sum array.length for a given object key
+     * -> e.g.
+     * {
+     *     first: {
+     *         count = [4, 2, 1]
+     *         test = { ... }
+     *     },
+     *     second: {
+     *         count = [12, 13]
+     *         test = { ... }
+     *     }
+     * }
+     * -> sumSignaturesRecursive('count', obj) => 5;
+     * @param key
+     * @param obj
+     * @returns {number}
+     */
+    var sumSignaturesRecursive = function(key, obj){
+        var sum = 0;
+
+        for (var prop in obj) {
+            if (obj.hasOwnProperty(prop) && key === prop) {
+                sum += obj[prop].length;
+            }
+            else if (Object.prototype.toString.call(obj[prop]) === '[object Object]') {
+                sum += sumSignaturesRecursive(key, obj[prop]);
+            }
+        }
+
+        return sum;
     };
 
     /**
@@ -1334,7 +1364,7 @@ define([
 
         var moduleElement = $(this);
 
-        // create new signature table -------------------------------------------
+        // create new signature table ---------------------------------------------------------------------------------
         var table = $('<table>', {
             class: ['display', 'compact', 'nowrap', config.sigTableClass, config.sigTablePrimaryClass].join(' ')
         });
@@ -1382,27 +1412,26 @@ define([
 
                 var tempData = {};
 
-                // set id ------------------------------------------------------------------------------------------
+                // set id ---------------------------------------------------------------------------------------------
                 var sigId = 0;
                 if(data.id > 0){
                     sigId = data.id;
                 }
                 tempData.id = sigId;
 
-                // set status --------------------------------------------------------------------------------------
-                var status = '';
+                // set status -----------------------------------------------------------------------------------------
                 var statusClass = '';
                 if(data.updated.character !== undefined){
                     statusClass = Util.getStatusInfoForCharacter(data.updated.character, 'class');
                 }
-                status =  '<i class="fa fa-fw fa-circle pf-user-status ' + statusClass + '"></i>';
+                var status = '<i class="fa fa-fw fa-circle pf-user-status ' + statusClass + '"></i>';
 
                 tempData.status = {
                     status: status,
                     status_sort: statusClass
                 };
 
-                // set name ----------------------------------------------------------------------------------------
+                // set name -------------------------------------------------------------------------------------------
                 var sigName = '<a href="#" class="' + config.sigTableEditSigNameInput + '" ';
                 if(data.id > 0){
                     sigName += 'data-pk="' + data.id + '" ';
@@ -1411,7 +1440,7 @@ define([
 
                 tempData.name = sigName;
 
-                // set group id ------------------------------------------------------------------------------------
+                // set group id ---------------------------------------------------------------------------------------
                 var sigGroup = '<a href="#" class="' + config.sigTableEditSigGroupSelect + '" ';
                 if(data.id > 0){
                     sigGroup += 'data-pk="' + data.id + '" ';
@@ -1426,7 +1455,7 @@ define([
                     group_sort: data.groupId
                 };
 
-                // set type id -------------------------------------------------------------------------------------
+                // set type id ----------------------------------------------------------------------------------------
                 var sigType = '<a href="#" class="' + config.sigTableEditSigTypeSelect + '" ';
                 if(data.id > 0){
                     sigType += 'data-pk="' + data.id + '" ';
@@ -1445,7 +1474,7 @@ define([
 
                 tempData.type = sigType;
 
-                // set description ---------------------------------------------------------------------------------
+                // set description ------------------------------------------------------------------------------------
                 var sigDescription = '<a href="#" class="' + config.sigTableEditSigDescriptionTextarea + '" ';
                 if(data.id > 0){
                     sigDescription += 'data-pk="' + data.id + '" ';
@@ -1454,22 +1483,22 @@ define([
 
                 tempData.description = sigDescription;
 
-                // set created -------------------------------------------------------------------------------------
+                // set created ----------------------------------------------------------------------------------------
                 tempData.created = data.created;
 
-                // set updated -------------------------------------------------------------------------------------
+                // set updated ----------------------------------------------------------------------------------------
                 tempData.updated = data.updated;
 
-                // info icon ---------------------------------------------------------------------------------------
+                // info icon ------------------------------------------------------------------------------------------
                 var infoButton = '';
                 if(data.id > 0){
                     infoButton = '<i class="fa fa-fw fa-question-circle"></i>';
                 }
                 tempData.info = infoButton;
 
-                // action icon -------------------------------------------------------------------------------------
+                // action icon ----------------------------------------------------------------------------------------
 
-                var actionButton = '<i class="fa ' + options.actionClass + ' ' + config.sigTableActionButtonClass + '"></i>';
+                var actionButton = '<i class="fa ' + options.actionClass + '"></i>';
                 tempData.action = {
                     action: options.action,
                     button: actionButton
@@ -1623,22 +1652,28 @@ define([
                         sort: 'action'
                     },
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
-
                         var tempTableElement = this;
                         var rowElement = $(cell).parents('tr');
 
                         switch(cellData.action){
                             case 'add':
-                                // add new signature ---------------------------------------------------------------
+                                // add new signature ------------------------------------------------------------------
                                 $(cell).on('click', function(e) {
                                     // submit all fields within a table row
                                     var formFields = rowElement.find('.editable');
+
+                                    // the "toggle" makes sure to take care about open editable fields (e.g. description)
+                                    // otherwise, changes would not be submitted in this field (not necessary)
+                                    formFields.editable('toggle');
 
                                     // submit all xEditable fields
                                     formFields.editable('submit', {
                                         url: Init.path.saveSignatureData,
                                         ajaxOptions: {
-                                            dataType: 'json' //assuming json response
+                                            dataType: 'json', //assuming json response
+                                            beforeSend: function( xhr, settings ){
+                                                lockSignatureTable();
+                                            }
                                         },
                                         data: {
                                             systemId: systemData.id, // additional data to submit
@@ -1646,13 +1681,14 @@ define([
                                         },
                                         error: $.fn.editable.defaults.error, // user default xEditable error function
                                         success: function (data, editableConfig) {
+                                            unlockSignatureTable(false);
 
                                             var newRowElement = addSignatureRow(systemData, data.signatures[0], true);
 
                                             // highlight
                                             newRowElement.pulseTableRow('added');
 
-                                            // prepare "add signature" table for new entry -> reset --------------------------------------------
+                                            // prepare "add signature" table for new entry -> reset -------------------
                                             var signatureData = formatSignatureData(systemData, [emptySignatureData], emptySignatureOptions);
 
                                             var dataSecondaryElement = $('.' + config.sigTableSecondaryClass);
@@ -1671,14 +1707,14 @@ define([
                                 });
                                 break;
                             case 'delete':
-                                // delete signature ----------------------------------------------------------------
+                                // delete signature -------------------------------------------------------------------
                                 var confirmationSettings = {
                                     container: 'body',
                                     placement: 'left',
                                     btnCancelClass: 'btn btn-sm btn-default',
                                     btnCancelLabel: 'cancel',
                                     btnCancelIcon: 'fa fa-fw fa-ban',
-                                    title: 'Delete signature',
+                                    title: 'delete signature',
                                     btnOkClass: 'btn btn-sm btn-danger',
                                     btnOkLabel: 'delete',
                                     btnOkIcon: 'fa fa-fw fa-close',
@@ -1725,7 +1761,7 @@ define([
 
         });
 
-        // set multi row select -----------------------------------------------------------------
+        // set multi row select ---------------------------------------------------------------------------------------
         tablePrimaryElement.on('click', 'tr', function(e){
             if(e.ctrlKey) {
                 $(this).toggleClass('selected');
@@ -1735,7 +1771,7 @@ define([
             }
         });
 
-        // draw event for signature table -------------------------------------------------------
+        // draw event for signature table -----------------------------------------------------------------------------
         signatureTableApi.on('draw.dt', function(){
             // check delete button
             checkDeleteSignaturesButton();
@@ -1834,11 +1870,11 @@ define([
         // init dataTables
         initSignatureDataTable(systemData);
 
-        // draw "new signature" add table --------------------------------------------
+        // draw "new signature" add table -----------------------------------------------------------------------------
 
         moduleElement.drawSignatureTableToolbar(systemData);
 
-        // request signature data for system -----------------------------------------
+        // request signature data for system --------------------------------------------------------------------------
 
         var requestData = {
             systemIds: [systemData.id]
@@ -1882,20 +1918,33 @@ define([
                     duration: Init.animationSpeed.mapModule,
                     delay: Init.animationSpeed.mapModule,
                     complete: function(){
-                        disableTableUpdate = false;
+                        unlockSignatureTable(true);
                     }
                 });
 
             }
         };
 
+        // some custom array functions
+        var initArrayFunctions = function(){
+            /**
+             * sort array of objects by property name
+             * @param p
+             * @returns {Array.<T>}
+             */
+            Array.prototype.sortBy = function(p) {
+                return this.slice(0).sort(function(a,b) {
+                    return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0;
+                });
+            };
+        };
+
         // check if module already exists
         var moduleElement = parentElement.find('.' + config.systemSigModuleClass);
 
         if(moduleElement.length > 0){
-
             // disable update
-            disableTableUpdate = true;
+            lockSignatureTable();
 
             moduleElement.velocity('transition.slideDownOut', {
                 duration: Init.animationSpeed.mapModule,
@@ -1913,6 +1962,9 @@ define([
                 }
             });
         }else{
+            // init array prototype functions
+            initArrayFunctions();
+
             moduleElement = getModule(parentElement, systemData);
             showModule(moduleElement);
         }

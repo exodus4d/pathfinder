@@ -13,14 +13,14 @@
  *              |  |    < |    <|  -__|-- __|
  *              |__|__|__||__|__|_____|_____|
  *
- *  Copyright (c) 2014 by ikkez
- *  Christian Knuth <ikkez0n3@gmail.com>
+ *  Copyright (c) 2016 by ikkez
+ *  Christian Knuth <mail@ikkez.de>
  *  https://github.com/ikkez/F3-Sugar/
  *
  *  @package DB
- *  @version 1.4.1-dev
+ *  @version 1.4.1
+ *  @date 29.01.2016
  *  @since 24.04.2012
- *  @date 04.06.2015
  */
 
 namespace DB;
@@ -173,7 +173,9 @@ class Cortex extends Cursor {
 					list($key, $relField) = explode('.',$val,2);
 					$this->relWhitelist[$key][(int)$exclude][] = $relField;
 					unset($fields[$i]);
+					$fields[] = $key;
 				}
+		$fields = array_unique($fields);
 		$schema = $this->whitelist ?: $this->mapper->fields();
 		if (!$schema && !$this->dbsType != 'sql' && $this->dry()) {
 			$schema = $this->load()->mapper->fields();

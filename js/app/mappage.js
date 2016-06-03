@@ -39,14 +39,26 @@ define([
         // map init load static data =======================================================
         $.getJSON( Init.path.initMap, function( initData ) {
 
-            Init.timer = initData.timer;
-            Init.mapTypes = initData.mapTypes;
-            Init.mapScopes = initData.mapScopes;
-            Init.connectionScopes = initData.connectionScopes;
-            Init.systemStatus = initData.systemStatus;
-            Init.systemType = initData.systemType;
-            Init.characterStatus = initData.characterStatus;
-            Init.maxSharedCount = initData.maxSharedCount;
+
+            if( initData.error.length > 0 ){
+                for(var i = 0; i < initData.error.length; i++){
+                    Util.showNotify({
+                        title: initData.error[i].title,
+                        text: initData.error[i].message,
+                        type: initData.error[i].type
+                    });
+                }
+            }
+
+            Init.timer              = initData.timer;
+            Init.mapTypes           = initData.mapTypes;
+            Init.mapScopes          = initData.mapScopes;
+            Init.connectionScopes   = initData.connectionScopes;
+            Init.systemStatus       = initData.systemStatus;
+            Init.systemType         = initData.systemType;
+            Init.characterStatus    = initData.characterStatus;
+            Init.maxSharedCount     = initData.maxSharedCount;
+            Init.routes             = initData.routes;
 
             // init tab change observer, Once the timers are available
             Page.initTabChangeObserver();
@@ -168,14 +180,7 @@ define([
                         }
                     }
 
-                }).fail(function( jqXHR, status, error) {
-
-                    // clear both main update request trigger timer
-                    clearUpdateTimeouts();
-
-                    var reason = status + ' ' + jqXHR.status + ': ' + error;
-                    $(document).trigger('pf:shutdown', {reason: reason});
-                });
+                }).fail(handleAjaxErrorResponse);
             };
 
             // ping for user data update =======================================================
@@ -258,14 +263,35 @@ define([
                         }
                     }
 
-                }).fail(function( jqXHR, status, error) {
+                }).fail(handleAjaxErrorResponse);
 
-                    // clear both main update request trigger timer
-                    clearUpdateTimeouts();
+            };
 
-                    var reason = status + ' ' + jqXHR.status + ': ' + error;
-                    $(document).trigger('pf:shutdown', {reason: reason});
-                });
+            /**
+             * Ajax error response handler function for main-ping functions
+             * @param jqXHR
+             * @param status
+             * @param error
+             */
+            var handleAjaxErrorResponse = function(jqXHR, status, error){
+                // clear both main update request trigger timer
+                clearUpdateTimeouts();
+
+                var reason = status + ' ' + jqXHR.status + ': ' + error;
+                var errorData = [];
+
+                if(jqXHR.responseText){
+                    var errorObj = $.parseJSON(jqXHR.responseText);
+
+                    if(
+                        errorObj.error &&
+                        errorObj.error.length > 0
+                    ){
+                        errorData = errorObj.error;
+                    }
+                }
+
+                $(document).trigger('pf:shutdown', {reason: reason, error: errorData});
 
             };
 
@@ -286,7 +312,6 @@ define([
             triggerMapUpdatePing();
 
         };
-
 
     });
 

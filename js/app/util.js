@@ -41,12 +41,17 @@ define([
 
         // map module
         mapModuleId: 'pf-map-module',                                           // id for main map module
-        mapTabBarId: 'pf-map-tabs'                                              // id for map tab bar
+        mapTabBarId: 'pf-map-tabs',                                             // id for map tab bar
+
+        // animation
+        animationPulseSuccessClass: 'pf-animation-pulse-success',               // animation class
+        animationPulseWarningClass: 'pf-animation-pulse-warning'                // animation class
 
     };
 
     var stopTimerCache = {};                                                    // cache for stopwatch timer
 
+    var animationTimerCache = {};                                               // cache for table row animation timeout
 
     /*
      *  ===========================================================================================================
@@ -317,15 +322,17 @@ define([
 
     /**
      * init form elements for validation (bootstrap3 validation)
-     * @returns {any|JQuery|*}
+     * @param options
+     * @returns {*}
      */
-    $.fn.initFormValidation = function(){
+    $.fn.initFormValidation = function(options){
+        options = (typeof options === 'undefined')? {} : options;
 
         return this.each(function(){
             var form = $(this);
 
             // init form validation
-            form.validator();
+            form.validator(options);
 
             // validation event listener
             form.on('valid.bs.validator', function(validatorObj){
@@ -342,7 +349,6 @@ define([
                     inputGroup.removeClass('has-success').addClass('has-error');
                 }
             });
-
         });
     };
 
@@ -458,24 +464,27 @@ define([
             lineWidth: 2,
             animate: 1000
         });
-
     };
 
     /**
      * init tooltips on an element
-     * @returns {any|JQuery|*}
+     * @param  {object} options
+     * @returns {*}
      */
-    $.fn.initTooltips = function(){
+    $.fn.initTooltips = function(options){
+
+        options = (typeof options === 'object') ? options : {};
+
+        var defaultOptions = {
+            container:  this,
+            delay: 100
+        };
+        options = $.extend(defaultOptions, options);
 
         return this.each(function(){
-
             var tooltipElements = $(this).find('[title]');
-            tooltipElements.tooltip({
-                container:  this,
-                delay: 100
-            });
+            tooltipElements.tooltip('destroy').tooltip(options);
         });
-
     };
 
     /**
@@ -546,6 +555,84 @@ define([
     };
 
     /**
+     * add character switch popover
+     * @param userData
+     */
+    $.fn.initCharacterSwitchPopover = function(userData){
+        var elements = $(this);
+        var eventNamespace = 'hideCharacterPopup';
+
+        requirejs(['text!templates/tooltip/character_switch.html', 'mustache'], function (template, Mustache) {
+
+            var data = {
+                routes:  Init.routes,
+                userData: userData,
+                otherCharacters: $.grep( userData.characters, function( character ) {
+                    // exclude current active character
+                    return character.id !== userData.character.id;
+                })
+            };
+
+            var content = Mustache.render(template, data);
+
+            return elements.each(function() {
+                var element = $(this);
+
+                // destroy "popover" and remove "click" event for animation
+                element.popover('destroy').off();
+
+                // init popover and add specific class to it (for styling)
+                element.popover({
+                    html: true,
+                    title: 'select character',
+                    trigger: 'click',
+                    placement: 'bottom',
+                    content: content,
+                    animation: false
+                }).data('bs.popover').tip().addClass('pf-character-info-popover');
+
+                element.on('click', function(e) {
+                    e.preventDefault();
+                    var easeEffect = $(this).attr('data-easein');
+                    var popover = $(this).data('bs.popover').tip();
+                    var velocityOptions = {
+                        duration: CCP.isInGameBrowser() ? 0 : Init.animationSpeed.dialogEvents
+                    };
+
+                    switch(easeEffect){
+                        case 'shake':
+                        case 'pulse':
+                        case 'tada':
+                        case 'flash':
+                        case 'bounce':
+                        case 'swing':
+                            popover.velocity('callout.' + easeEffect, velocityOptions);
+                            break;
+                        default:
+                            popover.velocity('transition.' + easeEffect, velocityOptions);
+                            break;
+                    }
+                });
+
+                // hide popup on clicking "somewhere" outside
+                $('body').off('click.' + eventNamespace).on('click.' + eventNamespace, function (e) {
+
+                    //the 'is' for buttons that trigger popups
+                    //the 'has' for icons within a button that triggers a popup
+                    if (
+                        !$(element).is(e.target) &&
+                        $(element).has(e.target).length === 0 &&
+                        $('.popover').has(e.target).length === 0
+                    ){
+                        $(element).popover('hide');
+                    }
+                });
+
+            });
+        });
+    };
+
+    /**
      * add a wormhole tooltip with wh specific data to elements
      * @param tooltipData
      * @returns {*}
@@ -575,7 +662,6 @@ define([
                 var popover = element.data('bs.popover');
                 popover.options.content = content;
             });
-
         });
     };
 
@@ -646,6 +732,52 @@ define([
                     }, timeout || Init.timer.DBL_CLICK);
                 }
             });
+        });
+    };
+
+    /**
+     * highlight jquery elements
+     * add/remove css class for keyframe animation
+     * @returns {any|JQuery|*}
+     */
+    $.fn.pulseTableRow = function(status, clear){
+
+        var animationClass = '';
+        switch(status){
+            case 'added':
+                animationClass = config.animationPulseSuccessClass;
+                break;
+            case 'changed':
+                animationClass = config.animationPulseWarningClass;
+                break;
+        }
+
+        var clearTimer =  function(element) {
+            element.removeClass( animationClass );
+            var currentTimer = element.data('animationTimer');
+
+            if( animationTimerCache.hasOwnProperty(currentTimer) ){
+                clearTimeout( currentTimer );
+                delete animationTimerCache[currentTimer];
+                element.removeData('animationTimer');
+            }
+        };
+
+        return this.each(function(){
+            var element = $(this);
+
+            if( element.hasClass(animationClass) ){
+                // clear timer -> set new timer
+                clearTimer(element);
+            }
+
+            if(clear !== true){
+                element.addClass( animationClass );
+                var timer = setTimeout(clearTimer, 1500, element);
+                element.data('animationTimer', timer);
+                animationTimerCache[timer] = true;
+            }
+
         });
     };
 
@@ -1129,7 +1261,6 @@ define([
      * @returns {string}
      */
     var getSystemEffectTable = function(data){
-
         var table = '';
 
         if(data.length > 0){
@@ -1500,15 +1631,10 @@ define([
 
         if(
             currentUserData &&
-            currentUserData.character
+            currentUserData.character &&
+            currentUserData.character.log
         ){
-            if(currentUserData.character.log){
-                characterLog = currentUserData.character.log;
-            }else if(CCP.isInGameBrowser() === true){
-                // if user is IGB online and log data is missing
-                // -> character API information not found!
-                showNotify({title: 'Character not found', text: 'Enter API information', type: 'error'});
-            }
+            characterLog = currentUserData.character.log;
         }
 
         return characterLog;
@@ -1602,7 +1728,7 @@ define([
      * @returns {Date}
      */
     var convertDateToUTC = function(date) {
-        return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
+        return new Date(date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
     };
 
     /**
@@ -1611,7 +1737,7 @@ define([
      * @returns {string}
      */
     var convertDateToString = function(date){
-        var dateString = ('0'+date.getDate()).slice(-2) + '.' + ('0'+date.getMonth()).slice(-2) + '.' + date.getFullYear();
+        var dateString = ('0'+date.getMonth()).slice(-2) + '/' + ('0'+date.getDate()).slice(-2) + '/' + date.getFullYear();
         var timeString = ('0'+date.getHours()).slice(-2) + ':' + ('0'+date.getMinutes()).slice(-2);
         return   dateString + ' ' + timeString;
     };
@@ -1650,7 +1776,7 @@ define([
 
         $.ajax({
             type: 'POST',
-            url: Init.path.logOut,
+            url: Init.path.logout,
             data: data,
             dataType: 'json'
         }).done(function(data){

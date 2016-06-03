@@ -1,23 +1,33 @@
 ## *PATHFINDER*
 Mapping tool for [*EVE ONLINE*](https://www.eveonline.com)
 
-- Project [https://www.pathfinder-w.space](https://www.pathfinder-w.space)
+- Project URL [https://www.pathfinder-w.space](https://www.pathfinder-w.space)
+- **NEW** Features: [checkout](https://www.pathfinder-w.space#pf-landing-gallery)
 - Official Forum post [https://forums.eveonline.com](https://forums.eveonline.com/default.aspx?g=posts&m=6021776#post6021776)
 - Screenshots [imgur.com](http://imgur.com/a/k2aVa)
 - Video [youtube.com](https://www.youtube.com/channel/UC7HU7XEoMbqRwqxDTbMjSPg)
-- Community [google +](https://plus.google.com/u/0/b/110257318165279088853/110257318165279088853)
+- Community [google +](https://plus.google.com/+Pathfinder-wSpace)
 - Licence [MIT](http://opensource.org/licenses/MIT)
 
-##### IMPORTANT Information:
-**The setup and installation process in ``1.0.0RC1`` and is not backwards compatible with previous beta releases (check wiki)!**
+#### Development
+- **NEW** Test server
+  - URL: http://www.dev.pathfinder-w.space
+  - Running current `develop` branch
+  - Using Singularity (SISI) CREST (make sure to use your test-server client)
+  - Available for public testing (e.g. new feature,.. )
+  - Database will be cleared from time to time
+- Installation guide:
+  - [wiki](https://github.com/exodus4d/pathfinder/wiki)
+- Developer chat [Slack](https://slack.com) :
+  - https://pathfinder-eve-online.slack.com
+  - Please send me a mail for invite: pathfinder@exodus4d.de
 
 **Feel free to check the code for bugs and security issues.
 Issues should be reported in the [Issue](https://github.com/exodus4d/pathfinder/issues) section.**
 
-If you are looking for installation help, please check the [wiki](https://github.com/exodus4d/pathfinder/wiki).
-More information will be added once the beta is over and the first stable build is released.
+***
 
-## Project structure
+### Project structure
 
 ```
   |-- (0755) app            --> backend [*.php]
@@ -34,8 +44,8 @@ More information will be added once the beta is over and the first stable build 
       |-- sql               --> static DB data for import (pathfinder.sql)
   |-- (0755) favicon        --> Favicons
   |-- (0755) js             --> JS source files (raw)
-      |-- app               --> "PASTHFINDER" core files (not used for production )
-      |-- lib               --> 3rd partie extension/library (not used for production )
+      |-- app               --> "PASTHFINDER" core files (not used for production)
+      |-- lib               --> 3rd partie extension/library (not used for production)
       |-- app.js            --> require.js config (!required for production!)
   |-- (0777) logs           --> log files
       |-- ...
@@ -47,7 +57,7 @@ More information will be added once the beta is over and the first stable build 
       |-- img               --> images
       |-- js                --> JS dist/build folder and source maps (minified, uglified)
       |-- templates         --> templates
-  |-- sass                  --> SCSS source (not used for production )
+  |-- sass                  --> SCSS source (not used for production)
       |-- ...
   |-- (0777) tmp            --> cache folder
       |-- ...
@@ -57,15 +67,16 @@ More information will be added once the beta is over and the first stable build 
   --------------------------
   CI/CD config files:
   --------------------------
-  |-- build.js              --> "RequireJs Optimizer" config (not used for production )
-  |-- config.rb             --> "Compass" config (not used for production )
+  |-- build.js              --> "RequireJs Optimizer" config (not used for production)
+  |-- config.rb             --> "Compass" config (not used for production)
   |-- gulpfile.js           --> "Gulp" task config (not used for production )
-  |-- package.json          --> "Node.js" dependency config (not used for production )
-  |-- README.md             --> This file :) (not used for production )
+  |-- package.json          --> "Node.js" dependency config (not used for production)
+  |-- README.md             --> This file :) (not used for production)
 ```
 
-## Thanks!
-I´m very proud that **you** are using *PATHFINDER*!
+***
+
+### Thanks!
 
 It took me month of time in development until this project got into the first *BETA*. If you like it, please help to improve it.
 (report bugs, find security issues,...)

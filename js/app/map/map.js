@@ -602,12 +602,12 @@ define([
         system.attr('data-mapid', parseInt(mapContainer.data('id')));
 
         // locked system
-        if( Boolean( system.data( 'locked') ) !== Boolean( parseInt( data.locked ) )){
+        if( Boolean( system.data( 'locked') ) !== data.locked ){
             system.toggleLockSystem(false, {hideNotification: true, hideCounter: true, map: map});
         }
 
         // rally system
-        if( Boolean( system.data( 'rally') ) !== Boolean( parseInt( data.rally ) )){
+        if( Boolean( system.data( 'rally') ) !==  data.rally ){
             system.toggleRallyPoint(false, {hideNotification: true, hideCounter: true});
         }
 
@@ -869,6 +869,7 @@ define([
         // no visual effects in IGB (glitches)
         if(
             systemElements.length === 0 ||
+            systemElements.length > 20 ||
             endpointElements.length === 0 ||
             CCP.isInGameBrowser() === true
         ){
@@ -1156,7 +1157,7 @@ define([
             placement: 'top',
             onblur: 'submit',
             container: 'body',
-            toggle: 'manual',       // is triggered manually on dblclick
+            toggle: 'manual',       // is triggered manually on dblClick
             showbuttons: false
         });
 
@@ -1223,7 +1224,7 @@ define([
 
     /**
      * connect two systems
-     * @param mapConfig
+     * @param map
      * @param connectionData
      * @returns new connection
      */
@@ -1241,10 +1242,12 @@ define([
         var connection = map.connect({
             source: config.systemIdPrefix + mapId + '-' + connectionData.source,
             target: config.systemIdPrefix + mapId + '-' + connectionData.target,
+            /*
             parameters: {
                 connectionId: connectionId,
                 updated: connectionData.updated
             },
+            */
             type: null
             /* experimental (straight connections)
             anchors: [
@@ -1254,20 +1257,33 @@ define([
             */
         });
 
-        // add connection types -----------------------------------------------------
-        if(connectionData.type){
-            for(var i = 0; i < connectionData.type.length; i++){
-                connection.addType(connectionData.type[i]);
-            }
-        }
 
-        // add connection scope -----------------------------------------------------
-        // connection have the default map Scope scope
-        var scope = map.Defaults.Scope;
-        if(connectionData.scope){
-            scope = connectionData.scope;
+        // check if connection is valid (e.g. source/target exist
+        if( connection instanceof jsPlumb.Connection ){
+
+            // set connection parameters
+            // they should persist even through connection type change (e.g. wh -> stargate,..)
+            // therefore they shoule be part of the connection not of the connector
+            connection.setParameters({
+                connectionId: connectionId,
+                updated: connectionData.updated
+            });
+
+            // add connection types -----------------------------------------------------
+            if(connectionData.type){
+                for(var i = 0; i < connectionData.type.length; i++){
+                    connection.addType(connectionData.type[i]);
+                }
+            }
+
+            // add connection scope -----------------------------------------------------
+            // connection have the default map Scope scope
+            var scope = map.Defaults.Scope;
+            if(connectionData.scope){
+                scope = connectionData.scope;
+            }
+            setConnectionScope(connection, scope);
         }
-        setConnectionScope(connection, scope);
 
         // set Observer for new Connection -> is automatically set
 
@@ -1280,56 +1296,65 @@ define([
      */
     var saveConnection = function(connection){
 
-        var map = connection._jsPlumb.instance;
-        var mapContainer = $( map.getContainer() );
-        mapContainer.getMapOverlay('timer').startMapUpdateCounter();
+        if( connection instanceof jsPlumb.Connection ){
 
-        var mapId = mapContainer.data('id');
-        var connectionData = getDataByConnection(connection);
+            var map = connection._jsPlumb.instance;
+            var mapContainer = $( map.getContainer() );
+            mapContainer.getMapOverlay('timer').startMapUpdateCounter();
 
-        var requestData = {
-            mapData: {
-                id: mapId
-            },
-            connectionData: connectionData
-        };
+            var mapId = mapContainer.data('id');
+            var connectionData = getDataByConnection(connection);
 
-        $.ajax({
-            type: 'POST',
-            url: Init.path.saveConnection,
-            data: requestData,
-            dataType: 'json',
-            //context: connection
-            context: {
-              connection: connection,
-              mapId: mapId
-            }
-        }).done(function(newConnectionData){
+            var requestData = {
+                mapData: {
+                    id: mapId
+                },
+                connectionData: connectionData
+            };
 
-            // update connection data e.g. "scope" has auto detected
-            connection = updateConnection(this.connection, connectionData, newConnectionData);
+            $.ajax({
+                type: 'POST',
+                url: Init.path.saveConnection,
+                data: requestData,
+                dataType: 'json',
+                //context: connection
+                context: {
+                    connection: connection,
+                    map: map,
+                    mapId: mapId
+                }
+            }).done(function(newConnectionData){
 
-            // new connection should be cached immediately!
-            updateConnectionCache(this.mapId, connection);
+                if( !$.isEmptyObject(newConnectionData) ){
+                    // update connection data e.g. "scope" has auto detected
+                    connection = updateConnection(this.connection, connectionData, newConnectionData);
 
-            // connection scope
-            var scope = Util.getScopeInfoForConnection(newConnectionData.scope, 'label');
+                    // new connection should be cached immediately!
+                    updateConnectionCache(this.mapId, connection);
 
-            var title = 'New connection established';
-            if(connectionData.id > 0){
-                title = 'Connection switched';
-            }
+                    // connection scope
+                    var scope = Util.getScopeInfoForConnection(newConnectionData.scope, 'label');
 
-            Util.showNotify({title: title, text: 'Scope: ' + scope, type: 'success'});
-        }).fail(function( jqXHR, status, error) {
+                    var title = 'New connection established';
+                    if(connectionData.id > 0){
+                        title = 'Connection switched';
+                    }
 
-            // remove this connection from map
-            this._jsPlumb.instance.detach(this);
+                    Util.showNotify({title: title, text: 'Scope: ' + scope, type: 'success'});
+                }else{
+                    // some save errors
+                    this.map.detach(this.connection, {fireEvent: false});
+                }
 
-            var reason = status + ' ' + error;
-            Util.showNotify({title: jqXHR.status + ': saveConnection', text: reason, type: 'warning'});
-            $(document).setProgramStatus('problem');
-        });
+            }).fail(function( jqXHR, status, error) {
+                // remove this connection from map
+                this.map.detach(this.connection, {fireEvent: false});
+
+                var reason = status + ' ' + error;
+                Util.showNotify({title: jqXHR.status + ': saveConnection', text: reason, type: 'warning'});
+                $(document).setProgramStatus('problem');
+            });
+        }
     };
 
     /**
@@ -1658,12 +1683,15 @@ define([
                 {icon: 'fa-lock', action: 'lock_system', text: 'lock system'},
                 {icon: 'fa-users', action: 'set_rally', text: 'set rally point'},
                 {icon: 'fa-tags', text: 'set status', subitems: systemStatus},
+                {icon: 'fa-reply fa-rotate-180', text: 'waypoints', subitems: [
+                    {subIcon: 'fa-flag-checkered', subAction: 'set_destination', subText: 'set destination'},
+                    {subDivider: true, action: ''},
+                    {subIcon: 'fa-step-backward', subAction: 'add_first_waypoint', subText: 'add new [start]'},
+                    {subIcon: 'fa-step-forward', subAction: 'add_last_waypoint', subText: 'add new [end]'}
+                ]},
                 {divider: true, action: 'ingame'},
-                {icon: 'fa-reply fa-rotate-180', action: 'ingame', text: 'ingame actions', subitems: [
-                    {subIcon: 'fa-info', subAction: 'ingame_show_info', subText: 'show info'},
-                    {subDivider: true, action: 'ingame'},
-                    {subIcon: 'fa-flag', subAction: 'ingame_add_waypoint', subText: 'add waypoint'},
-                    {subIcon: 'fa-flag-checkered', subAction: 'ingame_set_destination', subText: 'set destination'}
+                {icon: 'fa-reply fa-rotate-180', action: 'ingame', text: 'ingame', subitems: [
+                    {subIcon: 'fa-info', subAction: 'ingame_show_info', subText: 'show info'}
                 ]},
                 {divider: true, action: 'delete_system'},
                 {icon: 'fa-eraser', action: 'delete_system', text: 'delete system'}
@@ -1984,15 +2012,11 @@ define([
 
                         CCPEVE.showInfo(5, systemData.systemId );
                         break;
-                    case 'ingame_set_destination':
+                    case 'set_destination':
+                    case 'add_first_waypoint':
+                    case 'add_last_waypoint':
                         systemData = system.getSystemData();
-
-                        CCPEVE.setDestination( systemData.systemId );
-                        break;
-                    case 'ingame_add_waypoint':
-                        systemData = system.getSystemData();
-
-                        CCPEVE.addWaypoint( systemData.systemId );
+                        setDestination(systemData, action);
                         break;
                 }
             }
@@ -2042,6 +2066,68 @@ define([
         };
 
         system.singleDoubleClick(single, double);
+    };
+
+
+    /**
+     * set new destination for a system
+     * -> CREST request
+     * @param systemData
+     * @param type
+     */
+    var setDestination = function(systemData, type){
+
+        var description = '';
+        switch(type){
+            case 'set_destination':
+                description = 'Set destination';
+                break;
+            case 'add_first_waypoint':
+                description = 'Set first waypoint';
+                break;
+            case 'add_last_waypoint':
+                description = 'Set new waypoint';
+                break;
+        }
+
+        $.ajax({
+            type: 'POST',
+            url: Init.path.setDestination,
+            data: {
+                clearOtherWaypoints: (type === 'set_destination') ? 1 : 0,
+                first: (type === 'add_last_waypoint') ? 0 : 1,
+                systemData: [{
+                    systemId: systemData.systemId,
+                    name: systemData.name
+                }]
+            },
+            context: {
+                description: description
+            },
+            dataType: 'json'
+        }).done(function(responseData){
+            if(
+                responseData.systemData &&
+                responseData.systemData.length > 0
+            ){
+                for (var j = 0; j < responseData.systemData.length; j++) {
+                    Util.showNotify({title: this.description, text: 'System: ' + responseData.systemData[j].name, type: 'success'});
+                }
+            }
+
+            if(
+                responseData.error &&
+                responseData.error.length > 0
+            ){
+                for(var i = 0; i < responseData.error.length; i++){
+                    Util.showNotify({title: this.description + ' error', text: 'System: ' + responseData.error[i].message, type: 'error'});
+                }
+            }
+
+        }).fail(function( jqXHR, status, error) {
+            var reason = status + ' ' + error;
+            Util.showNotify({title: jqXHR.status + ': ' + this.description, text: reason, type: 'warning'});
+        });
     };
 
     /**
@@ -3099,12 +3185,10 @@ define([
             // this is restricted to IGB-usage! CharacterLog data is always set through the IGB
             // ->this prevent adding the same system multiple times, if a user is online with IGB AND OOG
             if(
-                CCP.isInGameBrowser() === true &&
                 currentUserOnMap === false &&
                 currentCharacterLog &&
                 mapTracking
             ){
-
                 // add new system to the map
                 var requestData = {
                     systemData: {
@@ -3344,6 +3428,15 @@ define([
         return data;
     };
 
+    /**
+     * removes a map instance from local cache
+     * @param mapId
+     */
+    var clearMapInstance = function(mapId){
+        if(typeof activeInstances[mapId] === 'object'){
+            delete activeInstances[mapId];
+        }
+    };
 
     /**
      * get a new jsPlumb map instance or or get a cached one for update
@@ -3581,6 +3674,10 @@ define([
         return this.each(function(){
             $(this).mCustomScrollbar('scrollTo', position);
         });
+    };
+
+    return {
+        clearMapInstance: clearMapInstance
     };
 
 });

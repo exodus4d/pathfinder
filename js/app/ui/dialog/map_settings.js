@@ -20,7 +20,7 @@ define([
         dialogMapSettingsContainerId: 'pf-map-dialog-settings',                         // id for the "settings" container
         dialogMapDownloadContainerId: 'pf-map-dialog-download',                         // id for the "download" container
 
-        userSelectId: 'pf-map-dialog-user-select',                                      // id for "user" select
+        characterSelectId: 'pf-map-dialog-character-select',                            // id for "character" select
         corporationSelectId: 'pf-map-dialog-corporation-select',                        // id for "corporation" select
         allianceSelectId: 'pf-map-dialog-alliance-select',                              // id for "alliance" select
 
@@ -100,7 +100,7 @@ define([
                 contentEditMap = $(contentEditMap);
 
                 // current map access info
-                var accessUser = [];
+                var accessCharacter = [];
                 var accessCorporation = [];
                 var accessAlliance = [];
 
@@ -112,7 +112,7 @@ define([
                     contentEditMap.find('select[name="scopeId"]').val( mapData.config.scope.id );
                     contentEditMap.find('select[name="typeId"]').val( mapData.config.type.id );
 
-                    accessUser = mapData.config.access.user;
+                    accessCharacter = mapData.config.access.character;
                     accessCorporation = mapData.config.access.corporation;
                     accessAlliance = mapData.config.access.alliance;
                 }
@@ -145,17 +145,17 @@ define([
                     hideDownloadTab: hideDownloadTab,
 
                     // settings tab --------------
-                    userSelectId: config.userSelectId,
+                    characterSelectId: config.characterSelectId,
                     corporationSelectId: config.corporationSelectId,
                     allianceSelectId: config.allianceSelectId,
 
                     // map access objects --------
-                    accessUser: accessUser,
+                    accessCharacter: accessCharacter,
                     accessCorporation: accessCorporation,
                     accessAlliance: accessAlliance,
 
                     // access limitations --------
-                    maxUser: Init.maxSharedCount.user,
+                    maxCharacter: Init.maxSharedCount.character,
                     maxCorporation: Init.maxSharedCount.corporation,
                     maxAlliance: Init.maxSharedCount.alliance,
 
@@ -287,7 +287,7 @@ define([
                     // events for tab change
                     mapInfoDialog.find('.navbar a').on('shown.bs.tab', function(e){
 
-                        var selectElementUser = mapInfoDialog.find('#' + config.userSelectId);
+                        var selectElementCharacter = mapInfoDialog.find('#' + config.characterSelectId);
                         var selectElementCorporation = mapInfoDialog.find('#' + config.corporationSelectId);
                         var selectElementAlliance = mapInfoDialog.find('#' + config.allianceSelectId);
 
@@ -295,8 +295,8 @@ define([
                             // "settings" tab
                             initSettingsSelectFields(mapInfoDialog);
                         }else{
-                            if( $(selectElementUser).data('select2') !== undefined ){
-                                $(selectElementUser).select2('destroy');
+                            if( $(selectElementCharacter).data('select2') !== undefined ){
+                                $(selectElementCharacter).select2('destroy');
                             }
 
                             if( $(selectElementCorporation).data('select2') !== undefined ){
@@ -550,14 +550,14 @@ define([
      */
     var initSettingsSelectFields = function(mapInfoDialog){
 
-        var selectElementUser = mapInfoDialog.find('#' + config.userSelectId);
+        var selectElementCharacter = mapInfoDialog.find('#' + config.characterSelectId);
         var selectElementCorporation = mapInfoDialog.find('#' + config.corporationSelectId);
         var selectElementAlliance = mapInfoDialog.find('#' + config.allianceSelectId);
 
-        // init corporation select live search
-        selectElementUser.initAccessSelect({
-            type: 'user',
-            maxSelectionLength: Init.maxSharedCount.user
+        // init character select live search
+        selectElementCharacter.initAccessSelect({
+            type: 'character',
+            maxSelectionLength: Init.maxSharedCount.character
         });
 
         // init corporation select live search
@@ -575,7 +575,7 @@ define([
 
     /**
      * shows the delete map Dialog
-     * @param mapElement
+     * @param mapData
      */
     $.fn.showDeleteMapDialog = function(mapData){
 

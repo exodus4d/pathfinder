@@ -1,0 +1,11 @@
+<div class="list-group">
+    {{#otherCharacters}}
+        <a class="list-group-item" href="{{routes.ssoLogin}}?characterId={{id}}">
+            <img src="https://image.eveonline.com/Character/{{id}}_32.jpg" alt="{{name}}">
+            {{name}}
+        </a>
+    {{/otherCharacters}}
+    <a class="list-group-item" target="_self" href="{{routes.ssoLogin}}?characterId=-1">
+        <i class="fa fa-user-plus fa-fw"></i>add new
+    </a>
+</div>

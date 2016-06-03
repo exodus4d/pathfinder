@@ -47,43 +47,48 @@ class AbstractIterator extends \RecursiveArrayIterator {
      */
     static function recursiveIterator($iterator){
 
+        $keyWhitelist = array_keys(static::$map);
+
         while($iterator->valid()){
 
-            if(array_key_exists($iterator->key(), static::$map)){
+            if( isset(static::$map[$iterator->key()]) ){
+                $mapValue = static::$map[$iterator->key()];
+
                 // check for mapping key
                 if($iterator->hasChildren()){
 
                     // recursive call for child elements
                     $iterator->offsetSet($iterator->key(), forward_static_call(array('self', __METHOD__), $iterator->getChildren())->getArrayCopy());
                     $iterator->next();
-                }elseif(is_array(static::$map[$iterator->key()])){
+                }elseif(is_array($mapValue)){
                     // a -> array mapping
-                    $parentKey = array_keys(static::$map[$iterator->key()])[0];
-                    $entryKey = array_values(static::$map[$iterator->key()])[0];
+                    $parentKey = array_keys($mapValue)[0];
+                    $entryKey = array_values($mapValue)[0];
 
                     // check if key already exists
                     if($iterator->offsetExists($parentKey)){
                         $currentValue = $iterator->offsetGet($parentKey);
                         // add new array entry
                         $currentValue[$entryKey] = $iterator->current();
-
                         $iterator->offsetSet($parentKey, $currentValue);
                     }else{
                         $iterator->offsetSet($parentKey, [$entryKey => $iterator->current()]);
+                        $keyWhitelist[] = $parentKey;
                     }
 
-
-                }elseif(is_object(static::$map[$iterator->key()])){
+                    $iterator->offsetUnset($iterator->key());
+                }elseif(is_object($mapValue)){
                     // a -> a (format by function)
-                    $formatFunction = static::$map[$iterator->key()];
+                    $formatFunction = $mapValue;
                     $iterator->offsetSet($iterator->key(), call_user_func($formatFunction, $iterator));
 
                     // just value change no key change
                     $iterator->next();
-                }elseif(static::$map[$iterator->key()] !== $iterator->key()){
+                }elseif($mapValue !== $iterator->key()){
                     // a -> b mapping (key changed)
-                    $iterator->offsetSet(static::$map[$iterator->key()], $iterator->current());
+                    $iterator->offsetSet($mapValue, $iterator->current());
                     $iterator->offsetUnset($iterator->key());
+                    $keyWhitelist[] = $mapValue;
                 }else{
                     // a -> a (no changes)
                     $iterator->next();
@@ -91,13 +96,13 @@ class AbstractIterator extends \RecursiveArrayIterator {
 
             }elseif(
                 static::$removeUnmapped &&
-                !in_array($iterator->key(), static::$map)
-
+                !in_array($iterator->key(), $keyWhitelist)
             ){
                 $iterator->offsetUnset($iterator->key());
             }else{
                 $iterator->next();
             }
+
         }
 
         return $iterator;

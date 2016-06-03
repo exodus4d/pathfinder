@@ -80,7 +80,7 @@ class TableModifier extends SQL\TableModifier {
     public function dropConstraint($constraint){
         if($constraint->isValid()){
             $this->queries[] = "ALTER TABLE " . $this->db->quotekey($this->name) . "
-                                DROP FOREIGN KEY " . $this->db->quotekey($constraint->getConstraintName());
+                                DROP FOREIGN KEY " . $this->db->quotekey($constraint->getConstraintName()) . ";";
         }else{
             trigger_error(sprintf(self::TEXT_ConstraintNotValid, 'table: ' . $this->name . ' constraintName: ' . $constraint->getConstraintName()));
         }
@@ -93,18 +93,13 @@ class TableModifier extends SQL\TableModifier {
     public function addConstraint($constraint){
 
         if($constraint->isValid()){
-            if($this->constraintExists($constraint)){
-                // drop constraint and re-add in case something has changed
-                $this->dropConstraint($constraint);
-            }
-
             $this->queries[] = "
               ALTER TABLE " . $this->db->quotekey($this->name) . "
                 ADD CONSTRAINT " . $this->db->quotekey($constraint->getConstraintName()) . "
                 FOREIGN KEY (" . implode(', ', $constraint->getKeys()) . ")
                 REFERENCES " . $this->db->quotekey($constraint->getReferencedTable()) . " (" . implode(', ', $constraint->getReferencedCols()) . ")
                   ON DELETE " . $constraint->getOnDelete() . "
-                  ON UPDATE " . $constraint->getOnUpdate();
+                  ON UPDATE " . $constraint->getOnUpdate() . ";";
         }else{
             trigger_error(sprintf(self::TEXT_ConstraintNotValid, 'table: ' . $this->name . ' constraintName: ' . $constraint->getConstraintName()));
         }
@@ -120,7 +115,15 @@ class Column extends SQL\Column {
     const TEXT_TableNameMissing = 'Table name missing for FOREIGN KEY in `%s`';
 
     /**
-     * ass constraint to this column
+     * drop constraint from this column
+     * @param Constraint $constraint
+     */
+    public function dropConstraint(Constraint $constraint){
+        $this->table->dropConstraint($constraint);
+    }
+
+    /**
+     * add constraint to this column
      * @param Constraint $constraint
      */
     public function addConstraint(Constraint $constraint){
