@@ -211,7 +211,7 @@ class Setup extends Controller {
 
                 $environmentData[$var] = [
                     'label' => $var,
-                    'value' => ((empty($value)) ? '&nbsp;' : $value),
+                    'value' => ((empty($value) && !is_int($value)) ? '&nbsp;' : $value),
                     'check' => $check
                 ];
             }

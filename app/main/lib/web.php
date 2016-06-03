@@ -113,6 +113,7 @@ class Web extends \Web {
             $statusCode = $this->getStatusCodeFromHeaders( $result['headers'] );
 
             switch($statusCode){
+                case 100:
                 case 200:
                     // request succeeded -> check if response should be cached
                     $ttl = $this->getCacheTimeFromHeaders( $result['headers'] );
