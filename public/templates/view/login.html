@@ -915,7 +915,7 @@
             <div class="col-sm-6">
                 <ul class="pf-social-networks text-right">
                     <li><a target="_blank" href="https://www.youtube.com/channel/UC7HU7XEoMbqRwqxDTbMjSPg"> <i class="fa fa-lg fa-youtube-play fa-fw"></i> </a></li>
-                    <li><a target="_blank" href="https://plus.google.com/u/0/b/110257318165279088853/110257318165279088853/about"> <i class="fa fa-lg fa-google-plus fa-fw"></i> </a></li>
+                    <li><a target="_blank" href="https://plus.google.com/110257318165279088853"> <i class="fa fa-lg fa-google-plus fa-fw"></i> </a></li>
                     <li><a target="_blank" href="{{ @PATHFINDER.REPO }}"> <i class="fa fa-lg fa-github fa-fw"></i> </a></li>
                 </ul>
             </div>
@@ -934,6 +934,9 @@
         </div>
     </div>
 </footer>
+
+{* json-LD (structured data) *}
+<include href="templates/ui/jsonld.html"/>
 
 {* hidden dialog *}
 <include href="templates/dialog/gallery.html" />

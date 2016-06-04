@@ -1,0 +1,29 @@
+{* Json-LD structured data *}
+<check if="{{ @PATHFINDER.CONTACT }}">
+<script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "Organization",
+        "name": "{{ @PATHFINDER.NAME }}",
+        "legalName": "Pathfinder - OpenSource",
+        "url": "{{ Controller\Controller::getEnvironmentData('URL') }}",
+        "logo": "{{@SCHEME.'://'.@HOST.@FAVICON}}/favicon-192x192.png",
+        "foundingDate": "2014",
+        "founders": [{
+            "@type": "Person",
+            "name": "Exodus4D"
+        }],
+<check if="{{ @PATHFINDER.EMAIL }}">
+        "email": "{{ @PATHFINDER.EMAIL }}",
+</check>
+        "sameAs": [
+            "https://www.youtube.com/c/Pathfinder-wSpace",
+            "https://plus.google.com/110257318165279088853",
+            "https://imgur.com/a/k2aVa",
+<check if="{{ @PATHFINDER.REPO }}">
+            "{{ @PATHFINDER.REPO }}"
+</check>
+        ]
+    }
+</script>
+</check>
