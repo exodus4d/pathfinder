@@ -800,13 +800,12 @@ class Sso extends Api\User{
         $endpoint = $this->walkEndpoint($endpoints, '', ['serviceStatus']);
         if( !empty($endpoint) ){
             $data->crestOffline = false;
-            $data->serviceStatus = (new Mapper\CrestServiceStatus($endpoint))->getData();
+            $data->serviceStatus = (string) $endpoint;
         }
-
-        $endpoint = $this->walkEndpoint($endpoints, '', ['userCounts']);
+        $endpoint = $this->walkEndpoint($endpoints, '', ['userCount_str']);
         if( !empty($endpoint) ){
             $data->crestOffline = false;
-            $data->userCounts = (new Mapper\CrestUserCounts($endpoint))->getData();
+            $data->userCounts = (string) $endpoint;
         }
         return $data;
     }

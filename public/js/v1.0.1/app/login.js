@@ -486,12 +486,15 @@ define([
                 data.serverPanelId = config.serverPanelId;
 
                 var statusClass = '';
-                switch(data.serviceStatus.eve.toLowerCase()){
+                switch(data.serviceStatus.toLowerCase()){
                     case 'online': statusClass = 'txt-color-green'; break;
                     case 'vip': statusClass = 'txt-color-orange'; break;
                     case 'offline': statusClass = 'txt-color-redDarker'; break;
                 }
-                data.serviceStatus.style = statusClass;
+                data.serviceStatus = {
+                    eve: data.serviceStatus,
+                    style: statusClass
+                };
 
                 requirejs(['text!templates/ui/server_panel.html', 'mustache'], function(template, Mustache) {
                     var content = Mustache.render(template, data);
