@@ -8,6 +8,8 @@
 
 namespace Model;
 
+use Controller\Api\User;
+use Controller\Controller;
 use DB\SQL\Schema;
 
 class CharacterLogModel extends BasicModel {
@@ -188,6 +190,36 @@ class CharacterLogModel extends BasicModel {
         $logData->station->name = $this->stationName;
 
         return $logData;
+    }
+
+    public function set_systemId($systemId){
+        if($systemId > 0){
+            $this->updateCharacterSessionLocation($systemId);
+        }
+        return $systemId;
+    }
+
+    /**
+     * update session data for active character
+     * @param int $systemId
+     */
+    protected function updateCharacterSessionLocation($systemId){
+        $controller = new Controller();
+        $f3 = $this->getF3();
+        $systemId = (int)$systemId;
+
+        if(
+            ( $activeCharacter = $controller->getCharacter() ) &&
+            ( $activeCharacter->_id === $this->characterId->_id )
+        ){
+            $prevSystemId = (int)$f3->get( User::SESSION_KEY_CHARACTER_PREV_SYSTEM_ID);
+
+            if($prevSystemId === 0){
+                $f3->set( User::SESSION_KEY_CHARACTER_PREV_SYSTEM_ID, $systemId);
+            }else{
+                $f3->set( User::SESSION_KEY_CHARACTER_PREV_SYSTEM_ID, (int)$this->systemId);
+            }
+        }
     }
 
 } 

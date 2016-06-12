@@ -99,6 +99,8 @@ define([
                 userUpdate: 0
             };
 
+            var locationToggle = $('#' + Util.config.headMapTrackingId);
+
             // ping for main map update ========================================================
             var triggerMapUpdatePing = function(){
 
@@ -197,7 +199,10 @@ define([
 
                 var updatedUserData = {
                     mapIds: mapIds,
-                    systemData: Util.getCurrentSystemData()
+                    systemData: Util.getCurrentSystemData(),
+                    characterMapData: {
+                        mapTracking: (locationToggle.is(':checked') ? 1 : 0) // location tracking
+                    }
                 };
 
                 Util.timeStart(logKeyServerUserData);

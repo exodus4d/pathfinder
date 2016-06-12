@@ -404,17 +404,11 @@ class SystemModel extends BasicModel {
     }
 
     /**
-     * checks weather this system is a wormhole
+     * check whether this system is a wormhole or not
      * @return bool
      */
-    protected function isWormhole(){
-        $isWormhole = false;
-
-        if($this->typeId->id == 1){
-            $isWormhole = true;
-        }
-
-        return $isWormhole;
+    public function isWormhole(){
+        return ($this->typeId->id === 1);
     }
 
     /**

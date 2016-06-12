@@ -76,7 +76,7 @@ define([
                             // validate form
                             form.validator('validate');
 
-                            // check weather the form is valid
+                            // check whether the form is valid
                             var formValid = form.isValidForm();
 
                             if(formValid === true){

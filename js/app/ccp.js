@@ -7,7 +7,7 @@ define(['jquery'], function($) {
     'use strict';
 
     /**
-     * checks weather the program URL is IGB trusted or not
+     * checks whether the program URL is IGB trusted or not
      * @returns {boolean}
      */
     var isTrusted = function(){

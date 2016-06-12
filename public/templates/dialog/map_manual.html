@@ -17,8 +17,8 @@
 
     <h4>Map types</h4>
     <p>
-        <em class="pf-brand">pathfinder</em>&nbsp;&nbsp;supports 3 different types of maps. Each map contains several systems <small>(<i class="fa fa-sun-o fa-fw"></i><a href="#" data-target="#pf-manual-system">more</a>)</small>
-        and connections <small>(<i class="fa fa-chain fa-fw"></i><a href="#" data-target="#pf-manual-connection">more</a>)</small>. Maps are also referred to as <em>"Chain Map"</em> or <em>"Chain"</em>.
+        <em class="pf-brand">pathfinder</em>&nbsp;&nbsp;supports 3 different types of maps. Systems <small>(<i class="fa fa-sun-o fa-fw"></i><a href="#" data-target="#pf-manual-system">more</a>)</small>
+        and connections <small>(<i class="fa fa-chain fa-fw"></i><a href="#" data-target="#pf-manual-connection">more</a>)</small> can be added to them. Maps are also referred to as <em>"Chain Map"</em> or <em>"Chain"</em>:
     </p>
     <ul class="fa-ul">
         <li><i class="fa-li fa fa-circle fa-fw pf-map-type-private"></i>private map<small> (is not visible for other pilots, unless you invite them)</small></li>
@@ -28,6 +28,26 @@
     </ul>
     <p>
         Up to 5 different maps can be used simultaneously. <span class="txt-color txt-color-blue">Alliance maps</span> require appropriate rules to be created.
+    </p>
+    <h4 id="pf-manual-scrollspy-anchor-map-scope">Map scope</h4>
+    <p>
+        Each map has a <em>"scope"</em> that affects how systems will be added automatically to it:
+    </p>
+    <ul class="list-unstyled" style=" margin-left: 10px;">
+        <li>wormholes -<small> (w-space systems and chain exit systems are tracked)</small></li>
+        <li>stargates -<small> (k-space systems and direct neighboured systems are tracked)</small></li>
+        <li>all -<small> (any system will be tracked)</small></li>
+        <li>none -<small> (system tracking is disabled)</small></li>
+    </ul>
+    <h4><i class="fa fa-location-arrow fa-fw"></i> Map tracking</h4>
+    <p>
+        If "map tracking" is <span class="txt-color txt-color-greenLight">on</span>, new systems <small>(<i class="fa fa-sun-o fa-fw"></i><a href="#" data-target="#pf-manual-system">more</a>)</small>
+        and connections <small>(<i class="fa fa-chain fa-fw"></i><a href="#" data-target="#pf-manual-connection">more</a>)</small>
+        will be automatically added to the current map <small>(<i class="fa fa-code-fork fa-fw"></i><a href="#" data-target="#pf-manual-map">more</a>)</small>.
+        This can only work if your current position is known by <em class="pf-brand">pathfinder</em>.<br>
+        The map scope <small>(<i class="fa fa-crosshairs fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-map-scope">more</a>)</small> defines which systems are affected.<br>
+        The connection scope <small>(<i class="fa fa-crosshairs fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-scope">more</a>)</small> will be auto-detected (e.g. wormhole connection).
+        This is achieved by calculating the jump distance between your current system and system you came from.
     </p>
     <h4 id="pf-manual-scrollspy-anchor-map-contextmenu">Context menu</h4>
     <p>
@@ -64,24 +84,11 @@
             <span style="position: absolute; line-height: 30px; margin-left: 10px;">4</span>
         </div>
     </div>
-
     <p>
         The <em>"Update counter"</em> starts counting backwards during map interaction. While the counter is active, no data is pushed to server.
         Once the counter hits 0, all map date will be stored and active pilots will receive the map updates.<br>
         There is no need for any save/edit buttons.
     </p>
-
-    <h4><i class="fa fa-location-arrow fa-fw"></i> Map tracking</h4>
-
-    <p>
-        If "map tracking" is <span class="txt-color txt-color-greenLight">on</span>, new systems <small>(<i class="fa fa-sun-o fa-fw"></i><a href="#" data-target="#pf-manual-system">more</a>)</small>
-        and connections <small>(<i class="fa fa-chain fa-fw"></i><a href="#" data-target="#pf-manual-connection">more</a>)</small>
-        will be automatically added to the current map <small>(<i class="fa fa-code-fork fa-fw"></i><a href="#" data-target="#pf-manual-map">more</a>)</small>.
-        This can only work if your current position is known by <em class="pf-brand">pathfinder</em>. You have to use the <em class="pf-brand">IGB</em> for this feature.<br>
-        The connection scope <small>(<i class="fa fa-crosshairs fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-scope">more</a>)</small> will be auto-detected and can be changed afterwards.
-        This is achieved by calculating the jump distance between your current system and system you came from.
-    </p>
-
     <div class="clearfix"></div>
 
     <hr class="pf-manual-scroll-break">
@@ -168,6 +175,7 @@
         <li><i class="fa fa-lock fa-fw"></i> Lock this system <small><a href="#" data-target="#pf-manual-scrollspy-anchor-system-locked">more</a></small></li>
         <li><i class="fa fa-users fa-fw"></i> Set "Rally Point" for this system <small><a href="#" data-target="#pf-manual-scrollspy-anchor-system-rally">more</a></small></li>
         <li><i class="fa fa-tags fa-fw"></i> Changes the status of this system <small><a href="#" data-target="#pf-manual-scrollspy-anchor-system-status">more</a></small></li>
+        <li><i class="fa fa-reply fa-rotate-180 fa-fw"></i> Waypoint options for this system <small><a href="#" data-target="#pf-manual-scrollspy-anchor-system-waypoint">more</a></small></li>
         <li><i class="fa fa-eraser fa-fw"></i> Delete this system and all connections <small><a href="#" data-target="#pf-manual-scrollspy-anchor-system-delete">more</a></small></li>
     </ul>
     <h4 id="pf-manual-scrollspy-anchor-system-locked"><i class="fa fa-lock fa-fw"></i> Locked system</h4>
@@ -182,6 +190,15 @@
         Active pilot will be informed about new "Rally points" by a notice. Optional you can poke active pilots with "desktop push notifications"
         <small>(<i class="fa fa-bullhorn fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-notification-desktop">more</a>)</small>.
     </p>
+    <h4 id="pf-manual-scrollspy-anchor-system-waypoint"><i class="fa fa-flag-checkered fa-fw"></i> Waypoints</h4>
+    <p>
+        Waypoints can be set to systems. Waypoint options are identical to their in game options.
+    </p>
+    <ul class="list-unstyled" style=" margin-left: 10px;">
+        <li>set destination -<small> (clear other waypoints and set new destination)</small></li>
+        <li>add new [start] -<small> (add new waypoint in front of your waypoint queue)</small></li>
+        <li>add new [end] -<small> (add new waypoint to the end of your waypoint queue)</small></li>
+    </ul>
     <h4 id="pf-manual-scrollspy-anchor-system-delete"><i class="fa fa-eraser fa-fw"></i> Delete system</h4>
     <p>
         Any system that is not "Locked"  <small>(<i class="fa fa-lock fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-system-locked">more</a>)</small> can be deleted from a map.
@@ -192,7 +209,7 @@
 
     <h2 id="pf-manual-connection"><i class="fa fa-chain fa-lg fa-fw"></i>&nbsp;&nbsp;Connection (Stargate / Wormhole)</h2>
     <p>
-        Connections between systems are represented by solid curved lines. Any connection requires two systems that are connected. A connection can be a <em>"Stargate"</em> or <em>"Wormhole"</em>.
+        Connections between systems are represented by solid lines. Any connection requires two systems that are connected together.
     </p>
     <h4>Connect systems</h4>
     <p>
@@ -324,28 +341,21 @@
         The concept of map sharing is pretty complex and powerful. By default all sharing options are disabled, so there is no reason to be concerned about map security.
         All map types <small>(<i class="fa fa-code-fork fa-fw"></i><a href="#" data-target="#pf-manual-map">more</a>)</small> can be temporary shared with allied entities e.g. for "<em>Joint-Ops</em>".<br>
         The map type is preserved for the period of sharing (private maps can be shared with other users, corporation maps can be shared with other corporations,..).
-        For now you can not invite a single user to your corporation map.
         Do the following steps to share your map with your friend/allied corporation/allied alliance:
     </p>
     <ol style=" padding-left: 20px; list-style-type: decimal;">
         <li>Get in contact with your friend and convince him to temporary enable "map invite", for the type of map you are planning to share, in the "<em>Share settings</em>" dialog</li>
-        <li>Open the "<em>Map settings</em>" dialog on the map you are planning to share. Switch to the "<em>Settings</em>" tab and search for your friend or corporation/alliance </li>
+        <li>Open the "<em>Map settings</em>" dialog on the map you are planning to share. Switch to the "<em>Settings</em>" tab and search for a character name or corporation/alliance </li>
         <li>If you can not find the "option" you are looking for, make sure he has enabled the "map invite" option</li>
         <li>Save the "<em>Map settings</em>" with the new "share" option. Wait a few seconds until the new settings take effect</li>
         <li>If you were successful, you will see a small  <i class="fa fa-share-alt fa-fw"></i> icon in your map tab</li>
         <li>Disable the "map invite" flag and enjoy the shared map (prevent hostiles from invite you to their maps)</li>
     </ol>
     <h4><i class="fa fa-info fa-fw"></i> Important information</h4>
-    <ul class="list-unstyled" style=" margin-left: 10px;">
-        <li>"<em>Private maps</em>" are shared between "Users" (not "Characters")! - Make sure looking for the correct username instead of searching for a character name.</li>
-        <li>
-            <ul class="list-unstyled" style=" margin-left: 10px;">
-                <li>The advantage of this concept is that a "User" can use a map with all its registered "<em>Alt-Characters</em>"</li>
-            </ul>
-        </li>
-        <li>For now, all corporation/alliance members have the role to change/set the "map invite" flag.
+    <ul style=" padding-left: 20px; list-style-type: disc;">
+        <li>For now, all corporation/alliance members have the right to change/set the "map invite" flag.
             Make sure not to share your corp/ally maps with hostile entities, and/or remove them from the map once the Op is over. If you are paranoid, delete the shared map</li>
-        <li>Keep the limit of shared maps in mind. If you, your friend/corp/ally have reached the limit of shared maps, you cant start an additional shared map</li>
+        <li>Keep the limit of shared maps in mind. If you, your friend/corp/ally have reached the limit of shared maps, you can´t start a new shared map</li>
         <li>Please be aware of the fact, that any entity that has map access, can take over map control and hijack the map by removing you/your corp/your ally from the access list</li>
         <li>Check the lifetime cycle for "<em>Private maps</em>". If a map reaches the end, it will be removed for all users who have access</li>
     </ul>

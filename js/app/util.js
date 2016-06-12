@@ -31,6 +31,9 @@ define([
         formWarningContainerClass: 'pf-dialog-warning-container',               // class for "warning" containers in dialogs
         formInfoContainerClass: 'pf-dialog-info-container',                     // class for "info" containers in dialogs
 
+        // head
+        headMapTrackingId: 'pf-head-map-tracking',                              // id for "map tracking" toggle (checkbox)
+
 
         settingsMessageVelocityOptions: {
             duration: 180
@@ -353,7 +356,7 @@ define([
     };
 
     /**
-     * checks weather a bootstrap form is valid or not
+     * checks whether a bootstrap form is valid or not
      * validation plugin does not provide a proper function for this
      * @returns {boolean}
      */

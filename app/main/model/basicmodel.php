@@ -78,10 +78,12 @@ abstract class BasicModel extends \DB\Cortex {
 
         // events -----------------------------------------
         $this->afterinsert(function($self){
+            $self->afterinsertEvent($self);
             $self->clearCacheData();
         });
 
         $this->afterupdate( function($self){
+            $self->afterupdateEvent($self);
             $self->clearCacheData();
         });
 
@@ -317,7 +319,6 @@ abstract class BasicModel extends \DB\Cortex {
             if( $f3->exists($cacheKey) ){
                 $f3->clear($cacheKey);
             }
-
         }
     }
 
@@ -360,7 +361,7 @@ abstract class BasicModel extends \DB\Cortex {
     }
 
     /**
-     * checks weather this model is active or not
+     * checks whether this model is active or not
      * each model should have an "active" column
      * @return bool
      */
@@ -410,6 +411,24 @@ abstract class BasicModel extends \DB\Cortex {
      * return false will stop any further action
      */
     public function beforeInsertEvent(){
+        return true;
+    }
+
+    /**
+     * Event "Hook" function
+     * can be overwritten
+     * return false will stop any further action
+     */
+    public function afterinsertEvent(){
+        return true;
+    }
+
+    /**
+     * Event "Hook" function
+     * can be overwritten
+     * return false will stop any further action
+     */
+    public function afterupdateEvent(){
         return true;
     }
 

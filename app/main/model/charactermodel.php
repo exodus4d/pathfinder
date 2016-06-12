@@ -369,7 +369,7 @@ class CharacterModel extends BasicModel {
         }
 
         if($updateLogData == false){
-            // ... IGB Header data not found OR character does not match current active character
+            // ... No IGB Header data found OR character does not match current active character
             // -> try to pull data from CREST
 
             $ssoController = new Sso();
@@ -533,12 +533,12 @@ class CharacterModel extends BasicModel {
 
         if($this->characterMaps){
             $mapCountPrivate = 0;
-            foreach($this->characterMaps as &$characterMap){
+            foreach($this->characterMaps as $characterMap){
                 if(
                     $mapCountPrivate < self::getF3()->get('PATHFINDER.MAX_MAPS_PRIVATE') &&
                     $characterMap->mapId->isActive()
                 ){
-                    $maps[] = &$characterMap->mapId;
+                    $maps[] = $characterMap->mapId;
                     $mapCountPrivate++;
                 }
             }
