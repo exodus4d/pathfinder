@@ -30,7 +30,7 @@ requirejs.config({
         slidebars: 'lib/slidebars',                                     // v0.10 Slidebars - side menu plugin http://plugins.adchsm.me/slidebars
         jsPlumb: 'lib/dom.jsPlumb-1.7.6',                               // v1.7.6 jsPlumb (Vanilla)- main map draw plugin https://jsplumbtoolkit.com
         farahey: 'lib/farahey-0.5',                                     // v0.5 jsPlumb "magnetizing" extension - https://github.com/jsplumb/farahey
-        customScrollbar: 'lib/jquery.mCustomScrollbar.concat.min',      // v3.1.3 Custom scroll bars - http://manos.malihu.gr
+        customScrollbar: 'lib/jquery.mCustomScrollbar.min',             // v3.1.3 Custom scroll bars - http://manos.malihu.gr
         datatables: 'lib/datatables/jquery.dataTables.min',             // v1.10.7 DataTables - https://datatables.net
         //datatablesBootstrap: 'lib/datatables/dataTables.bootstrap',   // DataTables - not used (bootstrap style)
         datatablesResponsive: 'lib/datatables/extensions/responsive/dataTables.responsive',   // v1.0.6 TableTools (PlugIn) - https://datatables.net/extensions/responsive
