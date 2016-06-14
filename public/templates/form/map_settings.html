@@ -5,7 +5,7 @@
             <div class="form-group">
                 <label for="icon" class="col-sm-4 control-label">Icon</label>
                 <div class="col-sm-8">
-                    <select style="font-family: FontAwesome" name="icon" id="icon" class="form-control" title="Map icon for identification" data-placement="top">
+                    <select style="font-family: FontAwesome" name="icon" id="icon" class="form-control" title="Map icon" data-placement="top">
                         {{#icon}}
                         <option value="{{class}}">{{{unicode}}}</option>
                         {{/icon}}
@@ -29,7 +29,7 @@
             <div class="form-group">
                 <label for="scope" class="col-sm-2 control-label">Scope</label>
                 <div class="col-sm-10">
-                    <select name="scopeId" id="scope" class="form-control" title="Default scope for new connections" data-placement="top">
+                    <select name="scopeId" id="scope" class="form-control" title="Connections that get tracked on this map" data-placement="top">
                         {{#scope}}
                         <option value="{{id}}">{{label}}</option>
                         {{/scope}}

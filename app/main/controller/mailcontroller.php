@@ -28,21 +28,6 @@ class MailController extends \SMTP{
     }
 
     /**
-     * send invite key mail
-     * @param $to
-     * @param $msg
-     * @return bool
-     */
-    public function sendInviteKey($to, $msg){
-        $this->set('To', '<' . $to . '>');
-        $this->set('From', 'Pathfinder <' . Controller::getEnvironmentData('SMTP_FROM') . '>');
-        $this->set('Subject', 'Registration Key');
-        $status = $this->send($msg);
-
-        return $status;
-    }
-
-    /**
      * send mail to removed user account
      * @param $to
      * @param $msg

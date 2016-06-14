@@ -10,7 +10,7 @@ lib/bootbox.min.js
 app/ccp.js
 lib/velocity.min.js
 lib/velocity.ui.min.js
-lib/jquery.mCustomScrollbar.concat.min.js
+lib/jquery.mCustomScrollbar.min.js
 lib/validator.min.js
 lib/bootstrap-editable.min.js
 lib/jquery.easypiechart.min.js
@@ -48,7 +48,7 @@ lib/bootbox.min.js
 app/ccp.js
 lib/velocity.min.js
 lib/velocity.ui.min.js
-lib/jquery.mCustomScrollbar.concat.min.js
+lib/jquery.mCustomScrollbar.min.js
 lib/validator.min.js
 lib/bootstrap-editable.min.js
 lib/jquery.easypiechart.min.js
@@ -111,7 +111,7 @@ lib/bootbox.min.js
 app/ccp.js
 lib/velocity.min.js
 lib/velocity.ui.min.js
-lib/jquery.mCustomScrollbar.concat.min.js
+lib/jquery.mCustomScrollbar.min.js
 lib/validator.min.js
 lib/bootstrap-editable.min.js
 lib/jquery.easypiechart.min.js

@@ -202,7 +202,7 @@ define([
                             // validate form
                             form.validator('validate');
 
-                            // check weather the form is valid
+                            // check whether the form is valid
                             var formValid = form.isValidForm();
 
                             if(formValid === false){
@@ -508,7 +508,18 @@ define([
                     targets: 3,
                     orderable: false,
                     title: 'route',
-                    data: 'route'
+                    data: 'route',
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex) {
+
+                        // init context menu
+                        /*
+                        console.log(cell);
+                        console.log(cellData);
+                        $(cell).find('i').on('click', function(){
+
+                        });
+                        */
+                    }
                 },{
                     targets: 4,
                     title: '',

@@ -478,7 +478,7 @@ class Sso extends Api\User{
      */
     protected function getEndpoints($accessToken = '', $additionalOptions = []){
         $crestUrl = self::getCrestEndpoint();
-        $additionalOptions['accept'] = 'application/vnd.ccp.eve.Api-v3+json';
+        $additionalOptions['accept'] = 'application/vnd.ccp.eve.Api-v5+json';
         $endpoint = $this->getEndpoint($crestUrl, $accessToken, $additionalOptions);
 
         return $endpoint;
@@ -677,48 +677,63 @@ class Sso extends Api\User{
         $waypointData = [];
 
         if( $crestUrlParts ){
-            $endpointUrl = self::getCrestEndpoint() . '/characters/' . $character->_id . '/navigation/waypoints/';
-            $systemEndpoint = self::getCrestEndpoint() . '/solarsystems/' . $systemId . '/';
+            $accessToken = $character->getAccessToken();
+            $endpoints = $this->getEndpoints($accessToken);
 
-            // request body
-            $content = [
-                'clearOtherWaypoints' => (bool)$options['clearOtherWaypoints'],
-                'first' => (bool)$options['first'],
-                'solarSystem' => [
-                    'href' => $systemEndpoint,
-                    'id' => (int)$systemId
-                ]
-            ];
+            // get endpoint list for "ui" endpoints
+            $uiEndpoints = $endpoint = $this->walkEndpoint($endpoints, $accessToken, [
+                'decode',
+                'character',
+                'ui'
+            ]);
 
-            $requestOptions = [
-                'timeout' => self::CREST_TIMEOUT,
-                'method' => 'POST',
-                'user_agent' => $this->getUserAgent(),
-                'header' => [
-                    'Scope: characterNavigationWrite',
-                    'Authorization: Bearer ' . $character->getAccessToken(),
-                    'Host: ' . $crestUrlParts['host'],
-                    'Content-Type: application/vnd.ccp.eve.PostWaypoint-v1+json;charset=utf-8',
-                ],
-                'content' => json_encode($content, JSON_UNESCAPED_SLASHES)
-            ];
+            if(
+                isset($uiEndpoints['setWaypoints']) &&
+                isset($uiEndpoints['setWaypoints']['href'])
+            ){
+                $endpointUrl = $uiEndpoints['setWaypoints']['href'];
+                $systemEndpoint = self::getCrestEndpoint() . '/solarsystems/' . $systemId . '/';
 
-            $apiResponse = Lib\Web::instance()->request($endpointUrl, $requestOptions);
+                // request body
+                $content = [
+                    'clearOtherWaypoints' => (bool)$options['clearOtherWaypoints'],
+                    'first' => (bool)$options['first'],
+                    'solarSystem' => [
+                        'href' => $systemEndpoint,
+                        'id' => (int)$systemId
+                    ]
+                ];
 
-            if( isset($apiResponse['body']) ){
-                $responseData = json_decode($apiResponse['body']);
+                $requestOptions = [
+                    'timeout' => self::CREST_TIMEOUT,
+                    'method' => 'POST',
+                    'user_agent' => $this->getUserAgent(),
+                    'header' => [
+                        'Scope: characterNavigationWrite',
+                        'Authorization: Bearer ' . $character->getAccessToken(),
+                        'Host: ' . $crestUrlParts['host'],
+                        'Content-Type: application/vnd.ccp.eve.PostWaypoint-v1+json;charset=utf-8',
+                    ],
+                    'content' => json_encode($content, JSON_UNESCAPED_SLASHES)
+                ];
 
-                if( empty($responseData) ){
-                    $waypointData['systemId'] = (int)$systemId;
-                }elseif(
-                    isset($responseData->message) &&
-                    isset($responseData->key)
-                ){
-                    // waypoint could not be set...
-                    $error = (object) [];
-                    $error->type = 'error';
-                    $error->message = $responseData->key;
-                    $waypointData['error'] = $error;
+                $apiResponse = Lib\Web::instance()->request($endpointUrl, $requestOptions);
+
+                if( isset($apiResponse['body']) ){
+                    $responseData = json_decode($apiResponse['body']);
+
+                    if( empty($responseData) ){
+                        $waypointData['systemId'] = (int)$systemId;
+                    }elseif(
+                        isset($responseData->message) &&
+                        isset($responseData->key)
+                    ){
+                        // waypoint could not be set...
+                        $error = (object) [];
+                        $error->type = 'error';
+                        $error->message = $responseData->key;
+                        $waypointData['error'] = $error;
+                    }
                 }
             }
         }
@@ -800,13 +815,12 @@ class Sso extends Api\User{
         $endpoint = $this->walkEndpoint($endpoints, '', ['serviceStatus']);
         if( !empty($endpoint) ){
             $data->crestOffline = false;
-            $data->serviceStatus = (new Mapper\CrestServiceStatus($endpoint))->getData();
+            $data->serviceStatus = (string) $endpoint;
         }
-
-        $endpoint = $this->walkEndpoint($endpoints, '', ['userCounts']);
+        $endpoint = $this->walkEndpoint($endpoints, '', ['userCount_str']);
         if( !empty($endpoint) ){
             $data->crestOffline = false;
-            $data->userCounts = (new Mapper\CrestUserCounts($endpoint))->getData();
+            $data->userCounts = (string) $endpoint;
         }
         return $data;
     }

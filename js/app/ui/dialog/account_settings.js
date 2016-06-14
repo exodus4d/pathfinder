@@ -31,10 +31,9 @@ define([
 
     /**
      * show "register/settings" dialog
-     * @param options
      * @returns {boolean}
      */
-    $.fn.showSettingsDialog = function(options){
+    $.fn.showSettingsDialog = function(){
 
         // check if there are other dialogs open
         var openDialogs = Util.getOpenDialogs();
@@ -76,7 +75,7 @@ define([
                             // validate form
                             form.validator('validate');
 
-                            // check weather the form is valid
+                            // check whether the form is valid
                             var formValid = form.isValidForm();
 
                             if(formValid === true){

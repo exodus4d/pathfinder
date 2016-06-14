@@ -12,7 +12,6 @@ define(['jquery'], function($) {
             // user API
             getCaptcha: 'api/user/getCaptcha',                      // ajax URL - get captcha image
             getServerStatus: 'api/user/getEveServerStatus',         // ajax URL - get EVE-Online server status
-            sendInviteKey: 'api/user/sendInvite',                   // ajax URL - send registration key
             getCookieCharacterData: 'api/user/getCookieCharacter',  // ajax URL - get character data from cookie
             logIn: 'api/user/logIn',                                // ajax URL - login
             logout: 'api/user/logout',                              // ajax URL - logout

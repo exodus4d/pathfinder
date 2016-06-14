@@ -390,7 +390,7 @@ define([
             id: config.signatureReaderDialogId
         };
 
-        requirejs(['text!templates/modules/signature_reader_dialog.html', 'mustache'], function(template, Mustache) {
+        requirejs(['text!templates/dialog/signature_reader.html', 'mustache'], function(template, Mustache) {
 
             var content = Mustache.render(template, data);
 

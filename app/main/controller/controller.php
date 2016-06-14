@@ -599,7 +599,7 @@ class Controller {
     }
 
     /**
-     * check weather the page is IGB trusted or not
+     * check whether the page is IGB trusted or not
      * @return boolean
      */
     static function isIGBTrusted(){

@@ -8,7 +8,7 @@
 
 namespace Model;
 
-use Controller\Api\User;
+use Controller\Api\System;
 use DB\SQL\Schema;
 
 class MapModel extends BasicModel {
@@ -210,58 +210,79 @@ class MapModel extends BasicModel {
     }
 
     /**
+     * get blank system model pre-filled with default SDE data
+     * @param int $systemId
+     * @return SystemModel
+     */
+    public function getNewSystem($systemId){
+        $systemController = new System();
+        $system = reset($systemController->getSystemModelByIds([$systemId]));
+        $system->mapId = $this->id;
+        return $system;
+    }
+
+    /**
+     * get blank connection model for given source/target systems
+     * @param SystemModel $sourceSystem
+     * @param SystemModel $targetSystem
+     * @return ConnectionModel
+     */
+    public function getNewConnection(SystemModel $sourceSystem, SystemModel $targetSystem){
+        /**
+         * @var $connection ConnectionModel
+         */
+        $connection = $this->rel('connections');
+        $connection->mapId = $this;
+        $connection->source = $sourceSystem;
+        $connection->target = $targetSystem;
+        return $connection;
+    }
+
+    /**
+     * search for a system by id
+     * @param int $id
+     * @return null|SystemModel
+     */
+    public function getSystemById($id){
+        /**
+         * @var $system SystemModel
+         */
+        $system = $this->rel('systems');
+        $result = $system->findone([
+            'active = 1 AND mapId = :mapId AND id = :id',
+            ':mapId' => $this->id,
+            ':id' => $id
+        ]);
+        return is_object($result) ? $result : null;
+    }
+
+    /**
      * search for a system by CCPs systemId
      * @param int $systemId
      * @return null|SystemModel
      */
     public function getSystemByCCPId($systemId){
-        $system = null;
-        if( !empty($systems = $this->getSystems('systemId', (int)$systemId) ) ){
-            $system = $systems[0];
-        }
-
-        return $system;
-    }
-
-    /**
-     * search for a system by id
-     * @param int $systemId
-     * @return null|SystemModel
-     */
-    public function getSystemById($systemId){
-        $system = null;
-        if( !empty($systems = $this->getSystems('id', (int)$systemId) ) ){
-            $system = $systems[0];
-        }
-
-        return $system;
+        /**
+         * @var $system SystemModel
+         */
+        $system = $this->rel('systems');
+        $result = $system->findone([
+            'active = 1 AND mapId = :mapId AND systemId = :systemId',
+            ':mapId' => $this->id,
+            ':systemId' => $systemId
+        ]);
+        return is_object($result) ? $result : null;
     }
 
     /**
      * get either all system models in this map
-     * -> or get a specific system by column filter
-     * @param string $column
-     * @param string $value
      * @return array|mixed
      */
-    public function getSystems($column = '', $value = ''){
+    public function getSystems(){
         $systems = [];
 
-        $filterQuery = ['active = :active AND id > 0',
-            ':active' => 1
-        ];
-
-        // add more filter options....
-        if(
-            !empty($column) &&
-            !empty($value)
-        ){
-            $filterQuery[0] .= ' AND ' . $column . ' = :value';
-            $filterQuery[':value'] = $value;
-        }
-
         // orderBy x-Coordinate for smoother frontend animation (left to right)
-        $this->filter('systems', $filterQuery,
+        $this->filter('systems', ['active = 1'],
             ['order' => 'posX']
         );
 
@@ -426,7 +447,7 @@ class MapModel extends BasicModel {
     }
 
     /**
-     * checks weather a character has access to this map or not
+     * checks whether a character has access to this map or not
      * @param CharacterModel $characterModel
      * @return bool
      */
@@ -588,7 +609,7 @@ class MapModel extends BasicModel {
     }
 
     /**
-     * checks weather this map is private map
+     * checks whether this map is private map
      * @return bool
      */
     public function isPrivate(){
@@ -602,7 +623,7 @@ class MapModel extends BasicModel {
     }
 
     /**
-     * checks weather this map is corporation map
+     * checks whether this map is corporation map
      * @return bool
      */
     public function isCorporation(){
@@ -616,7 +637,7 @@ class MapModel extends BasicModel {
     }
 
     /**
-     * checks weather this map is alliance map
+     * checks whether this map is alliance map
      * @return bool
      */
     public function isAlliance(){
@@ -627,6 +648,81 @@ class MapModel extends BasicModel {
         }
 
         return $isAlliance;
+    }
+
+    /**
+     *
+     * @return mixed|null
+     */
+    public function getScope(){
+        $scope = null;
+        if( $this->scopeId->isActive() ){
+            $scope = $this->scopeId;
+        }
+        return $scope;
+    }
+
+    /**
+     * save a system to this map
+     * @param SystemModel $system
+     * @param int $posX
+     * @param int $posY
+     * @param null|CharacterModel $character
+     * @return mixed
+     */
+    public function saveSystem( SystemModel $system, $posX = 10, $posY = 0, $character = null){
+        $system->mapId = $this->id;
+        $system->posX = $posX;
+        $system->posY = $posY;
+        $system->createdCharacterId = $character;
+        $system->updatedCharacterId = $character;
+        return $system->save();
+    }
+
+    /**
+     * search for a connection by (source -> target) system ids
+     * -> this also searches the revers way (target -> source)
+     * @param SystemModel $sourceSystem
+     * @param SystemModel $targetSystem
+     * @return ConnectionModel|null
+     */
+    public function searchConnection(SystemModel $sourceSystem, SystemModel $targetSystem){
+        // check if both systems belong to this map
+        if(
+            $sourceSystem->mapId->id === $this->id &&
+            $targetSystem->mapId->id === $this->id
+        ){
+            $this->filter('connections', [
+                'active = :active AND
+            (
+                (
+                    source = :sourceId AND
+                    target = :targetId
+                ) OR (
+                    source = :targetId AND
+                    target = :sourceId
+                )
+            )',
+                ':active' => 1,
+                ':sourceId' => $sourceSystem->id,
+                ':targetId' => $targetSystem->id,
+            ], ['limit'=> 1]);
+
+            return ($this->connections) ? reset($this->connections) : null;
+        }else{
+            return null;
+        }
+    }
+
+    /**
+     * save new connection
+     * -> connection scope/type is automatically added
+     * @param ConnectionModel $connection
+     * @return false|ConnectionModel
+     */
+    public function saveConnection(ConnectionModel $connection){
+        $connection->mapId = $this;
+        return $connection->save();
     }
 
     /**

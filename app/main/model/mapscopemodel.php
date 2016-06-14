@@ -37,7 +37,19 @@ class MapScopeModel extends BasicModel{
         [
             'id' => 1,
             'name' => 'wh',
-            'label' => 'w-space'
+            'label' => 'wormholes'
+        ],[
+            'id' => 2,
+            'name' => 'k-space',
+            'label' => 'stargates'
+        ],[
+            'id' => 3,
+            'name' => 'none',
+            'label' => 'none'
+        ],[
+            'id' => 4,
+            'name' => 'all',
+            'label' => 'all'
         ]
     ];
 

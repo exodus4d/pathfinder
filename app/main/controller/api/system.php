@@ -98,7 +98,7 @@ class System extends \Controller\AccessController {
      * @return Model\SystemModel[]
      * @throws \Exception
      */
-    protected function _getSystemModelByIds($columnIDs = [], $column = 'solarSystemID'){
+    public function getSystemModelByIds($columnIDs = [], $column = 'solarSystemID'){
 
         $systemModels = [];
 
@@ -112,8 +112,7 @@ class System extends \Controller\AccessController {
         $rows = $ccpDB->exec($query, null, 60 * 60 * 24);
 
         // format result
-        $mapper = new Mapper\CcpSystemsMapper($rows);
-        $ccpSystemsData = $mapper->getData();
+        $ccpSystemsData = (new Mapper\CcpSystemsMapper($rows))->getData();
 
         foreach($ccpSystemsData as $ccpSystemData){
             /**
@@ -236,7 +235,7 @@ class System extends \Controller\AccessController {
                         // --> (e.g. multiple simultaneously save() calls for the same system)
                         if( is_null( $systemModel = $map->getSystemByCCPId($systemData['systemId']) ) ){
                             // system not found on map -> get static system data (CCP DB)
-                            $systemModel = array_values( $this->_getSystemModelByIds([$systemData['systemId']]) )[0];
+                            $systemModel = $map->getNewSystem($systemData['systemId']);
                             $systemModel->createdCharacterId = $activeCharacter;
                         }
 
@@ -332,7 +331,7 @@ class System extends \Controller\AccessController {
                 $return->systemData = $f3->get($cacheKey);
             }else{
                 if($constellationId > 0){
-                    $systemModels = $this->_getSystemModelByIds([$constellationId], 'constellationID');
+                    $systemModels = $this->getSystemModelByIds([$constellationId], 'constellationID');
 
                     foreach($systemModels as $systemModel){
                         $return->systemData[] = $systemModel->getData();

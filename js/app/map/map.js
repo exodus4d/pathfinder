@@ -30,7 +30,6 @@ define([
         mapMagnetizer: false,                                           // "Magnetizer" feature for drag&drop systems on map (optional)
         mapTabContentClass: 'pf-map-tab-content',                       // Tab-Content element (parent element)
         mapWrapperClass: 'pf-map-wrapper',                              // wrapper div (scrollable)
-        headMapTrackingId: 'pf-head-map-tracking',                      // id for "map tracking" toggle (checkbox)
 
         mapClass: 'pf-map',                                             // class for all maps
         mapGridClass: 'pf-grid-small',                                  // class for map grid snapping
@@ -81,10 +80,6 @@ define([
 
     // active connections per map (cache object)
     var connectionCache = {};
-
-    // characterID => systemIds are cached temporary where the active user character is in
-    // if a character switches/add system, establish connection with "previous" system
-    var activeSystemCache = '';
 
     // jsPlumb config
     var globalMapConfig =  {
@@ -2911,7 +2906,7 @@ define([
                             // validate form
                             form.validator('validate');
 
-                            // check weather the form is valid
+                            // check whether the form is valid
                             var formValid = form.isValidForm();
 
                             if(formValid === false){
@@ -3075,11 +3070,6 @@ define([
 
         var mapElement = map.getContainer();
 
-        // get map tracking toggle value
-        // if "false" -> new systems/connections will not automatically added
-        var mapTracking = $('#' + config.headMapTrackingId).is(':checked');
-
-
         // container must exist! otherwise systems can not be updated
         if(mapElement !== undefined){
 
@@ -3149,74 +3139,10 @@ define([
                         // set current location data for header update
                         headerUpdateData.currentSystemId =  $(system).data('id');
                         headerUpdateData.currentSystemName = currentCharacterLog.system.name;
-
-                        // check connection exists between new and previous systems --------o------------------------------
-                        // e.g. a loop
-                        if(
-                            activeSystemCache &&
-                            mapTracking &&
-                            activeSystemCache.data('systemId') !== currentCharacterLog.system.id
-                        ){
-                            // maybe a loop detected (both systems already on map -> connection missing
-                            var connections = checkForConnection(map, activeSystemCache, system );
-
-                            if(connections.length === 0){
-                                var connectionData = {
-                                    source: activeSystemCache.data('id') ,
-                                    target: system.data('id'),
-                                    type: ['wh_fresh'] // default type.
-                                };
-
-                                var connection = drawConnection(map, connectionData);
-                                saveConnection(connection);
-                            }
-
-                        }
-
-                        // cache current location
-                        activeSystemCache = system;
                     }
                 }
 
                 system.updateSystemUserData(map, tempUserData, currentUserIsHere);
-            }
-
-            // current user was not found on any map system -> add new system to map where the user is in ----------------
-            // this is restricted to IGB-usage! CharacterLog data is always set through the IGB
-            // ->this prevent adding the same system multiple times, if a user is online with IGB AND OOG
-            if(
-                currentUserOnMap === false &&
-                currentCharacterLog &&
-                mapTracking
-            ){
-                // add new system to the map
-                var requestData = {
-                    systemData: {
-                        systemId: currentCharacterLog.system.id
-                    },
-                    mapData: {
-                        id: userData.config.id
-                    }
-                };
-
-                // check if a system jump is detected previous system !== current system
-                // and add a connection to the previous system as well
-                // hint: if a user just logged on -> there is no active system cached
-                var sourceSystem = false;
-                if(
-                    activeSystemCache &&
-                    activeSystemCache.data('systemId') !== currentCharacterLog.system.id
-                ){
-
-                    // draw new connection
-                    sourceSystem = activeSystemCache;
-                    // calculate new system coordinates
-                    requestData.systemData.position = calculateNewSystemPosition(sourceSystem);
-                }
-
-                mapElement.getMapOverlay('timer').startMapUpdateCounter();
-
-                saveSystem(map, requestData, sourceSystem, false);
             }
 
             // trigger document event -> update header

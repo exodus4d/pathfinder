@@ -8,6 +8,7 @@
 
 namespace Model;
 
+use Controller\Api\Route;
 use DB\SQL\Schema;
 
 class ConnectionModel extends BasicModel{
@@ -111,7 +112,37 @@ class ConnectionModel extends BasicModel{
     }
 
     /**
-     * check weather this model is valid or not
+     * set default connection type by search route between endpoints
+     */
+    public function setDefaultTypeData(){
+        if(
+            is_object($this->source) &&
+            is_object($this->target)
+        ){
+            $routeController = new Route();
+            $routeController->initJumpData();
+            $route = $routeController->findRoute($this->source->name, $this->target->name, 1);
+
+            if($route['routePossible']){
+                $this->scope = 'stargate';
+                $this->type = ['stargate'];
+            }else{
+                $this->scope = 'wh';
+                $this->type = ['wh_fresh'];
+            }
+        }
+    }
+
+    /**
+     * check whether this connection is a wormhole or not
+     * @return bool
+     */
+    public function isWormhole(){
+        return ($this->scope === 'wh');
+    }
+
+    /**
+     * check whether this model is valid or not
      * @return bool
      */
     public function isValid(){
@@ -120,6 +151,8 @@ class ConnectionModel extends BasicModel{
         // check if source/target system are not equal
         // check if source/target belong to same map
         if(
+            is_object($this->source) &&
+            is_object($this->target) &&
             $this->source->_id === $this->target->_id ||
             $this->source->mapId->_id !== $this->target->mapId->_id
         ){
@@ -127,6 +160,31 @@ class ConnectionModel extends BasicModel{
         }
 
         return $isValid;
+    }
+
+    /**
+     * Event "Hook" function
+     * can be overwritten
+     * return false will stop any further action
+     */
+    public function beforeInsertEvent(){
+        // check for "default" connection type and add them if missing
+        if(
+            !$this->scope ||
+            !$this->type
+        ){
+            $this->setDefaultTypeData();
+        }
+
+        return true;
+    }
+
+    /**
+     * save connection and check if obj is valid
+     * @return ConnectionModel|false
+     */
+    public function save(){
+        return ( $this->isValid() ) ? parent::save() : false;
     }
 
     /**
