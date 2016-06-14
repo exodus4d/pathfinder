@@ -508,7 +508,18 @@ define([
                     targets: 3,
                     orderable: false,
                     title: 'route',
-                    data: 'route'
+                    data: 'route',
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex) {
+
+                        // init context menu
+                        /*
+                        console.log(cell);
+                        console.log(cellData);
+                        $(cell).find('i').on('click', function(){
+
+                        });
+                        */
+                    }
                 },{
                     targets: 4,
                     title: '',

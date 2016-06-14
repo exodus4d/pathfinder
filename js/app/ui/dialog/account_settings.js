@@ -31,10 +31,9 @@ define([
 
     /**
      * show "register/settings" dialog
-     * @param options
      * @returns {boolean}
      */
-    $.fn.showSettingsDialog = function(options){
+    $.fn.showSettingsDialog = function(){
 
         // check if there are other dialogs open
         var openDialogs = Util.getOpenDialogs();

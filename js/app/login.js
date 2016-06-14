@@ -146,89 +146,6 @@ define([
     };
 
     /**
-     * show "registration key" dialog (see "Invite" feature)
-     */
-    var showRequestRegistrationKeyDialog = function(){
-        var data = {
-            id: config.signatureReaderDialogId,
-            formErrorContainerClass: Util.config.formErrorContainerClass,
-            formWarningContainerClass: Util.config.formWarningContainerClass
-        };
-
-        requirejs(['text!templates/dialog/registration.html', 'mustache'], function(template, Mustache) {
-
-            var content = Mustache.render(template, data);
-
-            var registrationKeyDialog = bootbox.dialog({
-                title: 'Registration Key',
-                message: content,
-                buttons: {
-                    close: {
-                        label: 'cancel',
-                        className: 'btn-default'
-                    },
-                    success: {
-                        label: '<i class="fa fa-envelope fa-fw"></i>&nbsp;send',
-                        className: 'btn-success',
-                        callback: function () {
-                            var dialogElement = $(this);
-                            var form = dialogElement.find('form');
-
-                            // validate form
-                            form.validator('validate');
-                            var formValid = form.isValidForm();
-
-                            if(formValid){
-                                var formValues = form.getFormValues();
-
-                                if( !$.isEmptyObject(formValues) ){
-
-                                    // send Tab data and store values
-                                    var requestData = {
-                                        settingsData: formValues
-                                    };
-
-                                    var modalContent = registrationKeyDialog.find('.modal-content');
-                                    modalContent.showLoadingAnimation();
-
-                                    $.ajax({
-                                        type: 'POST',
-                                        url: Init.path.sendInviteKey,
-                                        data: requestData,
-                                        dataType: 'json'
-                                    }).done(function(responseData){
-
-                                        if(
-                                            responseData.error &&
-                                            responseData.error.length > 0
-                                        ){
-                                            form.showFormMessage(responseData.error);
-                                        }else{
-                                            $('.modal').modal('hide');
-                                            Util.showNotify({title: 'Registration Key send', text: 'Check your Mails', type: 'success'});
-                                        }
-
-                                        modalContent.hideLoadingAnimation();
-                                    }).fail(function( jqXHR, status, error) {
-                                        modalContent.hideLoadingAnimation();
-
-                                        var reason = status + ' ' + error;
-                                        Util.showNotify({title: jqXHR.status + ': send Registration Key', text: reason, type: 'error'});
-                                    });
-
-                                }
-                            }
-
-                            return false;
-                        }
-                    }
-                }
-            });
-        });
-    };
-
-
-    /**
      * init image carousel
      */
     var initCarousel = function(){
@@ -723,12 +640,6 @@ define([
             if (history.pushState) {
                 history.pushState({}, '', location.protocol + '//' + location.host + location.pathname);
             }
-        }
-
-        // show get registration key dialog
-        var showRegistrationDialog = location.search.split('register')[1];
-        if(showRegistrationDialog !== undefined){
-            showRequestRegistrationKeyDialog();
         }
 
         // init "lazy loading" for images
