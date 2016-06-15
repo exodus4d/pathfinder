@@ -216,7 +216,8 @@ class MapModel extends BasicModel {
      */
     public function getNewSystem($systemId){
         $systemController = new System();
-        $system = reset($systemController->getSystemModelByIds([$systemId]));
+        $systems = $systemController->getSystemModelByIds([$systemId]);
+        $system = reset($systems);
         $system->mapId = $this->id;
         return $system;
     }
