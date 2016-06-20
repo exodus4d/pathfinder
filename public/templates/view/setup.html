@@ -37,8 +37,9 @@
 
         <div class="row text-center">
 
-            {* Information *}
             <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
+
+                {* Information *}
                 <div class="panel panel-default pricing-big">
 
                     <div class="panel-heading text-left">
@@ -56,7 +57,9 @@
                             <tbody>
                             <tr>
                                 <td>Version</td>
-                                <td class="text-right">{{ @PATHFINDER.VERSION }}</td>
+                                <td class="text-right">
+                                    <kbd>{{ @PATHFINDER.VERSION }}</kbd>
+                                </td>
                             </tr>
                             <tr>
                                 <td>Contact</td>
@@ -68,71 +71,14 @@
                             </tr>
                             </tbody>
                         </table>
-
-                        <div class="panel-footer text-left">
-                            <h3 class="panel-title">Configuration</h3>
-                        </div>
-
-                        <table class="table">
-                            <tbody>
-                            <repeat group="{{ @environmentInformation }}" value="{{ @environmentData }}">
-                                <tr>
-                                    <td>{{@environmentData.label}}</td>
-                                    <td class="text-right col-md-8">
-                                        <check if="{{ @environmentData.check }}">
-                                            <true>
-                                                <kbd>{{@environmentData.value | raw}}</kbd>
-                                            </true>
-                                            <false>
-                                                <kbd class="txt-color txt-color-danger">{{@environmentData.value | raw}}</kbd>
-                                            </false>
-                                        </check>
-                                    </td>
-                                </tr>
-                            </repeat>
-                            </tbody>
-                        </table>
                     </div>
                 </div>
-            </div>
 
-            {* OS *}
-            <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
+                {* Framework requirements (PHP) *}
+                {* Check if all requirements are fulfilled *}
+                <set requirementsFulfilled="OK" />
+
                 <div class="panel panel-default pricing-big">
-
-                    <div class="panel-heading text-left">
-                        <h3 class="panel-title">Server</h3>
-                    </div>
-                    <div class="panel-body no-padding text-align-center">
-
-                        <table class="table">
-                            <tbody>
-                            <repeat group="{{ @serverInformation }}" value="{{ @information }}">
-                                <tr>
-                                    <td>{{@information.label}}</td>
-                                    <td class="text-right col-md-8">{{@information.value}}</td>
-                                </tr>
-                            </repeat>
-
-                            </tbody>
-                        </table>
-
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <h4><i class="fa fa-fw fa-cogs"></i> Settings</h4>
-
-        <div class="row text-center">
-            {* Framework requirements (PHP) *}
-            {* Check if all requirements are fulfilled *}
-
-            <set requirementsFulfilled="OK" />
-            <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
-                <div class="panel panel-default pricing-big">
-
                     <div class="panel-heading text-left">
                         <h3 class="panel-title">Rquirements</h3>
                     </div>
@@ -202,8 +148,121 @@
                 </div>
             </div>
 
-            {* Settings *}
             <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
+
+                {* OS *}
+                <div class="panel panel-default pricing-big">
+
+                    <div class="panel-heading text-left">
+                        <h3 class="panel-title">Server</h3>
+                    </div>
+                    <div class="panel-body no-padding text-align-center">
+
+                        <table class="table">
+                            <tbody>
+                            <repeat group="{{ @serverInformation }}" value="{{ @information }}">
+                                <tr>
+                                    <td>{{@information.label}}</td>
+                                    <td class="text-right col-md-8">{{@information.value}}</td>
+                                </tr>
+                            </repeat>
+
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+
+                {* Directories *}
+                <div class="panel panel-default pricing-big">
+
+                    <div class="panel-heading text-left">
+                        <h3 class="panel-title">Directories</h3>
+                    </div>
+                    <div class="panel-body no-padding text-align-center">
+
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <td class="col-md-3">TEMP (Cache)</td>
+                                <td class="text-right col-md-8">
+                                    <kbd>{{ @TEMP }}</kbd>
+                                </td>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                                <tr>
+                                    <td>LOGS</td>
+                                    <td class="text-right">
+                                        <kbd>{{ @LOGS }}</kbd>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>UI</td>
+                                    <td class="text-right">
+                                        <kbd>{{ @UI }}</kbd>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>AUTOLOAD</td>
+                                    <td class="text-right">
+                                        <kbd>{{ @AUTOLOAD }}</kbd>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>FAVICON</td>
+                                    <td class="text-right">
+                                        <kbd>{{ @FAVICON }}</kbd>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <h4><i class="fa fa-fw fa-sliders"></i> Settings</h4>
+
+        <div class="row text-center">
+            <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
+                <div class="panel panel-default pricing-big">
+
+                    <div class="panel-heading text-left">
+                        <h3 class="panel-title">Configuration</h3>
+                    </div>
+
+                    <div class="panel-body no-padding text-align-center">
+                        <table class="table">
+                            <tbody>
+                            <repeat group="{{ @environmentInformation }}" value="{{ @environmentData }}">
+                                <tr>
+                                    <td>{{@environmentData.label}}</td>
+                                    <td class="text-right col-md-8">
+                                        <check if="{{ @environmentData.check }}">
+                                            <true>
+                                                <kbd>{{@environmentData.value | raw}}</kbd>
+                                            </true>
+                                            <false>
+                                                <kbd class="txt-color txt-color-danger">{{@environmentData.value | raw}}</kbd>
+                                            </false>
+                                        </check>
+                                    </td>
+                                </tr>
+                            </repeat>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
+
+                {* Settings *}
                 <div class="panel panel-default pricing-big">
 
                     <div class="panel-heading text-left">
@@ -682,5 +741,38 @@
 
         </div>
 
+        <h4><i class="fa fa-fw fa-wrench"></i> Administration</h4>
+
+        <div class="row text-center">
+            <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
+
+                {* Cache *}
+                <div class="panel panel-default pricing-big">
+
+                    <div class="panel-heading text-left">
+                        <h3 class="panel-title">Cache
+                            <span class="pull-right">
+                                <check if="{{ @cacheSize }}">
+                                    <true>
+                                        {{ @cacheSize }}
+                                        <i class="fa fa-fw fa-battery-half txt-color txt-color-success"></i>
+                                    </true>
+                                    <false>
+                                        <i class="fa fa-fw fa-battery-empty txt-color txt-color-warning" title="" data-original-title="empty cache"></i>
+                                    </false>
+                                </check>
+                            </span>
+                        </h3>
+                    </div>
+
+                    <div class="panel-footer btn-group btn-group-justified">
+                        <a href="?clearCache=1" class="btn btn-warning">
+                            <i class="fa fa-fw fa-times"></i> Clear cache
+                        </a>
+
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </section>

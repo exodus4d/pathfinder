@@ -137,6 +137,7 @@ class Setup extends Controller {
     /**
      * main setup route handler
      * works as dispatcher for setup functions
+     * -> for security reasons all /setup "routes" are dispatched by GET params
      * @param \Base $f3
      */
     public function init(\Base $f3){
@@ -146,21 +147,17 @@ class Setup extends Controller {
         $fixColumns = false;
 
         // bootstrap database from model class definition
-        if(
-            isset($params['db']) &&
-            !empty($params['db'])
-        ){
+        if( !empty($params['db']) ){
             $this->bootstrapDB($params['db']);
 
             // reload page
             // -> remove GET param
             $f3->reroute('@setup');
             return;
-        }elseif(
-            isset($params['fixCols']) &&
-            !empty($params['fixCols'])
-        ){
+        }elseif( !empty($params['fixCols']) ){
             $fixColumns = true;
+        }elseif( !empty($params['clearCache']) ){
+            $this->clearCache($f3);
         }
 
         // set template data ----------------------------------------------------------------
@@ -175,6 +172,9 @@ class Setup extends Controller {
 
         // set database connection information
         $f3->set('checkDatabase', $this->checkDatabase($f3, $fixColumns));
+
+        // set cache size
+        $f3->set('cacheSize', $this->getCacheSize($f3));
     }
 
     /**
@@ -729,5 +729,53 @@ class Setup extends Controller {
             }
         }
         return $checkTables;
+    }
+
+    /**
+     * get cache folder size as string
+     * @param \Base $f3
+     * @return string
+     */
+    protected function getCacheSize(\Base $f3){
+        $dir = $f3->get('TEMP') . '/cache';
+        $bytes = $this->folderSize($dir);
+        return $this->convertBytes($bytes);
+    }
+
+    /**
+     * clear all cached files
+     * @param \Base $f3
+     */
+    protected function clearCache(\Base $f3){
+        $f3->clear('CACHE');
+    }
+
+    /**
+     * get folder size in bytes (recursive)
+     * @param string $dir
+     * @return int
+     */
+    protected function folderSize($dir){
+        $size = 0;
+        foreach (glob(rtrim($dir, '/').'/*', GLOB_NOSORT) as $each) {
+            $size += is_file($each) ? filesize($each) : $this->folderSize($each);
+        }
+        return $size;
+    }
+
+    /**
+     * convert Bytes to string + suffix
+     * @param int $bytes
+     * @param int $precision
+     * @return string
+     */
+    protected function convertBytes($bytes, $precision = 2){
+        $result = '0';
+        if($bytes){
+            $base = log($bytes, 1024);
+            $suffixes = array('', 'KB', 'MB', 'GB', 'TB');
+            $result = round(pow(1024, $base - floor($base)), $precision) .' '. $suffixes[floor($base)];
+        }
+        return $result;
     }
 }
