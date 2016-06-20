@@ -132,7 +132,7 @@ define([
             }).append(
                 $('<a>', {
                     class: 'list-group-item',
-                    href: '#'
+                    href: '/'
                 }).html('&nbsp;&nbsp;Home').prepend(
                         $('<i>',{
                             class: 'fa fa-home fa-fw'
