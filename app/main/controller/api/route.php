@@ -589,8 +589,8 @@ class Route extends \Controller\AccessController {
                 ];
 
                 $returnRoutData = [
-                    'systemFrom' => $routeData['systemFrom'],
-                    'systemTo' => $routeData['systemTo'],
+                    'systemFromData' => $routeData['systemFromData'],
+                    'systemToData' => $routeData['systemToData'],
                     'maps' => $mapData,
                     'mapIds' => $mapIds
                 ];
@@ -599,10 +599,14 @@ class Route extends \Controller\AccessController {
                 $returnRoutData += $filterData;
 
                 if(count($mapIds) > 0){
+                    $systemFrom = $routeData['systemFromData']['name'];
+                    $systemTo = $routeData['systemToData']['name'];
+
+
                     $cacheKey = $this->getRouteCacheKey(
                         $mapIds,
-                        $routeData['systemFrom'],
-                        $routeData['systemTo'],
+                        $systemFrom,
+                        $systemTo,
                         $filterData
                     );
 
@@ -614,7 +618,7 @@ class Route extends \Controller\AccessController {
                         $this->initJumpData($mapIds, $filterData);
 
                         // no cached route data found
-                        $foundRoutData = $this->findRoute($routeData['systemFrom'], $routeData['systemTo']);
+                        $foundRoutData = $this->findRoute($systemFrom, $systemTo);
                         $returnRoutData = array_merge($returnRoutData, $foundRoutData);
 
                         // cache if route was found

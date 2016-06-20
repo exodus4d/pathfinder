@@ -367,6 +367,7 @@ define([
                 return Mustache.render(TplLogo, {});
             },
             brandLogo: config.menuHeadMenuLogoClass,
+            popoverTriggerClass: Util.config.popoverTriggerClass,
             userCharacterClass: config.headUserCharacterClass,
             userCharacterImageClass: config.userCharacterImageClass,
             userShipClass: config.headUserShipClass,

@@ -2011,7 +2011,7 @@ define([
                     case 'add_first_waypoint':
                     case 'add_last_waypoint':
                         systemData = system.getSystemData();
-                        setDestination(systemData, action);
+                        Util.setDestination(systemData, action);
                         break;
                 }
             }
@@ -2061,68 +2061,6 @@ define([
         };
 
         system.singleDoubleClick(single, double);
-    };
-
-
-    /**
-     * set new destination for a system
-     * -> CREST request
-     * @param systemData
-     * @param type
-     */
-    var setDestination = function(systemData, type){
-
-        var description = '';
-        switch(type){
-            case 'set_destination':
-                description = 'Set destination';
-                break;
-            case 'add_first_waypoint':
-                description = 'Set first waypoint';
-                break;
-            case 'add_last_waypoint':
-                description = 'Set new waypoint';
-                break;
-        }
-
-        $.ajax({
-            type: 'POST',
-            url: Init.path.setDestination,
-            data: {
-                clearOtherWaypoints: (type === 'set_destination') ? 1 : 0,
-                first: (type === 'add_last_waypoint') ? 0 : 1,
-                systemData: [{
-                    systemId: systemData.systemId,
-                    name: systemData.name
-                }]
-            },
-            context: {
-                description: description
-            },
-            dataType: 'json'
-        }).done(function(responseData){
-            if(
-                responseData.systemData &&
-                responseData.systemData.length > 0
-            ){
-                for (var j = 0; j < responseData.systemData.length; j++) {
-                    Util.showNotify({title: this.description, text: 'System: ' + responseData.systemData[j].name, type: 'success'});
-                }
-            }
-
-            if(
-                responseData.error &&
-                responseData.error.length > 0
-            ){
-                for(var i = 0; i < responseData.error.length; i++){
-                    Util.showNotify({title: this.description + ' error', text: 'System: ' + responseData.error[i].message, type: 'error'});
-                }
-            }
-
-        }).fail(function( jqXHR, status, error) {
-            var reason = status + ' ' + error;
-            Util.showNotify({title: jqXHR.status + ': ' + this.description, text: reason, type: 'warning'});
-        });
     };
 
     /**
@@ -2882,9 +2820,6 @@ define([
         requirejs(['text!templates/dialog/system.html', 'mustache'], function(template, Mustache) {
 
             var content = Mustache.render(template, data);
-
-            // disable modal focus event -> otherwise select2 is not working! -> quick fix
-            $.fn.modal.Constructor.prototype.enforceFocus = function() {};
 
             var systemDialog = bootbox.dialog({
                 title: 'Add new system',

@@ -47,7 +47,7 @@ em{
   padding: 0 !important;
 }
 
-// help elements ====================================================
+// help elements ==================================================================================
 .pf-help{
   cursor: pointer; // fallback
   cursor: help;
@@ -60,7 +60,7 @@ em{
   }
 }
 
-// icon buttons =====================================================
+// icon buttons ===================================================================================
 .pf-dialog-icon-button{
   cursor: pointer;
   margin-top: 2px;
@@ -81,12 +81,12 @@ em{
 
 }
 
-// alert messages ===================================================
+// alert messages =================================================================================
 .alert{
   will-change: opacity, transform;
 }
 
-// form fields custom styles ========================================
+// form fields custom styles ======================================================================
 .editable-input{
   optgroup[label]{
     background-color: $gray;
@@ -108,8 +108,7 @@ select:active, select:hover {
   outline-color: red
 }
 
-// select2 custom template ==========================================
-
+// select2 custom template ========================================================================
 .select2-results{
   [class*="col-"]{
     line-height: 22px;
@@ -132,7 +131,7 @@ select:active, select:hover {
   }
 }
 
-// global datatable styles ==========================================
+// global datatable styles ========================================================================
 .dataTable{
 
   th{
@@ -195,7 +194,7 @@ select:active, select:hover {
 
 }
 
-// table styles =====================================================
+// table styles ===================================================================================
 table{
   tr{
     &.collapsing{
@@ -228,7 +227,7 @@ table{
   visibility: hidden;
 }
 
-// laoding indicator overlay =====================================
+// landing indicator overlay ======================================================================
 .pf-loading-overlay{
   position: absolute;
   width: 100%;
@@ -257,7 +256,7 @@ table{
   }
 }
 
-//  navbar li ====================================================
+//  navbar li =====================================================================================
 .navbar-nav {
   li{
     &:hover, &.active{
@@ -289,7 +288,7 @@ table{
   cursor: pointer;
 }
 
-// page menu =====================================================
+// page menu ======================================================================================
 .pf-site{
   will-change: transform;
 }
@@ -310,12 +309,12 @@ table{
   }
 }
 
-// custom scrollbars =============================================
+// custom scrollbars ==============================================================================
 .mCSB_container, .mCSB_dragger{
   will-change: top, left;
 }
 
-// log types =====================================================
+// log types ======================================================================================
 .pf-log-info{
   @extend .txt-color-green;
 }
@@ -328,7 +327,7 @@ table{
   @extend .txt-color-red;
 }
 
-// map types =====================================================
+// map types ======================================================================================
 .pf-map-type-private{
   color: $indigo;
 }
@@ -345,7 +344,7 @@ table{
   color: $teal-lighter;
 }
 
-// maps module ===================================================
+// maps module ====================================================================================
 #pf-map-module{
   margin: 20px 10px 0 10px;
 
@@ -382,7 +381,7 @@ table{
   }
 }
 
-// Tab Content Body Grid ========================================
+// Tab Content Body Grid ==========================================================================
 .pf-map-content-row{
   margin-top: 10px;
   padding-bottom: 40px; // space for footer
@@ -429,7 +428,7 @@ table{
 
 }
 
-// User status =================================================
+// User status ====================================================================================
 .pf-user-status{
   color: $red-darker;
 }
@@ -446,8 +445,7 @@ table{
   color: $indigo;
 }
 
-// WH effects ==================================================
-
+// WH effects =====================================================================================
 .pf-system-effect{
   display: none;      // if effect is active it will be overwritten
   cursor: default;
@@ -484,7 +482,7 @@ table{
   display: inline-block;
 }
 
-// system info status ================================================
+// system info status =============================================================================
 .pf-system-info-rally{
   .pf-system-head{
     background-color: $pink-darker;
@@ -506,7 +504,7 @@ table{
 }
 
 
-// system security status ============================================
+// system security status =========================================================================
 
 .pf-system-security-0-0{
   color: $system-color-sec-0-0;
@@ -552,7 +550,7 @@ table{
   color: $system-color-sec-1-0;
 }
 
-// system security level =============================================
+// system security level ==========================================================================
 
 .pf-system-sec{
   margin-right: 5px;
@@ -588,7 +586,7 @@ table{
   color: $indigo;
 }
 
-// system status ======================================================
+// system status ==================================================================================
 
 .pf-system-status-friendly{
   border-color: $blue !important;
@@ -643,7 +641,7 @@ table{
   }
 }
 
-// system effect info dialog ==========================================
+// system effect info dialog ======================================================================
 .pf-system-effect-dialog-wrapper, .pf-jump-info-dialog{
   .table{
     margin: 15px 0;
@@ -731,7 +729,7 @@ table{
 }
 
 
-// global tooltip settings ======================================
+// global tooltip settings ========================================================================
 .tooltip-inner{
   color: $green;
   background-color: $gray;
@@ -743,7 +741,6 @@ table{
 
 
 .modal{
-
   // tooltips within modals
   .tooltip{
     // higher z-index
@@ -754,8 +751,6 @@ table{
       background-color: $gray-lighter;
     }
   }
-
-
 }
 
 .tooltip.top .tooltip-arrow{
@@ -774,9 +769,8 @@ table{
   border-left-color: $gray-light;
 }
 
-// global popover settings ======================================
+// global popover settings ========================================================================
 .popover{
-
   // on top of modals even if they are attached to <body>
   z-index: $zindex-modal + 10;
 
@@ -802,7 +796,62 @@ table{
   }
 }
 
-// dynamic area (e.g. for loading animation) ====================
+// specific "Pathfinder" Popover settings ---------------------------------------------------------
+.pf-popover{
+  display: initial;
+
+  .popover-content{
+    padding: 0; // overwrite default popover padding
+  }
+
+  h6{
+    white-space: nowrap;
+    margin-right: 50px;
+    @include clearfix();
+  }
+
+  .well{
+    margin-top: 7px;
+    margin-bottom: 10px;
+  }
+
+  .list-group{
+    margin: 0;
+
+    .list-group-item{
+      color: $gray-dark;
+
+      &:hover{
+        color: $gray-darkest;
+      }
+
+      &.disabled{
+        background-color: $gray;
+        color: $gray-light;
+        cursor: not-allowed;
+      }
+
+      img{
+        width: 30px;
+        margin: -8px 10px -6px -8px;
+        border-radius: 0; // overwrite "global"
+      }
+
+      i{
+        margin-right: 20px;
+      }
+    }
+  }
+}
+
+// elements that are popover "triggers" (root elements) (e.g. open on right click)-----------------
+td.pf-popover-trigger{
+  &:hover{
+    color: $teal;
+  }
+}
+
+// dynamic area (e.g. for loading animation) ======================================================
 .pf-dynamic-area{
   padding: 10px;
   min-height: 100px;
@@ -820,12 +869,12 @@ table{
   }
 }
 
-// svg logo =====================================================
+// svg logo =======================================================================================
 #pf-logo-wrapper{
   display: block; // remove default height
 }
 
-// header =======================================================
+// header =========================================================================================
 #pf-head{
   margin-bottom: 0px;
 
@@ -930,7 +979,7 @@ table{
   @include box-shadow(0 6px 12px rgba(0,0,0,.4));
 }
 
-// footer =======================================================
+// footer =========================================================================================
 #pf-footer{
   position: absolute;
   bottom: 0;

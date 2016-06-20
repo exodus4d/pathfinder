@@ -48,7 +48,10 @@ define([
 
         // animation
         animationPulseSuccessClass: 'pf-animation-pulse-success',               // animation class
-        animationPulseWarningClass: 'pf-animation-pulse-warning'                // animation class
+        animationPulseWarningClass: 'pf-animation-pulse-warning',               // animation class
+
+        // popover
+        popoverTriggerClass: 'pf-popover-trigger'                               // class for "popover" trigger elements
 
     };
 
@@ -590,9 +593,10 @@ define([
                     title: 'select character',
                     trigger: 'click',
                     placement: 'bottom',
+                    container: 'body',
                     content: content,
                     animation: false
-                }).data('bs.popover').tip().addClass('pf-character-info-popover');
+                }).data('bs.popover').tip().addClass('pf-popover');
 
                 element.on('click', function(e) {
                     e.preventDefault();
@@ -617,20 +621,33 @@ define([
                     }
                 });
 
-                // hide popup on clicking "somewhere" outside
-                $('body').off('click.' + eventNamespace).on('click.' + eventNamespace, function (e) {
+                // set popup "close" observer
+                elements.initPopoverClose(eventNamespace);
+            });
+        });
+    };
 
+    /**
+     * set "popover" close action on clicking "somewhere" on the <body>
+     * @param eventNamespace
+     * @returns {*}
+     */
+    $.fn.initPopoverClose = function(eventNamespace){
+        return this.each(function() {
+            $('body').off('click.' + eventNamespace).on('click.' + eventNamespace + ' contextmenu', function (e) {
+
+                $('.' + config.popoverTriggerClass).each(function () {
+                    var popoverElement = $(this);
                     //the 'is' for buttons that trigger popups
                     //the 'has' for icons within a button that triggers a popup
-                    if (
-                        !$(element).is(e.target) &&
-                        $(element).has(e.target).length === 0 &&
+                    if(
+                        !popoverElement.is(e.target) &&
+                        popoverElement.has(e.target).length === 0 &&
                         $('.popover').has(e.target).length === 0
                     ){
-                        $(element).popover('hide');
+                        popoverElement.popover('hide');
                     }
                 });
-
             });
         });
     };
@@ -1678,6 +1695,67 @@ define([
     };
 
     /**
+     * set new destination for a system
+     * -> CREST request
+     * @param systemData
+     * @param type
+     */
+    var setDestination = function(systemData, type){
+
+        var description = '';
+        switch(type){
+            case 'set_destination':
+                description = 'Set destination';
+                break;
+            case 'add_first_waypoint':
+                description = 'Set first waypoint';
+                break;
+            case 'add_last_waypoint':
+                description = 'Set new waypoint';
+                break;
+        }
+
+        $.ajax({
+            type: 'POST',
+            url: Init.path.setDestination,
+            data: {
+                clearOtherWaypoints: (type === 'set_destination') ? 1 : 0,
+                first: (type === 'add_last_waypoint') ? 0 : 1,
+                systemData: [{
+                    systemId: systemData.systemId,
+                    name: systemData.name
+                }]
+            },
+            context: {
+                description: description
+            },
+            dataType: 'json'
+        }).done(function(responseData){
+            if(
+                responseData.systemData &&
+                responseData.systemData.length > 0
+            ){
+                for (var j = 0; j < responseData.systemData.length; j++) {
+                    showNotify({title: this.description, text: 'System: ' + responseData.systemData[j].name, type: 'success'});
+                }
+            }
+
+            if(
+                responseData.error &&
+                responseData.error.length > 0
+            ){
+                for(var i = 0; i < responseData.error.length; i++){
+                    showNotify({title: this.description + ' error', text: 'System: ' + responseData.error[i].message, type: 'error'});
+                }
+            }
+
+        }).fail(function( jqXHR, status, error) {
+            var reason = status + ' ' + error;
+            showNotify({title: jqXHR.status + ': ' + this.description, text: reason, type: 'warning'});
+        });
+    };
+
+    /**
      * set currentSystemData as "global" variable
      * @param systemData
      */
@@ -1835,6 +1913,7 @@ define([
         getCurrentSystemData: getCurrentSystemData,
         getCurrentUserInfo: getCurrentUserInfo,
         getCurrentCharacterLog: getCurrentCharacterLog,
+        setDestination: setDestination,
         convertDateToString: convertDateToString,
         getOpenDialogs: getOpenDialogs,
         formatPrice: formatPrice,

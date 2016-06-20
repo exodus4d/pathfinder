@@ -18,7 +18,7 @@ define([
 
         $.when(
             selectElement.select2({
-                dropdownParent: 'body',
+                dropdownParent: selectElement.parents('.modal-body'),
                 theme: 'pathfinder',
                 maximumSelectionLength: 5
             })
@@ -78,8 +78,8 @@ define([
                         return {
                             results: data.map( function(item){
 
-                                // "systemId" is the system name!
-                                var systemId = item[options.key];
+                                // "systemId" or "name"
+                                var id = item[options.key];
                                 var disabled = false;
                                 var trueSec = parseFloat(item.trueSec);
                                 var secClass = Util.getSecurityClassForSystem(item.security);
@@ -89,7 +89,7 @@ define([
                                 // check if system is dialed
                                 if(
                                     options.disabledOptions &&
-                                    options.disabledOptions.indexOf(parseInt(systemId, 10)) !== -1
+                                    options.disabledOptions.indexOf(parseInt(id, 10)) !== -1
                                 ){
                                     disabled = true;
                                 }
@@ -105,8 +105,9 @@ define([
                                 }
 
                                 return {
-                                    id: systemId,
+                                    id: id,
                                     text: item.name,
+                                    systemId: parseInt(item.systemId),
                                     security: item.security,
                                     secClass: secClass,
                                     trueSec: trueSec.toFixed(1),
@@ -127,7 +128,7 @@ define([
 
                     }
                 },
-                dropdownParent: 'body',
+                dropdownParent: selectElement.parents('.modal-body'),
                 theme: 'pathfinder',
                 minimumInputLength: 2,
                 templateResult: formatResultData,
@@ -248,7 +249,7 @@ define([
 
                         }
                     },
-                    dropdownParent: 'body',
+                    dropdownParent: selectElement.parents('.modal-body'),
                     theme: 'pathfinder',
                     minimumInputLength: 3,
                     placeholder: '',
