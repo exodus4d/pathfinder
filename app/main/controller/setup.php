@@ -250,6 +250,18 @@ class Setup extends Controller {
             'machine' => [
                 'label' => 'Machine type',
                 'value' => php_uname('m')
+            ],
+            'root' => [
+                'label' => 'Document root',
+                'value' => $f3->get('ROOT')
+            ],
+            'port' => [
+                'label' => 'Port',
+                'value' => $f3->get('PORT')
+            ],
+            'protocol' => [
+                'label' => 'Protocol',
+                'value' => $f3->get('SCHEME')
             ]
         ];
 

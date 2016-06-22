@@ -336,7 +336,8 @@ define(['jquery'], function($) {
                 4: 'M001 - C4',
                 5: 'C008 - C5',
                 6: 'G008 - C6',
-                7: 'Q003 - 0.0'
+                7: 'Q003 - 0.0',
+                8: 'A009 - (shattered)'
             },
             2: {    // C2
                 1: 'E004 - C1',
@@ -345,7 +346,8 @@ define(['jquery'], function($) {
                 4: 'M001 - C4',
                 5: 'C008 - C5',
                 6: 'G008 - C6',
-                7: 'Q003 - 0.0'
+                7: 'Q003 - 0.0',
+                8: 'A009 - (shattered)'
             },
             3: {    // C3
                 1: 'E004 - C1',
@@ -354,7 +356,8 @@ define(['jquery'], function($) {
                 4: 'M001 - C4',
                 5: 'C008 - C5',
                 6: 'G008 - C6',
-                7: 'Q003 - 0.0'
+                7: 'Q003 - 0.0',
+                8: 'A009 - (shattered)'
             },
             4: {    // C4
                 1: 'E004 - C1',
@@ -363,7 +366,8 @@ define(['jquery'], function($) {
                 4: 'M001 - C4',
                 5: 'C008 - C5',
                 6: 'G008 - C6',
-                7: 'Q003 - 0.0'
+                7: 'Q003 - 0.0',
+                8: 'A009 - (shattered)'
 	    },
             5: {    // C5
                 1: 'E004 - C1',
@@ -372,7 +376,8 @@ define(['jquery'], function($) {
                 4: 'M001 - C4',
                 5: 'C008 - C5',
                 6: 'G008 - C6',
-                7: 'Q003 - 0.0'
+                7: 'Q003 - 0.0',
+                8: 'A009 - (shattered)'
             },
             6: {    // C6
                 1: 'E004 - C1',
@@ -381,7 +386,8 @@ define(['jquery'], function($) {
                 4: 'M001 - C4',
                 5: 'C008 - C5',
                 6: 'G008 - C6',
-                7: 'Q003 - 0.0'
+                7: 'Q003 - 0.0',
+                8: 'A009 - (shattered)'
             },
             13: {   // Shattered Wormholes (some of them are static)
                 1: 'E004 - C1',
@@ -390,7 +396,8 @@ define(['jquery'], function($) {
                 4: 'M001 - C4',
                 5: 'C008 - C5',
                 6: 'G008 - C6',
-                7: 'Q003 - 0.0'
+                7: 'Q003 - 0.0',
+                8: 'A009 - (shattered)'
             }
         },
         // incoming wormholes
