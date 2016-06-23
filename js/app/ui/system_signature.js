@@ -411,10 +411,12 @@ define([
                         callback: function () {
                             // get form Values
                             var form = $('#' + config.signatureReaderDialogId).find('form');
-
                             var formData = $(form).getFormValues();
 
-                            moduleElement.updateSignatureTableByClipboard(systemData, formData.clipboard);
+                            var signatureOptions = {
+                                deleteOld: (formData.deleteOld) ? 1 : 0
+                            };
+                            moduleElement.updateSignatureTableByClipboard(systemData, formData.clipboard, signatureOptions);
                         }
                     }
                 }
@@ -422,6 +424,8 @@ define([
 
             // dialog shown event
             signatureReaderDialog.on('shown.bs.modal', function(e) {
+                signatureReaderDialog.initTooltips();
+
                 // set focus on sig-input textarea
                 signatureReaderDialog.find('textarea').focus();
             });
@@ -435,8 +439,9 @@ define([
      * -> Hint: copy&paste signature data (without any open dialog) will add signatures as well
      * @param systemData
      * @param clipboard data stream
+     * @param options
      */
-    $.fn.updateSignatureTableByClipboard = function(systemData, clipboard){
+    $.fn.updateSignatureTableByClipboard = function(systemData, clipboard, options){
 
         // check if copy&paste is enabled
         if( !disableCopyFromClipboard ){
@@ -455,7 +460,9 @@ define([
                 disableCopyFromClipboard = true;
 
                 var requestData = {
-                    signatures: signatureData
+                    signatures: signatureData,
+                    deleteOld: (options.deleteOld) ? 1 : 0,
+                    systemId: parseInt(systemData.id)
                 };
 
                 $.ajax({
@@ -745,7 +752,7 @@ define([
                 $(e.target).prop('tagName').toLowerCase() !== 'textarea'
             ){
                 var clipboard = (e.originalEvent || e).clipboardData.getData('text/plain');
-                moduleElement.updateSignatureTableByClipboard(systemData, clipboard);
+                moduleElement.updateSignatureTableByClipboard(systemData, clipboard, {});
             }
         });
     };

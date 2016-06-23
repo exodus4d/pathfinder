@@ -337,7 +337,7 @@ class SystemModel extends BasicModel {
 
     /**
      * get all signatures of this system
-     * @return array
+     * @return SystemModel array
      */
     public function getSignatures(){
         $this->filter('signatures', ['active = ?', 1], ['order' => 'name']);
