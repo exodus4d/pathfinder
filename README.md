@@ -2,15 +2,13 @@
 Mapping tool for [*EVE ONLINE*](https://www.eveonline.com)
 
 - Project URL [https://www.pathfinder-w.space](https://www.pathfinder-w.space)
-- **NEW** Features: [checkout](https://www.pathfinder-w.space#pf-landing-gallery)
-- Official Forum post [https://forums.eveonline.com](https://forums.eveonline.com/default.aspx?g=posts&m=6021776#post6021776)
+- Official forum post [https://forums.eveonline.com](https://forums.eveonline.com/default.aspx?g=posts&m=6021776#post6021776)
 - Screenshots [imgur.com](http://imgur.com/a/k2aVa)
-- Video [youtube.com](https://www.youtube.com/channel/UC7HU7XEoMbqRwqxDTbMjSPg)
-- Community [google +](https://plus.google.com/+Pathfinder-wSpace)
+- Videos [youtube.com](https://www.youtube.com/channel/UC7HU7XEoMbqRwqxDTbMjSPg)
 - Licence [MIT](http://opensource.org/licenses/MIT)
 
 #### Development
-- **NEW** Test server
+-  Test server
   - URL: http://www.dev.pathfinder-w.space
   - Running current `develop` branch
   - Using Singularity (SISI) CREST (make sure to use your test-server client)
