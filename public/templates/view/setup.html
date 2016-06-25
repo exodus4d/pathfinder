@@ -758,25 +758,56 @@
                     <div class="panel-heading text-left">
                         <h3 class="panel-title">Cache
                             <span class="pull-right">
-                                <check if="{{ @cacheSize }}">
+                                <check if="{{ @cacheSize.all }}">
                                     <true>
-                                        {{ @cacheSize }}&nbsp;
-                                        <i class="fa fa-fw fa-battery-half txt-color txt-color-success"></i>
+                                        {{ @cacheSize.all }}&nbsp;
                                     </true>
                                     <false>
                                         0 KB&nbsp;
-                                        <i class="fa fa-fw fa-battery-empty txt-color txt-color-warning" title="" data-original-title="empty cache"></i>
                                     </false>
                                 </check>
                             </span>
                         </h3>
                     </div>
 
-                    <div class="panel-footer btn-group btn-group-justified">
-                        <a href="?clearCache=1" class="btn btn-warning {{ (@cacheSize) ?'':'disabled' }}">
-                            <i class="fa fa-fw fa-times"></i> Clear cache
-                        </a>
 
+                    <div class="panel-body no-padding">
+                        <div class="btn-group btn-group-justified">
+                            <span class="btn btn-default disabled btn-fake">
+                                Data
+                                <span class="pull-right">
+                                    <check if="{{ @cacheSize.data }}">
+                                        <true>
+                                            {{ @cacheSize.data }}
+                                        </true>
+                                        <false>
+                                            0 KB
+                                        </false>
+                                    </check>
+                                </span>
+
+                            </span>
+                            <a href="?clearCache=1" class="btn btn-warning {{ (@cacheSize.data) ?'':'disabled' }}" role="button">
+                                <i class="fa fa-fw fa-times"></i> Clear
+                            </a>
+                        </div>
+
+                        <div class="btn-group btn-group-justified">
+                            <span class="btn btn-default disabled btn-fake">
+                                Template
+                                <span class="pull-right">
+                                    <check if="{{ @cacheSize.template }}">
+                                        <true>
+                                            {{ @cacheSize.template }}
+                                        </true>
+                                        <false>
+                                            0 KB
+                                        </false>
+                                    </check>
+                                </span>
+                            </span>
+                            <span class="btn btn-default disabled btn-fake"></span>
+                        </div>
                     </div>
                 </div>
             </div>

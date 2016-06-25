@@ -8,6 +8,7 @@
 
 namespace Controller;
 
+use data\filesystem\Search;
 use DB;
 use DB\SQL;
 use DB\SQL\MySQL as MySQL;
@@ -174,7 +175,7 @@ class Setup extends Controller {
         $f3->set('checkDatabase', $this->checkDatabase($f3, $fixColumns));
 
         // set cache size
-        $f3->set('cacheSize', $this->getCacheSize($f3));
+        $f3->set('cacheSize', $this->getCacheData($f3));
     }
 
     /**
@@ -229,7 +230,7 @@ class Setup extends Controller {
         $serverInfo = [
             'time' => [
                 'label' => 'Time',
-                'value' => date('Y/m/d H:i:s') . ' - (' . date_default_timezone_get() . ')'
+                'value' => date('Y/m/d H:i:s') . ' - (' . $f3->get('TZ') . ')'
             ],
             'os' => [
                 'label' => 'OS',
@@ -746,12 +747,29 @@ class Setup extends Controller {
     /**
      * get cache folder size as string
      * @param \Base $f3
-     * @return string
+     * @return array
      */
-    protected function getCacheSize(\Base $f3){
-        $dir = $f3->get('TEMP') . '/cache';
-        $bytes = $this->folderSize($dir);
-        return $this->convertBytes($bytes);
+    protected function getCacheData(\Base $f3){
+
+        // get all cache -----------------------------------------------------------------------------------------
+        $cacheFilesAll = Search::getFilesByMTime( $f3->get('TEMP') );
+        $bytesAll = 0;
+        foreach($cacheFilesAll as $filename => $file) {
+            $bytesAll += $file->getSize();
+        }
+
+        // get data cache -----------------------------------------------------------------------------------------
+        $cacheFilesData = Search::getFilesByMTime( $f3->get('TEMP') . 'cache/' );
+        $bytesData = 0;
+        foreach($cacheFilesData as $filename => $file) {
+            $bytesData += $file->getSize();
+        }
+
+        return [
+            'all' => $this->convertBytes($bytesAll),
+            'data' => $this->convertBytes($bytesData),
+            'template' => $this->convertBytes($bytesAll - $bytesData)
+        ];
     }
 
     /**
@@ -760,19 +778,6 @@ class Setup extends Controller {
      */
     protected function clearCache(\Base $f3){
         $f3->clear('CACHE');
-    }
-
-    /**
-     * get folder size in bytes (recursive)
-     * @param string $dir
-     * @return int
-     */
-    protected function folderSize($dir){
-        $size = 0;
-        foreach (glob(rtrim($dir, '/').'/*', GLOB_NOSORT) as $each) {
-            $size += is_file($each) ? filesize($each) : $this->folderSize($each);
-        }
-        return $size;
     }
 
     /**

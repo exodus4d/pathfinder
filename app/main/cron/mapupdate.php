@@ -22,7 +22,7 @@ class MapUpdate {
      * >> php index.php "/cron/deactivateMapData"
      * @param \Base $f3
      */
-    function deactivateMapData($f3){
+    function deactivateMapData(\Base $f3){
 
         $pfDB = DB\Database::instance()->getDB('PF');
 
@@ -48,7 +48,7 @@ class MapUpdate {
      * >> php index.php "/cron/deleteMapData"
      * @param \Base $f3
      */
-    function deleteMapData($f3){
+    function deleteMapData(\Base $f3){
 
         $pfDB = DB\Database::instance()->getDB('PF');
 

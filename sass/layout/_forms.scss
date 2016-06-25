@@ -28,6 +28,14 @@ input, select{
   }
 }
 
+// "fake" button (no user interaction)
+.btn-fake{
+  border: none;
+  text-align: left;
+  color: $gray-lighter !important;
+  background-color: $gray !important;
+}
+
 // drag&drop zone
 .pf-form-dropzone{
   border: 2px dashed $gray-darker;
