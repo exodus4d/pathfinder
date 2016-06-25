@@ -162,6 +162,14 @@ class Signature extends Controller\AccessController{
                                     unset( $data['typeId'] );
                                 }
 
+                                // "sig reader" should not overwrite signature group information
+                                if(
+                                    $data['groupId'] == 0 &&
+                                    $signature->groupId > 0
+                                ){
+                                    unset($data['groupId']);
+                                }
+
                                 $newData = $data;
                             }
 

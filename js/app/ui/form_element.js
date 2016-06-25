@@ -63,7 +63,7 @@ define([
                 ajax: {
                     url: function(params){
                         // add params to URL
-                        return   Init.path.searchSystem + '/' + params.term;
+                        return   Init.path.searchSystem + '/' + params.term.trim();
                     },
                     dataType: 'json',
                     delay: 250,
