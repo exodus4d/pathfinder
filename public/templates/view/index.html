@@ -52,7 +52,7 @@
     {* Youtube verification code *}
     <meta name="google-site-verification" content="sHoh0gfMw3x1wiwLTK5OsKsxt7kRgxi69hRgWEGh9DQ" />
 
-    <link rel="stylesheet" type="text/css" media="screen" href="{{ @BASE }}public/css/pathfinder.css?{{ @PATHFINDER.VERSION }}">
+    <link rel="stylesheet" type="text/css" media="screen" href="{{ @BASE }}/public/css/pathfinder.css?{{ @PATHFINDER.VERSION }}">
 
 </head>
 <body class="{{ @bodyClass }}" data-trusted="{{ @trusted }}" data-js-path="{{ @pathJs }}" data-script="{{ @jsView }}" data-version="{{ @PATHFINDER.VERSION }}">
@@ -61,7 +61,7 @@
 
     <!-- Hey dude! Where is all the magic? -->
 
-    <script data-main="{{ @BASE }}{{ @pathJs }}/app" src="{{ @BASE }}{{ @pathJs }}/lib/require.js" ></script>
+    <script data-main="{{ @BASE }}/{{ @pathJs }}/app" src="{{ @BASE }}/{{ @pathJs }}/lib/require.js" ></script>
 </body>
 
 </html>
