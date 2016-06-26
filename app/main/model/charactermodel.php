@@ -423,7 +423,6 @@ class CharacterModel extends BasicModel {
             ){
                 // get character data from CREST
                 $characterData = $ssoController->getCharacterData($accessToken);
-
                 if( isset($characterData->character) ){
                     $characterData->character['ownerHash'] = $verificationCharacterData->CharacterOwnerHash;
 

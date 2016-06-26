@@ -408,7 +408,7 @@ class Controller {
                 isset($params['reroute']) &&
                 (bool)$params['reroute']
             ){
-                $return->reroute = rtrim(self::getEnvironmentData('URL'), '/') . $f3->alias('login');
+                $return->reroute = rtrim(self::getEnvironmentData('URL'), '/') . rtrim(self::getEnvironmentData('BASE'), '/');
             }else{
                 // no reroute -> errors can be shown
                 $return->error[] = $this->getLogoutError();
