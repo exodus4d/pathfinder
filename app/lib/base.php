@@ -189,7 +189,7 @@ final class Base extends Prefab implements ArrayAccess {
 			$params=$this->parse($params);
 		if (empty($this->hive['ALIASES'][$name]))
 			user_error(sprintf(self::E_Named,$name),E_USER_ERROR);
-		$url=$this->build($this->hive['ALIASES'][$name],$params);
+		$url=rtrim($this->hive['REALM'],"/").$this->build($this->hive['ALIASES'][$name],$params);
 		return $url;
 	}
 

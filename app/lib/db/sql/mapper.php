@@ -425,6 +425,7 @@ class Mapper extends \DB\Cursor {
 			if ($this->engine!='oci')
 				$this->_id=$this->db->lastinsertid($seq);
 			// Reload to obtain default and auto-increment field values
+			$this->adhoc = array();
 			$this->load($inc?
 				array($inc.'=?',$this->db->value(
 					$this->fields[$inc]['pdo_type'],$this->_id)):

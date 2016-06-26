@@ -97,7 +97,7 @@ class Sso extends Api\User{
                     ($activeCharacter->getUser()->_id === $character->getUser()->_id)
                 ){
                     // requested character belongs to current user
-                    // -> update character vom CREST (e.g. corp changed,..)
+                    // -> update character from CREST (e.g. corp changed,..)
                     $updateStatus = $character->updateFromCrest();
 
                     if( empty($updateStatus) ){
@@ -134,7 +134,7 @@ class Sso extends Api\User{
 
             $urlParams = [
                 'response_type' => 'code',
-                'redirect_uri' => Controller\Controller::getEnvironmentData('URL') . $f3->build('/sso/callbackAuthorization'),
+                'redirect_uri' => Controller\Controller::getEnvironmentData('URL') . Controller\Controller::getEnvironmentData('BASE') . $f3->build('/sso/callbackAuthorization'),
                 'client_id' => Controller\Controller::getEnvironmentData('SSO_CCP_CLIENT_ID'),
                 'scope' => implode(' ', $this->requestScopes),
                 'state' => $state
