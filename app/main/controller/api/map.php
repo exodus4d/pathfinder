@@ -799,7 +799,10 @@ class Map extends Controller\AccessController {
 
             // if systems don´t already exists on map -> get "blank" systems
             // -> required for system type check (e.g. wormhole, k-space)
-            if( !$sourceSystem ){
+            if(
+                !$sourceSystem &&
+                $sourceSystemId
+            ){
                 $sourceExists = false;
                 $sourceSystem = $map->getNewSystem($sourceSystemId);
             }else{
