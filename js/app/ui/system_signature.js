@@ -40,7 +40,7 @@ define([
         sigTableEditSigNameInput: 'pf-sig-table-edit-name-input',               // class for editable fields (input)
         sigTableEditSigGroupSelect: 'pf-sig-table-edit-group-select',           // class for editable fields (sig group)
         sigTableEditSigTypeSelect: 'pf-sig-table-edit-type-select',             // class for editable fields (sig type)
-        sigTableEditSigConnectionSelect: 'pf-sig-table-edit-connection-select',       // class for editable fields (sig connection)
+        sigTableEditSigConnectionSelect: 'pf-sig-table-edit-connection-select', // class for editable fields (sig connection)
         sigTableEditSigDescriptionTextarea: 'pf-sig-table-edit-desc-text',      // class for editable fields (sig description)
         sigTableCreatedCellClass: 'pf-sig-table-created',                       // class for "created" cells
         sigTableUpdatedCellClass: 'pf-sig-table-updated',                       // class for "updated" cells
@@ -106,7 +106,7 @@ define([
 
             var row = signatureTableApi.row(idx);
             // default row data
-            var defaultRowData = row.data();console.log (row.data());
+            var defaultRowData = row.data();
             var rowElement = row.nodes().to$();
 
             if(defaultRowData.id > 0){
@@ -776,6 +776,7 @@ define([
         var sigNameFields = tableElement.find('.' + config.sigTableEditSigNameInput);
         var sigGroupFields = tableElement.find('.' + config.sigTableEditSigGroupSelect);
         var sigTypeFields = tableElement.find('.' + config.sigTableEditSigTypeSelect);
+        var sigConnectionFields = tableElement.find('.' + config.sigTableEditSigConnectionSelect);
         var sigDescriptionFields = tableElement.find('.' + config.sigTableEditSigDescriptionTextarea);
 
         // jump to "next" editable field on save
@@ -863,7 +864,7 @@ define([
                     var newRowData = response.signatures[0];
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 6, newRowData.updated);
+                    updateSignatureCell(rowElement, 7, newRowData.updated);
                 }
             }
         });
@@ -901,7 +902,7 @@ define([
                     var newRowData = response.signatures[0];
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 6, newRowData.updated);
+                    updateSignatureCell(rowElement, 7, newRowData.updated);
                 }
 
                 // find related "type" select (same row) and change options
@@ -960,9 +961,40 @@ define([
                     var newRowData = response.signatures[0];
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 6, newRowData.updated);
+                    updateSignatureCell(rowElement, 7, newRowData.updated);
                 }
             }
+        });
+
+        // Select connection ---------------------------------------------------------------
+        sigConnectionFields.editable({ mode: 'popup',
+            type: 'select',
+            title: 'type',
+            name: 'typeId',
+            emptytext: 'unknown',
+            onblur: 'submit',
+            showbuttons: false,
+            params: modifyFieldParamsOnSend,
+            source: function(){
+                var signatureConnectionField = $(this);
+                var availableConnections = getAllConnections(systemData);
+
+                return availableConnections;
+            },
+            success: function(response, newValue){
+                if(response){
+                    var signatureConnectionField = $(this);
+                    var rowElement = signatureConnectionField.parents('tr');
+                    var newRowData = response.signatures[0];
+
+                    // update "updated" cell
+                    updateSignatureCell(rowElement, 7, newRowData.updated);
+
+                    var newSelectOptions = getAllConnections(systemData);
+                    sigConnectionFields.editable('option', 'source', newSelectOptions);
+                }
+            }
+            
         });
 
         // Textarea sig description -----------------------------------------------------------------------------------
@@ -983,7 +1015,7 @@ define([
                     var newRowData = response.signatures[0];
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 6, newRowData.updated);
+                    updateSignatureCell(rowElement, 7, newRowData.updated);
                 }
             }
         });
@@ -1170,6 +1202,18 @@ define([
 
         return signatureNames;
     };
+
+    /**
+     * get all connections that can exist for a given system
+     * @param systemData
+     * @returns {Array}
+     */
+    var getAllConnections = function(systemData){
+        var mapId = ($('.pf-map-tab-content.tab-pane.active').attr('id')).substring(11);
+        mapId = parseInt(mapId, 10);
+        var currentMapData = Util.getCurrentMapData(mapId);
+        return ['c-v','r-r'];
+    }
 
     /**
      * deletes signature rows from signature table
@@ -1502,9 +1546,12 @@ define([
                 sigConnection += 'data-areaId="' + areaId + '" ';
                 sigConnection += 'data-groupId="' + data.groupId + '" ';
                 sigConnection += 'data-value="' + data.connection.id + '" ';
-                sigConnection += '>' + data.connection.id + '</a>';
+                sigConnection += '></a>';
 
-                tempData.connection = sigConnection;
+                tempData.connection = {
+                    connection: sigConnection,
+                    connection_sort: data.connection
+                };
 
                 // set description ------------------------------------------------------------------------------------
                 var sigDescription = '<a href="#" class="' + config.sigTableEditSigDescriptionTextarea + '" ';
@@ -1614,7 +1661,11 @@ define([
                     title: 'connection',
                     type: 'html',
                     width: '130px',
-                    data: 'connection'
+                    data: 'connection',
+                    render: {
+                        _: 'connection',
+                        sort: 'connection_sort'
+                    }
                 },{
                     targets: 5,
                     orderable: false,

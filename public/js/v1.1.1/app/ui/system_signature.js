@@ -864,7 +864,7 @@ define([
                     var newRowData = response.signatures[0];
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 6, newRowData.updated);
+                    updateSignatureCell(rowElement, 7, newRowData.updated);
                 }
             }
         });
@@ -902,7 +902,7 @@ define([
                     var newRowData = response.signatures[0];
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 6, newRowData.updated);
+                    updateSignatureCell(rowElement, 7, newRowData.updated);
                 }
 
                 // find related "type" select (same row) and change options
@@ -961,21 +961,13 @@ define([
                     var newRowData = response.signatures[0];
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 6, newRowData.updated);
+                    updateSignatureCell(rowElement, 7, newRowData.updated);
                 }
             }
         });
 
-        // Select sig type (slave: depends on sig type) ---------------------------------------------------------------
-        /*sigConnectionFields.on('init', function(e, editable) {/*
-            // check if there are initial options available
-            var options = editable.input.options.source.bind(e.target)();
-            if(options.length <= 0){
-                editable.disable();
-            }
-        });
-
-        sigTypeFields.editable({ mode: 'popup',
+        // Select connection ---------------------------------------------------------------
+        sigConnectionFields.editable({ mode: 'popup',
             type: 'select',
             title: 'type',
             name: 'typeId',
@@ -984,27 +976,26 @@ define([
             showbuttons: false,
             params: modifyFieldParamsOnSend,
             source: function(){
-                var signatureTypeField = $(this);
+                var signatureConnectionField = $(this);
+                var availableConnections = getAllConnections(systemData);
 
-                var systemTypeId = parseInt( signatureTypeField.attr('data-systemTypeId') );
-                var areaId = parseInt( signatureTypeField.attr('data-areaid') );
-                var groupId = parseInt( signatureTypeField.attr('data-groupId') );
-                var availableSigs = getAllSignatureNames(systemData, systemTypeId, areaId, groupId);
-
-                return availableSigs;
+                return availableConnections;
             },
             success: function(response, newValue){
                 if(response){
-                    var signatureTypeField = $(this);
-                    var rowElement = signatureTypeField.parents('tr');
+                    var signatureConnectionField = $(this);
+                    var rowElement = signatureConnectionField.parents('tr');
                     var newRowData = response.signatures[0];
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 6, newRowData.updated);
+                    updateSignatureCell(rowElement, 7, newRowData.updated);
+
+                    var newSelectOptions = getAllConnections(systemData);
+                    sigConnectionFields.editable('option', 'source', newSelectOptions);
                 }
             }
-            console.log('here');
-        });*/
+            
+        });
 
         // Textarea sig description -----------------------------------------------------------------------------------
         sigDescriptionFields.editable({
@@ -1024,7 +1015,7 @@ define([
                     var newRowData = response.signatures[0];
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 6, newRowData.updated);
+                    updateSignatureCell(rowElement, 7, newRowData.updated);
                 }
             }
         });
@@ -1211,6 +1202,23 @@ define([
 
         return signatureNames;
     };
+
+    /**
+     * get all connections that can exist for a given system
+     * @param systemData
+     * @returns {Array}
+     */
+    var getAllConnections = function(systemData){
+        var mapId = ($('.pf-map-tab-content.tab-pane.active').attr('id')).substring(11);
+        mapId = parseInt(mapId, 10);
+        var currentConnections = Util.getCurrentMapData(mapId).data.connections;
+        console.log(currentConnections);
+
+        // TODO: Loop through connections and filter all where the target or source matches the current system id
+        // TODO: Return the name of the other system in the connection associated with the connection id e.g. (connection id) 1 => C-BHDN
+
+        return ['c-v','r-r'];
+    }
 
     /**
      * deletes signature rows from signature table
@@ -1543,9 +1551,12 @@ define([
                 sigConnection += 'data-areaId="' + areaId + '" ';
                 sigConnection += 'data-groupId="' + data.groupId + '" ';
                 sigConnection += 'data-value="' + data.connection.id + '" ';
-                sigConnection += '>' + data.connection.id + '</a>';
+                sigConnection += '></a>';
 
-                tempData.connection = sigConnection;
+                tempData.connection = {
+                    connection: sigConnection,
+                    connection_sort: data.connection
+                };
 
                 // set description ------------------------------------------------------------------------------------
                 var sigDescription = '<a href="#" class="' + config.sigTableEditSigDescriptionTextarea + '" ';
