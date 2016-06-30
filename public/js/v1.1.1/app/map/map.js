@@ -10,6 +10,7 @@ define([
     'bootbox',
     'app/ccp',
     'app/map/magnetizing',
+    'app/map/scrollbar',
     'dragToSelect',
     'select2',
     'app/map/contextmenu',
@@ -64,6 +65,9 @@ define([
         // dialogs
         systemDialogId: 'pf-system-dialog',                             // id for system dialog
         systemDialogSelectClass: 'pf-system-dialog-select',             // class for system select Element
+
+        // local storage
+        mapLocalStoragePrefix: 'map_',                                  // prefix for map local storage key
 
         // system security classes
         systemSec: 'pf-system-sec',
@@ -3441,6 +3445,21 @@ define([
             function switchTabCallback( mapName, mapContainer ){
                 Util.showNotify({title: 'Map initialized', text: mapName  + ' - loaded', type: 'success'});
 
+                var mapWrapper = mapContainer.parents('.' + config.mapWrapperClass);
+
+                // auto scroll map to previous position
+                var promiseStore = getMapData( mapContainer.data('id') );
+                promiseStore.then(function(data) {
+                    // This code runs once the value has been loaded
+                    // from the offline store.
+                    if(
+                        data &&
+                        data.offsetX
+                    ){
+                        mapWrapper.scrollToX(data.offsetX);
+                    }
+                });
+
                 if( config.mapMagnetizer === true ){
                     mapContainer.initMagnetizer();
                 }
@@ -3458,42 +3477,60 @@ define([
     };
 
     /**
+     * get stored map data from client cache (IndexedDB)
+     * @param mapId
+     * @returns {*} promise
+     */
+    var getMapData = function(mapId){
+        if(mapId > 0){
+            var mapStorageKey = config.mapLocalStoragePrefix + mapId;
+            return Util.localforage.getItem(mapStorageKey);
+        }else{
+            console.error('Map local storage requires mapId > 0');
+        }
+    };
+
+    /**
+     * store local map config to client cache (IndexedDB)
+     * @param mapId
+     * @param key
+     * @param value
+     */
+    var storeMapData = function(mapId, key, value){
+        if(mapId > 0){
+            // get current map config
+            var mapStorageKey = config.mapLocalStoragePrefix + mapId;
+            Util.localforage.getItem(mapStorageKey).then(function(data) {
+                // This code runs once the value has been loaded
+                // from the offline store.
+                data = (data === null) ? {} : data;
+                // set/update value
+                data[key] = value;
+                Util.localforage.setItem(mapStorageKey, data);
+            }).catch(function(err) {
+                // This code runs if there were any errors
+                console.error('Map local storage can not be accessed!');
+            });
+        }else{
+            console.error('Map local storage requires mapId > 0');
+        }
+    };
+
+    /**
      * init scrollbar for Map element
      */
     $.fn.initMapScrollbar = function(){
         // get Map Scrollbar
         var scrollableElement = $(this).find('.' + config.mapWrapperClass);
-        initCustomScrollbar( scrollableElement );
 
-        // ---------------------------------------------------------------------------
-        // add map overlays after scrollbar is initialized
-        // because of its absolute position
-        scrollableElement.initMapOverlays();
-    };
-
-    /**
-     * init a custom scrollbar
-     * @param scrollableElement
-     */
-    var initCustomScrollbar = function( scrollableElement ){
-
-        // prevent multiple initialization
-        $(scrollableElement).mCustomScrollbar('destroy');
-
-        // init custom scrollbars
-        $(scrollableElement).mCustomScrollbar({
-            axis: 'x',
-            theme: 'light-thick',
-            scrollInertia: 300,
-            autoExpandScrollbar: false,
-            scrollButtons:{
-                scrollAmount: 30,
-                enable: true
-            },
-            callbacks:{
-                onTotalScrollOffset: 0,
-                onTotalScrollBackOffset: 0,
-                alwaysTriggerOffsets:true,
+        scrollableElement.initCustomScrollbar({
+            callbacks: {
+                onScroll: function(){
+                    // scroll complete
+                    var mapElement = $(this).find('.' + config.mapClass);
+                    // store new map scrollOffset -> localDB
+                    storeMapData( mapElement.data('id'), 'offsetX', Math.abs(this.mcs.left) );
+                },
                 onScrollStart: function(){
                     // hide all open xEditable fields
                     $(this).find('.editable').editable('hide');
@@ -3507,34 +3544,13 @@ define([
                     $(mapElement).data('scrollLeft', this.mcs.left);
                     $(mapElement).data('scrollTop', this.mcs.top);
                 }
-            },
-
-            advanced: {
-                updateOnBrowserResize: true,
-                updateOnContentResize: true,
-                autoExpandHorizontalScroll: true,
-                autoScrollOnFocus: "div"
-            },
-            mouseWheel:{
-                enable: false, // scroll weel currently disabled
-                scrollAmount: 'auto',
-                axis: 'x',
-                preventDefault: true
-            },
-            scrollbarPosition: 'inside',
-            autoDraggerLength: true
-            //autoHideScrollbar: false
+            }
         });
-    };
 
-    /**
-     * scroll to a specific position in the map
-     * @returns {*} // string or id
-     */
-    $.fn.scrollTo = function(position){
-        return this.each(function(){
-            $(this).mCustomScrollbar('scrollTo', position);
-        });
+        // ---------------------------------------------------------------------------
+        // add map overlays after scrollbar is initialized
+        // because of its absolute position
+        scrollableElement.initMapOverlays();
     };
 
     return {

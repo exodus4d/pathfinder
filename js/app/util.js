@@ -7,6 +7,7 @@ define([
     'config/system_effect',
     'config/signature_type',
     'bootbox',
+    'localForage',
     'app/ccp',
     'velocity',
     'velocityUI',
@@ -17,7 +18,7 @@ define([
     'hoverIntent',
     'bootstrapConfirmation',
     'bootstrapToggle'
-], function($, Init, SystemEffect, SignatureType, bootbox, CCP) {
+], function($, Init, SystemEffect, SignatureType, bootbox, localforage, CCP) {
 
     'use strict';
 
@@ -1872,6 +1873,7 @@ define([
 
     return {
         config: config,
+        localforage: localforage,
         showVersionInfo: showVersionInfo,
         getCurrentTriggerDelay: getCurrentTriggerDelay,
         getServerTime: getServerTime,

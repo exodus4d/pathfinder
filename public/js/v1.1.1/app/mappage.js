@@ -26,6 +26,11 @@ define([
         // show app information in browser console
         Util.showVersionInfo();
 
+        // init local storage
+        Util.localforage.config({
+            name: 'Pathfinder local storage'
+        });
+
         // init logging
         Logging.init();
 

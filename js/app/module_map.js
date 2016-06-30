@@ -722,9 +722,8 @@ define([
                 var newMapId = $(e.relatedTarget).data('map-id');
                 var oldMapId = $(e.target).data('map-id');
 
-                // disable map if new map is selected -> not "add button"
+                // skip "add button"
                 if(newMapId > 0){
-
                     var currentTabContentElement = $('#' + config.mapTabIdPrefix + oldMapId);
 
                     // disable scrollbar for map that will be hidden. "freeze" current state
