@@ -44,6 +44,17 @@ class SystemSignatureModel extends BasicModel {
             'default' => 0,
             'index' => true,
         ],
+        'connection' => [
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'belongs-to-one' => 'Model\ConnectionModel',
+            'constraint' => [
+                [
+                    'table' => 'connection',
+                    'on-delete' => 'CASCADE'
+                ]
+            ]
+        ],
         'name' => [
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
@@ -125,6 +136,10 @@ class SystemSignatureModel extends BasicModel {
         $signatureData->updated->updated            = strtotime($this->updated);
         if( is_object($this->updatedCharacterId) ){
             $signatureData->updated->character      = $this->updatedCharacterId->getData();
+        }
+
+        if( is_object($this->connection) ){
+            $signatureData->connection      = $this->connection->getData();
         }
 
         return $signatureData;
