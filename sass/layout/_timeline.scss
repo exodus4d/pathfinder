@@ -58,6 +58,7 @@
   padding: 8px;
   position: relative;
   background-color: $gray-dark;
+  font-size: 11px;
   @include box-shadow(0 4px 10px rgba(0,0,0, 0.4));
   @include border-radius(5px);
 }

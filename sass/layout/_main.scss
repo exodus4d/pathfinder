@@ -47,6 +47,41 @@ em{
   padding: 0 !important;
 }
 
+// scroll bar (webkit only) =======================================================================
+::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: $gray-darker;
+  border-left: 1px solid $gray-dark;
+  border-radius: 2px;
+  @include transition( background-color .5s );
+}
+
+::-webkit-scrollbar-thumb {
+  height: 6px;
+  border: 5px solid transparent;
+  background-clip: padding-box;
+  -webkit-border-radius: 8px;
+  background-color: lighten($gray, 30%);
+
+  &:hover{
+    background-color: lighten($gray, 40%);
+  }
+}
+
+::-webkit-scrollbar-button {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+::-webkit-scrollbar-corner {
+  background-color: transparent;
+}
+
 // help elements ==================================================================================
 .pf-help{
   cursor: pointer; // fallback

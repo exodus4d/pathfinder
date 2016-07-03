@@ -159,7 +159,7 @@ define([
         Gallery.prototype.textFactory = function (obj, callback) {
             var newSlideContent = $('<div>')
                 .addClass('text-content')
-                .attr('title', obj.title);
+                .attr('imgTitle', obj.title);
 
             var moduleConfig = {
                 name: obj.href, // template name
@@ -192,31 +192,31 @@ define([
         // initialize carousel ------------------------------------------------
         var carousel = new Gallery([
             {
-                title: 'IGB',
+                imgTitle: 'IGB',
                 href: 'ui/map',
                 type: 'text/html'
             },
             {
                 href: 'public/img/landing/responsive.jpg',
-                title: 'Responsive layout',
+                imgTitle: 'Responsive layout',
                 type: 'image/jpg',
                 thumbnail: ''
             },
             {
                 href: 'public/img/landing/pathfinder_1.jpg',
-                title: 'Map view',
+                imgTitle: 'Map view',
                 type: 'image/jpg',
                 thumbnail: ''
             },
             {
                 href: 'public/img/landing/pathfinder_3.jpg',
-                title: 'Map information',
+                imgTitle: 'Map information',
                 type: 'image/jpg',
                 thumbnail: ''
             },
             {
                 href: 'public/img/landing/pathfinder_2.jpg',
-                title: 'System information',
+                imgTitle: 'System information',
                 type: 'image/jpg',
                 thumbnail: ''
             }
@@ -224,13 +224,16 @@ define([
             container: '#' + config.galleryCarouselId,
             carousel: true,
             startSlideshow: false,
-            titleProperty: 'title',
+            titleProperty: 'imgTitle',
             transitionSpeed: 600,
             slideshowInterval: 5000,
             onopened: function () {
                 // Callback function executed when the Gallery has been initialized
                 // and the initialization transition has been completed.
                 // -> show "demo" map
+
+                // set title for first slide
+                $( this.options.container ).find(  this.options.titleElement).text('Browser view');
 
                 $('#' + config.headHeaderMapId).drawDemoMap(function(){
 
@@ -655,11 +658,14 @@ define([
 
         initCharacterSelect();
 
-        // init carousel
-        initCarousel();
-
         // init scrollspy
         initScrollspy();
+
+        // init page observer
+        setPageObserver();
+
+        // init carousel
+        initCarousel();
 
         // init gallery
         initGallery();
@@ -677,8 +683,6 @@ define([
                 });
             }, false);
         }
-
-        setPageObserver();
 
     });
 
