@@ -322,6 +322,20 @@ class Setup extends Controller {
                 'required' => 'installed',
                 'version' => (extension_loaded('curl') && function_exists('curl_version')) ? 'installed' : 'not installed',
                 'check' => (extension_loaded('curl') && function_exists('curl_version'))
+            ],
+            'maxInputVars' => [
+                'label' => 'max_input_vars',
+                'required' => $f3->get('REQUIREMENTS.PHP.MAX_INPUT_VARS'),
+                'version' => ini_get('max_input_vars'),
+                'check' => ini_get('max_input_vars') >= $f3->get('REQUIREMENTS.PHP.MAX_INPUT_VARS'),
+                'tooltip' => 'PHP default = 1000. Increase it in order to import larger maps.'
+            ],
+            'maxExecutionTime' => [
+                'label' => 'max_execution_time',
+                'required' => $f3->get('REQUIREMENTS.PHP.MAX_EXECUTION_TIME'),
+                'version' => ini_get('max_execution_time'),
+                'check' => ini_get('max_execution_time') >= $f3->get('REQUIREMENTS.PHP.MAX_EXECUTION_TIME'),
+                'tooltip' => 'PHP default = 30. Max execution time for PHP scripts.'
             ]
         ];
 
