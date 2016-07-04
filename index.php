@@ -1,4 +1,5 @@
 <?php
+session_name('pathfinder_session');
 $f3 = require('app/lib/base.php');
 
 // load main config

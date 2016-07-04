@@ -1825,6 +1825,19 @@ define([
     };
 
     /**
+     * get document path
+     * -> www.pathfinder.com/pathfinder/ -> /pathfinder
+     * @returns {string|string}
+     */
+    var getDocumentPath = function(){
+        var pathname = window.location.pathname;
+        // replace file endings
+        var r = /[^\/]*$/;
+        var path = pathname.replace(r, '');
+        return path || '/';
+    };
+
+    /**
      * redirect
      * @param url
      * @param params
@@ -1919,6 +1932,7 @@ define([
         convertDateToString: convertDateToString,
         getOpenDialogs: getOpenDialogs,
         formatPrice: formatPrice,
+        getDocumentPath: getDocumentPath,
         redirect: redirect,
         logout: logout
     };
