@@ -40,6 +40,7 @@ define([
         sigTableEditSigNameInput: 'pf-sig-table-edit-name-input',               // class for editable fields (input)
         sigTableEditSigGroupSelect: 'pf-sig-table-edit-group-select',           // class for editable fields (sig group)
         sigTableEditSigTypeSelect: 'pf-sig-table-edit-type-select',             // class for editable fields (sig type)
+        sigTableEditSigConnectionSelect: 'pf-sig-table-edit-connection-select', // class for editable fields (sig connection)
         sigTableEditSigDescriptionTextarea: 'pf-sig-table-edit-desc-text',      // class for editable fields (sig description)
         sigTableCreatedCellClass: 'pf-sig-table-created',                       // class for "created" cells
         sigTableUpdatedCellClass: 'pf-sig-table-updated',                       // class for "updated" cells
@@ -66,6 +67,7 @@ define([
         name: '',
         groupId: 0,
         typeId: 0,
+        connection: 0,
         description: '',
         created: {
             created: null
@@ -97,6 +99,8 @@ define([
         var signatureTableApi = signatureTable.api();
 
         var tableData = [];
+
+
 
         signatureTableApi.rows().eq(0).each(function(idx){
 
@@ -516,6 +520,7 @@ define([
                     var sigDescription = $.trim(rowData[3]);
                     var sigGroupId = 0;
                     var typeId = 0;
+                    var connection = 0;
 
                     // get groupId by groupName
                     for (var prop in signatureGroupOptions) {
@@ -544,6 +549,7 @@ define([
                         name: $.trim( rowData[0].substr(0, 3) ).toLowerCase(),
                         groupId: sigGroupId,
                         typeId: typeId,
+                        connection: connection,
                         description: sigDescription
                     };
 
@@ -770,6 +776,7 @@ define([
         var sigNameFields = tableElement.find('.' + config.sigTableEditSigNameInput);
         var sigGroupFields = tableElement.find('.' + config.sigTableEditSigGroupSelect);
         var sigTypeFields = tableElement.find('.' + config.sigTableEditSigTypeSelect);
+        var sigConnectionFields = tableElement.find('.' + config.sigTableEditSigConnectionSelect);
         var sigDescriptionFields = tableElement.find('.' + config.sigTableEditSigDescriptionTextarea);
 
         // jump to "next" editable field on save
@@ -857,7 +864,7 @@ define([
                     var newRowData = response.signatures[0];
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 6, newRowData.updated);
+                    updateSignatureCell(rowElement, 7, newRowData.updated);
                 }
             }
         });
@@ -895,7 +902,7 @@ define([
                     var newRowData = response.signatures[0];
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 6, newRowData.updated);
+                    updateSignatureCell(rowElement, 7, newRowData.updated);
                 }
 
                 // find related "type" select (same row) and change options
@@ -954,9 +961,40 @@ define([
                     var newRowData = response.signatures[0];
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 6, newRowData.updated);
+                    updateSignatureCell(rowElement, 7, newRowData.updated);
                 }
             }
+        });
+
+        // Select connection ---------------------------------------------------------------
+        sigConnectionFields.editable({ mode: 'popup',
+            type: 'select',
+            title: 'type',
+            name: 'typeId',
+            emptytext: 'unknown',
+            onblur: 'submit',
+            showbuttons: false,
+            params: modifyFieldParamsOnSend,
+            source: function(){
+                var signatureConnectionField = $(this);
+                var availableConnections = getAllConnections(systemData);
+
+                return availableConnections;
+            },
+            success: function(response, newValue){
+                if(response){
+                    var signatureConnectionField = $(this);
+                    var rowElement = signatureConnectionField.parents('tr');
+                    var newRowData = response.signatures[0];
+
+                    // update "updated" cell
+                    updateSignatureCell(rowElement, 7, newRowData.updated);
+
+                    var newSelectOptions = getAllConnections(systemData);
+                    sigConnectionFields.editable('option', 'source', newSelectOptions);
+                }
+            }
+            
         });
 
         // Textarea sig description -----------------------------------------------------------------------------------
@@ -977,7 +1015,7 @@ define([
                     var newRowData = response.signatures[0];
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 6, newRowData.updated);
+                    updateSignatureCell(rowElement, 7, newRowData.updated);
                 }
             }
         });
@@ -1164,6 +1202,23 @@ define([
 
         return signatureNames;
     };
+
+    /**
+     * get all connections that can exist for a given system
+     * @param systemData
+     * @returns {Array}
+     */
+    var getAllConnections = function(systemData){
+        var mapId = ($('.pf-map-tab-content.tab-pane.active').attr('id')).substring(11);
+        mapId = parseInt(mapId, 10);
+        var currentConnections = Util.getCurrentMapData(mapId).data.connections;
+        console.log(currentConnections);
+
+        // TODO: Loop through connections and filter all where the target or source matches the current system id
+        // TODO: Return the name of the other system in the connection associated with the connection id e.g. (connection id) 1 => C-BHDN
+
+        return ['c-v','r-r'];
+    }
 
     /**
      * deletes signature rows from signature table
@@ -1481,6 +1536,28 @@ define([
 
                 tempData.type = sigType;
 
+                // set connection -------------------------------------------------------------------------------------
+                var sigConnection = '<a href="#" class="' + config.sigTableEditSigConnectionSelect + '" ';
+                if(data.id > 0){
+                    sigConnection += 'data-pk="' + data.id + '" ';
+                }
+
+                // set disabled if sig type is not selected
+                if(data.groupId < 1){
+                    sigConnection += 'data-disabled="1" ';
+                }
+
+                sigConnection += 'data-systemTypeId="' + systemTypeId + '" ';
+                sigConnection += 'data-areaId="' + areaId + '" ';
+                sigConnection += 'data-groupId="' + data.groupId + '" ';
+                sigConnection += 'data-value="' + data.connection.id + '" ';
+                sigConnection += '></a>';
+
+                tempData.connection = {
+                    connection: sigConnection,
+                    connection_sort: data.connection
+                };
+
                 // set description ------------------------------------------------------------------------------------
                 var sigDescription = '<a href="#" class="' + config.sigTableEditSigDescriptionTextarea + '" ';
                 if(data.id > 0){
@@ -1580,17 +1657,29 @@ define([
                     searchable: false,
                     title: 'type',
                     type: 'html',
-                    width: '180px',
+                    width: '50px',
                     data: 'type'
                 },{
                     targets: 4,
+                    orderable: false,
+                    searchable: false,
+                    title: 'connection',
+                    type: 'html',
+                    width: '130px',
+                    data: 'connection',
+                    render: {
+                        _: 'connection',
+                        sort: 'connection_sort'
+                    }
+                },{
+                    targets: 5,
                     orderable: false,
                     searchable: false,
                     title: 'description',
                     type: 'html',
                     data: 'description'
                 },{
-                    targets: 5,
+                    targets: 6,
                     title: 'created',
                     width: '90px',
                     searchable: false,
@@ -1604,7 +1693,7 @@ define([
                         $(cell).initTimestampCounter();
                     }
                 },{
-                    targets: 6,
+                    targets: 7,
                     title: 'updated',
                     width: '90px',
                     searchable: false,
@@ -1626,7 +1715,7 @@ define([
                         }
                     }
                 },{
-                    targets: 7,
+                    targets: 8,
                     title: '',
                     orderable: false,
                     searchable: false,
@@ -1647,7 +1736,7 @@ define([
                         }
                     }
                 },{
-                    targets: 8,
+                    targets: 9,
                     title: '',
                     orderable: false,
                     searchable: false,

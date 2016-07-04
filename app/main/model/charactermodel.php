@@ -413,7 +413,7 @@ class CharacterModel extends BasicModel {
         $status = [];
 
         if( $accessToken = $this->getAccessToken() ){
-            // et basic character data
+            // get basic character data
             // -> this is required for "ownerHash" hash check (e.g. character was sold,..)
             // -> the "id" check is just for security and should NEVER fail!
             $ssoController = new Sso();
