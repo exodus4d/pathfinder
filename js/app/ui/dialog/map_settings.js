@@ -184,9 +184,6 @@ define([
                 $('#' + config.dialogMapCreateContainerId, contentDialog).html(contentNewMap);
                 $('#' + config.dialogMapEditContainerId, contentDialog).html(contentEditMap);
 
-                // disable modal focus event -> otherwise select2 is not working! -> quick fix
-                $.fn.modal.Constructor.prototype.enforceFocus = function() {};
-
                 var mapInfoDialog = bootbox.dialog({
                     title: dialogTitle,
                     message: contentDialog,

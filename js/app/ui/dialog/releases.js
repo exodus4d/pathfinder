@@ -51,12 +51,8 @@ define([
                     stagger: 300,
                     duration: 240,
                     //display: 'auto',
-                    complete: function(){
-
-                    }
+                    complete: function(){}
                 });
-
-
             });
         }).fail(function( jqXHR, status, error) {
             var reason = status + ' ' + jqXHR.status + ': ' + error;
@@ -70,29 +66,19 @@ define([
      * show releases dialog
      */
     $.fn.releasesDialog = function(){
+        var content = '<ul class="timeline"></ul>';
 
-        requirejs(['text!templates/dialog/releases.html', 'mustache'], function(template, Mustache) {
-
-            var data = {
-                test: 'blaBla'
-            };
-
-            var content = Mustache.render(template, data);
-
-            var releasesDialog = bootbox.dialog({
-                className: config.releasesDialogClass,
-                title: 'Releases',
-                size: 'large',
-                message: content
-            });
-
-            // after modal is shown =======================================================================
-            releasesDialog.on('shown.bs.modal', function(e) {
-
-                loadDialogData(releasesDialog);
-            });
-
+        var releasesDialog = bootbox.dialog({
+            className: config.releasesDialogClass,
+            title: 'Releases',
+            size: 'large',
+            message: content
         });
 
+        // after modal is shown =======================================================================
+        releasesDialog.on('shown.bs.modal', function(e) {
+            loadDialogData(releasesDialog);
+        });
     };
+
 });

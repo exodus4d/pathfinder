@@ -3,11 +3,21 @@
     <div class="timeline-panel">
         <div class="timeline-heading">
             <h4 class="timeline-title">
-                <a href="{{releaseData.html_url}}" target="_blank">{{ releaseData.name }}</a>
+                <a href="{{releaseData.html_url}}" target="_blank">
+                    <i class="fa fa-tag" aria-hidden="true"></i>&nbsp;{{ releaseData.name }}
+                </a>
 
                 <span class="text-muted pull-right">
                     {{ #releaseData.prerelease }}
                         <span class="label label-danger">Pre-release</span>
+                    {{ /releaseData.prerelease }}
+                    {{ ^releaseData.prerelease }}
+                        {{#isFirst}}
+                            <span class="label label-success">Latest release</span>
+                        {{/isFirst}}
+                        {{^isFirst}}
+                            <span class="label label-default">Release</span>
+                        {{/isFirst}}
                     {{ /releaseData.prerelease }}
                     <i class="fa fa-calendar fa-fw"></i> {{ releaseDate }}
                 </span>

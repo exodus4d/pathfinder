@@ -7,6 +7,7 @@ app/config/system_effect.js
 app/config/signature_type.js
 lib/bootstrap.min.js
 lib/bootbox.min.js
+lib/localforage.min.js
 app/ccp.js
 lib/velocity.min.js
 lib/velocity.ui.min.js
@@ -45,6 +46,7 @@ app/config/system_effect.js
 app/config/signature_type.js
 lib/bootstrap.min.js
 lib/bootbox.min.js
+lib/localforage.min.js
 app/ccp.js
 lib/velocity.min.js
 lib/velocity.ui.min.js
@@ -79,6 +81,7 @@ lib/slidebars.js
 lib/dom.jsPlumb-1.7.6.js
 lib/farahey-0.5.js
 app/map/magnetizing.js
+app/map/scrollbar.js
 lib/jquery.dragToSelect.js
 lib/select2.min.js
 app/map/contextmenu.js
@@ -108,6 +111,7 @@ app/config/system_effect.js
 app/config/signature_type.js
 lib/bootstrap.min.js
 lib/bootbox.min.js
+lib/localforage.min.js
 app/ccp.js
 lib/velocity.min.js
 lib/velocity.ui.min.js

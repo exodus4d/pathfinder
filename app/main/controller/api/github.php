@@ -40,7 +40,7 @@ class GitHub extends Controller\Controller {
     public function releases($f3){
         $cacheKey = 'CACHE_GITHUB_RELEASES';
         $ttl = 60 * 30; // 30min
-        $releaseCount = 3;
+        $releaseCount = 4;
 
         if( !$f3->exists($cacheKey) ){
             $apiPath = $this->getF3()->get('PATHFINDER.API.GIT_HUB') . '/repos/exodus4d/pathfinder/releases';

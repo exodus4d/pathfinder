@@ -110,7 +110,7 @@
                             <div class="col-sm-8 col-sm-offset-2">
                                 <div class="alert alert-warning" >
                                     <span class="txt-color txt-color-warning">Setup mode active</span>
-                                    <small>Disable setup route in routes.ini in production environment! <a href="/setup">Setup</a></small>
+                                    <small>Disable setup route in routes.ini in production environment! <a href="{{ 'setup' | alias }}">Setup</a></small>
                                 </div>
                             </div>
                         </div>
@@ -161,6 +161,8 @@
             </div>
         </div>
 
+        {* splash page *}
+        <include href="templates/ui/notice.html"/>
     </div>
 </section>
 
@@ -600,9 +602,6 @@
                             </ul>
                         </div>
                     </div>
-                    <div class="panel-footer text-align-center" data-placement="top" title="{{@registrationStatusTitle}}">
-                        <button type="button" class="btn btn-primary btn-block pf-register-button {{@registrationStatusButton}}" role="button"><i class="fa fa-fw fa-user-plus"></i> Sign up</button>
-                    </div>
                 </div>
             </div>
 
@@ -627,9 +626,6 @@
                             </ul>
                         </div>
                     </div>
-                    <div class="panel-footer text-align-center">
-                        <a href="javascript:void(0);" class="btn btn-default btn-block disabled" role="button"><i class="fa fa-fw fa-pencil-square-o"></i> Apply for</a>
-                    </div>
                 </div>
             </div>
 
@@ -653,9 +649,6 @@
                                 <li><i class="fa fa-fw fa-check txt-color txt-color-green"></i> Share corp maps with up to <span class="badge">2</span> alliances</li>
                             </ul>
                         </div>
-                    </div>
-                    <div class="panel-footer text-align-center">
-                        <a href="javascript:void(0);" class="btn btn-default btn-block disabled" role="button"><i class="fa fa-fw fa-pencil-square-o"></i> Apply for</a>
                     </div>
                 </div>
             </div>

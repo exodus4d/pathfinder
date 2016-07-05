@@ -8,6 +8,7 @@
 
 namespace Controller;
 
+use data\filesystem\Search;
 use DB;
 use DB\SQL;
 use DB\SQL\MySQL as MySQL;
@@ -137,6 +138,7 @@ class Setup extends Controller {
     /**
      * main setup route handler
      * works as dispatcher for setup functions
+     * -> for security reasons all /setup "routes" are dispatched by GET params
      * @param \Base $f3
      */
     public function init(\Base $f3){
@@ -146,21 +148,17 @@ class Setup extends Controller {
         $fixColumns = false;
 
         // bootstrap database from model class definition
-        if(
-            isset($params['db']) &&
-            !empty($params['db'])
-        ){
+        if( !empty($params['db']) ){
             $this->bootstrapDB($params['db']);
 
             // reload page
             // -> remove GET param
             $f3->reroute('@setup');
             return;
-        }elseif(
-            isset($params['fixCols']) &&
-            !empty($params['fixCols'])
-        ){
+        }elseif( !empty($params['fixCols']) ){
             $fixColumns = true;
+        }elseif( !empty($params['clearCache']) ){
+            $this->clearCache($f3);
         }
 
         // set template data ----------------------------------------------------------------
@@ -175,6 +173,9 @@ class Setup extends Controller {
 
         // set database connection information
         $f3->set('checkDatabase', $this->checkDatabase($f3, $fixColumns));
+
+        // set cache size
+        $f3->set('cacheSize', $this->getCacheData($f3));
     }
 
     /**
@@ -229,7 +230,7 @@ class Setup extends Controller {
         $serverInfo = [
             'time' => [
                 'label' => 'Time',
-                'value' => date('Y/m/d H:i:s') . ' - (' . date_default_timezone_get() . ')'
+                'value' => date('Y/m/d H:i:s') . ' - (' . $f3->get('TZ') . ')'
             ],
             'os' => [
                 'label' => 'OS',
@@ -250,6 +251,18 @@ class Setup extends Controller {
             'machine' => [
                 'label' => 'Machine type',
                 'value' => php_uname('m')
+            ],
+            'root' => [
+                'label' => 'Document root',
+                'value' => $f3->get('ROOT')
+            ],
+            'port' => [
+                'label' => 'Port',
+                'value' => $f3->get('PORT')
+            ],
+            'protocol' => [
+                'label' => 'Protocol',
+                'value' => $f3->get('SCHEME')
             ]
         ];
 
@@ -309,6 +322,20 @@ class Setup extends Controller {
                 'required' => 'installed',
                 'version' => (extension_loaded('curl') && function_exists('curl_version')) ? 'installed' : 'not installed',
                 'check' => (extension_loaded('curl') && function_exists('curl_version'))
+            ],
+            'maxInputVars' => [
+                'label' => 'max_input_vars',
+                'required' => $f3->get('REQUIREMENTS.PHP.MAX_INPUT_VARS'),
+                'version' => ini_get('max_input_vars'),
+                'check' => ini_get('max_input_vars') >= $f3->get('REQUIREMENTS.PHP.MAX_INPUT_VARS'),
+                'tooltip' => 'PHP default = 1000. Increase it in order to import larger maps.'
+            ],
+            'maxExecutionTime' => [
+                'label' => 'max_execution_time',
+                'required' => $f3->get('REQUIREMENTS.PHP.MAX_EXECUTION_TIME'),
+                'version' => ini_get('max_execution_time'),
+                'check' => ini_get('max_execution_time') >= $f3->get('REQUIREMENTS.PHP.MAX_EXECUTION_TIME'),
+                'tooltip' => 'PHP default = 30. Max execution time for PHP scripts.'
             ]
         ];
 
@@ -729,5 +756,57 @@ class Setup extends Controller {
             }
         }
         return $checkTables;
+    }
+
+    /**
+     * get cache folder size as string
+     * @param \Base $f3
+     * @return array
+     */
+    protected function getCacheData(\Base $f3){
+
+        // get all cache -----------------------------------------------------------------------------------------
+        $cacheFilesAll = Search::getFilesByMTime( $f3->get('TEMP') );
+        $bytesAll = 0;
+        foreach($cacheFilesAll as $filename => $file) {
+            $bytesAll += $file->getSize();
+        }
+
+        // get data cache -----------------------------------------------------------------------------------------
+        $cacheFilesData = Search::getFilesByMTime( $f3->get('TEMP') . 'cache/' );
+        $bytesData = 0;
+        foreach($cacheFilesData as $filename => $file) {
+            $bytesData += $file->getSize();
+        }
+
+        return [
+            'all' => $this->convertBytes($bytesAll),
+            'data' => $this->convertBytes($bytesData),
+            'template' => $this->convertBytes($bytesAll - $bytesData)
+        ];
+    }
+
+    /**
+     * clear all cached files
+     * @param \Base $f3
+     */
+    protected function clearCache(\Base $f3){
+        $f3->clear('CACHE');
+    }
+
+    /**
+     * convert Bytes to string + suffix
+     * @param int $bytes
+     * @param int $precision
+     * @return string
+     */
+    protected function convertBytes($bytes, $precision = 2){
+        $result = '0';
+        if($bytes){
+            $base = log($bytes, 1024);
+            $suffixes = array('', 'KB', 'MB', 'GB', 'TB');
+            $result = round(pow(1024, $base - floor($base)), $precision) .' '. $suffixes[floor($base)];
+        }
+        return $result;
     }
 }

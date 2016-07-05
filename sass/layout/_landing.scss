@@ -523,6 +523,7 @@
 
   .slide-content{
     border-radius: 5px;
+    pointer-events: none; // hide show "title" attr on hover
   }
 
   // title style
@@ -565,6 +566,11 @@
     padding: 20px 15px;
     min-height: 205px;
     line-height: 22px;
+
+    .list-unstyled.text-left li{
+      text-indent: -1em;
+      padding-left: 1.5em;
+    }
   }
 
   // table

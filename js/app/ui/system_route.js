@@ -32,8 +32,7 @@ define([
         systemInfoRoutesTableClass: 'pf-system-route-table',                    // class for route tables
         mapSelectId: 'pf-route-dialog-map-select',                              // id for "map" select
 
-        sigTableActionCellClass: 'pf-table-action-cell'                         // class for "action" cells
-
+        dataTableActionCellClass: 'pf-table-action-cell'                       // class for "action" cells
     };
 
     // cache for system routes
@@ -56,7 +55,8 @@ define([
                 var rowData = formatRouteData(routeData);
 
                 if(rowData.route){
-                    var cacheKey = routeData.systemFrom.toLowerCase() + '_' + routeData.systemTo.toLowerCase();
+                    var cacheKey = routeData.systemFromData.name.toLowerCase() +
+                        '_' + routeData.systemToData.name.toLowerCase();
 
                     // update route cache
                     cache.systemRoutes[cacheKey] = {
@@ -90,9 +90,9 @@ define([
         var animationStatus = 'changed';
 
         // search for an existing row (e.g. on mass "table refresh" [all routes])
-        // get rowIndex where column 0 (equals to "systemTo") matches rowData.systemTo
+        // get rowIndex where column 0 (equals to "systemToData.name") matches rowData.systemToData.name
         var indexes = dataTable.rows().eq(0).filter( function (rowIdx) {
-            return (dataTable.cell(rowIdx, 0 ).data() === rowData.systemTo);
+            return (dataTable.cell(rowIdx, 0 ).data().name === rowData.systemToData.name);
         });
 
         if(indexes.length > 0){
@@ -129,19 +129,31 @@ define([
             moduleElement: moduleElement,
             dataTable: dataTable
         };
-
         var routeData = [];
-        dataTable.rows().every( function() {
 
-            var data = this.data();
-            routeData.push({
-                mapIds: data.mapIds,
-                systemFrom: data.systemFrom,
-                systemTo: data.systemTo
-            });
-        } );
+        dataTable.rows().every( function() {
+            routeData.push( getRouteRequestDataFromRowData( this.data() ));
+        });
 
         getRouteData({routeData: routeData}, context, callbackAddRouteRow);
+    };
+
+    /**
+     * format rowData for route search/update request
+     * @param {Object} rowData
+     * @returns {Object}
+     */
+    var getRouteRequestDataFromRowData = function(rowData){
+        return {
+            mapIds: (rowData.hasOwnProperty('mapIds')) ? rowData.mapIds : [],
+            systemFromData: (rowData.hasOwnProperty('systemFromData')) ? rowData.systemFromData : {},
+            systemToData: (rowData.hasOwnProperty('systemToData')) ? rowData.systemToData : {},
+            stargates: (rowData.hasOwnProperty('stargates')) ? rowData.stargates : 1,
+            jumpbridges: (rowData.hasOwnProperty('jumpbridges')) ? rowData.jumpbridges : 1,
+            wormholes: (rowData.hasOwnProperty('wormholes')) ? rowData.wormholes : 1,
+            wormholesReduced: (rowData.hasOwnProperty('wormholesReduced')) ? rowData.wormholesReduced : 1,
+            wormholesCritical: (rowData.hasOwnProperty('wormholesCritical')) ? rowData.wormholesCritical : 1
+        };
     };
 
     /**
@@ -165,16 +177,13 @@ define([
             id: config.routeDialogId,
             selectClass: config.systemDialogSelectClass,
             mapSelectId: config.mapSelectId,
-            systemFrom: dialogData.systemFrom,
+            systemFromData: dialogData.systemFromData,
             mapSelectOptions: mapSelectOptions
         };
 
         requirejs(['text!templates/dialog/route.html', 'mustache'], function(template, Mustache) {
 
             var content = Mustache.render(template, data);
-
-            // disable modal focus event -> otherwise select2 is not working! -> quick fix
-            $.fn.modal.Constructor.prototype.enforceFocus = function() {};
 
             var findRouteDialog = bootbox.dialog({
                 title: 'Route finder',
@@ -210,25 +219,36 @@ define([
                                 return false;
                             }
 
-                            var context = {
-                                moduleElement: dialogData.moduleElement,
-                                dataTable: dialogData.dataTable
-                            };
+                            // get all system data from select2
+                            var systemSelectData = form.find('.' + config.systemDialogSelectClass).select2('data');
 
-                            var requestData = {
-                                routeData: [{
-                                    mapIds: routeDialogData.mapIds,
-                                    systemFrom: dialogData.systemFrom,
-                                    systemTo: routeDialogData.systemTo,
-                                    stargates: routeDialogData.hasOwnProperty('stargates') ? parseInt( routeDialogData.stargates ) : 0,
-                                    jumpbridges: routeDialogData.hasOwnProperty('jumpbridges') ? parseInt( routeDialogData.jumpbridges ) : 0,
-                                    wormholes: routeDialogData.hasOwnProperty('wormholes') ? parseInt( routeDialogData.wormholes ) : 0,
-                                    wormholesReduced: routeDialogData.hasOwnProperty('wormholesReduced') ? parseInt( routeDialogData.wormholesReduced ) : 0,
-                                    wormholesCritical: routeDialogData.hasOwnProperty('wormholesCritical') ? parseInt( routeDialogData.wormholesCritical ) : 0
-                                }]
-                            };
+                            if(
+                                systemSelectData &&
+                                systemSelectData.length === 1
+                            ){
+                                var context = {
+                                    moduleElement: dialogData.moduleElement,
+                                    dataTable: dialogData.dataTable
+                                };
 
-                            getRouteData(requestData, context, callbackAddRouteRow);
+                                var requestData = {
+                                    routeData: [{
+                                        mapIds: routeDialogData.mapIds,
+                                        systemFromData: dialogData.systemFromData,
+                                        systemToData: {
+                                            systemId:  systemSelectData[0].systemId,
+                                            name: systemSelectData[0].text
+                                        },
+                                        stargates: routeDialogData.hasOwnProperty('stargates') ? parseInt( routeDialogData.stargates ) : 0,
+                                        jumpbridges: routeDialogData.hasOwnProperty('jumpbridges') ? parseInt( routeDialogData.jumpbridges ) : 0,
+                                        wormholes: routeDialogData.hasOwnProperty('wormholes') ? parseInt( routeDialogData.wormholes ) : 0,
+                                        wormholesReduced: routeDialogData.hasOwnProperty('wormholesReduced') ? parseInt( routeDialogData.wormholesReduced ) : 0,
+                                        wormholesCritical: routeDialogData.hasOwnProperty('wormholesCritical') ? parseInt( routeDialogData.wormholesCritical ) : 0
+                                    }]
+                                };
+
+                                getRouteData(requestData, context, callbackAddRouteRow);
+                            }
                         }
                     }
                 }
@@ -338,8 +358,8 @@ define([
 
         // default row data (e.g. no route found)
         var tableRowData = {
-            systemFrom:  routeData.systemFrom,
-            systemTo:  routeData.systemTo,
+            systemFromData:  routeData.systemFromData,
+            systemToData:  routeData.systemToData,
             jumps: {
                 value: 0,
                 formatted: '---'
@@ -481,7 +501,18 @@ define([
                     targets: 0,
                     orderable: true,
                     title: 'system&nbsp;&nbsp;&nbsp;',
-                    data: 'systemTo'
+                    class: Util.config.popoverTriggerClass,
+                    data: 'systemToData',
+                    render: {
+                        _: 'name',
+                        sort: 'name'
+                    },
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex) {
+                        // init context menu
+                        $(cell).initSystemPopover({
+                            systemToData: rowData.systemToData
+                        });
+                    }
                 },{
                     targets: 1,
                     orderable: true,
@@ -508,25 +539,14 @@ define([
                     targets: 3,
                     orderable: false,
                     title: 'route',
-                    data: 'route',
-                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex) {
-
-                        // init context menu
-                        /*
-                        console.log(cell);
-                        console.log(cellData);
-                        $(cell).find('i').on('click', function(){
-
-                        });
-                        */
-                    }
+                    data: 'route'
                 },{
                     targets: 4,
                     title: '',
                     orderable: false,
                     searchable: false,
                     width: '10px',
-                    class: ['text-center', config.sigTableActionCellClass].join(' '),
+                    class: ['text-center', config.dataTableActionCellClass].join(' '),
                     data: 'reload',
                     render: {
                         _: 'button'
@@ -547,8 +567,8 @@ define([
                             var requestData = {
                                 routeData: [{
                                     mapIds: rowData.mapIds,
-                                    systemFrom: rowData.systemFrom,
-                                    systemTo: rowData.systemTo,
+                                    systemFromData: rowData.systemFromData,
+                                    systemToData: rowData.systemToData,
                                     stargates: rowData.stargates ? 1 : 0,
                                     jumpbridges: rowData.jumpbridges ? 1 : 0,
                                     wormholes: rowData.wormholes ? 1 : 0,
@@ -566,7 +586,7 @@ define([
                     orderable: false,
                     searchable: false,
                     width: '10px',
-                    class: ['text-center', config.sigTableActionCellClass].join(' '),
+                    class: ['text-center', config.dataTableActionCellClass].join(' '),
                     data: 'clear',
                     render: {
                         _: 'button'
@@ -622,6 +642,69 @@ define([
         return moduleElement;
     };
 
+
+    /**
+     * init system popover (e.g. for setWaypoints)
+     * @param options
+     */
+    $.fn.initSystemPopover = function(options){
+        var elements = $(this);
+        var eventNamespace = 'hideSystemPopup';
+        var systemToData = options.systemToData;
+
+        requirejs(['text!templates/tooltip/system_popover.html', 'mustache'], function (template, Mustache) {
+            var data = {
+                systemToData: systemToData
+            };
+
+            var content = Mustache.render(template, data);
+
+            elements.each(function() {
+                var element = $(this);
+                // destroy "popover" and remove "click" event for animation
+                element.popover('destroy').off();
+
+                // init popover and add specific class to it (for styling)
+                element.popover({
+                    html: true,
+                    title: systemToData.name,
+                    trigger: 'manual',
+                    placement: 'top',
+                    container: 'body',
+                    content: content
+                }).data('bs.popover').tip().addClass('pf-popover');
+            });
+
+            // set popup "close" observer
+            elements.initPopoverClose(eventNamespace);
+
+            // set "open" trigger on "right click"
+            // -> this is not supported by the "trigger" param in .popover();
+            // -> therefore we need to set it up manually
+            elements.on('contextmenu', function(e){
+                e.preventDefault();
+               $(this).popover('show');
+            });
+
+            // set link observer "on shown" event
+            elements.on('shown.bs.popover', function () {
+                var popoverRoot = $(this);
+
+                popoverRoot.data('bs.popover').tip().find('a').on('click', function(){
+                    // hint: "data" attributes should be in lower case!
+                    var systemData = {
+                        name: $(this).data('name'),
+                        systemId: $(this).data('systemid')
+                    };
+                    Util.setDestination(systemData, 'set_destination');
+
+                    // close popover
+                    popoverRoot.popover('hide');
+                });
+            });
+        });
+    };
+
     /**
      * init route module
      * -> request route path fore "default" trade hub systems
@@ -631,8 +714,26 @@ define([
      */
     var initModule = function(moduleElement, mapId, systemData){
 
-        var systemFrom = systemData.name;
-        var systemsTo = ['Jita', 'Amarr', 'Rens', 'Dodixie'];
+        var systemFromData = {
+            name: systemData.name,
+            systemId: systemData.systemId
+        };
+
+        var systemsTo = [
+            {
+                name: 'Jita',
+                systemId: 30000142
+            },{
+                name: 'Amarr',
+                systemId: 30002187
+            },{
+                name: 'Rens',
+                systemId: 30002510
+            },{
+                name: 'Dodixie',
+                systemId: 30002659
+            }
+        ];
 
         var routesTableElement =  moduleElement.find('.' + config.systemInfoRoutesTableClass);
 
@@ -648,7 +749,7 @@ define([
             var dialogData = {
                 moduleElement: moduleElement,
                 mapId: mapId,
-                systemFrom: systemFrom,
+                systemFromData: systemFromData,
                 dataTable: routesTable
             };
 
@@ -660,10 +761,10 @@ define([
         var currentTimestamp = Util.getServerTime().getTime();
 
         for(var i = 0; i < systemsTo.length; i++){
-            var systemTo = systemsTo[i];
+            var systemToData = systemsTo[i];
 
-            if(systemFrom !== systemTo){
-                var cacheKey = 'route_' + mapId + '_' + systemFrom.toUpperCase() + '_' + systemTo.toUpperCase();
+            if(systemFromData.name !== systemToData.name){
+                var cacheKey = 'route_' + mapId + '_' + systemFromData.name.toUpperCase() + '_' + systemToData.name.toUpperCase();
 
                 if(
                     cache.systemRoutes.hasOwnProperty(cacheKey) &&
@@ -679,17 +780,13 @@ define([
                     addRow(context, cache.systemRoutes[cacheKey].data);
                 }else{
                     // get route data
-
-                    requestRouteData.push({
+                    var searchData = {
                         mapIds: [mapId],
-                        systemFrom: systemFrom,
-                        systemTo: systemTo,
-                        stargates: 1,
-                        jumpbridges: 1,
-                        wormholes: 1,
-                        wormholesReduced: 1,
-                        wormholesCritical: 1
-                    });
+                        systemFromData: systemFromData,
+                        systemToData: systemToData
+                    };
+
+                    requestRouteData.push( getRouteRequestDataFromRowData( searchData ));
                 }
             }
         }

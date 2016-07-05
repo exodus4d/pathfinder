@@ -28,7 +28,7 @@ class Signature extends Controller\AccessController{
      * -> return value of this is limited to a "SINGLE" system
      * @param \Base $f3
      */
-    public function getAll($f3){
+    public function getAll(\Base $f3){
         $signatureData = [];
         $systemIds = (array)$f3->get('POST.systemIds');
 
@@ -60,12 +60,16 @@ class Signature extends Controller\AccessController{
     /**
      * save or update a full signature data set
      * or save/update just single or multiple signature data
-     * @param $f3
+     * @param \Base $f3
      */
-    public function save($f3){
+    public function save(\Base $f3){
         $requestData = $f3->get('POST');
 
         $signatureData = null;
+        $systemId = (int)$requestData['systemId'];
+        // delete all signatures that are not available in this request
+        $deleteOldSignatures = (bool)$requestData['deleteOld'];
+
 
         $return = (object) [];
         $return->error = [];
@@ -83,6 +87,8 @@ class Signature extends Controller\AccessController{
             $activeCharacter = $this->getCharacter();
 
             if($activeCharacter){
+                // signature ids that were updated/created
+                $updatedSignatureIds = [];
 
                 /**
                  * @var Model\SystemModel $system
@@ -96,7 +102,7 @@ class Signature extends Controller\AccessController{
 
                     $system->getById( (int)$data['systemId']);
 
-                    if(!$system->dry()){
+                    if( !$system->dry() ){
                         // update/save signature
 
                         /**
@@ -156,6 +162,14 @@ class Signature extends Controller\AccessController{
                                     unset( $data['typeId'] );
                                 }
 
+                                // "sig reader" should not overwrite signature group information
+                                if(
+                                    $data['groupId'] == 0 &&
+                                    $signature->groupId > 0
+                                ){
+                                    unset($data['groupId']);
+                                }
+
                                 $newData = $data;
                             }
 
@@ -167,6 +181,7 @@ class Signature extends Controller\AccessController{
                         }
 
                         $signature->save();
+                        $updatedSignatureIds[] = $signature->id;
 
                         // get a fresh signature object with the new data. This is a bad work around!
                         // but i could not figure out what the problem was when using the signature model, saved above :(
@@ -184,6 +199,28 @@ class Signature extends Controller\AccessController{
 
                     $system->reset();
                 }
+
+                // delete "old" signatures ------------------------------------------------------------------
+                if(
+                    $deleteOldSignatures &&
+                    $systemId
+                ){
+                    $system->getById($systemId);
+                    if(
+                        !$system->dry() &&
+                        $system->hasAccess($activeCharacter)
+                    ){
+                        $allSignatures = $system->getSignatures();
+                        foreach($allSignatures as $tempSignature){
+                            if( !in_array($tempSignature->id, $updatedSignatureIds)){
+                                $tempSignature->delete( $activeCharacter );
+                            }
+                        }
+                    }
+
+
+                }
+
             }
         }
 
@@ -194,7 +231,7 @@ class Signature extends Controller\AccessController{
      * delete signatures
      * @param \Base $f3
      */
-    public function delete($f3){
+    public function delete(\Base $f3){
         $signatureIds = $f3->get('POST.signatureIds');
         $activeCharacter = $this->getCharacter();
 

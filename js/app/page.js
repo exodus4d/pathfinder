@@ -132,7 +132,7 @@ define([
             }).append(
                 $('<a>', {
                     class: 'list-group-item',
-                    href: '#'
+                    href: '/'
                 }).html('&nbsp;&nbsp;Home').prepend(
                         $('<i>',{
                             class: 'fa fa-home fa-fw'
@@ -367,6 +367,7 @@ define([
                 return Mustache.render(TplLogo, {});
             },
             brandLogo: config.menuHeadMenuLogoClass,
+            popoverTriggerClass: Util.config.popoverTriggerClass,
             userCharacterClass: config.headUserCharacterClass,
             userCharacterImageClass: config.userCharacterImageClass,
             userShipClass: config.headUserShipClass,
