@@ -337,50 +337,16 @@ class CharacterModel extends BasicModel {
 
     /**
      * update character log (active system, ...)
-     * -> HTTP Header Data (if IGB)
-     * -> CREST API request for character log data (if not IGB)
+     * -> CREST API request for character log data
      * @param array $additionalOptions (optional) request options for cURL request
      * @return $this
      */
     public function updateLog($additionalOptions = []){
-        // check if everything is OK
-        // -> do not update log in case of temporary CREST timeouts
-        $updateLogData = false;
-        $logData = [];
-        $headerData = Controller\Controller::getIGBHeaderData();
+        // Try to pull data from CREST
+        $ssoController = new Sso();
+        $logData = $ssoController->getCharacterLocationData($this->getAccessToken(), 10, $additionalOptions);
 
-        // check if IGB Data is available
-        if(
-            $headerData->trusted === true &&
-            !empty($headerData->values)
-        ){
-            // format header data
-            $formattedHeaderData = (new Mapper\IgbHeader($headerData->values))->getData();
-
-            // just for security -> check if Header Data matches THIS character
-            // in case current IGB-Character is NOT the one logged on -> don´t update log
-            if(
-                isset($formattedHeaderData['character']) &&
-                $formattedHeaderData['character']['id'] == $this->_id
-            ){
-                $updateLogData = true;
-                $logData =  $formattedHeaderData;
-            }
-        }
-
-        if($updateLogData == false){
-            // ... No IGB Header data found OR character does not match current active character
-            // -> try to pull data from CREST
-
-            $ssoController = new Sso();
-            $logData = $ssoController->getCharacterLocationData($this->getAccessToken(), 10, $additionalOptions);
-
-            if($logData['timeout'] === false){
-                $updateLogData = true;
-            }
-        }
-
-        if($updateLogData == true){
+        if($logData['timeout'] === false){
             if( empty($logData['system']) ){
                 // character is not in-game
                 if(is_object($this->characterLog)){

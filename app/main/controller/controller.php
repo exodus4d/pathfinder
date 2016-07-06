@@ -78,9 +78,6 @@ class Controller {
         $this->initSession();
 
         if( !$f3->get('AJAX') ){
-            // set page parameters for static page render
-            // check if user is in game (IGB active)
-            $f3->set('isIngame', self::isIGB() );
 
             // js path (build/minified or raw uncompressed files)
             $f3->set('pathJs', 'public/js/' . $f3->get('PATHFINDER.VERSION') );
@@ -599,47 +596,6 @@ class Controller {
     }
 
     /**
-     * check whether the page is IGB trusted or not
-     * @return boolean
-     */
-    static function isIGBTrusted(){
-        $igbHeaderData = self::getIGBHeaderData();
-        return $igbHeaderData->trusted;
-    }
-
-    /**
-     * get all eve IGB specific header data
-     * @return \stdClass
-     */
-    static function getIGBHeaderData(){
-        $data = (object) [];
-        $data->trusted = false;
-        $data->values = [];
-        $headerData = self::getRequestHeaders();
-
-        foreach($headerData as $key => $value){
-            $key = strtolower($key);
-            $key = str_replace('eve_', 'eve-', $key);
-
-
-            if (strpos($key, 'eve-') === 0) {
-                $key = str_replace('eve-', '', $key);
-
-                if (
-                    $key === 'trusted' &&
-                    $value === 'Yes'
-                ) {
-                    $data->trusted = true;
-                }
-
-                $data->values[$key] = $value;
-            }
-        }
-
-        return $data;
-    }
-
-    /**
      * Helper function to return all headers because
      * getallheaders() is not available under nginx
      * @return array (string $key -> string $value)
@@ -712,19 +668,6 @@ class Controller {
         }
 
         return $f3->get($cacheKey);
-    }
-
-    /**
-     * check if the current request was send from inGame
-     * @return bool
-     */
-    static function isIGB(){
-        $isIGB = false;
-        $igbHeaderData = self::getIGBHeaderData();
-        if(count($igbHeaderData->values) > 0){
-            $isIGB = true;
-        }
-        return $isIGB;
     }
 
     /**

@@ -39,9 +39,6 @@ class AppController extends Controller {
         // body element class
         $f3->set('bodyClass', 'pf-body pf-landing');
 
-        // landing page is always IGB trusted
-        $f3->set('trusted', 1);
-
         // JS main file
         $f3->set('jsView', 'login');
 
