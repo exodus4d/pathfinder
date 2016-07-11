@@ -582,7 +582,6 @@ define([
             // logout
             Util.logout({
                 ajaxData: {
-                    reroute: 1,
                     clearCookies: clearCookies
                 }
             });
@@ -629,7 +628,7 @@ define([
                     icon: 'fa-bolt',
                     class: 'txt-color-danger',
                     title: 'Shutdown',
-                    headline: 'Emergency shutdown',
+                    headline: 'Logged out',
                     text: [
                         data.reason
                     ],
@@ -651,7 +650,7 @@ define([
 
             $(document).setProgramStatus('offline');
 
-            Util.showNotify({title: 'Emergency shutdown', text: data.reason, type: 'error'}, false);
+            Util.showNotify({title: 'Logged out', text: data.reason, type: 'error'}, false);
 
             // remove map -------------------------------------------------------
             Util.getMapModule().velocity('fadeOut', {

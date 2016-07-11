@@ -13,7 +13,6 @@
 @import "compass/reset";
 @import "compass/css3";
 
-
 // Core variables and mixins
 @import "colors";
 @import "variables";
@@ -26,19 +25,14 @@
 
 // Libraries (Remove if not needed)
 @import "library/custom-scrollbar/_mCustomScrollbar";               // malihu-custom-scrollbar-plugin
-@import "library/data-tables/_dataTables";                          // DataTables 1.10.3
-@import "library/data-tables/_dataTables-tableTools";               // DataTables 1.10.3 tableTools extension
-//@import "library/data-tables/_dataTables-bootstrap";              // DataTables 1.10.3 Bootstrap integration
-@import "library/data-tables/_dataTables-fontAwesome";              // DataTables 1.10.3 fontAwesome support (sort icons)
-@import "library/data-tables/_dataTables-responsive";               // DataTables 1.10.3 fontAwesome support (sort icons)
+@import "library/data-tables/_all";                                 // DataTables 1.10.12 + extensions
 
-
-@import "library/x-editable/_bootstrap-editable";                   // X-editable - v1.5.0
+@import "library/x-editable/_bootstrap-editable";                   // X-editable - v1.5.1
 @import "library/pnotify/_pnotify.core";                            // PNotify styles
 @import "library/slidebars/_slidebars";                             // Slidebars Navigation
 @import "library/easy-pie-chart/_easyPieChart";                     // Easy Pie Chart 2.1.6
 @import "library/drag-to-select/_dragToSelect";                     // Drag to Select 1.1
-@import "library/select2/_core";                                    // Select2 4.0.0
+@import "library/select2/_core";                                    // Select2 4.0.3
 @import "library/blue-imp-gallery/_blueimp-gallery";                // Blue Imp Gallery
 @import "library/blue-imp-gallery/_bootstrap-image-gallery";        // Blue Imp Gallery Bootstrap
 @import "library/blue-imp-gallery/_bootstrap-image-gallery";        // Blue Imp Gallery Bootstrap

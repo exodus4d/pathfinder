@@ -24,8 +24,19 @@ class AccessController extends Controller {
         $loginCheck = $this->checkLogTimer($f3);
 
         if( !$loginCheck ){
-            // no user found or LogIn timer expired
+            // no user found or login timer expired
             $this->logout($f3);
+
+            if( $f3->get('AJAX') ){
+                // unauthorized request
+                $f3->status(403);
+            }else{
+                // redirect to landing page
+                $f3->reroute('@login');
+            }
+
+            // die() triggers unload() function
+            die();
         }
     }
 

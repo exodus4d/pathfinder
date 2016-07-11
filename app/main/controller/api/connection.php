@@ -39,56 +39,53 @@ class Connection extends Controller\AccessController{
 
             $activeCharacter = $this->getCharacter();
 
-            if($activeCharacter){
+            // get map model and check map access
+            /**
+             * @var Model\MapModel $map
+             */
+            $map = Model\BasicModel::getNew('MapModel');
+            $map->getById( (int)$mapData['id'] );
 
-                // get map model and check map access
-                /**
-                 * @var Model\MapModel $map
-                 */
-                $map = Model\BasicModel::getNew('MapModel');
-                $map->getById( (int)$mapData['id'] );
+            if( $map->hasAccess($activeCharacter) ){
+                $source = $map->getSystemById( $connectionData['source'] );
+                $target = $map->getSystemById( $connectionData['target'] );
 
-                if( $map->hasAccess($activeCharacter) ){
-                    $source = $map->getSystemById( $connectionData['source'] );
-                    $target = $map->getSystemById( $connectionData['target'] );
+                if(
+                    !is_null($source) &&
+                    !is_null($target)
+                ){
+                    /**
+                     * @var $connection Model\ConnectionModel
+                     */
+                    $connection = Model\BasicModel::getNew('ConnectionModel');
+                    $connection->getById( (int)$connectionData['id'] );
 
-                    if(
-                        !is_null($source) &&
-                        !is_null($target)
-                    ){
-                        /**
-                         * @var $connection Model\ConnectionModel
-                         */
-                        $connection = Model\BasicModel::getNew('ConnectionModel');
-                        $connection->getById( (int)$connectionData['id'] );
+                    // search if systems are neighbors
+                    $routeController = new Route();
+                    $routeController->initJumpData();
+                    $route = $routeController->findRoute($connectionData['sourceName'], $connectionData['targetName'], 1);
 
-                        // search if systems are neighbors
-                        $routeController = new Route();
-                        $routeController->initJumpData();
-                        $route = $routeController->findRoute($connectionData['sourceName'], $connectionData['targetName'], 1);
+                    if($route['routePossible'] == true){
+                        // systems are next to each other
+                        $connectionData['scope'] = 'stargate';
+                        $connectionData['type'] = ['stargate'];
+                    }elseif($connectionData['scope'] == 'stargate'){
+                        // connection scope changed -> this can not be a stargate
+                        $connectionData['scope'] = 'wh';
+                        $connectionData['type'] = ['wh_fresh'];
+                    }
 
-                        if($route['routePossible'] == true){
-                            // systems are next to each other
-                            $connectionData['scope'] = 'stargate';
-                            $connectionData['type'] = ['stargate'];
-                        }elseif($connectionData['scope'] == 'stargate'){
-                            // connection scope changed -> this can not be a stargate
-                            $connectionData['scope'] = 'wh';
-                            $connectionData['type'] = ['wh_fresh'];
-                        }
+                    $connectionData['mapId'] = $map;
 
-                        $connectionData['mapId'] = $map;
+                    // "updated" should not be set by client e.g. after manual drag&drop
+                    unset($connectionData['updated']);
 
-                        // "updated" should not be set by client e.g. after manual drag&drop
-                        unset($connectionData['updated']);
+                    $connection->setData($connectionData);
 
-                        $connection->setData($connectionData);
+                    if( $connection->isValid() ){
+                        $connection->save();
 
-                        if( $connection->isValid() ){
-                            $connection->save();
-
-                            $newConnectionData = $connection->getData();
-                        }
+                        $newConnectionData = $connection->getData();
                     }
                 }
             }
@@ -104,18 +101,17 @@ class Connection extends Controller\AccessController{
      */
     public function delete(\Base $f3){
         $connectionIds = $f3->get('POST.connectionIds');
+        $activeCharacter = $this->getCharacter();
 
-        if($activeCharacter = $this->getCharacter()){
-            /**
-             * @var Model\ConnectionModel $connection
-             */
-            $connection = Model\BasicModel::getNew('ConnectionModel');
-            foreach($connectionIds as $connectionId){
-                $connection->getById($connectionId);
-                $connection->delete( $activeCharacter );
+        /**
+         * @var Model\ConnectionModel $connection
+         */
+        $connection = Model\BasicModel::getNew('ConnectionModel');
+        foreach($connectionIds as $connectionId){
+            $connection->getById($connectionId);
+            $connection->delete( $activeCharacter );
 
-                $connection->reset();
-            }
+            $connection->reset();
         }
 
         echo json_encode([]);

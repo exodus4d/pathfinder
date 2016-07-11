@@ -4,7 +4,7 @@ var mainScriptPath = document.body.getAttribute('data-script');
 // js baseURL. Depends on the environment.
 // e.g. use raw files (develop) or build files (production)
 var jsBaseUrl = document.body.getAttribute('data-js-path');
-6
+
 // requireJs configuration
 requirejs.config({
     baseUrl: 'js',                                                      // path for baseUrl - dynamically set !below! ("build_js" | "js")
@@ -21,7 +21,7 @@ requirejs.config({
         mappage: './app/mappage',                                       // initial start "map page" view
         setup: './app/setup',                                           // initial start "setup page" view
 
-        jquery: 'lib/jquery-1.11.3.min',                                // v1.11.3 jQuery
+        jquery: 'lib/jquery-3.0.0.min',                                 // v3.0.0 jQuery
         bootstrap: 'lib/bootstrap.min',                                 // v3.3.0 Bootstrap js code - http://getbootstrap.com/javascript
         text: 'lib/requirejs/text',                                     // v2.0.12 A RequireJS/AMD loader plugin for loading text resources.
         mustache: 'lib/mustache.min',                                   // v1.0.0 Javascript template engine - http://mustache.github.io
@@ -32,11 +32,7 @@ requirejs.config({
         jsPlumb: 'lib/dom.jsPlumb-1.7.6',                               // v1.7.6 jsPlumb (Vanilla)- main map draw plugin https://jsplumbtoolkit.com
         farahey: 'lib/farahey-0.5',                                     // v0.5 jsPlumb "magnetizing" extension - https://github.com/jsplumb/farahey
         customScrollbar: 'lib/jquery.mCustomScrollbar.min',             // v3.1.3 Custom scroll bars - http://manos.malihu.gr
-        datatables: 'lib/datatables/jquery.dataTables.min',             // v1.10.7 DataTables - https://datatables.net
-        //datatablesBootstrap: 'lib/datatables/dataTables.bootstrap',   // DataTables - not used (bootstrap style)
-        datatablesResponsive: 'lib/datatables/extensions/responsive/dataTables.responsive',   // v1.0.6 TableTools (PlugIn) - https://datatables.net/extensions/responsive
-
-        datatablesTableTools: 'lib/datatables/extensions/tabletools/js/dataTables.tableTools',   // v2.2.3 TableTools (PlugIn) - https://datatables.net/extensions/tabletools
+        mousewheel: 'lib/jquery.mousewheel.min',                        // v3.1.13 Mousewheel - https://github.com/jquery/jquery-mousewheel
         xEditable: 'lib/bootstrap-editable.min',                        // v1.5.1 X-editable - in placed editing
         morris: 'lib/morris.min',                                       // v0.5.1 Morris.js - graphs and charts
         raphael: 'lib/raphael-min',                                     // v2.1.2 Raphaël - required for morris (dependency)
@@ -59,6 +55,13 @@ requirejs.config({
         easePack: 'lib/EasePack.min',
         tweenLite: 'lib/TweenLite.min',
 
+        // datatables                                                   // v1.10.12 DataTables - https://datatables.net
+        'datatables.net': 'lib/datatables/DataTables-1.10.12/js/jquery.dataTables.min',
+        'datatables.net-buttons': 'lib/datatables/Buttons-1.2.1/js/dataTables.buttons.min',
+        'datatables.net-buttons-html': 'lib/datatables/Buttons-1.2.1/js/buttons.html5.min',
+        'datatables.net-responsive': 'lib/datatables/Responsive-2.1.0/js/dataTables.responsive.min',
+        'datatables.net-select': 'lib/datatables/Select-1.2.0/js/dataTables.select.min',
+
         // notification plugin
         pnotify: 'lib/pnotify/pnotify.core',                            // v2.0.1 PNotify - notification core file
         'pnotify.buttons': 'lib/pnotify/pnotify.buttons',               // PNotify - buttons notification extension
@@ -68,7 +71,6 @@ requirejs.config({
         'pnotify.history': 'lib/pnotify/pnotify.history',               // PNotify - history push notification history extension
         'pnotify.callbacks': 'lib/pnotify/pnotify.callbacks',           // PNotify - callbacks push notification extension
         'pnotify.reference': 'lib/pnotify/pnotify.reference'            // PNotify - reference push notification extension
-
     },
     shim: {
         bootstrap: {
@@ -87,19 +89,22 @@ requirejs.config({
             deps: ['jquery']
         },
         customScrollbar: {
+            deps: ['jquery', 'mousewheel']
+        },
+        'datatables.net': {
             deps: ['jquery']
         },
-        datatables: {
-            deps: ['jquery']
+        'datatables.net-buttons': {
+            deps: ['datatables.net']
         },
-        datatablesBootstrap: {
-            deps: ['datatables']
+        'datatables.net-buttons-html': {
+            deps: ['datatables.net-buttons']
         },
-        datatablesResponsive: {
-            deps: ['datatables']
+        'datatables.net-responsive': {
+            deps: ['datatables.net']
         },
-        datatablesTableTools: {
-            deps: ['datatables']
+        'datatables.net-select': {
+            deps: ['datatables.net']
         },
         xEditable: {
             deps: ['bootstrap']

@@ -201,47 +201,45 @@ class System extends \Controller\AccessController {
         ){
             $activeCharacter = $this->getCharacter();
 
-            if($activeCharacter){
-                $systemData = (array)$postData['systemData'];
-                $mapData = (array)$postData['mapData'];
+            $systemData = (array)$postData['systemData'];
+            $mapData = (array)$postData['mapData'];
 
-                if( isset($systemData['id']) ){
-                    // update existing system (e.g. changed system description) -------------------
+            if( isset($systemData['id']) ){
+                // update existing system (e.g. changed system description) -------------------
 
-                    /**
-                     * @var $system Model\SystemModel
-                     */
-                    $system = Model\BasicModel::getNew('SystemModel');
-                    $system->getById($systemData['id']);
-                    if( !$system->dry() ){
-                        if( $system->hasAccess($activeCharacter) ){
-                            // system model found
-                            $systemModel = $system;
-                        }
+                /**
+                 * @var $system Model\SystemModel
+                 */
+                $system = Model\BasicModel::getNew('SystemModel');
+                $system->getById($systemData['id']);
+                if( !$system->dry() ){
+                    if( $system->hasAccess($activeCharacter) ){
+                        // system model found
+                        $systemModel = $system;
                     }
-                }elseif( isset($mapData['id']) ){
-                    // save NEW system ------------------------------------------------------------
+                }
+            }elseif( isset($mapData['id']) ){
+                // save NEW system ------------------------------------------------------------
 
-                    /**
-                     * @var $map Model\MapModel
-                     */
-                    $map = Model\BasicModel::getNew('MapModel');
-                    $map->getById($mapData['id']);
-                    if(
-                        !$map->dry() &&
-                        $map->hasAccess($activeCharacter)
-                    ){
-                        // make sure system is not already on map
-                        // --> (e.g. multiple simultaneously save() calls for the same system)
-                        if( is_null( $systemModel = $map->getSystemByCCPId($systemData['systemId']) ) ){
-                            // system not found on map -> get static system data (CCP DB)
-                            $systemModel = $map->getNewSystem($systemData['systemId']);
-                            $systemModel->createdCharacterId = $activeCharacter;
-                        }
-
-                        // map is not changeable for a system! (security)
-                        $systemData['mapId'] = $map;
+                /**
+                 * @var $map Model\MapModel
+                 */
+                $map = Model\BasicModel::getNew('MapModel');
+                $map->getById($mapData['id']);
+                if(
+                    !$map->dry() &&
+                    $map->hasAccess($activeCharacter)
+                ){
+                    // make sure system is not already on map
+                    // --> (e.g. multiple simultaneously save() calls for the same system)
+                    if( is_null( $systemModel = $map->getSystemByCCPId($systemData['systemId']) ) ){
+                        // system not found on map -> get static system data (CCP DB)
+                        $systemModel = $map->getNewSystem($systemData['systemId']);
+                        $systemModel->createdCharacterId = $activeCharacter;
                     }
+
+                    // map is not changeable for a system! (security)
+                    $systemData['mapId'] = $map;
                 }
             }
         }
@@ -318,27 +316,25 @@ class System extends \Controller\AccessController {
         $return->error = [];
         $return->systemData = [];
 
-        if(  $activeCharacter = $this->getCharacter() ){
-            $constellationId = 0;
+        $constellationId = 0;
 
-            // check for search parameter
-            if( isset($params['arg1']) ){
-                $constellationId = (int)$params['arg1'];
-            }
-            $cacheKey = 'CACHE_CONSTELLATION_SYSTEMS_' . self::formatHiveKey($constellationId);
+        // check for search parameter
+        if( isset($params['arg1']) ){
+            $constellationId = (int)$params['arg1'];
+        }
+        $cacheKey = 'CACHE_CONSTELLATION_SYSTEMS_' . self::formatHiveKey($constellationId);
 
-            if($f3->exists($cacheKey)){
-                $return->systemData = $f3->get($cacheKey);
-            }else{
-                if($constellationId > 0){
-                    $systemModels = $this->getSystemModelByIds([$constellationId], 'constellationID');
+        if($f3->exists($cacheKey)){
+            $return->systemData = $f3->get($cacheKey);
+        }else{
+            if($constellationId > 0){
+                $systemModels = $this->getSystemModelByIds([$constellationId], 'constellationID');
 
-                    foreach($systemModels as $systemModel){
-                        $return->systemData[] = $systemModel->getData();
-                    }
-
-                    $f3->set($cacheKey, $return->systemData, $f3->get('PATHFINDER.CACHE.CONSTELLATION_SYSTEMS') );
+                foreach($systemModels as $systemModel){
+                    $return->systemData[] = $systemModel->getData();
                 }
+
+                $f3->set($cacheKey, $return->systemData, $f3->get('PATHFINDER.CACHE.CONSTELLATION_SYSTEMS') );
             }
         }
 
@@ -356,10 +352,9 @@ class System extends \Controller\AccessController {
         $return->error = [];
         $return->systemData = [];
 
-        if(
-            ($activeCharacter = $this->getCharacter()) &&
-            !empty($postData['systemData'])
-        ){
+        if( !empty($postData['systemData'] )){
+            $activeCharacter = $this->getCharacter();
+
             $return->clearOtherWaypoints = (bool)$postData['clearOtherWaypoints'];
             $return->first = (bool)$postData['first'];
 
@@ -390,17 +385,16 @@ class System extends \Controller\AccessController {
      */
     public function delete(\Base $f3){
         $systemIds = (array)$f3->get('POST.systemIds');
+        $activeCharacter = $this->getCharacter();
 
-        if($activeCharacter = $this->getCharacter()){
-            /**
-             * @var Model\SystemModel $system
-             */
-            $system = Model\BasicModel::getNew('SystemModel');
-            foreach((array)$systemIds as $systemId){
-                $system->getById($systemId);
-                $system->delete($activeCharacter);
-                $system->reset();
-            }
+        /**
+         * @var Model\SystemModel $system
+         */
+        $system = Model\BasicModel::getNew('SystemModel');
+        foreach((array)$systemIds as $systemId){
+            $system->getById($systemId);
+            $system->delete($activeCharacter);
+            $system->reset();
         }
 
         echo json_encode([]);

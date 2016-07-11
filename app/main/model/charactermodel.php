@@ -513,6 +513,10 @@ class CharacterModel extends BasicModel {
         return $maps;
     }
 
+    /**
+     * character logout
+     * -> clear authentication data
+     */
     public function logout(){
         if($this->characterAuthentications){
             foreach($this->characterAuthentications as $characterAuthentication){

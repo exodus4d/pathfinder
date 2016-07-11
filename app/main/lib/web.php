@@ -134,7 +134,7 @@ class Web extends \Web {
                         $url,
                         json_decode($result['body'])
                     );
-                    LogController::getLogger('error')->write($errorMsg);
+                    LogController::getLogger('ERROR')->write($errorMsg);
                     break;
                 case 500:
                 case 501:
@@ -150,7 +150,7 @@ class Web extends \Web {
                             $url,
                             json_decode($result['body'])
                         );
-                        LogController::getLogger('error')->write($errorMsg);
+                        LogController::getLogger('ERROR')->write($errorMsg);
 
                         // trigger error
                         $f3->error($statusCode, $errorMsg);
@@ -172,7 +172,7 @@ class Web extends \Web {
                         );
 
                         // log error
-                        LogController::getLogger('error')->write($errorMsg);
+                        LogController::getLogger('ERROR')->write($errorMsg);
 
                         if($additionalOptions['suppressTimeoutErrors'] !== true){
                             // trigger error
@@ -188,7 +188,7 @@ class Web extends \Web {
                         $url
                     );
 
-                    LogController::getLogger('error')->write($errorMsg);
+                    LogController::getLogger('ERROR')->write($errorMsg);
                     break;
             }
 

@@ -619,12 +619,12 @@ abstract class BasicModel extends \DB\Cortex {
 
     /**
      * debug log function
-     * @param $text
-     * @param string $logFile
+     * @param string $text
+     * @param string $type
      */
-    public static function log($text, $logFile = null){
-        $logFile = isset($logFile) ? $logFile : self::getF3()->get('PATHFINDER.LOGFILES.DEBUG');
-        Controller\LogController::getLogger($logFile)->write($text);
+    public static function log($text, $type = null){
+        $type = isset($type) ? $type : 'DEBUG';
+        Controller\LogController::getLogger($type)->write($text);
     }
 
     /**

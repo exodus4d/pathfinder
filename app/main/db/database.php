@@ -117,7 +117,7 @@ class Database extends \Prefab {
         }catch(\PDOException $e){
             // DB connection error
             // -> log it
-            LogController::getLogger('error')->write($e->getMessage());
+            LogController::getLogger('ERROR')->write($e->getMessage());
         }
 
         return $db;

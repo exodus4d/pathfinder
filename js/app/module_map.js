@@ -9,8 +9,11 @@ define([
     'app/ui/system_signature',
     'app/ui/system_route',
     'app/ui/system_killboard',
-    'datatablesTableTools',
-    'datatablesResponsive'
+    'datatables.net',
+    'datatables.net-buttons',
+    'datatables.net-buttons-html',
+    'datatables.net-responsive',
+    'datatables.net-select'
 ], function($, Init, Util, Map) {
 
     'use strict';

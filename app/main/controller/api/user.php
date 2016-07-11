@@ -70,7 +70,7 @@ class User extends Controller\Controller{
             $characterModel->save();
 
             // write login log --------------------------------------
-            self::getLogger( $this->f3->get('PATHFINDER.LOGFILES.LOGIN') )->write(
+            self::getLogger('LOGIN')->write(
                 sprintf(self::LOG_LOGGED_IN,
                     $user->_id,
                     $user->name,
@@ -162,8 +162,7 @@ class User extends Controller\Controller{
      * @param \Base $f3
      */
     public function deleteLog(\Base $f3){
-        $activeCharacter = $this->getCharacter();
-        if($activeCharacter){
+        if($activeCharacter = $this->getCharacter()){
             if($characterLog = $activeCharacter->getLog()){
                 $characterLog->erase();
             }
@@ -177,6 +176,10 @@ class User extends Controller\Controller{
     public function logout(\Base $f3){
         $this->deleteLog($f3);
         parent::logout($f3);
+
+        $return = (object) [];
+        $return->reroute = rtrim(self::getEnvironmentData('URL'), '/') . $f3->alias('login');
+        echo json_encode($return);
     }
 
     /**
@@ -338,7 +341,7 @@ class User extends Controller\Controller{
                 if($status){
                     // save log
                     $logText = "id: %s, name: %s, ip: %s";
-                    self::getLogger( $this->f3->get('PATHFINDER.LOGFILES.DELETE_ACCOUNT') )->write(
+                    self::getLogger('DELETE_ACCOUNT')->write(
                         sprintf($logText, $user->id, $user->name, $f3->get('IP'))
                     );
 

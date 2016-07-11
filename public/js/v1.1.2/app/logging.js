@@ -20,7 +20,8 @@ define([
 
     var config = {
         dialogDynamicAreaClass: 'pf-dynamic-area',                  // class for dynamic areas
-        logGraphClass: 'pf-log-graph'                               // class for all log Morris graphs
+        logGraphClass: 'pf-log-graph',                              // class for all log Morris graphs
+        tableToolsClass: 'pf-table-tools'                           // class for table tools
     };
 
     /**
@@ -68,15 +69,20 @@ define([
             class: config.dialogDynamicAreaClass
         });
 
+        var logTableActionBar = $('<div>', {
+            class: config.tableToolsClass
+        });
+        logTableArea.append(logTableActionBar);
+
         var logTable = $('<table>', {
             class: ['compact', 'stripe', 'order-column', 'row-border'].join(' ')
         });
-
         logTableArea.append(logTable);
+
         content.append(logTableArea);
 
         // init log table
-        logDataTable = logTable.DataTable( {
+        logDataTable = logTable.DataTable({
             paging: true,
             ordering: true,
             order: [ 1, 'desc' ],
@@ -248,24 +254,23 @@ define([
             }
 
             // ------------------------------------------------------------------------------
-            // add TableTool Buttons
-            var tt = new $.fn.DataTable.TableTools( logDataTable, {
-                sSwfPath: require.toUrl('') + 'lib/datatables/extensions/tabletools/swf/copy_csv_xls.swf',
-                aButtons: [ 'copy', 'csv', 'print' ]
-            });
+            // add dataTable buttons (extension)
 
-            $(tt.fnContainer()).insertBefore('.bootbox-body div.dataTables_wrapper');
+            var buttons = new $.fn.dataTable.Buttons( logDataTable, {
+                buttons: [
+                    {
+                        extend: 'copy',
+                        className: 'btn btn-sm btn-default',
+                        text: '<i class="fa fa-fw fa-clipboard"></i> copy'
+                    },{
+                        extend: 'csv',
+                        className: 'btn btn-sm btn-default',
+                        text: '<i class="fa fa-fw fa-download"></i> csv'
+                    }
+                ]
+            } );
 
-            // add button icons
-            $('.DTTT_button_csv').prepend( $('<i>', {
-                class: ['fa', 'fa-fw', 'fa-download'].join(' ')
-            }));
-            $('.DTTT_button_copy').prepend( $('<i>', {
-                class: ['fa', 'fa-fw', 'fa-clipboard'].join(' ')
-            }));
-            $('.DTTT_button_print').prepend( $('<i>', {
-                class: ['fa', 'fa-fw', 'fa-print'].join(' ')
-            }));
+            logDataTable.buttons().container().appendTo( $(this).find('.' + config.tableToolsClass));
         });
 
 

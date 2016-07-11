@@ -214,7 +214,7 @@ class CcpSystemsUpdate {
         $execTimeUpdateTables = $time_end - $time_start;
 
         // Log ------------------------
-        $log = Controller\LogController::getLogger('cron_' . __FUNCTION__);
+        $log = new \Log('cron_' . __FUNCTION__ . '.log');
         $log->write( sprintf(self::LOG_TEXT, __FUNCTION__, $execTimePrepareSystemLogTables, $execTimeGetJumpData, $execTimeGetKillData, $execTimeUpdateTables) );
     }
 } 

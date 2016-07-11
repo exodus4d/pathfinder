@@ -903,6 +903,6 @@ class Sso extends Api\User{
      * @return \Log
      */
     static function getCrestLogger(){
-        return parent::getLogger('crest');
+        return parent::getLogger('CREST');
     }
 }

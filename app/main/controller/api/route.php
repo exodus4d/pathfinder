@@ -531,10 +531,7 @@ class Route extends \Controller\AccessController {
         $return->error = [];
         $return->routesData = [];
 
-        if(
-            $activeCharacter &&
-            !empty($requestData['routeData'])
-        ){
+        if( !empty($requestData['routeData']) ){
 
             $routesData = (array)$requestData['routeData'];
 
