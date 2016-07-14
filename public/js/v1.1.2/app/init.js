@@ -138,7 +138,7 @@ define(['jquery'], function($) {
                 },
                 cataclysmic: {
                     class: 'pf-system-effect-cataclysmic',
-                    name: 'cytaclysmic'
+                    name: 'cataclysmic'
                 },
                 blackHole: {
                     class: 'pf-system-effect-blackhole',
