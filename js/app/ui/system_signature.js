@@ -1669,9 +1669,9 @@ define([
                                     // submit all fields within a table row
                                     var formFields = rowElement.find('.editable');
 
-                                    // the "toggle" makes sure to take care about open editable fields (e.g. description)
+                                    // the "hide" makes sure to take care about open editable fields (e.g. description)
                                     // otherwise, changes would not be submitted in this field (not necessary)
-                                    formFields.editable('toggle');
+                                    formFields.editable('hide');
 
                                     // submit all xEditable fields
                                     formFields.editable('submit', {
