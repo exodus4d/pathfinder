@@ -32,7 +32,9 @@ input, select{
 .btn-fake{
   border: none;
   text-align: left;
-  color: $gray-lighter !important;
+  cursor: default;
+  opacity: 1 !important;
+  color: $gray-light !important;
   background-color: $gray !important;
 }
 

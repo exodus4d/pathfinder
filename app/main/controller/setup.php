@@ -157,6 +157,8 @@ class Setup extends Controller {
             return;
         }elseif( !empty($params['fixCols']) ){
             $fixColumns = true;
+        }elseif( !empty($params['buildRouteIndex']) ){
+            $this->setupSystemJumpTable();
         }elseif( !empty($params['clearCache']) ){
             $this->clearCache($f3);
         }
@@ -173,6 +175,9 @@ class Setup extends Controller {
 
         // set database connection information
         $f3->set('checkDatabase', $this->checkDatabase($f3, $fixColumns));
+
+        // set index information
+        $f3->set('indexInformation', $this->getIndexData($f3));
 
         // set cache size
         $f3->set('cacheSize', $this->getCacheData($f3));
@@ -756,6 +761,91 @@ class Setup extends Controller {
             }
         }
         return $checkTables;
+    }
+
+
+    /** get indexed (cache) data information
+     * @return array
+     */
+    protected function getIndexData(){
+        $indexInfo = [
+            'route' => [
+                'count' => DB\Database::instance()->getRowCount('system_neighbour')
+            ]
+        ];
+        return $indexInfo;
+    }
+
+    /**
+     * This function is just for setting up the cache table 'system_neighbour' which is used
+     * for system jump calculation. Call this function manually when CCP adds Systems/Stargates
+     */
+    protected function setupSystemJumpTable(){
+
+        $pfDB = $this->getDB('PF');
+        $ccpDB = $this->getDB('CCP');
+
+        $query = "SELECT
+                map_sys.solarSystemID system_id,
+                map_sys.regionID region_id,
+                map_sys.constellationID constellation_id,
+                map_sys.solarSystemName system_name,
+                ROUND( map_sys.security, 4) system_security,
+                (
+                    SELECT
+                        GROUP_CONCAT( NULLIF(map_sys_inner.solarSystemName, NULL) SEPARATOR ':')
+                    FROM
+                        mapSolarSystemJumps map_jump INNER JOIN
+                        mapSolarSystems map_sys_inner ON
+                            map_sys_inner.solarSystemID = map_jump.toSolarSystemID
+                    WHERE
+                        map_jump.fromSolarSystemID = map_sys.solarSystemID
+                ) system_neighbours
+            FROM
+                mapSolarSystems map_sys
+            HAVING
+              -- skip systems without neighbors (e.g. WHs)
+	          system_neighbours IS NOT NULL
+            ";
+
+        $rows = $ccpDB->exec($query);
+
+        if(count($rows) > 0){
+            // switch DB back to pathfinder DB
+
+            // clear cache table
+            $query = "TRUNCATE system_neighbour";
+            $pfDB->exec($query);
+
+            foreach($rows as $row){
+                $pfDB->exec("
+              INSERT INTO
+                system_neighbour(
+                  regionId,
+                  constellationId,
+                  systemName,
+                  systemId,
+                  jumpNodes,
+                  trueSec
+                  )
+              VALUES(
+                :regionId,
+                :constellationId,
+                :systemName,
+                :systemId,
+                :jumpNodes,
+                :trueSec
+            )",
+                [
+                    ':regionId' => $row['region_id'],
+                    ':constellationId' => $row['constellation_id'],
+                    ':systemName' => $row['system_name'],
+                    ':systemId' => $row['system_id'],
+                    ':jumpNodes' => $row['system_neighbours'],
+                    ':trueSec' => $row['system_security']
+                ]);
+            }
+        }
     }
 
     /**
