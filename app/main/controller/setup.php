@@ -770,7 +770,19 @@ class Setup extends Controller {
     protected function getIndexData(){
         $indexInfo = [
             'route' => [
+                'label' => 'Route',
+                'action' => 'buildRouteIndex',
                 'count' => DB\Database::instance()->getRowCount('system_neighbour')
+            ],
+            'wormhole' => [
+                'label' => 'Wormhole',
+                'task' => '/export/sql/pathfinder.sql',
+                'count' => DB\Database::instance()->getRowCount('wormhole')
+            ],
+            'SystemWormhole' => [
+                'label' => 'System wormhole',
+                'task' => '/export/sql/pathfinder.sql',
+                'count' => DB\Database::instance()->getRowCount('system_wormhole')
             ]
         ];
         return $indexInfo;

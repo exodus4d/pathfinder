@@ -770,24 +770,34 @@
                     </div>
 
                     <div class="panel-body no-padding">
-                        <div class="btn-group btn-group-justified">
-                            <span class="btn btn-default disabled btn-fake">
-                                Route index
-                                <span class="pull-right">
-                                    <check if="{{ @indexInformation.route.count }}">
-                                        <true>
-                                            <kbd class="txt-color txt-color-success">{{ @indexInformation.route.count }} rows</kbd>
-                                        </true>
-                                        <false>
-                                            <kbd class="txt-color txt-color-danger">0 rows</kbd>
-                                        </false>
-                                    </check>
+
+                        <repeat group="{{ @indexInformation }}" value="{{ @indexData }}">
+                            <div class="btn-group btn-group-justified">
+                                <span class="btn btn-default disabled btn-fake">
+                                    {{ @indexData.label }}
+                                    <span class="pull-right">
+                                        <check if="{{ @indexData.count }}">
+                                            <true>
+                                                <kbd class="txt-color txt-color-success">{{ @indexData.count }} rows</kbd>
+                                            </true>
+                                            <false>
+                                                <kbd class="txt-color txt-color-danger">0 rows</kbd>
+                                            </false>
+                                        </check>
+                                    </span>
                                 </span>
-                            </span>
-                            <a href="?buildRouteIndex=1#pf-setup-administration" class="btn btn-primary {{ @dbWarnings ?'disabled':'' }}" role="button">
-                                <i class="fa fa-fw fa-refresh"></i> Build index
-                            </a>
-                        </div>
+                                <check if="{{ @indexData.action }}">
+                                    <true>
+                                        <a href="?{{ @indexData.action }}=1#pf-setup-administration" class="btn btn-primary {{ @dbWarnings ?'disabled':'' }}" role="button">
+                                            <i class="fa fa-fw fa-refresh"></i> Build index
+                                        </a>
+                                    </true>
+                                    <false>
+                                        <span class="btn btn-default disabled btn-fake">Import:&nbsp;&nbsp;<kbd>{{ @indexData.task }}</kbd></span>
+                                    </false>
+                                </check>
+                            </div>
+                        </repeat>
                     </div>
                 </div>
             </div>
