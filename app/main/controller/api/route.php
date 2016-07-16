@@ -208,7 +208,7 @@ class Route extends \Controller\AccessController {
 
     /**
      * update jump data for this instance
-     * -> data is either coming from CCPs static export OR from map specific data
+     * -> data is either coming from CCPs [SDE] OR from map specific data
      * @param array $rows
      */
     private function updateJumpData($rows = []){

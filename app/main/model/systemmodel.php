@@ -404,11 +404,19 @@ class SystemModel extends BasicModel {
     }
 
     /**
-     * check whether this system is a wormhole or not
+     * check whether this system is a wormhole
      * @return bool
      */
     public function isWormhole(){
         return ($this->typeId->id === 1);
+    }
+
+    /**
+     * check whether this syste is a shattered wormhole
+     * @return bool
+     */
+    public function isShatteredWormhole(){
+        return ($this->isWormhole() && $this->security === 'SH');
     }
 
     /**
@@ -420,12 +428,26 @@ class SystemModel extends BasicModel {
     protected function getStaticWormholeData(){
         $wormholeData = [];
 
-        // check if this system is a wormhole
+        // only wormholes have "static" connections
         if($this->isWormhole()){
-            $systemWormholeModel = self::getNew('SystemWormholeModel');
-            $systemStatics = $systemWormholeModel->find([
+            // get static systems by "constellationId" --------------------------------------------
+            $constellationWormholeModel = self::getNew('ConstellationWormholeModel');
+            $systemStatics = $constellationWormholeModel->find([
                 'constellationId = :constellationId',
                 ':constellationId' => $this->constellationId
+            ]);
+
+            if( is_object($systemStatics) ){
+                foreach($systemStatics as $systemStatic){
+                    $wormholeData[] = $systemStatic->getData();
+                }
+            }
+
+            // get static systems by "systemId" (shattered wormholes) -----------------------------
+            $systemWormholeModel = self::getNew('SystemWormholeModel');
+            $systemStatics = $systemWormholeModel->find([
+                'systemId = :systemId',
+                ':systemId' => $this->systemId
             ]);
 
             if( is_object($systemStatics) ){

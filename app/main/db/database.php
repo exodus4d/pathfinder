@@ -69,7 +69,7 @@ class Database extends \Prefab {
     /**
      * get database
      * @param string $database
-     * @return mixed|void
+     * @return SQL
      */
     public function getDB($database = 'PF'){
 

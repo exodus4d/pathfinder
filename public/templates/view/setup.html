@@ -25,17 +25,6 @@
                 </div>
         </check>
 
-        {* Success *}
-        <check if="{{ @successData }}">
-            <repeat group="{{ @successData }}" value="{{ @success }}">
-                <div class="alert alert-success">
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><i class="fa fa-close"></i></button>
-                    <span class="txt-color txt-color-success">{{ @success.status }}</span>
-                    <small> {{ @success.message }}</small>
-                </div>
-            </repeat>
-        </check>
-
         <h4><i class="fa fa-fw fa-server"></i> Environment</h4>
 
         <div class="row text-center">
@@ -764,38 +753,39 @@
                         <h3 class="panel-title">
                             Index data
                             <i class="fa fa-fw fa-question-circle" title="
-                            Indexed database data is required for some queries (e.g. route finder module).
-                            Building the Index may take a while (~20s). Increase 'max_execution_time' if you run into PHP timeouts."></i>
+                            Indexed data is required for some queries (e.g. route finder module, static wormholes,... ).
+                            Building/Importing data may take a while (~20s). Increase 'max_execution_time' if you run into PHP timeouts."></i>
                         </h3>
                     </div>
 
-                    <div class="panel-body no-padding">
+                    <div class="panel-body no-padding text-left">
+                        <repeat group="{{ @indexInformation }}" key="{{ @model }}" value="{{ @indexData }}">
+                            <div class="row">
+                                <div class="col-xs-7">
+                                    <span class="btn disabled btn-fake">
+                                       {{ @indexData.table }}
 
-                        <repeat group="{{ @indexInformation }}" value="{{ @indexData }}">
-                            <div class="btn-group btn-group-justified">
-                                <span class="btn btn-default disabled btn-fake">
-                                    {{ @indexData.label }}
-                                    <span class="pull-right">
-                                        <check if="{{ @indexData.count }}">
-                                            <true>
-                                                <kbd class="txt-color txt-color-success">{{ @indexData.count }} rows</kbd>
-                                            </true>
-                                            <false>
-                                                <kbd class="txt-color txt-color-danger">0 rows</kbd>
-                                            </false>
-                                        </check>
                                     </span>
-                                </span>
-                                <check if="{{ @indexData.action }}">
-                                    <true>
-                                        <a href="?{{ @indexData.action }}=1#pf-setup-administration" class="btn btn-primary {{ @dbWarnings ?'disabled':'' }}" role="button">
-                                            <i class="fa fa-fw fa-refresh"></i> Build index
-                                        </a>
-                                    </true>
-                                    <false>
-                                        <span class="btn btn-default disabled btn-fake">Import:&nbsp;&nbsp;<kbd>{{ @indexData.task }}</kbd></span>
-                                    </false>
-                                </check>
+                                    <span class="btn disabled btn-fake pull-right">
+                                            <check if="{{ @indexData.count }}">
+                                                <true>
+                                                    <kbd class="txt-color txt-color-success">{{ @indexData.count }} rows</kbd>
+                                                </true>
+                                                <false>
+                                                    <kbd class="txt-color txt-color-danger">0 rows</kbd>
+                                                </false>
+                                            </check>
+                                        </span>
+                                </div>
+                                <div class="col-xs-5">
+                                    <div class="btn-group btn-group-justified">
+                                        <repeat group="{{ @indexData.action }}" key="{{ @actionKey }}" value="{{ @actionData }}">
+                                            <a href="?{{ @actionData.task }}={{ @model }}#pf-setup-administration" class="btn {{ @actionData.btn }} {{ @actionData.btn=='btn-default' && !@indexData.count ?'disabled':'' }} {{ @dbWarnings ?'disabled':'' }}" role="button">
+                                                <i class="fa fa-fw {{ @actionData.icon }}"></i> {{ @actionData.label }}
+                                            </a>
+                                        </repeat>
+                                    </div>
+                                </div>
                             </div>
                         </repeat>
                     </div>

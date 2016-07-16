@@ -91,7 +91,7 @@ class System extends \Controller\AccessController {
     }
 
     /**
-     * get static system Data from CCPs Static DB export
+     * get system Data from CCPs [SDE]
      * search column for IDs can be (solarSystemID, regionID, constellationID)
      * @param array $columnIDs
      * @param string $column

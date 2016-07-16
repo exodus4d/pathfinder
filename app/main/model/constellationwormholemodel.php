@@ -1,24 +1,24 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: Exodus
- * Date: 16.07.2016
- * Time: 12:19
+ * User: exodus4d
+ * Date: 07.06.15
+ * Time: 18:16
  */
 
 namespace Model;
 
 use DB\SQL\Schema;
 
-class SystemWormholeModel extends BasicModel {
+class ConstellationWormholeModel extends BasicModel {
 
-    protected $table = 'system_wormhole';
+    protected $table = 'constellation_wormhole';
 
     public static $enableDataExport = true;
     public static $enableDataImport = true;
 
     protected $fieldConf = [
-        'systemId' => [
+        'constellationId' => [
             'type' => Schema::DT_INT,
             'index' => true,
         ],
@@ -54,7 +54,7 @@ class SystemWormholeModel extends BasicModel {
         $status = parent::setup($db,$table,$fields);
 
         if($status === true){
-            $status = parent::setMultiColumnIndex(['systemId', 'wormholeId'], true);
+            $status = parent::setMultiColumnIndex(['constellationId', 'wormholeId'], true);
         }
 
         return $status;

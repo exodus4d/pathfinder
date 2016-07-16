@@ -81,6 +81,7 @@ class Setup extends Controller {
 
                 'Model\SystemModel',
                 'Model\SystemWormholeModel',
+                'Model\ConstellationWormholeModel',
 
                 'Model\ConnectionModel',
                 'Model\SystemSignatureModel',
@@ -157,8 +158,12 @@ class Setup extends Controller {
             return;
         }elseif( !empty($params['fixCols']) ){
             $fixColumns = true;
-        }elseif( !empty($params['buildRouteIndex']) ){
+        }elseif( !empty($params['buildIndex']) ){
             $this->setupSystemJumpTable();
+        }elseif( !empty($params['importTable']) ){
+            $this->importTable($params['importTable']);
+        }elseif( !empty($params['exportTable']) ){
+            $this->exportTable($params['exportTable']);
         }elseif( !empty($params['clearCache']) ){
             $this->clearCache($f3);
         }
@@ -177,10 +182,103 @@ class Setup extends Controller {
         $f3->set('checkDatabase', $this->checkDatabase($f3, $fixColumns));
 
         // set index information
-        $f3->set('indexInformation', $this->getIndexData($f3));
+        $f3->set('indexInformation', $this->getIndexData());
 
         // set cache size
         $f3->set('cacheSize', $this->getCacheData($f3));
+    }
+
+    /**
+     * IMPORTANT: This function is not required for setup. It just imports *.json -> DB
+     *
+     * imports wormhole static data for "shattered" systems
+     * into table "system_wormhole"
+     * -> a *.csv dump of this *.json file can e found under /export/csv
+     * @param \Base $f3
+     * @throws \Exception
+     */
+    protected function importSystemWormholesFromJson(\Base $f3){
+        $path = $f3->get('EXPORT') .'json/statics.json';
+        $pfDB = $this->getDB('PF');
+        $ccpDB = $this->getDB('CCP');
+
+        $content = file_get_contents($path);
+
+        $jsonIterator = new \RecursiveIteratorIterator(
+            new \RecursiveArrayIterator(json_decode($content, TRUE)),
+            \RecursiveIteratorIterator::SELF_FIRST);
+
+        $staticNames = [];
+
+        $data = [];
+        $tmpVal = (object) [];
+        foreach ($jsonIterator as $key => $val) {
+            //var_dump($data);
+            if(is_array($val)) {
+                if(isset($tmpVal->name)){
+                    $data[] = $tmpVal;
+                }
+                $tmpVal = (object) [];
+                $tmpVal->name = $key;
+            } else {
+                $tmpVal->wh = isset($tmpVal->wh) ? array_merge($tmpVal->wh, [$val]) :  [$val];
+                $staticNames[] = $val;
+            }
+        }
+        $data[] = $tmpVal;
+
+        // get static IDs by name ------------------------------
+        $staticNames = array_unique($staticNames);
+        $staticNames = array_flip($staticNames);
+        foreach($staticNames as $name => $index){
+            $result  = $pfDB->exec("
+                            SELECT
+                              id
+                            FROM " . $pfDB->quotekey(Model\BasicModel::getNew('WormholeModel')->getTable()) . "
+                            WHERE " . $ccpDB->quotekey('name') . " = :name",
+                [':name' => $name]
+            );
+            $id = (int)$result[0]['id'];
+            if($id){
+                $staticNames[$name] = (int)$result[0]['id'];
+            }else{
+                $f3->error(500, 'Wormhole data missing in table "wormhole" for "name" = "' . $name . '"');
+            }
+        }
+
+        // import data -----------------------------------------
+        $systemWormhole = Model\BasicModel::getNew('SystemWormholeModel');
+        foreach($data as $staticData){
+            $result  = $ccpDB->exec("
+                            SELECT
+                              solarSystemID
+                            FROM " . $ccpDB->quotekey('mapSolarSystems') . "
+                            WHERE
+                                " . $ccpDB->quotekey('solarSystemName') . " = :systemName",
+                [':systemName' => $staticData->name]
+            );
+
+            $solarSystemID = (int)$result[0]['solarSystemID'];
+            if($solarSystemID){
+                foreach($staticData->wh as $wh){
+                    $staticId = (int)$staticNames[$wh];
+                    if($staticId){
+                        // check if entry already exists
+                        $systemWormhole->load(['systemId=? AND wormholeId=?', $solarSystemID, $staticId]);
+                        if( $systemWormhole->dry() ){
+                            $systemWormhole->systemId = $solarSystemID;
+                            $systemWormhole->wormholeId = $staticId;
+                            $systemWormhole->save();
+                            $systemWormhole->reset();
+                        }
+                    }else{
+                        $f3->error(500, 'Wormhole data missing for "name" = "' . $wh . '"');
+                    }
+                }
+            }else{
+                $f3->error(500, 'System "' . $staticData->name . '" not found on CCP´s [SDE] database');
+            }
+        }
     }
 
     /**
@@ -763,26 +861,73 @@ class Setup extends Controller {
         return $checkTables;
     }
 
-
     /** get indexed (cache) data information
      * @return array
      */
     protected function getIndexData(){
         $indexInfo = [
-            'route' => [
-                'label' => 'Route',
-                'action' => 'buildRouteIndex',
-                'count' => DB\Database::instance()->getRowCount('system_neighbour')
+            'SystemNeighbourModel' => [
+                'action' => [
+                    [
+                        'task' => 'buildIndex',
+                        'label' => 'build',
+                        'icon' => 'fa-refresh',
+                        'btn' => 'btn-primary'
+                    ]
+                ],
+                'table' => Model\BasicModel::getNew('SystemNeighbourModel')->getTable(),
+                'count' => DB\Database::instance()->getRowCount( Model\BasicModel::getNew('SystemNeighbourModel')->getTable() )
             ],
-            'wormhole' => [
-                'label' => 'Wormhole',
-                'task' => '/export/sql/pathfinder.sql',
-                'count' => DB\Database::instance()->getRowCount('wormhole')
+            'WormholeModel' => [
+                'action' => [
+                    [
+                        'task' => 'exportTable',
+                        'label' => 'export',
+                        'icon' => 'fa-download',
+                        'btn' => 'btn-default'
+                    ],[
+                        'task' => 'importTable',
+                        'label' => 'import',
+                        'icon' => 'fa-upload',
+                        'btn' => 'btn-primary'
+                    ]
+                ],
+                'table' => Model\BasicModel::getNew('WormholeModel')->getTable(),
+                'count' => DB\Database::instance()->getRowCount( Model\BasicModel::getNew('WormholeModel')->getTable() )
             ],
-            'SystemWormhole' => [
-                'label' => 'System wormhole',
-                'task' => '/export/sql/pathfinder.sql',
-                'count' => DB\Database::instance()->getRowCount('system_wormhole')
+            'SystemWormholeModel' => [
+                'action' => [
+                    [
+                        'task' => 'exportTable',
+                        'label' => 'export',
+                        'icon' => 'fa-download',
+                        'btn' => 'btn-default'
+                    ],[
+                        'task' => 'importTable',
+                        'label' => 'import',
+                        'icon' => 'fa-upload',
+                        'btn' => 'btn-primary'
+                    ]
+                ],
+                'table' => Model\BasicModel::getNew('SystemWormholeModel')->getTable(),
+                'count' => DB\Database::instance()->getRowCount( Model\BasicModel::getNew('SystemWormholeModel')->getTable() )
+            ],
+            'ConstellationWormholeModel' => [
+                'action' => [
+                    [
+                        'task' => 'exportTable',
+                        'label' => 'export',
+                        'icon' => 'fa-download',
+                        'btn' => 'btn-default'
+                    ],[
+                        'task' => 'importTable',
+                        'label' => 'import',
+                        'icon' => 'fa-upload',
+                        'btn' => 'btn-primary'
+                    ]
+                ],
+                'table' => Model\BasicModel::getNew('ConstellationWormholeModel')->getTable(),
+                'count' => DB\Database::instance()->getRowCount( Model\BasicModel::getNew('ConstellationWormholeModel')->getTable() )
             ]
         ];
         return $indexInfo;
@@ -793,7 +938,6 @@ class Setup extends Controller {
      * for system jump calculation. Call this function manually when CCP adds Systems/Stargates
      */
     protected function setupSystemJumpTable(){
-
         $pfDB = $this->getDB('PF');
         $ccpDB = $this->getDB('CCP');
 
@@ -826,8 +970,7 @@ class Setup extends Controller {
             // switch DB back to pathfinder DB
 
             // clear cache table
-            $query = "TRUNCATE system_neighbour";
-            $pfDB->exec($query);
+            $pfDB->exec("TRUNCATE system_neighbour");
 
             foreach($rows as $row){
                 $pfDB->exec("
@@ -858,6 +1001,27 @@ class Setup extends Controller {
                 ]);
             }
         }
+    }
+
+    /**
+     * import table data from existing dump file (e.g *.csv)
+     * @param $modelClass
+     * @return bool
+     * @throws \Exception
+     */
+    protected function importTable($modelClass){
+        $this->getDB('PF');
+        return Model\BasicModel::getNew($modelClass)->importData();
+    }
+
+    /**
+     * export table data
+     * @param $modelClass
+     * @throws \Exception
+     */
+    protected function exportTable($modelClass){
+        $this->getDB('PF');
+        Model\BasicModel::getNew($modelClass)->exportData();
     }
 
     /**
