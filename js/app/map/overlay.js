@@ -67,7 +67,7 @@ define([
                             system.tooltip({
                                 container: mapElement,
                                 placement: 'right',
-                                title: function(){ console.log($(this).parent()); console.log($(this).parent().data('region'));
+                                title: function(){
                                     return $(this).parent().data('region');
                                 },
                                 trigger: 'manual'
