@@ -213,7 +213,6 @@ class Setup extends Controller {
         $data = [];
         $tmpVal = (object) [];
         foreach ($jsonIterator as $key => $val) {
-            //var_dump($data);
             if(is_array($val)) {
                 if(isset($tmpVal->name)){
                     $data[] = $tmpVal;
@@ -235,7 +234,7 @@ class Setup extends Controller {
                             SELECT
                               id
                             FROM " . $pfDB->quotekey(Model\BasicModel::getNew('WormholeModel')->getTable()) . "
-                            WHERE " . $ccpDB->quotekey('name') . " = :name",
+                            WHERE " . $pfDB->quotekey('name') . " = :name",
                 [':name' => $name]
             );
             $id = (int)$result[0]['id'];

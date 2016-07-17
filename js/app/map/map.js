@@ -3423,6 +3423,11 @@ define([
             if(newMap){
                 // init custom scrollbars and add overlay
                 parentElement.initMapScrollbar();
+
+                // show static overlay actions
+                var mapElement = mapConfig.map.getContainer();
+                var mapOverlay = $(mapElement).getMapOverlay('info');
+                mapOverlay.updateOverlayIcon('systemRegion', 'show');
             }
 
             // callback function after tab switch

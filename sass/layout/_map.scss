@@ -83,22 +83,31 @@ $mapWidth: 2500px ;
     min-width: 36px;
 
     i{
-      display: none;
-      margin: 2px;
-      width: 26px;
+      margin: 0; // overwrite default
+      margin-top: 3px;
+      width: 0; // is animated
       height: 26px;
-      opacity: 0.8;
-      color: $orange-dark;
+      opacity: 0; // is animated
+      color: $gray-light;
+      transform: scale(0);
+      transform-origin: 50% 50% 0px;
+      @include transition( color .18s ease-in-out );
+      cursor: help;
+      will-change: all;
 
       &.fa{
         font-size: 26px;
       }
 
       &.glyphicon{
-        margin-left: 4px;
-        font-size: 25px;
+        margin-top: 3px;
+        font-size: 24px;
+        padding-left: 3px;
       }
 
+      &.active, &:hover{
+        color: $orange-dark;
+      }
     }
   }
 }
