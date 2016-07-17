@@ -2,7 +2,7 @@
   "name": "pathfinder-eve",
   "version": "0.0.10",
   "engines": {
-    "node": "4.0.x"
+    "node": "6.x"
   },
   "description": "Pathfinder is a system mapping tool for EVE ONLINE",
   "main": "index.php",

@@ -110,6 +110,12 @@ class Setup extends Controller {
     ];
 
     /**
+     * database error
+     * @var bool
+     */
+    protected $databaseCheck = true;
+
+    /**
      * event handler for all "views"
      * some global template variables are set in here
      * @param \Base $f3
@@ -336,23 +342,23 @@ class Setup extends Controller {
             ],
             'os' => [
                 'label' => 'OS',
-                'value' => php_uname('s')
+                'value' => function_exists('php_uname') ? php_uname('s') : 'unknown'
             ],
             'name' => [
                 'label' => 'Host name',
-                'value' => php_uname('n')
+                'value' => function_exists('php_uname') ? php_uname('n') : 'unknown'
             ],
             'release' => [
                 'label' => 'Release name',
-                'value' => php_uname('r')
+                'value' => function_exists('php_uname') ? php_uname('r') : 'unknown'
             ],
             'version' => [
                 'label' => 'Version info',
-                'value' => php_uname('v')
+                'value' => function_exists('php_uname') ? php_uname('v') : 'unknown'
             ],
             'machine' => [
                 'label' => 'Machine type',
-                'value' => php_uname('m')
+                'value' => function_exists('php_uname') ? php_uname('m') : 'unknown'
             ],
             'root' => [
                 'label' => 'Document root',
@@ -364,7 +370,7 @@ class Setup extends Controller {
             ],
             'protocol' => [
                 'label' => 'Protocol',
-                'value' => $f3->get('SCHEME')
+                'value' => strtoupper( $f3->get('SCHEME') )
             ]
         ];
 
@@ -763,6 +769,10 @@ class Setup extends Controller {
                 $f3->reroute('@setup');
             }
 
+            if($dbStatusCheckCount !== 0){
+                $this->databaseCheck = false;
+            }
+
             $this->databases[$dbKey]['info'] = [
                 'db' => $db,
                 'label' => $dbLabel,
@@ -864,71 +874,83 @@ class Setup extends Controller {
      * @return array
      */
     protected function getIndexData(){
-        $indexInfo = [
-            'SystemNeighbourModel' => [
-                'action' => [
-                    [
-                        'task' => 'buildIndex',
-                        'label' => 'build',
-                        'icon' => 'fa-refresh',
-                        'btn' => 'btn-primary'
-                    ]
+
+        // active DB and tables are required for obtain index data
+        if( $this->databaseCheck ){
+            $indexInfo = [
+                'SystemNeighbourModel' => [
+                    'action' => [
+                        [
+                            'task' => 'buildIndex',
+                            'label' => 'build',
+                            'icon' => 'fa-refresh',
+                            'btn' => 'btn-primary'
+                        ]
+                    ],
+                    'table' => Model\BasicModel::getNew('SystemNeighbourModel')->getTable(),
+                    'count' => DB\Database::instance()->getRowCount( Model\BasicModel::getNew('SystemNeighbourModel')->getTable() )
                 ],
-                'table' => Model\BasicModel::getNew('SystemNeighbourModel')->getTable(),
-                'count' => DB\Database::instance()->getRowCount( Model\BasicModel::getNew('SystemNeighbourModel')->getTable() )
-            ],
-            'WormholeModel' => [
-                'action' => [
-                    [
-                        'task' => 'exportTable',
-                        'label' => 'export',
-                        'icon' => 'fa-download',
-                        'btn' => 'btn-default'
-                    ],[
-                        'task' => 'importTable',
-                        'label' => 'import',
-                        'icon' => 'fa-upload',
-                        'btn' => 'btn-primary'
-                    ]
+                'WormholeModel' => [
+                    'action' => [
+                        [
+                            'task' => 'exportTable',
+                            'label' => 'export',
+                            'icon' => 'fa-download',
+                            'btn' => 'btn-default'
+                        ],[
+                            'task' => 'importTable',
+                            'label' => 'import',
+                            'icon' => 'fa-upload',
+                            'btn' => 'btn-primary'
+                        ]
+                    ],
+                    'table' => Model\BasicModel::getNew('WormholeModel')->getTable(),
+                    'count' => DB\Database::instance()->getRowCount( Model\BasicModel::getNew('WormholeModel')->getTable() )
                 ],
-                'table' => Model\BasicModel::getNew('WormholeModel')->getTable(),
-                'count' => DB\Database::instance()->getRowCount( Model\BasicModel::getNew('WormholeModel')->getTable() )
-            ],
-            'SystemWormholeModel' => [
-                'action' => [
-                    [
-                        'task' => 'exportTable',
-                        'label' => 'export',
-                        'icon' => 'fa-download',
-                        'btn' => 'btn-default'
-                    ],[
-                        'task' => 'importTable',
-                        'label' => 'import',
-                        'icon' => 'fa-upload',
-                        'btn' => 'btn-primary'
-                    ]
+                'SystemWormholeModel' => [
+                    'action' => [
+                        [
+                            'task' => 'exportTable',
+                            'label' => 'export',
+                            'icon' => 'fa-download',
+                            'btn' => 'btn-default'
+                        ],[
+                            'task' => 'importTable',
+                            'label' => 'import',
+                            'icon' => 'fa-upload',
+                            'btn' => 'btn-primary'
+                        ]
+                    ],
+                    'table' => Model\BasicModel::getNew('SystemWormholeModel')->getTable(),
+                    'count' => DB\Database::instance()->getRowCount( Model\BasicModel::getNew('SystemWormholeModel')->getTable() )
                 ],
-                'table' => Model\BasicModel::getNew('SystemWormholeModel')->getTable(),
-                'count' => DB\Database::instance()->getRowCount( Model\BasicModel::getNew('SystemWormholeModel')->getTable() )
-            ],
-            'ConstellationWormholeModel' => [
-                'action' => [
-                    [
-                        'task' => 'exportTable',
-                        'label' => 'export',
-                        'icon' => 'fa-download',
-                        'btn' => 'btn-default'
-                    ],[
-                        'task' => 'importTable',
-                        'label' => 'import',
-                        'icon' => 'fa-upload',
-                        'btn' => 'btn-primary'
-                    ]
-                ],
-                'table' => Model\BasicModel::getNew('ConstellationWormholeModel')->getTable(),
-                'count' => DB\Database::instance()->getRowCount( Model\BasicModel::getNew('ConstellationWormholeModel')->getTable() )
-            ]
-        ];
+                'ConstellationWormholeModel' => [
+                    'action' => [
+                        [
+                            'task' => 'exportTable',
+                            'label' => 'export',
+                            'icon' => 'fa-download',
+                            'btn' => 'btn-default'
+                        ],[
+                            'task' => 'importTable',
+                            'label' => 'import',
+                            'icon' => 'fa-upload',
+                            'btn' => 'btn-primary'
+                        ]
+                    ],
+                    'table' => Model\BasicModel::getNew('ConstellationWormholeModel')->getTable(),
+                    'count' => DB\Database::instance()->getRowCount( Model\BasicModel::getNew('ConstellationWormholeModel')->getTable() )
+                ]
+            ];
+        }else{
+            $indexInfo = [
+                'SystemNeighbourModel' => [
+                    'action' => [],
+                    'table' => 'Fix database errors first!'
+                ]
+            ];
+        }
+
         return $indexInfo;
     }
 
