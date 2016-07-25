@@ -91,7 +91,8 @@ define([
     var validSignatureNames = [                                                 // allowed signature type/names
         'Cosmic Anomaly',
         'Cosmic Signature',
-        'Источники сигналов'
+        'Космическая аномалия',                                                 // == "Cosmic Anomaly"
+        'Источники сигналов'                                                    // == "Cosmic Signature"
     ];
 
     /**
