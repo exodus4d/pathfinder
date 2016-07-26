@@ -419,6 +419,18 @@ class Setup extends Controller {
                 'version' => strstr(PCRE_VERSION, ' ', true),
                 'check' => version_compare( strstr(PCRE_VERSION, ' ', true), $f3->get('REQUIREMENTS.PHP.PCRE_VERSION'), '>=')
             ],
+            'pdo' => [
+                'label' => 'PDO',
+                'required' => 'installed',
+                'version' => extension_loaded('pdo') ? 'installed' : 'not installed',
+                'check' => extension_loaded('pdo')
+            ],
+            'pdoMysql' => [
+                'label' => 'PDO_MYSQL',
+                'required' => 'installed',
+                'version' => extension_loaded('pdo_mysql') ? 'installed' : 'not installed',
+                'check' => extension_loaded('pdo_mysql')
+            ],
             'gd' => [
                 'label' => 'GD Library (for Image plugin)',
                 'required' => 'installed',

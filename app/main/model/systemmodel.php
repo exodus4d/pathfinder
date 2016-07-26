@@ -197,6 +197,7 @@ class SystemModel extends BasicModel {
     /**
      * get map data as object
      * @return object
+     * @throws \Exception
      */
     public function getData(){
 

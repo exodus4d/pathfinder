@@ -110,7 +110,9 @@ class Database extends \Prefab {
                 $user,
                 $password,
                 [
-                    \PDO::MYSQL_ATTR_COMPRESS  => TRUE
+                    \PDO::MYSQL_ATTR_COMPRESS  => true,
+                    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                    \PDO::ATTR_TIMEOUT => \Base::instance()->get('REQUIREMENTS.MYSQL.PDO_TIMEOUT'),
                 ]
             );
         }catch(\PDOException $e){

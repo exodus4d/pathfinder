@@ -1989,9 +1989,6 @@ define([
             moduleElement = getModule(parentElement, systemData);
             showModule(moduleElement);
         }
-
-        return;
     };
-
 
 });

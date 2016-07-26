@@ -739,6 +739,12 @@ define([
     $.fn.singleDoubleClick = function(singleClickCallback, doubleClickCallback, timeout) {
         return this.each(function(){
             var clicks = 0, self = this;
+
+            // prevent default behaviour (e.g. open <a>-tag link)
+            $(this).on('click', function(e){
+                e.preventDefault();
+            });
+
             $(this).on('mouseup', function(e){
                 clicks++;
                 if (clicks === 1) {
