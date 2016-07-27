@@ -150,7 +150,7 @@ define([
                 dataType: 'json'
             }).done(function(systemGraphsData){
 
-                if( !$.isEmptyObject(systemGraphsData) ){
+                if( Object.keys(systemGraphsData).length > 0 ){
                     // create new (hidden) module container
                     var moduleElement = $('<div>', {
                         class: [config.moduleClass, config.systemGraphModuleClass].join(' '),

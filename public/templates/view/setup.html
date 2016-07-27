@@ -4,7 +4,7 @@
 {* counter for DB warnings (all databases) *}
 <set dbWarnings="0" />
 
-<section>
+<section id="pf-setup">
     <div class="container">
 
         <div class="row text-center">
@@ -495,7 +495,7 @@
                                     <th class="text-center col-sm-1 col-md-1">
                                         <i class="fa fa-fw fa-hashtag"></i>
                                     </th>
-                                    <th>table</th>
+                                    <th>Table</th>
                                     <th class="col-sm-1 col-md-1 text-center">exist</th>
                                     <th class="col-sm-3 col-md-3">&nbsp;</th>
                                     <th class="col-sm-1 col-md-1 text-center">
@@ -854,3 +854,15 @@
         </div>
     </div>
 </section>
+
+{* footer *}
+<footer class="navbar-default navbar-fixed-bottom">
+    <div class="container-fluid">
+        <a href="{{ 'login' | alias }}" class="btn btn-default navbar-btn btn-default">
+            <i class="fa fa-arrow-left"></i> back
+        </a>
+        <a href="#pf-setup" class="btn btn-default navbar-btn btn-default pull-right">
+            <i class="fa fa-arrow-up"></i> top
+        </a>
+    </div>
+</footer>

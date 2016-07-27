@@ -91,7 +91,7 @@ define([
                 class: [config.ajaxOverlayWrapperClass].join(' ')
             }).append(
                 $('<i>', {
-                    class: ['fa', iconSize, 'fa-circle-o-notch', 'fa-spin'].join(' ')
+                    class: ['fa', 'fa-fw', iconSize, 'fa-refresh', 'fa-spin'].join(' ')
                 })
             )
         );
@@ -102,7 +102,7 @@ define([
         $(overlay).velocity({
             opacity: 0.6
         },{
-            duration: 200
+            duration: 180
         });
     };
 

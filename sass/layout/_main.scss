@@ -1014,7 +1014,7 @@ td.pf-popover-trigger{
   @include box-shadow(0 6px 12px rgba(0,0,0,.4));
 }
 
-// footer =========================================================================================
+// footer (map) ===================================================================================
 #pf-footer{
   position: absolute;
   bottom: 0;
@@ -1032,6 +1032,11 @@ td.pf-popover-trigger{
       text-decoration: none;
     }
   }
+}
+
+// footer (navigation) ============================================================================
+.navbar-fixed-bottom{
+  padding: 2px 0;
 }
 
 /*

@@ -25,8 +25,8 @@ define([
         });
 
         // buttons ----------------------------------------
-        // exclude "download" buttons
-        body.find('.btn').not('[href^="?export"]').on('click', function(e){
+        // exclude "download" && "navigation" buttons
+        body.find('.btn').not('.navbar-fixed-bottom .btn').not('[href^="?export"]').on('click', function(e){
             $('.' + config.splashOverlayClass).showSplashOverlay();
         });
 

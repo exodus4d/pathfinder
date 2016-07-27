@@ -785,6 +785,9 @@ class Setup extends Controller {
                 $this->databaseCheck = false;
             }
 
+            // sort tables for better readability
+            ksort($requiredTables);
+
             $this->databases[$dbKey]['info'] = [
                 'db' => $db,
                 'label' => $dbLabel,

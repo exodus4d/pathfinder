@@ -44,9 +44,9 @@ requirejs.config({
         select2: 'lib/select2.min',                                     // v4.0.3 Drop Down customization - https://select2.github.io
         validator: 'lib/validator.min',                                 // v0.10.1 Validator for Bootstrap 3 - https://github.com/1000hz/bootstrap-validator
         lazylinepainter: 'lib/jquery.lazylinepainter-1.5.1.min',        // v1.5.1 SVG line animation plugin - http://lazylinepainter.info
-        blueImpGallery: 'lib/blueimp-gallery',                          // v2.15.2 Image Gallery - https://github.com/blueimp/Gallery
+        blueImpGallery: 'lib/blueimp-gallery',                          // v2.21.3 Image Gallery - https://github.com/blueimp/Gallery
         blueImpGalleryHelper: 'lib/blueimp-helper',                     // helper function for Blue Imp Gallery
-        blueImpGalleryBootstrap: 'lib/bootstrap-image-gallery',         // v3.1.1 Bootstrap extension for Blue Imp Gallery - https://blueimp.github.io/Bootstrap-Image-Gallery
+        blueImpGalleryBootstrap: 'lib/bootstrap-image-gallery',         // v3.4.2 Bootstrap extension for Blue Imp Gallery - https://blueimp.github.io/Bootstrap-Image-Gallery
         bootstrapConfirmation: 'lib/bootstrap-confirmation',            // v1.0.1 Bootstrap extension for inline confirm dialog - https://github.com/tavicu/bs-confirmation
         bootstrapToggle: 'lib/bootstrap2-toggle.min',                   // v2.2.0 Bootstrap Toggle (Checkbox) - http://www.bootstraptoggle.com
         lazyload: 'lib/jquery.lazyload.min',                            // v1.9.5 LazyLoader images - http://www.appelsiini.net/projects/lazyload
