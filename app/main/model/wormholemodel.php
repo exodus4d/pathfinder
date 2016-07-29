@@ -31,17 +31,17 @@ class WormholeModel extends BasicModel {
             'default' => ''
         ],
         'massTotal' => [
-            'type' => Schema::DT_INT,
+            'type' => Schema::DT_VARCHAR128, // varchar because > max int value
             'nullable' => false,
             'default' => 0
         ],
         'massIndividual' => [
-            'type' => Schema::DT_INT,
+            'type' => Schema::DT_VARCHAR128, // varchar because > max int value
             'nullable' => false,
             'default' => 0
         ],
         'massRegeneration' => [
-            'type' => Schema::DT_INT,
+            'type' => Schema::DT_VARCHAR128, // varchar because > max int value
             'nullable' => false,
             'default' => 0
         ],
