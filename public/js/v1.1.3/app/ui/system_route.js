@@ -414,10 +414,13 @@ define([
                 system += 'title="' + systemName + ' [' + systemSec + '] "></i>';
                 jumpData.push( system );
 
-                avgSecTemp += Number(routeNodeData.security);
+                // "source" system is not relevant for average security
+                if(i > 0){
+                    avgSecTemp += Number(routeNodeData.security);
+                }
             }
 
-            var avgSec = ( avgSecTemp /  routeData.route.length).toFixed(2);
+            var avgSec = ( avgSecTemp /  (routeData.route.length - 1)).toFixed(2);
             var avgSecForClass = Number(avgSec).toFixed(1);
 
             if(avgSecForClass <= 0){
