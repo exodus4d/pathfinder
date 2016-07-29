@@ -17,19 +17,21 @@ define([
      * set page observer
      */
     var setPageObserver = function(){
+        var body = $('body');
 
         // collapse ---------------------------------------
-        $('body').find('[data-toggle="collapse"]').css({cursor: 'pointer'}).on('click', function(){
+        body.find('[data-toggle="collapse"]').css({cursor: 'pointer'}).on('click', function(){
             $(this).find('.pf-animate-rotate').toggleClass('right');
         });
 
         // buttons ----------------------------------------
-        $('body').find('.btn').on('click', function(e){
+        // exclude "download" && "navigation" buttons
+        body.find('.btn').not('.navbar-fixed-bottom .btn').not('[href^="?export"]').on('click', function(e){
             $('.' + config.splashOverlayClass).showSplashOverlay();
         });
 
         // tooltips ---------------------------------------
-        $('body').initTooltips();
+        body.initTooltips();
 
         // change url (remove logout parameter)
         if (history.pushState) {

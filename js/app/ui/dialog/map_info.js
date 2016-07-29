@@ -6,9 +6,8 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'app/ccp',
     'bootbox'
-], function($, Init, Util, CCP, bootbox) {
+], function($, Init, Util, bootbox) {
 
     'use strict';
 
@@ -742,44 +741,6 @@ define([
                     render: {
                         _: 'name',
                         sort: 'name'
-                    }
-                },{
-                    targets: 8,
-                    title: '',
-                    orderable: false,
-                    searchable: false,
-                    width: '26px',
-                    className: ['text-center', config.tableActionCellClass].join(' '),
-                    data: 'id',
-                    render: {
-                        _: function(data, type, row, meta){
-                            return '<i class="fa fa-fw fa-comment"></i>';
-                        }
-                    },
-                    visible: (CCP.isInGameBrowser() === true),
-                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex) {
-                        $(cell).on('click', function(e) {
-                            CCPEVE.startConversation(cellData);
-                        });
-                    }
-                },{
-                    targets: 9,
-                    title: '',
-                    orderable: false,
-                    searchable: false,
-                    width: '26px',
-                    className: ['text-center', config.tableImageCellClass, config.tableImageSmallCellClass, config.tableActionCellClass].join(' '),
-                    data: 'id',
-                    render: {
-                        _: function(data, type, row, meta){
-                            return '<img src="' + Init.url.ccpImageServer + 'Type/20070_32.png" />';
-                        }
-                    },
-                    visible: (CCP.isInGameBrowser() === true),
-                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex) {
-                        $(cell).on('click', function(e) {
-                            CCPEVE.inviteToFleet(cellData);
-                        });
                     }
                 }
             ]

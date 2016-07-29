@@ -19,6 +19,8 @@ class Controller {
     const COOKIE_NAME_STATE                         = 'cookie';
     const COOKIE_PREFIX_CHARACTER                   = 'char';
 
+    const LOG_UNAUTHORIZED                          = 'IP: [%-20s] Agent: [%s]';
+
     const ERROR_SESSION_SUSPECT                     = 'Suspect id: [%30s], ip: [%40s], new ip: [%40s], User-Agent: %s ';
     /**
      * @var \Base
@@ -78,9 +80,6 @@ class Controller {
         $this->initSession();
 
         if( !$f3->get('AJAX') ){
-            // set page parameters for static page render
-            // check if user is in game (IGB active)
-            $f3->set('isIngame', self::isIGB() );
 
             // js path (build/minified or raw uncompressed files)
             $f3->set('pathJs', 'public/js/' . $f3->get('PATHFINDER.VERSION') );
@@ -123,18 +122,13 @@ class Controller {
                 $f3 = $this->getF3();
                 if( ($ip = $session->ip() )!= $f3->get('IP') ){
                     // IP address changed -> not critical
-                    $sessionSuspectLogFile = 'PATHFINDER.LOGFILES.SESSION_SUSPECT';
-                    if( !$f3->devoid($sessionSuspectLogFile) ){
-                        $this->getLogger(
-                            $f3->get($sessionSuspectLogFile)
-                        )->write( sprintf(
-                            self::ERROR_SESSION_SUSPECT,
-                            $sid,
-                            $session->ip(),
-                            $f3->get('IP'),
-                            $f3->get('AGENT')
-                        ));
-                    }
+                    self::getLogger('SESSION_SUSPECT')->write( sprintf(
+                        self::ERROR_SESSION_SUSPECT,
+                        $sid,
+                        $session->ip(),
+                        $f3->get('IP'),
+                        $f3->get('AGENT')
+                    ));
                     // no more error handling here
                     return true;
                 }elseif($session->agent() != $f3->get('AGENT') ){
@@ -401,24 +395,6 @@ class Controller {
 
         // destroy session login data -------------------------------
         $f3->clear('SESSION');
-
-        if( $f3->get('AJAX') ){
-            $return = (object) [];
-            if(
-                isset($params['reroute']) &&
-                (bool)$params['reroute']
-            ){
-                $return->reroute = rtrim(self::getEnvironmentData('URL'), '/') . $f3->alias('login');
-            }else{
-                // no reroute -> errors can be shown
-                $return->error[] = $this->getLogoutError();
-            }
-
-            echo json_encode($return);
-        }else{
-            // redirect to landing page
-            $f3->reroute('@login');
-        }
     }
 
     /**
@@ -559,11 +535,51 @@ class Controller {
 
     /**
      * Callback for framework "unload"
-     * check -> config.ini
+     * -> this function is called on each request!
+     * -> configured in config.ini
      * @param \Base $f3
      * @return bool
      */
     public function unload(\Base $f3){
+        // track some 4xx Client side errors
+        // 5xx errors are handled in "ONERROR" callback
+        $status = http_response_code();
+        $halt = false;
+
+        switch( $status ){
+            case 403: // Unauthorized
+                self::getLogger('UNAUTHORIZED')->write(sprintf(
+                    self::LOG_UNAUTHORIZED,
+                    $f3->get('IP'),
+                    $f3->get('AGENT')
+                ));
+                $halt = true;
+                break;
+        }
+
+        // Ajax
+        if(
+            $halt &&
+            $f3->get('AJAX')
+        ){
+            $params = (array)$f3->get('POST');
+            $response = (object) [];
+            $response->type = 'error';
+            $response->code = $status;
+            $response->message = 'Access denied: User not found';
+
+            $return = (object) [];
+            if( (bool)$params['reroute']){
+                $return->reroute = rtrim(self::getEnvironmentData('URL'), '/') . $f3->alias('login');
+            }else{
+                // no reroute -> errors can be shown
+                $return->error[] = $response;
+            }
+
+            echo json_encode($return);
+            die();
+        }
+
         return true;
     }
 
@@ -596,47 +612,6 @@ class Controller {
         }
 
         return $controller;
-    }
-
-    /**
-     * check whether the page is IGB trusted or not
-     * @return boolean
-     */
-    static function isIGBTrusted(){
-        $igbHeaderData = self::getIGBHeaderData();
-        return $igbHeaderData->trusted;
-    }
-
-    /**
-     * get all eve IGB specific header data
-     * @return \stdClass
-     */
-    static function getIGBHeaderData(){
-        $data = (object) [];
-        $data->trusted = false;
-        $data->values = [];
-        $headerData = self::getRequestHeaders();
-
-        foreach($headerData as $key => $value){
-            $key = strtolower($key);
-            $key = str_replace('eve_', 'eve-', $key);
-
-
-            if (strpos($key, 'eve-') === 0) {
-                $key = str_replace('eve-', '', $key);
-
-                if (
-                    $key === 'trusted' &&
-                    $value === 'Yes'
-                ) {
-                    $data->trusted = true;
-                }
-
-                $data->values[$key] = $value;
-            }
-        }
-
-        return $data;
     }
 
     /**
@@ -715,19 +690,6 @@ class Controller {
     }
 
     /**
-     * check if the current request was send from inGame
-     * @return bool
-     */
-    static function isIGB(){
-        $isIGB = false;
-        $igbHeaderData = self::getIGBHeaderData();
-        if(count($igbHeaderData->values) > 0){
-            $isIGB = true;
-        }
-        return $isIGB;
-    }
-
-    /**
      * get the current registration status
      * 0=registration stop |1=new registration allowed
      * @return int
@@ -737,12 +699,13 @@ class Controller {
     }
 
     /**
-     * get a log controller e.g. "debug"
-     * @param string $loggerType
-     * @return \Log
+     * get a Logger object by Hive key
+     * -> set in pathfinder.ini
+     * @param string $type
+     * @return \Log|null
      */
-    static function getLogger($loggerType){
-        return LogController::getLogger($loggerType);
+    static function getLogger($type){
+        return LogController::getLogger($type);
     }
 
     /**

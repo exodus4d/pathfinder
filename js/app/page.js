@@ -6,14 +6,12 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'app/ccp',
     'app/logging',
     'mustache',
     'text!img/logo.svg!strip',
     'text!templates/modules/header.html',
     'text!templates/modules/footer.html',
     'dialog/notification',
-    'dialog/trust',
     'dialog/map_info',
     'dialog/account_settings',
     'dialog/manual',
@@ -24,7 +22,7 @@ define([
     'dialog/credit',
     'slidebars',
     'app/module_map'
-], function($, Init, Util, CCP, Logging, Mustache, TplLogo, TplHead, TplFooter) {
+], function($, Init, Util, Logging, Mustache, TplLogo, TplHead, TplFooter) {
 
     'use strict';
 
@@ -182,22 +180,15 @@ define([
                             css: {width: '1.23em'}
                         })
                     ).on('click', function(){
-                       // full screen API is only acceptable by a "user gesture"
-                        // -> js events will not work. therefore all the code here
+                        var fullScreenElement = $('body');
+                        requirejs(['jquery', 'fullScreen'], function($) {
 
-                        if(CCP.isInGameBrowser() === false){
-                            var fullScreenElement = $('body');
-
-                            // fullscreen is not supported by IGB
-                            requirejs(['jquery', 'fullScreen'], function($) {
-
-                                if($.fullscreen.isFullScreen()){
-                                    $.fullscreen.exit();
-                                }else{
-                                    fullScreenElement.fullscreen({overflow: 'overflow-y', toggleClass: config.fullScreenClass});
-                                }
-                            });
-                        }
+                            if($.fullscreen.isFullScreen()){
+                                $.fullscreen.exit();
+                            }else{
+                                fullScreenElement.fullscreen({overflow: 'overflow-y', toggleClass: config.fullScreenClass});
+                            }
+                        });
                     })
             ).append(
                 $('<a>', {
@@ -235,14 +226,11 @@ define([
             )
         );
 
-        // init full screen -> IGB does not support full screen
-        if(CCP.isInGameBrowser() === false){
-            requirejs(['fullScreen'], function() {
-                if($.fullscreen.isNativelySupported() === true){
-                    $('#' + config.menuButtonFullScreenId).removeClass('hide');
-                }
-            });
-        }
+        requirejs(['fullScreen'], function() {
+            if($.fullscreen.isNativelySupported() === true){
+                $('#' + config.menuButtonFullScreenId).removeClass('hide');
+            }
+        });
     };
 
     /**
@@ -594,7 +582,6 @@ define([
             // logout
             Util.logout({
                 ajaxData: {
-                    reroute: 1,
                     clearCookies: clearCookies
                 }
             });
@@ -623,13 +610,6 @@ define([
             updateHeaderCurrentLocation(currentLocationData);
         });
 
-        // show the "trust" IGB dialog
-        $(document).on('pf:showTrustDialog', function(e){
-            // show trust dialog
-            $.fn.showTrustDialog();
-            return false;
-        });
-
         // shutdown the program -> show dialog
         $(document).on('pf:shutdown', function(e, data){
             // show shutdown dialog
@@ -648,7 +628,7 @@ define([
                     icon: 'fa-bolt',
                     class: 'txt-color-danger',
                     title: 'Shutdown',
-                    headline: 'Emergency shutdown',
+                    headline: 'Logged out',
                     text: [
                         data.reason
                     ],
@@ -670,7 +650,7 @@ define([
 
             $(document).setProgramStatus('offline');
 
-            Util.showNotify({title: 'Emergency shutdown', text: data.reason, type: 'error'}, false);
+            Util.showNotify({title: 'Logged out', text: data.reason, type: 'error'}, false);
 
             // remove map -------------------------------------------------------
             Util.getMapModule().velocity('fadeOut', {

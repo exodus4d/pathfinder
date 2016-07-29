@@ -7,7 +7,6 @@ define([
     'app/init',
     'app/util',
     'app/render',
-    'app/ccp',
     'blueImpGallery',
     'bootbox',
     'lazyload',
@@ -19,7 +18,7 @@ define([
     'dialog/manual',
     'dialog/releases',
     'dialog/credit'
-], function($, Init, Util, Render, CCP, Gallery, bootbox) {
+], function($, Init, Util, Render, Gallery, bootbox) {
 
     'use strict';
 
@@ -151,7 +150,7 @@ define([
      */
     var initCarousel = function(){
 
-        // check if carousel exists (e.g. not in IGB browser
+        // check if carousel exists
         if($('#' + config.galleryCarouselId).length === 0){
             return;
         }
@@ -193,7 +192,7 @@ define([
         // initialize carousel ------------------------------------------------
         var carousel = new Gallery([
             {
-                imgTitle: 'IGB',
+                imgTitle: 'Browser',
                 href: 'ui/map',
                 type: 'text/html'
             },
@@ -280,38 +279,51 @@ define([
     };
 
     /**
-     * init image gallery
+     * get all thumbnail elements
+     * @returns {*|jQuery|HTMLElement}
      */
-    var initGallery = function(){
+    var getThumbnailElements = function(){
+        return $('a[data-gallery="#' + config.galleryId + '"]');
+    };
 
-        requirejs(['blueImpGalleryBootstrap'], function() {
-            // thumb links
-            var thumbLinks = $('a[data-gallery="#pf-gallery"]');
+    /**
+     * init gallery for thumbnail elements
+     * @param newElements
+     */
+    var initGallery = function(newElements){
+        if( newElements.length > 0){
+            // We have to add ALL thumbnail elements to the gallery!
+            // -> even those wthat are invisible (not lazyLoaded) now!
+            // -> This is required for "swipe" through all images
+            var allThumbLinks = getThumbnailElements();
 
-            var borderless = false;
+            requirejs(['blueImpGalleryBootstrap'], function() {
+                $(newElements).each(function() {
+                    var borderless = false;
 
-            var galleryElement = $('#' + config.galleryId);
-            galleryElement.data('useBootstrapModal', !borderless);
-            galleryElement.toggleClass('blueimp-gallery-controls', borderless);
+                    var galleryElement = $('#' + config.galleryId);
+                    galleryElement.data('useBootstrapModal', !borderless);
+                    galleryElement.toggleClass('blueimp-gallery-controls', borderless);
 
-            // init gallery on click
-            thumbLinks.on('click', function(e){
-                e.preventDefault();
+                    $(this).on('click', function(e){
+                        e.preventDefault();
 
-                e = e || window.event;
-                var target = e.target || e.srcElement;
-                var link = target.src ? target.parentNode : target;
+                        e = e || window.event;
+                        var target = e.target || e.srcElement;
+                        var link = target.src ? target.parentNode : target;
 
-                var options = {
-                    index: link,
-                    event: e,
-                    container: '#' + config.galleryId,
-                    titleProperty: 'description'
-                };
+                        var options = {
+                            index: link,
+                            event: e,
+                            container: '#' + config.galleryId,
+                            titleProperty: 'description'
+                        };
 
-                new Gallery(thumbLinks, options);
+                        new Gallery(allThumbLinks, options);
+                    });
+                });
             });
-        });
+        }
     };
 
     var initYoutube = function(){
@@ -364,7 +376,12 @@ define([
                 stagger: 60,
                 delay: 500,
                 complete: function(element){
+                    // show "fade" modules (e.g. ribbons)
                     $(element).find('.fade').addClass('in');
+
+                    // init gallery for "now" visible elements
+                    var newGalleryElements = $(element).filter('[data-gallery="#' + config.galleryId + '"]');
+                    initGallery(newGalleryElements);
                 },
                 visibility: 'visible'
             });
@@ -646,6 +663,12 @@ define([
             }
         }
 
+        // "Lock" default link action (=> open in new tab)!
+        // -> until "gallery" is initialized (=> wait animation complete!)
+        getThumbnailElements().on('click', function(e){
+            e.preventDefault();
+        });
+
         // init "lazy loading" for images
         $('.' + config.galleryThumbImageClass).lazyload({
             threshold : 300
@@ -659,31 +682,26 @@ define([
 
         initCharacterSelect();
 
-        // init scrollspy
-        initScrollspy();
-
         // init page observer
         setPageObserver();
 
         // init carousel
         initCarousel();
 
-        // init gallery
-        initGallery();
+        // init scrollspy
+        // -> after "Carousel"! required for correct "viewport" calculation (Gallery)!
+        initScrollspy();
 
         // init youtube videos
         initYoutube();
 
-        // show logo -> hide animation in IGB
-        if( !CCP.isInGameBrowser() ){
-            $('#' + config.logoContainerId).drawLogo(function(){
+        // draw header logo
+        $('#' + config.logoContainerId).drawLogo(function(){
+            // init header animation
+            $('#' + config.headerContainerId).initHeader(function(){
 
-                // init header animation
-                $('#' + config.headerContainerId).initHeader(function(){
-
-                });
-            }, false);
-        }
+            });
+        }, false);
 
     });
 

@@ -14,32 +14,83 @@ define([
         logTimerCount: 3,                                               // map log timer in seconds
 
         // map
+        mapClass: 'pf-map',                                             // class for all maps
         mapWrapperClass: 'pf-map-wrapper',                              // wrapper div (scrollable)
 
         // map overlays
         mapOverlayClass: 'pf-map-overlay',                              // class for all map overlays
         mapOverlayTimerClass: 'pf-map-overlay-timer',                   // class for map overlay timer e.g. map timer
-        mapOverlayInfoClass: 'pf-map-overlay-info'                      // class for map overlay info e.g. map info
+        mapOverlayInfoClass: 'pf-map-overlay-info',                     // class for map overlay info e.g. map info
 
+        // system
+        systemHeadClass: 'pf-system-head'                               // class for system head
     };
 
-    // overlay options (all available map options shown in overlay)
+    /**
+     * Overlay options (all available map options shown in overlay)
+     * "active":    (active || hover) indicated whether an icon/option
+     *              is marked as "active".
+     *              "active": Makes icon active when visible
+     *              "hover": Make icon active on hover
+     */
     var options = {
         filter: {
             title: 'active filter',
+            trigger: 'active',
             class: 'pf-map-overlay-filter',
             iconClass: ['fa', 'fa-fw', 'fa-filter']
         },
         mapSnapToGrid: {
             title: 'active grid',
+            trigger: 'active',
             class: 'pf-map-overlay-grid',
             iconClass: ['glyphicon', 'glyphicon-th']
         },
         mapMagnetizer: {
             title: 'active magnetizer',
+            trigger: 'active',
             class: 'pf-map-overlay-magnetizer',
             iconClass: ['fa', 'fa-fw', 'fa-magnet']
+        },
+        systemRegion: {
+            title: 'show regions',
+            trigger: 'hover',
+            class: 'pf-map-overlay-region',
+            iconClass: ['fa', 'fa-fw', 'fa-tags'],
+            hoverIntent: {
+                over: function(e){
+                    var mapElement = getMapFromOverlay(this);
+                    mapElement.find('.' + config.systemHeadClass).each(function(){
+                        var system = $(this);
+                        // init tooltip if not already exists
+                        if ( !system.data('bs.tooltip') ){
+                            system.tooltip({
+                                container: mapElement,
+                                placement: 'right',
+                                title: function(){
+                                    return $(this).parent().data('region');
+                                },
+                                trigger: 'manual'
+                            });
+                        }
+                        system.tooltip('show');
+                    });
+                },
+                out: function(e){
+                    var mapElement = getMapFromOverlay(this);
+                    mapElement.find('.' + config.systemHeadClass).tooltip('hide');
+                }
+            }
         }
+    };
+
+    /**
+     * get mapElement from overlay or any child of that
+     * @param mapOverlay
+     * @returns {JQuery}
+     */
+    var getMapFromOverlay = function(mapOverlay){
+        return $(mapOverlay).parents('.' + config.mapWrapperClass).find('.' + config.mapClass);
     };
 
     /**
@@ -203,9 +254,24 @@ define([
         if(iconElement){
             if(viewType === 'show'){
                 showOverlay = true;
-                iconElement.velocity('fadeIn');
+
+                // check "trigger" and mark as "active"
+                if(options[option].trigger === 'active'){
+                    iconElement.addClass('active');
+                }
+
+                // display animation for icon
+                iconElement.velocity({
+                    opacity: [0.8, 0],
+                    scale: [1, 0],
+                    width: ['26px', 0],
+                    marginLeft: ['3px', 0]
+                },{
+                    duration: 240,
+                    easing: 'easeInOutQuad'
+                });
             }else if(viewType === 'hide'){
-                iconElement.hide();
+                iconElement.removeClass('active').velocity('reverse');
 
                 // check if there is any visible icon remaining
                 var visibleIcons = mapOverlayInfo.find('i:visible');
@@ -253,14 +319,20 @@ define([
             // add all overlay elements
             for (var prop in options) {
                 if(options.hasOwnProperty(prop)){
-                    mapOverlayInfo.append(
-                        $('<i>', {
-                            class: options[prop].iconClass.concat( ['pull-right', options[prop].class] ).join(' ')
-                        }).attr('title', options[prop].title).tooltip({
-                            placement: 'left',
-                            container: 'body'
-                        })
-                    );
+                    var icon = $('<i>', {
+                        class: options[prop].iconClass.concat( ['pull-right', options[prop].class] ).join(' ')
+                    }).attr('title', options[prop].title).tooltip({
+                        placement: 'left',
+                        container: 'body',
+                        delay: 150
+                    });
+
+                    // add "hover" action for some icons
+                    if(options[prop].trigger === 'hover'){
+                        icon.hoverIntent(options[prop].hoverIntent);
+                    }
+
+                    mapOverlayInfo.append(icon);
                 }
             }
             parentElement.append(mapOverlayInfo);

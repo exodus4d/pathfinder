@@ -7,9 +7,8 @@ define([
     'app/init',
     'app/util',
     'app/render',
-    'bootbox',
-    'app/ccp'
-], function($, Init, Util, Render, bootbox, CCP) {
+    'bootbox'
+], function($, Init, Util, Render, bootbox) {
     'use strict';
 
     var config = {
@@ -122,7 +121,6 @@ define([
                     id: config.newMapDialogId,
                     mapData: mapData,
                     type: mapTypes,
-                    isInGameBrowser: CCP.isInGameBrowser(),
 
                     // message container
                     formErrorContainerClass: Util.config.formErrorContainerClass,

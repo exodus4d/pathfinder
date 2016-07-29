@@ -3,19 +3,18 @@
  */
 
 define([
-    'jquery',
-    'app/ccp'
-], function($, CCP) {
+    'jquery'
+], function($) {
 
     'use strict';
 
     $.fn.contextMenu = function (settings) {
 
         // animation
-        var animationInType = CCP.isInGameBrowser() ? 'fadeIn' : 'transition.flipXIn';
-        var animationInDuration = CCP.isInGameBrowser() ? 0 : 150;
-        var animationOutType = CCP.isInGameBrowser() ? 'fadeOut' : 'transition.flipXOut';
-        var animationOutDuration = CCP.isInGameBrowser() ? 0 : 150;
+        var animationInType = 'transition.flipXIn';
+        var animationInDuration = 150;
+        var animationOutType = 'transition.flipXOut';
+        var animationOutDuration = 150;
 
         return this.each(function () {
 

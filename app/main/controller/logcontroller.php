@@ -11,28 +11,22 @@ namespace controller;
 
 class LogController extends Controller  {
 
+
     /**
-     * get an singleton instance for a logger instance
-     * @param $logFileName
-     * @return mixed
+     * get Logger instance
+     * @param string $type
+     * @return \Log|null
      */
-    public static function getLogger($logFileName){
-
+    public static function getLogger($type){
         $f3 = \Base::instance();
-
-        $hiveKey = 'LOGGER' . $logFileName;
-
-        // check if log controller already exists
-        if( !$f3->exists($hiveKey) ){
-            // create new logger instance
-
-            $logFile = $logFileName . '.log';
-
-            $f3->set($hiveKey, new \Log($logFile));
+        $logFiles = $f3->get('PATHFINDER.LOGFILES');
+        $logger = null;
+        if( !empty($logFiles[$type]) ){
+            $logFile = $logFiles[$type] . '.log';
+            $logger = new \Log($logFile);
         }
 
-        return $f3->get($hiveKey);
+        return $logger;
     }
-
 
 }

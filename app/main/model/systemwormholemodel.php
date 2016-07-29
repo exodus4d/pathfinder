@@ -1,9 +1,9 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: exodus4d
- * Date: 07.06.15
- * Time: 18:16
+ * User: Exodus
+ * Date: 16.07.2016
+ * Time: 12:19
  */
 
 namespace Model;
@@ -14,8 +14,11 @@ class SystemWormholeModel extends BasicModel {
 
     protected $table = 'system_wormhole';
 
+    public static $enableDataExport = true;
+    public static $enableDataImport = true;
+
     protected $fieldConf = [
-        'constellationId' => [
+        'systemId' => [
             'type' => Schema::DT_INT,
             'index' => true,
         ],
@@ -37,9 +40,23 @@ class SystemWormholeModel extends BasicModel {
      * @return object
      */
     public function getData(){
+        return  $this->wormholeId->getData();
+    }
 
-        $systemWormholeData = $this->wormholeId->getData();
+    /**
+     * overwrites parent
+     * @param null $db
+     * @param null $table
+     * @param null $fields
+     * @return bool
+     */
+    public static function setup($db=null, $table=null, $fields=null){
+        $status = parent::setup($db,$table,$fields);
 
-        return $systemWormholeData;
+        if($status === true){
+            $status = parent::setMultiColumnIndex(['systemId', 'wormholeId'], true);
+        }
+
+        return $status;
     }
 }

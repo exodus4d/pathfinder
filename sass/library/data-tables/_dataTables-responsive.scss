@@ -1,3 +1,13 @@
+table.dataTable.dtr-inline.collapsed > tbody > tr > td.child,
+table.dataTable.dtr-inline.collapsed > tbody > tr > th.child,
+table.dataTable.dtr-inline.collapsed > tbody > tr > td.dataTables_empty {
+  cursor: default !important;
+}
+table.dataTable.dtr-inline.collapsed > tbody > tr > td.child:before,
+table.dataTable.dtr-inline.collapsed > tbody > tr > th.child:before,
+table.dataTable.dtr-inline.collapsed > tbody > tr > td.dataTables_empty:before {
+  display: none !important;
+}
 table.dataTable.dtr-inline.collapsed > tbody > tr > td:first-child,
 table.dataTable.dtr-inline.collapsed > tbody > tr > th:first-child {
   position: relative;
@@ -6,25 +16,22 @@ table.dataTable.dtr-inline.collapsed > tbody > tr > th:first-child {
 }
 table.dataTable.dtr-inline.collapsed > tbody > tr > td:first-child:before,
 table.dataTable.dtr-inline.collapsed > tbody > tr > th:first-child:before {
-  top: 8px;
+  top: 9px;
   left: 4px;
-  height: 16px;
-  width: 16px;
+  height: 14px;
+  width: 14px;
   display: block;
   position: absolute;
   color: white;
   border: 2px solid white;
-  border-radius: 16px;
-  text-align: center;
-  line-height: 14px;
+  border-radius: 14px;
   box-shadow: 0 0 3px #444;
   box-sizing: content-box;
+  text-align: center;
+  font-family: 'Courier New', Courier, monospace;
+  line-height: 14px;
   content: '+';
   background-color: #31b131;
-}
-table.dataTable.dtr-inline.collapsed > tbody > tr > td:first-child.dataTables_empty:before,
-table.dataTable.dtr-inline.collapsed > tbody > tr > th:first-child.dataTables_empty:before {
-  display: none;
 }
 table.dataTable.dtr-inline.collapsed > tbody > tr.parent > td:first-child:before,
 table.dataTable.dtr-inline.collapsed > tbody > tr.parent > th:first-child:before {
@@ -45,7 +52,8 @@ table.dataTable.dtr-inline.collapsed.compact > tbody > tr > th:first-child:befor
   height: 14px;
   width: 14px;
   border-radius: 14px;
-  line-height: 12px;
+  line-height: 14px;
+  text-indent: 3px;
 }
 table.dataTable.dtr-column > tbody > tr > td.control,
 table.dataTable.dtr-column > tbody > tr > th.control {
@@ -64,11 +72,12 @@ table.dataTable.dtr-column > tbody > tr > th.control:before {
   position: absolute;
   color: white;
   border: 2px solid white;
-  border-radius: 16px;
-  text-align: center;
-  line-height: 14px;
+  border-radius: 14px;
   box-shadow: 0 0 3px #444;
   box-sizing: content-box;
+  text-align: center;
+  font-family: 'Courier New', Courier, monospace;
+  line-height: 14px;
   content: '+';
   background-color: #31b131;
 }
@@ -103,4 +112,66 @@ table.dataTable > tbody > tr.child span.dtr-title {
   display: inline-block;
   min-width: 75px;
   font-weight: bold;
+}
+
+div.dtr-modal {
+  position: fixed;
+  box-sizing: border-box;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 100;
+  padding: 10em 1em;
+}
+div.dtr-modal div.dtr-modal-display {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  width: 50%;
+  height: 50%;
+  overflow: auto;
+  margin: auto;
+  z-index: 102;
+  background-color: #f5f5f7;
+  border: 1px solid black;
+  border-radius: 0.5em;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+}
+div.dtr-modal div.dtr-modal-content {
+  position: relative;
+  padding: 1em;
+}
+div.dtr-modal div.dtr-modal-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  border: 1px solid #eaeaea;
+  background-color: #f9f9f9;
+  text-align: center;
+  border-radius: 3px;
+  cursor: pointer;
+  z-index: 12;
+}
+div.dtr-modal div.dtr-modal-close:hover {
+  background-color: #eaeaea;
+}
+div.dtr-modal div.dtr-modal-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 101;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+@media screen and (max-width: 767px) {
+  div.dtr-modal div.dtr-modal-display {
+    width: 95%;
+  }
 }

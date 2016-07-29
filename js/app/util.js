@@ -8,7 +8,6 @@ define([
     'config/signature_type',
     'bootbox',
     'localForage',
-    'app/ccp',
     'velocity',
     'velocityUI',
     'customScrollbar',
@@ -18,7 +17,7 @@ define([
     'hoverIntent',
     'bootstrapConfirmation',
     'bootstrapToggle'
-], function($, Init, SystemEffect, SignatureType, bootbox, localforage, CCP) {
+], function($, Init, SystemEffect, SignatureType, bootbox, localforage) {
 
     'use strict';
 
@@ -92,7 +91,7 @@ define([
                 class: [config.ajaxOverlayWrapperClass].join(' ')
             }).append(
                 $('<i>', {
-                    class: ['fa', iconSize, 'fa-circle-o-notch', 'fa-spin'].join(' ')
+                    class: ['fa', 'fa-fw', iconSize, 'fa-refresh', 'fa-spin'].join(' ')
                 })
             )
         );
@@ -103,7 +102,7 @@ define([
         $(overlay).velocity({
             opacity: 0.6
         },{
-            duration: 200
+            duration: 180
         });
     };
 
@@ -604,7 +603,7 @@ define([
                     var easeEffect = $(this).attr('data-easein');
                     var popover = $(this).data('bs.popover').tip();
                     var velocityOptions = {
-                        duration: CCP.isInGameBrowser() ? 0 : Init.animationSpeed.dialogEvents
+                        duration: Init.animationSpeed.dialogEvents
                     };
 
                     switch(easeEffect){
@@ -740,6 +739,12 @@ define([
     $.fn.singleDoubleClick = function(singleClickCallback, doubleClickCallback, timeout) {
         return this.each(function(){
             var clicks = 0, self = this;
+
+            // prevent default behaviour (e.g. open <a>-tag link)
+            $(this).on('click', function(e){
+                e.preventDefault();
+            });
+
             $(this).on('mouseup', function(e){
                 clicks++;
                 if (clicks === 1) {

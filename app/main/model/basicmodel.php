@@ -485,7 +485,7 @@ abstract class BasicModel extends \DB\Cortex {
             $allRecords = $this->find();
 
             if($allRecords){
-                $tableData = $allRecords->castAll();
+                $tableData = $allRecords->castAll(0);
 
                 // format data -> "id" must be first key
                 foreach($tableData as &$rowData){
@@ -515,17 +515,23 @@ abstract class BasicModel extends \DB\Cortex {
     public function importData(){
         $status = false;
 
+        // rtrim(); for arrays (removes empty values) from the end
+        $rtrim = function($array = []){
+          return array_slice($array, 0, key(array_reverse(array_diff($array, ['']), 1))+1);
+        };
+
         if(static::$enableDataImport){
-            $filePath = 'export/sql/' . $this->getTable() . '.csv';
+            $filePath = $this->getF3()->get('EXPORT') . 'csv/' . $this->getTable() . '.csv';
 
             if(is_file($filePath)){
                 $handle = @fopen($filePath, 'r');
-                $keys = array_map('lcfirst', array_filter(fgetcsv($handle, 0, ';')));
+                $keys = array_map('lcfirst', fgetcsv($handle, 0, ';'));
+                $keys = $rtrim($keys);
 
                 if(count($keys) > 0){
                     $tableData = [];
                     while (!feof($handle)) {
-                        $tableData[] = array_combine($keys, array_filter(fgetcsv($handle, 0, ';')));
+                        $tableData[] = array_combine($keys, $rtrim(fgetcsv($handle, 0, ';')));
                     }
                     // import row data
                     $status = $this->importStaticData($tableData);
@@ -619,12 +625,12 @@ abstract class BasicModel extends \DB\Cortex {
 
     /**
      * debug log function
-     * @param $text
-     * @param string $logFile
+     * @param string $text
+     * @param string $type
      */
-    public static function log($text, $logFile = null){
-        $logFile = isset($logFile) ? $logFile : self::getF3()->get('PATHFINDER.LOGFILES.DEBUG');
-        Controller\LogController::getLogger($logFile)->write($text);
+    public static function log($text, $type = null){
+        $type = isset($type) ? $type : 'DEBUG';
+        Controller\LogController::getLogger($type)->write($text);
     }
 
     /**
@@ -641,15 +647,15 @@ abstract class BasicModel extends \DB\Cortex {
     /**
      * Check whether a (multi)-column index exists or not on a table
      * related to this model
-     * @param array $fields
+     * @param array $columns
      * @return bool|array
      */
-    public static function indexExists(array $fields=array()){
+    public static function indexExists(array $columns = []){
         $tableModifier = self::getTableModifier();
         $df = parent::resolveConfiguration();
 
         $check = false;
-        $indexKey = $df['table'] . '___' . implode('__', $fields);
+        $indexKey = $df['table'] . '___' . implode('__', $columns);
         $indexList = $tableModifier->listIndex();
         if(array_key_exists( $indexKey, $indexList)){
             $check = $indexList[$indexKey];
@@ -660,17 +666,17 @@ abstract class BasicModel extends \DB\Cortex {
 
     /**
      * set a multi-column index for this table
-     * @param array $fields
-     * @param bool $unique
-     * @param int $length
+     * @param array $columns Column(s) to be indexed
+     * @param bool $unique Unique index
+     * @param int $length index length for text fields in mysql
      * @return bool
      */
-    public static function setMultiColumnIndex(array $fields=array(), $unique = false, $length = 20){
+    public static function setMultiColumnIndex(array $columns = [], $unique = false, $length = 20){
         $status = false;
         $tableModifier = self::getTableModifier();
 
-        if( self::indexExists($fields) === false ){
-            $tableModifier->addIndex($fields, $unique, $length);
+        if( self::indexExists($columns) === false ){
+            $tableModifier->addIndex($columns, $unique, $length);
             $buildStatus = $tableModifier->build();
             if($buildStatus === 0){
                 $status = true;

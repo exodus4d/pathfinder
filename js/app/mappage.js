@@ -8,11 +8,10 @@ define([
     'app/util',
     'app/render',
     'app/logging',
-    'app/ccp',
     'app/page',
     'app/ui/form_element',
     'app/module_map'
-], function($, Init, Util, Render, Logging, CCP, Page) {
+], function($, Init, Util, Render, Logging, Page) {
 
     'use strict';
 
@@ -34,11 +33,6 @@ define([
         // init logging
         Logging.init();
 
-        if( !CCP.isTrusted() ){
-            // show trust message
-            $(document).trigger('pf:showTrustDialog');
-            return;
-        }
         var mapModule = $('#' + Util.config.mapModuleId);
 
         // map init load static data =======================================================

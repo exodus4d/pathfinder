@@ -40,32 +40,23 @@
 </nav>
 
 {* header *}
-<check if="{{ @isIngame == 1 }}">
-    <true>
-        {* fallback logo -> no SVG support *}
-        <header id="pf-landing-top" class="pf-logo-fallback">
-        </header>
-    </true>
-    <false>
-        <header id="pf-landing-top">
-            <div id="pf-header-container">
-                <canvas id="pf-header-canvas" class="hidden-xs" width="500" height="480"></canvas>
-                <div class="container">
-                    <div id="pf-logo-container"></div>
+<header id="pf-landing-top">
+    <div id="pf-header-container">
+        <canvas id="pf-header-canvas" class="hidden-xs" width="500" height="480"></canvas>
+        <div class="container">
+            <div id="pf-logo-container"></div>
 
-                    <div id="pf-header-preview-container" class="hidden-xs hidden-sm">
-                        <div id="pf-header-preview-intel" class="pf-header-preview-element pull-left"></div>
-                        <div id="pf-header-preview-map" class="pf-header-preview-element pull-left"></div>
-                        <div id="pf-header-preview-scope" class="pf-header-preview-element pull-left"></div>
-                        <div id="pf-header-preview-signature" class="pf-header-preview-element pull-left"></div>
-                        <div id="pf-header-preview-data" class="pf-header-preview-element pull-left"></div>
-                        <div id="pf-header-preview-gameplay" class="pf-header-preview-element pull-left"></div>
-                    </div>
-                </div>
+            <div id="pf-header-preview-container" class="hidden-xs hidden-sm">
+                <div id="pf-header-preview-intel" class="pf-header-preview-element pull-left"></div>
+                <div id="pf-header-preview-map" class="pf-header-preview-element pull-left"></div>
+                <div id="pf-header-preview-scope" class="pf-header-preview-element pull-left"></div>
+                <div id="pf-header-preview-signature" class="pf-header-preview-element pull-left"></div>
+                <div id="pf-header-preview-data" class="pf-header-preview-element pull-left"></div>
+                <div id="pf-header-preview-gameplay" class="pf-header-preview-element pull-left"></div>
             </div>
-        </header>
-    </false>
-</check>
+        </div>
+    </div>
+</header>
 
 {* login form *}
 <section id="pf-landing-login">
@@ -117,21 +108,6 @@
                     </div>
                 </check>
 
-                {* IGB warning *}
-                <check if="{{ @isIngame == 1 }}">
-                    <div class="container-fluid">
-                        <div class="row">
-                            <div class="col-sm-8 col-sm-offset-2">
-                                <div class="alert alert-warning" >
-                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><i class="fa fa-close"></i></button>
-                                    <span class="txt-color txt-color-warning">Hint</span>
-                                    <small>Some functions may not work within the outdated IGB browser!</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </check>
-
                 <div class="row text-center pf-character-selection">
                     <repeat group="{{ @cookieCharacters }}" key="{{ @cookieName }}" value="{{ @characterData }}">
                         <div class="col-sm-{{ @getCharacterGrid( @cookieCharacters ) }}">
@@ -170,21 +146,18 @@
 <section id="pf-landing-gallery">
 
     {* carousel *}
-    <check if="{{ @isIngame == 0 }}">
-        <div class="container">
-            <div class="row text-center">
-                <div id="pf-landing-gallery-carousel" class="blueimp-gallery blueimp-gallery-carousel">
-                    <div class="slides"></div>
-                    <h3 class="title"></h3>
-                    <a class="prev"><i class="fa fa-fw fa-arrow-left"></i></a>
-                    <a class="next"><i class="fa fa-fw fa-arrow-right"></i></a>
-                    <a class="play-pause"><i class="fa fa-fw fa-pause"></i></a>
-                    <ol class="indicator"></ol>
-                </div>
+    <div class="container">
+        <div class="row text-center">
+            <div id="pf-landing-gallery-carousel" class="blueimp-gallery blueimp-gallery-carousel">
+                <div class="slides"></div>
+                <h3 class="title"></h3>
+                <a class="prev"><i class="fa fa-fw fa-arrow-left"></i></a>
+                <a class="next"><i class="fa fa-fw fa-arrow-right"></i></a>
+                <a class="play-pause"><i class="fa fa-fw fa-pause"></i></a>
+                <ol class="indicator"></ol>
             </div>
         </div>
-    </check>
-
+    </div>
 
     <div id="pf-landing-gallery-thumb-container" class="container">
 
@@ -215,7 +188,6 @@
             <div class="col-xs-12 col-sm-9 col-lg-4">
                 <h4><i class="fa fa-fw fa-angle-double-right"></i>Pathfinder</h4>
                 <ul class="fa-ul pf-landing-list">
-                    <li><i></i>Multi browser support (IGB and OGB)</li>
                     <li><i></i><span class="txt-color txt-color-greenDark"><e class="fa fa-fw fa-lock"></e>SSL</span> encrypted connection</li>
                     <li><i></i>User friendly <a class="pf-navbar-manual" href="#">manual</a></li>
                     <li><i></i>Open Source Project <a target="_blank" href="{{ @PATHFINDER.REPO }}" alt="GitHub"><i class="fa fa-lg fa-github fa-fw"></i> Github</a></li>
@@ -230,7 +202,6 @@
                     <li>
                         <ul class="fa-ul">
                             <li><i></i>Character/Location data is pulled from CREST</li>
-                            <li><i></i>IGB is no longer required</li>
                         </ul>
                     </li>
                     <li><i></i>HTML5 features</li>
@@ -451,13 +422,6 @@
                     <li><i></i>Killmail deep links</li>
                     <li><i></i>This even works for wormholes where <em>CCP</em> does not provide any official API data</li>
                     <li><i></i>Live warnings for recent kills in a system</li>
-                    <li><i></i>IGB action</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>Contact pilot</li>
-                            <li><i></i>Add to watch list</li>
-                        </ul>
-                    </li>
                     <li><i></i>Killmail information</li>
                     <li>
                         <ul class="fa-ul">
@@ -776,7 +740,6 @@
                     If you are planning to get deeper into the project or even think about hosting it on your own webserver, you should  be aware of some important key points.
                     <em>Pathfinder</em> is not comparable with any "out of the box" web applications or common CMS systems that come along with an auto-install feature.
                     If you don´t have any experience with the following technologies, stop thinking about your own hosted <em>Pathfinder</em> app.
-                    Unfortunately the IGB is required for some features, which are not yet not supported by <em>CCP</em>´s <em>CREST</em> API.
                 </p>
                 <h3>Frontend</h3>
                 <ul class="fa-ul pf-landing-list">
@@ -854,8 +817,6 @@
                 <p>
                     You will get the best user experience with the latest version <a target="_blank" href="https://www.google.com/chrome/"><i class="fa fa-chrome"></i> <em>Google Chrome</em></a> or <a target="_blank" href="https://www.mozilla.org/firefox"><i class="fa fa-firefox"></i> <em>Firefox</em></a>.
                     <em>Pathfinder</em> uses some "bloody edge" web technologies like SVG graphics, Canvas drawing, CSS3, JS (ECMA 5.0) that are not yet fully supported by any other browser like IE or Safari.
-                    Some features require the IGB-Header information (e.g. tracking live data for a pilot). Some other features require some HTML5 API´s which are not supported by the IGB.
-                    You can even use the IGB and an OGB if you have a multiple screen setup for more usability.
                 </p>
                 <h3>Can i use multiple accounts/characters?</h3>
                 <p>

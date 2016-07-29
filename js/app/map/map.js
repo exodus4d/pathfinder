@@ -8,14 +8,13 @@ define([
     'app/util',
     'app/render',
     'bootbox',
-    'app/ccp',
     'app/map/magnetizing',
     'app/map/scrollbar',
     'dragToSelect',
     'select2',
     'app/map/contextmenu',
     'app/map/overlay'
-], function($, Init, Util, Render, bootbox, CCP, MagnetizerWrapper) {
+], function($, Init, Util, Render, bootbox, MagnetizerWrapper) {
 
     'use strict';
 
@@ -865,12 +864,11 @@ define([
         var overlayElements = mapElement.find('.jsplumb-overlay, .tooltip');
 
         // if map empty (no systems), execute callback and return
-        // no visual effects in IGB (glitches)
+        // no visual effects on larger maps
         if(
             systemElements.length === 0 ||
             systemElements.length > 20 ||
-            endpointElements.length === 0 ||
-            CCP.isInGameBrowser() === true
+            endpointElements.length === 0
         ){
             callback();
             return;
@@ -1688,10 +1686,6 @@ define([
                     {subIcon: 'fa-step-backward', subAction: 'add_first_waypoint', subText: 'add new [start]'},
                     {subIcon: 'fa-step-forward', subAction: 'add_last_waypoint', subText: 'add new [end]'}
                 ]},
-                {divider: true, action: 'ingame'},
-                {icon: 'fa-reply fa-rotate-180', action: 'ingame', text: 'ingame', subitems: [
-                    {subIcon: 'fa-info', subAction: 'ingame_show_info', subText: 'show info'}
-                ]},
                 {divider: true, action: 'delete_system'},
                 {icon: 'fa-eraser', action: 'delete_system', text: 'delete system'}
             ]
@@ -2005,11 +1999,6 @@ define([
                                 return false;
                             }
                         });
-                        break;
-                    case 'ingame_show_info':
-                        systemData = system.getSystemData();
-
-                        CCPEVE.showInfo(5, systemData.systemId );
                         break;
                     case 'set_destination':
                     case 'add_first_waypoint':
@@ -2556,11 +2545,6 @@ define([
             // disable system menu entries
             if(component.data('locked') === true){
                 hiddenOptions.push('delete_system');
-            }
-
-            // disable ingame options if not IGB browser
-            if(! CCP.isInGameBrowser() ){
-                hiddenOptions.push('ingame');
             }
         }
 
@@ -3439,6 +3423,11 @@ define([
             if(newMap){
                 // init custom scrollbars and add overlay
                 parentElement.initMapScrollbar();
+
+                // show static overlay actions
+                var mapElement = mapConfig.map.getContainer();
+                var mapOverlay = $(mapElement).getMapOverlay('info');
+                mapOverlay.updateOverlayIcon('systemRegion', 'show');
             }
 
             // callback function after tab switch

@@ -6,10 +6,9 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'app/ccp',
     'app/render',
     'bootbox'
-], function($, Init, Util, CCP, Render, bootbox) {
+], function($, Init, Util, Render, bootbox) {
 
     'use strict';
 
@@ -22,28 +21,21 @@ define([
 
     /**
      * show/animate dialog page content
-     * @param pageElement
+     * @param dialog
      */
     var showPageContent = function(dialog){
-
         var headlineElement = dialog.find('h1');
 
-        // don´t show animation in IGB
-        if( !CCP.isInGameBrowser() ){
-            headlineElement.delay(300).velocity('transition.shrinkIn', {
-                duration: 500
-            }).delay(800);
+        headlineElement.delay(300).velocity('transition.shrinkIn', {
+            duration: 500
+        }).delay(800);
 
-            headlineElement.velocity({
-                scale: 1.05
-            }, {
-                duration: 600,
-                loop: 5
-            });
-        }else{
-            headlineElement.css({opacity: 1});
-        }
-
+        headlineElement.velocity({
+            scale: 1.05
+        }, {
+            duration: 600,
+            loop: 5
+        });
     };
 
     /**

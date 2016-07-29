@@ -384,7 +384,7 @@ define([
                 showKillmails(moduleElement, cache.systemKillsGraphData[cacheKey]);
 
                 killboardGraphElement.hideLoadingAnimation();
-            }).error(function(e){
+            }).fail(function(e){
 
                 labelOptions.type = 'label-danger';
                 label = getLabel(  'zKillboard is not responding', labelOptions );

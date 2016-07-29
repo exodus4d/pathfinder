@@ -88,6 +88,13 @@ define([
 
     var sigNameCache = {};                                                      // cache signature names
 
+    var validSignatureNames = [                                                 // allowed signature type/names
+        'Cosmic Anomaly',
+        'Cosmic Signature',
+        'Космическая аномалия',                                                 // == "Cosmic Anomaly"
+        'Источники сигналов'                                                    // == "Cosmic Signature"
+    ];
+
     /**
      * collect all data of all editable fields in a signature table
      * @returns {Array}
@@ -368,7 +375,7 @@ define([
                 // show notifications
                 if(options.showNotice !== false){
                     if(percent < 100){
-                        Util.showNotify({title: 'Unknown signatures', text: notification, type: 'info'});
+                        Util.showNotify({title: 'Unscanned signatures', text: notification, type: 'info'});
                     }else{
                         Util.showNotify({title: 'System is scanned', text: notification, type: 'success'});
                     }
@@ -494,61 +501,68 @@ define([
      * @returns {Array}
      */
     var parseSignatureString = function(systemData, clipboard){
-
         var signatureData = [];
 
-        var signatureRows = clipboard.split(/\r\n|\r|\n/g);
+        if(clipboard.length){
+            var signatureRows = clipboard.split(/\r\n|\r|\n/g);
+            var signatureGroupOptions = Util.getSignatureGroupInfo('name');
+            var invalidSignatures = 0;
 
-        var signatureGroupOptions = Util.getSignatureGroupInfo('name');
+            for(var i = 0; i < signatureRows.length; i++){
+                var rowData = signatureRows[i].split(/\t/g);
 
-        for(var i = 0; i < signatureRows.length; i++){
-            var rowData = signatureRows[i].split(/\t/g);
+                if(rowData.length === 6){
 
-            if(rowData.length === 6){
+                    // check if sig Type = anomaly or combat site
+                    if(validSignatureNames.indexOf( rowData[1] ) !== -1){
 
-                // check if sig Type = anomaly or combat site
-                if(
-                    rowData[1] === 'Cosmic Anomaly' ||
-                    rowData[1] === 'Cosmic Signature'
-                ){
+                        var sigGroup = $.trim(rowData[2]).toLowerCase();
+                        var sigDescription = $.trim(rowData[3]);
+                        var sigGroupId = 0;
+                        var typeId = 0;
 
-                    var sigGroup = $.trim(rowData[2]).toLowerCase();
-                    var sigDescription = $.trim(rowData[3]);
-                    var sigGroupId = 0;
-                    var typeId = 0;
-
-                    // get groupId by groupName
-                    for (var prop in signatureGroupOptions) {
-                        if(signatureGroupOptions.hasOwnProperty(prop)){
-                            if(signatureGroupOptions[prop] === sigGroup){
-                                sigGroupId = parseInt( prop );
-                                break;
+                        // get groupId by groupName
+                        for (var prop in signatureGroupOptions) {
+                            if(signatureGroupOptions.hasOwnProperty(prop)){
+                                if(signatureGroupOptions[prop] === sigGroup){
+                                    sigGroupId = parseInt( prop );
+                                    break;
+                                }
                             }
                         }
-                    }
 
-                    // wormhole type cant be extracted from signature string -> skip function call
-                    if(sigGroupId !== 5){
-                        // try to get "typeId" by description string
-                        typeId = Util.getSignatureTypeIdByName( systemData, sigGroupId, sigDescription );
+                        // wormhole type cant be extracted from signature string -> skip function call
+                        if(sigGroupId !== 5){
+                            // try to get "typeId" by description string
+                            typeId = Util.getSignatureTypeIdByName( systemData, sigGroupId, sigDescription );
 
-                        // set signature name as "description" if signature matching failed
-                        sigDescription = (typeId === 0) ? sigDescription : '';
+                            // set signature name as "description" if signature matching failed
+                            sigDescription = (typeId === 0) ? sigDescription : '';
+                        }else{
+                            sigDescription = '';
+                        }
+
+                        // map array values to signature Object
+                        var signatureObj = {
+                            systemId: systemData.id,
+                            name: $.trim( rowData[0].substr(0, 3) ).toLowerCase(),
+                            groupId: sigGroupId,
+                            typeId: typeId,
+                            description: sigDescription
+                        };
+
+                        signatureData.push(signatureObj);
                     }else{
-                        sigDescription = '';
+                        invalidSignatures++;
                     }
-
-                    // map array values to signature Object
-                    var signatureObj = {
-                        systemId: systemData.id,
-                        name: $.trim( rowData[0].substr(0, 3) ).toLowerCase(),
-                        groupId: sigGroupId,
-                        typeId: typeId,
-                        description: sigDescription
-                    };
-
-                    signatureData.push(signatureObj);
+                }else{
+                    invalidSignatures++;
                 }
+            }
+
+            if(invalidSignatures > 0){
+                var notification = invalidSignatures + ' / ' + signatureRows.length + ' signatures invalid';
+                Util.showNotify({title: 'Invalid signature(s)', text: notification, type: 'warning'});
             }
         }
 
@@ -1669,9 +1683,9 @@ define([
                                     // submit all fields within a table row
                                     var formFields = rowElement.find('.editable');
 
-                                    // the "toggle" makes sure to take care about open editable fields (e.g. description)
+                                    // the "hide" makes sure to take care about open editable fields (e.g. description)
                                     // otherwise, changes would not be submitted in this field (not necessary)
-                                    formFields.editable('toggle');
+                                    formFields.editable('hide');
 
                                     // submit all xEditable fields
                                     formFields.editable('submit', {
@@ -1975,9 +1989,6 @@ define([
             moduleElement = getModule(parentElement, systemData);
             showModule(moduleElement);
         }
-
-        return;
     };
-
 
 });

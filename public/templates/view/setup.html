@@ -1,7 +1,10 @@
 {* splash page *}
 <include href="templates/ui/splash.html"/>
 
-<section>
+{* counter for DB warnings (all databases) *}
+<set dbWarnings="0" />
+
+<section id="pf-setup">
     <div class="container">
 
         <div class="row text-center">
@@ -20,17 +23,6 @@
                     <span class="txt-color txt-color-danger">({{ @errorData->code }}) {{ @errorData->status }}</span>
                     <small> {{ @errorData->message }}</small>
                 </div>
-        </check>
-
-        {* Success *}
-        <check if="{{ @successData }}">
-            <repeat group="{{ @successData }}" value="{{ @success }}">
-                <div class="alert alert-success">
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><i class="fa fa-close"></i></button>
-                    <span class="txt-color txt-color-success">{{ @success.status }}</span>
-                    <small> {{ @success.message }}</small>
-                </div>
-            </repeat>
         </check>
 
         <h4><i class="fa fa-fw fa-server"></i> Environment</h4>
@@ -423,6 +415,7 @@
                                             <false>
                                                 <kbd class="txt-color txt-color-danger">failed</kbd>
                                                 <set dbConnectionStatus="Connection failed" />
+                                                <set dbWarnings="{{ @dbWarnings }} + 1" />
                                             </false>
                                         </check>
                                     </td>
@@ -502,7 +495,7 @@
                                     <th class="text-center col-sm-1 col-md-1">
                                         <i class="fa fa-fw fa-hashtag"></i>
                                     </th>
-                                    <th>table</th>
+                                    <th>Table</th>
                                     <th class="col-sm-1 col-md-1 text-center">exist</th>
                                     <th class="col-sm-3 col-md-3">&nbsp;</th>
                                     <th class="col-sm-1 col-md-1 text-center">
@@ -698,6 +691,7 @@
                                 <check if="{{ @dbInformation.info.statusCheckCount > 0 }}">
                                     <true>
                                         <h3 class="panel-title txt-color txt-color-warning">{{ @dbInformation.info.statusCheckCount }} warning</h3>
+                                        <set dbWarnings="{{ @dbWarnings }} + {{ @dbInformation.info.statusCheckCount }}" />
                                     </true>
                                     <false>
                                         <h3 class="panel-title txt-color txt-color-green">{{ @dbConnectionStatus }}</h3>
@@ -747,17 +741,65 @@
 
         </div>
 
-        <h4><i class="fa fa-fw fa-wrench"></i> Administration</h4>
+        <h4 id="pf-setup-administration"><i class="fa fa-fw fa-wrench"></i> Administration</h4>
 
         <div class="row text-center">
+            <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
+
+                {* Index *}
+                <div class="panel panel-default pricing-big">
+
+                    <div class="panel-heading text-left">
+                        <h3 class="panel-title">
+                            Index data
+                            <i class="fa fa-fw fa-question-circle" title="
+                            Indexed data is required for some queries (e.g. route finder module, static wormholes,... ).
+                            Building/Importing data may take a while (~20s). Increase 'max_execution_time' if you run into PHP timeouts."></i>
+                        </h3>
+                    </div>
+
+                    <div class="panel-body no-padding text-left">
+                        <repeat group="{{ @indexInformation }}" key="{{ @model }}" value="{{ @indexData }}">
+                            <div class="row">
+                                <div class="col-xs-7">
+                                    <span class="btn disabled btn-fake">
+                                       {{ @indexData.table }}
+
+                                    </span>
+                                    <span class="btn disabled btn-fake pull-right">
+                                            <check if="{{ @indexData.count }}">
+                                                <true>
+                                                    <kbd class="txt-color txt-color-success">{{ @indexData.count }} rows</kbd>
+                                                </true>
+                                                <false>
+                                                    <kbd class="txt-color txt-color-danger">0 rows</kbd>
+                                                </false>
+                                            </check>
+                                        </span>
+                                </div>
+                                <div class="col-xs-5">
+                                    <div class="btn-group btn-group-justified">
+                                        <repeat group="{{ @indexData.action }}" key="{{ @actionKey }}" value="{{ @actionData }}">
+                                            <a href="?{{ @actionData.task }}={{ @model }}#pf-setup-administration" class="btn {{ @actionData.btn }} {{ @actionData.btn=='btn-default' && !@indexData.count ?'disabled':'' }} {{ @dbWarnings ?'disabled':'' }}" role="button">
+                                                <i class="fa fa-fw {{ @actionData.icon }}"></i> {{ @actionData.label }}
+                                            </a>
+                                        </repeat>
+                                    </div>
+                                </div>
+                            </div>
+                        </repeat>
+                    </div>
+                </div>
+            </div>
+
             <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
 
                 {* Cache *}
                 <div class="panel panel-default pricing-big">
 
                     <div class="panel-heading text-left">
-                        <h3 class="panel-title">Cache
-                            <span class="pull-right">
+                        <h3 class="panel-title">Files cache
+                            <kbd class="pull-right">
                                 <check if="{{ @cacheSize.all }}">
                                     <true>
                                         {{ @cacheSize.all }}&nbsp;
@@ -766,16 +808,15 @@
                                         0 KB&nbsp;
                                     </false>
                                 </check>
-                            </span>
+                            </kbd>
                         </h3>
                     </div>
-
 
                     <div class="panel-body no-padding">
                         <div class="btn-group btn-group-justified">
                             <span class="btn btn-default disabled btn-fake">
                                 Data
-                                <span class="pull-right">
+                                <kbd class="pull-right">
                                     <check if="{{ @cacheSize.data }}">
                                         <true>
                                             {{ @cacheSize.data }}
@@ -784,10 +825,9 @@
                                             0 KB
                                         </false>
                                     </check>
-                                </span>
-
+                                </kbd>
                             </span>
-                            <a href="?clearCache=1" class="btn btn-warning {{ (@cacheSize.data) ?'':'disabled' }}" role="button">
+                            <a href="?clearCache=1#pf-setup-administration" class="btn btn-warning {{ (@cacheSize.data) ?'':'disabled' }}" role="button">
                                 <i class="fa fa-fw fa-times"></i> Clear
                             </a>
                         </div>
@@ -795,7 +835,7 @@
                         <div class="btn-group btn-group-justified">
                             <span class="btn btn-default disabled btn-fake">
                                 Template
-                                <span class="pull-right">
+                                <kbd class="pull-right">
                                     <check if="{{ @cacheSize.template }}">
                                         <true>
                                             {{ @cacheSize.template }}
@@ -804,7 +844,7 @@
                                             0 KB
                                         </false>
                                     </check>
-                                </span>
+                                </kbd>
                             </span>
                             <span class="btn btn-default disabled btn-fake"></span>
                         </div>
@@ -814,3 +854,15 @@
         </div>
     </div>
 </section>
+
+{* footer *}
+<footer class="navbar-default navbar-fixed-bottom">
+    <div class="container-fluid">
+        <a href="{{ 'login' | alias }}" class="btn btn-default navbar-btn btn-default">
+            <i class="fa fa-arrow-left"></i> back
+        </a>
+        <a href="#pf-setup" class="btn btn-default navbar-btn btn-default pull-right">
+            <i class="fa fa-arrow-up"></i> top
+        </a>
+    </div>
+</footer>

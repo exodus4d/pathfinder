@@ -24,9 +24,6 @@ class MapController extends AccessController {
         // body element class
         $f3->set('bodyClass', 'pf-body');
 
-        // set trust attribute to template
-        $f3->set('trusted', (int)self::isIGBTrusted());
-
         // JS main file
         $f3->set('jsView', 'mappage');
     }

@@ -69,7 +69,7 @@ class Database extends \Prefab {
     /**
      * get database
      * @param string $database
-     * @return mixed|void
+     * @return SQL
      */
     public function getDB($database = 'PF'){
 
@@ -102,7 +102,6 @@ class Database extends \Prefab {
      * @return SQL
      */
     protected function connect($dns, $name, $user, $password){
-
         $db = null;
 
         try {
@@ -111,16 +110,65 @@ class Database extends \Prefab {
                 $user,
                 $password,
                 [
-                    \PDO::MYSQL_ATTR_COMPRESS  => TRUE
+                    \PDO::MYSQL_ATTR_COMPRESS  => true,
+                    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                    \PDO::ATTR_TIMEOUT => \Base::instance()->get('REQUIREMENTS.MYSQL.PDO_TIMEOUT'),
                 ]
             );
         }catch(\PDOException $e){
             // DB connection error
             // -> log it
-            LogController::getLogger('error')->write($e->getMessage());
+            self::getLogger()->write($e->getMessage());
         }
 
         return $db;
     }
 
+    /**
+     * get all table names from a DB
+     * @param string $database
+     * @return array|bool
+     */
+    public function getTables($database = 'PF'){
+        $schema = new SQL\Schema( $this->getDB($database) );
+        return $schema->getTables();
+    }
+
+    /**
+     * checks whether a table exists on a DB or not
+     * @param $table
+     * @param string $database
+     * @return bool
+     */
+    public function tableExists($table, $database = 'PF'){
+        $tableNames = $this->getTables($database);
+        return in_array($table, $tableNames);
+    }
+
+    /**
+     * get current row (data) count for an existing table
+     * -> returns 0 if table not exists or empty
+     * @param $table
+     * @param string $database
+     * @return int
+     */
+    public function getRowCount($table, $database = 'PF') {
+        $count = 0;
+        if( $this->tableExists($table, $database) ){
+            $db = $this->getDB($database);
+            $countRes = $db->exec("SELECT COUNT(*) `num` FROM " . $db->quotekey($table));
+            if(isset($countRes[0]['num'])){
+                $count = (int)$countRes[0]['num'];
+            }
+        }
+        return $count;
+    }
+
+    /**
+     * get logger for DB logging
+     * @return \Log
+     */
+    static function getLogger(){
+        return LogController::getLogger('ERROR');
+    }
 }

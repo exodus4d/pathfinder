@@ -7,7 +7,6 @@
  */
 
 namespace cron;
-use Controller;
 use DB;
 
 class MapUpdate {
@@ -39,7 +38,7 @@ class MapUpdate {
         $deactivatedMapsCount = $pfDB->count();
 
         // Log ------------------------
-        $log = Controller\LogController::getLogger('cron_' . __FUNCTION__);
+        $log = new \Log('cron_' . __FUNCTION__ . '.log');
         $log->write( sprintf(self::LOG_TEXT_MAPS, __FUNCTION__, $deactivatedMapsCount) );
     }
 
@@ -63,7 +62,7 @@ class MapUpdate {
         $deletedMapsCount = $pfDB->count();
 
         // Log ------------------------
-        $log = Controller\LogController::getLogger('cron_' . __FUNCTION__);
+        $log = new \Log('cron_' . __FUNCTION__ . '.log');
         $log->write( sprintf(self::LOG_TEXT_MAPS, __FUNCTION__, $deletedMapsCount) );
     }
 

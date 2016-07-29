@@ -14,6 +14,9 @@ class WormholeModel extends BasicModel {
 
     protected $table = 'wormhole';
 
+    public static $enableDataExport = true;
+    public static $enableDataImport = true;
+
     protected $fieldConf = [
         'name' => [
             'type' => Schema::DT_VARCHAR128,
@@ -28,19 +31,19 @@ class WormholeModel extends BasicModel {
             'default' => ''
         ],
         'massTotal' => [
-            'type' => Schema::DT_VARCHAR128,
+            'type' => Schema::DT_INT,
             'nullable' => false,
-            'default' => ''
+            'default' => 0
         ],
         'massIndividual' => [
-            'type' => Schema::DT_VARCHAR128,
+            'type' => Schema::DT_INT,
             'nullable' => false,
-            'default' => ''
+            'default' => 0
         ],
         'massRegeneration' => [
-            'type' => Schema::DT_VARCHAR128,
+            'type' => Schema::DT_INT,
             'nullable' => false,
-            'default' => ''
+            'default' => 0
         ],
         'maxStableTime' => [
             'type' => Schema::DT_INT,
