@@ -1441,10 +1441,10 @@ define([
         }
 
         // set update date (important for update check)
-        connection.setParameters({
-            updated: newConnectionData.updated,
-            eolUpdated: newConnectionData.eolUpdated
-        });
+        // important: set parameters ONE-by-ONE!
+        // -> (setParameters() will overwrite all previous params)
+        connection.setParameter('updated', newConnectionData.updated);
+        connection.setParameter('eolUpdated', newConnectionData.eolUpdated);
 
         return connection;
     };
