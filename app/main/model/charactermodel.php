@@ -344,7 +344,7 @@ class CharacterModel extends BasicModel {
     public function updateLog($additionalOptions = []){
         // Try to pull data from CREST
         $ssoController = new Sso();
-        $logData = $ssoController->getCharacterLocationData($this->getAccessToken(), 10, $additionalOptions);
+        $logData = $ssoController->getCharacterLocationData($this->getAccessToken(), 5, $additionalOptions);
 
         if($logData['timeout'] === false){
             if( empty($logData['system']) ){

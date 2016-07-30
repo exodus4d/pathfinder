@@ -1217,7 +1217,7 @@ define([
 
             // set connection parameters
             // they should persist even through connection type change (e.g. wh -> stargate,..)
-            // therefore they shoule be part of the connection not of the connector
+            // therefore they should be part of the connection not of the connector
             connection.setParameters({
                 connectionId: connectionId,
                 updated: connectionData.updated,

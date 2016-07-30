@@ -621,7 +621,7 @@ class Sso extends Api\User{
      * @param array $additionalOptions
      * @return array|mixed
      */
-    public function getCharacterLocationData($accessToken, $ttl = 10, $additionalOptions = []){
+    public function getCharacterLocationData($accessToken, $ttl = 5, $additionalOptions = []){
         // null == CREST call failed (e.g. timeout)
         $locationData = [
             'timeout' => false
