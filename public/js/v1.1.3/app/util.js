@@ -1630,7 +1630,7 @@ define([
      * @returns {Date}
      */
     var convertDateToUTC = function(date) {
-        return new Date(date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
+        return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
     };
 
     /**
@@ -1639,8 +1639,8 @@ define([
      * @returns {string}
      */
     var convertDateToString = function(date){
-        var dateString = ('0'+date.getMonth()).slice(-2) + '/' + ('0'+date.getDate()).slice(-2) + '/' + date.getFullYear();
-        var timeString = ('0'+date.getHours()).slice(-2) + ':' + ('0'+date.getMinutes()).slice(-2);
+        var dateString = ('0'+ (date.getMonth() + 1 )).slice(-2) + '/' + ('0'+date.getDate()).slice(-2) + '/' + date.getFullYear();
+        var timeString = ('0' + date.getHours()).slice(-2) + ':' + ('0'+date.getMinutes()).slice(-2);
         return   dateString + ' ' + timeString;
     };
 
