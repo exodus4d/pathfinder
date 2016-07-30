@@ -23,7 +23,10 @@ define([
         mapOverlayInfoClass: 'pf-map-overlay-info',                     // class for map overlay info e.g. map info
 
         // system
-        systemHeadClass: 'pf-system-head'                               // class for system head
+        systemHeadClass: 'pf-system-head',                              // class for system head
+
+        // connection
+        connectionOverlayEolId: 'overlayEol'                            // connection overlay ID (jsPlumb)
     };
 
     /**
@@ -79,6 +82,57 @@ define([
                 out: function(e){
                     var mapElement = getMapFromOverlay(this);
                     mapElement.find('.' + config.systemHeadClass).tooltip('hide');
+                }
+            }
+        },
+        systemConnectionTimer: {
+            title: 'show EOL timer',
+            trigger: 'hover',
+            class: 'pf-map-overlay-connection-timer',
+            iconClass: ['fa', 'fa-fw', 'fa-clock-o'],
+            hoverIntent: {
+                over: function(e){
+                    var mapElement = getMapFromOverlay(this);
+                    var MapUtil = require('app/map/util');
+                    var Map = require('app/map/map');
+                    var map = Map.getMapInstance( mapElement.data('id') );
+                    var connections = MapUtil.searchConnectionsByScopeAndType(map, 'wh', ['wh_eol']);
+                    var serverDate = Util.getServerTime();
+
+                    for (let connection of connections) {
+                        var eolTimestamp = connection.getParameter('eolUpdated');
+                        var eolDate = Util.convertTimestampToServerTime(eolTimestamp);
+                        var diff = Util.getTimeDiffParts(eolDate, serverDate);
+
+                        // format overlay label
+                        var label = '';
+                        if(diff.days){
+                            label += diff.days + 'd ';
+                        }
+                        label += ('00' + diff.hours).slice(-2);
+                        label += ':' + ('00' + diff.min).slice(-2);
+
+                        connection.addOverlay([
+                            'Label',
+                            {
+                                label: '<i class="fa fa-fw fa-clock-o"></i>&nbsp;' + label,
+                                id: config.connectionOverlayEolId,
+                                cssClass: ['pf-map-connection-overlay', 'eol'].join(' '),
+                                location: 0.25
+                            }
+                        ]);
+                    }
+                },
+                out: function(e){
+                    var mapElement = getMapFromOverlay(this);
+                    var MapUtil = require('app/map/util');
+                    var Map = require('app/map/map');
+                    var map = Map.getMapInstance( mapElement.data('id') );
+                    var connections = MapUtil.searchConnectionsByScopeAndType(map, 'wh', ['wh_eol']);
+
+                    for (let connection of connections) {
+                        connection.removeOverlay(config.connectionOverlayEolId);
+                    }
                 }
             }
         }
@@ -299,7 +353,7 @@ define([
 
     /**
      * init all map overlays on a "parent" element
-     * @returns {any|JQuery|*}
+     * @returns {*}
      */
     $.fn.initMapOverlays = function(){
         return this.each(function(){
@@ -322,7 +376,7 @@ define([
                     var icon = $('<i>', {
                         class: options[prop].iconClass.concat( ['pull-right', options[prop].class] ).join(' ')
                     }).attr('title', options[prop].title).tooltip({
-                        placement: 'left',
+                        placement: 'bottom',
                         container: 'body',
                         delay: 150
                     });

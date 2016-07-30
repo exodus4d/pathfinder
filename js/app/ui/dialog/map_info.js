@@ -6,8 +6,9 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'bootbox'
-], function($, Init, Util, bootbox) {
+    'bootbox',
+    'app/map/util'
+], function($, Init, Util, bootbox, MapUtil) {
 
     'use strict';
 
@@ -72,7 +73,7 @@ define([
         var countConnections = mapData.data.connections.length;
 
         // map type
-        var mapTypes = Util.getMapTypes();
+        var mapTypes = MapUtil.getMapTypes();
         var mapTypeName = '';
         var mapTypeClass = '';
         for(var i = 0; i < mapTypes.length; i++){
@@ -196,7 +197,7 @@ define([
 
             // type
             tempData.type = {
-                type: Util.getSystemTypeInfo(tempSystemData.type.id, 'name'),
+                type: MapUtil.getSystemTypeInfo(tempSystemData.type.id, 'name'),
                 type_sort: tempSystemData.type.id
             };
 
@@ -237,7 +238,7 @@ define([
             }
 
             // effect
-            var systemEffectClass = Util.getEffectInfoForSystem(tempSystemData.effect, 'class');
+            var systemEffectClass = MapUtil.getEffectInfoForSystem(tempSystemData.effect, 'class');
             if(systemEffectClass !== ''){
                 tempData.effect = {
                     effect: '<i class="fa fa fa-square fa-lg fa-fw ' + systemEffectClass + '"></i>',
@@ -491,7 +492,7 @@ define([
             tempConData.id = tempConnectionData.id;
 
             tempConData.scope = {
-                scope: Util.getScopeInfoForConnection(tempConnectionData.scope, 'label'),
+                scope: MapUtil.getScopeInfoForConnection(tempConnectionData.scope, 'label'),
                 scope_sort: tempConnectionData.scope
             };
 
@@ -501,7 +502,7 @@ define([
             // connection
             var connectionClasses = [];
             for(var k = 0; k < tempConnectionData.type.length; k++){
-                connectionClasses.push( Util.getConnectionInfo( tempConnectionData.type[k], 'cssClass') );
+                connectionClasses.push( MapUtil.getConnectionInfo( tempConnectionData.type[k], 'cssClass') );
 
             }
 

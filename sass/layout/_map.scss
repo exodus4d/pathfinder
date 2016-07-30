@@ -481,7 +481,7 @@ $mapWidth: 2500px ;
     padding: 1px 4px;
     font-size: 11px;
     z-index: 1020;
-    @include border-radius(8px);
+    @include border-radius(6px);
     @include box-shadow(0 6px 12px rgba(0,0,0,.4));
   }
 
@@ -492,7 +492,12 @@ $mapWidth: 2500px ;
 
   .mass{
     background-color: $red-darker;
-    color: #eaeaea;
+    color: $gray-lightest;
+  }
+
+  .eol{
+    background-color: $gray;
+    color: $pink-dark;
   }
 }
 

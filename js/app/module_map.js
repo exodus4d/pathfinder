@@ -3,6 +3,7 @@ define([
     'app/init',
     'app/util',
     'app/map/map',
+    'app/map/util',
     'app/counter',
     'app/ui/system_info',
     'app/ui/system_graph',
@@ -14,7 +15,7 @@ define([
     'datatables.net-buttons-html',
     'datatables.net-responsive',
     'datatables.net-select'
-], function($, Init, Util, Map) {
+], function($, Init, Util, Map, MapUtil) {
 
     'use strict';
 
@@ -650,7 +651,7 @@ define([
             var tabAddOptions = {
                 id: 0,
                 type: {
-                    classTab: Util.getInfoForMap( 'standard', 'classTab')
+                    classTab: MapUtil.getInfoForMap( 'standard', 'classTab')
                 },
                 icon: 'fa-plus',
                 name: 'add',

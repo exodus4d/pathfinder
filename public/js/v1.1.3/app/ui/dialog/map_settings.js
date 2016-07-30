@@ -7,8 +7,9 @@ define([
     'app/init',
     'app/util',
     'app/render',
-    'bootbox'
-], function($, Init, Util, Render, bootbox) {
+    'bootbox',
+    'app/map/util'
+], function($, Init, Util, Render, bootbox, MapUtil) {
     'use strict';
 
     var config = {
@@ -80,12 +81,12 @@ define([
                 }
 
                 // available map "types" for a new or existing map
-                var mapTypes = Util.getMapTypes(true);
+                var mapTypes = MapUtil.getMapTypes(true);
 
                 var data = {
-                    scope: Util.getMapScopes(),
+                    scope: MapUtil.getMapScopes(),
                     type: mapTypes,
-                    icon: Util.getMapIcons(),
+                    icon: MapUtil.getMapIcons(),
                     formErrorContainerClass: Util.config.formErrorContainerClass,
                     formWarningContainerClass: Util.config.formWarningContainerClass,
                     formInfoContainerClass: Util.config.formInfoContainerClass

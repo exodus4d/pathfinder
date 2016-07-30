@@ -1,31 +1,26 @@
-define(["jquery"], function($) {
-
-    "use strict";
+define([
+    'jquery',
+    'app/init',
+    'app/util'
+], function($, Init, Util) {
+    'use strict';
 
     var config = {
       counterDigitSmallClass: 'pf-digit-counter-small',
       counterDigitLargeClass: 'pf-digit-counter-large'
     };
 
+    /**
+     * update element with time information
+     * @param element
+     * @param tempDate
+     */
     var updateDateDiff = function(element, tempDate){
-
-        var date1 = new Date();
-        var date2 = tempDate;
-        //Customise date2 for your required future time
-
-        var diff = (date1 - date2)/1000;
-        diff = Math.abs(Math.floor(diff));
-
-        var days = Math.floor(diff/(24*60*60));
-        var leftSec = diff - days * 24*60*60;
-
-        var hrs = Math.floor(leftSec/(60*60));
-        leftSec = leftSec - hrs * 60*60;
-
-        var min = Math.floor(leftSec/(60));
-        leftSec = leftSec - min * 60;
-
-
+        var diff = Util.getTimeDiffParts(tempDate, new Date());
+        var days = diff.days;
+        var hrs = diff.hours;
+        var min = diff.min;
+        var leftSec = diff.sec;
         var value = [];
 
         if(
@@ -54,9 +49,7 @@ define(["jquery"], function($) {
             value.push('<span class="' + config.counterDigitSmallClass + '">' + leftSec + 's' + '</span>');
         }
 
-
         element.html(value.join(' '));
-
     };
 
     /**
@@ -65,9 +58,7 @@ define(["jquery"], function($) {
      */
     $.fn.initTimestampCounter = function(){
         return this.each(function(){
-
             var element = $(this);
-
             var timestamp = parseInt( element.text() );
 
             // do not init twice
@@ -90,12 +81,7 @@ define(["jquery"], function($) {
                 }, 100);
 
                 element.data('interval', refreshIntervalId);
-
             }
-
-
         });
-
-
     };
 });

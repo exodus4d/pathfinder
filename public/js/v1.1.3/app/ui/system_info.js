@@ -6,8 +6,9 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'app/render'
-], function($, Init, Util, Render) {
+    'app/render',
+    'app/map/util'
+], function($, Init, Util, Render, MapUtil) {
     'use strict';
 
     var config = {
@@ -210,8 +211,8 @@ define([
             shatteredWormholeInfo = true;
         }
 
-        var effectName = Util.getEffectInfoForSystem(systemData.effect, 'name');
-        var effectClass = Util.getEffectInfoForSystem(systemData.effect, 'class');
+        var effectName = MapUtil.getEffectInfoForSystem(systemData.effect, 'name');
+        var effectClass = MapUtil.getEffectInfoForSystem(systemData.effect, 'class');
 
         // systemInfo template config
         var moduleConfig = {
@@ -407,7 +408,7 @@ define([
             wormholePrefixClass: config.systemInfoWormholeClass,
             statusInfoClass: config.systemInfoStatusLabelClass,
 
-            systemTypeName: Util.getSystemTypeInfo(systemData.type.id, 'name'),
+            systemTypeName: MapUtil.getSystemTypeInfo(systemData.type.id, 'name'),
             systemStatusId: systemData.status.id,
             systemStatusClass: Util.getStatusInfoForSystem(systemData.status.id, 'class'),
             systemStatusLabel: Util.getStatusInfoForSystem(systemData.status.id, 'label'),

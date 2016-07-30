@@ -62,6 +62,10 @@ class ConnectionModel extends BasicModel{
         ],
         'type' => [
             'type' => self::DT_JSON
+        ],
+        'eolUpdated' => [
+            'type' => Schema::DT_TIMESTAMP,
+            'default' => null
         ]
     ];
 
@@ -96,10 +100,33 @@ class ConnectionModel extends BasicModel{
             'target' => $this->target->id,
             'scope' => $this->scope,
             'type' => $this->type,
-            'updated' => strtotime($this->updated)
+            'updated' => strtotime($this->updated),
+            'eolUpdated' => strtotime($this->eolUpdated)
         ];
 
         return $connectionData;
+    }
+
+    /**
+     * setter for connection type
+     * @param $type
+     * @return int|number
+     */
+    public function set_type($type){
+        $newTypes = (array)json_decode($type);
+
+        // set EOL timestamp
+        if( !in_array('wh_eol', $newTypes) ){
+            $this->eolUpdated = null;
+        }elseif(
+            in_array('wh_eol', $newTypes) &&
+            !in_array('wh_eol', $this->type)
+        ){
+            // connection EOL status change
+            $this->touch('eolUpdated');
+        }
+
+        return $type;
     }
 
     /**

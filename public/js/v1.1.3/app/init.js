@@ -276,23 +276,23 @@ define(['jquery'], function($) {
                     dashstyle: '0.99'
                 },
                 overlays:[
-                    [ 'Label',
+                    ['Label',
                         {
                             label: 'frig',
-                            cssClass: ['pf-map-connection-overlay', 'frig'].join(' ')
-                        } ]
+                            cssClass: ['pf-map-connection-overlay', 'frig'].join(' '),
+                            location: 0.6
+                        }]
                 ]
             },
             preserve_mass: {
                 cssClass: 'pf-map-connection-preserve-mass',
                 overlays:[
-                    [ 'Label',
+                    ['Label',
                         {
-                            label: '<i class="fa fa-warning"></i>&nbsp;save mass',
+                            label: '<i class="fa fa-fw fa-warning"></i>&nbsp;save mass',
                             cssClass: ['pf-map-connection-overlay', 'mass'].join(' '),
-                            width:50, length:30,
-                            location: 0.5
-                        } ]
+                            location: 0.6
+                        }]
                 ]
             }
         },

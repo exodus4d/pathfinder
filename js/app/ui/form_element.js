@@ -5,8 +5,9 @@
 define([
     'jquery',
     'app/init',
-    'app/util'
-], function($, Init, Util) {
+    'app/util',
+    'app/map/util'
+], function($, Init, Util, MapUtil) {
 
     'use strict';
 
@@ -84,7 +85,7 @@ define([
                                 var trueSec = parseFloat(item.trueSec);
                                 var secClass = Util.getSecurityClassForSystem(item.security);
                                 var trueSecClass = Util.getTrueSecClassForSystem( trueSec );
-                                var effectClass = Util.getEffectInfoForSystem(item.effect, 'class');
+                                var effectClass = MapUtil.getEffectInfoForSystem(item.effect, 'class');
 
                                 // check if system is dialed
                                 if(

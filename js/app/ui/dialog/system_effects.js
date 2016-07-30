@@ -9,7 +9,8 @@ define([
     'app/util',
     'app/render',
     'bootbox',
-], function($, Init, Util, Render, bootbox) {
+    'app/map/util'
+], function($, Init, Util, Render, bootbox, MapUtil) {
     'use strict';
 
     var config = {
@@ -47,8 +48,8 @@ define([
                 var rows = [];
 
                 // get formatted system effect name
-                var systemEffectName = Util.getEffectInfoForSystem(effectName, 'name');
-                var systemEffectClass = Util.getEffectInfoForSystem(effectName, 'class');
+                var systemEffectName = MapUtil.getEffectInfoForSystem(effectName, 'name');
+                var systemEffectClass = MapUtil.getEffectInfoForSystem(effectName, 'class');
 
                 $.each( effectData, function( areaId, areaData ) {
 

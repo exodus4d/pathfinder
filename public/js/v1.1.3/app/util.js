@@ -872,6 +872,38 @@ define([
     };
 
     /**
+     * convert timestamp to server time
+     * @param timestamp
+     * @returns {Date}
+     */
+    var convertTimestampToServerTime = function(timestamp){
+        var currentTimeZoneOffsetInMinutes = new Date().getTimezoneOffset();
+        return new Date( (timestamp + (currentTimeZoneOffsetInMinutes * 60)) * 1000);
+    };
+
+    /**
+     * get date difference as time parts (days, hours, minutes, seconds)
+     * @param date1
+     * @param date2
+     * @returns {{}}
+     */
+    var getTimeDiffParts = function(date1, date2){
+        var parts = {};
+        var diff = (date2.getTime() - date1.getTime()) / 1000;
+        diff = Math.abs(Math.floor(diff));
+
+        parts.days = Math.floor(diff/(24*60*60));
+        var leftSec = diff - parts.days * 24*60*60;
+
+        parts.hours = Math.floor(leftSec/(60*60));
+        leftSec = leftSec - parts.hours * 60*60;
+
+        parts.min = Math.floor(leftSec/(60));
+        parts.sec = leftSec - parts.min * 60;
+        return parts;
+    };
+
+    /**
      * start time measurement by a unique string identifier
      * @param timerName
      */
@@ -1004,203 +1036,6 @@ define([
     };
 
     /**
-     * get all available map icons
-     * @returns {*}
-     */
-    var getMapIcons = function(){
-
-        return Init.mapIcons;
-    };
-
-    /**
-     * get all available map Types
-     * optional they can be filtered by current access level of a user
-     * @param filterByUser
-     * @returns {Array}
-     */
-    var getMapTypes = function(filterByUser){
-
-        var mapTypes = [];
-
-        $.each(Init.mapTypes, function(prop, data){
-
-            // skip "default" type -> just for 'add' icon
-            if(data.label.length > 0){
-                var tempData = data;
-                tempData.name = prop;
-
-                mapTypes.push(tempData);
-            }
-        });
-
-        if(filterByUser === true){
-
-            var corporationId = getCurrentUserInfo('corporationId');
-            var allianceId = getCurrentUserInfo('allianceId');
-
-            var authorizedMapTypes = [];
-            // check if character data exists
-            if(corporationId > 0) {
-                authorizedMapTypes.push('corporation');
-            }
-            if(allianceId > 0){
-                authorizedMapTypes.push('alliance');
-            }
-
-            // private maps are always allowed
-            authorizedMapTypes.push('private');
-
-            // compare "all" map types with "authorized" types
-            var tempMapTypes = [];
-            for(var i = 0; i < mapTypes.length; i++){
-                for(var j = 0; j < authorizedMapTypes.length; j++){
-                    if(mapTypes[i].name === authorizedMapTypes[j]){
-                        tempMapTypes.push(mapTypes[i]);
-                        break;
-                    }
-
-                }
-            }
-
-            mapTypes = tempMapTypes;
-        }
-
-        return mapTypes;
-    };
-
-    /**
-     * get map info
-     * @param mapType
-     * @param option
-     * @returns {string}
-     */
-    var getInfoForMap = function(mapType, option){
-
-        var mapInfo = '';
-
-        if(Init.mapTypes.hasOwnProperty(mapType)){
-            mapInfo = Init.mapTypes[mapType][option];
-        }
-
-        return mapInfo;
-    };
-
-    /**
-     * get all available scopes for a map
-     * @returns {Array}
-     */
-    var getMapScopes = function(){
-
-        var scopes = [];
-        $.each(Init.mapScopes, function(prop, data){
-            var tempData = data;
-            tempData.name = prop;
-            scopes.push(tempData);
-        });
-
-        return scopes;
-    };
-
-    /**
-     * get some scope info for a given info string
-     * @param info
-     * @param option
-     * @returns {string}
-     */
-    var getScopeInfoForMap = function(info, option){
-
-        var scopeInfo = '';
-
-        if(Init.mapScopes.hasOwnProperty(info)){
-            scopeInfo = Init.mapScopes[info][option];
-        }
-
-        return scopeInfo;
-    };
-
-    /**
-     * get some scope info for a given info string
-     * @param info
-     * @param option
-     * @returns {string}
-     */
-    var getScopeInfoForConnection = function(info, option){
-
-        var scopeInfo = '';
-
-        if(Init.connectionScopes.hasOwnProperty(info)){
-            switch(option){
-                case 'connectorDefinition':
-                    // json data in DB
-                    var temp = '{ "data": ' + Init.connectionScopes[info][option] + '}';
-                    scopeInfo = $.parseJSON( temp).data;
-                    break;
-                default:
-                    scopeInfo = Init.connectionScopes[info][option];
-                    break;
-            }
-        }
-
-        return scopeInfo;
-    };
-
-
-    /**
-     * get system type information
-     * @returns {Array}
-     */
-    var getSystemTypeInfo = function(systemTypeId, option){
-
-        var systemTypeInfo = '';
-
-        $.each(Init.systemType, function(prop, data){
-
-            if(systemTypeId === data.id){
-                systemTypeInfo = data[option];
-                return;
-            }
-        });
-
-        return systemTypeInfo;
-    };
-
-    /**
-     * get some system info for a given info string (e.g. rally class)
-     * @param info
-     * @param option
-     * @returns {string}
-     */
-    var getInfoForSystem = function(info, option){
-
-        var systemInfo = '';
-
-        if(Init.classes.systemInfo.hasOwnProperty(info)){
-            systemInfo = Init.classes.systemInfo[info][option];
-        }
-
-
-        return systemInfo;
-    };
-
-    /**
-     * get some info for a given effect string
-     * @param effect
-     * @param option
-     * @returns {string}
-     */
-    var getEffectInfoForSystem = function(effect, option){
-
-        var effectInfo = '';
-
-        if( Init.classes.systemEffects.hasOwnProperty(effect) ){
-            effectInfo = Init.classes.systemEffects[effect][option];
-        }
-
-        return effectInfo;
-    };
-
-
-    /**
      * get system effect data by system security and system class
      * if no search parameters given -> get all effect data
      * @param security
@@ -1208,13 +1043,10 @@ define([
      * @returns {boolean}
      */
     var getSystemEffectData = function(security, effect){
-
         var data =  SystemEffect;
-
         if(security){
             // look for specific data
             data = false;
-
             var areaId = getAreaIdBySecurity(security);
 
             if(
@@ -1415,22 +1247,6 @@ define([
     };
 
     /**
-     * get Connection Info by option
-     * @param connectionTyp
-     * @param option
-     * @returns {string}
-     */
-    var getConnectionInfo = function(connectionTyp, option){
-
-        var connectionInfo = '';
-        if(Init.connectionTypes.hasOwnProperty(connectionTyp)){
-            connectionInfo = Init.connectionTypes[connectionTyp][option];
-        }
-
-        return connectionInfo;
-    };
-
-    /**
      * get signature group information
      * @param option
      * @returns {{}}
@@ -1543,7 +1359,7 @@ define([
      * set currentMapUserData as "global" variable (count of active pilots)
      * this function should be called continuously after data change
      * to keep the data always up2data
-     * @param currentMapUserData
+     * @param mapUserData
      */
     var setCurrentMapUserData = function(mapUserData){
         Init.currentMapUserData = mapUserData;
@@ -1707,7 +1523,6 @@ define([
      * @param type
      */
     var setDestination = function(systemData, type){
-
         var description = '';
         switch(type){
             case 'set_destination':
@@ -1895,6 +1710,8 @@ define([
         showVersionInfo: showVersionInfo,
         getCurrentTriggerDelay: getCurrentTriggerDelay,
         getServerTime: getServerTime,
+        convertTimestampToServerTime: convertTimestampToServerTime,
+        getTimeDiffParts: getTimeDiffParts,
         timeStart: timeStart,
         timeStop: timeStop,
         log: log,
@@ -1902,15 +1719,6 @@ define([
         getLogInfo: getLogInfo,
         isXHRAborted: isXHRAborted,
         getMapModule: getMapModule,
-        getMapIcons: getMapIcons,
-        getMapTypes: getMapTypes,
-        getInfoForMap: getInfoForMap,
-        getMapScopes: getMapScopes,
-        getScopeInfoForMap: getScopeInfoForMap,
-        getScopeInfoForConnection: getScopeInfoForConnection,
-        getSystemTypeInfo: getSystemTypeInfo,
-        getInfoForSystem: getInfoForSystem,
-        getEffectInfoForSystem: getEffectInfoForSystem,
         getSystemEffectData: getSystemEffectData,
         getSystemEffectTable: getSystemEffectTable,
         getSystemsInfoTable: getSystemsInfoTable,
@@ -1918,7 +1726,6 @@ define([
         getSecurityClassForSystem: getSecurityClassForSystem,
         getTrueSecClassForSystem: getTrueSecClassForSystem,
         getStatusInfoForSystem: getStatusInfoForSystem,
-        getConnectionInfo: getConnectionInfo,
         getSignatureGroupInfo: getSignatureGroupInfo,
         getAllSignatureNames: getAllSignatureNames,
         getSignatureTypeIdByName: getSignatureTypeIdByName,

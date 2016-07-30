@@ -8,13 +8,14 @@ define([
     'app/util',
     'app/render',
     'bootbox',
+    'app/map/util',
     'app/map/magnetizing',
     'app/map/scrollbar',
     'dragToSelect',
     'select2',
     'app/map/contextmenu',
     'app/map/overlay'
-], function($, Init, Util, Render, bootbox, MagnetizerWrapper) {
+], function($, Init, Util, Render, bootbox, MapUtil, MagnetizerWrapper) {
 
     'use strict';
 
@@ -481,9 +482,9 @@ define([
             }
 
             // get system info classes
-            var effectBasicClass = Util.getEffectInfoForSystem('effect', 'class');
-            var effectName = Util.getEffectInfoForSystem(data.effect, 'name');
-            var effectClass = Util.getEffectInfoForSystem(data.effect, 'class');
+            var effectBasicClass = MapUtil.getEffectInfoForSystem('effect', 'class');
+            var effectName = MapUtil.getEffectInfoForSystem(data.effect, 'name');
+            var effectClass = MapUtil.getEffectInfoForSystem(data.effect, 'class');
             var secClass = Util.getSecurityClassForSystem(data.security);
 
             system = $('<div>', {
@@ -965,7 +966,7 @@ define([
         sourceConfig.scope = map.Defaults.Scope;    // set all allowed connections for this scopes
 
         // default connector for initial dragging a new connection
-        sourceConfig.connector = Util.getScopeInfoForConnection('wh', 'connectorDefinition');
+        sourceConfig.connector = MapUtil.getScopeInfoForConnection('wh', 'connectorDefinition');
 
         map.makeSource(system, sourceConfig);
     };
@@ -1176,50 +1177,6 @@ define([
     };
 
     /**
-     * get all connections of multiple systems
-     * @param map
-     * @param systems
-     * @returns {Array}
-     */
-    var getConnections = function(map, systems){
-
-        var connections = [];
-
-        var withBackConnection = false;
-
-        $.each(systems, function(i, system){
-            // get connections where system is source
-            connections = connections.concat( map.getConnections({source: system}) );
-
-            if(withBackConnection === true){
-                // get connections where system is target
-                connections = connections.concat( map.getConnections({target: system}) );
-            }
-
-        });
-
-        return connections;
-    };
-
-    /**
-     * get all direct connections between two given systems
-     * @param map
-     * @param systemA
-     * @param systemB
-     * @returns {Array}
-     */
-    var checkForConnection = function(map, systemA, systemB){
-
-        var connections = [];
-
-        connections = connections.concat( map.getConnections({scope: '*', source: systemA, target: systemB}) );
-        // get connections where system is target
-        connections = connections.concat( map.getConnections({scope: '*', source: systemB, target: systemA}) );
-
-        return connections;
-    };
-
-    /**
      * connect two systems
      * @param map
      * @param connectionData
@@ -1263,7 +1220,8 @@ define([
             // therefore they shoule be part of the connection not of the connector
             connection.setParameters({
                 connectionId: connectionId,
-                updated: connectionData.updated
+                updated: connectionData.updated,
+                eolUpdated: connectionData.eolUpdated
             });
 
             // add connection types -----------------------------------------------------
@@ -1330,7 +1288,7 @@ define([
                     updateConnectionCache(this.mapId, connection);
 
                     // connection scope
-                    var scope = Util.getScopeInfoForConnection(newConnectionData.scope, 'label');
+                    var scope = MapUtil.getScopeInfoForConnection(newConnectionData.scope, 'label');
 
                     var title = 'New connection established';
                     if(connectionData.id > 0){
@@ -1462,7 +1420,7 @@ define([
                 addType[i].indexOf('reduced') !== -1 ||
                 addType[i].indexOf('critical') !== -1
             ){
-                setConnectionWHStatus(connection, addType[i]);
+                MapUtil.setConnectionWHStatus(connection, addType[i]);
             }else if( connection.hasType(addType[i]) !== true ){
                 // additional types e.g. eol, frig, preserve mass
                 connection.addType(addType[i]);
@@ -1482,8 +1440,11 @@ define([
             }
         }
 
-        // set update date
-        connection.setParameter('updated', newConnectionData.updated);
+        // set update date (important for update check)
+        connection.setParameters({
+            updated: newConnectionData.updated,
+            eolUpdated: newConnectionData.eolUpdated
+        });
 
         return connection;
     };
@@ -1496,7 +1457,7 @@ define([
     var setConnectionScope = function(connection, scope){
         var map = connection._jsPlumb.instance;
         var currentConnector = connection.getConnector();
-        var newConnector = Util.getScopeInfoForConnection(scope, 'connectorDefinition');
+        var newConnector = MapUtil.getScopeInfoForConnection(scope, 'connectorDefinition');
 
         if(currentConnector.type !== newConnector[0]){
             // connector has changed
@@ -1508,7 +1469,7 @@ define([
 
             // set new new connection type
             // if scope changed -> connection type == scope
-            connection.setType( getDefaultConnectionTypeByScope(scope) );
+            connection.setType( MapUtil.getDefaultConnectionTypeByScope(scope) );
 
             // change scope
             connection.scope = scope;
@@ -1516,73 +1477,6 @@ define([
             // new observer is required after scope change
             setConnectionObserver(map, connection);
         }
-
-    };
-
-    /**
-     * get the default connection type for a scope
-     * e.g. for new type after scope change
-     * @param scope
-     * @returns {string}
-     */
-    var getDefaultConnectionTypeByScope = function(scope){
-
-        var type = '';
-        switch(scope){
-            case 'wh':
-                type = 'wh_fresh';
-                break;
-            case 'jumpbridge':
-                type = 'jumpbridge';
-                break;
-            case'stargate':
-                type = 'stargate';
-                break;
-        }
-
-        return type;
-    };
-
-    /**
-     * set/change connection status of a wormhole
-     * @param connection
-     * @param status
-     */
-    var setConnectionWHStatus = function(connection, status){
-
-        if(
-            status === 'wh_fresh' &&
-            connection.hasType('wh_fresh') !== true
-        ){
-            connection.removeType('wh_reduced');
-            connection.removeType('wh_critical');
-            connection.addType('wh_fresh');
-        }else if(
-            status === 'wh_reduced' &&
-            connection.hasType('wh_reduced') !== true
-        ){
-            connection.removeType('wh_fresh');
-            connection.removeType('wh_critical');
-            connection.addType('wh_reduced');
-        }else if(
-            status === 'wh_critical' &&
-            connection.hasType('wh_critical') !== true
-        ){
-            connection.removeType('wh_fresh');
-            connection.removeType('wh_reduced');
-            connection.addType('wh_critical');
-        }else if(
-            status === 'wh_eol' &&
-            connection.hasType('wh_eol') !== true
-        ){
-            connection.addType('wh_eol');
-        }else if(
-            status === 'wh_eol' &&
-                connection.hasType('wh_eol') !== true
-            ){
-            connection.addType('wh_eol');
-        }
-
     };
 
     /**
@@ -2212,7 +2106,7 @@ define([
 
         var system = $(this);
 
-        var rallyClass = Util.getInfoForSystem('rally', 'class');
+        var rallyClass = MapUtil.getInfoForSystem('rally', 'class');
 
         var hideNotification = false;
         if(options.hideNotification === true){
@@ -2341,7 +2235,7 @@ define([
                         var filterScope = action.split('_')[1];
 
                         // scope label
-                        var filterScopeLabel = Util.getScopeInfoForMap(filterScope, 'label');
+                        var filterScopeLabel = MapUtil.getScopeInfoForMap(filterScope, 'label');
 
                         var showScope = true;
                         if(
@@ -2643,7 +2537,7 @@ define([
                 var action = params.selectedMenu.attr('data-action');
                 var activeConnection = params.component;
                 var activeScope = activeConnection.scope;
-                var activeScopeName = Util.getScopeInfoForConnection( activeScope, 'label');
+                var activeScopeName = MapUtil.getScopeInfoForConnection( activeScope, 'label');
 
                 switch(action){
                     case 'delete_connection':
@@ -2671,14 +2565,14 @@ define([
                         var newStatus = action.split('_')[1];
                         mapElement.getMapOverlay('timer').startMapUpdateCounter();
 
-                        setConnectionWHStatus(activeConnection, 'wh_' + newStatus);
+                        MapUtil.setConnectionWHStatus(activeConnection, 'wh_' + newStatus);
                         $(activeConnection).markAsChanged();
                         break;
                     case 'scope_wh':
                     case 'scope_stargate':
                     case 'scope_jumpbridge':
                         var newScope = action.split('_')[1];
-                        var newScopeName =  Util.getScopeInfoForConnection( newScope, 'label');
+                        var newScopeName =  MapUtil.getScopeInfoForConnection( newScope, 'label');
 
                         bootbox.confirm('Change scope from ' + activeScopeName + ' to ' + newScopeName + '?', function(result) {
                             if(result){
@@ -3101,19 +2995,19 @@ define([
         ){
 
             // map config -----------------------------------------------------------
-            var mapConfig = {};
-            mapConfig.id = parseInt( mapElement.data('id') );
-            mapConfig.name = mapElement.data('name');
-            mapConfig.scope = {
-                id: parseInt( mapElement.data('scopeId') )
+            mapData.config = {
+                id: parseInt( mapElement.data('id') ),
+                name: mapElement.data('name'),
+                scope: {
+                    id: parseInt( mapElement.data('scopeId') )
+                },
+                icon: mapElement.data('icon'),
+                type: {
+                    id: parseInt( mapElement.data('typeId') )
+                },
+                created: parseInt( mapElement.data('created') ),
+                updated: parseInt( mapElement.data('updated') ),
             };
-            mapConfig.icon = mapElement.data('icon');
-            mapConfig.type = {
-                id: parseInt( mapElement.data('typeId') )
-            };
-            mapConfig.created = parseInt( mapElement.data('created') );
-            mapConfig.updated = parseInt( mapElement.data('updated') );
-            mapData.config = mapConfig;
 
             // map data -------------------------------------------------------------
             var data = {};
@@ -3172,7 +3066,7 @@ define([
             }
 
             // overwrite connection cache
-            connectionCache[mapConfig.id] = updatedConnectionCache;
+            connectionCache[mapData.config.id] = updatedConnectionCache;
 
             data.connections = connectionsFormatted;
 
@@ -3253,14 +3147,8 @@ define([
 
         // normalize connection array
         connectionTypes = $.grep(connectionTypes, function(n){
-            if(
-                n.length > 0 &&
-                n !== 'default' // this is added by jsplumb by default -_-
-            ){
-                return true;
-            }else{
-                return false;
-            }
+            // 'default' is added by jsPlumb by default -_-
+            return ( n.length > 0 && n !== 'default');
         });
 
         var data = {
@@ -3345,11 +3233,11 @@ define([
 
                 // set "default" connection status only for NEW connections
                 if(!connection.suspendedElement){
-                    setConnectionWHStatus(connection, getDefaultConnectionTypeByScope(connection.scope) );
+                    MapUtil.setConnectionWHStatus(connection, MapUtil.getDefaultConnectionTypeByScope(connection.scope) );
                 }
 
                 // prevent multiple connections between same systems
-                var connections = checkForConnection(newJsPlumbInstance, info.sourceId, info.targetId );
+                var connections = MapUtil.checkForConnection(newJsPlumbInstance, info.sourceId, info.targetId );
 
                 if(connections.length > 1){
                     bootbox.confirm('Connection already exists. Do you really want to add an additional one?', function(result) {
@@ -3392,6 +3280,7 @@ define([
     /**
      * load OR updates system map
      * @param mapConfig
+     * @param options
      */
     $.fn.loadMap = function(mapConfig, options){
 
@@ -3428,6 +3317,8 @@ define([
                 var mapElement = mapConfig.map.getContainer();
                 var mapOverlay = $(mapElement).getMapOverlay('info');
                 mapOverlay.updateOverlayIcon('systemRegion', 'show');
+
+                mapOverlay.updateOverlayIcon('systemConnectionTimer', 'show');
             }
 
             // callback function after tab switch
@@ -3543,7 +3434,10 @@ define([
     };
 
     return {
-        clearMapInstance: clearMapInstance
+        getMapInstance: getMapInstance,
+        clearMapInstance: clearMapInstance,
+
+        getDataByConnection: getDataByConnection
     };
 
 });
