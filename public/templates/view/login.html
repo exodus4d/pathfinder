@@ -80,20 +80,6 @@
                     </div>
                 </div>
 
-                {* login message container *}
-                <check if="{{ @SESSION.SSO.ERROR }}">
-                    <div class="container-fluid">
-                        <div class="row ">
-                            <div class="col-sm-8 col-sm-offset-2">
-                                <div class="alert alert-danger" >
-                                    <span class="txt-color txt-color-danger">Access denied</span>
-                                    <small>{{ @SESSION.SSO.ERROR }}</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </check>
-
                 {* check for setup mode *}
                 <check if="{{ array_key_exists('/setup', @ROUTES) && @PATHFINDER.SHOW_SETUP_WARNING }}">
                     <div class="container-fluid">
@@ -125,6 +111,20 @@
                     </div>
                 </div>
             </false>
+        </check>
+
+        {* login message container *}
+        <check if="{{ @SESSION.SSO.ERROR }}">
+            <div class="container-fluid">
+                <div class="row ">
+                    <div class="col-sm-8 col-sm-offset-2">
+                        <div class="alert alert-danger" >
+                            <span class="txt-color txt-color-danger">Access denied</span>
+                            <small>{{ @SESSION.SSO.ERROR }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </check>
 
         {* SSO login *}
