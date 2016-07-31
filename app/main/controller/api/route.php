@@ -211,9 +211,9 @@ class Route extends \Controller\AccessController {
      * -> data is either coming from CCPs [SDE] OR from map specific data
      * @param array $rows
      */
-    private function updateJumpData($rows = []){
+    private function updateJumpData(&$rows = []){
 
-        foreach($rows as $row){
+        foreach($rows as &$row){
             $regionId       = (int)$row['regionId'];
             $constId        = (int)$row['constellationId'];
             $systemName     = strtoupper($row['systemName']);
@@ -283,21 +283,23 @@ class Route extends \Controller\AccessController {
      * @return array
      */
     private function graph_find_path(&$G, $A, $B, $M = 50000){
+        $maxDepth = $M;
+
         // $P will hold the result path at the end.
         // Remains empty if no path was found.
-        $P = array();
+        $P = [];
 
         // For each Node ID create a "visit information",
         // initially set as 0 (meaning not yet visited)
         // as soon as we visit a node we will tag it with the "source"
         // so we can track the path when we reach the search target
 
-        $V = array();
+        $V = [];
 
         // We are going to keep a list of nodes that are "within reach",
         // initially this list will only contain the start node,
         // then gradually expand (almost like a flood fill)
-        $R = array(trim($A));
+        $R = [trim($A)];
 
         $A = trim($A);
         $B = trim($B);
@@ -305,9 +307,9 @@ class Route extends \Controller\AccessController {
         while(count($R) > 0 && $M > 0){
             $M--;
 
-			$X = trim(array_shift($R));
+            $X = trim(array_shift($R));
 
-            if( array_key_exists($X, $G) ){
+            if(array_key_exists($X, $G)){
                 foreach($G[$X] as $Y){
                     $Y = trim($Y);
                     // See if we got a solution
@@ -320,7 +322,11 @@ class Route extends \Controller\AccessController {
                             $X = $V[$X];
                         }
                         array_push($P, $A);
-                        return array_reverse($P);
+                        //return array_reverse($P);
+                        return [
+                            'path'=> array_reverse($P),
+                            'depth' => ($maxDepth - $M)
+                        ];
                     }
                     // First time we visit this node?
                     if(!array_key_exists($Y, $V)){
@@ -331,9 +337,12 @@ class Route extends \Controller\AccessController {
                     }
                 }
             }
-		  }
+        }
 
-        return $P;
+        return [
+            'path'=> $P,
+            'depth' => ($maxDepth - $M)
+        ];
     }
 
     /**
@@ -345,11 +354,13 @@ class Route extends \Controller\AccessController {
      * @param int $searchDepth
      * @return array
      */
-    public function findRoute($systemFrom, $systemTo, $searchDepth = 5000){
+    public function findRoute($systemFrom, $systemTo, $searchDepth = 7000){
 
         $routeData = [
             'routePossible' => false,
             'routeJumps' => 0,
+            'maxDepth' => $searchDepth,
+            'depthSearched' => 0,
             'route' => []
         ];
 
@@ -363,6 +374,7 @@ class Route extends \Controller\AccessController {
 
             // jump counter
             $jumpNum = 0;
+            $depthSearched = 0;
 
             if( isset($this->jumpArray[$from]) ){
 
@@ -384,15 +396,14 @@ class Route extends \Controller\AccessController {
 
                 // system is not a direct neighbour -> search recursive its neighbours
                 if ($jumpNum == 0) {
-                    foreach( $this->graph_find_path( $this->jumpArray, $from, $to, $searchDepth ) as $n ) {
-
+                    $searchResult = &$this->graph_find_path( $this->jumpArray, $from, $to, $searchDepth );
+                    $depthSearched = $searchResult['depth'];
+                    foreach( $searchResult['path'] as $systemName ) {
                         if ($jumpNum > 0) {
-
                             $jumpNode = [
-                                'system' => $n,
-                                'security' => $this->getSystemInfoBySystemId($this->idArray[$n], 'trueSec')
+                                'system' => $systemName,
+                                'security' => $this->getSystemInfoBySystemId($this->idArray[$systemName], 'trueSec')
                             ];
-
                             $routeData['route'][] = $jumpNode;
                         }
                         $jumpNum++;
@@ -418,6 +429,7 @@ class Route extends \Controller\AccessController {
 
             // route jumps
             $routeData['routeJumps'] = $jumpNum - 1;
+            $routeData['depthSearched'] = $depthSearched;
         }
 
         return $routeData;
@@ -459,7 +471,6 @@ class Route extends \Controller\AccessController {
         $return->routesData = [];
 
         if( !empty($requestData['routeData']) ){
-
             $routesData = (array)$requestData['routeData'];
 
             //  map data where access was already checked -> cached data
@@ -538,11 +549,14 @@ class Route extends \Controller\AccessController {
                         // get data from cache
                         $returnRoutData = $f3->get($cacheKey);
                     }else{
+                        // max search depth for search
+                        $searchDepth = $f3->get('PATHFINDER.ROUTE.SEARCH_DEPTH');
+
                         // set jump data for following route search
                         $this->initJumpData($mapIds, $filterData);
 
                         // no cached route data found
-                        $foundRoutData = $this->findRoute($systemFrom, $systemTo);
+                        $foundRoutData = $this->findRoute($systemFrom, $systemTo, $searchDepth);
                         $returnRoutData = array_merge($returnRoutData, $foundRoutData);
 
                         // cache if route was found
