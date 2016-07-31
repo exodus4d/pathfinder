@@ -178,9 +178,9 @@ class Session extends Mapper {
 						((($name=$db->name())&&$db->driver()!='pgsql')?
 							($name.'.'):''))).
 				$table.' ('.$eol.
-					$tab.$db->quotekey('session_id').' VARCHAR(40),'.$eol.
+					$tab.$db->quotekey('session_id').' VARCHAR(255),'.$eol.
 					$tab.$db->quotekey('data').' TEXT,'.$eol.
-					$tab.$db->quotekey('ip').' VARCHAR(40),'.$eol.
+					$tab.$db->quotekey('ip').' VARCHAR(45),'.$eol.
 					$tab.$db->quotekey('agent').' VARCHAR(255),'.$eol.
 					$tab.$db->quotekey('stamp').' INTEGER,'.$eol.
 					$tab.'PRIMARY KEY ('.$db->quotekey('session_id').')'.$eol.
