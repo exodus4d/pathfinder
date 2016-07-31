@@ -167,9 +167,9 @@ class Map extends Controller\AccessController {
 
         // get max number of shared entities per map ------------------------------------------------------------------
         $maxSharedCount = [
-            'character' => $f3->get('PATHFINDER.MAX_SHARED_CHARACTER'),
-            'corporation' => $f3->get('PATHFINDER.MAX_SHARED_CORPORATION'),
-            'alliance' => $f3->get('PATHFINDER.MAX_SHARED_ALLIANCE'),
+            'character' => $f3->get('PATHFINDER.MAP.PRIVATE.MAX_SHARED'),
+            'corporation' => $f3->get('PATHFINDER.MAP.CORPORATION.MAX_SHARED'),
+            'alliance' => $f3->get('PATHFINDER.MAP.ALLIANCE.MAX_SHARED'),
         ];
         $return->maxSharedCount = $maxSharedCount;
 
@@ -359,7 +359,7 @@ class Map extends Controller\AccessController {
                     // share map between characters -> set access
                     if(isset($formData['mapCharacters'])){
                         // avoid abuse -> respect share limits
-                        $accessCharacters = array_slice( $formData['mapCharacters'], 0, $f3->get('PATHFINDER.MAX_SHARED_CHARACTER') );
+                        $accessCharacters = array_slice( $formData['mapCharacters'], 0, $f3->get('PATHFINDER.MAP.PRIVATE.MAX_SHARED') );
 
                         // clear map access. In case something has removed from access list
                         $map->clearAccess();
@@ -396,7 +396,7 @@ class Map extends Controller\AccessController {
                         // share map between corporations -> set access
                         if(isset($formData['mapCorporations'])){
                             // avoid abuse -> respect share limits
-                            $accessCorporations = array_slice( $formData['mapCorporations'], 0, $f3->get('PATHFINDER.MAX_SHARED_CORPORATION') );
+                            $accessCorporations = array_slice( $formData['mapCorporations'], 0, $f3->get('PATHFINDER.MAP.CORPORATION.MAX_SHARED') );
 
                             // clear map access. In case something has removed from access list
                             $map->clearAccess();
@@ -433,7 +433,7 @@ class Map extends Controller\AccessController {
                         // share map between alliances -> set access
                         if(isset($formData['mapAlliances'])){
                             // avoid abuse -> respect share limits
-                            $accessAlliances = array_slice( $formData['mapAlliances'], 0, $f3->get('PATHFINDER.MAX_SHARED_ALLIANCE') );
+                            $accessAlliances = array_slice( $formData['mapAlliances'], 0, $f3->get('PATHFINDER.MAP.ALLIANCE.MAX_SHARED') );
 
                             // clear map access. In case something has removed from access list
                             $map->clearAccess();

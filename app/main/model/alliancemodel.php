@@ -72,7 +72,7 @@ class AllianceModel extends BasicModel {
             foreach($this->mapAlliances as $mapAlliance){
                 if(
                     $mapAlliance->mapId->isActive() &&
-                    $mapCount < $f3->get('PATHFINDER.MAX_MAPS_ALLIANCE')
+                    $mapCount < $f3->get('PATHFINDER.MAP.ALLIANCE.MAX_COUNT')
                 ){
                     $maps[] = $mapAlliance->mapId;
                     $mapCount++;

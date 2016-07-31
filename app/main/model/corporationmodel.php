@@ -77,7 +77,7 @@ class CorporationModel extends BasicModel {
             foreach($this->mapCorporations as $mapCorporation){
                 if(
                     $mapCorporation->mapId->isActive() &&
-                    $mapCount < $f3->get('PATHFINDER.MAX_MAPS_CORPORATION')
+                    $mapCount < $f3->get('PATHFINDER.MAP.CORPORATION.MAX_COUNT')
                 ){
                     $maps[] = $mapCorporation->mapId;
                     $mapCount++;
