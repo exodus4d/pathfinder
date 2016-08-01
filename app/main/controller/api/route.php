@@ -396,7 +396,7 @@ class Route extends \Controller\AccessController {
 
                 // system is not a direct neighbour -> search recursive its neighbours
                 if ($jumpNum == 0) {
-                    $searchResult = &$this->graph_find_path( $this->jumpArray, $from, $to, $searchDepth );
+                    $searchResult = $this->graph_find_path( $this->jumpArray, $from, $to, $searchDepth );
                     $depthSearched = $searchResult['depth'];
                     foreach( $searchResult['path'] as $systemName ) {
                         if ($jumpNum > 0) {
