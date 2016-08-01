@@ -514,6 +514,10 @@ $mapWidth: 2500px ;
   z-index: 1020; // over tooltips
   will-change: opacity, top, left, transform;
 
+  a{
+    cursor: pointer; // fixed bug on Chrome anchor tag: href="#"
+  }
+
   i{
     width: 20px
   }
