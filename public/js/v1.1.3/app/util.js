@@ -889,7 +889,17 @@ define([
      */
     var getTimeDiffParts = function(date1, date2){
         var parts = {};
-        var diff = (date2.getTime() - date1.getTime()) / 1000;
+        var time1 = date1.getTime();
+        var time2 = date2.getTime();
+        var diff  = 0;
+
+        if(
+            time1 >= 0 &&
+            time2 >= 0
+        ){
+            diff = (date2.getTime() - date1.getTime()) / 1000;
+        }
+
         diff = Math.abs(Math.floor(diff));
 
         parts.days = Math.floor(diff/(24*60*60));
