@@ -3029,6 +3029,7 @@ define([
                 // check if system data should be added
                 var addSystemData = true;
                 if(
+                    options.getAll !== true &&
                     options.checkForChange === true &&
                     !tempSystem.hasChanged()
                 ){
@@ -3056,6 +3057,7 @@ define([
                 // check if connection data should be added
                 var addConnectionData = true;
                 if(
+                    options.getAll !== true &&
                     options.checkForChange === true &&
                     !$(tempConnection).hasChanged()
                 ){

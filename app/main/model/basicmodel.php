@@ -411,6 +411,9 @@ abstract class BasicModel extends \DB\Cortex {
      * return false will stop any further action
      */
     public function beforeInsertEvent(){
+        if($this->exists('updated')){
+            $this->touch('updated');
+        }
         return true;
     }
 

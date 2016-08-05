@@ -340,8 +340,25 @@ define([
                             var validExportForm = exportForm.isValidForm();
 
                             if(validExportForm){
-                                // set map data right before download
-                                $(this).setExportMapData(e.data.mapData);
+                                var mapElement = Util.getMapModule().getActiveMap();
+
+                                if(mapElement){
+                                    // IMPORTANT: Get map data from client (NOT from global mapData which is available in here)
+                                    // -> This excludes some data (e.g. wh statics)
+                                    // -> Bring export inline with main map toggle requests
+                                    var exportMapData = mapElement.getMapDataFromClient({
+                                        forceData: true,
+                                        getAll: true
+                                    });
+
+                                    // set map data right before download
+                                    $(this).setExportMapData(exportMapData);
+
+                                    // disable button
+                                    $(this).attr('disabled', true);
+                                }else{
+                                    console.error('Map not found');
+                                }
                             }else{
                                 e.preventDefault();
                             }
@@ -514,21 +531,7 @@ define([
             filename = fieldExport.val();
 
             if(filename.length > 0){
-                // remove object properties that should not be included in export
-                // -> e.g. jsPlumb object,...
-                var allowedKeys = ['config', 'data'];
-
-                var replace = function(obj, keys) {
-                    var dup = {};
-                    for (var key in obj) {
-                        if (keys.indexOf(key) !== -1) {
-                            dup[key] = obj[key];
-                        }
-                    }
-                    return dup;
-                };
-
-                mapDataEncoded = 'text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify( replace(mapData, allowedKeys) ));
+                mapDataEncoded = 'text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify( mapData ));
             }
         }
 

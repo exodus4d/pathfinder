@@ -120,7 +120,7 @@ class ConnectionModel extends BasicModel{
             $this->eolUpdated = null;
         }elseif(
             in_array('wh_eol', $newTypes) &&
-            !in_array('wh_eol', $this->type)
+            !in_array('wh_eol', (array)$this->type) // $this->type == null for new connection! (e.g. map import)
         ){
             // connection EOL status change
             $this->touch('eolUpdated');
@@ -196,14 +196,17 @@ class ConnectionModel extends BasicModel{
      */
     public function beforeInsertEvent(){
         // check for "default" connection type and add them if missing
+        // -> get() with "true" returns RAW data! important for JSON table column check!
+        $types = (array)json_decode( $this->get('type', true) );
+
         if(
             !$this->scope ||
-            !$this->type
+            empty($types)
         ){
             $this->setDefaultTypeData();
         }
 
-        return true;
+        return parent::beforeInsertEvent();
     }
 
     /**
