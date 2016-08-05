@@ -111,10 +111,9 @@ class SystemModel extends BasicModel {
             'nullable' => false,
             'default' => 0
         ],
-        'rally' => [
-            'type' => Schema::DT_BOOL,
-            'nullable' => false,
-            'default' => 0
+        'rallyUpdated' => [
+            'type' => Schema::DT_TIMESTAMP,
+            'default' => null
         ],
         'description' => [
             'type' => Schema::DT_VARCHAR512,
@@ -234,7 +233,7 @@ class SystemModel extends BasicModel {
             $systemData->status->name = is_object($this->statusId) ? $this->statusId->name : '';
 
             $systemData->locked = $this->locked;
-            $systemData->rally = $this->rally;
+            $systemData->rallyUpdated = strtotime($this->rallyUpdated);
             $systemData->description = $this->description;
 
             $systemData->statics = $this->getStaticWormholeData();
@@ -311,6 +310,24 @@ class SystemModel extends BasicModel {
         }
 
         return $posY;
+    }
+
+    /**
+     * setter for system rally timestamp
+     * @param $rally
+     * @return bool|int|null|string
+     */
+    public function set_rallyUpdated($rally){
+        $rally = (int)$rally;
+        if($rally === 0){
+            $rally = null;
+        }elseif($rally === 1){
+            $rally = date('Y-m-d H:i:s');
+        }else{
+            $rally = date('Y-m-d H:i:s', $rally);
+        }
+
+        return $rally;
     }
 
     /**

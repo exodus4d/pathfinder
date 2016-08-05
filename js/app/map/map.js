@@ -451,6 +451,68 @@ define([
     };
 
     /**
+     * set or change rallyPoint for systems
+     * @param rallyUpdated
+     * @param options
+     * @returns {*}
+     */
+    $.fn.setSystemRally = function(rallyUpdated, options){
+        rallyUpdated = rallyUpdated || 0;
+
+        var defaultOptions = {
+            poke: false,
+            hideNotification: false,
+            hideCounter: false,
+        };
+        options = $.extend({}, defaultOptions, options);
+
+        return this.each(function(){
+            var system = $(this);
+            var rally = system.data('rallyUpdated') || 0;
+
+            if(rallyUpdated !== rally){
+                // rally status changed
+                if( !options.hideCounter ){
+                    system.getMapOverlay('timer').startMapUpdateCounter();
+                }
+
+                var rallyClass = MapUtil.getInfoForSystem('rally', 'class');
+
+                if(rallyUpdated > 0){
+                    // new rally point set
+                    system.addClass( rallyClass );
+
+                    if( !options.hideNotification ){
+                        var systemName = system.getSystemInfo( ['alias'] );
+
+                        var notificationOptions = {
+                            title: 'Rally Point',
+                            text: 'System: ' + systemName,
+                            type: 'success'
+                        };
+
+                        if(options.poke){
+                            // desktop poke
+                            Util.showNotify(notificationOptions, {desktop: true, stack: 'barBottom'});
+                        }else{
+                            Util.showNotify(notificationOptions, {stack: 'barBottom'});
+                        }
+                    }
+                }else{
+                    // rally point removed
+                    system.removeClass( rallyClass );
+
+                    if( !options.hideNotification ){
+                        Util.showNotify({title: 'Rally point removed', type: 'success'});
+                    }
+                }
+            }
+
+            system.data('rallyUpdated', rallyUpdated);
+        });
+    };
+
+    /**
      * returns a new system or updates an existing system
      * @param map
      * @param data
@@ -606,9 +668,10 @@ define([
         }
 
         // rally system
-        if( Boolean( system.data( 'rally') ) !==  data.rally ){
-            system.toggleRallyPoint(false, {hideNotification: true, hideCounter: true});
-        }
+        system.setSystemRally(data.rallyUpdated,  {
+            hideNotification: true,
+            hideCounter: true,
+        });
 
         return system;
     };
@@ -1825,8 +1888,8 @@ define([
                         currentSystem.markAsChanged();
                         break;
                     case 'set_rally':
-                        // set rally point
-                        if( ! currentSystem.data( 'rally' ) ){
+                        // toggle rally point
+                        if( !currentSystem.data( 'rallyUpdated' ) ){
 
                             // show confirm dialog
                             var rallyDialog = bootbox.dialog({
@@ -1844,7 +1907,9 @@ define([
                                         label: '<i class="fa fa-fw fa-bullhorn"></i> Set rally and poke',
                                         className: 'btn-primary',
                                         callback: function() {
-                                            currentSystem.toggleRallyPoint(true, {});
+                                            currentSystem.setSystemRally(1, {
+                                                poke: true
+                                            });
                                             currentSystem.markAsChanged();
                                         }
                                     },
@@ -1852,7 +1917,7 @@ define([
                                         label: '<i class="fa fa-fw fa-check"></i> save',
                                         className: 'btn-success',
                                         callback: function() {
-                                            currentSystem.toggleRallyPoint(false, {});
+                                            currentSystem.setSystemRally(1);
                                             currentSystem.markAsChanged();
                                         }
                                     }
@@ -1860,7 +1925,7 @@ define([
                             });
                         }else{
                             // remove rally point
-                            currentSystem.toggleRallyPoint(false, {});
+                            currentSystem.setSystemRally(0);
                             currentSystem.markAsChanged();
                         }
                         break;
@@ -2090,64 +2155,6 @@ define([
         // repaint connections
         map.revalidate( system.attr('id') );
 
-
-        if(! hideCounter){
-            $(system).getMapOverlay('timer').startMapUpdateCounter();
-        }
-
-    };
-
-    /**
-     * toggle a system as rally point and display notifications
-     * @param poke
-     * @param options
-     */
-    $.fn.toggleRallyPoint = function(poke, options){
-
-        var system = $(this);
-
-        var rallyClass = MapUtil.getInfoForSystem('rally', 'class');
-
-        var hideNotification = false;
-        if(options.hideNotification === true){
-            hideNotification = true;
-        }
-
-        var hideCounter = false;
-        if(options.hideCounter === true){
-            hideCounter = true;
-        }
-
-        // check of system is already marked as rally
-        if( system.data( 'rally' ) === true ){
-            system.removeClass( rallyClass );
-            system.data( 'rally', false );
-
-            if(! hideNotification){
-                Util.showNotify({title: 'Rally point removed', type: 'success'});
-            }
-        }else{
-            system.addClass( rallyClass );
-            system.data( 'rally', true );
-
-            if(! hideNotification){
-                var systemName = system.getSystemInfo( ['alias'] );
-
-                var notificationOptions = {
-                    title: 'Rally Point',
-                    text: 'System: ' + systemName,
-                    type: 'success'
-                };
-
-                if(poke === true){
-                    // desktop poke
-                    Util.showNotify(notificationOptions, {desktop: true, stack: 'barBottom'});
-                }else{
-                    Util.showNotify(notificationOptions, {stack: 'barBottom'});
-                }
-            }
-
-        }
 
         if(! hideCounter){
             $(system).getMapOverlay('timer').startMapUpdateCounter();
@@ -3108,7 +3115,7 @@ define([
             id: system.data('statusId')
         };
         systemData.locked = system.data('locked') ? 1 : 0;
-        systemData.rally = system.data('rally') ? 1 : 0;
+        systemData.rallyUpdated = system.data('rallyUpdated') || 0;
         systemData.currentUser = system.data('currentUser'); // if user is currently in this system
         systemData.statics = system.data('statics');
         systemData.updated = {
