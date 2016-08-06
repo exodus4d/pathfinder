@@ -1,14 +1,16 @@
 // Callbacks
-// Uses AMD or browser globals for jQuery.
-(function (factory) {
-    if (typeof define === 'function' && define.amd) {
-        // AMD. Register as a module.
-        define('pnotify.callbacks', ['jquery', 'pnotify'], factory);
-    } else {
-        // Browser globals
-        factory(jQuery, PNotify);
-    }
-}(function($, PNotify){
+(function (root, factory) {
+	if (typeof define === 'function' && define.amd) {
+		// AMD. Register as a module.
+		define('pnotify.callbacks', ['jquery', 'pnotify'], factory);
+	} else if (typeof exports === 'object' && typeof module !== 'undefined') {
+		// CommonJS
+		module.exports = factory(require('jquery'), require('./pnotify'));
+	} else {
+		// Browser globals
+		factory(root.jQuery, root.PNotify);
+	}
+}(this, function($, PNotify){
 	var _init   = PNotify.prototype.init,
 		_open   = PNotify.prototype.open,
 		_remove = PNotify.prototype.remove;

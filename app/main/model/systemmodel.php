@@ -115,6 +115,11 @@ class SystemModel extends BasicModel {
             'type' => Schema::DT_TIMESTAMP,
             'default' => null
         ],
+        'rallyPoke' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => 0
+        ],
         'description' => [
             'type' => Schema::DT_VARCHAR512,
             'nullable' => false,
@@ -234,6 +239,7 @@ class SystemModel extends BasicModel {
 
             $systemData->locked = $this->locked;
             $systemData->rallyUpdated = strtotime($this->rallyUpdated);
+            $systemData->rallyPoke = $this->rallyPoke;
             $systemData->description = $this->description;
 
             $systemData->statics = $this->getStaticWormholeData();

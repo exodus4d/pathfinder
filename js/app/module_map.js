@@ -49,13 +49,10 @@ define([
 
     /**
      * get all maps for a maps module
-     * @param mapModule
      * @returns {*}
      */
     $.fn.getMaps = function(){
-
         var maps = $(this).find('.' + config.mapClass);
-
         return maps;
     };
 

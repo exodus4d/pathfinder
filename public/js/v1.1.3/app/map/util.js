@@ -9,6 +9,11 @@ define([
 ], function($, Init, Util) {
     'use strict';
 
+    var config = {
+        // local storage
+        mapLocalStoragePrefix: 'map_',                                  // prefix for map local storage key
+    };
+
     /**
      * get all available map Types
      * optional they can be filtered by current access level of a user
@@ -326,6 +331,171 @@ define([
         return scopeInfo;
     };
 
+    /**
+     * set or change rallyPoint for systems
+     * @param rallyUpdated
+     * @param options
+     * @returns {*}
+     */
+    $.fn.setSystemRally = function(rallyUpdated, options){
+        rallyUpdated = rallyUpdated || 0;
+        var rallyPoke = false;
+
+        var defaultOptions = {
+            poke: false,
+            hideNotification: false,
+            hideCounter: false,
+        };
+        options = $.extend({}, defaultOptions, options);
+
+        return this.each(function(){
+            var system = $(this);
+            var rally = system.data('rallyUpdated') || 0;
+
+            if(rallyUpdated !== rally){
+                // rally status changed
+                if( !options.hideCounter ){
+                    system.getMapOverlay('timer').startMapUpdateCounter();
+                }
+
+                var rallyClass = getInfoForSystem('rally', 'class');
+
+                if(rallyUpdated > 0){
+                    // new rally point set OR update system with rally information
+
+                    system.addClass( rallyClass );
+                    // rallyUpdated > 0 is required for poke!
+                    rallyPoke = options.poke;
+
+                    var notificationOptions = {
+                        title: 'Rally Point',
+                        text: 'System: ' +  system.data('name')
+                    };
+
+                    if(rallyUpdated === 1){
+                        // rally point not saved on DB
+                        notificationOptions.type = 'success';
+                        Util.showNotify(notificationOptions);
+                    }else if(options.poke){
+                        // rally saved AND poke option active
+
+                        // check if desktop notification was already send
+                        var mapId = system.data('mapid');
+                        var systemId = system.data('id');
+                        var promiseStore = getMapData(mapId);
+                        promiseStore.then(function(data) {
+                            // This code runs once the value has been loaded
+                            // from the offline store.
+                            var rallyPokeData = {};
+
+                            if(
+                                data &&
+                                data.rallyPoke
+                            ){
+                                // poke data exists
+                                rallyPokeData = data.rallyPoke;
+                            }
+
+                            if(
+                                !rallyPokeData.hasOwnProperty(this.systemId) || // rally poke was not already send to client
+                                rallyPokeData[this.systemId] !== rallyUpdated // already send to that system but in the past
+                            ){
+                                rallyPokeData[this.systemId] = rallyUpdated;
+                                storeMapData(this.mapId, 'rallyPoke', rallyPokeData);
+
+                                notificationOptions.type = 'info';
+                                Util.showNotify(notificationOptions, {desktop: true, stack: 'barBottom'});
+                            }
+                        }.bind({
+                            mapId: mapId,
+                            systemId: systemId,
+                            rallyUpdated: rallyUpdated
+                        }));
+                    }
+                }else{
+                    // rally point removed
+                    system.removeClass( rallyClass );
+
+                    if( !options.hideNotification ){
+                        Util.showNotify({title: 'Rally point removed', type: 'success'});
+                    }
+                }
+            }
+
+            system.data('rallyUpdated', rallyUpdated);
+            system.data('rallyPoke', rallyPoke);
+        });
+    };
+
+    /**
+     * get stored map data from client cache (IndexedDB)
+     * @param mapId
+     * @returns {*} promise
+     */
+    var getMapData = function(mapId){
+        if(mapId > 0){
+            var mapStorageKey = config.mapLocalStoragePrefix + mapId;
+            return Util.localforage.getItem(mapStorageKey);
+        }else{
+            console.error('Map local storage requires mapId > 0');
+        }
+    };
+
+    /**
+     * store local map config to client cache (IndexedDB)
+     * @param mapId
+     * @param key
+     * @param value
+     */
+    var storeMapData = function(mapId, key, value){
+        if(mapId > 0){
+            // get current map config
+            var mapStorageKey = config.mapLocalStoragePrefix + mapId;
+            Util.localforage.getItem(mapStorageKey).then(function(data) {
+                // This code runs once the value has been loaded
+                // from the offline store.
+                data = (data === null) ? {} : data;
+                // set/update value
+                data[this.key] = this.value;
+                Util.localforage.setItem(this.mapStorageKey, data);
+            }.bind({
+                key: key,
+                value: value,
+                mapStorageKey: mapStorageKey
+            })).catch(function(err) {
+                // This code runs if there were any errors
+                console.error('Map local storage can not be accessed!');
+            });
+        }else{
+            console.error('storeMapData(): Local storage requires mapId > 0');
+        }
+    };
+
+    /**
+     * delete local map configuration by key (IndexedDB)
+     * @param mapId
+     * @param key
+     */
+    var deleteMapData = function(mapId, key){
+        if(mapId > 0){
+            // get current map config
+            var mapStorageKey = config.mapLocalStoragePrefix + mapId;
+            Util.localforage.getItem(mapStorageKey).then(function(data) {
+                if(
+                    data &&
+                    data.hasOwnProperty(key)
+                ){
+                    delete data[key];
+                    Util.localforage.setItem(this.mapStorageKey, data);
+                }
+            }.bind({
+                mapStorageKey: mapStorageKey
+            }));
+        }else{
+            console.error('deleteMapData(): Local storage requires mapId > 0');
+        }
+    };
+
     return {
         getMapTypes: getMapTypes,
         getMapScopes: getMapScopes,
@@ -341,6 +511,9 @@ define([
         checkForConnection: checkForConnection,
         getDefaultConnectionTypeByScope: getDefaultConnectionTypeByScope,
         setConnectionWHStatus: setConnectionWHStatus,
-        getScopeInfoForConnection: getScopeInfoForConnection
+        getScopeInfoForConnection: getScopeInfoForConnection,
+        getMapData: getMapData,
+        storeMapData: storeMapData,
+        deleteMapData: deleteMapData
     };
 });

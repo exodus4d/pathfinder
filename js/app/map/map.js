@@ -66,9 +66,6 @@ define([
         systemDialogId: 'pf-system-dialog',                             // id for system dialog
         systemDialogSelectClass: 'pf-system-dialog-select',             // class for system select Element
 
-        // local storage
-        mapLocalStoragePrefix: 'map_',                                  // prefix for map local storage key
-
         // system security classes
         systemSec: 'pf-system-sec',
         systemSecHigh: 'pf-system-sec-highSec',
@@ -451,68 +448,6 @@ define([
     };
 
     /**
-     * set or change rallyPoint for systems
-     * @param rallyUpdated
-     * @param options
-     * @returns {*}
-     */
-    $.fn.setSystemRally = function(rallyUpdated, options){
-        rallyUpdated = rallyUpdated || 0;
-
-        var defaultOptions = {
-            poke: false,
-            hideNotification: false,
-            hideCounter: false,
-        };
-        options = $.extend({}, defaultOptions, options);
-
-        return this.each(function(){
-            var system = $(this);
-            var rally = system.data('rallyUpdated') || 0;
-
-            if(rallyUpdated !== rally){
-                // rally status changed
-                if( !options.hideCounter ){
-                    system.getMapOverlay('timer').startMapUpdateCounter();
-                }
-
-                var rallyClass = MapUtil.getInfoForSystem('rally', 'class');
-
-                if(rallyUpdated > 0){
-                    // new rally point set
-                    system.addClass( rallyClass );
-
-                    if( !options.hideNotification ){
-                        var systemName = system.getSystemInfo( ['alias'] );
-
-                        var notificationOptions = {
-                            title: 'Rally Point',
-                            text: 'System: ' + systemName,
-                            type: 'success'
-                        };
-
-                        if(options.poke){
-                            // desktop poke
-                            Util.showNotify(notificationOptions, {desktop: true, stack: 'barBottom'});
-                        }else{
-                            Util.showNotify(notificationOptions, {stack: 'barBottom'});
-                        }
-                    }
-                }else{
-                    // rally point removed
-                    system.removeClass( rallyClass );
-
-                    if( !options.hideNotification ){
-                        Util.showNotify({title: 'Rally point removed', type: 'success'});
-                    }
-                }
-            }
-
-            system.data('rallyUpdated', rallyUpdated);
-        });
-    };
-
-    /**
      * returns a new system or updates an existing system
      * @param map
      * @param data
@@ -669,6 +604,7 @@ define([
 
         // rally system
         system.setSystemRally(data.rallyUpdated,  {
+            poke: data.rallyPoke || false,
             hideNotification: true,
             hideCounter: true,
         });
@@ -1904,7 +1840,7 @@ define([
                                         }
                                     },
                                     setRallyPoke: {
-                                        label: '<i class="fa fa-fw fa-bullhorn"></i> Set rally and poke',
+                                        label: '<i class="fa fa-fw fa-bullhorn"></i> set rally and poke',
                                         className: 'btn-primary',
                                         callback: function() {
                                             currentSystem.setSystemRally(1, {
@@ -1914,7 +1850,7 @@ define([
                                         }
                                     },
                                     success: {
-                                        label: '<i class="fa fa-fw fa-check"></i> save',
+                                        label: '<i class="fa fa-fw fa-users"></i> set rally',
                                         className: 'btn-success',
                                         callback: function() {
                                             currentSystem.setSystemRally(1);
@@ -2500,7 +2436,7 @@ define([
             if(component.data('locked') === true){
                 activeOptions.push('lock_system');
             }
-            if(component.data('rally') === true){
+            if(component.data('rallyUpdated') > 0){
                 activeOptions.push('set_rally');
             }
         }
@@ -2623,7 +2559,6 @@ define([
      * @returns {*}
      */
     $.fn.getSystemInfo = function(info){
-
         var systemInfo = [];
 
         for(var i = 0; i < info.length; i++){
@@ -3118,6 +3053,7 @@ define([
         };
         systemData.locked = system.data('locked') ? 1 : 0;
         systemData.rallyUpdated = system.data('rallyUpdated') || 0;
+        systemData.rallyPoke = system.data('rallyPoke') ? 1 : 0;
         systemData.currentUser = system.data('currentUser'); // if user is currently in this system
         systemData.statics = system.data('statics');
         systemData.updated = {
@@ -3337,7 +3273,7 @@ define([
                 var mapWrapper = mapContainer.parents('.' + config.mapWrapperClass);
 
                 // auto scroll map to previous position
-                var promiseStore = getMapData( mapContainer.data('id') );
+                var promiseStore = MapUtil.getMapData( mapContainer.data('id') );
                 promiseStore.then(function(data) {
                     // This code runs once the value has been loaded
                     // from the offline store.
@@ -3366,46 +3302,6 @@ define([
     };
 
     /**
-     * get stored map data from client cache (IndexedDB)
-     * @param mapId
-     * @returns {*} promise
-     */
-    var getMapData = function(mapId){
-        if(mapId > 0){
-            var mapStorageKey = config.mapLocalStoragePrefix + mapId;
-            return Util.localforage.getItem(mapStorageKey);
-        }else{
-            console.error('Map local storage requires mapId > 0');
-        }
-    };
-
-    /**
-     * store local map config to client cache (IndexedDB)
-     * @param mapId
-     * @param key
-     * @param value
-     */
-    var storeMapData = function(mapId, key, value){
-        if(mapId > 0){
-            // get current map config
-            var mapStorageKey = config.mapLocalStoragePrefix + mapId;
-            Util.localforage.getItem(mapStorageKey).then(function(data) {
-                // This code runs once the value has been loaded
-                // from the offline store.
-                data = (data === null) ? {} : data;
-                // set/update value
-                data[key] = value;
-                Util.localforage.setItem(mapStorageKey, data);
-            }).catch(function(err) {
-                // This code runs if there were any errors
-                console.error('Map local storage can not be accessed!');
-            });
-        }else{
-            console.error('Map local storage requires mapId > 0');
-        }
-    };
-
-    /**
      * init scrollbar for Map element
      */
     $.fn.initMapScrollbar = function(){
@@ -3418,7 +3314,7 @@ define([
                     // scroll complete
                     var mapElement = $(this).find('.' + config.mapClass);
                     // store new map scrollOffset -> localDB
-                    storeMapData( mapElement.data('id'), 'offsetX', Math.abs(this.mcs.left) );
+                    MapUtil.storeMapData( mapElement.data('id'), 'offsetX', Math.abs(this.mcs.left) );
                 },
                 onScrollStart: function(){
                     // hide all open xEditable fields

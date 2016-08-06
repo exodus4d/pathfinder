@@ -17,31 +17,18 @@ define([
         text: '',
         type: '',                                                       // 'info', 'success', error, 'warning'
         icon: false,
-        opacity: 0.8,
         styling: 'fontawesome',                                         // 'fontawesome', 'bootstrap3', 'jqueryui'
-        animate_speed: 200,                                             // effect animation
-        position_animate_speed: 100,                                    // animation speed for notifications moving up/down
+        animate_speed: 'fast',                                          // animation speed for notifications moving up/down
         hide: true,                                                     // close after few seconds
         delay: 5000,                                                    // visible time for notification in browser
         mouse_reset: true,                                              // Reset the hide timer if the mouse moves over the notice.
         shadow: true,
         addclass: 'stack-bottomright',                                  // class for display, must changed on stack different stacks
         width: '250px',
-        // animation settings
-        animation: {
-            'effect_in': 'fade',
-            'options_in': {
-                easing: 'linear'
-            },
-            'effect_out': 'fade',
-            'options_out': {
-                easing: 'linear'
-            }
-        },
         // nonblock extension parameter (click through notifications)
         nonblock: {
-            nonblock: true,
-            nonblock_opacity: 0.2
+            nonblock: true,                                             // change for enable
+            nonblock_opacity: 0.9
         },
         // desktop extension "Web Notifications"
         desktop: {
@@ -64,42 +51,28 @@ define([
             },
             addclass: 'stack-bottomright',
             width: '250px',
-            opacity: 0.8
-        },
-        barTop: {
-            stack: {
-                dir1: 'down',
-                dir2: 'right',
-                push: 'top',
-                spacing1: 0,
-                spacing2: 0,
-
-            },
-            addclass: 'stack-bar-top',
-            width: '80%',
-            opacity: 1
         },
         barBottom: {
             stack: {
                 dir1: 'up',
                 dir2: 'right',
-                firstpos1: 30,
+               // context: $('body'),
                 spacing1: 0,
                 spacing2: 0
             },
             addclass: 'stack-bar-bottom',
-            width: '100%',
-            opacity: 1
+            width: '70%',
         }
     };
 
     /**
      * show a notification in browser and/or "Web Notifications"  in OS
      * @param customConfig
+     * @param settings
      */
     var showNotify = function(customConfig, settings){
 
-        customConfig = $.extend({}, config, customConfig );
+        customConfig = $.extend(true, {}, config, customConfig );
 
         // desktop notification
         if(
@@ -114,10 +87,6 @@ define([
 
             // make browser tab blink
             startTabBlink(customConfig.title);
-
-        }else{
-            customConfig.delay = 5000;
-            customConfig.desktop.desktop = false;
         }
 
         // set notification stack
@@ -128,11 +97,9 @@ define([
             customConfig.stack = stack[settings.stack].stack;
             customConfig.addclass = stack[settings.stack].addclass;
             customConfig.width = stack[settings.stack].width;
-            customConfig.opacity = stack[settings.stack].opacity;
         }else{
             customConfig.stack = stack.bottomRight.stack;
             customConfig.addclass = stack.bottomRight.addclass;
-            customConfig.opacity = stack.bottomRight.opacity;
         }
 
         switch(customConfig.type){
@@ -168,7 +135,6 @@ define([
      * @param blinkTitle
      */
     var startTabBlink = function(blinkTitle){
-
         var initBlink = (function(blinkTitle){
 
             var currentTitle = document.title;
@@ -195,9 +161,7 @@ define([
         }( blinkTitle ));
 
         initBlink();
-
     };
-
 
     return {
         showNotify: showNotify,

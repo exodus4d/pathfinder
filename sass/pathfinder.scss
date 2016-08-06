@@ -28,7 +28,9 @@
 @import "library/data-tables/_all";                                 // DataTables 1.10.12 + extensions
 
 @import "library/x-editable/_bootstrap-editable";                   // X-editable - v1.5.1
-@import "library/pnotify/_pnotify.core";                            // PNotify styles
+@import "library/pnotify/_pnotify";                                 // PNotify styles - v3.0.0
+@import "library/pnotify/_pnotify.nonblock";
+@import "library/pnotify/_pnotify.custom";                          // PNotify custom styles
 @import "library/slidebars/_slidebars";                             // Slidebars Navigation
 @import "library/easy-pie-chart/_easyPieChart";                     // Easy Pie Chart 2.1.6
 @import "library/drag-to-select/_dragToSelect";                     // Drag to Select 1.1
