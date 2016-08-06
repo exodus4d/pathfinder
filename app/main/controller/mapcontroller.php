@@ -14,9 +14,11 @@ class MapController extends AccessController {
      * @param \Base $f3
      */
     public function init($f3) {
+        $character = $this->getCharacter();
 
         // page title
-        $f3->set('pageTitle', 'Maps');
+        $pageTitle = $character ? $character->name : 'Map';
+        $f3->set('pageTitle', $pageTitle);
 
         // main page content
         $f3->set('pageContent', false);

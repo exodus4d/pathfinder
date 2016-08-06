@@ -31,7 +31,7 @@ class AppController extends Controller {
      */
     public function init(\Base $f3) {
         // page title
-        $f3->set('pageTitle', 'Login');
+        $f3->set('pageTitle', 'Pathfinder');
 
         // main page content
         $f3->set('pageContent', $f3->get('PATHFINDER.VIEW.LOGIN'));

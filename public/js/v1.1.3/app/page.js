@@ -890,12 +890,21 @@ define([
         function handleVisibilityChange() {
             if (document[hidden]) {
                 // tab is invisible
+                // globally store current visibility status
+                window.isVisible = false;
+
                 Util.getCurrentTriggerDelay( mapUpdateKey, increaseTimer );
                 Util.getCurrentTriggerDelay( mapUserUpdateKey, increaseTimer );
             } else {
                 // tab is visible
+                // globally store current visibility status
+                window.isVisible = true;
+
                 Util.getCurrentTriggerDelay( mapUpdateKey, -increaseTimer );
                 Util.getCurrentTriggerDelay( mapUserUpdateKey, -increaseTimer );
+
+                // stop blinking tab from previous notifications
+                Util.stopTabBlink();
             }
         }
 

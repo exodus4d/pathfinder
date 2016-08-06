@@ -37,6 +37,12 @@ define([
         }
     };
 
+    // initial page title (cached)
+    var initialPageTitle = document.title;
+
+    // global blink timeout cache
+    var blinkTimer;
+
     // stack container for all notifications
     var stack = {
         bottomRight: {
@@ -137,35 +143,48 @@ define([
     var startTabBlink = function(blinkTitle){
         var initBlink = (function(blinkTitle){
 
-            var currentTitle = document.title;
+            // count blinks if tab is currently active
+            var activeTabBlinkCount = 0;
 
-            var timeoutId;
             var blink = function(){
-                document.title = document.title === blinkTitle ? currentTitle : blinkTitle;
-            };
+                // number of "blinks" should be limited if tab is currently active
+                if(window.isVisible){
+                    activeTabBlinkCount++;
+                }
 
-            var clear = function() {
-                clearInterval(timeoutId);
-                document.title = currentTitle;
-                window.onmousemove = null;
-                timeoutId = null;
-            };
+                // toggle page title
+                document.title = (document.title === blinkTitle) ? initialPageTitle : blinkTitle;
 
-            return function () {
-                if (!timeoutId) {
-                    timeoutId = setInterval(blink, 1000);
-                    window.onmousemove = clear;
+                if(activeTabBlinkCount > 10){
+                    stopTabBlink();
                 }
             };
 
+            return function () {
+                if (!blinkTimer) {
+                    blinkTimer = setInterval(blink, 1000);
+                }
+            };
         }( blinkTitle ));
 
         initBlink();
     };
 
+    /**
+     * stop blinking document.title
+     */
+    var stopTabBlink = function(){
+        if(blinkTimer){
+            clearInterval(blinkTimer);
+            document.title = initialPageTitle;
+            blinkTimer = null;
+        }
+    };
+
     return {
         showNotify: showNotify,
-        startTabBlink: startTabBlink
+        startTabBlink: startTabBlink,
+        stopTabBlink: stopTabBlink
     };
 });
 

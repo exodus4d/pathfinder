@@ -970,9 +970,17 @@ define([
      * @param desktop
      */
     var showNotify = function(customConfig, desktop){
-
         requirejs(['app/notification'], function(Notification) {
             Notification.showNotify(customConfig, desktop);
+        });
+    };
+
+    /**
+     * stop browser tab title "blinking"
+     */
+    var stopTabBlink = function(){
+        requirejs(['app/notification'], function(Notification) {
+            Notification.stopTabBlink();
         });
     };
 
@@ -1726,6 +1734,7 @@ define([
         timeStop: timeStop,
         log: log,
         showNotify: showNotify,
+        stopTabBlink: stopTabBlink,
         getLogInfo: getLogInfo,
         isXHRAborted: isXHRAborted,
         getMapModule: getMapModule,
