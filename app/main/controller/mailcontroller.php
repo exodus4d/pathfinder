@@ -41,4 +41,19 @@ class MailController extends \SMTP{
 
         return $status;
     }
+
+    /**
+     * send notification mail for new rally point systems
+     * @param $to
+     * @param $msg
+     * @return bool
+     */
+    public function sendRallyPoint($to, $msg){
+        $this->set('To', '<' . $to . '>');
+        $this->set('From', 'Pathfinder <' . Controller::getEnvironmentData('SMTP_FROM') . '>');
+        $this->set('Subject', 'PATHFINDER - New rally point');
+        $status = $this->send($msg);
+
+        return $status;
+    }
 }

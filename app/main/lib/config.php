@@ -13,6 +13,7 @@ class Config extends \Prefab {
 
     const PREFIX_KEY                                = 'PF';
     const ARRAY_DELIMITER                           = '-';
+    const HIVE_KEY_PATHFINDER                       = 'PATHFINDER';
     const HIVE_KEY_ENVIRONMENT                      = 'ENVIRONMENT';
 
     /**
@@ -145,6 +146,22 @@ class Config extends \Prefab {
         }
 
         return $data;
+    }
+
+    /**
+     * get email for notifications by hive key
+     * @param $key
+     * @return bool|mixed
+     */
+    static function getNotificationMail($key){
+        $f3 = \Base::instance();
+        $hiveKey = self::HIVE_KEY_PATHFINDER . '.NOTIFICATION.' . $key;
+        $mail = false;
+        if( $f3->exists($hiveKey) ){
+            $mail = $f3->get($hiveKey);
+        }
+
+        return $mail;
     }
 
 }

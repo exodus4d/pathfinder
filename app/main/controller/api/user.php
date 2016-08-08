@@ -35,7 +35,9 @@ class User extends Controller\Controller{
     const SESSION_KEY_CHARACTER_REFRESH_TOKEN       = 'SESSION.CHARACTER.REFRESH_TOKEN';
 
     // log text
-    const LOG_LOGGED_IN                             = 'userId: %s, userName: %s, charId: %s, charName: %s';
+    const LOG_LOGGED_IN                             = 'userId: [%10s], userName: [%30s], charId: [%20s], charName: %s';
+    const LOG_DELETE_ACCOUNT                        = 'userId: [%10s], userName: [%30s], ip: [%45s]';
+
 
     /**
      * valid reasons for captcha images
@@ -340,9 +342,8 @@ class User extends Controller\Controller{
 
                 if($status){
                     // save log
-                    $logText = "id: %s, name: %s, ip: %s";
                     self::getLogger('DELETE_ACCOUNT')->write(
-                        sprintf($logText, $user->id, $user->name, $f3->get('IP'))
+                        sprintf(self::LOG_DELETE_ACCOUNT, $user->id, $user->name, $f3->get('IP'))
                     );
 
                     // remove user

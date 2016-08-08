@@ -8,7 +8,9 @@
 
 namespace Model;
 
+use controller\MailController;
 use DB\SQL\Schema;
+use lib\Config;
 
 class SystemModel extends BasicModel {
 
@@ -328,7 +330,11 @@ class SystemModel extends BasicModel {
         if($rally === 0){
             $rally = null;
         }elseif($rally === 1){
-            $rally = date('Y-m-d H:i:s');
+            // new rally point set
+            $currentTimestamp = time();
+            $rally = date('Y-m-d H:i:s', $currentTimestamp);
+            // send rally point notification mail
+            $this->sendRallyPointMail($currentTimestamp);
         }else{
             $rally = date('Y-m-d H:i:s', $rally);
         }
@@ -482,6 +488,28 @@ class SystemModel extends BasicModel {
         }
 
         return $wormholeData;
+    }
+
+    protected function sendRallyPointMail($timestamp){
+        $recipient = Config::getNotificationMail('RALLY_SET');
+
+        if(
+            $recipient &&
+            \Audit::instance()->email($recipient)
+        ){
+            $body = [];
+            $body[] = "Map:\t\t" . $this->mapId->name;
+            $body[] = "System:\t\t" . $this->name;
+            $body[] = "Region:\t\t" . $this->region;
+            $body[] = "Security:\t" . $this->security;
+            if(is_object($this->createdCharacterId)){
+                $body[] = "Character:\t" . $this->createdCharacterId->name;
+            }
+            $body[] = "Time:\t\t" . date('g:i a; F j, Y', $timestamp);
+            $bodyMsg = implode("\r\n", $body);
+
+            (new MailController())->sendRallyPoint('exodus4d@gmail.com', $bodyMsg);
+        }
     }
 
     /**

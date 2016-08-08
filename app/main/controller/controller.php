@@ -19,9 +19,8 @@ class Controller {
     const COOKIE_NAME_STATE                         = 'cookie';
     const COOKIE_PREFIX_CHARACTER                   = 'char';
 
-    const LOG_UNAUTHORIZED                          = 'IP: [%-20s] Agent: [%s]';
-
-    const ERROR_SESSION_SUSPECT                     = 'Suspect id: [%30s], ip: [%40s], new ip: [%40s], User-Agent: %s ';
+    const LOG_UNAUTHORIZED                          = 'ip: [%45s], User-Agent: [%s]';
+    const ERROR_SESSION_SUSPECT                     = 'Suspect id: [%45s], ip: [%45s], new ip: [%45s], User-Agent: %s ';
     /**
      * @var \Base
      */
