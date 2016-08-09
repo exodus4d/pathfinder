@@ -541,6 +541,10 @@
     .list-unstyled.text-left li{
       text-indent: -1em;
       padding-left: 1.5em;
+
+      .fa{
+        text-indent: 0;
+      }
     }
   }
 
