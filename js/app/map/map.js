@@ -2339,7 +2339,7 @@ define([
             if(system.length === 1){
                 // scroll to system
                 var tempMapWrapper = tempMapContainer.parents('.' + config.mapWrapperClass);
-                tempMapWrapper.scrollTo(system);
+                tempMapWrapper.mCustomScrollbar('scrollTo', system);
 
                 // select system
                 system.showSystemInfo(map);
