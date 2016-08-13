@@ -151,45 +151,46 @@ class Route extends \Controller\AccessController {
             // search connections -------------------------------------------------------
 
             if( !empty($includeScopes) ){
-                $whereQuery .= " connection.scope IN ('" . implode("', '", $includeScopes) . "') AND ";
+                $whereQuery .= " `connection`.`scope` IN ('" . implode("', '", $includeScopes) . "') AND ";
 
                 if( !empty($includeTypes) ){
-                    $whereQuery .= " connection.type REGEXP '" . implode("|", $includeTypes) . "' AND ";
+                    $whereQuery .= " `connection`.`type` REGEXP '" . implode("|", $includeTypes) . "' AND ";
                 }
 
 
                 $query = "SELECT
-                        system_src.regionId regionId,
-                        system_src.constellationId constellationId,
-                        system_src.name systemName,
-                        system_src.systemId systemId,
+                        `system_src`.`regionId` regionId,
+                        `system_src`.`constellationId` constellationId,
+                        `system_src`.`name` systemName,
+                        `system_src`.`systemId` systemId,
                         (
                           SELECT
-                            GROUP_CONCAT( NULLIF(system_tar.name, NULL) SEPARATOR ':')
+                            GROUP_CONCAT( NULLIF(`system_tar`.`name`, NULL) SEPARATOR ':')
                           FROM
-                            connection INNER JOIN
-                            system system_tar ON
-                              system_tar.id = connection.source OR
-                              system_tar.id = connection.target
+                            `connection` INNER JOIN
+                            `system` system_tar ON
+                              `system_tar`.`id` = `connection`.`source` OR
+                              `system_tar`.`id` = `connection`.`target`
                           WHERE
+                            `connection`.`mapId` IN (" . implode(', ', $mapIds) . ") AND
+                            `connection`.`active` = 1 AND
                             (
-                              connection.source = system_src.id OR
-                              connection.target = system_src.id
+                              `connection`.`source` = `system_src`.`id` OR
+                              `connection`.`target` = `system_src`.`id`
                             ) AND
                             " . $whereQuery . "
-                            connection.active = 1 AND
-                            system_tar.id != system_src.id AND
-                            system_tar.active = 1
+                            `system_tar`.`id` != `system_src`.`id` AND
+                            `system_tar`.`active` = 1
                         ) jumpNodes,
-                        system_src.trueSec trueSec
+                        `system_src`.`trueSec` trueSec
                     FROM
-                        system system_src INNER JOIN
-                        map ON
-                          map.id = system_src.mapId
+                        `system` `system_src` INNER JOIN
+                        `map` ON
+                          `map`.`id` = `system_src`.`mapId`
                     WHERE
-                        system_src.mapId IN (" . implode(', ', $mapIds) . ") AND
-                        system_src.active = 1 AND
-                        map.active = 1
+                        `system_src`.`mapId` IN (" . implode(', ', $mapIds) . ") AND
+                        `system_src`.`active` = 1 AND
+                        `map`.`active` = 1
                     HAVING
                         -- skip systems without neighbors (e.g. WHs)
 	                    jumpNodes IS NOT NULL
