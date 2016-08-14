@@ -1531,9 +1531,9 @@ define([
                 {icon: 'fa-reply fa-rotate-180', action: 'change_status', text: 'change status', subitems: [
                     {subIcon: 'fa-clock-o', subAction: 'wh_eol', subText: 'toggle EOL'},
                     {subDivider: true},
-                    {subIcon: 'fa-circle', subAction: 'status_fresh', subText: 'stage 0 (fresh)'},
-                    {subIcon: 'fa-adjust', subAction: 'status_reduced', subText: 'stage 1 (reduced)'},
-                    {subIcon: 'fa-circle-o', subAction: 'status_critical', subText: 'stage 2 (critical)'}
+                    {subIcon: 'fa-circle', subAction: 'status_fresh', subText: 'stage 1 (fresh)'},
+                    {subIcon: 'fa-adjust', subAction: 'status_reduced', subText: 'stage 2 (reduced)'},
+                    {subIcon: 'fa-circle-o', subAction: 'status_critical', subText: 'stage 3 (critical)'}
 
                 ]},
                 {divider: true, action: 'delete_connection'},
