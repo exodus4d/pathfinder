@@ -4,7 +4,7 @@
 
 define(['jquery', 'mustache'], function($, Mustache) {
 
-    "use strict";
+    'use strict';
 
     /**
      * init function will be called before and after a new module is loaded
@@ -34,7 +34,7 @@ define(['jquery', 'mustache'], function($, Mustache) {
             // check for an id, if module already exists, do not insert again
             if(
                 data.id === 'undefined' ||
-                 $("#" + data.id).length === 0
+                 $('#' + data.id).length === 0
             ){
 
                 var content = Mustache.render(template, data);

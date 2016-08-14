@@ -822,6 +822,15 @@ define([
     };
 
     /**
+     * set default configuration  for "Bootbox" dialogs
+     */
+    var initDefaultBootboxConfig = function(){
+        bootbox.setDefaults({
+            onEscape: true      // enables close dialogs on ESC key
+        });
+    };
+
+    /**
      * get the current main trigger delay for the main trigger functions
      * optional in/decrease the delay
      * @param updateKey
@@ -1744,6 +1753,7 @@ define([
         config: config,
         localforage: localforage,
         showVersionInfo: showVersionInfo,
+        initDefaultBootboxConfig: initDefaultBootboxConfig,
         getCurrentTriggerDelay: getCurrentTriggerDelay,
         getServerTime: getServerTime,
         convertTimestampToServerTime: convertTimestampToServerTime,

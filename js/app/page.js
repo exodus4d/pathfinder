@@ -909,11 +909,10 @@ define([
         }
 
         if (
-            typeof document.addEventListener === 'undefined' ||
-            typeof document[hidden] === 'undefined'
+            typeof document.addEventListener !== 'undefined' &&
+            typeof document[hidden] !== 'undefined'
         ){
-            // the current browser does not support this feature
-        }else{
+            // the current browser supports this feature
             // Handle page visibility change
 
             // check once initial -> in case the tab is hidden on page load

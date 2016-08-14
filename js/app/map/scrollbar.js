@@ -35,7 +35,7 @@ define([
                 updateOnBrowserResize: true,
                 updateOnContentResize: true,
                 autoExpandHorizontalScroll: true,
-                autoScrollOnFocus: "div"
+                autoScrollOnFocus: 'div'
             },
             mouseWheel:{
                 enable: false, // scroll weel currently disabled

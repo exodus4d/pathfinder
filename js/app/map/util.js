@@ -515,7 +515,7 @@ define([
         if(objectId > 0){
             // get current map config
             var storageKey = getLocalStoragePrefixByType(type) + objectId;
-            Util.localforage.getItem(mapStorageKey).then(function(data) {
+            Util.localforage.getItem(storageKey).then(function(data) {
                 if(
                     data &&
                     data.hasOwnProperty(key)

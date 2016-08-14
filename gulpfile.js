@@ -18,6 +18,7 @@ var stylish = require('jshint-stylish');
 var _src = {
     GULP: './gulpfile.js',
     ICON: './public/img/notifications/logo.png',
+    JSHINT_CONF: '.jshintrc',
     JS_SRC: './js/**/*',
     JS_LIBS: './js/lib/**/*',
     JS_BUILD: './build_js',
@@ -89,7 +90,7 @@ gulp.task('jshint', function(){
         .pipe(plumber({
             errorHandler: onError
         }))
-        .pipe(jshint())
+        .pipe(jshint( _src.JSHINT_CONF ))
         .pipe(jshint.reporter(stylish));
     // .pipe(jshint.reporter('fail')); // uncomment this line to stop build on error
 });

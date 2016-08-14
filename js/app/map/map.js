@@ -214,7 +214,7 @@ define([
 
                 tooltipOptions.id = systemId;
                 tooltipOptions.highlight = highlight;
-                tooltipOptions.title = "<i class='fa " + tooltipIconClass + "'></i>";
+                tooltipOptions.title = '<i class="fa ' + tooltipIconClass + '"></i>';
                 tooltipOptions.title += '&nbsp;' + userCounter;
 
                 // show system head
@@ -1794,7 +1794,7 @@ define([
 
         // init context menu
         system.contextMenu({
-            menuSelector: "#" + config.systemContextMenuId,
+            menuSelector: '#' + config.systemContextMenuId,
             menuSelected: function (params) {
 
                 // click action
@@ -2136,7 +2136,7 @@ define([
         });
 
         $(mapContainer).contextMenu({
-            menuSelector: "#" + config.mapContextMenuId,
+            menuSelector: '#' + config.mapContextMenuId,
             menuSelected: function (params) {
 
                 // click action
@@ -2474,7 +2474,7 @@ define([
          *  must be triggered manually on demand
          */
         $(connection.canvas).contextMenu({
-            menuSelector: "#" + config.connectionContextMenuId,
+            menuSelector: '#' + config.connectionContextMenuId,
             menuSelected: function (params){
 
                 var action = params.selectedMenu.attr('data-action');

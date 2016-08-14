@@ -19,6 +19,9 @@ define([
      * main init "map" page
      */
     $(function(){
+        // set Dialog default config
+        Util.initDefaultBootboxConfig();
+
         // load page
         $('body').loadPageStructure();
 

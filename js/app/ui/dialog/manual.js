@@ -128,7 +128,7 @@ define([
                             disableOnScrollEvent = true;
 
                             // scroll to anchor
-                            scrollspyElement.mCustomScrollbar("scrollTo", $(this).attr('data-target'));
+                            scrollspyElement.mCustomScrollbar('scrollTo', $(this).attr('data-target'));
 
                             var mainNavigationLiElement = $(this).parent('.' + config.dialogNavigationListItemClass);
 
