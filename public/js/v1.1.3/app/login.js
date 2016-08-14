@@ -627,6 +627,8 @@ define([
      * main init "landing" page
      */
     $(function(){
+        // set Dialog default config
+        Util.initDefaultBootboxConfig();
 
         // show app information in browser console
         Util.showVersionInfo();

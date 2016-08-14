@@ -649,7 +649,7 @@ define([
                     data.defaultMapId
                 ){
                     mapDataIndex = Util.getCurrentMapDataIndex(data.defaultMapId);
-                    mapKeyTabSelector = 'nth-child(' + ( mapDataIndex + 1 ) + ')'
+                    mapKeyTabSelector = 'nth-child(' + ( mapDataIndex + 1 ) + ')';
                 }
 
                 // ==============================================================
