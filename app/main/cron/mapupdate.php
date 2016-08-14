@@ -22,24 +22,25 @@ class MapUpdate {
      * @param \Base $f3
      */
     function deactivateMapData(\Base $f3){
+        $privateMapLifetime = (int)$f3->get('PATHFINDER.MAP.PRIVATE.LIFETIME');
 
-        $pfDB = DB\Database::instance()->getDB('PF');
+        if($privateMapLifetime > 0){
+            $pfDB = DB\Database::instance()->getDB('PF');
 
-        $sqlDeactivateExpiredMaps = "UPDATE map SET
+            $sqlDeactivateExpiredMaps = "UPDATE map SET
                 active = 0
             WHERE
                 map.active = 1 AND
                 map.typeId = 2 AND
-                TIMESTAMPDIFF(DAY, map.created, NOW() ) > :lifetime";
+                TIMESTAMPDIFF(DAY, map.updated, NOW() ) > :lifetime";
 
-        $privateMapLifetime = (int)$f3->get('PATHFINDER.MAP.PRIVATE.LIFETIME');
+            $pfDB->exec($sqlDeactivateExpiredMaps, ['lifetime' => $privateMapLifetime]);
+            $deactivatedMapsCount = $pfDB->count();
 
-        $pfDB->exec($sqlDeactivateExpiredMaps, ['lifetime' => $privateMapLifetime]);
-        $deactivatedMapsCount = $pfDB->count();
-
-        // Log ------------------------
-        $log = new \Log('cron_' . __FUNCTION__ . '.log');
-        $log->write( sprintf(self::LOG_TEXT_MAPS, __FUNCTION__, $deactivatedMapsCount) );
+            // Log ------------------------
+            $log = new \Log('cron_' . __FUNCTION__ . '.log');
+            $log->write( sprintf(self::LOG_TEXT_MAPS, __FUNCTION__, $deactivatedMapsCount) );
+        }
     }
 
     /**

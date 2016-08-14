@@ -225,16 +225,10 @@
                             <li><i></i>Print/export client site log files for debugging</li>
                         </ul>
                     </li>
-                    <li><i></i>Build in <em>SMTP</em> support</li>
+                    <li><i></i><em>SMTP</em> support</li>
                     <li>
                         <ul class="fa-ul">
                             <li><i></i><a target="_blank" href="https://slack.com"><i class="fa fa-lg fa-fw fa-slack"></i><em>Slack</em></a> email notifications</li>
-                        </ul>
-                    </li>
-                    <li><i></i>No dependencies from other 3rd party pages</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>All data is stored/imported into its own database</li>
                         </ul>
                     </li>
                     <li><i></i>Responsive layout</li>
@@ -557,7 +551,7 @@
                             <ul class="list-unstyled text-left">
                                 <li><i class="fa fa-fw fa-history txt-color txt-color-orange"></i> Map lifetime <span class="badge">{{ @PATHFINDER.MAP.PRIVATE.LIFETIME }}</span> days</li>
                                 <li><i class="fa fa-fw fa-check txt-color txt-color-green"></i> Create up to <span class="badge">3</span> private maps</li>
-                                <li><i class="fa fa-fw fa-check txt-color txt-color-green"></i> Share maps with up to <span class="badge">10</span> users</li>
+                                <li><i class="fa fa-fw fa-check txt-color txt-color-green"></i> Share maps with up to <span class="badge">{{ @PATHFINDER.MAP.PRIVATE.MAX_SHARED }}</span> users</li>
                                 <li><i class="fa fa-fw fa-check txt-color txt-color-green"></i> System information module</li>
                                 <li><i class="fa fa-fw fa-check txt-color txt-color-green"></i> System statistics module</li>
                                 <li><i class="fa fa-fw fa-check txt-color txt-color-green"></i> System signature module</li>
@@ -581,10 +575,10 @@
                         </div>
                         <div class="price-features">
                             <ul class="list-unstyled text-left">
-                                <li><i class="fa fa-fw fa-angle-double-right"></i> All <em>public</em> features for corporation members</li>
-                                <li><i class="fa fa-fw fa-history txt-color txt-color-tealLighter"></i> Map lifetime <span class="badge">infinite</span></li>
-                                <li><i class="fa fa-fw fa-check txt-color txt-color-green"></i> Create up to <span class="badge">3</span> corporation maps</li>
-                                <li><i class="fa fa-fw fa-check txt-color txt-color-green"></i> Share corp maps with up to <span class="badge">3</span> corps</li>
+                                <li><i class="fa fa-fw fa-angle-double-right"></i> All "<em>private</em>" features for corporation maps</li>
+                                <li><i class="fa fa-fw fa-history txt-color txt-color-tealLighter"></i> Map lifetime <span class="badge">{{ @PATHFINDER.MAP.CORPORATION.LIFETIME }}</span> days</li>
+                                <li><i class="fa fa-fw fa-check txt-color txt-color-green"></i> Create up to <span class="badge">{{ @PATHFINDER.MAP.CORPORATION.MAX_COUNT }}</span> corporation maps</li>
+                                <li><i class="fa fa-fw fa-check txt-color txt-color-green"></i> Share corp maps with up to <span class="badge">{{ @PATHFINDER.MAP.CORPORATION.MAX_SHARED }}</span> corps</li>
                                 <li><i class="fa fa-fw fa-check txt-color txt-color-green"></i> System killboard module</li>
                             </ul>
                         </div>
@@ -605,11 +599,11 @@
                         </div>
                         <div class="price-features">
                             <ul class="list-unstyled text-left">
-                                <li><i class="fa fa-fw fa-angle-double-right"></i> All <em>public</em> features for alliance members</li>
-                                <li><i class="fa fa-fw fa-angle-double-right"></i> All <em>corporation</em> features for alliance members</li>
-                                <li><i class="fa fa-fw fa-history txt-color txt-color-tealLighter"></i> Map lifetime <span class="badge">infinite</span></li>
-                                <li><i class="fa fa-fw fa-check txt-color txt-color-green"></i> Create up to <span class="badge">3</span> alliance maps</li>
-                                <li><i class="fa fa-fw fa-check txt-color txt-color-green"></i> Share corp maps with up to <span class="badge">2</span> alliances</li>
+                                <li><i class="fa fa-fw fa-angle-double-right"></i> All "<em>private</em>" features for alliance maps</li>
+                                <li><i class="fa fa-fw fa-angle-double-right"></i> All "<em>corporation</em>" features for alliance maps</li>
+                                <li><i class="fa fa-fw fa-history txt-color txt-color-tealLighter"></i> Map lifetime <span class="badge">{{ @PATHFINDER.MAP.ALLIANCE.LIFETIME }}</span> days</li>
+                                <li><i class="fa fa-fw fa-check txt-color txt-color-green"></i> Create up to <span class="badge">{{ @PATHFINDER.MAP.ALLIANCE.MAX_COUNT }}</span> alliance maps</li>
+                                <li><i class="fa fa-fw fa-check txt-color txt-color-green"></i> Share alliance maps with up to <span class="badge">{{ @PATHFINDER.MAP.ALLIANCE.MAX_SHARED }}</span> alliances</li>
                             </ul>
                         </div>
                     </div>
