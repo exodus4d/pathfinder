@@ -266,7 +266,6 @@ define([
 
                 // after modal is shown =======================================================================
                 mapInfoDialog.on('shown.bs.modal', function(e){
-
                     mapInfoDialog.initTooltips();
 
                     // prevent "disabled" tabs from being clicked... "bootstrap" bugFix...
@@ -279,38 +278,6 @@ define([
 
                     // set form validator
                     mapInfoDialog.find('form').initFormValidation();
-
-                    // events for tab change
-                    mapInfoDialog.find('.navbar a').on('shown.bs.tab', function(e){
-
-                        var selectElementCharacter = mapInfoDialog.find('#' + config.characterSelectId);
-                        var selectElementCorporation = mapInfoDialog.find('#' + config.corporationSelectId);
-                        var selectElementAlliance = mapInfoDialog.find('#' + config.allianceSelectId);
-
-                        if($(e.target).attr('href') === '#' + config.dialogMapSettingsContainerId){
-                            // "settings" tab
-                            initSettingsSelectFields(mapInfoDialog);
-                        }else{
-                            if( $(selectElementCharacter).data('select2') !== undefined ){
-                                $(selectElementCharacter).select2('destroy');
-                            }
-
-                            if( $(selectElementCorporation).data('select2') !== undefined ){
-                                $(selectElementCorporation).select2('destroy');
-                            }
-
-                            if( $(selectElementAlliance).data('select2') !== undefined ){
-                                $(selectElementAlliance).select2('destroy');
-                            }
-                        }
-
-                        // no "save" dialog  button on "in/export" tab
-                        if($(e.target).attr('href') === '#' + config.dialogMapDownloadContainerId){
-                            mapInfoDialog.find('button.btn-success').hide();
-                        }else{
-                            mapInfoDialog.find('button.btn-success').show();
-                        }
-                    });
 
                     // show form messages -------------------------------------
                     // get current active form(tab)
@@ -474,6 +441,37 @@ define([
                         }else{
                             importFormElement.showFormMessage([{type: 'error', message: 'The File APIs are not fully supported in this browser.'}]);
                         }
+                    }
+                });
+
+                // events for tab change
+                mapInfoDialog.find('.navbar a').on('shown.bs.tab', function(e){
+                    var selectElementCharacter = mapInfoDialog.find('#' + config.characterSelectId);
+                    var selectElementCorporation = mapInfoDialog.find('#' + config.corporationSelectId);
+                    var selectElementAlliance = mapInfoDialog.find('#' + config.allianceSelectId);
+
+                    if($(e.target).attr('href') === '#' + config.dialogMapSettingsContainerId){
+                        // "settings" tab
+                        initSettingsSelectFields(mapInfoDialog);
+                    }else{
+                        if( $(selectElementCharacter).data('select2') !== undefined ){
+                            $(selectElementCharacter).select2('destroy');
+                        }
+
+                        if( $(selectElementCorporation).data('select2') !== undefined ){
+                            $(selectElementCorporation).select2('destroy');
+                        }
+
+                        if( $(selectElementAlliance).data('select2') !== undefined ){
+                            $(selectElementAlliance).select2('destroy');
+                        }
+                    }
+
+                    // no "save" dialog  button on "in/export" tab
+                    if($(e.target).attr('href') === '#' + config.dialogMapDownloadContainerId){
+                        mapInfoDialog.find('button.btn-success').hide();
+                    }else{
+                        mapInfoDialog.find('button.btn-success').show();
                     }
                 });
             });
