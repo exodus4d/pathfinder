@@ -146,8 +146,10 @@ class Signature extends Controller\AccessController{
                             // systemId should not be updated
                             unset( $data['systemId'] );
 
-                            // description should not be updated
-                            unset( $data['description'] );
+                            // description should not overwrite existing description
+                            if( !empty($signature->description) ){
+                                unset( $data['description'] );
+                            }
 
                             // prevent some data from overwrite manually changes
                             // wormhole typeID can not figured out/saved by the sig reader dialog
