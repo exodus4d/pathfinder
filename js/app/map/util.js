@@ -11,7 +11,8 @@ define([
 
     var config = {
         // local storage
-        mapLocalStoragePrefix: 'map_',                                  // prefix for map local storage key
+        characterLocalStoragePrefix: 'character_',                      // prefix for character data local storage key
+        mapLocalStoragePrefix: 'map_',                                  // prefix for map data local storage key
     };
 
     /**
@@ -382,7 +383,7 @@ define([
                         // check if desktop notification was already send
                         var mapId = system.data('mapid');
                         var systemId = system.data('id');
-                        var promiseStore = getMapData(mapId);
+                        var promiseStore = getLocaleData('map', mapId);
                         promiseStore.then(function(data) {
                             // This code runs once the value has been loaded
                             // from the offline store.
@@ -401,7 +402,7 @@ define([
                                 rallyPokeData[this.systemId] !== rallyUpdated // already send to that system but in the past
                             ){
                                 rallyPokeData[this.systemId] = rallyUpdated;
-                                storeMapData(this.mapId, 'rallyPoke', rallyPokeData);
+                                storeLocalData('map', this.mapId, 'rallyPoke', rallyPokeData);
 
                                 notificationOptions.type = 'info';
                                 Util.showNotify(notificationOptions, {desktop: true, stack: 'barBottom'});
@@ -428,71 +429,105 @@ define([
     };
 
     /**
-     * get stored map data from client cache (IndexedDB)
+     * store mapId for current user (IndexedDB)
      * @param mapId
-     * @returns {*} promise
      */
-    var getMapData = function(mapId){
+    var storeDefaultMapId = function(mapId){
         if(mapId > 0){
-            var mapStorageKey = config.mapLocalStoragePrefix + mapId;
-            return Util.localforage.getItem(mapStorageKey);
-        }else{
-            console.error('Map local storage requires mapId > 0');
+            var userData = Util.getCurrentUserData();
+            if(
+                userData &&
+                userData.character
+            ){
+                storeLocalData('character', userData.character.id, 'defaultMapId', mapId);
+            }
         }
     };
 
     /**
-     * store local map config to client cache (IndexedDB)
-     * @param mapId
+     * get key prefix for local storage data
+     * @param type
+     * @returns {boolean}
+     */
+    var getLocalStoragePrefixByType = function(type){
+        var prefix = false;
+        switch(type){
+            case 'character':   prefix = config.characterLocalStoragePrefix; break;
+            case 'map':   prefix = config.mapLocalStoragePrefix; break;
+            default:   prefix = config.mapLocalStoragePrefix;
+        }
+        return prefix;
+    };
+
+    /**
+     * get stored local data from client cache (IndexedDB)
+     * @param type
+     * @param objectId
+     * @returns {*}
+     */
+    var getLocaleData = function(type, objectId){
+        if(objectId > 0){
+            var storageKey = getLocalStoragePrefixByType(type) + objectId;
+            return Util.localforage.getItem(storageKey);
+        }else{
+            console.warn('Local storage requires object id > 0');
+        }
+    };
+
+    /**
+     * store local config data to client cache (IndexedDB)
+     * @param type
+     * @param objectId
      * @param key
      * @param value
      */
-    var storeMapData = function(mapId, key, value){
-        if(mapId > 0){
+    var storeLocalData = function(type, objectId, key, value){
+        if(objectId > 0){
             // get current map config
-            var mapStorageKey = config.mapLocalStoragePrefix + mapId;
-            Util.localforage.getItem(mapStorageKey).then(function(data) {
+            var storageKey = getLocalStoragePrefixByType(type) + objectId;
+            Util.localforage.getItem(storageKey).then(function(data) {
                 // This code runs once the value has been loaded
                 // from the offline store.
                 data = (data === null) ? {} : data;
                 // set/update value
                 data[this.key] = this.value;
-                Util.localforage.setItem(this.mapStorageKey, data);
+                Util.localforage.setItem(this.storageKey, data);
             }.bind({
                 key: key,
                 value: value,
-                mapStorageKey: mapStorageKey
+                storageKey: storageKey
             })).catch(function(err) {
                 // This code runs if there were any errors
                 console.error('Map local storage can not be accessed!');
             });
         }else{
-            console.error('storeMapData(): Local storage requires mapId > 0');
+            console.warn('storeLocalData(): Local storage requires object id > 0');
         }
     };
 
     /**
      * delete local map configuration by key (IndexedDB)
-     * @param mapId
+     * @param type
+     * @param objectId
      * @param key
      */
-    var deleteMapData = function(mapId, key){
-        if(mapId > 0){
+    var deleteLocalData = function(type, objectId, key){
+        if(objectId > 0){
             // get current map config
-            var mapStorageKey = config.mapLocalStoragePrefix + mapId;
+            var storageKey = getLocalStoragePrefixByType(type) + objectId;
             Util.localforage.getItem(mapStorageKey).then(function(data) {
                 if(
                     data &&
                     data.hasOwnProperty(key)
                 ){
                     delete data[key];
-                    Util.localforage.setItem(this.mapStorageKey, data);
+                    Util.localforage.setItem(this.storageKey, data);
                 }
             }.bind({
-                mapStorageKey: mapStorageKey
+                storageKey: storageKey
             }));
         }else{
-            console.error('deleteMapData(): Local storage requires mapId > 0');
+            console.warn('deleteLocalData(): Local storage requires object id > 0');
         }
     };
 
@@ -512,8 +547,9 @@ define([
         getDefaultConnectionTypeByScope: getDefaultConnectionTypeByScope,
         setConnectionWHStatus: setConnectionWHStatus,
         getScopeInfoForConnection: getScopeInfoForConnection,
-        getMapData: getMapData,
-        storeMapData: storeMapData,
-        deleteMapData: deleteMapData
+        storeDefaultMapId: storeDefaultMapId,
+        getLocaleData: getLocaleData,
+        storeLocalData: storeLocalData,
+        deleteLocalData: deleteLocalData
     };
 });

@@ -820,10 +820,10 @@ define([
             if(connectionId > 0){
                 connectionCache[mapId][connectionId] = connection;
             }else{
-                console.error('updateConnectionCache', 'connectionId missing');
+                console.warn('updateConnectionCache', 'connectionId missing');
             }
         }else{
-            console.error('updateConnectionCache', 'missing data');
+            console.warn('updateConnectionCache', 'missing data');
         }
     };
 
@@ -3273,7 +3273,7 @@ define([
                 var mapWrapper = mapContainer.parents('.' + config.mapWrapperClass);
 
                 // auto scroll map to previous position
-                var promiseStore = MapUtil.getMapData( mapContainer.data('id') );
+                var promiseStore = MapUtil.getLocaleData('map', mapContainer.data('id') );
                 promiseStore.then(function(data) {
                     // This code runs once the value has been loaded
                     // from the offline store.
@@ -3314,7 +3314,7 @@ define([
                     // scroll complete
                     var mapElement = $(this).find('.' + config.mapClass);
                     // store new map scrollOffset -> localDB
-                    MapUtil.storeMapData( mapElement.data('id'), 'offsetX', Math.abs(this.mcs.left) );
+                    MapUtil.storeLocalData('map', mapElement.data('id'), 'offsetX', Math.abs(this.mcs.left) );
                 },
                 onScrollStart: function(){
                     // hide all open xEditable fields

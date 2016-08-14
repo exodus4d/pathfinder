@@ -510,6 +510,7 @@ class Map extends Controller\AccessController {
      */
     public function updateData(\Base $f3){
         $mapData = (array)$f3->get('POST.mapData');
+        $userDataRequired = (bool)$f3->get('POST.getUserData');
 
         $activeCharacter = $this->getCharacter();
 
@@ -626,6 +627,12 @@ class Map extends Controller\AccessController {
         }else{
             // get from cache
             $return = $f3->get($cacheKey);
+        }
+
+        // if userData is requested -> add it as well
+        // -> Only first trigger call should request this data!
+        if($userDataRequired){
+            $return->userData = $activeCharacter->getUser()->getData();
         }
 
         echo json_encode( $return );

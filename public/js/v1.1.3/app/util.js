@@ -1433,7 +1433,6 @@ define([
      * @returns {boolean}
      */
     var getCurrentMapData = function(mapId){
-
         var currentMapData = false;
 
         if( mapId === parseInt(mapId, 10) ){
@@ -1453,13 +1452,33 @@ define([
     };
 
     /**
+     * get mapData array index by mapId
+     * @param mapId
+     * @returns {boolean|int}
+     */
+    var getCurrentMapDataIndex = function(mapId){
+        var mapDataIndex = false;
+
+        if( mapId === parseInt(mapId, 10) ){
+            for(var i = 0; i < Init.currentMapData.length; i++){
+                if(Init.currentMapData[i].config.id === mapId){
+                    mapDataIndex = i;
+                    break;
+                }
+            }
+        }
+
+        return mapDataIndex;
+    };
+
+
+    /**
      * set currentUserData as "global" variable
      * this function should be called continuously after data change
      * to keep the data always up2data
      * @param userData
      */
     var setCurrentUserData = function(userData){
-
         Init.currentUserData = userData;
 
         // check if function is available
@@ -1507,7 +1526,6 @@ define([
      */
     var getCurrentUserInfo = function(option){
         var currentUserData = getCurrentUserData();
-
         var userInfo = false;
 
         if(currentUserData){
@@ -1753,6 +1771,7 @@ define([
         getCurrentMapUserData: getCurrentMapUserData,
         setCurrentMapData: setCurrentMapData,
         getCurrentMapData: getCurrentMapData,
+        getCurrentMapDataIndex: getCurrentMapDataIndex,
         setCurrentUserData: setCurrentUserData,
         getCurrentUserData: getCurrentUserData,
         setCurrentSystemData: setCurrentSystemData,

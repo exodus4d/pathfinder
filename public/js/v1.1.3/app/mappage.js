@@ -112,10 +112,10 @@ define([
                 }
 
                 // get updated map data
-                var updatedMapData = mapModule.getMapModuleDataForUpdate();
-
-                // wrap array to object
-                updatedMapData = {mapData: updatedMapData};
+                var updatedMapData = {
+                    mapData: mapModule.getMapModuleDataForUpdate(),
+                    getUserData: ( Util.getCurrentUserData() ) ? 0 : 1
+                };
 
                 // start log
                 Util.timeStart(logKeyServerMapData);
@@ -139,8 +139,12 @@ define([
                         // any error in the main trigger functions result in a user log-off
                         $(document).trigger('pf:menuLogout');
                     }else{
-
                         $(document).setProgramStatus('online');
+
+                        if(data.userData !== undefined) {
+                            // store current user data global (cache)
+                            Util.setCurrentUserData(data.userData);
+                        }
 
                         if(data.mapData.length === 0){
                             // clear all existing maps
@@ -227,14 +231,6 @@ define([
                         if(data.userData !== undefined){
                             // store current user data global (cache)
                             var userData = Util.setCurrentUserData(data.userData);
-
-                            if(userData.character === undefined){
-                                // no active character found -> show settings dialog
-
-                                Util.showNotify({title: 'Main character not set', text: 'Check your API data and set a main character', type: 'error'});
-
-                                $(document).triggerMenuEvent('ShowSettingsDialog');
-                            }
 
                             // store current map user data (cache)
                             if(data.mapUserData !== undefined){
