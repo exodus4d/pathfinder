@@ -69,19 +69,14 @@ class CcpSystemsMapper extends AbstractIterator {
                 $iterator['security'] == 9
             ){
                 // k-space system
-                $trueSec = round($iterator['system_security'], 3);
+                $trueSec = round($iterator['system_security'], 1, PHP_ROUND_HALF_DOWN);
 
                 if($trueSec <= 0){
                     $security = '0.0';
+                }elseif($trueSec < 0.5){
+                    $security = 'L';
                 }else{
-                    // more precise rounding required for "low sec" and "high sec"  distinction
-                    $trueSec = round($trueSec, 1);
-
-                    if($trueSec < 0.5){
-                        $security = 'L';
-                    }else{
-                        $security = 'H';
-                    }
+                    $security = 'H';
                 }
             }elseif(
                 $iterator['security'] == 1 ||

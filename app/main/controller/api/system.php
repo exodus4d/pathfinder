@@ -167,6 +167,7 @@ class System extends \Controller\AccessController {
         //$searchToken = 'Oshaima'; // 0.453128 -> 0.5 (HS)
         //$searchToken = 'Ayeroilen'; // 0.446568 -> 0.4 (LS)
         //$searchToken = 'Enderailen'; // 0.448785 -> 0.4 (LS)
+        //$searchToken = 'Neziel'; // 0.449943 -> 0.4 (LS)
 
         $this->whereQuery = "WHERE
             map_sys.solarSystemName LIKE '%" . $searchToken . "%'";
