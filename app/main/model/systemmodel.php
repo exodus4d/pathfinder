@@ -490,6 +490,10 @@ class SystemModel extends BasicModel {
         return $wormholeData;
     }
 
+    /**
+     * set rally point information
+     * @param $timestamp
+     */
     protected function sendRallyPointMail($timestamp){
         $recipient = Config::getNotificationMail('RALLY_SET');
 
@@ -508,7 +512,7 @@ class SystemModel extends BasicModel {
             $body[] = "Time:\t\t" . date('g:i a; F j, Y', $timestamp);
             $bodyMsg = implode("\r\n", $body);
 
-            (new MailController())->sendRallyPoint('exodus4d@gmail.com', $bodyMsg);
+            (new MailController())->sendRallyPoint($recipient, $bodyMsg);
         }
     }
 
