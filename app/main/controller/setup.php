@@ -431,6 +431,12 @@ class Setup extends Controller {
                 'version' => extension_loaded('pdo_mysql') ? 'installed' : 'not installed',
                 'check' => extension_loaded('pdo_mysql')
             ],
+            'openssl' => [
+                'label' => 'OpenSSL',
+                'required' => 'installed',
+                'version' => extension_loaded('openssl') ? 'installed' : 'not installed',
+                'check' => extension_loaded('openssl')
+            ],
             'gd' => [
                 'label' => 'GD Library (for Image plugin)',
                 'required' => 'installed',
