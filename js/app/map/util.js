@@ -13,6 +13,7 @@ define([
         // local storage
         characterLocalStoragePrefix: 'character_',                      // prefix for character data local storage key
         mapLocalStoragePrefix: 'map_',                                  // prefix for map data local storage key
+        mapTabContentClass: 'pf-map-tab-content'                        // Tab-Content element (parent element)
     };
 
     /**
@@ -333,6 +334,16 @@ define([
     };
 
     /**
+     * get TabContentElement by any element on a map e.g. system
+     * @param element
+     * @returns {*}
+     */
+    var getTabContentElementByMapElement = function(element){
+        var tabContentElement = $(element).parents('.' + config.mapTabContentClass);
+        return tabContentElement;
+    };
+
+    /**
      * set or change rallyPoint for systems
      * @param rallyUpdated
      * @param options
@@ -547,6 +558,7 @@ define([
         getDefaultConnectionTypeByScope: getDefaultConnectionTypeByScope,
         setConnectionWHStatus: setConnectionWHStatus,
         getScopeInfoForConnection: getScopeInfoForConnection,
+        getTabContentElementByMapElement: getTabContentElementByMapElement,
         storeDefaultMapId: storeDefaultMapId,
         getLocaleData: getLocaleData,
         storeLocalData: storeLocalData,

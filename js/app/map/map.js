@@ -9,13 +9,14 @@ define([
     'app/render',
     'bootbox',
     'app/map/util',
+    'app/map/system',
     'app/map/magnetizing',
     'app/map/scrollbar',
     'dragToSelect',
     'select2',
     'app/map/contextmenu',
     'app/map/overlay'
-], function($, Init, Util, Render, bootbox, MapUtil, MagnetizerWrapper) {
+], function($, Init, Util, Render, bootbox, MapUtil, System, MagnetizerWrapper) {
 
     'use strict';
 
@@ -29,7 +30,6 @@ define([
         mapSnapToGridDimension: 20,                                     // px for grid snapping (grid YxY)
         mapSnapToGrid: false,                                           // "Snap to Grid" feature for drag&drop systems on map (optional)
         mapMagnetizer: false,                                           // "Magnetizer" feature for drag&drop systems on map (optional)
-        mapTabContentClass: 'pf-map-tab-content',                       // Tab-Content element (parent element)
         mapWrapperClass: 'pf-map-wrapper',                              // wrapper div (scrollable)
 
         mapClass: 'pf-map',                                             // class for all maps
@@ -718,7 +718,7 @@ define([
                     var deleteSystem = $('#' + config.systemIdPrefix + mapContainer.data('id') + '-' + currentSystemData[a].id);
 
                     // system not found -> delete system
-                    removeSystem(mapConfig.map, deleteSystem);
+                    System.removeSystems(mapConfig.map, deleteSystem);
                 }
             }
 
@@ -1049,93 +1049,6 @@ define([
             }
         }
     };
-
-    /**
-     * delete a system with all its connections
-     * (ajax call) remove system from DB
-     * @param map
-     * @param systems
-     * @param callback function
-     */
-    var deleteSystems = function(map, systems, callback){
-
-        var mapContainer = $( map.getContainer() );
-
-        mapContainer.getMapOverlay('timer').startMapUpdateCounter();
-
-        var systemIds = [];
-        // systemIds for delete request
-        for(var i = 0; i < systems.length; i++){
-            systemIds.push( $(systems[i]).data('id') );
-        }
-
-        var requestData = {
-            systemIds: systemIds
-        };
-
-        $.ajax({
-            type: 'POST',
-            url: Init.path.deleteSystem,
-            data: requestData,
-            dataType: 'json',
-            context: {
-                map: map,
-                systems: systems
-            }
-        }).done(function(){
-            // deleted SystemIds
-            var triggerData = {
-                systemIds: []
-            };
-
-            // remove systems from map
-            for(var i = 0; i < this.systems.length; i++){
-                var system = $(this.systems[i]);
-                triggerData.systemIds.push( system.data('id') );
-                removeSystem(this.map, system );
-            }
-
-            callback();
-        }).fail(function( jqXHR, status, error) {
-            var reason = status + ' ' + error;
-            Util.showNotify({title: jqXHR.status + ': deleteSystem', text: reason, type: 'warning'});
-            $(document).setProgramStatus('problem');
-        });
-    };
-
-    /**
-     * remove a system from map (no backend requests)
-     * @param map
-     * @param system
-     */
-    var removeSystem = function(map, system){
-        system = $(system);
-
-        // check if system is "active"
-        if( system.hasClass(config.systemActiveClass) ){
-            // get parent Tab Content and fire clear modules event
-            var tabContentElement = getTabContentElementByMapElement( system );
-
-            $(tabContentElement).trigger('pf:removeSystemModules');
-        }
-
-        // remove endpoints and their connections
-        // do not fire a "connectionDetached" event
-        map.detachAllConnections(system, {fireEvent: false});
-
-        // hide tooltip
-        system.toggleSystemTooltip('destroy', {});
-
-        // remove system
-        system.velocity('transition.whirlOut', {
-            duration: Init.animationSpeed.mapDeleteSystem,
-            complete: function(){
-                map.remove(this);
-            }
-        });
-
-    };
-
 
     /**
      * make a system name/alias editable by x-editable
@@ -1580,7 +1493,7 @@ define([
                     {subIcon: 'fa-step-forward', subAction: 'add_last_waypoint', subText: 'add new [end]'}
                 ]},
                 {divider: true, action: 'delete_system'},
-                {icon: 'fa-eraser', action: 'delete_system', text: 'delete system'}
+                {icon: 'fa-eraser', action: 'delete_system', text: 'delete system(s)'}
             ]
         };
 
@@ -1881,19 +1794,11 @@ define([
                         currentSystem.markAsChanged();
                         break;
                     case 'delete_system':
-                        // confirm dialog
-                        bootbox.confirm('Delete system and all its connections?', function(result) {
-                            if(result){
-                                var systemName = currentSystem.getSystemInfo(['alias']);
-                                deleteSystems(map, [currentSystem], function(){
-                                    // callback function after delete -> close dialog
-                                    bootbox.hideAll();
-                                    Util.showNotify({title: 'System deleted', text: systemName, type: 'success'});
-                                });
-
-                                return false;
-                            }
-                        });
+                        // delete this system AND delete selected systems as well
+                        var selectedSystems = mapContainer.getSelectedSystems();
+                        $.merge(selectedSystems, currentSystem);
+                        $.uniqueSort(selectedSystems);
+                        $.fn.showDeleteSystemDialog(map, selectedSystems);
                         break;
                     case 'set_destination':
                     case 'add_first_waypoint':
@@ -1998,7 +1903,7 @@ define([
         markSystemActive(map, system);
 
         // get parent Tab Content and fire update event
-        var tabContentElement = getTabContentElementByMapElement( system );
+        var tabContentElement = MapUtil.getTabContentElementByMapElement( system );
 
         // collect all required data from map module to update the info element
         // store them global and assessable for each module
@@ -2096,16 +2001,6 @@ define([
             $(system).getMapOverlay('timer').startMapUpdateCounter();
         }
 
-    };
-
-    /**
-     * get TabContentElement by any element on a map e.g. system
-     * @param element
-     * @returns {*}
-     */
-    var getTabContentElementByMapElement = function(element){
-        var tabContentElement = $(element).parents('.' + config.mapTabContentClass);
-        return tabContentElement;
     };
 
     /**
@@ -2225,25 +2120,8 @@ define([
                         break;
                     case 'delete_systems':
                         // delete all selected systems with its connections
-                        var selectedSystems = $(currentMapElement).getSelectedSystems();
-
-                        if(selectedSystems.length > 0){
-                            var systemDeleteDialog = bootbox.confirm('Delete ' + selectedSystems.length + ' selected systems and its connections?', function(result) {
-                                if(result){
-                                    currentMapElement.getMapOverlay('timer').startMapUpdateCounter();
-
-                                    deleteSystems(currentMap, selectedSystems, function(){
-                                        // callback function after delete -> close dialog
-
-                                        $(systemDeleteDialog).modal('hide');
-                                        Util.showNotify({title: selectedSystems.length + ' systems deleted', type: 'success'});
-                                    });
-                                }
-                            });
-                        }else{
-                            Util.showNotify({title: 'No systems selected', type: 'error'});
-                        }
-
+                        var selectedSystems = currentMapElement.getSelectedSystems();
+                        $.fn.showDeleteSystemDialog(currentMap, selectedSystems);
                         break;
                     case 'info':
                         // open map info dialog
@@ -2328,7 +2206,7 @@ define([
         // delete system event
         // triggered from "map info" dialog scope
         $(mapContainer).on('pf:deleteSystems', function(e, data){
-            deleteSystems(map, data.systems, data.callback);
+            System.deleteSystems(map, data.systems, data.callback);
         });
 
         $(mapContainer).on('pf:menuSelectSystem', function(e, data){
