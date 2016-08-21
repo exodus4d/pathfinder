@@ -10,10 +10,30 @@ define([
     'use strict';
 
     var config = {
+        mapSnapToGridDimension: 20,                                     // px for grid snapping (grid YxY)
+
         // local storage
         characterLocalStoragePrefix: 'character_',                      // prefix for character data local storage key
         mapLocalStoragePrefix: 'map_',                                  // prefix for map data local storage key
-        mapTabContentClass: 'pf-map-tab-content'                        // Tab-Content element (parent element)
+        mapTabContentClass: 'pf-map-tab-content',                       // Tab-Content element (parent element)
+
+        systemClass: 'pf-system',                                       // class for all systems
+        mapGridClass: 'pf-grid-small'                                   // class for map grid snapping
+    };
+
+    // map menu options
+    var mapOptions = {
+        mapMagnetizer: {
+            buttonId: Util.config.menuButtonMagnetizerId,
+            description: 'Magnetizer',
+            onEnable: 'initMagnetizer',     // jQuery extension function
+            onDisable: 'destroyMagnetizer'  // jQuery extension function
+        },
+        mapSnapToGrid : {
+            buttonId: Util.config.menuButtonGridId,
+            description: 'Grid snapping',
+            class: 'mapGridClass'
+        }
     };
 
     /**
@@ -162,6 +182,15 @@ define([
         }
         return effectInfo;
     };
+
+    /**
+     * get system elements on a map
+     * @returns {*|jQuery}
+     */
+    $.fn.getSystems = function(){
+        return this.find('.' + config.systemClass);
+    };
+
 
     /**
      * search connections by systems
@@ -543,6 +572,8 @@ define([
     };
 
     return {
+        config: config,
+        mapOptions: mapOptions,
         getMapTypes: getMapTypes,
         getMapScopes: getMapScopes,
         getScopeInfoForMap: getScopeInfoForMap,

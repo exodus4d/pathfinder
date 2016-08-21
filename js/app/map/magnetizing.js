@@ -5,14 +5,11 @@
 
 define([
     'jquery',
+    'app/map/util',
     'farahey'
-], function($) {
+], function($, MapUtil) {
 
     'use strict';
-
-    var config = {
-        systemClass: 'pf-system'                                        // class for all systems
-    };
 
     /**
      * Cached current "Magnetizer" object
@@ -26,8 +23,7 @@ define([
      */
     $.fn.initMagnetizer = function(){
         var mapContainer = this;
-
-        var systemsOnMap = mapContainer.find('.' + config.systemClass);
+        var systems = mapContainer.getSystems();
 
         /**
          * helper function
@@ -51,13 +47,12 @@ define([
 
         /**
          * helper function
-         * set new syste offset
+         * set new system offset
          * @param system
          * @param o
          * @private
          */
         var _setOffset = function(system, o) {
-
             var markAsUpdated = false;
 
             // new position must be within parent container
@@ -91,14 +86,28 @@ define([
          * @private
          */
         var _dragFilter = function(id) {
+            return !$('#' + id).is('.jsPlumb_dragged, .pf-system-locked');
+        };
 
-            return !$('#' + id).hasClass('jsPlumb_dragged');
+        var gridConstrain = function(gridX, gridY) {
+            return function(id, current, delta) {
+                if( mapContainer.hasClass(MapUtil.config.mapGridClass) ){
+                    // active grid
+                    return {
+                        left:(gridX * Math.floor( (current[0] + delta.left) / gridX )) - current[0],
+                        top:(gridY * Math.floor( (current[1] + delta.top) / gridY )) - current[1]
+                    };
+                }else{
+                    // no grid
+                    return delta;
+                }
+            };
         };
 
         // main init for "magnetize" feature ------------------------------------------------------
         m8 = new Magnetizer({
             container: mapContainer,
-            getContainerPosition:function(c) {
+            getContainerPosition: function(c) {
                 return c.offset();
             },
             getPosition:_offset,
@@ -109,11 +118,11 @@ define([
                 return $(system).attr('id');
             },
             setPosition:_setOffset,
-            elements: systemsOnMap,
-            filter:_dragFilter,
-            padding:[8, 8]
+            elements: systems,
+            filter: _dragFilter,
+            padding: [6, 6],
+            constrain: gridConstrain(MapUtil.config.mapSnapToGridDimension, MapUtil.config.mapSnapToGridDimension)
         });
-
     };
 
     $.fn.destroyMagnetizer = function(){
@@ -129,8 +138,6 @@ define([
      * @param e
      */
     var executeAtEvent = function(map, e){
-
-        // check if magnetizer is active
         if(m8 !== null && e ){
             m8.executeAtEvent(e);
             map.repaintEverything();
@@ -149,8 +156,25 @@ define([
         }
     };
 
+    /**
+     * set/update elements for "magnetization"
+     * -> (e.g. new systems was added)
+     * @param map
+     */
+    var setElements = function(map){
+        if(m8 !== null){
+            var mapContainer = $(map.getContainer());
+            var systems = mapContainer.getSystems();
+            m8.setElements(systems);
+
+            // re-arrange systems
+            executeAtCenter(map);
+        }
+    };
+
     return {
         executeAtCenter: executeAtCenter,
-        executeAtEvent: executeAtEvent
+        executeAtEvent: executeAtEvent,
+        setElements: setElements
     };
 });

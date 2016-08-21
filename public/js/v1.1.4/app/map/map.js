@@ -27,13 +27,10 @@ define([
           y: 0
         },
 
-        mapSnapToGridDimension: 20,                                     // px for grid snapping (grid YxY)
         mapSnapToGrid: false,                                           // "Snap to Grid" feature for drag&drop systems on map (optional)
-        mapMagnetizer: false,                                           // "Magnetizer" feature for drag&drop systems on map (optional)
         mapWrapperClass: 'pf-map-wrapper',                              // wrapper div (scrollable)
 
         mapClass: 'pf-map',                                             // class for all maps
-        mapGridClass: 'pf-grid-small',                                  // class for map grid snapping
         mapIdPrefix: 'pf-map-',                                         // id prefix for all maps
         systemIdPrefix: 'pf-system-',                                   // id prefix for a system
         systemClass: 'pf-system',                                       // class for all systems
@@ -790,15 +787,10 @@ define([
 
             });
 
-
-            // init/update map "magnetization" feature if new systems where added
-            if(
-                config.mapMagnetizer === true &&
-                newSystems > 0
-            ){
-                mapContainer.initMagnetizer();
+            // update map "magnetization" when new systems where added
+            if(newSystems > 0){
+                MagnetizerWrapper.setElements(mapConfig.map);
             }
-
         }
 
         return mapContainer;
@@ -1095,7 +1087,6 @@ define([
      * @returns new connection
      */
     var drawConnection = function(map, connectionData){
-
         var mapContainer = $( map.getContainer() );
         var mapId = mapContainer.data('id');
 
@@ -1123,7 +1114,6 @@ define([
             */
         });
 
-
         // check if connection is valid (e.g. source/target exist
         if( connection instanceof jsPlumb.Connection ){
 
@@ -1136,14 +1126,14 @@ define([
                 eolUpdated: connectionData.eolUpdated
             });
 
-            // add connection types -----------------------------------------------------
+            // add connection types -------------------------------------------------------------------------
             if(connectionData.type){
                 for(var i = 0; i < connectionData.type.length; i++){
                     connection.addType(connectionData.type[i]);
                 }
             }
 
-            // add connection scope -----------------------------------------------------
+            // add connection scope -------------------------------------------------------------------------
             // connection have the default map Scope scope
             var scope = map.Defaults.Scope;
             if(connectionData.scope){
@@ -1507,9 +1497,7 @@ define([
      * @param system
      */
     var setSystemObserver = function(map, system){
-
         system = $(system);
-
 
         // get map container
         var mapContainer = $( map.getContainer() );
@@ -1523,10 +1511,10 @@ define([
         map.draggable(system, {
             containment: 'parent',
             constrain: true,
-            //scroll: true,                                         // not working because of customized scrollbar
-            filter: '.' + config.systemHeadNameClass,               // disable drag on "system name"
-            snapThreshold: config.mapSnapToGridDimension,           // distance for grid snapping "magnet" effect (optional)
-            start: function(params, a, b){
+            //scroll: true,                                             // not working because of customized scrollbar
+            filter: '.' + config.systemHeadNameClass,                   // disable drag on "system name"
+            snapThreshold: MapUtil.config.mapSnapToGridDimension,       // distance for grid snapping "magnet" effect (optional)
+            start: function(params){
                 var dragSystem = $(params.el);
 
                 mapOverlayTimer = dragSystem.getMapOverlay('timer');
@@ -1534,9 +1522,9 @@ define([
                 // start map update timer
                 mapOverlayTimer.startMapUpdateCounter();
 
-                // check if grid-snap is enable
-                if(config.mapSnapToGrid){
-                    params.drag.params.grid = [config.mapSnapToGridDimension, config.mapSnapToGridDimension];
+                // check if grid-snap is enable -> this enables napping for !CURRENT! Element
+                if( mapContainer.hasClass(MapUtil.config.mapGridClass) ){
+                    params.drag.params.grid = [MapUtil.config.mapSnapToGridDimension, MapUtil.config.mapSnapToGridDimension];
                 }else{
                     delete( params.drag.params.grid );
                 }
@@ -2163,44 +2151,78 @@ define([
 
         // catch events =========================================================
 
-        // toggle global map option (e.g. "grid snap", "magnetization"
-        $(mapContainer).on('pf:menuMapOption', function(e, data){
+        // toggle global map option (e.g. "grid snap", "magnetization")
+        $(mapContainer).on('pf:menuMapOption', function(e, mapOption){
+            var mapElement = $(this);
 
-            var currentMapElement = $(this);
+            // get map menu config options
+            var data = MapUtil.mapOptions[mapOption.option];
 
-            // toggle map option
-            config[data.option] = !config[data.option];
+            var promiseStore = MapUtil.getLocaleData('map', mapElement.data('id') );
+            promiseStore.then(function(dataStore) {
+                var notificationText = 'disabled';
+                var button = $('#' + this.data.buttonId);
+                var dataExists = false;
 
-            // toggle map class (e.g. for grid)
-            if(data.class){
-                currentMapElement.toggleClass( config[data.class] );
-            }
-
-            // toggle button class
-            $(data.button).toggleClass('active');
-
-            var notificationText = 'disabled';
-            if( config[data.option] ){
-
-                // call optional jQuery extension on mapElement
-                if(data.onEnable){
-                    $.fn[ data.onEnable ].apply( currentMapElement );
+                if(
+                    dataStore &&
+                    dataStore[this.mapOption.option]
+                ){
+                    dataExists = true;
                 }
 
-                // show map overlay info icon
-                notificationText = 'enabled';
-                currentMapElement.getMapOverlay('info').updateOverlayIcon(data.option, 'show');
-            }else{
-                // call optional jQuery extension on mapElement
-                if(data.onDisable){
-                    $.fn[ data.onDisable ].apply( currentMapElement );
+                if(dataExists === mapOption.toggle){
+
+                    // toggle button class
+                    button.removeClass('active');
+
+                    // toggle map class (e.g. for grid)
+                    if(this.data.class){
+                        this.mapElement.removeClass( MapUtil.config[this.data.class] );
+                    }
+
+                    // call optional jQuery extension on mapElement
+                    if(this.data.onDisable){
+                        $.fn[ this.data.onDisable ].apply( this.mapElement );
+                    }
+
+                    // show map overlay info icon
+                    this.mapElement.getMapOverlay('info').updateOverlayIcon(this.mapOption.option, 'hide');
+
+                    // delete map option
+                    MapUtil.deleteLocalData('map', this.mapElement.data('id'), this.mapOption.option );
+                }else{
+
+                    // toggle button class
+                    button.addClass('active');
+
+                    // toggle map class (e.g. for grid)
+                    if(this.data.class){
+                        this.mapElement.addClass( MapUtil.config[this.data.class] );
+                    }
+
+                    // call optional jQuery extension on mapElement
+                    if(this.data.onEnable){
+                        $.fn[ this.data.onEnable ].apply( this.mapElement );
+                    }
+
+                    // hide map overlay info icon
+                    this.mapElement.getMapOverlay('info').updateOverlayIcon(this.mapOption.option, 'show');
+
+                    // store map option
+                    MapUtil.storeLocalData('map', this.mapElement.data('id'), this.mapOption.option, 1 );
+
+                    notificationText = 'enabled';
                 }
 
-                // hide map overlay info icon
-                currentMapElement.getMapOverlay('info').updateOverlayIcon(data.option, 'hide');
-            }
-
-            Util.showNotify({title: data.description, text: notificationText, type: 'info'});
+                if(mapOption.toggle){
+                    Util.showNotify({title: this.data.description, text: notificationText, type: 'info'});
+                }
+            }.bind({
+                mapOption: mapOption,
+                data: data,
+                mapElement: mapElement
+            }));
         });
 
         // delete system event
@@ -2223,8 +2245,6 @@ define([
                 system.showSystemInfo(map);
             }
         });
-
-
     };
 
     /**
@@ -2476,7 +2496,7 @@ define([
 
         var mapContainer = $(map.getContainer());
 
-        // format system status for form select ------------------------------------------------------------------------
+        // format system status for form select -------------------------------------------------------------
         var systemStatus = {};
         $.each(Init.systemStatus, function(status, statusData){
             systemStatus[statusData.id] = statusData.label;
@@ -2492,7 +2512,7 @@ define([
         var defaultSystemStatus = Init.systemStatus[ tempKeys[0] ].id;
 
 
-        // get current map data -> disable systems that are already on it ----------------------------------------------
+        // get current map data -> disable systems that are already on it -----------------------------------
         var mapData = mapContainer.getMapDataFromClient({forceData: true});
         var mapSystems = mapData.data.systems;
         var mapSystemIds = [];
@@ -2500,13 +2520,13 @@ define([
             mapSystemIds.push( mapSystems[i].systemId );
         }
 
-        // dialog data -------------------------------------------------------------------------------------------------
+        // dialog data --------------------------------------------------------------------------------------
         var data = {
             id: config.systemDialogId,
             selectClass: config.systemDialogSelectClass
         };
 
-        // set current position as "default" system to add -------------------------------------------------------------
+        // set current position as "default" system to add --------------------------------------------------
         var currentCharacterLog = Util.getCurrentCharacterLog();
 
         if(
@@ -2517,7 +2537,6 @@ define([
             // set current position as "default" system to add
             data.currentSystem = currentCharacterLog.system;
         }
-
 
         requirejs(['text!templates/dialog/system.html', 'mustache'], function(template, Mustache) {
 
@@ -2553,7 +2572,7 @@ define([
 
                             mapContainer.getMapOverlay('timer').startMapUpdateCounter();
 
-                            // calculate new system position -----------------------------------------------
+                            // calculate new system position ------------------------------------------------
                             var newPosition = {
                                 x: 0,
                                 y: 0
@@ -2578,7 +2597,7 @@ define([
 
                             systemDialogData.position = newPosition;
 
-                            // -----------------------------------------------------------------------------
+                            // ------------------------------------------------------------------------------
 
                             var requestData = {
                                 systemData: systemDialogData,
@@ -2632,7 +2651,6 @@ define([
      * @param callback
      */
     var saveSystem = function(map, requestData, sourceSystem, callback){
-
         $.ajax({
             type: 'POST',
             url: Init.path.saveSystem,
@@ -2649,14 +2667,8 @@ define([
 
             Util.showNotify({title: 'New system', text: newSystemData.name, type: 'success'});
 
-            // re-init "magnetizer" with new added system
-            if(config.mapMagnetizer === true){
-                var mapContainer = this.map.getContainer();
-                $(mapContainer).initMagnetizer();
-
-                // re/arrange systems (prevent overlapping)
-                MagnetizerWrapper.executeAtCenter(this.map);
-            }
+            // re/arrange systems (prevent overlapping)
+            MagnetizerWrapper.setElements(this.map);
 
             if(callback){
                 callback();
@@ -2666,7 +2678,6 @@ define([
             Util.showNotify({title: jqXHR.status + ': saveSystem', text: reason, type: 'warning'});
             $(document).setProgramStatus('problem');
         });
-
     };
 
     /**
@@ -2762,7 +2773,7 @@ define([
                     }
                 }
 
-                // the current user can only be in a single system -------------------------------------------------------
+                // the current user can only be in a single system ------------------------------------------
                 if( !currentUserOnMap){
 
                     if(
@@ -2814,7 +2825,7 @@ define([
             options.forceData === true
         ){
 
-            // map config -----------------------------------------------------------
+            // map config -----------------------------------------------------------------------------------
             mapData.config = {
                 id: parseInt( mapElement.data('id') ),
                 name: mapElement.data('name'),
@@ -2829,10 +2840,10 @@ define([
                 updated: parseInt( mapElement.data('updated') ),
             };
 
-            // map data -------------------------------------------------------------
+            // map data -------------------------------------------------------------------------------------
             var data = {};
 
-            // systems data ---------------------------------------------------------
+            // systems data ---------------------------------------------------------------------------------
             var systemsData = [];
             var systems = mapElement.find('.' + config.systemClass);
 
@@ -2856,7 +2867,7 @@ define([
 
             data.systems = systemsData;
 
-            // connections ----------------------------------------------------------
+            // connections ----------------------------------------------------------------------------------
             var connections = map.getAllConnections();
             var connectionsFormatted = [];
 
@@ -2939,7 +2950,7 @@ define([
         };
         systemData.userCount = (system.data('userCount') ? parseInt( system.data('userCount') ) : 0);
 
-        // position -----------------------------------------------------------------
+        // position -----------------------------------------------------------------------------------------
         var positionData = {};
         var currentX = system.css('left');
         var currentY = system.css('top');
@@ -3025,7 +3036,7 @@ define([
                 LogEnabled: true
             });
 
-            // register all available connection types ------------------------------
+            // register all available connection types ------------------------------------------------------
             newJsPlumbInstance.registerConnectionTypes(globalMapConfig.connectionTypes);
 
             // event after a new connection is established --------------------------
@@ -3034,12 +3045,12 @@ define([
                 setConnectionObserver(newJsPlumbInstance, info.connection);
             });
 
-            // event after connection moved -----------------------------------------
+            // event after connection moved -----------------------------------------------------------------
             newJsPlumbInstance.bind('connectionMoved', function(info, e) {
 
             });
 
-            // event after DragStop a connection or new connection ------------------
+            // event after DragStop a connection or new connection ------------------------------------------
             newJsPlumbInstance.bind('beforeDrop', function(info) {
                 var connection = info.connection;
 
@@ -3076,7 +3087,7 @@ define([
                 return true;
             });
 
-            // event before Detach connection ---------------------------------------
+            // event before Detach connection ---------------------------------------------------------------
             newJsPlumbInstance.bind('beforeDetach', function(info) {
                 return true;
             });
@@ -3150,7 +3161,7 @@ define([
 
                 var mapWrapper = mapContainer.parents('.' + config.mapWrapperClass);
 
-                // auto scroll map to previous position
+                // auto scroll map to previous position -----------------------------------------------------
                 var promiseStore = MapUtil.getLocaleData('map', mapContainer.data('id') );
                 promiseStore.then(function(data) {
                     // This code runs once the value has been loaded
@@ -3163,9 +3174,17 @@ define([
                     }
                 });
 
-                if( config.mapMagnetizer === true ){
-                    mapContainer.initMagnetizer();
-                }
+                // init magnetizer --------------------------------------------------------------------------
+                mapContainer.triggerMenuEvent('MapOption', {
+                    option: 'mapMagnetizer',
+                    toggle: false
+                });
+
+                // init grid snap ---------------------------------------------------------------------------
+                mapContainer.triggerMenuEvent('MapOption', {
+                    option: 'mapSnapToGrid',
+                    toggle: false
+                });
 
                 return false;
             }
@@ -3210,7 +3229,7 @@ define([
             }
         });
 
-        // ---------------------------------------------------------------------------
+        // --------------------------------------------------------------------------------------------------
         // add map overlays after scrollbar is initialized
         // because of its absolute position
         scrollableElement.initMapOverlays();

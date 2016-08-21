@@ -73,7 +73,6 @@ define([
 
     /**
      * set Tab Observer, events are triggered within map.js
-     * @param mapContentModule
      */
     $.fn.setTabContentObserver = function(){
         return this.each(function(){
@@ -91,6 +90,7 @@ define([
     /**
      * clear all system info modules and remove them
      * @param tabContentElement
+     * @param callback
      */
     var removeSystemModules = function(tabContentElement, callback){
         tabContentElement.find('.' + config.moduleClass).velocity('transition.slideDownOut', {
