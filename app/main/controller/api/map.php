@@ -692,7 +692,7 @@ class Map extends Controller\AccessController {
 
                 // update current location
                 // -> suppress temporary timeout errors
-                $activeCharacter = $activeCharacter->updateLog(['suppressTimeoutErrors' => true]);
+                $activeCharacter = $activeCharacter->updateLog(['suppressHTTPErrors' => true]);
 
                 // check character log (current system) and manipulate map (e.g. add new system)
                 if( (bool)$characterMapData['mapTracking'] ){

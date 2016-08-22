@@ -153,7 +153,9 @@ class Web extends \Web {
                         LogController::getLogger('ERROR')->write($errorMsg);
 
                         // trigger error
-                        $f3->error($statusCode, $errorMsg);
+                        if($additionalOptions['suppressHTTPErrors'] !== true){
+                            $f3->error($statusCode, $errorMsg);
+                        }
                     }
                     break;
                 case 504:
@@ -174,8 +176,7 @@ class Web extends \Web {
                         // log error
                         LogController::getLogger('ERROR')->write($errorMsg);
 
-                        if($additionalOptions['suppressTimeoutErrors'] !== true){
-                            // trigger error
+                        if($additionalOptions['suppressHTTPErrors'] !== true){
                             $f3->error(504, $errorMsg);
                         }
                     }
