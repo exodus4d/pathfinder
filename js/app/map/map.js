@@ -1727,39 +1727,7 @@ define([
                     case 'set_rally':
                         // toggle rally point
                         if( !currentSystem.data( 'rallyUpdated' ) ){
-
-                            // show confirm dialog
-                            var rallyDialog = bootbox.dialog({
-                                message: 'Do you want to poke active pilots?',
-                                title: 'Set rally point for system "' + currentSystemName + '"',
-                                buttons: {
-                                    close: {
-                                        label: 'cancel',
-                                        className: 'btn-default',
-                                        callback: function(){
-                                            $(rallyDialog).modal('hide');
-                                        }
-                                    },
-                                    setRallyPoke: {
-                                        label: '<i class="fa fa-fw fa-bullhorn"></i> set rally and poke',
-                                        className: 'btn-primary',
-                                        callback: function() {
-                                            currentSystem.setSystemRally(1, {
-                                                poke: true
-                                            });
-                                            currentSystem.markAsChanged();
-                                        }
-                                    },
-                                    success: {
-                                        label: '<i class="fa fa-fw fa-users"></i> set rally',
-                                        className: 'btn-success',
-                                        callback: function() {
-                                            currentSystem.setSystemRally(1);
-                                            currentSystem.markAsChanged();
-                                        }
-                                    }
-                                }
-                            });
+                            $.fn.showRallyPointDialog(currentSystem);
                         }else{
                             // remove rally point
                             currentSystem.setSystemRally(0);

@@ -192,7 +192,7 @@ define([
                     href: '#'
                 }).html('&nbsp;&nbsp;Notification test').prepend(
                         $('<i>',{
-                            class: 'fa fa-bullhorn fa-fw'
+                            class: 'fa fa-volume-up fa-fw'
                         })
                     ).on('click', function(){
                         $(document).triggerMenuEvent('NotificationTest');

@@ -8,6 +8,7 @@
 
 namespace Controller\Api;
 use Controller;
+use lib\Config;
 use Model;
 
 /**
@@ -176,6 +177,11 @@ class Map extends Controller\AccessController {
         // get program routes -----------------------------------------------------------------------------------------
         $return->routes = [
             'ssoLogin' => $this->getF3()->alias( 'sso', ['action' => 'requestAuthorization'] )
+        ];
+
+        // get notification status ------------------------------------------------------------------------------------
+        $return->notificationStatus = [
+            'rallySet' => (bool)Config::getNotificationMail('RALLY_SET')
         ];
 
         // get SSO error messages that should be shown immediately ----------------------------------------------------
@@ -574,6 +580,10 @@ class Map extends Controller\AccessController {
                                 if(is_object($filteredMap->systems)){
                                     // update
                                     unset($systemData['updated']);
+
+                                    /**
+                                     * @var $system Model\SystemModel
+                                     */
                                     $system = $filteredMap->systems->current();
                                     $system->setData($systemData);
                                     $system->updatedCharacterId = $activeCharacter;
@@ -603,6 +613,10 @@ class Map extends Controller\AccessController {
                                 if(is_object($filteredMap->connections)){
                                     // update
                                     unset($connectionData['updated']);
+
+                                    /**
+                                     * @var $connection Model\ConnectionModel
+                                     */
                                     $connection = $filteredMap->connections->current();
                                     $connection->setData($connectionData);
                                     $connection->save();

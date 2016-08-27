@@ -193,8 +193,11 @@ class ConnectionModel extends BasicModel{
      * Event "Hook" function
      * can be overwritten
      * return false will stop any further action
+     * @param ConnectionModel $self
+     * @param $pkeys
+     * @return bool
      */
-    public function beforeInsertEvent(){
+    public function beforeInsertEvent($self, $pkeys){
         // check for "default" connection type and add them if missing
         // -> get() with "true" returns RAW data! important for JSON table column check!
         $types = (array)json_decode( $this->get('type', true) );

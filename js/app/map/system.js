@@ -17,6 +17,49 @@ define([
     };
 
     /**
+     * show "set rally point" dialog for system
+     * @param system
+     */
+    $.fn.showRallyPointDialog = (system) => {
+        requirejs(['text!templates/dialog/system_rally.html', 'mustache'], function(template, Mustache) {
+            var data = {
+                notificationStatus: Init.notificationStatus.rallySet
+            };
+
+            var content = Mustache.render(template, data);
+
+            var rallyDialog = bootbox.dialog({
+                message: content,
+                title: 'Set rally point for "' + system.getSystemInfo( ['alias'] ) + '"',
+                buttons: {
+                    close: {
+                        label: 'cancel',
+                        className: 'btn-default'
+                    },
+                    setRallyPoke: {
+                        label: '<i class="fa fa-fw fa-volume-up"></i> set rally and poke',
+                        className: 'btn-primary',
+                        callback: function() {
+                            system.setSystemRally(1, {
+                                poke: true
+                            });
+                            system.markAsChanged();
+                        }
+                    },
+                    success: {
+                        label: '<i class="fa fa-fw fa-users"></i> set rally',
+                        className: 'btn-success',
+                        callback: function() {
+                            system.setSystemRally(1);
+                            system.markAsChanged();
+                        }
+                    }
+                }
+            });
+        });
+    };
+
+    /**
      * shows delete dialog for systems that should be deleted
      * @param map
      * @param systems

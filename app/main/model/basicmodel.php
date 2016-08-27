@@ -77,26 +77,26 @@ abstract class BasicModel extends \DB\Cortex {
         parent::__construct($db, $table, $fluid, $ttl);
 
         // events -----------------------------------------
-        $this->afterinsert(function($self){
-            $self->afterinsertEvent($self);
+        $this->afterinsert(function($self, $pkeys){
+            $self->afterInsertEvent($self, $pkeys);
             $self->clearCacheData();
         });
 
-        $this->afterupdate( function($self){
-            $self->afterupdateEvent($self);
+        $this->afterupdate( function($self, $pkeys){
+            $self->afterUpdateEvent($self, $pkeys);
             $self->clearCacheData();
         });
 
-        $this->beforeinsert( function($self){
-            $self->beforeInsertEvent($self);
+        $this->beforeinsert( function($self, $pkeys){
+            $self->beforeInsertEvent($self, $pkeys);
         });
 
-        $this->beforeerase( function($self){
-            $self->beforeeraseEvent($self);
+        $this->beforeerase( function($self, $pkeys){
+            $self->beforeEraseEvent($self, $pkeys);
         });
 
-        $this->aftererase( function($self){
-            $self->aftereraseEvent($self);
+        $this->aftererase( function($self, $pkeys){
+            $self->afterEraseEvent($self, $pkeys);
         });
     }
 
@@ -409,8 +409,11 @@ abstract class BasicModel extends \DB\Cortex {
      * Event "Hook" function
      * can be overwritten
      * return false will stop any further action
+     * @param self $self
+     * @param $pkeys
+     * @return bool
      */
-    public function beforeInsertEvent(){
+    public function beforeInsertEvent($self, $pkeys){
         if($this->exists('updated')){
             $this->touch('updated');
         }
@@ -421,36 +424,40 @@ abstract class BasicModel extends \DB\Cortex {
      * Event "Hook" function
      * can be overwritten
      * return false will stop any further action
+     * @param self $self
+     * @param $pkeys
      */
-    public function afterinsertEvent(){
-        return true;
+    public function afterInsertEvent($self, $pkeys){
     }
 
     /**
      * Event "Hook" function
      * can be overwritten
      * return false will stop any further action
+     * @param self $self
+     * @param $pkeys
      */
-    public function afterupdateEvent(){
+    public function afterUpdateEvent($self, $pkeys){
+    }
+
+    /**
+     * Event "Hook" function
+     * can be overwritten
+     * @param self $self
+     * @param $pkeys
+     * @return bool
+     */
+    public function beforeEraseEvent($self, $pkeys){
         return true;
     }
 
     /**
      * Event "Hook" function
      * can be overwritten
-     * @return bool
+     * @param self $self
+     * @param $pkeys
      */
-    public function beforeeraseEvent($self){
-        return true;
-    }
-
-    /**
-     * Event "Hook" function
-     * can be overwritten
-     * @return bool
-     */
-    public function aftereraseEvent($self){
-        return true;
+    public function afterEraseEvent($self, $pkeys){
     }
 
     /**

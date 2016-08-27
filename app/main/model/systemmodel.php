@@ -323,23 +323,43 @@ class SystemModel extends BasicModel {
     /**
      * setter for system rally timestamp
      * @param $rally
-     * @return bool|int|null|string
+     * @return null|string
      */
     public function set_rallyUpdated($rally){
         $rally = (int)$rally;
-        if($rally === 0){
-            $rally = null;
-        }elseif($rally === 1){
-            // new rally point set
-            $currentTimestamp = time();
-            $rally = date('Y-m-d H:i:s', $currentTimestamp);
-            // send rally point notification mail
-            $this->sendRallyPointMail($currentTimestamp);
-        }else{
-            $rally = date('Y-m-d H:i:s', $rally);
+
+        switch($rally){
+            case 0:
+                $rally = null;
+                break;
+            case 1:
+                // new rally point set
+                $rally = date('Y-m-d H:i:s', time());
+                // flag system for mail poke -> after save()
+                $this->virtual('newRallyPointSet', true);
+                break;
+            default:
+                $rally = date('Y-m-d H:i:s', $rally);
+                break;
         }
 
         return $rally;
+    }
+
+    /**
+     * Event "Hook" function
+     * return false will stop any further action
+     * @param self $self
+     * @param $pkeys
+     */
+    public function afterUpdateEvent($self, $pkeys){
+        // check if rally point mail should be send
+        if(
+            $self->newRallyPointSet &&
+            $self->rallyPoke
+        ){
+            $self->sendRallyPointMail();
+        }
     }
 
     /**
@@ -491,28 +511,33 @@ class SystemModel extends BasicModel {
     }
 
     /**
-     * set rally point information
-     * @param $timestamp
+     * send rally point information by mail
      */
-    protected function sendRallyPointMail($timestamp){
+    protected function sendRallyPointMail(){
         $recipient = Config::getNotificationMail('RALLY_SET');
 
         if(
             $recipient &&
             \Audit::instance()->email($recipient)
         ){
-            $body = [];
-            $body[] = "Map:\t\t" . $this->mapId->name;
-            $body[] = "System:\t\t" . $this->name;
-            $body[] = "Region:\t\t" . $this->region;
-            $body[] = "Security:\t" . $this->security;
-            if(is_object($this->createdCharacterId)){
-                $body[] = "Character:\t" . $this->createdCharacterId->name;
-            }
-            $body[] = "Time:\t\t" . date('g:i a; F j, Y', $timestamp);
-            $bodyMsg = implode("\r\n", $body);
+            $updatedCharacterId = (int) $this->get('updatedCharacterId', true);
+            /**
+             * @var $character CharacterModel
+             */
+            $character = $this->rel('updatedCharacterId');
+            $character->getById( $updatedCharacterId );
+            if( !$character->dry() ){
+                $body = [];
+                $body[] = "Map:\t\t" . $this->mapId->name;
+                $body[] = "System:\t\t" . $this->name;
+                $body[] = "Region:\t\t" . $this->region;
+                $body[] = "Security:\t" . $this->security;
+                $body[] = "Character:\t" . $character->name;
+                $body[] = "Time:\t\t" . date('g:i a; F j, Y', strtotime($this->rallyUpdated) );
+                $bodyMsg = implode("\r\n", $body);
 
-            (new MailController())->sendRallyPoint($recipient, $bodyMsg);
+                (new MailController())->sendRallyPoint($recipient, $bodyMsg);
+            }
         }
     }
 
