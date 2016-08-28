@@ -1089,60 +1089,72 @@ define([
     var drawConnection = function(map, connectionData){
         var mapContainer = $( map.getContainer() );
         var mapId = mapContainer.data('id');
+        var connectionId = connectionData.id || 0;
+        var connection;
+        var sourceSystem = $('#' + config.systemIdPrefix + mapId + '-' + connectionData.source);
+        var targetSystem = $('#' + config.systemIdPrefix + mapId + '-' + connectionData.target);
 
-        // connection id
-        var connectionId = 0;
-        if(connectionData.id){
-            connectionId = connectionData.id;
-        }
-
-        var connection = map.connect({
-            source: config.systemIdPrefix + mapId + '-' + connectionData.source,
-            target: config.systemIdPrefix + mapId + '-' + connectionData.target,
-            /*
-            parameters: {
-                connectionId: connectionId,
-                updated: connectionData.updated
-            },
-            */
-            type: null
-            /* experimental (straight connections)
-            anchors: [
-                [ "Perimeter", { shape: 'Rectangle' }],
-                [ "Perimeter", { shape: 'Rectangle' }]
-            ]
-            */
-        });
-
-        // check if connection is valid (e.g. source/target exist
-        if( connection instanceof jsPlumb.Connection ){
-
-            // set connection parameters
-            // they should persist even through connection type change (e.g. wh -> stargate,..)
-            // therefore they should be part of the connection not of the connector
-            connection.setParameters({
-                connectionId: connectionId,
-                updated: connectionData.updated,
-                eolUpdated: connectionData.eolUpdated
+        // check if both systems exists
+        // (If not -> something went wrong e.g. DB-Foreign keys for "ON DELETE",...)
+        if(
+            sourceSystem.length &&
+            targetSystem.length
+        ){
+            connection = map.connect({
+                source: sourceSystem[0],
+                target: targetSystem[0],
+                /*
+                 parameters: {
+                 connectionId: connectionId,
+                 updated: connectionData.updated
+                 },
+                 */
+                type: null
+                /* experimental (straight connections)
+                 anchors: [
+                 [ "Perimeter", { shape: 'Rectangle' }],
+                 [ "Perimeter", { shape: 'Rectangle' }]
+                 ]
+                 */
             });
 
-            // add connection types -------------------------------------------------------------------------
-            if(connectionData.type){
-                for(var i = 0; i < connectionData.type.length; i++){
-                    connection.addType(connectionData.type[i]);
+            // check if connection is valid (e.g. source/target exist
+            if( connection instanceof jsPlumb.Connection ){
+
+                // set connection parameters
+                // they should persist even through connection type change (e.g. wh -> stargate,..)
+                // therefore they should be part of the connection not of the connector
+                connection.setParameters({
+                    connectionId: connectionId,
+                    updated: connectionData.updated,
+                    eolUpdated: connectionData.eolUpdated
+                });
+
+                // add connection types -------------------------------------------------------------------------
+                if(connectionData.type){
+                    for(var i = 0; i < connectionData.type.length; i++){
+                        connection.addType(connectionData.type[i]);
+                    }
                 }
+
+                // add connection scope -------------------------------------------------------------------------
+                // connection have the default map Scope scope
+                var scope = map.Defaults.Scope;
+                if(connectionData.scope){
+                    scope = connectionData.scope;
+                }
+                setConnectionScope(connection, scope);
             }
 
-            // add connection scope -------------------------------------------------------------------------
-            // connection have the default map Scope scope
-            var scope = map.Defaults.Scope;
-            if(connectionData.scope){
-                scope = connectionData.scope;
+            // set Observer for new Connection -> is automatically set
+        }else{
+            if( !sourceSystem.length ){
+                console.warn('drawConnection(): source system (id: ' + connectionData.source + ') not found');
             }
-            setConnectionScope(connection, scope);
+            if( !targetSystem.length ){
+                console.warn('drawConnection(): target system (id: ' + connectionData.target + ') not found');
+            }
         }
-
-        // set Observer for new Connection -> is automatically set
 
         return connection;
     };
@@ -2775,7 +2787,6 @@ define([
      * @returns {*}
      */
     $.fn.getMapDataFromClient = function(options){
-
         var mapElement = $(this);
 
         var map = getMapInstance( mapElement.data('id') );
@@ -2813,7 +2824,7 @@ define([
 
             // systems data ---------------------------------------------------------------------------------
             var systemsData = [];
-            var systems = mapElement.find('.' + config.systemClass);
+            var systems = mapElement.getSystems();
 
             for(var i = 0; i < systems.length; i++){
                 var tempSystem = $(systems[i]);
