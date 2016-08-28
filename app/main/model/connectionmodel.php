@@ -209,7 +209,7 @@ class ConnectionModel extends BasicModel{
             $this->setDefaultTypeData();
         }
 
-        return parent::beforeInsertEvent();
+        return parent::beforeInsertEvent($self, $pkeys);
     }
 
     /**
