@@ -160,9 +160,6 @@ class MapModel extends BasicModel {
                 $characters = $this->getCharacters();
                 $characterData = [];
                 foreach($characters as $character){
-                    /**
-                     * @var $character CharacterModel
-                     */
                     $characterData[] = $character->getData();
                 }
                 $mapData->access->character = $characterData;
@@ -171,9 +168,6 @@ class MapModel extends BasicModel {
                 $corporationData = [];
 
                 foreach($corporations as $corporation){
-                    /**
-                     * @var $corporation CorporationModel
-                     */
                     $corporationData[] = $corporation->getData();
                 }
                 $mapData->access->corporation = $corporationData;
@@ -182,9 +176,6 @@ class MapModel extends BasicModel {
                 $allianceData = [];
 
                 foreach($alliances as $alliance){
-                    /**
-                     * @var $alliance AllianceModel
-                     */
                     $allianceData[] = $alliance->getData();
                 }
                 $mapData->access->alliance = $allianceData;
@@ -259,6 +250,8 @@ class MapModel extends BasicModel {
 
     /**
      * search for a system by CCPs systemId
+     * -> "active" column is NOT checked
+     * -> removed systems become "active" = 0
      * @param int $systemId
      * @return null|SystemModel
      */
@@ -268,7 +261,7 @@ class MapModel extends BasicModel {
          */
         $system = $this->rel('systems');
         $result = $system->findone([
-            'active = 1 AND mapId = :mapId AND systemId = :systemId',
+            'mapId = :mapId AND systemId = :systemId',
             ':mapId' => $this->id,
             ':systemId' => $systemId
         ]);
@@ -296,7 +289,7 @@ class MapModel extends BasicModel {
 
     /**
      * get all system data for all systems in this map
-     * @return array
+     * @return \stdClass[]
      */
     public function getSystemData(){
 
@@ -315,7 +308,7 @@ class MapModel extends BasicModel {
 
     /**
      * get all connections in this map
-     * @return array|mixed
+     * @return array
      */
     public function getConnections(){
         $this->filter('connections', [
@@ -333,7 +326,7 @@ class MapModel extends BasicModel {
 
     /**
      * get all connection data in this map
-     * @return array
+     * @return \stdClass[]
      */
     public function getConnectionData(){
         $connections  = $this->getConnections();
@@ -472,7 +465,7 @@ class MapModel extends BasicModel {
 
     /**
      * get all (private) characters for this map
-     * @return CharacterModel array
+     * @return CharacterModel[]
      */
     private function getCharacters(){
         $characters = [];
@@ -500,27 +493,18 @@ class MapModel extends BasicModel {
 
             // add active character for each user
             foreach($activeCharacters as $activeCharacter){
-                /**
-                 * @var UserModel $user
-                 */
                 $characters[] = $activeCharacter;
             }
         }elseif($this->isCorporation()){
             $corporations = $this->getCorporations();
 
             foreach($corporations as $corporation){
-                /**
-                 * @var CorporationModel $corporation
-                 */
                 $characters = array_merge($characters, $corporation->getCharacters());
             }
         }elseif($this->isAlliance()){
             $alliances = $this->getAlliances();
 
             foreach($alliances as $alliance){
-                /**
-                 * @var AllianceModel $alliance
-                 */
                 $characters = array_merge($characters, $alliance->getCharacters());
             }
         }
@@ -531,10 +515,9 @@ class MapModel extends BasicModel {
     /**
      * get data for all characters that are currently online "viewing" this map
      * -> the result of this function is cached!
-     * @return array
+     * @return \stdClass[]
      */
     private function getCharactersData(){
-
         // check if there is cached data
         $charactersData = $this->getCacheData('CHARACTERS');
 
@@ -557,7 +540,7 @@ class MapModel extends BasicModel {
 
     /**
      * get all corporations that have access to this map
-     * @return array
+     * @return CorporationModel[]
      */
     public function getCorporations(){
         $corporations = [];
@@ -577,7 +560,7 @@ class MapModel extends BasicModel {
 
     /**
      * get all alliances that have access to this map
-     * @return array
+     * @return AllianceModel[]
      */
     public function getAlliances(){
         $alliances = [];
@@ -729,7 +712,7 @@ class MapModel extends BasicModel {
     /**
      * get all active characters (with active log)
      * grouped by systems
-     * @return object
+     * @return \stdClass
      */
     public function getUserData(){
 

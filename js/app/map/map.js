@@ -2473,30 +2473,26 @@ define([
      * @param options
      */
     var showNewSystemDialog = function(map, options){
-
         var mapContainer = $(map.getContainer());
 
         // format system status for form select -------------------------------------------------------------
         var systemStatus = {};
+        // "default" selection (id = 0) prevents status from being overwritten
+        // -> e.g. keep status information if system was just inactive (active = 0)
+        systemStatus[0] = 'default';
+
         $.each(Init.systemStatus, function(status, statusData){
             systemStatus[statusData.id] = statusData.label;
         });
 
         // default system status -> first status entry
-        var tempKeys = [];
-        for(var k in Init.systemStatus){
-            if (Init.systemStatus.hasOwnProperty(k)){
-                tempKeys.push(k);
-            }
-        }
-        var defaultSystemStatus = Init.systemStatus[ tempKeys[0] ].id;
-
+        var defaultSystemStatus = 0;
 
         // get current map data -> disable systems that are already on it -----------------------------------
         var mapData = mapContainer.getMapDataFromClient({forceData: true});
         var mapSystems = mapData.data.systems;
         var mapSystemIds = [];
-        for(var i = 0; i < mapSystems.length; i++ ){
+        for(let i = 0; i < mapSystems.length; i++ ){
             mapSystemIds.push( mapSystems[i].systemId );
         }
 

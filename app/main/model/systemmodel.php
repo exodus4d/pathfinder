@@ -161,12 +161,18 @@ class SystemModel extends BasicModel {
         ],
         'signatures' => [
             'has-many' => ['Model\SystemSignatureModel', 'systemId']
+        ],
+        'connectionsSource' => [
+            'has-many' => ['Model\ConnectionModel', 'source']
+        ],
+        'connectionsTarget' => [
+            'has-many' => ['Model\ConnectionModel', 'target']
         ]
     ];
 
     /**
      * set an array with all data for a system
-     * @param $systemData
+     * @param array $systemData
      */
     public function setData($systemData){
 
@@ -202,7 +208,7 @@ class SystemModel extends BasicModel {
 
     /**
      * get map data as object
-     * @return object
+     * @return \stdClass
      * @throws \Exception
      */
     public function getData(){
@@ -236,8 +242,8 @@ class SystemModel extends BasicModel {
             $systemData->type->name = $this->typeId->name;
 
             $systemData->status = (object) [];
-            $systemData->status->id = is_object($this->statusId) ? $this->statusId->id : 0;
-            $systemData->status->name = is_object($this->statusId) ? $this->statusId->name : '';
+            $systemData->status->id = is_object($this->statusId) ? $this->statusId->id : 1;
+            $systemData->status->name = is_object($this->statusId) ? $this->statusId->name : 'unknown';
 
             $systemData->locked = $this->locked;
             $systemData->rallyUpdated = strtotime($this->rallyUpdated);
@@ -274,7 +280,7 @@ class SystemModel extends BasicModel {
 
     /**
      * setter for system security value
-     * @param $trueSec
+     * @param float $trueSec
      * @return float
      */
     public function set_trueSec($trueSec){
@@ -294,8 +300,8 @@ class SystemModel extends BasicModel {
 
     /**
      * setter validation for x coordinate
-     * @param $posX
-     * @return int|number
+     * @param int $posX
+     * @return int
      */
     public function set_posX($posX){
         $posX = abs($posX);
@@ -308,8 +314,8 @@ class SystemModel extends BasicModel {
 
     /**
      * setter validation for y coordinate
-     * @param $posY
-     * @return int|number
+     * @param int $posY
+     * @return int
      */
     public function set_posY($posY){
         $posY = abs($posY);
@@ -322,7 +328,7 @@ class SystemModel extends BasicModel {
 
     /**
      * setter for system rally timestamp
-     * @param $rally
+     * @param int $rally
      * @return null|string
      */
     public function set_rallyUpdated($rally){
@@ -348,6 +354,30 @@ class SystemModel extends BasicModel {
 
     /**
      * Event "Hook" function
+     * can be overwritten
+     * return false will stop any further action
+     * @param self $self
+     * @param $pkeys
+     * @return bool
+     */
+    public function beforeUpdateEvent($self, $pkeys){
+        if( !$self->isActive()){
+            // system becomes inactive
+            // reset "rally point" fields
+            $self->rallyUpdated = 0;
+            $self->rallyPoke = false;
+
+            // delete connections
+            $connections = $self->getConnections();
+            foreach($connections as $connection){
+                $connection->erase();
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Event "Hook" function
      * return false will stop any further action
      * @param self $self
      * @param $pkeys
@@ -365,7 +395,7 @@ class SystemModel extends BasicModel {
     /**
      * check object for model access
      * @param CharacterModel $characterModel
-     * @return mixed
+     * @return bool
      */
     public function hasAccess(CharacterModel $characterModel){
         return $this->mapId->hasAccess($characterModel);
@@ -386,8 +416,40 @@ class SystemModel extends BasicModel {
     }
 
     /**
+     * get all connections of this system
+     * @return ConnectionModel[]
+     */
+    public function getConnections(){
+        $connections = [];
+
+        $this->filter('connectionsTarget', [
+            'active = :active AND target = :targetId',
+            ':active' => 1,
+            ':targetId' => $this->_id
+        ]);
+        if($this->connectionsTarget){
+            foreach($this->connectionsTarget as $connection){
+                $connections[$connection->_id] = $connection;
+            }
+        }
+
+        $this->filter('connectionsSource', [
+            'active = :active AND source = :sourceId',
+            ':active' => 1,
+            ':sourceId' => $this->_id
+        ]);
+        if($this->connectionsSource){
+            foreach($this->connectionsSource as $connection){
+                $connections[$connection->_id] = $connection;
+            }
+        }
+
+        return $connections;
+    }
+
+    /**
      * get all signatures of this system
-     * @return SystemModel array
+     * @return SystemSignatureModel[]
      */
     public function getSignatures(){
         $this->filter('signatures', ['active = ?', 1], ['order' => 'name']);
@@ -402,7 +464,7 @@ class SystemModel extends BasicModel {
 
     /**
      * get all data for all Signatures in this system
-     * @return array
+     * @return \stdClass[]
      */
     public function getSignaturesData(){
         $signatures = $this->getSignatures();
@@ -419,7 +481,7 @@ class SystemModel extends BasicModel {
      * get Signature by id and check for access
      * @param CharacterModel $characterModel
      * @param $id
-     * @return bool|null
+     * @return null|SystemSignatureModel
      */
     public function getSignatureById(CharacterModel $characterModel, $id){
         $signature = null;
@@ -437,8 +499,8 @@ class SystemModel extends BasicModel {
     /**
      * get a signature by its "unique" 3-digit name
      * @param CharacterModel $characterModel
-     * @param $name
-     * @return mixed|null
+     * @param string $name
+     * @return null|SystemSignatureModel
      */
     public function getSignatureByName(CharacterModel $characterModel, $name){
         $signature = null;
@@ -472,7 +534,7 @@ class SystemModel extends BasicModel {
     /**
      * get static WH data for this system
      * -> any WH system has at least one static WH
-     * @return array
+     * @return \stdClass[]
      * @throws \Exception
      */
     protected function getStaticWormholeData(){
