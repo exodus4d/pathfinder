@@ -68,7 +68,7 @@ class MapUpdate {
     }
 
     /**
-     * delete all expired signatures on "inactive" maps
+     * delete all expired signatures on "inactive" systems
      * >> php index.php "/cron/deleteSignatures"
      * @param \Base $f3
      */
