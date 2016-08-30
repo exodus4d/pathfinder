@@ -67,4 +67,29 @@ class MapUpdate {
         $log->write( sprintf(self::LOG_TEXT_MAPS, __FUNCTION__, $deletedMapsCount) );
     }
 
+    /**
+     * delete all expired signatures on "inactive" maps
+     * >> php index.php "/cron/deleteSignatures"
+     * @param \Base $f3
+     */
+    function deleteSignatures(\Base $f3){
+        $signatureExpire = (int)$f3->get('PATHFINDER.CACHE.EXPIRE_SIGNATURES');
+
+        if($signatureExpire > 0){
+            $pfDB = DB\Database::instance()->getDB('PF');
+
+            $sqlDeleteExpiredSignatures = "DELETE `sys` FROM
+                `system_signature` `sys` INNER JOIN
+                `system` ON 
+                  `system`.`id` = `sys`.`systemId`
+              WHERE
+                `system`.`active` = 0 AND
+                TIMESTAMPDIFF(SECOND, `sys`.`updated`, NOW() ) > :lifetime
+            ";
+
+            $pfDB->exec($sqlDeleteExpiredSignatures, ['lifetime' => $signatureExpire]);
+        }
+
+    }
+
 }
