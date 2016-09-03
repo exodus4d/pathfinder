@@ -159,7 +159,7 @@ class System extends \Controller\AccessController {
             $searchToken = $params['arg1'];
         }
 
-        // some "edge cases for testing if rounding works correct
+        // some "edge cases" for testing trueSec rounding...
         //$searchToken = 'H472-N'; // -0.000001 -> 0.0
         //$searchToken = 'X1E-OQ'; // -0.099426 -> -0.10
         //$searchToken = 'BKK4-H'; // -0.049954 -> -0.05
@@ -168,6 +168,8 @@ class System extends \Controller\AccessController {
         //$searchToken = 'Ayeroilen'; // 0.446568 -> 0.4 (LS)
         //$searchToken = 'Enderailen'; // 0.448785 -> 0.4 (LS)
         //$searchToken = 'Neziel'; // 0.449943 -> 0.4 (LS)
+        //$searchToken = 'Naga'; // 0.033684 -> 0.1 (LS)
+
 
         $this->whereQuery = "WHERE
             map_sys.solarSystemName LIKE '%" . $searchToken . "%'";
