@@ -68,15 +68,18 @@ define([
     $.fn.showDeleteSystemDialog = (map, systems = []) => {
         var mapContainer = $( map.getContainer() );
         var validDeleteSystems = [];
-
+        var activeCharacters = 0;
         // check if systems belong to map -> security check
         for (let system of systems) {
+            let systemElement = $(system);
             if(
-                $(system).data('mapid') === mapContainer.data('id')  &&
-                !$(system).data('locked')
+                systemElement.data('mapid') === mapContainer.data('id')  &&
+                !systemElement.data('locked')
             ){
                 // system belongs to map -> valid system
                 validDeleteSystems.push(system);
+
+                activeCharacters += (systemElement.data('userCount') ? parseInt( systemElement.data('userCount') ) : 0);
             }
         }
 
@@ -86,6 +89,11 @@ define([
                 msg = 'Delete system "' + $(validDeleteSystems[0]).data('name') + '" and all its connections?';
             }else{
                 msg = 'Delete ' + validDeleteSystems.length + ' selected systems and their connections?';
+            }
+
+            // add warning for active characters
+            if(activeCharacters > 0){
+                msg += ' <span class="txt-color txt-color-warning">Warning: ' + activeCharacters + ' active characters</span>';
             }
 
             var systemDeleteDialog = bootbox.confirm(msg, result => {
@@ -149,6 +157,11 @@ define([
      * @param systems
      */
     var removeSystems = (map, systems) => {
+
+        var removeSystemCallbak = function(deleteSystem){
+            map.remove(deleteSystem);
+        };
+
         for (let system of systems){
             system = $(system);
 
@@ -169,9 +182,7 @@ define([
             // remove system
             system.velocity('transition.whirlOut', {
                 duration: Init.animationSpeed.mapDeleteSystem,
-                complete: function(){
-                    map.remove(this);
-                }
+                complete: removeSystemCallbak
             });
         }
     };
