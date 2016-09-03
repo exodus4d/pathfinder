@@ -1,0 +1,17 @@
+Do you want poke active pilots?
+<hr>
+<h4>
+    <i class="fa fa-fw fa-volume-up"></i>
+    Desktop notification is
+    <kbd class="txt-color txt-color-success">enabled</kbd>.
+</h4>
+<h4>
+    <i class="fa fa-fw fa-envelope"></i>
+    Mail notification is
+    {{#notificationStatus}}
+        <kbd class="txt-color txt-color-success">enabled</kbd>.
+    {{/notificationStatus}}
+    {{^notificationStatus}}
+        <kbd>disabled</kbd>.
+    {{/notificationStatus}}
+</h4>

@@ -78,6 +78,7 @@ lib/jquery.lazylinepainter-1.5.1.min.js
 app/ui/logo.js
 app/ui/dialog/credit.js
 lib/slidebars.js
+app/map/system.js
 lib/dom.jsPlumb-1.7.6.js
 lib/farahey-0.5.js
 app/map/magnetizing.js

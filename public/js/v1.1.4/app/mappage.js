@@ -412,7 +412,8 @@ define('app/init',['jquery'], function($) {
             3: 'K162 - C6 (deadly)',
             4: 'K162 - HS',
             5: 'K162 - LS',
-            6: 'K162 - 0.0'
+            6: 'K162 - 0.0',
+            7: 'K162 - Thera'
         }
 
     };
@@ -1944,6 +1945,11 @@ define('app/util',[
 
         // head
         headMapTrackingId: 'pf-head-map-tracking',                              // id for "map tracking" toggle (checkbox)
+
+        // menu
+        menuButtonFullScreenId: 'pf-menu-button-fullscreen',                    // id for menu button "fullscreen"
+        menuButtonMagnetizerId: 'pf-menu-button-magnetizer',                    // id for menu button "magnetizer"
+        menuButtonGridId: 'pf-menu-button-grid',                                // id for menu button "grid snap"
 
 
         settingsMessageVelocityOptions: {
@@ -4776,9 +4782,30 @@ define('app/map/util',[
     'use strict';
 
     var config = {
+        mapSnapToGridDimension: 20,                                     // px for grid snapping (grid YxY)
+
         // local storage
         characterLocalStoragePrefix: 'character_',                      // prefix for character data local storage key
         mapLocalStoragePrefix: 'map_',                                  // prefix for map data local storage key
+        mapTabContentClass: 'pf-map-tab-content',                       // Tab-Content element (parent element)
+
+        systemClass: 'pf-system',                                       // class for all systems
+        mapGridClass: 'pf-grid-small'                                   // class for map grid snapping
+    };
+
+    // map menu options
+    var mapOptions = {
+        mapMagnetizer: {
+            buttonId: Util.config.menuButtonMagnetizerId,
+            description: 'Magnetizer',
+            onEnable: 'initMagnetizer',     // jQuery extension function
+            onDisable: 'destroyMagnetizer'  // jQuery extension function
+        },
+        mapSnapToGrid : {
+            buttonId: Util.config.menuButtonGridId,
+            description: 'Grid snapping',
+            class: 'mapGridClass'
+        }
     };
 
     /**
@@ -4927,6 +4954,15 @@ define('app/map/util',[
         }
         return effectInfo;
     };
+
+    /**
+     * get system elements on a map
+     * @returns {*|jQuery}
+     */
+    $.fn.getSystems = function(){
+        return this.find('.' + config.systemClass);
+    };
+
 
     /**
      * search connections by systems
@@ -5096,6 +5132,16 @@ define('app/map/util',[
         }
 
         return scopeInfo;
+    };
+
+    /**
+     * get TabContentElement by any element on a map e.g. system
+     * @param element
+     * @returns {*}
+     */
+    var getTabContentElementByMapElement = function(element){
+        var tabContentElement = $(element).parents('.' + config.mapTabContentClass);
+        return tabContentElement;
     };
 
     /**
@@ -5298,6 +5344,8 @@ define('app/map/util',[
     };
 
     return {
+        config: config,
+        mapOptions: mapOptions,
         getMapTypes: getMapTypes,
         getMapScopes: getMapScopes,
         getScopeInfoForMap: getScopeInfoForMap,
@@ -5313,6 +5361,7 @@ define('app/map/util',[
         getDefaultConnectionTypeByScope: getDefaultConnectionTypeByScope,
         setConnectionWHStatus: setConnectionWHStatus,
         getScopeInfoForConnection: getScopeInfoForConnection,
+        getTabContentElementByMapElement: getTabContentElementByMapElement,
         storeDefaultMapId: storeDefaultMapId,
         getLocaleData: getLocaleData,
         storeLocalData: storeLocalData,
@@ -7972,6 +8021,200 @@ define('dialog/credit',[
 }) (jQuery);
 define("slidebars", ["jquery"], function(){});
 
+/**
+ *  map system functions
+ */
+
+
+define('app/map/system',[
+    'jquery',
+    'app/init',
+    'app/util',
+    'bootbox',
+    'app/map/util'
+], ($, Init, Util, bootbox, MapUtil) => {
+    'use strict';
+
+    var config = {
+        systemActiveClass: 'pf-system-active'                           // class for an active system in a map
+    };
+
+    /**
+     * show "set rally point" dialog for system
+     * @param system
+     */
+    $.fn.showRallyPointDialog = (system) => {
+        requirejs(['text!templates/dialog/system_rally.html', 'mustache'], function(template, Mustache) {
+            var data = {
+                notificationStatus: Init.notificationStatus.rallySet
+            };
+
+            var content = Mustache.render(template, data);
+
+            var rallyDialog = bootbox.dialog({
+                message: content,
+                title: 'Set rally point for "' + system.getSystemInfo( ['alias'] ) + '"',
+                buttons: {
+                    close: {
+                        label: 'cancel',
+                        className: 'btn-default'
+                    },
+                    setRallyPoke: {
+                        label: '<i class="fa fa-fw fa-volume-up"></i> set rally and poke',
+                        className: 'btn-primary',
+                        callback: function() {
+                            system.setSystemRally(1, {
+                                poke: true
+                            });
+                            system.markAsChanged();
+                        }
+                    },
+                    success: {
+                        label: '<i class="fa fa-fw fa-users"></i> set rally',
+                        className: 'btn-success',
+                        callback: function() {
+                            system.setSystemRally(1);
+                            system.markAsChanged();
+                        }
+                    }
+                }
+            });
+        });
+    };
+
+    /**
+     * shows delete dialog for systems that should be deleted
+     * @param map
+     * @param systems
+     * @returns {*}
+     */
+    $.fn.showDeleteSystemDialog = (map, systems = []) => {
+        var mapContainer = $( map.getContainer() );
+        var validDeleteSystems = [];
+        var activeCharacters = 0;
+        // check if systems belong to map -> security check
+        for (let system of systems) {
+            let systemElement = $(system);
+            if(
+                systemElement.data('mapid') === mapContainer.data('id')  &&
+                !systemElement.data('locked')
+            ){
+                // system belongs to map -> valid system
+                validDeleteSystems.push(system);
+
+                activeCharacters += (systemElement.data('userCount') ? parseInt( systemElement.data('userCount') ) : 0);
+            }
+        }
+
+        if(validDeleteSystems.length){
+            var msg = '';
+            if(validDeleteSystems.length === 1){
+                msg = 'Delete system "' + $(validDeleteSystems[0]).data('name') + '" and all its connections?';
+            }else{
+                msg = 'Delete ' + validDeleteSystems.length + ' selected systems and their connections?';
+            }
+
+            // add warning for active characters
+            if(activeCharacters > 0){
+                msg += ' <span class="txt-color txt-color-warning">Warning: ' + activeCharacters + ' active characters</span>';
+            }
+
+            var systemDeleteDialog = bootbox.confirm(msg, result => {
+                if(result){
+                    deleteSystems(map, validDeleteSystems, (systems) => {
+                        // callback function after deleted -> close dialog
+                        systemDeleteDialog.modal('hide');
+
+                        if(systems.length === 1){
+                            Util.showNotify({title: 'System deleted', text: $(systems[0]).data('name'), type: 'success'});
+                        }else{
+                            Util.showNotify({title: systems.length + ' systems deleted', type: 'success'});
+                        }
+                    });
+                }
+            });
+        }else{
+            Util.showNotify({title: 'No systems selected', type: 'warning'});
+        }
+
+        return this;
+    };
+
+    /**
+     * delete system(s) with all their connections
+     * (ajax call) remove system from DB
+     * @param map
+     * @param systems
+     * @param callback function
+     */
+    var deleteSystems = (map, systems = [], callback = (systems) => {}) => {
+        var mapContainer = $( map.getContainer() );
+        mapContainer.getMapOverlay('timer').startMapUpdateCounter();
+
+        $.ajax({
+            type: 'POST',
+            url: Init.path.deleteSystem,
+            data: {
+                systemIds: systems.map( system => $(system).data('id') )
+            },
+            dataType: 'json',
+            context: {
+                map: map,
+                systems: systems
+            }
+        }).done(function(){
+            // remove systems from map
+            removeSystems(this.map,  this.systems);
+
+            callback(this.systems);
+        }).fail(function(jqXHR, status, error) {
+            var reason = status + ' ' + error;
+            Util.showNotify({title: jqXHR.status + ': deleteSystem', text: reason, type: 'warning'});
+            $(document).setProgramStatus('problem');
+        });
+    };
+
+    /**
+     * remove system(s) from map (no backend requests)
+     * @param map
+     * @param systems
+     */
+    var removeSystems = (map, systems) => {
+
+        var removeSystemCallbak = function(deleteSystem){
+            map.remove(deleteSystem);
+        };
+
+        for (let system of systems){
+            system = $(system);
+
+            // check if system is "active"
+            if( system.hasClass(config.systemActiveClass) ){
+                // get parent Tab Content and fire clear modules event
+                var tabContentElement = MapUtil.getTabContentElementByMapElement( system );
+                $(tabContentElement).trigger('pf:removeSystemModules');
+            }
+
+            // remove endpoints and their connections
+            // do not fire a "connectionDetached" event
+            map.detachAllConnections(system, {fireEvent: false});
+
+            // hide tooltip
+            system.toggleSystemTooltip('destroy', {});
+
+            // remove system
+            system.velocity('transition.whirlOut', {
+                duration: Init.animationSpeed.mapDeleteSystem,
+                complete: removeSystemCallbak
+            });
+        }
+    };
+
+    return {
+        deleteSystems: deleteSystems,
+        removeSystems: removeSystems
+    };
+});
 /**
  * jsBezier-0.7
  *
@@ -21064,14 +21307,11 @@ define("farahey", ["jsPlumb"], function(){});
 
 define('app/map/magnetizing',[
     'jquery',
+    'app/map/util',
     'farahey'
-], function($) {
+], function($, MapUtil) {
 
     'use strict';
-
-    var config = {
-        systemClass: 'pf-system'                                        // class for all systems
-    };
 
     /**
      * Cached current "Magnetizer" object
@@ -21085,8 +21325,7 @@ define('app/map/magnetizing',[
      */
     $.fn.initMagnetizer = function(){
         var mapContainer = this;
-
-        var systemsOnMap = mapContainer.find('.' + config.systemClass);
+        var systems = mapContainer.getSystems();
 
         /**
          * helper function
@@ -21110,13 +21349,12 @@ define('app/map/magnetizing',[
 
         /**
          * helper function
-         * set new syste offset
+         * set new system offset
          * @param system
          * @param o
          * @private
          */
         var _setOffset = function(system, o) {
-
             var markAsUpdated = false;
 
             // new position must be within parent container
@@ -21150,14 +21388,28 @@ define('app/map/magnetizing',[
          * @private
          */
         var _dragFilter = function(id) {
+            return !$('#' + id).is('.jsPlumb_dragged, .pf-system-locked');
+        };
 
-            return !$('#' + id).hasClass('jsPlumb_dragged');
+        var gridConstrain = function(gridX, gridY) {
+            return function(id, current, delta) {
+                if( mapContainer.hasClass(MapUtil.config.mapGridClass) ){
+                    // active grid
+                    return {
+                        left:(gridX * Math.floor( (current[0] + delta.left) / gridX )) - current[0],
+                        top:(gridY * Math.floor( (current[1] + delta.top) / gridY )) - current[1]
+                    };
+                }else{
+                    // no grid
+                    return delta;
+                }
+            };
         };
 
         // main init for "magnetize" feature ------------------------------------------------------
         m8 = new Magnetizer({
             container: mapContainer,
-            getContainerPosition:function(c) {
+            getContainerPosition: function(c) {
                 return c.offset();
             },
             getPosition:_offset,
@@ -21168,11 +21420,11 @@ define('app/map/magnetizing',[
                 return $(system).attr('id');
             },
             setPosition:_setOffset,
-            elements: systemsOnMap,
-            filter:_dragFilter,
-            padding:[8, 8]
+            elements: systems,
+            filter: _dragFilter,
+            padding: [6, 6],
+            constrain: gridConstrain(MapUtil.config.mapSnapToGridDimension, MapUtil.config.mapSnapToGridDimension)
         });
-
     };
 
     $.fn.destroyMagnetizer = function(){
@@ -21188,8 +21440,6 @@ define('app/map/magnetizing',[
      * @param e
      */
     var executeAtEvent = function(map, e){
-
-        // check if magnetizer is active
         if(m8 !== null && e ){
             m8.executeAtEvent(e);
             map.repaintEverything();
@@ -21208,9 +21458,26 @@ define('app/map/magnetizing',[
         }
     };
 
+    /**
+     * set/update elements for "magnetization"
+     * -> (e.g. new systems was added)
+     * @param map
+     */
+    var setElements = function(map){
+        if(m8 !== null){
+            var mapContainer = $(map.getContainer());
+            var systems = mapContainer.getSystems();
+            m8.setElements(systems);
+
+            // re-arrange systems
+            executeAtCenter(map);
+        }
+    };
+
     return {
         executeAtCenter: executeAtCenter,
-        executeAtEvent: executeAtEvent
+        executeAtEvent: executeAtEvent,
+        setElements: setElements
     };
 });
 /**
@@ -22100,18 +22367,25 @@ define('app/map/overlay',[
                     iconElement.addClass('active');
                 }
 
-                // display animation for icon
-                iconElement.velocity({
-                    opacity: [0.8, 0],
-                    scale: [1, 0],
-                    width: ['26px', 0],
-                    marginLeft: ['3px', 0]
-                },{
-                    duration: 240,
-                    easing: 'easeInOutQuad'
-                });
+                // check if icon is not already visible
+                // -> prevents unnecessary "show" animation
+                if( !iconElement.data('visible') ){
+                    // display animation for icon
+                    iconElement.velocity({
+                        opacity: [0.8, 0],
+                        scale: [1, 0],
+                        width: ['26px', 0],
+                        marginLeft: ['3px', 0]
+                    },{
+                        duration: 240,
+                        easing: 'easeInOutQuad'
+                    });
+
+                    iconElement.data('visible', true);
+                }
             }else if(viewType === 'hide'){
                 iconElement.removeClass('active').velocity('reverse');
+                iconElement.data('visible', false);
 
                 // check if there is any visible icon remaining
                 var visibleIcons = mapOverlayInfo.find('i:visible');
@@ -22194,13 +22468,14 @@ define('app/map/map',[
     'app/render',
     'bootbox',
     'app/map/util',
+    'app/map/system',
     'app/map/magnetizing',
     'app/map/scrollbar',
     'dragToSelect',
     'select2',
     'app/map/contextmenu',
     'app/map/overlay'
-], function($, Init, Util, Render, bootbox, MapUtil, MagnetizerWrapper) {
+], function($, Init, Util, Render, bootbox, MapUtil, System, MagnetizerWrapper) {
 
     'use strict';
 
@@ -22211,14 +22486,10 @@ define('app/map/map',[
           y: 0
         },
 
-        mapSnapToGridDimension: 20,                                     // px for grid snapping (grid YxY)
         mapSnapToGrid: false,                                           // "Snap to Grid" feature for drag&drop systems on map (optional)
-        mapMagnetizer: false,                                           // "Magnetizer" feature for drag&drop systems on map (optional)
-        mapTabContentClass: 'pf-map-tab-content',                       // Tab-Content element (parent element)
         mapWrapperClass: 'pf-map-wrapper',                              // wrapper div (scrollable)
 
         mapClass: 'pf-map',                                             // class for all maps
-        mapGridClass: 'pf-grid-small',                                  // class for map grid snapping
         mapIdPrefix: 'pf-map-',                                         // id prefix for all maps
         systemIdPrefix: 'pf-system-',                                   // id prefix for a system
         systemClass: 'pf-system',                                       // class for all systems
@@ -22903,7 +23174,7 @@ define('app/map/map',[
                     var deleteSystem = $('#' + config.systemIdPrefix + mapContainer.data('id') + '-' + currentSystemData[a].id);
 
                     // system not found -> delete system
-                    removeSystem(mapConfig.map, deleteSystem);
+                    System.removeSystems(mapConfig.map, deleteSystem);
                 }
             }
 
@@ -22975,15 +23246,10 @@ define('app/map/map',[
 
             });
 
-
-            // init/update map "magnetization" feature if new systems where added
-            if(
-                config.mapMagnetizer === true &&
-                newSystems > 0
-            ){
-                mapContainer.initMagnetizer();
+            // update map "magnetization" when new systems where added
+            if(newSystems > 0){
+                MagnetizerWrapper.setElements(mapConfig.map);
             }
-
         }
 
         return mapContainer;
@@ -23236,93 +23502,6 @@ define('app/map/map',[
     };
 
     /**
-     * delete a system with all its connections
-     * (ajax call) remove system from DB
-     * @param map
-     * @param systems
-     * @param callback function
-     */
-    var deleteSystems = function(map, systems, callback){
-
-        var mapContainer = $( map.getContainer() );
-
-        mapContainer.getMapOverlay('timer').startMapUpdateCounter();
-
-        var systemIds = [];
-        // systemIds for delete request
-        for(var i = 0; i < systems.length; i++){
-            systemIds.push( $(systems[i]).data('id') );
-        }
-
-        var requestData = {
-            systemIds: systemIds
-        };
-
-        $.ajax({
-            type: 'POST',
-            url: Init.path.deleteSystem,
-            data: requestData,
-            dataType: 'json',
-            context: {
-                map: map,
-                systems: systems
-            }
-        }).done(function(){
-            // deleted SystemIds
-            var triggerData = {
-                systemIds: []
-            };
-
-            // remove systems from map
-            for(var i = 0; i < this.systems.length; i++){
-                var system = $(this.systems[i]);
-                triggerData.systemIds.push( system.data('id') );
-                removeSystem(this.map, system );
-            }
-
-            callback();
-        }).fail(function( jqXHR, status, error) {
-            var reason = status + ' ' + error;
-            Util.showNotify({title: jqXHR.status + ': deleteSystem', text: reason, type: 'warning'});
-            $(document).setProgramStatus('problem');
-        });
-    };
-
-    /**
-     * remove a system from map (no backend requests)
-     * @param map
-     * @param system
-     */
-    var removeSystem = function(map, system){
-        system = $(system);
-
-        // check if system is "active"
-        if( system.hasClass(config.systemActiveClass) ){
-            // get parent Tab Content and fire clear modules event
-            var tabContentElement = getTabContentElementByMapElement( system );
-
-            $(tabContentElement).trigger('pf:removeSystemModules');
-        }
-
-        // remove endpoints and their connections
-        // do not fire a "connectionDetached" event
-        map.detachAllConnections(system, {fireEvent: false});
-
-        // hide tooltip
-        system.toggleSystemTooltip('destroy', {});
-
-        // remove system
-        system.velocity('transition.whirlOut', {
-            duration: Init.animationSpeed.mapDeleteSystem,
-            complete: function(){
-                map.remove(this);
-            }
-        });
-
-    };
-
-
-    /**
      * make a system name/alias editable by x-editable
      * @param system
      */
@@ -23367,64 +23546,74 @@ define('app/map/map',[
      * @returns new connection
      */
     var drawConnection = function(map, connectionData){
-
         var mapContainer = $( map.getContainer() );
         var mapId = mapContainer.data('id');
+        var connectionId = connectionData.id || 0;
+        var connection;
+        var sourceSystem = $('#' + config.systemIdPrefix + mapId + '-' + connectionData.source);
+        var targetSystem = $('#' + config.systemIdPrefix + mapId + '-' + connectionData.target);
 
-        // connection id
-        var connectionId = 0;
-        if(connectionData.id){
-            connectionId = connectionData.id;
-        }
-
-        var connection = map.connect({
-            source: config.systemIdPrefix + mapId + '-' + connectionData.source,
-            target: config.systemIdPrefix + mapId + '-' + connectionData.target,
-            /*
-            parameters: {
-                connectionId: connectionId,
-                updated: connectionData.updated
-            },
-            */
-            type: null
-            /* experimental (straight connections)
-            anchors: [
-                [ "Perimeter", { shape: 'Rectangle' }],
-                [ "Perimeter", { shape: 'Rectangle' }]
-            ]
-            */
-        });
-
-
-        // check if connection is valid (e.g. source/target exist
-        if( connection instanceof jsPlumb.Connection ){
-
-            // set connection parameters
-            // they should persist even through connection type change (e.g. wh -> stargate,..)
-            // therefore they should be part of the connection not of the connector
-            connection.setParameters({
-                connectionId: connectionId,
-                updated: connectionData.updated,
-                eolUpdated: connectionData.eolUpdated
+        // check if both systems exists
+        // (If not -> something went wrong e.g. DB-Foreign keys for "ON DELETE",...)
+        if(
+            sourceSystem.length &&
+            targetSystem.length
+        ){
+            connection = map.connect({
+                source: sourceSystem[0],
+                target: targetSystem[0],
+                /*
+                 parameters: {
+                 connectionId: connectionId,
+                 updated: connectionData.updated
+                 },
+                 */
+                type: null
+                /* experimental (straight connections)
+                 anchors: [
+                 [ "Perimeter", { shape: 'Rectangle' }],
+                 [ "Perimeter", { shape: 'Rectangle' }]
+                 ]
+                 */
             });
 
-            // add connection types -----------------------------------------------------
-            if(connectionData.type){
-                for(var i = 0; i < connectionData.type.length; i++){
-                    connection.addType(connectionData.type[i]);
+            // check if connection is valid (e.g. source/target exist
+            if( connection instanceof jsPlumb.Connection ){
+
+                // set connection parameters
+                // they should persist even through connection type change (e.g. wh -> stargate,..)
+                // therefore they should be part of the connection not of the connector
+                connection.setParameters({
+                    connectionId: connectionId,
+                    updated: connectionData.updated,
+                    eolUpdated: connectionData.eolUpdated
+                });
+
+                // add connection types -------------------------------------------------------------------------
+                if(connectionData.type){
+                    for(var i = 0; i < connectionData.type.length; i++){
+                        connection.addType(connectionData.type[i]);
+                    }
                 }
+
+                // add connection scope -------------------------------------------------------------------------
+                // connection have the default map Scope scope
+                var scope = map.Defaults.Scope;
+                if(connectionData.scope){
+                    scope = connectionData.scope;
+                }
+                setConnectionScope(connection, scope);
             }
 
-            // add connection scope -----------------------------------------------------
-            // connection have the default map Scope scope
-            var scope = map.Defaults.Scope;
-            if(connectionData.scope){
-                scope = connectionData.scope;
+            // set Observer for new Connection -> is automatically set
+        }else{
+            if( !sourceSystem.length ){
+                console.warn('drawConnection(): source system (id: ' + connectionData.source + ') not found');
             }
-            setConnectionScope(connection, scope);
+            if( !targetSystem.length ){
+                console.warn('drawConnection(): target system (id: ' + connectionData.target + ') not found');
+            }
         }
-
-        // set Observer for new Connection -> is automatically set
 
         return connection;
     };
@@ -23765,7 +23954,7 @@ define('app/map/map',[
                     {subIcon: 'fa-step-forward', subAction: 'add_last_waypoint', subText: 'add new [end]'}
                 ]},
                 {divider: true, action: 'delete_system'},
-                {icon: 'fa-eraser', action: 'delete_system', text: 'delete system'}
+                {icon: 'fa-eraser', action: 'delete_system', text: 'delete system(s)'}
             ]
         };
 
@@ -23779,9 +23968,7 @@ define('app/map/map',[
      * @param system
      */
     var setSystemObserver = function(map, system){
-
         system = $(system);
-
 
         // get map container
         var mapContainer = $( map.getContainer() );
@@ -23795,10 +23982,10 @@ define('app/map/map',[
         map.draggable(system, {
             containment: 'parent',
             constrain: true,
-            //scroll: true,                                         // not working because of customized scrollbar
-            filter: '.' + config.systemHeadNameClass,               // disable drag on "system name"
-            snapThreshold: config.mapSnapToGridDimension,           // distance for grid snapping "magnet" effect (optional)
-            start: function(params, a, b){
+            //scroll: true,                                             // not working because of customized scrollbar
+            filter: '.' + config.systemHeadNameClass,                   // disable drag on "system name"
+            snapThreshold: MapUtil.config.mapSnapToGridDimension,       // distance for grid snapping "magnet" effect (optional)
+            start: function(params){
                 var dragSystem = $(params.el);
 
                 mapOverlayTimer = dragSystem.getMapOverlay('timer');
@@ -23806,9 +23993,9 @@ define('app/map/map',[
                 // start map update timer
                 mapOverlayTimer.startMapUpdateCounter();
 
-                // check if grid-snap is enable
-                if(config.mapSnapToGrid){
-                    params.drag.params.grid = [config.mapSnapToGridDimension, config.mapSnapToGridDimension];
+                // check if grid-snap is enable -> this enables napping for !CURRENT! Element
+                if( mapContainer.hasClass(MapUtil.config.mapGridClass) ){
+                    params.drag.params.grid = [MapUtil.config.mapSnapToGridDimension, MapUtil.config.mapSnapToGridDimension];
                 }else{
                     delete( params.drag.params.grid );
                 }
@@ -24011,39 +24198,7 @@ define('app/map/map',[
                     case 'set_rally':
                         // toggle rally point
                         if( !currentSystem.data( 'rallyUpdated' ) ){
-
-                            // show confirm dialog
-                            var rallyDialog = bootbox.dialog({
-                                message: 'Do you want to poke active pilots?',
-                                title: 'Set rally point for system "' + currentSystemName + '"',
-                                buttons: {
-                                    close: {
-                                        label: 'cancel',
-                                        className: 'btn-default',
-                                        callback: function(){
-                                            $(rallyDialog).modal('hide');
-                                        }
-                                    },
-                                    setRallyPoke: {
-                                        label: '<i class="fa fa-fw fa-bullhorn"></i> set rally and poke',
-                                        className: 'btn-primary',
-                                        callback: function() {
-                                            currentSystem.setSystemRally(1, {
-                                                poke: true
-                                            });
-                                            currentSystem.markAsChanged();
-                                        }
-                                    },
-                                    success: {
-                                        label: '<i class="fa fa-fw fa-users"></i> set rally',
-                                        className: 'btn-success',
-                                        callback: function() {
-                                            currentSystem.setSystemRally(1);
-                                            currentSystem.markAsChanged();
-                                        }
-                                    }
-                                }
-                            });
+                            $.fn.showRallyPointDialog(currentSystem);
                         }else{
                             // remove rally point
                             currentSystem.setSystemRally(0);
@@ -24066,19 +24221,11 @@ define('app/map/map',[
                         currentSystem.markAsChanged();
                         break;
                     case 'delete_system':
-                        // confirm dialog
-                        bootbox.confirm('Delete system and all its connections?', function(result) {
-                            if(result){
-                                var systemName = currentSystem.getSystemInfo(['alias']);
-                                deleteSystems(map, [currentSystem], function(){
-                                    // callback function after delete -> close dialog
-                                    bootbox.hideAll();
-                                    Util.showNotify({title: 'System deleted', text: systemName, type: 'success'});
-                                });
-
-                                return false;
-                            }
-                        });
+                        // delete this system AND delete selected systems as well
+                        var selectedSystems = mapContainer.getSelectedSystems();
+                        $.merge(selectedSystems, currentSystem);
+                        $.uniqueSort(selectedSystems);
+                        $.fn.showDeleteSystemDialog(map, selectedSystems);
                         break;
                     case 'set_destination':
                     case 'add_first_waypoint':
@@ -24183,7 +24330,7 @@ define('app/map/map',[
         markSystemActive(map, system);
 
         // get parent Tab Content and fire update event
-        var tabContentElement = getTabContentElementByMapElement( system );
+        var tabContentElement = MapUtil.getTabContentElementByMapElement( system );
 
         // collect all required data from map module to update the info element
         // store them global and assessable for each module
@@ -24281,16 +24428,6 @@ define('app/map/map',[
             $(system).getMapOverlay('timer').startMapUpdateCounter();
         }
 
-    };
-
-    /**
-     * get TabContentElement by any element on a map e.g. system
-     * @param element
-     * @returns {*}
-     */
-    var getTabContentElementByMapElement = function(element){
-        var tabContentElement = $(element).parents('.' + config.mapTabContentClass);
-        return tabContentElement;
     };
 
     /**
@@ -24410,25 +24547,8 @@ define('app/map/map',[
                         break;
                     case 'delete_systems':
                         // delete all selected systems with its connections
-                        var selectedSystems = $(currentMapElement).getSelectedSystems();
-
-                        if(selectedSystems.length > 0){
-                            var systemDeleteDialog = bootbox.confirm('Delete ' + selectedSystems.length + ' selected systems and its connections?', function(result) {
-                                if(result){
-                                    currentMapElement.getMapOverlay('timer').startMapUpdateCounter();
-
-                                    deleteSystems(currentMap, selectedSystems, function(){
-                                        // callback function after delete -> close dialog
-
-                                        $(systemDeleteDialog).modal('hide');
-                                        Util.showNotify({title: selectedSystems.length + ' systems deleted', type: 'success'});
-                                    });
-                                }
-                            });
-                        }else{
-                            Util.showNotify({title: 'No systems selected', type: 'error'});
-                        }
-
+                        var selectedSystems = currentMapElement.getSelectedSystems();
+                        $.fn.showDeleteSystemDialog(currentMap, selectedSystems);
                         break;
                     case 'info':
                         // open map info dialog
@@ -24470,50 +24590,84 @@ define('app/map/map',[
 
         // catch events =========================================================
 
-        // toggle global map option (e.g. "grid snap", "magnetization"
-        $(mapContainer).on('pf:menuMapOption', function(e, data){
+        // toggle global map option (e.g. "grid snap", "magnetization")
+        $(mapContainer).on('pf:menuMapOption', function(e, mapOption){
+            var mapElement = $(this);
 
-            var currentMapElement = $(this);
+            // get map menu config options
+            var data = MapUtil.mapOptions[mapOption.option];
 
-            // toggle map option
-            config[data.option] = !config[data.option];
+            var promiseStore = MapUtil.getLocaleData('map', mapElement.data('id') );
+            promiseStore.then(function(dataStore) {
+                var notificationText = 'disabled';
+                var button = $('#' + this.data.buttonId);
+                var dataExists = false;
 
-            // toggle map class (e.g. for grid)
-            if(data.class){
-                currentMapElement.toggleClass( config[data.class] );
-            }
-
-            // toggle button class
-            $(data.button).toggleClass('active');
-
-            var notificationText = 'disabled';
-            if( config[data.option] ){
-
-                // call optional jQuery extension on mapElement
-                if(data.onEnable){
-                    $.fn[ data.onEnable ].apply( currentMapElement );
+                if(
+                    dataStore &&
+                    dataStore[this.mapOption.option]
+                ){
+                    dataExists = true;
                 }
 
-                // show map overlay info icon
-                notificationText = 'enabled';
-                currentMapElement.getMapOverlay('info').updateOverlayIcon(data.option, 'show');
-            }else{
-                // call optional jQuery extension on mapElement
-                if(data.onDisable){
-                    $.fn[ data.onDisable ].apply( currentMapElement );
+                if(dataExists === mapOption.toggle){
+
+                    // toggle button class
+                    button.removeClass('active');
+
+                    // toggle map class (e.g. for grid)
+                    if(this.data.class){
+                        this.mapElement.removeClass( MapUtil.config[this.data.class] );
+                    }
+
+                    // call optional jQuery extension on mapElement
+                    if(this.data.onDisable){
+                        $.fn[ this.data.onDisable ].apply( this.mapElement );
+                    }
+
+                    // show map overlay info icon
+                    this.mapElement.getMapOverlay('info').updateOverlayIcon(this.mapOption.option, 'hide');
+
+                    // delete map option
+                    MapUtil.deleteLocalData('map', this.mapElement.data('id'), this.mapOption.option );
+                }else{
+
+                    // toggle button class
+                    button.addClass('active');
+
+                    // toggle map class (e.g. for grid)
+                    if(this.data.class){
+                        this.mapElement.addClass( MapUtil.config[this.data.class] );
+                    }
+
+                    // call optional jQuery extension on mapElement
+                    if(this.data.onEnable){
+                        $.fn[ this.data.onEnable ].apply( this.mapElement );
+                    }
+
+                    // hide map overlay info icon
+                    this.mapElement.getMapOverlay('info').updateOverlayIcon(this.mapOption.option, 'show');
+
+                    // store map option
+                    MapUtil.storeLocalData('map', this.mapElement.data('id'), this.mapOption.option, 1 );
+
+                    notificationText = 'enabled';
                 }
 
-                // hide map overlay info icon
-                currentMapElement.getMapOverlay('info').updateOverlayIcon(data.option, 'hide');
-            }
-
-            Util.showNotify({title: data.description, text: notificationText, type: 'info'});
+                if(mapOption.toggle){
+                    Util.showNotify({title: this.data.description, text: notificationText, type: 'info'});
+                }
+            }.bind({
+                mapOption: mapOption,
+                data: data,
+                mapElement: mapElement
+            }));
         });
 
         // delete system event
         // triggered from "map info" dialog scope
         $(mapContainer).on('pf:deleteSystems', function(e, data){
-            deleteSystems(map, data.systems, data.callback);
+            System.deleteSystems(map, data.systems, data.callback);
         });
 
         $(mapContainer).on('pf:menuSelectSystem', function(e, data){
@@ -24530,8 +24684,6 @@ define('app/map/map',[
                 system.showSystemInfo(map);
             }
         });
-
-
     };
 
     /**
@@ -24780,40 +24932,36 @@ define('app/map/map',[
      * @param options
      */
     var showNewSystemDialog = function(map, options){
-
         var mapContainer = $(map.getContainer());
 
-        // format system status for form select ------------------------------------------------------------------------
+        // format system status for form select -------------------------------------------------------------
         var systemStatus = {};
+        // "default" selection (id = 0) prevents status from being overwritten
+        // -> e.g. keep status information if system was just inactive (active = 0)
+        systemStatus[0] = 'default';
+
         $.each(Init.systemStatus, function(status, statusData){
             systemStatus[statusData.id] = statusData.label;
         });
 
         // default system status -> first status entry
-        var tempKeys = [];
-        for(var k in Init.systemStatus){
-            if (Init.systemStatus.hasOwnProperty(k)){
-                tempKeys.push(k);
-            }
-        }
-        var defaultSystemStatus = Init.systemStatus[ tempKeys[0] ].id;
+        var defaultSystemStatus = 0;
 
-
-        // get current map data -> disable systems that are already on it ----------------------------------------------
+        // get current map data -> disable systems that are already on it -----------------------------------
         var mapData = mapContainer.getMapDataFromClient({forceData: true});
         var mapSystems = mapData.data.systems;
         var mapSystemIds = [];
-        for(var i = 0; i < mapSystems.length; i++ ){
+        for(let i = 0; i < mapSystems.length; i++ ){
             mapSystemIds.push( mapSystems[i].systemId );
         }
 
-        // dialog data -------------------------------------------------------------------------------------------------
+        // dialog data --------------------------------------------------------------------------------------
         var data = {
             id: config.systemDialogId,
             selectClass: config.systemDialogSelectClass
         };
 
-        // set current position as "default" system to add -------------------------------------------------------------
+        // set current position as "default" system to add --------------------------------------------------
         var currentCharacterLog = Util.getCurrentCharacterLog();
 
         if(
@@ -24824,7 +24972,6 @@ define('app/map/map',[
             // set current position as "default" system to add
             data.currentSystem = currentCharacterLog.system;
         }
-
 
         requirejs(['text!templates/dialog/system.html', 'mustache'], function(template, Mustache) {
 
@@ -24860,7 +25007,7 @@ define('app/map/map',[
 
                             mapContainer.getMapOverlay('timer').startMapUpdateCounter();
 
-                            // calculate new system position -----------------------------------------------
+                            // calculate new system position ------------------------------------------------
                             var newPosition = {
                                 x: 0,
                                 y: 0
@@ -24885,7 +25032,7 @@ define('app/map/map',[
 
                             systemDialogData.position = newPosition;
 
-                            // -----------------------------------------------------------------------------
+                            // ------------------------------------------------------------------------------
 
                             var requestData = {
                                 systemData: systemDialogData,
@@ -24939,7 +25086,6 @@ define('app/map/map',[
      * @param callback
      */
     var saveSystem = function(map, requestData, sourceSystem, callback){
-
         $.ajax({
             type: 'POST',
             url: Init.path.saveSystem,
@@ -24956,14 +25102,8 @@ define('app/map/map',[
 
             Util.showNotify({title: 'New system', text: newSystemData.name, type: 'success'});
 
-            // re-init "magnetizer" with new added system
-            if(config.mapMagnetizer === true){
-                var mapContainer = this.map.getContainer();
-                $(mapContainer).initMagnetizer();
-
-                // re/arrange systems (prevent overlapping)
-                MagnetizerWrapper.executeAtCenter(this.map);
-            }
+            // re/arrange systems (prevent overlapping)
+            MagnetizerWrapper.setElements(this.map);
 
             if(callback){
                 callback();
@@ -24973,7 +25113,6 @@ define('app/map/map',[
             Util.showNotify({title: jqXHR.status + ': saveSystem', text: reason, type: 'warning'});
             $(document).setProgramStatus('problem');
         });
-
     };
 
     /**
@@ -25069,7 +25208,7 @@ define('app/map/map',[
                     }
                 }
 
-                // the current user can only be in a single system -------------------------------------------------------
+                // the current user can only be in a single system ------------------------------------------
                 if( !currentUserOnMap){
 
                     if(
@@ -25103,7 +25242,6 @@ define('app/map/map',[
      * @returns {*}
      */
     $.fn.getMapDataFromClient = function(options){
-
         var mapElement = $(this);
 
         var map = getMapInstance( mapElement.data('id') );
@@ -25121,7 +25259,7 @@ define('app/map/map',[
             options.forceData === true
         ){
 
-            // map config -----------------------------------------------------------
+            // map config -----------------------------------------------------------------------------------
             mapData.config = {
                 id: parseInt( mapElement.data('id') ),
                 name: mapElement.data('name'),
@@ -25136,12 +25274,12 @@ define('app/map/map',[
                 updated: parseInt( mapElement.data('updated') ),
             };
 
-            // map data -------------------------------------------------------------
+            // map data -------------------------------------------------------------------------------------
             var data = {};
 
-            // systems data ---------------------------------------------------------
+            // systems data ---------------------------------------------------------------------------------
             var systemsData = [];
-            var systems = mapElement.find('.' + config.systemClass);
+            var systems = mapElement.getSystems();
 
             for(var i = 0; i < systems.length; i++){
                 var tempSystem = $(systems[i]);
@@ -25163,7 +25301,7 @@ define('app/map/map',[
 
             data.systems = systemsData;
 
-            // connections ----------------------------------------------------------
+            // connections ----------------------------------------------------------------------------------
             var connections = map.getAllConnections();
             var connectionsFormatted = [];
 
@@ -25246,7 +25384,7 @@ define('app/map/map',[
         };
         systemData.userCount = (system.data('userCount') ? parseInt( system.data('userCount') ) : 0);
 
-        // position -----------------------------------------------------------------
+        // position -----------------------------------------------------------------------------------------
         var positionData = {};
         var currentX = system.css('left');
         var currentY = system.css('top');
@@ -25332,7 +25470,7 @@ define('app/map/map',[
                 LogEnabled: true
             });
 
-            // register all available connection types ------------------------------
+            // register all available connection types ------------------------------------------------------
             newJsPlumbInstance.registerConnectionTypes(globalMapConfig.connectionTypes);
 
             // event after a new connection is established --------------------------
@@ -25341,12 +25479,12 @@ define('app/map/map',[
                 setConnectionObserver(newJsPlumbInstance, info.connection);
             });
 
-            // event after connection moved -----------------------------------------
+            // event after connection moved -----------------------------------------------------------------
             newJsPlumbInstance.bind('connectionMoved', function(info, e) {
 
             });
 
-            // event after DragStop a connection or new connection ------------------
+            // event after DragStop a connection or new connection ------------------------------------------
             newJsPlumbInstance.bind('beforeDrop', function(info) {
                 var connection = info.connection;
 
@@ -25383,7 +25521,7 @@ define('app/map/map',[
                 return true;
             });
 
-            // event before Detach connection ---------------------------------------
+            // event before Detach connection ---------------------------------------------------------------
             newJsPlumbInstance.bind('beforeDetach', function(info) {
                 return true;
             });
@@ -25457,7 +25595,7 @@ define('app/map/map',[
 
                 var mapWrapper = mapContainer.parents('.' + config.mapWrapperClass);
 
-                // auto scroll map to previous position
+                // auto scroll map to previous position -----------------------------------------------------
                 var promiseStore = MapUtil.getLocaleData('map', mapContainer.data('id') );
                 promiseStore.then(function(data) {
                     // This code runs once the value has been loaded
@@ -25470,9 +25608,17 @@ define('app/map/map',[
                     }
                 });
 
-                if( config.mapMagnetizer === true ){
-                    mapContainer.initMagnetizer();
-                }
+                // init magnetizer --------------------------------------------------------------------------
+                mapContainer.triggerMenuEvent('MapOption', {
+                    option: 'mapMagnetizer',
+                    toggle: false
+                });
+
+                // init grid snap ---------------------------------------------------------------------------
+                mapContainer.triggerMenuEvent('MapOption', {
+                    option: 'mapSnapToGrid',
+                    toggle: false
+                });
 
                 return false;
             }
@@ -25517,7 +25663,7 @@ define('app/map/map',[
             }
         });
 
-        // ---------------------------------------------------------------------------
+        // --------------------------------------------------------------------------------------------------
         // add map overlays after scrollbar is initialized
         // because of its absolute position
         scrollableElement.initMapOverlays();
@@ -30079,7 +30225,6 @@ define('app/module_map',[
 
     /**
      * set Tab Observer, events are triggered within map.js
-     * @param mapContentModule
      */
     $.fn.setTabContentObserver = function(){
         return this.each(function(){
@@ -30097,6 +30242,7 @@ define('app/module_map',[
     /**
      * clear all system info modules and remove them
      * @param tabContentElement
+     * @param callback
      */
     var removeSystemModules = function(tabContentElement, callback){
         tabContentElement.find('.' + config.moduleClass).velocity('transition.slideDownOut', {
@@ -30828,7 +30974,6 @@ define('app/page',[
 
         // menu
         menuHeadMenuLogoClass: 'pf-head-menu-logo',                             // class for main menu logo
-        menuButtonFullScreenId: 'pf-menu-button-fullscreen',                    // id for menu button "full screen"
 
         // helper element
         dynamicElementWrapperId: 'pf-dialog-wrapper'
@@ -30871,11 +31016,8 @@ define('app/page',[
                 )
         );
 
-        // load header
-        $('.' + config.pageClass).loadHeader();
-
-        // load footer
-        $('.' + config.pageClass).loadFooter();
+        // load header / footer
+        $('.' + config.pageClass).loadHeader().loadFooter();
 
         // load left menu
         $('.' + config.pageSlidebarLeftClass).loadLeftMenu();
@@ -30940,7 +31082,7 @@ define('app/page',[
             ).append(
                 $('<a>', {
                     class: 'list-group-item hide',                      // trigger by js
-                    id: config.menuButtonFullScreenId,
+                    id: Util.config.menuButtonFullScreenId,
                     href: '#'
                 }).html('&nbsp;&nbsp;Full screen').prepend(
                         $('<i>',{
@@ -30964,7 +31106,7 @@ define('app/page',[
                     href: '#'
                 }).html('&nbsp;&nbsp;Notification test').prepend(
                         $('<i>',{
-                            class: 'fa fa-bullhorn fa-fw'
+                            class: 'fa fa-volume-up fa-fw'
                         })
                     ).on('click', function(){
                         $(document).triggerMenuEvent('NotificationTest');
@@ -30996,7 +31138,7 @@ define('app/page',[
 
         requirejs(['fullScreen'], function() {
             if($.fullscreen.isNativelySupported() === true){
-                $('#' + config.menuButtonFullScreenId).removeClass('hide');
+                $('#' + Util.config.menuButtonFullScreenId).removeClass('hide');
             }
         });
     };
@@ -31033,6 +31175,7 @@ define('app/page',[
             ).append(
                 $('<a>', {
                     class: 'list-group-item',
+                    id: Util.config.menuButtonGridId,
                     href: '#'
                 }).html('&nbsp;&nbsp;&nbsp;Grid snapping').prepend(
                     $('<i>',{
@@ -31041,14 +31184,13 @@ define('app/page',[
                 ).on('click', function(){
                     Util.getMapModule().getActiveMap().triggerMenuEvent('MapOption', {
                         option: 'mapSnapToGrid',
-                        button: this,
-                        description: 'Grid snapping',
-                        class: 'mapGridClass'
+                        toggle: true
                     });
                 })
             ).append(
                 $('<a>', {
                     class: 'list-group-item',
+                    id: Util.config.menuButtonMagnetizerId,
                     href: '#'
                 }).html('&nbsp;&nbsp;&nbsp;Magnetizing').prepend(
                     $('<i>',{
@@ -31057,10 +31199,7 @@ define('app/page',[
                 ).on('click', function(){
                     Util.getMapModule().getActiveMap().triggerMenuEvent('MapOption', {
                         option: 'mapMagnetizer',
-                        button: this,
-                        description: 'Magnetizer',
-                        onEnable: 'initMagnetizer',     // jQuery extension function
-                        onDisable: 'destroyMagnetizer'  // jQuery extension function
+                        toggle: true
                     });
                 })
             ).append(
@@ -31100,8 +31239,12 @@ define('app/page',[
         );
     };
 
+    /**
+     * trigger menu event
+     * @param event
+     * @param data
+     */
     $.fn.triggerMenuEvent = function(event, data){
-
         if(data === undefined){
             data = {};
         }
@@ -31213,6 +31356,7 @@ define('app/page',[
             }
         });
 
+        return this;
     };
 
     /**
@@ -31238,6 +31382,8 @@ define('app/page',[
             //show credits info dialog
             $.fn.showCreditsDialog();
         });
+
+        return this;
     };
 
     /**
@@ -31248,7 +31394,7 @@ define('app/page',[
         // on "full-screen" change event
         $(document).on('fscreenchange', function(e, state, elem){
 
-            var menuButton = $('#' + config.menuButtonFullScreenId);
+            var menuButton = $('#' + Util.config.menuButtonFullScreenId);
 
             if(state === true){
                 // full screen active
@@ -31395,7 +31541,7 @@ define('app/page',[
                 content: {
                     icon: 'fa-bolt',
                     class: 'txt-color-danger',
-                    title: 'Shutdown',
+                    title: 'Application error',
                     headline: 'Logged out',
                     text: [
                         data.reason
@@ -32128,6 +32274,7 @@ define('mappage',[
             Init.characterStatus    = initData.characterStatus;
             Init.maxSharedCount     = initData.maxSharedCount;
             Init.routes             = initData.routes;
+            Init.notificationStatus = initData.notificationStatus;
 
             // init tab change observer, Once the timers are available
             Page.initTabChangeObserver();

@@ -34,6 +34,11 @@ define([
         // head
         headMapTrackingId: 'pf-head-map-tracking',                              // id for "map tracking" toggle (checkbox)
 
+        // menu
+        menuButtonFullScreenId: 'pf-menu-button-fullscreen',                    // id for menu button "fullscreen"
+        menuButtonMagnetizerId: 'pf-menu-button-magnetizer',                    // id for menu button "magnetizer"
+        menuButtonGridId: 'pf-menu-button-grid',                                // id for menu button "grid snap"
+
 
         settingsMessageVelocityOptions: {
             duration: 180

@@ -159,7 +159,7 @@ class System extends \Controller\AccessController {
             $searchToken = $params['arg1'];
         }
 
-        // some "edge cases for testing if rounding works correct
+        // some "edge cases" for testing trueSec rounding...
         //$searchToken = 'H472-N'; // -0.000001 -> 0.0
         //$searchToken = 'X1E-OQ'; // -0.099426 -> -0.10
         //$searchToken = 'BKK4-H'; // -0.049954 -> -0.05
@@ -168,6 +168,8 @@ class System extends \Controller\AccessController {
         //$searchToken = 'Ayeroilen'; // 0.446568 -> 0.4 (LS)
         //$searchToken = 'Enderailen'; // 0.448785 -> 0.4 (LS)
         //$searchToken = 'Neziel'; // 0.449943 -> 0.4 (LS)
+        //$searchToken = 'Naga'; // 0.033684 -> 0.1 (LS)
+
 
         $this->whereQuery = "WHERE
             map_sys.solarSystemName LIKE '%" . $searchToken . "%'";
@@ -190,23 +192,27 @@ class System extends \Controller\AccessController {
      */
     public function save(\Base $f3){
         $newSystemData = [];
-
         $postData = (array)$f3->get('POST');
-
-        // system to be saved
-        $systemModel = null;
 
         if(
             isset($postData['systemData']) &&
             isset($postData['mapData'])
         ){
             $activeCharacter = $this->getCharacter();
-
             $systemData = (array)$postData['systemData'];
             $mapData = (array)$postData['mapData'];
+            $systemModel = null;
+
+            if( isset($systemData['statusId']) ){
+                if( (int)$systemData['statusId'] <= 0){
+                    unset($systemData['statusId']);
+                }else{
+                    $systemData['statusId'] = (int)$systemData['statusId'];
+                }
+            }
 
             if( isset($systemData['id']) ){
-                // update existing system (e.g. changed system description) -------------------
+                // update existing system (e.g. changed system description) -------------------------------------------
 
                 /**
                  * @var $system Model\SystemModel
@@ -220,7 +226,7 @@ class System extends \Controller\AccessController {
                     }
                 }
             }elseif( isset($mapData['id']) ){
-                // save NEW system ------------------------------------------------------------
+                // save NEW system ------------------------------------------------------------------------------------
 
                 /**
                  * @var $map Model\MapModel
@@ -233,24 +239,42 @@ class System extends \Controller\AccessController {
                 ){
                     // make sure system is not already on map
                     // --> (e.g. multiple simultaneously save() calls for the same system)
-                    if( is_null( $systemModel = $map->getSystemByCCPId($systemData['systemId']) ) ){
+                    $systemModel = $map->getSystemByCCPId($systemData['systemId']);
+                    if( is_null($systemModel) ){
                         // system not found on map -> get static system data (CCP DB)
                         $systemModel = $map->getNewSystem($systemData['systemId']);
                         $systemModel->createdCharacterId = $activeCharacter;
+                        $systemModel->statusId = isset($systemData['statusId']) ? $systemData['statusId'] : 1;
+                    }else{
+                        // system already exists (e.g. was inactive)
+                        $systemModel->statusId = isset($systemData['statusId']) ? $systemData['statusId'] : $systemModel->statusId;
                     }
 
                     // map is not changeable for a system! (security)
                     $systemData['mapId'] = $map;
                 }
             }
-        }
 
-        if( !is_null($systemModel) ){
-            // set/update system
-            $systemModel->setData($systemData);
-            $systemModel->updatedCharacterId = $activeCharacter;
-            $systemModel->save();
-            $newSystemData = $systemModel->getData();
+            if( !is_null($systemModel) ){
+                // "statusId" was set above
+                unset($systemData['statusId']);
+                unset($systemData['mapId']);
+                unset($systemData['createdCharacterId']);
+                unset($systemData['updatedCharacterId']);
+
+                // set/update system
+                $systemModel->setData($systemData);
+                // activate system (e.g. was inactive))
+                $systemModel->setActive(true);
+                $systemModel->updatedCharacterId = $activeCharacter;
+                $systemModel->save();
+
+                // get data from "fresh" model (e.g. some relational data has changed: "statusId")
+                $newSystemModel = Model\BasicModel::getNew('SystemModel');
+                $newSystemModel->getById( $systemModel->id, 0);
+                $newSystemModel->clearCacheData();
+                $newSystemData = $newSystemModel->getData();
+            }
         }
 
         echo json_encode($newSystemData);
@@ -379,9 +403,9 @@ class System extends \Controller\AccessController {
         echo json_encode($return);
     }
 
-
     /**
-     * delete systems and all its connections
+     * delete systems and all its connections from map
+     * -> set "active" flag
      * @param \Base $f3
      */
     public function delete(\Base $f3){
@@ -392,10 +416,13 @@ class System extends \Controller\AccessController {
          * @var Model\SystemModel $system
          */
         $system = Model\BasicModel::getNew('SystemModel');
-        foreach((array)$systemIds as $systemId){
+        foreach($systemIds as $systemId){
             $system->getById($systemId);
-            $system->delete($activeCharacter);
-            $system->reset();
+            if( $system->hasAccess($activeCharacter) ){
+                $system->setActive(false);
+                $system->save();
+                $system->reset();
+            }
         }
 
         echo json_encode([]);

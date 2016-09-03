@@ -63,17 +63,16 @@ class UserCharacterModel extends BasicModel {
     /**
      * event "Hook"
      * -> remove user if there are no other characters bound to this user
-     * @param $self
-     * @return bool
+     * @param UserCharacterModel $self
+     * @param $pkeys
      */
-    public function aftereraseEvent($self){
+    public function afterEraseEvent($self, $pkeys){
         if(
             is_object($self->userId) &&
             is_null($self->userId->userCharacters)
         ){
             $self->userId->erase();
         }
-        return true;
     }
 
     /**

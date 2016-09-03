@@ -112,17 +112,18 @@ class UserModel extends BasicModel {
 
     /**
      * check if new user registration is allowed
+     * @param UserModel $self
+     * @param $pkeys
      * @return bool
      * @throws Exception\RegistrationException
      */
-    public function beforeInsertEvent(){
+    public function beforeInsertEvent($self, $pkeys){
         $registrationStatus = Controller\Controller::getRegistrationStatus();
 
         switch($registrationStatus){
             case 0:
                 $f3 = self::getF3();
                 throw new Exception\RegistrationException($f3->get('PATHFINDER.REGISTRATION.MSG_DISABLED'));
-                return false;
                 break;
             case 1:
                 return true;

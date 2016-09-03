@@ -314,18 +314,25 @@ define([
                     iconElement.addClass('active');
                 }
 
-                // display animation for icon
-                iconElement.velocity({
-                    opacity: [0.8, 0],
-                    scale: [1, 0],
-                    width: ['26px', 0],
-                    marginLeft: ['3px', 0]
-                },{
-                    duration: 240,
-                    easing: 'easeInOutQuad'
-                });
+                // check if icon is not already visible
+                // -> prevents unnecessary "show" animation
+                if( !iconElement.data('visible') ){
+                    // display animation for icon
+                    iconElement.velocity({
+                        opacity: [0.8, 0],
+                        scale: [1, 0],
+                        width: ['26px', 0],
+                        marginLeft: ['3px', 0]
+                    },{
+                        duration: 240,
+                        easing: 'easeInOutQuad'
+                    });
+
+                    iconElement.data('visible', true);
+                }
             }else if(viewType === 'hide'){
                 iconElement.removeClass('active').velocity('reverse');
+                iconElement.data('visible', false);
 
                 // check if there is any visible icon remaining
                 var visibleIcons = mapOverlayInfo.find('i:visible');

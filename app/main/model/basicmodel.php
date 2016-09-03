@@ -49,6 +49,14 @@ abstract class BasicModel extends \DB\Cortex {
     protected $validate = [];
 
     /**
+     * enables change for "active" column
+     * -> see setActive();
+     * -> $this->active = false; will NOT work (prevent abuse)!
+     * @var bool
+     */
+    protected $allowActiveChange = false;
+
+    /**
      * getData() cache key prefix
      * -> do not change, otherwise cached data is lost
      * @var string
@@ -76,30 +84,36 @@ abstract class BasicModel extends \DB\Cortex {
 
         parent::__construct($db, $table, $fluid, $ttl);
 
-        // events -----------------------------------------
-        $this->afterinsert(function($self){
-            $self->afterinsertEvent($self);
+        // insert events ------------------------------------------------------------------------------------
+        $this->beforeinsert( function($self, $pkeys){
+            return $self->beforeInsertEvent($self, $pkeys);
+        });
+
+        $this->afterinsert(function($self, $pkeys){
+            $self->afterInsertEvent($self, $pkeys);
             $self->clearCacheData();
         });
 
-        $this->afterupdate( function($self){
-            $self->afterupdateEvent($self);
+        // update events ------------------------------------------------------------------------------------
+        $this->beforeupdate( function($self, $pkeys){
+            return $self->beforeUpdateEvent($self, $pkeys);
+        });
+
+        $this->afterupdate( function($self, $pkeys){
+            $self->afterUpdateEvent($self, $pkeys);
             $self->clearCacheData();
         });
 
-        $this->beforeinsert( function($self){
-            $self->beforeInsertEvent($self);
+        // erase events -------------------------------------------------------------------------------------
+
+        $this->beforeerase( function($self, $pkeys){
+            return $self->beforeEraseEvent($self, $pkeys);
         });
 
-        $this->beforeerase( function($self){
-            $self->beforeeraseEvent($self);
-        });
-
-        $this->aftererase( function($self){
-            $self->aftereraseEvent($self);
+        $this->aftererase( function($self, $pkeys){
+            $self->afterEraseEvent($self, $pkeys);
         });
     }
-
 
     /**
      * @param string $key
@@ -108,11 +122,6 @@ abstract class BasicModel extends \DB\Cortex {
      * @throws Exception\ValidationException
      */
     public function set($key, $val){
-
-        if($key == 'active'){
-            // prevent abuse
-            return;
-        }
 
         if(
             !$this->dry() &&
@@ -150,6 +159,24 @@ abstract class BasicModel extends \DB\Cortex {
         }else{
             return parent::set($key, $val);
         }
+    }
+
+    /**
+     * setter for "active" status
+     * -> default: keep current "active" status
+     * -> can be overwritten
+     * @param bool $active
+     * @return mixed
+     */
+    public function set_active($active){
+        if( $this->allowActiveChange ){
+            // allowed to set/change -> reset "allowed" property
+            $this->allowActiveChange = false;
+        }else{
+            // not allowed to set/change -> keep current status
+            $active = $this->active;
+        }
+        return $active;
     }
 
     /**
@@ -371,10 +398,14 @@ abstract class BasicModel extends \DB\Cortex {
 
     /**
      * set active state for a model
-     * @param $value
+     * -> do NOT use $this->active for status change!
+     * -> this will not work (prevent abuse)
+     * @param bool $active
      */
-    public function setActive($value){
-        $this->set('active', (int)$value);
+    public function setActive($active){
+        // enables "active" change for this model
+        $this->allowActiveChange = true;
+        $this->active = $active;
     }
 
     /**
@@ -409,8 +440,11 @@ abstract class BasicModel extends \DB\Cortex {
      * Event "Hook" function
      * can be overwritten
      * return false will stop any further action
+     * @param self $self
+     * @param $pkeys
+     * @return bool
      */
-    public function beforeInsertEvent(){
+    public function beforeInsertEvent($self, $pkeys){
         if($this->exists('updated')){
             $this->touch('updated');
         }
@@ -421,8 +455,21 @@ abstract class BasicModel extends \DB\Cortex {
      * Event "Hook" function
      * can be overwritten
      * return false will stop any further action
+     * @param self $self
+     * @param $pkeys
      */
-    public function afterinsertEvent(){
+    public function afterInsertEvent($self, $pkeys){
+    }
+
+    /**
+     * Event "Hook" function
+     * can be overwritten
+     * return false will stop any further action
+     * @param self $self
+     * @param $pkeys
+     * @return bool
+     */
+    public function beforeUpdateEvent($self, $pkeys){
         return true;
     }
 
@@ -430,27 +477,30 @@ abstract class BasicModel extends \DB\Cortex {
      * Event "Hook" function
      * can be overwritten
      * return false will stop any further action
+     * @param self $self
+     * @param $pkeys
      */
-    public function afterupdateEvent(){
+    public function afterUpdateEvent($self, $pkeys){
+    }
+
+    /**
+     * Event "Hook" function
+     * can be overwritten
+     * @param self $self
+     * @param $pkeys
+     * @return bool
+     */
+    public function beforeEraseEvent($self, $pkeys){
         return true;
     }
 
     /**
      * Event "Hook" function
      * can be overwritten
-     * @return bool
+     * @param self $self
+     * @param $pkeys
      */
-    public function beforeeraseEvent($self){
-        return true;
-    }
-
-    /**
-     * Event "Hook" function
-     * can be overwritten
-     * @return bool
-     */
-    public function aftereraseEvent($self){
-        return true;
+    public function afterEraseEvent($self, $pkeys){
     }
 
     /**

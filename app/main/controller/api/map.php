@@ -8,6 +8,7 @@
 
 namespace Controller\Api;
 use Controller;
+use lib\Config;
 use Model;
 
 /**
@@ -176,6 +177,11 @@ class Map extends Controller\AccessController {
         // get program routes -----------------------------------------------------------------------------------------
         $return->routes = [
             'ssoLogin' => $this->getF3()->alias( 'sso', ['action' => 'requestAuthorization'] )
+        ];
+
+        // get notification status ------------------------------------------------------------------------------------
+        $return->notificationStatus = [
+            'rallySet' => (bool)Config::getNotificationMail('RALLY_SET')
         ];
 
         // get SSO error messages that should be shown immediately ----------------------------------------------------
@@ -574,6 +580,10 @@ class Map extends Controller\AccessController {
                                 if(is_object($filteredMap->systems)){
                                     // update
                                     unset($systemData['updated']);
+
+                                    /**
+                                     * @var $system Model\SystemModel
+                                     */
                                     $system = $filteredMap->systems->current();
                                     $system->setData($systemData);
                                     $system->updatedCharacterId = $activeCharacter;
@@ -603,6 +613,10 @@ class Map extends Controller\AccessController {
                                 if(is_object($filteredMap->connections)){
                                     // update
                                     unset($connectionData['updated']);
+
+                                    /**
+                                     * @var $connection Model\ConnectionModel
+                                     */
                                     $connection = $filteredMap->connections->current();
                                     $connection->setData($connectionData);
                                     $connection->save();
@@ -692,7 +706,7 @@ class Map extends Controller\AccessController {
 
                 // update current location
                 // -> suppress temporary timeout errors
-                $activeCharacter = $activeCharacter->updateLog(['suppressTimeoutErrors' => true]);
+                $activeCharacter = $activeCharacter->updateLog(['suppressHTTPErrors' => true]);
 
                 // check character log (current system) and manipulate map (e.g. add new system)
                 if( (bool)$characterMapData['mapTracking'] ){
@@ -776,14 +790,14 @@ class Map extends Controller\AccessController {
                 // -> NO target system available
                 if($sourceSystemId === $targetSystemId){
                     // check if previous (solo) system is already on the map
-                    $sourceSystem = $map->getSystemByCCPId($sourceSystemId);
+                    $sourceSystem = $map->getSystemByCCPId($sourceSystemId, ['active' => 1]);
                     $sameSystem = true;
                 }else{
                     // check if previous (source) system is already on the map
-                    $sourceSystem = $map->getSystemByCCPId($sourceSystemId);
+                    $sourceSystem = $map->getSystemByCCPId($sourceSystemId, ['active' => 1]);
 
                     // -> check if system is already on this map
-                    $targetSystem = $map->getSystemByCCPId( $targetSystemId );
+                    $targetSystem = $map->getSystemByCCPId( $targetSystemId, ['active' => 1]);
                 }
 
                 // if systems don´t already exists on map -> get "blank" systems
@@ -805,7 +819,7 @@ class Map extends Controller\AccessController {
                     !$targetSystem
                 ){
                     $targetExists = false;
-                    $targetSystem = $map->getNewSystem( $targetSystemId );
+                    $targetSystem = $map->getNewSystem($targetSystemId);
                 }
 
                 $addSourceSystem = false;

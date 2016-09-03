@@ -27,7 +27,7 @@ class CcpSystemsMapper extends AbstractIterator {
 
         // "system trueSec" mapping -------------------------------------------
         self::$map['trueSec'] = function($iterator){
-            $trueSec = round((float)$iterator['system_security'], 1);
+            $trueSec = self::formatTrueSec($iterator['system_security']);
             return $trueSec;
         };
 
@@ -69,7 +69,7 @@ class CcpSystemsMapper extends AbstractIterator {
                 $iterator['security'] == 9
             ){
                 // k-space system
-                $trueSec = round($iterator['system_security'], 1, PHP_ROUND_HALF_DOWN);
+                $trueSec = self::formatTrueSec($iterator['system_security']);
 
                 if($trueSec <= 0){
                     $security = '0.0';
@@ -125,6 +125,20 @@ class CcpSystemsMapper extends AbstractIterator {
         return iterator_to_array($this, false);
     }
 
+    /**
+     * format trueSec
+     * @param $trueSec
+     * @return float
+     */
+    static function formatTrueSec($trueSec){
+        $positive = ($trueSec > 0);
+        $trueSec = round((float)$trueSec, 1, PHP_ROUND_HALF_DOWN);
+
+        if($positive && $trueSec <= 0){
+            $trueSec = 0.1;
+        }
+        return $trueSec;
+    }
 
     static function recursiveIterator($iterator){
 

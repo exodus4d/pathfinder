@@ -100,7 +100,7 @@ $mapWidth: 2500px ;
       }
 
       &.glyphicon{
-        margin-top: 3px;
+        margin-top: 1px;
         font-size: 24px;
         padding-left: 3px;
       }
@@ -164,7 +164,7 @@ $mapWidth: 2500px ;
     background-color: $gray-dark;
     font-family: $font-family-bold;
     z-index: 100;
-    will-change: top, left, opacity, transform;
+    will-change: top, left, opacity;
 
     //opacity: 0; // trigger by js
     border: {
@@ -237,7 +237,7 @@ $mapWidth: 2500px ;
       }
 
       .pf-system-body-item{
-        color: $gray-light;
+        color: lighten($gray-light, 10%);
         font-size: 10px;
 
         .pf-system-body-right{
@@ -256,7 +256,7 @@ $mapWidth: 2500px ;
           display: inline-block;
           width: 65px;
           overflow: hidden;
-          height: 11px;
+          height: 10px;
           white-space: nowrap;
           text-overflow: ellipsis;
         }

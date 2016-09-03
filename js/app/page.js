@@ -60,7 +60,6 @@ define([
 
         // menu
         menuHeadMenuLogoClass: 'pf-head-menu-logo',                             // class for main menu logo
-        menuButtonFullScreenId: 'pf-menu-button-fullscreen',                    // id for menu button "full screen"
 
         // helper element
         dynamicElementWrapperId: 'pf-dialog-wrapper'
@@ -103,11 +102,8 @@ define([
                 )
         );
 
-        // load header
-        $('.' + config.pageClass).loadHeader();
-
-        // load footer
-        $('.' + config.pageClass).loadFooter();
+        // load header / footer
+        $('.' + config.pageClass).loadHeader().loadFooter();
 
         // load left menu
         $('.' + config.pageSlidebarLeftClass).loadLeftMenu();
@@ -172,7 +168,7 @@ define([
             ).append(
                 $('<a>', {
                     class: 'list-group-item hide',                      // trigger by js
-                    id: config.menuButtonFullScreenId,
+                    id: Util.config.menuButtonFullScreenId,
                     href: '#'
                 }).html('&nbsp;&nbsp;Full screen').prepend(
                         $('<i>',{
@@ -196,7 +192,7 @@ define([
                     href: '#'
                 }).html('&nbsp;&nbsp;Notification test').prepend(
                         $('<i>',{
-                            class: 'fa fa-bullhorn fa-fw'
+                            class: 'fa fa-volume-up fa-fw'
                         })
                     ).on('click', function(){
                         $(document).triggerMenuEvent('NotificationTest');
@@ -228,7 +224,7 @@ define([
 
         requirejs(['fullScreen'], function() {
             if($.fullscreen.isNativelySupported() === true){
-                $('#' + config.menuButtonFullScreenId).removeClass('hide');
+                $('#' + Util.config.menuButtonFullScreenId).removeClass('hide');
             }
         });
     };
@@ -265,6 +261,7 @@ define([
             ).append(
                 $('<a>', {
                     class: 'list-group-item',
+                    id: Util.config.menuButtonGridId,
                     href: '#'
                 }).html('&nbsp;&nbsp;&nbsp;Grid snapping').prepend(
                     $('<i>',{
@@ -273,14 +270,13 @@ define([
                 ).on('click', function(){
                     Util.getMapModule().getActiveMap().triggerMenuEvent('MapOption', {
                         option: 'mapSnapToGrid',
-                        button: this,
-                        description: 'Grid snapping',
-                        class: 'mapGridClass'
+                        toggle: true
                     });
                 })
             ).append(
                 $('<a>', {
                     class: 'list-group-item',
+                    id: Util.config.menuButtonMagnetizerId,
                     href: '#'
                 }).html('&nbsp;&nbsp;&nbsp;Magnetizing').prepend(
                     $('<i>',{
@@ -289,10 +285,7 @@ define([
                 ).on('click', function(){
                     Util.getMapModule().getActiveMap().triggerMenuEvent('MapOption', {
                         option: 'mapMagnetizer',
-                        button: this,
-                        description: 'Magnetizer',
-                        onEnable: 'initMagnetizer',     // jQuery extension function
-                        onDisable: 'destroyMagnetizer'  // jQuery extension function
+                        toggle: true
                     });
                 })
             ).append(
@@ -332,8 +325,12 @@ define([
         );
     };
 
+    /**
+     * trigger menu event
+     * @param event
+     * @param data
+     */
     $.fn.triggerMenuEvent = function(event, data){
-
         if(data === undefined){
             data = {};
         }
@@ -445,6 +442,7 @@ define([
             }
         });
 
+        return this;
     };
 
     /**
@@ -470,6 +468,8 @@ define([
             //show credits info dialog
             $.fn.showCreditsDialog();
         });
+
+        return this;
     };
 
     /**
@@ -480,7 +480,7 @@ define([
         // on "full-screen" change event
         $(document).on('fscreenchange', function(e, state, elem){
 
-            var menuButton = $('#' + config.menuButtonFullScreenId);
+            var menuButton = $('#' + Util.config.menuButtonFullScreenId);
 
             if(state === true){
                 // full screen active
@@ -627,7 +627,7 @@ define([
                 content: {
                     icon: 'fa-bolt',
                     class: 'txt-color-danger',
-                    title: 'Shutdown',
+                    title: 'Application error',
                     headline: 'Logged out',
                     text: [
                         data.reason

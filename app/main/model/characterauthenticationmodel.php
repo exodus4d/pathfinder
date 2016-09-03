@@ -57,10 +57,11 @@ class CharacterAuthenticationModel extends BasicModel{
     /**
      * Event "Hook" function
      * can be overwritten
-     * @param $self CharacterAuthenticationModel
+     * @param CharacterAuthenticationModel $self
+     * @param $pkeys
      * @return bool
      */
-    public function beforeeraseEvent($self){
+    public function beforeEraseEvent($self, $pkeys){
         // clear existing client Cookies as well
         $cookieName = Controller\Controller::COOKIE_PREFIX_CHARACTER;
         $cookieName .= '_' . $this->characterId->getCookieName();
@@ -68,7 +69,5 @@ class CharacterAuthenticationModel extends BasicModel{
 
         return true;
     }
-
-
 
 }

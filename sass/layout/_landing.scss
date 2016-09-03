@@ -213,7 +213,6 @@
         width: 180px;
         padding: 7px;
         opacity: 0;
-        will-change: opacity, transform;
         @include border-radius(5px);
         background: {
           color: rgba(43, 43, 43, 0.5);

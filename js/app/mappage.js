@@ -61,6 +61,7 @@ define([
             Init.characterStatus    = initData.characterStatus;
             Init.maxSharedCount     = initData.maxSharedCount;
             Init.routes             = initData.routes;
+            Init.notificationStatus = initData.notificationStatus;
 
             // init tab change observer, Once the timers are available
             Page.initTabChangeObserver();

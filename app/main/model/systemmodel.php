@@ -161,12 +161,18 @@ class SystemModel extends BasicModel {
         ],
         'signatures' => [
             'has-many' => ['Model\SystemSignatureModel', 'systemId']
+        ],
+        'connectionsSource' => [
+            'has-many' => ['Model\ConnectionModel', 'source']
+        ],
+        'connectionsTarget' => [
+            'has-many' => ['Model\ConnectionModel', 'target']
         ]
     ];
 
     /**
      * set an array with all data for a system
-     * @param $systemData
+     * @param array $systemData
      */
     public function setData($systemData){
 
@@ -202,7 +208,7 @@ class SystemModel extends BasicModel {
 
     /**
      * get map data as object
-     * @return object
+     * @return \stdClass
      * @throws \Exception
      */
     public function getData(){
@@ -236,8 +242,8 @@ class SystemModel extends BasicModel {
             $systemData->type->name = $this->typeId->name;
 
             $systemData->status = (object) [];
-            $systemData->status->id = is_object($this->statusId) ? $this->statusId->id : 0;
-            $systemData->status->name = is_object($this->statusId) ? $this->statusId->name : '';
+            $systemData->status->id = is_object($this->statusId) ? $this->statusId->id : 1;
+            $systemData->status->name = is_object($this->statusId) ? $this->statusId->name : 'unknown';
 
             $systemData->locked = $this->locked;
             $systemData->rallyUpdated = strtotime($this->rallyUpdated);
@@ -274,7 +280,7 @@ class SystemModel extends BasicModel {
 
     /**
      * setter for system security value
-     * @param $trueSec
+     * @param float $trueSec
      * @return float
      */
     public function set_trueSec($trueSec){
@@ -294,8 +300,8 @@ class SystemModel extends BasicModel {
 
     /**
      * setter validation for x coordinate
-     * @param $posX
-     * @return int|number
+     * @param int $posX
+     * @return int
      */
     public function set_posX($posX){
         $posX = abs($posX);
@@ -308,8 +314,8 @@ class SystemModel extends BasicModel {
 
     /**
      * setter validation for y coordinate
-     * @param $posY
-     * @return int|number
+     * @param int $posY
+     * @return int
      */
     public function set_posY($posY){
         $posY = abs($posY);
@@ -322,30 +328,74 @@ class SystemModel extends BasicModel {
 
     /**
      * setter for system rally timestamp
-     * @param $rally
-     * @return bool|int|null|string
+     * @param int $rally
+     * @return null|string
      */
     public function set_rallyUpdated($rally){
         $rally = (int)$rally;
-        if($rally === 0){
-            $rally = null;
-        }elseif($rally === 1){
-            // new rally point set
-            $currentTimestamp = time();
-            $rally = date('Y-m-d H:i:s', $currentTimestamp);
-            // send rally point notification mail
-            $this->sendRallyPointMail($currentTimestamp);
-        }else{
-            $rally = date('Y-m-d H:i:s', $rally);
+
+        switch($rally){
+            case 0:
+                $rally = null;
+                break;
+            case 1:
+                // new rally point set
+                $rally = date('Y-m-d H:i:s', time());
+                // flag system for mail poke -> after save()
+                $this->virtual('newRallyPointSet', true);
+                break;
+            default:
+                $rally = date('Y-m-d H:i:s', $rally);
+                break;
         }
 
         return $rally;
     }
 
     /**
+     * Event "Hook" function
+     * can be overwritten
+     * return false will stop any further action
+     * @param self $self
+     * @param $pkeys
+     * @return bool
+     */
+    public function beforeUpdateEvent($self, $pkeys){
+        if( !$self->isActive()){
+            // system becomes inactive
+            // reset "rally point" fields
+            $self->rallyUpdated = 0;
+            $self->rallyPoke = false;
+
+            // delete connections
+            $connections = $self->getConnections();
+            foreach($connections as $connection){
+                $connection->erase();
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Event "Hook" function
+     * return false will stop any further action
+     * @param self $self
+     * @param $pkeys
+     */
+    public function afterUpdateEvent($self, $pkeys){
+        // check if rally point mail should be send
+        if(
+            $self->newRallyPointSet &&
+            $self->rallyPoke
+        ){
+            $self->sendRallyPointMail();
+        }
+    }
+
+    /**
      * check object for model access
      * @param CharacterModel $characterModel
-     * @return mixed
+     * @return bool
      */
     public function hasAccess(CharacterModel $characterModel){
         return $this->mapId->hasAccess($characterModel);
@@ -366,8 +416,40 @@ class SystemModel extends BasicModel {
     }
 
     /**
+     * get all connections of this system
+     * @return ConnectionModel[]
+     */
+    public function getConnections(){
+        $connections = [];
+
+        $this->filter('connectionsTarget', [
+            'active = :active AND target = :targetId',
+            ':active' => 1,
+            ':targetId' => $this->_id
+        ]);
+        if($this->connectionsTarget){
+            foreach($this->connectionsTarget as $connection){
+                $connections[$connection->_id] = $connection;
+            }
+        }
+
+        $this->filter('connectionsSource', [
+            'active = :active AND source = :sourceId',
+            ':active' => 1,
+            ':sourceId' => $this->_id
+        ]);
+        if($this->connectionsSource){
+            foreach($this->connectionsSource as $connection){
+                $connections[$connection->_id] = $connection;
+            }
+        }
+
+        return $connections;
+    }
+
+    /**
      * get all signatures of this system
-     * @return SystemModel array
+     * @return SystemSignatureModel[]
      */
     public function getSignatures(){
         $this->filter('signatures', ['active = ?', 1], ['order' => 'name']);
@@ -382,7 +464,7 @@ class SystemModel extends BasicModel {
 
     /**
      * get all data for all Signatures in this system
-     * @return array
+     * @return \stdClass[]
      */
     public function getSignaturesData(){
         $signatures = $this->getSignatures();
@@ -399,7 +481,7 @@ class SystemModel extends BasicModel {
      * get Signature by id and check for access
      * @param CharacterModel $characterModel
      * @param $id
-     * @return bool|null
+     * @return null|SystemSignatureModel
      */
     public function getSignatureById(CharacterModel $characterModel, $id){
         $signature = null;
@@ -417,8 +499,8 @@ class SystemModel extends BasicModel {
     /**
      * get a signature by its "unique" 3-digit name
      * @param CharacterModel $characterModel
-     * @param $name
-     * @return mixed|null
+     * @param string $name
+     * @return null|SystemSignatureModel
      */
     public function getSignatureByName(CharacterModel $characterModel, $name){
         $signature = null;
@@ -452,7 +534,7 @@ class SystemModel extends BasicModel {
     /**
      * get static WH data for this system
      * -> any WH system has at least one static WH
-     * @return array
+     * @return \stdClass[]
      * @throws \Exception
      */
     protected function getStaticWormholeData(){
@@ -490,25 +572,34 @@ class SystemModel extends BasicModel {
         return $wormholeData;
     }
 
-    protected function sendRallyPointMail($timestamp){
+    /**
+     * send rally point information by mail
+     */
+    protected function sendRallyPointMail(){
         $recipient = Config::getNotificationMail('RALLY_SET');
 
         if(
             $recipient &&
             \Audit::instance()->email($recipient)
         ){
-            $body = [];
-            $body[] = "Map:\t\t" . $this->mapId->name;
-            $body[] = "System:\t\t" . $this->name;
-            $body[] = "Region:\t\t" . $this->region;
-            $body[] = "Security:\t" . $this->security;
-            if(is_object($this->createdCharacterId)){
-                $body[] = "Character:\t" . $this->createdCharacterId->name;
-            }
-            $body[] = "Time:\t\t" . date('g:i a; F j, Y', $timestamp);
-            $bodyMsg = implode("\r\n", $body);
+            $updatedCharacterId = (int) $this->get('updatedCharacterId', true);
+            /**
+             * @var $character CharacterModel
+             */
+            $character = $this->rel('updatedCharacterId');
+            $character->getById( $updatedCharacterId );
+            if( !$character->dry() ){
+                $body = [];
+                $body[] = "Map:\t\t" . $this->mapId->name;
+                $body[] = "System:\t\t" . $this->name;
+                $body[] = "Region:\t\t" . $this->region;
+                $body[] = "Security:\t" . $this->security;
+                $body[] = "Character:\t" . $character->name;
+                $body[] = "Time:\t\t" . date('g:i a; F j, Y', strtotime($this->rallyUpdated) );
+                $bodyMsg = implode("\r\n", $body);
 
-            (new MailController())->sendRallyPoint('exodus4d@gmail.com', $bodyMsg);
+                (new MailController())->sendRallyPoint($recipient, $bodyMsg);
+            }
         }
     }
 
