@@ -444,7 +444,6 @@ class CharacterModel extends BasicModel {
      * @return bool|CharacterLogModel
      */
     public function getLog(){
-
         $characterLog = false;
         if(
             is_object($this->characterLog) &&

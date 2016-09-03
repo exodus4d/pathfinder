@@ -7,7 +7,6 @@
  */
 
 namespace cron;
-use Controller;
 use DB;
 use Model;
 
@@ -20,22 +19,26 @@ class CharacterUpdate {
      * @param \Base $f3
      */
     function deleteLogData($f3){
-        DB\Database::instance()->getDB('PF');
+        $logExpire = (int)$f3->get('PATHFINDER.CACHE.CHARACTER_LOG');
 
-        /**
-         * @var $characterLogModel Model\CharacterLogModel
-         */
-        $characterLogModel = Model\BasicModel::getNew('CharacterLogModel', 0);
+        if($logExpire > 0){
+            DB\Database::instance()->getDB('PF');
 
-        // find expired character logs
-        $characterLogs = $characterLogModel->find([
-            'TIMESTAMPDIFF(SECOND, updated, NOW() ) > :lifetime',
-            ':lifetime' => (int)$f3->get('PATHFINDER.CACHE.CHARACTER_LOG')
-        ]);
+            /**
+             * @var $characterLogModel Model\CharacterLogModel
+             */
+            $characterLogModel = Model\BasicModel::getNew('CharacterLogModel', 0);
 
-        if(is_object($characterLogs)){
-            foreach($characterLogs as $characterLog){
-                $characterLog->erase();
+            // find expired character logs
+            $characterLogs = $characterLogModel->find([
+                'TIMESTAMPDIFF(SECOND, updated, NOW() ) > :lifetime',
+                ':lifetime' => $logExpire
+            ]);
+
+            if(is_object($characterLogs)){
+                foreach($characterLogs as $characterLog){
+                    $characterLog->erase();
+                }
             }
         }
     }
