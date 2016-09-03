@@ -437,6 +437,18 @@ class Setup extends Controller {
                 'version' => extension_loaded('openssl') ? 'installed' : 'not installed',
                 'check' => extension_loaded('openssl')
             ],
+            'mcrypt' => [
+                'label' => 'Mcrypt',
+                'required' => 'installed',
+                'version' => (extension_loaded('mcrypt')) ? 'installed' : 'not installed',
+                'check' => (extension_loaded('mcrypt'))
+            ],
+            'xml' => [
+                'label' => 'XML',
+                'required' => 'installed',
+                'version' => (extension_loaded('xml')) ? 'installed' : 'not installed',
+                'check' => (extension_loaded('xml'))
+            ],
             'gd' => [
                 'label' => 'GD Library (for Image plugin)',
                 'required' => 'installed',
