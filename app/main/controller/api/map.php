@@ -790,14 +790,14 @@ class Map extends Controller\AccessController {
                 // -> NO target system available
                 if($sourceSystemId === $targetSystemId){
                     // check if previous (solo) system is already on the map
-                    $sourceSystem = $map->getSystemByCCPId($sourceSystemId);
+                    $sourceSystem = $map->getSystemByCCPId($sourceSystemId, ['active' => 1]);
                     $sameSystem = true;
                 }else{
                     // check if previous (source) system is already on the map
-                    $sourceSystem = $map->getSystemByCCPId($sourceSystemId);
+                    $sourceSystem = $map->getSystemByCCPId($sourceSystemId, ['active' => 1]);
 
                     // -> check if system is already on this map
-                    $targetSystem = $map->getSystemByCCPId( $targetSystemId );
+                    $targetSystem = $map->getSystemByCCPId( $targetSystemId, ['active' => 1]);
                 }
 
                 // if systems don´t already exists on map -> get "blank" systems
@@ -819,7 +819,7 @@ class Map extends Controller\AccessController {
                     !$targetSystem
                 ){
                     $targetExists = false;
-                    $targetSystem = $map->getNewSystem( $targetSystemId );
+                    $targetSystem = $map->getNewSystem($targetSystemId);
                 }
 
                 $addSourceSystem = false;

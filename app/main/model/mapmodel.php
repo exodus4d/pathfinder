@@ -202,14 +202,22 @@ class MapModel extends BasicModel {
 
     /**
      * get blank system model pre-filled with default SDE data
+     * -> check for "inactive" systems on this map first!
      * @param int $systemId
      * @return SystemModel
      */
     public function getNewSystem($systemId){
-        $systemController = new System();
-        $systems = $systemController->getSystemModelByIds([$systemId]);
-        $system = reset($systems);
-        $system->mapId = $this->_id;
+        // check for "inactive" system
+        $system = $this->getSystemByCCPId($systemId);
+        if( is_null($system) ){
+            // get blank system
+            $systemController = new System();
+            $systems = $systemController->getSystemModelByIds([$systemId]);
+            $system = reset($systems);
+            $system->mapId = $this->_id;
+        }
+        $system->setActive(true);
+
         return $system;
     }
 
@@ -253,18 +261,28 @@ class MapModel extends BasicModel {
      * -> "active" column is NOT checked
      * -> removed systems become "active" = 0
      * @param int $systemId
+     * @param array $filter
      * @return null|SystemModel
      */
-    public function getSystemByCCPId($systemId){
+    public function getSystemByCCPId($systemId, $filter = []){
         /**
          * @var $system SystemModel
          */
         $system = $this->rel('systems');
-        $result = $system->findone([
+
+        $query = [
             'mapId = :mapId AND systemId = :systemId',
             ':mapId' => $this->id,
             ':systemId' => $systemId
-        ]);
+        ];
+
+        // add optional filter -> e.g. search for "active = 1" system
+        foreach($filter as $column => $value){
+            $query[0] .= ' AND' . $this->db->quotekey($column) . ' = :' . $column;
+            $query[':' . $column] = $value;
+        }
+
+        $result = $system->findone($query);
         return is_object($result) ? $result : null;
     }
 
@@ -655,6 +673,7 @@ class MapModel extends BasicModel {
      * @return mixed
      */
     public function saveSystem( SystemModel $system, $posX = 10, $posY = 0, $character = null){
+        $system->setActive(true);
         $system->mapId = $this->id;
         $system->posX = $posX;
         $system->posY = $posY;
