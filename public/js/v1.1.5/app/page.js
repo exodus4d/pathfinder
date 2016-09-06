@@ -138,7 +138,7 @@ define([
                     href: '#'
                 }).html('&nbsp;&nbsp;Settings').prepend(
                     $('<i>',{
-                        class: 'fa fa-gears fa-fw'
+                        class: 'fa fa-sliders fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowSettingsDialog');
@@ -253,7 +253,7 @@ define([
                     href: '#'
                 }).html('&nbsp;&nbsp;Settings').prepend(
                     $('<i>',{
-                        class: 'fa fa-gears fa-fw'
+                        class: 'fa fa-sliders fa-fw'
                     })
                 ).on('click', function(){
                         $(document).triggerMenuEvent('ShowMapSettings', {tab: 'settings'});

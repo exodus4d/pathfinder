@@ -165,7 +165,7 @@ define([
                 systemBody.empty();
 
                 // loop "again" and build DOM object with user information
-                for(var j = 0; j < data.user.length; j++){
+                for(let j = 0; j < data.user.length; j++){
                     var userData = data.user[j];
 
                     var statusClass = Util.getStatusInfoForCharacter(userData, 'class');

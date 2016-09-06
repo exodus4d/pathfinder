@@ -6,8 +6,9 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'bootbox'
-], function($, Init, Util, bootbox) {
+    'bootbox',
+    'app/map/util'
+], function($, Init, Util, bootbox, MapUtil) {
     'use strict';
 
     var config = {
@@ -22,12 +23,14 @@ define([
         // headline toolbar
         systemModuleHeadlineIcon: 'pf-module-icon-button',                      // class for toolbar icons in the head
         systemModuleHeadlineIconSearch: 'pf-module-icon-button-search',         // class for "search" icon
+        systemModuleHeadlineIconSettings: 'pf-module-icon-button-settings',     // class for "settings" icon
         systemModuleHeadlineIconRefresh: 'pf-module-icon-button-refresh',       // class for "refresh" icon
 
         systemSecurityClassPrefix: 'pf-system-security-',                       // prefix class for system security level (color)
 
         // dialog
-        routeDialogId: 'pf-route-dialog',                                       // id for route dialog
+        routeSettingsDialogId: 'pf-route-settings-dialog',                      // id for route "settings" dialog
+        routeDialogId: 'pf-route-dialog',                                       // id for route "search" dialog
         systemDialogSelectClass: 'pf-system-dialog-select',                     // class for system select Element
         systemInfoRoutesTableClass: 'pf-system-route-table',                    // class for route tables
         mapSelectId: 'pf-route-dialog-map-select',                              // id for "map" select
@@ -192,10 +195,7 @@ define([
                 buttons: {
                     close: {
                         label: 'cancel',
-                        className: 'btn-default',
-                        callback: function(){
-                            $(findRouteDialog).modal('hide');
-                        }
+                        className: 'btn-default'
                     },
                     success: {
                         label: '<i class="fa fa-fw fa-search"></i>&nbsp;search route',
@@ -277,6 +277,105 @@ define([
             // show dialog
             findRouteDialog.modal('show');
         });
+    };
+
+    /**
+     * show route settings dialog
+     * @param dialogData
+     * @param moduleElement
+     * @param systemFromData
+     * @param routesTable
+     */
+    var showSettingsDialog = function(dialogData, moduleElement, systemFromData, routesTable){
+
+        var promiseStore = MapUtil.getLocaleData('map', dialogData.mapId);
+        promiseStore.then(function(dataStore) {
+            // selected systems (if already stored)
+            var systemSelectOptions = [];
+            if(
+                dataStore &&
+                dataStore.routes
+            ){
+                systemSelectOptions = dataStore.routes;
+            }
+
+            var maxSelectionLength = 4;
+
+            var data = {
+                id: config.routeSettingsDialogId,
+                selectClass: config.systemDialogSelectClass,
+                systemSelectOptions: systemSelectOptions,
+                maxSelectionLength: maxSelectionLength
+            };
+
+            requirejs(['text!templates/dialog/route_settings.html', 'mustache'], function(template, Mustache) {
+                var content = Mustache.render(template, data);
+
+                var settingsDialog = bootbox.dialog({
+                    title: 'Route settings',
+                    message: content,
+                     show: false,
+                    buttons: {
+                        close: {
+                            label: 'cancel',
+                            className: 'btn-default'
+                        },
+                        success: {
+                            label: '<i class="fa fa-fw fa-check"></i>&nbsp;save',
+                            className: 'btn-success',
+                            callback: function () {
+                                var form = this.find('form');
+                                // get all system data from select2
+                                var systemSelectData = form.find('.' + config.systemDialogSelectClass).select2('data');
+                                var systemsTo = [];
+
+                                if( systemSelectData.length > 0 ){
+                                    systemsTo = formSystemSelectData(systemSelectData);
+                                    MapUtil.storeLocalData('map', dialogData.mapId, 'routes', systemsTo);
+                                }else{
+                                    MapUtil.deleteLocalData('map', dialogData.mapId, 'routes');
+                                }
+
+                                Util.showNotify({title: 'Route settings stored', type: 'success'});
+
+                                // (re) draw table
+                                drawRouteTable(dialogData.mapId, moduleElement, systemFromData, routesTable, systemsTo);
+                            }
+                        }
+                    }
+                });
+
+                settingsDialog.on('shown.bs.modal', function(e) {
+
+                    // init default system select -----------------------------------------------------
+                    // -> add some delay until modal transition has finished
+                    var systemTargetSelect = $(this).find('.' + config.systemDialogSelectClass);
+                    systemTargetSelect.delay(240).initSystemSelect({key: 'name', maxSelectionLength: maxSelectionLength});
+                });
+
+                // show dialog
+                settingsDialog.modal('show');
+            });
+        });
+    };
+
+    /**
+     * format select2 system data
+     * @param {Array} data
+     * @returns {Array}
+     */
+    var formSystemSelectData = function(data){
+        var formattedData = [];
+        for(let i = 0; i < data.length; i++){
+            var tmpData = data[i];
+
+            formattedData.push({
+                name: tmpData.id,
+                systemId: parseInt( tmpData.hasOwnProperty('systemId') ? tmpData.systemId : tmpData.element.getAttribute('data-systemid') )
+            });
+        }
+
+        return formattedData;
     };
 
     /**
@@ -462,6 +561,10 @@ define([
             $('<i>', {
                 class: ['fa', 'fa-fw', 'fa-search', config.systemModuleHeadlineIcon, config.systemModuleHeadlineIconSearch].join(' '),
                 title: 'find&nbsp;route'
+            }).attr('data-html', 'true').attr('data-toggle', 'tooltip'),
+            $('<i>', {
+                class: ['fa', 'fa-fw', 'fa-sliders', config.systemModuleHeadlineIcon, config.systemModuleHeadlineIconSettings].join(' '),
+                title: 'settings'
             }).attr('data-html', 'true').attr('data-toggle', 'tooltip'),
             $('<i>', {
                 class: ['fa', 'fa-fw', 'fa-refresh', config.systemModuleHeadlineIcon, config.systemModuleHeadlineIconRefresh].join(' '),
@@ -722,22 +825,6 @@ define([
             systemId: systemData.systemId
         };
 
-        var systemsTo = [
-            {
-                name: 'Jita',
-                systemId: 30000142
-            },{
-                name: 'Amarr',
-                systemId: 30002187
-            },{
-                name: 'Rens',
-                systemId: 30002510
-            },{
-                name: 'Dodixie',
-                systemId: 30002659
-            }
-        ];
-
         var routesTableElement =  moduleElement.find('.' + config.systemInfoRoutesTableClass);
 
         var routesTable = routesTableElement.DataTable();
@@ -759,7 +846,38 @@ define([
             showFindRouteDialog(dialogData);
         });
 
+        // init settings dialog -------------------------------------------------------------------
+        moduleElement.find('.' + config.systemModuleHeadlineIconSettings).on('click', function(e){
+            var dialogData = {
+                mapId: mapId
+            };
+
+            showSettingsDialog(dialogData, moduleElement, systemFromData, routesTable);
+        });
+
         // fill routesTable with data -------------------------------------------------------------
+        var promiseStore = MapUtil.getLocaleData('map', mapId);
+        promiseStore.then(function(dataStore) {
+            // selected systems (if already stored)
+            var systemsTo = [{
+                name: 'Jita',
+                systemId: 30000142
+            }];
+
+            if(
+                dataStore &&
+                dataStore.routes
+            ){
+                systemsTo = dataStore.routes;
+            }
+
+            drawRouteTable(mapId, moduleElement, systemFromData, routesTable, systemsTo);
+        });
+
+    };
+
+
+    var drawRouteTable = function(mapId, moduleElement, systemFromData, routesTable, systemsTo){
         var requestRouteData = [];
         var currentTimestamp = Util.getServerTime().getTime();
 
@@ -808,7 +926,6 @@ define([
             getRouteData(requestData, contextData, callbackAddRouteRow);
         }
     };
-
 
     /**
      * updates an dom element with the system route module
