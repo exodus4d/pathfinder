@@ -779,7 +779,7 @@ class Map extends Controller\AccessController {
             $systemPosX = 0;
             $systemPosY = 30;
 
-            $sourceSystemId = (int)$this->getF3()->get(User::SESSION_KEY_CHARACTER_PREV_SYSTEM_ID);
+            $sourceSystemId = (int)$this->getF3()->get(User::SESSION_KEY_CHARACTERS_PREV_SYSTEM_ID);
             $targetSystemId = (int)$log->systemId;
 
             if($sourceSystemId){

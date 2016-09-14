@@ -134,6 +134,16 @@ class UserModel extends BasicModel {
     }
 
     /**
+     * check whether this character has already a user assigned to it
+     * @return bool
+     */
+    public function hasUserCharacters(){
+        $this->filter('userCharacters', ['active = ?', 1]);
+
+        return is_object($this->userCharacters);
+    }
+
+    /**
      * search for user by unique username
      * @param $name
      * @return array|FALSE

@@ -508,7 +508,7 @@ define([
     var getLocaleData = function(type, objectId){
         if(objectId > 0){
             var storageKey = getLocalStoragePrefixByType(type) + objectId;
-            return Util.localforage.getItem(storageKey);
+            return Util.getLocalStorage().getItem(storageKey);
         }else{
             console.warn('Local storage requires object id > 0');
         }
@@ -525,13 +525,13 @@ define([
         if(objectId > 0){
             // get current map config
             var storageKey = getLocalStoragePrefixByType(type) + objectId;
-            Util.localforage.getItem(storageKey).then(function(data) {
+            Util.getLocalStorage().getItem(storageKey).then(function(data) {
                 // This code runs once the value has been loaded
                 // from the offline store.
                 data = (data === null) ? {} : data;
                 // set/update value
                 data[this.key] = this.value;
-                Util.localforage.setItem(this.storageKey, data);
+                Util.getLocalStorage().setItem(this.storageKey, data);
             }.bind({
                 key: key,
                 value: value,
@@ -555,13 +555,13 @@ define([
         if(objectId > 0){
             // get current map config
             var storageKey = getLocalStoragePrefixByType(type) + objectId;
-            Util.localforage.getItem(storageKey).then(function(data) {
+            Util.getLocalStorage().getItem(storageKey).then(function(data) {
                 if(
                     data &&
                     data.hasOwnProperty(key)
                 ){
                     delete data[key];
-                    Util.localforage.setItem(this.storageKey, data);
+                    Util.getLocalStorage().setItem(this.storageKey, data);
                 }
             }.bind({
                 storageKey: storageKey

@@ -19,7 +19,10 @@ define([
      * main init "map" page
      */
     $(function(){
-        // set Dialog default config
+        // set default AJAX config
+        Util.ajaxSetup();
+
+        // set default dialog config
         Util.initDefaultBootboxConfig();
 
         // load page
@@ -27,11 +30,6 @@ define([
 
         // show app information in browser console
         Util.showVersionInfo();
-
-        // init local storage
-        Util.localforage.config({
-            name: 'Pathfinder local storage'
-        });
 
         // init logging
         Logging.init();

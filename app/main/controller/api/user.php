@@ -25,14 +25,12 @@ class User extends Controller\Controller{
     const SESSION_KEY_USER_NAME                     = 'SESSION.USER.NAME';
 
     // character specific session keys
-    const SESSION_KEY_CHARACTER                     = 'SESSION.CHARACTER';
-    const SESSION_KEY_CHARACTER_ID                  = 'SESSION.CHARACTER.ID';
-    const SESSION_KEY_CHARACTER_NAME                = 'SESSION.CHARACTER.NAME';
-    const SESSION_KEY_CHARACTER_TIME                = 'SESSION.CHARACTER.TIME';
-    const SESSION_KEY_CHARACTER_PREV_SYSTEM_ID      = 'SESSION.CHARACTER.PREV_SYSTEM_ID';
+    const SESSION_KEY_CHARACTERS                    = 'SESSION.CHARACTERS';
+    //const SESSION_KEY_CHARACTERS_PREV_SYSTEM_ID     = 'SESSION.CHARACTERS.PREV_SYSTEM_ID';
+    const SESSION_KEY_CHARACTERS_PREV_SYSTEM_ID     = 'SESSION.TEST.PREV_SYSTEM_ID';
 
-    const SESSION_KEY_CHARACTER_ACCESS_TOKEN        = 'SESSION.CHARACTER.ACCESS_TOKEN';
-    const SESSION_KEY_CHARACTER_REFRESH_TOKEN       = 'SESSION.CHARACTER.REFRESH_TOKEN';
+    // temp login character ID (during HTTP redirects on login)
+    const SESSION_KEY_TEMP_CHARACTER_ID             = 'SESSION.TEMP_CHARACTER_ID';
 
     // log text
     const LOG_LOGGED_IN                             = 'userId: [%10s], userName: [%30s], charId: [%20s], charName: %s';
@@ -46,6 +44,29 @@ class User extends Controller\Controller{
     private static $captchaReason = [self::SESSION_CAPTCHA_ACCOUNT_UPDATE, self::SESSION_CAPTCHA_ACCOUNT_DELETE];
 
     /**
+     * merges two multidimensional characterSession arrays by checking characterID
+     * @param array $characterDataBase
+     * @param array $characterData
+     * @return array
+     */
+    private function mergeSessionCharacterData($characterDataBase = [], $characterData = []){
+        $addData = [];
+        foreach($characterDataBase as $i => $baseData){
+            foreach($characterData as $data){
+                if((int)$baseData['ID'] === (int)$data['ID']){
+                    // overwrite changes
+                    $characterDataBase[$i]['NAME'] = $data['NAME'];
+                    $characterDataBase[$i]['TIME'] = $data['TIME'];
+                }else{
+                    $addData[] = $data;
+                }
+            }
+        }
+
+        return array_merge($characterDataBase, $addData);
+    }
+
+    /**
      * login a valid character
      * @param Model\CharacterModel $characterModel
      * @return bool
@@ -54,24 +75,43 @@ class User extends Controller\Controller{
         $login = false;
 
         if($user = $characterModel->getUser()){
-            // set user/character data to session -------------------
-            $this->f3->set(self::SESSION_KEY_USER, [
-                'ID' => $user->_id,
-                'NAME' => $user->name
-            ]);
+            // check if character belongs to current user
+            // -> If there is already a logged in user! (e.g. multi character use)
+            $currentUser = $this->getUser();
 
-            $dateTime = new \DateTime();
-            $this->f3->set(self::SESSION_KEY_CHARACTER, [
-                'ID' => $characterModel->_id,
-                'NAME' => $characterModel->name,
-                'TIME' => $dateTime->getTimestamp()
-            ]);
+            $sessionCharacters = [
+                [
+                    'ID' => $characterModel->_id,
+                    'NAME' => $characterModel->name,
+                    'TIME' => (new \DateTime())->getTimestamp()
+                ]
+            ];
 
-            // save user login information ---------------------------
+            if(
+                is_null($currentUser) ||
+                $currentUser->_id !== $user->_id
+            ){
+                // user has changed OR new user ---------------------------------------------------
+                //-> set user/character data to session
+                $this->f3->set(self::SESSION_KEY_USER, [
+                    'ID' => $user->_id,
+                    'NAME' => $user->name
+                ]);
+            }else{
+                // user has NOT changed -----------------------------------------------------------
+                // -> get current session characters
+                $currentSessionCharacters = (array)$this->f3->get(self::SESSION_KEY_CHARACTERS);
+
+                $sessionCharacters = $this->mergeSessionCharacterData($sessionCharacters, $currentSessionCharacters);
+            }
+
+            $this->f3->set(self::SESSION_KEY_CHARACTERS, $sessionCharacters);
+
+            // save user login information --------------------------------------------------------
             $characterModel->touch('lastLogin');
             $characterModel->save();
 
-            // write login log --------------------------------------
+            // write login log --------------------------------------------------------------------
             self::getLogger('LOGIN')->write(
                 sprintf(self::LOG_LOGGED_IN,
                     $user->_id,
@@ -210,7 +250,7 @@ class User extends Controller\Controller{
                 if($activeCharacter = $this->getCharacter(0)){
                     $user = $activeCharacter->getUser();
 
-                    // captcha is send -> check captcha ---------------------------------
+                    // captcha is send -> check captcha -------------------------------------------
                     if(
                         isset($formData['captcha']) &&
                         !empty($formData['captcha'])
@@ -250,7 +290,7 @@ class User extends Controller\Controller{
                         }
                     }
 
-                    // sharing config ---------------------------------------------------
+                    // sharing config -------------------------------------------------------------
                     if(isset($formData['share'])){
                         $privateSharing = 0;
                         $corporationSharing = 0;

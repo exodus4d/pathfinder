@@ -115,6 +115,10 @@ class Sso extends Api\User{
                             if($loginCheck){
                                 // set "login" cookie
                                 $this->setLoginCookie($character);
+
+                                // -> pass current character data to target page
+                                $f3->set(Api\User::SESSION_KEY_TEMP_CHARACTER_ID, $character->_id);
+
                                 // route to "map"
                                 $f3->reroute('@map');
                             }
@@ -218,15 +222,18 @@ class Sso extends Api\User{
                                     // -> update character log (current location,...)
                                     $characterModel = $characterModel->updateLog();
 
-                                    // check if there is already an active user logged in
-                                    if($activeCharacter = $this->getCharacter()){
-                                        // connect character with current user
-                                        $user = $activeCharacter->getUser();
-                                    }elseif( is_null( $user = $characterModel->getUser()) ){
-                                        // no user found (new character) -> create new user and connect to character
-                                        $user = Model\BasicModel::getNew('UserModel');
-                                        $user->name = $characterModel->name;
-                                        $user->save();
+                                    // connect character with current user
+                                    if( is_null($user = $this->getUser()) ){
+                                        // connect character with existing user (no changes)
+                                        if( is_null( $user = $characterModel->getUser()) ){
+                                            // no user found (new character) -> create new user and connect to character
+                                            /**
+                                             * @var $user Model\UserModel
+                                             */
+                                            $user = Model\BasicModel::getNew('UserModel');
+                                            $user->name = $characterModel->name;
+                                            $user->save();
+                                        }
                                     }
 
                                     /**
@@ -250,6 +257,9 @@ class Sso extends Api\User{
                                     if($loginCheck){
                                         // set "login" cookie
                                         $this->setLoginCookie($characterModel);
+
+                                        // -> pass current character data to target page
+                                        $f3->set(Api\User::SESSION_KEY_TEMP_CHARACTER_ID, $characterModel->_id);
 
                                         // route to "map"
                                         $f3->reroute('@map');
@@ -308,6 +318,10 @@ class Sso extends Api\User{
             // login by character
             $loginCheck = $this->loginByCharacter($character);
             if($loginCheck){
+                // set character id
+                // -> pass current character data to target page
+                $f3->set(Api\User::SESSION_KEY_TEMP_CHARACTER_ID, $character->_id);
+
                 // route to "map"
                 $f3->reroute('@map');
             }

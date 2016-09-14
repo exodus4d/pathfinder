@@ -64,6 +64,8 @@ define([
 
     var animationTimerCache = {};                                               // cache for table row animation timeout
 
+    var localStorage;                                                           // cache for "localForage" singleton
+
     /*
      *  ===========================================================================================================
      *   Global jQuery plugins for some common and frequently used functions
@@ -589,40 +591,48 @@ define([
             return elements.each(function() {
                 var element = $(this);
 
-                // destroy "popover" and remove "click" event for animation
-                element.popover('destroy').off();
-
-                // init popover and add specific class to it (for styling)
-                element.popover({
-                    html: true,
-                    title: 'select character',
-                    trigger: 'click',
-                    placement: 'bottom',
-                    container: 'body',
-                    content: content,
-                    animation: false
-                }).data('bs.popover').tip().addClass('pf-popover');
+                // check if tooltip already exists -> remove it
+                if(element.data('bs.popover') !== undefined){
+                    element.off('click').popover('destroy');
+                }
 
                 element.on('click', function(e) {
                     e.preventDefault();
+                    e.stopPropagation();
+
                     var easeEffect = $(this).attr('data-easein');
-                    var popover = $(this).data('bs.popover').tip();
+                    var popoverData = $(this).data('bs.popover');
+                    var popoverElement = null;
+
                     var velocityOptions = {
                         duration: Init.animationSpeed.dialogEvents
                     };
 
-                    switch(easeEffect){
-                        case 'shake':
-                        case 'pulse':
-                        case 'tada':
-                        case 'flash':
-                        case 'bounce':
-                        case 'swing':
-                            popover.velocity('callout.' + easeEffect, velocityOptions);
-                            break;
-                        default:
-                            popover.velocity('transition.' + easeEffect, velocityOptions);
-                            break;
+                    if(popoverData === undefined){
+
+                        // init popover and add specific class to it (for styling)
+                        $(this).popover({
+                            html: true,
+                            title: 'select character',
+                            trigger: 'manual',
+                            placement: 'bottom',
+                            container: 'body',
+                            content: content,
+                            animation: false
+                        }).data('bs.popover').tip().addClass('pf-popover');
+
+                        $(this).popover('show');
+
+                        popoverElement = $(this).data('bs.popover').tip();
+                        popoverElement.velocity('transition.' + easeEffect, velocityOptions);
+                    }else{
+                        popoverElement = $(this).data('bs.popover').tip();
+                        if(popoverElement.is(':visible')){
+                            popoverElement.velocity('reverse');
+                        }else{
+                            $(this).popover('show');
+                            popoverElement.velocity('transition.' + easeEffect, velocityOptions);
+                        }
                     }
                 });
 
@@ -650,7 +660,14 @@ define([
                         popoverElement.has(e.target).length === 0 &&
                         $('.popover').has(e.target).length === 0
                     ){
-                        popoverElement.popover('hide');
+                        var popover = popoverElement.data('bs.popover');
+
+                        if(
+                            popover !== undefined &&
+                            popover.tip().is(':visible')
+                        ){
+                            popoverElement.popover('hide');
+                        }
                     }
                 });
             });
@@ -1012,6 +1029,28 @@ define([
         }
 
         return logInfo;
+    };
+
+    /**
+     * set default jQuery AJAX configuration
+     */
+    var ajaxSetup = function(){
+        $.ajaxSetup({
+            beforeSend: function(xhr) {
+                // add current character data to ANY XHR request (HTTP HEADER)
+                // -> This helps to identify multiple characters on multiple browser tabs
+                var userData = getCurrentUserData();
+                var currentCharacterId = 0;
+                if(
+                    userData &&
+                    userData.character
+                ){
+                    currentCharacterId = parseInt( userData.character.id );
+                }
+
+                xhr.setRequestHeader('Pf-Character', currentCharacterId);
+            }
+        });
     };
 
     /**
@@ -1666,6 +1705,20 @@ define([
     };
 
     /**
+     * get localForage instance (singleton) for offline client site storage
+     * @returns {localforage}
+     */
+    var getLocalStorage = function(){
+        if(localStorage === undefined){
+            localStorage = localforage.createInstance({
+                driver: localforage.INDEXEDDB,
+                name: 'Pathfinder local storage'
+            });
+        }
+        return localStorage;
+    };
+
+    /**
      * Create Date as UTC
      * @param date
      * @returns {Date}
@@ -1756,7 +1809,6 @@ define([
 
     return {
         config: config,
-        localforage: localforage,
         showVersionInfo: showVersionInfo,
         initDefaultBootboxConfig: initDefaultBootboxConfig,
         getCurrentTriggerDelay: getCurrentTriggerDelay,
@@ -1769,6 +1821,7 @@ define([
         showNotify: showNotify,
         stopTabBlink: stopTabBlink,
         getLogInfo: getLogInfo,
+        ajaxSetup: ajaxSetup,
         isXHRAborted: isXHRAborted,
         getMapModule: getMapModule,
         getSystemEffectData: getSystemEffectData,
@@ -1797,6 +1850,7 @@ define([
         convertDateToString: convertDateToString,
         getOpenDialogs: getOpenDialogs,
         formatPrice: formatPrice,
+        getLocalStorage: getLocalStorage,
         getDocumentPath: getDocumentPath,
         redirect: redirect,
         logout: logout

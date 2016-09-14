@@ -212,12 +212,12 @@ class CharacterLogModel extends BasicModel {
             ( $activeCharacter = $controller->getCharacter() ) &&
             ( $activeCharacter->_id === $this->characterId->_id )
         ){
-            $prevSystemId = (int)$f3->get( User::SESSION_KEY_CHARACTER_PREV_SYSTEM_ID);
+            $prevSystemId = (int)$f3->get( User::SESSION_KEY_CHARACTERS_PREV_SYSTEM_ID);
 
             if($prevSystemId === 0){
-                $f3->set( User::SESSION_KEY_CHARACTER_PREV_SYSTEM_ID, $systemId);
+                $f3->set( User::SESSION_KEY_CHARACTERS_PREV_SYSTEM_ID, $systemId);
             }else{
-                $f3->set( User::SESSION_KEY_CHARACTER_PREV_SYSTEM_ID, (int)$this->systemId);
+                $f3->set( User::SESSION_KEY_CHARACTERS_PREV_SYSTEM_ID, (int)$this->systemId);
             }
         }
     }
