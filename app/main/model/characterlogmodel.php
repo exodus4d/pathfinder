@@ -8,8 +8,8 @@
 
 namespace Model;
 
-use Controller\Api\User;
-use Controller\Controller;
+use Controller\Api\User as User;
+use Controller\Controller as Controller;
 use DB\SQL\Schema;
 
 class CharacterLogModel extends BasicModel {
@@ -192,6 +192,10 @@ class CharacterLogModel extends BasicModel {
         return $logData;
     }
 
+    /**
+     * @param int $systemId
+     * @return int
+     */
     public function set_systemId($systemId){
         if($systemId > 0){
             $this->updateCharacterSessionLocation($systemId);
@@ -205,20 +209,21 @@ class CharacterLogModel extends BasicModel {
      */
     protected function updateCharacterSessionLocation($systemId){
         $controller = new Controller();
-        $f3 = $this->getF3();
-        $systemId = (int)$systemId;
 
         if(
-            ( $activeCharacter = $controller->getCharacter() ) &&
-            ( $activeCharacter->_id === $this->characterId->_id )
+            !empty($sessionCharacter = $controller->getSessionCharacterData()) &&
+            $sessionCharacter['ID'] === $this->get('characterId', true)
         ){
-            $prevSystemId = (int)$f3->get( User::SESSION_KEY_CHARACTERS_PREV_SYSTEM_ID);
+            $prevSystemId = (int)$sessionCharacter['PREV_SYSTEM_ID'];
 
             if($prevSystemId === 0){
-                $f3->set( User::SESSION_KEY_CHARACTERS_PREV_SYSTEM_ID, $systemId);
+                $sessionCharacter['PREV_SYSTEM_ID'] = (int)$systemId;
             }else{
-                $f3->set( User::SESSION_KEY_CHARACTERS_PREV_SYSTEM_ID, (int)$this->systemId);
+                $sessionCharacter['PREV_SYSTEM_ID'] = $this->systemId;
             }
+
+            $sessionCharacters = CharacterModel::mergeSessionCharacterData([$sessionCharacter]);
+            $this->getF3()->set(User::SESSION_KEY_CHARACTERS, $sessionCharacters);
         }
     }
 

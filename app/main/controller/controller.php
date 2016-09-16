@@ -319,62 +319,38 @@ class Controller {
 
     /**
      * get current character data from session
+     * ->
      * @return array
      */
-    protected function getSessionCharacterData(){
+    public function getSessionCharacterData(){
         $data = [];
-        $currentSessionCharacters = (array)$this->getF3()->get(Api\User::SESSION_KEY_CHARACTERS);
-        $requestedCharacterId = 0;
 
-        // get all characterData from currently active characters
-        if($this->getF3()->get('AJAX')){
-            // Ajax request -> get characterId from Header (if already available!)
-            $header = $this->getRequestHeaders();
-            $requestedCharacterId = (int)$header['Pf-Character'];
+        if($user = $this->getUser()){
+            $requestedCharacterId = 0;
 
-            if(
-                $requestedCharacterId > 0 &&
-                (int)$this->getF3()->get(Api\User::SESSION_KEY_TEMP_CHARACTER_ID) === $requestedCharacterId
-            ){
-                // characterId is available in Javascript
-                // -> clear temp characterId for next character login/switch
-                $this->getF3()->clear(Api\User::SESSION_KEY_TEMP_CHARACTER_ID);
-            }
-        }
+            // get all characterData from currently active characters
+            if($this->getF3()->get('AJAX')){
+                // Ajax request -> get characterId from Header (if already available!)
+                $header = $this->getRequestHeaders();
+                $requestedCharacterId = (int)$header['Pf-Character'];
 
-        if($requestedCharacterId <= 0){
-            // Ajax BUT characterID not yet set as HTTP header
-            // OR non Ajax -> get characterId from temp session (e.g. from HTTP redirect)
-            $requestedCharacterId = (int)$this->getF3()->get(Api\User::SESSION_KEY_TEMP_CHARACTER_ID);
-        }
-
-        if($requestedCharacterId > 0){
-            // search for session character data
-            foreach($currentSessionCharacters as $characterData){
-                if($requestedCharacterId === (int)$characterData['ID']){
-                    $data = $characterData;
-                    break;
+                if(
+                    $requestedCharacterId > 0 &&
+                    (int)$this->getF3()->get(Api\User::SESSION_KEY_TEMP_CHARACTER_ID) === $requestedCharacterId
+                ){
+                    // requested characterId is "now" available on the client  (Javascript)
+                    // -> clear temp characterId for next character login/switch
+                    $this->getF3()->clear(Api\User::SESSION_KEY_TEMP_CHARACTER_ID);
                 }
             }
-        }elseif( !empty($currentSessionCharacters) ){
-            // no character was requested ($requestedCharacterId = 0) AND session characters were found
-            // -> get first matched character (e.g. user open browser tab)
-            $data = $currentSessionCharacters[0];
-        }
 
-        if( !empty($data) ){
-            // check if character still exists on DB (e.g. was manually removed in the meantime)
-            // -> This should NEVER happen just for security and "local development"
-            $character = Model\BasicModel::getNew('CharacterModel');
-            $character->getById( (int)$data['ID']);
-
-            if(
-                $character->dry() ||
-                !$character->hasUserCharacter()
-            ){
-                // character data is invalid!
-                $data = [];
+            if($requestedCharacterId <= 0){
+                // Ajax BUT characterID not yet set as HTTP header
+                // OR non Ajax -> get characterId from temp session (e.g. from HTTP redirect)
+                $requestedCharacterId = (int)$this->getF3()->get(Api\User::SESSION_KEY_TEMP_CHARACTER_ID);
             }
+
+            $data = $user->getSessionCharacterData($requestedCharacterId);
         }
 
         return $data;

@@ -10,8 +10,8 @@ namespace Model;
 
 use Controller;
 use Controller\Ccp\Sso as Sso;
+use Controller\Api\User as User;
 use DB\SQL\Schema;
-use Data\Mapper as Mapper;
 
 class CharacterModel extends BasicModel {
 
@@ -525,6 +525,31 @@ class CharacterModel extends BasicModel {
                 $characterAuthentication->erase();
             }
         }
+    }
+
+    /**
+     * merges two multidimensional characterSession arrays by checking characterID
+     * @param array $characterDataBase
+     * @return array
+     */
+    static function mergeSessionCharacterData(array $characterDataBase = []){
+        $addData = [];
+        // get current session characters to be merged with
+        $characterData = (array)self::getF3()->get(User::SESSION_KEY_CHARACTERS);
+
+        foreach($characterDataBase as $i => $baseData){
+            foreach($characterData as $data){
+                if((int)$baseData['ID'] === (int)$data['ID']){
+                    // overwrite static data -> should NEVER change on merge!
+                    $characterDataBase[$i]['NAME'] = $data['NAME'];
+                    $characterDataBase[$i]['TIME'] = $data['TIME'];
+                }else{
+                    $addData[] = $data;
+                }
+            }
+        }
+
+        return array_merge($characterDataBase, $addData);
     }
 
 } 

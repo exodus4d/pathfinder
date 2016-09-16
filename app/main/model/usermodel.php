@@ -10,7 +10,7 @@ namespace Model;
 
 use DB\SQL\Schema;
 use Controller;
-use Controller\Api;
+use Controller\Api\User as User;
 use Exception;
 
 class UserModel extends BasicModel {
@@ -150,6 +150,61 @@ class UserModel extends BasicModel {
      */
     public function getByName($name){
         return $this->getByForeignKey('name', $name, [], 0);
+    }
+
+    /**
+     * get current character data from session
+     * -> if §characterID == 0 -> get first character data (random)
+     * @param int $characterId
+     * @param bool $objectCheck
+     * @return array
+     */
+    public function getSessionCharacterData($characterId = 0, $objectCheck = true){
+        $data = [];
+        $characterId = (int)$characterId;
+        $currentSessionUser = (array)$this->getF3()->get(User::SESSION_KEY_USER);
+
+        if($this->_id === $currentSessionUser['ID']){
+            // user matches session data
+            $sessionCharacters = (array)$this->getF3()->get(User::SESSION_KEY_CHARACTERS);
+
+            if($characterId > 0){
+                // search for specific characterData
+                foreach($sessionCharacters as $characterData){
+                    if($characterId === (int)$characterData['ID']){
+                        $data = $characterData;
+                        break;
+                    }
+                }
+            }elseif( !empty($sessionCharacters) ){
+                // no character was requested ($requestedCharacterId = 0) AND session characters were found
+                // -> get first matched character (e.g. user open browser tab)
+                $data = $sessionCharacters[0];
+            }
+        }
+
+        if(
+            $objectCheck === true &&
+            !empty($data)
+        ){
+            // check if character still exists on DB (e.g. was manually removed in the meantime)
+            // -> This should NEVER happen just for security and "local development"
+            /**
+             * @var $character CharacterModel
+             */
+            $character = BasicModel::getNew('CharacterModel');
+            $character->getById( (int)$data['ID']);
+
+            if(
+                $character->dry() ||
+                !$character->hasUserCharacter()
+            ){
+                // character data is invalid!
+                $data = [];
+            }
+        }
+
+        return $data;
     }
 
     /**

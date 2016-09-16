@@ -44,29 +44,6 @@ class User extends Controller\Controller{
     private static $captchaReason = [self::SESSION_CAPTCHA_ACCOUNT_UPDATE, self::SESSION_CAPTCHA_ACCOUNT_DELETE];
 
     /**
-     * merges two multidimensional characterSession arrays by checking characterID
-     * @param array $characterDataBase
-     * @param array $characterData
-     * @return array
-     */
-    private function mergeSessionCharacterData($characterDataBase = [], $characterData = []){
-        $addData = [];
-        foreach($characterDataBase as $i => $baseData){
-            foreach($characterData as $data){
-                if((int)$baseData['ID'] === (int)$data['ID']){
-                    // overwrite changes
-                    $characterDataBase[$i]['NAME'] = $data['NAME'];
-                    $characterDataBase[$i]['TIME'] = $data['TIME'];
-                }else{
-                    $addData[] = $data;
-                }
-            }
-        }
-
-        return array_merge($characterDataBase, $addData);
-    }
-
-    /**
      * login a valid character
      * @param Model\CharacterModel $characterModel
      * @return bool
@@ -99,10 +76,7 @@ class User extends Controller\Controller{
                 ]);
             }else{
                 // user has NOT changed -----------------------------------------------------------
-                // -> get current session characters
-                $currentSessionCharacters = (array)$this->f3->get(self::SESSION_KEY_CHARACTERS);
-
-                $sessionCharacters = $this->mergeSessionCharacterData($sessionCharacters, $currentSessionCharacters);
+                $sessionCharacters = $characterModel::mergeSessionCharacterData($sessionCharacters);
             }
 
             $this->f3->set(self::SESSION_KEY_CHARACTERS, $sessionCharacters);
