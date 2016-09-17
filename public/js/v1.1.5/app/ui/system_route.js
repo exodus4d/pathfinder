@@ -151,11 +151,12 @@ define([
             mapIds: (rowData.hasOwnProperty('mapIds')) ? rowData.mapIds : [],
             systemFromData: (rowData.hasOwnProperty('systemFromData')) ? rowData.systemFromData : {},
             systemToData: (rowData.hasOwnProperty('systemToData')) ? rowData.systemToData : {},
-            stargates: (rowData.hasOwnProperty('stargates')) ? rowData.stargates : 1,
-            jumpbridges: (rowData.hasOwnProperty('jumpbridges')) ? rowData.jumpbridges : 1,
-            wormholes: (rowData.hasOwnProperty('wormholes')) ? rowData.wormholes : 1,
-            wormholesReduced: (rowData.hasOwnProperty('wormholesReduced')) ? rowData.wormholesReduced : 1,
-            wormholesCritical: (rowData.hasOwnProperty('wormholesCritical')) ? rowData.wormholesCritical : 1
+            stargates: (rowData.hasOwnProperty('stargates')) ? rowData.stargates | 0 : 1,
+            jumpbridges: (rowData.hasOwnProperty('jumpbridges')) ? rowData.jumpbridges | 0 : 1,
+            wormholes: (rowData.hasOwnProperty('wormholes')) ? rowData.wormholes | 0 : 1,
+            wormholesReduced: (rowData.hasOwnProperty('wormholesReduced')) ? rowData.wormholesReduced | 0 : 1,
+            wormholesCritical: (rowData.hasOwnProperty('wormholesCritical')) ? rowData.wormholesCritical | 0 : 1,
+            wormholesEOL: (rowData.hasOwnProperty('wormholesEOL')) ? rowData.wormholesEOL | 0 : 1
         };
     };
 
@@ -243,7 +244,8 @@ define([
                                         jumpbridges: routeDialogData.hasOwnProperty('jumpbridges') ? parseInt( routeDialogData.jumpbridges ) : 0,
                                         wormholes: routeDialogData.hasOwnProperty('wormholes') ? parseInt( routeDialogData.wormholes ) : 0,
                                         wormholesReduced: routeDialogData.hasOwnProperty('wormholesReduced') ? parseInt( routeDialogData.wormholesReduced ) : 0,
-                                        wormholesCritical: routeDialogData.hasOwnProperty('wormholesCritical') ? parseInt( routeDialogData.wormholesCritical ) : 0
+                                        wormholesCritical: routeDialogData.hasOwnProperty('wormholesCritical') ? parseInt( routeDialogData.wormholesCritical ) : 0,
+                                        wormholesEOL: routeDialogData.hasOwnProperty('wormholesEOL') ? parseInt( routeDialogData.wormholesEOL ) : 0
                                     }]
                                 };
 
@@ -386,11 +388,13 @@ define([
         var wormholeCheckbox = routeDialog.find('input[type="checkbox"][name="wormholes"]');
         var wormholeReducedCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesReduced"]');
         var wormholeCriticalCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesCritical"]');
+        var wormholeEolCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesEOL"]');
 
         // store current "checked" state for each box ---------------------------------------------
         var storeCheckboxStatus = function(){
             wormholeReducedCheckbox.data('selectState', wormholeReducedCheckbox.prop('checked'));
             wormholeCriticalCheckbox.data('selectState', wormholeCriticalCheckbox.prop('checked'));
+            wormholeEolCheckbox.data('selectState', wormholeEolCheckbox.prop('checked'));
         };
 
         // on wormhole checkbox change ------------------------------------------------------------
@@ -399,9 +403,11 @@ define([
             if( $(this).is(':checked') ){
                 wormholeReducedCheckbox.prop('disabled', false);
                 wormholeCriticalCheckbox.prop('disabled', false);
+                wormholeEolCheckbox.prop('disabled', false);
 
                 wormholeReducedCheckbox.prop('checked', wormholeReducedCheckbox.data('selectState'));
                 wormholeCriticalCheckbox.prop('checked', wormholeCriticalCheckbox.data('selectState'));
+                wormholeEolCheckbox.prop('checked', wormholeEolCheckbox.data('selectState'));
             }else{
                 storeCheckboxStatus();
 
@@ -409,6 +415,8 @@ define([
                 wormholeReducedCheckbox.prop('disabled', true);
                 wormholeCriticalCheckbox.prop('checked', false);
                 wormholeCriticalCheckbox.prop('disabled', true);
+                wormholeEolCheckbox.prop('checked', false);
+                wormholeEolCheckbox.prop('disabled', true);
             }
         }.bind(wormholeCheckbox);
 
@@ -473,6 +481,7 @@ define([
             wormholes: routeData.wormholes,
             wormholesReduced: routeData.wormholesReduced,
             wormholesCritical: routeData.wormholesCritical,
+            wormholesEOL: routeData.wormholesEOL,
             reload: {
                 button: reloadButton
             },
@@ -679,7 +688,8 @@ define([
                                     jumpbridges: rowData.jumpbridges ? 1 : 0,
                                     wormholes: rowData.wormholes ? 1 : 0,
                                     wormholesReduced: rowData.wormholesReduced ? 1 : 0,
-                                    wormholesCritical: rowData.wormholesCritical ? 1 : 0
+                                    wormholesCritical: rowData.wormholesCritical ? 1 : 0,
+                                    wormholesEOL: rowData.wormholesEOL ? 1 : 0
                                 }]
                             };
 

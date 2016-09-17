@@ -119,6 +119,7 @@ class Route extends \Controller\AccessController {
             $whereQuery = "";
             $includeScopes = [];
             $includeTypes = [];
+            $includeEOL = true;
 
             if( $filterData['stargates'] === true){
                 // include "stargates" for search
@@ -146,6 +147,10 @@ class Route extends \Controller\AccessController {
                 if( $filterData['wormholesCritical'] === true ){
                     $includeTypes[] = 'wh_critical';
                 }
+
+                if( $filterData['wormholesEOL'] === false ){
+                    $includeEOL = false;
+                }
             }
 
             // search connections -------------------------------------------------------
@@ -157,6 +162,9 @@ class Route extends \Controller\AccessController {
                     $whereQuery .= " `connection`.`type` REGEXP '" . implode("|", $includeTypes) . "' AND ";
                 }
 
+                if(!$includeEOL){
+                    $whereQuery .= " `connection`.`eolUpdated` IS NULL AND ";
+                }
 
                 $query = "SELECT
                         `system_src`.`regionId` regionId,
@@ -521,7 +529,8 @@ class Route extends \Controller\AccessController {
                     'jumpbridges' => (bool) $routeData['jumpbridges'],
                     'wormholes' => (bool) $routeData['wormholes'],
                     'wormholesReduced' => (bool) $routeData['wormholesReduced'],
-                    'wormholesCritical' => (bool) $routeData['wormholesCritical']
+                    'wormholesCritical' => (bool) $routeData['wormholesCritical'],
+                    'wormholesEOL' => (bool) $routeData['wormholesEOL']
                 ];
 
                 $returnRoutData = [
