@@ -19,8 +19,10 @@ class Controller {
     const COOKIE_NAME_STATE                         = 'cookie';
     const COOKIE_PREFIX_CHARACTER                   = 'char';
 
-    const LOG_UNAUTHORIZED                          = 'ip: [%45s], User-Agent: [%s]';
-    const ERROR_SESSION_SUSPECT                     = 'Suspect id: [%45s], ip: [%45s], new ip: [%45s], User-Agent: %s ';
+    // log text
+    const LOG_UNAUTHORIZED                          = 'User-Agent: [%s]';
+    const ERROR_SESSION_SUSPECT                     = 'Suspect id: [%45s], ip: [%45s], new ip: [%45s], User-Agent: [%s]';
+
     /**
      * @var \Base
      */
@@ -282,7 +284,7 @@ class Controller {
                                 // make sure character data is up2date!
                                 // -> this is not the case if e.g. userCharacters was removed "ownerHash" changed...
                                 $character = $characterAuth->rel('characterId');
-                                $character->getById($characterAuth->characterId->_id);
+                                $character->getById( $characterAuth->get('characterId', true) );
 
                                 // check if character still has user (is not the case of "ownerHash" changed
                                 // check if character is still authorized to log in (e.g. corp/ally or config has changed
@@ -620,7 +622,6 @@ class Controller {
             case 403: // Unauthorized
                 self::getLogger('UNAUTHORIZED')->write(sprintf(
                     self::LOG_UNAUTHORIZED,
-                    $f3->get('IP'),
                     $f3->get('AGENT')
                 ));
                 $halt = true;

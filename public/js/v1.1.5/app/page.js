@@ -619,9 +619,15 @@ define([
                     logout: {
                         label: '<i class="fa fa-fw fa-refresh"></i> restart',
                         className: ['btn-primary'].join(' '),
-                        callback: function() {
-
-                            $(document).trigger('pf:menuLogout');
+                        callback: function(){
+                            // check if error was 5xx -> reload page
+                            // -> else try to logout -> ajax request
+                            if(data.status >= 500 && data.status < 600){
+                                // redirect to login
+                                window.location = '../';
+                            }else{
+                                $(document).trigger('pf:menuLogout');
+                            }
                         }
                     }
                 },
@@ -642,7 +648,7 @@ define([
                 data.error &&
                 data.error.length
             ){
-                for(var i = 0; i < data.error.length; i++){
+                for(let i = 0; i < data.error.length; i++){
                     options.content.textSmaller.push(data.error[i].message);
                 }
             }

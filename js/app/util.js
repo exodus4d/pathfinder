@@ -1036,19 +1036,23 @@ define([
      */
     var ajaxSetup = function(){
         $.ajaxSetup({
-            beforeSend: function(xhr) {
-                // add current character data to ANY XHR request (HTTP HEADER)
-                // -> This helps to identify multiple characters on multiple browser tabs
-                var userData = getCurrentUserData();
-                var currentCharacterId = 0;
-                if(
-                    userData &&
-                    userData.character
-                ){
-                    currentCharacterId = parseInt( userData.character.id );
-                }
+            beforeSend: function(xhr, settings) {
+                // Add custom application headers on "same origin" requests only!
+                // -> Otherwise a "preflight" request is made, which will "probably" fail
+                if(settings.crossDomain === false){
+                    // add current character data to ANY XHR request (HTTP HEADER)
+                    // -> This helps to identify multiple characters on multiple browser tabs
+                    var userData = getCurrentUserData();
+                    var currentCharacterId = 0;
+                    if(
+                        userData &&
+                        userData.character
+                    ){
+                        currentCharacterId = parseInt( userData.character.id );
+                    }
 
-                xhr.setRequestHeader('Pf-Character', currentCharacterId);
+                    xhr.setRequestHeader('Pf-Character', currentCharacterId);
+                }
             }
         });
     };

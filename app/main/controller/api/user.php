@@ -34,7 +34,7 @@ class User extends Controller\Controller{
 
     // log text
     const LOG_LOGGED_IN                             = 'userId: [%10s], userName: [%30s], charId: [%20s], charName: %s';
-    const LOG_DELETE_ACCOUNT                        = 'userId: [%10s], userName: [%30s], ip: [%45s]';
+    const LOG_DELETE_ACCOUNT                        = 'userId: [%10s], userName: [%30s]';
 
 
     /**
@@ -357,7 +357,7 @@ class User extends Controller\Controller{
                 if($status){
                     // save log
                     self::getLogger('DELETE_ACCOUNT')->write(
-                        sprintf(self::LOG_DELETE_ACCOUNT, $user->id, $user->name, $f3->get('IP'))
+                        sprintf(self::LOG_DELETE_ACCOUNT, $user->id, $user->name)
                     );
 
                     // remove user

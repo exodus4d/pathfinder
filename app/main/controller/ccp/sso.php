@@ -36,9 +36,6 @@ class Sso extends Api\User{
     const SESSION_KEY_SSO_STATE                     = 'SESSION.SSO.STATE';
     const SESSION_KEY_SSO_FROM_MAP                  = 'SESSION.SSO.FROM_MAP';
 
-    // cache keys
-    const CACHE_KEY_LOCATION_DATA                   = 'CACHED.LOCATION.%s';
-
     // error messages
     const ERROR_CCP_SSO_URL                         = 'Invalid "ENVIRONMENT.[ENVIRONMENT].SSO_CCP_URL" url. %s';
     const ERROR_CCP_CREST_URL                       = 'Invalid "ENVIRONMENT.[ENVIRONMENT].CCP_CREST_URL" url. %s';
@@ -631,49 +628,36 @@ class Sso extends Api\User{
      * get current character location data (result is cached!)
      * -> solarSystem data where character is currently active
      * @param $accessToken
-     * @param int $ttl
      * @param array $additionalOptions
-     * @return array|mixed
+     * @return array
      */
-    public function getCharacterLocationData($accessToken, $ttl = 5, $additionalOptions = []){
+    public function getCharacterLocationData($accessToken, $additionalOptions = []){
         // null == CREST call failed (e.g. timeout)
         $locationData = [
             'timeout' => false
         ];
 
-        // in addition to the cURL caching (based on cache-control headers,
-        // the final location data is cached additionally -> speed up
-        $cacheKey = sprintf(self::CACHE_KEY_LOCATION_DATA, 'TOKEN_' . hash('md5', $accessToken));
+        $endpoints = $this->getEndpoints($accessToken, $additionalOptions);
 
-        if( !$this->getF3()->exists($cacheKey) ){
-            $endpoints = $this->getEndpoints($accessToken, $additionalOptions);
+        $additionalOptions['accept'] = 'application/vnd.ccp.eve.CharacterLocation-v1+json';
+        $endpoint = $this->walkEndpoint($endpoints, $accessToken, [
+            'decode',
+            'character',
+            'location'
+        ], $additionalOptions);
 
-            $additionalOptions['accept'] = 'application/vnd.ccp.eve.CharacterLocation-v1+json';
-            $endpoint = $this->walkEndpoint($endpoints, $accessToken, [
-                'decode',
-                'character',
-                'location'
-            ], $additionalOptions);
-
-            if( !is_null($endpoint) ){
-                // request succeeded (e.g. no timeout)
-
-                if(isset($endpoint['solarSystem'])){
-                    $locationData['system'] = (new Mapper\CrestSystem($endpoint['solarSystem']))->getData();
-                }
-
-                if(isset($endpoint['station'])){
-                    $locationData['station'] = (new Mapper\CrestStation($endpoint['station']))->getData();
-                }
-
-                $this->getF3()->set($cacheKey, $locationData, $ttl);
-            }else{
-                // timeout
-                $locationData['timeout'] = true;
+        if( !is_null($endpoint) ){
+            // request succeeded (e.g. no timeout)
+            if(isset($endpoint['solarSystem'])){
+                $locationData['system'] = (new Mapper\CrestSystem($endpoint['solarSystem']))->getData();
             }
 
+            if(isset($endpoint['station'])){
+                $locationData['station'] = (new Mapper\CrestStation($endpoint['station']))->getData();
+            }
         }else{
-            $locationData = $this->getF3()->get($cacheKey);
+            // timeout
+            $locationData['timeout'] = true;
         }
 
         return $locationData;

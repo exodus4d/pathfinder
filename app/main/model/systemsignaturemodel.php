@@ -91,9 +91,7 @@ class SystemSignatureModel extends BasicModel {
      * @param $signatureData
      */
     public function setData($signatureData){
-
         foreach((array)$signatureData as $key => $value){
-
             if(!is_array($value)){
                 if($this->exists($key)){
                     $this->$key = $value;

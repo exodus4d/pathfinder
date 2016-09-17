@@ -8,7 +8,6 @@
 
 namespace Model;
 
-use Controller;
 use Controller\Ccp\Sso as Sso;
 use Controller\Api\User as User;
 use DB\SQL\Schema;
@@ -316,7 +315,7 @@ class CharacterModel extends BasicModel {
             if(
                 !empty($whitelistCorporations) &&
                 $this->hasCorporation() &&
-                in_array($this->getCorporation()->_id, $whitelistCorporations)
+                in_array($this->get('corporationId', true), $whitelistCorporations)
             ){
                 $isAuthorized = true;
             }
@@ -326,7 +325,7 @@ class CharacterModel extends BasicModel {
                 !$isAuthorized &&
                 !empty($whitelistAlliance) &&
                 $this->hasAlliance() &&
-                in_array($this->getAlliance()->_id, $whitelistAlliance)
+                in_array($this->get('allianceId', true), $whitelistAlliance)
             ){
                 $isAuthorized = true;
             }
@@ -344,7 +343,7 @@ class CharacterModel extends BasicModel {
     public function updateLog($additionalOptions = []){
         // Try to pull data from CREST
         $ssoController = new Sso();
-        $logData = $ssoController->getCharacterLocationData($this->getAccessToken(), 5, $additionalOptions);
+        $logData = $ssoController->getCharacterLocationData($this->getAccessToken(), $additionalOptions);
 
         if($logData['timeout'] === false){
             if( empty($logData['system']) ){
@@ -496,7 +495,7 @@ class CharacterModel extends BasicModel {
             $maps = array_merge($maps,  $corporation->getMaps());
         }
 
-        if($this->characterMaps){
+        if( is_object($this->characterMaps) ){
             $mapCountPrivate = 0;
             foreach($this->characterMaps as $characterMap){
                 if(
@@ -517,7 +516,7 @@ class CharacterModel extends BasicModel {
      * -> clear authentication data
      */
     public function logout(){
-        if($this->characterAuthentications){
+        if( is_object($this->characterAuthentications) ){
             foreach($this->characterAuthentications as $characterAuthentication){
                 /**
                  * @var $characterAuthentication CharacterAuthenticationModel

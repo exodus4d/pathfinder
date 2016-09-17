@@ -139,7 +139,6 @@ class UserModel extends BasicModel {
      */
     public function hasUserCharacters(){
         $this->filter('userCharacters', ['active = ?', 1]);
-
         return is_object($this->userCharacters);
     }
 
@@ -254,8 +253,9 @@ class UserModel extends BasicModel {
      * @return CharacterModel[]
      */
     public function getCharacters(){
-        $userCharacters = $this->getUserCharacters();
         $characters = [];
+        $userCharacters = $this->getUserCharacters();
+
         foreach($userCharacters as $userCharacter){
             /**
              * @var $userCharacter UserCharacterModel
@@ -276,9 +276,9 @@ class UserModel extends BasicModel {
      * @return CharacterModel[]
      */
     public function getActiveCharacters(){
+        $activeCharacters = [];
         $userCharacters = $this->getUserCharacters();
 
-        $activeCharacters = [];
         foreach($userCharacters as $userCharacter){
             /**
              * @var $userCharacter UserCharacterModel
