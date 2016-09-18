@@ -78,7 +78,7 @@ define([
                     }else{
                         clearInterval( element.data('interval') );
                     }
-                }, 100);
+                }, 500);
 
                 element.data('interval', refreshIntervalId);
             }

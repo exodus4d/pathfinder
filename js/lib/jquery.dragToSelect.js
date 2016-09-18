@@ -69,8 +69,12 @@ jQuery.fn.dragToSelect = function (conf) {
 	var realParent	= jQuery(this);
 	var parent		= realParent;
 
+	var animationFrameId;
+	var mouseIsDown = false;
+	var lastMousePosition = { x: 0, y: 0 };
+
     // deselected items
-    var deselectedItems = [];
+    var deselectedItems = $();
 
 	do {
 		if (/auto|scroll|hidden/.test(parent.css('overflow'))) {
@@ -130,9 +134,11 @@ jQuery.fn.dragToSelect = function (conf) {
 	};
 
 	// Refreshes the select box dimensions and possibly position
-	var refreshSelectBox = function (e) {
+	var refreshSelectBox = function () {
+		var refreshed = false;
+
 		if (!selectBox.is('.' + config.activeClass) || parent.is('.' + config.disabledClass)) {
-			return;
+			return refreshed;
 		}
 
         // get scroll position
@@ -147,13 +153,12 @@ jQuery.fn.dragToSelect = function (conf) {
             rightScroll  = realParent.data('scrollRight');
         }
 
-		var left		= e.pageX - parentDim.left + parent[0].scrollLeft;
-		var top			= e.pageY - parentDim.top + parent[0].scrollTop;
+		var left		= lastMousePosition.x - parentDim.left + parent[0].scrollLeft;
+		var top			= lastMousePosition.y - parentDim.top + parent[0].scrollTop;
 		var newLeft		= left;
 		var newTop		= top;
 		var tempWidth	= selectBoxOrigin.left - newLeft ;
 		var newHeight	= selectBoxOrigin.top - newTop;
-
         newLeft         = selectBoxOrigin.left - leftScroll;
         var newWidth	= left - selectBoxOrigin.left;
 
@@ -169,19 +174,28 @@ jQuery.fn.dragToSelect = function (conf) {
 			newHeight	= top - selectBoxOrigin.top;
 		}
 
-		var css = {
-			left:	newLeft + 'px', 
-			top:	newTop + 'px', 
-			width:	newWidth + 'px', 
-			height:	newHeight + 'px'
-		};
-		selectBox.css(css);
+		// check if dimension has changed -> save performance
+		var dimensionHash = [newWidth, newHeight].join('_');
 
-		config.onRefresh();
+		if(selectBox.data('dimension-hash') !== dimensionHash){
+			selectBox.data('dimension-hash', dimensionHash);
+			var css = {
+				left:	newLeft + 'px',
+				top:	newTop + 'px',
+				width:	newWidth + 'px',
+				height:	newHeight + 'px'
+			};
+
+			selectBox.css(css);
+			config.onRefresh();
+			refreshed = true;
+		}
+
+		return refreshed;
 	};
 
 	// Hides the select box
-	var hideSelectBox = function (e) {
+	var hideSelectBox = function () {
 		if (!selectBox.is('.' + config.activeClass) || parent.is('.' + config.disabledClass)) {
 			return;
 		}
@@ -229,9 +243,6 @@ jQuery.fn.dragToSelect = function (conf) {
 			height:	selectBox.height()
 		};
 
-        // reset deselected item array
-        deselectedItems = [];
-
 		selectables.each(function (i) {
 			var el			= $(this);
 			var elOffset	= el.offset();
@@ -244,13 +255,14 @@ jQuery.fn.dragToSelect = function (conf) {
 
 			if (percentCovered(selectBoxDim, elDim) > config.percentCovered) {
 				el.addClass(config.selectedClass);
+				// remove element from "deselected" elements (e.g on add -> remove -> add scenario)
+				deselectedItems = deselectedItems.not(el);
 			}else {
 
                 if(el.hasClass(config.selectedClass)){
                     el.removeClass(config.selectedClass);
-                    deselectedItems.push(el);
+					deselectedItems = deselectedItems.add(el);
                 }
-
 			}
 		});
 
@@ -301,80 +313,64 @@ jQuery.fn.dragToSelect = function (conf) {
 		return 0;
 	};
 
-	// Do the right stuff then return this
-	selectBox
-		.mousemove(function (e) {
+	// Event functions ----------------------------------------------------------------------------
+	var mousemoveCallback = function(){
+		if(mouseIsDown){
+			var refreshed = refreshSelectBox();
 
-			refreshSelectBox(e);
-
-			if (config.selectables && config.selectOnMove) {
-                selectElementsInRange();
-			}
-
-			if (config.autoScroll) {
-				scrollPerhaps(e);
-			}
-
-			e.preventDefault();
-		})
-		.mouseup(function(e) {
-
-            if (config.selectables) {
-                selectElementsInRange();
-			}
-
-			hideSelectBox(e);
-
-			e.preventDefault();
-		});
-
-	parent.mousedown(function (e) {
-
-            if(
-                e.which === 1 && // left mouse down
-                e.target === realParent[0] // prevent while dragging a system :)
-            ){
-
-                // Make sure user isn't clicking scrollbar (or disallow clicks far to the right actually)
-                if ((e.pageX + 20) > jQuery(document.body).width()) {
-                    return;
-                }
-
-                showSelectBox(e);
-
-                e.preventDefault();
-            }
-
-
-		});
-
-    var dragSelectMousemove = function (e) {
-
-        refreshSelectBox(e);
-
-        if (config.selectables && config.selectOnMove) {
-
-            selectElementsInRange();
-        }
-
-        if (config.autoScroll) {
-            scrollPerhaps(e);
-        }
-
-        e.preventDefault();
-    };
-    parent.mousemove( dragSelectMousemove );
-
-
-    parent.mouseup(function (e) {
-            if (config.selectables) {
+			if(refreshed && config.selectables && config.selectOnMove){
 				selectElementsInRange();
 			}
 
-			hideSelectBox(e);
+			// recursive re-call on next render
+			animationFrameId = requestAnimationFrame(mousemoveCallback);
+		}
+	}
 
-			e.preventDefault();
-		});
+	var mouseupCallback = function(){
+		if (config.selectables){
+			selectElementsInRange();
+		}
+		hideSelectBox();
+
+		// stop animation frame and "reset" to default
+		cancelAnimationFrame(animationFrameId);
+		mouseIsDown = false;
+		// reset deselected item array
+		deselectedItems = $();
+	}
+
+	// Do the right stuff then return this --------------------------------------------------------
+
+	selectBox.mousemove(function(e){
+		lastMousePosition.x = e.pageX;
+		lastMousePosition.y = e.pageY;
+		e.preventDefault();
+	}).mouseup(mouseupCallback);
+
+	parent.mousedown(function(e){
+		if (
+			e.which === 1 && // left mouse down
+			e.target === realParent[0] // prevent while dragging a system :)
+		) {
+
+			// Make sure user isn't clicking scrollbar (or disallow clicks far to the right actually)
+			if ((e.pageX + 20) > jQuery(document.body).width()) {
+				return;
+			}
+
+			showSelectBox(e);
+			mouseIsDown = true;
+			animationFrameId = requestAnimationFrame(mousemoveCallback);
+		}
+
+		e.preventDefault();
+	}).mousemove(function(e){
+		lastMousePosition.x = e.pageX;
+		lastMousePosition.y = e.pageY;
+		e.preventDefault();
+	}).mouseup(mouseupCallback);
+
 
 	// Be nice
 	return this;

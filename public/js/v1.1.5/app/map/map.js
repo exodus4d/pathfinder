@@ -2102,6 +2102,7 @@ define([
 
         // init drag-frame selection
         $(mapContainer).dragToSelect({
+            selectOnMove: true,
             selectables: '.' + config.systemClass,
             onHide: function (selectBox, deselectedSystems) {
                 var selectedSystems = $(mapContainer).getSelectedSystems();
@@ -2120,7 +2121,6 @@ define([
                 for(var j = 0; j < deselectedSystems.length; j++){
                     map.removeFromDragSelection( deselectedSystems[j] );
                 }
-
             },
             onShow: function(){
                 $(document).trigger('pf:closeMenu', [{}]);
