@@ -33,6 +33,7 @@ define([
 
         // head
         headMapTrackingId: 'pf-head-map-tracking',                              // id for "map tracking" toggle (checkbox)
+        headCharacterSwitchId: 'pf-head-character-switch',                      // id for "character switch" popover
 
         // menu
         menuButtonFullScreenId: 'pf-menu-button-fullscreen',                    // id for menu button "fullscreen"
@@ -578,6 +579,7 @@ define([
         requirejs(['text!templates/tooltip/character_switch.html', 'mustache'], function (template, Mustache) {
 
             var data = {
+                id: config.headCharacterSwitchId,
                 routes:  Init.routes,
                 userData: userData,
                 otherCharacters: $.grep( userData.characters, function( character ) {
@@ -625,12 +627,14 @@ define([
 
                         popoverElement = $(this).data('bs.popover').tip();
                         popoverElement.velocity('transition.' + easeEffect, velocityOptions);
+                        popoverElement.initTooltips();
                     }else{
                         popoverElement = $(this).data('bs.popover').tip();
                         if(popoverElement.is(':visible')){
                             popoverElement.velocity('reverse');
                         }else{
                             $(this).popover('show');
+                            popoverElement.initTooltips();
                             popoverElement.velocity('transition.' + easeEffect, velocityOptions);
                         }
                     }

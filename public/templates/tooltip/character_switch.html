@@ -1,11 +1,28 @@
-<div class="list-group">
-    {{#otherCharacters}}
-        <a class="list-group-item" href="{{routes.ssoLogin}}?characterId={{id}}">
-            <img src="https://image.eveonline.com/Character/{{id}}_32.jpg" alt="{{name}}">
-            {{name}}
-        </a>
-    {{/otherCharacters}}
-    <a class="list-group-item" target="_self" href="{{routes.ssoLogin}}?characterId=-1">
-        <i class="fa fa-user-plus fa-fw"></i>add new
-    </a>
-</div>
+<table id="{{id}}" class="table table-condensed">
+    <tbody>
+        {{#otherCharacters}}
+        <tr>
+            <td><img src="https://image.eveonline.com/Character/{{id}}_32.jpg" alt="{{name}}"></td>
+            <td>{{name}}</td>
+            <td class="text-right text-nowrap">
+                    <a class="btn btn-sm btn-default" href="{{routes.ssoLogin}}?characterId={{id}}" target="_blank" title="new tab">
+                        <i class="fa fa-fw fa-external-link"></i>
+                    </a>
+                    <a class="btn btn-sm btn-primary" href="{{routes.ssoLogin}}?characterId={{id}}" target="_self" title="switch&nbsp;character">
+                        <i class="fa fa-fw fa-exchange"></i>
+                    </a>
+            </td>
+        </tr>
+        {{/otherCharacters}}
+        <tr>
+            <td></td>
+            <td>add more</td>
+            <td class="text-right text-nowrap">
+                <a class="btn btn-sm btn-success" href="{{routes.ssoLogin}}?characterId=-1" target="_self">
+                    <i class="fa fa-fw fa-user-plus"></i>&nbsp;&nbsp;
+                    new character
+                </a>
+            </td>
+        </tr>
+    </tbody>
+</table>
