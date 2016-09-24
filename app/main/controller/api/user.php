@@ -26,8 +26,6 @@ class User extends Controller\Controller{
 
     // character specific session keys
     const SESSION_KEY_CHARACTERS                    = 'SESSION.CHARACTERS';
-    //const SESSION_KEY_CHARACTERS_PREV_SYSTEM_ID     = 'SESSION.CHARACTERS.PREV_SYSTEM_ID';
-    const SESSION_KEY_CHARACTERS_PREV_SYSTEM_ID     = 'SESSION.TEST.PREV_SYSTEM_ID';
 
     // temp login character ID (during HTTP redirects on login)
     const SESSION_KEY_TEMP_CHARACTER_ID             = 'SESSION.TEMP_CHARACTER_ID';

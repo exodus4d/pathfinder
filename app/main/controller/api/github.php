@@ -62,11 +62,18 @@ class GitHub extends Controller\Controller {
                 $md = \Markdown::instance();
                 foreach($releasesData as &$releaseData){
                     if(isset($releaseData->body)){
+                        $body = $releaseData->body;
+
+                        // remove "update information" from release text
+                        // -> keep everything until first "***" -> horizontal line
+                        if( ($pos = strpos($body, '***')) !== false){
+                            $body = substr($body, 0, $pos);
+                        }
 
                         // convert list style
-                        $body = str_replace(' - ', '* ', $releaseData->body );
+                        $body = str_replace(' - ', '* ', $body );
 
-                        $releaseData->body = $md->convert( $body );
+                        $releaseData->body = $md->convert( trim($body) );
                     }
                 }
                 $f3->set($cacheKey, $releasesData, $ttl);
