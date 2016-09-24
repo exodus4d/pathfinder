@@ -62,6 +62,20 @@
 <section id="pf-landing-login">
     <div class="container">
 
+        {* check for setup mode *}
+        <check if="{{ array_key_exists('/setup', @ROUTES) && @PATHFINDER.SHOW_SETUP_WARNING }}">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-sm-8 col-sm-offset-2">
+                        <div class="alert alert-warning" >
+                            <span class="txt-color txt-color-warning">Setup mode active</span>
+                            <small>Disable setup route in routes.ini on production environment! <a href="{{ 'setup' | alias }}">Setup</a></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </check>
+
         {* cookie characters *}
         <check if="{{ @cookieCharacters }}">
             <true>
@@ -79,20 +93,6 @@
                         </div>
                     </div>
                 </div>
-
-                {* check for setup mode *}
-                <check if="{{ array_key_exists('/setup', @ROUTES) && @PATHFINDER.SHOW_SETUP_WARNING }}">
-                    <div class="container-fluid">
-                        <div class="row">
-                            <div class="col-sm-8 col-sm-offset-2">
-                                <div class="alert alert-warning" >
-                                    <span class="txt-color txt-color-warning">Setup mode active</span>
-                                    <small>Disable setup route in routes.ini in production environment! <a href="{{ 'setup' | alias }}">Setup</a></small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </check>
 
                 <div class="row text-center pf-character-selection">
                     <repeat group="{{ @cookieCharacters }}" key="{{ @cookieName }}" value="{{ @characterData }}">

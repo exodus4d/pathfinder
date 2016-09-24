@@ -19,8 +19,10 @@ class Controller {
     const COOKIE_NAME_STATE                         = 'cookie';
     const COOKIE_PREFIX_CHARACTER                   = 'char';
 
-    const LOG_UNAUTHORIZED                          = 'ip: [%45s], User-Agent: [%s]';
-    const ERROR_SESSION_SUSPECT                     = 'Suspect id: [%45s], ip: [%45s], new ip: [%45s], User-Agent: %s ';
+    // log text
+    const LOG_UNAUTHORIZED                          = 'User-Agent: [%s]';
+    const ERROR_SESSION_SUSPECT                     = 'Suspect id: [%45s], ip: [%45s], new ip: [%45s], User-Agent: [%s]';
+
     /**
      * @var \Base
      */
@@ -282,7 +284,7 @@ class Controller {
                                 // make sure character data is up2date!
                                 // -> this is not the case if e.g. userCharacters was removed "ownerHash" changed...
                                 $character = $characterAuth->rel('characterId');
-                                $character->getById($characterAuth->characterId->_id);
+                                $character->getById( $characterAuth->get('characterId', true) );
 
                                 // check if character still has user (is not the case of "ownerHash" changed
                                 // check if character is still authorized to log in (e.g. corp/ally or config has changed
@@ -318,17 +320,57 @@ class Controller {
     }
 
     /**
-     * checks whether a user is currently logged in
+     * get current character data from session
+     * ->
+     * @return array
+     */
+    public function getSessionCharacterData(){
+        $data = [];
+
+        if($user = $this->getUser()){
+            $requestedCharacterId = 0;
+
+            // get all characterData from currently active characters
+            if($this->getF3()->get('AJAX')){
+                // Ajax request -> get characterId from Header (if already available!)
+                $header = $this->getRequestHeaders();
+                $requestedCharacterId = (int)$header['Pf-Character'];
+
+                if(
+                    $requestedCharacterId > 0 &&
+                    (int)$this->getF3()->get(Api\User::SESSION_KEY_TEMP_CHARACTER_ID) === $requestedCharacterId
+                ){
+                    // requested characterId is "now" available on the client  (Javascript)
+                    // -> clear temp characterId for next character login/switch
+                    $this->getF3()->clear(Api\User::SESSION_KEY_TEMP_CHARACTER_ID);
+                }
+            }
+
+            if($requestedCharacterId <= 0){
+                // Ajax BUT characterID not yet set as HTTP header
+                // OR non Ajax -> get characterId from temp session (e.g. from HTTP redirect)
+                $requestedCharacterId = (int)$this->getF3()->get(Api\User::SESSION_KEY_TEMP_CHARACTER_ID);
+            }
+
+            $data = $user->getSessionCharacterData($requestedCharacterId);
+        }
+
+        return $data;
+    }
+
+    /**
+     * checks whether a user/character is currently logged in
      * @param \Base $f3
      * @return bool
      */
     protected function checkLogTimer($f3){
         $loginCheck = false;
+        $characterData = $this->getSessionCharacterData();
 
-        if($f3->get(Api\User::SESSION_KEY_CHARACTER_TIME) > 0){
+        if( !empty($characterData) ){
             // check logIn time
             $logInTime = new \DateTime();
-            $logInTime->setTimestamp( $f3->get(Api\User::SESSION_KEY_CHARACTER_TIME) );
+            $logInTime->setTimestamp( (int)$characterData['TIME'] );
             $now = new \DateTime();
 
             $timeDiff = $now->diff($logInTime);
@@ -346,33 +388,64 @@ class Controller {
     }
 
     /**
-     * get current character model
+     * get current character
      * @param int $ttl
      * @return Model\CharacterModel|null
      * @throws \Exception
      */
     public function getCharacter($ttl = 0){
         $character = null;
+        $characterData = $this->getSessionCharacterData();
 
-        if( $this->getF3()->exists(Api\User::SESSION_KEY_CHARACTER_ID) ){
-            $characterId = (int)$this->getF3()->get(Api\User::SESSION_KEY_CHARACTER_ID);
-            if($characterId){
-                /**
-                 * @var $characterModel Model\CharacterModel
-                 */
-                $characterModel = Model\BasicModel::getNew('CharacterModel');
-                $characterModel->getById($characterId, $ttl);
+        if( !empty($characterData) ){
+            /**
+             * @var $characterModel Model\CharacterModel
+             */
+            $characterModel = Model\BasicModel::getNew('CharacterModel');
+            $characterModel->getById( (int)$characterData['ID'], $ttl);
 
-                if(
-                    !$characterModel->dry() &&
-                    $characterModel->hasUserCharacter()
-                ){
-                    $character = &$characterModel;
-                }
+            if(
+                !$characterModel->dry() &&
+                $characterModel->hasUserCharacter()
+            ){
+                $character = &$characterModel;
             }
         }
 
         return $character;
+    }
+
+    /**
+     * get current user
+     * @param int $ttl
+     * @return Model\UserModel|null
+     */
+    public function getUser($ttl = 0){
+        $user = null;
+
+        if( $this->getF3()->exists(Api\User::SESSION_KEY_USER_ID) ){
+            $userId = (int)$this->getF3()->get(Api\User::SESSION_KEY_USER_ID);
+            if($userId){
+                /**
+                 * @var $userModel Model\UserModel
+                 */
+                $userModel = Model\BasicModel::getNew('UserModel');
+                $userModel->getById($userId, $ttl);
+
+                if(
+                    !$userModel->dry() &&
+                    $userModel->hasUserCharacters()
+                ){
+                    $user = &$userModel;
+                }
+            }
+        }
+
+        return $user;
+    }
+
+    public function getCharacterSessionData(){
+
     }
 
     /**
@@ -384,7 +457,7 @@ class Controller {
 
         // ----------------------------------------------------------
         // delete server side cookie validation data
-        // for the current character as well
+        // for the active character
         if(
             $params['clearCookies'] === '1' &&
             ( $activeCharacter = $this->getCharacter())
@@ -549,7 +622,6 @@ class Controller {
             case 403: // Unauthorized
                 self::getLogger('UNAUTHORIZED')->write(sprintf(
                     self::LOG_UNAUTHORIZED,
-                    $f3->get('IP'),
                     $f3->get('AGENT')
                 ));
                 $halt = true;

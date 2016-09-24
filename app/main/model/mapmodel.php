@@ -288,7 +288,7 @@ class MapModel extends BasicModel {
 
     /**
      * get either all system models in this map
-     * @return array|mixed
+     * @return SystemModel[]
      */
     public function getSystems(){
         $systems = [];
@@ -310,10 +310,9 @@ class MapModel extends BasicModel {
      * @return \stdClass[]
      */
     public function getSystemData(){
-
+        $systemData = [];
         $systems  = $this->getSystems();
 
-        $systemData = [];
         foreach($systems as $system){
             /**
              * @var $system SystemModel
@@ -326,15 +325,16 @@ class MapModel extends BasicModel {
 
     /**
      * get all connections in this map
-     * @return array
+     * @return ConnectionModel[]
      */
     public function getConnections(){
+        $connections = [];
+
         $this->filter('connections', [
             'active = :active AND source > 0 AND target > 0',
             ':active' => 1
         ]);
 
-        $connections = [];
         if($this->connections){
             $connections = $this->connections;
         }
@@ -347,9 +347,9 @@ class MapModel extends BasicModel {
      * @return \stdClass[]
      */
     public function getConnectionData(){
+        $connectionData = [];
         $connections  = $this->getConnections();
 
-        $connectionData = [];
         foreach($connections as $connection){
             /**
              * @var $connection ConnectionModel
@@ -427,7 +427,6 @@ class MapModel extends BasicModel {
      * @param array $clearKeys
      */
     public function clearAccess($clearKeys = ['character', 'corporation', 'alliance']){
-
         foreach($clearKeys as $key){
             switch($key){
                 case 'character':
@@ -692,8 +691,8 @@ class MapModel extends BasicModel {
     public function searchConnection(SystemModel $sourceSystem, SystemModel $targetSystem){
         // check if both systems belong to this map
         if(
-            $sourceSystem->mapId->id === $this->id &&
-            $targetSystem->mapId->id === $this->id
+            $sourceSystem->get('mapId', true) === $this->id &&
+            $targetSystem->get('mapId', true) === $this->id
         ){
             $this->filter('connections', [
                 'active = :active AND

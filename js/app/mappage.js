@@ -19,7 +19,10 @@ define([
      * main init "map" page
      */
     $(function(){
-        // set Dialog default config
+        // set default AJAX config
+        Util.ajaxSetup();
+
+        // set default dialog config
         Util.initDefaultBootboxConfig();
 
         // load page
@@ -27,11 +30,6 @@ define([
 
         // show app information in browser console
         Util.showVersionInfo();
-
-        // init local storage
-        Util.localforage.config({
-            name: 'Pathfinder local storage'
-        });
 
         // init logging
         Logging.init();
@@ -72,7 +70,7 @@ define([
         }).fail(function( jqXHR, status, error) {
             var reason = status + ' ' + jqXHR.status + ': ' + error;
 
-            $(document).trigger('pf:shutdown', {reason: reason});
+            $(document).trigger('pf:shutdown', {status: jqXHR.status, reason: reason});
         });
 
         /**
@@ -284,7 +282,8 @@ define([
                 var reason = status + ' ' + jqXHR.status + ': ' + error;
                 var errorData = [];
 
-                if(jqXHR.responseText){
+                if(jqXHR.responseJSON){
+                    // handle JSON
                     var errorObj = $.parseJSON(jqXHR.responseText);
 
                     if(
@@ -293,9 +292,15 @@ define([
                     ){
                         errorData = errorObj.error;
                     }
+                }else{
+                    // handle HTML
+                    errorData.push({
+                        type: 'error',
+                        message: 'Please restart and reload this page'
+                    });
                 }
 
-                $(document).trigger('pf:shutdown', {reason: reason, error: errorData});
+                $(document).trigger('pf:shutdown', {status: jqXHR.status, reason: reason, error: errorData});
 
             };
 

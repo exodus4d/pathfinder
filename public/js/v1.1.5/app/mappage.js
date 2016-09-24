@@ -1294,7 +1294,13 @@ define('config/signature_type',['jquery'], function($) {
                     5: 'Ordinary Perimeter Reservoir' //*
                 },
                 5: {    // Wormhole
-                    1: 'F135 - Thera'
+                    1: 'Z647 - C1',
+                    2: 'D382 - C2',
+                    3: 'O477 - C3',
+                    4: 'Y683 - C4',
+                    5: 'N062 - C5',
+                    6: 'R474 - C6',
+                    7: 'F135 - Thera'
                 },
                 6: {    // ORE
                     1: 'Ordinary Perimeter Deposit', //*
@@ -1945,6 +1951,7 @@ define('app/util',[
 
         // head
         headMapTrackingId: 'pf-head-map-tracking',                              // id for "map tracking" toggle (checkbox)
+        headCharacterSwitchId: 'pf-head-character-switch',                      // id for "character switch" popover
 
         // menu
         menuButtonFullScreenId: 'pf-menu-button-fullscreen',                    // id for menu button "fullscreen"
@@ -1975,6 +1982,8 @@ define('app/util',[
     var stopTimerCache = {};                                                    // cache for stopwatch timer
 
     var animationTimerCache = {};                                               // cache for table row animation timeout
+
+    var localStorage;                                                           // cache for "localForage" singleton
 
     /*
      *  ===========================================================================================================
@@ -2488,6 +2497,7 @@ define('app/util',[
         requirejs(['text!templates/tooltip/character_switch.html', 'mustache'], function (template, Mustache) {
 
             var data = {
+                id: config.headCharacterSwitchId,
                 routes:  Init.routes,
                 userData: userData,
                 otherCharacters: $.grep( userData.characters, function( character ) {
@@ -2501,40 +2511,50 @@ define('app/util',[
             return elements.each(function() {
                 var element = $(this);
 
-                // destroy "popover" and remove "click" event for animation
-                element.popover('destroy').off();
-
-                // init popover and add specific class to it (for styling)
-                element.popover({
-                    html: true,
-                    title: 'select character',
-                    trigger: 'click',
-                    placement: 'bottom',
-                    container: 'body',
-                    content: content,
-                    animation: false
-                }).data('bs.popover').tip().addClass('pf-popover');
+                // check if tooltip already exists -> remove it
+                if(element.data('bs.popover') !== undefined){
+                    element.off('click').popover('destroy');
+                }
 
                 element.on('click', function(e) {
                     e.preventDefault();
+                    e.stopPropagation();
+
                     var easeEffect = $(this).attr('data-easein');
-                    var popover = $(this).data('bs.popover').tip();
+                    var popoverData = $(this).data('bs.popover');
+                    var popoverElement = null;
+
                     var velocityOptions = {
                         duration: Init.animationSpeed.dialogEvents
                     };
 
-                    switch(easeEffect){
-                        case 'shake':
-                        case 'pulse':
-                        case 'tada':
-                        case 'flash':
-                        case 'bounce':
-                        case 'swing':
-                            popover.velocity('callout.' + easeEffect, velocityOptions);
-                            break;
-                        default:
-                            popover.velocity('transition.' + easeEffect, velocityOptions);
-                            break;
+                    if(popoverData === undefined){
+
+                        // init popover and add specific class to it (for styling)
+                        $(this).popover({
+                            html: true,
+                            title: 'select character',
+                            trigger: 'manual',
+                            placement: 'bottom',
+                            container: 'body',
+                            content: content,
+                            animation: false
+                        }).data('bs.popover').tip().addClass('pf-popover');
+
+                        $(this).popover('show');
+
+                        popoverElement = $(this).data('bs.popover').tip();
+                        popoverElement.velocity('transition.' + easeEffect, velocityOptions);
+                        popoverElement.initTooltips();
+                    }else{
+                        popoverElement = $(this).data('bs.popover').tip();
+                        if(popoverElement.is(':visible')){
+                            popoverElement.velocity('reverse');
+                        }else{
+                            $(this).popover('show');
+                            popoverElement.initTooltips();
+                            popoverElement.velocity('transition.' + easeEffect, velocityOptions);
+                        }
                     }
                 });
 
@@ -2562,7 +2582,14 @@ define('app/util',[
                         popoverElement.has(e.target).length === 0 &&
                         $('.popover').has(e.target).length === 0
                     ){
-                        popoverElement.popover('hide');
+                        var popover = popoverElement.data('bs.popover');
+
+                        if(
+                            popover !== undefined &&
+                            popover.tip().is(':visible')
+                        ){
+                            popoverElement.popover('hide');
+                        }
                     }
                 });
             });
@@ -2924,6 +2951,32 @@ define('app/util',[
         }
 
         return logInfo;
+    };
+
+    /**
+     * set default jQuery AJAX configuration
+     */
+    var ajaxSetup = function(){
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                // Add custom application headers on "same origin" requests only!
+                // -> Otherwise a "preflight" request is made, which will "probably" fail
+                if(settings.crossDomain === false){
+                    // add current character data to ANY XHR request (HTTP HEADER)
+                    // -> This helps to identify multiple characters on multiple browser tabs
+                    var userData = getCurrentUserData();
+                    var currentCharacterId = 0;
+                    if(
+                        userData &&
+                        userData.character
+                    ){
+                        currentCharacterId = parseInt( userData.character.id );
+                    }
+
+                    xhr.setRequestHeader('Pf-Character', currentCharacterId);
+                }
+            }
+        });
     };
 
     /**
@@ -3578,6 +3631,20 @@ define('app/util',[
     };
 
     /**
+     * get localForage instance (singleton) for offline client site storage
+     * @returns {localforage}
+     */
+    var getLocalStorage = function(){
+        if(localStorage === undefined){
+            localStorage = localforage.createInstance({
+                driver: localforage.INDEXEDDB,
+                name: 'Pathfinder local storage'
+            });
+        }
+        return localStorage;
+    };
+
+    /**
      * Create Date as UTC
      * @param date
      * @returns {Date}
@@ -3668,7 +3735,6 @@ define('app/util',[
 
     return {
         config: config,
-        localforage: localforage,
         showVersionInfo: showVersionInfo,
         initDefaultBootboxConfig: initDefaultBootboxConfig,
         getCurrentTriggerDelay: getCurrentTriggerDelay,
@@ -3681,6 +3747,7 @@ define('app/util',[
         showNotify: showNotify,
         stopTabBlink: stopTabBlink,
         getLogInfo: getLogInfo,
+        ajaxSetup: ajaxSetup,
         isXHRAborted: isXHRAborted,
         getMapModule: getMapModule,
         getSystemEffectData: getSystemEffectData,
@@ -3709,6 +3776,7 @@ define('app/util',[
         convertDateToString: convertDateToString,
         getOpenDialogs: getOpenDialogs,
         formatPrice: formatPrice,
+        getLocalStorage: getLocalStorage,
         getDocumentPath: getDocumentPath,
         redirect: redirect,
         logout: logout
@@ -5280,7 +5348,7 @@ define('app/map/util',[
     var getLocaleData = function(type, objectId){
         if(objectId > 0){
             var storageKey = getLocalStoragePrefixByType(type) + objectId;
-            return Util.localforage.getItem(storageKey);
+            return Util.getLocalStorage().getItem(storageKey);
         }else{
             console.warn('Local storage requires object id > 0');
         }
@@ -5297,13 +5365,13 @@ define('app/map/util',[
         if(objectId > 0){
             // get current map config
             var storageKey = getLocalStoragePrefixByType(type) + objectId;
-            Util.localforage.getItem(storageKey).then(function(data) {
+            Util.getLocalStorage().getItem(storageKey).then(function(data) {
                 // This code runs once the value has been loaded
                 // from the offline store.
                 data = (data === null) ? {} : data;
                 // set/update value
                 data[this.key] = this.value;
-                Util.localforage.setItem(this.storageKey, data);
+                Util.getLocalStorage().setItem(this.storageKey, data);
             }.bind({
                 key: key,
                 value: value,
@@ -5327,13 +5395,13 @@ define('app/map/util',[
         if(objectId > 0){
             // get current map config
             var storageKey = getLocalStoragePrefixByType(type) + objectId;
-            Util.localforage.getItem(storageKey).then(function(data) {
+            Util.getLocalStorage().getItem(storageKey).then(function(data) {
                 if(
                     data &&
                     data.hasOwnProperty(key)
                 ){
                     delete data[key];
-                    Util.localforage.setItem(this.storageKey, data);
+                    Util.getLocalStorage().setItem(this.storageKey, data);
                 }
             }.bind({
                 storageKey: storageKey
@@ -21626,8 +21694,12 @@ jQuery.fn.dragToSelect = function (conf) {
 	var realParent	= jQuery(this);
 	var parent		= realParent;
 
+	var animationFrameId;
+	var mouseIsDown = false;
+	var lastMousePosition = { x: 0, y: 0 };
+
     // deselected items
-    var deselectedItems = [];
+    var deselectedItems = $();
 
 	do {
 		if (/auto|scroll|hidden/.test(parent.css('overflow'))) {
@@ -21687,9 +21759,11 @@ jQuery.fn.dragToSelect = function (conf) {
 	};
 
 	// Refreshes the select box dimensions and possibly position
-	var refreshSelectBox = function (e) {
+	var refreshSelectBox = function () {
+		var refreshed = false;
+
 		if (!selectBox.is('.' + config.activeClass) || parent.is('.' + config.disabledClass)) {
-			return;
+			return refreshed;
 		}
 
         // get scroll position
@@ -21704,13 +21778,12 @@ jQuery.fn.dragToSelect = function (conf) {
             rightScroll  = realParent.data('scrollRight');
         }
 
-		var left		= e.pageX - parentDim.left + parent[0].scrollLeft;
-		var top			= e.pageY - parentDim.top + parent[0].scrollTop;
+		var left		= lastMousePosition.x - parentDim.left + parent[0].scrollLeft;
+		var top			= lastMousePosition.y - parentDim.top + parent[0].scrollTop;
 		var newLeft		= left;
 		var newTop		= top;
 		var tempWidth	= selectBoxOrigin.left - newLeft ;
 		var newHeight	= selectBoxOrigin.top - newTop;
-
         newLeft         = selectBoxOrigin.left - leftScroll;
         var newWidth	= left - selectBoxOrigin.left;
 
@@ -21726,19 +21799,28 @@ jQuery.fn.dragToSelect = function (conf) {
 			newHeight	= top - selectBoxOrigin.top;
 		}
 
-		var css = {
-			left:	newLeft + 'px', 
-			top:	newTop + 'px', 
-			width:	newWidth + 'px', 
-			height:	newHeight + 'px'
-		};
-		selectBox.css(css);
+		// check if dimension has changed -> save performance
+		var dimensionHash = [newWidth, newHeight].join('_');
 
-		config.onRefresh();
+		if(selectBox.data('dimension-hash') !== dimensionHash){
+			selectBox.data('dimension-hash', dimensionHash);
+			var css = {
+				left:	newLeft + 'px',
+				top:	newTop + 'px',
+				width:	newWidth + 'px',
+				height:	newHeight + 'px'
+			};
+
+			selectBox.css(css);
+			config.onRefresh();
+			refreshed = true;
+		}
+
+		return refreshed;
 	};
 
 	// Hides the select box
-	var hideSelectBox = function (e) {
+	var hideSelectBox = function () {
 		if (!selectBox.is('.' + config.activeClass) || parent.is('.' + config.disabledClass)) {
 			return;
 		}
@@ -21786,9 +21868,6 @@ jQuery.fn.dragToSelect = function (conf) {
 			height:	selectBox.height()
 		};
 
-        // reset deselected item array
-        deselectedItems = [];
-
 		selectables.each(function (i) {
 			var el			= $(this);
 			var elOffset	= el.offset();
@@ -21801,13 +21880,14 @@ jQuery.fn.dragToSelect = function (conf) {
 
 			if (percentCovered(selectBoxDim, elDim) > config.percentCovered) {
 				el.addClass(config.selectedClass);
+				// remove element from "deselected" elements (e.g on add -> remove -> add scenario)
+				deselectedItems = deselectedItems.not(el);
 			}else {
 
                 if(el.hasClass(config.selectedClass)){
                     el.removeClass(config.selectedClass);
-                    deselectedItems.push(el);
+					deselectedItems = deselectedItems.add(el);
                 }
-
 			}
 		});
 
@@ -21858,80 +21938,64 @@ jQuery.fn.dragToSelect = function (conf) {
 		return 0;
 	};
 
-	// Do the right stuff then return this
-	selectBox
-		.mousemove(function (e) {
+	// Event functions ----------------------------------------------------------------------------
+	var mousemoveCallback = function(){
+		if(mouseIsDown){
+			var refreshed = refreshSelectBox();
 
-			refreshSelectBox(e);
-
-			if (config.selectables && config.selectOnMove) {
-                selectElementsInRange();
-			}
-
-			if (config.autoScroll) {
-				scrollPerhaps(e);
-			}
-
-			e.preventDefault();
-		})
-		.mouseup(function(e) {
-
-            if (config.selectables) {
-                selectElementsInRange();
-			}
-
-			hideSelectBox(e);
-
-			e.preventDefault();
-		});
-
-	parent.mousedown(function (e) {
-
-            if(
-                e.which === 1 && // left mouse down
-                e.target === realParent[0] // prevent while dragging a system :)
-            ){
-
-                // Make sure user isn't clicking scrollbar (or disallow clicks far to the right actually)
-                if ((e.pageX + 20) > jQuery(document.body).width()) {
-                    return;
-                }
-
-                showSelectBox(e);
-
-                e.preventDefault();
-            }
-
-
-		});
-
-    var dragSelectMousemove = function (e) {
-
-        refreshSelectBox(e);
-
-        if (config.selectables && config.selectOnMove) {
-
-            selectElementsInRange();
-        }
-
-        if (config.autoScroll) {
-            scrollPerhaps(e);
-        }
-
-        e.preventDefault();
-    };
-    parent.mousemove( dragSelectMousemove );
-
-
-    parent.mouseup(function (e) {
-            if (config.selectables) {
+			if(refreshed && config.selectables && config.selectOnMove){
 				selectElementsInRange();
 			}
 
-			hideSelectBox(e);
+			// recursive re-call on next render
+			animationFrameId = requestAnimationFrame(mousemoveCallback);
+		}
+	}
 
-			e.preventDefault();
-		});
+	var mouseupCallback = function(){
+		if (config.selectables){
+			selectElementsInRange();
+		}
+		hideSelectBox();
+
+		// stop animation frame and "reset" to default
+		cancelAnimationFrame(animationFrameId);
+		mouseIsDown = false;
+		// reset deselected item array
+		deselectedItems = $();
+	}
+
+	// Do the right stuff then return this --------------------------------------------------------
+
+	selectBox.mousemove(function(e){
+		lastMousePosition.x = e.pageX;
+		lastMousePosition.y = e.pageY;
+		e.preventDefault();
+	}).mouseup(mouseupCallback);
+
+	parent.mousedown(function(e){
+		if (
+			e.which === 1 && // left mouse down
+			e.target === realParent[0] // prevent while dragging a system :)
+		) {
+
+			// Make sure user isn't clicking scrollbar (or disallow clicks far to the right actually)
+			if ((e.pageX + 20) > jQuery(document.body).width()) {
+				return;
+			}
+
+			showSelectBox(e);
+			mouseIsDown = true;
+			animationFrameId = requestAnimationFrame(mousemoveCallback);
+		}
+
+		e.preventDefault();
+	}).mousemove(function(e){
+		lastMousePosition.x = e.pageX;
+		lastMousePosition.y = e.pageY;
+		e.preventDefault();
+	}).mouseup(mouseupCallback);
+
 
 	// Be nice
 	return this;
@@ -22624,7 +22688,7 @@ define('app/map/map',[
                 systemBody.empty();
 
                 // loop "again" and build DOM object with user information
-                for(var j = 0; j < data.user.length; j++){
+                for(let j = 0; j < data.user.length; j++){
                     var userData = data.user[j];
 
                     var statusClass = Util.getStatusInfoForCharacter(userData, 'class');
@@ -24561,6 +24625,7 @@ define('app/map/map',[
 
         // init drag-frame selection
         $(mapContainer).dragToSelect({
+            selectOnMove: true,
             selectables: '.' + config.systemClass,
             onHide: function (selectBox, deselectedSystems) {
                 var selectedSystems = $(mapContainer).getSelectedSystems();
@@ -24579,7 +24644,6 @@ define('app/map/map',[
                 for(var j = 0; j < deselectedSystems.length; j++){
                     map.removeFromDragSelection( deselectedSystems[j] );
                 }
-
             },
             onShow: function(){
                 $(document).trigger('pf:closeMenu', [{}]);
@@ -25757,7 +25821,7 @@ define('app/counter',[
                     }else{
                         clearInterval( element.data('interval') );
                     }
-                }, 100);
+                }, 500);
 
                 element.data('interval', refreshIntervalId);
             }
@@ -25817,7 +25881,7 @@ define('app/ui/system_info',[
      * set module observer and look for relevant system data to update
      */
     var setModuleObserver = function(moduleElement){
-        $(document).on('pf:updateSystemModules', function(e, data){
+        $(document).off('pf:updateSystemInfoModule').on('pf:updateSystemInfoModule', function(e, data){
             if(data){
                 moduleElement.updateSystemInfoModule(data);
             }
@@ -28296,7 +28360,7 @@ define('app/ui/system_signature',[
         var dataTablePrimary = signatureTable.DataTable();
         var signatureTableApi = signatureTable.api();
 
-        $(document).off('pf:updateSystemModules').on('pf:updateSystemModules', function(e, data){
+        $(document).off('pf:updateSystemSignatureModule').on('pf:updateSystemSignatureModule', function(e, data){
             if(data.signatures){
                 moduleElement.updateSignatureTable(data.signatures, true);
             }
@@ -28521,8 +28585,9 @@ define('app/ui/system_route',[
     'jquery',
     'app/init',
     'app/util',
-    'bootbox'
-], function($, Init, Util, bootbox) {
+    'bootbox',
+    'app/map/util'
+], function($, Init, Util, bootbox, MapUtil) {
     'use strict';
 
     var config = {
@@ -28537,12 +28602,14 @@ define('app/ui/system_route',[
         // headline toolbar
         systemModuleHeadlineIcon: 'pf-module-icon-button',                      // class for toolbar icons in the head
         systemModuleHeadlineIconSearch: 'pf-module-icon-button-search',         // class for "search" icon
+        systemModuleHeadlineIconSettings: 'pf-module-icon-button-settings',     // class for "settings" icon
         systemModuleHeadlineIconRefresh: 'pf-module-icon-button-refresh',       // class for "refresh" icon
 
         systemSecurityClassPrefix: 'pf-system-security-',                       // prefix class for system security level (color)
 
         // dialog
-        routeDialogId: 'pf-route-dialog',                                       // id for route dialog
+        routeSettingsDialogId: 'pf-route-settings-dialog',                      // id for route "settings" dialog
+        routeDialogId: 'pf-route-dialog',                                       // id for route "search" dialog
         systemDialogSelectClass: 'pf-system-dialog-select',                     // class for system select Element
         systemInfoRoutesTableClass: 'pf-system-route-table',                    // class for route tables
         mapSelectId: 'pf-route-dialog-map-select',                              // id for "map" select
@@ -28663,11 +28730,12 @@ define('app/ui/system_route',[
             mapIds: (rowData.hasOwnProperty('mapIds')) ? rowData.mapIds : [],
             systemFromData: (rowData.hasOwnProperty('systemFromData')) ? rowData.systemFromData : {},
             systemToData: (rowData.hasOwnProperty('systemToData')) ? rowData.systemToData : {},
-            stargates: (rowData.hasOwnProperty('stargates')) ? rowData.stargates : 1,
-            jumpbridges: (rowData.hasOwnProperty('jumpbridges')) ? rowData.jumpbridges : 1,
-            wormholes: (rowData.hasOwnProperty('wormholes')) ? rowData.wormholes : 1,
-            wormholesReduced: (rowData.hasOwnProperty('wormholesReduced')) ? rowData.wormholesReduced : 1,
-            wormholesCritical: (rowData.hasOwnProperty('wormholesCritical')) ? rowData.wormholesCritical : 1
+            stargates: (rowData.hasOwnProperty('stargates')) ? rowData.stargates | 0 : 1,
+            jumpbridges: (rowData.hasOwnProperty('jumpbridges')) ? rowData.jumpbridges | 0 : 1,
+            wormholes: (rowData.hasOwnProperty('wormholes')) ? rowData.wormholes | 0 : 1,
+            wormholesReduced: (rowData.hasOwnProperty('wormholesReduced')) ? rowData.wormholesReduced | 0 : 1,
+            wormholesCritical: (rowData.hasOwnProperty('wormholesCritical')) ? rowData.wormholesCritical | 0 : 1,
+            wormholesEOL: (rowData.hasOwnProperty('wormholesEOL')) ? rowData.wormholesEOL | 0 : 1
         };
     };
 
@@ -28707,10 +28775,7 @@ define('app/ui/system_route',[
                 buttons: {
                     close: {
                         label: 'cancel',
-                        className: 'btn-default',
-                        callback: function(){
-                            $(findRouteDialog).modal('hide');
-                        }
+                        className: 'btn-default'
                     },
                     success: {
                         label: '<i class="fa fa-fw fa-search"></i>&nbsp;search route',
@@ -28758,7 +28823,8 @@ define('app/ui/system_route',[
                                         jumpbridges: routeDialogData.hasOwnProperty('jumpbridges') ? parseInt( routeDialogData.jumpbridges ) : 0,
                                         wormholes: routeDialogData.hasOwnProperty('wormholes') ? parseInt( routeDialogData.wormholes ) : 0,
                                         wormholesReduced: routeDialogData.hasOwnProperty('wormholesReduced') ? parseInt( routeDialogData.wormholesReduced ) : 0,
-                                        wormholesCritical: routeDialogData.hasOwnProperty('wormholesCritical') ? parseInt( routeDialogData.wormholesCritical ) : 0
+                                        wormholesCritical: routeDialogData.hasOwnProperty('wormholesCritical') ? parseInt( routeDialogData.wormholesCritical ) : 0,
+                                        wormholesEOL: routeDialogData.hasOwnProperty('wormholesEOL') ? parseInt( routeDialogData.wormholesEOL ) : 0
                                     }]
                                 };
 
@@ -28795,6 +28861,105 @@ define('app/ui/system_route',[
     };
 
     /**
+     * show route settings dialog
+     * @param dialogData
+     * @param moduleElement
+     * @param systemFromData
+     * @param routesTable
+     */
+    var showSettingsDialog = function(dialogData, moduleElement, systemFromData, routesTable){
+
+        var promiseStore = MapUtil.getLocaleData('map', dialogData.mapId);
+        promiseStore.then(function(dataStore) {
+            // selected systems (if already stored)
+            var systemSelectOptions = [];
+            if(
+                dataStore &&
+                dataStore.routes
+            ){
+                systemSelectOptions = dataStore.routes;
+            }
+
+            var maxSelectionLength = 4;
+
+            var data = {
+                id: config.routeSettingsDialogId,
+                selectClass: config.systemDialogSelectClass,
+                systemSelectOptions: systemSelectOptions,
+                maxSelectionLength: maxSelectionLength
+            };
+
+            requirejs(['text!templates/dialog/route_settings.html', 'mustache'], function(template, Mustache) {
+                var content = Mustache.render(template, data);
+
+                var settingsDialog = bootbox.dialog({
+                    title: 'Route settings',
+                    message: content,
+                     show: false,
+                    buttons: {
+                        close: {
+                            label: 'cancel',
+                            className: 'btn-default'
+                        },
+                        success: {
+                            label: '<i class="fa fa-fw fa-check"></i>&nbsp;save',
+                            className: 'btn-success',
+                            callback: function () {
+                                var form = this.find('form');
+                                // get all system data from select2
+                                var systemSelectData = form.find('.' + config.systemDialogSelectClass).select2('data');
+                                var systemsTo = [];
+
+                                if( systemSelectData.length > 0 ){
+                                    systemsTo = formSystemSelectData(systemSelectData);
+                                    MapUtil.storeLocalData('map', dialogData.mapId, 'routes', systemsTo);
+                                }else{
+                                    MapUtil.deleteLocalData('map', dialogData.mapId, 'routes');
+                                }
+
+                                Util.showNotify({title: 'Route settings stored', type: 'success'});
+
+                                // (re) draw table
+                                drawRouteTable(dialogData.mapId, moduleElement, systemFromData, routesTable, systemsTo);
+                            }
+                        }
+                    }
+                });
+
+                settingsDialog.on('shown.bs.modal', function(e) {
+
+                    // init default system select -----------------------------------------------------
+                    // -> add some delay until modal transition has finished
+                    var systemTargetSelect = $(this).find('.' + config.systemDialogSelectClass);
+                    systemTargetSelect.delay(240).initSystemSelect({key: 'name', maxSelectionLength: maxSelectionLength});
+                });
+
+                // show dialog
+                settingsDialog.modal('show');
+            });
+        });
+    };
+
+    /**
+     * format select2 system data
+     * @param {Array} data
+     * @returns {Array}
+     */
+    var formSystemSelectData = function(data){
+        var formattedData = [];
+        for(let i = 0; i < data.length; i++){
+            var tmpData = data[i];
+
+            formattedData.push({
+                name: tmpData.id,
+                systemId: parseInt( tmpData.hasOwnProperty('systemId') ? tmpData.systemId : tmpData.element.getAttribute('data-systemid') )
+            });
+        }
+
+        return formattedData;
+    };
+
+    /**
      * set event observer for route finder dialog
      * @param routeDialog
      */
@@ -28802,11 +28967,13 @@ define('app/ui/system_route',[
         var wormholeCheckbox = routeDialog.find('input[type="checkbox"][name="wormholes"]');
         var wormholeReducedCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesReduced"]');
         var wormholeCriticalCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesCritical"]');
+        var wormholeEolCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesEOL"]');
 
         // store current "checked" state for each box ---------------------------------------------
         var storeCheckboxStatus = function(){
             wormholeReducedCheckbox.data('selectState', wormholeReducedCheckbox.prop('checked'));
             wormholeCriticalCheckbox.data('selectState', wormholeCriticalCheckbox.prop('checked'));
+            wormholeEolCheckbox.data('selectState', wormholeEolCheckbox.prop('checked'));
         };
 
         // on wormhole checkbox change ------------------------------------------------------------
@@ -28815,9 +28982,11 @@ define('app/ui/system_route',[
             if( $(this).is(':checked') ){
                 wormholeReducedCheckbox.prop('disabled', false);
                 wormholeCriticalCheckbox.prop('disabled', false);
+                wormholeEolCheckbox.prop('disabled', false);
 
                 wormholeReducedCheckbox.prop('checked', wormholeReducedCheckbox.data('selectState'));
                 wormholeCriticalCheckbox.prop('checked', wormholeCriticalCheckbox.data('selectState'));
+                wormholeEolCheckbox.prop('checked', wormholeEolCheckbox.data('selectState'));
             }else{
                 storeCheckboxStatus();
 
@@ -28825,6 +28994,8 @@ define('app/ui/system_route',[
                 wormholeReducedCheckbox.prop('disabled', true);
                 wormholeCriticalCheckbox.prop('checked', false);
                 wormholeCriticalCheckbox.prop('disabled', true);
+                wormholeEolCheckbox.prop('checked', false);
+                wormholeEolCheckbox.prop('disabled', true);
             }
         }.bind(wormholeCheckbox);
 
@@ -28889,6 +29060,7 @@ define('app/ui/system_route',[
             wormholes: routeData.wormholes,
             wormholesReduced: routeData.wormholesReduced,
             wormholesCritical: routeData.wormholesCritical,
+            wormholesEOL: routeData.wormholesEOL,
             reload: {
                 button: reloadButton
             },
@@ -28977,6 +29149,10 @@ define('app/ui/system_route',[
             $('<i>', {
                 class: ['fa', 'fa-fw', 'fa-search', config.systemModuleHeadlineIcon, config.systemModuleHeadlineIconSearch].join(' '),
                 title: 'find&nbsp;route'
+            }).attr('data-html', 'true').attr('data-toggle', 'tooltip'),
+            $('<i>', {
+                class: ['fa', 'fa-fw', 'fa-sliders', config.systemModuleHeadlineIcon, config.systemModuleHeadlineIconSettings].join(' '),
+                title: 'settings'
             }).attr('data-html', 'true').attr('data-toggle', 'tooltip'),
             $('<i>', {
                 class: ['fa', 'fa-fw', 'fa-refresh', config.systemModuleHeadlineIcon, config.systemModuleHeadlineIconRefresh].join(' '),
@@ -29091,7 +29267,8 @@ define('app/ui/system_route',[
                                     jumpbridges: rowData.jumpbridges ? 1 : 0,
                                     wormholes: rowData.wormholes ? 1 : 0,
                                     wormholesReduced: rowData.wormholesReduced ? 1 : 0,
-                                    wormholesCritical: rowData.wormholesCritical ? 1 : 0
+                                    wormholesCritical: rowData.wormholesCritical ? 1 : 0,
+                                    wormholesEOL: rowData.wormholesEOL ? 1 : 0
                                 }]
                             };
 
@@ -29237,22 +29414,6 @@ define('app/ui/system_route',[
             systemId: systemData.systemId
         };
 
-        var systemsTo = [
-            {
-                name: 'Jita',
-                systemId: 30000142
-            },{
-                name: 'Amarr',
-                systemId: 30002187
-            },{
-                name: 'Rens',
-                systemId: 30002510
-            },{
-                name: 'Dodixie',
-                systemId: 30002659
-            }
-        ];
-
         var routesTableElement =  moduleElement.find('.' + config.systemInfoRoutesTableClass);
 
         var routesTable = routesTableElement.DataTable();
@@ -29274,7 +29435,38 @@ define('app/ui/system_route',[
             showFindRouteDialog(dialogData);
         });
 
+        // init settings dialog -------------------------------------------------------------------
+        moduleElement.find('.' + config.systemModuleHeadlineIconSettings).on('click', function(e){
+            var dialogData = {
+                mapId: mapId
+            };
+
+            showSettingsDialog(dialogData, moduleElement, systemFromData, routesTable);
+        });
+
         // fill routesTable with data -------------------------------------------------------------
+        var promiseStore = MapUtil.getLocaleData('map', mapId);
+        promiseStore.then(function(dataStore) {
+            // selected systems (if already stored)
+            var systemsTo = [{
+                name: 'Jita',
+                systemId: 30000142
+            }];
+
+            if(
+                dataStore &&
+                dataStore.routes
+            ){
+                systemsTo = dataStore.routes;
+            }
+
+            drawRouteTable(mapId, moduleElement, systemFromData, routesTable, systemsTo);
+        });
+
+    };
+
+
+    var drawRouteTable = function(mapId, moduleElement, systemFromData, routesTable, systemsTo){
         var requestRouteData = [];
         var currentTimestamp = Util.getServerTime().getTime();
 
@@ -29323,7 +29515,6 @@ define('app/ui/system_route',[
             getRouteData(requestData, contextData, callbackAddRouteRow);
         }
     };
-
 
     /**
      * updates an dom element with the system route module
@@ -30375,8 +30566,9 @@ define('app/module_map',[
 
             if(currentSystemData){
                 if(systemData.id === currentSystemData.systemData.id){
-                    // trigger system update event
-                    $(document).trigger('pf:updateSystemModules', [systemData]);
+                    // trigger system update events
+                    $(document).triggerHandler('pf:updateSystemInfoModule', [systemData]);
+                    $(document).triggerHandler('pf:updateSystemSignatureModule', [systemData]);
                 }
             }
         }
@@ -31052,7 +31244,7 @@ define('app/page',[
                     href: '#'
                 }).html('&nbsp;&nbsp;Settings').prepend(
                     $('<i>',{
-                        class: 'fa fa-gears fa-fw'
+                        class: 'fa fa-sliders fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowSettingsDialog');
@@ -31167,7 +31359,7 @@ define('app/page',[
                     href: '#'
                 }).html('&nbsp;&nbsp;Settings').prepend(
                     $('<i>',{
-                        class: 'fa fa-gears fa-fw'
+                        class: 'fa fa-sliders fa-fw'
                     })
                 ).on('click', function(){
                         $(document).triggerMenuEvent('ShowMapSettings', {tab: 'settings'});
@@ -31487,10 +31679,11 @@ define('app/page',[
         $(document).on('pf:menuLogout', function(e, data){
 
             var clearCookies = false;
-            if( typeof data === 'object' ){
-                if( data.hasOwnProperty('clearCookies') ){
-                    clearCookies = data.clearCookies;
-                }
+            if(
+                typeof data === 'object' &&
+                data.hasOwnProperty('clearCookies')
+            ){
+                clearCookies = data.clearCookies;
             }
 
             // logout
@@ -31532,9 +31725,15 @@ define('app/page',[
                     logout: {
                         label: '<i class="fa fa-fw fa-refresh"></i> restart',
                         className: ['btn-primary'].join(' '),
-                        callback: function() {
-
-                            $(document).trigger('pf:menuLogout');
+                        callback: function(){
+                            // check if error was 5xx -> reload page
+                            // -> else try to logout -> ajax request
+                            if(data.status >= 500 && data.status < 600){
+                                // redirect to login
+                                window.location = '../';
+                            }else{
+                                $(document).trigger('pf:menuLogout');
+                            }
                         }
                     }
                 },
@@ -31555,7 +31754,7 @@ define('app/page',[
                 data.error &&
                 data.error.length
             ){
-                for(var i = 0; i < data.error.length; i++){
+                for(let i = 0; i < data.error.length; i++){
                     options.content.textSmaller.push(data.error[i].message);
                 }
             }
@@ -31588,6 +31787,7 @@ define('app/page',[
 
         var userInfoElement = $('.' + config.headUserCharacterClass);
         var currentCharacterId = userInfoElement.data('characterId');
+        var currentCharactersOptionIds = userInfoElement.data('characterOptionIds') ? userInfoElement.data('characterOptionIds') : [];
         var newCharacterId = 0;
         var newCharacterName = '';
 
@@ -31605,7 +31805,6 @@ define('app/page',[
                 visibility : 'hidden',
                 duration: 500,
                 complete: function(){
-
                     // callback
                     callback();
 
@@ -31641,25 +31840,31 @@ define('app/page',[
             }
         }
 
-        // update user character data ---------------------------------------------------
-        if(currentCharacterId !== newCharacterId){
+        var newCharactersOptionIds = userData.characters.map(function(data){
+            return data.id;
+        });
 
-            var showCharacterElement = true;
-            if(newCharacterId === 0){
-                showCharacterElement = false;
+        // update user character data ---------------------------------------------------
+        if(currentCharactersOptionIds.toString() !== newCharactersOptionIds.toString()){
+
+            var  currentCharacterChanged = false;
+            if(currentCharacterId !== newCharacterId){
+                currentCharacterChanged = true;
             }
 
             // toggle element
             animateHeaderElement(userInfoElement, function(){
-                userInfoElement.find('span').text( newCharacterName );
-                userInfoElement.find('img').attr('src', Init.url.ccpImageServer + 'Character/' + newCharacterId + '_32.jpg' );
-
+                if(currentCharacterChanged){
+                    userInfoElement.find('span').text( newCharacterName );
+                    userInfoElement.find('img').attr('src', Init.url.ccpImageServer + 'Character/' + newCharacterId + '_32.jpg' );
+                }
                 // init "character switch" popover
                 userInfoElement.initCharacterSwitchPopover(userData);
-            }, showCharacterElement);
+            }, true);
 
-            // set new id for next check
+            // store new id(s) for next check
             userInfoElement.data('characterId', newCharacterId);
+            userInfoElement.data('characterOptionIds', newCharactersOptionIds);
         }
 
         // update user ship data --------------------------------------------------------
@@ -31962,14 +32167,17 @@ define('app/ui/form_element',[
         );
     };
 
-
-
     /**
      * init a select element as an ajax based "select2" object for system search
      * @param options
      */
     $.fn.initSystemSelect = function(options){
         var selectElement = $(this);
+
+        var config = {
+            maxSelectionLength: 1
+        };
+        options = $.extend({}, config, options);
 
         // format result data
         function formatResultData (data) {
@@ -32071,6 +32279,7 @@ define('app/ui/form_element',[
                 templateResult: formatResultData,
                 placeholder: 'System name',
                 allowClear: true,
+                maximumSelectionLength: options.maxSelectionLength,
                 escapeMarkup: function (markup) {
                     // let our custom formatter work
                     return markup;
@@ -32232,7 +32441,10 @@ define('mappage',[
      * main init "map" page
      */
     $(function(){
-        // set Dialog default config
+        // set default AJAX config
+        Util.ajaxSetup();
+
+        // set default dialog config
         Util.initDefaultBootboxConfig();
 
         // load page
@@ -32240,11 +32452,6 @@ define('mappage',[
 
         // show app information in browser console
         Util.showVersionInfo();
-
-        // init local storage
-        Util.localforage.config({
-            name: 'Pathfinder local storage'
-        });
 
         // init logging
         Logging.init();
@@ -32285,7 +32492,7 @@ define('mappage',[
         }).fail(function( jqXHR, status, error) {
             var reason = status + ' ' + jqXHR.status + ': ' + error;
 
-            $(document).trigger('pf:shutdown', {reason: reason});
+            $(document).trigger('pf:shutdown', {status: jqXHR.status, reason: reason});
         });
 
         /**
@@ -32497,7 +32704,8 @@ define('mappage',[
                 var reason = status + ' ' + jqXHR.status + ': ' + error;
                 var errorData = [];
 
-                if(jqXHR.responseText){
+                if(jqXHR.responseJSON){
+                    // handle JSON
                     var errorObj = $.parseJSON(jqXHR.responseText);
 
                     if(
@@ -32506,9 +32714,15 @@ define('mappage',[
                     ){
                         errorData = errorObj.error;
                     }
+                }else{
+                    // handle HTML
+                    errorData.push({
+                        type: 'error',
+                        message: 'Please restart and reload this page'
+                    });
                 }
 
-                $(document).trigger('pf:shutdown', {reason: reason, error: errorData});
+                $(document).trigger('pf:shutdown', {status: jqXHR.status, reason: reason, error: errorData});
 
             };
 

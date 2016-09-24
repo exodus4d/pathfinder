@@ -49,9 +49,9 @@ class System extends \Controller\AccessController {
         FROM
             mapSolarSystems map_sys INNER JOIN
 	        mapConstellations map_con ON
-		      map_con.constellationID = map_sys.constellationID INNER JOIN
+		      map_sys.constellationID = map_con.constellationID  INNER JOIN
 	        mapRegions map_reg ON
-		      map_reg.regionID = map_sys.regionID";
+		      map_con.regionID = map_reg.regionID";
 
     private $whereQuery = "";
 

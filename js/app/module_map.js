@@ -223,8 +223,9 @@ define([
 
             if(currentSystemData){
                 if(systemData.id === currentSystemData.systemData.id){
-                    // trigger system update event
-                    $(document).trigger('pf:updateSystemModules', [systemData]);
+                    // trigger system update events
+                    $(document).triggerHandler('pf:updateSystemInfoModule', [systemData]);
+                    $(document).triggerHandler('pf:updateSystemSignatureModule', [systemData]);
                 }
             }
         }

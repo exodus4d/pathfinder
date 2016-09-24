@@ -40,7 +40,6 @@
                         <div class="col-sm-12 col-xs-6 checkbox checkbox-primary" title="include stargate connections">
                             <input id="form_stargates" name="stargates" value="1" type="checkbox" checked>
                             <label for="form_stargates">Stargates</label>
-                            <div class="help-block with-errors"></div>
                         </div>
 
                         <div class="col-sm-12 col-xs-6 checkbox checkbox-primary" title="include jump bridge connections">
@@ -55,12 +54,13 @@
                 <div class="form-group">
                     <label class="col-sm-2 control-label" for="{{mapSelectId}}">Maps</label>
                     <div class="col-sm-10">
-                        <div class="input-group" title="add/remove maps for search">
+                        <div class="input-group">
                             <select id="{{mapSelectId}}" name="mapIds[]" multiple="multiple">
                                 {{#mapSelectOptions}}
                                 <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
                                 {{/mapSelectOptions}}
                             </select>
+                            <span class="help-block with-errors">Set maps from search</span>
                         </div>
                     </div>
                 </div>
@@ -69,6 +69,8 @@
 
         <hr>
 
+        {{! wormhole ----------------------------------------------------------------- }}
+
         <div class="row">
             <div class="col-sm-4">
                 <div class="form-group">
@@ -76,7 +78,6 @@
                         <div class="col-sm-12 col-xs-6 checkbox checkbox-primary" title="include wormhole connections">
                             <input id="form_wormholes" name="wormholes" value="1" type="checkbox" checked>
                             <label for="form_wormholes">Wormholes</label>
-                            <div class="help-block with-errors"></div>
                         </div>
                     </div>
                 </div>
@@ -88,7 +89,6 @@
                         <div class="col-sm-12 col-xs-6 checkbox checkbox-warning checkbox-circle" title="include reduced connections">
                             <input id="form_wormholes_reduced" name="wormholesReduced" value="1" type="checkbox" checked>
                             <label for="form_wormholes_reduced">Stage 1 (reduced)</label>
-                            <div class="help-block with-errors"></div>
                         </div>
                     </div>
                 </div>
@@ -100,13 +100,22 @@
                         <div class="col-sm-12 col-xs-6 checkbox checkbox-danger checkbox-circle" title="include critical connections">
                             <input id="form_wormholes_critical" name="wormholesCritical" value="1" type="checkbox" checked>
                             <label for="form_wormholes_critical">Stage 2 (critical)</label>
-                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-4 col-sm-offset-8">
+                <div class="form-group">
+                    <div class="col-sm-offset-1 col-sm-11">
+                        <div class="col-sm-12 col-xs-6 checkbox checkbox-danger checkbox-circle" title="include EOL connections">
+                            <input id="form_wormholes_eol" name="wormholesEOL" value="1" type="checkbox" checked>
+                            <label for="form_wormholes_eol">End of life (EOL)</label>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
 
     </form>
 </div>

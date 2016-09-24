@@ -180,8 +180,8 @@ class ConnectionModel extends BasicModel{
         if(
             is_object($this->source) &&
             is_object($this->target) &&
-            $this->source->_id === $this->target->_id ||
-            $this->source->mapId->_id !== $this->target->mapId->_id
+            $this->get('source', true) === $this->get('target', true) ||
+            $this->source->get('mapId', true) !== $this->target->get('mapId', true)
         ){
             $isValid = false;
         }

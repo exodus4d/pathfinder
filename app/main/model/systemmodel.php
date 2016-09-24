@@ -221,7 +221,7 @@ class SystemModel extends BasicModel {
 
             $systemData = (object) [];
             $systemData->id = $this->id;
-            $systemData->mapId = is_object($this->mapId) ? $this->mapId->id : 0;
+            $systemData->mapId = is_object($this->mapId) ? $this->get('mapId', true) : 0;
             $systemData->systemId = $this->systemId;
             $systemData->name = $this->name;
             $systemData->alias = $this->alias;
@@ -284,7 +284,6 @@ class SystemModel extends BasicModel {
      * @return float
      */
     public function set_trueSec($trueSec){
-
         if(
             $trueSec > 0 &&
             $trueSec < 0.1
@@ -452,9 +451,9 @@ class SystemModel extends BasicModel {
      * @return SystemSignatureModel[]
      */
     public function getSignatures(){
+        $signatures = [];
         $this->filter('signatures', ['active = ?', 1], ['order' => 'name']);
 
-        $signatures = [];
         if($this->signatures){
             $signatures = $this->signatures;
         }
@@ -467,9 +466,9 @@ class SystemModel extends BasicModel {
      * @return \stdClass[]
      */
     public function getSignaturesData(){
+        $signaturesData = [];
         $signatures = $this->getSignatures();
 
-        $signaturesData = [];
         foreach($signatures as $signature){
             $signaturesData[] = $signature->getData();
         }

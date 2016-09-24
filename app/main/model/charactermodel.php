@@ -8,10 +8,9 @@
 
 namespace Model;
 
-use Controller;
 use Controller\Ccp\Sso as Sso;
+use Controller\Api\User as User;
 use DB\SQL\Schema;
-use Data\Mapper as Mapper;
 
 class CharacterModel extends BasicModel {
 
@@ -316,7 +315,7 @@ class CharacterModel extends BasicModel {
             if(
                 !empty($whitelistCorporations) &&
                 $this->hasCorporation() &&
-                in_array($this->getCorporation()->_id, $whitelistCorporations)
+                in_array($this->get('corporationId', true), $whitelistCorporations)
             ){
                 $isAuthorized = true;
             }
@@ -326,7 +325,7 @@ class CharacterModel extends BasicModel {
                 !$isAuthorized &&
                 !empty($whitelistAlliance) &&
                 $this->hasAlliance() &&
-                in_array($this->getAlliance()->_id, $whitelistAlliance)
+                in_array($this->get('allianceId', true), $whitelistAlliance)
             ){
                 $isAuthorized = true;
             }
@@ -344,7 +343,7 @@ class CharacterModel extends BasicModel {
     public function updateLog($additionalOptions = []){
         // Try to pull data from CREST
         $ssoController = new Sso();
-        $logData = $ssoController->getCharacterLocationData($this->getAccessToken(), 5, $additionalOptions);
+        $logData = $ssoController->getCharacterLocationData($this->getAccessToken(), $additionalOptions);
 
         if($logData['timeout'] === false){
             if( empty($logData['system']) ){
@@ -496,7 +495,7 @@ class CharacterModel extends BasicModel {
             $maps = array_merge($maps,  $corporation->getMaps());
         }
 
-        if($this->characterMaps){
+        if( is_object($this->characterMaps) ){
             $mapCountPrivate = 0;
             foreach($this->characterMaps as $characterMap){
                 if(
@@ -517,7 +516,7 @@ class CharacterModel extends BasicModel {
      * -> clear authentication data
      */
     public function logout(){
-        if($this->characterAuthentications){
+        if( is_object($this->characterAuthentications) ){
             foreach($this->characterAuthentications as $characterAuthentication){
                 /**
                  * @var $characterAuthentication CharacterAuthenticationModel
@@ -525,6 +524,31 @@ class CharacterModel extends BasicModel {
                 $characterAuthentication->erase();
             }
         }
+    }
+
+    /**
+     * merges two multidimensional characterSession arrays by checking characterID
+     * @param array $characterDataBase
+     * @return array
+     */
+    static function mergeSessionCharacterData(array $characterDataBase = []){
+        $addData = [];
+        // get current session characters to be merged with
+        $characterData = (array)self::getF3()->get(User::SESSION_KEY_CHARACTERS);
+
+        foreach($characterDataBase as $i => $baseData){
+            foreach($characterData as $data){
+                if((int)$baseData['ID'] === (int)$data['ID']){
+                    // overwrite static data -> should NEVER change on merge!
+                    $characterDataBase[$i]['NAME'] = $data['NAME'];
+                    $characterDataBase[$i]['TIME'] = $data['TIME'];
+                }else{
+                    $addData[] = $data;
+                }
+            }
+        }
+
+        return array_merge($characterDataBase, $addData);
     }
 
 } 

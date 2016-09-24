@@ -1775,7 +1775,7 @@ define([
         var dataTablePrimary = signatureTable.DataTable();
         var signatureTableApi = signatureTable.api();
 
-        $(document).off('pf:updateSystemModules').on('pf:updateSystemModules', function(e, data){
+        $(document).off('pf:updateSystemSignatureModule').on('pf:updateSystemSignatureModule', function(e, data){
             if(data.signatures){
                 moduleElement.updateSignatureTable(data.signatures, true);
             }

@@ -827,6 +827,7 @@ table{
 
     td{
       padding: 0 5px;
+      vertical-align: middle !important;
     }
   }
 }
@@ -1012,6 +1013,18 @@ td.pf-popover-trigger{
 
 .pf-head{
   @include box-shadow(0 6px 12px rgba(0,0,0,.4));
+}
+
+// character switch popover
+#pf-head-character-switch{
+  td{
+    border: none;
+
+    &:first-child + td{
+      // 2nd column
+      padding: 0 5px;
+    }
+  }
 }
 
 // footer (map) ===================================================================================

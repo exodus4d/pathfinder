@@ -138,7 +138,7 @@ define([
                     href: '#'
                 }).html('&nbsp;&nbsp;Settings').prepend(
                     $('<i>',{
-                        class: 'fa fa-gears fa-fw'
+                        class: 'fa fa-sliders fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowSettingsDialog');
@@ -253,7 +253,7 @@ define([
                     href: '#'
                 }).html('&nbsp;&nbsp;Settings').prepend(
                     $('<i>',{
-                        class: 'fa fa-gears fa-fw'
+                        class: 'fa fa-sliders fa-fw'
                     })
                 ).on('click', function(){
                         $(document).triggerMenuEvent('ShowMapSettings', {tab: 'settings'});
@@ -573,10 +573,11 @@ define([
         $(document).on('pf:menuLogout', function(e, data){
 
             var clearCookies = false;
-            if( typeof data === 'object' ){
-                if( data.hasOwnProperty('clearCookies') ){
-                    clearCookies = data.clearCookies;
-                }
+            if(
+                typeof data === 'object' &&
+                data.hasOwnProperty('clearCookies')
+            ){
+                clearCookies = data.clearCookies;
             }
 
             // logout
@@ -618,9 +619,15 @@ define([
                     logout: {
                         label: '<i class="fa fa-fw fa-refresh"></i> restart',
                         className: ['btn-primary'].join(' '),
-                        callback: function() {
-
-                            $(document).trigger('pf:menuLogout');
+                        callback: function(){
+                            // check if error was 5xx -> reload page
+                            // -> else try to logout -> ajax request
+                            if(data.status >= 500 && data.status < 600){
+                                // redirect to login
+                                window.location = '../';
+                            }else{
+                                $(document).trigger('pf:menuLogout');
+                            }
                         }
                     }
                 },
@@ -641,7 +648,7 @@ define([
                 data.error &&
                 data.error.length
             ){
-                for(var i = 0; i < data.error.length; i++){
+                for(let i = 0; i < data.error.length; i++){
                     options.content.textSmaller.push(data.error[i].message);
                 }
             }
@@ -674,6 +681,7 @@ define([
 
         var userInfoElement = $('.' + config.headUserCharacterClass);
         var currentCharacterId = userInfoElement.data('characterId');
+        var currentCharactersOptionIds = userInfoElement.data('characterOptionIds') ? userInfoElement.data('characterOptionIds') : [];
         var newCharacterId = 0;
         var newCharacterName = '';
 
@@ -691,7 +699,6 @@ define([
                 visibility : 'hidden',
                 duration: 500,
                 complete: function(){
-
                     // callback
                     callback();
 
@@ -727,25 +734,31 @@ define([
             }
         }
 
-        // update user character data ---------------------------------------------------
-        if(currentCharacterId !== newCharacterId){
+        var newCharactersOptionIds = userData.characters.map(function(data){
+            return data.id;
+        });
 
-            var showCharacterElement = true;
-            if(newCharacterId === 0){
-                showCharacterElement = false;
+        // update user character data ---------------------------------------------------
+        if(currentCharactersOptionIds.toString() !== newCharactersOptionIds.toString()){
+
+            var  currentCharacterChanged = false;
+            if(currentCharacterId !== newCharacterId){
+                currentCharacterChanged = true;
             }
 
             // toggle element
             animateHeaderElement(userInfoElement, function(){
-                userInfoElement.find('span').text( newCharacterName );
-                userInfoElement.find('img').attr('src', Init.url.ccpImageServer + 'Character/' + newCharacterId + '_32.jpg' );
-
+                if(currentCharacterChanged){
+                    userInfoElement.find('span').text( newCharacterName );
+                    userInfoElement.find('img').attr('src', Init.url.ccpImageServer + 'Character/' + newCharacterId + '_32.jpg' );
+                }
                 // init "character switch" popover
                 userInfoElement.initCharacterSwitchPopover(userData);
-            }, showCharacterElement);
+            }, true);
 
-            // set new id for next check
+            // store new id(s) for next check
             userInfoElement.data('characterId', newCharacterId);
+            userInfoElement.data('characterOptionIds', newCharactersOptionIds);
         }
 
         // update user ship data --------------------------------------------------------

@@ -26,14 +26,17 @@ define([
         );
     };
 
-
-
     /**
      * init a select element as an ajax based "select2" object for system search
      * @param options
      */
     $.fn.initSystemSelect = function(options){
         var selectElement = $(this);
+
+        var config = {
+            maxSelectionLength: 1
+        };
+        options = $.extend({}, config, options);
 
         // format result data
         function formatResultData (data) {
@@ -135,6 +138,7 @@ define([
                 templateResult: formatResultData,
                 placeholder: 'System name',
                 allowClear: true,
+                maximumSelectionLength: options.maxSelectionLength,
                 escapeMarkup: function (markup) {
                     // let our custom formatter work
                     return markup;

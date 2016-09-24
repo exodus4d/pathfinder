@@ -165,7 +165,7 @@ define([
                 systemBody.empty();
 
                 // loop "again" and build DOM object with user information
-                for(var j = 0; j < data.user.length; j++){
+                for(let j = 0; j < data.user.length; j++){
                     var userData = data.user[j];
 
                     var statusClass = Util.getStatusInfoForCharacter(userData, 'class');
@@ -2102,6 +2102,7 @@ define([
 
         // init drag-frame selection
         $(mapContainer).dragToSelect({
+            selectOnMove: true,
             selectables: '.' + config.systemClass,
             onHide: function (selectBox, deselectedSystems) {
                 var selectedSystems = $(mapContainer).getSelectedSystems();
@@ -2120,7 +2121,6 @@ define([
                 for(var j = 0; j < deselectedSystems.length; j++){
                     map.removeFromDragSelection( deselectedSystems[j] );
                 }
-
             },
             onShow: function(){
                 $(document).trigger('pf:closeMenu', [{}]);

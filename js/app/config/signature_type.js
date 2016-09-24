@@ -138,7 +138,13 @@ define(['jquery'], function($) {
                     5: 'Ordinary Perimeter Reservoir' //*
                 },
                 5: {    // Wormhole
-                    1: 'F135 - Thera'
+                    1: 'Z647 - C1',
+                    2: 'D382 - C2',
+                    3: 'O477 - C3',
+                    4: 'Y683 - C4',
+                    5: 'N062 - C5',
+                    6: 'R474 - C6',
+                    7: 'F135 - Thera'
                 },
                 6: {    // ORE
                     1: 'Ordinary Perimeter Deposit', //*
