@@ -59,6 +59,9 @@ define([
         galleryThumbContainerId: 'pf-landing-gallery-thumb-container',          // id for gallery thumb images
         galleryCarouselId: 'pf-landing-gallery-carousel',                       // id for "carousel" element
 
+        // notification panel
+        notificationPanelId: 'pf-notification-panel',                           // id for "notification panel" (e.g. last update information)
+
         // server panel
         serverPanelId: 'pf-server-panel',                                       // id for EVE Online server status panel
 
@@ -447,6 +450,48 @@ define([
     };
 
     /**
+     * show "notification panel" to user
+     * -> checks if panel not already shown
+     */
+    var initNotificationPanel = function(){
+        var storageKey = 'notification_panel';
+        var currentVersion = $('body').data('version');
+
+        var showNotificationPanel = function(){
+            var data = {};
+
+            requirejs(['text!templates/ui/notice.html', 'mustache'], function(template, Mustache) {
+                var content = Mustache.render(template, data);
+
+                var notificationPanel = $('#' + config.notificationPanelId);
+                notificationPanel.html(content);
+                notificationPanel.velocity('transition.slideUpIn', {
+                    duration: 300,
+                    complete: function(){
+                        // mark panel as "shown"
+                        Util.getLocalStorage().setItem(storageKey, currentVersion);
+                    }
+                });
+            });
+        };
+
+        Util.getLocalStorage().getItem(storageKey).then(function(data){
+            // check if panel was shown before
+            if(data){
+                if(data !== this.version){
+                    // show current panel
+                    showNotificationPanel();
+                }
+            }else{
+                // show current panel
+                showNotificationPanel();
+            }
+        }.bind({
+            version: currentVersion
+        }));
+    };
+
+    /**
      * load character data from cookie information
      * -> all validation is done server side!
      */
@@ -682,6 +727,10 @@ define([
         // init server status information
         initServerStatus();
 
+        // init notification panel
+        initNotificationPanel();
+
+        // init character select
         initCharacterSelect();
 
         // init page observer
