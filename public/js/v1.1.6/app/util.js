@@ -848,6 +848,18 @@ define([
     };
 
     /**
+     * init utility prototype functions
+     */
+    var initPrototypes = function(){
+        // Array diff
+        // [1,2,3,4,5,6].diff( [3,4,5] );
+        // => [1, 2, 6]
+        Array.prototype.diff = function(a) {
+            return this.filter(function(i) {return a.indexOf(i) < 0;});
+        };
+    };
+
+    /**
      * set default configuration  for "Bootbox" dialogs
      */
     var initDefaultBootboxConfig = function(){
@@ -1818,6 +1830,7 @@ define([
     return {
         config: config,
         showVersionInfo: showVersionInfo,
+        initPrototypes: initPrototypes,
         initDefaultBootboxConfig: initDefaultBootboxConfig,
         getCurrentTriggerDelay: getCurrentTriggerDelay,
         getServerTime: getServerTime,

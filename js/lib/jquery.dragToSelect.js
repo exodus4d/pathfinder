@@ -103,12 +103,12 @@ jQuery.fn.dragToSelect = function (conf) {
 
 	// Current origin of select box
 	var selectBoxOrigin = {
-		left:	0, 
+		left:	0,
 		top:	0
 	};
 
 	// Create select box
-	var selectBox = jQuery('<div/>')
+	var selectBox = $('<div>')
 						.appendTo(parent)
 						.attr('class', config.className)
 						.css('position', 'absolute');
@@ -119,8 +119,8 @@ jQuery.fn.dragToSelect = function (conf) {
 			return;
 		}
 
-		selectBoxOrigin.left	= e.pageX - parentDim.left + parent[0].scrollLeft;
-		selectBoxOrigin.top		= e.pageY - parentDim.top + parent[0].scrollTop;
+		selectBoxOrigin.left	= e.pageX - parentDim.left + parent[0].scrollLeft - 5;
+		selectBoxOrigin.top		= e.pageY - parentDim.top + parent[0].scrollTop - 5;
 
 		var css = {
 			left:		selectBoxOrigin.left + 'px', 

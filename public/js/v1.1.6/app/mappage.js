@@ -19,6 +19,8 @@ define([
      * main init "map" page
      */
     $(function(){
+        Util.initPrototypes();
+
         // set default AJAX config
         Util.ajaxSetup();
 

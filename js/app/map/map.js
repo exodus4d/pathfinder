@@ -1315,8 +1315,8 @@ define([
             setConnectionObserver(map, connection);
         }
 
-        var addType = $(newConnectionData.type).not(connectionData.type).get();
-        var removeType = $(connectionData.type).not(newConnectionData.type).get();
+        var addType = newConnectionData.type.diff( connectionData.type );
+        var removeType = connectionData.type.diff( newConnectionData.type );
 
         // check if source or target has changed
         if(connectionData.source !== newConnectionData.source ){
