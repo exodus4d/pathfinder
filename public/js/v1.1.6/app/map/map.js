@@ -1624,6 +1624,9 @@ define([
             var hoverSystem = $(this).parents('.' + config.systemClass);
             var hoverSystemId = hoverSystem.attr('id');
 
+            // bring system in front (increase zIndex)
+            hoverSystem.updateSystemZIndex();
+
             // get ship counter and calculate expand height
             var userCount = parseInt( hoverSystem.data('userCount') );
 
