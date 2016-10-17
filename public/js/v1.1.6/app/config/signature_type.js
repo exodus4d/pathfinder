@@ -224,7 +224,8 @@ define(['jquery'], function($) {
                     3: 'Minor Perimeter Reservoir', //*
                     4: 'Sizeable Perimeter Reservoir', //*
                     5: 'Ordinary Perimeter Reservoir', //*
-                    6: 'Vast Frontier Reservoir' //*
+                    6: 'Vast Frontier Reservoir', //*
+                    7: 'Bountiful Frontier Reservoir' //*
                 },
                 5: {    // Wormhole
                     // no *wandering* w-space -> k-space wormholes
@@ -235,7 +236,8 @@ define(['jquery'], function($) {
                     2: 'Common Perimeter Deposit', //*
                     3: 'Unexceptional Frontier Deposit', //*
                     4: 'Average Frontier Deposit', //*
-                    5: 'Unusual Core Deposit' //*
+                    5: 'Unusual Core Deposit', //*
+                    6: 'Infrequent Core Deposit' //*
                 },
                 7: {    // Ghost
 
