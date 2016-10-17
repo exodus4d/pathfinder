@@ -1733,7 +1733,7 @@ define([
     var getLocalStorage = function(){
         if(localStorage === undefined){
             localStorage = localforage.createInstance({
-                driver: localforage.INDEXEDDB,
+                driver: [localforage.INDEXEDDB, localforage.WEBSQL, localforage.LOCALSTORAGE],
                 name: 'Pathfinder local storage'
             });
         }
