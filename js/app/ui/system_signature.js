@@ -1407,10 +1407,62 @@ define([
 
         moduleElement.append(table);
 
+        var dataTableOptions = {
+            data: signatureData,
+            initComplete: function (settings, json){
+                // setup filter select in footer
+                // column indexes that need a filter select
+                var filterColumnIndexes = [2];
+
+                this.api().columns(filterColumnIndexes).every(function(){
+                    var column = this;
+                    var headerLabel = $(column.header()).text();
+                    var selectField = $('<a class="pf-editable ' +
+                        config.moduleIcon + ' ' +
+                        config.editableFilterInputClass +
+                        '" href="#" data-type="select" data-name="' + headerLabel + '"></a>');
+
+                    // get all available options from column
+                    var source = {};
+                    column.data().unique().sort(function(a,b){
+                        // sort alphabetically
+                        var valA = a.filter.toLowerCase();
+                        var valB = b.filter.toLowerCase();
+
+                        if(valA < valB) return -1;
+                        if(valA > valB) return 1;
+                        return 0;
+                    }).each(function(callData){
+                        if(callData.filter){
+                            source[callData.filter] = callData.filter;
+                        }
+                    });
+
+                    // add empty option
+                    source[0] = '';
+
+                    // add field to footer
+                    selectField.appendTo( $(column.footer()).empty() );
+
+                    selectField.editable({
+                        emptytext: '<i class="fa fa-filter fa-fw"></i>',
+                        onblur: 'submit',
+                        title: 'filter',
+                        showbuttons: false,
+                        source: source,
+                        value: 0
+                    });
+
+                    selectField.on('save', { column: column }, function(e, params) {
+                        var val = $.fn.dataTable.util.escapeRegex( params.newValue );
+                        e.data.column.search( val !== '0' ? '^' + val + '$' : '', true, false ).draw();
+                    });
+                });
+            }
+        };
+
         // create signature table and store the jquery object global for this module
-        signatureTable = table.dataTable( {
-            data: signatureData
-        } );
+        signatureTable = table.dataTable(dataTableOptions);
 
         // make Table editable
         signatureTable.makeEditable(systemData);
@@ -1556,7 +1608,7 @@ define([
      */
     var initSignatureDataTable = function(systemData){
 
-        $.extend( $.fn.dataTable.defaults, {
+        $.extend( true, $.fn.dataTable.defaults, {
             pageLength: -1,
             lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, 'All']],
             order: [1, 'asc'],
@@ -1772,57 +1824,7 @@ define([
 
                     }
                 }
-            ],
-            initComplete: function (settings, json){
-                // setup filter select in footer
-                // column indexes that need a filter select
-                var filterColumnIndexes = [2];
-
-                this.api().columns(filterColumnIndexes).every(function(){
-                    var column = this;
-                    var headerLabel = $(column.header()).text();
-                    var selectField = $('<a class="pf-editable ' +
-                        config.moduleIcon + ' ' +
-                        config.editableFilterInputClass +
-                        '" href="#" data-type="select" data-name="' + headerLabel + '"></a>');
-
-                    // get all available options from column
-                    var source = {};
-                    column.data().unique().sort(function(a,b){
-                        // sort alphabetically
-                        var valA = a.filter.toLowerCase();
-                        var valB = b.filter.toLowerCase();
-
-                        if(valA < valB) return -1;
-                        if(valA > valB) return 1;
-                        return 0;
-                    }).each(function(callData){
-                        if(callData.filter){
-                            source[callData.filter] = callData.filter;
-                        }
-                    });
-
-                    // add empty option
-                    source[0] = '';
-
-                    // add field to footer
-                    selectField.appendTo( $(column.footer()).empty() );
-
-                    selectField.editable({
-                        emptytext: '<i class="fa fa-filter fa-fw" title="filter column"></i>',
-                        onblur: 'submit',
-                        title: 'filter',
-                        showbuttons: false,
-                        source: source,
-                        value: 0
-                    });
-
-                    selectField.on('save', { column: column }, function(e, params) {
-                        var val = $.fn.dataTable.util.escapeRegex( params.newValue );
-                        e.data.column.search( val !== '0' ? '^' + val + '$' : '', true, false ).draw();
-                    });
-                });
-            }
+            ]
         });
     };
 
