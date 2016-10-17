@@ -219,7 +219,7 @@ define([
                             if($.fullscreen.isFullScreen()){
                                 $.fullscreen.exit();
                             }else{
-                                fullScreenElement.fullscreen({overflow: 'overflow-y', toggleClass: config.fullScreenClass});
+                                fullScreenElement.fullscreen({overflow: 'scroll', toggleClass: config.fullScreenClass});
                             }
                         });
                     })
