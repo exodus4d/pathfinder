@@ -58,6 +58,14 @@
     .pf-sig-table-edit-name-input{
       text-transform: uppercase;
     }
+
+    // table filter fields
+    .pf-editable-filter{
+      // overwrites default xEditable style
+      color: $gray-light;
+      border: none;
+      font-style: normal;
+    }
   }
 }
 

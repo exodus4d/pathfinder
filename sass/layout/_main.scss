@@ -111,7 +111,7 @@ em{
   @include transition(color 0.15s ease-out);
 
   &:hover{
-    color: $orange;
+    color: $orange !important;
   }
 
 }
