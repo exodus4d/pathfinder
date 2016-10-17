@@ -8,8 +8,9 @@
 
 namespace Model;
 
-use Controller\Api\Route;
 use DB\SQL\Schema;
+use Controller;
+use Controller\Api\Route;
 
 class ConnectionModel extends BasicModel{
 
@@ -42,7 +43,8 @@ class ConnectionModel extends BasicModel{
                     'table' => 'system',
                     'on-delete' => 'CASCADE'
                 ]
-            ]
+            ],
+            'activity-log' => true
         ],
         'target' => [
             'type' => Schema::DT_INT,
@@ -53,15 +55,18 @@ class ConnectionModel extends BasicModel{
                     'table' => 'system',
                     'on-delete' => 'CASCADE'
                 ]
-            ]
+            ],
+            'activity-log' =>  true
         ],
         'scope' => [
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
-            'default' => ''
+            'default' => '',
+            'activity-log' => true
         ],
         'type' => [
-            'type' => self::DT_JSON
+            'type' => self::DT_JSON,
+            'activity-log' => true
         ],
         'eolUpdated' => [
             'type' => Schema::DT_TIMESTAMP,
@@ -210,6 +215,66 @@ class ConnectionModel extends BasicModel{
         }
 
         return parent::beforeInsertEvent($self, $pkeys);
+    }
+
+    /**
+     * Event "Hook" function
+     * return false will stop any further action
+     * @param self $self
+     * @param $pkeys
+     */
+    public function afterInsertEvent($self, $pkeys){
+        parent::afterInsertEvent($self, $pkeys);
+
+        $self->logActivity('connectionCreate');
+    }
+
+    /**
+     * Event "Hook" function
+     * return false will stop any further action
+     * @param self $self
+     * @param $pkeys
+     */
+    public function afterUpdateEvent($self, $pkeys){
+        parent::afterUpdateEvent($self, $pkeys);
+
+        $self->logActivity('connectionUpdate');
+    }
+
+    /**
+     * Event "Hook" function
+     * can be overwritten
+     * @param self $self
+     * @param $pkeys
+     */
+    public function afterEraseEvent($self, $pkeys){
+        parent::afterUpdateEvent($self, $pkeys);
+
+        $self->logActivity('connectionDelete');
+    }
+
+    /**
+     * log character activity create/update/delete events
+     * @param string $action
+     */
+    protected function logActivity($action){
+
+        if(
+            $this->enableActivityLogging &&
+            (
+                $action === 'connectionDelete' ||
+                !empty($this->fieldChanges)
+            ) &&
+            $this->get('mapId')->isActivityLogEnabled()
+        ){
+            // TODO implement "dependency injection" for active character object...
+            $controller = new Controller\Controller();
+            $currentActiveCharacter = $controller->getCharacter();
+            $characterId = is_null($currentActiveCharacter) ? 0 : $currentActiveCharacter->_id;
+            $mapId = $this->get('mapId', true);
+
+            parent::bufferActivity($characterId, $mapId, $action);
+        }
     }
 
     /**

@@ -86,6 +86,8 @@ class Setup extends Controller {
                 'Model\ConnectionModel',
                 'Model\SystemSignatureModel',
 
+                'Model\ActivityLogModel',
+
                 'Model\SystemShipKillModel',
                 'Model\SystemPodKillModel',
                 'Model\SystemFactionKillModel',

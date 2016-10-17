@@ -7,6 +7,7 @@
  */
 
 namespace Controller\Api;
+use Controller;
 use Model;
 
 
@@ -15,7 +16,7 @@ use Model;
  * Class Route
  * @package Controller\Api
  */
-class Route extends \Controller\AccessController {
+class Route extends Controller\AccessController {
 
     /**
      * cache time for static jump data (e.g. K-Space stargates)

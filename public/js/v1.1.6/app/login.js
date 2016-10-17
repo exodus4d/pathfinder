@@ -105,6 +105,14 @@ define([
         return '';
     };
 
+    /**
+     * set link observer for "version info" dialog
+     */
+    var setVersionLinkObserver = function(){
+        $('.' + config.navigationVersionLinkClass).off('click').on('click', function(e){
+            $.fn.releasesDialog();
+        });
+    };
 
     /**
      * set page observer
@@ -121,11 +129,6 @@ define([
            setCookie('cookie', 1, 365);
         });
 
-        // releases -----------------------------------------------------------
-        $('.' + config.navigationVersionLinkClass).on('click', function(e){
-            $.fn.releasesDialog();
-        });
-
         // manual -------------------------------------------------------------
         $('.' + config.navigationLinkManualClass).on('click', function(e){
             e.preventDefault();
@@ -137,6 +140,9 @@ define([
             e.preventDefault();
             $.fn.showCreditsDialog(false, true);
         });
+
+        // releases -----------------------------------------------------------
+        setVersionLinkObserver();
 
         // tooltips -----------------------------------------------------------
         var mapTooltipOptions = {
@@ -329,6 +335,9 @@ define([
         }
     };
 
+    /**
+     * init "YouTube" video preview
+     */
     var initYoutube = function(){
 
         $('.youtube').each(function() {
@@ -468,6 +477,8 @@ define([
                 notificationPanel.velocity('transition.slideUpIn', {
                     duration: 300,
                     complete: function(){
+                        setVersionLinkObserver();
+
                         // mark panel as "shown"
                         Util.getLocalStorage().setItem(storageKey, currentVersion);
                     }

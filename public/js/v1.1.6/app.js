@@ -38,6 +38,7 @@ requirejs.config({
         raphael: 'lib/raphael-min',                                     // v2.1.2 Raphaël - required for morris (dependency)
         bootbox: 'lib/bootbox.min',                                     // v4.4.0 Bootbox.js - custom dialogs - http://bootboxjs.com
         easyPieChart: 'lib/jquery.easypiechart.min',                    // v2.1.6 Easy Pie Chart - HTML 5 pie charts - http://rendro.github.io/easy-pie-chart
+        peityInlineChart: 'lib/jquery.peity.min',                       // v3.2.0 Inline Chart - http://benpickles.github.io/peity/
         dragToSelect: 'lib/jquery.dragToSelect',                        // v1.1 Drag to Select - http://andreaslagerkvist.com/jquery/drag-to-select
         hoverIntent: 'lib/jquery.hoverIntent.minified',                 // v1.8.0 Hover intention - http://cherne.net/brian/resources/jquery.hoverIntent.html
         fullScreen: 'lib/jquery.fullscreen.min',                        // v0.5.0 Full screen mode - https://github.com/private-face/jquery.fullscreen
@@ -121,6 +122,9 @@ requirejs.config({
             deps : ['jquery']
         },
         easyPieChart: {
+            deps : ['jquery']
+        },
+        peityInlineChart: {
             deps : ['jquery']
         },
         dragToSelect: {

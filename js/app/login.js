@@ -105,6 +105,14 @@ define([
         return '';
     };
 
+    /**
+     * set link observer for "version info" dialog
+     */
+    var setVersionLinkObserver = function(){
+        $('.' + config.navigationVersionLinkClass).off('click').on('click', function(e){
+            $.fn.releasesDialog();
+        });
+    };
 
     /**
      * set page observer
@@ -121,11 +129,6 @@ define([
            setCookie('cookie', 1, 365);
         });
 
-        // releases -----------------------------------------------------------
-        $('.' + config.navigationVersionLinkClass).on('click', function(e){
-            $.fn.releasesDialog();
-        });
-
         // manual -------------------------------------------------------------
         $('.' + config.navigationLinkManualClass).on('click', function(e){
             e.preventDefault();
@@ -137,6 +140,9 @@ define([
             e.preventDefault();
             $.fn.showCreditsDialog(false, true);
         });
+
+        // releases -----------------------------------------------------------
+        setVersionLinkObserver();
 
         // tooltips -----------------------------------------------------------
         var mapTooltipOptions = {
@@ -329,6 +335,9 @@ define([
         }
     };
 
+    /**
+     * init "YouTube" video preview
+     */
     var initYoutube = function(){
 
         $('.youtube').each(function() {
@@ -468,6 +477,8 @@ define([
                 notificationPanel.velocity('transition.slideUpIn', {
                     duration: 300,
                     complete: function(){
+                        setVersionLinkObserver();
+
                         // mark panel as "shown"
                         Util.getLocalStorage().setItem(storageKey, currentVersion);
                     }
@@ -565,74 +576,70 @@ define([
                 }
             });
         };
+
         // --------------------------------------------------------------------
-
         // request character data for each character panel
-        $('.' + config.characterSelectionClass + ' .pf-dynamic-area').each(function(){
-            var characterElement = $(this);
+        requirejs(['text!templates/ui/character_panel.html', 'mustache'], function(template, Mustache){
 
-            characterElement.showLoadingAnimation();
+            $('.' + config.characterSelectionClass + ' .pf-dynamic-area').each(function(){
+                var characterElement = $(this);
 
-            var requestData = {
-                cookie: characterElement.data('cookie')
-            };
+                characterElement.showLoadingAnimation();
 
-            $.ajax({
-                type: 'POST',
-                url: Init.path.getCookieCharacterData,
-                data: requestData,
-                dataType: 'json',
-                context: {
-                    href: characterElement.data('href'),
-                    cookieName: requestData.cookie,
-                    characterElement: characterElement
-                }
-            }).done(function(responseData, textStatus, request){
-                var characterElement = this.characterElement;
-                characterElement.hideLoadingAnimation();
+                var requestData = {
+                    cookie: characterElement.data('cookie')
+                };
 
-                if(
-                    responseData.error &&
-                    responseData.error.length > 0
-                ){
-                    $('.' + config.dynamicMessageContainerClass).showMessage({
-                        type: responseData.error[0].type,
-                        title: 'Character verification failed',
-                        text: responseData.error[0].message
-                    });
-                }
+                $.ajax({
+                    type: 'POST',
+                    url: Init.path.getCookieCharacterData,
+                    data: requestData,
+                    dataType: 'json',
+                    context: {
+                        cookieName: requestData.cookie,
+                        characterElement: characterElement
+                    }
+                }).done(function(responseData, textStatus, request){
+                    this.characterElement.hideLoadingAnimation();
 
-                if(responseData.hasOwnProperty('character')){
+                    if(
+                        responseData.error &&
+                        responseData.error.length > 0
+                    ){
+                        $('.' + config.dynamicMessageContainerClass).showMessage({
+                            type: responseData.error[0].type,
+                            title: 'Character verification failed',
+                            text: responseData.error[0].message
+                        });
+                    }
 
-                    var data = {
-                        link: this.href,
-                        cookieName: this.cookieName,
-                        character: responseData.character
-                    };
+                    if(responseData.hasOwnProperty('character')){
 
-                    requirejs(['text!templates/ui/character_panel.html', 'mustache'], function(template, Mustache) {
+                        var data = {
+                            link: this.characterElement.data('href'),
+                            cookieName: this.cookieName,
+                            character: responseData.character
+                        };
+
                         var content = Mustache.render(template, data);
-                        characterElement.html(content);
+                        this.characterElement.html(content);
 
                         // show character panel (animation settings)
-                        initCharacterAnimation(characterElement.find('.' + config.characterImageWrapperClass));
-                    });
-                }else{
+                        initCharacterAnimation(this.characterElement.find('.' + config.characterImageWrapperClass));
+                    }else{
+                        // character data not available -> remove panel
+                        removeCharacterPanel(this.characterElement);
+                    }
+                }).fail(function( jqXHR, status, error) {
+                    var characterElement = this.characterElement;
+                    characterElement.hideLoadingAnimation();
+
                     // character data not available -> remove panel
                     removeCharacterPanel(this.characterElement);
-                }
-
-            }).fail(function( jqXHR, status, error) {
-                var characterElement = this.characterElement;
-                characterElement.hideLoadingAnimation();
-
-                // character data not available -> remove panel
-                removeCharacterPanel(this.characterElement);
+                });
             });
-
         });
     };
-
 
     /**
      * default ajax error handler

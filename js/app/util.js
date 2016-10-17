@@ -121,7 +121,9 @@ define([
         var loadingElement = $(this);
         var overlay = loadingElement.find('.' + config.ajaxOverlayClass );
 
-        $(overlay).velocity('reverse', {
+        // important: "stop" is required to stop "show" animation
+        // -> otherwise "complete" callback is not fired!
+        $(overlay).velocity('stop').velocity('reverse', {
             complete: function(){
                 $(this).remove();
                 // enable all events

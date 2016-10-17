@@ -37,22 +37,26 @@ class SystemSignatureModel extends BasicModel {
             'nullable' => false,
             'default' => 0,
             'index' => true,
+            'activity-log' => true
         ],
         'typeId' => [
             'type' => Schema::DT_INT,
             'nullable' => false,
             'default' => 0,
             'index' => true,
+            'activity-log' => true
         ],
         'name' => [
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
-            'default' => ''
+            'default' => '',
+            'activity-log' => true
         ],
         'description' => [
             'type' => Schema::DT_VARCHAR512,
             'nullable' => false,
-            'default' => ''
+            'default' => '',
+            'activity-log' => true
         ],
         'createdCharacterId' => [
             'type' => Schema::DT_INT,
@@ -168,6 +172,68 @@ class SystemSignatureModel extends BasicModel {
             // check if character has access
             if($this->hasAccess($characterModel)){
                 $this->erase();
+            }
+        }
+    }
+
+    /**
+     * Event "Hook" function
+     * return false will stop any further action
+     * @param self $self
+     * @param $pkeys
+     */
+    public function afterInsertEvent($self, $pkeys){
+        parent::afterInsertEvent($self, $pkeys);
+
+        $self->logActivity('signatureCreate');
+    }
+
+    /**
+     * Event "Hook" function
+     * return false will stop any further action
+     * @param self $self
+     * @param $pkeys
+     */
+    public function afterUpdateEvent($self, $pkeys){
+        parent::afterUpdateEvent($self, $pkeys);
+
+        $self->logActivity('signatureUpdate');
+    }
+
+    /**
+     * Event "Hook" function
+     * can be overwritten
+     * @param self $self
+     * @param $pkeys
+     */
+    public function afterEraseEvent($self, $pkeys){
+        parent::afterUpdateEvent($self, $pkeys);
+
+        $self->logActivity('signatureDelete');
+    }
+
+    /**
+     * log character activity create/update/delete events
+     * @param string $action
+     */
+    protected function logActivity($action){
+        if($this->enableActivityLogging){
+            /**
+             * @var $map MapModel
+             */
+            $map = $this->get('systemId')->get('mapId');
+
+            if(
+                (
+                    $action === 'signatureDelete' ||
+                    !empty($this->fieldChanges)
+                ) &&
+                $map->isActivityLogEnabled()
+            ){
+                $characterId = $this->get('updatedCharacterId', true);
+                $mapId = $map->_id;
+
+                parent::bufferActivity($characterId, $mapId, $action);
             }
         }
     }

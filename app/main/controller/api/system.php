@@ -7,11 +7,12 @@
  */
 
 namespace Controller\Api;
+use Controller;
 use Controller\Ccp\Sso;
 use Data\Mapper as Mapper;
 use Model;
 
-class System extends \Controller\AccessController {
+class System extends Controller\AccessController {
 
     private $mainQuery = "SELECT
             map_sys.constellationID `connstallation_id`,
@@ -68,7 +69,6 @@ class System extends \Controller\AccessController {
      * @param \Base $f3
      */
     function beforeroute(\Base $f3) {
-
         parent::beforeroute($f3);
 
         // set header for all routes
@@ -80,7 +80,6 @@ class System extends \Controller\AccessController {
      * @return string
      */
     private function _getQuery(){
-
         $query = $this->mainQuery;
         $query .= ' ' . $this->whereQuery;
         $query .= ' ' . $this->havingQuery;
@@ -419,8 +418,17 @@ class System extends \Controller\AccessController {
         foreach($systemIds as $systemId){
             $system->getById($systemId);
             if( $system->hasAccess($activeCharacter) ){
-                $system->setActive(false);
-                $system->save();
+                // check whether system should be deleted OR set "inactive"
+                if(
+                    empty($system->alias) &&
+                    empty($system->description)
+                ){
+                    $system->erase();
+                }else{
+                    // keep data -> set "inactive"
+                    $system->setActive(false);
+                    $system->save();
+                }
                 $system->reset();
             }
         }

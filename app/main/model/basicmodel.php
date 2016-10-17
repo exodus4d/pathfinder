@@ -57,6 +57,14 @@ abstract class BasicModel extends \DB\Cortex {
     protected $allowActiveChange = false;
 
     /**
+     * enables check for $fieldChanges on update/insert
+     * -> fields that should be checked need an "activity-log" flag
+     * in $fieldConf config
+     * @var bool
+     */
+    protected $enableActivityLogging = true;
+
+    /**
      * getData() cache key prefix
      * -> do not change, otherwise cached data is lost
      * @var string
@@ -77,6 +85,12 @@ abstract class BasicModel extends \DB\Cortex {
      */
     public static $enableDataImport = false;
 
+    /**
+     * changed fields (columns) on update/insert
+     * -> e.g. for character "activity logging"
+     * @var array
+     */
+    protected $fieldChanges = [];
 
     public function __construct($db = NULL, $table = NULL, $fluid = NULL, $ttl = 0){
 
@@ -157,7 +171,51 @@ abstract class BasicModel extends \DB\Cortex {
         if(!$valid){
             $this->throwValidationError($key);
         }else{
+            $this->checkFieldForActivityLogging($key, $val);
+
             return parent::set($key, $val);
+        }
+    }
+
+    /**
+     * change default "activity logging" status
+     * -> enable/disable
+     * @param $status
+     */
+    public function setActivityLogging($status){
+        $this->enableActivityLogging = (bool) $status;
+    }
+
+    /**
+     * check column for value changes,
+     * --> if column is marked for "activity logging"
+     * @param string $key
+     * @param mixed $val
+     */
+    protected function checkFieldForActivityLogging($key, $val){
+        if( $this->enableActivityLogging ){
+            $fieldConf = $this->fieldConf[$key];
+
+            // check for value changes if field has "activity logging" active
+            if($fieldConf['activity-log'] === true){
+                if(
+                    is_numeric($val) ||
+                    $fieldConf['type'] === Schema::DT_BOOL
+                ){
+                    $val = (int)$val;
+                }
+
+                if( $fieldConf['type'] === self::DT_JSON){
+                    $currentValue = $this->get($key);
+                }else{
+                    $currentValue = $this->get($key, true);
+                }
+
+                if($currentValue !== $val){
+                    // field has changed
+                    in_array($key, $this->fieldChanges) ?: $this->fieldChanges[] = $key;
+                }
+            }
         }
     }
 
@@ -636,6 +694,18 @@ abstract class BasicModel extends \DB\Cortex {
             }
         }
         return ['added' => $addedCount, 'updated' => $updatedCount, 'deleted' => $deletedCount];
+    }
+
+    /**
+     * buffer a new activity (action) logging
+     * -> increment buffered counter
+     * -> log character activity create/update/delete events
+     * @param int $characterId
+     * @param int $mapId
+     * @param string $action
+     */
+    protected function bufferActivity($characterId, $mapId, $action){
+        Controller\LogController::instance()->bufferActivity($characterId, $mapId, $action);
     }
 
     /**

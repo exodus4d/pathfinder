@@ -35,11 +35,6 @@ class MapUpdate {
                 TIMESTAMPDIFF(DAY, map.updated, NOW() ) > :lifetime";
 
             $pfDB->exec($sqlDeactivateExpiredMaps, ['lifetime' => $privateMapLifetime]);
-            $deactivatedMapsCount = $pfDB->count();
-
-            // Log ------------------------
-            $log = new \Log('cron_' . __FUNCTION__ . '.log');
-            $log->write( sprintf(self::LOG_TEXT_MAPS, __FUNCTION__, $deactivatedMapsCount) );
         }
     }
 
@@ -78,13 +73,13 @@ class MapUpdate {
         if($signatureExpire > 0){
             $pfDB = DB\Database::instance()->getDB('PF');
 
-            $sqlDeleteExpiredSignatures = "DELETE `sys` FROM
-                `system_signature` `sys` INNER JOIN
+            $sqlDeleteExpiredSignatures = "DELETE `sigs` FROM
+                `system_signature` `sigs` INNER JOIN
                 `system` ON 
-                  `system`.`id` = `sys`.`systemId`
+                  `system`.`id` = `sigs`.`systemId`
               WHERE
                 `system`.`active` = 0 AND
-                TIMESTAMPDIFF(SECOND, `sys`.`updated`, NOW() ) > :lifetime
+                TIMESTAMPDIFF(SECOND, `sigs`.`updated`, NOW() ) > :lifetime
             ";
 
             $pfDB->exec($sqlDeleteExpiredSignatures, ['lifetime' => $signatureExpire]);

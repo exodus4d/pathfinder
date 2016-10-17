@@ -35,7 +35,6 @@ define(['jquery'], function($) {
             getSystemGraphData: 'api/system/graphData',             // ajax URL - get all system graph data
             getConstellationData: 'api/system/constellationData',   // ajax URL - get system constellation data
             setDestination: 'api/system/setDestination',            // ajax URL - set destination
-
             // connection API
             saveConnection: 'api/connection/save',                  // ajax URL - save new connection to map
             deleteConnection: 'api/connection/delete',              // ajax URL - delete connection from map
@@ -45,6 +44,8 @@ define(['jquery'], function($) {
             deleteSignatureData: 'api/signature/delete',            // ajax URL - delete signature data for system
             // route API
             searchRoute: 'api/route/search',                        // ajax URL - search system routes
+            // stats API
+            getStatisticsData: 'api/statistic/getData',             // ajax URL - get statistics data (activity log)
             // GitHub API
             gitHubReleases: 'api/github/releases'                   // ajax URL - get release info from GitHub
         },
@@ -52,6 +53,12 @@ define(['jquery'], function($) {
             ccpImageServer: 'https://image.eveonline.com/',         // CCP image Server
             zKillboard: 'https://zkillboard.com/api/'               // killboard api
         },
+        breakpoints: [
+            { name: 'desktop', width: Infinity },
+            { name: 'tablet',  width: 1200 },
+            { name: 'fablet',  width: 780 },
+            { name: 'phone',   width: 480 }
+        ],
         animationSpeed: {
             splashOverlay: 300,                                     // "splash" loading overlay
             headerLink: 100,                                        // links in head bar

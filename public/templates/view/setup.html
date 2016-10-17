@@ -157,7 +157,7 @@
                     <div class="panel-body no-padding text-align-center">
 
                         <table class="table">
-                            <tbody>
+                            <thead>
                             <repeat group="{{ @serverInformation }}" value="{{ @information }}">
                                 <tr>
                                     <td>{{@information.label}}</td>
@@ -165,7 +165,7 @@
                                 </tr>
                             </repeat>
 
-                            </tbody>
+                            </thead>
                         </table>
 
                     </div>
@@ -235,7 +235,7 @@
 
                     <div class="panel-body no-padding text-align-center">
                         <table class="table">
-                            <tbody>
+                            <thead>
                             <repeat group="{{ @environmentInformation }}" value="{{ @environmentData }}">
                                 <tr>
                                     <td>{{@environmentData.label}}</td>
@@ -251,7 +251,7 @@
                                     </td>
                                 </tr>
                             </repeat>
-                            </tbody>
+                            </thead>
                         </table>
                     </div>
 
@@ -264,10 +264,35 @@
                 <div class="panel panel-default pricing-big">
 
                     <div class="panel-heading text-left">
-                        <h3 class="panel-title">Map restrictions</h3>
+                        <h3 class="panel-title">Registration</h3>
                     </div>
 
                     <div class="panel-body no-padding text-align-center">
+
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <td>Status</td>
+                                <td class="text-right col-md-2">
+                                    <check if="{{ @PATHFINDER.REGISTRATION.STATUS }}">
+                                        <true>
+                                            <kbd class="txt-color txt-color-success">enabled</kbd>
+                                        </true>
+                                        <false>
+                                            <kbd class="txt-color txt-color-warning">disabled</kbd>
+                                        </false>
+                                    </check>
+                                </td>
+                            </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+
+                        <div class="panel-footer text-left">
+                            <h3 class="panel-title">Map restrictions</h3>
+                        </div>
 
                         <table class="table">
                             <thead>
@@ -295,17 +320,17 @@
                         <table class="table">
                             <thead>
                             <tr>
-                                <td>Max. shared users (private map)</td>
+                                <td>Max. shared users (private maps)</td>
                                 <td class="text-right col-md-2"><kbd>{{ @PATHFINDER.MAP.PRIVATE.MAX_SHARED }}</kbd></td>
                             </tr>
                             </thead>
                             <tbody>
                             <tr>
-                                <td>Max. shared users (corporation map)</td>
+                                <td>Max. shared users (corporation maps)</td>
                                 <td class="text-right"><kbd>{{ @PATHFINDER.MAP.CORPORATION.MAX_SHARED }}</kbd></td>
                             </tr>
                             <tr>
-                                <td>Max. shared users (alliance map)</td>
+                                <td>Max. shared users (alliance maps)</td>
                                 <td class="text-right"><kbd>{{ @PATHFINDER.MAP.ALLIANCE.MAX_SHARED }}</kbd></td>
                             </tr>
                             </tbody>
@@ -318,32 +343,47 @@
                         <table class="table">
                             <thead>
                             <tr>
-                                <td>Private map</td>
+                                <td>Private maps</td>
                                 <td class="text-right col-md-2"><kbd>{{ @PATHFINDER.MAP.PRIVATE.LIFETIME }}</kbd></td>
                             </tr>
                             </thead>
                             <tbody>
                             <tr>
-                                <td>Corporation map</td>
+                                <td>Corporation maps</td>
                                 <td class="text-right"><kbd>{{ @PATHFINDER.MAP.CORPORATION.LIFETIME }}</kbd></td>
                             </tr>
                             <tr>
-                                <td>Alliance map</td>
+                                <td>Alliance maps</td>
                                 <td class="text-right"><kbd>{{ @PATHFINDER.MAP.ALLIANCE.LIFETIME }}</kbd></td>
                             </tr>
                             </tbody>
                         </table>
 
                         <div class="panel-footer text-left">
-                            <h3 class="panel-title">Registration</h3>
+                            <h3 class="panel-title">User activity logging</h3>
                         </div>
 
                         <table class="table">
                             <thead>
                             <tr>
-                                <td>Status</td>
+                                <td>Private maps</td>
                                 <td class="text-right col-md-2">
-                                    <check if="{{ @PATHFINDER.REGISTRATION.STATUS }}">
+                                    <check if="{{ @PATHFINDER.MAP.PRIVATE.ACTIVITY_LOGGING }}">
+                                        <true>
+                                            <kbd class="txt-color txt-color-success">enabled</kbd>
+                                        </true>
+                                        <false>
+                                            <kbd class="txt-color txt-color-warning">disabled</kbd>
+                                        </false>
+                                    </check>
+                                 </td>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>Corporation maps</td>
+                                <td class="text-right">
+                                    <check if="{{ @PATHFINDER.MAP.CORPORATION.ACTIVITY_LOGGING }}">
                                         <true>
                                             <kbd class="txt-color txt-color-success">enabled</kbd>
                                         </true>
@@ -353,12 +393,21 @@
                                     </check>
                                 </td>
                             </tr>
-                            </thead>
-                            <tbody>
-
+                            <tr>
+                                <td>Alliance maps</td>
+                                <td class="text-right">
+                                    <check if="{{ @PATHFINDER.MAP.ALLIANCE.ACTIVITY_LOGGING }}">
+                                        <true>
+                                            <kbd class="txt-color txt-color-success">enabled</kbd>
+                                        </true>
+                                        <false>
+                                            <kbd class="txt-color txt-color-warning">disabled</kbd>
+                                        </false>
+                                    </check>
+                                </td>
+                            </tr>
                             </tbody>
                         </table>
-
 
                     </div>
                 </div>
