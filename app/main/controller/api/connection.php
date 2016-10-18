@@ -10,7 +10,7 @@ namespace Controller\Api;
 use Controller;
 use Model;
 
-class Connection extends Controller\AccessController{
+class Connection extends Controller\AccessController {
 
     /**
      * @param \Base $f3

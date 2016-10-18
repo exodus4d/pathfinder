@@ -239,6 +239,8 @@ $mapWidth: 2500px ;
       .pf-system-body-item{
         color: lighten($gray-light, 10%);
         font-size: 10px;
+        line-height: 16px;
+        height: 16px;
 
         .pf-system-body-right{
           text-overflow: ellipsis;
@@ -250,13 +252,14 @@ $mapWidth: 2500px ;
         .pf-user-status{
           font-size: 7px;
           width: 10px;
+          vertical-align: middle;
+          height: 14px;
         }
 
         .pf-system-body-item-name{
           display: inline-block;
           width: 65px;
           overflow: hidden;
-          height: 10px;
           white-space: nowrap;
           text-overflow: ellipsis;
         }

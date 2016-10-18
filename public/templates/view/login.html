@@ -137,8 +137,8 @@
             </div>
         </div>
 
-        {* splash page *}
-        <include href="templates/ui/notice.html"/>
+        {* splash page -> shown by Javascript *}
+        <div id="pf-notification-panel"></div>
     </div>
 </section>
 
@@ -186,7 +186,7 @@
                 </a>
             </div>
             <div class="col-xs-12 col-sm-9 col-lg-4">
-                <h4><i class="fa fa-fw fa-angle-double-right"></i>Pathfinder</h4>
+                <h4>Pathfinder</h4>
                 <ul class="fa-ul pf-landing-list">
                     <li><i></i><span class="txt-color txt-color-greenDark"><e class="fa fa-fw fa-lock"></e>SSL</span> encrypted connection</li>
                     <li><i></i>User friendly <a class="pf-navbar-manual" href="#">manual</a></li>
@@ -250,7 +250,7 @@
             </div>
 
             <div class="col-xs-12 col-sm-9 col-lg-4">
-                <h4><i class="fa fa-fw fa-angle-double-right"></i>Map module</h4>
+                <h4>Map module</h4>
                 <ul class="fa-ul  pf-landing-list">
                     <li><i></i>Live synchronisation between clients</li>
                     <li><i></i>Multiple map support</li>
@@ -329,7 +329,7 @@
             </div>
 
             <div class="col-xs-12 col-sm-9 col-lg-4">
-                <h4><i class="fa fa-fw fa-angle-double-right"></i>System module</h4>
+                <h4>System module</h4>
                 <ul class="fa-ul pf-landing-list">
                     <li><i></i>Quick access to all relevant information</li>
                     <li>
@@ -368,7 +368,7 @@
             </div>
 
             <div class="col-xs-12 col-sm-9 col-lg-4">
-                <h4><i class="fa fa-fw fa-angle-double-right"></i>Signature module</h4>
+                <h4>Signature module</h4>
                 <ul class="fa-ul pf-landing-list">
                     <li><i></i>Share system signature information</li>
                     <li><i></i>Add/Update multiple signatures at once <kbd>ctrl</kbd> + <kbd>c</kbd></li>
@@ -407,7 +407,7 @@
             </div>
 
             <div class="col-xs-12 col-sm-9 col-lg-4">
-                <h4><i class="fa fa-fw fa-angle-double-right"></i>Killboard module</h4>
+                <h4>Killboard module</h4>
                 <ul class="fa-ul pf-landing-list">
                     <li><i></i><em><a target="_blank" href="https://github.com/zKillboard/zKillboard/wiki">zkillboard.com</a></em> API integration</li>
                     <li><i></i>Detailed information about all recent activities in a system</li>
@@ -440,7 +440,7 @@
             </div>
 
             <div class="col-xs-12 col-sm-9 col-lg-4">
-                <h4><i class="fa fa-fw fa-angle-double-right"></i>Route module</h4>
+                <h4>Route module</h4>
                 <ul class="fa-ul pf-landing-list">
                     <li><i></i>Search for routes between systems</li>
                     <li><i></i>Predefined trade hub routes</li>
@@ -477,19 +477,20 @@
         </div>
 
         <div class="row">
+
             <div class="col-xs-12 col-sm-3 col-lg-2">
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/statistics_1.jpg" data-description="Statistics" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/statistics_1.jpg" width="160" height="160" alt="Statistics">
+                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/statistics_1.jpg" data-description="System statistics" data-gallery="#pf-gallery">
+                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/statistics_1.jpg" width="160" height="160" alt="System statistics">
                 </a>
             </div>
 
             <div class="col-xs-12 col-sm-9 col-lg-4">
-                <h4><i class="fa fa-fw fa-angle-double-right"></i>Statistics module</h4>
+                <h4>System statistics module</h4>
                 <ul class="fa-ul pf-landing-list">
-                    <li><i></i>Integrated live data for all systems</li>
+                    <li><i></i>Live in-game system data</li>
                     <li>
                         <ul class="fa-ul">
-                            <li><i></i>System jumps</li>
+                            <li><i></i>System jump data</li>
                             <li><i></i>Ship/POD kills</li>
                             <li><i></i>NPC kills</li>
                         </ul>
@@ -497,8 +498,35 @@
                 </ul>
             </div>
 
-
             <div class="clearfix visible-xs visible-sm visible-md"></div>
+
+            <div class="col-xs-12 col-sm-3 col-lg-2" id="pf-landing-feature-user-statistics">
+                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/statistics_2.jpg" data-description="User statistics" data-gallery="#pf-gallery">
+                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/statistics_2.jpg" width="160" height="160" alt="User statistics">
+                </a>
+            </div>
+
+            <div class="col-xs-12 col-sm-9 col-lg-4">
+                <h4>User statistics <span class="label label-success">new</span> </h4>
+                <ul class="fa-ul pf-landing-list">
+                    <li><i></i>User activity logging</li>
+                    <li>
+                        <ul class="fa-ul">
+                            <li><i></i>Private statistics</li>
+                            <li><i></i>Corporation statistics</li>
+                            <li><i></i>Alliance statistics</li>
+                        </ul>
+                    </li>
+                    <li><i></i>Log history</li>
+                    <li>
+                        <ul class="fa-ul">
+                            <li><i></i>Weekly</li>
+                            <li><i></i>Monthly</li>
+                            <li><i></i>Yearly</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
 
         </div>
 
@@ -634,7 +662,7 @@
             </div>
 
             <div class="col-xs-12 col-sm-9 col-lg-4">
-                <h4><i class="fa fa-fw fa-server"></i>Requirements check</h4>
+                <h4><i class="fa fa-fw fa-server"></i> Requirements check</h4>
                 <ul class="fa-ul pf-landing-list">
                     <li><i></i>Checks your server type/status</li>
                     <li><i></i>Checks your installed PHP version</li>
@@ -656,7 +684,7 @@
             </div>
 
             <div class="col-xs-12 col-sm-9 col-lg-4">
-                <h4><i class="fa fa-fw fa-database"></i>Database setup</h4>
+                <h4><i class="fa fa-fw fa-database"></i> Database setup</h4>
                 <ul class="fa-ul pf-landing-list">
                     <li><i></i>Check DB connections</li>
                     <li><i></i>Check DB version</li>
@@ -692,7 +720,7 @@
 
         <div class="row">
             <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
-                <h4><i class="fa fa-fw fa-angle-double-right"></i>About Me</h4>
+                <h4>About Me</h4>
                 <p>
                     I am playing <em><a  target="_blank" href="https://www.eveonline.com/">EVE Online</a></em> since almost 4 years.
                     The majority of time (3+ years), my characters were a part of the <em><a target="_blank" href="https://www.themittani.com/news/j150020-three-alliances-enter-none-leave">"No Holes Barred"</a></em> alliance.
@@ -728,7 +756,7 @@
             </div>
 
             <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                <h4><i class="fa fa-fw fa-angle-double-right"></i>Technology stack</h4>
+                <h4>Technology stack</h4>
                 <p>
                     If you are planning to get deeper into the project or even think about hosting it on your own webserver, you should  be aware of some important key points.
                     <em>Pathfinder</em> is not comparable with any "out of the box" web applications or common CMS systems that come along with an auto-install feature.

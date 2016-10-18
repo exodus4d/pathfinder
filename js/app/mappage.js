@@ -19,6 +19,8 @@ define([
      * main init "map" page
      */
     $(function(){
+        Util.initPrototypes();
+
         // set default AJAX config
         Util.ajaxSetup();
 
@@ -60,6 +62,7 @@ define([
             Init.maxSharedCount     = initData.maxSharedCount;
             Init.routes             = initData.routes;
             Init.notificationStatus = initData.notificationStatus;
+            Init.activityLogging    = initData.activityLogging;
 
             // init tab change observer, Once the timers are available
             Page.initTabChangeObserver();

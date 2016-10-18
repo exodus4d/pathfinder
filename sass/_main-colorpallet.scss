@@ -19,7 +19,7 @@
   &.txt-color-redDarker     { color: $red-darker !important; }
   &.txt-color-yellow        { color: $yellow !important; }
   &.txt-color-orange        { color: $orange !important; }
-  &.txt-color-orangeDark    { color: $orangeDark !important; }
+  &.txt-color-orangeDark    { color: $orange-dark !important; }
   &.txt-color-pink          { color: $pink !important; }
   &.txt-color-pinkDark      { color: $pinkDark !important; }
   &.txt-color-purple        { color: $purple !important; }
@@ -58,7 +58,9 @@
   &.bg-color-darken         { background-color: $darken !important; }
   &.bg-color-lighten        { background-color: $lighten !important; }
   &.bg-color-white          { background-color: $white !important; }
+  &.bg-color-gray           { background-color: $gray !important; }
   &.bg-color-grayDark       { background-color: $greyDark !important; }
+  &.bg-color-grayDarker     { background-color: $gray-darker !important; }
   &.bg-color-magenta        { background-color: $magenta !important; }
   &.bg-color-tealLighter    { background-color: $teal-lighter !important; }
   &.bg-color-tealDarker     { background-color: $teal-darker !important; }

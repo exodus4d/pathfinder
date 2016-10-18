@@ -1,0 +1,117 @@
+<div id="{{id}}">
+    <nav class="navbar navbar-default" role="navigation">
+        <div class="navbar-header pull-left">
+            <ul class="nav navbar-nav {{dialogNavigationClass}}">
+                <li class="{{dialogNavLiClass}} {{^enablePrivateTab}} disabled {{/enablePrivateTab}}">
+                    <a role="tab" data-toggle="tab" data-type="typeId" data-value="2" href="#{{statsContainerId}}">Private</a>
+                </li>
+                <li class="{{dialogNavLiClass}} active {{^enableCorporationTab}} disabled {{/enableCorporationTab}}">
+                    <a role="tab" data-toggle="tab" data-type="typeId" data-value="3" href="#{{statsContainerId}}">Corporation</a>
+                </li>
+                <li class="{{dialogNavLiClass}} {{^enableAllianceTab}} disabled {{/enableAllianceTab}}">
+                    <a role="tab" data-toggle="tab" data-type="typeId" data-value="4" href="#{{statsContainerId}}">Alliance</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="navbar-header pull-right">
+            <p class="navbar-text">
+                <i class="fa fa-filter fa-fw fa-lg"></i>
+            </p>
+            <ul class="nav navbar-nav {{dialogNavigationClass}}">
+                <li class="{{dialogNavLiClass}}">
+                    <a role="tab" data-toggle="tab" data-type="period" data-value="weekly" href="#{{statsContainerId}}">Weekly</a>
+                </li>
+                <li class="{{dialogNavLiClass}} active">
+                    <a role="tab" data-toggle="tab" data-type="period" data-value="monthly" href="#{{statsContainerId}}">Monthly</a>
+                </li>
+                <li class="{{dialogNavLiClass}}">
+                    <a role="tab" data-toggle="tab" data-type="period" data-value="yearly" href="#{{statsContainerId}}">Yearly</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="alert alert-info fade in hidden-md hidden-lg">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><i class="fa fa-close"></i></button>
+        <span class="txt-color txt-color-information">Info</span>
+        <small> Your browser window is to small. Resize it to obtain more columns.</small>
+    </div>
+
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane fade in active" id="{{statsContainerId}}">
+
+            <h5 class="text-center">
+                {{! previous button }}
+                <span class="pull-left pf-dialog-icon-button collapsed {{dialogNavigationPrevClass}}" style="visibility: hidden; min-width: 120px">
+                    <i class="fa fa-fw fa-arrow-left"></i>
+                    <span>&nbsp;</span>
+                </span>
+
+                {{! offset label }}
+                <span class="{{dialogNavigationOffsetClass}}">&nbsp;</span>
+
+                {{! next button }}
+                <span class="pull-right pf-dialog-icon-button collapsed {{dialogNavigationNextClass}}" style="visibility: hidden; min-width: 120px">
+                    <span>&nbsp;</span>
+                    <i class="fa fa-fw fa-arrow-right"></i>
+                </span>
+            </h5>
+
+            <div class="pf-dynamic-area">
+                <table class="compact stripe order-column row-border nowrap" id="{{statsTableId}}">
+                    <thead>
+                    <tr>
+                        <th colspan="4" class="separator-right">character</th>
+                        <th colspan="4" class="separator-right hidden-xs hidden-sm">systems</th>
+                        <th colspan="4" class="separator-right hidden-xs hidden-sm">connection</th>
+                        <th colspan="4" class="separator-right hidden-xs hidden-sm">signatures</th>
+                        <th class="text-right">sum</th>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tfoot>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th class="bg-color bg-color-grayDarker"></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th class="bg-color bg-color-grayDarker"></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th class="bg-color bg-color-grayDarker"></th>
+                        <th class="bg-color bg-color-tealDarker txt-color txt-color-orange"></th>
+                    </tr>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

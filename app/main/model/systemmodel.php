@@ -24,7 +24,8 @@ class SystemModel extends BasicModel {
             'type' => Schema::DT_BOOL,
             'nullable' => false,
             'default' => 1,
-            'index' => true
+            'index' => true,
+            'activity-log' => true
         ],
         'mapId' => [
             'type' => Schema::DT_INT,
@@ -49,7 +50,8 @@ class SystemModel extends BasicModel {
         'alias' => [
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
-            'default' => ''
+            'default' => '',
+            'activity-log' => true
         ],
         'regionId' => [
             'type' => Schema::DT_INT,
@@ -106,12 +108,14 @@ class SystemModel extends BasicModel {
                     'table' => 'system_status',
                     'on-delete' => 'CASCADE'
                 ]
-            ]
+            ],
+            'activity-log' => true
         ],
         'locked' => [
             'type' => Schema::DT_BOOL,
             'nullable' => false,
-            'default' => 0
+            'default' => 0,
+            'activity-log' => true
         ],
         'rallyUpdated' => [
             'type' => Schema::DT_TIMESTAMP,
@@ -125,7 +129,8 @@ class SystemModel extends BasicModel {
         'description' => [
             'type' => Schema::DT_VARCHAR512,
             'nullable' => false,
-            'default' => ''
+            'default' => '',
+            'activity-log' => true
         ],
         'posX' => [
             'type' => Schema::DT_INT,
@@ -353,6 +358,18 @@ class SystemModel extends BasicModel {
 
     /**
      * Event "Hook" function
+     * return false will stop any further action
+     * @param self $self
+     * @param $pkeys
+     */
+    public function afterInsertEvent($self, $pkeys){
+        parent::afterInsertEvent($self, $pkeys);
+
+        $self->logActivity('systemCreate');
+    }
+
+    /**
+     * Event "Hook" function
      * can be overwritten
      * return false will stop any further action
      * @param self $self
@@ -360,6 +377,8 @@ class SystemModel extends BasicModel {
      * @return bool
      */
     public function beforeUpdateEvent($self, $pkeys){
+        $status = parent::beforeUpdateEvent($self, $pkeys);
+
         if( !$self->isActive()){
             // system becomes inactive
             // reset "rally point" fields
@@ -372,7 +391,8 @@ class SystemModel extends BasicModel {
                 $connection->erase();
             }
         }
-        return true;
+
+        return $status;
     }
 
     /**
@@ -382,12 +402,49 @@ class SystemModel extends BasicModel {
      * @param $pkeys
      */
     public function afterUpdateEvent($self, $pkeys){
+        parent::afterUpdateEvent($self, $pkeys);
+
         // check if rally point mail should be send
         if(
             $self->newRallyPointSet &&
             $self->rallyPoke
         ){
             $self->sendRallyPointMail();
+        }
+
+        $activity = ($self->isActive()) ? 'systemUpdate' : 'systemDelete';
+        $self->logActivity($activity);
+    }
+
+    /**
+     * Event "Hook" function
+     * can be overwritten
+     * @param self $self
+     * @param $pkeys
+     */
+    public function afterEraseEvent($self, $pkeys){
+        parent::afterUpdateEvent($self, $pkeys);
+
+        $self->logActivity('systemDelete');
+    }
+
+    /**
+     * log character activity create/update/delete events
+     * @param string $action
+     */
+    protected function logActivity($action){
+        if(
+            $this->enableActivityLogging &&
+            (
+                $action === 'systemDelete' ||
+                !empty($this->fieldChanges)
+            ) &&
+            $this->get('mapId')->isActivityLogEnabled()
+        ){
+            $characterId = $this->get('updatedCharacterId', true);
+            $mapId = $this->get('mapId', true);
+
+            parent::bufferActivity($characterId, $mapId, $action);
         }
     }
 

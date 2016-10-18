@@ -47,7 +47,7 @@ class CharacterUpdate {
      * delete expired character authentication data
      * authentication data is used for cookie based login
      * >> php index.php "/cron/deleteAuthenticationData"
-     * @param $f3
+     * @param \Base $f3
      */
     function deleteAuthenticationData($f3){
         DB\Database::instance()->getDB('PF');

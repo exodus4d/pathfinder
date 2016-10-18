@@ -121,7 +121,9 @@ define([
         var loadingElement = $(this);
         var overlay = loadingElement.find('.' + config.ajaxOverlayClass );
 
-        $(overlay).velocity('reverse', {
+        // important: "stop" is required to stop "show" animation
+        // -> otherwise "complete" callback is not fired!
+        $(overlay).velocity('stop').velocity('reverse', {
             complete: function(){
                 $(this).remove();
                 // enable all events
@@ -845,6 +847,18 @@ define([
     var showVersionInfo = function(){
         var versionNumber = $('body').data('version');
         console.info('PATHFINDER ' + versionNumber);
+    };
+
+    /**
+     * init utility prototype functions
+     */
+    var initPrototypes = function(){
+        // Array diff
+        // [1,2,3,4,5,6].diff( [3,4,5] );
+        // => [1, 2, 6]
+        Array.prototype.diff = function(a) {
+            return this.filter(function(i) {return a.indexOf(i) < 0;});
+        };
     };
 
     /**
@@ -1719,7 +1733,7 @@ define([
     var getLocalStorage = function(){
         if(localStorage === undefined){
             localStorage = localforage.createInstance({
-                driver: localforage.INDEXEDDB,
+                driver: [localforage.INDEXEDDB, localforage.WEBSQL, localforage.LOCALSTORAGE],
                 name: 'Pathfinder local storage'
             });
         }
@@ -1818,6 +1832,7 @@ define([
     return {
         config: config,
         showVersionInfo: showVersionInfo,
+        initPrototypes: initPrototypes,
         initDefaultBootboxConfig: initDefaultBootboxConfig,
         getCurrentTriggerDelay: getCurrentTriggerDelay,
         getServerTime: getServerTime,

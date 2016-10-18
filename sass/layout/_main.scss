@@ -6,6 +6,7 @@ body{
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+  cursor: default;
 }
 
 .pf-body{
@@ -111,7 +112,7 @@ em{
   @include transition(color 0.15s ease-out);
 
   &:hover{
-    color: $orange;
+    color: $orange !important;
   }
 
 }
@@ -196,6 +197,7 @@ select:active, select:hover {
 
       img{
         width: 26px; // smaller image (default 32)
+        box-sizing: content-box;
         border-left: 1px solid $gray;
         border-right: 1px solid $gray;
       }
@@ -224,6 +226,18 @@ select:active, select:hover {
         display: inline-block;
         font-size: 10px;
       }
+    }
+  }
+
+  // column separator
+  td, th{
+    &.separator-right{
+      border-right: 1px solid $gray;
+    }
+
+    svg.peity{
+      // center vertical in column
+      display: block;
     }
   }
 
@@ -293,7 +307,7 @@ table{
 
 //  navbar li =====================================================================================
 .navbar-nav {
-  li{
+  li:not(.disabled){
     &:hover, &.active{
 
       &:before{

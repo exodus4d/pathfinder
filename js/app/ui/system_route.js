@@ -316,7 +316,7 @@ define([
                 var settingsDialog = bootbox.dialog({
                     title: 'Route settings',
                     message: content,
-                     show: false,
+                    show: false,
                     buttons: {
                         close: {
                             label: 'cancel',
@@ -444,7 +444,6 @@ define([
             data: requestData,
             context: context
         }).done(function(routesData){
-
             this.moduleElement.hideLoadingAnimation();
 
             // execute callback
@@ -886,7 +885,14 @@ define([
 
     };
 
-
+    /**
+     * draw route table
+     * @param  mapId
+     * @param moduleElement
+     * @param systemFromData
+     * @param routesTable
+     * @param systemsTo
+     */
     var drawRouteTable = function(mapId, moduleElement, systemFromData, routesTable, systemsTo){
         var requestRouteData = [];
         var currentTimestamp = Util.getServerTime().getTime();

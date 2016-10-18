@@ -295,12 +295,7 @@ define([
             order: [[ 9, 'desc' ], [ 3, 'asc' ]],
             autoWidth: false,
             responsive: {
-                breakpoints: [
-                    { name: 'desktop', width: Infinity },
-                    { name: 'tablet',  width: 1200 },
-                    { name: 'fablet',  width: 780 },
-                    { name: 'phone',   width: 480 }
-                ],
+                breakpoints: Init.breakpoints,
                 details: false
             },
             hover: false,

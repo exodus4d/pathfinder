@@ -48,7 +48,9 @@ define([
         sigTableActionCellClass: 'pf-table-action-cell',                        // class for "action" cells
 
         // xEditable
-        editableDiscriptionInputClass: 'pf-editable-description'                // class for "description" textarea
+        moduleIcon: 'pf-module-icon-button',                                    // class for "filter" - icons
+        editableDescriptionInputClass: 'pf-editable-description',               // class for "description" textarea
+        editableFilterInputClass: 'pf-editable-filter'                          // class for "filter" selects
     };
 
     // lock Signature Table update temporary (until. some requests/animations) are finished
@@ -94,6 +96,10 @@ define([
         'Космическая аномалия',                                                 // == "Cosmic Anomaly"
         'Источники сигналов'                                                    // == "Cosmic Signature"
     ];
+
+    // some static signature data
+    var signatureGroupsLabels   = Util.getSignatureGroupInfo('label');
+    var signatureGroupsNames    = Util.getSignatureGroupInfo('name');
 
     /**
      * collect all data of all editable fields in a signature table
@@ -505,7 +511,7 @@ define([
 
         if(clipboard.length){
             var signatureRows = clipboard.split(/\r\n|\r|\n/g);
-            var signatureGroupOptions = Util.getSignatureGroupInfo('name');
+            var signatureGroupOptions = signatureGroupsNames;
             var invalidSignatures = 0;
 
             for(var i = 0; i < signatureRows.length; i++){
@@ -892,8 +898,7 @@ define([
                 var systemTypeId = parseInt( signatureGroupField.attr('data-systemTypeId') );
 
                 // get all available Signature Types
-                // json object -> "translate" keys to names
-                var availableTypes = Util.getSignatureGroupInfo('label');
+                var availableTypes = signatureGroupsLabels;
 
                 // add empty option
                 availableTypes[0] = '';
@@ -943,7 +948,7 @@ define([
             }
         });
 
-        sigTypeFields.editable({ mode: 'popup',
+        sigTypeFields.editable({
             type: 'select',
             title: 'type',
             name: 'typeId',
@@ -982,7 +987,7 @@ define([
             onblur: 'submit',
             mode: 'inline',
             showbuttons: false,
-            inputclass: config.editableDiscriptionInputClass,
+            inputclass: config.editableDescriptionInputClass,
             params: modifyFieldParamsOnSend,
             success: function(response, newValue){
                 if(response){
@@ -1390,12 +1395,74 @@ define([
             class: ['display', 'compact', 'nowrap', config.sigTableClass, config.sigTablePrimaryClass].join(' ')
         });
 
+        // create table footer ----------------------------------------------------------------------------------------
+        // get column count from default dataTable config
+        var columnCount = $.fn.dataTable.defaults.columnDefs.length;
+        var footerHtml = '<tfoot><tr>';
+        for(let i = 0; i < columnCount; i++){
+            footerHtml += '<td></td>';
+        }
+        footerHtml += '</tr></tfoot>';
+        table.append(footerHtml);
+
         moduleElement.append(table);
 
+        var dataTableOptions = {
+            data: signatureData,
+            initComplete: function (settings, json){
+                // setup filter select in footer
+                // column indexes that need a filter select
+                var filterColumnIndexes = [2];
+
+                this.api().columns(filterColumnIndexes).every(function(){
+                    var column = this;
+                    var headerLabel = $(column.header()).text();
+                    var selectField = $('<a class="pf-editable ' +
+                        config.moduleIcon + ' ' +
+                        config.editableFilterInputClass +
+                        '" href="#" data-type="select" data-name="' + headerLabel + '"></a>');
+
+                    // get all available options from column
+                    var source = {};
+                    column.data().unique().sort(function(a,b){
+                        // sort alphabetically
+                        var valA = a.filter.toLowerCase();
+                        var valB = b.filter.toLowerCase();
+
+                        if(valA < valB) return -1;
+                        if(valA > valB) return 1;
+                        return 0;
+                    }).each(function(callData){
+                        if(callData.filter){
+                            source[callData.filter] = callData.filter;
+                        }
+                    });
+
+                    // add empty option
+                    source[0] = '';
+
+                    // add field to footer
+                    selectField.appendTo( $(column.footer()).empty() );
+
+                    selectField.editable({
+                        emptytext: '<i class="fa fa-filter fa-fw"></i>',
+                        onblur: 'submit',
+                        title: 'filter',
+                        showbuttons: false,
+                        source: source,
+                        value: 0
+                    });
+
+                    selectField.on('save', { column: column }, function(e, params) {
+                        var val = $.fn.dataTable.util.escapeRegex( params.newValue );
+                        e.data.column.search( val !== '0' ? '^' + val + '$' : '', true, false ).draw();
+                    });
+                });
+            }
+        };
+
         // create signature table and store the jquery object global for this module
-        signatureTable = table.dataTable( {
-            data: signatureData
-        } );
+        signatureTable = table.dataTable(dataTableOptions);
 
         // make Table editable
         signatureTable.makeEditable(systemData);
@@ -1473,7 +1540,8 @@ define([
 
                 tempData.group = {
                     group: sigGroup,
-                    group_sort: data.groupId
+                    sort: signatureGroupsLabels[data.groupId],
+                    filter: signatureGroupsLabels[data.groupId]
                 };
 
                 // set type id ----------------------------------------------------------------------------------------
@@ -1540,7 +1608,7 @@ define([
      */
     var initSignatureDataTable = function(systemData){
 
-        $.extend( $.fn.dataTable.defaults, {
+        $.extend( true, $.fn.dataTable.defaults, {
             pageLength: -1,
             lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, 'All']],
             order: [1, 'asc'],
@@ -1579,14 +1647,15 @@ define([
                 },{
                     targets: 2,
                     orderable: true,
-                    searchable: false,
+                    searchable: true,
                     title: 'group',
                     type: 'html',
                     width: '50px',
                     data: 'group',
                     render: {
                         _: 'group',
-                        sort: 'group_sort'
+                        sort: 'sort',
+                        filter: 'filter'
                     }
                 },{
                     targets: 3,
@@ -1755,14 +1824,7 @@ define([
 
                     }
                 }
-            ],
-            createdRow: function(row, data, dataIndex){
-
-            },
-            initComplete: function(settings, json){
-                // table init complete
-
-            }
+            ]
         });
     };
 

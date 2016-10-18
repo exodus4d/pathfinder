@@ -12,6 +12,7 @@ define([
     'text!templates/modules/header.html',
     'text!templates/modules/footer.html',
     'dialog/notification',
+    'dialog/stats',
     'dialog/map_info',
     'dialog/account_settings',
     'dialog/manual',
@@ -116,6 +117,22 @@ define([
     };
 
     /**
+     * get main menu title element
+     * @param title
+     * @returns {JQuery|*|jQuery}
+     */
+    var getMenuHeadline = function(title){
+        return $('<div>', {
+            class: 'panel-heading'
+        }).prepend(
+            $('<h2>',{
+                class: 'panel-title',
+                text: title
+            })
+        );
+    };
+
+    /**
      * load left menu content options
      */
     $.fn.loadLeftMenu = function(){
@@ -133,19 +150,26 @@ define([
                         })
                     )
             ).append(
+                getMenuHeadline('Information')
+            ).append(
                 $('<a>', {
-                    class: 'list-group-item',
+                    class: 'list-group-item list-group-item-info',
                     href: '#'
-                }).html('&nbsp;&nbsp;Settings').prepend(
+                }).html('&nbsp;&nbsp;Statistics').prepend(
                     $('<i>',{
-                        class: 'fa fa-sliders fa-fw'
+                        class: 'fa fa-line-chart fa-fw'
+                    })
+                ).append(
+                    $('<span>',{
+                        class: 'badge bg-color bg-color-gray txt-color txt-color-warning',
+                        text: 'beta'
                     })
                 ).on('click', function(){
-                    $(document).triggerMenuEvent('ShowSettingsDialog');
+                    $(document).triggerMenuEvent('ShowStatsDialog');
                 })
             ).append(
                 $('<a>', {
-                    class: 'list-group-item',
+                    class: 'list-group-item list-group-item-info',
                     href: '#'
                 }).html('&nbsp;&nbsp;Effect info').prepend(
                         $('<i>',{
@@ -156,7 +180,7 @@ define([
                     })
             ).append(
                 $('<a>', {
-                    class: 'list-group-item',
+                    class: 'list-group-item list-group-item-info',
                     href: '#'
                 }).html('&nbsp;&nbsp;Jump info').prepend(
                         $('<i>',{
@@ -165,6 +189,19 @@ define([
                     ).on('click', function(){
                         $(document).triggerMenuEvent('ShowJumpInfo');
                     })
+            ).append(
+                getMenuHeadline('Settings')
+            ).append(
+                $('<a>', {
+                    class: 'list-group-item',
+                    href: '#'
+                }).html('&nbsp;&nbsp;Account').prepend(
+                    $('<i>',{
+                        class: 'fa fa-sliders fa-fw'
+                    })
+                ).on('click', function(){
+                    $(document).triggerMenuEvent('ShowSettingsDialog');
+                })
             ).append(
                 $('<a>', {
                     class: 'list-group-item hide',                      // trigger by js
@@ -182,7 +219,7 @@ define([
                             if($.fullscreen.isFullScreen()){
                                 $.fullscreen.exit();
                             }else{
-                                fullScreenElement.fullscreen({overflow: 'overflow-y', toggleClass: config.fullScreenClass});
+                                fullScreenElement.fullscreen({overflow: 'scroll', toggleClass: config.fullScreenClass});
                             }
                         });
                     })
@@ -198,8 +235,10 @@ define([
                         $(document).triggerMenuEvent('NotificationTest');
                     })
             ).append(
+                getMenuHeadline('Danger zone')
+            ).append(
                 $('<a>', {
-                    class: 'list-group-item',
+                    class: 'list-group-item list-group-item-danger',
                     href: '#'
                 }).html('&nbsp;&nbsp;Delete account').prepend(
                     $('<i>',{
@@ -210,7 +249,7 @@ define([
                     })
             ).append(
                 $('<a>', {
-                    class: 'list-group-item',
+                    class: 'list-group-item list-group-item-warning',
                     href: '#'
                 }).html('&nbsp;&nbsp;Logout').prepend(
                         $('<i>',{
@@ -240,24 +279,26 @@ define([
                 $('<a>', {
                     class: 'list-group-item',
                     href: '#'
-                }).html('&nbsp;&nbsp;Info').prepend(
-                        $('<i>',{
-                            class: 'fa fa-info fa-fw'
-                        })
-                    ).on('click', function(){
-                        $(document).triggerMenuEvent('ShowMapInfo');
+                }).html('&nbsp;&nbsp;Status').prepend(
+                    $('<i>',{
+                        class: 'fa fa-info fa-fw'
                     })
+                ).on('click', function(){
+                    $(document).triggerMenuEvent('ShowMapInfo');
+                })
+            ).append(
+                getMenuHeadline('Settings')
             ).append(
                 $('<a>', {
                     class: 'list-group-item',
                     href: '#'
-                }).html('&nbsp;&nbsp;Settings').prepend(
+                }).html('&nbsp;&nbsp;Map config').prepend(
                     $('<i>',{
-                        class: 'fa fa-sliders fa-fw'
+                        class: 'fa fa-gears fa-fw'
                     })
                 ).on('click', function(){
-                        $(document).triggerMenuEvent('ShowMapSettings', {tab: 'settings'});
-                    })
+                    $(document).triggerMenuEvent('ShowMapSettings', {tab: 'settings'});
+                })
             ).append(
                 $('<a>', {
                     class: 'list-group-item',
@@ -289,34 +330,38 @@ define([
                     });
                 })
             ).append(
-                $('<a>', {
-                    class: 'list-group-item',
-                    href: '#'
-                }).html('&nbsp;&nbsp;Task-Manager').prepend(
-                        $('<i>',{
-                            class: 'fa fa-tasks fa-fw'
-                        })
-                    ).on('click', function(){
-                        $(document).triggerMenuEvent('ShowTaskManager');
-                    })
+                getMenuHeadline('Help')
             ).append(
                 $('<a>', {
-                    class: 'list-group-item',
+                    class: 'list-group-item list-group-item-info',
                     href: '#'
                 }).html('&nbsp;&nbsp;Manual').prepend(
                     $('<i>',{
-                        class: 'fa fa-info fa-fw'
+                        class: 'fa fa-book fa-fw'
                     })
                 ).on('click', function(){
                         $(document).triggerMenuEvent('Manual');
                     })
             ).append(
                 $('<a>', {
-                    class: 'list-group-item',
+                    class: 'list-group-item list-group-item-info',
                     href: '#'
-                }).html('&nbsp;&nbsp;Delete').prepend(
+                }).html('&nbsp;&nbsp;Task-Manager').prepend(
                     $('<i>',{
-                        class: 'fa fa-eraser fa-fw'
+                        class: 'fa fa-tasks fa-fw'
+                    })
+                ).on('click', function(){
+                    $(document).triggerMenuEvent('ShowTaskManager');
+                })
+            ).append(
+                getMenuHeadline('Danger zone')
+            ).append(
+                $('<a>', {
+                    class: 'list-group-item list-group-item-danger',
+                    href: '#'
+                }).html('&nbsp;&nbsp;Delete map').prepend(
+                    $('<i>',{
+                        class: 'fa fa-trash fa-fw'
                     })
                 ).on('click', function(){
                         $(document).triggerMenuEvent('DeleteMap');
@@ -494,8 +539,14 @@ define([
             }
         });
 
+        $(document).on('pf:menuShowStatsDialog', function(e){
+            // show user activity stats dialog
+            $.fn.showStatsDialog();
+            return false;
+        });
+
         $(document).on('pf:menuShowSystemEffectInfo', function(e){
-            // show system effects info box
+            // show system effects dialog
             $.fn.showSystemEffectInfoDialog();
             return false;
         });

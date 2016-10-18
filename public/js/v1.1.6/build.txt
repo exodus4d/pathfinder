@@ -66,6 +66,7 @@ text!img/logo.svg!strip
 text!templates/modules/header.html
 text!templates/modules/footer.html
 app/ui/dialog/notification.js
+app/ui/dialog/stats.js
 app/map/util.js
 app/ui/dialog/map_info.js
 app/ui/dialog/account_settings.js

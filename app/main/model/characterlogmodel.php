@@ -18,11 +18,11 @@ class CharacterLogModel extends BasicModel {
 
     /**
      * caching for relational data
-     * -> 10s matches REST API - Expire: Header-Data
+     * -> 5s matches REST API - Expire: Header-Data
      *    for "Location" calls
      * @var int
      */
-    protected $rel_ttl = 10;
+    protected $rel_ttl = 5;
 
     protected $fieldConf = [
         'active' => [

@@ -11,7 +11,7 @@ use Controller;
 use Model;
 
 
-class Signature extends Controller\AccessController{
+class Signature extends Controller\AccessController {
 
     /**
      * event handler

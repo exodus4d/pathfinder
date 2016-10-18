@@ -174,6 +174,14 @@ class Map extends Controller\AccessController {
         ];
         $return->maxSharedCount = $maxSharedCount;
 
+        // get activity log options per map ---------------------------------------------------------------------------
+        $activityLogging = [
+            'character' => $f3->get('PATHFINDER.MAP.PRIVATE.ACTIVITY_LOGGING'),
+            'corporation' => $f3->get('PATHFINDER.MAP.CORPORATION.ACTIVITY_LOGGING'),
+            'alliance' => $f3->get('PATHFINDER.MAP.ALLIANCE.ACTIVITY_LOGGING'),
+        ];
+        $return->activityLogging = $activityLogging;
+
         // get program routes -----------------------------------------------------------------------------------------
         $return->routes = [
             'ssoLogin' => $this->getF3()->alias( 'sso', ['action' => 'requestAuthorization'] )
@@ -223,11 +231,13 @@ class Map extends Controller\AccessController {
              * @var $system Model\SystemModel
              */
             $system = Model\BasicModel::getNew('SystemModel');
+            $system->setActivityLogging(false);
 
             /**
              * @var $connection Model\ConnectionModel
              */
             $connection = Model\BasicModel::getNew('ConnectionModel');
+            $connection->setActivityLogging(false);
 
             foreach($importData['mapData'] as $mapData){
                 if(

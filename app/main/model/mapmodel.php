@@ -610,6 +610,31 @@ class MapModel extends BasicModel {
     }
 
     /**
+     * check if "activity logging" is enabled for this map type
+     * @return bool
+     */
+    public function isActivityLogEnabled(){
+        $f3 = self::getF3();
+        $activityLogEnabled = false;
+
+        if( $this->isAlliance() ){
+            if( $f3->get('PATHFINDER.MAP.ALLIANCE.ACTIVITY_LOGGING') ){
+                $activityLogEnabled = true;
+            }
+        }elseif( $this->isCorporation() ){
+            if( $f3->get('PATHFINDER.MAP.CORPORATION.ACTIVITY_LOGGING') ){
+                $activityLogEnabled = true;
+            }
+        }elseif( $this->isPrivate() ){
+            if( $f3->get('PATHFINDER.MAP.PRIVATE.ACTIVITY_LOGGING') ){
+                $activityLogEnabled = true;
+            }
+        }
+
+        return $activityLogEnabled;
+    }
+
+    /**
      * checks whether this map is private map
      * @return bool
      */

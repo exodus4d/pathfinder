@@ -95,6 +95,9 @@ class Controller {
      * @param \Base $f3
      */
     public function afterroute(\Base $f3){
+        // store all user activities that are buffered for logging in this request
+        self::storeActivities();
+
         if($this->getTemplate()){
             // Ajax calls don´t need a page render..
             // this happens on client side
@@ -777,6 +780,13 @@ class Controller {
      */
     static function getLogger($type){
         return LogController::getLogger($type);
+    }
+
+    /**
+     * store activity log data to DB
+     */
+    static function storeActivities(){
+        LogController::instance()->storeActivities();
     }
 
     /**

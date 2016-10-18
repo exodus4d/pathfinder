@@ -1315,8 +1315,8 @@ define([
             setConnectionObserver(map, connection);
         }
 
-        var addType = $(newConnectionData.type).not(connectionData.type).get();
-        var removeType = $(connectionData.type).not(newConnectionData.type).get();
+        var addType = newConnectionData.type.diff( connectionData.type );
+        var removeType = connectionData.type.diff( newConnectionData.type );
 
         // check if source or target has changed
         if(connectionData.source !== newConnectionData.source ){
@@ -1415,7 +1415,7 @@ define([
                     {subIcon: '', subAction: 'filter_jumpbridge', subText: 'jumpbridge'}
                 ]},
                 {divider: true, action: 'delete_systems'},
-                {icon: 'fa-eraser', action: 'delete_systems', text: 'delete systems'}
+                {icon: 'fa-trash', action: 'delete_systems', text: 'delete systems'}
             ]
         };
 
@@ -1452,7 +1452,7 @@ define([
 
                 ]},
                 {divider: true, action: 'delete_connection'},
-                {icon: 'fa-eraser', action: 'delete_connection', text: 'delete'}
+                {icon: 'fa-trash', action: 'delete_connection', text: 'delete'}
             ]
         };
 
@@ -1495,7 +1495,7 @@ define([
                     {subIcon: 'fa-step-forward', subAction: 'add_last_waypoint', subText: 'add new [end]'}
                 ]},
                 {divider: true, action: 'delete_system'},
-                {icon: 'fa-eraser', action: 'delete_system', text: 'delete system(s)'}
+                {icon: 'fa-trash', action: 'delete_system', text: 'delete system(s)'}
             ]
         };
 
@@ -1623,6 +1623,9 @@ define([
             // hover in
             var hoverSystem = $(this).parents('.' + config.systemClass);
             var hoverSystemId = hoverSystem.attr('id');
+
+            // bring system in front (increase zIndex)
+            hoverSystem.updateSystemZIndex();
 
             // get ship counter and calculate expand height
             var userCount = parseInt( hoverSystem.data('userCount') );
