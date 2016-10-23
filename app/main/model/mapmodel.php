@@ -55,6 +55,11 @@ class MapModel extends BasicModel {
             'nullable' => false,
             'default' => ''
         ],
+        'deleteExpiredConnections' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => 1
+        ],
         'systems' => [
             'has-many' => ['Model\SystemModel', 'mapId']
         ],
@@ -134,6 +139,7 @@ class MapModel extends BasicModel {
             $mapData->id = $this->id;
             $mapData->name = $this->name;
             $mapData->icon = $this->icon;
+            $mapData->deleteExpiredConnections = $this->deleteExpiredConnections;
             $mapData->created = strtotime($this->created);
             $mapData->updated = strtotime($this->updated);
 
@@ -194,10 +200,37 @@ class MapModel extends BasicModel {
             // max caching time for a map
             // the cached date has to be cleared manually on any change
             // this includes system, connection,... changes (all dependencies)
-            $this->updateCacheData($mapDataAll, '', 300);
+            $this->updateCacheData($mapDataAll);
         }
 
         return $mapDataAll;
+    }
+
+    /**
+     * Event "Hook" function
+     * @param self $self
+     * @param $pkeys
+     */
+    public function afterInsertEvent($self, $pkeys){
+        $self->clearCacheData();
+    }
+
+    /**
+     * Event "Hook" function
+     * @param self $self
+     * @param $pkeys
+     */
+    public function afterUpdateEvent($self, $pkeys){
+        $self->clearCacheData();
+    }
+
+    /**
+     * Event "Hook" function
+     * @param self $self
+     * @param $pkeys
+     */
+    public function afterEraseEvent($self, $pkeys){
+        $self->clearCacheData();
     }
 
     /**
@@ -531,7 +564,7 @@ class MapModel extends BasicModel {
 
     /**
      * get data for all characters that are currently online "viewing" this map
-     * -> the result of this function is cached!
+     * -> The result of this function is cached!
      * @return \stdClass[]
      */
     private function getCharactersData(){

@@ -279,9 +279,9 @@ define([
                 $('<a>', {
                     class: 'list-group-item',
                     href: '#'
-                }).html('&nbsp;&nbsp;Status').prepend(
+                }).html('&nbsp;&nbsp;Information').prepend(
                     $('<i>',{
-                        class: 'fa fa-info fa-fw'
+                        class: 'fa fa-street-view fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowMapInfo');
@@ -292,7 +292,7 @@ define([
                 $('<a>', {
                     class: 'list-group-item',
                     href: '#'
-                }).html('&nbsp;&nbsp;Map config').prepend(
+                }).html('&nbsp;&nbsp;Configuration').prepend(
                     $('<i>',{
                         class: 'fa fa-gears fa-fw'
                     })

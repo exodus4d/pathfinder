@@ -1074,11 +1074,16 @@ class Cortex extends Cursor {
 			if ($this->emit('beforeerase')===false)
 				return false;
 			if ($this->fieldConf) {
-				foreach($this->fieldConf as $field => $conf)
-					if (isset($conf['has-many']) &&
-						$conf['has-many']['hasRel']=='has-many')
-						$this->set($field,null);
-				$this->save();
+			    $changed = false;
+				foreach($this->fieldConf as $field => $conf){
+                    if (isset($conf['has-many']) && $conf['has-many']['hasRel']=='has-many'){
+                        $this->set($field,null);
+                        $changed = true;
+                    }
+                }
+                if($changed){
+                    $this->save();
+                }
 			}
 			$this->mapper->erase();
 			$this->emit('aftererase');

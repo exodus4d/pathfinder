@@ -1406,7 +1406,7 @@ define([
         var moduleData = {
             id: config.mapContextMenuId,
             items: [
-                {icon: 'fa-info', action: 'info', text: 'info'},
+                {icon: 'fa-street-view', action: 'info', text: 'information'},
                 {icon: 'fa-plus', action: 'add_system', text: 'add system'},
                 {icon: 'fa-object-ungroup', action: 'select_all', text: 'select all'},
                 {icon: 'fa-filter', action: 'filter_scope', text: 'filter scope', subitems: [

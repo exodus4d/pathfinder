@@ -16,6 +16,11 @@ class CharacterModel extends BasicModel {
 
     protected $table = 'character';
 
+    /**
+     * cache key prefix for getData(); result WITH log data
+     */
+    const DATA_CACHE_KEY_LOG = 'LOG';
+
     protected $fieldConf = [
         'lastLogin' => [
             'type' => Schema::DT_TIMESTAMP,
@@ -107,15 +112,15 @@ class CharacterModel extends BasicModel {
         $cacheKeyModifier = '';
 
         // check if there is cached data
+        // -> IMPORTANT: $addCharacterLogData is optional! -> therefore we need 2 cache keys!
         if($addCharacterLogData){
-            $cacheKeyModifier = strtoupper($this->table) . '_LOG';
+            $cacheKeyModifier = self::DATA_CACHE_KEY_LOG;
         }
-
         $characterData = $this->getCacheData($cacheKeyModifier);
 
         if(is_null($characterData)){
-
             // no cached character data found
+
             $characterData = (object) [];
             $characterData->id = $this->id;
             $characterData->name = $this->name;
@@ -140,7 +145,7 @@ class CharacterModel extends BasicModel {
             // max caching time for a system
             // the cached date has to be cleared manually on any change
             // this includes system, connection,... changes (all dependencies)
-            $this->updateCacheData($characterData, $cacheKeyModifier, 10);
+            $this->updateCacheData($characterData, $cacheKeyModifier);
         }
 
         return $characterData;
@@ -178,6 +183,43 @@ class CharacterModel extends BasicModel {
             $this->touch('crestAccessTokenUpdated');
         }
         return $accessToken;
+    }
+
+    /**
+     * Event "Hook" function
+     * @param self $self
+     * @param $pkeys
+     */
+    public function afterInsertEvent($self, $pkeys){
+        $self->clearCacheData();
+    }
+
+    /**
+     * Event "Hook" function
+     * @param self $self
+     * @param $pkeys
+     */
+    public function afterUpdateEvent($self, $pkeys){
+        $self->clearCacheData();
+    }
+
+    /**
+     * Event "Hook" function
+     * @param self $self
+     * @param $pkeys
+     */
+    public function afterEraseEvent($self, $pkeys){
+        $self->clearCacheData();
+    }
+
+    /**
+     * see parent
+     */
+    public function clearCacheData(){
+        parent::clearCacheData();
+
+        // clear data with "log" as well!
+        parent::clearCacheDataWithPrefix(self::DATA_CACHE_KEY_LOG);
     }
 
     /**

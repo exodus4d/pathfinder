@@ -8,6 +8,7 @@
 
 namespace cron;
 use DB;
+use Model;
 
 class MapUpdate {
 
@@ -63,6 +64,48 @@ class MapUpdate {
     }
 
     /**
+     * delete expired connections (EOL connections)
+     * >> php index.php "/cron/deleteConnections"
+     * @param \Base $f3
+     */
+    function deleteConnections(\Base $f3){
+        $eolExpire = (int)$f3->get('PATHFINDER.CACHE.EXPIRE_CONNECTIONS_EOL');
+
+        if($eolExpire > 0){
+            $pfDB = DB\Database::instance()->getDB('PF');
+
+            $sql = "SELECT
+                    `con`.`id`
+                FROM
+                  `connection` `con` INNER JOIN
+                  `map` ON 
+                    `map`.`id` = `con`.`mapId`
+                WHERE
+                  `map`.`deleteExpiredConnections` = :deleteExpiredConnections AND
+                  TIMESTAMPDIFF(SECOND, `con`.`eolUpdated`, NOW() ) > :expire_time
+            ";
+
+            $connectionsData = $pfDB->exec($sql, [
+                'deleteExpiredConnections' => 1,
+                'expire_time' => $eolExpire
+            ]);
+
+            if($connectionsData){
+                /**
+                 * @var $connection Model\ConnectionModel
+                 */
+                $connection = Model\BasicModel::getNew('ConnectionModel');
+                foreach($connectionsData as $data){
+                    $connection->getById( (int)$data['id'] );
+                    if( !$connection->dry() ){
+                        $connection->erase();
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * delete all expired signatures on "inactive" systems
      * >> php index.php "/cron/deleteSignatures"
      * @param \Base $f3
@@ -84,7 +127,6 @@ class MapUpdate {
 
             $pfDB->exec($sqlDeleteExpiredSignatures, ['lifetime' => $signatureExpire]);
         }
-
     }
 
 }

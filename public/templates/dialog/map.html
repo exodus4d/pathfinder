@@ -40,7 +40,24 @@
         {{^hideSettingsTab}}
             <div role="tabpanel" class="tab-pane fade {{#openTabSettings}}in active{{/openTabSettings}}" id="{{dialogMapSettingsContainerId}}">
                 <form role="form" class="form-horizontal">
-                    <h4><i class="fa fa-share-alt fa-fw"></i> Share settings</h4>
+
+                    <h4 class="pf-dynamic-area">Configuration</h4>
+
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <div class="col-sm-offset-1 col-sm-11">
+                                    <div class="col-sm-12 col-xs-6 checkbox checkbox-primary" title="remove expired EOL connections">
+                                        <input id="{{deleteExpiredConnectionsId}}" name="deleteExpiredConnections" value="1" type="checkbox" {{#deleteExpiredConnections}}checked{{/deleteExpiredConnections}}>
+                                        <label for="{{deleteExpiredConnectionsId}}">Auto delete expired connections</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6"></div>
+                    </div>
+
+                    <h4 class="pf-dynamic-area">Share settings</h4>
 
                     <div class="row">
                         <div class="col-sm-11">

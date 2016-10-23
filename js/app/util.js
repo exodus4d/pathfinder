@@ -1469,7 +1469,10 @@ define([
 
         var currentMapUserData = false;
 
-        if( mapId === parseInt(mapId, 10) ){
+        if(
+            mapId === parseInt(mapId, 10) &&
+            Init.currentMapUserData
+        ){
             // search for a specific map
             for(var i = 0; i < Init.currentMapUserData.length; i++){
                 if(Init.currentMapUserData[i].config.id === mapId){

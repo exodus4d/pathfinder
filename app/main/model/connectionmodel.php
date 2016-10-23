@@ -224,8 +224,7 @@ class ConnectionModel extends BasicModel{
      * @param $pkeys
      */
     public function afterInsertEvent($self, $pkeys){
-        parent::afterInsertEvent($self, $pkeys);
-
+        $self->clearCacheData();
         $self->logActivity('connectionCreate');
     }
 
@@ -236,8 +235,7 @@ class ConnectionModel extends BasicModel{
      * @param $pkeys
      */
     public function afterUpdateEvent($self, $pkeys){
-        parent::afterUpdateEvent($self, $pkeys);
-
+        $self->clearCacheData();
         $self->logActivity('connectionUpdate');
     }
 
@@ -248,8 +246,7 @@ class ConnectionModel extends BasicModel{
      * @param $pkeys
      */
     public function afterEraseEvent($self, $pkeys){
-        parent::afterUpdateEvent($self, $pkeys);
-
+        $self->clearCacheData();
         $self->logActivity('connectionDelete');
     }
 
@@ -302,9 +299,6 @@ class ConnectionModel extends BasicModel{
      * see parent
      */
     public function clearCacheData(){
-        parent::clearCacheData();
-
-        // clear map cache as well
         $this->mapId->clearCacheData();
     }
 

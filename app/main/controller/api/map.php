@@ -374,28 +374,34 @@ class Map extends Controller\AccessController {
 
                     // share map between characters -> set access
                     if(isset($formData['mapCharacters'])){
+                        // remove character corporation (re-add later)
+                        $accessCharacters = array_diff($formData['mapCharacters'], [$activeCharacter->_id]);
+
                         // avoid abuse -> respect share limits
-                        $accessCharacters = array_slice( $formData['mapCharacters'], 0, $f3->get('PATHFINDER.MAP.PRIVATE.MAX_SHARED') );
+                        $maxShared = max($f3->get('PATHFINDER.MAP.PRIVATE.MAX_SHARED') - 1, 0);
+                        $accessCharacters = array_slice($accessCharacters, 0, $maxShared);
 
-                        // clear map access. In case something has removed from access list
-                        $map->clearAccess();
+                        if($accessCharacters){
+                            // clear map access. In case something has removed from access list
+                            $map->clearAccess();
 
-                        /**
-                         * @var $tempCharacter Model\CharacterModel
-                         */
-                        $tempCharacter = Model\BasicModel::getNew('CharacterModel');
+                            /**
+                             * @var $tempCharacter Model\CharacterModel
+                             */
+                            $tempCharacter = Model\BasicModel::getNew('CharacterModel');
 
-                        foreach($accessCharacters as $characterId){
-                            $tempCharacter->getById( (int)$characterId );
+                            foreach($accessCharacters as $characterId){
+                                $tempCharacter->getById( (int)$characterId );
 
-                            if(
-                                !$tempCharacter->dry() &&
-                                $tempCharacter->shared == 1 // check if map shared is enabled
-                            ){
-                                $map->setAccess($tempCharacter);
+                                if(
+                                    !$tempCharacter->dry() &&
+                                    $tempCharacter->shared == 1 // check if map shared is enabled
+                                ){
+                                    $map->setAccess($tempCharacter);
+                                }
+
+                                $tempCharacter->reset();
                             }
-
-                            $tempCharacter->reset();
                         }
                     }
 
@@ -411,28 +417,34 @@ class Map extends Controller\AccessController {
 
                         // share map between corporations -> set access
                         if(isset($formData['mapCorporations'])){
+                            // remove character corporation (re-add later)
+                            $accessCorporations = array_diff($formData['mapCorporations'], [$corporation->_id]);
+
                             // avoid abuse -> respect share limits
-                            $accessCorporations = array_slice( $formData['mapCorporations'], 0, $f3->get('PATHFINDER.MAP.CORPORATION.MAX_SHARED') );
+                            $maxShared = max($f3->get('PATHFINDER.MAP.CORPORATION.MAX_SHARED') - 1, 0);
+                            $accessCorporations = array_slice($accessCorporations, 0, $maxShared);
 
-                            // clear map access. In case something has removed from access list
-                            $map->clearAccess();
+                            if($accessCorporations){
+                                // clear map access. In case something has removed from access list
+                                $map->clearAccess();
 
-                            /**
-                             * @var $tempCorporation Model\CorporationModel
-                             */
-                            $tempCorporation = Model\BasicModel::getNew('CorporationModel');
+                                /**
+                                 * @var $tempCorporation Model\CorporationModel
+                                 */
+                                $tempCorporation = Model\BasicModel::getNew('CorporationModel');
 
-                            foreach($accessCorporations as $corporationId){
-                                $tempCorporation->getById( (int)$corporationId );
+                                foreach($accessCorporations as $corporationId){
+                                    $tempCorporation->getById( (int)$corporationId );
 
-                                if(
-                                    !$tempCorporation->dry() &&
-                                    $tempCorporation->shared == 1 // check if map shared is enabled
-                                ){
-                                    $map->setAccess($tempCorporation);
+                                    if(
+                                        !$tempCorporation->dry() &&
+                                        $tempCorporation->shared == 1 // check if map shared is enabled
+                                    ){
+                                        $map->setAccess($tempCorporation);
+                                    }
+
+                                    $tempCorporation->reset();
                                 }
-
-                                $tempCorporation->reset();
                             }
                         }
 
@@ -448,30 +460,35 @@ class Map extends Controller\AccessController {
 
                         // share map between alliances -> set access
                         if(isset($formData['mapAlliances'])){
+                            // remove character alliance (re-add later)
+                            $accessAlliances = array_diff($formData['mapAlliances'], [$alliance->_id]);
+
                             // avoid abuse -> respect share limits
-                            $accessAlliances = array_slice( $formData['mapAlliances'], 0, $f3->get('PATHFINDER.MAP.ALLIANCE.MAX_SHARED') );
+                            $maxShared = max($f3->get('PATHFINDER.MAP.ALLIANCE.MAX_SHARED') - 1, 0);
+                            $accessAlliances = array_slice($accessAlliances, 0, $maxShared);
 
-                            // clear map access. In case something has removed from access list
-                            $map->clearAccess();
+                            if($accessAlliances){
+                                // clear map access. In case something has removed from access list
+                                $map->clearAccess();
 
-                            /**
-                             * @var $tempAlliance Model\AllianceModel
-                             */
-                            $tempAlliance = Model\BasicModel::getNew('AllianceModel');
+                                /**
+                                 * @var $tempAlliance Model\AllianceModel
+                                 */
+                                $tempAlliance = Model\BasicModel::getNew('AllianceModel');
 
-                            foreach($accessAlliances as $allianceId){
-                                $tempAlliance->getById( (int)$allianceId );
+                                foreach($accessAlliances as $allianceId){
+                                    $tempAlliance->getById( (int)$allianceId );
 
-                                if(
-                                    !$tempAlliance->dry() &&
-                                    $tempAlliance->shared == 1 // check if map shared is enabled
-                                ){
-                                    $map->setAccess($tempAlliance);
+                                    if(
+                                        !$tempAlliance->dry() &&
+                                        $tempAlliance->shared == 1 // check if map shared is enabled
+                                    ){
+                                        $map->setAccess($tempAlliance);
+                                    }
+
+                                    $tempAlliance->reset();
                                 }
-
-                                $tempAlliance->reset();
                             }
-
                         }
 
                         // the alliance of the current user should always have access
