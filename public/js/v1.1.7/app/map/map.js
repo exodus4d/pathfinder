@@ -1067,6 +1067,17 @@ define([
             // system alias changed -> mark system as updated
             system.markAsChanged();
         });
+
+        headElement.on('shown', function(e, editable) {
+            var inputElement =  editable.input.$input.select();
+
+            // "fake" timeout until dom rendered
+            setTimeout(function(input){
+                // pre-select value
+                input.select();
+            }, 0, inputElement);
+        });
+        console.log(system);
     };
 
     /**

@@ -83,6 +83,15 @@ em{
   background-color: transparent;
 }
 
+// text selection =================================================================================
+::selection{
+  background: $gray-lighter; /* WebKit/Blink Browsers */
+  color: $gray-darkest;
+}
+::-moz-selection{
+  background: $gray-lighter; /* Gecko Browsers */
+  color: $gray-darkest;
+}
 // help elements ==================================================================================
 .pf-help{
   cursor: pointer; // fallback
