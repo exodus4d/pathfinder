@@ -86,7 +86,13 @@ define([
         if(validDeleteSystems.length){
             var msg = '';
             if(validDeleteSystems.length === 1){
-                msg = 'Delete system "' + $(validDeleteSystems[0]).data('name') + '" and all its connections?';
+                var deleteSystem = $(validDeleteSystems[0]);
+                var systemName = deleteSystem.data('name');
+                var systemAlias = deleteSystem.getSystemInfo( ['alias'] );
+
+                var systemNameStr = (systemName === systemAlias) ? '"' + systemName + '"' : '"' + systemAlias + '" (' + systemName + ')';
+                systemNameStr = '<span class="txt-color txt-color-warning">' + systemNameStr + '</span>';
+                msg = 'Delete system ' + systemNameStr + ' and all its connections?';
             }else{
                 msg = 'Delete ' + validDeleteSystems.length + ' selected systems and their connections?';
             }
