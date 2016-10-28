@@ -37,7 +37,7 @@ define([
         moduleElementToolbarClass: 'pf-table-tools',                            // class for "module toolbar" element
         moduleToolbarActionId: 'pf-system-info-collapse-container',             // id for "module toolbar action" element
         descriptionTextareaElementClass: 'pf-system-info-description',          // class for "description" textarea element (xEditable)
-        descriptionTextareaTooltipClass: 'pf-system-info-description-tooltip'   // class for "description" tooltip
+        descriptionTextareaCharCounter: 'pf-form-field-char-count'              // class for "character counter" element for form field
     };
 
     // disable Module update temporary (until. some requests/animations) are finished
@@ -45,6 +45,9 @@ define([
 
     // animation speed values
     var animationSpeedToolbarAction = 200;
+
+    // max character length for system description
+    var maxDescriptionLength = 512;
 
     /**
      * set module observer and look for relevant system data to update
@@ -69,7 +72,7 @@ define([
 
         toolsActionElement.velocity('stop').velocity({
             opacity: 1,
-            height: '75px'
+            height: '100%'
         },{
             duration: animationSpeedToolbarAction,
             display: 'block',
@@ -177,6 +180,33 @@ define([
     };
 
     /**
+     * update a character counter field with current value length - maxCharLength
+     * @param field
+     * @param charCounterElement
+     * @param maxCharLength
+     */
+    var updateCounter = function(field, charCounterElement, maxCharLength){
+        var value = field.val();
+        var inputLength = value.length;
+
+        // line breaks are 2 characters!
+        var newLines = value.match(/(\r\n|\n|\r)/g);
+        var addition = 0;
+        if (newLines != null) {
+            addition = newLines.length;
+        }
+        inputLength += addition;
+
+        charCounterElement.text(maxCharLength - inputLength);
+
+        if(maxCharLength <= inputLength){
+            charCounterElement.toggleClass('txt-color-red', true);
+        }else{
+            charCounterElement.toggleClass('txt-color-red', false);
+        }
+    };
+
+    /**
      *
      * @param parentElement
      * @param mapId
@@ -247,6 +277,7 @@ define([
                         rows: 5,
                         name: 'description',
                         inputclass: config.descriptionTextareaElementClass,
+                        tpl: '<textarea maxlength="' + maxDescriptionLength + '"></textarea>',
                         params: function(params){
 
                             params.mapData = {
@@ -292,12 +323,24 @@ define([
                     });
 
                     // on xEditable open -------------------------------------------------------------------------
-                    descriptionTextareaElement.on('shown', function(e){
+                    descriptionTextareaElement.on('shown', function(e, editable){
+                        var textarea = editable.input.$input;
+
                         // disable module update until description field is open
                         disableModuleUpdate = true;
 
-                        // disable tooltip
-                        tempModuleElement.find('.' + config.descriptionTextareaTooltipClass).tooltip('disable');
+                        // create character counter
+                        var charCounter = $('<kbd>', {
+                            class: [config.descriptionTextareaCharCounter, 'txt-color', 'text-right'].join(' ')
+                        });
+                        textarea.parent().next().append(charCounter);
+
+                        // update character counter
+                        updateCounter(textarea, charCounter, maxDescriptionLength);
+
+                        textarea.on('keyup', function(){
+                            updateCounter($(this), charCounter, maxDescriptionLength);
+                        });
                     });
 
                     // on xEditable close ------------------------------------------------------------------------
@@ -305,14 +348,9 @@ define([
                         var value = $(this).editable('getValue', true);
 
                         if(value.length === 0){
-
                             // show button if value is empty
                             hideToolsActionElement();
-
                             descriptionButton.show();
-                        }else{
-                            // enable tooltip
-                            tempModuleElement.find('.' + config.descriptionTextareaTooltipClass).tooltip('enable');
                         }
 
                         // enable module update
@@ -421,7 +459,6 @@ define([
             descriptionButtonClass: config.addDescriptionButtonClass,
             moduleToolbarActionId: config.moduleToolbarActionId,
             descriptionTextareaClass: config.descriptionTextareaElementClass,
-            descriptionTooltipClass: config.descriptionTextareaTooltipClass,
 
             shatteredWormholeInfo: shatteredWormholeInfo,
 

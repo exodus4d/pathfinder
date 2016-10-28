@@ -12,8 +12,27 @@
     min-height: 123px;
 
     // textarea system description
-    .pf-system-info-description{
-      width: 330px;
+    .editable-container{
+      width: 100%;
+      .editableform{
+        width: 100%;
+        .form-group{
+          width: 100%;
+          .editable-input{
+            width: calc(100% - 75px);
+            textarea{
+              width: 100%;
+              max-height: 200px;
+              resize: vertical;
+            }
+          }
+        }
+      }
+    }
+
+    .pf-form-field-char-count{
+      display: block;
+      margin-top: 10px;
     }
   }
 

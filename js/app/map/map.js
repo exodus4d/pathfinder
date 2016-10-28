@@ -1077,7 +1077,6 @@ define([
                 input.select();
             }, 0, inputElement);
         });
-        console.log(system);
     };
 
     /**
