@@ -195,7 +195,7 @@ define([
                     href: '#'
                 }).html('&nbsp;&nbsp;Account').prepend(
                     $('<i>',{
-                        class: 'fa fa-sliders fa-fw'
+                        class: 'fa fa-user fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowSettingsDialog');

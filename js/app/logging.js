@@ -58,7 +58,7 @@ define([
         var tableHeadline = $('<h4>', {
             text: ' Processes'
         }).prepend( $('<i>', {
-            class: ['fa', 'fa-fw', 'fa-lg', 'fa-list-alt'].join(' ')
+            class: ['fa', 'fa-fw', 'fa-lg', 'fa-microchip'].join(' ')
         }));
 
         // add content Structure to dome before table initialization
