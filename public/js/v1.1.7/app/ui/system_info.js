@@ -376,23 +376,29 @@ define([
                     tooltipElements.tooltip();
 
                     // init system effect popover ----------------------------------------------------------------
-                    var systemEffectData = Util.getSystemEffectData( systemData.security, systemData.effect);
+                    var infoEffectElement = $(moduleElement).find('.' + config.systemInfoEffectInfoClass);
 
-                    if(systemEffectData !== false){
-                        var infoEffectElement = $(moduleElement).find('.' + config.systemInfoEffectInfoClass);
+                    if(infoEffectElement.length){
+                        // effect row exists -> get effect data
+                        var systemEffectData = Util.getSystemEffectData( systemData.security, systemData.effect);
 
-                        // transform data into table
-                        var systemEffectTable = Util.getSystemEffectTable( systemEffectData );
+                        if(systemEffectData !== false){
+                            // transform data into table
+                            var systemEffectTable = Util.getSystemEffectTable( systemEffectData );
 
-                        infoEffectElement.popover({
-                            html: true,
-                            trigger: 'hover',
-                            placement: 'top',
-                            delay: 200,
-                            title: 'System effects',
-                            container: 'body',
-                            content: systemEffectTable
-                        });
+                            infoEffectElement.popover({
+                                html: true,
+                                trigger: 'hover',
+                                placement: 'top',
+                                delay: 200,
+                                title: 'System effects',
+                                container: 'body',
+                                content: systemEffectTable
+                            });
+                        }else{
+                            // effect data not found (e.g. !unknown! shattered system) -> hide "popover" icon icon
+                            infoEffectElement.children().hide();
+                        }
                     }
 
                     // init static wormhole information ----------------------------------------------------------
