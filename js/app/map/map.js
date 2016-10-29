@@ -2713,6 +2713,7 @@ define([
             mapElement = $(mapElement);
 
             // get current character log data
+            var characterLogExists = false;
             var currentCharacterLog = Util.getCurrentCharacterLog();
 
             // check if map is frozen
@@ -2725,6 +2726,14 @@ define([
                 mapId: userData.config.id,
                 userCount: 0                        // active user in a map
             };
+
+            if(
+                currentCharacterLog &&
+                currentCharacterLog.system
+            ){
+                characterLogExists = true;
+                headerUpdateData.currentSystemName = currentCharacterLog.system.name;
+            }
 
             // check if current user was found on the map
             var currentUserOnMap = false;
@@ -2763,20 +2772,17 @@ define([
                 }
 
                 // the current user can only be in a single system ------------------------------------------
-                if( !currentUserOnMap){
+                if(
+                    characterLogExists &&
+                    !currentUserOnMap &&
+                    currentCharacterLog.system.id === systemId
+                ){
+                    currentUserIsHere = true;
+                    currentUserOnMap = true;
 
-                    if(
-                        currentCharacterLog &&
-                        currentCharacterLog.system &&
-                        currentCharacterLog.system.id === systemId
-                    ){
-                        currentUserIsHere = true;
-                        currentUserOnMap = true;
-
-                        // set current location data for header update
-                        headerUpdateData.currentSystemId =  $(system).data('id');
-                        headerUpdateData.currentSystemName = currentCharacterLog.system.name;
-                    }
+                    // set current location data for header update
+                    headerUpdateData.currentSystemId =  $(system).data('id');
+                    //headerUpdateData.currentSystemName = currentCharacterLog.system.name;
                 }
 
                 system.updateSystemUserData(map, tempUserData, currentUserIsHere);

@@ -106,13 +106,10 @@ define([
      * @returns {Array}
      */
     var getSignatureTableData = function(){
-
         var signatureTableApi = signatureTable.api();
-
         var tableData = [];
 
         signatureTableApi.rows().eq(0).each(function(idx){
-
             var row = signatureTableApi.row(idx);
             // default row data
             var defaultRowData = row.data();
@@ -125,22 +122,23 @@ define([
                 if(editableFields.length > 0){
                     var values = $(editableFields).editable('getValue');
 
-                    // convert to lower for better compare options
-                    values.name = values.name.toLowerCase();
+                    if(values.name){
+                        // convert to lower for better compare options
+                        values.name = values.name.toLowerCase();
 
-                    // add pk for this row
-                    values.id = defaultRowData.id;
+                        // add pk for this row
+                        values.id = defaultRowData.id;
 
-                    // add updated for this row
-                    values.updated = defaultRowData.updated;
+                        // add updated for this row
+                        values.updated = defaultRowData.updated;
 
-                    // add row index
-                    values.index = idx;
+                        // add row index
+                        values.index = idx;
 
-                    tableData.push( values );
+                        tableData.push( values );
+                    }
                 }
             }
-
         });
 
         return tableData;

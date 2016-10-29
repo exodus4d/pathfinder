@@ -126,6 +126,15 @@ em{
 
 }
 
+// links ==========================================================================================
+a{
+  &.disabled{
+    color: $navbar-default-link-color;
+    pointer-events: none;
+    cursor: default;
+  }
+}
+
 // alert messages =================================================================================
 .alert{
   will-change: opacity, transform;

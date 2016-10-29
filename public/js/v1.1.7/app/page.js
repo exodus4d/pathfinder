@@ -877,25 +877,18 @@ define([
         var linkElement = currentLocationElement.find('a');
         var textElement = linkElement.find('span');
 
-        if( linkElement.data('systemName') !== locationData.currentSystemName ){
-            var tempSystemName = locationData.currentSystemName;
-            var tempSystemId = locationData.currentSystemId;
+        var tempSystemName = (locationData.currentSystemName) ? locationData.currentSystemName : false;
+        var tempSystemId = (locationData.currentSystemId) ? locationData.currentSystemId : 0;
 
-            if(
-                tempSystemName === undefined ||
-                tempSystemId === undefined
-            ){
-                tempSystemName = false;
-                tempSystemId = false;
-            }
-
+        if(
+            linkElement.data('systemName') !== tempSystemName ||
+            linkElement.data('systemId') !== tempSystemId
+        ){
             linkElement.data('systemName', tempSystemName);
             linkElement.data('systemId', tempSystemId);
+            linkElement.toggleClass('disabled', !tempSystemId);
 
-            if(
-                tempSystemName !== false &&
-                tempSystemId !== false
-            ){
+            if(tempSystemName !== false){
                 textElement.text(locationData.currentSystemName);
                 currentLocationElement.velocity('fadeIn', {duration: Init.animationSpeed.headerLink});
             }else{
