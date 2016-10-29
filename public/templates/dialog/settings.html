@@ -8,18 +8,25 @@
                         <i class="fa fa-user fa-fw"></i>&nbsp;Account
                     </a>
                 </li>
-                <li>
-                    <a role="tab" data-toggle="tab" data-name="share" href="#{{settingsShareContainerId}}">
-                        <i class="fa fa-share-alt fa-fw"></i>&nbsp;Share
-                    </a>
-                </li>
+                {{#userData.character}}
+                    <li>
+                        <a role="tab" data-toggle="tab" data-name="share" href="#{{settingsShareContainerId}}">
+                            <i class="fa fa-share-alt fa-fw"></i>&nbsp;Share
+                        </a>
+                    </li>
+                    <li>
+                        <a role="tab" data-toggle="tab" data-name="share" href="#{{settingsCharacterContainerId}}">
+                            <i class="fa fa-male fa-fw"></i>&nbsp;Character
+                        </a>
+                    </li>
+                {{/userData.character}}
             </ul>
         </div>
     </nav>
 
     <div class="tab-content">
         <div role="tabpanel" class="tab-pane fade in active" id="{{settingsAccountContainerId}}">
-            {{! account tab ================================================================================================ }}
+            {{! account tab ================================================================================================== }}
             <form role="form" class="form-horizontal">
 
                 {{! Username }}
@@ -147,7 +154,7 @@
             </form>
         </div>
         <div role="tabpanel" class="tab-pane" id="{{settingsShareContainerId}}">
-            {{! sharing tab ================================================================================================ }}
+            {{! sharing tab ================================================================================================== }}
 
             <form role="form" class="form-horizontal">
 
@@ -164,62 +171,76 @@
                 </div>
 
                 {{#userData.character}}
-                    <h4 class="pf-dynamic-area"><img src="{{ccpImageServer}}Character/{{id}}_32.jpg">&nbsp;&nbsp;Private maps "<em class="pf-map-type-private">{{name}}</em>"</h4>
-
+                    <h4 class="pf-dynamic-area"><img src="{{ccpImageServer}}Character/{{id}}_64.jpg">&nbsp;&nbsp;Private maps "<em class="pf-map-type-private">{{name}}</em>"</h4>
 
                     <div class="row">
                         <div class="col-sm-9">
-                            <div class="col-sm-10">
-                                <label for="privateSharing">
-                                    <input id="privateSharing" type="checkbox" name="privateSharing" data-toggle="toggle" value="1" {{#shared}}checked{{/shared}}>
-                                    &nbsp;map invite for private maps
-                                </label>
-                            </div>
+                            <label class="control-label" for="privateSharing">
+                                <input id="privateSharing" type="checkbox" name="privateSharing" data-toggle="toggle" value="1" {{#shared}}checked{{/shared}}>
+                                &nbsp;map invite for private maps
+                            </label>
                         </div>
-                        <div class="col-sm-3">
-
-                        </div>
+                        <div class="col-sm-3"></div>
                     </div>
 
                     {{#corporation}}
-                    <h4 class="pf-dynamic-area"><img src="{{ccpImageServer}}Corporation/{{id}}_32.png">&nbsp;&nbsp;Corporation maps "<em class="pf-map-type-corporation">{{name}}</em>"</h4>
-
+                    <h4 class="pf-dynamic-area"><img src="{{ccpImageServer}}Corporation/{{id}}_64.png">&nbsp;&nbsp;Corporation maps "<em class="pf-map-type-corporation">{{name}}</em>"</h4>
 
                     <div class="row">
                         <div class="col-sm-9">
-                            <div class="col-sm-10">
-                                <label for="corporationSharing">
-                                    <input id="corporationSharing" type="checkbox" name="corporationSharing" data-toggle="toggle" value="1" {{#shared}}checked{{/shared}}>
-                                    &nbsp;map invite for corporation maps
-                                </label>
-                            </div>
+                            <label class="control-label" for="corporationSharing">
+                                <input id="corporationSharing" type="checkbox" name="corporationSharing" data-toggle="toggle" value="1" {{#shared}}checked{{/shared}}>
+                                &nbsp;map invite for corporation maps
+                            </label>
                         </div>
-                        <div class="col-sm-3">
-
-                        </div>
+                        <div class="col-sm-3"></div>
                     </div>
 
                     {{/corporation}}
 
                     {{#alliance}}
-                    <h4 class="pf-dynamic-area"><img src="{{ccpImageServer}}Alliance/{{id}}_32.png">&nbsp;&nbsp;Alliance maps "<em class="pf-map-type-alliance">{{name}}</em>"</h4>
+                    <h4 class="pf-dynamic-area"><img src="{{ccpImageServer}}Alliance/{{id}}_64.png">&nbsp;&nbsp;Alliance maps "<em class="pf-map-type-alliance">{{name}}</em>"</h4>
 
                     <div class="row">
                         <div class="col-sm-9">
-                            <div class="col-sm-10">
-                                <label for="allianceSharing">
-                                    <input id="allianceSharing" type="checkbox" name="allianceSharing" data-toggle="toggle" value="1" {{#shared}}checked{{/shared}}>
-                                    &nbsp;map invite for alliance maps
-                                </label>
-                            </div>
+                            <label class="control-label" for="allianceSharing">
+                                <input id="allianceSharing" type="checkbox" name="allianceSharing" data-toggle="toggle" value="1" {{#shared}}checked{{/shared}}>
+                                &nbsp;map invite for alliance maps
+                            </label>
                         </div>
-                        <div class="col-sm-3">
-
-                        </div>
+                        <div class="col-sm-3"></div>
                     </div>
                     {{/alliance}}
 
                     <input type="hidden" name="share">
+
+                {{/userData.character}}
+
+            </form>
+        </div>
+        <div role="tabpanel" class="tab-pane" id="{{settingsCharacterContainerId}}">
+            {{! character tab ================================================================================================ }}
+
+            <form role="form" class="form-horizontal">
+
+                {{#userData.character}}
+                    <h4 class="pf-dynamic-area"><img src="{{ccpImageServer}}Character/{{id}}_64.jpg">&nbsp;&nbsp;{{name}}</h4>
+
+                    <div class="row">
+                        <div class="col-xs-8 col-sm-6">
+                            <div class="form-group">
+                                <div class="col-sm-offset-1 col-sm-11">
+                                    <div class="checkbox checkbox-primary" title="show/share current location on map">
+                                        <input id="logLocation" name="logLocation" value="1" type="checkbox" {{#logLocation}}checked{{/logLocation}}>
+                                        <label for="logLocation">Auto update current location</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6"></div>
+                    </div>
+
+                    <input type="hidden" name="character">
 
                 {{/userData.character}}
 

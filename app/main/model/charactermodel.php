@@ -89,6 +89,11 @@ class CharacterModel extends BasicModel {
             'nullable' => false,
             'default' => 0
         ],
+        'logLocation' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => 1
+        ],
         'userCharacter' => [
             'has-one' => ['Model\UserCharacterModel', 'characterId']
         ],
@@ -125,6 +130,7 @@ class CharacterModel extends BasicModel {
             $characterData->id = $this->id;
             $characterData->name = $this->name;
             $characterData->shared = $this->shared;
+            $characterData->logLocation = $this->logLocation;
 
             if($addCharacterLogData){
                 if($logModel = $this->getLog()){
@@ -185,6 +191,19 @@ class CharacterModel extends BasicModel {
         return $accessToken;
     }
 
+    public function set_logLocation($logLocation){
+        $logLocation = (bool)$logLocation;
+        if(
+            !$logLocation &&
+            $logLocation !== $this->logLocation &&
+            $this->hasLog()
+        ){
+            $this->getLog()->erase();
+        }
+
+        return $logLocation;
+    }
+
     /**
      * Event "Hook" function
      * @param self $self
@@ -228,6 +247,14 @@ class CharacterModel extends BasicModel {
      */
     public function hasUserCharacter(){
         return is_object($this->userCharacter);
+    }
+
+    /**
+     * check whether this character has an active location log
+     * @return bool
+     */
+    public function hasLog(){
+        return is_object($this->characterLog);
     }
 
     /**
@@ -383,29 +410,32 @@ class CharacterModel extends BasicModel {
      * @return $this
      */
     public function updateLog($additionalOptions = []){
-        // Try to pull data from CREST
-        $ssoController = new Sso();
-        $logData = $ssoController->getCharacterLocationData($this->getAccessToken(), $additionalOptions);
+        //check if log update is enabled for this user
+        if( $this->logLocation ){
+            // Try to pull data from CREST
+            $ssoController = new Sso();
+            $logData = $ssoController->getCharacterLocationData($this->getAccessToken(), $additionalOptions);
 
-        if($logData['timeout'] === false){
-            if( empty($logData['system']) ){
-                // character is not in-game
-                if(is_object($this->characterLog)){
-                    // delete existing log
-                    $this->characterLog->erase();
-                    $this->save();
-                }
-            }else{
-                // character is currently in-game
-                if( !$characterLog = $this->getLog() ){
-                    // create new log
-                    $characterLog = $this->rel('characterLog');
-                    $characterLog->characterId = $this->_id;
-                }
-                $characterLog->setData($logData);
-                $characterLog->save();
+            if($logData['timeout'] === false){
+                if( empty($logData['system']) ){
+                    // character is not in-game
+                    if( $this->hasLog() ){
+                        // delete existing log
+                        $this->characterLog->erase();
+                        $this->save();
+                    }
+                }else{
+                    // character is currently in-game
+                    if( !$characterLog = $this->getLog() ){
+                        // create new log
+                        $characterLog = $this->rel('characterLog');
+                        $characterLog->characterId = $this->_id;
+                    }
+                    $characterLog->setData($logData);
+                    $characterLog->save();
 
-                $this->characterLog = $characterLog;
+                    $this->characterLog = $characterLog;
+                }
             }
         }
 
@@ -487,7 +517,7 @@ class CharacterModel extends BasicModel {
     public function getLog(){
         $characterLog = false;
         if(
-            is_object($this->characterLog) &&
+            $this->hasLog() &&
             !$this->characterLog->dry()
         ){
             $characterLog = &$this->characterLog;

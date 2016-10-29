@@ -16,6 +16,7 @@ define([
         settingsDialogId: 'pf-settings-dialog',                                 // id for "settings" dialog
         settingsAccountContainerId: 'pf-settings-dialog-account',               // id for the "account" container
         settingsShareContainerId: 'pf-settings-dialog-share',                   // id for the "share" container
+        settingsCharacterContainerId: 'pf-settings-dialog-character',           // id for the "character" container
 
         // captcha
         captchaKeyUpdateAccount: 'SESSION.CAPTCHA.ACCOUNT.UPDATE',              // key for captcha reason
@@ -47,6 +48,7 @@ define([
                 id: config.settingsDialogId,
                 settingsAccountContainerId: config.settingsAccountContainerId,
                 settingsShareContainerId: config.settingsShareContainerId,
+                settingsCharacterContainerId: config.settingsCharacterContainerId,
                 userData: Init.currentUserData,
                 captchaImageWrapperId: config.captchaImageWrapperId,
                 captchaImageId: config.captchaImageId,
@@ -193,7 +195,7 @@ define([
             accountSettingsDialog.find('.navbar a').on('shown.bs.tab', function(e){
 
                 // init "toggle" switches on current active tab
-                accountSettingsDialog.find( $(this).attr('href') ).find('input[type="checkbox"]').bootstrapToggle({
+                accountSettingsDialog.find( $(this).attr('href') ).find('input[data-toggle="toggle"][type="checkbox"]').bootstrapToggle({
                     on: '<i class="fa fa-fw fa-check"></i>&nbsp;Enable',
                     off: 'Disable&nbsp;<i class="fa fa-fw fa-ban"></i>',
                     onstyle: 'success',

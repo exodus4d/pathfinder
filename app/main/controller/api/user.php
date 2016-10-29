@@ -264,21 +264,9 @@ class User extends Controller\Controller{
 
                     // sharing config -------------------------------------------------------------
                     if(isset($formData['share'])){
-                        $privateSharing = 0;
-                        $corporationSharing = 0;
-                        $allianceSharing = 0;
-
-                        if(isset($formData['privateSharing'])){
-                            $privateSharing = 1;
-                        }
-
-                        if(isset($formData['corporationSharing'])){
-                            $corporationSharing = 1;
-                        }
-
-                        if(isset($formData['allianceSharing'])){
-                            $allianceSharing = 1;
-                        }
+                        $privateSharing = (int)$formData['privateSharing'];
+                        $corporationSharing = (int)$formData['corporationSharing'];
+                        $allianceSharing = (int)$formData['allianceSharing'];
 
                         // update private/corp/ally
                         $corporation = $activeCharacter->getCorporation();
@@ -295,6 +283,13 @@ class User extends Controller\Controller{
                         }
 
                         $activeCharacter->shared = $privateSharing;
+                        $activeCharacter->save();
+                    }
+
+                    // character config -----------------------------------------------------------
+                    if(isset($formData['character'])){
+                        $activeCharacter->logLocation = (int)$formData['logLocation'];
+
                         $activeCharacter->save();
                     }
 

@@ -53,7 +53,6 @@ define([
         headActiveUserClass: 'pf-head-active-user',                             // class for "active user" link
         headCurrentLocationClass: 'pf-head-current-location',                   // class for "show current location" link
         headProgramStatusClass: 'pf-head-program-status',                       // class for "program status" notification
-        headMapTrackingId: 'pf-head-map-tracking',                              // id for "map tracking" toggle (checkbox)
 
         // footer
         pageFooterId: 'pf-footer',                                              // id for page footer
@@ -402,7 +401,7 @@ define([
             userCharacterImageClass: config.userCharacterImageClass,
             userShipClass: config.headUserShipClass,
             userShipImageClass: config.userShipImageClass,
-            mapTrackingId: config.headMapTrackingId
+            mapTrackingId: Util.config.headMapTrackingId
         };
 
         var headRendered = Mustache.render(TplHead, moduleData);
@@ -447,7 +446,7 @@ define([
         });
 
         // tracking toggle
-        var mapTrackingCheckbox = $('#' + config.headMapTrackingId);
+        var mapTrackingCheckbox = $('#' + Util.config.headMapTrackingId);
         mapTrackingCheckbox.bootstrapToggle({
             size: 'mini',
             on: 'on',
@@ -494,7 +493,6 @@ define([
      * load page footer
      */
     $.fn.loadFooter = function(){
-
         var pageElement = $(this);
 
         var moduleData = {
@@ -727,7 +725,6 @@ define([
      * updates the header with current user data
      */
     $.fn.updateHeaderUserData = function(){
-
         var userData = Util.getCurrentUserData();
 
         var userInfoElement = $('.' + config.headUserCharacterClass);
@@ -771,7 +768,7 @@ define([
 
         };
 
-        // check for changes
+        // check for character/ship changes ---------------------------------------------
         if(
             userData &&
             userData.character
@@ -783,6 +780,9 @@ define([
                 newShipId = userData.character.log.ship.typeId;
                 newShipName = userData.character.log.ship.typeName;
             }
+
+            // en/disable "map tracking" toggle
+            updateMapTrackingToggle(userData.character.logLocation);
         }
 
         var newCharactersOptionIds = userData.characters.map(function(data){
@@ -828,6 +828,19 @@ define([
 
             // set new id for next check
             userShipElement.data('shipId', newShipId);
+        }
+    };
+
+    /**
+     * update "map tracking" toggle in header
+     * @param status
+     */
+    var updateMapTrackingToggle = function(status){
+        var mapTrackingCheckbox = $('#' + Util.config.headMapTrackingId);
+        if(status === true){
+            mapTrackingCheckbox.bootstrapToggle('enable');
+        }else{
+            mapTrackingCheckbox.bootstrapToggle('off').bootstrapToggle('disable');
         }
     };
 
