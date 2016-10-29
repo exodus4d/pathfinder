@@ -51,7 +51,6 @@ define([
         headUserShipClass: 'pf-head-user-ship',                                 // class for "user settings" link
         userShipImageClass: 'pf-head-user-ship-image',                          // class for "current user ship image"
         headActiveUserClass: 'pf-head-active-user',                             // class for "active user" link
-        headCurrentLocationClass: 'pf-head-current-location',                   // class for "show current location" link
         headProgramStatusClass: 'pf-head-program-status',                       // class for "program status" notification
 
         // footer
@@ -430,7 +429,7 @@ define([
         });
 
         // current location
-        $('.' + config.headCurrentLocationClass).find('a').on('click', function(){
+        $('#' + Util.config.headCurrentLocationId).find('a').on('click', function(){
             Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: $(this).data('systemId') });
         });
 
@@ -886,7 +885,7 @@ define([
      * @param locationData
      */
     var updateHeaderCurrentLocation = function(locationData){
-        var currentLocationElement = $('.' + config.headCurrentLocationClass);
+        var currentLocationElement = $('#' + Util.config.headCurrentLocationId);
         var linkElement = currentLocationElement.find('a');
         var textElement = linkElement.find('span');
 

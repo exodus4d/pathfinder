@@ -34,6 +34,7 @@ define([
         // head
         headMapTrackingId: 'pf-head-map-tracking',                              // id for "map tracking" toggle (checkbox)
         headCharacterSwitchId: 'pf-head-character-switch',                      // id for "character switch" popover
+        headCurrentLocationId: 'pf-head-current-location',                      // id for "show current location" element
 
         // menu
         menuButtonFullScreenId: 'pf-menu-button-fullscreen',                    // id for menu button "fullscreen"
@@ -1717,6 +1718,18 @@ define([
         return Init.currentSystemData;
     };
 
+    /**
+     * get current location data
+     * -> system data where current user is located
+     * @returns {{id: *, name: *}}
+     */
+    var getCurrentLocationData = function(){
+        var currentLocationLink = $('#' + config.headCurrentLocationId).find('a');
+        return {
+          id: currentLocationLink.data('systemId'),
+          name: currentLocationLink.data('systemName')
+        };
+    };
 
     /**
      * get all "open" dialog elements
@@ -1881,6 +1894,7 @@ define([
         getCurrentUserData: getCurrentUserData,
         setCurrentSystemData: setCurrentSystemData,
         getCurrentSystemData: getCurrentSystemData,
+        getCurrentLocationData: getCurrentLocationData,
         getCurrentUserInfo: getCurrentUserInfo,
         getCurrentCharacterLog: getCurrentCharacterLog,
         setDestination: setDestination,

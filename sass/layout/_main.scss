@@ -1007,7 +1007,7 @@ td.pf-popover-trigger{
     visibility: hidden;
   }
 
-  .pf-head-active-user, .pf-head-current-location{
+  .pf-head-active-user, #pf-head-current-location{
     display: none; // triggered by js
 
     .badge{

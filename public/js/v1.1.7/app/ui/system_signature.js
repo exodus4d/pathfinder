@@ -454,6 +454,39 @@ define([
      */
     $.fn.updateSignatureTableByClipboard = function(systemData, clipboard, options){
 
+        var requestData = function(){
+            // lock update function until request is finished
+            lockSignatureTable();
+
+            // lock copy during request (prevent spamming (ctrl + c )
+            disableCopyFromClipboard = true;
+
+            var requestData = {
+                signatures: signatureData,
+                deleteOld: (options.deleteOld) ? 1 : 0,
+                systemId: parseInt(systemData.id)
+            };
+
+            $.ajax({
+                type: 'POST',
+                url: Init.path.saveSignatureData,
+                data: requestData,
+                dataType: 'json'
+            }).done(function(responseData){
+                unlockSignatureTable(true);
+
+                // updates table with new/updated signature information
+                moduleElement.updateSignatureTable(responseData.signatures, false);
+            }).fail(function( jqXHR, status, error) {
+                var reason = status + ' ' + error;
+                Util.showNotify({title: jqXHR.status + ': Update signatures', text: reason, type: 'warning'});
+                $(document).setProgramStatus('problem');
+            }).always(function() {
+                unlockSignatureTable(true);
+                disableCopyFromClipboard = false;
+            });
+        };
+
         // check if copy&paste is enabled
         if( !disableCopyFromClipboard ){
             var moduleElement = $(this);
@@ -462,38 +495,30 @@ define([
             var signatureData = parseSignatureString(systemData, clipboard);
 
             if(signatureData.length > 0){
-                // save signature data
+                // valid signature data parsed
 
-                // lock update function until request is finished
-                lockSignatureTable();
+                // check if signatures will be added to a system where character is currently in
+                // if user is not in any system -> id === undefined -> no "confirmation required
+                var currentLocationData = Util.getCurrentLocationData();
+                if(
+                    currentLocationData.id &&
+                    currentLocationData.id !== systemData.id
+                ){
 
-                // lock copy during request (prevent spamming (ctrl + c )
-                disableCopyFromClipboard = true;
+                    var systemNameStr = (systemData.name === systemData.alias) ? '"' + systemData.name + '"' : '"' + systemData.alias + '" (' + systemData.name + ')';
+                    systemNameStr = '<span class="txt-color txt-color-warning">' + systemNameStr + '</span>';
 
-                var requestData = {
-                    signatures: signatureData,
-                    deleteOld: (options.deleteOld) ? 1 : 0,
-                    systemId: parseInt(systemData.id)
-                };
-
-                $.ajax({
-                    type: 'POST',
-                    url: Init.path.saveSignatureData,
-                    data: requestData,
-                    dataType: 'json'
-                }).done(function(responseData){
-                    unlockSignatureTable(true);
-
-                    // updates table with new/updated signature information
-                    moduleElement.updateSignatureTable(responseData.signatures, false);
-                }).fail(function( jqXHR, status, error) {
-                    var reason = status + ' ' + error;
-                    Util.showNotify({title: jqXHR.status + ': Update signatures', text: reason, type: 'warning'});
-                    $(document).setProgramStatus('problem');
-                }).always(function() {
-                    unlockSignatureTable(true);
-                    disableCopyFromClipboard = false;
-                });
+                    var msg = '';
+                    msg += 'Update signatures in ' + systemNameStr + ' ? This not your current location, "' + currentLocationData.name + '" !';
+                    bootbox.confirm(msg, function(result) {
+                        if(result){
+                            requestData();
+                        }
+                    });
+                }else{
+                    // current system selected -> no "confirmation" required
+                    requestData();
+                }
             }
         }
     };
@@ -760,19 +785,6 @@ define([
         };
 
         Render.showModule(moduleConfig, moduleData);
-
-        // event listener for global "paste" signatures into the page -------------------------------------------------
-        $(document).off('paste').on('paste', function(e){
-
-            // do not read clipboard if pasting into form elements
-            if(
-                $(e.target).prop('tagName').toLowerCase() !== 'input' &&
-                $(e.target).prop('tagName').toLowerCase() !== 'textarea'
-            ){
-                var clipboard = (e.originalEvent || e).clipboardData.getData('text/plain');
-                moduleElement.updateSignatureTableByClipboard(systemData, clipboard, {});
-            }
-        });
     };
 
     /**
@@ -1829,8 +1841,9 @@ define([
     /**
      * set module observer and look for relevant signature data to update
      * @param moduleElement
+     * @param systemData
      */
-    var setModuleObserver = function(moduleElement){
+    var setModuleObserver = function(moduleElement, systemData){
         var tablePrimaryElement = $('.' + config.sigTablePrimaryClass);
         var dataTablePrimary = signatureTable.DataTable();
         var signatureTableApi = signatureTable.api();
@@ -1856,6 +1869,20 @@ define([
         signatureTableApi.on('draw.dt', function(){
             // check delete button
             checkDeleteSignaturesButton();
+        });
+
+        // event listener for global "paste" signatures into the page -------------------------------------------------
+        $(document).off('paste').on('paste', function(e){
+
+            // do not read clipboard if pasting into form elements
+            if(
+                $(e.target).prop('tagName').toLowerCase() !== 'input' &&
+                $(e.target).prop('tagName').toLowerCase() !== 'textarea'
+            ){
+                var clipboard = (e.originalEvent || e).clipboardData.getData('text/plain');
+
+                moduleElement.updateSignatureTableByClipboard(systemData, clipboard, {});
+            }
         });
     };
 
@@ -1965,16 +1992,19 @@ define([
             type: 'POST',
             url: Init.path.getSignatures,
             data: requestData,
-            dataType: 'json'
+            dataType: 'json',
+            context: {
+                systemData: systemData
+            }
         }).done(function(signatureData){
 
-            var signatureTableData = formatSignatureData(systemData, signatureData, fullSignatureOptions);
+            var signatureTableData = formatSignatureData(this.systemData, signatureData, fullSignatureOptions);
 
             // draw signature table
-            moduleElement.drawSignatureTable(signatureTableData, systemData);
+            moduleElement.drawSignatureTable(signatureTableData, this.systemData);
 
             // set module observer
-            setModuleObserver(moduleElement);
+            setModuleObserver(moduleElement, this.systemData);
         }).fail(function( jqXHR, status, error) {
             var reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': Get signatures', text: reason, type: 'warning'});
