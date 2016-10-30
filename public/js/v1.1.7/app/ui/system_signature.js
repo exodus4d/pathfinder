@@ -50,7 +50,8 @@ define([
         // xEditable
         moduleIcon: 'pf-module-icon-button',                                    // class for "filter" - icons
         editableDescriptionInputClass: 'pf-editable-description',               // class for "description" textarea
-        editableFilterInputClass: 'pf-editable-filter'                          // class for "filter" selects
+        editableFilterElementClass: 'pf-editable-filter',                       // class for "filter" selects (not active)
+        editableFilterSelectPopoverClass: 'pf-editable-filter-active'           // class for active "filter" selects (popover)
     };
 
     // lock Signature Table update temporary (until. some requests/animations) are finished
@@ -1397,8 +1398,11 @@ define([
      * @returns {*}
      */
     $.fn.drawSignatureTable = function(signatureData, systemData){
-
         var moduleElement = $(this);
+
+        // setup filter select in footer
+        // column indexes that need a filter select
+        var filterColumnIndexes = [2];
 
         // create new signature table ---------------------------------------------------------------------------------
         var table = $('<table>', {
@@ -1419,37 +1423,25 @@ define([
 
         var dataTableOptions = {
             data: signatureData,
+            drawCallback: function(settings){
+                this.api().columns(filterColumnIndexes).every(function(){
+                    var column = this;
+                    var footerColumnElement = $(column.footer());
+                    var filterSelect = footerColumnElement.find('.editable');
+
+                    // update select values
+                    filterSelect.editable('option', 'source', getColumnTableDataForFilter(column));
+                });
+            },
             initComplete: function (settings, json){
-                // setup filter select in footer
-                // column indexes that need a filter select
-                var filterColumnIndexes = [2];
 
                 this.api().columns(filterColumnIndexes).every(function(){
                     var column = this;
                     var headerLabel = $(column.header()).text();
                     var selectField = $('<a class="pf-editable ' +
                         config.moduleIcon + ' ' +
-                        config.editableFilterInputClass +
+                        config.editableFilterElementClass +
                         '" href="#" data-type="select" data-name="' + headerLabel + '"></a>');
-
-                    // get all available options from column
-                    var source = {};
-                    column.data().unique().sort(function(a,b){
-                        // sort alphabetically
-                        var valA = a.filter.toLowerCase();
-                        var valB = b.filter.toLowerCase();
-
-                        if(valA < valB) return -1;
-                        if(valA > valB) return 1;
-                        return 0;
-                    }).each(function(callData){
-                        if(callData.filter){
-                            source[callData.filter] = callData.filter;
-                        }
-                    });
-
-                    // add empty option
-                    source[0] = '';
 
                     // add field to footer
                     selectField.appendTo( $(column.footer()).empty() );
@@ -1459,8 +1451,8 @@ define([
                         onblur: 'submit',
                         title: 'filter',
                         showbuttons: false,
-                        source: source,
-                        value: 0
+                        source: getColumnTableDataForFilter(column),
+                        inputclass: config.editableFilterSelectPopoverClass
                     });
 
                     selectField.on('save', { column: column }, function(e, params) {
@@ -1480,6 +1472,34 @@ define([
         moduleElement.updateScannedSignaturesBar({showNotice: true});
 
         return signatureTable;
+    };
+
+    /**
+     * get unique column data from column object for select filter options
+     * @param column
+     * @returns {{}}
+     */
+    var getColumnTableDataForFilter = function(column){
+        // get all available options from column
+        var source = {};
+        column.data().unique().sort(function(a,b){
+            // sort alphabetically
+            var valA = a.filter.toLowerCase();
+            var valB = b.filter.toLowerCase();
+
+            if(valA < valB) return -1;
+            if(valA > valB) return 1;
+            return 0;
+        }).each(function(callData){
+            if(callData.filter){
+                source[callData.filter] = callData.filter;
+            }
+        });
+
+        // add empty option
+        source[0] = '';
+
+        return source;
     };
 
     /**
@@ -2019,7 +2039,6 @@ define([
      * @param systemData
      */
     $.fn.drawSignatureTableModule = function(systemData){
-
         var parentElement = $(this);
 
         // show module
@@ -2032,7 +2051,6 @@ define([
                         unlockSignatureTable(true);
                     }
                 });
-
             }
         };
 

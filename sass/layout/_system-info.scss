@@ -88,6 +88,12 @@
   }
 }
 
+// table filter (active) select (popover)
+// -> popover is child from <body>
+.pf-editable-filter-active{
+  min-width: 100px;
+}
+
 // system graph module =====================================================
 .pf-system-graph-module{
 

@@ -97,7 +97,7 @@ class Signature extends Controller\AccessController {
                 // this key should not be saved (it is an obj)
                 unset($data['updated']);
 
-                $system->getById( (int)$data['systemId']);
+                $system->getById( (int)$data['systemId'], 0);
 
                 if( !$system->dry() ){
                     // update/save signature
