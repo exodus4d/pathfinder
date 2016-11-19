@@ -168,19 +168,26 @@ class Map extends Controller\AccessController {
 
         // get max number of shared entities per map ------------------------------------------------------------------
         $maxSharedCount = [
-            'character' => $f3->get('PATHFINDER.MAP.PRIVATE.MAX_SHARED'),
-            'corporation' => $f3->get('PATHFINDER.MAP.CORPORATION.MAX_SHARED'),
-            'alliance' => $f3->get('PATHFINDER.MAP.ALLIANCE.MAX_SHARED'),
+            'character'                 => $f3->get('PATHFINDER.MAP.PRIVATE.MAX_SHARED'),
+            'corporation'               => $f3->get('PATHFINDER.MAP.CORPORATION.MAX_SHARED'),
+            'alliance'                  => $f3->get('PATHFINDER.MAP.ALLIANCE.MAX_SHARED'),
         ];
         $return->maxSharedCount = $maxSharedCount;
 
         // get activity log options per map ---------------------------------------------------------------------------
         $activityLogging = [
-            'character' => $f3->get('PATHFINDER.MAP.PRIVATE.ACTIVITY_LOGGING'),
-            'corporation' => $f3->get('PATHFINDER.MAP.CORPORATION.ACTIVITY_LOGGING'),
-            'alliance' => $f3->get('PATHFINDER.MAP.ALLIANCE.ACTIVITY_LOGGING'),
+            'character'                 => $f3->get('PATHFINDER.MAP.PRIVATE.ACTIVITY_LOGGING'),
+            'corporation'               => $f3->get('PATHFINDER.MAP.CORPORATION.ACTIVITY_LOGGING'),
+            'alliance'                  => $f3->get('PATHFINDER.MAP.ALLIANCE.ACTIVITY_LOGGING'),
         ];
         $return->activityLogging = $activityLogging;
+
+        // route search config ----------------------------------------------------------------------------------------
+        $return->routeSearch = [
+            'defaultCount'              => $this->getF3()->get('PATHFINDER.ROUTE.SEARCH_DEFAULT_COUNT'),
+            'maxDefaultCount'           => $this->getF3()->get('PATHFINDER.ROUTE.MAX_Default_COUNT'),
+            'limit'                     => $this->getF3()->get('PATHFINDER.ROUTE.LIMIT'),
+        ];
 
         // get program routes -----------------------------------------------------------------------------------------
         $return->routes = [

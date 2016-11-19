@@ -63,6 +63,7 @@ define([
             Init.routes             = initData.routes;
             Init.notificationStatus = initData.notificationStatus;
             Init.activityLogging    = initData.activityLogging;
+            Init.routeSearch        = initData.routeSearch;
 
             // init tab change observer, Once the timers are available
             Page.initTabChangeObserver();

@@ -93,9 +93,9 @@ define([
         var animationStatus = 'changed';
 
         // search for an existing row (e.g. on mass "table refresh" [all routes])
-        // get rowIndex where column 0 (equals to "systemToData.name") matches rowData.systemToData.name
+        // get rowIndex where column 1 (equals to "systemToData.name") matches rowData.systemToData.name
         var indexes = dataTable.rows().eq(0).filter( function (rowIdx) {
-            return (dataTable.cell(rowIdx, 0 ).data().name === rowData.systemToData.name);
+            return (dataTable.cell(rowIdx, 1 ).data().name === rowData.systemToData.name);
         });
 
         if(indexes.length > 0){
@@ -151,6 +151,7 @@ define([
             mapIds: (rowData.hasOwnProperty('mapIds')) ? rowData.mapIds : [],
             systemFromData: (rowData.hasOwnProperty('systemFromData')) ? rowData.systemFromData : {},
             systemToData: (rowData.hasOwnProperty('systemToData')) ? rowData.systemToData : {},
+            skipSearch: (rowData.hasOwnProperty('skipSearch')) ? rowData.skipSearch | 0 : 0,
             stargates: (rowData.hasOwnProperty('stargates')) ? rowData.stargates | 0 : 1,
             jumpbridges: (rowData.hasOwnProperty('jumpbridges')) ? rowData.jumpbridges | 0 : 1,
             wormholes: (rowData.hasOwnProperty('wormholes')) ? rowData.wormholes | 0 : 1,
@@ -301,7 +302,8 @@ define([
                 systemSelectOptions = dataStore.routes;
             }
 
-            var maxSelectionLength = 4;
+            // max count of "default" target systems
+            var maxSelectionLength = Init.routeSearch.maxDefaultCount;
 
             var data = {
                 id: config.routeSettingsDialogId,
@@ -459,7 +461,36 @@ define([
      */
     var formatRouteData = function(routeData){
 
+        /**
+         * get status icon for route
+         * @param status
+         * @returns {string}
+         */
+        let getStatusIcon= function(status){
+            let color = 'txt-color-danger';
+            let title = 'route not found';
+            switch(status){
+                case 1:
+                    color = 'txt-color-success';
+                    title = 'route exists';
+                    break;
+                case 2:
+                    color = 'txt-color-warning';
+                    title = 'not search performed';
+                    break;
+            }
+
+            return '<i class="fa fa-fw fa-circle txt-color ' + color + '" title="' + title + '"></i>';
+        };
+
+        // route status:
+        // 0: not found
+        // 1: round (OK)
+        // 2: not searched
+        var routeStatus = routeData.skipSearch ? 2 : 0;
+
         var reloadButton = '<i class="fa ' + ['fa-refresh'].join(' ') + '"></i>';
+        var searchButton = '<i class="fa ' + ['fa-search-plus '].join(' ') + '"></i>';
         var deleteButton = '<i class="fa ' + ['fa-close', 'txt-color', 'txt-color-redDarker'].join(' ') + '"></i>';
 
         // default row data (e.g. no route found)
@@ -467,14 +498,14 @@ define([
             systemFromData:  routeData.systemFromData,
             systemToData:  routeData.systemToData,
             jumps: {
-                value: 0,
-                formatted: '---'
+                value: 9999, // for sorting
+                formatted: ''
             },
             avgTrueSec: {
                 value: '',
                 formatted: ''
             },
-            route: 'not found',
+            route: routeStatus === 2 ? 'search now' : 'not found',
             stargates: routeData.stargates,
             jumpbridges: routeData.jumpbridges,
             wormholes: routeData.wormholes,
@@ -482,7 +513,7 @@ define([
             wormholesCritical: routeData.wormholesCritical,
             wormholesEOL: routeData.wormholesEOL,
             reload: {
-                button: reloadButton
+                button: routeData.skipSearch ? searchButton : reloadButton
             },
             clear: {
                 button: deleteButton
@@ -496,6 +527,7 @@ define([
             routeData.route.length > 0
         ){
             // route data available
+            routeStatus = 1;
 
             // add route Data
             var jumpData = [];
@@ -554,6 +586,12 @@ define([
             tableRowData.route = jumpData.join(' ');
         }
 
+        // route status data ----------------------------------------------------------------------
+        tableRowData.status = {
+            value: routeStatus,
+            formatted: getStatusIcon(routeStatus)
+        };
+
         return tableRowData;
     };
 
@@ -607,7 +645,7 @@ define([
         var routesTable = table.DataTable( {
             paging: false,
             ordering: true,
-            order: [ 1, 'asc' ],
+            order: [[ 2, 'asc' ], [ 0, 'asc' ]],
             info: false,
             searching: false,
             hover: false,
@@ -619,6 +657,17 @@ define([
             columnDefs: [
                 {
                     targets: 0,
+                    orderable: true,
+                    title: '',
+                    width: '10px',
+                    class: ['text-center'].join(' '),
+                    data: 'status',
+                    render: {
+                        _: 'formatted',
+                        sort: 'value'
+                    }
+                },{
+                    targets: 1,
                     orderable: true,
                     title: 'system&nbsp;&nbsp;&nbsp;',
                     class: Util.config.popoverTriggerClass,
@@ -634,7 +683,7 @@ define([
                         });
                     }
                 },{
-                    targets: 1,
+                    targets: 2,
                     orderable: true,
                     title: '<span title="jumps" data-toggle="tooltip"><i class="fa fa-arrows-h"></i>&nbsp;&nbsp;</span>',
                     width: '18px',
@@ -645,7 +694,7 @@ define([
                         sort: 'value'
                     }
                 },{
-                    targets: 2,
+                    targets: 3,
                     orderable: true,
                     title: '<span title="average security" data-toggle="tooltip">&#216;&nbsp;&nbsp;</span>',
                     width: '15px',
@@ -656,12 +705,12 @@ define([
                         sort: 'value'
                     }
                 },{
-                    targets: 3,
+                    targets: 4,
                     orderable: false,
                     title: 'route',
                     data: 'route'
                 },{
-                    targets: 4,
+                    targets: 5,
                     title: '',
                     orderable: false,
                     searchable: false,
@@ -689,6 +738,7 @@ define([
                                     mapIds: rowData.mapIds,
                                     systemFromData: rowData.systemFromData,
                                     systemToData: rowData.systemToData,
+                                    skipSearch: 0,
                                     stargates: rowData.stargates ? 1 : 0,
                                     jumpbridges: rowData.jumpbridges ? 1 : 0,
                                     wormholes: rowData.wormholes ? 1 : 0,
@@ -702,7 +752,7 @@ define([
                         });
                     }
                 },{
-                    targets: 5,
+                    targets: 6,
                     title: '',
                     orderable: false,
                     searchable: false,
@@ -851,15 +901,24 @@ define([
 
         // init search routes dialog --------------------------------------------------------------
         moduleElement.find('.' + config.systemModuleHeadlineIconSearch).on('click', function(e){
-            var dialogData = {
-                moduleElement: moduleElement,
-                mapId: mapId,
-                systemFromData: systemFromData,
-                dataTable: routesTable
-            };
+            let maxRouteSearchLimit = this.Init.routeSearch.limit;
 
-            showFindRouteDialog(dialogData);
-        });
+            if(routesTable.rows().count() >= maxRouteSearchLimit){
+                // max routes limit reached -> show warning
+                Util.showNotify({title: 'Route limit reached', text: 'Serch is limited by ' + maxRouteSearchLimit, type: 'warning'});
+            }else{
+                var dialogData = {
+                    moduleElement: moduleElement,
+                    mapId: mapId,
+                    systemFromData: systemFromData,
+                    dataTable: routesTable
+                };
+
+                showFindRouteDialog(dialogData);
+            }
+        }.bind({
+            Init: Init
+        }));
 
         // init settings dialog -------------------------------------------------------------------
         moduleElement.find('.' + config.systemModuleHeadlineIconSettings).on('click', function(e){
@@ -903,6 +962,10 @@ define([
         var requestRouteData = [];
         var currentTimestamp = Util.getServerTime().getTime();
 
+        // Skip some routes from search
+        // -> this should help to throttle requests (heavy CPU load for route calculation)
+        var defaultRoutesCount = Init.routeSearch.defaultCount;
+
         for(var i = 0; i < systemsTo.length; i++){
             var systemToData = systemsTo[i];
 
@@ -926,7 +989,8 @@ define([
                     var searchData = {
                         mapIds: [mapId],
                         systemFromData: systemFromData,
-                        systemToData: systemToData
+                        systemToData: systemToData,
+                        skipSearch: requestRouteData.length >= defaultRoutesCount
                     };
 
                     requestRouteData.push( getRouteRequestDataFromRowData( searchData ));
