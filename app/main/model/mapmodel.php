@@ -434,7 +434,7 @@ class MapModel extends BasicModel {
             }
         } elseif($obj instanceof AllianceModel){
 
-            // check whether the corporation already has map access
+            // check whether the alliance already has map access
             $this->has('mapAlliances', ['active = 1 AND allianceId = :allianceId', ':allianceId' => $obj->id]);
             $result = $this->findone(['id = :id', ':id' => $this->id]);
 
@@ -672,13 +672,7 @@ class MapModel extends BasicModel {
      * @return bool
      */
     public function isPrivate(){
-        $isPrivate = false;
-
-        if($this->typeId->id == 2){
-            $isPrivate = true;
-        }
-
-        return $isPrivate;
+        return ($this->typeId->id === 2);
     }
 
     /**
@@ -686,13 +680,7 @@ class MapModel extends BasicModel {
      * @return bool
      */
     public function isCorporation(){
-        $isCorporation = false;
-
-        if($this->typeId->id == 3){
-            $isCorporation = true;
-        }
-
-        return $isCorporation;
+        return ($this->typeId->id === 3);
     }
 
     /**
@@ -700,13 +688,7 @@ class MapModel extends BasicModel {
      * @return bool
      */
     public function isAlliance(){
-        $isAlliance = false;
-
-        if($this->typeId->id == 4){
-            $isAlliance = true;
-        }
-
-        return $isAlliance;
+        return ($this->typeId->id === 4);
     }
 
     /**
