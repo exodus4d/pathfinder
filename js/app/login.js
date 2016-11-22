@@ -464,10 +464,12 @@ define([
      */
     var initNotificationPanel = function(){
         var storageKey = 'notification_panel';
-        var currentVersion = $('body').data('version');
+        var currentVersion = Util.getVersion();
 
         var showNotificationPanel = function(){
-            var data = {};
+            var data = {
+                version: Util.getVersion()
+            };
 
             requirejs(['text!templates/ui/notice.html', 'mustache'], function(template, Mustache) {
                 var content = Mustache.render(template, data);

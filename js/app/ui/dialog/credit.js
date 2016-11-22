@@ -27,7 +27,7 @@ define([
 
             var data = {
                 logoContainerId: config.creditsDialogLogoContainerId,
-                version: $('body').data('version')
+                version: Util.getVersion()
             };
 
             var content = Mustache.render(template, data);

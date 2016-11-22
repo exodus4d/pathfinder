@@ -854,11 +854,18 @@ define([
      */
 
     /**
+     * get current Pathfinder version number
+     * @returns {*|jQuery}
+     */
+    var getVersion = function(){
+        return $('body').data('version');
+    };
+
+    /**
      * show current program version information in browser console
      */
     var showVersionInfo = function(){
-        var versionNumber = $('body').data('version');
-        console.info('PATHFINDER ' + versionNumber);
+        console.info('PATHFINDER ' + getVersion());
     };
 
     /**
@@ -1858,6 +1865,7 @@ define([
 
     return {
         config: config,
+        getVersion: getVersion,
         showVersionInfo: showVersionInfo,
         initPrototypes: initPrototypes,
         initDefaultBootboxConfig: initDefaultBootboxConfig,
