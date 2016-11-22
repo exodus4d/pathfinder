@@ -464,10 +464,12 @@ define([
      */
     var initNotificationPanel = function(){
         var storageKey = 'notification_panel';
-        var currentVersion = $('body').data('version');
+        var currentVersion = Util.getVersion();
 
         var showNotificationPanel = function(){
-            var data = {};
+            var data = {
+                version: Util.getVersion()
+            };
 
             requirejs(['text!templates/ui/notice.html', 'mustache'], function(template, Mustache) {
                 var content = Mustache.render(template, data);
@@ -514,11 +516,10 @@ define([
          */
         var initCharacterAnimation = function(imageWrapperElement){
 
-            imageWrapperElement.velocity('stop').delay(300).velocity('transition.flipBounceXIn', {
+            imageWrapperElement.velocity('stop').velocity('transition.flipBounceXIn', {
                 display: 'inline-block',
-                stagger: 60,
                 drag: true,
-                duration: 600
+                duration: 500
             });
 
             // Hover effect for character info layer
@@ -528,7 +529,7 @@ define([
                 characterInfoElement.velocity('finish').velocity({
                     width: ['100%', [ 400, 15 ] ]
                 },{
-                    easing: 'easeInSine'
+                    easing: 'easeOutSine'
                 });
             }, function(e){
                 var characterInfoElement = $(this).find('.' + config.characterImageInfoClass);
@@ -537,7 +538,7 @@ define([
                     width: 0
                 },{
                     duration: 150,
-                    easing: 'easeInOutSine'
+                    easing: 'easeOutSine'
                 });
             });
         };

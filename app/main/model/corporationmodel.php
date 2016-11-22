@@ -46,7 +46,7 @@ class CorporationModel extends BasicModel {
 
     /**
      * get all cooperation data
-     * @return array
+     * @return \stdClass
      */
     public function getData(){
         $cooperationData = (object) [];

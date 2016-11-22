@@ -1483,7 +1483,7 @@ define('config/signature_type',['jquery'], function($) {
                 5: {    // Wormhole
                     1: 'D792 - HS',
                     2: 'C391 - LS',
-                    3: 'Z142 - 0.0',
+                    3: 'C248 - 0.0',
                     4: 'F135 - Thera'
                 },
                 6: {    // ORE
@@ -1582,6 +1582,7 @@ define('config/signature_type',['jquery'], function($) {
 
     return signatureTypes;
 });
+
 /*!
  * Bootstrap v3.3.5 (http://getbootstrap.com)
  * Copyright 2011-2015 Twitter, Inc.
@@ -1961,6 +1962,7 @@ define('app/util',[
         // head
         headMapTrackingId: 'pf-head-map-tracking',                              // id for "map tracking" toggle (checkbox)
         headCharacterSwitchId: 'pf-head-character-switch',                      // id for "character switch" popover
+        headCurrentLocationId: 'pf-head-current-location',                      // id for "show current location" element
 
         // menu
         menuButtonFullScreenId: 'pf-menu-button-fullscreen',                    // id for menu button "fullscreen"
@@ -2320,22 +2322,33 @@ define('app/util',[
      */
     $.fn.getFormValues = function(){
         var form = $(this);
-
         var formData = {};
+        var values = form.serializeArray();
 
-        $.each(form.serializeArray(), function(i, field) {
+        // add "unchecked" checkboxes as well
+        values = values.concat(
+            form.find('input[type=checkbox]:not(:checked)').map(
+                function() {
+                    return {name: this.name, value: 0};
+                }).get()
+        );
+
+        for(let field of values){
+            // check for numeric values -> convert to Int
+            let value = ( /^\d+$/.test(field.value) ) ? parseInt(field.value) : field.value;
+
             if(field.name.indexOf('[]') !== -1){
                 // array field
                 var key = field.name.replace('[]', '');
-                if(! $.isArray(formData[key]) ){
+                if( !$.isArray(formData[key]) ){
                     formData[key] = [];
                 }
 
-                formData[key].push( field.value);
+                formData[key].push( value);
             }else{
-                formData[field.name] = field.value;
+                formData[field.name] = value;
             }
-        });
+        }
 
         // get xEditable values
         var editableValues = form.find('.' + config.formEditableFieldClass).editable('getValue');
@@ -2769,11 +2782,18 @@ define('app/util',[
      */
 
     /**
+     * get current Pathfinder version number
+     * @returns {*|jQuery}
+     */
+    var getVersion = function(){
+        return $('body').data('version');
+    };
+
+    /**
      * show current program version information in browser console
      */
     var showVersionInfo = function(){
-        var versionNumber = $('body').data('version');
-        console.info('PATHFINDER ' + versionNumber);
+        console.info('PATHFINDER ' + getVersion());
     };
 
     /**
@@ -3396,7 +3416,10 @@ define('app/util',[
 
         var currentMapUserData = false;
 
-        if( mapId === parseInt(mapId, 10) ){
+        if(
+            mapId === parseInt(mapId, 10) &&
+            Init.currentMapUserData
+        ){
             // search for a specific map
             for(var i = 0; i < Init.currentMapUserData.length; i++){
                 if(Init.currentMapUserData[i].config.id === mapId){
@@ -3630,6 +3653,18 @@ define('app/util',[
         return Init.currentSystemData;
     };
 
+    /**
+     * get current location data
+     * -> system data where current user is located
+     * @returns {{id: *, name: *}}
+     */
+    var getCurrentLocationData = function(){
+        var currentLocationLink = $('#' + config.headCurrentLocationId).find('a');
+        return {
+          id: currentLocationLink.data('systemId'),
+          name: currentLocationLink.data('systemName')
+        };
+    };
 
     /**
      * get all "open" dialog elements
@@ -3758,6 +3793,7 @@ define('app/util',[
 
     return {
         config: config,
+        getVersion: getVersion,
         showVersionInfo: showVersionInfo,
         initPrototypes: initPrototypes,
         initDefaultBootboxConfig: initDefaultBootboxConfig,
@@ -3794,6 +3830,7 @@ define('app/util',[
         getCurrentUserData: getCurrentUserData,
         setCurrentSystemData: setCurrentSystemData,
         getCurrentSystemData: getCurrentSystemData,
+        getCurrentLocationData: getCurrentLocationData,
         getCurrentUserInfo: getCurrentUserInfo,
         getCurrentCharacterLog: getCurrentCharacterLog,
         setDestination: setDestination,
@@ -3936,7 +3973,7 @@ define('app/logging',[
         var tableHeadline = $('<h4>', {
             text: ' Processes'
         }).prepend( $('<i>', {
-            class: ['fa', 'fa-fw', 'fa-lg', 'fa-list-alt'].join(' ')
+            class: ['fa', 'fa-fw', 'fa-lg', 'fa-microchip'].join(' ')
         }));
 
         // add content Structure to dome before table initialization
@@ -5029,7 +5066,7 @@ define('dialog/stats',[
                     title: 'Σ&nbsp;&nbsp;',
                     searchable: false,
                     width: 20,
-                    className: ['text-right', 'hidden-xs', 'hidden-sm', 'separator-right'].join(' '),
+                    className: ['text-right', 'separator-right'].join(' ') ,
                     data: 'systemSum',
                     render: {
                         _: renderNumericColumn
@@ -5072,7 +5109,7 @@ define('dialog/stats',[
                     title: 'Σ&nbsp;&nbsp;',
                     searchable: false,
                     width: 20,
-                    className: ['text-right', 'hidden-xs', 'hidden-sm', 'separator-right'].join(' '),
+                    className: ['text-right', 'separator-right'].join(' '),
                     data: 'connectionSum',
                     render: {
                         _: renderNumericColumn
@@ -5115,7 +5152,7 @@ define('dialog/stats',[
                     title: 'Σ&nbsp;&nbsp;',
                     searchable: false,
                     width: 20,
-                    className: ['text-right', 'hidden-xs', 'hidden-sm', 'separator-right'].join(' '),
+                    className: ['text-right', 'separator-right'].join(' '),
                     data: 'signatureSum',
                     render: {
                         _: renderNumericColumn
@@ -6384,6 +6421,9 @@ define('dialog/map_info',[
             // name
             tempData.name = tempSystemData.name;
 
+            // alias
+            tempData.alias = (tempSystemData.alias === tempSystemData.name) ? '' : tempSystemData.alias;
+
             // region
             tempData.region = tempSystemData.region.name;
 
@@ -6512,6 +6552,9 @@ define('dialog/map_info',[
                 },{
                     title: 'system',
                     data: 'name'
+                },{
+                    title: 'alias',
+                    data: 'alias'
                 },{
                     title: 'region',
                     data: 'region'
@@ -7015,6 +7058,7 @@ define('dialog/account_settings',[
         settingsDialogId: 'pf-settings-dialog',                                 // id for "settings" dialog
         settingsAccountContainerId: 'pf-settings-dialog-account',               // id for the "account" container
         settingsShareContainerId: 'pf-settings-dialog-share',                   // id for the "share" container
+        settingsCharacterContainerId: 'pf-settings-dialog-character',           // id for the "character" container
 
         // captcha
         captchaKeyUpdateAccount: 'SESSION.CAPTCHA.ACCOUNT.UPDATE',              // key for captcha reason
@@ -7046,6 +7090,7 @@ define('dialog/account_settings',[
                 id: config.settingsDialogId,
                 settingsAccountContainerId: config.settingsAccountContainerId,
                 settingsShareContainerId: config.settingsShareContainerId,
+                settingsCharacterContainerId: config.settingsCharacterContainerId,
                 userData: Init.currentUserData,
                 captchaImageWrapperId: config.captchaImageWrapperId,
                 captchaImageId: config.captchaImageId,
@@ -7192,7 +7237,7 @@ define('dialog/account_settings',[
             accountSettingsDialog.find('.navbar a').on('shown.bs.tab', function(e){
 
                 // init "toggle" switches on current active tab
-                accountSettingsDialog.find( $(this).attr('href') ).find('input[type="checkbox"]').bootstrapToggle({
+                accountSettingsDialog.find( $(this).attr('href') ).find('input[data-toggle="toggle"][type="checkbox"]').bootstrapToggle({
                     on: '<i class="fa fa-fw fa-check"></i>&nbsp;Enable',
                     off: 'Disable&nbsp;<i class="fa fa-fw fa-ban"></i>',
                     onstyle: 'success',
@@ -7400,6 +7445,8 @@ define('dialog/map_settings',[
         dialogMapSettingsContainerId: 'pf-map-dialog-settings',                         // id for the "settings" container
         dialogMapDownloadContainerId: 'pf-map-dialog-download',                         // id for the "download" container
 
+        deleteExpiredConnectionsId: 'pf-map-dialog-delete-connections',                 // id for "deleteExpiredConnections" checkbox
+
         characterSelectId: 'pf-map-dialog-character-select',                            // id for "character" select
         corporationSelectId: 'pf-map-dialog-corporation-select',                        // id for "corporation" select
         allianceSelectId: 'pf-map-dialog-alliance-select',                              // id for "alliance" select
@@ -7483,6 +7530,7 @@ define('dialog/map_settings',[
                 var accessCharacter = [];
                 var accessCorporation = [];
                 var accessAlliance = [];
+                var deleteExpiredConnections = true;
 
                 if(mapData !== false){
                     // set current map information
@@ -7495,6 +7543,8 @@ define('dialog/map_settings',[
                     accessCharacter = mapData.config.access.character;
                     accessCorporation = mapData.config.access.corporation;
                     accessAlliance = mapData.config.access.alliance;
+
+                    deleteExpiredConnections = mapData.config.deleteExpiredConnections;
                 }
 
                 // render main dialog -----------------------------------------------------
@@ -7524,6 +7574,9 @@ define('dialog/map_settings',[
                     hideDownloadTab: hideDownloadTab,
 
                     // settings tab --------------
+                    deleteExpiredConnectionsId : config.deleteExpiredConnectionsId,
+                    deleteExpiredConnections: deleteExpiredConnections,
+
                     characterSelectId: config.characterSelectId,
                     corporationSelectId: config.corporationSelectId,
                     allianceSelectId: config.allianceSelectId,
@@ -7587,10 +7640,10 @@ define('dialog/map_settings',[
                                     var selectField = $(this);
                                     var selectValues = selectField.val();
 
-                                    if(selectValues === null){
-                                        selectField.parents('.form-group').addClass('has-error');
-                                    }else{
+                                    if(selectValues.length > 0){
                                         selectField.parents('.form-group').removeClass('has-error');
+                                    }else{
+                                        selectField.parents('.form-group').addClass('has-error');
                                     }
                                 });
 
@@ -7603,12 +7656,20 @@ define('dialog/map_settings',[
                                     var dialogContent = mapInfoDialog.find('.modal-content');
                                     dialogContent.showLoadingAnimation();
 
-                                    var newMapData = {formData: form.getFormValues()};
+                                    // get form data
+                                    var formData = form.getFormValues();
+
+                                    // checkbox fix -> settings tab
+                                    if( form.find('#' + config.deleteExpiredConnectionsId).length ){
+                                        formData.deleteExpiredConnections = formData.hasOwnProperty('deleteExpiredConnections') ? parseInt( formData.deleteExpiredConnections ) : 0;
+                                    }
+
+                                    var requestData = {formData: formData};
 
                                     $.ajax({
                                         type: 'POST',
                                         url: Init.path.saveMap,
-                                        data: newMapData,
+                                        data: requestData,
                                         dataType: 'json'
                                     }).done(function(responseData){
 
@@ -8446,7 +8507,7 @@ define('dialog/credit',[
 
             var data = {
                 logoContainerId: config.creditsDialogLogoContainerId,
-                version: $('body').data('version')
+                version: Util.getVersion()
             };
 
             var content = Mustache.render(template, data);
@@ -8907,7 +8968,13 @@ define('app/map/system',[
         if(validDeleteSystems.length){
             var msg = '';
             if(validDeleteSystems.length === 1){
-                msg = 'Delete system "' + $(validDeleteSystems[0]).data('name') + '" and all its connections?';
+                var deleteSystem = $(validDeleteSystems[0]);
+                var systemName = deleteSystem.data('name');
+                var systemAlias = deleteSystem.getSystemInfo( ['alias'] );
+
+                var systemNameStr = (systemName === systemAlias) ? '"' + systemName + '"' : '"' + systemAlias + '" (' + systemName + ')';
+                systemNameStr = '<span class="txt-color txt-color-warning">' + systemNameStr + '</span>';
+                msg = 'Delete system ' + systemNameStr + ' and all its connections?';
             }else{
                 msg = 'Delete ' + validDeleteSystems.length + ' selected systems and their connections?';
             }
@@ -24320,6 +24387,16 @@ define('app/map/map',[
             // system alias changed -> mark system as updated
             system.markAsChanged();
         });
+
+        headElement.on('shown', function(e, editable) {
+            var inputElement =  editable.input.$input.select();
+
+            // "fake" timeout until dom rendered
+            setTimeout(function(input){
+                // pre-select value
+                input.select();
+            }, 0, inputElement);
+        });
     };
 
     /**
@@ -24659,7 +24736,7 @@ define('app/map/map',[
         var moduleData = {
             id: config.mapContextMenuId,
             items: [
-                {icon: 'fa-info', action: 'info', text: 'info'},
+                {icon: 'fa-street-view', action: 'info', text: 'information'},
                 {icon: 'fa-plus', action: 'add_system', text: 'add system'},
                 {icon: 'fa-object-ungroup', action: 'select_all', text: 'select all'},
                 {icon: 'fa-filter', action: 'filter_scope', text: 'filter scope', subitems: [
@@ -25956,6 +26033,7 @@ define('app/map/map',[
             mapElement = $(mapElement);
 
             // get current character log data
+            var characterLogExists = false;
             var currentCharacterLog = Util.getCurrentCharacterLog();
 
             // check if map is frozen
@@ -25968,6 +26046,14 @@ define('app/map/map',[
                 mapId: userData.config.id,
                 userCount: 0                        // active user in a map
             };
+
+            if(
+                currentCharacterLog &&
+                currentCharacterLog.system
+            ){
+                characterLogExists = true;
+                headerUpdateData.currentSystemName = currentCharacterLog.system.name;
+            }
 
             // check if current user was found on the map
             var currentUserOnMap = false;
@@ -26006,20 +26092,17 @@ define('app/map/map',[
                 }
 
                 // the current user can only be in a single system ------------------------------------------
-                if( !currentUserOnMap){
+                if(
+                    characterLogExists &&
+                    !currentUserOnMap &&
+                    currentCharacterLog.system.id === systemId
+                ){
+                    currentUserIsHere = true;
+                    currentUserOnMap = true;
 
-                    if(
-                        currentCharacterLog &&
-                        currentCharacterLog.system &&
-                        currentCharacterLog.system.id === systemId
-                    ){
-                        currentUserIsHere = true;
-                        currentUserOnMap = true;
-
-                        // set current location data for header update
-                        headerUpdateData.currentSystemId =  $(system).data('id');
-                        headerUpdateData.currentSystemName = currentCharacterLog.system.name;
-                    }
+                    // set current location data for header update
+                    headerUpdateData.currentSystemId =  $(system).data('id');
+                    //headerUpdateData.currentSystemName = currentCharacterLog.system.name;
                 }
 
                 system.updateSystemUserData(map, tempUserData, currentUserIsHere);
@@ -26601,7 +26684,7 @@ define('app/ui/system_info',[
         moduleElementToolbarClass: 'pf-table-tools',                            // class for "module toolbar" element
         moduleToolbarActionId: 'pf-system-info-collapse-container',             // id for "module toolbar action" element
         descriptionTextareaElementClass: 'pf-system-info-description',          // class for "description" textarea element (xEditable)
-        descriptionTextareaTooltipClass: 'pf-system-info-description-tooltip'   // class for "description" tooltip
+        descriptionTextareaCharCounter: 'pf-form-field-char-count'              // class for "character counter" element for form field
     };
 
     // disable Module update temporary (until. some requests/animations) are finished
@@ -26609,6 +26692,9 @@ define('app/ui/system_info',[
 
     // animation speed values
     var animationSpeedToolbarAction = 200;
+
+    // max character length for system description
+    var maxDescriptionLength = 512;
 
     /**
      * set module observer and look for relevant system data to update
@@ -26633,7 +26719,7 @@ define('app/ui/system_info',[
 
         toolsActionElement.velocity('stop').velocity({
             opacity: 1,
-            height: '75px'
+            height: '100%'
         },{
             duration: animationSpeedToolbarAction,
             display: 'block',
@@ -26741,6 +26827,33 @@ define('app/ui/system_info',[
     };
 
     /**
+     * update a character counter field with current value length - maxCharLength
+     * @param field
+     * @param charCounterElement
+     * @param maxCharLength
+     */
+    var updateCounter = function(field, charCounterElement, maxCharLength){
+        var value = field.val();
+        var inputLength = value.length;
+
+        // line breaks are 2 characters!
+        var newLines = value.match(/(\r\n|\n|\r)/g);
+        var addition = 0;
+        if (newLines != null) {
+            addition = newLines.length;
+        }
+        inputLength += addition;
+
+        charCounterElement.text(maxCharLength - inputLength);
+
+        if(maxCharLength <= inputLength){
+            charCounterElement.toggleClass('txt-color-red', true);
+        }else{
+            charCounterElement.toggleClass('txt-color-red', false);
+        }
+    };
+
+    /**
      *
      * @param parentElement
      * @param mapId
@@ -26811,6 +26924,7 @@ define('app/ui/system_info',[
                         rows: 5,
                         name: 'description',
                         inputclass: config.descriptionTextareaElementClass,
+                        tpl: '<textarea maxlength="' + maxDescriptionLength + '"></textarea>',
                         params: function(params){
 
                             params.mapData = {
@@ -26856,12 +26970,24 @@ define('app/ui/system_info',[
                     });
 
                     // on xEditable open -------------------------------------------------------------------------
-                    descriptionTextareaElement.on('shown', function(e){
+                    descriptionTextareaElement.on('shown', function(e, editable){
+                        var textarea = editable.input.$input;
+
                         // disable module update until description field is open
                         disableModuleUpdate = true;
 
-                        // disable tooltip
-                        tempModuleElement.find('.' + config.descriptionTextareaTooltipClass).tooltip('disable');
+                        // create character counter
+                        var charCounter = $('<kbd>', {
+                            class: [config.descriptionTextareaCharCounter, 'txt-color', 'text-right'].join(' ')
+                        });
+                        textarea.parent().next().append(charCounter);
+
+                        // update character counter
+                        updateCounter(textarea, charCounter, maxDescriptionLength);
+
+                        textarea.on('keyup', function(){
+                            updateCounter($(this), charCounter, maxDescriptionLength);
+                        });
                     });
 
                     // on xEditable close ------------------------------------------------------------------------
@@ -26869,14 +26995,9 @@ define('app/ui/system_info',[
                         var value = $(this).editable('getValue', true);
 
                         if(value.length === 0){
-
                             // show button if value is empty
                             hideToolsActionElement();
-
                             descriptionButton.show();
-                        }else{
-                            // enable tooltip
-                            tempModuleElement.find('.' + config.descriptionTextareaTooltipClass).tooltip('enable');
                         }
 
                         // enable module update
@@ -26902,23 +27023,29 @@ define('app/ui/system_info',[
                     tooltipElements.tooltip();
 
                     // init system effect popover ----------------------------------------------------------------
-                    var systemEffectData = Util.getSystemEffectData( systemData.security, systemData.effect);
+                    var infoEffectElement = $(moduleElement).find('.' + config.systemInfoEffectInfoClass);
 
-                    if(systemEffectData !== false){
-                        var infoEffectElement = $(moduleElement).find('.' + config.systemInfoEffectInfoClass);
+                    if(infoEffectElement.length){
+                        // effect row exists -> get effect data
+                        var systemEffectData = Util.getSystemEffectData( systemData.security, systemData.effect);
 
-                        // transform data into table
-                        var systemEffectTable = Util.getSystemEffectTable( systemEffectData );
+                        if(systemEffectData !== false){
+                            // transform data into table
+                            var systemEffectTable = Util.getSystemEffectTable( systemEffectData );
 
-                        infoEffectElement.popover({
-                            html: true,
-                            trigger: 'hover',
-                            placement: 'top',
-                            delay: 200,
-                            title: 'System effects',
-                            container: 'body',
-                            content: systemEffectTable
-                        });
+                            infoEffectElement.popover({
+                                html: true,
+                                trigger: 'hover',
+                                placement: 'top',
+                                delay: 200,
+                                title: 'System effects',
+                                container: 'body',
+                                content: systemEffectTable
+                            });
+                        }else{
+                            // effect data not found (e.g. !unknown! shattered system) -> hide "popover" icon icon
+                            infoEffectElement.children().hide();
+                        }
                     }
 
                     // init static wormhole information ----------------------------------------------------------
@@ -26985,7 +27112,6 @@ define('app/ui/system_info',[
             descriptionButtonClass: config.addDescriptionButtonClass,
             moduleToolbarActionId: config.moduleToolbarActionId,
             descriptionTextareaClass: config.descriptionTextareaElementClass,
-            descriptionTooltipClass: config.descriptionTextareaTooltipClass,
 
             shatteredWormholeInfo: shatteredWormholeInfo,
 
@@ -27368,7 +27494,8 @@ define('app/ui/system_signature',[
         // xEditable
         moduleIcon: 'pf-module-icon-button',                                    // class for "filter" - icons
         editableDescriptionInputClass: 'pf-editable-description',               // class for "description" textarea
-        editableFilterInputClass: 'pf-editable-filter'                          // class for "filter" selects
+        editableFilterElementClass: 'pf-editable-filter',                       // class for "filter" selects (not active)
+        editableFilterSelectPopoverClass: 'pf-editable-filter-active'           // class for active "filter" selects (popover)
     };
 
     // lock Signature Table update temporary (until. some requests/animations) are finished
@@ -27424,13 +27551,10 @@ define('app/ui/system_signature',[
      * @returns {Array}
      */
     var getSignatureTableData = function(){
-
         var signatureTableApi = signatureTable.api();
-
         var tableData = [];
 
         signatureTableApi.rows().eq(0).each(function(idx){
-
             var row = signatureTableApi.row(idx);
             // default row data
             var defaultRowData = row.data();
@@ -27443,22 +27567,23 @@ define('app/ui/system_signature',[
                 if(editableFields.length > 0){
                     var values = $(editableFields).editable('getValue');
 
-                    // convert to lower for better compare options
-                    values.name = values.name.toLowerCase();
+                    if(values.name){
+                        // convert to lower for better compare options
+                        values.name = values.name.toLowerCase();
 
-                    // add pk for this row
-                    values.id = defaultRowData.id;
+                        // add pk for this row
+                        values.id = defaultRowData.id;
 
-                    // add updated for this row
-                    values.updated = defaultRowData.updated;
+                        // add updated for this row
+                        values.updated = defaultRowData.updated;
 
-                    // add row index
-                    values.index = idx;
+                        // add row index
+                        values.index = idx;
 
-                    tableData.push( values );
+                        tableData.push( values );
+                    }
                 }
             }
-
         });
 
         return tableData;
@@ -27774,6 +27899,39 @@ define('app/ui/system_signature',[
      */
     $.fn.updateSignatureTableByClipboard = function(systemData, clipboard, options){
 
+        var requestData = function(){
+            // lock update function until request is finished
+            lockSignatureTable();
+
+            // lock copy during request (prevent spamming (ctrl + c )
+            disableCopyFromClipboard = true;
+
+            var requestData = {
+                signatures: signatureData,
+                deleteOld: (options.deleteOld) ? 1 : 0,
+                systemId: parseInt(systemData.id)
+            };
+
+            $.ajax({
+                type: 'POST',
+                url: Init.path.saveSignatureData,
+                data: requestData,
+                dataType: 'json'
+            }).done(function(responseData){
+                unlockSignatureTable(true);
+
+                // updates table with new/updated signature information
+                moduleElement.updateSignatureTable(responseData.signatures, false);
+            }).fail(function( jqXHR, status, error) {
+                var reason = status + ' ' + error;
+                Util.showNotify({title: jqXHR.status + ': Update signatures', text: reason, type: 'warning'});
+                $(document).setProgramStatus('problem');
+            }).always(function() {
+                unlockSignatureTable(true);
+                disableCopyFromClipboard = false;
+            });
+        };
+
         // check if copy&paste is enabled
         if( !disableCopyFromClipboard ){
             var moduleElement = $(this);
@@ -27782,38 +27940,30 @@ define('app/ui/system_signature',[
             var signatureData = parseSignatureString(systemData, clipboard);
 
             if(signatureData.length > 0){
-                // save signature data
+                // valid signature data parsed
 
-                // lock update function until request is finished
-                lockSignatureTable();
+                // check if signatures will be added to a system where character is currently in
+                // if user is not in any system -> id === undefined -> no "confirmation required
+                var currentLocationData = Util.getCurrentLocationData();
+                if(
+                    currentLocationData.id &&
+                    currentLocationData.id !== systemData.id
+                ){
 
-                // lock copy during request (prevent spamming (ctrl + c )
-                disableCopyFromClipboard = true;
+                    var systemNameStr = (systemData.name === systemData.alias) ? '"' + systemData.name + '"' : '"' + systemData.alias + '" (' + systemData.name + ')';
+                    systemNameStr = '<span class="txt-color txt-color-warning">' + systemNameStr + '</span>';
 
-                var requestData = {
-                    signatures: signatureData,
-                    deleteOld: (options.deleteOld) ? 1 : 0,
-                    systemId: parseInt(systemData.id)
-                };
-
-                $.ajax({
-                    type: 'POST',
-                    url: Init.path.saveSignatureData,
-                    data: requestData,
-                    dataType: 'json'
-                }).done(function(responseData){
-                    unlockSignatureTable(true);
-
-                    // updates table with new/updated signature information
-                    moduleElement.updateSignatureTable(responseData.signatures, false);
-                }).fail(function( jqXHR, status, error) {
-                    var reason = status + ' ' + error;
-                    Util.showNotify({title: jqXHR.status + ': Update signatures', text: reason, type: 'warning'});
-                    $(document).setProgramStatus('problem');
-                }).always(function() {
-                    unlockSignatureTable(true);
-                    disableCopyFromClipboard = false;
-                });
+                    var msg = '';
+                    msg += 'Update signatures in ' + systemNameStr + ' ? This not your current location, "' + currentLocationData.name + '" !';
+                    bootbox.confirm(msg, function(result) {
+                        if(result){
+                            requestData();
+                        }
+                    });
+                }else{
+                    // current system selected -> no "confirmation" required
+                    requestData();
+                }
             }
         }
     };
@@ -28080,19 +28230,6 @@ define('app/ui/system_signature',[
         };
 
         Render.showModule(moduleConfig, moduleData);
-
-        // event listener for global "paste" signatures into the page -------------------------------------------------
-        $(document).off('paste').on('paste', function(e){
-
-            // do not read clipboard if pasting into form elements
-            if(
-                $(e.target).prop('tagName').toLowerCase() !== 'input' &&
-                $(e.target).prop('tagName').toLowerCase() !== 'textarea'
-            ){
-                var clipboard = (e.originalEvent || e).clipboardData.getData('text/plain');
-                moduleElement.updateSignatureTableByClipboard(systemData, clipboard, {});
-            }
-        });
     };
 
     /**
@@ -28705,8 +28842,11 @@ define('app/ui/system_signature',[
      * @returns {*}
      */
     $.fn.drawSignatureTable = function(signatureData, systemData){
-
         var moduleElement = $(this);
+
+        // setup filter select in footer
+        // column indexes that need a filter select
+        var filterColumnIndexes = [2];
 
         // create new signature table ---------------------------------------------------------------------------------
         var table = $('<table>', {
@@ -28727,37 +28867,25 @@ define('app/ui/system_signature',[
 
         var dataTableOptions = {
             data: signatureData,
+            drawCallback: function(settings){
+                this.api().columns(filterColumnIndexes).every(function(){
+                    var column = this;
+                    var footerColumnElement = $(column.footer());
+                    var filterSelect = footerColumnElement.find('.editable');
+
+                    // update select values
+                    filterSelect.editable('option', 'source', getColumnTableDataForFilter(column));
+                });
+            },
             initComplete: function (settings, json){
-                // setup filter select in footer
-                // column indexes that need a filter select
-                var filterColumnIndexes = [2];
 
                 this.api().columns(filterColumnIndexes).every(function(){
                     var column = this;
                     var headerLabel = $(column.header()).text();
                     var selectField = $('<a class="pf-editable ' +
                         config.moduleIcon + ' ' +
-                        config.editableFilterInputClass +
+                        config.editableFilterElementClass +
                         '" href="#" data-type="select" data-name="' + headerLabel + '"></a>');
-
-                    // get all available options from column
-                    var source = {};
-                    column.data().unique().sort(function(a,b){
-                        // sort alphabetically
-                        var valA = a.filter.toLowerCase();
-                        var valB = b.filter.toLowerCase();
-
-                        if(valA < valB) return -1;
-                        if(valA > valB) return 1;
-                        return 0;
-                    }).each(function(callData){
-                        if(callData.filter){
-                            source[callData.filter] = callData.filter;
-                        }
-                    });
-
-                    // add empty option
-                    source[0] = '';
 
                     // add field to footer
                     selectField.appendTo( $(column.footer()).empty() );
@@ -28767,8 +28895,8 @@ define('app/ui/system_signature',[
                         onblur: 'submit',
                         title: 'filter',
                         showbuttons: false,
-                        source: source,
-                        value: 0
+                        source: getColumnTableDataForFilter(column),
+                        inputclass: config.editableFilterSelectPopoverClass
                     });
 
                     selectField.on('save', { column: column }, function(e, params) {
@@ -28788,6 +28916,34 @@ define('app/ui/system_signature',[
         moduleElement.updateScannedSignaturesBar({showNotice: true});
 
         return signatureTable;
+    };
+
+    /**
+     * get unique column data from column object for select filter options
+     * @param column
+     * @returns {{}}
+     */
+    var getColumnTableDataForFilter = function(column){
+        // get all available options from column
+        var source = {};
+        column.data().unique().sort(function(a,b){
+            // sort alphabetically
+            var valA = a.filter.toLowerCase();
+            var valB = b.filter.toLowerCase();
+
+            if(valA < valB) return -1;
+            if(valA > valB) return 1;
+            return 0;
+        }).each(function(callData){
+            if(callData.filter){
+                source[callData.filter] = callData.filter;
+            }
+        });
+
+        // add empty option
+        source[0] = '';
+
+        return source;
     };
 
     /**
@@ -29149,8 +29305,9 @@ define('app/ui/system_signature',[
     /**
      * set module observer and look for relevant signature data to update
      * @param moduleElement
+     * @param systemData
      */
-    var setModuleObserver = function(moduleElement){
+    var setModuleObserver = function(moduleElement, systemData){
         var tablePrimaryElement = $('.' + config.sigTablePrimaryClass);
         var dataTablePrimary = signatureTable.DataTable();
         var signatureTableApi = signatureTable.api();
@@ -29176,6 +29333,20 @@ define('app/ui/system_signature',[
         signatureTableApi.on('draw.dt', function(){
             // check delete button
             checkDeleteSignaturesButton();
+        });
+
+        // event listener for global "paste" signatures into the page -------------------------------------------------
+        $(document).off('paste').on('paste', function(e){
+
+            // do not read clipboard if pasting into form elements
+            if(
+                $(e.target).prop('tagName').toLowerCase() !== 'input' &&
+                $(e.target).prop('tagName').toLowerCase() !== 'textarea'
+            ){
+                var clipboard = (e.originalEvent || e).clipboardData.getData('text/plain');
+
+                moduleElement.updateSignatureTableByClipboard(systemData, clipboard, {});
+            }
         });
     };
 
@@ -29285,16 +29456,19 @@ define('app/ui/system_signature',[
             type: 'POST',
             url: Init.path.getSignatures,
             data: requestData,
-            dataType: 'json'
+            dataType: 'json',
+            context: {
+                systemData: systemData
+            }
         }).done(function(signatureData){
 
-            var signatureTableData = formatSignatureData(systemData, signatureData, fullSignatureOptions);
+            var signatureTableData = formatSignatureData(this.systemData, signatureData, fullSignatureOptions);
 
             // draw signature table
-            moduleElement.drawSignatureTable(signatureTableData, systemData);
+            moduleElement.drawSignatureTable(signatureTableData, this.systemData);
 
             // set module observer
-            setModuleObserver(moduleElement);
+            setModuleObserver(moduleElement, this.systemData);
         }).fail(function( jqXHR, status, error) {
             var reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': Get signatures', text: reason, type: 'warning'});
@@ -29309,7 +29483,6 @@ define('app/ui/system_signature',[
      * @param systemData
      */
     $.fn.drawSignatureTableModule = function(systemData){
-
         var parentElement = $(this);
 
         // show module
@@ -29322,7 +29495,6 @@ define('app/ui/system_signature',[
                         unlockSignatureTable(true);
                     }
                 });
-
             }
         };
 
@@ -29467,9 +29639,9 @@ define('app/ui/system_route',[
         var animationStatus = 'changed';
 
         // search for an existing row (e.g. on mass "table refresh" [all routes])
-        // get rowIndex where column 0 (equals to "systemToData.name") matches rowData.systemToData.name
+        // get rowIndex where column 1 (equals to "systemToData.name") matches rowData.systemToData.name
         var indexes = dataTable.rows().eq(0).filter( function (rowIdx) {
-            return (dataTable.cell(rowIdx, 0 ).data().name === rowData.systemToData.name);
+            return (dataTable.cell(rowIdx, 1 ).data().name === rowData.systemToData.name);
         });
 
         if(indexes.length > 0){
@@ -29525,6 +29697,7 @@ define('app/ui/system_route',[
             mapIds: (rowData.hasOwnProperty('mapIds')) ? rowData.mapIds : [],
             systemFromData: (rowData.hasOwnProperty('systemFromData')) ? rowData.systemFromData : {},
             systemToData: (rowData.hasOwnProperty('systemToData')) ? rowData.systemToData : {},
+            skipSearch: (rowData.hasOwnProperty('skipSearch')) ? rowData.skipSearch | 0 : 0,
             stargates: (rowData.hasOwnProperty('stargates')) ? rowData.stargates | 0 : 1,
             jumpbridges: (rowData.hasOwnProperty('jumpbridges')) ? rowData.jumpbridges | 0 : 1,
             wormholes: (rowData.hasOwnProperty('wormholes')) ? rowData.wormholes | 0 : 1,
@@ -29675,7 +29848,8 @@ define('app/ui/system_route',[
                 systemSelectOptions = dataStore.routes;
             }
 
-            var maxSelectionLength = 4;
+            // max count of "default" target systems
+            var maxSelectionLength = Init.routeSearch.maxDefaultCount;
 
             var data = {
                 id: config.routeSettingsDialogId,
@@ -29833,7 +30007,36 @@ define('app/ui/system_route',[
      */
     var formatRouteData = function(routeData){
 
+        /**
+         * get status icon for route
+         * @param status
+         * @returns {string}
+         */
+        let getStatusIcon= function(status){
+            let color = 'txt-color-danger';
+            let title = 'route not found';
+            switch(status){
+                case 1:
+                    color = 'txt-color-success';
+                    title = 'route exists';
+                    break;
+                case 2:
+                    color = 'txt-color-warning';
+                    title = 'not search performed';
+                    break;
+            }
+
+            return '<i class="fa fa-fw fa-circle txt-color ' + color + '" title="' + title + '"></i>';
+        };
+
+        // route status:
+        // 0: not found
+        // 1: round (OK)
+        // 2: not searched
+        var routeStatus = routeData.skipSearch ? 2 : 0;
+
         var reloadButton = '<i class="fa ' + ['fa-refresh'].join(' ') + '"></i>';
+        var searchButton = '<i class="fa ' + ['fa-search-plus '].join(' ') + '"></i>';
         var deleteButton = '<i class="fa ' + ['fa-close', 'txt-color', 'txt-color-redDarker'].join(' ') + '"></i>';
 
         // default row data (e.g. no route found)
@@ -29841,14 +30044,14 @@ define('app/ui/system_route',[
             systemFromData:  routeData.systemFromData,
             systemToData:  routeData.systemToData,
             jumps: {
-                value: 0,
-                formatted: '---'
+                value: 9999, // for sorting
+                formatted: ''
             },
             avgTrueSec: {
                 value: '',
                 formatted: ''
             },
-            route: 'not found',
+            route: routeStatus === 2 ? 'search now' : 'not found',
             stargates: routeData.stargates,
             jumpbridges: routeData.jumpbridges,
             wormholes: routeData.wormholes,
@@ -29856,7 +30059,7 @@ define('app/ui/system_route',[
             wormholesCritical: routeData.wormholesCritical,
             wormholesEOL: routeData.wormholesEOL,
             reload: {
-                button: reloadButton
+                button: routeData.skipSearch ? searchButton : reloadButton
             },
             clear: {
                 button: deleteButton
@@ -29870,6 +30073,7 @@ define('app/ui/system_route',[
             routeData.route.length > 0
         ){
             // route data available
+            routeStatus = 1;
 
             // add route Data
             var jumpData = [];
@@ -29877,20 +30081,26 @@ define('app/ui/system_route',[
 
             // loop all systems on this route
             for(var i = 0; i < routeData.route.length; i++){
-                var routeNodeData = routeData.route[i];
+                let routeNodeData = routeData.route[i];
                 // format system name (camelCase)
-                var systemName = routeNodeData.system.charAt(0).toUpperCase() + routeNodeData.system.slice(1).toLowerCase();
+                let systemName = routeNodeData.system.charAt(0).toUpperCase() + routeNodeData.system.slice(1).toLowerCase();
 
-                var systemSec = Number(routeNodeData.security).toFixed(1).toString();
-                var tempSystemSec = systemSec;
+                let systemSec = Number(routeNodeData.security).toFixed(1).toString();
+                let tempSystemSec = systemSec;
 
                 if(tempSystemSec <= 0){
                     tempSystemSec = '0-0';
                 }
 
-                var systemSecClass = config.systemSecurityClassPrefix + tempSystemSec.replace('.', '-');
+                let systemSecClass = config.systemSecurityClassPrefix + tempSystemSec.replace('.', '-');
 
-                var system = '<i class="fa fa-square ' + systemSecClass + '" ';
+                // check for wormhole
+                let icon = 'fa-square';
+                if( /^J\d+$/.test(systemName) ){
+                    icon = 'fa-dot-circle-o';
+                }
+
+                let system = '<i class="fa ' + icon + ' ' + systemSecClass + '" ';
                 system += 'data-toggle="tooltip" data-placement="bottom" data-container="body" ';
                 system += 'title="' + systemName + ' [' + systemSec + '] "></i>';
                 jumpData.push( system );
@@ -29921,6 +30131,12 @@ define('app/ui/system_route',[
             };
             tableRowData.route = jumpData.join(' ');
         }
+
+        // route status data ----------------------------------------------------------------------
+        tableRowData.status = {
+            value: routeStatus,
+            formatted: getStatusIcon(routeStatus)
+        };
 
         return tableRowData;
     };
@@ -29975,7 +30191,7 @@ define('app/ui/system_route',[
         var routesTable = table.DataTable( {
             paging: false,
             ordering: true,
-            order: [ 1, 'asc' ],
+            order: [[ 2, 'asc' ], [ 0, 'asc' ]],
             info: false,
             searching: false,
             hover: false,
@@ -29987,6 +30203,17 @@ define('app/ui/system_route',[
             columnDefs: [
                 {
                     targets: 0,
+                    orderable: true,
+                    title: '',
+                    width: '10px',
+                    class: ['text-center'].join(' '),
+                    data: 'status',
+                    render: {
+                        _: 'formatted',
+                        sort: 'value'
+                    }
+                },{
+                    targets: 1,
                     orderable: true,
                     title: 'system&nbsp;&nbsp;&nbsp;',
                     class: Util.config.popoverTriggerClass,
@@ -30002,7 +30229,7 @@ define('app/ui/system_route',[
                         });
                     }
                 },{
-                    targets: 1,
+                    targets: 2,
                     orderable: true,
                     title: '<span title="jumps" data-toggle="tooltip"><i class="fa fa-arrows-h"></i>&nbsp;&nbsp;</span>',
                     width: '18px',
@@ -30013,7 +30240,7 @@ define('app/ui/system_route',[
                         sort: 'value'
                     }
                 },{
-                    targets: 2,
+                    targets: 3,
                     orderable: true,
                     title: '<span title="average security" data-toggle="tooltip">&#216;&nbsp;&nbsp;</span>',
                     width: '15px',
@@ -30024,12 +30251,12 @@ define('app/ui/system_route',[
                         sort: 'value'
                     }
                 },{
-                    targets: 3,
+                    targets: 4,
                     orderable: false,
                     title: 'route',
                     data: 'route'
                 },{
-                    targets: 4,
+                    targets: 5,
                     title: '',
                     orderable: false,
                     searchable: false,
@@ -30057,6 +30284,7 @@ define('app/ui/system_route',[
                                     mapIds: rowData.mapIds,
                                     systemFromData: rowData.systemFromData,
                                     systemToData: rowData.systemToData,
+                                    skipSearch: 0,
                                     stargates: rowData.stargates ? 1 : 0,
                                     jumpbridges: rowData.jumpbridges ? 1 : 0,
                                     wormholes: rowData.wormholes ? 1 : 0,
@@ -30070,7 +30298,7 @@ define('app/ui/system_route',[
                         });
                     }
                 },{
-                    targets: 5,
+                    targets: 6,
                     title: '',
                     orderable: false,
                     searchable: false,
@@ -30219,15 +30447,24 @@ define('app/ui/system_route',[
 
         // init search routes dialog --------------------------------------------------------------
         moduleElement.find('.' + config.systemModuleHeadlineIconSearch).on('click', function(e){
-            var dialogData = {
-                moduleElement: moduleElement,
-                mapId: mapId,
-                systemFromData: systemFromData,
-                dataTable: routesTable
-            };
+            let maxRouteSearchLimit = this.Init.routeSearch.limit;
 
-            showFindRouteDialog(dialogData);
-        });
+            if(routesTable.rows().count() >= maxRouteSearchLimit){
+                // max routes limit reached -> show warning
+                Util.showNotify({title: 'Route limit reached', text: 'Serch is limited by ' + maxRouteSearchLimit, type: 'warning'});
+            }else{
+                var dialogData = {
+                    moduleElement: moduleElement,
+                    mapId: mapId,
+                    systemFromData: systemFromData,
+                    dataTable: routesTable
+                };
+
+                showFindRouteDialog(dialogData);
+            }
+        }.bind({
+            Init: Init
+        }));
 
         // init settings dialog -------------------------------------------------------------------
         moduleElement.find('.' + config.systemModuleHeadlineIconSettings).on('click', function(e){
@@ -30271,6 +30508,10 @@ define('app/ui/system_route',[
         var requestRouteData = [];
         var currentTimestamp = Util.getServerTime().getTime();
 
+        // Skip some routes from search
+        // -> this should help to throttle requests (heavy CPU load for route calculation)
+        var defaultRoutesCount = Init.routeSearch.defaultCount;
+
         for(var i = 0; i < systemsTo.length; i++){
             var systemToData = systemsTo[i];
 
@@ -30294,7 +30535,8 @@ define('app/ui/system_route',[
                     var searchData = {
                         mapIds: [mapId],
                         systemFromData: systemFromData,
-                        systemToData: systemToData
+                        systemToData: systemToData,
+                        skipSearch: requestRouteData.length >= defaultRoutesCount
                     };
 
                     requestRouteData.push( getRouteRequestDataFromRowData( searchData ));
@@ -31308,7 +31550,7 @@ define('app/module_map',[
                         height: [ moduleHeight + 'px', [ 400, 15 ] ]
                     },{
                         duration: 400,
-                        easing: 'easeInSine',
+                        easing: 'easeOutSine',
                         complete: function(){
                             moduleElement.removeClass( config.moduleClosedClass );
                             moduleElement.removeData();
@@ -31316,10 +31558,10 @@ define('app/module_map',[
                     });
                 }else{
                     moduleElement.velocity('finish').velocity({
-                        height: [ '36px', [ 400, 15 ] ]
+                        height: [ '35px', [ 400, 15 ] ]
                     },{
                         duration: 400,
-                        easing: 'easeInSine',
+                        easing: 'easeOutSine',
                         complete: function(){
                             moduleElement.addClass( config.moduleClosedClass );
                         }
@@ -31958,9 +32200,7 @@ define('app/page',[
         headUserShipClass: 'pf-head-user-ship',                                 // class for "user settings" link
         userShipImageClass: 'pf-head-user-ship-image',                          // class for "current user ship image"
         headActiveUserClass: 'pf-head-active-user',                             // class for "active user" link
-        headCurrentLocationClass: 'pf-head-current-location',                   // class for "show current location" link
         headProgramStatusClass: 'pf-head-program-status',                       // class for "program status" notification
-        headMapTrackingId: 'pf-head-map-tracking',                              // id for "map tracking" toggle (checkbox)
 
         // footer
         pageFooterId: 'pf-footer',                                              // id for page footer
@@ -32104,7 +32344,7 @@ define('app/page',[
                     href: '#'
                 }).html('&nbsp;&nbsp;Account').prepend(
                     $('<i>',{
-                        class: 'fa fa-sliders fa-fw'
+                        class: 'fa fa-user fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowSettingsDialog');
@@ -32186,9 +32426,9 @@ define('app/page',[
                 $('<a>', {
                     class: 'list-group-item',
                     href: '#'
-                }).html('&nbsp;&nbsp;Status').prepend(
+                }).html('&nbsp;&nbsp;Information').prepend(
                     $('<i>',{
-                        class: 'fa fa-info fa-fw'
+                        class: 'fa fa-street-view fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowMapInfo');
@@ -32199,7 +32439,7 @@ define('app/page',[
                 $('<a>', {
                     class: 'list-group-item',
                     href: '#'
-                }).html('&nbsp;&nbsp;Map config').prepend(
+                }).html('&nbsp;&nbsp;Configuration').prepend(
                     $('<i>',{
                         class: 'fa fa-gears fa-fw'
                     })
@@ -32309,7 +32549,7 @@ define('app/page',[
             userCharacterImageClass: config.userCharacterImageClass,
             userShipClass: config.headUserShipClass,
             userShipImageClass: config.userShipImageClass,
-            mapTrackingId: config.headMapTrackingId
+            mapTrackingId: Util.config.headMapTrackingId
         };
 
         var headRendered = Mustache.render(TplHead, moduleData);
@@ -32338,7 +32578,7 @@ define('app/page',[
         });
 
         // current location
-        $('.' + config.headCurrentLocationClass).find('a').on('click', function(){
+        $('#' + Util.config.headCurrentLocationId).find('a').on('click', function(){
             Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: $(this).data('systemId') });
         });
 
@@ -32354,7 +32594,7 @@ define('app/page',[
         });
 
         // tracking toggle
-        var mapTrackingCheckbox = $('#' + config.headMapTrackingId);
+        var mapTrackingCheckbox = $('#' + Util.config.headMapTrackingId);
         mapTrackingCheckbox.bootstrapToggle({
             size: 'mini',
             on: 'on',
@@ -32401,7 +32641,6 @@ define('app/page',[
      * load page footer
      */
     $.fn.loadFooter = function(){
-
         var pageElement = $(this);
 
         var moduleData = {
@@ -32634,7 +32873,6 @@ define('app/page',[
      * updates the header with current user data
      */
     $.fn.updateHeaderUserData = function(){
-
         var userData = Util.getCurrentUserData();
 
         var userInfoElement = $('.' + config.headUserCharacterClass);
@@ -32678,7 +32916,7 @@ define('app/page',[
 
         };
 
-        // check for changes
+        // check for character/ship changes ---------------------------------------------
         if(
             userData &&
             userData.character
@@ -32690,6 +32928,9 @@ define('app/page',[
                 newShipId = userData.character.log.ship.typeId;
                 newShipName = userData.character.log.ship.typeName;
             }
+
+            // en/disable "map tracking" toggle
+            updateMapTrackingToggle(userData.character.logLocation);
         }
 
         var newCharactersOptionIds = userData.characters.map(function(data){
@@ -32739,6 +32980,19 @@ define('app/page',[
     };
 
     /**
+     * update "map tracking" toggle in header
+     * @param status
+     */
+    var updateMapTrackingToggle = function(status){
+        var mapTrackingCheckbox = $('#' + Util.config.headMapTrackingId);
+        if(status === true){
+            mapTrackingCheckbox.bootstrapToggle('enable');
+        }else{
+            mapTrackingCheckbox.bootstrapToggle('off').bootstrapToggle('disable');
+        }
+    };
+
+    /**
      * delete active character log for the current user
      */
     var deleteLog = function(){
@@ -32780,29 +33034,22 @@ define('app/page',[
      * @param locationData
      */
     var updateHeaderCurrentLocation = function(locationData){
-        var currentLocationElement = $('.' + config.headCurrentLocationClass);
+        var currentLocationElement = $('#' + Util.config.headCurrentLocationId);
         var linkElement = currentLocationElement.find('a');
         var textElement = linkElement.find('span');
 
-        if( linkElement.data('systemName') !== locationData.currentSystemName ){
-            var tempSystemName = locationData.currentSystemName;
-            var tempSystemId = locationData.currentSystemId;
+        var tempSystemName = (locationData.currentSystemName) ? locationData.currentSystemName : false;
+        var tempSystemId = (locationData.currentSystemId) ? locationData.currentSystemId : 0;
 
-            if(
-                tempSystemName === undefined ||
-                tempSystemId === undefined
-            ){
-                tempSystemName = false;
-                tempSystemId = false;
-            }
-
+        if(
+            linkElement.data('systemName') !== tempSystemName ||
+            linkElement.data('systemId') !== tempSystemId
+        ){
             linkElement.data('systemName', tempSystemName);
             linkElement.data('systemId', tempSystemId);
+            linkElement.toggleClass('disabled', !tempSystemId);
 
-            if(
-                tempSystemName !== false &&
-                tempSystemId !== false
-            ){
+            if(tempSystemName !== false){
                 textElement.text(locationData.currentSystemName);
                 currentLocationElement.velocity('fadeIn', {duration: Init.animationSpeed.headerLink});
             }else{
@@ -33132,7 +33379,7 @@ define('app/ui/form_element',[
                 placeholder: 'System name',
                 allowClear: true,
                 maximumSelectionLength: options.maxSelectionLength,
-                escapeMarkup: function (markup) {
+                escapeMarkup: function(markup){
                     // let our custom formatter work
                     return markup;
                 }
@@ -33250,12 +33497,12 @@ define('app/ui/form_element',[
                     dropdownParent: selectElement.parents('.modal-body'),
                     theme: 'pathfinder',
                     minimumInputLength: 3,
-                    placeholder: '',
+                    placeholder: options.type + ' names',
                     allowClear: false,
                     maximumSelectionLength: options.maxSelectionLength,
                     templateResult: formatResultData,
                     templateSelection: formatSelectionData,
-                    escapeMarkup: function (markup) {
+                    escapeMarkup: function(markup){
                         // let our custom formatter work
                         return markup;
                     }
@@ -33337,6 +33584,7 @@ define('mappage',[
             Init.routes             = initData.routes;
             Init.notificationStatus = initData.notificationStatus;
             Init.activityLogging    = initData.activityLogging;
+            Init.routeSearch        = initData.routeSearch;
 
             // init tab change observer, Once the timers are available
             Page.initTabChangeObserver();

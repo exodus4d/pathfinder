@@ -165,7 +165,7 @@ define([
                     title: 'Σ&nbsp;&nbsp;',
                     searchable: false,
                     width: 20,
-                    className: ['text-right', 'hidden-xs', 'hidden-sm', 'separator-right'].join(' '),
+                    className: ['text-right', 'separator-right'].join(' ') ,
                     data: 'systemSum',
                     render: {
                         _: renderNumericColumn
@@ -208,7 +208,7 @@ define([
                     title: 'Σ&nbsp;&nbsp;',
                     searchable: false,
                     width: 20,
-                    className: ['text-right', 'hidden-xs', 'hidden-sm', 'separator-right'].join(' '),
+                    className: ['text-right', 'separator-right'].join(' '),
                     data: 'connectionSum',
                     render: {
                         _: renderNumericColumn
@@ -251,7 +251,7 @@ define([
                     title: 'Σ&nbsp;&nbsp;',
                     searchable: false,
                     width: 20,
-                    className: ['text-right', 'hidden-xs', 'hidden-sm', 'separator-right'].join(' '),
+                    className: ['text-right', 'separator-right'].join(' '),
                     data: 'signatureSum',
                     render: {
                         _: renderNumericColumn

@@ -211,6 +211,9 @@ define([
             // name
             tempData.name = tempSystemData.name;
 
+            // alias
+            tempData.alias = (tempSystemData.alias === tempSystemData.name) ? '' : tempSystemData.alias;
+
             // region
             tempData.region = tempSystemData.region.name;
 
@@ -339,6 +342,9 @@ define([
                 },{
                     title: 'system',
                     data: 'name'
+                },{
+                    title: 'alias',
+                    data: 'alias'
                 },{
                     title: 'region',
                     data: 'region'

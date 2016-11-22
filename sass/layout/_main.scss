@@ -83,6 +83,15 @@ em{
   background-color: transparent;
 }
 
+// text selection =================================================================================
+::selection{
+  background: $gray-lighter; /* WebKit/Blink Browsers */
+  color: $gray-darkest;
+}
+::-moz-selection{
+  background: $gray-lighter; /* Gecko Browsers */
+  color: $gray-darkest;
+}
 // help elements ==================================================================================
 .pf-help{
   cursor: pointer; // fallback
@@ -115,6 +124,15 @@ em{
     color: $orange !important;
   }
 
+}
+
+// links ==========================================================================================
+a{
+  &.disabled{
+    color: $navbar-default-link-color;
+    pointer-events: none;
+    cursor: default;
+  }
 }
 
 // alert messages =================================================================================
@@ -989,7 +1007,7 @@ td.pf-popover-trigger{
     visibility: hidden;
   }
 
-  .pf-head-active-user, .pf-head-current-location{
+  .pf-head-active-user, #pf-head-current-location{
     display: none; // triggered by js
 
     .badge{

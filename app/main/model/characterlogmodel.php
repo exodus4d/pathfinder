@@ -16,14 +16,6 @@ class CharacterLogModel extends BasicModel {
 
     protected $table = 'character_log';
 
-    /**
-     * caching for relational data
-     * -> 5s matches REST API - Expire: Header-Data
-     *    for "Location" calls
-     * @var int
-     */
-    protected $rel_ttl = 5;
-
     protected $fieldConf = [
         'active' => [
             'type' => Schema::DT_BOOL,
@@ -201,6 +193,45 @@ class CharacterLogModel extends BasicModel {
             $this->updateCharacterSessionLocation($systemId);
         }
         return $systemId;
+    }
+
+    /**
+     * Event "Hook" function
+     * return false will stop any further action
+     * @param self $self
+     * @param $pkeys
+     */
+    public function afterInsertEvent($self, $pkeys){
+        $self->clearCacheData();
+    }
+
+    /**
+     * Event "Hook" function
+     * return false will stop any further action
+     * @param self $self
+     * @param $pkeys
+     */
+    public function afterUpdateEvent($self, $pkeys){
+        $self->clearCacheData();
+    }
+
+    /**
+     * Event "Hook" function
+     * can be overwritten
+     * @param self $self
+     * @param $pkeys
+     */
+    public function afterEraseEvent($self, $pkeys){
+        $self->clearCacheData();
+    }
+
+    /**
+     * see parent
+     */
+    public function clearCacheData(){
+        // clear character "LOG" cache
+        // -> character data without "LOG" has not changed!
+        $this->characterId->clearCacheDataWithPrefix(CharacterModel::DATA_CACHE_KEY_LOG);
     }
 
     /**

@@ -20,6 +20,8 @@ define([
         dialogMapSettingsContainerId: 'pf-map-dialog-settings',                         // id for the "settings" container
         dialogMapDownloadContainerId: 'pf-map-dialog-download',                         // id for the "download" container
 
+        deleteExpiredConnectionsId: 'pf-map-dialog-delete-connections',                 // id for "deleteExpiredConnections" checkbox
+
         characterSelectId: 'pf-map-dialog-character-select',                            // id for "character" select
         corporationSelectId: 'pf-map-dialog-corporation-select',                        // id for "corporation" select
         allianceSelectId: 'pf-map-dialog-alliance-select',                              // id for "alliance" select
@@ -103,6 +105,7 @@ define([
                 var accessCharacter = [];
                 var accessCorporation = [];
                 var accessAlliance = [];
+                var deleteExpiredConnections = true;
 
                 if(mapData !== false){
                     // set current map information
@@ -115,6 +118,8 @@ define([
                     accessCharacter = mapData.config.access.character;
                     accessCorporation = mapData.config.access.corporation;
                     accessAlliance = mapData.config.access.alliance;
+
+                    deleteExpiredConnections = mapData.config.deleteExpiredConnections;
                 }
 
                 // render main dialog -----------------------------------------------------
@@ -144,6 +149,9 @@ define([
                     hideDownloadTab: hideDownloadTab,
 
                     // settings tab --------------
+                    deleteExpiredConnectionsId : config.deleteExpiredConnectionsId,
+                    deleteExpiredConnections: deleteExpiredConnections,
+
                     characterSelectId: config.characterSelectId,
                     corporationSelectId: config.corporationSelectId,
                     allianceSelectId: config.allianceSelectId,
@@ -207,10 +215,10 @@ define([
                                     var selectField = $(this);
                                     var selectValues = selectField.val();
 
-                                    if(selectValues === null){
-                                        selectField.parents('.form-group').addClass('has-error');
-                                    }else{
+                                    if(selectValues.length > 0){
                                         selectField.parents('.form-group').removeClass('has-error');
+                                    }else{
+                                        selectField.parents('.form-group').addClass('has-error');
                                     }
                                 });
 
@@ -223,12 +231,20 @@ define([
                                     var dialogContent = mapInfoDialog.find('.modal-content');
                                     dialogContent.showLoadingAnimation();
 
-                                    var newMapData = {formData: form.getFormValues()};
+                                    // get form data
+                                    var formData = form.getFormValues();
+
+                                    // checkbox fix -> settings tab
+                                    if( form.find('#' + config.deleteExpiredConnectionsId).length ){
+                                        formData.deleteExpiredConnections = formData.hasOwnProperty('deleteExpiredConnections') ? parseInt( formData.deleteExpiredConnections ) : 0;
+                                    }
+
+                                    var requestData = {formData: formData};
 
                                     $.ajax({
                                         type: 'POST',
                                         url: Init.path.saveMap,
-                                        data: newMapData,
+                                        data: requestData,
                                         dataType: 'json'
                                     }).done(function(responseData){
 

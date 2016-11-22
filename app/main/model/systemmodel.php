@@ -277,7 +277,7 @@ class SystemModel extends BasicModel {
             // max caching time for a system
             // the cached date has to be cleared manually on any change
             // this includes system, connection,... changes (all dependencies)
-            $this->updateCacheData($systemData, '', 300);
+            $this->updateCacheData($systemData);
         }
 
         return $systemData;
@@ -358,19 +358,16 @@ class SystemModel extends BasicModel {
 
     /**
      * Event "Hook" function
-     * return false will stop any further action
      * @param self $self
      * @param $pkeys
      */
     public function afterInsertEvent($self, $pkeys){
-        parent::afterInsertEvent($self, $pkeys);
-
+        $self->clearCacheData();
         $self->logActivity('systemCreate');
     }
 
     /**
      * Event "Hook" function
-     * can be overwritten
      * return false will stop any further action
      * @param self $self
      * @param $pkeys
@@ -397,12 +394,11 @@ class SystemModel extends BasicModel {
 
     /**
      * Event "Hook" function
-     * return false will stop any further action
      * @param self $self
      * @param $pkeys
      */
     public function afterUpdateEvent($self, $pkeys){
-        parent::afterUpdateEvent($self, $pkeys);
+        $self->clearCacheData();
 
         // check if rally point mail should be send
         if(
@@ -418,13 +414,11 @@ class SystemModel extends BasicModel {
 
     /**
      * Event "Hook" function
-     * can be overwritten
      * @param self $self
      * @param $pkeys
      */
     public function afterEraseEvent($self, $pkeys){
-        parent::afterUpdateEvent($self, $pkeys);
-
+        $self->clearCacheData();
         $self->logActivity('systemDelete');
     }
 

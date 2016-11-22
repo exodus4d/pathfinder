@@ -51,9 +51,7 @@ define([
         headUserShipClass: 'pf-head-user-ship',                                 // class for "user settings" link
         userShipImageClass: 'pf-head-user-ship-image',                          // class for "current user ship image"
         headActiveUserClass: 'pf-head-active-user',                             // class for "active user" link
-        headCurrentLocationClass: 'pf-head-current-location',                   // class for "show current location" link
         headProgramStatusClass: 'pf-head-program-status',                       // class for "program status" notification
-        headMapTrackingId: 'pf-head-map-tracking',                              // id for "map tracking" toggle (checkbox)
 
         // footer
         pageFooterId: 'pf-footer',                                              // id for page footer
@@ -197,7 +195,7 @@ define([
                     href: '#'
                 }).html('&nbsp;&nbsp;Account').prepend(
                     $('<i>',{
-                        class: 'fa fa-sliders fa-fw'
+                        class: 'fa fa-user fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowSettingsDialog');
@@ -279,9 +277,9 @@ define([
                 $('<a>', {
                     class: 'list-group-item',
                     href: '#'
-                }).html('&nbsp;&nbsp;Status').prepend(
+                }).html('&nbsp;&nbsp;Information').prepend(
                     $('<i>',{
-                        class: 'fa fa-info fa-fw'
+                        class: 'fa fa-street-view fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowMapInfo');
@@ -292,7 +290,7 @@ define([
                 $('<a>', {
                     class: 'list-group-item',
                     href: '#'
-                }).html('&nbsp;&nbsp;Map config').prepend(
+                }).html('&nbsp;&nbsp;Configuration').prepend(
                     $('<i>',{
                         class: 'fa fa-gears fa-fw'
                     })
@@ -402,7 +400,7 @@ define([
             userCharacterImageClass: config.userCharacterImageClass,
             userShipClass: config.headUserShipClass,
             userShipImageClass: config.userShipImageClass,
-            mapTrackingId: config.headMapTrackingId
+            mapTrackingId: Util.config.headMapTrackingId
         };
 
         var headRendered = Mustache.render(TplHead, moduleData);
@@ -431,7 +429,7 @@ define([
         });
 
         // current location
-        $('.' + config.headCurrentLocationClass).find('a').on('click', function(){
+        $('#' + Util.config.headCurrentLocationId).find('a').on('click', function(){
             Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: $(this).data('systemId') });
         });
 
@@ -447,7 +445,7 @@ define([
         });
 
         // tracking toggle
-        var mapTrackingCheckbox = $('#' + config.headMapTrackingId);
+        var mapTrackingCheckbox = $('#' + Util.config.headMapTrackingId);
         mapTrackingCheckbox.bootstrapToggle({
             size: 'mini',
             on: 'on',
@@ -494,7 +492,6 @@ define([
      * load page footer
      */
     $.fn.loadFooter = function(){
-
         var pageElement = $(this);
 
         var moduleData = {
@@ -727,7 +724,6 @@ define([
      * updates the header with current user data
      */
     $.fn.updateHeaderUserData = function(){
-
         var userData = Util.getCurrentUserData();
 
         var userInfoElement = $('.' + config.headUserCharacterClass);
@@ -771,7 +767,7 @@ define([
 
         };
 
-        // check for changes
+        // check for character/ship changes ---------------------------------------------
         if(
             userData &&
             userData.character
@@ -783,6 +779,9 @@ define([
                 newShipId = userData.character.log.ship.typeId;
                 newShipName = userData.character.log.ship.typeName;
             }
+
+            // en/disable "map tracking" toggle
+            updateMapTrackingToggle(userData.character.logLocation);
         }
 
         var newCharactersOptionIds = userData.characters.map(function(data){
@@ -832,6 +831,19 @@ define([
     };
 
     /**
+     * update "map tracking" toggle in header
+     * @param status
+     */
+    var updateMapTrackingToggle = function(status){
+        var mapTrackingCheckbox = $('#' + Util.config.headMapTrackingId);
+        if(status === true){
+            mapTrackingCheckbox.bootstrapToggle('enable');
+        }else{
+            mapTrackingCheckbox.bootstrapToggle('off').bootstrapToggle('disable');
+        }
+    };
+
+    /**
      * delete active character log for the current user
      */
     var deleteLog = function(){
@@ -873,29 +885,22 @@ define([
      * @param locationData
      */
     var updateHeaderCurrentLocation = function(locationData){
-        var currentLocationElement = $('.' + config.headCurrentLocationClass);
+        var currentLocationElement = $('#' + Util.config.headCurrentLocationId);
         var linkElement = currentLocationElement.find('a');
         var textElement = linkElement.find('span');
 
-        if( linkElement.data('systemName') !== locationData.currentSystemName ){
-            var tempSystemName = locationData.currentSystemName;
-            var tempSystemId = locationData.currentSystemId;
+        var tempSystemName = (locationData.currentSystemName) ? locationData.currentSystemName : false;
+        var tempSystemId = (locationData.currentSystemId) ? locationData.currentSystemId : 0;
 
-            if(
-                tempSystemName === undefined ||
-                tempSystemId === undefined
-            ){
-                tempSystemName = false;
-                tempSystemId = false;
-            }
-
+        if(
+            linkElement.data('systemName') !== tempSystemName ||
+            linkElement.data('systemId') !== tempSystemId
+        ){
             linkElement.data('systemName', tempSystemName);
             linkElement.data('systemId', tempSystemId);
+            linkElement.toggleClass('disabled', !tempSystemId);
 
-            if(
-                tempSystemName !== false &&
-                tempSystemId !== false
-            ){
+            if(tempSystemName !== false){
                 textElement.text(locationData.currentSystemName);
                 currentLocationElement.velocity('fadeIn', {duration: Init.animationSpeed.headerLink});
             }else{

@@ -164,7 +164,7 @@ define([
                         height: [ moduleHeight + 'px', [ 400, 15 ] ]
                     },{
                         duration: 400,
-                        easing: 'easeInSine',
+                        easing: 'easeOutSine',
                         complete: function(){
                             moduleElement.removeClass( config.moduleClosedClass );
                             moduleElement.removeData();
@@ -172,10 +172,10 @@ define([
                     });
                 }else{
                     moduleElement.velocity('finish').velocity({
-                        height: [ '36px', [ 400, 15 ] ]
+                        height: [ '35px', [ 400, 15 ] ]
                     },{
                         duration: 400,
-                        easing: 'easeInSine',
+                        easing: 'easeOutSine',
                         complete: function(){
                             moduleElement.addClass( config.moduleClosedClass );
                         }

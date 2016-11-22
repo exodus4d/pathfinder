@@ -139,7 +139,7 @@ define([
                 placeholder: 'System name',
                 allowClear: true,
                 maximumSelectionLength: options.maxSelectionLength,
-                escapeMarkup: function (markup) {
+                escapeMarkup: function(markup){
                     // let our custom formatter work
                     return markup;
                 }
@@ -257,12 +257,12 @@ define([
                     dropdownParent: selectElement.parents('.modal-body'),
                     theme: 'pathfinder',
                     minimumInputLength: 3,
-                    placeholder: '',
+                    placeholder: options.type + ' names',
                     allowClear: false,
                     maximumSelectionLength: options.maxSelectionLength,
                     templateResult: formatResultData,
                     templateSelection: formatSelectionData,
-                    escapeMarkup: function (markup) {
+                    escapeMarkup: function(markup){
                         // let our custom formatter work
                         return markup;
                     }

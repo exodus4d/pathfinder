@@ -320,7 +320,7 @@ define(['jquery'], function($) {
                 5: {    // Wormhole
                     1: 'D792 - HS',
                     2: 'C391 - LS',
-                    3: 'Z142 - 0.0',
+                    3: 'C248 - 0.0',
                     4: 'F135 - Thera'
                 },
                 6: {    // ORE

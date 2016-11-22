@@ -92,6 +92,11 @@ abstract class BasicModel extends \DB\Cortex {
      */
     protected $fieldChanges = [];
 
+    /**
+     * default TTL for getData(); cache
+     */
+    const DEFAULT_CACHE_TTL = 120;
+
     public function __construct($db = NULL, $table = NULL, $fluid = NULL, $ttl = 0){
 
         $this->addStaticFieldConfig();
@@ -105,7 +110,6 @@ abstract class BasicModel extends \DB\Cortex {
 
         $this->afterinsert(function($self, $pkeys){
             $self->afterInsertEvent($self, $pkeys);
-            $self->clearCacheData();
         });
 
         // update events ------------------------------------------------------------------------------------
@@ -115,7 +119,6 @@ abstract class BasicModel extends \DB\Cortex {
 
         $this->afterupdate( function($self, $pkeys){
             $self->afterUpdateEvent($self, $pkeys);
-            $self->clearCacheData();
         });
 
         // erase events -------------------------------------------------------------------------------------
@@ -319,6 +322,14 @@ abstract class BasicModel extends \DB\Cortex {
     }
 
     /**
+     * get key for for all objects in this table
+     * @return string
+     */
+    private function getTableCacheKey(){
+        return $this->dataCacheKeyPrefix .'.' . strtoupper($this->table);
+    }
+
+    /**
      * get the cache key for this model
      * ->do not set a key if the model is not saved!
      * @param string $dataCacheTableKeyPrefix
@@ -329,14 +340,12 @@ abstract class BasicModel extends \DB\Cortex {
 
         // set a model unique cache key if the model is saved
         if( $this->id > 0){
+            $cacheKey = $this->getTableCacheKey();
+
             // check if there is a given key prefix
             // -> if not, use the standard key.
             // this is useful for caching multiple data sets according to one row entry
-
-            $cacheKey = $this->dataCacheKeyPrefix;
-            $cacheKey .= '.' . strtoupper($this->table);
-
-            if($dataCacheTableKeyPrefix){
+            if( !empty($dataCacheTableKeyPrefix) ){
                 $cacheKey .= '.' . $dataCacheTableKeyPrefix . '_';
             }else{
                 $cacheKey .= '.ID_';
@@ -353,13 +362,14 @@ abstract class BasicModel extends \DB\Cortex {
      * @return \stdClass|null
      */
     protected function getCacheData($dataCacheKeyPrefix = ''){
-
-        $cacheKey = $this->getCacheKey($dataCacheKeyPrefix);
         $cacheData = null;
+
+        // table cache exists
+        // -> check cache for this row data
+        $cacheKey = $this->getCacheKey($dataCacheKeyPrefix);
 
         if( !is_null($cacheKey) ){
             $f3 = self::getF3();
-
             if( $f3->exists($cacheKey) ){
                 $cacheData = $f3->get( $cacheKey );
             }
@@ -374,15 +384,14 @@ abstract class BasicModel extends \DB\Cortex {
      * @param string $dataCacheKeyPrefix
      * @param int $data_ttl
      */
-    public function updateCacheData($cacheData, $dataCacheKeyPrefix = '', $data_ttl = 300){
-
+    public function updateCacheData($cacheData, $dataCacheKeyPrefix = '', $data_ttl = self::DEFAULT_CACHE_TTL){
         $cacheDataTmp = (array)$cacheData;
 
         // check if data should be cached
         // and cacheData is not empty
         if(
             $data_ttl > 0 &&
-            !empty( $cacheDataTmp )
+            !empty($cacheDataTmp)
         ){
             $cacheKey = $this->getCacheKey($dataCacheKeyPrefix);
 
@@ -394,13 +403,30 @@ abstract class BasicModel extends \DB\Cortex {
 
     /**
      * unset the getData() cache for this object
+     * -> see also clearCacheDataWithPrefix(), for more information
      */
     public function clearCacheData(){
         $cacheKey = $this->getCacheKey();
+        $this->clearCache($cacheKey);
+    }
 
-        if( !is_null($cacheKey) ){
+    /**
+     * unset object cached data by prefix
+     * -> primarily used by object cache with multiple data caches
+     * @param string $dataCacheKeyPrefix
+     */
+    public function clearCacheDataWithPrefix($dataCacheKeyPrefix = ''){
+        $cacheKey = $this->getCacheKey($dataCacheKeyPrefix);
+        $this->clearCache($cacheKey);
+    }
+
+    /**
+     * unset object cached data (if exists)
+     * @param $cacheKey
+     */
+    private function clearCache($cacheKey){
+        if( !empty($cacheKey) ){
             $f3 = self::getF3();
-
             if( $f3->exists($cacheKey) ){
                 $f3->clear($cacheKey);
             }

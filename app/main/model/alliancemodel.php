@@ -41,7 +41,7 @@ class AllianceModel extends BasicModel {
 
     /**
      * get all alliance data
-     * @return array
+     * @return \stdClass
      */
     public function getData(){
         $allianceData = (object) [];

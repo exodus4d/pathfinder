@@ -34,6 +34,7 @@ define([
         // head
         headMapTrackingId: 'pf-head-map-tracking',                              // id for "map tracking" toggle (checkbox)
         headCharacterSwitchId: 'pf-head-character-switch',                      // id for "character switch" popover
+        headCurrentLocationId: 'pf-head-current-location',                      // id for "show current location" element
 
         // menu
         menuButtonFullScreenId: 'pf-menu-button-fullscreen',                    // id for menu button "fullscreen"
@@ -393,22 +394,33 @@ define([
      */
     $.fn.getFormValues = function(){
         var form = $(this);
-
         var formData = {};
+        var values = form.serializeArray();
 
-        $.each(form.serializeArray(), function(i, field) {
+        // add "unchecked" checkboxes as well
+        values = values.concat(
+            form.find('input[type=checkbox]:not(:checked)').map(
+                function() {
+                    return {name: this.name, value: 0};
+                }).get()
+        );
+
+        for(let field of values){
+            // check for numeric values -> convert to Int
+            let value = ( /^\d+$/.test(field.value) ) ? parseInt(field.value) : field.value;
+
             if(field.name.indexOf('[]') !== -1){
                 // array field
                 var key = field.name.replace('[]', '');
-                if(! $.isArray(formData[key]) ){
+                if( !$.isArray(formData[key]) ){
                     formData[key] = [];
                 }
 
-                formData[key].push( field.value);
+                formData[key].push( value);
             }else{
-                formData[field.name] = field.value;
+                formData[field.name] = value;
             }
-        });
+        }
 
         // get xEditable values
         var editableValues = form.find('.' + config.formEditableFieldClass).editable('getValue');
@@ -842,11 +854,18 @@ define([
      */
 
     /**
+     * get current Pathfinder version number
+     * @returns {*|jQuery}
+     */
+    var getVersion = function(){
+        return $('body').data('version');
+    };
+
+    /**
      * show current program version information in browser console
      */
     var showVersionInfo = function(){
-        var versionNumber = $('body').data('version');
-        console.info('PATHFINDER ' + versionNumber);
+        console.info('PATHFINDER ' + getVersion());
     };
 
     /**
@@ -1469,7 +1488,10 @@ define([
 
         var currentMapUserData = false;
 
-        if( mapId === parseInt(mapId, 10) ){
+        if(
+            mapId === parseInt(mapId, 10) &&
+            Init.currentMapUserData
+        ){
             // search for a specific map
             for(var i = 0; i < Init.currentMapUserData.length; i++){
                 if(Init.currentMapUserData[i].config.id === mapId){
@@ -1703,6 +1725,18 @@ define([
         return Init.currentSystemData;
     };
 
+    /**
+     * get current location data
+     * -> system data where current user is located
+     * @returns {{id: *, name: *}}
+     */
+    var getCurrentLocationData = function(){
+        var currentLocationLink = $('#' + config.headCurrentLocationId).find('a');
+        return {
+          id: currentLocationLink.data('systemId'),
+          name: currentLocationLink.data('systemName')
+        };
+    };
 
     /**
      * get all "open" dialog elements
@@ -1831,6 +1865,7 @@ define([
 
     return {
         config: config,
+        getVersion: getVersion,
         showVersionInfo: showVersionInfo,
         initPrototypes: initPrototypes,
         initDefaultBootboxConfig: initDefaultBootboxConfig,
@@ -1867,6 +1902,7 @@ define([
         getCurrentUserData: getCurrentUserData,
         setCurrentSystemData: setCurrentSystemData,
         getCurrentSystemData: getCurrentSystemData,
+        getCurrentLocationData: getCurrentLocationData,
         getCurrentUserInfo: getCurrentUserInfo,
         getCurrentCharacterLog: getCurrentCharacterLog,
         setDestination: setDestination,

@@ -183,8 +183,6 @@ class SystemSignatureModel extends BasicModel {
      * @param $pkeys
      */
     public function afterInsertEvent($self, $pkeys){
-        parent::afterInsertEvent($self, $pkeys);
-
         $self->logActivity('signatureCreate');
     }
 
@@ -195,8 +193,6 @@ class SystemSignatureModel extends BasicModel {
      * @param $pkeys
      */
     public function afterUpdateEvent($self, $pkeys){
-        parent::afterUpdateEvent($self, $pkeys);
-
         $self->logActivity('signatureUpdate');
     }
 
@@ -207,8 +203,6 @@ class SystemSignatureModel extends BasicModel {
      * @param $pkeys
      */
     public function afterEraseEvent($self, $pkeys){
-        parent::afterUpdateEvent($self, $pkeys);
-
         $self->logActivity('signatureDelete');
     }
 

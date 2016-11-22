@@ -49,9 +49,7 @@ class AllianceMapModel extends BasicModel {
      * see parent
      */
     public function clearCacheData(){
-        parent::clearCacheData();
-
-        // clear map cache as well
+        // clear map cache
         $this->mapId->clearCacheData();
     }
 

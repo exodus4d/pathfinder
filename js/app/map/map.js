@@ -1067,6 +1067,16 @@ define([
             // system alias changed -> mark system as updated
             system.markAsChanged();
         });
+
+        headElement.on('shown', function(e, editable) {
+            var inputElement =  editable.input.$input.select();
+
+            // "fake" timeout until dom rendered
+            setTimeout(function(input){
+                // pre-select value
+                input.select();
+            }, 0, inputElement);
+        });
     };
 
     /**
@@ -1406,7 +1416,7 @@ define([
         var moduleData = {
             id: config.mapContextMenuId,
             items: [
-                {icon: 'fa-info', action: 'info', text: 'info'},
+                {icon: 'fa-street-view', action: 'info', text: 'information'},
                 {icon: 'fa-plus', action: 'add_system', text: 'add system'},
                 {icon: 'fa-object-ungroup', action: 'select_all', text: 'select all'},
                 {icon: 'fa-filter', action: 'filter_scope', text: 'filter scope', subitems: [
@@ -2703,6 +2713,7 @@ define([
             mapElement = $(mapElement);
 
             // get current character log data
+            var characterLogExists = false;
             var currentCharacterLog = Util.getCurrentCharacterLog();
 
             // check if map is frozen
@@ -2715,6 +2726,14 @@ define([
                 mapId: userData.config.id,
                 userCount: 0                        // active user in a map
             };
+
+            if(
+                currentCharacterLog &&
+                currentCharacterLog.system
+            ){
+                characterLogExists = true;
+                headerUpdateData.currentSystemName = currentCharacterLog.system.name;
+            }
 
             // check if current user was found on the map
             var currentUserOnMap = false;
@@ -2753,20 +2772,17 @@ define([
                 }
 
                 // the current user can only be in a single system ------------------------------------------
-                if( !currentUserOnMap){
+                if(
+                    characterLogExists &&
+                    !currentUserOnMap &&
+                    currentCharacterLog.system.id === systemId
+                ){
+                    currentUserIsHere = true;
+                    currentUserOnMap = true;
 
-                    if(
-                        currentCharacterLog &&
-                        currentCharacterLog.system &&
-                        currentCharacterLog.system.id === systemId
-                    ){
-                        currentUserIsHere = true;
-                        currentUserOnMap = true;
-
-                        // set current location data for header update
-                        headerUpdateData.currentSystemId =  $(system).data('id');
-                        headerUpdateData.currentSystemName = currentCharacterLog.system.name;
-                    }
+                    // set current location data for header update
+                    headerUpdateData.currentSystemId =  $(system).data('id');
+                    //headerUpdateData.currentSystemName = currentCharacterLog.system.name;
                 }
 
                 system.updateSystemUserData(map, tempUserData, currentUserIsHere);

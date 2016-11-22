@@ -491,6 +491,9 @@ class Route extends Controller\AccessController {
              */
             $map = Model\BasicModel::getNew('MapModel');
 
+            // limit max search routes to max limit
+            array_splice($routesData, $f3->get('PATHFINDER.ROUTE.LIMIT'));
+
             foreach($routesData as $key => $routeData){
                 // mapIds are optional. If mapIds is empty or not set
                 // route search is limited to CCPs static data
@@ -537,6 +540,7 @@ class Route extends Controller\AccessController {
                 $returnRoutData = [
                     'systemFromData' => $routeData['systemFromData'],
                     'systemToData' => $routeData['systemToData'],
+                    'skipSearch' => (bool) $routeData['skipSearch'],
                     'maps' => $mapData,
                     'mapIds' => $mapIds
                 ];
@@ -544,7 +548,10 @@ class Route extends Controller\AccessController {
                 // add filter options for each route as well
                 $returnRoutData += $filterData;
 
-                if(count($mapIds) > 0){
+                if(
+                    !$returnRoutData['skipSearch'] &&
+                    count($mapIds) > 0
+                ){
                     $systemFrom = $routeData['systemFromData']['name'];
                     $systemTo = $routeData['systemToData']['name'];
 

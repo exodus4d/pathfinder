@@ -50,7 +50,8 @@ define([
         // xEditable
         moduleIcon: 'pf-module-icon-button',                                    // class for "filter" - icons
         editableDescriptionInputClass: 'pf-editable-description',               // class for "description" textarea
-        editableFilterInputClass: 'pf-editable-filter'                          // class for "filter" selects
+        editableFilterElementClass: 'pf-editable-filter',                       // class for "filter" selects (not active)
+        editableFilterSelectPopoverClass: 'pf-editable-filter-active'           // class for active "filter" selects (popover)
     };
 
     // lock Signature Table update temporary (until. some requests/animations) are finished
@@ -106,13 +107,10 @@ define([
      * @returns {Array}
      */
     var getSignatureTableData = function(){
-
         var signatureTableApi = signatureTable.api();
-
         var tableData = [];
 
         signatureTableApi.rows().eq(0).each(function(idx){
-
             var row = signatureTableApi.row(idx);
             // default row data
             var defaultRowData = row.data();
@@ -125,22 +123,23 @@ define([
                 if(editableFields.length > 0){
                     var values = $(editableFields).editable('getValue');
 
-                    // convert to lower for better compare options
-                    values.name = values.name.toLowerCase();
+                    if(values.name){
+                        // convert to lower for better compare options
+                        values.name = values.name.toLowerCase();
 
-                    // add pk for this row
-                    values.id = defaultRowData.id;
+                        // add pk for this row
+                        values.id = defaultRowData.id;
 
-                    // add updated for this row
-                    values.updated = defaultRowData.updated;
+                        // add updated for this row
+                        values.updated = defaultRowData.updated;
 
-                    // add row index
-                    values.index = idx;
+                        // add row index
+                        values.index = idx;
 
-                    tableData.push( values );
+                        tableData.push( values );
+                    }
                 }
             }
-
         });
 
         return tableData;
@@ -456,6 +455,39 @@ define([
      */
     $.fn.updateSignatureTableByClipboard = function(systemData, clipboard, options){
 
+        var requestData = function(){
+            // lock update function until request is finished
+            lockSignatureTable();
+
+            // lock copy during request (prevent spamming (ctrl + c )
+            disableCopyFromClipboard = true;
+
+            var requestData = {
+                signatures: signatureData,
+                deleteOld: (options.deleteOld) ? 1 : 0,
+                systemId: parseInt(systemData.id)
+            };
+
+            $.ajax({
+                type: 'POST',
+                url: Init.path.saveSignatureData,
+                data: requestData,
+                dataType: 'json'
+            }).done(function(responseData){
+                unlockSignatureTable(true);
+
+                // updates table with new/updated signature information
+                moduleElement.updateSignatureTable(responseData.signatures, false);
+            }).fail(function( jqXHR, status, error) {
+                var reason = status + ' ' + error;
+                Util.showNotify({title: jqXHR.status + ': Update signatures', text: reason, type: 'warning'});
+                $(document).setProgramStatus('problem');
+            }).always(function() {
+                unlockSignatureTable(true);
+                disableCopyFromClipboard = false;
+            });
+        };
+
         // check if copy&paste is enabled
         if( !disableCopyFromClipboard ){
             var moduleElement = $(this);
@@ -464,38 +496,30 @@ define([
             var signatureData = parseSignatureString(systemData, clipboard);
 
             if(signatureData.length > 0){
-                // save signature data
+                // valid signature data parsed
 
-                // lock update function until request is finished
-                lockSignatureTable();
+                // check if signatures will be added to a system where character is currently in
+                // if user is not in any system -> id === undefined -> no "confirmation required
+                var currentLocationData = Util.getCurrentLocationData();
+                if(
+                    currentLocationData.id &&
+                    currentLocationData.id !== systemData.id
+                ){
 
-                // lock copy during request (prevent spamming (ctrl + c )
-                disableCopyFromClipboard = true;
+                    var systemNameStr = (systemData.name === systemData.alias) ? '"' + systemData.name + '"' : '"' + systemData.alias + '" (' + systemData.name + ')';
+                    systemNameStr = '<span class="txt-color txt-color-warning">' + systemNameStr + '</span>';
 
-                var requestData = {
-                    signatures: signatureData,
-                    deleteOld: (options.deleteOld) ? 1 : 0,
-                    systemId: parseInt(systemData.id)
-                };
-
-                $.ajax({
-                    type: 'POST',
-                    url: Init.path.saveSignatureData,
-                    data: requestData,
-                    dataType: 'json'
-                }).done(function(responseData){
-                    unlockSignatureTable(true);
-
-                    // updates table with new/updated signature information
-                    moduleElement.updateSignatureTable(responseData.signatures, false);
-                }).fail(function( jqXHR, status, error) {
-                    var reason = status + ' ' + error;
-                    Util.showNotify({title: jqXHR.status + ': Update signatures', text: reason, type: 'warning'});
-                    $(document).setProgramStatus('problem');
-                }).always(function() {
-                    unlockSignatureTable(true);
-                    disableCopyFromClipboard = false;
-                });
+                    var msg = '';
+                    msg += 'Update signatures in ' + systemNameStr + ' ? This not your current location, "' + currentLocationData.name + '" !';
+                    bootbox.confirm(msg, function(result) {
+                        if(result){
+                            requestData();
+                        }
+                    });
+                }else{
+                    // current system selected -> no "confirmation" required
+                    requestData();
+                }
             }
         }
     };
@@ -762,19 +786,6 @@ define([
         };
 
         Render.showModule(moduleConfig, moduleData);
-
-        // event listener for global "paste" signatures into the page -------------------------------------------------
-        $(document).off('paste').on('paste', function(e){
-
-            // do not read clipboard if pasting into form elements
-            if(
-                $(e.target).prop('tagName').toLowerCase() !== 'input' &&
-                $(e.target).prop('tagName').toLowerCase() !== 'textarea'
-            ){
-                var clipboard = (e.originalEvent || e).clipboardData.getData('text/plain');
-                moduleElement.updateSignatureTableByClipboard(systemData, clipboard, {});
-            }
-        });
     };
 
     /**
@@ -1387,8 +1398,11 @@ define([
      * @returns {*}
      */
     $.fn.drawSignatureTable = function(signatureData, systemData){
-
         var moduleElement = $(this);
+
+        // setup filter select in footer
+        // column indexes that need a filter select
+        var filterColumnIndexes = [2];
 
         // create new signature table ---------------------------------------------------------------------------------
         var table = $('<table>', {
@@ -1409,37 +1423,25 @@ define([
 
         var dataTableOptions = {
             data: signatureData,
+            drawCallback: function(settings){
+                this.api().columns(filterColumnIndexes).every(function(){
+                    var column = this;
+                    var footerColumnElement = $(column.footer());
+                    var filterSelect = footerColumnElement.find('.editable');
+
+                    // update select values
+                    filterSelect.editable('option', 'source', getColumnTableDataForFilter(column));
+                });
+            },
             initComplete: function (settings, json){
-                // setup filter select in footer
-                // column indexes that need a filter select
-                var filterColumnIndexes = [2];
 
                 this.api().columns(filterColumnIndexes).every(function(){
                     var column = this;
                     var headerLabel = $(column.header()).text();
                     var selectField = $('<a class="pf-editable ' +
                         config.moduleIcon + ' ' +
-                        config.editableFilterInputClass +
+                        config.editableFilterElementClass +
                         '" href="#" data-type="select" data-name="' + headerLabel + '"></a>');
-
-                    // get all available options from column
-                    var source = {};
-                    column.data().unique().sort(function(a,b){
-                        // sort alphabetically
-                        var valA = a.filter.toLowerCase();
-                        var valB = b.filter.toLowerCase();
-
-                        if(valA < valB) return -1;
-                        if(valA > valB) return 1;
-                        return 0;
-                    }).each(function(callData){
-                        if(callData.filter){
-                            source[callData.filter] = callData.filter;
-                        }
-                    });
-
-                    // add empty option
-                    source[0] = '';
 
                     // add field to footer
                     selectField.appendTo( $(column.footer()).empty() );
@@ -1449,8 +1451,8 @@ define([
                         onblur: 'submit',
                         title: 'filter',
                         showbuttons: false,
-                        source: source,
-                        value: 0
+                        source: getColumnTableDataForFilter(column),
+                        inputclass: config.editableFilterSelectPopoverClass
                     });
 
                     selectField.on('save', { column: column }, function(e, params) {
@@ -1470,6 +1472,34 @@ define([
         moduleElement.updateScannedSignaturesBar({showNotice: true});
 
         return signatureTable;
+    };
+
+    /**
+     * get unique column data from column object for select filter options
+     * @param column
+     * @returns {{}}
+     */
+    var getColumnTableDataForFilter = function(column){
+        // get all available options from column
+        var source = {};
+        column.data().unique().sort(function(a,b){
+            // sort alphabetically
+            var valA = a.filter.toLowerCase();
+            var valB = b.filter.toLowerCase();
+
+            if(valA < valB) return -1;
+            if(valA > valB) return 1;
+            return 0;
+        }).each(function(callData){
+            if(callData.filter){
+                source[callData.filter] = callData.filter;
+            }
+        });
+
+        // add empty option
+        source[0] = '';
+
+        return source;
     };
 
     /**
@@ -1831,8 +1861,9 @@ define([
     /**
      * set module observer and look for relevant signature data to update
      * @param moduleElement
+     * @param systemData
      */
-    var setModuleObserver = function(moduleElement){
+    var setModuleObserver = function(moduleElement, systemData){
         var tablePrimaryElement = $('.' + config.sigTablePrimaryClass);
         var dataTablePrimary = signatureTable.DataTable();
         var signatureTableApi = signatureTable.api();
@@ -1858,6 +1889,20 @@ define([
         signatureTableApi.on('draw.dt', function(){
             // check delete button
             checkDeleteSignaturesButton();
+        });
+
+        // event listener for global "paste" signatures into the page -------------------------------------------------
+        $(document).off('paste').on('paste', function(e){
+
+            // do not read clipboard if pasting into form elements
+            if(
+                $(e.target).prop('tagName').toLowerCase() !== 'input' &&
+                $(e.target).prop('tagName').toLowerCase() !== 'textarea'
+            ){
+                var clipboard = (e.originalEvent || e).clipboardData.getData('text/plain');
+
+                moduleElement.updateSignatureTableByClipboard(systemData, clipboard, {});
+            }
         });
     };
 
@@ -1967,16 +2012,19 @@ define([
             type: 'POST',
             url: Init.path.getSignatures,
             data: requestData,
-            dataType: 'json'
+            dataType: 'json',
+            context: {
+                systemData: systemData
+            }
         }).done(function(signatureData){
 
-            var signatureTableData = formatSignatureData(systemData, signatureData, fullSignatureOptions);
+            var signatureTableData = formatSignatureData(this.systemData, signatureData, fullSignatureOptions);
 
             // draw signature table
-            moduleElement.drawSignatureTable(signatureTableData, systemData);
+            moduleElement.drawSignatureTable(signatureTableData, this.systemData);
 
             // set module observer
-            setModuleObserver(moduleElement);
+            setModuleObserver(moduleElement, this.systemData);
         }).fail(function( jqXHR, status, error) {
             var reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': Get signatures', text: reason, type: 'warning'});
@@ -1991,7 +2039,6 @@ define([
      * @param systemData
      */
     $.fn.drawSignatureTableModule = function(systemData){
-
         var parentElement = $(this);
 
         // show module
@@ -2004,7 +2051,6 @@ define([
                         unlockSignatureTable(true);
                     }
                 });
-
             }
         };
 
