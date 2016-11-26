@@ -164,4 +164,20 @@ class Config extends \Prefab {
         return $mail;
     }
 
+    /**
+     * get map default config values for map types (private/corp/ally)
+     * -> read from pathfinder.ini
+     * @param string $mapType
+     * @return array
+     */
+    static function getMapsDefaultConfig($mapType = ''){
+        $f3 = \Base::instance();
+        $hiveKey = 'PATHFINDER.MAP';
+        if( !empty($mapType) ){
+            $hiveKey .= '.' . strtoupper($mapType);
+        }
+        return Util::arrayChangeKeyCaseRecursive( $f3->get($hiveKey) );
+    }
+
+
 }
