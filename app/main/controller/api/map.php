@@ -9,6 +9,7 @@
 namespace Controller\Api;
 use Controller;
 use lib\Config;
+use lib\Socket;
 use Model;
 
 /**
@@ -396,10 +397,10 @@ class Map extends Controller\AccessController {
                         $maxShared = max($f3->get('PATHFINDER.MAP.PRIVATE.MAX_SHARED') - 1, 0);
                         $accessCharacters = array_slice($accessCharacters, 0, $maxShared);
 
-                        if($accessCharacters){
-                            // clear map access. In case something has removed from access list
-                            $map->clearAccess();
+                        // clear map access. In case something has removed from access list
+                        $map->clearAccess();
 
+                        if($accessCharacters){
                             /**
                              * @var $tempCharacter Model\CharacterModel
                              */
@@ -439,10 +440,10 @@ class Map extends Controller\AccessController {
                             $maxShared = max($f3->get('PATHFINDER.MAP.CORPORATION.MAX_SHARED') - 1, 0);
                             $accessCorporations = array_slice($accessCorporations, 0, $maxShared);
 
-                            if($accessCorporations){
-                                // clear map access. In case something has removed from access list
-                                $map->clearAccess();
+                            // clear map access. In case something has removed from access list
+                            $map->clearAccess();
 
+                            if($accessCorporations){
                                 /**
                                  * @var $tempCorporation Model\CorporationModel
                                  */
@@ -482,10 +483,10 @@ class Map extends Controller\AccessController {
                             $maxShared = max($f3->get('PATHFINDER.MAP.ALLIANCE.MAX_SHARED') - 1, 0);
                             $accessAlliances = array_slice($accessAlliances, 0, $maxShared);
 
-                            if($accessAlliances){
-                                // clear map access. In case something has removed from access list
-                                $map->clearAccess();
+                            // clear map access. In case something has removed from access list
+                            $map->clearAccess();
 
+                            if($accessAlliances){
                                 /**
                                  * @var $tempAlliance Model\AllianceModel
                                  */
@@ -512,7 +513,16 @@ class Map extends Controller\AccessController {
                 }
                 // reload the same map model (refresh)
                 // this makes sure all data is up2date
-                $map->getById( $map->id, 0 );
+                $map->getById( $map->_id, 0 );
+
+
+                $charactersData = $map->getCharactersData();
+                $characterIds = array_map(function ($data){
+                    return $data->id;
+                }, $charactersData);
+
+                // broadcast map Access -> and send map Data
+                $this->broadcastMapAccess($map, $characterIds);
 
                 $return->mapData = $map->getData();
             }else{
@@ -546,9 +556,77 @@ class Map extends Controller\AccessController {
          */
         $map = Model\BasicModel::getNew('MapModel');
         $map->getById($mapData['id']);
-        $map->delete( $activeCharacter );
+        $map->delete( $activeCharacter, function($mapId){
+            $this->broadcastMapDeleted($mapId);
+        });
 
         echo json_encode([]);
+    }
+
+    /**
+     * broadcast characters with map access rights to WebSocket server
+     * -> if characters with map access found -> broadcast mapData to them
+     * @param Model\MapModel $map
+     * @param array $characterIds
+     * @return int
+     */
+    protected function broadcastMapAccess($map, $characterIds){
+        $connectionCount = 0;
+
+        $mapAccess =  [
+            'id' => $map->_id,
+            'characterIds' => $characterIds
+        ];
+        $charCount = (int)(new Socket( Config::getSocketUri() ))->sendData('mapAccess', $mapAccess);
+
+        if($charCount > 0){
+            // map has active connections that should receive map Data
+            $connectionCount = $this->broadcastMapData($map);
+        }
+
+        return $connectionCount;
+    }
+
+    /**
+     * broadcast map delete information to clients
+     * @param int $mapId
+     * @return bool|string
+     */
+    protected function broadcastMapDeleted($mapId){
+        return (new Socket( Config::getSocketUri() ))->sendData('mapDeleted', $mapId);
+    }
+
+    /**
+     * get map access tokens for current character
+     * -> send access tokens via TCP Socket for WebSocket auth
+     * @param \Base $f3
+     */
+    public function getAccessData(\Base $f3){
+        $return = (object) [];
+
+        $activeCharacter = $this->getCharacter();
+        $maps = $activeCharacter->getMaps();
+
+        $return->data = [
+            'id' => $activeCharacter->_id,
+            'token' => bin2hex(random_bytes(16)), // token for character access
+            'mapData' => []
+        ];
+
+        if($maps){
+            foreach($maps as $map){
+                $return->data['mapData'][] = [
+                    'id' => $map->_id,
+                    'token' => bin2hex(random_bytes(16)) // token for map access
+                ];
+            }
+        }
+
+        // send Access Data to WebSocket Server and get response (status)
+        // if 'OK' -> Socket exists
+        $return->status = (new Socket( Config::getSocketUri() ))->sendData('mapConnectionAccess', $return->data);
+
+        echo json_encode( $return );
     }
 
     /**
@@ -603,6 +681,7 @@ class Map extends Controller\AccessController {
 
                     // loop current user maps and check for changes
                     foreach($maps as $map){
+                        $mapChanged = false;
 
                         // update system data ---------------------------------------------------------------------
                         foreach($systems as $i => $systemData){
@@ -630,6 +709,8 @@ class Map extends Controller\AccessController {
                                     $system->setData($systemData);
                                     $system->updatedCharacterId = $activeCharacter;
                                     $system->save();
+
+                                    $mapChanged = true;
 
                                     // a system belongs to ONE  map -> speed up for multiple maps
                                     unset($systemData[$i]);
@@ -663,17 +744,23 @@ class Map extends Controller\AccessController {
                                     $connection->setData($connectionData);
                                     $connection->save();
 
+                                    $mapChanged = true;
+
                                     // a connection belongs to ONE  map -> speed up for multiple maps
                                     unset($connectionData[$i]);
                                 }
                             }
+                        }
+
+                        if($mapChanged){
+                            $this->broadcastMapData($map);
                         }
                     }
                 }
             }
 
             // format map Data for return
-            $return->mapData = self::getFormattedMapData($maps);
+            $return->mapData = $this->getFormattedMapsData($maps);
 
             // cache time(s) per user should be equal or less than this function is called
             // prevent request flooding
@@ -696,23 +783,13 @@ class Map extends Controller\AccessController {
 
     /**
      * get formatted map data
-     * @param $mapModels
+     * @param Model\MapModel[] $mapModels
      * @return array
      */
-    public static function getFormattedMapData($mapModels){
+    protected function getFormattedMapsData($mapModels){
         $mapData = [];
-        foreach($mapModels as &$mapModel){
-            /**
-             * @var $mapModel Model\MapModel
-             */
-            $allMapData = $mapModel->getData();
-            $mapData[] = [
-                'config' => $allMapData->mapData,
-                'data' => [
-                    'systems' => $allMapData->systems,
-                    'connections' => $allMapData->connections,
-                ]
-            ];
+        foreach($mapModels as $mapModel){
+            $mapData[] = $this->getFormattedMapData($mapModel);
         }
 
         return $mapData;

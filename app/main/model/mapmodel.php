@@ -15,6 +15,11 @@ class MapModel extends BasicModel {
 
     protected $table = 'map';
 
+    /**
+     * cache key prefix for getCharactersData();
+     */
+    const DATA_CACHE_KEY_CHARACTER = 'CHARACTERS';
+
     protected $fieldConf = [
         'active' => [
             'type' => Schema::DT_BOOL,
@@ -157,7 +162,7 @@ class MapModel extends BasicModel {
 
             // map access
             $mapData->access = (object) [];
-            $mapData->access->user = [];
+            $mapData->access->character = [];
             $mapData->access->corporation = [];
             $mapData->access->alliance = [];
 
@@ -231,6 +236,16 @@ class MapModel extends BasicModel {
      */
     public function afterEraseEvent($self, $pkeys){
         $self->clearCacheData();
+    }
+
+    /**
+     * see parent
+     */
+    public function clearCacheData(){
+        parent::clearCacheData();
+
+        // clear character data with map access as well!
+        parent::clearCacheDataWithPrefix(self::DATA_CACHE_KEY_CHARACTER);
     }
 
     /**
@@ -354,6 +369,24 @@ class MapModel extends BasicModel {
         }
 
         return $systemData;
+    }
+
+    /**
+     * search for a connection by id
+     * @param int $id
+     * @return null|ConnectionModel
+     */
+    public function getConnectionById($id){
+        /**
+         * @var $connection ConnectionModel
+         */
+        $connection = $this->rel('connections');
+        $result = $connection->findone([
+            'active = 1 AND mapId = :mapId AND id = :id',
+            ':mapId' => $this->id,
+            ':id' => $id
+        ]);
+        return is_object($result) ? $result : null;
     }
 
     /**
@@ -535,7 +568,7 @@ class MapModel extends BasicModel {
      * get all character models that are currently online "viewing" this map
      * @return CharacterModel[]
      */
-    private function getActiveCharacters(){
+    private function getAllCharacters(){
         $characters = [];
 
         if($this->isPrivate()){
@@ -563,17 +596,17 @@ class MapModel extends BasicModel {
     }
 
     /**
-     * get data for all characters that are currently online "viewing" this map
+     * get data for ALL characters with map access
      * -> The result of this function is cached!
      * @return \stdClass[]
      */
-    private function getCharactersData(){
+    public function getCharactersData(){
         // check if there is cached data
-        $charactersData = $this->getCacheData('CHARACTERS');
+        $charactersData = $this->getCacheData(self::DATA_CACHE_KEY_CHARACTER);
 
         if(is_null($charactersData)){
             $charactersData = [];
-            $characters = $this->getActiveCharacters();
+            $characters = $this->getAllCharacters();
 
             foreach($characters as $character){
                 $charactersData[] = $character->getData(true);
@@ -581,7 +614,7 @@ class MapModel extends BasicModel {
 
             // cache active characters (if found)
             if(!empty($charactersData)){
-                $this->updateCacheData($charactersData, 'CHARACTERS', 5);
+                $this->updateCacheData($charactersData, self::DATA_CACHE_KEY_CHARACTER, 5);
             }
         }
 
@@ -631,13 +664,20 @@ class MapModel extends BasicModel {
     /**
      * delete this map and all dependencies
      * @param CharacterModel $characterModel
+     * @param null $callback
      */
-    public function delete(CharacterModel $characterModel){
+    public function delete(CharacterModel $characterModel, $callback = null){
+
         if( !$this->dry() ){
             // check if character has access
             if($this->hasAccess($characterModel)){
                 // all map related tables will be deleted on cascade
-                $this->erase();
+                if(
+                    $this->erase() &&
+                    is_callable($callback)
+                ){
+                    $callback($this->_id);
+                }
             }
         }
     }

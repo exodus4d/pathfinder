@@ -189,6 +189,9 @@ class Setup extends Controller {
         // set database connection information
         $f3->set('checkDatabase', $this->checkDatabase($f3, $fixColumns));
 
+        // set socket information
+        $f3->set('socketInformation', $this->getSocketInformation());
+
         // set index information
         $f3->set('indexInformation', $this->getIndexData());
 
@@ -903,6 +906,66 @@ class Setup extends Controller {
             }
         }
         return $checkTables;
+    }
+
+    /**
+     * get Socket information (TCP (internal)), (WebSocket (clients))
+     * @return array
+     */
+    protected function getSocketInformation(){
+        // $ttl for health check
+        $ttl = 600;
+
+        $socketInformation = [
+            'tcpSocket' => [
+                'label' => 'Socket (intern) [TCP]',
+                'online' => (self::checkTcpSocket($ttl) == '1'),
+                'data' => [
+                    [
+                        'label' => 'HOST',
+                        'value' => Config::getEnvironmentData('SOCKET_HOST'),
+                        'check' => !empty( Config::getEnvironmentData('SOCKET_HOST') )
+                    ],[
+                        'label' => 'PORT',
+                        'value' => Config::getEnvironmentData('SOCKET_PORT'),
+                        'check' => !empty( Config::getEnvironmentData('SOCKET_PORT') )
+                    ],[
+                        'label' => 'URI',
+                        'value' => Config::getSocketUri(),
+                        'check' => !empty( Config::getSocketUri() )
+                    ],[
+                        'label' => 'timeout (ms)',
+                        'value' => $ttl,
+                        'check' => !empty( $ttl )
+                    ]
+                ]
+            ],
+            'webSocket' => [
+                'label' => 'WebSocket (clients) [HTTP]',
+                'online' => true,
+                'data' => [
+                    [
+                        'label' => 'HOST',
+                        'value' => 'pathfinder.local',
+                        'check' => true
+                    ],[
+                        'label' => 'PORT',
+                        'value' => 80,
+                        'check' => true
+                    ],[
+                        'label' => 'URI',
+                        'value' => 'ws://pathfinder.local/ws/map/update',
+                        'check' => true
+                    ],[
+                        'label' => 'timeout (ms)',
+                        'value' => $ttl,
+                        'check' => !empty( $ttl )
+                    ]
+                ]
+            ]
+        ];
+
+        return $socketInformation;
     }
 
     /** get indexed (cache) data information

@@ -273,6 +273,9 @@ class System extends Controller\AccessController {
                 $newSystemModel->getById( $systemModel->id, 0);
                 $newSystemModel->clearCacheData();
                 $newSystemData = $newSystemModel->getData();
+
+                // broadcast map changes
+                $this->broadcastMapData($newSystemModel->mapId);
             }
         }
 
@@ -408,29 +411,41 @@ class System extends Controller\AccessController {
      * @param \Base $f3
      */
     public function delete(\Base $f3){
+        $mapId = (int)$f3->get('POST.mapId');
         $systemIds = (array)$f3->get('POST.systemIds');
-        $activeCharacter = $this->getCharacter();
 
-        /**
-         * @var Model\SystemModel $system
-         */
-        $system = Model\BasicModel::getNew('SystemModel');
-        foreach($systemIds as $systemId){
-            $system->getById($systemId);
-            if( $system->hasAccess($activeCharacter) ){
-                // check whether system should be deleted OR set "inactive"
-                if(
-                    empty($system->alias) &&
-                    empty($system->description)
-                ){
-                    $system->erase();
-                }else{
-                    // keep data -> set "inactive"
-                    $system->setActive(false);
-                    $system->save();
+        if($mapId){
+            $activeCharacter = $this->getCharacter();
+
+            /**
+             * @var Model\MapModel $map
+             */
+            $map = Model\BasicModel::getNew('MapModel');
+            $map->getById($mapId);
+
+            if( $map->hasAccess($activeCharacter) ){
+                foreach($systemIds as $systemId){
+                    if( $system = $map->getSystemById($systemId) ){
+                        // check whether system should be deleted OR set "inactive"
+                        if(
+                            empty($system->alias) &&
+                            empty($system->description)
+                        ){
+                            $system->erase();
+                        }else{
+                            // keep data -> set "inactive"
+                            $system->setActive(false);
+                            $system->save();
+                        }
+
+                        $system->reset();
+                    }
                 }
-                $system->reset();
+
+                // broadcast map changes
+                $this->broadcastMapData($map);
             }
+
         }
 
         echo json_encode([]);

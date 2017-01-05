@@ -7,7 +7,9 @@
  */
 
 namespace Controller;
-use Controller\Api as Api;
+
+use lib\Config;
+use lib\Socket;
 use Model;
 
 class AccessController extends Controller {
@@ -38,6 +40,34 @@ class AccessController extends Controller {
             // die() triggers unload() function
             die();
         }
+    }
+
+    /**
+     * broadcast map data to clients
+     * -> send over TCP Socket
+     * @param Model\MapModel $map
+     * @return int (number of active connections for this map)
+     */
+    protected function broadcastMapData(Model\MapModel $map){
+        $mapData = $this->getFormattedMapData($map);
+        return (int)(new Socket( Config::getSocketUri() ))->sendData('mapUpdate', $mapData);
+    }
+
+    /**
+     * get formatted Map Data
+     * @param Model\MapModel $map
+     * @return array
+     */
+    protected function getFormattedMapData(Model\MapModel $map){
+        $mapData = $map->getData();
+
+        return [
+            'config' => $mapData->mapData,
+            'data' => [
+                'systems' => $mapData->systems,
+                'connections' => $mapData->connections,
+            ]
+        ];
     }
 
 }

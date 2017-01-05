@@ -179,5 +179,22 @@ class Config extends \Prefab {
         return Util::arrayChangeKeyCaseRecursive( $f3->get($hiveKey) );
     }
 
+    /**
+     * get URI for TCP socket
+     * @return bool|string
+     */
+    static function getSocketUri(){
+        $uri = false;
+
+        if(
+            ( $ip = self::getEnvironmentData('SOCKET_HOST') ) &&
+            ( $port = self::getEnvironmentData('SOCKET_PORT') )
+        ){
+            $uri = 'tcp://' . $ip . ':' . $port;
+        }
+
+        return $uri;
+    }
+
 
 }

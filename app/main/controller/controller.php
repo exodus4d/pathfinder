@@ -10,6 +10,7 @@ namespace Controller;
 use Controller\Api as Api;
 use Controller\Ccp\Sso as Sso;
 use lib\Config;
+use lib\Socket;
 use Model;
 use DB;
 
@@ -447,10 +448,6 @@ class Controller {
         return $user;
     }
 
-    public function getCharacterSessionData(){
-
-    }
-
     /**
      * log out current character
      * @param \Base $f3
@@ -458,14 +455,16 @@ class Controller {
     public function logout(\Base $f3){
         $params = (array)$f3->get('POST');
 
-        // ----------------------------------------------------------
-        // delete server side cookie validation data
-        // for the active character
-        if(
-            $params['clearCookies'] === '1' &&
-            ( $activeCharacter = $this->getCharacter())
-        ){
-            $activeCharacter->logout();
+        if( $activeCharacter = $this->getCharacter() ){
+
+            if($params['clearCookies'] === '1'){
+                // delete server side cookie validation data
+                // for the active character
+                $activeCharacter->logout();
+            }
+
+            // broadcast logout information to webSocket server
+            (new Socket( Config::getSocketUri() ))->sendData('characterLogout', $activeCharacter->_id);
         }
 
         // destroy session login data -------------------------------
@@ -806,6 +805,15 @@ class Controller {
      */
     static function getEnvironmentData($key){
         return Config::getEnvironmentData($key);
+    }
+
+    /**
+     * health check for ICP socket -> ping request
+     * @param $ttl
+     * @return bool|string
+     */
+    static function checkTcpSocket($ttl){
+        return (new Socket( Config::getSocketUri(), $ttl ))->sendData('healthCheck');
     }
 
     /**
