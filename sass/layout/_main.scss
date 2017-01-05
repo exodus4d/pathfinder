@@ -185,7 +185,7 @@ select:active, select:hover {
   }
 }
 
-// global datatable styles ========================================================================
+// global dataTable styles ========================================================================
 .dataTable{
 
   th{
@@ -394,6 +394,10 @@ table{
   @extend .txt-color-red;
 }
 
+// timestamp counter ==============================================================================
+.pf-timestamp-counter{
+  visibility: hidden; // show by JS
+}
 // map types ======================================================================================
 .pf-map-type-private{
   color: $indigo;
@@ -919,6 +923,13 @@ td.pf-popover-trigger{
   }
 }
 
+.pf-notransition {
+  -webkit-transition: none !important;
+  -moz-transition: none !important;
+  -o-transition: none !important;
+  transition: none !important;
+}
+
 // dynamic area (e.g. for loading animation) ======================================================
 .pf-dynamic-area{
   padding: 10px;
@@ -933,6 +944,10 @@ td.pf-popover-trigger{
 
     dd{
       min-width: 100px;
+
+      &.txt-color{
+        font-weight: bold;
+      }
     }
   }
 }

@@ -373,7 +373,7 @@ $mapWidth: 2500px ;
   svg.jsplumb-connector{
     cursor: pointer;
     stroke-linecap: round; // line endings
-    @include transition( stroke 0.18s ease-out) ;
+    @include transition( stroke 0.18s ease-out);
     will-change: all;
 
     path{

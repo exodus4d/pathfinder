@@ -133,6 +133,13 @@
   width: 270px !important;
 }
 
+// task-manager dialog ========================================================
+#pf-task-dialog{
+  .pf-task-dialog-status{
+    min-height: auto;
+  }
+}
+
 // credits dialog =============================================================
 .pf-credits-dialog{
 
