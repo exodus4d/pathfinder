@@ -790,6 +790,59 @@
 
         </div>
 
+        <h4><i class="fa fa-fw fa-exchange"></i> Socket configuration <span class="txt-color txt-color-gray">[advanced]</span></h4>
+
+        <div class="row text-center">
+
+            <repeat group="{{ @socketInformation }}" value="{{ @socketData }}">
+                <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
+                    <div class="panel panel-default pricing-big">
+                        <div class="panel-heading text-left">
+                            <h3 class="panel-title">{{ @socketData.label }}</h3>
+                        </div>
+
+                        <div class="panel-body no-padding text-left">
+                            <table class="table">
+                                <thead>
+                                    <repeat group="{{ @socketData.data }}" value="{{ @entry }}">
+                                        <tr>
+                                            <td>{{ @entry.label }}</td>
+                                            <td class="text-right col-md-8">
+                                                <kbd>{{@entry.value | raw}}</kbd>
+                                            </td>
+                                            <td class="text-right col-md-1">
+                                                <check if="{{ @entry.check }}">
+                                                    <true>
+                                                        <i class="fa fa-lg fa-fw fa-check txt-color txt-color-success"></i>
+                                                    </true>
+                                                    <false>
+                                                        <i class="fa fa-lg fa-fw fa-warning txt-color txt-color-warning"></i>
+                                                    </false>
+                                                </check>
+                                            </td>
+                                        </tr>
+                                    </repeat>
+                                </thead>
+                            </table>
+                        </div>
+
+                        <div class="panel-footer text-align-center">
+                            <check if="{{ @socketData.online }}">
+                                <true>
+                                    <h3 class="panel-title txt-color txt-color-green">ONLINE</h3>
+                                </true>
+                                <false>
+                                    <h3 class="panel-title txt-color txt-color-danger">OFFLINE</h3>
+                                </false>
+                            </check>
+                        </div>
+
+                    </div>
+                </div>
+            </repeat>
+
+        </div>
+
         <h4 id="pf-setup-administration"><i class="fa fa-fw fa-wrench"></i> Administration</h4>
 
         <div class="row text-center">
