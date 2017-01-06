@@ -878,8 +878,8 @@ class Map extends Controller\AccessController {
      */
     protected function updateMapData(Model\CharacterModel $character, Model\MapModel $map){
 
-        // update "map data" cache in case of map (system/connection) changes
-        $clearMapDataCache = false;
+        // map changed. update cache (system/connection) changed
+        $mapDataChanged = false;
 
         if(
             ( $mapScope = $map->getScope() ) &&
@@ -1013,7 +1013,7 @@ class Map extends Controller\AccessController {
                     if($sourceSystem){
                         $map = $sourceSystem->mapId;
                         $sourceExists = true;
-                        $clearMapDataCache = true;
+                        $mapDataChanged = true;
                         // increase system position (prevent overlapping)
                         $systemPosX = $sourceSystem->posX + $systemOffsetX;
                         $systemPosY = $sourceSystem->posY + $systemOffsetY;
@@ -1030,7 +1030,7 @@ class Map extends Controller\AccessController {
                     // get updated maps object
                     if($targetSystem){
                         $map = $targetSystem->mapId;
-                        $clearMapDataCache = true;
+                        $mapDataChanged = true;
                         $targetExists = true;
                     }
                 }
@@ -1049,14 +1049,15 @@ class Map extends Controller\AccessController {
                     // get updated maps object
                     if($connection){
                         $map = $connection->mapId;
-                        $clearMapDataCache = true;
+                        $mapDataChanged = true;
                     }
                 }
             }
         }
 
-        if($clearMapDataCache){
+        if($mapDataChanged){
             $this->clearMapDataCache($character);
+            $this->broadcastMapData($map);
         }
 
         return $map;
