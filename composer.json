@@ -1,0 +1,22 @@
+{
+  "name": "exodus4d/pathfinder",
+  "description": "Mapping tool for EVE ONLINE",
+  "minimum-stability": "stable",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Mark Friedrich",
+      "email": "pathfinder@exodus4d.de"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Exodus4D\\Pathfinder\\": "app/main"
+    }
+  },
+  "require": {
+    "php-64bit": ">=7.0",
+    "ext-zmq": "1.1.*",
+    "react/zmq": "0.3.*"
+  }
+}

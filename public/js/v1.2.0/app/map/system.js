@@ -12,7 +12,7 @@ define([
 ], ($, Init, Util, bootbox, MapUtil) => {
     'use strict';
 
-    var config = {
+    let config = {
         systemActiveClass: 'pf-system-active'                           // class for an active system in a map
     };
 
@@ -22,13 +22,13 @@ define([
      */
     $.fn.showRallyPointDialog = (system) => {
         requirejs(['text!templates/dialog/system_rally.html', 'mustache'], function(template, Mustache) {
-            var data = {
+            let data = {
                 notificationStatus: Init.notificationStatus.rallySet
             };
 
-            var content = Mustache.render(template, data);
+            let content = Mustache.render(template, data);
 
-            var rallyDialog = bootbox.dialog({
+            let rallyDialog = bootbox.dialog({
                 message: content,
                 title: 'Set rally point for "' + system.getSystemInfo( ['alias'] ) + '"',
                 buttons: {
@@ -66,9 +66,9 @@ define([
      * @returns {*}
      */
     $.fn.showDeleteSystemDialog = (map, systems = []) => {
-        var mapContainer = $( map.getContainer() );
-        var validDeleteSystems = [];
-        var activeCharacters = 0;
+        let mapContainer = $( map.getContainer() );
+        let validDeleteSystems = [];
+        let activeCharacters = 0;
         // check if systems belong to map -> security check
         for (let system of systems) {
             let systemElement = $(system);
@@ -84,13 +84,13 @@ define([
         }
 
         if(validDeleteSystems.length){
-            var msg = '';
+            let msg = '';
             if(validDeleteSystems.length === 1){
-                var deleteSystem = $(validDeleteSystems[0]);
-                var systemName = deleteSystem.data('name');
-                var systemAlias = deleteSystem.getSystemInfo( ['alias'] );
+                let deleteSystem = $(validDeleteSystems[0]);
+                let systemName = deleteSystem.data('name');
+                let systemAlias = deleteSystem.getSystemInfo( ['alias'] );
 
-                var systemNameStr = (systemName === systemAlias) ? '"' + systemName + '"' : '"' + systemAlias + '" (' + systemName + ')';
+                let systemNameStr = (systemName === systemAlias) ? '"' + systemName + '"' : '"' + systemAlias + '" (' + systemName + ')';
                 systemNameStr = '<span class="txt-color txt-color-warning">' + systemNameStr + '</span>';
                 msg = 'Delete system ' + systemNameStr + ' and all its connections?';
             }else{
@@ -102,7 +102,7 @@ define([
                 msg += ' <span class="txt-color txt-color-warning">Warning: ' + activeCharacters + ' active characters</span>';
             }
 
-            var systemDeleteDialog = bootbox.confirm(msg, result => {
+            let systemDeleteDialog = bootbox.confirm(msg, result => {
                 if(result){
                     deleteSystems(map, validDeleteSystems, (systems) => {
                         // callback function after deleted -> close dialog
@@ -130,14 +130,14 @@ define([
      * @param systems
      * @param callback function
      */
-    var deleteSystems = (map, systems = [], callback = (systems) => {}) => {
-        var mapContainer = $( map.getContainer() );
-        mapContainer.getMapOverlay('timer').startMapUpdateCounter();
+    let deleteSystems = (map, systems = [], callback = (systems) => {}) => {
+        let mapContainer = $( map.getContainer() );
 
         $.ajax({
             type: 'POST',
             url: Init.path.deleteSystem,
             data: {
+                mapId: mapContainer.data('id'),
                 systemIds: systems.map( system => $(system).data('id') )
             },
             dataType: 'json',
@@ -151,7 +151,7 @@ define([
 
             callback(this.systems);
         }).fail(function(jqXHR, status, error) {
-            var reason = status + ' ' + error;
+            let reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': deleteSystem', text: reason, type: 'warning'});
             $(document).setProgramStatus('problem');
         });
@@ -162,9 +162,9 @@ define([
      * @param map
      * @param systems
      */
-    var removeSystems = (map, systems) => {
+    let removeSystems = (map, systems) => {
 
-        var removeSystemCallbak = function(deleteSystem){
+        let removeSystemCallbak = function(deleteSystem){
             map.remove(deleteSystem);
         };
 
@@ -174,7 +174,7 @@ define([
             // check if system is "active"
             if( system.hasClass(config.systemActiveClass) ){
                 // get parent Tab Content and fire clear modules event
-                var tabContentElement = MapUtil.getTabContentElementByMapElement( system );
+                let tabContentElement = MapUtil.getTabContentElementByMapElement( system );
                 $(tabContentElement).trigger('pf:removeSystemModules');
             }
 

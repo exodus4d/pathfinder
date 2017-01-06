@@ -21,7 +21,7 @@ define([
 
     'use strict';
 
-    var config = {
+    let config = {
         ajaxOverlayClass: 'pf-loading-overlay',
         ajaxOverlayWrapperClass: 'pf-loading-overlay-wrapper',
 
@@ -62,11 +62,11 @@ define([
 
     };
 
-    var stopTimerCache = {};                                                    // cache for stopwatch timer
+    let stopTimerCache = {};                                                    // cache for stopwatch timer
 
-    var animationTimerCache = {};                                               // cache for table row animation timeout
+    let animationTimerCache = {};                                               // cache for table row animation timeout
 
-    var localStorage;                                                           // cache for "localForage" singleton
+    let localStorage;                                                           // cache for "localForage" singleton
 
     /*
      *  ===========================================================================================================
@@ -78,9 +78,9 @@ define([
      * displays a loading indicator on an element
      */
     $.fn.showLoadingAnimation = function(options){
-        var loadingElement = $(this);
+        let loadingElement = $(this);
 
-        var iconSize = 'fa-lg';
+        let iconSize = 'fa-lg';
 
         // disable all events
         loadingElement.css('pointer-events', 'none');
@@ -93,7 +93,7 @@ define([
             }
         }
 
-        var overlay = $('<div>', {
+        let overlay = $('<div>', {
             class: config.ajaxOverlayClass
         }).append(
             $('<div>', {
@@ -111,7 +111,7 @@ define([
         $(overlay).velocity({
             opacity: 0.6
         },{
-            duration: 180
+            duration: 120
         });
     };
 
@@ -119,8 +119,8 @@ define([
      * removes a loading indicator
      */
     $.fn.hideLoadingAnimation = function(){
-        var loadingElement = $(this);
-        var overlay = loadingElement.find('.' + config.ajaxOverlayClass );
+        let loadingElement = $(this);
+        let overlay = loadingElement.find('.' + config.ajaxOverlayClass );
 
         // important: "stop" is required to stop "show" animation
         // -> otherwise "complete" callback is not fired!
@@ -138,7 +138,7 @@ define([
      * @param callback
      */
     $.fn.showSplashOverlay = function(callback){
-        var splashOverlay = $(this);
+        let splashOverlay = $(this);
 
         splashOverlay.velocity('fadeIn', {
             duration: Init.animationSpeed.splashOverlay,
@@ -155,7 +155,7 @@ define([
      * hide "splash" loading overlay
      */
     $.fn.hideSplashOverlay = function(){
-        var splashOverlay = $(this);
+        let splashOverlay = $(this);
 
         splashOverlay.velocity('fadeOut', {
             duration: Init.animationSpeed.splashOverlay
@@ -170,8 +170,8 @@ define([
      */
     $.fn.showCaptchaImage = function(reason, callback){
         return this.each(function(){
-            var captchaWrapper = $(this);
-            var captchaImage = captchaWrapper.find('img');
+            let captchaWrapper = $(this);
+            let captchaImage = captchaWrapper.find('img');
 
             captchaWrapper.showLoadingAnimation(config.loadingOptions);
             getCaptchaImage(reason, function(base64Image){
@@ -192,9 +192,10 @@ define([
 
     /**
      * request a captcha image
+     * @param reason
      * @param callback
      */
-    var getCaptchaImage = function(reason, callback){
+    let getCaptchaImage = function(reason, callback){
 
         $.ajax({
             type: 'POST',
@@ -210,7 +211,7 @@ define([
                 callback(responseData.img);
             }
         }).fail(function( jqXHR, status, error) {
-            var reason = status + ' ' + error;
+            let reason = status + ' ' + error;
             showNotify({title: jqXHR.status + ': getCaptchaImage', text: reason, type: 'error'});
         });
 
@@ -222,7 +223,7 @@ define([
      */
     $.fn.resetFormFields = function(){
         return this.each(function(){
-            var field = $(this);
+            let field = $(this);
 
             if( !field.is('select') ){
                 // "input"
@@ -240,12 +241,12 @@ define([
      */
     $.fn.showFormMessage = function(errors){
 
-        var formElement = $(this);
+        let formElement = $(this);
 
-        var errorMessage = [];
-        var warningMessage = [];
-        var infoMessage = [];
-        for(var i = 0; i < errors.length; i++){
+        let errorMessage = [];
+        let warningMessage = [];
+        let infoMessage = [];
+        for(let i = 0; i < errors.length; i++){
             if(errors[i].type === 'error'){
                 errorMessage.push( errors[i].message );
 
@@ -254,7 +255,7 @@ define([
                     errors[i].field &&
                     errors[i].field.length > 0
                 ){
-                    var formField = formElement.find('[name="' + errors[i].field + '"]');
+                    let formField = formElement.find('[name="' + errors[i].field + '"]');
                     formField.parents('.form-group').removeClass('has-success').addClass('has-error');
                 }
 
@@ -294,9 +295,9 @@ define([
      */
     $.fn.hideFormMessage = function(type, callback){
 
-        var formElement = $(this);
+        let formElement = $(this);
 
-        var settingsMessageVelocityOptions = $.extend({}, config.settingsMessageVelocityOptions);
+        let settingsMessageVelocityOptions = $.extend({}, config.settingsMessageVelocityOptions);
 
         // check if callback exists
         if(callback !== undefined){
@@ -306,7 +307,7 @@ define([
             settingsMessageVelocityOptions.display = 'block';
         }
 
-        var messageElement = null;
+        let messageElement = null;
 
         switch(type){
             case 'error':
@@ -346,22 +347,22 @@ define([
         options = (typeof options === 'undefined')? {} : options;
 
         return this.each(function(){
-            var form = $(this);
+            let form = $(this);
 
             // init form validation
             form.validator(options);
 
             // validation event listener
             form.on('valid.bs.validator', function(validatorObj){
-                var inputGroup = $(validatorObj.relatedTarget).parents('.form-group');
+                let inputGroup = $(validatorObj.relatedTarget).parents('.form-group');
                 if(inputGroup){
                     inputGroup.removeClass('has-error').addClass('has-success');
                 }
             });
 
             form.on('invalid.bs.validator', function(validatorObj){
-                var field = $(validatorObj.relatedTarget);
-                var inputGroup = field.parents('.form-group');
+                let field = $(validatorObj.relatedTarget);
+                let inputGroup = field.parents('.form-group');
                 if(inputGroup){
                     inputGroup.removeClass('has-success').addClass('has-error');
                 }
@@ -375,10 +376,10 @@ define([
      * @returns {boolean}
      */
     $.fn.isValidForm = function(){
-        var form = $(this);
-        var valid = false;
+        let form = $(this);
+        let valid = false;
 
-        var errorElements =  form.find('.has-error');
+        let errorElements =  form.find('.has-error');
 
         if(errorElements.length === 0){
             valid = true;
@@ -393,9 +394,9 @@ define([
      * @returns {{}}
      */
     $.fn.getFormValues = function(){
-        var form = $(this);
-        var formData = {};
-        var values = form.serializeArray();
+        let form = $(this);
+        let formData = {};
+        let values = form.serializeArray();
 
         // add "unchecked" checkboxes as well
         values = values.concat(
@@ -411,7 +412,7 @@ define([
 
             if(field.name.indexOf('[]') !== -1){
                 // array field
-                var key = field.name.replace('[]', '');
+                let key = field.name.replace('[]', '');
                 if( !$.isArray(formData[key]) ){
                     formData[key] = [];
                 }
@@ -423,7 +424,7 @@ define([
         }
 
         // get xEditable values
-        var editableValues = form.find('.' + config.formEditableFieldClass).editable('getValue');
+        let editableValues = form.find('.' + config.formEditableFieldClass).editable('getValue');
 
         // merge values
         formData = $.extend(formData, editableValues);
@@ -437,15 +438,15 @@ define([
      */
     $.fn.isInViewport = function(){
 
-        var visibleElement = [];
+        let visibleElement = [];
 
         this.each(function(){
-            var element = $(this)[0];
+            let element = $(this)[0];
 
-            var top = element.offsetTop;
-            var left = element.offsetLeft;
-            var width = element.offsetWidth;
-            var height = element.offsetHeight;
+            let top = element.offsetTop;
+            let left = element.offsetLeft;
+            let width = element.offsetWidth;
+            let height = element.offsetHeight;
 
             while(element.offsetParent) {
                 element = element.offsetParent;
@@ -471,12 +472,12 @@ define([
      */
     $.fn.initMapUpdateCounter = function(){
 
-        var counterChart = $(this);
+        let counterChart = $(this);
 
         counterChart.easyPieChart({
             barColor: function(percent){
 
-                var color = '#568a89';
+                let color = '#568a89';
                 if(percent <= 30){
                     color = '#d9534f';
                 }else if(percent <= 50){
@@ -503,14 +504,14 @@ define([
 
         options = (typeof options === 'object') ? options : {};
 
-        var defaultOptions = {
+        let defaultOptions = {
             container:  this,
             delay: 100
         };
         options = $.extend(defaultOptions, options);
 
         return this.each(function(){
-            var tooltipElements = $(this).find('[title]');
+            let tooltipElements = $(this).find('[title]');
             tooltipElements.tooltip('destroy').tooltip(options);
         });
     };
@@ -520,14 +521,14 @@ define([
      * @param tooltipData
      */
     $.fn.addCharacterInfoTooltip = function(tooltipData){
-        var element = $(this);
+        let element = $(this);
 
         if(
             tooltipData.created.character &&
             tooltipData.updated.character
         ){
-            var createdData = tooltipData.created;
-            var updatedData = tooltipData.updated;
+            let createdData = tooltipData.created;
+            let updatedData = tooltipData.updated;
 
             // check if data has changed
             if(
@@ -539,16 +540,16 @@ define([
                 element.data('created', createdData.created);
                 element.data('updated', updatedData.updated);
 
-                var statusCreatedClass = getStatusInfoForCharacter(createdData.character, 'class');
-                var statusUpdatedClass = getStatusInfoForCharacter(updatedData.character, 'class');
+                let statusCreatedClass = getStatusInfoForCharacter(createdData.character, 'class');
+                let statusUpdatedClass = getStatusInfoForCharacter(updatedData.character, 'class');
 
                 // convert timestamps
-                var dateCreated = new Date(createdData.created * 1000);
-                var dateUpdated = new Date(updatedData.updated * 1000);
-                var dateCreatedUTC = convertDateToUTC(dateCreated);
-                var dateUpdatedUTC = convertDateToUTC(dateUpdated);
+                let dateCreated = new Date(createdData.created * 1000);
+                let dateUpdated = new Date(updatedData.updated * 1000);
+                let dateCreatedUTC = convertDateToUTC(dateCreated);
+                let dateUpdatedUTC = convertDateToUTC(dateUpdated);
 
-                var data = {
+                let data = {
                     created: createdData,
                     updated: updatedData,
                     createdTime: convertDateToString(dateCreatedUTC),
@@ -558,7 +559,7 @@ define([
                 };
 
                 requirejs(['text!templates/tooltip/character_info.html', 'mustache'], function(template, Mustache) {
-                    var content = Mustache.render(template, data);
+                    let content = Mustache.render(template, data);
 
                     element.popover({
                         placement: 'top',
@@ -574,7 +575,7 @@ define([
                     });
 
                     // set new popover content
-                    var popover = element.data('bs.popover');
+                    let popover = element.data('bs.popover');
                     popover.options.content = content;
                 });
 
@@ -587,12 +588,12 @@ define([
      * @param userData
      */
     $.fn.initCharacterSwitchPopover = function(userData){
-        var elements = $(this);
-        var eventNamespace = 'hideCharacterPopup';
+        let elements = $(this);
+        let eventNamespace = 'hideCharacterPopup';
 
         requirejs(['text!templates/tooltip/character_switch.html', 'mustache'], function (template, Mustache) {
 
-            var data = {
+            let data = {
                 id: config.headCharacterSwitchId,
                 routes:  Init.routes,
                 userData: userData,
@@ -602,10 +603,10 @@ define([
                 })
             };
 
-            var content = Mustache.render(template, data);
+            let content = Mustache.render(template, data);
 
             return elements.each(function() {
-                var element = $(this);
+                let element = $(this);
 
                 // check if tooltip already exists -> remove it
                 if(element.data('bs.popover') !== undefined){
@@ -616,11 +617,11 @@ define([
                     e.preventDefault();
                     e.stopPropagation();
 
-                    var easeEffect = $(this).attr('data-easein');
-                    var popoverData = $(this).data('bs.popover');
-                    var popoverElement = null;
+                    let easeEffect = $(this).attr('data-easein');
+                    let popoverData = $(this).data('bs.popover');
+                    let popoverElement = null;
 
-                    var velocityOptions = {
+                    let velocityOptions = {
                         duration: Init.animationSpeed.dialogEvents
                     };
 
@@ -670,7 +671,7 @@ define([
             $('body').off('click.' + eventNamespace).on('click.' + eventNamespace + ' contextmenu', function (e) {
 
                 $('.' + config.popoverTriggerClass).each(function () {
-                    var popoverElement = $(this);
+                    let popoverElement = $(this);
                     //the 'is' for buttons that trigger popups
                     //the 'has' for icons within a button that triggers a popup
                     if(
@@ -678,7 +679,7 @@ define([
                         popoverElement.has(e.target).length === 0 &&
                         $('.popover').has(e.target).length === 0
                     ){
-                        var popover = popoverElement.data('bs.popover');
+                        let popover = popoverElement.data('bs.popover');
 
                         if(
                             popover !== undefined &&
@@ -699,10 +700,10 @@ define([
      */
     $.fn.addWormholeInfoTooltip = function(tooltipData){
         return this.each(function() {
-            var element = $(this);
+            let element = $(this);
 
             requirejs(['text!templates/tooltip/wormhole_info.html', 'mustache'], function (template, Mustache) {
-                var content = Mustache.render(template, tooltipData);
+                let content = Mustache.render(template, tooltipData);
 
                 element.popover({
                     placement: 'top',
@@ -719,7 +720,7 @@ define([
                 });
 
                 // set new popover content
-                var popover = element.data('bs.popover');
+                let popover = element.data('bs.popover');
                 popover.options.content = content;
             });
         });
@@ -731,12 +732,12 @@ define([
      * @param config
      */
     $.fn.showMessage = function(config){
-        var containerElement = $(this);
+        let containerElement = $(this);
 
         requirejs(['text!templates/form/message.html', 'mustache'], function(template, Mustache) {
 
-            var messageTypeClass = 'alert-danger';
-            var messageTextClass = 'txt-color-danger';
+            let messageTypeClass = 'alert-danger';
+            let messageTextClass = 'txt-color-danger';
 
             switch(config.type){
                 case 'info':
@@ -753,14 +754,14 @@ define([
                     break;
             }
 
-            var data = {
+            let data = {
                 title: config.title,
                 text: config.text,
                 messageTypeClass: messageTypeClass,
                 messageTextClass: messageTextClass
             };
 
-            var content = Mustache.render(template, data);
+            let content = Mustache.render(template, data);
 
             containerElement.html(content);
 
@@ -778,14 +779,14 @@ define([
      */
     $.fn.singleDoubleClick = function(singleClickCallback, doubleClickCallback, timeout) {
         return this.each(function(){
-            var clicks = 0, self = this;
+            let clicks = 0, self = this;
 
             // prevent default behaviour (e.g. open <a>-tag link)
-            $(this).on('click', function(e){
+            $(this).off('click').on('click', function(e){
                 e.preventDefault();
             });
 
-            $(this).on('mouseup', function(e){
+            $(this).off('mouseup').on('mouseup', function(e){
                 clicks++;
                 if (clicks === 1) {
                     setTimeout(function(){
@@ -808,7 +809,7 @@ define([
      */
     $.fn.pulseTableRow = function(status, clear){
 
-        var animationClass = '';
+        let animationClass = '';
         switch(status){
             case 'added':
                 animationClass = config.animationPulseSuccessClass;
@@ -818,9 +819,9 @@ define([
                 break;
         }
 
-        var clearTimer =  function(element) {
+        let clearTimer =  function(element) {
             element.removeClass( animationClass );
-            var currentTimer = element.data('animationTimer');
+            let currentTimer = element.data('animationTimer');
 
             if( animationTimerCache.hasOwnProperty(currentTimer) ){
                 clearTimeout( currentTimer );
@@ -830,7 +831,7 @@ define([
         };
 
         return this.each(function(){
-            var element = $(this);
+            let element = $(this);
 
             if( element.hasClass(animationClass) ){
                 // clear timer -> set new timer
@@ -839,7 +840,7 @@ define([
 
             if(clear !== true){
                 element.addClass( animationClass );
-                var timer = setTimeout(clearTimer, 1500, element);
+                let timer = setTimeout(clearTimer, 1500, element);
                 element.data('animationTimer', timer);
                 animationTimerCache[timer] = true;
             }
@@ -857,21 +858,21 @@ define([
      * get current Pathfinder version number
      * @returns {*|jQuery}
      */
-    var getVersion = function(){
+    let getVersion = function(){
         return $('body').data('version');
     };
 
     /**
      * show current program version information in browser console
      */
-    var showVersionInfo = function(){
+    let showVersionInfo = function(){
         console.info('PATHFINDER ' + getVersion());
     };
 
     /**
      * init utility prototype functions
      */
-    var initPrototypes = function(){
+    let initPrototypes = function(){
         // Array diff
         // [1,2,3,4,5,6].diff( [3,4,5] );
         // => [1, 2, 6]
@@ -883,7 +884,7 @@ define([
     /**
      * set default configuration  for "Bootbox" dialogs
      */
-    var initDefaultBootboxConfig = function(){
+    let initDefaultBootboxConfig = function(){
         bootbox.setDefaults({
             onEscape: true      // enables close dialogs on ESC key
         });
@@ -896,7 +897,7 @@ define([
      * @param value
      * @returns {*}
      */
-    var getCurrentTriggerDelay = function( updateKey, value ){
+    let getCurrentTriggerDelay = function( updateKey, value ){
 
         // make sure the delay timer is valid!
         // if this is called for the first time -> set CURRENT_DELAY
@@ -922,12 +923,12 @@ define([
      * get date obj with current EVE Server Time.
      * @returns {Date}
      */
-    var getServerTime = function(){
+    let getServerTime = function(){
 
         // Server is running with GMT/UTC (EVE Time)
-        var localDate = new Date();
+        let localDate = new Date();
 
-        var serverDate= new Date(
+        let serverDate= new Date(
             localDate.getUTCFullYear(),
             localDate.getUTCMonth(),
             localDate.getUTCDate(),
@@ -944,8 +945,8 @@ define([
      * @param timestamp
      * @returns {Date}
      */
-    var convertTimestampToServerTime = function(timestamp){
-        var currentTimeZoneOffsetInMinutes = new Date().getTimezoneOffset();
+    let convertTimestampToServerTime = function(timestamp){
+        let currentTimeZoneOffsetInMinutes = new Date().getTimezoneOffset();
         return new Date( (timestamp + (currentTimeZoneOffsetInMinutes * 60)) * 1000);
     };
 
@@ -955,11 +956,11 @@ define([
      * @param date2
      * @returns {{}}
      */
-    var getTimeDiffParts = function(date1, date2){
-        var parts = {};
-        var time1 = date1.getTime();
-        var time2 = date2.getTime();
-        var diff  = 0;
+    let getTimeDiffParts = function(date1, date2){
+        let parts = {};
+        let time1 = date1.getTime();
+        let time2 = date2.getTime();
+        let diff  = 0;
 
         if(
             time1 >= 0 &&
@@ -971,7 +972,7 @@ define([
         diff = Math.abs(Math.floor(diff));
 
         parts.days = Math.floor(diff/(24*60*60));
-        var leftSec = diff - parts.days * 24*60*60;
+        let leftSec = diff - parts.days * 24*60*60;
 
         parts.hours = Math.floor(leftSec/(60*60));
         leftSec = leftSec - parts.hours * 60*60;
@@ -985,7 +986,7 @@ define([
      * start time measurement by a unique string identifier
      * @param timerName
      */
-    var timeStart = function(timerName){
+    let timeStart = function(timerName){
 
         if(typeof performance === 'object'){
             stopTimerCache[timerName] = performance.now();
@@ -999,13 +1000,13 @@ define([
      * @param timerName
      * @returns {number}
      */
-    var timeStop = function(timerName){
+    let timeStop = function(timerName){
 
-        var duration = 0;
+        let duration = 0;
 
         if( stopTimerCache.hasOwnProperty(timerName) ){
             // check browser support for performance API
-            var timeNow = 0;
+            let timeNow = 0;
 
             if(typeof performance === 'object'){
                 timeNow = performance.now();
@@ -1025,10 +1026,10 @@ define([
 
     /**
      * trigger main logging event with log information
-     * @param message
+     * @param logKey
      * @param options
      */
-    var log = function(logKey, options){
+    let log = function(logKey, options){
         $(window).trigger('pf:log', [logKey, options]);
     };
 
@@ -1037,7 +1038,7 @@ define([
      * @param customConfig
      * @param desktop
      */
-    var showNotify = function(customConfig, desktop){
+    let showNotify = function(customConfig, desktop){
         requirejs(['app/notification'], function(Notification) {
             Notification.showNotify(customConfig, desktop);
         });
@@ -1046,7 +1047,7 @@ define([
     /**
      * stop browser tab title "blinking"
      */
-    var stopTabBlink = function(){
+    let stopTabBlink = function(){
         requirejs(['app/notification'], function(Notification) {
             Notification.stopTabBlink();
         });
@@ -1058,8 +1059,8 @@ define([
      * @param option
      * @returns {string}
      */
-    var getLogInfo = function(logType, option){
-        var logInfo = '';
+    let getLogInfo = function(logType, option){
+        let logInfo = '';
 
         if(Init.classes.logTypes.hasOwnProperty(logType)){
             logInfo = Init.classes.logTypes[logType][option];
@@ -1069,9 +1070,17 @@ define([
     };
 
     /**
+     * get currentUserData from "global" variable
+     * @returns {*}
+     */
+    let getCurrentUserData = function(){
+        return Init.currentUserData;
+    };
+
+    /**
      * set default jQuery AJAX configuration
      */
-    var ajaxSetup = function(){
+    let ajaxSetup = function(){
         $.ajaxSetup({
             beforeSend: function(xhr, settings) {
                 // Add custom application headers on "same origin" requests only!
@@ -1079,8 +1088,8 @@ define([
                 if(settings.crossDomain === false){
                     // add current character data to ANY XHR request (HTTP HEADER)
                     // -> This helps to identify multiple characters on multiple browser tabs
-                    var userData = getCurrentUserData();
-                    var currentCharacterId = 0;
+                    let userData = getCurrentUserData();
+                    let currentCharacterId = 0;
                     if(
                         userData &&
                         userData.character
@@ -1095,6 +1104,111 @@ define([
     };
 
     /**
+     * get WebSocket readyState description from ID
+     * https://developer.mozilla.org/de/docs/Web/API/WebSocket
+     * @param readyState
+     * @returns {string}
+     */
+    let getWebSocketDescriptionByReadyState = (readyState) => {
+        let description = '';
+
+        switch(readyState){
+            case 0: description = 'connecting'; break;
+            case 1: description = 'open'; break;
+            case 2: description = 'closing'; break;
+            case 3: description = 'closed'; break;
+        }
+
+        return description;
+    };
+
+    /**
+     * set sync status for map updates
+     * -> if SharedWorker AND WebSocket connected -> status = "WebSocket"
+     * -> else -> status = "ajax" (long polling)
+     * @param type
+     * @param options
+     */
+    let setSyncStatus = (type, options) => {
+        // current syncStatus
+        let syncStatus = Init.syncStatus;
+
+        switch(type){
+            case 'ws:open':
+                // WebSocket open
+                syncStatus.webSocket.status = getWebSocketDescriptionByReadyState(options.readyState);
+                syncStatus.webSocket.class = 'txt-color-success';
+                syncStatus.webSocket.timestamp = new Date().getTime() / 1000;
+
+                syncStatus.type = 'webSocket';
+                setSyncStatus('ajax:disable');
+
+                $(window).trigger('pf:syncStatus');
+                break;
+            case 'ws:get':
+                // WebSocket data pushed from server
+                syncStatus.webSocket.timestamp = new Date().getTime() / 1000;
+                $(window).trigger('pf:syncStatus');
+                break;
+            case 'ws:closed':
+                // WebSocket closed
+                syncStatus.webSocket.status = getWebSocketDescriptionByReadyState(options.readyState);
+                syncStatus.webSocket.class = 'txt-color-danger';
+                syncStatus.webSocket.timestamp = undefined;
+
+                setSyncStatus('ajax:enable');
+                break;
+            case 'ws:error':
+                // WebSocket error
+                syncStatus.webSocket.status = getWebSocketDescriptionByReadyState(options.readyState);
+                syncStatus.webSocket.class = 'txt-color-danger';
+
+                setSyncStatus('ajax:enable');
+                break;
+            case 'sw:init':
+                // SharedWorker initialized
+                syncStatus.sharedWorker.status = 'online';
+                syncStatus.sharedWorker.class = 'txt-color-success';
+                break;
+            case 'sw:error':
+                // SharedWorker error
+                syncStatus.sharedWorker.status = 'offline';
+                syncStatus.sharedWorker.class = 'txt-color-danger';
+
+                setSyncStatus('ajax:enable');
+                break;
+            case 'ajax:enable':
+                // Ajax enabled (WebSocket error/not connected)
+                syncStatus.ajax.status = 'enabled';
+                syncStatus.ajax.class = 'txt-color-success';
+                syncStatus.ajax.timestamp = new Date().getTime() / 1000;
+
+                syncStatus.type = 'ajax';
+                $(window).trigger('pf:syncStatus');
+                break;
+            case 'ajax:get':
+                // Ajax data pulled from client
+                syncStatus.ajax.timestamp = new Date().getTime() / 1000;
+                $(window).trigger('pf:syncStatus');
+                break;
+            case 'ajax:disable':
+                // Ajax disabled (WebSocket open/ready)
+                syncStatus.ajax.status = 'disabled';
+                syncStatus.ajax.class = 'txt-color-warning';
+                break;
+        }
+    };
+
+    /**
+     * get current sync type for map updates
+     * -> "ajax" or "webSocket"
+     * @returns {string}
+     */
+    let getSyncType = () => {
+      return Init.syncStatus.type;
+    };
+
+    /**
      * Returns true if the user hit Esc or navigated away from the
      * current page before an AJAX call was done. (The response
      * headers will be null or empty, depending on the browser.)
@@ -1104,7 +1218,7 @@ define([
      * @param jqXHR XMLHttpRequest instance
      * @returns {boolean}
      */
-    var isXHRAborted = function(jqXHR){
+    let isXHRAborted = function(jqXHR){
         return !jqXHR.getAllResponseHeaders();
     };
 
@@ -1117,9 +1231,9 @@ define([
      */
     $.fn.getMapTabElements = function(mapId){
 
-        var mapModuleElement = $(this);
+        let mapModuleElement = $(this);
 
-        var mapTabElements = mapModuleElement.find('#' + config.mapTabBarId).find('a');
+        let mapTabElements = mapModuleElement.find('#' + config.mapTabBarId).find('a');
 
         if(mapId){
             // search for a specific tab element
@@ -1135,9 +1249,9 @@ define([
      * get the map module object or create a new module
      * @returns {*|HTMLElement}
      */
-    var getMapModule = function(){
+    let getMapModule = function(){
 
-        var mapModule = $('#' + config.mapModuleId);
+        let mapModule = $('#' + config.mapModuleId);
         if(mapModule.length === 0){
             mapModule = $('<div>', {
                 id: config.mapModuleId
@@ -1148,18 +1262,54 @@ define([
     };
 
     /**
+     * get Area ID by security string
+     * @param security
+     * @returns {number}
+     */
+    let getAreaIdBySecurity = function(security){
+
+        let areaId = 0;
+
+        switch(security){
+            case 'H':
+                areaId = 10;
+                break;
+            case 'L':
+                areaId = 11;
+                break;
+            case '0.0':
+                areaId = 12;
+                break;
+            case 'SH':
+                areaId = 13;
+                break;
+            default:
+                // w-space
+                for(let i = 1; i <= 6; i++){
+                    if(security === 'C' + i){
+                        areaId = i;
+                        break;
+                    }
+                }
+                break;
+        }
+
+        return areaId;
+    };
+
+    /**
      * get system effect data by system security and system class
      * if no search parameters given -> get all effect data
      * @param security
      * @param effect
      * @returns {boolean}
      */
-    var getSystemEffectData = function(security, effect){
-        var data =  SystemEffect;
+    let getSystemEffectData = function(security, effect){
+        let data =  SystemEffect;
         if(security){
             // look for specific data
             data = false;
-            var areaId = getAreaIdBySecurity(security);
+            let areaId = getAreaIdBySecurity(security);
 
             if(
                 areaId > 0 &&
@@ -1179,25 +1329,25 @@ define([
      * @param option
      * @returns {string}
      */
-    var getStatusInfoForCharacter = function(characterData, option){
+    let getStatusInfoForCharacter = function(characterData, option){
 
-        var statusInfo = '';
+        let statusInfo = '';
 
         // character status can not be checked if there are no reference data
         // e.g. during registration process (login page)
         if(Init.characterStatus){
             // get info for current "main" character
-            var corporationId = getCurrentUserInfo('corporationId');
-            var allianceId = getCurrentUserInfo('allianceId');
+            let corporationId = getCurrentUserInfo('corporationId');
+            let allianceId = getCurrentUserInfo('allianceId');
 
             // get all user characters
-            var userData = getCurrentUserData();
+            let userData = getCurrentUserData();
 
             if(userData){
                 // check if character is one of his own characters
-                var userCharactersData = userData.characters;
+                let userCharactersData = userData.characters;
 
-                for(var i = 0; i < userCharactersData.length; i++){
+                for(let i = 0; i < userCharactersData.length; i++){
                     if(userCharactersData[i].id === characterData.id){
                         statusInfo = Init.characterStatus.own[option];
                         break;
@@ -1230,13 +1380,13 @@ define([
      * @param data
      * @returns {string}
      */
-    var getSystemEffectTable = function(data){
-        var table = '';
+    let getSystemEffectTable = function(data){
+        let table = '';
 
         if(data.length > 0){
 
             table += '<table>';
-            for(var i = 0; i < data.length; i++){
+            for(let i = 0; i < data.length; i++){
                 table += '<tr>';
                 table += '<td>';
                 table += data[i].effect;
@@ -1258,16 +1408,16 @@ define([
      * @param data
      * @returns {string}
      */
-    var getSystemsInfoTable = function(data){
-        var table = '';
+    let getSystemsInfoTable = function(data){
+        let table = '';
 
         if(data.length > 0){
 
             table += '<table>';
-            for(var i = 0; i < data.length; i++){
+            for(let i = 0; i < data.length; i++){
 
-                var trueSecClass = getTrueSecClassForSystem( data[i].trueSec );
-                var securityClass = getSecurityClassForSystem( data[i].security );
+                let trueSecClass = getTrueSecClassForSystem( data[i].trueSec );
+                let securityClass = getSecurityClassForSystem( data[i].security );
 
                 table += '<tr>';
                 table += '<td>';
@@ -1292,8 +1442,8 @@ define([
      * @param sec
      * @returns {string}
      */
-    var getSecurityClassForSystem = function(sec){
-        var secClass = '';
+    let getSecurityClassForSystem = function(sec){
+        let secClass = '';
 
         if( Init.classes.systemSecurity.hasOwnProperty(sec) ){
             secClass = Init.classes.systemSecurity[sec]['class'];
@@ -1304,11 +1454,11 @@ define([
 
     /**
      * get a css class for the trueSec level of a system
-     * @param sec
+     * @param trueSec
      * @returns {string}
      */
-    var getTrueSecClassForSystem = function(trueSec){
-        var trueSecClass = '';
+    let getTrueSecClassForSystem = function(trueSec){
+        let trueSecClass = '';
 
         trueSec = parseFloat(trueSec);
 
@@ -1337,9 +1487,9 @@ define([
      * @param option
      * @returns {string}
      */
-    var getStatusInfoForSystem = function(status, option){
+    let getStatusInfoForSystem = function(status, option){
 
-        var statusInfo = '';
+        let statusInfo = '';
 
         if( Init.systemStatus.hasOwnProperty(status) ){
             // search by status string
@@ -1363,11 +1513,11 @@ define([
      * @param option
      * @returns {{}}
      */
-    var getSignatureGroupInfo = function(option){
+    let getSignatureGroupInfo = function(option){
 
-        var groupInfo = {};
+        let groupInfo = {};
 
-        for (var prop in Init.signatureGroups) {
+        for (let prop in Init.signatureGroups) {
             if(Init.signatureGroups.hasOwnProperty(prop)){
                 prop = parseInt(prop);
                 groupInfo[prop] = Init.signatureGroups[prop][option];
@@ -1384,9 +1534,9 @@ define([
      * @param sigGroupId
      * @returns {{}}
      */
-    var getAllSignatureNames = function(systemTypeId, areaId, sigGroupId){
+    let getAllSignatureNames = function(systemTypeId, areaId, sigGroupId){
 
-        var signatureNames = {};
+        let signatureNames = {};
 
         if(
             SignatureType[systemTypeId] &&
@@ -1406,17 +1556,17 @@ define([
      * @param name
      * @returns {number}
      */
-    var getSignatureTypeIdByName = function(systemData, sigGroupId, name){
+    let getSignatureTypeIdByName = function(systemData, sigGroupId, name){
 
-        var signatureTypeId = 0;
+        let signatureTypeId = 0;
 
-        var areaId = getAreaIdBySecurity(systemData.security);
+        let areaId = getAreaIdBySecurity(systemData.security);
 
         if(areaId > 0){
-            var signatureNames = getAllSignatureNames(systemData.type.id, areaId, sigGroupId );
+            let signatureNames = getAllSignatureNames(systemData.type.id, areaId, sigGroupId );
             name = name.toLowerCase();
 
-            for(var prop in signatureNames) {
+            for(let prop in signatureNames) {
 
                 if(
                     signatureNames.hasOwnProperty(prop) &&
@@ -1432,48 +1582,12 @@ define([
     };
 
     /**
-     * get Area ID by security string
-     * @param security
-     * @returns {number}
-     */
-    var getAreaIdBySecurity = function(security){
-
-        var areaId = 0;
-
-        switch(security){
-            case 'H':
-                areaId = 10;
-                break;
-            case 'L':
-                areaId = 11;
-                break;
-            case '0.0':
-                areaId = 12;
-                break;
-            case 'SH':
-                areaId = 13;
-                break;
-            default:
-                // w-space
-                for(var i = 1; i <= 6; i++){
-                    if(security === 'C' + i){
-                        areaId = i;
-                        break;
-                    }
-                }
-                break;
-        }
-
-        return areaId;
-    };
-
-    /**
      * set currentMapUserData as "global" variable (count of active pilots)
      * this function should be called continuously after data change
      * to keep the data always up2data
      * @param mapUserData
      */
-    var setCurrentMapUserData = function(mapUserData){
+    let setCurrentMapUserData = function(mapUserData){
         Init.currentMapUserData = mapUserData;
 
         return getCurrentMapUserData();
@@ -1484,16 +1598,15 @@ define([
      * @param mapId
      * @returns {boolean}
      */
-    var getCurrentMapUserData = function(mapId){
-
-        var currentMapUserData = false;
+    let getCurrentMapUserData = function(mapId){
+        let currentMapUserData = false;
 
         if(
             mapId === parseInt(mapId, 10) &&
             Init.currentMapUserData
         ){
             // search for a specific map
-            for(var i = 0; i < Init.currentMapUserData.length; i++){
+            for(let i = 0; i < Init.currentMapUserData.length; i++){
                 if(Init.currentMapUserData[i].config.id === mapId){
                     currentMapUserData = Init.currentMapUserData[i];
                     break;
@@ -1518,10 +1631,46 @@ define([
      * to keep the data always up2data
      * @param mapData
      */
-    var setCurrentMapData = function(mapData){
+    let setCurrentMapData = function(mapData){
         Init.currentMapData = mapData;
 
         return getCurrentMapData();
+    };
+
+    /**
+     * get mapData array index by mapId
+     * @param mapId
+     * @returns {boolean|int}
+     */
+    let getCurrentMapDataIndex = function(mapId){
+        let mapDataIndex = false;
+
+        if( mapId === parseInt(mapId, 10) ){
+            for(let i = 0; i < Init.currentMapData.length; i++){
+                if(Init.currentMapData[i].config.id === mapId){
+                    mapDataIndex = i;
+                    break;
+                }
+            }
+        }
+
+        return mapDataIndex;
+    };
+
+    /**
+     * update cached mapData for a single map
+     * @param mapData
+     */
+    let updateCurrentMapData = function(mapData){
+        let mapDataIndex = getCurrentMapDataIndex( mapData.config.id );
+
+        if(mapDataIndex !== false){
+            Init.currentMapData[mapDataIndex].config = mapData.config;
+            Init.currentMapData[mapDataIndex].data = mapData.data;
+        }else{
+            // new map data
+            Init.currentMapData.push(mapData);
+        }
     };
 
     /**
@@ -1529,12 +1678,12 @@ define([
      * @param mapId
      * @returns {boolean}
      */
-    var getCurrentMapData = function(mapId){
-        var currentMapData = false;
+    let getCurrentMapData = function(mapId){
+        let currentMapData = false;
 
         if( mapId === parseInt(mapId, 10) ){
             // search for a specific map
-            for(var i = 0; i < Init.currentMapData.length; i++){
+            for(let i = 0; i < Init.currentMapData.length; i++){
                 if(Init.currentMapData[i].config.id === mapId){
                     currentMapData = Init.currentMapData[i];
                     break;
@@ -1549,25 +1698,14 @@ define([
     };
 
     /**
-     * get mapData array index by mapId
+     * delete map data by mapId from currentMapData
      * @param mapId
-     * @returns {boolean|int}
      */
-    var getCurrentMapDataIndex = function(mapId){
-        var mapDataIndex = false;
-
-        if( mapId === parseInt(mapId, 10) ){
-            for(var i = 0; i < Init.currentMapData.length; i++){
-                if(Init.currentMapData[i].config.id === mapId){
-                    mapDataIndex = i;
-                    break;
-                }
-            }
-        }
-
-        return mapDataIndex;
+    let deleteCurrentMapData = (mapId) => {
+        Init.currentMapData = Init.currentMapData.filter((mapData) => {
+            return (mapData.config.id !== mapId);
+        });
     };
-
 
     /**
      * set currentUserData as "global" variable
@@ -1575,7 +1713,7 @@ define([
      * to keep the data always up2data
      * @param userData
      */
-    var setCurrentUserData = function(userData){
+    let setCurrentUserData = function(userData){
         Init.currentUserData = userData;
 
         // check if function is available
@@ -1588,22 +1726,12 @@ define([
     };
 
     /**
-     * get currentUserData from "global" variable
-     * @returns {*}
-     */
-    var getCurrentUserData = function(){
-        return Init.currentUserData;
-    };
-
-    /**
      * get the current log data for the current user character
      * @returns {boolean}
      */
-    var getCurrentCharacterLog = function(){
-
-        var characterLog = false;
-
-        var currentUserData = getCurrentUserData();
+    let getCurrentCharacterLog = function(){
+        let characterLog = false;
+        let currentUserData = getCurrentUserData();
 
         if(
             currentUserData &&
@@ -1621,13 +1749,13 @@ define([
      * @param option
      * @returns {boolean}
      */
-    var getCurrentUserInfo = function(option){
-        var currentUserData = getCurrentUserData();
-        var userInfo = false;
+    let getCurrentUserInfo = function(option){
+        let currentUserData = getCurrentUserData();
+        let userInfo = false;
 
         if(currentUserData){
             // user data is set -> user data will be set AFTER the main init request!
-            var characterData = currentUserData.character;
+            let characterData = currentUserData.character;
 
             if(characterData){
                 if(
@@ -1655,8 +1783,8 @@ define([
      * @param systemData
      * @param type
      */
-    var setDestination = function(systemData, type){
-        var description = '';
+    let setDestination = function(systemData, type){
+        let description = '';
         switch(type){
             case 'set_destination':
                 description = 'Set destination';
@@ -1689,7 +1817,7 @@ define([
                 responseData.systemData &&
                 responseData.systemData.length > 0
             ){
-                for (var j = 0; j < responseData.systemData.length; j++) {
+                for (let j = 0; j < responseData.systemData.length; j++) {
                     showNotify({title: this.description, text: 'System: ' + responseData.systemData[j].name, type: 'success'});
                 }
             }
@@ -1698,13 +1826,13 @@ define([
                 responseData.error &&
                 responseData.error.length > 0
             ){
-                for(var i = 0; i < responseData.error.length; i++){
+                for(let i = 0; i < responseData.error.length; i++){
                     showNotify({title: this.description + ' error', text: 'System: ' + responseData.error[i].message, type: 'error'});
                 }
             }
 
         }).fail(function( jqXHR, status, error) {
-            var reason = status + ' ' + error;
+            let reason = status + ' ' + error;
             showNotify({title: jqXHR.status + ': ' + this.description, text: reason, type: 'warning'});
         });
     };
@@ -1713,7 +1841,7 @@ define([
      * set currentSystemData as "global" variable
      * @param systemData
      */
-    var setCurrentSystemData = function(systemData){
+    let setCurrentSystemData = function(systemData){
         Init.currentSystemData = systemData;
     };
 
@@ -1721,7 +1849,7 @@ define([
      * get currentSystemData from "global" variables
      * @returns {*}
      */
-    var getCurrentSystemData = function(){
+    let getCurrentSystemData = function(){
         return Init.currentSystemData;
     };
 
@@ -1730,8 +1858,8 @@ define([
      * -> system data where current user is located
      * @returns {{id: *, name: *}}
      */
-    var getCurrentLocationData = function(){
-        var currentLocationLink = $('#' + config.headCurrentLocationId).find('a');
+    let getCurrentLocationData = function(){
+        let currentLocationLink = $('#' + config.headCurrentLocationId).find('a');
         return {
           id: currentLocationLink.data('systemId'),
           name: currentLocationLink.data('systemName')
@@ -1742,7 +1870,7 @@ define([
      * get all "open" dialog elements
      * @returns {*|jQuery}
      */
-    var getOpenDialogs = function(){
+    let getOpenDialogs = function(){
         return $('.' + config.dialogClass).filter(':visible');
     };
 
@@ -1751,10 +1879,10 @@ define([
      * @param price
      * @returns {string}
      */
-    var formatPrice = function(price){
+    let formatPrice = function(price){
         price = Number( price ).toFixed(2);
 
-        var parts = price.toString().split('.');
+        let parts = price.toString().split('.');
         price = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (parts[1] ? '.' + parts[1] : '');
 
         return price + ' ISK';
@@ -1764,7 +1892,7 @@ define([
      * get localForage instance (singleton) for offline client site storage
      * @returns {localforage}
      */
-    var getLocalStorage = function(){
+    let getLocalStorage = function(){
         if(localStorage === undefined){
             localStorage = localforage.createInstance({
                 driver: [localforage.INDEXEDDB, localforage.WEBSQL, localforage.LOCALSTORAGE],
@@ -1779,7 +1907,7 @@ define([
      * @param date
      * @returns {Date}
      */
-    var createDateAsUTC = function(date) {
+    let createDateAsUTC = function(date) {
         return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()));
     };
 
@@ -1788,7 +1916,7 @@ define([
      * @param date
      * @returns {Date}
      */
-    var convertDateToUTC = function(date) {
+    let convertDateToUTC = function(date) {
         return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
     };
 
@@ -1797,9 +1925,9 @@ define([
      * @param date
      * @returns {string}
      */
-    var convertDateToString = function(date){
-        var dateString = ('0'+ (date.getMonth() + 1 )).slice(-2) + '/' + ('0'+date.getDate()).slice(-2) + '/' + date.getFullYear();
-        var timeString = ('0' + date.getHours()).slice(-2) + ':' + ('0'+date.getMinutes()).slice(-2);
+    let convertDateToString = function(date){
+        let dateString = ('0'+ (date.getMonth() + 1 )).slice(-2) + '/' + ('0'+date.getDate()).slice(-2) + '/' + date.getFullYear();
+        let timeString = ('0' + date.getHours()).slice(-2) + ':' + ('0'+date.getMinutes()).slice(-2);
         return   dateString + ' ' + timeString;
     };
 
@@ -1808,11 +1936,11 @@ define([
      * -> www.pathfinder.com/pathfinder/ -> /pathfinder
      * @returns {string|string}
      */
-    var getDocumentPath = function(){
-        var pathname = window.location.pathname;
+    let getDocumentPath = function(){
+        let pathname = window.location.pathname;
         // replace file endings
-        var r = /[^\/]*$/;
-        var path = pathname.replace(r, '');
+        let r = /[^\/]*$/;
+        let path = pathname.replace(r, '');
         return path || '/';
     };
 
@@ -1821,8 +1949,8 @@ define([
      * @param url
      * @param params
      */
-    var redirect = function(url, params){
-        var currentUrl = document.URL;
+    let redirect = function(url, params){
+        let currentUrl = document.URL;
 
         if(url !== currentUrl){
             if(
@@ -1839,8 +1967,8 @@ define([
      * send logout request
      * @param  params
      */
-    var logout = function(params){
-        var data = {};
+    let logout = function(params){
+        let data = {};
         if(
             params &&
             params.ajaxData
@@ -1858,7 +1986,7 @@ define([
                 redirect(data.reroute, ['logout']);
             }
         }).fail(function( jqXHR, status, error) {
-            var reason = status + ' ' + error;
+            let reason = status + ' ' + error;
             showNotify({title: jqXHR.status + ': logout', text: reason, type: 'error'});
         });
     };
@@ -1880,6 +2008,8 @@ define([
         stopTabBlink: stopTabBlink,
         getLogInfo: getLogInfo,
         ajaxSetup: ajaxSetup,
+        setSyncStatus: setSyncStatus,
+        getSyncType: getSyncType,
         isXHRAborted: isXHRAborted,
         getMapModule: getMapModule,
         getSystemEffectData: getSystemEffectData,
@@ -1898,6 +2028,8 @@ define([
         setCurrentMapData: setCurrentMapData,
         getCurrentMapData: getCurrentMapData,
         getCurrentMapDataIndex: getCurrentMapDataIndex,
+        updateCurrentMapData: updateCurrentMapData,
+        deleteCurrentMapData: deleteCurrentMapData,
         setCurrentUserData: setCurrentUserData,
         getCurrentUserData: getCurrentUserData,
         setCurrentSystemData: setCurrentSystemData,

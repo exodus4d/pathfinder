@@ -27,7 +27,7 @@ define([
 
     'use strict';
 
-    var config = {
+    let config = {
         // page structure slidebars-menu classes
         pageId: 'sb-site',
         pageSlidebarClass: 'sb-slidebar',
@@ -64,8 +64,8 @@ define([
         dynamicElementWrapperId: 'pf-dialog-wrapper'
     };
 
-    var programStatusCounter = 0;                                               // current count down in s until next status change is possible
-    var programStatusInterval = false;                                          // interval timer until next status change is possible
+    let programStatusCounter = 0;                                               // current count down in s until next status change is possible
+    let programStatusInterval = false;                                          // interval timer until next status change is possible
 
 
     /**
@@ -119,7 +119,7 @@ define([
      * @param title
      * @returns {JQuery|*|jQuery}
      */
-    var getMenuHeadline = function(title){
+    let getMenuHeadline = function(title){
         return $('<div>', {
             class: 'panel-heading'
         }).prepend(
@@ -211,7 +211,7 @@ define([
                             css: {width: '1.23em'}
                         })
                     ).on('click', function(){
-                        var fullScreenElement = $('body');
+                        let fullScreenElement = $('body');
                         requirejs(['jquery', 'fullScreen'], function($) {
 
                             if($.fullscreen.isFullScreen()){
@@ -385,10 +385,9 @@ define([
      * load page header
      */
     $.fn.loadHeader = function(){
+        let pageElement = $(this);
 
-        var pageElement = $(this);
-
-        var moduleData = {
+        let moduleData = {
             id: config.pageHeaderId,
             logo: function(){
                 // render svg logo
@@ -403,14 +402,14 @@ define([
             mapTrackingId: Util.config.headMapTrackingId
         };
 
-        var headRendered = Mustache.render(TplHead, moduleData);
+        let headRendered = Mustache.render(TplHead, moduleData);
 
         pageElement.prepend(headRendered);
 
         // init header =====================================================================
 
         // init slide menus
-        var slideMenu = new $.slidebars({
+        let slideMenu = new $.slidebars({
             scrollLock: false
         });
 
@@ -445,7 +444,7 @@ define([
         });
 
         // tracking toggle
-        var mapTrackingCheckbox = $('#' + Util.config.headMapTrackingId);
+        let mapTrackingCheckbox = $('#' + Util.config.headMapTrackingId);
         mapTrackingCheckbox.bootstrapToggle({
             size: 'mini',
             on: 'on',
@@ -461,10 +460,10 @@ define([
         mapTrackingCheckbox.bootstrapToggle('on');
 
         mapTrackingCheckbox.on('change', function(e) {
-            var value = $(this).is(':checked');
-            var tracking = 'off';
-            var trackingText = 'Your current location will not actually be added';
-            var trackingType = 'info';
+            let value = $(this).is(':checked');
+            let tracking = 'off';
+            let trackingText = 'Your current location will not actually be added';
+            let trackingType = 'info';
             if(value){
                 tracking = 'on';
                 trackingText = 'New connections will actually be added';
@@ -476,7 +475,7 @@ define([
 
 
         // init all tooltips
-        var tooltipElements = $('#' + config.pageHeaderId).find('[title]');
+        let tooltipElements = $('#' + config.pageHeaderId).find('[title]');
         tooltipElements.tooltip({
             placement: 'bottom',
             delay: {
@@ -492,15 +491,15 @@ define([
      * load page footer
      */
     $.fn.loadFooter = function(){
-        var pageElement = $(this);
+        let pageElement = $(this);
 
-        var moduleData = {
+        let moduleData = {
             id: config.pageFooterId,
             footerLicenceLinkClass: config.footerLicenceLinkClass,
             currentYear: new Date().getFullYear()
         };
 
-        var headRendered = Mustache.render(TplFooter, moduleData);
+        let headRendered = Mustache.render(TplFooter, moduleData);
 
         pageElement.prepend(headRendered);
 
@@ -517,12 +516,12 @@ define([
     /**
      * catch all global document events
      */
-    var setDocumentObserver = function(){
+    let setDocumentObserver = function(){
 
         // on "full-screen" change event
         $(document).on('fscreenchange', function(e, state, elem){
 
-            var menuButton = $('#' + Util.config.menuButtonFullScreenId);
+            let menuButton = $('#' + Util.config.menuButtonFullScreenId);
 
             if(state === true){
                 // full screen active
@@ -586,9 +585,9 @@ define([
 
         $(document).on('pf:menuShowMapSettings', function(e, data){
             // show map edit dialog or edit map
-            var mapData = false;
+            let mapData = false;
 
-            var activeMap = Util.getMapModule().getActiveMap();
+            let activeMap = Util.getMapModule().getActiveMap();
 
             if(activeMap){
                 mapData = Util.getCurrentMapData( activeMap.data('id') );
@@ -600,9 +599,9 @@ define([
 
         $(document).on('pf:menuDeleteMap', function(e){
             // delete current active map
-            var mapData = false;
+            let mapData = false;
 
-            var activeMap = Util.getMapModule().getActiveMap();
+            let activeMap = Util.getMapModule().getActiveMap();
 
             if(activeMap){
                 mapData = activeMap.getMapDataFromClient({forceData: true});
@@ -620,7 +619,7 @@ define([
 
         $(document).on('pf:menuLogout', function(e, data){
 
-            var clearCookies = false;
+            let clearCookies = false;
             if(
                 typeof data === 'object' &&
                 data.hasOwnProperty('clearCookies')
@@ -642,10 +641,10 @@ define([
 
         // update header links with current map data
         $(document).on('pf:updateHeaderMapData', function(e, data){
-            var activeMap = Util.getMapModule().getActiveMap();
+            let activeMap = Util.getMapModule().getActiveMap();
 
-            var userCount = 0;
-            var currentLocationData = {};
+            let userCount = 0;
+            let currentLocationData = {};
 
             // show active user just for the current active map
             if(
@@ -662,7 +661,7 @@ define([
         // shutdown the program -> show dialog
         $(document).on('pf:shutdown', function(e, data){
             // show shutdown dialog
-            var options = {
+            let options = {
                 buttons: {
                     logout: {
                         label: '<i class="fa fa-fw fa-refresh"></i> restart',
@@ -724,21 +723,21 @@ define([
      * updates the header with current user data
      */
     $.fn.updateHeaderUserData = function(){
-        var userData = Util.getCurrentUserData();
+        let userData = Util.getCurrentUserData();
 
-        var userInfoElement = $('.' + config.headUserCharacterClass);
-        var currentCharacterId = userInfoElement.data('characterId');
-        var currentCharactersOptionIds = userInfoElement.data('characterOptionIds') ? userInfoElement.data('characterOptionIds') : [];
-        var newCharacterId = 0;
-        var newCharacterName = '';
+        let userInfoElement = $('.' + config.headUserCharacterClass);
+        let currentCharacterId = userInfoElement.data('characterId');
+        let currentCharactersOptionIds = userInfoElement.data('characterOptionIds') ? userInfoElement.data('characterOptionIds') : [];
+        let newCharacterId = 0;
+        let newCharacterName = '';
 
-        var userShipElement = $('.' + config.headUserShipClass);
-        var currentShipId = userShipElement.data('shipId');
-        var newShipId = 0;
-        var newShipName = '';
+        let userShipElement = $('.' + config.headUserShipClass);
+        let currentShipId = userShipElement.data('shipId');
+        let newShipId = 0;
+        let newShipName = '';
 
         // function for header element toggle animation
-        var animateHeaderElement = function(element, callback, triggerShow){
+        let animateHeaderElement = function(element, callback, triggerShow){
 
             element.show().velocity('stop').velocity({
                 opacity: 0
@@ -784,14 +783,14 @@ define([
             updateMapTrackingToggle(userData.character.logLocation);
         }
 
-        var newCharactersOptionIds = userData.characters.map(function(data){
+        let newCharactersOptionIds = userData.characters.map(function(data){
             return data.id;
         });
 
         // update user character data ---------------------------------------------------
         if(currentCharactersOptionIds.toString() !== newCharactersOptionIds.toString()){
 
-            var  currentCharacterChanged = false;
+            let  currentCharacterChanged = false;
             if(currentCharacterId !== newCharacterId){
                 currentCharacterChanged = true;
             }
@@ -814,7 +813,7 @@ define([
         // update user ship data --------------------------------------------------------
         if(currentShipId !== newShipId){
 
-            var showShipElement = true;
+            let showShipElement = true;
             if(newShipId === 0){
                 showShipElement = false;
             }
@@ -834,8 +833,8 @@ define([
      * update "map tracking" toggle in header
      * @param status
      */
-    var updateMapTrackingToggle = function(status){
-        var mapTrackingCheckbox = $('#' + Util.config.headMapTrackingId);
+    let updateMapTrackingToggle = function(status){
+        let mapTrackingCheckbox = $('#' + Util.config.headMapTrackingId);
         if(status === true){
             mapTrackingCheckbox.bootstrapToggle('enable');
         }else{
@@ -846,7 +845,7 @@ define([
     /**
      * delete active character log for the current user
      */
-    var deleteLog = function(){
+    let deleteLog = function(){
 
         $.ajax({
             type: 'POST',
@@ -862,9 +861,9 @@ define([
      * update the "active user" badge in header
      * @param userCount
      */
-    var updateHeaderActiveUserCount = function(userCount){
-        var activeUserElement = $('.' + config.headActiveUserClass);
-        var badge = activeUserElement.find('.badge');
+    let updateHeaderActiveUserCount = function(userCount){
+        let activeUserElement = $('.' + config.headActiveUserClass);
+        let badge = activeUserElement.find('.badge');
 
         if(badge.data('userCount') !== userCount){
             badge.data('userCount', userCount);
@@ -884,13 +883,13 @@ define([
      * update the "current location" element in head
      * @param locationData
      */
-    var updateHeaderCurrentLocation = function(locationData){
-        var currentLocationElement = $('#' + Util.config.headCurrentLocationId);
-        var linkElement = currentLocationElement.find('a');
-        var textElement = linkElement.find('span');
+    let updateHeaderCurrentLocation = function(locationData){
+        let currentLocationElement = $('#' + Util.config.headCurrentLocationId);
+        let linkElement = currentLocationElement.find('a');
+        let textElement = linkElement.find('span');
 
-        var tempSystemName = (locationData.currentSystemName) ? locationData.currentSystemName : false;
-        var tempSystemId = (locationData.currentSystemId) ? locationData.currentSystemId : 0;
+        let tempSystemName = (locationData.currentSystemName) ? locationData.currentSystemName : false;
+        let tempSystemId = (locationData.currentSystemId) ? locationData.currentSystemId : 0;
 
         if(
             linkElement.data('systemName') !== tempSystemName ||
@@ -915,7 +914,7 @@ define([
     /**
      * shows a test notification for desktop messages
      */
-    var notificationTest = function(){
+    let notificationTest = function(){
         Util.showNotify({
             title: 'Test Notification',
             text: 'Accept browser security question'},
@@ -930,17 +929,17 @@ define([
      *  set event listener if the program tab is active or not
      *  this is used to lower the update ping cycle to reduce server load
      */
-    var initTabChangeObserver = function(){
+    let initTabChangeObserver = function(){
 
         // increase the timer if a user is inactive
-        var increaseTimer = 10000;
+        let increaseTimer = 10000;
 
         // timer keys
-        var mapUpdateKey = 'UPDATE_SERVER_MAP';
-        var mapUserUpdateKey = 'UPDATE_SERVER_USER_DATA';
+        let mapUpdateKey = 'UPDATE_SERVER_MAP';
+        let mapUserUpdateKey = 'UPDATE_SERVER_USER_DATA';
 
         // Set the name of the hidden property and the change event for visibility
-        var hidden, visibilityChange;
+        let hidden, visibilityChange;
         if (typeof document.hidden !== 'undefined') { // Opera 12.10 and Firefox 18 and later support
             hidden = 'hidden';
             visibilityChange = 'visibilitychange';
@@ -997,86 +996,74 @@ define([
      * @param status
      */
     $.fn.setProgramStatus = function(status){
-        var statusElement = $('.' + config.headProgramStatusClass);
-        var icon = statusElement.find('i');
-        var textElement = statusElement.find('span');
+        let statusElement = $('.' + config.headProgramStatusClass);
+        let icon = statusElement.find('i');
+        let textElement = statusElement.find('span');
 
-        var iconClass = false;
-        var textClass = false;
-        var text = '';
+        let iconClass = false;
+        let textClass = false;
 
         switch(status){
             case 'online':
-                if( ! statusElement.hasClass('txt-color-green')){
-                    iconClass = 'fa-wifi';
-                    textClass = 'txt-color-green';
-                    text = 'online';
-                }
+                iconClass = 'fa-wifi';
+                textClass = 'txt-color-green';
                 break;
+            case 'slow connection':
             case 'problem':
-                if( ! statusElement.hasClass('txt-color-orange')){
-                    iconClass = 'fa-warning';
-                    textClass = 'txt-color-orange';
-                    text = 'problem';
-                }
+                iconClass = 'fa-warning';
+                textClass = 'txt-color-orange';
                 break;
             case 'offline':
-                if( ! statusElement.hasClass('txt-color-red')){
-                    iconClass = 'fa-bolt';
-                    textClass = 'txt-color-red';
-                    text = 'offline';
-                }
+                iconClass = 'fa-bolt';
+                textClass = 'txt-color-red';
                 break;
         }
 
-        // change status, on status changed
-        if(iconClass !== false){
+        // "warnings" and "errors" always have priority -> ignore/clear interval
+        if(
+            textClass === 'txt-color-orange' ||
+            textClass === 'txt-color-red'
+        ){
+            clearInterval(programStatusInterval);
+            programStatusInterval = false;
+        }
 
-            // "problem" and "offline" always have priority -> ignore/clear interval
-            if(
-                status === 'problem' ||
-                status === 'offline'
-            ){
-                clearInterval(programStatusInterval);
-                programStatusInterval = false;
-            }
+        if( statusElement.data('status') !== status ){
+            // status has changed
+            if(! programStatusInterval){
 
-            if(! statusElement.hasClass(textClass) ){
+                let timer = function(){
+                    // change status on first timer iteration
+                    if(programStatusCounter === Init.timer.PROGRAM_STATUS_VISIBLE){
+
+                        statusElement.velocity('stop').velocity('fadeOut', {
+                            duration: Init.animationSpeed.headerLink,
+                            complete: function(){
+                                // store current status
+                                statusElement.data('status', status);
+                                statusElement.removeClass('txt-color-green txt-color-orange txt-color-red');
+                                icon.removeClass('fa-wifi fa-warning fa-bolt');
+                                statusElement.addClass(textClass);
+                                icon.addClass(iconClass);
+                                textElement.text(status);
+                            }
+                        }).velocity('fadeIn', {
+                            duration: Init.animationSpeed.headerLink
+                        });
+                    }
+
+                    // decrement counter
+                    programStatusCounter -= 1000;
+
+                    if(programStatusCounter <= 0){
+                        clearInterval(programStatusInterval);
+                        programStatusInterval = false;
+                    }
+                };
 
                 if(! programStatusInterval){
-
-                    var timer = function(){
-
-                        // change status on first timer iteration
-                        if(programStatusCounter === Init.timer.PROGRAM_STATUS_VISIBLE){
-
-                            statusElement.velocity('stop').velocity('fadeOut', {
-                                duration: Init.animationSpeed.headerLink,
-                                complete: function(){
-                                    statusElement.removeClass('txt-color-green txt-color-orange txt-color-red');
-                                    icon.removeClass('fa-wifi fa-warning fa-bolt');
-                                    statusElement.addClass(textClass);
-                                    icon.addClass(iconClass);
-                                    textElement.text(text);
-                                }
-                            }).velocity('fadeIn', {
-                                duration: Init.animationSpeed.headerLink
-                            });
-                        }
-
-                        // decrement counter
-                        programStatusCounter -= 1000;
-
-                        if(programStatusCounter <= 0){
-                            clearInterval(programStatusInterval);
-                            programStatusInterval = false;
-                        }
-                    };
-
-                    if(! programStatusInterval){
-                        programStatusCounter = Init.timer.PROGRAM_STATUS_VISIBLE;
-                        programStatusInterval = setInterval(timer, 1000);
-                    }
+                    programStatusCounter = Init.timer.PROGRAM_STATUS_VISIBLE;
+                    programStatusInterval = setInterval(timer, 1000);
                 }
             }
         }

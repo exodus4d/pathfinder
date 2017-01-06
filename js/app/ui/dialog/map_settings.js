@@ -12,7 +12,7 @@ define([
 ], function($, Init, Util, Render, bootbox, MapUtil) {
     'use strict';
 
-    var config = {
+    let config = {
         // map dialog
         newMapDialogId: 'pf-map-dialog',                                                // id for map settings dialog
         dialogMapCreateContainerId: 'pf-map-dialog-create',                             // id for the "new map" container
@@ -43,11 +43,11 @@ define([
      * @param filename
      * @returns {string}
      */
-    var formatFilename = function(filename){
+    let formatFilename = function(filename){
         filename = filename.replace(/[^a-zA-Z0-9]/g,'_');
 
-        var nowDate = new Date();
-        var filenameDate = nowDate.toISOString().slice(0,10).replace(/-/g, '_');
+        let nowDate = new Date();
+        let filenameDate = nowDate.toISOString().slice(0,10).replace(/-/g, '_');
 
         return  (filename + '_' + filenameDate).replace(/__/g,'_');
     };
@@ -60,7 +60,7 @@ define([
     $.fn.showMapSettingsDialog = function(mapData, options){
 
         // check if dialog is already open
-        var mapInfoDialogElement = $('#' + config.newMapDialogId);
+        let mapInfoDialogElement = $('#' + config.newMapDialogId);
         if(!mapInfoDialogElement.is(':visible')){
 
             requirejs([
@@ -69,12 +69,12 @@ define([
                 'mustache'
             ], function(templateMapDialog, templateMapSettings, Mustache) {
 
-                var dialogTitle = 'Map settings';
+                let dialogTitle = 'Map settings';
 
                 // if there are no maps -> hide settings tab
-                var hideSettingsTab = false;
-                var hideEditTab = false;
-                var hideDownloadTab = false;
+                let hideSettingsTab = false;
+                let hideEditTab = false;
+                let hideDownloadTab = false;
 
                 if(mapData === false){
                     hideSettingsTab = true;
@@ -83,9 +83,9 @@ define([
                 }
 
                 // available map "types" for a new or existing map
-                var mapTypes = MapUtil.getMapTypes(true);
+                let mapTypes = MapUtil.getMapTypes(true);
 
-                var data = {
+                let data = {
                     scope: MapUtil.getMapScopes(),
                     type: mapTypes,
                     icon: MapUtil.getMapIcons(),
@@ -95,17 +95,17 @@ define([
                 };
 
                 // render "new map" tab content -------------------------------------------
-                var contentNewMap = Mustache.render(templateMapSettings, data);
+                let contentNewMap = Mustache.render(templateMapSettings, data);
 
                 // render "edit map" tab content ------------------------------------------
-                var contentEditMap = Mustache.render(templateMapSettings, data);
+                let contentEditMap = Mustache.render(templateMapSettings, data);
                 contentEditMap = $(contentEditMap);
 
                 // current map access info
-                var accessCharacter = [];
-                var accessCorporation = [];
-                var accessAlliance = [];
-                var deleteExpiredConnections = true;
+                let accessCharacter = [];
+                let accessCorporation = [];
+                let accessAlliance = [];
+                let deleteExpiredConnections = true;
 
                 if(mapData !== false){
                     // set current map information
@@ -178,20 +178,20 @@ define([
                     formatFilename: function(){
                         // format filename from "map name" (initial)
                         return function (mapName, render) {
-                            var filename = render(mapName);
+                            let filename = render(mapName);
                             return formatFilename(filename);
                         };
                     }
                 };
 
-                var contentDialog = Mustache.render(templateMapDialog, data);
+                let contentDialog = Mustache.render(templateMapDialog, data);
                 contentDialog = $(contentDialog);
 
                 // set tab content
                 $('#' + config.dialogMapCreateContainerId, contentDialog).html(contentNewMap);
                 $('#' + config.dialogMapEditContainerId, contentDialog).html(contentEditMap);
 
-                var mapInfoDialog = bootbox.dialog({
+                let mapInfoDialog = bootbox.dialog({
                     title: dialogTitle,
                     message: contentDialog,
                     buttons: {
@@ -205,15 +205,15 @@ define([
                             callback: function() {
 
                                 // get the current active form
-                                var form = $('#' + config.newMapDialogId).find('form').filter(':visible');
+                                let form = $('#' + config.newMapDialogId).find('form').filter(':visible');
 
                                 // validate form
                                 form.validator('validate');
 
                                 // validate select2 fields (settings tab)
                                 form.find('select').each(function(){
-                                    var selectField = $(this);
-                                    var selectValues = selectField.val();
+                                    let selectField = $(this);
+                                    let selectValues = selectField.val();
 
                                     if(selectValues.length > 0){
                                         selectField.parents('.form-group').removeClass('has-error');
@@ -223,23 +223,23 @@ define([
                                 });
 
                                 // check whether the form is valid
-                                var formValid = form.isValidForm();
+                                let formValid = form.isValidForm();
 
                                 if(formValid === true){
 
                                     // lock dialog
-                                    var dialogContent = mapInfoDialog.find('.modal-content');
+                                    let dialogContent = mapInfoDialog.find('.modal-content');
                                     dialogContent.showLoadingAnimation();
 
                                     // get form data
-                                    var formData = form.getFormValues();
+                                    let formData = form.getFormValues();
 
                                     // checkbox fix -> settings tab
                                     if( form.find('#' + config.deleteExpiredConnectionsId).length ){
                                         formData.deleteExpiredConnections = formData.hasOwnProperty('deleteExpiredConnections') ? parseInt( formData.deleteExpiredConnections ) : 0;
                                     }
 
-                                    var requestData = {formData: formData};
+                                    let requestData = {formData: formData};
 
                                     $.ajax({
                                         type: 'POST',
@@ -257,7 +257,8 @@ define([
                                             Util.showNotify({title: dialogTitle, text: 'Map: ' + responseData.mapData.mapData.name, type: 'success'});
 
                                             // update map-tab Element
-                                            var tabLinkElement = Util.getMapModule().getMapTabElements(responseData.mapData.mapData.id);
+                                            let tabLinkElement = Util.getMapModule().getMapTabElements(responseData.mapData.mapData.id);
+
                                             if(tabLinkElement.length === 1){
                                                 tabLinkElement.updateTabData(responseData.mapData.mapData);
                                             }
@@ -266,7 +267,7 @@ define([
                                             $(document).trigger('pf:closeMenu', [{}]);
                                         }
                                     }).fail(function( jqXHR, status, error) {
-                                        var reason = status + ' ' + error;
+                                        let reason = status + ' ' + error;
                                         Util.showNotify({title: jqXHR.status + ': saveMap', text: reason, type: 'warning'});
                                         $(document).setProgramStatus('problem');
 
@@ -297,7 +298,7 @@ define([
 
                     // show form messages -------------------------------------
                     // get current active form(tab)
-                    var form = $('#' + config.newMapDialogId).find('form').filter(':visible');
+                    let form = $('#' + config.newMapDialogId).find('form').filter(':visible');
 
                     form.showFormMessage([{type: 'info', message: 'Creating new maps or change settings may take a few seconds'}]);
 
@@ -312,24 +313,24 @@ define([
                     }
 
                     // init "download tab" ========================================================================
-                    var downloadTabElement = mapInfoDialog.find('#' + config.dialogMapDownloadContainerId);
+                    let downloadTabElement = mapInfoDialog.find('#' + config.dialogMapDownloadContainerId);
                     if(downloadTabElement.length){
                         // tab exists
 
                         // export map data ------------------------------------------------------------------------
                         downloadTabElement.find('#' + config.buttonExportId).on('click', { mapData: mapData }, function(e){
 
-                            var exportForm = $('#' + config.dialogMapExportFormId);
-                            var validExportForm = exportForm.isValidForm();
+                            let exportForm = $('#' + config.dialogMapExportFormId);
+                            let validExportForm = exportForm.isValidForm();
 
                             if(validExportForm){
-                                var mapElement = Util.getMapModule().getActiveMap();
+                                let mapElement = Util.getMapModule().getActiveMap();
 
                                 if(mapElement){
                                     // IMPORTANT: Get map data from client (NOT from global mapData which is available in here)
                                     // -> This excludes some data (e.g. wh statics)
                                     // -> Bring export inline with main map toggle requests
-                                    var exportMapData = mapElement.getMapDataFromClient({
+                                    let exportMapData = mapElement.getMapDataFromClient({
                                         forceData: true,
                                         getAll: true
                                     });
@@ -349,7 +350,7 @@ define([
 
                         // import map data ------------------------------------------------------------------------
                         // check if "FileReader" API is supported
-                        var importFormElement = downloadTabElement.find('#' + config.dialogMapImportFormId);
+                        let importFormElement = downloadTabElement.find('#' + config.dialogMapImportFormId);
                         if(window.File && window.FileReader && window.FileList && window.Blob){
 
                             // show file info in UI
@@ -357,14 +358,14 @@ define([
                                 e.stopPropagation();
                                 e.preventDefault();
 
-                                var infoContainerElement = importFormElement.find('#' + config.dialogMapImportInfoId);
+                                let infoContainerElement = importFormElement.find('#' + config.dialogMapImportInfoId);
                                 infoContainerElement.hide().empty();
                                 importFormElement.hideFormMessage('all');
 
-                                var output = [];
-                                var files = e.target.files;
+                                let output = [];
+                                let files = e.target.files;
 
-                                for (var i = 0, f; !!(f = files[i]); i++) {
+                                for (let i = 0, f; !!(f = files[i]); i++) {
                                     output.push(( i + 1 ) + '. file: ' + f.name + ' - ' +
                                         f.size + ' bytes; last modified: ' +
                                         f.lastModifiedDate.toLocaleDateString() );
@@ -378,14 +379,14 @@ define([
                             });
 
                             // drag&drop
-                            var importData = {};
+                            let importData = {};
                             importData.mapData = [];
-                            var files = [];
-                            var filesCount = 0;
-                            var filesCountFail = 0;
+                            let files = [];
+                            let filesCount = 0;
+                            let filesCountFail = 0;
 
                             // onLoad for FileReader API
-                            var readerOnLoad = function(readEvent) {
+                            let readerOnLoad = function(readEvent) {
 
                                 // get file content
                                 try{
@@ -404,13 +405,13 @@ define([
                                 }
                             };
 
-                            var handleDragOver = function(dragEvent) {
+                            let handleDragOver = function(dragEvent) {
                                 dragEvent.stopPropagation();
                                 dragEvent.preventDefault();
                                 dragEvent.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
                             };
 
-                            var handleFileSelect = function(evt){
+                            let handleFileSelect = function(evt){
                                 evt.stopPropagation();
                                 evt.preventDefault();
 
@@ -421,14 +422,14 @@ define([
 
                                 files = evt.dataTransfer.files; // FileList object.
 
-                                for (var file; !!(file = files[filesCount]); filesCount++){
-                                    var reader = new FileReader();
+                                for (let file; !!(file = files[filesCount]); filesCount++){
+                                    let reader = new FileReader();
                                     reader.onload = readerOnLoad;
                                     reader.readAsText(file);
                                 }
                             };
 
-                            var dropZone = downloadTabElement.find('.' + config.dragDropElementClass);
+                            let dropZone = downloadTabElement.find('.' + config.dragDropElementClass);
                             dropZone[0].addEventListener('dragover', handleDragOver, false);
                             dropZone[0].addEventListener('drop', handleFileSelect, false);
 
@@ -436,19 +437,19 @@ define([
                             downloadTabElement.find('#' + config.buttonImportId).on('click', function(e) {
 
                                 importFormElement.validator('validate');
-                                var validImportForm = importFormElement.isValidForm();
+                                let validImportForm = importFormElement.isValidForm();
 
                                 if(validImportForm){
                                     importData = importFormElement.getFormValues();
                                     importData.mapData = [];
 
-                                    var fileElement = downloadTabElement.find('#' + config.fieldImportId);
+                                    let fileElement = downloadTabElement.find('#' + config.fieldImportId);
                                     files = fileElement[0].files;
                                     filesCount = 0;
                                     filesCountFail = 0;
 
-                                    for (var file; !!(file = files[filesCount]); filesCount++){
-                                        var reader = new FileReader();
+                                    for (let file; !!(file = files[filesCount]); filesCount++){
+                                        let reader = new FileReader();
                                         reader.onload = readerOnLoad;
                                         reader.readAsText(file);
                                     }
@@ -462,9 +463,9 @@ define([
 
                 // events for tab change
                 mapInfoDialog.find('.navbar a').on('shown.bs.tab', function(e){
-                    var selectElementCharacter = mapInfoDialog.find('#' + config.characterSelectId);
-                    var selectElementCorporation = mapInfoDialog.find('#' + config.corporationSelectId);
-                    var selectElementAlliance = mapInfoDialog.find('#' + config.allianceSelectId);
+                    let selectElementCharacter = mapInfoDialog.find('#' + config.characterSelectId);
+                    let selectElementCorporation = mapInfoDialog.find('#' + config.corporationSelectId);
+                    let selectElementAlliance = mapInfoDialog.find('#' + config.allianceSelectId);
 
                     if($(e.target).attr('href') === '#' + config.dialogMapSettingsContainerId){
                         // "settings" tab
@@ -498,13 +499,13 @@ define([
      * import new map(s) data
      * @param importData
      */
-    var importMaps = function(importData){
+    let importMaps = function(importData){
 
-        var importForm = $('#' + config.dialogMapImportFormId);
+        let importForm = $('#' + config.dialogMapImportFormId);
         importForm.hideFormMessage('all');
 
         // lock dialog
-        var dialogContent = importForm.parents('.modal-content');
+        let dialogContent = importForm.parents('.modal-content');
         dialogContent.showLoadingAnimation();
 
         $.ajax({
@@ -525,7 +526,7 @@ define([
                 Util.showNotify({title: 'Import finished', text: 'Map(s) imported', type: 'success'});
             }
         }).fail(function( jqXHR, status, error) {
-            var reason = status + ' ' + error;
+            let reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': importMap', text: reason, type: 'error'});
         }).always(function() {
             importForm.find('input, select').resetFormFields().trigger('change');
@@ -540,9 +541,9 @@ define([
      */
     $.fn.setExportMapData = function(mapData){
 
-        var fieldExport = $('#' + config.fieldExportId);
-        var filename = '';
-        var mapDataEncoded = '';
+        let fieldExport = $('#' + config.fieldExportId);
+        let filename = '';
+        let mapDataEncoded = '';
 
         if(fieldExport.length){
             filename = fieldExport.val();
@@ -553,7 +554,7 @@ define([
         }
 
         return this.each(function(){
-            var exportButton = $(this);
+            let exportButton = $(this);
             exportButton.attr('href', 'data:' + mapDataEncoded);
             exportButton.attr('download', filename + '.json');
         });
@@ -564,11 +565,11 @@ define([
      * init select2 fields within the settings dialog
      * @param mapInfoDialog
      */
-    var initSettingsSelectFields = function(mapInfoDialog){
+    let initSettingsSelectFields = function(mapInfoDialog){
 
-        var selectElementCharacter = mapInfoDialog.find('#' + config.characterSelectId);
-        var selectElementCorporation = mapInfoDialog.find('#' + config.corporationSelectId);
-        var selectElementAlliance = mapInfoDialog.find('#' + config.allianceSelectId);
+        let selectElementCharacter = mapInfoDialog.find('#' + config.characterSelectId);
+        let selectElementCorporation = mapInfoDialog.find('#' + config.corporationSelectId);
+        let selectElementAlliance = mapInfoDialog.find('#' + config.allianceSelectId);
 
         // init character select live search
         selectElementCharacter.initAccessSelect({
@@ -595,12 +596,11 @@ define([
      */
     $.fn.showDeleteMapDialog = function(mapData){
 
-        var mapName = mapData.config.name;
+        let mapName = mapData.config.name;
 
-        var mapDeleteDialog = bootbox.confirm('Delete map "' + mapName + '"?', function(result){
+        let mapDeleteDialog = bootbox.confirm('Delete map "' + mapName + '"?', function(result){
             if(result){
-
-                var data = {mapData: mapData.config};
+                let data = {mapData: mapData.config};
 
                 $.ajax({
                     type: 'POST',
@@ -609,12 +609,12 @@ define([
                     dataType: 'json'
                 }).done(function(data){
                     Util.showNotify({title: 'Map deleted', text: 'Map: ' + mapName, type: 'success'});
-
-                    $(mapDeleteDialog).modal('hide');
                 }).fail(function( jqXHR, status, error) {
-                    var reason = status + ' ' + error;
+                    let reason = status + ' ' + error;
                     Util.showNotify({title: jqXHR.status + ': deleteMap', text: reason, type: 'warning'});
                     $(document).setProgramStatus('problem');
+                }).always(function() {
+                    $(mapDeleteDialog).modal('hide');
                 });
 
                 return false;

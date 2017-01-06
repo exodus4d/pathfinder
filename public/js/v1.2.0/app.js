@@ -26,8 +26,8 @@ requirejs.config({
         text: 'lib/requirejs/text',                                     // v2.0.12 A RequireJS/AMD loader plugin for loading text resources.
         mustache: 'lib/mustache.min',                                   // v1.0.0 Javascript template engine - http://mustache.github.io
         localForage: 'lib/localforage.min',                             // v1.4.2 localStorage library - https://mozilla.github.io/localForage
-        velocity: 'lib/velocity.min',                                   // v1.2.2 animation engine - http://julian.com/research/velocity
-        velocityUI: 'lib/velocity.ui.min',                              // v5.0.4 plugin for velocity - http://julian.com/research/velocity/#uiPack
+        velocity: 'lib/velocity.min',                                   // v1.4.1 animation engine - http://julian.com/research/velocity
+        velocityUI: 'lib/velocity.ui.min',                              // v5.2.0 plugin for velocity - http://julian.com/research/velocity/#uiPack
         slidebars: 'lib/slidebars',                                     // v0.10 Slidebars - side menu plugin http://plugins.adchsm.me/slidebars
         jsPlumb: 'lib/dom.jsPlumb-1.7.6',                               // v1.7.6 jsPlumb (Vanilla)- main map draw plugin https://jsplumbtoolkit.com
         farahey: 'lib/farahey-0.5',                                     // v0.5 jsPlumb "magnetizing" extension - https://github.com/jsplumb/farahey

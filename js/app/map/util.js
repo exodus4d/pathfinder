@@ -9,7 +9,7 @@ define([
 ], function($, Init, Util) {
     'use strict';
 
-    var config = {
+    let config = {
         mapSnapToGridDimension: 20,                                     // px for grid snapping (grid YxY)
 
         // local storage
@@ -22,7 +22,7 @@ define([
     };
 
     // map menu options
-    var mapOptions = {
+    let mapOptions = {
         mapMagnetizer: {
             buttonId: Util.config.menuButtonMagnetizerId,
             description: 'Magnetizer',
@@ -42,23 +42,23 @@ define([
      * @param {bool} filterByUser
      * @returns {Array}
      */
-    var getMapTypes = function(filterByUser){
-        var mapTypes = [];
+    let getMapTypes = function(filterByUser){
+        let mapTypes = [];
 
         $.each(Init.mapTypes, function(prop, data){
             // skip "default" type -> just for 'add' icon
             if(data.label.length > 0){
-                var tempData = data;
+                let tempData = data;
                 tempData.name = prop;
                 mapTypes.push(tempData);
             }
         });
 
         if(filterByUser === true){
-            var corporationId = Util.getCurrentUserInfo('corporationId');
-            var allianceId = Util.getCurrentUserInfo('allianceId');
+            let corporationId = Util.getCurrentUserInfo('corporationId');
+            let allianceId = Util.getCurrentUserInfo('allianceId');
 
-            var authorizedMapTypes = [];
+            let authorizedMapTypes = [];
             // check if character data exists
             if(corporationId > 0) {
                 authorizedMapTypes.push('corporation');
@@ -71,9 +71,9 @@ define([
             authorizedMapTypes.push('private');
 
             // compare "all" map types with "authorized" types
-            var tempMapTypes = [];
-            for(var i = 0; i < mapTypes.length; i++){
-                for(var j = 0; j < authorizedMapTypes.length; j++){
+            let tempMapTypes = [];
+            for(let i = 0; i < mapTypes.length; i++){
+                for(let j = 0; j < authorizedMapTypes.length; j++){
                     if(mapTypes[i].name === authorizedMapTypes[j]){
                         tempMapTypes.push(mapTypes[i]);
                         break;
@@ -91,10 +91,10 @@ define([
      * get all available scopes for a map
      * @returns {Array}
      */
-    var getMapScopes = function(){
-        var scopes = [];
+    let getMapScopes = function(){
+        let scopes = [];
         $.each(Init.mapScopes, function(prop, data){
-            var tempData = data;
+            let tempData = data;
             tempData.name = prop;
             scopes.push(tempData);
         });
@@ -108,8 +108,8 @@ define([
      * @param {string} option
      * @returns {string}
      */
-    var getScopeInfoForMap = function(info, option){
-        var scopeInfo = '';
+    let getScopeInfoForMap = function(info, option){
+        let scopeInfo = '';
         if(Init.mapScopes.hasOwnProperty(info)){
             scopeInfo = Init.mapScopes[info][option];
         }
@@ -120,7 +120,7 @@ define([
      * get all available map icons
      * @returns {Object[]}
      */
-    var getMapIcons = function(){
+    let getMapIcons = function(){
         return Init.mapIcons;
     };
 
@@ -130,8 +130,8 @@ define([
      * @param {string} option
      * @returns {string}
      */
-    var getInfoForMap = function(mapType, option){
-        var mapInfo = '';
+    let getInfoForMap = function(mapType, option){
+        let mapInfo = '';
         if(Init.mapTypes.hasOwnProperty(mapType)){
             mapInfo = Init.mapTypes[mapType][option];
         }
@@ -144,8 +144,8 @@ define([
      * @param {string} option
      * @returns {string}
      */
-    var getInfoForSystem = function(info, option){
-        var systemInfo = '';
+    let getInfoForSystem = function(info, option){
+        let systemInfo = '';
         if(Init.classes.systemInfo.hasOwnProperty(info)){
             systemInfo = Init.classes.systemInfo[info][option];
         }
@@ -158,8 +158,8 @@ define([
      * @param {string} option
      * @returns {string}
      */
-    var getSystemTypeInfo = function(systemTypeId, option){
-        var systemTypeInfo = '';
+    let getSystemTypeInfo = function(systemTypeId, option){
+        let systemTypeInfo = '';
         $.each(Init.systemType, function(prop, data){
             if(systemTypeId === data.id){
                 systemTypeInfo = data[option];
@@ -175,8 +175,8 @@ define([
      * @param option
      * @returns {string}
      */
-    var getEffectInfoForSystem = function(effect, option){
-        var effectInfo = '';
+    let getEffectInfoForSystem = function(effect, option){
+        let effectInfo = '';
         if( Init.classes.systemEffects.hasOwnProperty(effect) ){
             effectInfo = Init.classes.systemEffects[effect][option];
         }
@@ -198,9 +198,9 @@ define([
      * @param {JQuery[]} systems - system DOM elements
      * @returns {Array} connections - found connection, DOM elements
      */
-    var searchConnectionsBySystems = function(map, systems){
-        var connections = [];
-        var withBackConnection = false;
+    let searchConnectionsBySystems = function(map, systems){
+        let connections = [];
+        let withBackConnection = false;
 
         $.each(systems, function(i, system){
             // get connections where system is source
@@ -221,15 +221,15 @@ define([
      * @param {string|string[]} type
      * @returns {Array}
      */
-    var searchConnectionsByScopeAndType = function(map, scope, type){
-        var connections = [];
-        var scopeArray = (scope === undefined) ? ['*'] : ((Array.isArray(scope)) ? scope : [scope]);
-        var typeArray = (type === undefined) ? [] : ((Array.isArray(type)) ? type : [type]);
+    let searchConnectionsByScopeAndType = function(map, scope, type){
+        let connections = [];
+        let scopeArray = (scope === undefined) ? ['*'] : ((Array.isArray(scope)) ? scope : [scope]);
+        let typeArray = (type === undefined) ? [] : ((Array.isArray(type)) ? type : [type]);
 
         map.select({scope: scopeArray}).each(function(connection){
             if(typeArray.length > 0){
                 // filter by connection type as well...
-                for(var i = 0; i < typeArray.length; i++){
+                for(let i = 0; i < typeArray.length; i++){
                     if( connection.hasType(typeArray[i]) ){
                         connections.push(connection);
                         break; // don´t add same connection multiple times
@@ -250,8 +250,8 @@ define([
      * @param {string} option
      * @returns {string}
      */
-    var getConnectionInfo = function(connectionTyp, option){
-        var connectionInfo = '';
+    let getConnectionInfo = function(connectionTyp, option){
+        let connectionInfo = '';
         if(Init.connectionTypes.hasOwnProperty(connectionTyp)){
             connectionInfo = Init.connectionTypes[connectionTyp][option];
         }
@@ -265,8 +265,8 @@ define([
      * @param {JQuery} systemB
      * @returns {Array}
      */
-    var checkForConnection = function(map, systemA, systemB){
-        var connections = [];
+    let checkForConnection = function(map, systemA, systemB){
+        let connections = [];
         connections = connections.concat( map.getConnections({scope: '*', source: systemA, target: systemB}) );
         // get connections where system is target
         connections = connections.concat( map.getConnections({scope: '*', source: systemB, target: systemA}) );
@@ -279,8 +279,8 @@ define([
      * @param {string} scope
      * @returns {string}
      */
-    var getDefaultConnectionTypeByScope = function(scope){
-        var type = '';
+    let getDefaultConnectionTypeByScope = function(scope){
+        let type = '';
         switch(scope){
             case 'wh':
                 type = 'wh_fresh';
@@ -303,7 +303,7 @@ define([
      * @param {Object} connection - jsPlumb object
      * @param {string} status
      */
-    var setConnectionWHStatus = function(connection, status){
+    let setConnectionWHStatus = function(connection, status){
         if(
             status === 'wh_fresh' &&
             connection.hasType('wh_fresh') !== true
@@ -344,13 +344,13 @@ define([
      * @param {string} option
      * @returns {string}
      */
-    var getScopeInfoForConnection = function(info, option){
-        var scopeInfo = '';
+    let getScopeInfoForConnection = function(info, option){
+        let scopeInfo = '';
         if(Init.connectionScopes.hasOwnProperty(info)){
             switch(option){
                 case 'connectorDefinition':
                     // json data in DB
-                    var temp = '{ "data": ' + Init.connectionScopes[info][option] + '}';
+                    let temp = '{ "data": ' + Init.connectionScopes[info][option] + '}';
                     scopeInfo = $.parseJSON( temp).data;
                     break;
                 default:
@@ -367,9 +367,112 @@ define([
      * @param element
      * @returns {*}
      */
-    var getTabContentElementByMapElement = function(element){
-        var tabContentElement = $(element).parents('.' + config.mapTabContentClass);
+    let getTabContentElementByMapElement = function(element){
+        let tabContentElement = $(element).parents('.' + config.mapTabContentClass);
         return tabContentElement;
+    };
+
+    /**
+     * store mapId for current user (IndexedDB)
+     * @param mapId
+     */
+    let storeDefaultMapId = function(mapId){
+        if(mapId > 0){
+            let userData = Util.getCurrentUserData();
+            if(
+                userData &&
+                userData.character
+            ){
+                storeLocalData('character', userData.character.id, 'defaultMapId', mapId);
+            }
+        }
+    };
+
+    /**
+     * get key prefix for local storage data
+     * @param type
+     * @returns {boolean}
+     */
+    let getLocalStoragePrefixByType = function(type){
+        let prefix = false;
+        switch(type){
+            case 'character':   prefix = config.characterLocalStoragePrefix; break;
+            case 'map':   prefix = config.mapLocalStoragePrefix; break;
+            default:   prefix = config.mapLocalStoragePrefix;
+        }
+        return prefix;
+    };
+
+    /**
+     * get stored local data from client cache (IndexedDB)
+     * @param type
+     * @param objectId
+     * @returns {*}
+     */
+    let getLocaleData = function(type, objectId){
+        if(objectId > 0){
+            let storageKey = getLocalStoragePrefixByType(type) + objectId;
+            return Util.getLocalStorage().getItem(storageKey);
+        }else{
+            console.warn('Local storage requires object id > 0');
+        }
+    };
+
+    /**
+     * store local config data to client cache (IndexedDB)
+     * @param type
+     * @param objectId
+     * @param key
+     * @param value
+     */
+    let storeLocalData = function(type, objectId, key, value){
+        if(objectId > 0){
+            // get current map config
+            let storageKey = getLocalStoragePrefixByType(type) + objectId;
+            Util.getLocalStorage().getItem(storageKey).then(function(data) {
+                // This code runs once the value has been loaded
+                // from the offline store.
+                data = (data === null) ? {} : data;
+                // set/update value
+                data[this.key] = this.value;
+                Util.getLocalStorage().setItem(this.storageKey, data);
+            }.bind({
+                key: key,
+                value: value,
+                storageKey: storageKey
+            })).catch(function(err) {
+                // This code runs if there were any errors
+                console.error('Map local storage can not be accessed!');
+            });
+        }else{
+            console.warn('storeLocalData(): Local storage requires object id > 0');
+        }
+    };
+
+    /**
+     * delete local map configuration by key (IndexedDB)
+     * @param type
+     * @param objectId
+     * @param key
+     */
+    let deleteLocalData = function(type, objectId, key){
+        if(objectId > 0){
+            // get current map config
+            let storageKey = getLocalStoragePrefixByType(type) + objectId;
+            Util.getLocalStorage().getItem(storageKey).then(function(data) {
+                if(
+                    data &&
+                    data.hasOwnProperty(key)
+                ){
+                    delete data[key];
+                    Util.getLocalStorage().setItem(this.storageKey, data);
+                }
+            }.bind({
+                storageKey: storageKey
+            }));
+        }else{
+            console.warn('deleteLocalData(): Local storage requires object id > 0');
+        }
     };
 
     /**
@@ -380,9 +483,9 @@ define([
      */
     $.fn.setSystemRally = function(rallyUpdated, options){
         rallyUpdated = rallyUpdated || 0;
-        var rallyPoke = false;
+        let rallyPoke = false;
 
-        var defaultOptions = {
+        let defaultOptions = {
             poke: false,
             hideNotification: false,
             hideCounter: false,
@@ -390,8 +493,8 @@ define([
         options = $.extend({}, defaultOptions, options);
 
         return this.each(function(){
-            var system = $(this);
-            var rally = system.data('rallyUpdated') || 0;
+            let system = $(this);
+            let rally = system.data('rallyUpdated') || 0;
 
             if(rallyUpdated !== rally){
                 // rally status changed
@@ -399,7 +502,7 @@ define([
                     system.getMapOverlay('timer').startMapUpdateCounter();
                 }
 
-                var rallyClass = getInfoForSystem('rally', 'class');
+                let rallyClass = getInfoForSystem('rally', 'class');
 
                 if(rallyUpdated > 0){
                     // new rally point set OR update system with rally information
@@ -408,7 +511,7 @@ define([
                     // rallyUpdated > 0 is required for poke!
                     rallyPoke = options.poke;
 
-                    var notificationOptions = {
+                    let notificationOptions = {
                         title: 'Rally Point',
                         text: 'System: ' +  system.data('name')
                     };
@@ -421,13 +524,13 @@ define([
                         // rally saved AND poke option active
 
                         // check if desktop notification was already send
-                        var mapId = system.data('mapid');
-                        var systemId = system.data('id');
-                        var promiseStore = getLocaleData('map', mapId);
+                        let mapId = system.data('mapid');
+                        let systemId = system.data('id');
+                        let promiseStore = getLocaleData('map', mapId);
                         promiseStore.then(function(data) {
                             // This code runs once the value has been loaded
                             // from the offline store.
-                            var rallyPokeData = {};
+                            let rallyPokeData = {};
 
                             if(
                                 data &&
@@ -466,109 +569,6 @@ define([
             system.data('rallyUpdated', rallyUpdated);
             system.data('rallyPoke', rallyPoke);
         });
-    };
-
-    /**
-     * store mapId for current user (IndexedDB)
-     * @param mapId
-     */
-    var storeDefaultMapId = function(mapId){
-        if(mapId > 0){
-            var userData = Util.getCurrentUserData();
-            if(
-                userData &&
-                userData.character
-            ){
-                storeLocalData('character', userData.character.id, 'defaultMapId', mapId);
-            }
-        }
-    };
-
-    /**
-     * get key prefix for local storage data
-     * @param type
-     * @returns {boolean}
-     */
-    var getLocalStoragePrefixByType = function(type){
-        var prefix = false;
-        switch(type){
-            case 'character':   prefix = config.characterLocalStoragePrefix; break;
-            case 'map':   prefix = config.mapLocalStoragePrefix; break;
-            default:   prefix = config.mapLocalStoragePrefix;
-        }
-        return prefix;
-    };
-
-    /**
-     * get stored local data from client cache (IndexedDB)
-     * @param type
-     * @param objectId
-     * @returns {*}
-     */
-    var getLocaleData = function(type, objectId){
-        if(objectId > 0){
-            var storageKey = getLocalStoragePrefixByType(type) + objectId;
-            return Util.getLocalStorage().getItem(storageKey);
-        }else{
-            console.warn('Local storage requires object id > 0');
-        }
-    };
-
-    /**
-     * store local config data to client cache (IndexedDB)
-     * @param type
-     * @param objectId
-     * @param key
-     * @param value
-     */
-    var storeLocalData = function(type, objectId, key, value){
-        if(objectId > 0){
-            // get current map config
-            var storageKey = getLocalStoragePrefixByType(type) + objectId;
-            Util.getLocalStorage().getItem(storageKey).then(function(data) {
-                // This code runs once the value has been loaded
-                // from the offline store.
-                data = (data === null) ? {} : data;
-                // set/update value
-                data[this.key] = this.value;
-                Util.getLocalStorage().setItem(this.storageKey, data);
-            }.bind({
-                key: key,
-                value: value,
-                storageKey: storageKey
-            })).catch(function(err) {
-                // This code runs if there were any errors
-                console.error('Map local storage can not be accessed!');
-            });
-        }else{
-            console.warn('storeLocalData(): Local storage requires object id > 0');
-        }
-    };
-
-    /**
-     * delete local map configuration by key (IndexedDB)
-     * @param type
-     * @param objectId
-     * @param key
-     */
-    var deleteLocalData = function(type, objectId, key){
-        if(objectId > 0){
-            // get current map config
-            var storageKey = getLocalStoragePrefixByType(type) + objectId;
-            Util.getLocalStorage().getItem(storageKey).then(function(data) {
-                if(
-                    data &&
-                    data.hasOwnProperty(key)
-                ){
-                    delete data[key];
-                    Util.getLocalStorage().setItem(this.storageKey, data);
-                }
-            }.bind({
-                storageKey: storageKey
-            }));
-        }else{
-            console.warn('deleteLocalData(): Local storage requires object id > 0');
-        }
     };
 
     return {

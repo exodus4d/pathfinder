@@ -10,7 +10,7 @@ define([
 
     'use strict';
 
-    var config = {
+    let config = {
         logTimerCount: 3,                                               // map log timer in seconds
 
         // map
@@ -29,6 +29,16 @@ define([
         connectionOverlayEolId: 'overlayEol'                            // connection overlay ID (jsPlumb)
     };
 
+
+    /**
+     * get mapElement from overlay or any child of that
+     * @param mapOverlay
+     * @returns {JQuery}
+     */
+    let getMapFromOverlay = function(mapOverlay){
+        return $(mapOverlay).parents('.' + config.mapWrapperClass).find('.' + config.mapClass);
+    };
+
     /**
      * Overlay options (all available map options shown in overlay)
      * "active":    (active || hover) indicated whether an icon/option
@@ -36,7 +46,7 @@ define([
      *              "active": Makes icon active when visible
      *              "hover": Make icon active on hover
      */
-    var options = {
+    let options = {
         filter: {
             title: 'active filter',
             trigger: 'active',
@@ -62,9 +72,9 @@ define([
             iconClass: ['fa', 'fa-fw', 'fa-tags'],
             hoverIntent: {
                 over: function(e){
-                    var mapElement = getMapFromOverlay(this);
+                    let mapElement = getMapFromOverlay(this);
                     mapElement.find('.' + config.systemHeadClass).each(function(){
-                        var system = $(this);
+                        let system = $(this);
                         // init tooltip if not already exists
                         if ( !system.data('bs.tooltip') ){
                             system.tooltip({
@@ -80,7 +90,7 @@ define([
                     });
                 },
                 out: function(e){
-                    var mapElement = getMapFromOverlay(this);
+                    let mapElement = getMapFromOverlay(this);
                     mapElement.find('.' + config.systemHeadClass).tooltip('hide');
                 }
             }
@@ -92,20 +102,20 @@ define([
             iconClass: ['fa', 'fa-fw', 'fa-clock-o'],
             hoverIntent: {
                 over: function(e){
-                    var mapElement = getMapFromOverlay(this);
-                    var MapUtil = require('app/map/util');
-                    var Map = require('app/map/map');
-                    var map = Map.getMapInstance( mapElement.data('id') );
-                    var connections = MapUtil.searchConnectionsByScopeAndType(map, 'wh', ['wh_eol']);
-                    var serverDate = Util.getServerTime();
+                    let mapElement = getMapFromOverlay(this);
+                    let MapUtil = require('app/map/util');
+                    let Map = require('app/map/map');
+                    let map = Map.getMapInstance( mapElement.data('id') );
+                    let connections = MapUtil.searchConnectionsByScopeAndType(map, 'wh', ['wh_eol']);
+                    let serverDate = Util.getServerTime();
 
                     for (let connection of connections) {
-                        var eolTimestamp = connection.getParameter('eolUpdated');
-                        var eolDate = Util.convertTimestampToServerTime(eolTimestamp);
-                        var diff = Util.getTimeDiffParts(eolDate, serverDate);
+                        let eolTimestamp = connection.getParameter('eolUpdated');
+                        let eolDate = Util.convertTimestampToServerTime(eolTimestamp);
+                        let diff = Util.getTimeDiffParts(eolDate, serverDate);
 
                         // format overlay label
-                        var label = '';
+                        let label = '';
                         if(diff.days){
                             label += diff.days + 'd ';
                         }
@@ -124,11 +134,11 @@ define([
                     }
                 },
                 out: function(e){
-                    var mapElement = getMapFromOverlay(this);
-                    var MapUtil = require('app/map/util');
-                    var Map = require('app/map/map');
-                    var map = Map.getMapInstance( mapElement.data('id') );
-                    var connections = MapUtil.searchConnectionsByScopeAndType(map, 'wh', ['wh_eol']);
+                    let mapElement = getMapFromOverlay(this);
+                    let MapUtil = require('app/map/util');
+                    let Map = require('app/map/map');
+                    let map = Map.getMapInstance( mapElement.data('id') );
+                    let connections = MapUtil.searchConnectionsByScopeAndType(map, 'wh', ['wh_eol']);
 
                     for (let connection of connections) {
                         connection.removeOverlay(config.connectionOverlayEolId);
@@ -139,24 +149,15 @@ define([
     };
 
     /**
-     * get mapElement from overlay or any child of that
-     * @param mapOverlay
-     * @returns {JQuery}
-     */
-    var getMapFromOverlay = function(mapOverlay){
-        return $(mapOverlay).parents('.' + config.mapWrapperClass).find('.' + config.mapClass);
-    };
-
-    /**
      * get map overlay element by type e.g. timer/counter, info - overlay
      * @param overlayType
      * @returns {*}
      */
     $.fn.getMapOverlay = function(overlayType){
 
-        var mapWrapperElement = $(this).parents('.' + config.mapWrapperClass);
+        let mapWrapperElement = $(this).parents('.' + config.mapWrapperClass);
 
-        var mapOverlay = null;
+        let mapOverlay = null;
         switch(overlayType){
             case 'timer':
                 mapOverlay = mapWrapperElement.find('.' + config.mapOverlayTimerClass);
@@ -172,14 +173,15 @@ define([
     /**
      * draws the map update counter to the map overlay timer
      * @param percent
+     * @param value
      * @returns {*}
      */
     $.fn.setMapUpdateCounter = function(percent, value){
 
-        var mapOverlayTimer = $(this);
+        let mapOverlayTimer = $(this);
 
         // check if counter already exists
-        var counterChart = mapOverlayTimer.getMapCounter();
+        let counterChart = mapOverlayTimer.getMapCounter();
 
         if(counterChart.length === 0){
             // create new counter
@@ -212,7 +214,7 @@ define([
      */
     $.fn.getMapCounter = function(){
 
-        var mapOverlayTimer = $(this);
+        let mapOverlayTimer = $(this);
 
         return mapOverlayTimer.find('.' + Init.classes.pieChart.pieChartMapCounterClass);
     };
@@ -222,18 +224,18 @@ define([
      */
     $.fn.startMapUpdateCounter = function(){
 
-        var mapOverlayTimer = $(this);
-        var counterChart = mapOverlayTimer.getMapCounter();
+        let mapOverlayTimer = $(this);
+        let counterChart = mapOverlayTimer.getMapCounter();
 
-        var maxSeconds = config.logTimerCount;
+        let maxSeconds = config.logTimerCount;
 
-        var counterChartLabel = counterChart.find('span');
+        let counterChartLabel = counterChart.find('span');
 
-        var percentPerCount = 100 / maxSeconds;
+        let percentPerCount = 100 / maxSeconds;
 
         // update counter
-        var updateChart = function(tempSeconds){
-            var pieChart = counterChart.data('easyPieChart');
+        let updateChart = function(tempSeconds){
+            let pieChart = counterChart.data('easyPieChart');
 
             if(pieChart !== undefined){
                 counterChart.data('easyPieChart').update( percentPerCount * tempSeconds);
@@ -242,12 +244,11 @@ define([
         };
 
         // main timer function is called on any counter update
-        var timer = function(){
+        let timer = function(mapUpdateCounter){
             // decrease timer
-            var currentSeconds = counterChart.data('currentSeconds');
+            let currentSeconds = counterChart.data('currentSeconds');
             currentSeconds--;
             counterChart.data('currentSeconds', currentSeconds);
-
 
             if(currentSeconds >= 0){
                 // update counter
@@ -266,7 +267,7 @@ define([
         };
 
         // get current seconds (in case the timer is already running)
-        var currentSeconds = counterChart.data('currentSeconds');
+        let currentSeconds = counterChart.data('currentSeconds');
 
         // start values for timer and chart
         counterChart.data('currentSeconds', maxSeconds);
@@ -277,7 +278,9 @@ define([
             currentSeconds < 0
         ){
             // start timer
-            var mapUpdateCounter = setInterval(timer, 1000);
+            let mapUpdateCounter = setInterval(() => {
+                timer(mapUpdateCounter);
+            }, 1000);
 
             // store counter interval
             counterChart.data('interval', mapUpdateCounter);
@@ -296,14 +299,14 @@ define([
      * @param viewType
      */
     $.fn.updateOverlayIcon = function(option, viewType){
-        var mapOverlayInfo = $(this);
+        let mapOverlayInfo = $(this);
 
-        var showOverlay = false;
+        let showOverlay = false;
 
-        var mapOverlayIconClass = options[option].class;
+        let mapOverlayIconClass = options[option].class;
 
         // look for the overlay icon that should be updated
-        var iconElement = mapOverlayInfo.find('.' + mapOverlayIconClass);
+        let iconElement = mapOverlayInfo.find('.' + mapOverlayIconClass);
 
         if(iconElement){
             if(viewType === 'show'){
@@ -335,7 +338,7 @@ define([
                 iconElement.data('visible', false);
 
                 // check if there is any visible icon remaining
-                var visibleIcons = mapOverlayInfo.find('i:visible');
+                let visibleIcons = mapOverlayInfo.find('i:visible');
                 if(visibleIcons.length > 0){
                     showOverlay = true;
                 }
@@ -364,23 +367,23 @@ define([
      */
     $.fn.initMapOverlays = function(){
         return this.each(function(){
-            var parentElement = $(this);
+            let parentElement = $(this);
 
-            var mapOverlayTimer = $('<div>', {
+            let mapOverlayTimer = $('<div>', {
                 class: [config.mapOverlayClass, config.mapOverlayTimerClass].join(' ')
             });
             parentElement.append(mapOverlayTimer);
 
             // ---------------------------------------------------------------------------
             // add map overlay info. after scrollbar is initialized
-            var mapOverlayInfo = $('<div>', {
+            let mapOverlayInfo = $('<div>', {
                 class: [config.mapOverlayClass, config.mapOverlayInfoClass].join(' ')
             });
 
             // add all overlay elements
-            for (var prop in options) {
+            for (let prop in options) {
                 if(options.hasOwnProperty(prop)){
-                    var icon = $('<i>', {
+                    let icon = $('<i>', {
                         class: options[prop].iconClass.concat( ['pull-right', options[prop].class] ).join(' ')
                     }).attr('title', options[prop].title).tooltip({
                         placement: 'bottom',
