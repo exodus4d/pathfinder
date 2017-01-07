@@ -93,11 +93,20 @@ em{
   color: $gray-darkest;
 }
 // help elements ==================================================================================
+.pf-help-light{
+  @extend .txt-color;
+  @extend .txt-color-grayLight;
+  @extend .pf-help-default;
+}
+
 .pf-help{
-  cursor: pointer; // fallback
-  cursor: help;
   @extend .txt-color;
   @extend .txt-color-gray;
+  @extend .pf-help-default;
+}
+
+.pf-help-default{
+  cursor: help;
   @include transition( color 0.08s ease-out );
 
   &:hover{

@@ -97,7 +97,7 @@
                                     <td>
                                         {{@requirement.label}}
                                         <check if="{{ @requirement.tooltip }}">
-                                            <i class="fa fa-fw fa-question-circle" title="{{ @requirement.tooltip }}"></i>
+                                            <i class="fa fa-fw fa-question-circle pf-help-light" title="{{ @requirement.tooltip }}"></i>
                                         </check>
                                     </td>
                                     <td class="text-right">
@@ -182,7 +182,7 @@
                         <table class="table">
                             <thead>
                             <tr>
-                                <td class="col-md-3">TEMP <i class="fa fa-fw fa-question-circle" title="Temporary folder for cache, filesystem locks, compiled F3 templates, etc."></i></td>
+                                <td class="col-md-3">TEMP <i class="fa fa-fw fa-question-circle pf-help-light" title="Temporary folder for cache, filesystem locks, compiled F3 templates, etc."></i></td>
                                 <td class="text-right col-md-8">
                                     <kbd>{{ @TEMP }}</kbd>
                                 </td>
@@ -191,7 +191,7 @@
 
                             <tbody>
                                 <tr>
-                                    <td>CACHE <i class="fa fa-fw fa-question-circle" title="Cache backend. F3 can handle Redis, Memcache, APC, WinCache, XCache and a filesystem-based (default) cache."></i></td>
+                                    <td>CACHE <i class="fa fa-fw fa-question-circle pf-help-light" title="Cache backend. F3 can handle Redis, Memcache, APC, WinCache, XCache and a filesystem-based (default) cache."></i></td>
                                     <td class="text-right">
                                         <kbd>{{ @CACHE }}</kbd>
                                     </td>
@@ -860,7 +860,7 @@
                     <div class="panel-heading text-left">
                         <h3 class="panel-title">
                             Index data
-                            <i class="fa fa-fw fa-question-circle" title="
+                            <i class="fa fa-fw fa-question-circle pf-help-light" title="
                             Indexed data is required for some queries (e.g. route finder module, static wormholes,... ).
                             Building/Importing data may take a while (~20s). Increase 'max_execution_time' if you run into PHP timeouts."></i>
                         </h3>

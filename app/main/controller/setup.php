@@ -427,44 +427,51 @@ class Setup extends Controller {
             'pdo' => [
                 'label' => 'PDO',
                 'required' => 'installed',
-                'version' => extension_loaded('pdo') ? 'installed' : 'not installed',
+                'version' => extension_loaded('pdo') ? 'installed' : 'missing',
                 'check' => extension_loaded('pdo')
             ],
             'pdoMysql' => [
                 'label' => 'PDO_MYSQL',
                 'required' => 'installed',
-                'version' => extension_loaded('pdo_mysql') ? 'installed' : 'not installed',
+                'version' => extension_loaded('pdo_mysql') ? 'installed' : 'missing',
                 'check' => extension_loaded('pdo_mysql')
             ],
             'openssl' => [
                 'label' => 'OpenSSL',
                 'required' => 'installed',
-                'version' => extension_loaded('openssl') ? 'installed' : 'not installed',
+                'version' => extension_loaded('openssl') ? 'installed' : 'missing',
                 'check' => extension_loaded('openssl')
             ],
             'mcrypt' => [
                 'label' => 'Mcrypt',
                 'required' => 'installed',
-                'version' => (extension_loaded('mcrypt')) ? 'installed' : 'not installed',
-                'check' => (extension_loaded('mcrypt'))
+                'version' => (extension_loaded('mcrypt')) ? 'installed' : 'missing',
+                'check' => extension_loaded('mcrypt')
             ],
             'xml' => [
                 'label' => 'XML',
                 'required' => 'installed',
-                'version' => (extension_loaded('xml')) ? 'installed' : 'not installed',
-                'check' => (extension_loaded('xml'))
+                'version' => extension_loaded('xml') ? 'installed' : 'missing',
+                'check' => extension_loaded('xml')
             ],
             'gd' => [
                 'label' => 'GD Library (for Image plugin)',
                 'required' => 'installed',
-                'version' => (extension_loaded('gd') && function_exists('gd_info')) ? 'installed' : 'not installed',
+                'version' => (extension_loaded('gd') && function_exists('gd_info')) ? 'installed' : 'missing',
                 'check' => (extension_loaded('gd') && function_exists('gd_info'))
             ],
             'curl' => [
                 'label' => 'cURL (for Web plugin)',
                 'required' => 'installed',
-                'version' => (extension_loaded('curl') && function_exists('curl_version')) ? 'installed' : 'not installed',
+                'version' => (extension_loaded('curl') && function_exists('curl_version')) ? 'installed' : 'missing',
                 'check' => (extension_loaded('curl') && function_exists('curl_version'))
+            ],
+            'redis' => [
+                'label' => 'Redis [optional]',
+                'required' => $f3->get('REQUIREMENTS.PHP.REDIS'),
+                'version' => extension_loaded('redis') ? phpversion('redis') : 'missing',
+                'check' => version_compare( phpversion('redis'), $f3->get('REQUIREMENTS.PHP.REDIS'), '>='),
+                'tooltip' => 'Redis can replace the default file-caching mechanic. It is much faster (preferred)!'
             ],
             'maxInputVars' => [
                 'label' => 'max_input_vars',
