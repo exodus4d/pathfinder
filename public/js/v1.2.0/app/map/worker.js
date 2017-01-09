@@ -120,6 +120,7 @@ define([
     };
 
     return {
+        getWebSocketURL: getWebSocketURL,
         init: init,
         send: send
     };

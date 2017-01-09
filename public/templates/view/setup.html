@@ -92,42 +92,59 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <repeat group="{{ @checkRequirements }}" value="{{ @requirement }}">
-                                <tr>
-                                    <td>
-                                        {{@requirement.label}}
-                                        <check if="{{ @requirement.tooltip }}">
-                                            <i class="fa fa-fw fa-question-circle pf-help-light" title="{{ @requirement.tooltip }}"></i>
-                                        </check>
-                                    </td>
-                                    <td class="text-right">
-                                        <check if="{{ @requirement.required }}">
-                                            <kbd>{{@requirement.required}}</kbd>
-                                        </check>
-                                    </td>
-                                    <td class="text-right">
-                                        <check if="{{ @requirement.check }}">
-                                            <true>
-                                                <kbd class="txt-color txt-color-success">{{@requirement.version}}</kbd>
-                                            </true>
-                                            <false>
-                                                <kbd class="txt-color txt-color-warning">{{@requirement.version}}</kbd>
-                                                {* Check failed *}
-                                                <set requirementsFulfilled="Warnings" />
-                                            </false>
-                                        </check>
-                                    </td>
-                                    <td class="text-right">
-                                        <check if="{{ @requirement.check }}">
-                                            <true>
-                                                <i class="fa fa-lg fa-fw fa-check txt-color txt-color-success"></i>
-                                            </true>
-                                            <false>
-                                                <i class="fa fa-lg fa-fw fa-warning txt-color txt-color-warning"></i>
-                                            </false>
-                                        </check>
-                                    </td>
-                                </tr>
+                            <repeat group="{{ @checkRequirements }}" key="{{ @dbKey }}" value="{{ @requirement }}">
+
+                                {* if for optional divider *}
+                                <check if="{{ is_numeric( @dbKey ) }}">
+                                    <true>
+                                            </tbody>
+                                        </table>
+
+                                        <div class="panel-footer text-left">
+                                            <h3 class="panel-title">{{@requirement.label}}</h3>
+                                        </div>
+
+                                        <table class="table">
+                                            <tbody>
+                                    </true>
+                                    <false>
+                                        <tr>
+                                            <td>
+                                                {{@requirement.label}}
+                                                <check if="{{ @requirement.tooltip }}">
+                                                    <i class="fa fa-fw fa-question-circle pf-help-light" title="{{ @requirement.tooltip }}"></i>
+                                                </check>
+                                            </td>
+                                            <td class="text-right col-md-3 text-right">
+                                                <check if="{{ @requirement.required }}">
+                                                    <kbd>{{@requirement.required}}</kbd>
+                                                </check>
+                                            </td>
+                                            <td class="text-right col-md-3 text-right">
+                                                <check if="{{ @requirement.check }}">
+                                                    <true>
+                                                        <kbd class="txt-color txt-color-success">{{@requirement.version}}</kbd>
+                                                    </true>
+                                                    <false>
+                                                        <kbd class="txt-color txt-color-warning">{{@requirement.version}}</kbd>
+                                                        {* Check failed *}
+                                                        <set requirementsFulfilled="Warnings" />
+                                                    </false>
+                                                </check>
+                                            </td>
+                                            <td class="text-right col-md-1 text-right">
+                                                <check if="{{ @requirement.check }}">
+                                                    <true>
+                                                        <i class="fa fa-lg fa-fw fa-check txt-color txt-color-success"></i>
+                                                    </true>
+                                                    <false>
+                                                        <i class="fa fa-lg fa-fw fa-warning txt-color txt-color-warning"></i>
+                                                    </false>
+                                                </check>
+                                            </td>
+                                        </tr>
+                                    </false>
+                                </check>
                             </repeat>
                             </tbody>
                         </table>
@@ -136,7 +153,7 @@
                     <div class="panel-footer text-align-center">
                         <check if="{{ @requirementsFulfilled == 'OK' }}">
                             <true>
-                                <h3 class="panel-title txt-color txt-color-green">{{ @requirementsFulfilled }}</h3>
+                                <h3 class="panel-title txt-color txt-color-success">{{ @requirementsFulfilled }}</h3>
                             </true>
                             <false>
                                 <h3 class="panel-title txt-color txt-color-warning">{{ @requirementsFulfilled }}</h3>
@@ -531,7 +548,7 @@
                                     <true>
                                         <check if="{{ @dbStatusCheck == 'OK' }}">
                                             <true>
-                                                <h3 class="panel-title txt-color txt-color-green">{{ @dbConnectionStatus }}</h3>
+                                                <h3 class="panel-title txt-color txt-color-success">{{ @dbConnectionStatus }}</h3>
                                             </true>
                                             <false>
                                                 <h3 class="panel-title txt-color txt-color-warning">{{ @dbStatusCheck }}</h3>
@@ -749,7 +766,7 @@
                                         <set dbWarnings="{{ @dbWarnings }} + {{ @dbInformation.info.statusCheckCount }}" />
                                     </true>
                                     <false>
-                                        <h3 class="panel-title txt-color txt-color-green">{{ @dbConnectionStatus }}</h3>
+                                        <h3 class="panel-title txt-color txt-color-success">{{ @dbConnectionStatus }}</h3>
                                     </false>
                                 </check>
                             </div>
@@ -800,9 +817,9 @@
 
         <div class="row text-center">
 
-            <repeat group="{{ @socketInformation }}" value="{{ @socketData }}">
+            <repeat group="{{ @socketInformation }}" key="{{ @socketType }}" value="{{ @socketData }}">
                 <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
-                    <div class="panel panel-default pricing-big">
+                    <div id="pf-setup-{{ @socketType }}" class="panel panel-default pricing-big" style="position: relative">
                         <div class="panel-heading text-left">
                             <h3 class="panel-title">{{ @socketData.label }}</h3>
                         </div>
@@ -835,10 +852,10 @@
                         <div class="panel-footer text-align-center">
                             <check if="{{ @socketData.online }}">
                                 <true>
-                                    <h3 class="panel-title txt-color txt-color-green">ONLINE</h3>
+                                    <h3 class="panel-title txt-color txt-color-success">CONNECTED</h3>
                                 </true>
                                 <false>
-                                    <h3 class="panel-title txt-color txt-color-danger">OFFLINE</h3>
+                                    <h3 class="panel-title txt-color txt-color-danger">CONNECTION FAILED</h3>
                                 </false>
                             </check>
                         </div>

@@ -47,9 +47,12 @@ class Socket {
     protected $maxRetries = self::DEFAULT_RETRY_MAX;
 
     public function __construct($uri, $ttl = self::DEFAULT_TTL_MAX, $maxRetries = self::DEFAULT_RETRY_MAX){
-        $this->setSocketUri($uri);
         $this->setTtl($ttl, $maxRetries);
-        $this->initSocket();
+
+        if( self::checkRequirements() ){
+            $this->setSocketUri($uri);
+            $this->initSocket();
+        }
     }
 
     /**
@@ -153,6 +156,25 @@ class Socket {
         $this->socket->disconnect($this->socketUri);
 
         return $response;
+    }
+
+    /**
+     * check whether this installation fulfills all requirements
+     * -> check for ZMQ PHP extension and installed ZQM version
+     * -> this does NOT check versions! -> those can be verified on /setup page
+     * @return bool
+     */
+    static function checkRequirements(){
+        $check = false;
+
+        if(
+            extension_loaded('zmq') &&
+            class_exists('ZMQ')
+        ){
+            $check = true;
+        }
+
+        return $check;
     }
 
 

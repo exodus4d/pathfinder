@@ -5,19 +5,20 @@
 define([
     'jquery',
     'app/init',
-    'app/util'
-], function($, Init, Util) {
+    'app/util',
+    'app/map/worker'
+], function($, Init, Util, MapWorker) {
     'use strict';
 
-    var config = {
+    let config = {
         splashOverlayClass: 'pf-splash'                     // class for "splash" overlay
     };
 
     /**
      * set page observer
      */
-    var setPageObserver = function(){
-        var body = $('body');
+    let setPageObserver = () => {
+        let body = $('body');
 
         // collapse ---------------------------------------
         body.find('[data-toggle="collapse"]').css({cursor: 'pointer'}).on('click', function(){
@@ -40,9 +41,96 @@ define([
     };
 
     /**
+     * perform a basic check if Clients (browser) can connect to the webSocket server
+     */
+    let testWebSocket = () => {
+        let webSocketPanel = $('#pf-setup-webSocket');
+        let WebSocketURI = MapWorker.getWebSocketURL();
+
+        webSocketPanel.showLoadingAnimation();
+
+        let removeColorClasses = (el) => {
+            el.removeClass (function (index, css) {
+                return (css.match (/\btxt-color-\S+/g) || []).join(' ');
+            });
+        };
+
+        /**
+         * updates the WebSocket panel with new data
+         * @param data
+         */
+        let updateWebSocketPanel = (data) => {
+            if(data.uri){
+                let uriRow = webSocketPanel.find('.panel-body table tr');
+                uriRow.find('td:nth-child(2) kbd').text(data.uri.value);
+                if(data.uri.status){
+                    let statusIcon = uriRow.find('td:nth-child(3) i');
+                    removeColorClasses(statusIcon);
+
+                    statusIcon.toggleClass('fa-warning', false).toggleClass('fa-check', true).addClass('txt-color-success');
+                }
+            }
+
+            if(data.status){
+                let footer = webSocketPanel.find('.panel-footer h3');
+                removeColorClasses(footer);
+                footer.text(data.status.label).addClass(data.status.class);
+            }
+        };
+
+        // update initial
+        updateWebSocketPanel({
+            uri: {
+                value: WebSocketURI,
+                status: true
+            },
+            status: {
+                label:  'CONNECTING...',
+                class: 'txt-color-warning'
+            }
+        });
+
+        // try to connect to WebSocket server
+        let socket = new WebSocket(WebSocketURI);
+
+        socket.onopen = (e) => {
+            updateWebSocketPanel({
+                status: {
+                    label:  'CONNECTED',
+                    class: 'txt-color-success'
+                }
+            });
+
+            webSocketPanel.hideLoadingAnimation();
+        };
+
+        socket.onerror = (e) => {
+            updateWebSocketPanel({
+                status: {
+                    label:  'CONNECTION FAILED',
+                    class: 'txt-color-danger'
+                }
+            });
+
+            webSocketPanel.hideLoadingAnimation();
+        };
+
+        socket.onclose = (closeEvent) => {
+            updateWebSocketPanel({
+                status: {
+                    label:  'CONNECTION FAILED',
+                    class: 'txt-color-danger'
+                }
+            });
+
+            webSocketPanel.hideLoadingAnimation();
+        };
+    };
+
+    /**
      * main init "setup" page
      */
-    $(function(){
+    $(() => {
 
         // show app information in browser console --------
         Util.showVersionInfo();
@@ -51,5 +139,7 @@ define([
         $('.' + config.splashOverlayClass).hideSplashOverlay();
 
         setPageObserver();
+
+        testWebSocket();
     });
 });

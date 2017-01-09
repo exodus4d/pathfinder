@@ -424,54 +424,47 @@ class Setup extends Controller {
                 'version' => strstr(PCRE_VERSION, ' ', true),
                 'check' => version_compare( strstr(PCRE_VERSION, ' ', true), $f3->get('REQUIREMENTS.PHP.PCRE_VERSION'), '>=')
             ],
-            'pdo' => [
+            'ext_pdo' => [
                 'label' => 'PDO',
                 'required' => 'installed',
                 'version' => extension_loaded('pdo') ? 'installed' : 'missing',
                 'check' => extension_loaded('pdo')
             ],
-            'pdoMysql' => [
+            'ext_pdoMysql' => [
                 'label' => 'PDO_MYSQL',
                 'required' => 'installed',
                 'version' => extension_loaded('pdo_mysql') ? 'installed' : 'missing',
                 'check' => extension_loaded('pdo_mysql')
             ],
-            'openssl' => [
+            'ext_openssl' => [
                 'label' => 'OpenSSL',
                 'required' => 'installed',
                 'version' => extension_loaded('openssl') ? 'installed' : 'missing',
                 'check' => extension_loaded('openssl')
             ],
-            'mcrypt' => [
+            'ext_mcrypt' => [
                 'label' => 'Mcrypt',
                 'required' => 'installed',
                 'version' => (extension_loaded('mcrypt')) ? 'installed' : 'missing',
                 'check' => extension_loaded('mcrypt')
             ],
-            'xml' => [
+            'ext_xml' => [
                 'label' => 'XML',
                 'required' => 'installed',
                 'version' => extension_loaded('xml') ? 'installed' : 'missing',
                 'check' => extension_loaded('xml')
             ],
-            'gd' => [
+            'ext_gd' => [
                 'label' => 'GD Library (for Image plugin)',
                 'required' => 'installed',
                 'version' => (extension_loaded('gd') && function_exists('gd_info')) ? 'installed' : 'missing',
                 'check' => (extension_loaded('gd') && function_exists('gd_info'))
             ],
-            'curl' => [
+            'ext_curl' => [
                 'label' => 'cURL (for Web plugin)',
                 'required' => 'installed',
                 'version' => (extension_loaded('curl') && function_exists('curl_version')) ? 'installed' : 'missing',
                 'check' => (extension_loaded('curl') && function_exists('curl_version'))
-            ],
-            'redis' => [
-                'label' => 'Redis [optional]',
-                'required' => $f3->get('REQUIREMENTS.PHP.REDIS'),
-                'version' => extension_loaded('redis') ? phpversion('redis') : 'missing',
-                'check' => version_compare( phpversion('redis'), $f3->get('REQUIREMENTS.PHP.REDIS'), '>='),
-                'tooltip' => 'Redis can replace the default file-caching mechanic. It is much faster (preferred)!'
             ],
             'maxInputVars' => [
                 'label' => 'max_input_vars',
@@ -486,6 +479,33 @@ class Setup extends Controller {
                 'version' => ini_get('max_execution_time'),
                 'check' => ini_get('max_execution_time') >= $f3->get('REQUIREMENTS.PHP.MAX_EXECUTION_TIME'),
                 'tooltip' => 'PHP default = 30. Max execution time for PHP scripts.'
+            ],
+            [
+                'label' => 'Redis Server [optional]'
+            ],
+            'ext_redis' => [
+                'label' => 'Redis',
+                'required' => $f3->get('REQUIREMENTS.PHP.REDIS'),
+                'version' => extension_loaded('redis') ? phpversion('redis') : 'missing',
+                'check' => version_compare( phpversion('redis'), $f3->get('REQUIREMENTS.PHP.REDIS'), '>='),
+                'tooltip' => 'Redis can replace the default file-caching mechanic. It is much faster!'
+            ],
+            [
+                'label' => 'ØMQ TCP sockets [optional]'
+            ],
+            'ext_zmq' => [
+                'label' => 'ZeroMQ extension',
+                'required' => $f3->get('REQUIREMENTS.PHP.ZMQ'),
+                'version' => extension_loaded('zmq') ? phpversion('zmq') : 'missing',
+                'check' => version_compare( phpversion('zmq'), $f3->get('REQUIREMENTS.PHP.ZMQ'), '>='),
+                'tooltip' => 'ØMQ PHP extension. Required for WebSocket configuration.'
+            ],
+            'lib_zmq' => [
+                'label' => 'ZeroMQ installation',
+                'required' => $f3->get('REQUIREMENTS.LIBS.ZMQ'),
+                'version' => (class_exists('ZMQ') && defined('ZMQ::LIBZMQ_VER')) ? \ZMQ::LIBZMQ_VER : 'unknown',
+                'check' => version_compare( (class_exists('ZMQ') && defined('ZMQ::LIBZMQ_VER')) ? \ZMQ::LIBZMQ_VER : 0, $f3->get('REQUIREMENTS.LIBS.ZMQ'), '>='),
+                'tooltip' => 'ØMQ version. Required for WebSocket configuration.'
             ]
         ];
 
@@ -949,24 +969,12 @@ class Setup extends Controller {
             ],
             'webSocket' => [
                 'label' => 'WebSocket (clients) [HTTP]',
-                'online' => true,
+                'online' => false,
                 'data' => [
                     [
-                        'label' => 'HOST',
-                        'value' => 'pathfinder.local',
-                        'check' => true
-                    ],[
-                        'label' => 'PORT',
-                        'value' => 80,
-                        'check' => true
-                    ],[
                         'label' => 'URI',
-                        'value' => 'ws://pathfinder.local/ws/map/update',
-                        'check' => true
-                    ],[
-                        'label' => 'timeout (ms)',
-                        'value' => $ttl,
-                        'check' => !empty( $ttl )
+                        'value' => '',
+                        'check' => false
                     ]
                 ]
             ]
