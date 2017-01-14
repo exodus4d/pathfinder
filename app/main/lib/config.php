@@ -51,16 +51,20 @@ class Config extends \Prefab {
     }
 
     /**
-     * set some global framework variables
+     * set/overwrite some global framework variables original set in config.ini
+     * -> can be  overwritten in environments.ini OR ENV-Vars
+     * -> see: https://github.com/exodus4d/pathfinder/issues/175
      * that depend on environment settings
      */
     protected function setHiveVariables(){
         $f3 = \Base::instance();
+        // hive keys that can be overwritten
+        $hiveKeys = ['BASE', 'URL', 'DEBUG', 'CACHE'];
 
-        // hive  keys that should be overwritten by environment config
-        $hiveKeys = ['BASE', 'URL', 'DEBUG'];
         foreach($hiveKeys as $key){
-            $f3->set($key, self::getEnvironmentData($key));
+            if( !is_null( $var = self::getEnvironmentData($key)) ){
+                $f3->set($key,$var);
+            }
         }
     }
 
