@@ -448,7 +448,7 @@ class SystemModel extends BasicModel {
      * @return bool
      */
     public function hasAccess(CharacterModel $characterModel){
-        return $this->mapId->hasAccess($characterModel);
+        return ($this->mapId) ? $this->mapId->hasAccess($characterModel) : false;
     }
 
     /**
