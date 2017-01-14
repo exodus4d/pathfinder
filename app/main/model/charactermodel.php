@@ -384,7 +384,7 @@ class CharacterModel extends BasicModel {
             if(
                 !empty($whitelistCorporations) &&
                 $this->hasCorporation() &&
-                in_array($this->get('corporationId', true), $whitelistCorporations)
+                in_array((int)$this->get('corporationId', true), $whitelistCorporations)
             ){
                 $isAuthorized = true;
             }
@@ -394,7 +394,7 @@ class CharacterModel extends BasicModel {
                 !$isAuthorized &&
                 !empty($whitelistAlliance) &&
                 $this->hasAlliance() &&
-                in_array($this->get('allianceId', true), $whitelistAlliance)
+                in_array((int)$this->get('allianceId', true), $whitelistAlliance)
             ){
                 $isAuthorized = true;
             }
