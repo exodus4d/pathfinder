@@ -11,6 +11,7 @@ use Controller\Api as Api;
 use Controller\Ccp\Sso as Sso;
 use lib\Config;
 use lib\Socket;
+use Lib\Util;
 use Model;
 use DB;
 
@@ -204,12 +205,12 @@ class Controller {
             // unique "selector" -> to facilitate database look-ups (small size)
             // -> This is preferable to simply using the database id field,
             // which leaks the number of active users on the application
-            $selector = bin2hex(mcrypt_create_iv(12, MCRYPT_DEV_URANDOM));
+            $selector = bin2hex( openssl_random_pseudo_bytes(12) );
 
             // generate unique "validator" (strong encryption)
             // -> plaintext set to user (cookie), hashed version of this in DB
-            $size = mcrypt_get_iv_size(MCRYPT_CAST_256, MCRYPT_MODE_CFB);
-            $validator = bin2hex(mcrypt_create_iv($size, MCRYPT_DEV_URANDOM));
+            $size = openssl_cipher_iv_length('aes-256-cbc');
+            $validator = bin2hex(openssl_random_pseudo_bytes($size) );
 
             // generate unique cookie token
             $token = hash('sha256', $validator);

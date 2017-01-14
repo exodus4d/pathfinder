@@ -442,12 +442,6 @@ class Setup extends Controller {
                 'version' => extension_loaded('openssl') ? 'installed' : 'missing',
                 'check' => extension_loaded('openssl')
             ],
-            'ext_mcrypt' => [
-                'label' => 'Mcrypt',
-                'required' => 'installed',
-                'version' => (extension_loaded('mcrypt')) ? 'installed' : 'missing',
-                'check' => extension_loaded('mcrypt')
-            ],
             'ext_xml' => [
                 'label' => 'XML',
                 'required' => 'installed',

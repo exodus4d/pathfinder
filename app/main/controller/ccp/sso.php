@@ -130,7 +130,7 @@ class Sso extends Api\User{
             // redirect to CCP SSO ----------------------------------------------------------------------
 
             // used for "state" check between request and callback
-            $state = bin2hex(mcrypt_create_iv(12, MCRYPT_DEV_URANDOM));
+            $state = bin2hex( openssl_random_pseudo_bytes(12) );
             $f3->set(self::SESSION_KEY_SSO_STATE, $state);
 
             $urlParams = [
