@@ -12,14 +12,20 @@ use controller\LogController;
 
 class Socket {
 
+    // max TTL time (ms)
     const DEFAULT_TTL_MAX                   = 3000;
+
+    // max retry count
     const DEFAULT_RETRY_MAX                 = 3;
+
+    // max processing time for remote WebServer to send response (ms)
+    const DEFAULT_RESPONSE_MAX              = 1000;
 
     const ERROR_OFFLINE                     = 'Server seems to be offline. uri: "%s" | retries: %s | timeout: %sms';
     const ERROR_POLLING                     = 'Error polling object: %s';
     const ERROR_POLLING_FAILED              = 'Polling failed: %s';
     const ERROR_RECV_FAILED                 = 'Receive failed: %s';
-    const ERROR_SEND_FAILED                 = 'Send failed: %s';
+    const ERROR_SEND_FAILED                 = 'No Response within: %sms. Socket took to long for processing request (or is offline)';
 
     /**
      * TCP Socket object
@@ -48,11 +54,7 @@ class Socket {
 
     public function __construct($uri, $ttl = self::DEFAULT_TTL_MAX, $maxRetries = self::DEFAULT_RETRY_MAX){
         $this->setTtl($ttl, $maxRetries);
-
-        if( self::checkRequirements() ){
-            $this->setSocketUri($uri);
-            $this->initSocket();
-        }
+        $this->setSocketUri($uri);
     }
 
     /**
@@ -77,12 +79,14 @@ class Socket {
     }
 
     /**
-     *  init socket
+     * init new socket
      */
     public function initSocket(){
-        if($this->socketUri){
+        if(self::checkRequirements()){
             $context = new \ZMQContext();
             $this->socket = $context->getSocket(\ZMQ::SOCKET_REQ);
+            // The linger value of the socket. Specifies how long the socket blocks trying flush messages after it has been closed
+            $this->socket->setSockOpt(\ZMQ::SOCKOPT_LINGER, 0);
         }
     }
 
@@ -96,6 +100,8 @@ class Socket {
     public function sendData($task, $load = ''){
         $response = false;
 
+        $this->initSocket();
+
         if( !$this->socket ){
             // Socket not active (e.g. URI missing)
             return $response;
@@ -107,46 +113,72 @@ class Socket {
             'load' => $load
         ];
 
-        $this->socket->setSockOpt(\ZMQ::SOCKOPT_LINGER, 0);
-
-
-        $this->socket->connect($this->socketUri);
-        $this->socket->send(json_encode($send));
-
-        $readable = [];
-        $writable = [];
-
-        $poller = new \ZMQPoll();
-        $poller->add($this->socket, \ZMQ::POLL_IN);
-
         $retriesLeft = $this->maxRetries;
+        // try  sending data
         while($retriesLeft){
-            /* Amount of events retrieved */
-            $events = 0;
+            // Get list of connected endpoints
+            $endpoints = $this->socket->getEndpoints();
+            if (in_array($this->socketUri, $endpoints['connect'])) {
+                // disconnect e.g. there was no proper response yet
 
-            try{
-                /* Poll until there is something to do */
-                $events = $poller->poll($readable, $writable, $this->ttl);
-                $errors = $poller->getLastErrors();
-
-                if(count($errors) > 0){
-                    foreach($errors as $error){
-                        LogController::getLogger('SOCKET_ERROR')->write(sprintf(self::ERROR_POLLING, $error));
-                    }
-                }
-            }catch(\ZMQPollException $e){
-                LogController::getLogger('SOCKET_ERROR')->write(sprintf(self::ERROR_POLLING_FAILED, $e->getMessage() ));
+                $this->socket->disconnect($this->socketUri);
+                // try new socket connection
+                $this->initSocket();
             }
 
-            if($events > 0){
+            $this->socket->connect($this->socketUri);
+            $this->socket->send(json_encode($send));
+
+            $readable = [];
+            $writable = [];
+
+            $poller = new \ZMQPoll();
+            $poller->add($this->socket, \ZMQ::POLL_IN);
+
+            $startTime = microtime(true);
+            // infinite loop until we get a proper answer
+            while(true){
+                /* Amount of events retrieved */
+                $events = 0;
+
                 try{
-                    $response = $this->socket->recv();
-                    // everything OK -> stop loop
-                    break;
-                }catch(\ZMQException $e){
-                    LogController::getLogger('SOCKET_ERROR')->write(sprintf(self::ERROR_RECV_FAILED, $e->getMessage() ));
+                    /* Poll until there is something to do */
+                    $events = $poller->poll($readable, $writable, $this->ttl);
+                    $errors = $poller->getLastErrors();
+
+                    if(count($errors) > 0){
+                        // log errors
+                        foreach($errors as $error){
+                            LogController::getLogger('SOCKET_ERROR')->write(sprintf(self::ERROR_POLLING, $error));
+                        }
+                        // break infinite loop
+                        break;
+                    }
+                }catch(\ZMQPollException $e){
+                    LogController::getLogger('SOCKET_ERROR')->write(sprintf(self::ERROR_POLLING_FAILED, $e->getMessage() ));
                 }
-            }elseif(--$retriesLeft <= 0){
+
+
+                if($events > 0){
+                    try{
+                        $response = $this->socket->recv();
+                        // everything OK -> stop infinite loop AND retry loop!
+                        break 2;
+                    }catch(\ZMQException $e){
+                        LogController::getLogger('SOCKET_ERROR')->write(sprintf(self::ERROR_RECV_FAILED, $e->getMessage() ));
+                    }
+                }
+
+                if((microtime(true) - $startTime) > (self::DEFAULT_RESPONSE_MAX / 1000)){
+                    // max time for response exceeded
+                    LogController::getLogger('SOCKET_ERROR')->write(sprintf(self::ERROR_SEND_FAILED, self::DEFAULT_RESPONSE_MAX));
+                    break;
+                }
+
+                // start inf loop again, no proper answer :(
+            }
+
+            if(--$retriesLeft <= 0){
                 // retry limit exceeded
                 LogController::getLogger('SOCKET_ERROR')->write(sprintf(self::ERROR_OFFLINE, $this->socketUri, $this->maxRetries, $this->ttl));
                 break;

@@ -12,7 +12,7 @@ define([
 
     'use strict';
 
-    var config = {
+    let config = {
         // global dialog
         dialogNavigationClass: 'pf-dialog-navigation-list',                     // class for dialog navigation bar
 
@@ -46,7 +46,7 @@ define([
     };
 
     // confirmation dialog settings (e.g. delete row)
-    var confirmationSettings = {
+    let confirmationSettings = {
         container: 'body',
         placement: 'left',
         btnCancelClass: 'btn btn-sm btn-default',
@@ -62,19 +62,19 @@ define([
      * @param mapData
      */
     $.fn.loadMapInfoData = function(mapData){
-        var mapElement = $(this);
+        let mapElement = $(this);
 
         mapElement.empty();
         mapElement.showLoadingAnimation(config.loadingOptions);
 
-        var countSystems = mapData.data.systems.length;
-        var countConnections = mapData.data.connections.length;
+        let countSystems = mapData.data.systems.length;
+        let countConnections = mapData.data.connections.length;
 
         // map type
-        var mapTypes = MapUtil.getMapTypes();
-        var mapType = null;
+        let mapTypes = MapUtil.getMapTypes();
+        let mapType = null;
 
-        for(var i = 0; i < mapTypes.length; i++){
+        for(let i = 0; i < mapTypes.length; i++){
             if(mapTypes[i].id === mapData.config.type.id){
                 mapType = mapTypes[i];
                 break;
@@ -82,12 +82,12 @@ define([
         }
 
         // check max map limits (e.g. max systems per map) ============================================================
-        var percentageSystems = (100 / mapType.defaultConfig.max_systems) * countSystems;
-        var maxSystemsClass = (percentageSystems < 90) ? 'txt-color-success' : (percentageSystems < 100) ? 'txt-color-warning' : 'txt-color-danger';
+        let percentageSystems = (100 / mapType.defaultConfig.max_systems) * countSystems;
+        let maxSystemsClass = (percentageSystems < 90) ? 'txt-color-success' : (percentageSystems < 100) ? 'txt-color-warning' : 'txt-color-danger';
 
         // build content ==============================================================================================
 
-        var dlElementLeft = $('<dl>', {
+        let dlElementLeft = $('<dl>', {
             class: 'dl-horizontal',
             css: {'float': 'left'}
         }).append(
@@ -112,7 +112,7 @@ define([
 
         mapElement.append(dlElementLeft);
 
-        var dlElementRight = $('<dl>', {
+        let dlElementRight = $('<dl>', {
             class: 'dl-horizontal',
             css: {'float': 'right'}
             }).append(
@@ -148,11 +148,11 @@ define([
      */
     $.fn.loadSystemInfoTable = function(mapData){
 
-        var systemsElement = $(this);
+        let systemsElement = $(this);
 
         systemsElement.empty();
 
-        var systemTable = $('<table>', {
+        let systemTable = $('<table>', {
             class: ['compact', 'stripe', 'order-column', 'row-border', config.mapInfoTableClass].join(' ')
         });
         systemsElement.append(systemTable);
@@ -164,16 +164,16 @@ define([
             systemsElement.hideLoadingAnimation();
 
             // init table tooltips
-            var tooltipElements = systemsElement.find('[data-toggle="tooltip"]');
+            let tooltipElements = systemsElement.find('[data-toggle="tooltip"]');
             tooltipElements.tooltip();
         });
 
         // prepare data for dataTables
-        var systemsData = [];
-        for(var i = 0; i < mapData.data.systems.length; i++){
-            var tempSystemData = mapData.data.systems[i];
+        let systemsData = [];
+        for(let i = 0; i < mapData.data.systems.length; i++){
+            let tempSystemData = mapData.data.systems[i];
 
-            var tempData = {};
+            let tempData = {};
 
             // system id
             tempData.id = tempSystemData.id;
@@ -205,7 +205,7 @@ define([
             };
 
             // security
-            var securityClass = Util.getSecurityClassForSystem(tempSystemData.security);
+            let securityClass = Util.getSecurityClassForSystem(tempSystemData.security);
             tempData.security = {
                 security: '<span class="' + securityClass + '">' + tempSystemData.security + '</span>',
                 security_sort: tempSystemData.security
@@ -221,16 +221,16 @@ define([
             tempData.region = tempSystemData.region.name;
 
             // static
-            var statics = [];
-            for(var j = 0; j < tempSystemData.statics.length; j++){
-                var security = tempSystemData.statics[j].security;
-                var secClass = Util.getSecurityClassForSystem(security);
+            let statics = [];
+            for(let j = 0; j < tempSystemData.statics.length; j++){
+                let security = tempSystemData.statics[j].security;
+                let secClass = Util.getSecurityClassForSystem(security);
                 statics.push('<span class="' + secClass + '">' + security + '</span>');
             }
             tempData.static = statics.join('&nbsp;&nbsp;');
 
             // status
-            var systemStatusClass = Util.getStatusInfoForSystem(tempSystemData.status.id, 'class');
+            let systemStatusClass = Util.getStatusInfoForSystem(tempSystemData.status.id, 'class');
             if(systemStatusClass !== ''){
                 tempData.status = {
                     status: '<i class="fa fa fa-square-o fa-lg fa-fw ' + systemStatusClass + '"></i>',
@@ -244,7 +244,7 @@ define([
             }
 
             // effect
-            var systemEffectClass = MapUtil.getEffectInfoForSystem(tempSystemData.effect, 'class');
+            let systemEffectClass = MapUtil.getEffectInfoForSystem(tempSystemData.effect, 'class');
             if(systemEffectClass !== ''){
                 tempData.effect = {
                     effect: '<i class="fa fa fa-square fa-lg fa-fw ' + systemEffectClass + '"></i>',
@@ -258,7 +258,7 @@ define([
             }
 
             // trueSec
-            var systemTrueSecClass = Util.getTrueSecClassForSystem(tempSystemData.trueSec);
+            let systemTrueSecClass = Util.getTrueSecClassForSystem(tempSystemData.trueSec);
             if(systemTrueSecClass !== ''){
                 tempData.trueSec = {
                     trueSec: '<span class="' + systemTrueSecClass + '">' + tempSystemData.trueSec.toFixed(1) + '</span>',
@@ -293,7 +293,7 @@ define([
             systemsData.push(tempData);
         }
 
-        var systemsDataTable = systemTable.dataTable( {
+        let systemsDataTable = systemTable.dataTable( {
             pageLength: 20,
             paging: true,
             lengthMenu: [[5, 10, 20, 50, -1], [5, 10, 20, 50, 'All']],
@@ -408,8 +408,8 @@ define([
                         $(cell).initTimestampCounter();
 
                         // highlight cell
-                        var diff = new Date().getTime() - cellData * 1000;
-                        var dateDiff = new Date(diff);
+                        let diff = new Date().getTime() - cellData * 1000;
+                        let dateDiff = new Date(diff);
                         if(dateDiff.getUTCDate() > 1){
                             $(cell).addClass('txt-color txt-color-warning');
                         }
@@ -422,15 +422,15 @@ define([
                     className: ['text-center', config.tableActionCellClass].join(' '),
                     data: 'clear',
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex) {
-                        var tempTableElement = this;
+                        let tempTableElement = this;
 
-                        var tempConfirmationSettings = confirmationSettings;
+                        let tempConfirmationSettings = confirmationSettings;
                         tempConfirmationSettings.title = 'Delete system';
                         tempConfirmationSettings.onConfirm = function(e, target){
-                            var deleteRowElement = $(target).parents('tr');
+                            let deleteRowElement = $(target).parents('tr');
 
-                            var activeMap = Util.getMapModule().getActiveMap();
-                            var systemElement = $('#' + config.systemIdPrefix + mapData.config.id + '-' + rowData.id);
+                            let activeMap = Util.getMapModule().getActiveMap();
+                            let systemElement = $('#' + config.systemIdPrefix + mapData.config.id + '-' + rowData.id);
 
                             if(systemElement){
                                 // trigger system delete event
@@ -444,8 +444,8 @@ define([
                                         Util.showNotify({title: 'System deleted', text: rowData.name, type: 'success'});
 
                                         // refresh connection table (connections might have changed) ==================
-                                        var connectionsElement = $('#' + config.mapInfoConnectionsId);
-                                        var mapDataNew = activeMap.getMapDataFromClient({forceData: true});
+                                        let connectionsElement = $('#' + config.mapInfoConnectionsId);
+                                        let mapDataNew = activeMap.getMapDataFromClient({forceData: true});
 
                                         connectionsElement.loadConnectionInfoTable(mapDataNew);
                                     }
@@ -468,11 +468,11 @@ define([
      * @param mapData
      */
     $.fn.loadConnectionInfoTable = function(mapData){
-        var connectionsElement = $(this);
+        let connectionsElement = $(this);
 
         connectionsElement.empty();
 
-        var connectionTable = $('<table>', {
+        let connectionTable = $('<table>', {
             class: ['compact', 'stripe', 'order-column', 'row-border', config.mapInfoTableClass].join(' ')
         });
         connectionsElement.append(connectionTable);
@@ -487,11 +487,11 @@ define([
         // connections table ==========================================================================================
 
         // prepare data for dataTables
-        var connectionData = [];
-        for(var j = 0; j < mapData.data.connections.length; j++){
-            var tempConnectionData = mapData.data.connections[j];
+        let connectionData = [];
+        for(let j = 0; j < mapData.data.connections.length; j++){
+            let tempConnectionData = mapData.data.connections[j];
 
-            var tempConData = {};
+            let tempConData = {};
 
             tempConData.id = tempConnectionData.id;
 
@@ -504,8 +504,8 @@ define([
             tempConData.source = tempConnectionData.sourceName;
 
             // connection
-            var connectionClasses = [];
-            for(var k = 0; k < tempConnectionData.type.length; k++){
+            let connectionClasses = [];
+            for(let k = 0; k < tempConnectionData.type.length; k++){
                 connectionClasses.push( MapUtil.getConnectionInfo( tempConnectionData.type[k], 'cssClass') );
 
             }
@@ -524,7 +524,7 @@ define([
             connectionData.push(tempConData);
         }
 
-        var connectionDataTable = connectionTable.dataTable( {
+        let connectionDataTable = connectionTable.dataTable( {
             pageLength: 20,
             paging: true,
             lengthMenu: [[5, 10, 20, 50, -1], [5, 10, 20, 50, 'All']],
@@ -573,8 +573,8 @@ define([
                         $(cell).initTimestampCounter();
 
                         // highlight cell
-                        var diff = new Date().getTime() - cellData * 1000;
-                        var dateDiff = new Date(diff);
+                        let diff = new Date().getTime() - cellData * 1000;
+                        let dateDiff = new Date(diff);
                         if(dateDiff.getUTCDate() > 1){
                             $(cell).addClass('txt-color txt-color-warning');
                         }
@@ -587,15 +587,15 @@ define([
                     className: ['text-center', config.tableActionCellClass].join(' '),
                     data: 'clear',
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex) {
-                        var tempTableElement = this;
+                        let tempTableElement = this;
 
-                        var tempConfirmationSettings = confirmationSettings;
+                        let tempConfirmationSettings = confirmationSettings;
                         tempConfirmationSettings.title = 'Delete connection';
                         tempConfirmationSettings.onConfirm = function(e, target){
-                            var deleteRowElement = $(target).parents('tr');
+                            let deleteRowElement = $(target).parents('tr');
 
                             // deleteSignatures(row);
-                            var connection = $().getConnectionById(mapData.config.id, rowData.id);
+                            let connection = $().getConnectionById(mapData.config.id, rowData.id);
 
                             $().deleteConnections([connection], function(){
                                 // callback function after ajax "delete" success
@@ -613,11 +613,11 @@ define([
     };
 
     $.fn.loadUsersInfoTable = function(mapData){
-        var usersElement = $(this);
+        let usersElement = $(this);
 
         usersElement.empty();
 
-        var userTable = $('<table>', {
+        let userTable = $('<table>', {
             class: ['compact', 'stripe', 'order-column', 'row-border', config.mapInfoTableClass].join(' ')
         });
         usersElement.append(userTable);
@@ -631,23 +631,23 @@ define([
 
         // users table ================================================================================================
         // prepare users data for dataTables
-        var currentMapUserData = Util.getCurrentMapUserData( mapData.config.id );
-        var usersData = [];
+        let currentMapUserData = Util.getCurrentMapUserData( mapData.config.id );
+        let usersData = [];
 
         if(
             currentMapUserData &&
             currentMapUserData.data &&
             currentMapUserData.data.systems
         ){
-            for(var i = 0; i < currentMapUserData.data.systems.length; i++){
-                var tempSystemUserData = currentMapUserData.data.systems[i];
-                for(var j = 0; j < tempSystemUserData.user.length; j++){
+            for(let i = 0; i < currentMapUserData.data.systems.length; i++){
+                let tempSystemUserData = currentMapUserData.data.systems[i];
+                for(let j = 0; j < tempSystemUserData.user.length; j++){
                     usersData.push( tempSystemUserData.user[j] );
                 }
             }
         }
 
-        var userDataTable = userTable.dataTable( {
+        let userDataTable = userTable.dataTable( {
             pageLength: 20,
             paging: true,
             lengthMenu: [[5, 10, 20, 50, -1], [5, 10, 20, 50, 'All']],
@@ -758,13 +758,13 @@ define([
      */
     $.fn.showMapInfoDialog = function(){
 
-        var activeMap = Util.getMapModule().getActiveMap();
-        var mapData = activeMap.getMapDataFromClient({forceData: true});
+        let activeMap = Util.getMapModule().getActiveMap();
+        let mapData = activeMap.getMapDataFromClient({forceData: true});
 
         if(mapData !== false){
             requirejs(['text!templates/dialog/map_info.html', 'mustache'], function(template, Mustache) {
 
-                var data = {
+                let data = {
                     dialogSummaryContainerId: config.dialogMapInfoSummaryId,
                     dialogUsersContainerId: config.dialogMapInfoUsersId,
                     dialogRefreshContainerId: config.dialogMapInfoRefreshId,
@@ -775,9 +775,9 @@ define([
                     mapInfoUsersId: config.mapInfoUsersId
                 };
 
-                var content = Mustache.render(template, data);
+                let content = Mustache.render(template, data);
 
-                var mapInfoDialog = bootbox.dialog({
+                let mapInfoDialog = bootbox.dialog({
                     title: 'Map information',
                     message: content,
                     size: 'large',
@@ -795,18 +795,18 @@ define([
                 mapInfoDialog.on('shown.bs.modal', function(e) {
                     // modal on open
 
-                    var mapElement = $('#' + config.mapInfoId);
-                    var systemsElement = $('#' + config.mapInfoSystemsId);
-                    var connectionsElement = $('#' + config.mapInfoConnectionsId);
-                    var usersElement = $('#' + config.mapInfoUsersId);
+                    let mapElement = $('#' + config.mapInfoId);
+                    let systemsElement = $('#' + config.mapInfoSystemsId);
+                    let connectionsElement = $('#' + config.mapInfoConnectionsId);
+                    let usersElement = $('#' + config.mapInfoUsersId);
 
 
                     // set refresh button observer
                     $('#' + config.dialogMapInfoRefreshId).on('click', function(){
-                        var menuAction = $(this).attr('data-action');
+                        let menuAction = $(this).attr('data-action');
                         if(menuAction === 'refresh'){
                             // get new map data
-                            var mapData = activeMap.getMapDataFromClient({forceData: true});
+                            let mapData = activeMap.getMapDataFromClient({forceData: true});
 
                             mapElement.loadMapInfoData(mapData);
                             systemsElement.loadSystemInfoTable(mapData);
