@@ -940,7 +940,7 @@ class Setup extends Controller {
         $socketInformation = [
             'tcpSocket' => [
                 'label' => 'Socket (intern) [TCP]',
-                'online' => (self::checkTcpSocket($ttl) == '1'),
+                'online' => (self::checkTcpSocket($ttl) == 'OK'),
                 'data' => [
                     [
                         'label' => 'HOST',

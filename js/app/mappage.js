@@ -180,17 +180,20 @@ define([
             /**
              * init (schedule) next MapUpdate Ping
              */
-            let initMapUpdatePing = () => {
+            let initMapUpdatePing = (forceUpdateMapData) => {
                 // get the current update delay (this can change if a user is inactive)
                 let delay = Util.getCurrentTriggerDelay( logKeyServerMapData, 0 );
 
-                updateTimeouts.mapUpdate = setTimeout(() => {
-                    triggerMapUpdatePing();
-                }, delay);
+                updateTimeouts.mapUpdate = setTimeout((forceUpdateMapData) => {
+                    triggerMapUpdatePing(forceUpdateMapData);
+                }, delay, forceUpdateMapData);
             };
 
             // ping for main map update ========================================================
-            let triggerMapUpdatePing = () => {
+            /**
+             * @param forceUpdateMapData // force request to be send
+             */
+            let triggerMapUpdatePing = (forceUpdateMapData) => {
 
                 // check each interval if map module  is still available
                 let check = $('#' + mapModule.attr('id')).length;
@@ -210,6 +213,7 @@ define([
                 // -> if "syncType" === "ajax" -> send always
                 // -> if "syncType" === "webSocket" -> send initial AND on map changes
                 if(
+                    forceUpdateMapData ||
                     Util.getSyncType() === 'ajax' ||
                     (
                         Util.getSyncType() === 'webSocket' &&
@@ -256,7 +260,7 @@ define([
                             let mapUpdateDelay = Util.getCurrentTriggerDelay( logKeyServerMapData, 0 );
 
                             // init new trigger
-                            initMapUpdatePing();
+                            initMapUpdatePing(false);
 
                             // initial start for the userUpdate trigger
                             // this should only be called at the first time!
@@ -271,7 +275,7 @@ define([
                     }).fail(handleAjaxErrorResponse);
                 }else{
                     // skip this mapUpdate trigger and init next one
-                    initMapUpdatePing();
+                    initMapUpdatePing(false);
                 }
 
             };
@@ -363,7 +367,7 @@ define([
             };
 
             // initial start of the  map update function
-            triggerMapUpdatePing();
+            triggerMapUpdatePing(true);
 
         };
 

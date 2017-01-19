@@ -81,6 +81,7 @@ class Socket {
     /**
      * init new socket
      */
+    /*
     public function initSocket(){
         if(self::checkRequirements()){
             $context = new \ZMQContext();
@@ -88,6 +89,42 @@ class Socket {
             // The linger value of the socket. Specifies how long the socket blocks trying flush messages after it has been closed
             $this->socket->setSockOpt(\ZMQ::SOCKOPT_LINGER, 0);
         }
+    } */
+
+    /**
+     * init new socket
+     */
+    public function initSocket(){
+        if(self::checkRequirements()){
+            $context = new \ZMQContext();
+            $this->socket = $context->getSocket(\ZMQ::SOCKET_PUSH);
+            // The linger value of the socket. Specifies how long the socket blocks trying flush messages after it has been closed
+            //$this->socket->setSockOpt(\ZMQ::SOCKOPT_LINGER, 0);
+        }
+    }
+
+    public function sendData($task, $load = ''){
+        $response = false;
+
+        $this->initSocket();
+
+        if( !$this->socket ){
+            // Socket not active (e.g. URI missing)
+            return $response;
+        }
+
+        // add task, and wrap data
+        $send = [
+            'task' => $task,
+            'load' => $load
+        ];
+
+        $this->socket->connect($this->socketUri);
+        $this->socket->send(json_encode($send));
+
+        $response = 'OK';
+
+        return $response;
     }
 
     /**
@@ -97,6 +134,7 @@ class Socket {
      * @param $load
      * @return bool|string
      */
+    /*
     public function sendData($task, $load = ''){
         $response = false;
 
@@ -138,11 +176,11 @@ class Socket {
             $startTime = microtime(true);
             // infinite loop until we get a proper answer
             while(true){
-                /* Amount of events retrieved */
+                // Amount of events retrieved
                 $events = 0;
 
                 try{
-                    /* Poll until there is something to do */
+                    // Poll until there is something to do
                     $events = $poller->poll($readable, $writable, $this->ttl);
                     $errors = $poller->getLastErrors();
 
@@ -188,7 +226,7 @@ class Socket {
         $this->socket->disconnect($this->socketUri);
 
         return $response;
-    }
+    }*/
 
     /**
      * check whether this installation fulfills all requirements
