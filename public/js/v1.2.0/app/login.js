@@ -22,7 +22,7 @@ define([
 
     'use strict';
 
-    var config = {
+    let config = {
         splashOverlayClass: 'pf-splash',                                        // class for "splash" overlay
 
         // header
@@ -75,11 +75,11 @@ define([
      * @param cvalue
      * @param exdays
      */
-    var setCookie = function(cname, cvalue, exdays) {
-        var d = new Date();
+    let setCookie = function(cname, cvalue, exdays) {
+        let d = new Date();
         d.setTime(d.getTime() + (exdays*24*60*60*1000));
-        var expires = 'expires=' + d.toUTCString();
-        var path = 'path=' + Util.getDocumentPath();
+        let expires = 'expires=' + d.toUTCString();
+        let path = 'path=' + Util.getDocumentPath();
         document.cookie = cname + '=' + cvalue + '; ' + expires + '; ' + path;
     };
 
@@ -88,12 +88,12 @@ define([
      * @param cname
      * @returns {*}
      */
-    var getCookie = function(cname) {
-        var name = cname + '=';
-        var ca = document.cookie.split(';');
+    let getCookie = function(cname) {
+        let name = cname + '=';
+        let ca = document.cookie.split(';');
 
-        for(var i = 0; i <ca.length; i++) {
-            var c = ca[i];
+        for(let i = 0; i <ca.length; i++) {
+            let c = ca[i];
             while (c.charAt(0) === ' ') {
                 c = c.substring(1);
             }
@@ -108,7 +108,7 @@ define([
     /**
      * set link observer for "version info" dialog
      */
-    var setVersionLinkObserver = function(){
+    let setVersionLinkObserver = function(){
         $('.' + config.navigationVersionLinkClass).off('click').on('click', function(e){
             $.fn.releasesDialog();
         });
@@ -117,7 +117,7 @@ define([
     /**
      * set page observer
      */
-    var setPageObserver = function(){
+    let setPageObserver = function(){
 
         // cookie hint --------------------------------------------------------
         if(getCookie('cookie') !== '1'){
@@ -145,7 +145,7 @@ define([
         setVersionLinkObserver();
 
         // tooltips -----------------------------------------------------------
-        var mapTooltipOptions = {
+        let mapTooltipOptions = {
             toggle: 'tooltip',
             container: 'body',
             delay: 150
@@ -157,7 +157,7 @@ define([
     /**
      * init image carousel
      */
-    var initCarousel = function(){
+    let initCarousel = function(){
 
         // check if carousel exists
         if($('#' + config.galleryCarouselId).length === 0){
@@ -166,11 +166,11 @@ define([
 
         // extent "blueimp" gallery for a textFactory method to show HTML templates
         Gallery.prototype.textFactory = function (obj, callback) {
-            var newSlideContent = $('<div>')
+            let newSlideContent = $('<div>')
                 .addClass('text-content')
                 .attr('imgTitle', obj.title);
 
-            var moduleConfig = {
+            let moduleConfig = {
                 name: obj.href, // template name
                 position: newSlideContent,
                 functions: {
@@ -185,7 +185,7 @@ define([
             };
 
             // render HTML file (template)
-            var moduleData = {
+            let moduleData = {
                 id: config.headHeaderMapId,
                 bgId: config.headMapBgId,
                 neocomId: config.mapNeocomId,
@@ -199,7 +199,7 @@ define([
         };
 
         // initialize carousel ------------------------------------------------
-        var carousel = new Gallery([
+        let carousel = new Gallery([
             {
                 imgTitle: 'Browser',
                 href: 'ui/map',
@@ -291,7 +291,7 @@ define([
      * get all thumbnail elements
      * @returns {*|jQuery|HTMLElement}
      */
-    var getThumbnailElements = function(){
+    let getThumbnailElements = function(){
         return $('a[data-gallery="#' + config.galleryId + '"]');
     };
 
@@ -299,18 +299,18 @@ define([
      * init gallery for thumbnail elements
      * @param newElements
      */
-    var initGallery = function(newElements){
+    let initGallery = function(newElements){
         if( newElements.length > 0){
             // We have to add ALL thumbnail elements to the gallery!
             // -> even those wthat are invisible (not lazyLoaded) now!
             // -> This is required for "swipe" through all images
-            var allThumbLinks = getThumbnailElements();
+            let allThumbLinks = getThumbnailElements();
 
             requirejs(['blueImpGalleryBootstrap'], function() {
                 $(newElements).each(function() {
-                    var borderless = false;
+                    let borderless = false;
 
-                    var galleryElement = $('#' + config.galleryId);
+                    let galleryElement = $('#' + config.galleryId);
                     galleryElement.data('useBootstrapModal', !borderless);
                     galleryElement.toggleClass('blueimp-gallery-controls', borderless);
 
@@ -318,10 +318,10 @@ define([
                         e.preventDefault();
 
                         e = e || window.event;
-                        var target = e.target || e.srcElement;
-                        var link = target.src ? target.parentNode : target;
+                        let target = e.target || e.srcElement;
+                        let link = target.src ? target.parentNode : target;
 
-                        var options = {
+                        let options = {
                             index: link,
                             event: e,
                             container: '#' + config.galleryId,
@@ -338,7 +338,7 @@ define([
     /**
      * init "YouTube" video preview
      */
-    var initYoutube = function(){
+    let initYoutube = function(){
 
         $('.youtube').each(function() {
             // Based on the YouTube ID, we can easily find the thumbnail image
@@ -349,13 +349,13 @@ define([
 
             $(document).delegate('#' + this.id, 'click', function() {
                 // Create an iFrame with autoplay set to true
-                var iFrameUrl = 'https://www.youtube.com/embed/' + this.id + '?autoplay=1&autohide=1';
+                let iFrameUrl = 'https://www.youtube.com/embed/' + this.id + '?autoplay=1&autohide=1';
                 if ( $(this).data('params') ){
                     iFrameUrl += '&'+$(this).data('params');
                 }
 
                 // The height and width of the iFrame should be the same as parent
-                var iFrame = $('<iframe/>', {
+                let iFrame = $('<iframe/>', {
                     frameborder: '0',
                     src: iFrameUrl,
                     width: $(this).width(),
@@ -373,13 +373,13 @@ define([
     /**
      * init scrollspy for navigation bar
      */
-    var initScrollspy = function(){
+    let initScrollspy = function(){
         // init scrollspy
 
         // show elements that are currently in the viewport
-        var showVisibleElements = function(){
+        let showVisibleElements = function(){
             // find all elements that should be animated
-            var visibleElements = $('.' + config.animateElementClass).isInViewport();
+            let visibleElements = $('.' + config.animateElementClass).isInViewport();
 
             $(visibleElements).removeClass( config.animateElementClass );
 
@@ -392,7 +392,7 @@ define([
                     $(element).find('.fade').addClass('in');
 
                     // init gallery for "now" visible elements
-                    var newGalleryElements = $(element).filter('[data-gallery="#' + config.galleryId + '"]');
+                    let newGalleryElements = $(element).filter('[data-gallery="#' + config.galleryId + '"]');
                     initGallery(newGalleryElements);
                 },
                 visibility: 'visible'
@@ -410,7 +410,7 @@ define([
         // event listener for navigation links
         $('.page-scroll').on('click', function(){
             // get element to scroll
-            var anchorTag = $(this).attr('data-anchor');
+            let anchorTag = $(this).attr('data-anchor');
 
             // scroll to container
             $(anchorTag).velocity('scroll', {
@@ -424,7 +424,7 @@ define([
      * get current EVE-Online server status
      * -> show "server panel"
      */
-    var initServerStatus = function(){
+    let initServerStatus = function(){
         $.ajax({
             type: 'POST',
             url: Init.path.getServerStatus,
@@ -432,10 +432,10 @@ define([
         }).done(function(responseData, textStatus, request){
 
             if(responseData.hasOwnProperty('status')){
-                var data = responseData.status;
+                let data = responseData.status;
                 data.serverPanelId = config.serverPanelId;
 
-                var statusClass = '';
+                let statusClass = '';
                 switch(data.serviceStatus.toLowerCase()){
                     case 'online': statusClass = 'txt-color-green'; break;
                     case 'vip': statusClass = 'txt-color-orange'; break;
@@ -447,7 +447,7 @@ define([
                 };
 
                 requirejs(['text!templates/ui/server_panel.html', 'mustache'], function(template, Mustache) {
-                    var content = Mustache.render(template, data);
+                    let content = Mustache.render(template, data);
                     $('#' + config.headerId).prepend(content);
                     $('#' + config.serverPanelId).velocity('transition.slideLeftBigIn', {
                         duration: 240
@@ -462,19 +462,19 @@ define([
      * show "notification panel" to user
      * -> checks if panel not already shown
      */
-    var initNotificationPanel = function(){
-        var storageKey = 'notification_panel';
-        var currentVersion = Util.getVersion();
+    let initNotificationPanel = function(){
+        let storageKey = 'notification_panel';
+        let currentVersion = Util.getVersion();
 
-        var showNotificationPanel = function(){
-            var data = {
+        let showNotificationPanel = function(){
+            let data = {
                 version: Util.getVersion()
             };
 
             requirejs(['text!templates/ui/notice.html', 'mustache'], function(template, Mustache) {
-                var content = Mustache.render(template, data);
+                let content = Mustache.render(template, data);
 
-                var notificationPanel = $('#' + config.notificationPanelId);
+                let notificationPanel = $('#' + config.notificationPanelId);
                 notificationPanel.html(content);
                 notificationPanel.velocity('transition.slideUpIn', {
                     duration: 300,
@@ -508,13 +508,13 @@ define([
      * load character data from cookie information
      * -> all validation is done server side!
      */
-    var initCharacterSelect = function(){
+    let initCharacterSelect = function(){
 
         /**
          * init panel animation for an element
          * @param imageWrapperElement
          */
-        var initCharacterAnimation = function(imageWrapperElement){
+        let initCharacterAnimation = function(imageWrapperElement){
 
             imageWrapperElement.velocity('stop').velocity('transition.flipBounceXIn', {
                 display: 'inline-block',
@@ -524,7 +524,7 @@ define([
 
             // Hover effect for character info layer
             imageWrapperElement.hoverIntent(function(e){
-                var characterInfoElement = $(this).find('.' + config.characterImageInfoClass);
+                let characterInfoElement = $(this).find('.' + config.characterImageInfoClass);
 
                 characterInfoElement.velocity('finish').velocity({
                     width: ['100%', [ 400, 15 ] ]
@@ -532,7 +532,7 @@ define([
                     easing: 'easeOutSine'
                 });
             }, function(e){
-                var characterInfoElement = $(this).find('.' + config.characterImageInfoClass);
+                let characterInfoElement = $(this).find('.' + config.characterImageInfoClass);
 
                 characterInfoElement.velocity('finish').velocity({
                     width: 0
@@ -548,15 +548,15 @@ define([
         /**
          * update all character panels -> set CSS class (e.g. after some panels were added/removed,..)
          */
-        var updateCharacterPanels = function(){
-            var characterRows = $('.' + config.characterSelectionClass + ' .pf-dynamic-area').parent();
-            var rowClassIdentifier = ((12 / characterRows.length ) <= 3) ? 3 : (12 / characterRows.length);
+        let updateCharacterPanels = function(){
+            let characterRows = $('.' + config.characterSelectionClass + ' .pf-dynamic-area').parent();
+            let rowClassIdentifier = ((12 / characterRows.length ) <= 3) ? 3 : (12 / characterRows.length);
             $(characterRows).removeClass().addClass('col-sm-' + rowClassIdentifier);
         };
 
         // --------------------------------------------------------------------
 
-        var removeCharacterPanel = function(panelElement){
+        let removeCharacterPanel = function(panelElement){
             $(panelElement).velocity('transition.expandOut', {
                 duration: 250,
                 complete: function () {
@@ -583,11 +583,11 @@ define([
         requirejs(['text!templates/ui/character_panel.html', 'mustache'], function(template, Mustache){
 
             $('.' + config.characterSelectionClass + ' .pf-dynamic-area').each(function(){
-                var characterElement = $(this);
+                let characterElement = $(this);
 
                 characterElement.showLoadingAnimation();
 
-                var requestData = {
+                let requestData = {
                     cookie: characterElement.data('cookie')
                 };
 
@@ -616,14 +616,19 @@ define([
 
                     if(responseData.hasOwnProperty('character')){
 
-                        var data = {
+                        let data = {
                             link: this.characterElement.data('href'),
                             cookieName: this.cookieName,
                             character: responseData.character
                         };
 
-                        var content = Mustache.render(template, data);
+                        let content = Mustache.render(template, data);
                         this.characterElement.html(content);
+
+                        // lock character selection on click (prevent click spamming)
+                        this.characterElement.find('a').on('click', function(){
+                            $('.' + config.splashOverlayClass).showSplashOverlay();
+                        });
 
                         // show character panel (animation settings)
                         initCharacterAnimation(this.characterElement.find('.' + config.characterImageWrapperClass));
@@ -632,7 +637,7 @@ define([
                         removeCharacterPanel(this.characterElement);
                     }
                 }).fail(function( jqXHR, status, error) {
-                    var characterElement = this.characterElement;
+                    let characterElement = this.characterElement;
                     characterElement.hideLoadingAnimation();
 
                     // character data not available -> remove panel
@@ -649,21 +654,21 @@ define([
      * @param status
      * @param error
      */
-    var handleAjaxErrorResponse = function(jqXHR, status, error){
+    let handleAjaxErrorResponse = function(jqXHR, status, error){
 
-        var type = status;
-        var title = 'Status ' + jqXHR.status + ': ' + error;
-        var message = '';
+        let type = status;
+        let title = 'Status ' + jqXHR.status + ': ' + error;
+        let message = '';
 
         if(jqXHR.responseText){
-            var errorObj = $.parseJSON(jqXHR.responseText);
+            let errorObj = $.parseJSON(jqXHR.responseText);
 
             if(
                 errorObj.error &&
                 errorObj.error.length > 0
             ){
-                for(var i = 0; i < errorObj.error.length; i++){
-                    var errorData = errorObj.error[i];
+                for(let i = 0; i < errorObj.error.length; i++){
+                    let errorData = errorObj.error[i];
                     type = errorData.type;
                     title = 'Status  ' + errorData.code + ': ' + errorData.status;
                     message = errorData.message;
@@ -687,11 +692,11 @@ define([
         Util.showVersionInfo();
 
         // show log off message
-        var isLogOut = location.search.split('logout')[1];
+        let isLogOut = location.search.split('logout')[1];
         if(isLogOut !== undefined){
 
             // show logout dialog
-            var options = {
+            let options = {
                 buttons: {
                     close: {
                         label: 'close',
