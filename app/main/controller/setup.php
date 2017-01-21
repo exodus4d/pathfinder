@@ -140,6 +140,15 @@ class Setup extends Controller {
         // js view (file)
         $f3->set('jsView', 'setup');
 
+        // set render functions (called within template)
+        $f3->set('cacheType', function(){
+            $cacheType = $this->getF3()->get('CACHE');
+            if( strpos($cacheType, 'redis') !== false ){
+                $cacheType = 'redis';
+            }
+            return $cacheType;
+        });
+
         // render view
         echo \Template::instance()->render( $f3->get('PATHFINDER.VIEW.INDEX') );
     }

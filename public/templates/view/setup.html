@@ -938,22 +938,33 @@
                     </div>
 
                     <div class="panel-body no-padding">
+                        <check if="{{ @cacheType() == 'redis' }}">
+                            <div class="btn-group btn-group-justified">
+                                <span class="btn btn-default disabled btn-fake">
+                                    Redis cache
+                                </span>
+                                <a href="?clearCache=1#pf-setup-administration" class="btn btn-warning" role="button">
+                                    <i class="fa fa-fw fa-times"></i> Clear all keys
+                                </a>
+                            </div>
+                        </check>
+
                         <div class="btn-group btn-group-justified">
-                            <span class="btn btn-default disabled btn-fake">
-                                Data
-                                <kbd class="pull-right">
-                                    <check if="{{ @cacheSize.data }}">
-                                        <true>
-                                            {{ @cacheSize.data }}
-                                        </true>
-                                        <false>
-                                            0 KB
-                                        </false>
-                                    </check>
-                                </kbd>
-                            </span>
+                                    <span class="btn btn-default disabled btn-fake">
+                                        Data
+                                        <kbd class="pull-right">
+                                            <check if="{{ @cacheSize.data }}">
+                                                <true>
+                                                    {{ @cacheSize.data }}
+                                                </true>
+                                                <false>
+                                                    0 KB
+                                                </false>
+                                            </check>
+                                        </kbd>
+                                    </span>
                             <a href="?clearCache=1#pf-setup-administration" class="btn btn-warning {{ (@cacheSize.data) ?'':'disabled' }}" role="button">
-                                <i class="fa fa-fw fa-times"></i> Clear
+                                <i class="fa fa-fw fa-times"></i> Delete
                             </a>
                         </div>
 
