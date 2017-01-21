@@ -1107,6 +1107,15 @@ td.pf-popover-trigger{
 .navbar-fixed-bottom{
   padding: 2px 0;
 }
+// global info panel ==============================================================================
+#pf-global-info{
+  position: absolute;
+  left: 0;
+  bottom: 32px;
+  width: 100%;
+  height: 32px;
+  margin-bottom: 0; // overwrite default "alert" style
+}
 
 /*
 Animate the stripes

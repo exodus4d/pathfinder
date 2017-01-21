@@ -29,6 +29,7 @@ define([
         Util.initDefaultBootboxConfig();
 
         // load page
+        // load info (maintenance) info panel (if scheduled)
         $('body').loadPageStructure();
 
         // show app information in browser console
@@ -63,12 +64,18 @@ define([
             Init.routes             = initData.routes;
             Init.notificationStatus = initData.notificationStatus;
             Init.routeSearch        = initData.routeSearch;
+            Init.programMode        = initData.programMode;
 
             // init tab change observer, Once the timers are available
             Page.initTabChangeObserver();
 
             // init map module
             mapModule.initMapModule();
+
+            // load info (maintenance) info panel (if scheduled)
+            if(Init.programMode.maintenance){
+                $('body').showGlobalInfoPanel();
+            }
 
         }).fail(( jqXHR, status, error) => {
             let reason = status + ' ' + jqXHR.status + ': ' + error;

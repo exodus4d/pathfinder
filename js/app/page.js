@@ -56,6 +56,7 @@ define([
         // footer
         pageFooterId: 'pf-footer',                                              // id for page footer
         footerLicenceLinkClass: 'pf-footer-licence',                            // class for "licence" link
+        globalInfoPanelId: 'pf-global-info',                                    // id for "global info panel"
 
         // menu
         menuHeadMenuLogoClass: 'pf-head-menu-logo',                             // class for main menu logo
@@ -70,25 +71,27 @@ define([
 
     /**
      * load main page structure elements and navigation container into body
+     * @returns {*|jQuery|HTMLElement}
      */
     $.fn.loadPageStructure = function(){
+        let body = $(this);
 
         // menu left
-        $(this).prepend(
+        body.prepend(
             $('<div>', {
                 class: [config.pageSlidebarClass, config.pageSlidebarLeftClass, 'sb-style-push', 'sb-width-custom'].join(' ')
             }).attr('data-sb-width', config.pageSlideLeftWidth)
         );
 
         // menu right
-        $(this).prepend(
+        body.prepend(
             $('<div>', {
                 class: [config.pageSlidebarClass, config.pageSlidebarRightClass, 'sb-style-push', 'sb-width-custom'].join(' ')
             }).attr('data-sb-width', config.pageSlideRightWidth)
         );
 
         // main page
-        $(this).prepend(
+        body.prepend(
             $('<div>', {
                 id: config.pageId,
                 class: config.pageClass
@@ -112,6 +115,8 @@ define([
 
         // set document observer for global events
         setDocumentObserver();
+
+        return body;
     };
 
     /**
@@ -1069,6 +1074,24 @@ define([
         }
     };
 
+    /**
+     * show information panel to active users (on bottom)
+     * @returns {*|jQuery|HTMLElement}
+     */
+    $.fn.showGlobalInfoPanel = function (){
+        let body = $(this);
+        let infoTemplate = 'text!templates/ui/info_panel.html';
+
+        requirejs([infoTemplate, 'mustache'], function(template, Mustache) {
+            let data = {
+                id: config.globalInfoPanelId
+            };
+            let content = $( Mustache.render(template, data) );
+            content.insertBefore( '#' + config.pageFooterId );
+        });
+
+        return body;
+    };
 
     return {
         initTabChangeObserver: initTabChangeObserver

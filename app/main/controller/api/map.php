@@ -188,6 +188,11 @@ class Map extends Controller\AccessController {
             'rallySet' => (bool)Config::getNotificationMail('RALLY_SET')
         ];
 
+        // program mode (e.g. "maintenance") --------------------------------------------------------------------------
+        $return->programMode = [
+            'maintenance' => $this->getF3()->get('PATHFINDER.LOGIN.MODE_MAINTENANCE')
+        ];
+
         // get SSO error messages that should be shown immediately ----------------------------------------------------
         // -> e.g. errors while character switch from previous HTTP requests
         if( $f3->exists(Controller\Ccp\Sso::SESSION_KEY_SSO_ERROR) ){
