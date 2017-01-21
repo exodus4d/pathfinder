@@ -44,6 +44,7 @@ define([
      * perform a basic check if Clients (browser) can connect to the webSocket server
      */
     let testWebSocket = () => {
+        let tcpSocketPanel = $('#pf-setup-tcpSocket');
         let webSocketPanel = $('#pf-setup-webSocket');
         let WebSocketURI = MapWorker.getWebSocketURL();
 
@@ -96,18 +97,47 @@ define([
         socket.onopen = (e) => {
             updateWebSocketPanel({
                 status: {
-                    label:  'CONNECTED',
-                    class: 'txt-color-success'
+                    label:  'OPEN wait for response...',
+                    class: 'txt-color-warning'
                 }
             });
 
+            // sent token and check response
+            socket.send(JSON.stringify({
+                task: 'healthCheck',
+                load: tcpSocketPanel.data('token')
+            }));
+
             webSocketPanel.hideLoadingAnimation();
+        };
+
+        socket.onmessage = (e) => {
+            let response = JSON.parse(e.data);
+
+            if(response === 1){
+                // SUCCESS
+                updateWebSocketPanel({
+                    status: {
+                        label:  'CONNECTED',
+                        class: 'txt-color-success'
+                    }
+                });
+            }else{
+                // Got response but INVALID
+                updateWebSocketPanel({
+                    status: {
+                        label:  'INVALID RESPONSE',
+                        class: 'txt-color-warning'
+                    }
+                });
+            }
+
         };
 
         socket.onerror = (e) => {
             updateWebSocketPanel({
                 status: {
-                    label:  'CONNECTION FAILED',
+                    label:  'CONNECTION ERROR',
                     class: 'txt-color-danger'
                 }
             });

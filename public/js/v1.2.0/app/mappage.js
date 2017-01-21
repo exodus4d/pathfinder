@@ -32,7 +32,6 @@ define([
         // load info (maintenance) info panel (if scheduled)
         $('body').loadPageStructure();
 
-
         // show app information in browser console
         Util.showVersionInfo();
 

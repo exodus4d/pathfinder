@@ -808,13 +808,14 @@ class Controller {
         return Config::getEnvironmentData($key);
     }
 
+
     /**
      * health check for ICP socket -> ping request
      * @param $ttl
-     * @return bool|string
+     * @param $load
      */
-    static function checkTcpSocket($ttl){
-        return (new Socket( Config::getSocketUri(), $ttl ))->sendData('healthCheck');
+    static function checkTcpSocket($ttl, $load){
+        (new Socket( Config::getSocketUri(), $ttl ))->sendData('healthCheck', $load);
     }
 
     /**

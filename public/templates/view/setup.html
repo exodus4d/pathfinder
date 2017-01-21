@@ -819,7 +819,7 @@
 
             <repeat group="{{ @socketInformation }}" key="{{ @socketType }}" value="{{ @socketData }}">
                 <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
-                    <div id="pf-setup-{{ @socketType }}" class="panel panel-default pricing-big" style="position: relative">
+                    <div id="pf-setup-{{ @socketType }}" data-token="{{ @socketData.token }}" class="panel panel-default pricing-big" style="position: relative">
                         <div class="panel-heading text-left">
                             <h3 class="panel-title">{{ @socketData.label }}</h3>
                         </div>
@@ -852,10 +852,10 @@
                         <div class="panel-footer text-align-center">
                             <check if="{{ @socketData.online }}">
                                 <true>
-                                    <h3 class="panel-title txt-color txt-color-success">CONNECTED</h3>
+                                    <h3 class="panel-title txt-color txt-color-success">PING SEND</h3>
                                 </true>
                                 <false>
-                                    <h3 class="panel-title txt-color txt-color-danger">CONNECTION FAILED</h3>
+                                    <h3 class="panel-title txt-color txt-color-danger">INIT CONNECTION...</h3>
                                 </false>
                             </check>
                         </div>

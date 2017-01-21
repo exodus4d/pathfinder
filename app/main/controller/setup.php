@@ -946,10 +946,15 @@ class Setup extends Controller {
         // $ttl for health check
         $ttl = 600;
 
+        $heachCheckToken = microtime(true);
+
+        // ping TCP Socket with checkToken
+        self::checkTcpSocket($ttl,  $heachCheckToken);
+
         $socketInformation = [
             'tcpSocket' => [
                 'label' => 'Socket (intern) [TCP]',
-                'online' => (self::checkTcpSocket($ttl) == 'OK'),
+                'online' => true,
                 'data' => [
                     [
                         'label' => 'HOST',
@@ -968,7 +973,8 @@ class Setup extends Controller {
                         'value' => $ttl,
                         'check' => !empty( $ttl )
                     ]
-                ]
+                ],
+                'token' => $heachCheckToken
             ],
             'webSocket' => [
                 'label' => 'WebSocket (clients) [HTTP]',
