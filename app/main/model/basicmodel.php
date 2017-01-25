@@ -27,7 +27,7 @@ abstract class BasicModel extends \DB\Cortex {
      * -> leave this at a higher value
      * @var int
      */
-    //protected $ttl = 86400;
+    protected $ttl = 120;
 
     /**
      * caching for relational data
