@@ -98,8 +98,6 @@ class Socket {
         if(self::checkRequirements()){
             $context = new \ZMQContext();
             $this->socket = $context->getSocket(\ZMQ::SOCKET_PUSH);
-            // The linger value of the socket. Specifies how long the socket blocks trying flush messages after it has been closed
-            //$this->socket->setSockOpt(\ZMQ::SOCKOPT_LINGER, 0);
         }
     }
 
@@ -121,6 +119,7 @@ class Socket {
 
         $this->socket->connect($this->socketUri);
         $this->socket->send(json_encode($send));
+        $this->socket->disconnect($this->socketUri);
 
         $response = 'OK';
 
