@@ -52,12 +52,26 @@ define([
                 }).velocity(animationInType, {
                     duration: animationInDuration,
                     complete: function(){
-                        // set context menu "click" observer
 
-                        // Firefox has a "nested" originalEvent ?! -> #415
+                        let posX = 0;
+                        let posY = 0;
+
+                        if(
+                            originalEvent.offsetX &&
+                            originalEvent.offsetY
+                        ){
+                            // Chrome
+                            posX = originalEvent.offsetX;
+                            posY = originalEvent.offsetY ;
+                        }else if(originalEvent.originalEvent){
+                            // Firefox -> #415
+                            posX =  originalEvent.originalEvent.layerX;
+                            posY = originalEvent.originalEvent.layerY ;
+                        }
+
                         let position = {
-                            x: originalEvent.offsetX || originalEvent.originalEvent.layerX,
-                            y: originalEvent.offsetY || originalEvent.originalEvent.layerY
+                            x: posX,
+                            y: posY
                         };
 
                         $(this).off('click').one('click', {component: component, position: position}, function (e) {
