@@ -367,12 +367,8 @@ abstract class BasicModel extends \DB\Cortex {
         // table cache exists
         // -> check cache for this row data
         $cacheKey = $this->getCacheKey($dataCacheKeyPrefix);
-
         if( !is_null($cacheKey) ){
-            $f3 = self::getF3();
-            if( $f3->exists($cacheKey) ){
-                $cacheData = $f3->get( $cacheKey );
-            }
+            self::getF3()->exists($cacheKey, $cacheData);
         }
 
         return $cacheData;

@@ -82,16 +82,10 @@ class Route extends Controller\AccessController {
         $cacheKeyIdArray = $cacheKey . '.idArray';
 
         if(
-            $f3->exists($cacheKeyNamedArray) &&
-            $f3->exists($cacheKeyJumpArray) &&
-            $f3->exists($cacheKeyIdArray)
+            !$f3->exists($cacheKeyNamedArray, $this->nameArray) ||
+            !$f3->exists($cacheKeyJumpArray, $this->jumpArray) ||
+            !$f3->exists($cacheKeyIdArray, $this->idArray)
         ){
-
-            // get cached values
-            $this->nameArray = $f3->get($cacheKeyNamedArray);
-            $this->jumpArray = $f3->get($cacheKeyJumpArray);
-            $this->idArray = $f3->get($cacheKeyIdArray);
-        }else{
             // nothing cached
             $query = "SELECT * FROM system_neighbour";
             $rows = $this->getDB()->exec($query, null, $this->staticJumpDataCacheTime);
@@ -598,9 +592,9 @@ class Route extends Controller\AccessController {
                         $filterData
                     );
 
-                    if($f3->exists($cacheKey)){
+                    if($f3->exists($cacheKey, $cachedData)){
                         // get data from cache
-                        $returnRoutData = $f3->get($cacheKey);
+                        $returnRoutData = $cachedData;
                     }else{
                         // max search depth for search
                         $searchDepth = $f3->get('PATHFINDER.ROUTE.SEARCH_DEPTH');

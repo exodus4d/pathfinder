@@ -351,8 +351,8 @@ class System extends Controller\AccessController {
         }
         $cacheKey = 'CACHE_CONSTELLATION_SYSTEMS_' . self::formatHiveKey($constellationId);
 
-        if($f3->exists($cacheKey)){
-            $return->systemData = $f3->get($cacheKey);
+        if($f3->exists($cacheKey, $cachedData)){
+            $return->systemData = $cachedData;
         }else{
             if($constellationId > 0){
                 $systemModels = $this->getSystemModelByIds([$constellationId], 'constellationID');

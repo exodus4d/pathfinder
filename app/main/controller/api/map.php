@@ -20,6 +20,7 @@ use Model;
 class Map extends Controller\AccessController {
 
     // cache keys
+    const CACHE_KEY_INIT                            = 'CACHED_INIT';
     const CACHE_KEY_MAP_DATA                        = 'CACHED.MAP_DATA.%s';
     const CACHE_KEY_USER_DATA                       = 'CACHED.USER_DATA.%s_%s';
 
@@ -69,124 +70,127 @@ class Map extends Controller\AccessController {
      * @param \Base $f3
      */
     public function init(\Base $f3){
-
         // expire time in seconds
-        $expireTimeHead =  60 * 60 * 12;
+        $expireTimeCache = 60 * 60;
         $expireTimeSQL = 60 * 60 * 12;
 
-        $f3->expire($expireTimeHead);
+        if( !$f3->exists(self::CACHE_KEY_INIT, $return )){
+            $return = (object) [];
+            $return->error = [];
 
-        $return = (object) [];
-        $return->error = [];
+            // static program data ----------------------------------------------------------------------------------------
+            $return->timer = $f3->get('PATHFINDER.TIMER');
 
-        // static program data ----------------------------------------------------------------------------------------
-        $return->timer = $f3->get('PATHFINDER.TIMER');
+            // get all available map types --------------------------------------------------------------------------------
+            $mapType = Model\BasicModel::getNew('MapTypeModel');
+            $rows = $mapType->find('active = 1', null, $expireTimeSQL);
 
-        // get all available map types --------------------------------------------------------------------------------
-        $mapType = Model\BasicModel::getNew('MapTypeModel');
-        $rows = $mapType->find('active = 1', null, $expireTimeSQL);
+            // default map type config
+            $mapsDefaultConfig = Config::getMapsDefaultConfig();
 
-        // default map type config
-        $mapsDefaultConfig = Config::getMapsDefaultConfig();
+            $mapTypeData = [];
+            foreach((array)$rows as $rowData){
+                $data = [
+                    'id' => $rowData->id,
+                    'label' => $rowData->label,
+                    'class' => $rowData->class,
+                    'classTab' => $rowData->classTab,
+                    'defaultConfig' => $mapsDefaultConfig[$rowData->name]
+                ];
+                $mapTypeData[$rowData->name] = $data;
 
-        $mapTypeData = [];
-        foreach((array)$rows as $rowData){
-            $data = [
-                'id' => $rowData->id,
-                'label' => $rowData->label,
-                'class' => $rowData->class,
-                'classTab' => $rowData->classTab,
-                'defaultConfig' => $mapsDefaultConfig[$rowData->name]
+            }
+            $return->mapTypes = $mapTypeData;
+
+            // get all available map scopes -------------------------------------------------------------------------------
+            $mapScope = Model\BasicModel::getNew('MapScopeModel');
+            $rows = $mapScope->find('active = 1', null, $expireTimeSQL);
+            $mapScopeData = [];
+            foreach((array)$rows as $rowData){
+                $data = [
+                    'id' => $rowData->id,
+                    'label' => $rowData->label
+                ];
+                $mapScopeData[$rowData->name] = $data;
+            }
+            $return->mapScopes = $mapScopeData;
+
+            // get all available system status ----------------------------------------------------------------------------
+            $systemStatus = Model\BasicModel::getNew('SystemStatusModel');
+            $rows = $systemStatus->find('active = 1', null, $expireTimeSQL);
+            $systemScopeData = [];
+            foreach((array)$rows as $rowData){
+                $data = [
+                    'id' => $rowData->id,
+                    'label' => $rowData->label,
+                    'class' => $rowData->class
+                ];
+                $systemScopeData[$rowData->name] = $data;
+            }
+            $return->systemStatus = $systemScopeData;
+
+            // get all available system types -----------------------------------------------------------------------------
+            $systemType = Model\BasicModel::getNew('SystemTypeModel');
+            $rows = $systemType->find('active = 1', null, $expireTimeSQL);
+            $systemTypeData = [];
+            foreach((array)$rows as $rowData){
+                $data = [
+                    'id' => $rowData->id,
+                    'name' => $rowData->name
+                ];
+                $systemTypeData[$rowData->name] = $data;
+            }
+            $return->systemType = $systemTypeData;
+
+            // get available connection scopes ----------------------------------------------------------------------------
+            $connectionScope = Model\BasicModel::getNew('ConnectionScopeModel');
+            $rows = $connectionScope->find('active = 1', null, $expireTimeSQL);
+            $connectionScopeData = [];
+            foreach((array)$rows as $rowData){
+                $data = [
+                    'id' => $rowData->id,
+                    'label' => $rowData->label,
+                    'connectorDefinition' => $rowData->connectorDefinition
+                ];
+                $connectionScopeData[$rowData->name] = $data;
+            }
+            $return->connectionScopes = $connectionScopeData;
+
+            // get available character status -----------------------------------------------------------------------------
+            $characterStatus = Model\BasicModel::getNew('CharacterStatusModel');
+            $rows = $characterStatus->find('active = 1', null, $expireTimeSQL);
+            $characterStatusData = [];
+            foreach((array)$rows as $rowData){
+                $data = [
+                    'id' => $rowData->id,
+                    'name' => $rowData->name,
+                    'class' => $rowData->class
+                ];
+                $characterStatusData[$rowData->name] = $data;
+            }
+            $return->characterStatus = $characterStatusData;
+
+            // route search config ----------------------------------------------------------------------------------------
+            $return->routeSearch = [
+                'defaultCount'              => $this->getF3()->get('PATHFINDER.ROUTE.SEARCH_DEFAULT_COUNT'),
+                'maxDefaultCount'           => $this->getF3()->get('PATHFINDER.ROUTE.MAX_Default_COUNT'),
+                'limit'                     => $this->getF3()->get('PATHFINDER.ROUTE.LIMIT'),
             ];
-            $mapTypeData[$rowData->name] = $data;
 
-        }
-        $return->mapTypes = $mapTypeData;
-
-        // get all available map scopes -------------------------------------------------------------------------------
-        $mapScope = Model\BasicModel::getNew('MapScopeModel');
-        $rows = $mapScope->find('active = 1', null, $expireTimeSQL);
-        $mapScopeData = [];
-        foreach((array)$rows as $rowData){
-            $data = [
-                'id' => $rowData->id,
-                'label' => $rowData->label
+            // get program routes -----------------------------------------------------------------------------------------
+            $return->routes = [
+                'ssoLogin' => $this->getF3()->alias( 'sso', ['action' => 'requestAuthorization'] )
             ];
-            $mapScopeData[$rowData->name] = $data;
-        }
-        $return->mapScopes = $mapScopeData;
 
-        // get all available system status ----------------------------------------------------------------------------
-        $systemStatus = Model\BasicModel::getNew('SystemStatusModel');
-        $rows = $systemStatus->find('active = 1', null, $expireTimeSQL);
-        $systemScopeData = [];
-        foreach((array)$rows as $rowData){
-            $data = [
-                'id' => $rowData->id,
-                'label' => $rowData->label,
-                'class' => $rowData->class
+            // get notification status ------------------------------------------------------------------------------------
+            $return->notificationStatus = [
+                'rallySet' => (bool)Config::getNotificationMail('RALLY_SET')
             ];
-            $systemScopeData[$rowData->name] = $data;
+
+            $f3->set(self::CACHE_KEY_INIT, $return, $expireTimeCache );
         }
-        $return->systemStatus = $systemScopeData;
 
-        // get all available system types -----------------------------------------------------------------------------
-        $systemType = Model\BasicModel::getNew('SystemTypeModel');
-        $rows = $systemType->find('active = 1', null, $expireTimeSQL);
-        $systemTypeData = [];
-        foreach((array)$rows as $rowData){
-            $data = [
-                'id' => $rowData->id,
-                'name' => $rowData->name
-            ];
-            $systemTypeData[$rowData->name] = $data;
-        }
-        $return->systemType = $systemTypeData;
-
-        // get available connection scopes ----------------------------------------------------------------------------
-        $connectionScope = Model\BasicModel::getNew('ConnectionScopeModel');
-        $rows = $connectionScope->find('active = 1', null, $expireTimeSQL);
-        $connectionScopeData = [];
-        foreach((array)$rows as $rowData){
-            $data = [
-                'id' => $rowData->id,
-                'label' => $rowData->label,
-                'connectorDefinition' => $rowData->connectorDefinition
-            ];
-            $connectionScopeData[$rowData->name] = $data;
-        }
-        $return->connectionScopes = $connectionScopeData;
-
-        // get available character status -----------------------------------------------------------------------------
-        $characterStatus = Model\BasicModel::getNew('CharacterStatusModel');
-        $rows = $characterStatus->find('active = 1', null, $expireTimeSQL);
-        $characterStatusData = [];
-        foreach((array)$rows as $rowData){
-            $data = [
-                'id' => $rowData->id,
-                'name' => $rowData->name,
-                'class' => $rowData->class
-            ];
-            $characterStatusData[$rowData->name] = $data;
-        }
-        $return->characterStatus = $characterStatusData;
-
-        // route search config ----------------------------------------------------------------------------------------
-        $return->routeSearch = [
-            'defaultCount'              => $this->getF3()->get('PATHFINDER.ROUTE.SEARCH_DEFAULT_COUNT'),
-            'maxDefaultCount'           => $this->getF3()->get('PATHFINDER.ROUTE.MAX_Default_COUNT'),
-            'limit'                     => $this->getF3()->get('PATHFINDER.ROUTE.LIMIT'),
-        ];
-
-        // get program routes -----------------------------------------------------------------------------------------
-        $return->routes = [
-            'ssoLogin' => $this->getF3()->alias( 'sso', ['action' => 'requestAuthorization'] )
-        ];
-
-        // get notification status ------------------------------------------------------------------------------------
-        $return->notificationStatus = [
-            'rallySet' => (bool)Config::getNotificationMail('RALLY_SET')
-        ];
+        // Add data that should not be cached =========================================================================
 
         // program mode (e.g. "maintenance") --------------------------------------------------------------------------
         $return->programMode = [
@@ -645,17 +649,16 @@ class Map extends Controller\AccessController {
 
         $activeCharacter = $this->getCharacter();
 
-        $return = (object) [];
-        $return->error = [];
-
-
         $cacheKey = $this->getMapDataCacheKey($activeCharacter);
 
         // if there is any system/connection change data submitted -> save new data
         if(
             !empty($mapData) ||
-            !$f3->exists($cacheKey)
+            !$f3->exists($cacheKey, $return)
         ){
+            $return = (object) [];
+            $return->error = [];
+
             // get current map data ===============================================================================
             $maps = $activeCharacter->getMaps();
 
@@ -772,9 +775,6 @@ class Map extends Controller\AccessController {
             $responseTTL = (int)$f3->get('PATHFINDER.TIMER.UPDATE_SERVER_MAP.DELAY') / 1000;
 
             $f3->set($cacheKey, $return, $responseTTL);
-        }else{
-            // get from cache
-            $return = $f3->get($cacheKey);
         }
 
         // if userData is requested -> add it as well
@@ -807,7 +807,6 @@ class Map extends Controller\AccessController {
      */
     public function updateUserData(\Base $f3){
         $return = (object) [];
-        $return->error = [];
 
         $activeCharacter = $this->getCharacter(0);
 
@@ -837,8 +836,12 @@ class Map extends Controller\AccessController {
                     $map = $this->updateMapData($activeCharacter, $map);
                 }
 
+                // get from cache
+                // this should happen if a user has multiple program instances running
+                // with the same main char
                 $cacheKey = $this->getUserDataCacheKey($mapId, $requestSystemData->systemId);
-                if( !$f3->exists($cacheKey) ){
+                if( !$f3->exists($cacheKey, $return) ){
+                    $return = (object) [];
                     $return->mapUserData[] = $map->getUserData();
 
                     // request signature data for a system if user has map access!
@@ -858,11 +861,6 @@ class Map extends Controller\AccessController {
 
                     // cache response
                     $f3->set($cacheKey, $return, $responseTTL);
-                }else{
-                    // get from cache
-                    // this should happen if a user has multiple program instances running
-                    // with the same main char
-                    $return = $f3->get($cacheKey);
                 }
             }
         }
@@ -870,6 +868,9 @@ class Map extends Controller\AccessController {
         // get current user data -> this should not be cached because each user has different personal data
         // even if they have multiple characters using the same map!
         $return->userData = $activeCharacter->getUser()->getData();
+
+        // add error (if exists)
+        $return->error = [];
 
         echo json_encode( $return );
     }

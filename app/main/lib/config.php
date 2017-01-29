@@ -142,12 +142,8 @@ class Config extends \Prefab {
      * @return string|null
      */
     static function getEnvironmentData($key){
-        $f3 = \Base::instance();
         $hiveKey = self::HIVE_KEY_ENVIRONMENT . '.' . $key;
-        $data = null;
-        if( $f3->exists($hiveKey) ){
-            $data = $f3->get($hiveKey);
-        }
+        \Base::instance()->exists($hiveKey, $data);
 
         return $data;
     }
@@ -161,8 +157,8 @@ class Config extends \Prefab {
         $f3 = \Base::instance();
         $hiveKey = self::HIVE_KEY_PATHFINDER . '.NOTIFICATION.' . $key;
         $mail = false;
-        if( $f3->exists($hiveKey) ){
-            $mail = $f3->get($hiveKey);
+        if( $f3->exists($hiveKey, $cachedMail) ){
+            $mail = $cachedMail;
         }
 
         return $mail;

@@ -477,27 +477,22 @@ class Controller {
      * @param \Base $f3
      */
     public function getEveServerStatus(\Base $f3){
-        $return = (object) [];
-        $return->error = [];
-
         // server status can be cached for some seconds
         $cacheKey = 'eve_server_status';
-        if( !$f3->exists($cacheKey) ){
+        if( !$f3->exists($cacheKey, $return) ){
+            $return = (object) [];
+            $return->error = [];
+
             $sso = new Sso();
             $return->status = $sso->getCrestServerStatus();
 
             if( !$return->status->crestOffline ){
                 $f3->set($cacheKey, $return, 60);
             }
-        }else{
-            // get from cache
-            $return = $f3->get($cacheKey);
         }
 
         echo json_encode($return);
     }
-
-
 
     /**
      * get error object is a user is not found/logged of
