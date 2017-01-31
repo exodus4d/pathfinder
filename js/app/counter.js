@@ -5,7 +5,7 @@ define([
 ], function($, Init, Util) {
     'use strict';
 
-    var config = {
+    let config = {
       counterDigitSmallClass: 'pf-digit-counter-small',
       counterDigitLargeClass: 'pf-digit-counter-large'
     };
@@ -15,13 +15,13 @@ define([
      * @param element
      * @param tempDate
      */
-    var updateDateDiff = function(element, tempDate){
-        var diff = Util.getTimeDiffParts(tempDate, new Date());
-        var days = diff.days;
-        var hrs = diff.hours;
-        var min = diff.min;
-        var leftSec = diff.sec;
-        var value = [];
+    let updateDateDiff = function(element, tempDate){
+        let diff = Util.getTimeDiffParts(tempDate, new Date());
+        let days = diff.days;
+        let hrs = diff.hours;
+        let min = diff.min;
+        let leftSec = diff.sec;
+        let value = [];
 
         if(
             days > 0 ||
@@ -58,19 +58,22 @@ define([
      */
     $.fn.initTimestampCounter = function(){
         return this.each(function(){
-            var element = $(this);
-            var timestamp = parseInt( element.text() );
+            let element = $(this);
+            let timestamp = parseInt( element.text() );
 
             // do not init twice
             if(timestamp > 0){
                 // mark as init
                 element.attr('data-counter', 'init');
 
-                var date = new Date( timestamp * 1000);
+                let date = new Date( timestamp * 1000);
 
                 updateDateDiff(element, date);
 
-                var refreshIntervalId = window.setInterval(function(){
+                // show element (if invisible) after first update
+                element.css({'visibility': 'initial'});
+
+                let refreshIntervalId = window.setInterval(function(){
 
                     // update element with current time
                     if( !element.hasClass('stopCounter')){

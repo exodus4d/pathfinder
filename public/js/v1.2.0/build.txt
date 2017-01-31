@@ -104,6 +104,7 @@ lib/datatables/Responsive-2.1.0/js/dataTables.responsive.min.js
 lib/datatables/Select-1.2.0/js/dataTables.select.min.js
 app/module_map.js
 app/page.js
+app/map/worker.js
 app/ui/form_element.js
 app/mappage.js
 
@@ -127,6 +128,7 @@ lib/jquery.hoverIntent.minified.js
 lib/bootstrap-confirmation.js
 lib/bootstrap2-toggle.min.js
 app/util.js
+app/map/worker.js
 app/setup.js
 
 app/notification.js

@@ -169,7 +169,7 @@ class Statistic extends Controller\AccessController {
             ];
 
             // date offset condition ----------------------------------------------------------------------------------
-            $sqlDateOffset = " AND CONCAT(`log`.`year`, `log`.`week`) BETWEEN  :yearWeekStart AND :yearWeekEnd ";
+            $sqlDateOffset = " AND CONCAT(`log`.`year`, LPAD(`log`.`week`, 2, 0) ) BETWEEN  :yearWeekStart AND :yearWeekEnd ";
 
             $queryData[':yearWeekStart'] = $this->concatYearWeek($yearStart, $weekStart);
             $queryData[':yearWeekEnd'] = $this->concatYearWeek($yearEnd, $weekEnd);

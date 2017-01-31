@@ -12,7 +12,7 @@ define([
 ], function($, Init, Util, Render, bootbox, MapUtil) {
     'use strict';
 
-    var config = {
+    let config = {
         // dialog
         statsDialogId: 'pf-stats-dialog',                                       // id for "stats" dialog
         dialogNavigationClass: 'pf-dialog-navigation-list',                     // class for dialog navigation bar
@@ -35,12 +35,12 @@ define([
      * init blank statistics dataTable
      * @param dialogElement
      */
-    var initStatsTable = function(dialogElement){
-        var columnNumberWidth = 35;
-        var lineColor = '#477372';
+    let initStatsTable = function(dialogElement){
+        let columnNumberWidth = 35;
+        let lineColor = '#477372';
 
         // render function for inline-chart columns
-        var renderInlineChartColumn = function(data, type, row, meta){
+        let renderInlineChartColumn = function(data, type, row, meta){
             /*
              switch(data.type){
              case 'C': lineColor = '#5cb85c'; break;
@@ -58,15 +58,15 @@ define([
         };
 
         // render function for numeric columns
-        var renderNumericColumn = function(data, type, row, meta){
+        let renderNumericColumn = function(data, type, row, meta){
             return data.toLocaleString();
         };
 
         // get table element
         // Due to "complex" table headers, they are already rendered and part of the stats.html file
-        var table = dialogElement.find('#' + config.statsTableId);
+        let table = dialogElement.find('#' + config.statsTableId);
 
-        var  statsTable = table.DataTable({
+        let  statsTable = table.DataTable({
             pageLength: 30,
             lengthMenu: [[10, 20, 30, 50], [10, 20, 30, 50]],
             paging: true,
@@ -269,10 +269,10 @@ define([
                 }
             ],
             initComplete: function(settings){
-                var tableApi = this.api();
+                let tableApi = this.api();
 
                 // initial statistics data request
-                var requestData = getRequestDataFromTabPanels(dialogElement);
+                let requestData = getRequestDataFromTabPanels(dialogElement);
                 getStatsData(requestData, {tableApi: tableApi, callback: drawStatsTable});
             },
             drawCallback: function(settings){
@@ -286,11 +286,11 @@ define([
                 });
             },
             footerCallback: function ( row, data, start, end, display ) {
-                var api = this.api();
-                var sumColumnIndexes = [7, 11, 15, 16];
+                let api = this.api();
+                let sumColumnIndexes = [7, 11, 15, 16];
 
                 // column data for "sum" columns over this page
-                var pageTotalColumns = api
+                let pageTotalColumns = api
                     .columns( sumColumnIndexes, { page: 'current'} )
                     .data();
 
@@ -314,7 +314,7 @@ define([
             });
         }).draw();
 
-        var tooltipElements = dialogElement.find('[data-toggle="tooltip"]');
+        let tooltipElements = dialogElement.find('[data-toggle="tooltip"]');
         tooltipElements.tooltip();
     };
 
@@ -323,7 +323,7 @@ define([
      * @param requestData
      * @param context
      */
-    var getStatsData = function(requestData, context){
+    let getStatsData = function(requestData, context){
 
         context.dynamicArea = $('#' + config.statsContainerId + ' .pf-dynamic-area');
         context.dynamicArea.showLoadingAnimation();
@@ -339,7 +339,7 @@ define([
 
             this.callback(data);
         }).fail(function( jqXHR, status, error) {
-            var reason = status + ' ' + error;
+            let reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': loadStatistics', text: reason, type: 'warning'});
         });
     };
@@ -349,21 +349,21 @@ define([
      * update "header"/"filter" elements in dialog
      * @param responseData
      */
-    var drawStatsTable = function(responseData){
-        var dialogElement = $('#' + config.statsDialogId);
+    let drawStatsTable = function(responseData){
+        let dialogElement = $('#' + config.statsDialogId);
 
         // update filter/header -----------------------------------------------------------------------------
-        var navigationListElements = $('.' + config.dialogNavigationClass);
+        let navigationListElements = $('.' + config.dialogNavigationClass);
         navigationListElements.find('a[data-type="typeId"][data-value="' + responseData.typeId + '"]').tab('show');
         navigationListElements.find('a[data-type="period"][data-value="' + responseData.period + '"]').tab('show');
 
         // update period pagination -------------------------------------------------------------------------
-        var prevButton = dialogElement.find('.' + config.dialogNavigationPrevClass);
+        let prevButton = dialogElement.find('.' + config.dialogNavigationPrevClass);
         prevButton.data('newOffset', responseData.prev);
         prevButton.find('span').text('Week ' + responseData.prev.week + ', ' + responseData.prev.year);
         prevButton.css('visibility', 'visible');
 
-        var nextButton = dialogElement.find('.' + config.dialogNavigationNextClass);
+        let nextButton = dialogElement.find('.' + config.dialogNavigationNextClass);
         if(responseData.next){
             nextButton.data('newOffset', responseData.next);
             nextButton.find('span').text('Week ' + responseData.next.week + ', ' + responseData.next.year);
@@ -374,7 +374,7 @@ define([
 
         // update current period information label ----------------------------------------------------------
         // if period == "weekly" there is no "offset" -> just a single week
-        var offsetText = 'Week ' + responseData.start.week + ', ' + responseData.start.year;
+        let offsetText = 'Week ' + responseData.start.week + ', ' + responseData.start.year;
         if(responseData.period !== 'weekly'){
             offsetText += ' <small><i class="fa fa-fw fa-minus"></i></small> ' +
                             'Week ' + responseData.offset.week + ', ' + responseData.offset.year;
@@ -385,7 +385,7 @@ define([
             .html(offsetText);
 
         // clear and (re)-fill table ------------------------------------------------------------------------
-        var formattedData = formatStatisticsData(responseData);
+        let formattedData = formatStatisticsData(responseData);
         this.tableApi.clear();
         this.tableApi.rows.add(formattedData).draw();
     };
@@ -396,23 +396,23 @@ define([
      * @param statsData
      * @returns {Array}
      */
-    var formatStatisticsData = function(statsData){
-        var formattedData = [];
-        var yearStart = statsData.start.year;
-        var weekStart = statsData.start.week;
-        var weekCount = statsData.weekCount;
-        var yearWeeks = statsData.yearWeeks;
+    let formatStatisticsData = function(statsData){
+        let formattedData = [];
+        let yearStart = statsData.start.year;
+        let weekStart = statsData.start.week;
+        let weekCount = statsData.weekCount;
+        let yearWeeks = statsData.yearWeeks;
 
-        var tempRand = function(min, max){
+        let tempRand = function(min, max){
             return Math.random() * (max - min) + min;
         };
 
         // format/sum week statistics data for inline charts
-        var formatWeekData = function(weeksData){
-            var currentYear = yearStart;
-            var currentWeek = weekStart;
+        let formatWeekData = function(weeksData){
+            let currentYear = yearStart;
+            let currentWeek = weekStart;
 
-            var formattedWeeksData = {
+            let formattedWeeksData = {
                 systemCreate: [],
                 systemUpdate: [],
                 systemDelete: [],
@@ -507,9 +507,9 @@ define([
 
         $.each(statsData.statistics, function(characterId, data){
 
-            var formattedWeeksData = formatWeekData(data.weeks);
+            let formattedWeeksData = formatWeekData(data.weeks);
 
-            var rowData = {
+            let rowData = {
                 character: {
                     id: characterId,
                     name: data.name,
@@ -568,20 +568,20 @@ define([
      * @param dialogElement
      * @returns {{}}
      */
-    var getRequestDataFromTabPanels = function(dialogElement){
-        var requestData = {};
+    let getRequestDataFromTabPanels = function(dialogElement){
+        let requestData = {};
 
         // get data from "tab" panel links ------------------------------------------------------------------
-        var navigationListElements = dialogElement.find('.' + config.dialogNavigationClass);
+        let navigationListElements = dialogElement.find('.' + config.dialogNavigationClass);
         navigationListElements.find('.' + config.dialogNavigationListItemClass + '.active a').each(function(){
-            var linkElement = $(this);
+            let linkElement = $(this);
             requestData[linkElement.data('type')]= linkElement.data('value');
         });
 
         // get current period (no offset) data (if available) -----------------------------------------------
-        var navigationOffsetElement = dialogElement.find('.' + config.dialogNavigationOffsetClass);
-        var startData = navigationOffsetElement.data('start');
-        var periodOld = navigationOffsetElement.data('period');
+        let navigationOffsetElement = dialogElement.find('.' + config.dialogNavigationOffsetClass);
+        let startData = navigationOffsetElement.data('start');
+        let periodOld = navigationOffsetElement.data('period');
 
         // if period switch was detected
         // -> "year" and "week" should not be send
@@ -602,18 +602,18 @@ define([
      * @param type
      * @returns {boolean}
      */
-    var isTabTypeEnabled = function(type){
-        var enabled = false;
+    let isTabTypeEnabled = function(type){
+        let enabled = false;
 
         switch(type){
             case 'private':
-                if(Init.activityLogging.character){
+                if(Init.mapTypes.private.defaultConfig.activity_logging){
                     enabled = true;
                 }
                 break;
             case 'corporation':
                 if(
-                    Init.activityLogging.corporation &&
+                    Init.mapTypes.corporation.defaultConfig.activity_logging &&
                     Util.getCurrentUserInfo('corporationId')
                 ){
                     enabled = true;
@@ -621,7 +621,7 @@ define([
                 break;
             case 'alliance':
                 if(
-                    Init.activityLogging.alliance &&
+                    Init.mapTypes.alliance.defaultConfig.activity_logging &&
                     Util.getCurrentUserInfo('allianceId')
                 ){
                     enabled = true;
@@ -638,7 +638,7 @@ define([
     $.fn.showStatsDialog = function(){
         requirejs(['text!templates/dialog/stats.html', 'mustache', 'peityInlineChart'], function(template, Mustache) {
 
-            var data = {
+            let data = {
                 id: config.statsDialogId,
                 dialogNavigationClass: config.dialogNavigationClass,
                 dialogNavLiClass: config.dialogNavigationListItemClass,
@@ -652,9 +652,9 @@ define([
                 dialogNavigationNextClass: config.dialogNavigationNextClass
             };
 
-            var content = Mustache.render(template, data);
+            let content = Mustache.render(template, data);
 
-            var statsDialog = bootbox.dialog({
+            let statsDialog = bootbox.dialog({
                 title: 'Statistics',
                 message: content,
                 size: 'large',
@@ -669,7 +669,7 @@ define([
 
             // model events
             statsDialog.on('show.bs.modal', function(e) {
-                var dialogElement = $(e.target);
+                let dialogElement = $(e.target);
 
                 initStatsTable(dialogElement);
             });
@@ -683,22 +683,22 @@ define([
             });
 
             statsDialog.find('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-                var requestData = getRequestDataFromTabPanels(statsDialog);
-                var tableApi = statsDialog.find('#' + config.statsTableId).DataTable();
+                let requestData = getRequestDataFromTabPanels(statsDialog);
+                let tableApi = statsDialog.find('#' + config.statsTableId).DataTable();
 
                 getStatsData(requestData, {tableApi: tableApi, callback: drawStatsTable});
             });
 
             // offset change links
             statsDialog.find('.' + config.dialogNavigationPrevClass + ', .' + config.dialogNavigationNextClass).on('click', function(){
-                var offsetData = $(this).data('newOffset');
+                let offsetData = $(this).data('newOffset');
                 if(offsetData){
                     // this should NEVER fail!
                     // get "base" request data (e.g. typeId, period)
                     // --> overwrite period data with new period data
-                    var tmpRequestData = getRequestDataFromTabPanels(statsDialog);
-                    var requestData =  $.extend({}, tmpRequestData, offsetData);
-                    var tableApi = statsDialog.find('#' + config.statsTableId).DataTable();
+                    let tmpRequestData = getRequestDataFromTabPanels(statsDialog);
+                    let requestData =  $.extend({}, tmpRequestData, offsetData);
+                    let tableApi = statsDialog.find('#' + config.statsTableId).DataTable();
 
                     getStatsData(requestData, {tableApi: tableApi, callback: drawStatsTable});
                 }

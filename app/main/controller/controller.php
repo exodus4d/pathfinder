@@ -10,6 +10,8 @@ namespace Controller;
 use Controller\Api as Api;
 use Controller\Ccp\Sso as Sso;
 use lib\Config;
+use lib\Socket;
+use Lib\Util;
 use Model;
 use DB;
 
@@ -203,12 +205,12 @@ class Controller {
             // unique "selector" -> to facilitate database look-ups (small size)
             // -> This is preferable to simply using the database id field,
             // which leaks the number of active users on the application
-            $selector = bin2hex(mcrypt_create_iv(12, MCRYPT_DEV_URANDOM));
+            $selector = bin2hex( openssl_random_pseudo_bytes(12) );
 
             // generate unique "validator" (strong encryption)
             // -> plaintext set to user (cookie), hashed version of this in DB
-            $size = mcrypt_get_iv_size(MCRYPT_CAST_256, MCRYPT_MODE_CFB);
-            $validator = bin2hex(mcrypt_create_iv($size, MCRYPT_DEV_URANDOM));
+            $size = openssl_cipher_iv_length('aes-256-cbc');
+            $validator = bin2hex(openssl_random_pseudo_bytes($size) );
 
             // generate unique cookie token
             $token = hash('sha256', $validator);
@@ -447,10 +449,6 @@ class Controller {
         return $user;
     }
 
-    public function getCharacterSessionData(){
-
-    }
-
     /**
      * log out current character
      * @param \Base $f3
@@ -458,14 +456,16 @@ class Controller {
     public function logout(\Base $f3){
         $params = (array)$f3->get('POST');
 
-        // ----------------------------------------------------------
-        // delete server side cookie validation data
-        // for the active character
-        if(
-            $params['clearCookies'] === '1' &&
-            ( $activeCharacter = $this->getCharacter())
-        ){
-            $activeCharacter->logout();
+        if( $activeCharacter = $this->getCharacter() ){
+
+            if($params['clearCookies'] === '1'){
+                // delete server side cookie validation data
+                // for the active character
+                $activeCharacter->logout();
+            }
+
+            // broadcast logout information to webSocket server
+            (new Socket( Config::getSocketUri() ))->sendData('characterLogout', $activeCharacter->_id);
         }
 
         // destroy session login data -------------------------------
@@ -477,27 +477,22 @@ class Controller {
      * @param \Base $f3
      */
     public function getEveServerStatus(\Base $f3){
-        $return = (object) [];
-        $return->error = [];
-
         // server status can be cached for some seconds
         $cacheKey = 'eve_server_status';
-        if( !$f3->exists($cacheKey) ){
+        if( !$f3->exists($cacheKey, $return) ){
+            $return = (object) [];
+            $return->error = [];
+
             $sso = new Sso();
             $return->status = $sso->getCrestServerStatus();
 
             if( !$return->status->crestOffline ){
                 $f3->set($cacheKey, $return, 60);
             }
-        }else{
-            // get from cache
-            $return = $f3->get($cacheKey);
         }
 
         echo json_encode($return);
     }
-
-
 
     /**
      * get error object is a user is not found/logged of
@@ -806,6 +801,16 @@ class Controller {
      */
     static function getEnvironmentData($key){
         return Config::getEnvironmentData($key);
+    }
+
+
+    /**
+     * health check for ICP socket -> ping request
+     * @param $ttl
+     * @param $load
+     */
+    static function checkTcpSocket($ttl, $load){
+        (new Socket( Config::getSocketUri(), $ttl ))->sendData('healthCheck', $load);
     }
 
     /**

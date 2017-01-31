@@ -53,13 +53,17 @@ class Route extends Controller\AccessController {
      * -> this function is required for route search! (Don´t forget)
      * @param array $mapIds
      * @param array $filterData
+     * @param array $keepSystems
      */
-    public function initJumpData($mapIds = [], $filterData = []){
+    public function initJumpData($mapIds = [], $filterData = [], $keepSystems = []){
         // add static data (e.g. K-Space stargates,..)
         $this->setStaticJumpData();
 
         // add map specific data
         $this->setDynamicJumpData($mapIds, $filterData);
+
+        // filter jump data (e.g. remove some systems (0.0, LS)
+        $this->filterJumpData($filterData, $keepSystems);
     }
 
     /**
@@ -78,16 +82,10 @@ class Route extends Controller\AccessController {
         $cacheKeyIdArray = $cacheKey . '.idArray';
 
         if(
-            $f3->exists($cacheKeyNamedArray) &&
-            $f3->exists($cacheKeyJumpArray) &&
-            $f3->exists($cacheKeyIdArray)
+            !$f3->exists($cacheKeyNamedArray, $this->nameArray) ||
+            !$f3->exists($cacheKeyJumpArray, $this->jumpArray) ||
+            !$f3->exists($cacheKeyIdArray, $this->idArray)
         ){
-
-            // get cached values
-            $this->nameArray = $f3->get($cacheKeyNamedArray);
-            $this->jumpArray = $f3->get($cacheKeyJumpArray);
-            $this->idArray = $f3->get($cacheKeyIdArray);
-        }else{
             // nothing cached
             $query = "SELECT * FROM system_neighbour";
             $rows = $this->getDB()->exec($query, null, $this->staticJumpDataCacheTime);
@@ -253,6 +251,35 @@ class Route extends Controller\AccessController {
             if(end($this->jumpArray[$systemName]) != $systemId){
                 array_push($this->jumpArray[$systemName],$systemId);
             }
+        }
+    }
+
+    /**
+     * filter systems (remove some systems) e.g. WH,LS,0.0 for "safer search"
+     * @param array $filterData
+     * @param array $keepSystems
+     */
+    private function filterJumpData($filterData = [], $keepSystems = []){
+        if($filterData['safer']){
+            // remove all systems (TrueSec < 0.5) from search arrays
+            $this->jumpArray = array_filter($this->jumpArray, function($jumpData) use($keepSystems) {
+
+                // systemId is always last entry
+                $systemId = end($jumpData);
+                $systemNameData = $this->nameArray[$systemId];
+                $systemSec = $systemNameData[3];
+
+                if($systemSec < 0.45 && !in_array($systemId, $keepSystems)){
+                    // remove system from nameArray as well
+                    unset($this->nameArray[$systemId]);
+                    // remove system from idArray as well
+                    $systemName = $systemNameData[0];
+                    unset($this->idArray[$systemName]);
+                    return false;
+                }else{
+                    return true;
+                }
+            });
         }
     }
 
@@ -504,7 +531,7 @@ class Route extends Controller\AccessController {
                 array_walk($mapData, function(&$item, &$key, $data){
 
                     if( isset($data[1][$key]) ){
-                        // character has mas access -> do not check again
+                        // character has map access -> do not check again
                         $item = $data[1][$key];
                     }else{
                         // check map access for current character
@@ -534,7 +561,8 @@ class Route extends Controller\AccessController {
                     'wormholes' => (bool) $routeData['wormholes'],
                     'wormholesReduced' => (bool) $routeData['wormholesReduced'],
                     'wormholesCritical' => (bool) $routeData['wormholesCritical'],
-                    'wormholesEOL' => (bool) $routeData['wormholesEOL']
+                    'wormholesEOL' => (bool) $routeData['wormholesEOL'],
+                    'safer' => (bool) $routeData['safer']
                 ];
 
                 $returnRoutData = [
@@ -553,8 +581,9 @@ class Route extends Controller\AccessController {
                     count($mapIds) > 0
                 ){
                     $systemFrom = $routeData['systemFromData']['name'];
+                    $systemFromId = (int)$routeData['systemFromData']['systemId'];
                     $systemTo = $routeData['systemToData']['name'];
-
+                    $systemToId = (int)$routeData['systemToData']['systemId'];
 
                     $cacheKey = $this->getRouteCacheKey(
                         $mapIds,
@@ -563,15 +592,17 @@ class Route extends Controller\AccessController {
                         $filterData
                     );
 
-                    if($f3->exists($cacheKey)){
+                    if($f3->exists($cacheKey, $cachedData)){
                         // get data from cache
-                        $returnRoutData = $f3->get($cacheKey);
+                        $returnRoutData = $cachedData;
                     }else{
                         // max search depth for search
                         $searchDepth = $f3->get('PATHFINDER.ROUTE.SEARCH_DEPTH');
 
                         // set jump data for following route search
-                        $this->initJumpData($mapIds, $filterData);
+                        // --> don´t filter some systems (e.g. systemFrom, systemTo) even if they are are WH,LS,0.0
+                        $keepSystems = [$systemFromId, $systemToId];
+                        $this->initJumpData($mapIds, $filterData, $keepSystems);
 
                         // no cached route data found
                         $foundRoutData = $this->findRoute($systemFrom, $systemTo, $searchDepth);

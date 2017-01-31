@@ -24,14 +24,13 @@ class Database extends \Prefab {
      * @return SQL
      */
     public function setDB($database = 'PF'){
-
         $f3 = \Base::instance();
 
         // "Hive" Key for DB storage
         $dbHiveKey = $this->getDbHiveKey($database);
 
         // check if DB connection already exists
-        if( !$f3->exists( $dbHiveKey ) ){
+        if( !$f3->exists($dbHiveKey, $db) ){
             if($database === 'CCP'){
                 // CCP DB
                 $dns = Controller\Controller::getEnvironmentData('DB_CCP_DNS');
@@ -59,11 +58,9 @@ class Database extends \Prefab {
                 // store DB object
                 $f3->set($dbHiveKey, $db);
             }
-
-            return $db;
-        }else{
-            return $f3->get( $dbHiveKey );
         }
+
+        return $db;
     }
 
     /**
@@ -72,15 +69,13 @@ class Database extends \Prefab {
      * @return SQL
      */
     public function getDB($database = 'PF'){
-
         $f3 = \Base::instance();
         $dbHiveKey = $this->getDbHiveKey($database);
-
-        if( $f3->exists( $dbHiveKey ) ){
-            return $f3->get( $dbHiveKey );
-        }else{
-            return $this->setDB($database);
+        if( !$f3->exists($dbHiveKey, $db) ){
+            $db = $this->setDB($database);
         }
+
+        return $db;
     }
 
     /**

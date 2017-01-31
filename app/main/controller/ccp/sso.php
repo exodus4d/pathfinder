@@ -130,7 +130,7 @@ class Sso extends Api\User{
             // redirect to CCP SSO ----------------------------------------------------------------------
 
             // used for "state" check between request and callback
-            $state = bin2hex(mcrypt_create_iv(12, MCRYPT_DEV_URANDOM));
+            $state = bin2hex( openssl_random_pseudo_bytes(12) );
             $f3->set(self::SESSION_KEY_SSO_STATE, $state);
 
             $urlParams = [
@@ -756,7 +756,7 @@ class Sso extends Api\User{
              * @var Model\CorporationModel $corporationModel
              */
             $corporationModel = Model\BasicModel::getNew('CorporationModel');
-            $corporationModel->getById($characterData->corporation['id'], 0);
+            $corporationModel->getById((int)$characterData->corporation['id'], 0);
             $corporationModel->copyfrom($characterData->corporation);
             $corporationModel->save();
         }
@@ -766,7 +766,7 @@ class Sso extends Api\User{
              * @var Model\AllianceModel $allianceModel
              */
             $allianceModel = Model\BasicModel::getNew('AllianceModel');
-            $allianceModel->getById($characterData->alliance['id'], 0);
+            $allianceModel->getById((int)$characterData->alliance['id'], 0);
             $allianceModel->copyfrom($characterData->alliance);
             $allianceModel->save();
         }
@@ -776,7 +776,7 @@ class Sso extends Api\User{
              * @var Model\CharacterModel $characterModel
              */
             $characterModel = Model\BasicModel::getNew('CharacterModel');
-            $characterModel->getById($characterData->character['id'], 0);
+            $characterModel->getById((int)$characterData->character['id'], 0);
             $characterModel->copyfrom($characterData->character);
             $characterModel->corporationId = $corporationModel;
             $characterModel->allianceId = $allianceModel;

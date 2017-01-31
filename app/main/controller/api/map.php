@@ -9,6 +9,7 @@
 namespace Controller\Api;
 use Controller;
 use lib\Config;
+use lib\Socket;
 use Model;
 
 /**
@@ -19,6 +20,7 @@ use Model;
 class Map extends Controller\AccessController {
 
     // cache keys
+    const CACHE_KEY_INIT                            = 'CACHED_INIT';
     const CACHE_KEY_MAP_DATA                        = 'CACHED.MAP_DATA.%s';
     const CACHE_KEY_USER_DATA                       = 'CACHED.USER_DATA.%s_%s';
 
@@ -68,135 +70,131 @@ class Map extends Controller\AccessController {
      * @param \Base $f3
      */
     public function init(\Base $f3){
-
         // expire time in seconds
-        $expireTimeHead =  60 * 60 * 12;
+        $expireTimeCache = 60 * 60;
         $expireTimeSQL = 60 * 60 * 12;
 
-        $f3->expire($expireTimeHead);
+        if( !$f3->exists(self::CACHE_KEY_INIT, $return )){
+            $return = (object) [];
+            $return->error = [];
 
-        $return = (object) [];
-        $return->error = [];
+            // static program data ----------------------------------------------------------------------------------------
+            $return->timer = $f3->get('PATHFINDER.TIMER');
 
-        // static program data ----------------------------------------------------------------------------------------
-        $return->timer = $f3->get('PATHFINDER.TIMER');
+            // get all available map types --------------------------------------------------------------------------------
+            $mapType = Model\BasicModel::getNew('MapTypeModel');
+            $rows = $mapType->find('active = 1', null, $expireTimeSQL);
 
-        // get all available map types --------------------------------------------------------------------------------
-        $mapType = Model\BasicModel::getNew('MapTypeModel');
-        $rows = $mapType->find('active = 1', null, $expireTimeSQL);
+            // default map type config
+            $mapsDefaultConfig = Config::getMapsDefaultConfig();
 
-        $mapTypeData = [];
-        foreach((array)$rows as $rowData){
-            $data = [
-                'id' => $rowData->id,
-                'label' => $rowData->label,
-                'class' => $rowData->class,
-                'classTab' => $rowData->classTab
+            $mapTypeData = [];
+            foreach((array)$rows as $rowData){
+                $data = [
+                    'id' => $rowData->id,
+                    'label' => $rowData->label,
+                    'class' => $rowData->class,
+                    'classTab' => $rowData->classTab,
+                    'defaultConfig' => $mapsDefaultConfig[$rowData->name]
+                ];
+                $mapTypeData[$rowData->name] = $data;
+
+            }
+            $return->mapTypes = $mapTypeData;
+
+            // get all available map scopes -------------------------------------------------------------------------------
+            $mapScope = Model\BasicModel::getNew('MapScopeModel');
+            $rows = $mapScope->find('active = 1', null, $expireTimeSQL);
+            $mapScopeData = [];
+            foreach((array)$rows as $rowData){
+                $data = [
+                    'id' => $rowData->id,
+                    'label' => $rowData->label
+                ];
+                $mapScopeData[$rowData->name] = $data;
+            }
+            $return->mapScopes = $mapScopeData;
+
+            // get all available system status ----------------------------------------------------------------------------
+            $systemStatus = Model\BasicModel::getNew('SystemStatusModel');
+            $rows = $systemStatus->find('active = 1', null, $expireTimeSQL);
+            $systemScopeData = [];
+            foreach((array)$rows as $rowData){
+                $data = [
+                    'id' => $rowData->id,
+                    'label' => $rowData->label,
+                    'class' => $rowData->class
+                ];
+                $systemScopeData[$rowData->name] = $data;
+            }
+            $return->systemStatus = $systemScopeData;
+
+            // get all available system types -----------------------------------------------------------------------------
+            $systemType = Model\BasicModel::getNew('SystemTypeModel');
+            $rows = $systemType->find('active = 1', null, $expireTimeSQL);
+            $systemTypeData = [];
+            foreach((array)$rows as $rowData){
+                $data = [
+                    'id' => $rowData->id,
+                    'name' => $rowData->name
+                ];
+                $systemTypeData[$rowData->name] = $data;
+            }
+            $return->systemType = $systemTypeData;
+
+            // get available connection scopes ----------------------------------------------------------------------------
+            $connectionScope = Model\BasicModel::getNew('ConnectionScopeModel');
+            $rows = $connectionScope->find('active = 1', null, $expireTimeSQL);
+            $connectionScopeData = [];
+            foreach((array)$rows as $rowData){
+                $data = [
+                    'id' => $rowData->id,
+                    'label' => $rowData->label,
+                    'connectorDefinition' => $rowData->connectorDefinition
+                ];
+                $connectionScopeData[$rowData->name] = $data;
+            }
+            $return->connectionScopes = $connectionScopeData;
+
+            // get available character status -----------------------------------------------------------------------------
+            $characterStatus = Model\BasicModel::getNew('CharacterStatusModel');
+            $rows = $characterStatus->find('active = 1', null, $expireTimeSQL);
+            $characterStatusData = [];
+            foreach((array)$rows as $rowData){
+                $data = [
+                    'id' => $rowData->id,
+                    'name' => $rowData->name,
+                    'class' => $rowData->class
+                ];
+                $characterStatusData[$rowData->name] = $data;
+            }
+            $return->characterStatus = $characterStatusData;
+
+            // route search config ----------------------------------------------------------------------------------------
+            $return->routeSearch = [
+                'defaultCount'              => $this->getF3()->get('PATHFINDER.ROUTE.SEARCH_DEFAULT_COUNT'),
+                'maxDefaultCount'           => $this->getF3()->get('PATHFINDER.ROUTE.MAX_Default_COUNT'),
+                'limit'                     => $this->getF3()->get('PATHFINDER.ROUTE.LIMIT'),
             ];
-            $mapTypeData[$rowData->name] = $data;
 
-        }
-        $return->mapTypes = $mapTypeData;
-
-        // get all available map scopes -------------------------------------------------------------------------------
-        $mapScope = Model\BasicModel::getNew('MapScopeModel');
-        $rows = $mapScope->find('active = 1', null, $expireTimeSQL);
-        $mapScopeData = [];
-        foreach((array)$rows as $rowData){
-            $data = [
-                'id' => $rowData->id,
-                'label' => $rowData->label
+            // get program routes -----------------------------------------------------------------------------------------
+            $return->routes = [
+                'ssoLogin' => $this->getF3()->alias( 'sso', ['action' => 'requestAuthorization'] )
             ];
-            $mapScopeData[$rowData->name] = $data;
-        }
-        $return->mapScopes = $mapScopeData;
 
-        // get all available system status ----------------------------------------------------------------------------
-        $systemStatus = Model\BasicModel::getNew('SystemStatusModel');
-        $rows = $systemStatus->find('active = 1', null, $expireTimeSQL);
-        $systemScopeData = [];
-        foreach((array)$rows as $rowData){
-            $data = [
-                'id' => $rowData->id,
-                'label' => $rowData->label,
-                'class' => $rowData->class
+            // get notification status ------------------------------------------------------------------------------------
+            $return->notificationStatus = [
+                'rallySet' => (bool)Config::getNotificationMail('RALLY_SET')
             ];
-            $systemScopeData[$rowData->name] = $data;
+
+            $f3->set(self::CACHE_KEY_INIT, $return, $expireTimeCache );
         }
-        $return->systemStatus = $systemScopeData;
 
-        // get all available system types -----------------------------------------------------------------------------
-        $systemType = Model\BasicModel::getNew('SystemTypeModel');
-        $rows = $systemType->find('active = 1', null, $expireTimeSQL);
-        $systemTypeData = [];
-        foreach((array)$rows as $rowData){
-            $data = [
-                'id' => $rowData->id,
-                'name' => $rowData->name
-            ];
-            $systemTypeData[$rowData->name] = $data;
-        }
-        $return->systemType = $systemTypeData;
+        // Add data that should not be cached =========================================================================
 
-        // get available connection scopes ----------------------------------------------------------------------------
-        $connectionScope = Model\BasicModel::getNew('ConnectionScopeModel');
-        $rows = $connectionScope->find('active = 1', null, $expireTimeSQL);
-        $connectionScopeData = [];
-        foreach((array)$rows as $rowData){
-            $data = [
-                'id' => $rowData->id,
-                'label' => $rowData->label,
-                'connectorDefinition' => $rowData->connectorDefinition
-            ];
-            $connectionScopeData[$rowData->name] = $data;
-        }
-        $return->connectionScopes = $connectionScopeData;
-
-        // get available character status -----------------------------------------------------------------------------
-        $characterStatus = Model\BasicModel::getNew('CharacterStatusModel');
-        $rows = $characterStatus->find('active = 1', null, $expireTimeSQL);
-        $characterStatusData = [];
-        foreach((array)$rows as $rowData){
-            $data = [
-                'id' => $rowData->id,
-                'name' => $rowData->name,
-                'class' => $rowData->class
-            ];
-            $characterStatusData[$rowData->name] = $data;
-        }
-        $return->characterStatus = $characterStatusData;
-
-        // get max number of shared entities per map ------------------------------------------------------------------
-        $maxSharedCount = [
-            'character'                 => $f3->get('PATHFINDER.MAP.PRIVATE.MAX_SHARED'),
-            'corporation'               => $f3->get('PATHFINDER.MAP.CORPORATION.MAX_SHARED'),
-            'alliance'                  => $f3->get('PATHFINDER.MAP.ALLIANCE.MAX_SHARED'),
-        ];
-        $return->maxSharedCount = $maxSharedCount;
-
-        // get activity log options per map ---------------------------------------------------------------------------
-        $activityLogging = [
-            'character'                 => $f3->get('PATHFINDER.MAP.PRIVATE.ACTIVITY_LOGGING'),
-            'corporation'               => $f3->get('PATHFINDER.MAP.CORPORATION.ACTIVITY_LOGGING'),
-            'alliance'                  => $f3->get('PATHFINDER.MAP.ALLIANCE.ACTIVITY_LOGGING'),
-        ];
-        $return->activityLogging = $activityLogging;
-
-        // route search config ----------------------------------------------------------------------------------------
-        $return->routeSearch = [
-            'defaultCount'              => $this->getF3()->get('PATHFINDER.ROUTE.SEARCH_DEFAULT_COUNT'),
-            'maxDefaultCount'           => $this->getF3()->get('PATHFINDER.ROUTE.MAX_Default_COUNT'),
-            'limit'                     => $this->getF3()->get('PATHFINDER.ROUTE.LIMIT'),
-        ];
-
-        // get program routes -----------------------------------------------------------------------------------------
-        $return->routes = [
-            'ssoLogin' => $this->getF3()->alias( 'sso', ['action' => 'requestAuthorization'] )
-        ];
-
-        // get notification status ------------------------------------------------------------------------------------
-        $return->notificationStatus = [
-            'rallySet' => (bool)Config::getNotificationMail('RALLY_SET')
+        // program mode (e.g. "maintenance") --------------------------------------------------------------------------
+        $return->programMode = [
+            'maintenance' => $this->getF3()->get('PATHFINDER.LOGIN.MODE_MAINTENANCE')
         ];
 
         // get SSO error messages that should be shown immediately ----------------------------------------------------
@@ -222,6 +220,7 @@ class Map extends Controller\AccessController {
 
         $return = (object) [];
         $return->error = [];
+        $return->warning = [];
 
         if(
             isset($importData['typeId']) &&
@@ -246,96 +245,116 @@ class Map extends Controller\AccessController {
             $connection = Model\BasicModel::getNew('ConnectionModel');
             $connection->setActivityLogging(false);
 
-            foreach($importData['mapData'] as $mapData){
-                if(
-                    isset($mapData['config']) &&
-                    isset($mapData['data'])
-                ){
+            // to many systems for import
+            $mapTypeModel = Model\BasicModel::getNew('MapTypeModel');
+            $mapTypeModel->getById( (int)$importData['typeId'] );
 
+            if( !$mapTypeModel->dry() ){
+                $defaultConfig = Config::getMapsDefaultConfig($mapTypeModel->name);
 
+                foreach($importData['mapData'] as $mapData){
                     if(
-                        isset($mapData['data']['systems']) &&
-                        isset($mapData['data']['connections'])
+                        isset($mapData['config']) &&
+                        isset($mapData['data'])
                     ){
-                        if(isset($mapData['config']['id'])){
-                            unset($mapData['config']['id']);
-                        }
 
-                        $map->setData($mapData['config']);
-                        $map->typeId = (int)$importData['typeId'];
-                        $map->save();
-
-                        // new system IDs will be generated
-                        // therefore we need to temp store a mapping between IDs
-                        $tempSystemIdMapping = [];
-
-                        foreach($mapData['data']['systems'] as $systemData){
-                            if(isset($systemData['id'])){
-                                $oldId = (int)$systemData['id'];
-                                unset($systemData['id']);
-
-                                $system->setData($systemData);
-                                $system->mapId = $map;
-                                $system->createdCharacterId = $activeCharacter;
-                                $system->updatedCharacterId = $activeCharacter;
-                                $system->save();
-
-                                $tempSystemIdMapping[$oldId] = $system->id;
-                                $system->reset();
+                        if(
+                            isset($mapData['data']['systems']) &&
+                            isset($mapData['data']['connections'])
+                        ){
+                            if(isset($mapData['config']['id'])){
+                                unset($mapData['config']['id']);
                             }
-                        }
 
-                        foreach($mapData['data']['connections'] as $connectionData){
-                            // check if source and target IDs match with new system ID
-                            if(
-                                isset( $tempSystemIdMapping[$connectionData['source']] ) &&
-                                isset( $tempSystemIdMapping[$connectionData['target']] )
-                            ){
-                                if(isset($connectionData['id'])){
-                                    unset($connectionData['id']);
+
+                            $systemCount = count($mapData['data']['systems']);
+                            if( $systemCount <= $defaultConfig['max_systems']){
+
+                                $map->setData($mapData['config']);
+                                $map->typeId = (int)$importData['typeId'];
+                                $map->save();
+
+                                // new system IDs will be generated
+                                // therefore we need to temp store a mapping between IDs
+                                $tempSystemIdMapping = [];
+
+                                foreach($mapData['data']['systems'] as $systemData){
+                                    if(isset($systemData['id'])){
+                                        $oldId = (int)$systemData['id'];
+                                        unset($systemData['id']);
+
+                                        $system->setData($systemData);
+                                        $system->mapId = $map;
+                                        $system->createdCharacterId = $activeCharacter;
+                                        $system->updatedCharacterId = $activeCharacter;
+                                        $system->save();
+
+                                        $tempSystemIdMapping[$oldId] = $system->id;
+                                        $system->reset();
+                                    }
                                 }
 
-                                $connection->setData($connectionData);
-                                $connection->mapId = $map;
-                                $connection->source = $tempSystemIdMapping[$connectionData['source']];
-                                $connection->target = $tempSystemIdMapping[$connectionData['target']];
-                                $connection->save();
+                                foreach($mapData['data']['connections'] as $connectionData){
+                                    // check if source and target IDs match with new system ID
+                                    if(
+                                        isset( $tempSystemIdMapping[$connectionData['source']] ) &&
+                                        isset( $tempSystemIdMapping[$connectionData['target']] )
+                                    ){
+                                        if(isset($connectionData['id'])){
+                                            unset($connectionData['id']);
+                                        }
 
-                                $connection->reset();
+                                        $connection->setData($connectionData);
+                                        $connection->mapId = $map;
+                                        $connection->source = $tempSystemIdMapping[$connectionData['source']];
+                                        $connection->target = $tempSystemIdMapping[$connectionData['target']];
+                                        $connection->save();
+
+                                        $connection->reset();
+                                    }
+                                }
+
+                                // map access info should not automatically imported
+                                if($map->isPrivate()){
+                                    $map->setAccess($activeCharacter);
+                                }elseif($map->isCorporation()){
+                                    if($corporation = $activeCharacter->getCorporation()){
+                                        $map->setAccess($corporation);
+                                    }
+                                }elseif($map->isAlliance()){
+                                    if($alliance = $activeCharacter->getAlliance()){
+                                        $map->setAccess($alliance);
+                                    }
+                                }
+                            }else{
+                                $maxSystemsError = (object) [];
+                                $maxSystemsError->type = 'error';
+                                $maxSystemsError->message = 'Map has to many systems (' . $systemCount . ').'
+                                    .' Max system count is ' . $defaultConfig['max_systems'] . ' for ' . $mapTypeModel->name . ' maps.';
+                                $return->error[] = $maxSystemsError;
                             }
+                        }else{
+                            // systems || connections missing
+                            $missingConfigError = (object) [];
+                            $missingConfigError->type = 'error';
+                            $missingConfigError->message = 'Map data not valid (systems || connections) missing';
+                            $return->error[] = $missingConfigError;
                         }
-
-                        // map access info should not automatically imported
-                        if($map->isPrivate()){
-                            $map->setAccess($activeCharacter);
-                        }elseif($map->isCorporation()){
-                            if($corporation = $activeCharacter->getCorporation()){
-                                $map->setAccess($corporation);
-                            }
-                        }elseif($map->isAlliance()){
-                            if($alliance = $activeCharacter->getAlliance()){
-                                $map->setAccess($alliance);
-                            }
-                        }
-
                     }else{
-                        // systems || connections missing
+                        // map config || systems/connections missing
                         $missingConfigError = (object) [];
                         $missingConfigError->type = 'error';
-                        $missingConfigError->message = 'Map data not valid (systems || connections) missing';
+                        $missingConfigError->message = 'Map data not valid (config || data) missing';
                         $return->error[] = $missingConfigError;
                     }
 
-                }else{
-                    // map config || systems/connections missing
-                    $missingConfigError = (object) [];
-                    $missingConfigError->type = 'error';
-                    $missingConfigError->message = 'Map data not valid (config || data) missing';
-                    $return->error[] = $missingConfigError;
+                    $map->reset();
                 }
-
-
-                $map->reset();
+            }else{
+                $unknownMapType = (object) [];
+                $unknownMapType->type = 'error';
+                $unknownMapType->message = 'Map type unknown!';
+                $return->error[] = $unknownMapType;
             }
         }else{
             // map data missing
@@ -344,7 +363,6 @@ class Map extends Controller\AccessController {
             $missingDataError->message = 'Map data missing';
             $return->error[] = $missingDataError;
         }
-
 
         echo json_encode($return);
     }
@@ -388,10 +406,10 @@ class Map extends Controller\AccessController {
                         $maxShared = max($f3->get('PATHFINDER.MAP.PRIVATE.MAX_SHARED') - 1, 0);
                         $accessCharacters = array_slice($accessCharacters, 0, $maxShared);
 
-                        if($accessCharacters){
-                            // clear map access. In case something has removed from access list
-                            $map->clearAccess();
+                        // clear map access. In case something has removed from access list
+                        $map->clearAccess();
 
+                        if($accessCharacters){
                             /**
                              * @var $tempCharacter Model\CharacterModel
                              */
@@ -431,10 +449,10 @@ class Map extends Controller\AccessController {
                             $maxShared = max($f3->get('PATHFINDER.MAP.CORPORATION.MAX_SHARED') - 1, 0);
                             $accessCorporations = array_slice($accessCorporations, 0, $maxShared);
 
-                            if($accessCorporations){
-                                // clear map access. In case something has removed from access list
-                                $map->clearAccess();
+                            // clear map access. In case something has removed from access list
+                            $map->clearAccess();
 
+                            if($accessCorporations){
                                 /**
                                  * @var $tempCorporation Model\CorporationModel
                                  */
@@ -474,10 +492,10 @@ class Map extends Controller\AccessController {
                             $maxShared = max($f3->get('PATHFINDER.MAP.ALLIANCE.MAX_SHARED') - 1, 0);
                             $accessAlliances = array_slice($accessAlliances, 0, $maxShared);
 
-                            if($accessAlliances){
-                                // clear map access. In case something has removed from access list
-                                $map->clearAccess();
+                            // clear map access. In case something has removed from access list
+                            $map->clearAccess();
 
+                            if($accessAlliances){
                                 /**
                                  * @var $tempAlliance Model\AllianceModel
                                  */
@@ -504,7 +522,16 @@ class Map extends Controller\AccessController {
                 }
                 // reload the same map model (refresh)
                 // this makes sure all data is up2date
-                $map->getById( $map->id, 0 );
+                $map->getById( $map->_id, 0 );
+
+
+                $charactersData = $map->getCharactersData();
+                $characterIds = array_map(function ($data){
+                    return $data->id;
+                }, $charactersData);
+
+                // broadcast map Access -> and send map Data
+                $this->broadcastMapAccess($map, $characterIds);
 
                 $return->mapData = $map->getData();
             }else{
@@ -538,9 +565,77 @@ class Map extends Controller\AccessController {
          */
         $map = Model\BasicModel::getNew('MapModel');
         $map->getById($mapData['id']);
-        $map->delete( $activeCharacter );
+        $map->delete( $activeCharacter, function($mapId){
+            $this->broadcastMapDeleted($mapId);
+        });
 
         echo json_encode([]);
+    }
+
+    /**
+     * broadcast characters with map access rights to WebSocket server
+     * -> if characters with map access found -> broadcast mapData to them
+     * @param Model\MapModel $map
+     * @param array $characterIds
+     * @return int
+     */
+    protected function broadcastMapAccess($map, $characterIds){
+        $connectionCount = 0;
+
+        $mapAccess =  [
+            'id' => $map->_id,
+            'characterIds' => $characterIds
+        ];
+        $charCount = (int)(new Socket( Config::getSocketUri() ))->sendData('mapAccess', $mapAccess);
+
+        if($charCount > 0){
+            // map has active connections that should receive map Data
+            $connectionCount = $this->broadcastMapData($map);
+        }
+
+        return $connectionCount;
+    }
+
+    /**
+     * broadcast map delete information to clients
+     * @param int $mapId
+     * @return bool|string
+     */
+    protected function broadcastMapDeleted($mapId){
+        return (new Socket( Config::getSocketUri() ))->sendData('mapDeleted', $mapId);
+    }
+
+    /**
+     * get map access tokens for current character
+     * -> send access tokens via TCP Socket for WebSocket auth
+     * @param \Base $f3
+     */
+    public function getAccessData(\Base $f3){
+        $return = (object) [];
+
+        $activeCharacter = $this->getCharacter();
+        $maps = $activeCharacter->getMaps();
+
+        $return->data = [
+            'id' => $activeCharacter->_id,
+            'token' => bin2hex(random_bytes(16)), // token for character access
+            'mapData' => []
+        ];
+
+        if($maps){
+            foreach($maps as $map){
+                $return->data['mapData'][] = [
+                    'id' => $map->_id,
+                    'token' => bin2hex(random_bytes(16)) // token for map access
+                ];
+            }
+        }
+
+        // send Access Data to WebSocket Server and get response (status)
+        // if 'OK' -> Socket exists
+        $return->status = (new Socket( Config::getSocketUri() ))->sendData('mapConnectionAccess', $return->data);
+
+        echo json_encode( $return );
     }
 
     /**
@@ -554,17 +649,16 @@ class Map extends Controller\AccessController {
 
         $activeCharacter = $this->getCharacter();
 
-        $return = (object) [];
-        $return->error = [];
-
-
         $cacheKey = $this->getMapDataCacheKey($activeCharacter);
 
         // if there is any system/connection change data submitted -> save new data
         if(
             !empty($mapData) ||
-            !$f3->exists($cacheKey)
+            !$f3->exists($cacheKey, $return)
         ){
+            $return = (object) [];
+            $return->error = [];
+
             // get current map data ===============================================================================
             $maps = $activeCharacter->getMaps();
 
@@ -595,6 +689,7 @@ class Map extends Controller\AccessController {
 
                     // loop current user maps and check for changes
                     foreach($maps as $map){
+                        $mapChanged = false;
 
                         // update system data ---------------------------------------------------------------------
                         foreach($systems as $i => $systemData){
@@ -622,6 +717,8 @@ class Map extends Controller\AccessController {
                                     $system->setData($systemData);
                                     $system->updatedCharacterId = $activeCharacter;
                                     $system->save();
+
+                                    $mapChanged = true;
 
                                     // a system belongs to ONE  map -> speed up for multiple maps
                                     unset($systemData[$i]);
@@ -655,26 +752,29 @@ class Map extends Controller\AccessController {
                                     $connection->setData($connectionData);
                                     $connection->save();
 
+                                    $mapChanged = true;
+
                                     // a connection belongs to ONE  map -> speed up for multiple maps
                                     unset($connectionData[$i]);
                                 }
                             }
+                        }
+
+                        if($mapChanged){
+                            $this->broadcastMapData($map);
                         }
                     }
                 }
             }
 
             // format map Data for return
-            $return->mapData = self::getFormattedMapData($maps);
+            $return->mapData = $this->getFormattedMapsData($maps);
 
             // cache time(s) per user should be equal or less than this function is called
             // prevent request flooding
             $responseTTL = (int)$f3->get('PATHFINDER.TIMER.UPDATE_SERVER_MAP.DELAY') / 1000;
 
             $f3->set($cacheKey, $return, $responseTTL);
-        }else{
-            // get from cache
-            $return = $f3->get($cacheKey);
         }
 
         // if userData is requested -> add it as well
@@ -688,23 +788,13 @@ class Map extends Controller\AccessController {
 
     /**
      * get formatted map data
-     * @param $mapModels
+     * @param Model\MapModel[] $mapModels
      * @return array
      */
-    public static function getFormattedMapData($mapModels){
+    protected function getFormattedMapsData($mapModels){
         $mapData = [];
-        foreach($mapModels as &$mapModel){
-            /**
-             * @var $mapModel Model\MapModel
-             */
-            $allMapData = $mapModel->getData();
-            $mapData[] = [
-                'config' => $allMapData->mapData,
-                'data' => [
-                    'systems' => $allMapData->systems,
-                    'connections' => $allMapData->connections,
-                ]
-            ];
+        foreach($mapModels as $mapModel){
+            $mapData[] = $this->getFormattedMapData($mapModel);
         }
 
         return $mapData;
@@ -717,7 +807,6 @@ class Map extends Controller\AccessController {
      */
     public function updateUserData(\Base $f3){
         $return = (object) [];
-        $return->error = [];
 
         $activeCharacter = $this->getCharacter(0);
 
@@ -747,8 +836,12 @@ class Map extends Controller\AccessController {
                     $map = $this->updateMapData($activeCharacter, $map);
                 }
 
+                // get from cache
+                // this should happen if a user has multiple program instances running
+                // with the same main char
                 $cacheKey = $this->getUserDataCacheKey($mapId, $requestSystemData->systemId);
-                if( !$f3->exists($cacheKey) ){
+                if( !$f3->exists($cacheKey, $return) ){
+                    $return = (object) [];
                     $return->mapUserData[] = $map->getUserData();
 
                     // request signature data for a system if user has map access!
@@ -768,11 +861,6 @@ class Map extends Controller\AccessController {
 
                     // cache response
                     $f3->set($cacheKey, $return, $responseTTL);
-                }else{
-                    // get from cache
-                    // this should happen if a user has multiple program instances running
-                    // with the same main char
-                    $return = $f3->get($cacheKey);
                 }
             }
         }
@@ -780,6 +868,9 @@ class Map extends Controller\AccessController {
         // get current user data -> this should not be cached because each user has different personal data
         // even if they have multiple characters using the same map!
         $return->userData = $activeCharacter->getUser()->getData();
+
+        // add error (if exists)
+        $return->error = [];
 
         echo json_encode( $return );
     }
@@ -793,8 +884,8 @@ class Map extends Controller\AccessController {
      */
     protected function updateMapData(Model\CharacterModel $character, Model\MapModel $map){
 
-        // update "map data" cache in case of map (system/connection) changes
-        $clearMapDataCache = false;
+        // map changed. update cache (system/connection) changed
+        $mapDataChanged = false;
 
         if(
             ( $mapScope = $map->getScope() ) &&
@@ -928,7 +1019,7 @@ class Map extends Controller\AccessController {
                     if($sourceSystem){
                         $map = $sourceSystem->mapId;
                         $sourceExists = true;
-                        $clearMapDataCache = true;
+                        $mapDataChanged = true;
                         // increase system position (prevent overlapping)
                         $systemPosX = $sourceSystem->posX + $systemOffsetX;
                         $systemPosY = $sourceSystem->posY + $systemOffsetY;
@@ -945,7 +1036,7 @@ class Map extends Controller\AccessController {
                     // get updated maps object
                     if($targetSystem){
                         $map = $targetSystem->mapId;
-                        $clearMapDataCache = true;
+                        $mapDataChanged = true;
                         $targetExists = true;
                     }
                 }
@@ -964,14 +1055,15 @@ class Map extends Controller\AccessController {
                     // get updated maps object
                     if($connection){
                         $map = $connection->mapId;
-                        $clearMapDataCache = true;
+                        $mapDataChanged = true;
                     }
                 }
             }
         }
 
-        if($clearMapDataCache){
+        if($mapDataChanged){
             $this->clearMapDataCache($character);
+            $this->broadcastMapData($map);
         }
 
         return $map;

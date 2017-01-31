@@ -11,10 +11,10 @@ define([
     $.fn.contextMenu = function (settings) {
 
         // animation
-        var animationInType = 'transition.flipXIn';
-        var animationInDuration = 150;
-        var animationOutType = 'transition.flipXOut';
-        var animationOutDuration = 150;
+        let animationInType = 'transition.flipXIn';
+        let animationInDuration = 150;
+        let animationOutType = 'transition.flipXOut';
+        let animationOutDuration = 150;
 
         return this.each(function () {
 
@@ -24,15 +24,15 @@ define([
                 // hide all other open context menus
                $('#pf-dialog-wrapper > .dropdown-menu').hide();
 
-                var contextMenu = $(settings.menuSelector);
+                let contextMenu = $(settings.menuSelector);
 
-                var menuLiElements = contextMenu.find('li');
+                let menuLiElements = contextMenu.find('li');
 
                 // show all menu entries
                 menuLiElements.show();
 
                 // disable specific menu entries
-                for(var i = 0; i < hiddenOptions.length; i++){
+                for(let i = 0; i < hiddenOptions.length; i++){
                     contextMenu.find('li[data-action="' + hiddenOptions[i] + '"]').hide();
                 }
 
@@ -40,7 +40,7 @@ define([
                 menuLiElements.removeClass('active');
 
                 //set active specific menu entries
-                for(var j = 0; j < activeOptions.length; j++){
+                for(let j = 0; j < activeOptions.length; j++){
                     contextMenu.find('li[data-action="' + activeOptions[j] + '"]').addClass('active');
                 }
 
@@ -52,12 +52,33 @@ define([
                 }).velocity(animationInType, {
                     duration: animationInDuration,
                     complete: function(){
-                        // set context menu "click" observer
-                        $(this).off('click').one('click', {component: component, position:{x: originalEvent.offsetX, y: originalEvent.offsetY}}, function (e) {
+
+                        let posX = 0;
+                        let posY = 0;
+
+                        if(
+                            originalEvent.offsetX &&
+                            originalEvent.offsetY
+                        ){
+                            // Chrome
+                            posX = originalEvent.offsetX;
+                            posY = originalEvent.offsetY ;
+                        }else if(originalEvent.originalEvent){
+                            // Firefox -> #415
+                            posX =  originalEvent.originalEvent.layerX;
+                            posY = originalEvent.originalEvent.layerY ;
+                        }
+
+                        let position = {
+                            x: posX,
+                            y: posY
+                        };
+
+                        $(this).off('click').one('click', {component: component, position: position}, function (e) {
                             // hide contextmenu
                             $(this).hide();
 
-                            var params = {
+                            let params = {
                                 selectedMenu: $(e.target),
                                 component: e.data.component,
                                 position: e.data.position
@@ -81,9 +102,9 @@ define([
         });
 
         function getLeftLocation(e) {
-            var mouseWidth = e.pageX;
-            var pageWidth = $(window).width();
-            var menuWidth = $(settings.menuSelector).width();
+            let mouseWidth = e.pageX;
+            let pageWidth = $(window).width();
+            let menuWidth = $(settings.menuSelector).width();
 
             // opening menu would pass the side of the page
             if (mouseWidth + menuWidth > pageWidth &&
@@ -94,9 +115,9 @@ define([
         }
 
         function getTopLocation(e) {
-            var mouseHeight = e.pageY;
-            var pageHeight = $(window).height();
-            var menuHeight = $(settings.menuSelector).height();
+            let mouseHeight = e.pageY;
+            let pageHeight = $(window).height();
+            let menuHeight = $(settings.menuSelector).height();
 
             // opening menu would pass the bottom of the page
             if (mouseHeight + menuHeight > pageHeight &&

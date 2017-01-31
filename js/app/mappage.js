@@ -9,16 +9,17 @@ define([
     'app/render',
     'app/logging',
     'app/page',
+    'app/map/worker',
     'app/ui/form_element',
     'app/module_map'
-], function($, Init, Util, Render, Logging, Page) {
+], ($, Init, Util, Render, Logging, Page, MapWorker) => {
 
     'use strict';
 
     /**
      * main init "map" page
      */
-    $(function(){
+    $(() => {
         Util.initPrototypes();
 
         // set default AJAX config
@@ -28,6 +29,7 @@ define([
         Util.initDefaultBootboxConfig();
 
         // load page
+        // load info (maintenance) info panel (if scheduled)
         $('body').loadPageStructure();
 
         // show app information in browser console
@@ -36,14 +38,14 @@ define([
         // init logging
         Logging.init();
 
-        var mapModule = $('#' + Util.config.mapModuleId);
+        let mapModule = $('#' + Util.config.mapModuleId);
 
         // map init load static data =======================================================
-        $.getJSON( Init.path.initMap, function( initData ) {
+        $.getJSON( Init.path.initMap, (initData) => {
 
 
             if( initData.error.length > 0 ){
-                for(var i = 0; i < initData.error.length; i++){
+                for(let i = 0; i < initData.error.length; i++){
                     Util.showNotify({
                         title: initData.error[i].title,
                         text: initData.error[i].message,
@@ -59,11 +61,10 @@ define([
             Init.systemStatus       = initData.systemStatus;
             Init.systemType         = initData.systemType;
             Init.characterStatus    = initData.characterStatus;
-            Init.maxSharedCount     = initData.maxSharedCount;
             Init.routes             = initData.routes;
             Init.notificationStatus = initData.notificationStatus;
-            Init.activityLogging    = initData.activityLogging;
             Init.routeSearch        = initData.routeSearch;
+            Init.programMode        = initData.programMode;
 
             // init tab change observer, Once the timers are available
             Page.initTabChangeObserver();
@@ -71,207 +72,82 @@ define([
             // init map module
             mapModule.initMapModule();
 
-        }).fail(function( jqXHR, status, error) {
-            var reason = status + ' ' + jqXHR.status + ': ' + error;
+            // load info (maintenance) info panel (if scheduled)
+            if(Init.programMode.maintenance){
+                $('body').showGlobalInfoPanel();
+            }
+
+        }).fail(( jqXHR, status, error) => {
+            let reason = status + ' ' + jqXHR.status + ': ' + error;
 
             $(document).trigger('pf:shutdown', {status: jqXHR.status, reason: reason});
         });
+
+        /**
+         * request all map access data (tokens) -> required wor WebSocket subscription
+         */
+        let getMapAccessData = () => {
+            $.getJSON( Init.path.getAccessData, ( response ) => {
+                if(response.status === 'OK'){
+                    // init SharedWorker for maps
+                    MapWorker.init({
+                        characterId:  response.data.id,
+                        callbacks: {
+                            onInit: (MsgWorkerMessage) => {
+                                Util.setSyncStatus(MsgWorkerMessage.command);
+                            },
+                            onOpen: (MsgWorkerMessage) => {
+                                Util.setSyncStatus(MsgWorkerMessage.command, MsgWorkerMessage.meta());
+
+                                MapWorker.send( 'subscribe', response.data);
+                            },
+                            onGet: (MsgWorkerMessage) => {
+                                switch(MsgWorkerMessage.task()){
+                                    case 'mapUpdate':
+                                        Util.updateCurrentMapData( MsgWorkerMessage.data() );
+                                        mapModule.updateMapModule();
+                                        break;
+                                    case 'mapAccess':
+                                    case 'mapDeleted':
+                                        Util.deleteCurrentMapData( MsgWorkerMessage.data() );
+                                        mapModule.updateMapModule();
+                                        break;
+                                }
+
+                                Util.setSyncStatus('ws:get');
+                            },
+                            onClosed: (MsgWorkerMessage) => {
+                                Util.setSyncStatus(MsgWorkerMessage.command, MsgWorkerMessage.meta());
+                            },
+                            onError: (MsgWorkerMessage) => {
+                                Util.setSyncStatus(MsgWorkerMessage.command, MsgWorkerMessage.meta());
+                            }
+                        }
+                    });
+                }
+            });
+        };
+
+        getMapAccessData();
 
         /**
          * main function for init all map relevant trigger calls
          */
         $.fn.initMapModule = function(){
 
-            var mapModule = $(this);
+            let mapModule = $(this);
 
             // log keys ------------------------------------------------------------------------
-
-            // ajax request update map data
-            var logKeyServerMapData = 'UPDATE_SERVER_MAP';
-
-            // update client map data
-            var logKeyClientMapData = 'UPDATE_CLIENT_MAP';
-
-            // ajax request update map user data
-            var logKeyServerUserData = 'UPDATE_SERVER_USER_DATA';
-
-            // update client map user data
-            var logKeyClientUserData = 'UPDATE_CLIENT_USER_DATA';
+            let logKeyServerMapData = Init.performanceLogging.keyServerMapData;
+            let logKeyServerUserData = Init.performanceLogging.keyServerUserData;
 
             // main update intervals/trigger (heartbeat)
-            var updateTimeouts = {
+            let updateTimeouts = {
                 mapUpdate: 0,
                 userUpdate: 0
             };
 
-            var locationToggle = $('#' + Util.config.headMapTrackingId);
-
-            // ping for main map update ========================================================
-            var triggerMapUpdatePing = function(){
-
-                // check each execution time if map module  is still available
-                var check = $('#' + mapModule.attr('id')).length;
-
-                if(check === 0){
-                    // program crash stop any update
-                    return;
-                }
-
-                // get updated map data
-                var updatedMapData = {
-                    mapData: mapModule.getMapModuleDataForUpdate(),
-                    getUserData: ( Util.getCurrentUserData() ) ? 0 : 1
-                };
-
-                // start log
-                Util.timeStart(logKeyServerMapData);
-
-                // store updatedMapData
-                $.ajax({
-                    type: 'POST',
-                    url: Init.path.updateMapData,
-                    data: updatedMapData,
-                    dataType: 'json'
-                }).done(function(data){
-
-                    // log request time
-                    var duration = Util.timeStop(logKeyServerMapData);
-                    Util.log(logKeyServerMapData, {duration: duration, type: 'server', description: 'request map data'});
-
-                    if(
-                        data.error &&
-                        data.error.length > 0
-                    ){
-                        // any error in the main trigger functions result in a user log-off
-                        $(document).trigger('pf:menuLogout');
-                    }else{
-                        $(document).setProgramStatus('online');
-
-                        if(data.userData !== undefined) {
-                            // store current user data global (cache)
-                            Util.setCurrentUserData(data.userData);
-                        }
-
-                        if(data.mapData.length === 0){
-                            // clear all existing maps
-                            mapModule.clearMapModule();
-
-                            // no map data available -> show "new map" dialog
-                            $(document).trigger('pf:menuShowMapSettings', {tab: 'new'});
-                        }else{
-                            // map data found
-
-                            // start log
-                            Util.timeStart(logKeyClientMapData);
-
-                            // load/update main map module
-                            mapModule.updateMapModule(data.mapData);
-
-                            // log client map update time
-                            duration = Util.timeStop(logKeyClientMapData);
-                            Util.log(logKeyClientMapData, {duration: duration, type: 'client', description: 'update map'});
-                        }
-
-                        // get the current update delay (this can change if a user is inactive)
-                        var mapUpdateDelay = Util.getCurrentTriggerDelay( logKeyServerMapData, 0 );
-
-                        // init new trigger
-                        updateTimeouts.mapUpdate = setTimeout(function(){
-                            triggerMapUpdatePing();
-                        }, mapUpdateDelay);
-
-                        // initial start for the userUpdate trigger
-                        // this should only be called at the first time!
-                        if(updateTimeouts.userUpdate === 0){
-
-                            // start user update trigger after map loaded
-                            updateTimeouts.userUpdate = setTimeout(function(){
-                                 triggerUserUpdatePing();
-                            }, 3000);
-                        }
-                    }
-
-                }).fail(handleAjaxErrorResponse);
-            };
-
-            // ping for user data update =======================================================
-            var triggerUserUpdatePing = function(){
-
-                // IMPORTANT: Get user data for ONE map that is currently visible
-                // On later releases this can be easy changed to "full update" all maps for a user
-                //
-                var mapIds = [];
-                var activeMap = Util.getMapModule().getActiveMap();
-                if(activeMap){
-                    mapIds = [ activeMap.data('id') ];
-                }
-
-                var updatedUserData = {
-                    mapIds: mapIds,
-                    systemData: Util.getCurrentSystemData(),
-                    characterMapData: {
-                        mapTracking: (locationToggle.is(':checked') ? 1 : 0) // location tracking
-                    }
-                };
-
-                Util.timeStart(logKeyServerUserData);
-
-                $.ajax({
-                    type: 'POST',
-                    url: Init.path.updateUserData,
-                    data: updatedUserData,
-                    dataType: 'json'
-                }).done(function(data){
-
-                    // log request time
-                    var duration = Util.timeStop(logKeyServerUserData);
-                    Util.log(logKeyServerUserData, {duration: duration, type: 'server', description:'request user data'});
-
-                    if(data.error.length > 0){
-                        // any error in the main trigger functions result in a user log-off
-                        $(document).trigger('pf:menuLogout');
-                    }else{
-
-                        $(document).setProgramStatus('online');
-
-                        if(data.userData !== undefined){
-                            // store current user data global (cache)
-                            var userData = Util.setCurrentUserData(data.userData);
-
-                            // store current map user data (cache)
-                            if(data.mapUserData !== undefined){
-                                Util.setCurrentMapUserData(data.mapUserData);
-                            }
-
-                            // start log
-                            Util.timeStart(logKeyClientUserData);
-
-                            // active character data found
-                            mapModule.updateMapModuleData();
-
-                            // log client user data update time
-                            duration = Util.timeStop(logKeyClientUserData);
-                            Util.log(logKeyClientUserData, {duration: duration, type: 'client', description:'update users'});
-
-                            // update system info panels
-                            if(data.system){
-                                mapModule.updateSystemModuleData(data.system);
-                            }
-
-                            // get the current update delay (this can change if a user is inactive)
-                            var mapUserUpdateDelay = Util.getCurrentTriggerDelay( logKeyServerUserData, 0 );
-
-                            // init new trigger
-                            updateTimeouts.userUpdate = setTimeout(function(){
-                                triggerUserUpdatePing();
-                            }, mapUserUpdateDelay);
-
-                        }
-                    }
-
-                }).fail(handleAjaxErrorResponse);
-
-            };
+            let locationToggle = $('#' + Util.config.headMapTrackingId);
 
             /**
              * Ajax error response handler function for main-ping functions
@@ -279,16 +155,16 @@ define([
              * @param status
              * @param error
              */
-            var handleAjaxErrorResponse = function(jqXHR, status, error){
+            let handleAjaxErrorResponse = (jqXHR, status, error) => {
                 // clear both main update request trigger timer
                 clearUpdateTimeouts();
 
-                var reason = status + ' ' + jqXHR.status + ': ' + error;
-                var errorData = [];
+                let reason = status + ' ' + jqXHR.status + ': ' + error;
+                let errorData = [];
 
                 if(jqXHR.responseJSON){
                     // handle JSON
-                    var errorObj = $.parseJSON(jqXHR.responseText);
+                    let errorObj = $.parseJSON(jqXHR.responseText);
 
                     if(
                         errorObj.error &&
@@ -309,11 +185,187 @@ define([
             };
 
             /**
+             * init (schedule) next MapUpdate Ping
+             */
+            let initMapUpdatePing = (forceUpdateMapData) => {
+                // get the current update delay (this can change if a user is inactive)
+                let delay = Util.getCurrentTriggerDelay( logKeyServerMapData, 0 );
+
+                updateTimeouts.mapUpdate = setTimeout((forceUpdateMapData) => {
+                    triggerMapUpdatePing(forceUpdateMapData);
+                }, delay, forceUpdateMapData);
+            };
+
+            // ping for main map update ========================================================
+            /**
+             * @param forceUpdateMapData // force request to be send
+             */
+            let triggerMapUpdatePing = (forceUpdateMapData) => {
+
+                // check each interval if map module  is still available
+                let check = $('#' + mapModule.attr('id')).length;
+
+                if(check === 0){
+                    // program crash stop any update
+                    return;
+                }
+
+                // get updated map data
+                let updatedMapData = {
+                    mapData: mapModule.getMapModuleDataForUpdate(),
+                    getUserData: ( Util.getCurrentUserData() ) ? 0 : 1
+                };
+
+                // check if mapUpdate trigger should be send
+                // -> if "syncType" === "ajax" -> send always
+                // -> if "syncType" === "webSocket" -> send initial AND on map changes
+                if(
+                    forceUpdateMapData ||
+                    Util.getSyncType() === 'ajax' ||
+                    (
+                        Util.getSyncType() === 'webSocket' &&
+                        updatedMapData.mapData.length
+                    )
+                ){
+                    // start log
+                    Util.timeStart(logKeyServerMapData);
+
+                    // store updatedMapData
+                    $.ajax({
+                        type: 'POST',
+                        url: Init.path.updateMapData,
+                        data: updatedMapData,
+                        dataType: 'json'
+                    }).done((data) => {
+                        // log request time
+                        let duration = Util.timeStop(logKeyServerMapData);
+                        Util.log(logKeyServerMapData, {duration: duration, type: 'server', description: 'request map data'});
+
+                        Util.setSyncStatus('ajax:get');
+
+                        if(
+                            data.error &&
+                            data.error.length > 0
+                        ){
+                            // any error in the main trigger functions result in a user log-off
+                            $(document).trigger('pf:menuLogout');
+                        }else{
+                            $(document).setProgramStatus('online');
+
+                            if(data.userData !== undefined) {
+                                // store current user data global (cache)
+                                Util.setCurrentUserData(data.userData);
+                            }
+
+                            // map data found
+                            Util.setCurrentMapData(data.mapData);
+
+                            // load/update main map module
+                            mapModule.updateMapModule();
+
+                            // get the current update delay (this can change if a user is inactive)
+                            let mapUpdateDelay = Util.getCurrentTriggerDelay( logKeyServerMapData, 0 );
+
+                            // init new trigger
+                            initMapUpdatePing(false);
+
+                            // initial start for the userUpdate trigger
+                            // this should only be called at the first time!
+                            if(updateTimeouts.userUpdate === 0){
+                                // start user update trigger after map loaded
+                                updateTimeouts.userUpdate = setTimeout(() => {
+                                    triggerUserUpdatePing();
+                                }, 1000);
+                            }
+                        }
+
+                    }).fail(handleAjaxErrorResponse);
+                }else{
+                    // skip this mapUpdate trigger and init next one
+                    initMapUpdatePing(false);
+                }
+
+            };
+
+            // ping for user data update =======================================================
+            let triggerUserUpdatePing = () => {
+
+                // IMPORTANT: Get user data for ONE map that is currently visible
+                // On later releases this can be easy changed to "full update" all maps for a user
+                //
+                let mapIds = [];
+                let activeMap = Util.getMapModule().getActiveMap();
+                if(activeMap){
+                    mapIds = [ activeMap.data('id') ];
+                }
+
+                let updatedUserData = {
+                    mapIds: mapIds,
+                    systemData: Util.getCurrentSystemData(),
+                    characterMapData: {
+                        mapTracking: (locationToggle.is(':checked') ? 1 : 0) // location tracking
+                    }
+                };
+
+                Util.timeStart(logKeyServerUserData);
+
+                $.ajax({
+                    type: 'POST',
+                    url: Init.path.updateUserData,
+                    data: updatedUserData,
+                    dataType: 'json'
+                }).done((data) => {
+
+                    // log request time
+                    let duration = Util.timeStop(logKeyServerUserData);
+                    Util.log(logKeyServerUserData, {duration: duration, type: 'server', description:'request user data'});
+
+                    if(data.error.length > 0){
+                        // any error in the main trigger functions result in a user log-off
+                        $(document).trigger('pf:menuLogout');
+                    }else{
+
+                        $(document).setProgramStatus('online');
+
+                        if(data.userData !== undefined){
+                            // store current user data global (cache)
+                            let userData = Util.setCurrentUserData(data.userData);
+
+                            // store current map user data (cache)
+                            if(data.mapUserData !== undefined){
+                                Util.setCurrentMapUserData(data.mapUserData);
+                            }
+
+                            // active character data found
+                            mapModule.updateMapModuleData();
+
+                            // update system info panels
+                            if(data.system){
+                                mapModule.updateSystemModuleData(data.system);
+                            }
+
+                            // get the current update delay (this can change if a user is inactive)
+                            let mapUserUpdateDelay = Util.getCurrentTriggerDelay( logKeyServerUserData, 0 );
+
+                            // init new trigger
+                            updateTimeouts.userUpdate = setTimeout(() => {
+                                triggerUserUpdatePing();
+                            }, mapUserUpdateDelay);
+
+                        }
+                    }
+
+                }).fail(handleAjaxErrorResponse);
+
+            };
+
+
+            /**
              * clear both main update timeouts
              * -> stop program from working -> shutdown
              */
-            var clearUpdateTimeouts = function(){
-                for(var intervalKey in updateTimeouts) {
+            let clearUpdateTimeouts = () => {
+                for(let intervalKey in updateTimeouts) {
 
                     if(updateTimeouts.hasOwnProperty(intervalKey)){
                         clearTimeout( updateTimeouts[intervalKey] );
@@ -322,7 +374,7 @@ define([
             };
 
             // initial start of the  map update function
-            triggerMapUpdatePing();
+            triggerMapUpdatePing(true);
 
         };
 

@@ -138,11 +138,10 @@ class LogController extends \Prefab  {
     public static function getLogger($type){
         $f3 = \Base::instance();
         $logFiles = $f3->get('PATHFINDER.LOGFILES');
-        $logger = null;
-        if( !empty($logFiles[$type]) ){
-            $logFile = $logFiles[$type] . '.log';
-            $logger = new \Log($logFile);
-        }
+
+        $logFileName = empty($logFiles[$type]) ? 'error' : $logFiles[$type];
+        $logFile = $logFileName . '.log';
+        $logger = new \Log($logFile);
 
         return $logger;
     }

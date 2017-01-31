@@ -11,7 +11,7 @@ define([
 ], function($, Init, Util, bootbox, MapUtil) {
     'use strict';
 
-    var config = {
+    let config = {
         // module info
         moduleClass: 'pf-module',                                               // class for each module
 
@@ -39,7 +39,7 @@ define([
     };
 
     // cache for system routes
-    var cache = {
+    let cache = {
         systemRoutes: {}                                                        // jump information between solar systems
     };
 
@@ -48,17 +48,17 @@ define([
      * @param context
      * @param routesData
      */
-    var callbackAddRouteRow = function(context, routesData){
+    let callbackAddRouteRow = function(context, routesData){
 
         if(routesData.length > 0){
-            for(var i = 0; i < routesData.length; i++){
-                var routeData = routesData[i];
+            for(let i = 0; i < routesData.length; i++){
+                let routeData = routesData[i];
 
                 // format routeData
-                var rowData = formatRouteData(routeData);
+                let rowData = formatRouteData(routeData);
 
                 if(rowData.route){
-                    var cacheKey = routeData.systemFromData.name.toLowerCase() +
+                    let cacheKey = routeData.systemFromData.name.toLowerCase() +
                         '_' + routeData.systemToData.name.toLowerCase();
 
                     // update route cache
@@ -67,7 +67,7 @@ define([
                         updated: Util.getServerTime().getTime() / 1000
                     };
 
-                    var rowElement = addRow(context, rowData);
+                    let rowElement = addRow(context, rowData);
 
                     rowElement.initTooltips({
                         container: 'body'
@@ -86,15 +86,15 @@ define([
      * @param rowData
      * @returns {*}
      */
-    var addRow = function(context, rowData){
-        var dataTable = context.dataTable;
-        var rowElement = null;
-        var row = null;
-        var animationStatus = 'changed';
+    let addRow = function(context, rowData){
+        let dataTable = context.dataTable;
+        let rowElement = null;
+        let row = null;
+        let animationStatus = 'changed';
 
         // search for an existing row (e.g. on mass "table refresh" [all routes])
         // get rowIndex where column 1 (equals to "systemToData.name") matches rowData.systemToData.name
-        var indexes = dataTable.rows().eq(0).filter( function (rowIdx) {
+        let indexes = dataTable.rows().eq(0).filter( function (rowIdx) {
             return (dataTable.cell(rowIdx, 1 ).data().name === rowData.systemToData.name);
         });
 
@@ -122,17 +122,43 @@ define([
         return rowElement;
     };
 
+
+    /**
+     * requests route data from eveCentral API and execute callback
+     * @param requestData
+     * @param context
+     * @param callback
+     */
+    let getRouteData = function(requestData, context, callback){
+
+        context.moduleElement.showLoadingAnimation();
+
+        $.ajax({
+            url: Init.path.searchRoute,
+            type: 'POST',
+            dataType: 'json',
+            data: requestData,
+            context: context
+        }).done(function(routesData){
+            this.moduleElement.hideLoadingAnimation();
+
+            // execute callback
+            callback(this, routesData.routesData);
+        });
+
+    };
+
     /**
      * update complete routes table (refresh all)
      * @param moduleElement
      * @param dataTable
      */
-    var updateRoutesTable = function(moduleElement, dataTable){
-        var context = {
+    let updateRoutesTable = function(moduleElement, dataTable){
+        let context = {
             moduleElement: moduleElement,
             dataTable: dataTable
         };
-        var routeData = [];
+        let routeData = [];
 
         dataTable.rows().every( function() {
             routeData.push( getRouteRequestDataFromRowData( this.data() ));
@@ -146,7 +172,7 @@ define([
      * @param {Object} rowData
      * @returns {Object}
      */
-    var getRouteRequestDataFromRowData = function(rowData){
+    let getRouteRequestDataFromRowData = function(rowData){
         return {
             mapIds: (rowData.hasOwnProperty('mapIds')) ? rowData.mapIds : [],
             systemFromData: (rowData.hasOwnProperty('systemFromData')) ? rowData.systemFromData : {},
@@ -157,7 +183,8 @@ define([
             wormholes: (rowData.hasOwnProperty('wormholes')) ? rowData.wormholes | 0 : 1,
             wormholesReduced: (rowData.hasOwnProperty('wormholesReduced')) ? rowData.wormholesReduced | 0 : 1,
             wormholesCritical: (rowData.hasOwnProperty('wormholesCritical')) ? rowData.wormholesCritical | 0 : 1,
-            wormholesEOL: (rowData.hasOwnProperty('wormholesEOL')) ? rowData.wormholesEOL | 0 : 1
+            wormholesEOL: (rowData.hasOwnProperty('wormholesEOL')) ? rowData.wormholesEOL | 0 : 1,
+            safer: (rowData.hasOwnProperty('safer')) ? rowData.safer.value | 0 : 0
         };
     };
 
@@ -165,12 +192,12 @@ define([
      * show route dialog. User can search for systems and jump-info for each system is added to a data table
      * @param dialogData
      */
-    var showFindRouteDialog = function(dialogData){
+    let showFindRouteDialog = function(dialogData){
 
-        var mapSelectOptions = [];
-        var currentMapData = Util.getCurrentMapData();
+        let mapSelectOptions = [];
+        let currentMapData = Util.getCurrentMapData();
         if(currentMapData !== false){
-            for(var i = 0; i < currentMapData.length; i++){
+            for(let i = 0; i < currentMapData.length; i++){
                 mapSelectOptions.push({
                     id: currentMapData[i].config.id,
                     name: currentMapData[i].config.name,
@@ -178,7 +205,7 @@ define([
                 });
             }
         }
-        var data = {
+        let data = {
             id: config.routeDialogId,
             selectClass: config.systemDialogSelectClass,
             mapSelectId: config.mapSelectId,
@@ -188,9 +215,9 @@ define([
 
         requirejs(['text!templates/dialog/route.html', 'mustache'], function(template, Mustache) {
 
-            var content = Mustache.render(template, data);
+            let content = Mustache.render(template, data);
 
-            var findRouteDialog = bootbox.dialog({
+            let findRouteDialog = bootbox.dialog({
                 title: 'Route finder',
                 message: content,
                 show: false,
@@ -206,15 +233,15 @@ define([
                             // add new route to route table
 
                             // get form Values
-                            var form = $('#' + config.routeDialogId).find('form');
+                            let form = $('#' + config.routeDialogId).find('form');
 
-                            var routeDialogData = $(form).getFormValues();
+                            let routeDialogData = $(form).getFormValues();
 
                             // validate form
                             form.validator('validate');
 
                             // check whether the form is valid
-                            var formValid = form.isValidForm();
+                            let formValid = form.isValidForm();
 
                             if(formValid === false){
                                 // don't close dialog
@@ -222,18 +249,18 @@ define([
                             }
 
                             // get all system data from select2
-                            var systemSelectData = form.find('.' + config.systemDialogSelectClass).select2('data');
+                            let systemSelectData = form.find('.' + config.systemDialogSelectClass).select2('data');
 
                             if(
                                 systemSelectData &&
                                 systemSelectData.length === 1
                             ){
-                                var context = {
+                                let context = {
                                     moduleElement: dialogData.moduleElement,
                                     dataTable: dialogData.dataTable
                                 };
 
-                                var requestData = {
+                                let requestData = {
                                     routeData: [{
                                         mapIds: routeDialogData.mapIds,
                                         systemFromData: dialogData.systemFromData,
@@ -264,7 +291,7 @@ define([
                 setDialogObserver( $(this) );
 
                 // init map select ----------------------------------------------------------------
-                var mapSelect = $(this).find('#' + config.mapSelectId);
+                let mapSelect = $(this).find('#' + config.mapSelectId);
                 mapSelect.initMapSelect();
             });
 
@@ -273,7 +300,7 @@ define([
 
                 // init system select live  search ------------------------------------------------
                 // -> add some delay until modal transition has finished
-                var systemTargetSelect = $(this).find('.' + config.systemDialogSelectClass);
+                let systemTargetSelect = $(this).find('.' + config.systemDialogSelectClass);
                 systemTargetSelect.delay(240).initSystemSelect({key: 'name'});
             });
 
@@ -283,18 +310,81 @@ define([
     };
 
     /**
+     * draw route table
+     * @param  mapId
+     * @param moduleElement
+     * @param systemFromData
+     * @param routesTable
+     * @param systemsTo
+     */
+    let drawRouteTable = function(mapId, moduleElement, systemFromData, routesTable, systemsTo){
+        let requestRouteData = [];
+        let currentTimestamp = Util.getServerTime().getTime();
+
+        // Skip some routes from search
+        // -> this should help to throttle requests (heavy CPU load for route calculation)
+        let defaultRoutesCount = Init.routeSearch.defaultCount;
+
+        for(let i = 0; i < systemsTo.length; i++){
+            let systemToData = systemsTo[i];
+
+            if(systemFromData.name !== systemToData.name){
+                let cacheKey = 'route_' + mapId + '_' + systemFromData.name.toUpperCase() + '_' + systemToData.name.toUpperCase();
+
+                if(
+                    cache.systemRoutes.hasOwnProperty(cacheKey) &&
+                    Math.round(
+                        ( currentTimestamp - (new Date( cache.systemRoutes[cacheKey].updated * 1000).getTime())) / 1000
+                    ) <= config.routeCacheTTL
+                ){
+                    // route data is cached (client side)
+                    let context = {
+                        dataTable: routesTable
+                    };
+
+                    addRow(context, cache.systemRoutes[cacheKey].data);
+                }else{
+                    // get route data
+                    let searchData = {
+                        mapIds: [mapId],
+                        systemFromData: systemFromData,
+                        systemToData: systemToData,
+                        skipSearch: requestRouteData.length >= defaultRoutesCount
+                    };
+
+                    requestRouteData.push( getRouteRequestDataFromRowData( searchData ));
+                }
+            }
+        }
+
+        // check if routes data is not cached and is requested
+        if(requestRouteData.length > 0){
+            let contextData = {
+                moduleElement: moduleElement,
+                dataTable: routesTable
+            };
+
+            let requestData = {
+                routeData: requestRouteData
+            };
+
+            getRouteData(requestData, contextData, callbackAddRouteRow);
+        }
+    };
+
+    /**
      * show route settings dialog
      * @param dialogData
      * @param moduleElement
      * @param systemFromData
      * @param routesTable
      */
-    var showSettingsDialog = function(dialogData, moduleElement, systemFromData, routesTable){
+    let showSettingsDialog = function(dialogData, moduleElement, systemFromData, routesTable){
 
-        var promiseStore = MapUtil.getLocaleData('map', dialogData.mapId);
+        let promiseStore = MapUtil.getLocaleData('map', dialogData.mapId);
         promiseStore.then(function(dataStore) {
             // selected systems (if already stored)
-            var systemSelectOptions = [];
+            let systemSelectOptions = [];
             if(
                 dataStore &&
                 dataStore.routes
@@ -303,9 +393,9 @@ define([
             }
 
             // max count of "default" target systems
-            var maxSelectionLength = Init.routeSearch.maxDefaultCount;
+            let maxSelectionLength = Init.routeSearch.maxDefaultCount;
 
-            var data = {
+            let data = {
                 id: config.routeSettingsDialogId,
                 selectClass: config.systemDialogSelectClass,
                 systemSelectOptions: systemSelectOptions,
@@ -313,9 +403,9 @@ define([
             };
 
             requirejs(['text!templates/dialog/route_settings.html', 'mustache'], function(template, Mustache) {
-                var content = Mustache.render(template, data);
+                let content = Mustache.render(template, data);
 
-                var settingsDialog = bootbox.dialog({
+                let settingsDialog = bootbox.dialog({
                     title: 'Route settings',
                     message: content,
                     show: false,
@@ -328,10 +418,10 @@ define([
                             label: '<i class="fa fa-fw fa-check"></i>&nbsp;save',
                             className: 'btn-success',
                             callback: function () {
-                                var form = this.find('form');
+                                let form = this.find('form');
                                 // get all system data from select2
-                                var systemSelectData = form.find('.' + config.systemDialogSelectClass).select2('data');
-                                var systemsTo = [];
+                                let systemSelectData = form.find('.' + config.systemDialogSelectClass).select2('data');
+                                let systemsTo = [];
 
                                 if( systemSelectData.length > 0 ){
                                     systemsTo = formSystemSelectData(systemSelectData);
@@ -353,7 +443,7 @@ define([
 
                     // init default system select -----------------------------------------------------
                     // -> add some delay until modal transition has finished
-                    var systemTargetSelect = $(this).find('.' + config.systemDialogSelectClass);
+                    let systemTargetSelect = $(this).find('.' + config.systemDialogSelectClass);
                     systemTargetSelect.delay(240).initSystemSelect({key: 'name', maxSelectionLength: maxSelectionLength});
                 });
 
@@ -368,10 +458,10 @@ define([
      * @param {Array} data
      * @returns {Array}
      */
-    var formSystemSelectData = function(data){
-        var formattedData = [];
+    let formSystemSelectData = function(data){
+        let formattedData = [];
         for(let i = 0; i < data.length; i++){
-            var tmpData = data[i];
+            let tmpData = data[i];
 
             formattedData.push({
                 name: tmpData.id,
@@ -386,21 +476,21 @@ define([
      * set event observer for route finder dialog
      * @param routeDialog
      */
-    var setDialogObserver = function(routeDialog){
-        var wormholeCheckbox = routeDialog.find('input[type="checkbox"][name="wormholes"]');
-        var wormholeReducedCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesReduced"]');
-        var wormholeCriticalCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesCritical"]');
-        var wormholeEolCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesEOL"]');
+    let setDialogObserver = function(routeDialog){
+        let wormholeCheckbox = routeDialog.find('input[type="checkbox"][name="wormholes"]');
+        let wormholeReducedCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesReduced"]');
+        let wormholeCriticalCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesCritical"]');
+        let wormholeEolCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesEOL"]');
 
         // store current "checked" state for each box ---------------------------------------------
-        var storeCheckboxStatus = function(){
+        let storeCheckboxStatus = function(){
             wormholeReducedCheckbox.data('selectState', wormholeReducedCheckbox.prop('checked'));
             wormholeCriticalCheckbox.data('selectState', wormholeCriticalCheckbox.prop('checked'));
             wormholeEolCheckbox.data('selectState', wormholeEolCheckbox.prop('checked'));
         };
 
         // on wormhole checkbox change ------------------------------------------------------------
-        var onWormholeCheckboxChange = function(){
+        let onWormholeCheckboxChange = function(){
 
             if( $(this).is(':checked') ){
                 wormholeReducedCheckbox.prop('disabled', false);
@@ -430,36 +520,11 @@ define([
     };
 
     /**
-     * requests route data from eveCentral API and execute callback
-     * @param requestData
-     * @param context
-     * @param callback
-     */
-    var getRouteData = function(requestData, context, callback){
-
-        context.moduleElement.showLoadingAnimation();
-
-        $.ajax({
-            url: Init.path.searchRoute,
-            type: 'POST',
-            dataType: 'json',
-            data: requestData,
-            context: context
-        }).done(function(routesData){
-            this.moduleElement.hideLoadingAnimation();
-
-            // execute callback
-            callback(this, routesData.routesData);
-        });
-
-    };
-
-    /**
      * format route data from API request into dataTable row format
      * @param routeData
      * @returns {{}}
      */
-    var formatRouteData = function(routeData){
+    let formatRouteData = function(routeData){
 
         /**
          * get status icon for route
@@ -487,14 +552,18 @@ define([
         // 0: not found
         // 1: round (OK)
         // 2: not searched
-        var routeStatus = routeData.skipSearch ? 2 : 0;
+        let routeStatus = routeData.skipSearch ? 2 : 0;
 
-        var reloadButton = '<i class="fa ' + ['fa-refresh'].join(' ') + '"></i>';
-        var searchButton = '<i class="fa ' + ['fa-search-plus '].join(' ') + '"></i>';
-        var deleteButton = '<i class="fa ' + ['fa-close', 'txt-color', 'txt-color-redDarker'].join(' ') + '"></i>';
+        // button class for "safer" routes
+        let saferButtonClass = routeData.safer ? 'txt-color-success' : '';
+
+        let saferButton = '<i class="fa ' + ['fa-shield', 'txt-color', saferButtonClass].join(' ') + '"></i>';
+        let reloadButton = '<i class="fa ' + ['fa-refresh'].join(' ') + '"></i>';
+        let searchButton = '<i class="fa ' + ['fa-search-plus '].join(' ') + '"></i>';
+        let deleteButton = '<i class="fa ' + ['fa-close', 'txt-color', 'txt-color-redDarker'].join(' ') + '"></i>';
 
         // default row data (e.g. no route found)
-        var tableRowData = {
+        let tableRowData = {
             systemFromData:  routeData.systemFromData,
             systemToData:  routeData.systemToData,
             jumps: {
@@ -512,6 +581,10 @@ define([
             wormholesReduced: routeData.wormholesReduced,
             wormholesCritical: routeData.wormholesCritical,
             wormholesEOL: routeData.wormholesEOL,
+            safer: {
+                value: routeData.safer,
+                button: saferButton
+            },
             reload: {
                 button: routeData.skipSearch ? searchButton : reloadButton
             },
@@ -530,14 +603,14 @@ define([
             routeStatus = 1;
 
             // add route Data
-            var jumpData = [];
-            var avgSecTemp = 0;
+            let jumpData = [];
+            let avgSecTemp = 0;
 
             // loop all systems on this route
-            for(var i = 0; i < routeData.route.length; i++){
+            for(let i = 0; i < routeData.route.length; i++){
                 let routeNodeData = routeData.route[i];
-                // format system name (camelCase)
-                let systemName = routeNodeData.system.charAt(0).toUpperCase() + routeNodeData.system.slice(1).toLowerCase();
+                // format system name
+                let systemName = routeNodeData.system;
 
                 let systemSec = Number(routeNodeData.security).toFixed(1).toString();
                 let tempSystemSec = systemSec;
@@ -565,14 +638,14 @@ define([
                 }
             }
 
-            var avgSec = ( avgSecTemp /  (routeData.route.length - 1)).toFixed(2);
-            var avgSecForClass = Number(avgSec).toFixed(1);
+            let avgSec = ( avgSecTemp /  (routeData.route.length - 1)).toFixed(2);
+            let avgSecForClass = Number(avgSec).toFixed(1);
 
             if(avgSecForClass <= 0){
                 avgSecForClass = '0.0';
             }
 
-            var avgSecClass = config.systemSecurityClassPrefix + avgSecForClass.toString().replace('.', '-');
+            let avgSecClass = config.systemSecurityClassPrefix + avgSecForClass.toString().replace('.', '-');
 
             tableRowData.jumps = {
                 value: routeData.routeJumps,
@@ -599,15 +672,15 @@ define([
      * get the route finder moduleElement
      * @returns {*}
      */
-    var getModule = function(){
+    let getModule = function(){
 
         // create new module container
-        var moduleElement = $('<div>', {
+        let moduleElement = $('<div>', {
             class: [config.moduleClass, config.systemRouteModuleClass].join(' ')
         });
 
         // headline toolbar icons
-        var headlineToolbar  = $('<h5>', {
+        let headlineToolbar  = $('<h5>', {
             class: 'pull-right'
         }).append(
             $('<i>', {
@@ -627,7 +700,7 @@ define([
         moduleElement.append(headlineToolbar);
 
         // headline
-        var headline = $('<h5>', {
+        let headline = $('<h5>', {
             class: 'pull-left',
             text: 'Routes'
         });
@@ -635,14 +708,14 @@ define([
         moduleElement.append(headline);
 
         // crate new route table
-        var table = $('<table>', {
+        let table = $('<table>', {
             class: ['compact', 'stripe', 'order-column', 'row-border', config.systemInfoRoutesTableClass].join(' ')
         });
 
         moduleElement.append( $(table) );
 
         // init empty table
-        var routesTable = table.DataTable( {
+        let routesTable = table.DataTable( {
             paging: false,
             ordering: true,
             order: [[ 2, 'asc' ], [ 0, 'asc' ]],
@@ -711,41 +784,35 @@ define([
                     data: 'route'
                 },{
                     targets: 5,
-                    title: '',
+                    title: '<i title="search safer route (HS)" data-toggle="tooltip" class="fa fa-shield text-right"></i>',
                     orderable: false,
                     searchable: false,
                     width: '10px',
                     class: ['text-center', config.dataTableActionCellClass].join(' '),
-                    data: 'reload',
+                    data: 'safer',
                     render: {
                         _: 'button'
                     },
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
-                        var tempTableApi = this.api();
+                        let tempTableApi = this.api();
 
                         $(cell).on('click', function(e) {
                             // get current row data (important!)
                             // -> "rowData" param is not current state, values are "on createCell()" state
                             rowData = tempTableApi.row( $(cell).parents('tr')).data();
+                            let routeData = getRouteRequestDataFromRowData( rowData );
 
-                            var context = {
+                            // overwrite some params
+                            routeData.skipSearch = 0;
+                            routeData.safer = 1 - routeData.safer; // toggle
+
+                            let context = {
                                 moduleElement: moduleElement,
                                 dataTable: tempTableApi
                             };
 
-                            var requestData = {
-                                routeData: [{
-                                    mapIds: rowData.mapIds,
-                                    systemFromData: rowData.systemFromData,
-                                    systemToData: rowData.systemToData,
-                                    skipSearch: 0,
-                                    stargates: rowData.stargates ? 1 : 0,
-                                    jumpbridges: rowData.jumpbridges ? 1 : 0,
-                                    wormholes: rowData.wormholes ? 1 : 0,
-                                    wormholesReduced: rowData.wormholesReduced ? 1 : 0,
-                                    wormholesCritical: rowData.wormholesCritical ? 1 : 0,
-                                    wormholesEOL: rowData.wormholesEOL ? 1 : 0
-                                }]
+                            let requestData = {
+                                routeData: [routeData]
                             };
 
                             getRouteData(requestData, context, callbackAddRouteRow);
@@ -758,14 +825,49 @@ define([
                     searchable: false,
                     width: '10px',
                     class: ['text-center', config.dataTableActionCellClass].join(' '),
+                    data: 'reload',
+                    render: {
+                        _: 'button'
+                    },
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                        let tempTableApi = this.api();
+
+                        $(cell).on('click', function(e) {
+                            // get current row data (important!)
+                            // -> "rowData" param is not current state, values are "on createCell()" state
+                            rowData = tempTableApi.row( $(cell).parents('tr')).data();
+                            let routeData = getRouteRequestDataFromRowData( rowData );
+
+                            // overwrite some params
+                            routeData.skipSearch = 0;
+
+                            let context = {
+                                moduleElement: moduleElement,
+                                dataTable: tempTableApi
+                            };
+
+                            let requestData = {
+                                routeData: [routeData]
+                            };
+
+                            getRouteData(requestData, context, callbackAddRouteRow);
+                        });
+                    }
+                },{
+                    targets: 7,
+                    title: '',
+                    orderable: false,
+                    searchable: false,
+                    width: '10px',
+                    class: ['text-center', config.dataTableActionCellClass].join(' '),
                     data: 'clear',
                     render: {
                         _: 'button'
                     },
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
-                        var tempTableElement = this;
+                        let tempTableElement = this;
 
-                        var confirmationSettings = {
+                        let confirmationSettings = {
                             container: 'body',
                             placement: 'left',
                             btnCancelClass: 'btn btn-sm btn-default',
@@ -776,7 +878,7 @@ define([
                             btnOkLabel: 'delete',
                             btnOkIcon: 'fa fa-fw fa-close',
                             onConfirm : function(e, target){
-                                var deleteRowElement = $(cell).parents('tr');
+                                let deleteRowElement = $(cell).parents('tr');
                                 tempTableElement.api().rows(deleteRowElement).remove().draw();
                             }
                         };
@@ -788,14 +890,14 @@ define([
             ],
             drawCallback: function(settings){
 
-                var animationRows = this.api().rows().nodes().to$().filter(function() {
+                let animationRows = this.api().rows().nodes().to$().filter(function() {
                     return (
                         $(this).data('animationStatus') ||
                         $(this).data('animationTimer')
                     );
                 });
 
-                for(var i = 0; i < animationRows.length; i++){
+                for(let i = 0; i < animationRows.length; i++){
                     $(animationRows[i]).pulseTableRow($(animationRows[i]).data('animationStatus'));
                     $(animationRows[i]).removeData('animationStatus');
                 }
@@ -805,7 +907,7 @@ define([
         });
 
         // init tooltips for this module
-        var tooltipElements = moduleElement.find('[data-toggle="tooltip"]');
+        let tooltipElements = moduleElement.find('[data-toggle="tooltip"]');
         tooltipElements.tooltip({
             container: 'body'
         });
@@ -819,19 +921,19 @@ define([
      * @param options
      */
     $.fn.initSystemPopover = function(options){
-        var elements = $(this);
-        var eventNamespace = 'hideSystemPopup';
-        var systemToData = options.systemToData;
+        let elements = $(this);
+        let eventNamespace = 'hideSystemPopup';
+        let systemToData = options.systemToData;
 
         requirejs(['text!templates/tooltip/system_popover.html', 'mustache'], function (template, Mustache) {
-            var data = {
+            let data = {
                 systemToData: systemToData
             };
 
-            var content = Mustache.render(template, data);
+            let content = Mustache.render(template, data);
 
             elements.each(function() {
-                var element = $(this);
+                let element = $(this);
                 // destroy "popover" and remove "click" event for animation
                 element.popover('destroy').off();
 
@@ -859,11 +961,11 @@ define([
 
             // set link observer "on shown" event
             elements.on('shown.bs.popover', function () {
-                var popoverRoot = $(this);
+                let popoverRoot = $(this);
 
                 popoverRoot.data('bs.popover').tip().find('a').on('click', function(){
                     // hint: "data" attributes should be in lower case!
-                    var systemData = {
+                    let systemData = {
                         name: $(this).data('name'),
                         systemId: $(this).data('systemid')
                     };
@@ -883,16 +985,16 @@ define([
      * @param mapId
      * @param systemData
      */
-    var initModule = function(moduleElement, mapId, systemData){
+    let initModule = function(moduleElement, mapId, systemData){
 
-        var systemFromData = {
+        let systemFromData = {
             name: systemData.name,
             systemId: systemData.systemId
         };
 
-        var routesTableElement =  moduleElement.find('.' + config.systemInfoRoutesTableClass);
+        let routesTableElement =  moduleElement.find('.' + config.systemInfoRoutesTableClass);
 
-        var routesTable = routesTableElement.DataTable();
+        let routesTable = routesTableElement.DataTable();
 
         // init refresh routes --------------------------------------------------------------------
         moduleElement.find('.' + config.systemModuleHeadlineIconRefresh).on('click', function(e){
@@ -907,7 +1009,7 @@ define([
                 // max routes limit reached -> show warning
                 Util.showNotify({title: 'Route limit reached', text: 'Serch is limited by ' + maxRouteSearchLimit, type: 'warning'});
             }else{
-                var dialogData = {
+                let dialogData = {
                     moduleElement: moduleElement,
                     mapId: mapId,
                     systemFromData: systemFromData,
@@ -922,7 +1024,7 @@ define([
 
         // init settings dialog -------------------------------------------------------------------
         moduleElement.find('.' + config.systemModuleHeadlineIconSettings).on('click', function(e){
-            var dialogData = {
+            let dialogData = {
                 mapId: mapId
             };
 
@@ -930,10 +1032,10 @@ define([
         });
 
         // fill routesTable with data -------------------------------------------------------------
-        var promiseStore = MapUtil.getLocaleData('map', mapId);
+        let promiseStore = MapUtil.getLocaleData('map', mapId);
         promiseStore.then(function(dataStore) {
             // selected systems (if already stored)
-            var systemsTo = [{
+            let systemsTo = [{
                 name: 'Jita',
                 systemId: 30000142
             }];
@@ -951,79 +1053,16 @@ define([
     };
 
     /**
-     * draw route table
-     * @param  mapId
-     * @param moduleElement
-     * @param systemFromData
-     * @param routesTable
-     * @param systemsTo
-     */
-    var drawRouteTable = function(mapId, moduleElement, systemFromData, routesTable, systemsTo){
-        var requestRouteData = [];
-        var currentTimestamp = Util.getServerTime().getTime();
-
-        // Skip some routes from search
-        // -> this should help to throttle requests (heavy CPU load for route calculation)
-        var defaultRoutesCount = Init.routeSearch.defaultCount;
-
-        for(var i = 0; i < systemsTo.length; i++){
-            var systemToData = systemsTo[i];
-
-            if(systemFromData.name !== systemToData.name){
-                var cacheKey = 'route_' + mapId + '_' + systemFromData.name.toUpperCase() + '_' + systemToData.name.toUpperCase();
-
-                if(
-                    cache.systemRoutes.hasOwnProperty(cacheKey) &&
-                    Math.round(
-                        ( currentTimestamp - (new Date( cache.systemRoutes[cacheKey].updated * 1000).getTime())) / 1000
-                    ) <= config.routeCacheTTL
-                ){
-                    // route data is cached (client side)
-                    var context = {
-                        dataTable: routesTable
-                    };
-
-                    addRow(context, cache.systemRoutes[cacheKey].data);
-                }else{
-                    // get route data
-                    var searchData = {
-                        mapIds: [mapId],
-                        systemFromData: systemFromData,
-                        systemToData: systemToData,
-                        skipSearch: requestRouteData.length >= defaultRoutesCount
-                    };
-
-                    requestRouteData.push( getRouteRequestDataFromRowData( searchData ));
-                }
-            }
-        }
-
-        // check if routes data is not cached and is requested
-        if(requestRouteData.length > 0){
-            var contextData = {
-                moduleElement: moduleElement,
-                dataTable: routesTable
-            };
-
-            var requestData = {
-                routeData: requestRouteData
-            };
-
-            getRouteData(requestData, contextData, callbackAddRouteRow);
-        }
-    };
-
-    /**
      * updates an dom element with the system route module
      * @param mapId
      * @param systemData
      */
     $.fn.drawSystemRouteModule = function(mapId, systemData){
 
-        var parentElement = $(this);
+        let parentElement = $(this);
 
         // show route module
-        var showModule = function(moduleElement){
+        let showModule = function(moduleElement){
             if(moduleElement){
                 moduleElement.css({ opacity: 0 });
                 parentElement.append(moduleElement);
@@ -1039,7 +1078,7 @@ define([
         };
 
         // check if module already exists
-        var moduleElement = parentElement.find('.' + config.systemRouteModuleClass);
+        let moduleElement = parentElement.find('.' + config.systemRouteModuleClass);
 
         if(moduleElement.length > 0){
             moduleElement.velocity('transition.slideDownOut', {

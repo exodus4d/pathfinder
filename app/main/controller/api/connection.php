@@ -86,6 +86,9 @@ class Connection extends Controller\AccessController {
                         $connection->save();
 
                         $newConnectionData = $connection->getData();
+
+                        // broadcast map changes
+                        $this->broadcastMapData($connection->mapId);
                     }
                 }
             }
@@ -100,18 +103,31 @@ class Connection extends Controller\AccessController {
      * @throws \Exception
      */
     public function delete(\Base $f3){
-        $connectionIds = $f3->get('POST.connectionIds');
-        $activeCharacter = $this->getCharacter();
+        $mapId = (int)$f3->get('POST.mapId');
+        $connectionIds = (array)$f3->get('POST.connectionIds');
 
-        /**
-         * @var Model\ConnectionModel $connection
-         */
-        $connection = Model\BasicModel::getNew('ConnectionModel');
-        foreach($connectionIds as $connectionId){
-            $connection->getById($connectionId);
-            $connection->delete( $activeCharacter );
+        if($mapId){
+            $activeCharacter = $this->getCharacter();
 
-            $connection->reset();
+            /**
+             * @var Model\MapModel $map
+             */
+            $map = Model\BasicModel::getNew('MapModel');
+            $map->getById($mapId);
+
+            if( $map->hasAccess($activeCharacter) ){
+                foreach($connectionIds as $connectionId){
+                    if( $connection = $map->getConnectionById($connectionId) ){
+                        $connection->delete( $activeCharacter );
+
+                        $connection->reset();
+                    }
+                }
+
+                // broadcast map changes
+                $this->broadcastMapData($map);
+            }
+
         }
 
         echo json_encode([]);

@@ -51,16 +51,20 @@ class Config extends \Prefab {
     }
 
     /**
-     * set some global framework variables
+     * set/overwrite some global framework variables original set in config.ini
+     * -> can be  overwritten in environments.ini OR ENV-Vars
+     * -> see: https://github.com/exodus4d/pathfinder/issues/175
      * that depend on environment settings
      */
     protected function setHiveVariables(){
         $f3 = \Base::instance();
+        // hive keys that can be overwritten
+        $hiveKeys = ['BASE', 'URL', 'DEBUG', 'CACHE'];
 
-        // hive  keys that should be overwritten by environment config
-        $hiveKeys = ['BASE', 'URL', 'DEBUG'];
         foreach($hiveKeys as $key){
-            $f3->set($key, self::getEnvironmentData($key));
+            if( !is_null( $var = self::getEnvironmentData($key)) ){
+                $f3->set($key,$var);
+            }
         }
     }
 
@@ -138,12 +142,8 @@ class Config extends \Prefab {
      * @return string|null
      */
     static function getEnvironmentData($key){
-        $f3 = \Base::instance();
         $hiveKey = self::HIVE_KEY_ENVIRONMENT . '.' . $key;
-        $data = null;
-        if( $f3->exists($hiveKey) ){
-            $data = $f3->get($hiveKey);
-        }
+        \Base::instance()->exists($hiveKey, $data);
 
         return $data;
     }
@@ -157,11 +157,44 @@ class Config extends \Prefab {
         $f3 = \Base::instance();
         $hiveKey = self::HIVE_KEY_PATHFINDER . '.NOTIFICATION.' . $key;
         $mail = false;
-        if( $f3->exists($hiveKey) ){
-            $mail = $f3->get($hiveKey);
+        if( $f3->exists($hiveKey, $cachedMail) ){
+            $mail = $cachedMail;
         }
 
         return $mail;
     }
+
+    /**
+     * get map default config values for map types (private/corp/ally)
+     * -> read from pathfinder.ini
+     * @param string $mapType
+     * @return array
+     */
+    static function getMapsDefaultConfig($mapType = ''){
+        $f3 = \Base::instance();
+        $hiveKey = 'PATHFINDER.MAP';
+        if( !empty($mapType) ){
+            $hiveKey .= '.' . strtoupper($mapType);
+        }
+        return Util::arrayChangeKeyCaseRecursive( $f3->get($hiveKey) );
+    }
+
+    /**
+     * get URI for TCP socket
+     * @return bool|string
+     */
+    static function getSocketUri(){
+        $uri = false;
+
+        if(
+            ( $ip = self::getEnvironmentData('SOCKET_HOST') ) &&
+            ( $port = self::getEnvironmentData('SOCKET_PORT') )
+        ){
+            $uri = 'tcp://' . $ip . ':' . $port;
+        }
+
+        return $uri;
+    }
+
 
 }

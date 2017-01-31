@@ -6,7 +6,7 @@ define(['jquery'], function($) {
 
     'use strict';
 
-    var Config = {
+    let Config = {
         path: {
             img: 'public/img/',                                     // path for images
             // user API
@@ -22,6 +22,7 @@ define(['jquery'], function($) {
             searchAccess: 'api/access/search',                      // ajax URL - search user/corporation/ally by name
             // main config/map ping API
             initMap: 'api/map/init',                                // ajax URL - get static data
+            getAccessData: 'api/map/getAccessData',                 // ajax URL - get map access tokens (WebSocket)
             updateMapData: 'api/map/updateData',                    // ajax URL - main map update trigger
             updateUserData: 'api/map/updateUserData',               // ajax URL - main map user data trigger
             // map API
@@ -63,10 +64,34 @@ define(['jquery'], function($) {
             splashOverlay: 300,                                     // "splash" loading overlay
             headerLink: 100,                                        // links in head bar
             mapOverlay: 200,                                        // show/hide duration for map overlays
-            mapMoveSystem: 300,                                     // system position has changed animation
+            mapMoveSystem: 180,                                     // system position has changed animation
             mapDeleteSystem: 200,                                   // remove system from map
             mapModule: 200,                                         // show/hide of an map module
             dialogEvents: 180                                       // dialog events /slide/show/...
+        },
+        syncStatus: {
+            type: 'ajax',
+            webSocket: {
+                status: 'closed',
+                class: 'txt-color-danger',
+                timestamp: undefined
+            },
+            sharedWorker: {
+                status: 'offline',                                  // SharedWorker status
+                class: 'txt-color-danger',
+                timestamp: undefined
+            },
+            ajax: {
+                status: 'enabled',
+                class: 'txt-color-success',
+                timestamp: undefined
+            }
+        },
+        performanceLogging: {
+            keyServerMapData: 'UPDATE_SERVER_MAP',                  // ajax request update map data
+            keyClientMapData: 'UPDATE_CLIENT_MAP',                  // update client map data
+            keyServerUserData: 'UPDATE_SERVER_USER_DATA',           // ajax request update map user data
+            keyClientUserData: 'UPDATE_CLIENT_USER_DATA',           // update client map user data
         },
         mapIcons: [                                                 // map tab-icons
             {

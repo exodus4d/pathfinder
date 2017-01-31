@@ -92,42 +92,59 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <repeat group="{{ @checkRequirements }}" value="{{ @requirement }}">
-                                <tr>
-                                    <td>
-                                        {{@requirement.label}}
-                                        <check if="{{ @requirement.tooltip }}">
-                                            <i class="fa fa-fw fa-question-circle" title="{{ @requirement.tooltip }}"></i>
-                                        </check>
-                                    </td>
-                                    <td class="text-right">
-                                        <check if="{{ @requirement.required }}">
-                                            <kbd>{{@requirement.required}}</kbd>
-                                        </check>
-                                    </td>
-                                    <td class="text-right">
-                                        <check if="{{ @requirement.check }}">
-                                            <true>
-                                                <kbd class="txt-color txt-color-success">{{@requirement.version}}</kbd>
-                                            </true>
-                                            <false>
-                                                <kbd class="txt-color txt-color-warning">{{@requirement.version}}</kbd>
-                                                {* Check failed *}
-                                                <set requirementsFulfilled="Warnings" />
-                                            </false>
-                                        </check>
-                                    </td>
-                                    <td class="text-right">
-                                        <check if="{{ @requirement.check }}">
-                                            <true>
-                                                <i class="fa fa-lg fa-fw fa-check txt-color txt-color-success"></i>
-                                            </true>
-                                            <false>
-                                                <i class="fa fa-lg fa-fw fa-warning txt-color txt-color-warning"></i>
-                                            </false>
-                                        </check>
-                                    </td>
-                                </tr>
+                            <repeat group="{{ @checkRequirements }}" key="{{ @dbKey }}" value="{{ @requirement }}">
+
+                                {* if for optional divider *}
+                                <check if="{{ is_numeric( @dbKey ) }}">
+                                    <true>
+                                            </tbody>
+                                        </table>
+
+                                        <div class="panel-footer text-left">
+                                            <h3 class="panel-title">{{@requirement.label}}</h3>
+                                        </div>
+
+                                        <table class="table">
+                                            <tbody>
+                                    </true>
+                                    <false>
+                                        <tr>
+                                            <td>
+                                                {{@requirement.label}}
+                                                <check if="{{ @requirement.tooltip }}">
+                                                    <i class="fa fa-fw fa-question-circle pf-help-light" title="{{ @requirement.tooltip }}"></i>
+                                                </check>
+                                            </td>
+                                            <td class="text-right col-md-3 text-right">
+                                                <check if="{{ @requirement.required }}">
+                                                    <kbd>{{@requirement.required}}</kbd>
+                                                </check>
+                                            </td>
+                                            <td class="text-right col-md-3 text-right">
+                                                <check if="{{ @requirement.check }}">
+                                                    <true>
+                                                        <kbd class="txt-color txt-color-success">{{@requirement.version}}</kbd>
+                                                    </true>
+                                                    <false>
+                                                        <kbd class="txt-color txt-color-warning">{{@requirement.version}}</kbd>
+                                                        {* Check failed *}
+                                                        <set requirementsFulfilled="Warnings" />
+                                                    </false>
+                                                </check>
+                                            </td>
+                                            <td class="text-right col-md-1 text-right">
+                                                <check if="{{ @requirement.check }}">
+                                                    <true>
+                                                        <i class="fa fa-lg fa-fw fa-check txt-color txt-color-success"></i>
+                                                    </true>
+                                                    <false>
+                                                        <i class="fa fa-lg fa-fw fa-warning txt-color txt-color-warning"></i>
+                                                    </false>
+                                                </check>
+                                            </td>
+                                        </tr>
+                                    </false>
+                                </check>
                             </repeat>
                             </tbody>
                         </table>
@@ -136,7 +153,7 @@
                     <div class="panel-footer text-align-center">
                         <check if="{{ @requirementsFulfilled == 'OK' }}">
                             <true>
-                                <h3 class="panel-title txt-color txt-color-green">{{ @requirementsFulfilled }}</h3>
+                                <h3 class="panel-title txt-color txt-color-success">{{ @requirementsFulfilled }}</h3>
                             </true>
                             <false>
                                 <h3 class="panel-title txt-color txt-color-warning">{{ @requirementsFulfilled }}</h3>
@@ -182,7 +199,7 @@
                         <table class="table">
                             <thead>
                             <tr>
-                                <td class="col-md-3">TEMP (Cache)</td>
+                                <td class="col-md-3">TEMP <i class="fa fa-fw fa-question-circle pf-help-light" title="Temporary folder for cache, filesystem locks, compiled F3 templates, etc."></i></td>
                                 <td class="text-right col-md-8">
                                     <kbd>{{ @TEMP }}</kbd>
                                 </td>
@@ -190,6 +207,12 @@
                             </thead>
 
                             <tbody>
+                                <tr>
+                                    <td>CACHE <i class="fa fa-fw fa-question-circle pf-help-light" title="Cache backend. F3 can handle Redis, Memcache, APC, WinCache, XCache and a filesystem-based (default) cache."></i></td>
+                                    <td class="text-right">
+                                        <kbd>{{ @CACHE }}</kbd>
+                                    </td>
+                                </tr>
                                 <tr>
                                     <td>LOGS</td>
                                     <td class="text-right">
@@ -525,7 +548,7 @@
                                     <true>
                                         <check if="{{ @dbStatusCheck == 'OK' }}">
                                             <true>
-                                                <h3 class="panel-title txt-color txt-color-green">{{ @dbConnectionStatus }}</h3>
+                                                <h3 class="panel-title txt-color txt-color-success">{{ @dbConnectionStatus }}</h3>
                                             </true>
                                             <false>
                                                 <h3 class="panel-title txt-color txt-color-warning">{{ @dbStatusCheck }}</h3>
@@ -743,7 +766,7 @@
                                         <set dbWarnings="{{ @dbWarnings }} + {{ @dbInformation.info.statusCheckCount }}" />
                                     </true>
                                     <false>
-                                        <h3 class="panel-title txt-color txt-color-green">{{ @dbConnectionStatus }}</h3>
+                                        <h3 class="panel-title txt-color txt-color-success">{{ @dbConnectionStatus }}</h3>
                                     </false>
                                 </check>
                             </div>
@@ -790,6 +813,59 @@
 
         </div>
 
+        <h4><i class="fa fa-fw fa-exchange"></i> Socket configuration <span class="txt-color txt-color-gray">[advanced]</span></h4>
+
+        <div class="row text-center">
+
+            <repeat group="{{ @socketInformation }}" key="{{ @socketType }}" value="{{ @socketData }}">
+                <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
+                    <div id="pf-setup-{{ @socketType }}" data-token="{{ @socketData.token }}" class="panel panel-default pricing-big" style="position: relative">
+                        <div class="panel-heading text-left">
+                            <h3 class="panel-title">{{ @socketData.label }}</h3>
+                        </div>
+
+                        <div class="panel-body no-padding text-left">
+                            <table class="table">
+                                <thead>
+                                    <repeat group="{{ @socketData.data }}" value="{{ @entry }}">
+                                        <tr>
+                                            <td>{{ @entry.label }}</td>
+                                            <td class="text-right col-md-8">
+                                                <kbd>{{@entry.value | raw}}</kbd>
+                                            </td>
+                                            <td class="text-right col-md-1">
+                                                <check if="{{ @entry.check }}">
+                                                    <true>
+                                                        <i class="fa fa-lg fa-fw fa-check txt-color txt-color-success"></i>
+                                                    </true>
+                                                    <false>
+                                                        <i class="fa fa-lg fa-fw fa-warning txt-color txt-color-warning"></i>
+                                                    </false>
+                                                </check>
+                                            </td>
+                                        </tr>
+                                    </repeat>
+                                </thead>
+                            </table>
+                        </div>
+
+                        <div class="panel-footer text-align-center">
+                            <check if="{{ @socketData.online }}">
+                                <true>
+                                    <h3 class="panel-title txt-color txt-color-success">PING SEND</h3>
+                                </true>
+                                <false>
+                                    <h3 class="panel-title txt-color txt-color-danger">INIT CONNECTION...</h3>
+                                </false>
+                            </check>
+                        </div>
+
+                    </div>
+                </div>
+            </repeat>
+
+        </div>
+
         <h4 id="pf-setup-administration"><i class="fa fa-fw fa-wrench"></i> Administration</h4>
 
         <div class="row text-center">
@@ -801,7 +877,7 @@
                     <div class="panel-heading text-left">
                         <h3 class="panel-title">
                             Index data
-                            <i class="fa fa-fw fa-question-circle" title="
+                            <i class="fa fa-fw fa-question-circle pf-help-light" title="
                             Indexed data is required for some queries (e.g. route finder module, static wormholes,... ).
                             Building/Importing data may take a while (~20s). Increase 'max_execution_time' if you run into PHP timeouts."></i>
                         </h3>
@@ -862,22 +938,33 @@
                     </div>
 
                     <div class="panel-body no-padding">
+                        <check if="{{ @cacheType() == 'redis' }}">
+                            <div class="btn-group btn-group-justified">
+                                <span class="btn btn-default disabled btn-fake">
+                                    Redis cache
+                                </span>
+                                <a href="?clearCache=1#pf-setup-administration" class="btn btn-warning" role="button">
+                                    <i class="fa fa-fw fa-times"></i> Clear all keys
+                                </a>
+                            </div>
+                        </check>
+
                         <div class="btn-group btn-group-justified">
-                            <span class="btn btn-default disabled btn-fake">
-                                Data
-                                <kbd class="pull-right">
-                                    <check if="{{ @cacheSize.data }}">
-                                        <true>
-                                            {{ @cacheSize.data }}
-                                        </true>
-                                        <false>
-                                            0 KB
-                                        </false>
-                                    </check>
-                                </kbd>
-                            </span>
+                                    <span class="btn btn-default disabled btn-fake">
+                                        Data
+                                        <kbd class="pull-right">
+                                            <check if="{{ @cacheSize.data }}">
+                                                <true>
+                                                    {{ @cacheSize.data }}
+                                                </true>
+                                                <false>
+                                                    0 KB
+                                                </false>
+                                            </check>
+                                        </kbd>
+                                    </span>
                             <a href="?clearCache=1#pf-setup-administration" class="btn btn-warning {{ (@cacheSize.data) ?'':'disabled' }}" role="button">
-                                <i class="fa fa-fw fa-times"></i> Clear
+                                <i class="fa fa-fw fa-times"></i> Delete files
                             </a>
                         </div>
 

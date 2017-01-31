@@ -93,11 +93,20 @@ em{
   color: $gray-darkest;
 }
 // help elements ==================================================================================
+.pf-help-light{
+  @extend .txt-color;
+  @extend .txt-color-grayLight;
+  @extend .pf-help-default;
+}
+
 .pf-help{
-  cursor: pointer; // fallback
-  cursor: help;
   @extend .txt-color;
   @extend .txt-color-gray;
+  @extend .pf-help-default;
+}
+
+.pf-help-default{
+  cursor: help;
   @include transition( color 0.08s ease-out );
 
   &:hover{
@@ -185,7 +194,7 @@ select:active, select:hover {
   }
 }
 
-// global datatable styles ========================================================================
+// global dataTable styles ========================================================================
 .dataTable{
 
   th{
@@ -394,6 +403,10 @@ table{
   @extend .txt-color-red;
 }
 
+// timestamp counter ==============================================================================
+.pf-timestamp-counter{
+  visibility: hidden; // show by JS
+}
 // map types ======================================================================================
 .pf-map-type-private{
   color: $indigo;
@@ -919,6 +932,13 @@ td.pf-popover-trigger{
   }
 }
 
+.pf-notransition {
+  -webkit-transition: none !important;
+  -moz-transition: none !important;
+  -o-transition: none !important;
+  transition: none !important;
+}
+
 // dynamic area (e.g. for loading animation) ======================================================
 .pf-dynamic-area{
   padding: 10px;
@@ -933,6 +953,10 @@ td.pf-popover-trigger{
 
     dd{
       min-width: 100px;
+
+      &.txt-color{
+        font-weight: bold;
+      }
     }
   }
 }
@@ -1082,6 +1106,15 @@ td.pf-popover-trigger{
 // footer (navigation) ============================================================================
 .navbar-fixed-bottom{
   padding: 2px 0;
+}
+// global info panel ==============================================================================
+#pf-global-info{
+  position: absolute;
+  left: 0;
+  bottom: 32px;
+  width: 100%;
+  height: 32px;
+  margin-bottom: 0; // overwrite default "alert" style
 }
 
 /*

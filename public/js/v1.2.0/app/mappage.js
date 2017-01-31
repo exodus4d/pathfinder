@@ -11,7 +11,7 @@ define('app/init',['jquery'], function($) {
 
     'use strict';
 
-    var Config = {
+    let Config = {
         path: {
             img: 'public/img/',                                     // path for images
             // user API
@@ -27,6 +27,7 @@ define('app/init',['jquery'], function($) {
             searchAccess: 'api/access/search',                      // ajax URL - search user/corporation/ally by name
             // main config/map ping API
             initMap: 'api/map/init',                                // ajax URL - get static data
+            getAccessData: 'api/map/getAccessData',                 // ajax URL - get map access tokens (WebSocket)
             updateMapData: 'api/map/updateData',                    // ajax URL - main map update trigger
             updateUserData: 'api/map/updateUserData',               // ajax URL - main map user data trigger
             // map API
@@ -68,10 +69,34 @@ define('app/init',['jquery'], function($) {
             splashOverlay: 300,                                     // "splash" loading overlay
             headerLink: 100,                                        // links in head bar
             mapOverlay: 200,                                        // show/hide duration for map overlays
-            mapMoveSystem: 300,                                     // system position has changed animation
+            mapMoveSystem: 180,                                     // system position has changed animation
             mapDeleteSystem: 200,                                   // remove system from map
             mapModule: 200,                                         // show/hide of an map module
             dialogEvents: 180                                       // dialog events /slide/show/...
+        },
+        syncStatus: {
+            type: 'ajax',
+            webSocket: {
+                status: 'closed',
+                class: 'txt-color-danger',
+                timestamp: undefined
+            },
+            sharedWorker: {
+                status: 'offline',                                  // SharedWorker status
+                class: 'txt-color-danger',
+                timestamp: undefined
+            },
+            ajax: {
+                status: 'enabled',
+                class: 'txt-color-success',
+                timestamp: undefined
+            }
+        },
+        performanceLogging: {
+            keyServerMapData: 'UPDATE_SERVER_MAP',                  // ajax request update map data
+            keyClientMapData: 'UPDATE_CLIENT_MAP',                  // update client map data
+            keyServerUserData: 'UPDATE_SERVER_USER_DATA',           // ajax request update map user data
+            keyClientUserData: 'UPDATE_CLIENT_USER_DATA',           // update client map user data
         },
         mapIcons: [                                                 // map tab-icons
             {
@@ -1605,13 +1630,11 @@ define("bootstrap", ["jquery"], function(){});
     (c) 2013-2015 Mozilla, Apache License 2.0
 */
 !function(a){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=a();else if("function"==typeof define&&define.amd)define('localForage',[],a);else{var b;b="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:this,b.localforage=a()}}(function(){return function a(b,c,d){function e(g,h){if(!c[g]){if(!b[g]){var i="function"==typeof require&&require;if(!h&&i)return i(g,!0);if(f)return f(g,!0);var j=new Error("Cannot find module '"+g+"'");throw j.code="MODULE_NOT_FOUND",j}var k=c[g]={exports:{}};b[g][0].call(k.exports,function(a){var c=b[g][1][a];return e(c?c:a)},k,k.exports,a,b,c,d)}return c[g].exports}for(var f="function"==typeof require&&require,g=0;g<d.length;g++)e(d[g]);return e}({1:[function(a,b,c){(function(a){"use strict";function c(){k=!0;for(var a,b,c=l.length;c;){for(b=l,l=[],a=-1;++a<c;)b[a]();c=l.length}k=!1}function d(a){1!==l.push(a)||k||e()}var e,f=a.MutationObserver||a.WebKitMutationObserver;if(f){var g=0,h=new f(c),i=a.document.createTextNode("");h.observe(i,{characterData:!0}),e=function(){i.data=g=++g%2}}else if(a.setImmediate||"undefined"==typeof a.MessageChannel)e="document"in a&&"onreadystatechange"in a.document.createElement("script")?function(){var b=a.document.createElement("script");b.onreadystatechange=function(){c(),b.onreadystatechange=null,b.parentNode.removeChild(b),b=null},a.document.documentElement.appendChild(b)}:function(){setTimeout(c,0)};else{var j=new a.MessageChannel;j.port1.onmessage=c,e=function(){j.port2.postMessage(0)}}var k,l=[];b.exports=d}).call(this,"undefined"!=typeof global?global:"undefined"!=typeof self?self:"undefined"!=typeof window?window:{})},{}],2:[function(a,b,c){"use strict";function d(){}function e(a){if("function"!=typeof a)throw new TypeError("resolver must be a function");this.state=s,this.queue=[],this.outcome=void 0,a!==d&&i(this,a)}function f(a,b,c){this.promise=a,"function"==typeof b&&(this.onFulfilled=b,this.callFulfilled=this.otherCallFulfilled),"function"==typeof c&&(this.onRejected=c,this.callRejected=this.otherCallRejected)}function g(a,b,c){o(function(){var d;try{d=b(c)}catch(e){return p.reject(a,e)}d===a?p.reject(a,new TypeError("Cannot resolve promise with itself")):p.resolve(a,d)})}function h(a){var b=a&&a.then;return a&&"object"==typeof a&&"function"==typeof b?function(){b.apply(a,arguments)}:void 0}function i(a,b){function c(b){f||(f=!0,p.reject(a,b))}function d(b){f||(f=!0,p.resolve(a,b))}function e(){b(d,c)}var f=!1,g=j(e);"error"===g.status&&c(g.value)}function j(a,b){var c={};try{c.value=a(b),c.status="success"}catch(d){c.status="error",c.value=d}return c}function k(a){return a instanceof this?a:p.resolve(new this(d),a)}function l(a){var b=new this(d);return p.reject(b,a)}function m(a){function b(a,b){function d(a){g[b]=a,++h!==e||f||(f=!0,p.resolve(j,g))}c.resolve(a).then(d,function(a){f||(f=!0,p.reject(j,a))})}var c=this;if("[object Array]"!==Object.prototype.toString.call(a))return this.reject(new TypeError("must be an array"));var e=a.length,f=!1;if(!e)return this.resolve([]);for(var g=new Array(e),h=0,i=-1,j=new this(d);++i<e;)b(a[i],i);return j}function n(a){function b(a){c.resolve(a).then(function(a){f||(f=!0,p.resolve(h,a))},function(a){f||(f=!0,p.reject(h,a))})}var c=this;if("[object Array]"!==Object.prototype.toString.call(a))return this.reject(new TypeError("must be an array"));var e=a.length,f=!1;if(!e)return this.resolve([]);for(var g=-1,h=new this(d);++g<e;)b(a[g]);return h}var o=a(1),p={},q=["REJECTED"],r=["FULFILLED"],s=["PENDING"];b.exports=c=e,e.prototype["catch"]=function(a){return this.then(null,a)},e.prototype.then=function(a,b){if("function"!=typeof a&&this.state===r||"function"!=typeof b&&this.state===q)return this;var c=new this.constructor(d);if(this.state!==s){var e=this.state===r?a:b;g(c,e,this.outcome)}else this.queue.push(new f(c,a,b));return c},f.prototype.callFulfilled=function(a){p.resolve(this.promise,a)},f.prototype.otherCallFulfilled=function(a){g(this.promise,this.onFulfilled,a)},f.prototype.callRejected=function(a){p.reject(this.promise,a)},f.prototype.otherCallRejected=function(a){g(this.promise,this.onRejected,a)},p.resolve=function(a,b){var c=j(h,b);if("error"===c.status)return p.reject(a,c.value);var d=c.value;if(d)i(a,d);else{a.state=r,a.outcome=b;for(var e=-1,f=a.queue.length;++e<f;)a.queue[e].callFulfilled(b)}return a},p.reject=function(a,b){a.state=q,a.outcome=b;for(var c=-1,d=a.queue.length;++c<d;)a.queue[c].callRejected(b);return a},c.resolve=k,c.reject=l,c.all=m,c.race=n},{1:1}],3:[function(a,b,c){(function(b){"use strict";"function"!=typeof b.Promise&&(b.Promise=a(2))}).call(this,"undefined"!=typeof global?global:"undefined"!=typeof self?self:"undefined"!=typeof window?window:{})},{2:2}],4:[function(a,b,c){"use strict";function d(a,b){if(!(a instanceof b))throw new TypeError("Cannot call a class as a function")}function e(){return"undefined"!=typeof indexedDB?indexedDB:"undefined"!=typeof webkitIndexedDB?webkitIndexedDB:"undefined"!=typeof mozIndexedDB?mozIndexedDB:"undefined"!=typeof OIndexedDB?OIndexedDB:"undefined"!=typeof msIndexedDB?msIndexedDB:void 0}function f(){try{return fa?"undefined"!=typeof openDatabase&&"undefined"!=typeof navigator&&navigator.userAgent&&/Safari/.test(navigator.userAgent)&&!/Chrome/.test(navigator.userAgent)?!1:fa&&"function"==typeof fa.open&&"undefined"!=typeof IDBKeyRange:!1}catch(a){return!1}}function g(){return"function"==typeof openDatabase}function h(){try{return"undefined"!=typeof localStorage&&"setItem"in localStorage&&localStorage.setItem}catch(a){return!1}}function i(a,b){a=a||[],b=b||{};try{return new Blob(a,b)}catch(c){if("TypeError"!==c.name)throw c;for(var d="undefined"!=typeof BlobBuilder?BlobBuilder:"undefined"!=typeof MSBlobBuilder?MSBlobBuilder:"undefined"!=typeof MozBlobBuilder?MozBlobBuilder:WebKitBlobBuilder,e=new d,f=0;f<a.length;f+=1)e.append(a[f]);return e.getBlob(b.type)}}function j(a,b){b&&a.then(function(a){b(null,a)},function(a){b(a)})}function k(a){for(var b=a.length,c=new ArrayBuffer(b),d=new Uint8Array(c),e=0;b>e;e++)d[e]=a.charCodeAt(e);return c}function l(a){return new ia(function(b){var c=i([""]);a.objectStore(ja).put(c,"key"),a.onabort=function(a){a.preventDefault(),a.stopPropagation(),b(!1)},a.oncomplete=function(){var a=navigator.userAgent.match(/Chrome\/(\d+)/),c=navigator.userAgent.match(/Edge\//);b(c||!a||parseInt(a[1],10)>=43)}})["catch"](function(){return!1})}function m(a){return"boolean"==typeof ga?ia.resolve(ga):l(a).then(function(a){return ga=a})}function n(a){var b=ha[a.name],c={};c.promise=new ia(function(a){c.resolve=a}),b.deferredOperations.push(c),b.dbReady?b.dbReady=b.dbReady.then(function(){return c.promise}):b.dbReady=c.promise}function o(a){var b=ha[a.name],c=b.deferredOperations.pop();c&&c.resolve()}function p(a,b){return new ia(function(c,d){if(a.db){if(!b)return c(a.db);n(a),a.db.close()}var e=[a.name];b&&e.push(a.version);var f=fa.open.apply(fa,e);b&&(f.onupgradeneeded=function(b){var c=f.result;try{c.createObjectStore(a.storeName),b.oldVersion<=1&&c.createObjectStore(ja)}catch(d){if("ConstraintError"!==d.name)throw d;console.warn('The database "'+a.name+'" has been upgraded from version '+b.oldVersion+" to version "+b.newVersion+', but the storage "'+a.storeName+'" already exists.')}}),f.onerror=function(){d(f.error)},f.onsuccess=function(){c(f.result),o(a)}})}function q(a){return p(a,!1)}function r(a){return p(a,!0)}function s(a,b){if(!a.db)return!0;var c=!a.db.objectStoreNames.contains(a.storeName),d=a.version<a.db.version,e=a.version>a.db.version;if(d&&(a.version!==b&&console.warn('The database "'+a.name+"\" can't be downgraded from version "+a.db.version+" to version "+a.version+"."),a.version=a.db.version),e||c){if(c){var f=a.db.version+1;f>a.version&&(a.version=f)}return!0}return!1}function t(a){return new ia(function(b,c){var d=new FileReader;d.onerror=c,d.onloadend=function(c){var d=btoa(c.target.result||"");b({__local_forage_encoded_blob:!0,data:d,type:a.type})},d.readAsBinaryString(a)})}function u(a){var b=k(atob(a.data));return i([b],{type:a.type})}function v(a){return a&&a.__local_forage_encoded_blob}function w(a){var b=this,c=b._initReady().then(function(){var a=ha[b._dbInfo.name];return a&&a.dbReady?a.dbReady:void 0});return c.then(a,a),c}function x(a){function b(){return ia.resolve()}var c=this,d={db:null};if(a)for(var e in a)d[e]=a[e];ha||(ha={});var f=ha[d.name];f||(f={forages:[],db:null,dbReady:null,deferredOperations:[]},ha[d.name]=f),f.forages.push(c),c._initReady||(c._initReady=c.ready,c.ready=w);for(var g=[],h=0;h<f.forages.length;h++){var i=f.forages[h];i!==c&&g.push(i._initReady()["catch"](b))}var j=f.forages.slice(0);return ia.all(g).then(function(){return d.db=f.db,q(d)}).then(function(a){return d.db=a,s(d,c._defaultConfig.version)?r(d):a}).then(function(a){d.db=f.db=a,c._dbInfo=d;for(var b=0;b<j.length;b++){var e=j[b];e!==c&&(e._dbInfo.db=d.db,e._dbInfo.version=d.version)}})}function y(a,b){var c=this;"string"!=typeof a&&(console.warn(a+" used as a key, but it is not a string."),a=String(a));var d=new ia(function(b,d){c.ready().then(function(){var e=c._dbInfo,f=e.db.transaction(e.storeName,"readonly").objectStore(e.storeName),g=f.get(a);g.onsuccess=function(){var a=g.result;void 0===a&&(a=null),v(a)&&(a=u(a)),b(a)},g.onerror=function(){d(g.error)}})["catch"](d)});return j(d,b),d}function z(a,b){var c=this,d=new ia(function(b,d){c.ready().then(function(){var e=c._dbInfo,f=e.db.transaction(e.storeName,"readonly").objectStore(e.storeName),g=f.openCursor(),h=1;g.onsuccess=function(){var c=g.result;if(c){var d=c.value;v(d)&&(d=u(d));var e=a(d,c.key,h++);void 0!==e?b(e):c["continue"]()}else b()},g.onerror=function(){d(g.error)}})["catch"](d)});return j(d,b),d}function A(a,b,c){var d=this;"string"!=typeof a&&(console.warn(a+" used as a key, but it is not a string."),a=String(a));var e=new ia(function(c,e){var f;d.ready().then(function(){return f=d._dbInfo,b instanceof Blob?m(f.db).then(function(a){return a?b:t(b)}):b}).then(function(b){var d=f.db.transaction(f.storeName,"readwrite"),g=d.objectStore(f.storeName);null===b&&(b=void 0),d.oncomplete=function(){void 0===b&&(b=null),c(b)},d.onabort=d.onerror=function(){var a=h.error?h.error:h.transaction.error;e(a)};var h=g.put(b,a)})["catch"](e)});return j(e,c),e}function B(a,b){var c=this;"string"!=typeof a&&(console.warn(a+" used as a key, but it is not a string."),a=String(a));var d=new ia(function(b,d){c.ready().then(function(){var e=c._dbInfo,f=e.db.transaction(e.storeName,"readwrite"),g=f.objectStore(e.storeName),h=g["delete"](a);f.oncomplete=function(){b()},f.onerror=function(){d(h.error)},f.onabort=function(){var a=h.error?h.error:h.transaction.error;d(a)}})["catch"](d)});return j(d,b),d}function C(a){var b=this,c=new ia(function(a,c){b.ready().then(function(){var d=b._dbInfo,e=d.db.transaction(d.storeName,"readwrite"),f=e.objectStore(d.storeName),g=f.clear();e.oncomplete=function(){a()},e.onabort=e.onerror=function(){var a=g.error?g.error:g.transaction.error;c(a)}})["catch"](c)});return j(c,a),c}function D(a){var b=this,c=new ia(function(a,c){b.ready().then(function(){var d=b._dbInfo,e=d.db.transaction(d.storeName,"readonly").objectStore(d.storeName),f=e.count();f.onsuccess=function(){a(f.result)},f.onerror=function(){c(f.error)}})["catch"](c)});return j(c,a),c}function E(a,b){var c=this,d=new ia(function(b,d){return 0>a?void b(null):void c.ready().then(function(){var e=c._dbInfo,f=e.db.transaction(e.storeName,"readonly").objectStore(e.storeName),g=!1,h=f.openCursor();h.onsuccess=function(){var c=h.result;return c?void(0===a?b(c.key):g?b(c.key):(g=!0,c.advance(a))):void b(null)},h.onerror=function(){d(h.error)}})["catch"](d)});return j(d,b),d}function F(a){var b=this,c=new ia(function(a,c){b.ready().then(function(){var d=b._dbInfo,e=d.db.transaction(d.storeName,"readonly").objectStore(d.storeName),f=e.openCursor(),g=[];f.onsuccess=function(){var b=f.result;return b?(g.push(b.key),void b["continue"]()):void a(g)},f.onerror=function(){c(f.error)}})["catch"](c)});return j(c,a),c}function G(a){var b,c,d,e,f,g=.75*a.length,h=a.length,i=0;"="===a[a.length-1]&&(g--,"="===a[a.length-2]&&g--);var j=new ArrayBuffer(g),k=new Uint8Array(j);for(b=0;h>b;b+=4)c=la.indexOf(a[b]),d=la.indexOf(a[b+1]),e=la.indexOf(a[b+2]),f=la.indexOf(a[b+3]),k[i++]=c<<2|d>>4,k[i++]=(15&d)<<4|e>>2,k[i++]=(3&e)<<6|63&f;return j}function H(a){var b,c=new Uint8Array(a),d="";for(b=0;b<c.length;b+=3)d+=la[c[b]>>2],d+=la[(3&c[b])<<4|c[b+1]>>4],d+=la[(15&c[b+1])<<2|c[b+2]>>6],d+=la[63&c[b+2]];return c.length%3===2?d=d.substring(0,d.length-1)+"=":c.length%3===1&&(d=d.substring(0,d.length-2)+"=="),d}function I(a,b){var c="";if(a&&(c=a.toString()),a&&("[object ArrayBuffer]"===a.toString()||a.buffer&&"[object ArrayBuffer]"===a.buffer.toString())){var d,e=oa;a instanceof ArrayBuffer?(d=a,e+=qa):(d=a.buffer,"[object Int8Array]"===c?e+=sa:"[object Uint8Array]"===c?e+=ta:"[object Uint8ClampedArray]"===c?e+=ua:"[object Int16Array]"===c?e+=va:"[object Uint16Array]"===c?e+=xa:"[object Int32Array]"===c?e+=wa:"[object Uint32Array]"===c?e+=ya:"[object Float32Array]"===c?e+=za:"[object Float64Array]"===c?e+=Aa:b(new Error("Failed to get type for BinaryArray"))),b(e+H(d))}else if("[object Blob]"===c){var f=new FileReader;f.onload=function(){var c=ma+a.type+"~"+H(this.result);b(oa+ra+c)},f.readAsArrayBuffer(a)}else try{b(JSON.stringify(a))}catch(g){console.error("Couldn't convert value into a JSON string: ",a),b(null,g)}}function J(a){if(a.substring(0,pa)!==oa)return JSON.parse(a);var b,c=a.substring(Ba),d=a.substring(pa,Ba);if(d===ra&&na.test(c)){var e=c.match(na);b=e[1],c=c.substring(e[0].length)}var f=G(c);switch(d){case qa:return f;case ra:return i([f],{type:b});case sa:return new Int8Array(f);case ta:return new Uint8Array(f);case ua:return new Uint8ClampedArray(f);case va:return new Int16Array(f);case xa:return new Uint16Array(f);case wa:return new Int32Array(f);case ya:return new Uint32Array(f);case za:return new Float32Array(f);case Aa:return new Float64Array(f);default:throw new Error("Unkown type: "+d)}}function K(a){var b=this,c={db:null};if(a)for(var d in a)c[d]="string"!=typeof a[d]?a[d].toString():a[d];var e=new ia(function(a,d){try{c.db=openDatabase(c.name,String(c.version),c.description,c.size)}catch(e){return d(e)}c.db.transaction(function(e){e.executeSql("CREATE TABLE IF NOT EXISTS "+c.storeName+" (id INTEGER PRIMARY KEY, key unique, value)",[],function(){b._dbInfo=c,a()},function(a,b){d(b)})})});return c.serializer=Ca,e}function L(a,b){var c=this;"string"!=typeof a&&(console.warn(a+" used as a key, but it is not a string."),a=String(a));var d=new ia(function(b,d){c.ready().then(function(){var e=c._dbInfo;e.db.transaction(function(c){c.executeSql("SELECT * FROM "+e.storeName+" WHERE key = ? LIMIT 1",[a],function(a,c){var d=c.rows.length?c.rows.item(0).value:null;d&&(d=e.serializer.deserialize(d)),b(d)},function(a,b){d(b)})})})["catch"](d)});return j(d,b),d}function M(a,b){var c=this,d=new ia(function(b,d){c.ready().then(function(){var e=c._dbInfo;e.db.transaction(function(c){c.executeSql("SELECT * FROM "+e.storeName,[],function(c,d){for(var f=d.rows,g=f.length,h=0;g>h;h++){var i=f.item(h),j=i.value;if(j&&(j=e.serializer.deserialize(j)),j=a(j,i.key,h+1),void 0!==j)return void b(j)}b()},function(a,b){d(b)})})})["catch"](d)});return j(d,b),d}function N(a,b,c){var d=this;"string"!=typeof a&&(console.warn(a+" used as a key, but it is not a string."),a=String(a));var e=new ia(function(c,e){d.ready().then(function(){void 0===b&&(b=null);var f=b,g=d._dbInfo;g.serializer.serialize(b,function(b,d){d?e(d):g.db.transaction(function(d){d.executeSql("INSERT OR REPLACE INTO "+g.storeName+" (key, value) VALUES (?, ?)",[a,b],function(){c(f)},function(a,b){e(b)})},function(a){a.code===a.QUOTA_ERR&&e(a)})})})["catch"](e)});return j(e,c),e}function O(a,b){var c=this;"string"!=typeof a&&(console.warn(a+" used as a key, but it is not a string."),a=String(a));var d=new ia(function(b,d){c.ready().then(function(){var e=c._dbInfo;e.db.transaction(function(c){c.executeSql("DELETE FROM "+e.storeName+" WHERE key = ?",[a],function(){b()},function(a,b){d(b)})})})["catch"](d)});return j(d,b),d}function P(a){var b=this,c=new ia(function(a,c){b.ready().then(function(){var d=b._dbInfo;d.db.transaction(function(b){b.executeSql("DELETE FROM "+d.storeName,[],function(){a()},function(a,b){c(b)})})})["catch"](c)});return j(c,a),c}function Q(a){var b=this,c=new ia(function(a,c){b.ready().then(function(){var d=b._dbInfo;d.db.transaction(function(b){b.executeSql("SELECT COUNT(key) as c FROM "+d.storeName,[],function(b,c){var d=c.rows.item(0).c;a(d)},function(a,b){c(b)})})})["catch"](c)});return j(c,a),c}function R(a,b){var c=this,d=new ia(function(b,d){c.ready().then(function(){var e=c._dbInfo;e.db.transaction(function(c){c.executeSql("SELECT key FROM "+e.storeName+" WHERE id = ? LIMIT 1",[a+1],function(a,c){var d=c.rows.length?c.rows.item(0).key:null;b(d)},function(a,b){d(b)})})})["catch"](d)});return j(d,b),d}function S(a){var b=this,c=new ia(function(a,c){b.ready().then(function(){var d=b._dbInfo;d.db.transaction(function(b){b.executeSql("SELECT key FROM "+d.storeName,[],function(b,c){for(var d=[],e=0;e<c.rows.length;e++)d.push(c.rows.item(e).key);a(d)},function(a,b){c(b)})})})["catch"](c)});return j(c,a),c}function T(a){var b=this,c={};if(a)for(var d in a)c[d]=a[d];return c.keyPrefix=c.name+"/",c.storeName!==b._defaultConfig.storeName&&(c.keyPrefix+=c.storeName+"/"),b._dbInfo=c,c.serializer=Ca,ia.resolve()}function U(a){var b=this,c=b.ready().then(function(){for(var a=b._dbInfo.keyPrefix,c=localStorage.length-1;c>=0;c--){var d=localStorage.key(c);0===d.indexOf(a)&&localStorage.removeItem(d)}});return j(c,a),c}function V(a,b){var c=this;"string"!=typeof a&&(console.warn(a+" used as a key, but it is not a string."),a=String(a));var d=c.ready().then(function(){var b=c._dbInfo,d=localStorage.getItem(b.keyPrefix+a);return d&&(d=b.serializer.deserialize(d)),d});return j(d,b),d}function W(a,b){var c=this,d=c.ready().then(function(){for(var b=c._dbInfo,d=b.keyPrefix,e=d.length,f=localStorage.length,g=1,h=0;f>h;h++){var i=localStorage.key(h);if(0===i.indexOf(d)){var j=localStorage.getItem(i);if(j&&(j=b.serializer.deserialize(j)),j=a(j,i.substring(e),g++),void 0!==j)return j}}});return j(d,b),d}function X(a,b){var c=this,d=c.ready().then(function(){var b,d=c._dbInfo;try{b=localStorage.key(a)}catch(e){b=null}return b&&(b=b.substring(d.keyPrefix.length)),b});return j(d,b),d}function Y(a){var b=this,c=b.ready().then(function(){for(var a=b._dbInfo,c=localStorage.length,d=[],e=0;c>e;e++)0===localStorage.key(e).indexOf(a.keyPrefix)&&d.push(localStorage.key(e).substring(a.keyPrefix.length));return d});return j(c,a),c}function Z(a){var b=this,c=b.keys().then(function(a){return a.length});return j(c,a),c}function $(a,b){var c=this;"string"!=typeof a&&(console.warn(a+" used as a key, but it is not a string."),a=String(a));var d=c.ready().then(function(){var b=c._dbInfo;localStorage.removeItem(b.keyPrefix+a)});return j(d,b),d}function _(a,b,c){var d=this;"string"!=typeof a&&(console.warn(a+" used as a key, but it is not a string."),a=String(a));var e=d.ready().then(function(){void 0===b&&(b=null);var c=b;return new ia(function(e,f){var g=d._dbInfo;g.serializer.serialize(b,function(b,d){if(d)f(d);else try{localStorage.setItem(g.keyPrefix+a,b),e(c)}catch(h){"QuotaExceededError"!==h.name&&"NS_ERROR_DOM_QUOTA_REACHED"!==h.name||f(h),f(h)}})})});return j(e,c),e}function aa(a,b,c){"function"==typeof b&&a.then(b),"function"==typeof c&&a["catch"](c)}function ba(a,b){a[b]=function(){var c=arguments;return a.ready().then(function(){return a[b].apply(a,c)})}}function ca(){for(var a=1;a<arguments.length;a++){var b=arguments[a];if(b)for(var c in b)b.hasOwnProperty(c)&&(La(b[c])?arguments[0][c]=b[c].slice():arguments[0][c]=b[c])}return arguments[0]}function da(a){for(var b in Ga)if(Ga.hasOwnProperty(b)&&Ga[b]===a)return!0;return!1}var ea="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(a){return typeof a}:function(a){return a&&"function"==typeof Symbol&&a.constructor===Symbol?"symbol":typeof a},fa=e();"undefined"==typeof Promise&&"undefined"!=typeof a&&a(3);var ga,ha,ia=Promise,ja="local-forage-detect-blob-support",ka={_driver:"asyncStorage",_initStorage:x,iterate:z,getItem:y,setItem:A,removeItem:B,clear:C,length:D,key:E,keys:F},la="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",ma="~~local_forage_type~",na=/^~~local_forage_type~([^~]+)~/,oa="__lfsc__:",pa=oa.length,qa="arbf",ra="blob",sa="si08",ta="ui08",ua="uic8",va="si16",wa="si32",xa="ur16",ya="ui32",za="fl32",Aa="fl64",Ba=pa+qa.length,Ca={serialize:I,deserialize:J,stringToBuffer:G,bufferToString:H},Da={_driver:"webSQLStorage",_initStorage:K,iterate:M,getItem:L,setItem:N,removeItem:O,clear:P,length:Q,key:R,keys:S},Ea={_driver:"localStorageWrapper",_initStorage:T,iterate:W,getItem:V,setItem:_,removeItem:$,clear:U,length:Z,key:X,keys:Y},Fa={},Ga={INDEXEDDB:"asyncStorage",LOCALSTORAGE:"localStorageWrapper",WEBSQL:"webSQLStorage"},Ha=[Ga.INDEXEDDB,Ga.WEBSQL,Ga.LOCALSTORAGE],Ia=["clear","getItem","iterate","key","keys","length","removeItem","setItem"],Ja={description:"",driver:Ha.slice(),name:"localforage",size:4980736,storeName:"keyvaluepairs",version:1},Ka={};Ka[Ga.INDEXEDDB]=f(),Ka[Ga.WEBSQL]=g(),Ka[Ga.LOCALSTORAGE]=h();var La=Array.isArray||function(a){return"[object Array]"===Object.prototype.toString.call(a)},Ma=function(){function a(b){d(this,a),this.INDEXEDDB=Ga.INDEXEDDB,this.LOCALSTORAGE=Ga.LOCALSTORAGE,this.WEBSQL=Ga.WEBSQL,this._defaultConfig=ca({},Ja),this._config=ca({},this._defaultConfig,b),this._driverSet=null,this._initDriver=null,this._ready=!1,this._dbInfo=null,this._wrapLibraryMethodsWithReady(),this.setDriver(this._config.driver)}return a.prototype.config=function(a){if("object"===("undefined"==typeof a?"undefined":ea(a))){if(this._ready)return new Error("Can't call config() after localforage has been used.");for(var b in a)"storeName"===b&&(a[b]=a[b].replace(/\W/g,"_")),this._config[b]=a[b];return"driver"in a&&a.driver&&this.setDriver(this._config.driver),!0}return"string"==typeof a?this._config[a]:this._config},a.prototype.defineDriver=function(a,b,c){var d=new ia(function(b,c){try{var d=a._driver,e=new Error("Custom driver not compliant; see https://mozilla.github.io/localForage/#definedriver"),f=new Error("Custom driver name already in use: "+a._driver);if(!a._driver)return void c(e);if(da(a._driver))return void c(f);for(var g=Ia.concat("_initStorage"),h=0;h<g.length;h++){var i=g[h];if(!i||!a[i]||"function"!=typeof a[i])return void c(e)}var j=ia.resolve(!0);"_support"in a&&(j=a._support&&"function"==typeof a._support?a._support():ia.resolve(!!a._support)),j.then(function(c){Ka[d]=c,Fa[d]=a,b()},c)}catch(k){c(k)}});return aa(d,b,c),d},a.prototype.driver=function(){return this._driver||null},a.prototype.getDriver=function(a,b,c){var d=this,e=ia.resolve().then(function(){if(!da(a)){if(Fa[a])return Fa[a];throw new Error("Driver not found.")}switch(a){case d.INDEXEDDB:return ka;case d.LOCALSTORAGE:return Ea;case d.WEBSQL:return Da}});return aa(e,b,c),e},a.prototype.getSerializer=function(a){var b=ia.resolve(Ca);return aa(b,a),b},a.prototype.ready=function(a){var b=this,c=b._driverSet.then(function(){return null===b._ready&&(b._ready=b._initDriver()),b._ready});return aa(c,a,a),c},a.prototype.setDriver=function(a,b,c){function d(){f._config.driver=f.driver()}function e(a){return function(){function b(){for(;c<a.length;){var e=a[c];return c++,f._dbInfo=null,f._ready=null,f.getDriver(e).then(function(a){return f._extend(a),d(),f._ready=f._initStorage(f._config),f._ready})["catch"](b)}d();var g=new Error("No available storage method found.");return f._driverSet=ia.reject(g),f._driverSet}var c=0;return b()}}var f=this;La(a)||(a=[a]);var g=this._getSupportedDrivers(a),h=null!==this._driverSet?this._driverSet["catch"](function(){return ia.resolve()}):ia.resolve();return this._driverSet=h.then(function(){var a=g[0];return f._dbInfo=null,f._ready=null,f.getDriver(a).then(function(a){f._driver=a._driver,d(),f._wrapLibraryMethodsWithReady(),f._initDriver=e(g)})})["catch"](function(){d();var a=new Error("No available storage method found.");return f._driverSet=ia.reject(a),f._driverSet}),aa(this._driverSet,b,c),this._driverSet},a.prototype.supports=function(a){return!!Ka[a]},a.prototype._extend=function(a){ca(this,a)},a.prototype._getSupportedDrivers=function(a){for(var b=[],c=0,d=a.length;d>c;c++){var e=a[c];this.supports(e)&&b.push(e)}return b},a.prototype._wrapLibraryMethodsWithReady=function(){for(var a=0;a<Ia.length;a++)ba(this,Ia[a])},a.prototype.createInstance=function(b){return new a(b)},a}(),Na=new Ma;b.exports=Na},{3:3}]},{},[4])(4)});
-/*! VelocityJS.org (1.2.3). (C) 2014 Julian Shapiro. MIT @license: en.wikipedia.org/wiki/MIT_License */
+/*! VelocityJS.org (1.4.1). (C) 2014 Julian Shapiro. MIT @license: en.wikipedia.org/wiki/MIT_License */
 /*! VelocityJS.org jQuery Shim (1.0.1). (C) 2014 The jQuery Foundation. MIT @license: en.wikipedia.org/wiki/MIT_License. */
-!function(a){function b(a){var b=a.length,d=c.type(a);return"function"===d||c.isWindow(a)?!1:1===a.nodeType&&b?!0:"array"===d||0===b||"number"==typeof b&&b>0&&b-1 in a}if(!a.jQuery){var c=function(a,b){return new c.fn.init(a,b)};c.isWindow=function(a){return null!=a&&a==a.window},c.type=function(a){return null==a?a+"":"object"==typeof a||"function"==typeof a?e[g.call(a)]||"object":typeof a},c.isArray=Array.isArray||function(a){return"array"===c.type(a)},c.isPlainObject=function(a){var b;if(!a||"object"!==c.type(a)||a.nodeType||c.isWindow(a))return!1;try{if(a.constructor&&!f.call(a,"constructor")&&!f.call(a.constructor.prototype,"isPrototypeOf"))return!1}catch(d){return!1}for(b in a);return void 0===b||f.call(a,b)},c.each=function(a,c,d){var e,f=0,g=a.length,h=b(a);if(d){if(h)for(;g>f&&(e=c.apply(a[f],d),e!==!1);f++);else for(f in a)if(e=c.apply(a[f],d),e===!1)break}else if(h)for(;g>f&&(e=c.call(a[f],f,a[f]),e!==!1);f++);else for(f in a)if(e=c.call(a[f],f,a[f]),e===!1)break;return a},c.data=function(a,b,e){if(void 0===e){var f=a[c.expando],g=f&&d[f];if(void 0===b)return g;if(g&&b in g)return g[b]}else if(void 0!==b){var f=a[c.expando]||(a[c.expando]=++c.uuid);return d[f]=d[f]||{},d[f][b]=e,e}},c.removeData=function(a,b){var e=a[c.expando],f=e&&d[e];f&&c.each(b,function(a,b){delete f[b]})},c.extend=function(){var a,b,d,e,f,g,h=arguments[0]||{},i=1,j=arguments.length,k=!1;for("boolean"==typeof h&&(k=h,h=arguments[i]||{},i++),"object"!=typeof h&&"function"!==c.type(h)&&(h={}),i===j&&(h=this,i--);j>i;i++)if(null!=(f=arguments[i]))for(e in f)a=h[e],d=f[e],h!==d&&(k&&d&&(c.isPlainObject(d)||(b=c.isArray(d)))?(b?(b=!1,g=a&&c.isArray(a)?a:[]):g=a&&c.isPlainObject(a)?a:{},h[e]=c.extend(k,g,d)):void 0!==d&&(h[e]=d));return h},c.queue=function(a,d,e){function f(a,c){var d=c||[];return null!=a&&(b(Object(a))?!function(a,b){for(var c=+b.length,d=0,e=a.length;c>d;)a[e++]=b[d++];if(c!==c)for(;void 0!==b[d];)a[e++]=b[d++];return a.length=e,a}(d,"string"==typeof a?[a]:a):[].push.call(d,a)),d}if(a){d=(d||"fx")+"queue";var g=c.data(a,d);return e?(!g||c.isArray(e)?g=c.data(a,d,f(e)):g.push(e),g):g||[]}},c.dequeue=function(a,b){c.each(a.nodeType?[a]:a,function(a,d){b=b||"fx";var e=c.queue(d,b),f=e.shift();"inprogress"===f&&(f=e.shift()),f&&("fx"===b&&e.unshift("inprogress"),f.call(d,function(){c.dequeue(d,b)}))})},c.fn=c.prototype={init:function(a){if(a.nodeType)return this[0]=a,this;throw new Error("Not a DOM node.")},offset:function(){var b=this[0].getBoundingClientRect?this[0].getBoundingClientRect():{top:0,left:0};return{top:b.top+(a.pageYOffset||document.scrollTop||0)-(document.clientTop||0),left:b.left+(a.pageXOffset||document.scrollLeft||0)-(document.clientLeft||0)}},position:function(){function a(){for(var a=this.offsetParent||document;a&&"html"===!a.nodeType.toLowerCase&&"static"===a.style.position;)a=a.offsetParent;return a||document}var b=this[0],a=a.apply(b),d=this.offset(),e=/^(?:body|html)$/i.test(a.nodeName)?{top:0,left:0}:c(a).offset();return d.top-=parseFloat(b.style.marginTop)||0,d.left-=parseFloat(b.style.marginLeft)||0,a.style&&(e.top+=parseFloat(a.style.borderTopWidth)||0,e.left+=parseFloat(a.style.borderLeftWidth)||0),{top:d.top-e.top,left:d.left-e.left}}};var d={};c.expando="velocity"+(new Date).getTime(),c.uuid=0;for(var e={},f=e.hasOwnProperty,g=e.toString,h="Boolean Number String Function Array Date RegExp Object Error".split(" "),i=0;i<h.length;i++)e["[object "+h[i]+"]"]=h[i].toLowerCase();c.fn.init.prototype=c.fn,a.Velocity={Utilities:c}}}(window),function(a){"object"==typeof module&&"object"==typeof module.exports?module.exports=a():"function"==typeof define&&define.amd?define('velocity',a):a()}(function(){return function(a,b,c,d){function e(a){for(var b=-1,c=a?a.length:0,d=[];++b<c;){var e=a[b];e&&d.push(e)}return d}function f(a){return p.isWrapped(a)?a=[].slice.call(a):p.isNode(a)&&(a=[a]),a}function g(a){var b=m.data(a,"velocity");return null===b?d:b}function h(a){return function(b){return Math.round(b*a)*(1/a)}}function i(a,c,d,e){function f(a,b){return 1-3*b+3*a}function g(a,b){return 3*b-6*a}function h(a){return 3*a}function i(a,b,c){return((f(b,c)*a+g(b,c))*a+h(b))*a}function j(a,b,c){return 3*f(b,c)*a*a+2*g(b,c)*a+h(b)}function k(b,c){for(var e=0;p>e;++e){var f=j(c,a,d);if(0===f)return c;var g=i(c,a,d)-b;c-=g/f}return c}function l(){for(var b=0;t>b;++b)x[b]=i(b*u,a,d)}function m(b,c,e){var f,g,h=0;do g=c+(e-c)/2,f=i(g,a,d)-b,f>0?e=g:c=g;while(Math.abs(f)>r&&++h<s);return g}function n(b){for(var c=0,e=1,f=t-1;e!=f&&x[e]<=b;++e)c+=u;--e;var g=(b-x[e])/(x[e+1]-x[e]),h=c+g*u,i=j(h,a,d);return i>=q?k(b,h):0==i?h:m(b,c,c+u)}function o(){y=!0,(a!=c||d!=e)&&l()}var p=4,q=.001,r=1e-7,s=10,t=11,u=1/(t-1),v="Float32Array"in b;if(4!==arguments.length)return!1;for(var w=0;4>w;++w)if("number"!=typeof arguments[w]||isNaN(arguments[w])||!isFinite(arguments[w]))return!1;a=Math.min(a,1),d=Math.min(d,1),a=Math.max(a,0),d=Math.max(d,0);var x=v?new Float32Array(t):new Array(t),y=!1,z=function(b){return y||o(),a===c&&d===e?b:0===b?0:1===b?1:i(n(b),c,e)};z.getControlPoints=function(){return[{x:a,y:c},{x:d,y:e}]};var A="generateBezier("+[a,c,d,e]+")";return z.toString=function(){return A},z}function j(a,b){var c=a;return p.isString(a)?t.Easings[a]||(c=!1):c=p.isArray(a)&&1===a.length?h.apply(null,a):p.isArray(a)&&2===a.length?u.apply(null,a.concat([b])):p.isArray(a)&&4===a.length?i.apply(null,a):!1,c===!1&&(c=t.Easings[t.defaults.easing]?t.defaults.easing:s),c}function k(a){if(a){var b=(new Date).getTime(),c=t.State.calls.length;c>1e4&&(t.State.calls=e(t.State.calls));for(var f=0;c>f;f++)if(t.State.calls[f]){var h=t.State.calls[f],i=h[0],j=h[2],n=h[3],o=!!n,q=null;n||(n=t.State.calls[f][3]=b-16);for(var r=Math.min((b-n)/j.duration,1),s=0,u=i.length;u>s;s++){var w=i[s],y=w.element;if(g(y)){var z=!1;if(j.display!==d&&null!==j.display&&"none"!==j.display){if("flex"===j.display){var A=["-webkit-box","-moz-box","-ms-flexbox","-webkit-flex"];m.each(A,function(a,b){v.setPropertyValue(y,"display",b)})}v.setPropertyValue(y,"display",j.display)}j.visibility!==d&&"hidden"!==j.visibility&&v.setPropertyValue(y,"visibility",j.visibility);for(var B in w)if("element"!==B){var C,D=w[B],E=p.isString(D.easing)?t.Easings[D.easing]:D.easing;if(1===r)C=D.endValue;else{var F=D.endValue-D.startValue;if(C=D.startValue+F*E(r,j,F),!o&&C===D.currentValue)continue}if(D.currentValue=C,"tween"===B)q=C;else{if(v.Hooks.registered[B]){var G=v.Hooks.getRoot(B),H=g(y).rootPropertyValueCache[G];H&&(D.rootPropertyValue=H)}var I=v.setPropertyValue(y,B,D.currentValue+(0===parseFloat(C)?"":D.unitType),D.rootPropertyValue,D.scrollData);v.Hooks.registered[B]&&(g(y).rootPropertyValueCache[G]=v.Normalizations.registered[G]?v.Normalizations.registered[G]("extract",null,I[1]):I[1]),"transform"===I[0]&&(z=!0)}}j.mobileHA&&g(y).transformCache.translate3d===d&&(g(y).transformCache.translate3d="(0px, 0px, 0px)",z=!0),z&&v.flushTransformCache(y)}}j.display!==d&&"none"!==j.display&&(t.State.calls[f][2].display=!1),j.visibility!==d&&"hidden"!==j.visibility&&(t.State.calls[f][2].visibility=!1),j.progress&&j.progress.call(h[1],h[1],r,Math.max(0,n+j.duration-b),n,q),1===r&&l(f)}}t.State.isTicking&&x(k)}function l(a,b){if(!t.State.calls[a])return!1;for(var c=t.State.calls[a][0],e=t.State.calls[a][1],f=t.State.calls[a][2],h=t.State.calls[a][4],i=!1,j=0,k=c.length;k>j;j++){var l=c[j].element;if(b||f.loop||("none"===f.display&&v.setPropertyValue(l,"display",f.display),"hidden"===f.visibility&&v.setPropertyValue(l,"visibility",f.visibility)),f.loop!==!0&&(m.queue(l)[1]===d||!/\.velocityQueueEntryFlag/i.test(m.queue(l)[1]))&&g(l)){g(l).isAnimating=!1,g(l).rootPropertyValueCache={};var n=!1;m.each(v.Lists.transforms3D,function(a,b){var c=/^scale/.test(b)?1:0,e=g(l).transformCache[b];g(l).transformCache[b]!==d&&new RegExp("^\\("+c+"[^.]").test(e)&&(n=!0,delete g(l).transformCache[b])}),f.mobileHA&&(n=!0,delete g(l).transformCache.translate3d),n&&v.flushTransformCache(l),v.Values.removeClass(l,"velocity-animating")}if(!b&&f.complete&&!f.loop&&j===k-1)try{f.complete.call(e,e)}catch(o){setTimeout(function(){throw o},1)}h&&f.loop!==!0&&h(e),g(l)&&f.loop===!0&&!b&&(m.each(g(l).tweensContainer,function(a,b){/^rotate/.test(a)&&360===parseFloat(b.endValue)&&(b.endValue=0,b.startValue=360),/^backgroundPosition/.test(a)&&100===parseFloat(b.endValue)&&"%"===b.unitType&&(b.endValue=0,b.startValue=100)}),t(l,"reverse",{loop:!0,delay:f.delay})),f.queue!==!1&&m.dequeue(l,f.queue)}t.State.calls[a]=!1;for(var p=0,q=t.State.calls.length;q>p;p++)if(t.State.calls[p]!==!1){i=!0;break}i===!1&&(t.State.isTicking=!1,delete t.State.calls,t.State.calls=[])}var m,n=function(){if(c.documentMode)return c.documentMode;for(var a=7;a>4;a--){var b=c.createElement("div");if(b.innerHTML="<!--[if IE "+a+"]><span></span><![endif]-->",b.getElementsByTagName("span").length)return b=null,a}return d}(),o=function(){var a=0;return b.webkitRequestAnimationFrame||b.mozRequestAnimationFrame||function(b){var c,d=(new Date).getTime();return c=Math.max(0,16-(d-a)),a=d+c,setTimeout(function(){b(d+c)},c)}}(),p={isString:function(a){return"string"==typeof a},isArray:Array.isArray||function(a){return"[object Array]"===Object.prototype.toString.call(a)},isFunction:function(a){return"[object Function]"===Object.prototype.toString.call(a)},isNode:function(a){return a&&a.nodeType},isNodeList:function(a){return"object"==typeof a&&/^\[object (HTMLCollection|NodeList|Object)\]$/.test(Object.prototype.toString.call(a))&&a.length!==d&&(0===a.length||"object"==typeof a[0]&&a[0].nodeType>0)},isWrapped:function(a){return a&&(a.jquery||b.Zepto&&b.Zepto.zepto.isZ(a))},isSVG:function(a){return b.SVGElement&&a instanceof b.SVGElement},isEmptyObject:function(a){for(var b in a)return!1;return!0}},q=!1;if(a.fn&&a.fn.jquery?(m=a,q=!0):m=b.Velocity.Utilities,8>=n&&!q)throw new Error("Velocity: IE8 and below require jQuery to be loaded before Velocity.");if(7>=n)return void(jQuery.fn.velocity=jQuery.fn.animate);var r=400,s="swing",t={State:{isMobile:/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),isAndroid:/Android/i.test(navigator.userAgent),isGingerbread:/Android 2\.3\.[3-7]/i.test(navigator.userAgent),isChrome:b.chrome,isFirefox:/Firefox/i.test(navigator.userAgent),prefixElement:c.createElement("div"),prefixMatches:{},scrollAnchor:null,scrollPropertyLeft:null,scrollPropertyTop:null,isTicking:!1,calls:[]},CSS:{},Utilities:m,Redirects:{},Easings:{},Promise:b.Promise,defaults:{queue:"",duration:r,easing:s,begin:d,complete:d,progress:d,display:d,visibility:d,loop:!1,delay:!1,mobileHA:!0,_cacheValues:!0},init:function(a){m.data(a,"velocity",{isSVG:p.isSVG(a),isAnimating:!1,computedStyle:null,tweensContainer:null,rootPropertyValueCache:{},transformCache:{}})},hook:null,mock:!1,version:{major:1,minor:2,patch:2},debug:!1};b.pageYOffset!==d?(t.State.scrollAnchor=b,t.State.scrollPropertyLeft="pageXOffset",t.State.scrollPropertyTop="pageYOffset"):(t.State.scrollAnchor=c.documentElement||c.body.parentNode||c.body,t.State.scrollPropertyLeft="scrollLeft",t.State.scrollPropertyTop="scrollTop");var u=function(){function a(a){return-a.tension*a.x-a.friction*a.v}function b(b,c,d){var e={x:b.x+d.dx*c,v:b.v+d.dv*c,tension:b.tension,friction:b.friction};return{dx:e.v,dv:a(e)}}function c(c,d){var e={dx:c.v,dv:a(c)},f=b(c,.5*d,e),g=b(c,.5*d,f),h=b(c,d,g),i=1/6*(e.dx+2*(f.dx+g.dx)+h.dx),j=1/6*(e.dv+2*(f.dv+g.dv)+h.dv);return c.x=c.x+i*d,c.v=c.v+j*d,c}return function d(a,b,e){var f,g,h,i={x:-1,v:0,tension:null,friction:null},j=[0],k=0,l=1e-4,m=.016;for(a=parseFloat(a)||500,b=parseFloat(b)||20,e=e||null,i.tension=a,i.friction=b,f=null!==e,f?(k=d(a,b),g=k/e*m):g=m;;)if(h=c(h||i,g),j.push(1+h.x),k+=16,!(Math.abs(h.x)>l&&Math.abs(h.v)>l))break;return f?function(a){return j[a*(j.length-1)|0]}:k}}();t.Easings={linear:function(a){return a},swing:function(a){return.5-Math.cos(a*Math.PI)/2},spring:function(a){return 1-Math.cos(4.5*a*Math.PI)*Math.exp(6*-a)}},m.each([["ease",[.25,.1,.25,1]],["ease-in",[.42,0,1,1]],["ease-out",[0,0,.58,1]],["ease-in-out",[.42,0,.58,1]],["easeInSine",[.47,0,.745,.715]],["easeOutSine",[.39,.575,.565,1]],["easeInOutSine",[.445,.05,.55,.95]],["easeInQuad",[.55,.085,.68,.53]],["easeOutQuad",[.25,.46,.45,.94]],["easeInOutQuad",[.455,.03,.515,.955]],["easeInCubic",[.55,.055,.675,.19]],["easeOutCubic",[.215,.61,.355,1]],["easeInOutCubic",[.645,.045,.355,1]],["easeInQuart",[.895,.03,.685,.22]],["easeOutQuart",[.165,.84,.44,1]],["easeInOutQuart",[.77,0,.175,1]],["easeInQuint",[.755,.05,.855,.06]],["easeOutQuint",[.23,1,.32,1]],["easeInOutQuint",[.86,0,.07,1]],["easeInExpo",[.95,.05,.795,.035]],["easeOutExpo",[.19,1,.22,1]],["easeInOutExpo",[1,0,0,1]],["easeInCirc",[.6,.04,.98,.335]],["easeOutCirc",[.075,.82,.165,1]],["easeInOutCirc",[.785,.135,.15,.86]]],function(a,b){t.Easings[b[0]]=i.apply(null,b[1])});var v=t.CSS={RegEx:{isHex:/^#([A-f\d]{3}){1,2}$/i,valueUnwrap:/^[A-z]+\((.*)\)$/i,wrappedValueAlreadyExtracted:/[0-9.]+ [0-9.]+ [0-9.]+( [0-9.]+)?/,valueSplit:/([A-z]+\(.+\))|(([A-z0-9#-.]+?)(?=\s|$))/gi},Lists:{colors:["fill","stroke","stopColor","color","backgroundColor","borderColor","borderTopColor","borderRightColor","borderBottomColor","borderLeftColor","outlineColor"],transformsBase:["translateX","translateY","scale","scaleX","scaleY","skewX","skewY","rotateZ"],transforms3D:["transformPerspective","translateZ","scaleZ","rotateX","rotateY"]},Hooks:{templates:{textShadow:["Color X Y Blur","black 0px 0px 0px"],boxShadow:["Color X Y Blur Spread","black 0px 0px 0px 0px"],clip:["Top Right Bottom Left","0px 0px 0px 0px"],backgroundPosition:["X Y","0% 0%"],transformOrigin:["X Y Z","50% 50% 0px"],perspectiveOrigin:["X Y","50% 50%"]},registered:{},register:function(){for(var a=0;a<v.Lists.colors.length;a++){var b="color"===v.Lists.colors[a]?"0 0 0 1":"255 255 255 1";v.Hooks.templates[v.Lists.colors[a]]=["Red Green Blue Alpha",b]}var c,d,e;if(n)for(c in v.Hooks.templates){d=v.Hooks.templates[c],e=d[0].split(" ");var f=d[1].match(v.RegEx.valueSplit);"Color"===e[0]&&(e.push(e.shift()),f.push(f.shift()),v.Hooks.templates[c]=[e.join(" "),f.join(" ")])}for(c in v.Hooks.templates){d=v.Hooks.templates[c],e=d[0].split(" ");for(var a in e){var g=c+e[a],h=a;v.Hooks.registered[g]=[c,h]}}},getRoot:function(a){var b=v.Hooks.registered[a];return b?b[0]:a},cleanRootPropertyValue:function(a,b){return v.RegEx.valueUnwrap.test(b)&&(b=b.match(v.RegEx.valueUnwrap)[1]),v.Values.isCSSNullValue(b)&&(b=v.Hooks.templates[a][1]),b},extractValue:function(a,b){var c=v.Hooks.registered[a];if(c){var d=c[0],e=c[1];return b=v.Hooks.cleanRootPropertyValue(d,b),b.toString().match(v.RegEx.valueSplit)[e]}return b},injectValue:function(a,b,c){var d=v.Hooks.registered[a];if(d){var e,f,g=d[0],h=d[1];return c=v.Hooks.cleanRootPropertyValue(g,c),e=c.toString().match(v.RegEx.valueSplit),e[h]=b,f=e.join(" ")}return c}},Normalizations:{registered:{clip:function(a,b,c){switch(a){case"name":return"clip";case"extract":var d;return v.RegEx.wrappedValueAlreadyExtracted.test(c)?d=c:(d=c.toString().match(v.RegEx.valueUnwrap),d=d?d[1].replace(/,(\s+)?/g," "):c),d;case"inject":return"rect("+c+")"}},blur:function(a,b,c){switch(a){case"name":return t.State.isFirefox?"filter":"-webkit-filter";case"extract":var d=parseFloat(c);if(!d&&0!==d){var e=c.toString().match(/blur\(([0-9]+[A-z]+)\)/i);d=e?e[1]:0}return d;case"inject":return parseFloat(c)?"blur("+c+")":"none"}},opacity:function(a,b,c){if(8>=n)switch(a){case"name":return"filter";case"extract":var d=c.toString().match(/alpha\(opacity=(.*)\)/i);return c=d?d[1]/100:1;case"inject":return b.style.zoom=1,parseFloat(c)>=1?"":"alpha(opacity="+parseInt(100*parseFloat(c),10)+")"}else switch(a){case"name":return"opacity";case"extract":return c;case"inject":return c}}},register:function(){9>=n||t.State.isGingerbread||(v.Lists.transformsBase=v.Lists.transformsBase.concat(v.Lists.transforms3D));for(var a=0;a<v.Lists.transformsBase.length;a++)!function(){var b=v.Lists.transformsBase[a];v.Normalizations.registered[b]=function(a,c,e){switch(a){case"name":return"transform";case"extract":return g(c)===d||g(c).transformCache[b]===d?/^scale/i.test(b)?1:0:g(c).transformCache[b].replace(/[()]/g,"");case"inject":var f=!1;switch(b.substr(0,b.length-1)){case"translate":f=!/(%|px|em|rem|vw|vh|\d)$/i.test(e);break;case"scal":case"scale":t.State.isAndroid&&g(c).transformCache[b]===d&&1>e&&(e=1),f=!/(\d)$/i.test(e);break;case"skew":f=!/(deg|\d)$/i.test(e);break;case"rotate":f=!/(deg|\d)$/i.test(e)}return f||(g(c).transformCache[b]="("+e+")"),g(c).transformCache[b]}}}();for(var a=0;a<v.Lists.colors.length;a++)!function(){var b=v.Lists.colors[a];v.Normalizations.registered[b]=function(a,c,e){switch(a){case"name":return b;case"extract":var f;if(v.RegEx.wrappedValueAlreadyExtracted.test(e))f=e;else{var g,h={black:"rgb(0, 0, 0)",blue:"rgb(0, 0, 255)",gray:"rgb(128, 128, 128)",green:"rgb(0, 128, 0)",red:"rgb(255, 0, 0)",white:"rgb(255, 255, 255)"};/^[A-z]+$/i.test(e)?g=h[e]!==d?h[e]:h.black:v.RegEx.isHex.test(e)?g="rgb("+v.Values.hexToRgb(e).join(" ")+")":/^rgba?\(/i.test(e)||(g=h.black),f=(g||e).toString().match(v.RegEx.valueUnwrap)[1].replace(/,(\s+)?/g," ")}return 8>=n||3!==f.split(" ").length||(f+=" 1"),f;case"inject":return 8>=n?4===e.split(" ").length&&(e=e.split(/\s+/).slice(0,3).join(" ")):3===e.split(" ").length&&(e+=" 1"),(8>=n?"rgb":"rgba")+"("+e.replace(/\s+/g,",").replace(/\.(\d)+(?=,)/g,"")+")"}}}()}},Names:{camelCase:function(a){return a.replace(/-(\w)/g,function(a,b){return b.toUpperCase()})},SVGAttribute:function(a){var b="width|height|x|y|cx|cy|r|rx|ry|x1|x2|y1|y2";return(n||t.State.isAndroid&&!t.State.isChrome)&&(b+="|transform"),new RegExp("^("+b+")$","i").test(a)},prefixCheck:function(a){if(t.State.prefixMatches[a])return[t.State.prefixMatches[a],!0];for(var b=["","Webkit","Moz","ms","O"],c=0,d=b.length;d>c;c++){var e;if(e=0===c?a:b[c]+a.replace(/^\w/,function(a){return a.toUpperCase()}),p.isString(t.State.prefixElement.style[e]))return t.State.prefixMatches[a]=e,[e,!0]}return[a,!1]}},Values:{hexToRgb:function(a){var b,c=/^#?([a-f\d])([a-f\d])([a-f\d])$/i,d=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i;return a=a.replace(c,function(a,b,c,d){return b+b+c+c+d+d}),b=d.exec(a),b?[parseInt(b[1],16),parseInt(b[2],16),parseInt(b[3],16)]:[0,0,0]},isCSSNullValue:function(a){return 0==a||/^(none|auto|transparent|(rgba\(0, ?0, ?0, ?0\)))$/i.test(a)},getUnitType:function(a){return/^(rotate|skew)/i.test(a)?"deg":/(^(scale|scaleX|scaleY|scaleZ|alpha|flexGrow|flexHeight|zIndex|fontWeight)$)|((opacity|red|green|blue|alpha)$)/i.test(a)?"":"px"},getDisplayType:function(a){var b=a&&a.tagName.toString().toLowerCase();return/^(b|big|i|small|tt|abbr|acronym|cite|code|dfn|em|kbd|strong|samp|var|a|bdo|br|img|map|object|q|script|span|sub|sup|button|input|label|select|textarea)$/i.test(b)?"inline":/^(li)$/i.test(b)?"list-item":/^(tr)$/i.test(b)?"table-row":/^(table)$/i.test(b)?"table":/^(tbody)$/i.test(b)?"table-row-group":"block"},addClass:function(a,b){a.classList?a.classList.add(b):a.className+=(a.className.length?" ":"")+b},removeClass:function(a,b){a.classList?a.classList.remove(b):a.className=a.className.toString().replace(new RegExp("(^|\\s)"+b.split(" ").join("|")+"(\\s|$)","gi")," ")}},getPropertyValue:function(a,c,e,f){function h(a,c){function e(){j&&v.setPropertyValue(a,"display","none")}var i=0;if(8>=n)i=m.css(a,c);else{var j=!1;if(/^(width|height)$/.test(c)&&0===v.getPropertyValue(a,"display")&&(j=!0,v.setPropertyValue(a,"display",v.Values.getDisplayType(a))),!f){if("height"===c&&"border-box"!==v.getPropertyValue(a,"boxSizing").toString().toLowerCase()){var k=a.offsetHeight-(parseFloat(v.getPropertyValue(a,"borderTopWidth"))||0)-(parseFloat(v.getPropertyValue(a,"borderBottomWidth"))||0)-(parseFloat(v.getPropertyValue(a,"paddingTop"))||0)-(parseFloat(v.getPropertyValue(a,"paddingBottom"))||0);return e(),k}if("width"===c&&"border-box"!==v.getPropertyValue(a,"boxSizing").toString().toLowerCase()){var l=a.offsetWidth-(parseFloat(v.getPropertyValue(a,"borderLeftWidth"))||0)-(parseFloat(v.getPropertyValue(a,"borderRightWidth"))||0)-(parseFloat(v.getPropertyValue(a,"paddingLeft"))||0)-(parseFloat(v.getPropertyValue(a,"paddingRight"))||0);return e(),l}}var o;o=g(a)===d?b.getComputedStyle(a,null):g(a).computedStyle?g(a).computedStyle:g(a).computedStyle=b.getComputedStyle(a,null),"borderColor"===c&&(c="borderTopColor"),i=9===n&&"filter"===c?o.getPropertyValue(c):o[c],(""===i||null===i)&&(i=a.style[c]),e()}if("auto"===i&&/^(top|right|bottom|left)$/i.test(c)){var p=h(a,"position");("fixed"===p||"absolute"===p&&/top|left/i.test(c))&&(i=m(a).position()[c]+"px")}return i}var i;if(v.Hooks.registered[c]){var j=c,k=v.Hooks.getRoot(j);e===d&&(e=v.getPropertyValue(a,v.Names.prefixCheck(k)[0])),v.Normalizations.registered[k]&&(e=v.Normalizations.registered[k]("extract",a,e)),i=v.Hooks.extractValue(j,e)}else if(v.Normalizations.registered[c]){var l,o;l=v.Normalizations.registered[c]("name",a),"transform"!==l&&(o=h(a,v.Names.prefixCheck(l)[0]),v.Values.isCSSNullValue(o)&&v.Hooks.templates[c]&&(o=v.Hooks.templates[c][1])),i=v.Normalizations.registered[c]("extract",a,o)}if(!/^[\d-]/.test(i))if(g(a)&&g(a).isSVG&&v.Names.SVGAttribute(c))if(/^(height|width)$/i.test(c))try{i=a.getBBox()[c]}catch(p){i=0}else i=a.getAttribute(c);else i=h(a,v.Names.prefixCheck(c)[0]);return v.Values.isCSSNullValue(i)&&(i=0),t.debug>=2&&console.log("Get "+c+": "+i),i},setPropertyValue:function(a,c,d,e,f){var h=c;if("scroll"===c)f.container?f.container["scroll"+f.direction]=d:"Left"===f.direction?b.scrollTo(d,f.alternateValue):b.scrollTo(f.alternateValue,d);else if(v.Normalizations.registered[c]&&"transform"===v.Normalizations.registered[c]("name",a))v.Normalizations.registered[c]("inject",a,d),h="transform",d=g(a).transformCache[c];else{if(v.Hooks.registered[c]){var i=c,j=v.Hooks.getRoot(c);e=e||v.getPropertyValue(a,j),d=v.Hooks.injectValue(i,d,e),c=j}if(v.Normalizations.registered[c]&&(d=v.Normalizations.registered[c]("inject",a,d),c=v.Normalizations.registered[c]("name",a)),h=v.Names.prefixCheck(c)[0],8>=n)try{a.style[h]=d}catch(k){t.debug&&console.log("Browser does not support ["+d+"] for ["+h+"]")}else g(a)&&g(a).isSVG&&v.Names.SVGAttribute(c)?a.setAttribute(c,d):a.style[h]=d;t.debug>=2&&console.log("Set "+c+" ("+h+"): "+d)}return[h,d]},flushTransformCache:function(a){function b(b){return parseFloat(v.getPropertyValue(a,b))}var c="";if((n||t.State.isAndroid&&!t.State.isChrome)&&g(a).isSVG){var d={translate:[b("translateX"),b("translateY")],skewX:[b("skewX")],skewY:[b("skewY")],scale:1!==b("scale")?[b("scale"),b("scale")]:[b("scaleX"),b("scaleY")],rotate:[b("rotateZ"),0,0]};m.each(g(a).transformCache,function(a){/^translate/i.test(a)?a="translate":/^scale/i.test(a)?a="scale":/^rotate/i.test(a)&&(a="rotate"),d[a]&&(c+=a+"("+d[a].join(" ")+") ",delete d[a])})}else{var e,f;m.each(g(a).transformCache,function(b){return e=g(a).transformCache[b],"transformPerspective"===b?(f=e,!0):(9===n&&"rotateZ"===b&&(b="rotate"),void(c+=b+e+" "))}),f&&(c="perspective"+f+" "+c)}v.setPropertyValue(a,"transform",c)}};v.Hooks.register(),v.Normalizations.register(),t.hook=function(a,b,c){var e=d;return a=f(a),m.each(a,function(a,f){if(g(f)===d&&t.init(f),c===d)e===d&&(e=t.CSS.getPropertyValue(f,b));else{var h=t.CSS.setPropertyValue(f,b,c);"transform"===h[0]&&t.CSS.flushTransformCache(f),e=h}}),e};var w=function(){function a(){return h?B.promise||null:i}function e(){function a(){function a(a,b){var c=d,e=d,g=d;return p.isArray(a)?(c=a[0],!p.isArray(a[1])&&/^[\d-]/.test(a[1])||p.isFunction(a[1])||v.RegEx.isHex.test(a[1])?g=a[1]:(p.isString(a[1])&&!v.RegEx.isHex.test(a[1])||p.isArray(a[1]))&&(e=b?a[1]:j(a[1],h.duration),a[2]!==d&&(g=a[2]))):c=a,b||(e=e||h.easing),p.isFunction(c)&&(c=c.call(f,y,x)),p.isFunction(g)&&(g=g.call(f,y,x)),[c||0,e,g]}function l(a,b){var c,d;return d=(b||"0").toString().toLowerCase().replace(/[%A-z]+$/,function(a){return c=a,""}),c||(c=v.Values.getUnitType(a)),[d,c]}function n(){var a={myParent:f.parentNode||c.body,position:v.getPropertyValue(f,"position"),fontSize:v.getPropertyValue(f,"fontSize")},d=a.position===I.lastPosition&&a.myParent===I.lastParent,e=a.fontSize===I.lastFontSize;I.lastParent=a.myParent,I.lastPosition=a.position,I.lastFontSize=a.fontSize;var h=100,i={};if(e&&d)i.emToPx=I.lastEmToPx,i.percentToPxWidth=I.lastPercentToPxWidth,i.percentToPxHeight=I.lastPercentToPxHeight;else{var j=g(f).isSVG?c.createElementNS("http://www.w3.org/2000/svg","rect"):c.createElement("div");t.init(j),a.myParent.appendChild(j),m.each(["overflow","overflowX","overflowY"],function(a,b){t.CSS.setPropertyValue(j,b,"hidden")}),t.CSS.setPropertyValue(j,"position",a.position),t.CSS.setPropertyValue(j,"fontSize",a.fontSize),t.CSS.setPropertyValue(j,"boxSizing","content-box"),m.each(["minWidth","maxWidth","width","minHeight","maxHeight","height"],function(a,b){t.CSS.setPropertyValue(j,b,h+"%")}),t.CSS.setPropertyValue(j,"paddingLeft",h+"em"),i.percentToPxWidth=I.lastPercentToPxWidth=(parseFloat(v.getPropertyValue(j,"width",null,!0))||1)/h,i.percentToPxHeight=I.lastPercentToPxHeight=(parseFloat(v.getPropertyValue(j,"height",null,!0))||1)/h,i.emToPx=I.lastEmToPx=(parseFloat(v.getPropertyValue(j,"paddingLeft"))||1)/h,a.myParent.removeChild(j)}return null===I.remToPx&&(I.remToPx=parseFloat(v.getPropertyValue(c.body,"fontSize"))||16),null===I.vwToPx&&(I.vwToPx=parseFloat(b.innerWidth)/100,I.vhToPx=parseFloat(b.innerHeight)/100),i.remToPx=I.remToPx,i.vwToPx=I.vwToPx,i.vhToPx=I.vhToPx,t.debug>=1&&console.log("Unit ratios: "+JSON.stringify(i),f),i}if(h.begin&&0===y)try{h.begin.call(o,o)}catch(r){setTimeout(function(){throw r},1)}if("scroll"===C){var u,w,z,A=/^x$/i.test(h.axis)?"Left":"Top",D=parseFloat(h.offset)||0;h.container?p.isWrapped(h.container)||p.isNode(h.container)?(h.container=h.container[0]||h.container,u=h.container["scroll"+A],z=u+m(f).position()[A.toLowerCase()]+D):h.container=null:(u=t.State.scrollAnchor[t.State["scrollProperty"+A]],w=t.State.scrollAnchor[t.State["scrollProperty"+("Left"===A?"Top":"Left")]],z=m(f).offset()[A.toLowerCase()]+D),i={scroll:{rootPropertyValue:!1,startValue:u,currentValue:u,endValue:z,unitType:"",easing:h.easing,scrollData:{container:h.container,direction:A,alternateValue:w}},element:f},t.debug&&console.log("tweensContainer (scroll): ",i.scroll,f)}else if("reverse"===C){if(!g(f).tweensContainer)return void m.dequeue(f,h.queue);"none"===g(f).opts.display&&(g(f).opts.display="auto"),"hidden"===g(f).opts.visibility&&(g(f).opts.visibility="visible"),g(f).opts.loop=!1,g(f).opts.begin=null,g(f).opts.complete=null,s.easing||delete h.easing,s.duration||delete h.duration,h=m.extend({},g(f).opts,h);var E=m.extend(!0,{},g(f).tweensContainer);for(var F in E)if("element"!==F){var G=E[F].startValue;E[F].startValue=E[F].currentValue=E[F].endValue,E[F].endValue=G,p.isEmptyObject(s)||(E[F].easing=h.easing),t.debug&&console.log("reverse tweensContainer ("+F+"): "+JSON.stringify(E[F]),f)}i=E}else if("start"===C){var E;g(f).tweensContainer&&g(f).isAnimating===!0&&(E=g(f).tweensContainer),m.each(q,function(b,c){if(RegExp("^"+v.Lists.colors.join("$|^")+"$").test(b)){var e=a(c,!0),f=e[0],g=e[1],h=e[2];if(v.RegEx.isHex.test(f)){for(var i=["Red","Green","Blue"],j=v.Values.hexToRgb(f),k=h?v.Values.hexToRgb(h):d,l=0;l<i.length;l++){var m=[j[l]];g&&m.push(g),k!==d&&m.push(k[l]),q[b+i[l]]=m}delete q[b]}}});for(var H in q){var K=a(q[H]),L=K[0],M=K[1],N=K[2];H=v.Names.camelCase(H);var O=v.Hooks.getRoot(H),P=!1;if(g(f).isSVG||"tween"===O||v.Names.prefixCheck(O)[1]!==!1||v.Normalizations.registered[O]!==d){(h.display!==d&&null!==h.display&&"none"!==h.display||h.visibility!==d&&"hidden"!==h.visibility)&&/opacity|filter/.test(H)&&!N&&0!==L&&(N=0),h._cacheValues&&E&&E[H]?(N===d&&(N=E[H].endValue+E[H].unitType),P=g(f).rootPropertyValueCache[O]):v.Hooks.registered[H]?N===d?(P=v.getPropertyValue(f,O),N=v.getPropertyValue(f,H,P)):P=v.Hooks.templates[O][1]:N===d&&(N=v.getPropertyValue(f,H));var Q,R,S,T=!1;if(Q=l(H,N),N=Q[0],S=Q[1],Q=l(H,L),L=Q[0].replace(/^([+-\/*])=/,function(a,b){return T=b,""}),R=Q[1],N=parseFloat(N)||0,L=parseFloat(L)||0,"%"===R&&(/^(fontSize|lineHeight)$/.test(H)?(L/=100,R="em"):/^scale/.test(H)?(L/=100,R=""):/(Red|Green|Blue)$/i.test(H)&&(L=L/100*255,R="")),/[\/*]/.test(T))R=S;else if(S!==R&&0!==N)if(0===L)R=S;else{e=e||n();var U=/margin|padding|left|right|width|text|word|letter/i.test(H)||/X$/.test(H)||"x"===H?"x":"y";switch(S){case"%":N*="x"===U?e.percentToPxWidth:e.percentToPxHeight;break;case"px":break;default:N*=e[S+"ToPx"]}switch(R){case"%":N*=1/("x"===U?e.percentToPxWidth:e.percentToPxHeight);break;case"px":break;default:N*=1/e[R+"ToPx"]}}switch(T){case"+":L=N+L;break;case"-":L=N-L;break;case"*":L=N*L;break;case"/":L=N/L}i[H]={rootPropertyValue:P,startValue:N,currentValue:N,endValue:L,unitType:R,easing:M},t.debug&&console.log("tweensContainer ("+H+"): "+JSON.stringify(i[H]),f)}else t.debug&&console.log("Skipping ["+O+"] due to a lack of browser support.")}i.element=f}i.element&&(v.Values.addClass(f,"velocity-animating"),J.push(i),""===h.queue&&(g(f).tweensContainer=i,g(f).opts=h),g(f).isAnimating=!0,y===x-1?(t.State.calls.push([J,o,h,null,B.resolver]),t.State.isTicking===!1&&(t.State.isTicking=!0,k())):y++)}var e,f=this,h=m.extend({},t.defaults,s),i={};switch(g(f)===d&&t.init(f),parseFloat(h.delay)&&h.queue!==!1&&m.queue(f,h.queue,function(a){t.velocityQueueEntryFlag=!0,g(f).delayTimer={setTimeout:setTimeout(a,parseFloat(h.delay)),next:a}}),h.duration.toString().toLowerCase()){case"fast":h.duration=200;break;case"normal":h.duration=r;break;case"slow":h.duration=600;break;default:h.duration=parseFloat(h.duration)||1}t.mock!==!1&&(t.mock===!0?h.duration=h.delay=1:(h.duration*=parseFloat(t.mock)||1,h.delay*=parseFloat(t.mock)||1)),h.easing=j(h.easing,h.duration),h.begin&&!p.isFunction(h.begin)&&(h.begin=null),h.progress&&!p.isFunction(h.progress)&&(h.progress=null),h.complete&&!p.isFunction(h.complete)&&(h.complete=null),h.display!==d&&null!==h.display&&(h.display=h.display.toString().toLowerCase(),"auto"===h.display&&(h.display=t.CSS.Values.getDisplayType(f))),h.visibility!==d&&null!==h.visibility&&(h.visibility=h.visibility.toString().toLowerCase()),h.mobileHA=h.mobileHA&&t.State.isMobile&&!t.State.isGingerbread,h.queue===!1?h.delay?setTimeout(a,h.delay):a():m.queue(f,h.queue,function(b,c){return c===!0?(B.promise&&B.resolver(o),!0):(t.velocityQueueEntryFlag=!0,void a(b))}),""!==h.queue&&"fx"!==h.queue||"inprogress"===m.queue(f)[0]||m.dequeue(f)}var h,i,n,o,q,s,u=arguments[0]&&(arguments[0].p||m.isPlainObject(arguments[0].properties)&&!arguments[0].properties.names||p.isString(arguments[0].properties));if(p.isWrapped(this)?(h=!1,n=0,o=this,i=this):(h=!0,n=1,o=u?arguments[0].elements||arguments[0].e:arguments[0]),o=f(o)){u?(q=arguments[0].properties||arguments[0].p,s=arguments[0].options||arguments[0].o):(q=arguments[n],s=arguments[n+1]);var x=o.length,y=0;if(!/^(stop|finish|finishAll)$/i.test(q)&&!m.isPlainObject(s)){var z=n+1;s={};for(var A=z;A<arguments.length;A++)p.isArray(arguments[A])||!/^(fast|normal|slow)$/i.test(arguments[A])&&!/^\d/.test(arguments[A])?p.isString(arguments[A])||p.isArray(arguments[A])?s.easing=arguments[A]:p.isFunction(arguments[A])&&(s.complete=arguments[A]):s.duration=arguments[A]}var B={promise:null,resolver:null,rejecter:null};h&&t.Promise&&(B.promise=new t.Promise(function(a,b){B.resolver=a,B.rejecter=b}));var C;switch(q){case"scroll":C="scroll";break;case"reverse":C="reverse";break;case"finish":case"finishAll":case"stop":m.each(o,function(a,b){g(b)&&g(b).delayTimer&&(clearTimeout(g(b).delayTimer.setTimeout),g(b).delayTimer.next&&g(b).delayTimer.next(),delete g(b).delayTimer),"finishAll"!==q||s!==!0&&!p.isString(s)||(m.each(m.queue(b,p.isString(s)?s:""),function(a,b){p.isFunction(b)&&b()}),m.queue(b,p.isString(s)?s:"",[]))});var D=[];return m.each(t.State.calls,function(a,b){b&&m.each(b[1],function(c,e){var f=s===d?"":s;return f===!0||b[2].queue===f||s===d&&b[2].queue===!1?void m.each(o,function(c,d){d===e&&((s===!0||p.isString(s))&&(m.each(m.queue(d,p.isString(s)?s:""),function(a,b){p.isFunction(b)&&b(null,!0)
-}),m.queue(d,p.isString(s)?s:"",[])),"stop"===q?(g(d)&&g(d).tweensContainer&&f!==!1&&m.each(g(d).tweensContainer,function(a,b){b.endValue=b.currentValue}),D.push(a)):("finish"===q||"finishAll"===q)&&(b[2].duration=1))}):!0})}),"stop"===q&&(m.each(D,function(a,b){l(b,!0)}),B.promise&&B.resolver(o)),a();default:if(!m.isPlainObject(q)||p.isEmptyObject(q)){if(p.isString(q)&&t.Redirects[q]){var E=m.extend({},s),F=E.duration,G=E.delay||0;return E.backwards===!0&&(o=m.extend(!0,[],o).reverse()),m.each(o,function(a,b){parseFloat(E.stagger)?E.delay=G+parseFloat(E.stagger)*a:p.isFunction(E.stagger)&&(E.delay=G+E.stagger.call(b,a,x)),E.drag&&(E.duration=parseFloat(F)||(/^(callout|transition)/.test(q)?1e3:r),E.duration=Math.max(E.duration*(E.backwards?1-a/x:(a+1)/x),.75*E.duration,200)),t.Redirects[q].call(b,b,E||{},a,x,o,B.promise?B:d)}),a()}var H="Velocity: First argument ("+q+") was not a property map, a known action, or a registered redirect. Aborting.";return B.promise?B.rejecter(new Error(H)):console.log(H),a()}C="start"}var I={lastParent:null,lastPosition:null,lastFontSize:null,lastPercentToPxWidth:null,lastPercentToPxHeight:null,lastEmToPx:null,remToPx:null,vwToPx:null,vhToPx:null},J=[];m.each(o,function(a,b){p.isNode(b)&&e.call(b)});var K,E=m.extend({},t.defaults,s);if(E.loop=parseInt(E.loop),K=2*E.loop-1,E.loop)for(var L=0;K>L;L++){var M={delay:E.delay,progress:E.progress};L===K-1&&(M.display=E.display,M.visibility=E.visibility,M.complete=E.complete),w(o,"reverse",M)}return a()}};t=m.extend(w,t),t.animate=w;var x=b.requestAnimationFrame||o;return t.State.isMobile||c.hidden===d||c.addEventListener("visibilitychange",function(){c.hidden?(x=function(a){return setTimeout(function(){a(!0)},16)},k()):x=b.requestAnimationFrame||o}),a.Velocity=t,a!==b&&(a.fn.velocity=w,a.fn.velocity.defaults=t.defaults),m.each(["Down","Up"],function(a,b){t.Redirects["slide"+b]=function(a,c,e,f,g,h){var i=m.extend({},c),j=i.begin,k=i.complete,l={height:"",marginTop:"",marginBottom:"",paddingTop:"",paddingBottom:""},n={};i.display===d&&(i.display="Down"===b?"inline"===t.CSS.Values.getDisplayType(a)?"inline-block":"block":"none"),i.begin=function(){j&&j.call(g,g);for(var c in l){n[c]=a.style[c];var d=t.CSS.getPropertyValue(a,c);l[c]="Down"===b?[d,0]:[0,d]}n.overflow=a.style.overflow,a.style.overflow="hidden"},i.complete=function(){for(var b in n)a.style[b]=n[b];k&&k.call(g,g),h&&h.resolver(g)},t(a,l,i)}}),m.each(["In","Out"],function(a,b){t.Redirects["fade"+b]=function(a,c,e,f,g,h){var i=m.extend({},c),j={opacity:"In"===b?1:0},k=i.complete;i.complete=e!==f-1?i.begin=null:function(){k&&k.call(g,g),h&&h.resolver(g)},i.display===d&&(i.display="In"===b?"auto":"none"),t(this,j,i)}}),t}(window.jQuery||window.Zepto||window,window,document)});
-
-/* VelocityJS.org UI Pack (5.0.4). (C) 2014 Julian Shapiro. MIT @license: en.wikipedia.org/wiki/MIT_License. Portions copyright Daniel Eden, Christian Pucci. */
-!function(t){"function"==typeof require&&"object"==typeof exports?module.exports=t():"function"==typeof define&&define.amd?define('velocityUI',["velocity"],t):t()}(function(){return function(t,a,e,r){function n(t,a){var e=[];return t&&a?($.each([t,a],function(t,a){var r=[];$.each(a,function(t,a){for(;a.toString().length<5;)a="0"+a;r.push(a)}),e.push(r.join(""))}),parseFloat(e[0])>parseFloat(e[1])):!1}if(!t.Velocity||!t.Velocity.Utilities)return void(a.console&&console.log("Velocity UI Pack: Velocity must be loaded first. Aborting."));var i=t.Velocity,$=i.Utilities,s=i.version,o={major:1,minor:1,patch:0};if(n(o,s)){var l="Velocity UI Pack: You need to update Velocity (jquery.velocity.js) to a newer version. Visit http://github.com/julianshapiro/velocity.";throw alert(l),new Error(l)}i.RegisterEffect=i.RegisterUI=function(t,a){function e(t,a,e,r){var n=0,s;$.each(t.nodeType?[t]:t,function(t,a){r&&(e+=t*r),s=a.parentNode,$.each(["height","paddingTop","paddingBottom","marginTop","marginBottom"],function(t,e){n+=parseFloat(i.CSS.getPropertyValue(a,e))})}),i.animate(s,{height:("In"===a?"+":"-")+"="+n},{queue:!1,easing:"ease-in-out",duration:e*("In"===a?.6:1)})}return i.Redirects[t]=function(n,s,o,l,c,u){function f(){s.display!==r&&"none"!==s.display||!/Out$/.test(t)||$.each(c.nodeType?[c]:c,function(t,a){i.CSS.setPropertyValue(a,"display","none")}),s.complete&&s.complete.call(c,c),u&&u.resolver(c||n)}var p=o===l-1;a.defaultDuration="function"==typeof a.defaultDuration?a.defaultDuration.call(c,c):parseFloat(a.defaultDuration);for(var d=0;d<a.calls.length;d++){var g=a.calls[d],y=g[0],m=s.duration||a.defaultDuration||1e3,X=g[1],Y=g[2]||{},O={};if(O.duration=m*(X||1),O.queue=s.queue||"",O.easing=Y.easing||"ease",O.delay=parseFloat(Y.delay)||0,O._cacheValues=Y._cacheValues||!0,0===d){if(O.delay+=parseFloat(s.delay)||0,0===o&&(O.begin=function(){s.begin&&s.begin.call(c,c);var a=t.match(/(In|Out)$/);a&&"In"===a[0]&&y.opacity!==r&&$.each(c.nodeType?[c]:c,function(t,a){i.CSS.setPropertyValue(a,"opacity",0)}),s.animateParentHeight&&a&&e(c,a[0],m+O.delay,s.stagger)}),null!==s.display)if(s.display!==r&&"none"!==s.display)O.display=s.display;else if(/In$/.test(t)){var v=i.CSS.Values.getDisplayType(n);O.display="inline"===v?"inline-block":v}s.visibility&&"hidden"!==s.visibility&&(O.visibility=s.visibility)}d===a.calls.length-1&&(O.complete=function(){if(a.reset){for(var t in a.reset){var e=a.reset[t];i.CSS.Hooks.registered[t]!==r||"string"!=typeof e&&"number"!=typeof e||(a.reset[t]=[a.reset[t],a.reset[t]])}var s={duration:0,queue:!1};p&&(s.complete=f),i.animate(n,a.reset,s)}else p&&f()},"hidden"===s.visibility&&(O.visibility=s.visibility)),i.animate(n,y,O)}},i},i.RegisterEffect.packagedEffects={"callout.bounce":{defaultDuration:550,calls:[[{translateY:-30},.25],[{translateY:0},.125],[{translateY:-15},.125],[{translateY:0},.25]]},"callout.shake":{defaultDuration:800,calls:[[{translateX:-11},.125],[{translateX:11},.125],[{translateX:-11},.125],[{translateX:11},.125],[{translateX:-11},.125],[{translateX:11},.125],[{translateX:-11},.125],[{translateX:0},.125]]},"callout.flash":{defaultDuration:1100,calls:[[{opacity:[0,"easeInOutQuad",1]},.25],[{opacity:[1,"easeInOutQuad"]},.25],[{opacity:[0,"easeInOutQuad"]},.25],[{opacity:[1,"easeInOutQuad"]},.25]]},"callout.pulse":{defaultDuration:825,calls:[[{scaleX:1.1,scaleY:1.1},.5,{easing:"easeInExpo"}],[{scaleX:1,scaleY:1},.5]]},"callout.swing":{defaultDuration:950,calls:[[{rotateZ:15},.2],[{rotateZ:-10},.2],[{rotateZ:5},.2],[{rotateZ:-5},.2],[{rotateZ:0},.2]]},"callout.tada":{defaultDuration:1e3,calls:[[{scaleX:.9,scaleY:.9,rotateZ:-3},.1],[{scaleX:1.1,scaleY:1.1,rotateZ:3},.1],[{scaleX:1.1,scaleY:1.1,rotateZ:-3},.1],["reverse",.125],["reverse",.125],["reverse",.125],["reverse",.125],["reverse",.125],[{scaleX:1,scaleY:1,rotateZ:0},.2]]},"transition.fadeIn":{defaultDuration:500,calls:[[{opacity:[1,0]}]]},"transition.fadeOut":{defaultDuration:500,calls:[[{opacity:[0,1]}]]},"transition.flipXIn":{defaultDuration:700,calls:[[{opacity:[1,0],transformPerspective:[800,800],rotateY:[0,-55]}]],reset:{transformPerspective:0}},"transition.flipXOut":{defaultDuration:700,calls:[[{opacity:[0,1],transformPerspective:[800,800],rotateY:55}]],reset:{transformPerspective:0,rotateY:0}},"transition.flipYIn":{defaultDuration:800,calls:[[{opacity:[1,0],transformPerspective:[800,800],rotateX:[0,-45]}]],reset:{transformPerspective:0}},"transition.flipYOut":{defaultDuration:800,calls:[[{opacity:[0,1],transformPerspective:[800,800],rotateX:25}]],reset:{transformPerspective:0,rotateX:0}},"transition.flipBounceXIn":{defaultDuration:900,calls:[[{opacity:[.725,0],transformPerspective:[400,400],rotateY:[-10,90]},.5],[{opacity:.8,rotateY:10},.25],[{opacity:1,rotateY:0},.25]],reset:{transformPerspective:0}},"transition.flipBounceXOut":{defaultDuration:800,calls:[[{opacity:[.9,1],transformPerspective:[400,400],rotateY:-10},.5],[{opacity:0,rotateY:90},.5]],reset:{transformPerspective:0,rotateY:0}},"transition.flipBounceYIn":{defaultDuration:850,calls:[[{opacity:[.725,0],transformPerspective:[400,400],rotateX:[-10,90]},.5],[{opacity:.8,rotateX:10},.25],[{opacity:1,rotateX:0},.25]],reset:{transformPerspective:0}},"transition.flipBounceYOut":{defaultDuration:800,calls:[[{opacity:[.9,1],transformPerspective:[400,400],rotateX:-15},.5],[{opacity:0,rotateX:90},.5]],reset:{transformPerspective:0,rotateX:0}},"transition.swoopIn":{defaultDuration:850,calls:[[{opacity:[1,0],transformOriginX:["100%","50%"],transformOriginY:["100%","100%"],scaleX:[1,0],scaleY:[1,0],translateX:[0,-700],translateZ:0}]],reset:{transformOriginX:"50%",transformOriginY:"50%"}},"transition.swoopOut":{defaultDuration:850,calls:[[{opacity:[0,1],transformOriginX:["50%","100%"],transformOriginY:["100%","100%"],scaleX:0,scaleY:0,translateX:-700,translateZ:0}]],reset:{transformOriginX:"50%",transformOriginY:"50%",scaleX:1,scaleY:1,translateX:0}},"transition.whirlIn":{defaultDuration:850,calls:[[{opacity:[1,0],transformOriginX:["50%","50%"],transformOriginY:["50%","50%"],scaleX:[1,0],scaleY:[1,0],rotateY:[0,160]},1,{easing:"easeInOutSine"}]]},"transition.whirlOut":{defaultDuration:750,calls:[[{opacity:[0,"easeInOutQuint",1],transformOriginX:["50%","50%"],transformOriginY:["50%","50%"],scaleX:0,scaleY:0,rotateY:160},1,{easing:"swing"}]],reset:{scaleX:1,scaleY:1,rotateY:0}},"transition.shrinkIn":{defaultDuration:750,calls:[[{opacity:[1,0],transformOriginX:["50%","50%"],transformOriginY:["50%","50%"],scaleX:[1,1.5],scaleY:[1,1.5],translateZ:0}]]},"transition.shrinkOut":{defaultDuration:600,calls:[[{opacity:[0,1],transformOriginX:["50%","50%"],transformOriginY:["50%","50%"],scaleX:1.3,scaleY:1.3,translateZ:0}]],reset:{scaleX:1,scaleY:1}},"transition.expandIn":{defaultDuration:700,calls:[[{opacity:[1,0],transformOriginX:["50%","50%"],transformOriginY:["50%","50%"],scaleX:[1,.625],scaleY:[1,.625],translateZ:0}]]},"transition.expandOut":{defaultDuration:700,calls:[[{opacity:[0,1],transformOriginX:["50%","50%"],transformOriginY:["50%","50%"],scaleX:.5,scaleY:.5,translateZ:0}]],reset:{scaleX:1,scaleY:1}},"transition.bounceIn":{defaultDuration:800,calls:[[{opacity:[1,0],scaleX:[1.05,.3],scaleY:[1.05,.3]},.4],[{scaleX:.9,scaleY:.9,translateZ:0},.2],[{scaleX:1,scaleY:1},.5]]},"transition.bounceOut":{defaultDuration:800,calls:[[{scaleX:.95,scaleY:.95},.35],[{scaleX:1.1,scaleY:1.1,translateZ:0},.35],[{opacity:[0,1],scaleX:.3,scaleY:.3},.3]],reset:{scaleX:1,scaleY:1}},"transition.bounceUpIn":{defaultDuration:800,calls:[[{opacity:[1,0],translateY:[-30,1e3]},.6,{easing:"easeOutCirc"}],[{translateY:10},.2],[{translateY:0},.2]]},"transition.bounceUpOut":{defaultDuration:1e3,calls:[[{translateY:20},.2],[{opacity:[0,"easeInCirc",1],translateY:-1e3},.8]],reset:{translateY:0}},"transition.bounceDownIn":{defaultDuration:800,calls:[[{opacity:[1,0],translateY:[30,-1e3]},.6,{easing:"easeOutCirc"}],[{translateY:-10},.2],[{translateY:0},.2]]},"transition.bounceDownOut":{defaultDuration:1e3,calls:[[{translateY:-20},.2],[{opacity:[0,"easeInCirc",1],translateY:1e3},.8]],reset:{translateY:0}},"transition.bounceLeftIn":{defaultDuration:750,calls:[[{opacity:[1,0],translateX:[30,-1250]},.6,{easing:"easeOutCirc"}],[{translateX:-10},.2],[{translateX:0},.2]]},"transition.bounceLeftOut":{defaultDuration:750,calls:[[{translateX:30},.2],[{opacity:[0,"easeInCirc",1],translateX:-1250},.8]],reset:{translateX:0}},"transition.bounceRightIn":{defaultDuration:750,calls:[[{opacity:[1,0],translateX:[-30,1250]},.6,{easing:"easeOutCirc"}],[{translateX:10},.2],[{translateX:0},.2]]},"transition.bounceRightOut":{defaultDuration:750,calls:[[{translateX:-30},.2],[{opacity:[0,"easeInCirc",1],translateX:1250},.8]],reset:{translateX:0}},"transition.slideUpIn":{defaultDuration:900,calls:[[{opacity:[1,0],translateY:[0,20],translateZ:0}]]},"transition.slideUpOut":{defaultDuration:900,calls:[[{opacity:[0,1],translateY:-20,translateZ:0}]],reset:{translateY:0}},"transition.slideDownIn":{defaultDuration:900,calls:[[{opacity:[1,0],translateY:[0,-20],translateZ:0}]]},"transition.slideDownOut":{defaultDuration:900,calls:[[{opacity:[0,1],translateY:20,translateZ:0}]],reset:{translateY:0}},"transition.slideLeftIn":{defaultDuration:1e3,calls:[[{opacity:[1,0],translateX:[0,-20],translateZ:0}]]},"transition.slideLeftOut":{defaultDuration:1050,calls:[[{opacity:[0,1],translateX:-20,translateZ:0}]],reset:{translateX:0}},"transition.slideRightIn":{defaultDuration:1e3,calls:[[{opacity:[1,0],translateX:[0,20],translateZ:0}]]},"transition.slideRightOut":{defaultDuration:1050,calls:[[{opacity:[0,1],translateX:20,translateZ:0}]],reset:{translateX:0}},"transition.slideUpBigIn":{defaultDuration:850,calls:[[{opacity:[1,0],translateY:[0,75],translateZ:0}]]},"transition.slideUpBigOut":{defaultDuration:800,calls:[[{opacity:[0,1],translateY:-75,translateZ:0}]],reset:{translateY:0}},"transition.slideDownBigIn":{defaultDuration:850,calls:[[{opacity:[1,0],translateY:[0,-75],translateZ:0}]]},"transition.slideDownBigOut":{defaultDuration:800,calls:[[{opacity:[0,1],translateY:75,translateZ:0}]],reset:{translateY:0}},"transition.slideLeftBigIn":{defaultDuration:800,calls:[[{opacity:[1,0],translateX:[0,-75],translateZ:0}]]},"transition.slideLeftBigOut":{defaultDuration:750,calls:[[{opacity:[0,1],translateX:-75,translateZ:0}]],reset:{translateX:0}},"transition.slideRightBigIn":{defaultDuration:800,calls:[[{opacity:[1,0],translateX:[0,75],translateZ:0}]]},"transition.slideRightBigOut":{defaultDuration:750,calls:[[{opacity:[0,1],translateX:75,translateZ:0}]],reset:{translateX:0}},"transition.perspectiveUpIn":{defaultDuration:800,calls:[[{opacity:[1,0],transformPerspective:[800,800],transformOriginX:[0,0],transformOriginY:["100%","100%"],rotateX:[0,-180]}]],reset:{transformPerspective:0,transformOriginX:"50%",transformOriginY:"50%"}},"transition.perspectiveUpOut":{defaultDuration:850,calls:[[{opacity:[0,1],transformPerspective:[800,800],transformOriginX:[0,0],transformOriginY:["100%","100%"],rotateX:-180}]],reset:{transformPerspective:0,transformOriginX:"50%",transformOriginY:"50%",rotateX:0}},"transition.perspectiveDownIn":{defaultDuration:800,calls:[[{opacity:[1,0],transformPerspective:[800,800],transformOriginX:[0,0],transformOriginY:[0,0],rotateX:[0,180]}]],reset:{transformPerspective:0,transformOriginX:"50%",transformOriginY:"50%"}},"transition.perspectiveDownOut":{defaultDuration:850,calls:[[{opacity:[0,1],transformPerspective:[800,800],transformOriginX:[0,0],transformOriginY:[0,0],rotateX:180}]],reset:{transformPerspective:0,transformOriginX:"50%",transformOriginY:"50%",rotateX:0}},"transition.perspectiveLeftIn":{defaultDuration:950,calls:[[{opacity:[1,0],transformPerspective:[2e3,2e3],transformOriginX:[0,0],transformOriginY:[0,0],rotateY:[0,-180]}]],reset:{transformPerspective:0,transformOriginX:"50%",transformOriginY:"50%"}},"transition.perspectiveLeftOut":{defaultDuration:950,calls:[[{opacity:[0,1],transformPerspective:[2e3,2e3],transformOriginX:[0,0],transformOriginY:[0,0],rotateY:-180}]],reset:{transformPerspective:0,transformOriginX:"50%",transformOriginY:"50%",rotateY:0}},"transition.perspectiveRightIn":{defaultDuration:950,calls:[[{opacity:[1,0],transformPerspective:[2e3,2e3],transformOriginX:["100%","100%"],transformOriginY:[0,0],rotateY:[0,180]}]],reset:{transformPerspective:0,transformOriginX:"50%",transformOriginY:"50%"}},"transition.perspectiveRightOut":{defaultDuration:950,calls:[[{opacity:[0,1],transformPerspective:[2e3,2e3],transformOriginX:["100%","100%"],transformOriginY:[0,0],rotateY:180}]],reset:{transformPerspective:0,transformOriginX:"50%",transformOriginY:"50%",rotateY:0}}};for(var c in i.RegisterEffect.packagedEffects)i.RegisterEffect(c,i.RegisterEffect.packagedEffects[c]);i.RunSequence=function(t){var a=$.extend(!0,[],t);a.length>1&&($.each(a.reverse(),function(t,e){var r=a[t+1];if(r){var n=e.o||e.options,s=r.o||r.options,o=n&&n.sequenceQueue===!1?"begin":"complete",l=s&&s[o],c={};c[o]=function(){var t=r.e||r.elements,a=t.nodeType?[t]:t;l&&l.call(a,a),i(e)},r.o?r.o=$.extend({},s,c):r.options=$.extend({},s,c)}}),a.reverse()),i(a[0])}}(window.jQuery||window.Zepto||window,window,document)});
+!function(a){"use strict";function b(a){var b=a.length,d=c.type(a);return"function"!==d&&!c.isWindow(a)&&(!(1!==a.nodeType||!b)||("array"===d||0===b||"number"==typeof b&&b>0&&b-1 in a))}if(!a.jQuery){var c=function(a,b){return new c.fn.init(a,b)};c.isWindow=function(a){return a&&a===a.window},c.type=function(a){return a?"object"==typeof a||"function"==typeof a?e[g.call(a)]||"object":typeof a:a+""},c.isArray=Array.isArray||function(a){return"array"===c.type(a)},c.isPlainObject=function(a){var b;if(!a||"object"!==c.type(a)||a.nodeType||c.isWindow(a))return!1;try{if(a.constructor&&!f.call(a,"constructor")&&!f.call(a.constructor.prototype,"isPrototypeOf"))return!1}catch(d){return!1}for(b in a);return void 0===b||f.call(a,b)},c.each=function(a,c,d){var e,f=0,g=a.length,h=b(a);if(d){if(h)for(;f<g&&(e=c.apply(a[f],d),e!==!1);f++);else for(f in a)if(a.hasOwnProperty(f)&&(e=c.apply(a[f],d),e===!1))break}else if(h)for(;f<g&&(e=c.call(a[f],f,a[f]),e!==!1);f++);else for(f in a)if(a.hasOwnProperty(f)&&(e=c.call(a[f],f,a[f]),e===!1))break;return a},c.data=function(a,b,e){if(void 0===e){var f=a[c.expando],g=f&&d[f];if(void 0===b)return g;if(g&&b in g)return g[b]}else if(void 0!==b){var h=a[c.expando]||(a[c.expando]=++c.uuid);return d[h]=d[h]||{},d[h][b]=e,e}},c.removeData=function(a,b){var e=a[c.expando],f=e&&d[e];f&&(b?c.each(b,function(a,b){delete f[b]}):delete d[e])},c.extend=function(){var a,b,d,e,f,g,h=arguments[0]||{},i=1,j=arguments.length,k=!1;for("boolean"==typeof h&&(k=h,h=arguments[i]||{},i++),"object"!=typeof h&&"function"!==c.type(h)&&(h={}),i===j&&(h=this,i--);i<j;i++)if(f=arguments[i])for(e in f)f.hasOwnProperty(e)&&(a=h[e],d=f[e],h!==d&&(k&&d&&(c.isPlainObject(d)||(b=c.isArray(d)))?(b?(b=!1,g=a&&c.isArray(a)?a:[]):g=a&&c.isPlainObject(a)?a:{},h[e]=c.extend(k,g,d)):void 0!==d&&(h[e]=d)));return h},c.queue=function(a,d,e){function f(a,c){var d=c||[];return a&&(b(Object(a))?!function(a,b){for(var c=+b.length,d=0,e=a.length;d<c;)a[e++]=b[d++];if(c!==c)for(;void 0!==b[d];)a[e++]=b[d++];return a.length=e,a}(d,"string"==typeof a?[a]:a):[].push.call(d,a)),d}if(a){d=(d||"fx")+"queue";var g=c.data(a,d);return e?(!g||c.isArray(e)?g=c.data(a,d,f(e)):g.push(e),g):g||[]}},c.dequeue=function(a,b){c.each(a.nodeType?[a]:a,function(a,d){b=b||"fx";var e=c.queue(d,b),f=e.shift();"inprogress"===f&&(f=e.shift()),f&&("fx"===b&&e.unshift("inprogress"),f.call(d,function(){c.dequeue(d,b)}))})},c.fn=c.prototype={init:function(a){if(a.nodeType)return this[0]=a,this;throw new Error("Not a DOM node.")},offset:function(){var b=this[0].getBoundingClientRect?this[0].getBoundingClientRect():{top:0,left:0};return{top:b.top+(a.pageYOffset||document.scrollTop||0)-(document.clientTop||0),left:b.left+(a.pageXOffset||document.scrollLeft||0)-(document.clientLeft||0)}},position:function(){function a(a){for(var b=a.offsetParent;b&&"html"!==b.nodeName.toLowerCase()&&b.style&&"static"===b.style.position;)b=b.offsetParent;return b||document}var b=this[0],d=a(b),e=this.offset(),f=/^(?:body|html)$/i.test(d.nodeName)?{top:0,left:0}:c(d).offset();return e.top-=parseFloat(b.style.marginTop)||0,e.left-=parseFloat(b.style.marginLeft)||0,d.style&&(f.top+=parseFloat(d.style.borderTopWidth)||0,f.left+=parseFloat(d.style.borderLeftWidth)||0),{top:e.top-f.top,left:e.left-f.left}}};var d={};c.expando="velocity"+(new Date).getTime(),c.uuid=0;for(var e={},f=e.hasOwnProperty,g=e.toString,h="Boolean Number String Function Array Date RegExp Object Error".split(" "),i=0;i<h.length;i++)e["[object "+h[i]+"]"]=h[i].toLowerCase();c.fn.init.prototype=c.fn,a.Velocity={Utilities:c}}}(window),function(a){"use strict";"object"==typeof module&&"object"==typeof module.exports?module.exports=a():"function"==typeof define&&define.amd?define('velocity',a):a()}(function(){"use strict";return function(a,b,c,d){function e(a){for(var b=-1,c=a?a.length:0,d=[];++b<c;){var e=a[b];e&&d.push(e)}return d}function f(a){return s.isWrapped(a)?a=[].slice.call(a):s.isNode(a)&&(a=[a]),a}function g(a){var b=o.data(a,"velocity");return null===b?d:b}function h(a,b){var c=g(a);c&&c.delayTimer&&!c.delayPaused&&(c.delayRemaining=c.delay-b+c.delayBegin,c.delayPaused=!0,clearTimeout(c.delayTimer.setTimeout))}function i(a,b){var c=g(a);c&&c.delayTimer&&c.delayPaused&&(c.delayPaused=!1,c.delayTimer.setTimeout=setTimeout(c.delayTimer.next,c.delayRemaining))}function j(a){return function(b){return Math.round(b*a)*(1/a)}}function k(a,c,d,e){function f(a,b){return 1-3*b+3*a}function g(a,b){return 3*b-6*a}function h(a){return 3*a}function i(a,b,c){return((f(b,c)*a+g(b,c))*a+h(b))*a}function j(a,b,c){return 3*f(b,c)*a*a+2*g(b,c)*a+h(b)}function k(b,c){for(var e=0;e<p;++e){var f=j(c,a,d);if(0===f)return c;var g=i(c,a,d)-b;c-=g/f}return c}function l(){for(var b=0;b<t;++b)x[b]=i(b*u,a,d)}function m(b,c,e){var f,g,h=0;do g=c+(e-c)/2,f=i(g,a,d)-b,f>0?e=g:c=g;while(Math.abs(f)>r&&++h<s);return g}function n(b){for(var c=0,e=1,f=t-1;e!==f&&x[e]<=b;++e)c+=u;--e;var g=(b-x[e])/(x[e+1]-x[e]),h=c+g*u,i=j(h,a,d);return i>=q?k(b,h):0===i?h:m(b,c,c+u)}function o(){y=!0,a===c&&d===e||l()}var p=4,q=.001,r=1e-7,s=10,t=11,u=1/(t-1),v="Float32Array"in b;if(4!==arguments.length)return!1;for(var w=0;w<4;++w)if("number"!=typeof arguments[w]||isNaN(arguments[w])||!isFinite(arguments[w]))return!1;a=Math.min(a,1),d=Math.min(d,1),a=Math.max(a,0),d=Math.max(d,0);var x=v?new Float32Array(t):new Array(t),y=!1,z=function(b){return y||o(),a===c&&d===e?b:0===b?0:1===b?1:i(n(b),c,e)};z.getControlPoints=function(){return[{x:a,y:c},{x:d,y:e}]};var A="generateBezier("+[a,c,d,e]+")";return z.toString=function(){return A},z}function l(a,b){var c=a;return s.isString(a)?w.Easings[a]||(c=!1):c=s.isArray(a)&&1===a.length?j.apply(null,a):s.isArray(a)&&2===a.length?x.apply(null,a.concat([b])):!(!s.isArray(a)||4!==a.length)&&k.apply(null,a),c===!1&&(c=w.Easings[w.defaults.easing]?w.defaults.easing:v),c}function m(a){if(a){var b=w.timestamp&&a!==!0?a:r.now(),c=w.State.calls.length;c>1e4&&(w.State.calls=e(w.State.calls),c=w.State.calls.length);for(var f=0;f<c;f++)if(w.State.calls[f]){var h=w.State.calls[f],i=h[0],j=h[2],k=h[3],l=!!k,q=null,t=h[5],u=h[6];if(k||(k=w.State.calls[f][3]=b-16),t){if(t.resume!==!0)continue;k=h[3]=Math.round(b-u-16),h[5]=null}u=h[6]=b-k;for(var v=Math.min(u/j.duration,1),x=0,z=i.length;x<z;x++){var B=i[x],C=B.element;if(g(C)){var D=!1;if(j.display!==d&&null!==j.display&&"none"!==j.display){if("flex"===j.display){var E=["-webkit-box","-moz-box","-ms-flexbox","-webkit-flex"];o.each(E,function(a,b){y.setPropertyValue(C,"display",b)})}y.setPropertyValue(C,"display",j.display)}j.visibility!==d&&"hidden"!==j.visibility&&y.setPropertyValue(C,"visibility",j.visibility);for(var F in B)if(B.hasOwnProperty(F)&&"element"!==F){var G,H=B[F],I=s.isString(H.easing)?w.Easings[H.easing]:H.easing;if(s.isString(H.pattern)){var J=1===v?function(a,b,c){var d=H.endValue[b];return c?Math.round(d):d}:function(a,b,c){var d=H.startValue[b],e=H.endValue[b]-d,f=d+e*I(v,j,e);return c?Math.round(f):f};G=H.pattern.replace(/{(\d+)(!)?}/g,J)}else if(1===v)G=H.endValue;else{var K=H.endValue-H.startValue;G=H.startValue+K*I(v,j,K)}if(!l&&G===H.currentValue)continue;if(H.currentValue=G,"tween"===F)q=G;else{var L;if(y.Hooks.registered[F]){L=y.Hooks.getRoot(F);var M=g(C).rootPropertyValueCache[L];M&&(H.rootPropertyValue=M)}var N=y.setPropertyValue(C,F,H.currentValue+(p<9&&0===parseFloat(G)?"":H.unitType),H.rootPropertyValue,H.scrollData);y.Hooks.registered[F]&&(y.Normalizations.registered[L]?g(C).rootPropertyValueCache[L]=y.Normalizations.registered[L]("extract",null,N[1]):g(C).rootPropertyValueCache[L]=N[1]),"transform"===N[0]&&(D=!0)}}j.mobileHA&&g(C).transformCache.translate3d===d&&(g(C).transformCache.translate3d="(0px, 0px, 0px)",D=!0),D&&y.flushTransformCache(C)}}j.display!==d&&"none"!==j.display&&(w.State.calls[f][2].display=!1),j.visibility!==d&&"hidden"!==j.visibility&&(w.State.calls[f][2].visibility=!1),j.progress&&j.progress.call(h[1],h[1],v,Math.max(0,k+j.duration-b),k,q),1===v&&n(f)}}w.State.isTicking&&A(m)}function n(a,b){if(!w.State.calls[a])return!1;for(var c=w.State.calls[a][0],e=w.State.calls[a][1],f=w.State.calls[a][2],h=w.State.calls[a][4],i=!1,j=0,k=c.length;j<k;j++){var l=c[j].element;b||f.loop||("none"===f.display&&y.setPropertyValue(l,"display",f.display),"hidden"===f.visibility&&y.setPropertyValue(l,"visibility",f.visibility));var m=g(l);if(f.loop!==!0&&(o.queue(l)[1]===d||!/\.velocityQueueEntryFlag/i.test(o.queue(l)[1]))&&m){m.isAnimating=!1,m.rootPropertyValueCache={};var n=!1;o.each(y.Lists.transforms3D,function(a,b){var c=/^scale/.test(b)?1:0,e=m.transformCache[b];m.transformCache[b]!==d&&new RegExp("^\\("+c+"[^.]").test(e)&&(n=!0,delete m.transformCache[b])}),f.mobileHA&&(n=!0,delete m.transformCache.translate3d),n&&y.flushTransformCache(l),y.Values.removeClass(l,"velocity-animating")}if(!b&&f.complete&&!f.loop&&j===k-1)try{f.complete.call(e,e)}catch(p){setTimeout(function(){throw p},1)}h&&f.loop!==!0&&h(e),m&&f.loop===!0&&!b&&(o.each(m.tweensContainer,function(a,b){if(/^rotate/.test(a)&&(parseFloat(b.startValue)-parseFloat(b.endValue))%360===0){var c=b.startValue;b.startValue=b.endValue,b.endValue=c}/^backgroundPosition/.test(a)&&100===parseFloat(b.endValue)&&"%"===b.unitType&&(b.endValue=0,b.startValue=100)}),w(l,"reverse",{loop:!0,delay:f.delay})),f.queue!==!1&&o.dequeue(l,f.queue)}w.State.calls[a]=!1;for(var q=0,r=w.State.calls.length;q<r;q++)if(w.State.calls[q]!==!1){i=!0;break}i===!1&&(w.State.isTicking=!1,delete w.State.calls,w.State.calls=[])}var o,p=function(){if(c.documentMode)return c.documentMode;for(var a=7;a>4;a--){var b=c.createElement("div");if(b.innerHTML="<!--[if IE "+a+"]><span></span><![endif]-->",b.getElementsByTagName("span").length)return b=null,a}return d}(),q=function(){var a=0;return b.webkitRequestAnimationFrame||b.mozRequestAnimationFrame||function(b){var c,d=(new Date).getTime();return c=Math.max(0,16-(d-a)),a=d+c,setTimeout(function(){b(d+c)},c)}}(),r=function(){var a=b.performance||{};if(!a.hasOwnProperty("now")){var c=a.timing&&a.timing.domComplete?a.timing.domComplete:(new Date).getTime();a.now=function(){return(new Date).getTime()-c}}return a}(),s={isNumber:function(a){return"number"==typeof a},isString:function(a){return"string"==typeof a},isArray:Array.isArray||function(a){return"[object Array]"===Object.prototype.toString.call(a)},isFunction:function(a){return"[object Function]"===Object.prototype.toString.call(a)},isNode:function(a){return a&&a.nodeType},isWrapped:function(a){return a&&s.isNumber(a.length)&&!s.isString(a)&&!s.isFunction(a)&&!s.isNode(a)&&(0===a.length||s.isNode(a[0]))},isSVG:function(a){return b.SVGElement&&a instanceof b.SVGElement},isEmptyObject:function(a){for(var b in a)if(a.hasOwnProperty(b))return!1;return!0}},t=!1;if(a.fn&&a.fn.jquery?(o=a,t=!0):o=b.Velocity.Utilities,p<=8&&!t)throw new Error("Velocity: IE8 and below require jQuery to be loaded before Velocity.");if(p<=7)return void(jQuery.fn.velocity=jQuery.fn.animate);var u=400,v="swing",w={State:{isMobile:/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),isAndroid:/Android/i.test(navigator.userAgent),isGingerbread:/Android 2\.3\.[3-7]/i.test(navigator.userAgent),isChrome:b.chrome,isFirefox:/Firefox/i.test(navigator.userAgent),prefixElement:c.createElement("div"),prefixMatches:{},scrollAnchor:null,scrollPropertyLeft:null,scrollPropertyTop:null,isTicking:!1,calls:[],delayedElements:{count:0}},CSS:{},Utilities:o,Redirects:{},Easings:{},Promise:b.Promise,defaults:{queue:"",duration:u,easing:v,begin:d,complete:d,progress:d,display:d,visibility:d,loop:!1,delay:!1,mobileHA:!0,_cacheValues:!0,promiseRejectEmpty:!0},init:function(a){o.data(a,"velocity",{isSVG:s.isSVG(a),isAnimating:!1,computedStyle:null,tweensContainer:null,rootPropertyValueCache:{},transformCache:{}})},hook:null,mock:!1,version:{major:1,minor:4,patch:1},debug:!1,timestamp:!0,pauseAll:function(a){var b=(new Date).getTime();o.each(w.State.calls,function(b,c){if(c){if(a!==d&&(c[2].queue!==a||c[2].queue===!1))return!0;c[5]={resume:!1}}}),o.each(w.State.delayedElements,function(a,c){c&&h(c,b)})},resumeAll:function(a){var b=(new Date).getTime();o.each(w.State.calls,function(b,c){if(c){if(a!==d&&(c[2].queue!==a||c[2].queue===!1))return!0;c[5]&&(c[5].resume=!0)}}),o.each(w.State.delayedElements,function(a,c){c&&i(c,b)})}};b.pageYOffset!==d?(w.State.scrollAnchor=b,w.State.scrollPropertyLeft="pageXOffset",w.State.scrollPropertyTop="pageYOffset"):(w.State.scrollAnchor=c.documentElement||c.body.parentNode||c.body,w.State.scrollPropertyLeft="scrollLeft",w.State.scrollPropertyTop="scrollTop");var x=function(){function a(a){return-a.tension*a.x-a.friction*a.v}function b(b,c,d){var e={x:b.x+d.dx*c,v:b.v+d.dv*c,tension:b.tension,friction:b.friction};return{dx:e.v,dv:a(e)}}function c(c,d){var e={dx:c.v,dv:a(c)},f=b(c,.5*d,e),g=b(c,.5*d,f),h=b(c,d,g),i=1/6*(e.dx+2*(f.dx+g.dx)+h.dx),j=1/6*(e.dv+2*(f.dv+g.dv)+h.dv);return c.x=c.x+i*d,c.v=c.v+j*d,c}return function d(a,b,e){var f,g,h,i={x:-1,v:0,tension:null,friction:null},j=[0],k=0,l=1e-4,m=.016;for(a=parseFloat(a)||500,b=parseFloat(b)||20,e=e||null,i.tension=a,i.friction=b,f=null!==e,f?(k=d(a,b),g=k/e*m):g=m;;)if(h=c(h||i,g),j.push(1+h.x),k+=16,!(Math.abs(h.x)>l&&Math.abs(h.v)>l))break;return f?function(a){return j[a*(j.length-1)|0]}:k}}();w.Easings={linear:function(a){return a},swing:function(a){return.5-Math.cos(a*Math.PI)/2},spring:function(a){return 1-Math.cos(4.5*a*Math.PI)*Math.exp(6*-a)}},o.each([["ease",[.25,.1,.25,1]],["ease-in",[.42,0,1,1]],["ease-out",[0,0,.58,1]],["ease-in-out",[.42,0,.58,1]],["easeInSine",[.47,0,.745,.715]],["easeOutSine",[.39,.575,.565,1]],["easeInOutSine",[.445,.05,.55,.95]],["easeInQuad",[.55,.085,.68,.53]],["easeOutQuad",[.25,.46,.45,.94]],["easeInOutQuad",[.455,.03,.515,.955]],["easeInCubic",[.55,.055,.675,.19]],["easeOutCubic",[.215,.61,.355,1]],["easeInOutCubic",[.645,.045,.355,1]],["easeInQuart",[.895,.03,.685,.22]],["easeOutQuart",[.165,.84,.44,1]],["easeInOutQuart",[.77,0,.175,1]],["easeInQuint",[.755,.05,.855,.06]],["easeOutQuint",[.23,1,.32,1]],["easeInOutQuint",[.86,0,.07,1]],["easeInExpo",[.95,.05,.795,.035]],["easeOutExpo",[.19,1,.22,1]],["easeInOutExpo",[1,0,0,1]],["easeInCirc",[.6,.04,.98,.335]],["easeOutCirc",[.075,.82,.165,1]],["easeInOutCirc",[.785,.135,.15,.86]]],function(a,b){w.Easings[b[0]]=k.apply(null,b[1])});var y=w.CSS={RegEx:{isHex:/^#([A-f\d]{3}){1,2}$/i,valueUnwrap:/^[A-z]+\((.*)\)$/i,wrappedValueAlreadyExtracted:/[0-9.]+ [0-9.]+ [0-9.]+( [0-9.]+)?/,valueSplit:/([A-z]+\(.+\))|(([A-z0-9#-.]+?)(?=\s|$))/gi},Lists:{colors:["fill","stroke","stopColor","color","backgroundColor","borderColor","borderTopColor","borderRightColor","borderBottomColor","borderLeftColor","outlineColor"],transformsBase:["translateX","translateY","scale","scaleX","scaleY","skewX","skewY","rotateZ"],transforms3D:["transformPerspective","translateZ","scaleZ","rotateX","rotateY"],units:["%","em","ex","ch","rem","vw","vh","vmin","vmax","cm","mm","Q","in","pc","pt","px","deg","grad","rad","turn","s","ms"],colorNames:{aliceblue:"240,248,255",antiquewhite:"250,235,215",aquamarine:"127,255,212",aqua:"0,255,255",azure:"240,255,255",beige:"245,245,220",bisque:"255,228,196",black:"0,0,0",blanchedalmond:"255,235,205",blueviolet:"138,43,226",blue:"0,0,255",brown:"165,42,42",burlywood:"222,184,135",cadetblue:"95,158,160",chartreuse:"127,255,0",chocolate:"210,105,30",coral:"255,127,80",cornflowerblue:"100,149,237",cornsilk:"255,248,220",crimson:"220,20,60",cyan:"0,255,255",darkblue:"0,0,139",darkcyan:"0,139,139",darkgoldenrod:"184,134,11",darkgray:"169,169,169",darkgrey:"169,169,169",darkgreen:"0,100,0",darkkhaki:"189,183,107",darkmagenta:"139,0,139",darkolivegreen:"85,107,47",darkorange:"255,140,0",darkorchid:"153,50,204",darkred:"139,0,0",darksalmon:"233,150,122",darkseagreen:"143,188,143",darkslateblue:"72,61,139",darkslategray:"47,79,79",darkturquoise:"0,206,209",darkviolet:"148,0,211",deeppink:"255,20,147",deepskyblue:"0,191,255",dimgray:"105,105,105",dimgrey:"105,105,105",dodgerblue:"30,144,255",firebrick:"178,34,34",floralwhite:"255,250,240",forestgreen:"34,139,34",fuchsia:"255,0,255",gainsboro:"220,220,220",ghostwhite:"248,248,255",gold:"255,215,0",goldenrod:"218,165,32",gray:"128,128,128",grey:"128,128,128",greenyellow:"173,255,47",green:"0,128,0",honeydew:"240,255,240",hotpink:"255,105,180",indianred:"205,92,92",indigo:"75,0,130",ivory:"255,255,240",khaki:"240,230,140",lavenderblush:"255,240,245",lavender:"230,230,250",lawngreen:"124,252,0",lemonchiffon:"255,250,205",lightblue:"173,216,230",lightcoral:"240,128,128",lightcyan:"224,255,255",lightgoldenrodyellow:"250,250,210",lightgray:"211,211,211",lightgrey:"211,211,211",lightgreen:"144,238,144",lightpink:"255,182,193",lightsalmon:"255,160,122",lightseagreen:"32,178,170",lightskyblue:"135,206,250",lightslategray:"119,136,153",lightsteelblue:"176,196,222",lightyellow:"255,255,224",limegreen:"50,205,50",lime:"0,255,0",linen:"250,240,230",magenta:"255,0,255",maroon:"128,0,0",mediumaquamarine:"102,205,170",mediumblue:"0,0,205",mediumorchid:"186,85,211",mediumpurple:"147,112,219",mediumseagreen:"60,179,113",mediumslateblue:"123,104,238",mediumspringgreen:"0,250,154",mediumturquoise:"72,209,204",mediumvioletred:"199,21,133",midnightblue:"25,25,112",mintcream:"245,255,250",mistyrose:"255,228,225",moccasin:"255,228,181",navajowhite:"255,222,173",navy:"0,0,128",oldlace:"253,245,230",olivedrab:"107,142,35",olive:"128,128,0",orangered:"255,69,0",orange:"255,165,0",orchid:"218,112,214",palegoldenrod:"238,232,170",palegreen:"152,251,152",paleturquoise:"175,238,238",palevioletred:"219,112,147",papayawhip:"255,239,213",peachpuff:"255,218,185",peru:"205,133,63",pink:"255,192,203",plum:"221,160,221",powderblue:"176,224,230",purple:"128,0,128",red:"255,0,0",rosybrown:"188,143,143",royalblue:"65,105,225",saddlebrown:"139,69,19",salmon:"250,128,114",sandybrown:"244,164,96",seagreen:"46,139,87",seashell:"255,245,238",sienna:"160,82,45",silver:"192,192,192",skyblue:"135,206,235",slateblue:"106,90,205",slategray:"112,128,144",snow:"255,250,250",springgreen:"0,255,127",steelblue:"70,130,180",tan:"210,180,140",teal:"0,128,128",thistle:"216,191,216",tomato:"255,99,71",turquoise:"64,224,208",violet:"238,130,238",wheat:"245,222,179",whitesmoke:"245,245,245",white:"255,255,255",yellowgreen:"154,205,50",yellow:"255,255,0"}},Hooks:{templates:{textShadow:["Color X Y Blur","black 0px 0px 0px"],boxShadow:["Color X Y Blur Spread","black 0px 0px 0px 0px"],clip:["Top Right Bottom Left","0px 0px 0px 0px"],backgroundPosition:["X Y","0% 0%"],transformOrigin:["X Y Z","50% 50% 0px"],perspectiveOrigin:["X Y","50% 50%"]},registered:{},register:function(){for(var a=0;a<y.Lists.colors.length;a++){var b="color"===y.Lists.colors[a]?"0 0 0 1":"255 255 255 1";y.Hooks.templates[y.Lists.colors[a]]=["Red Green Blue Alpha",b]}var c,d,e;if(p)for(c in y.Hooks.templates)if(y.Hooks.templates.hasOwnProperty(c)){d=y.Hooks.templates[c],e=d[0].split(" ");var f=d[1].match(y.RegEx.valueSplit);"Color"===e[0]&&(e.push(e.shift()),f.push(f.shift()),y.Hooks.templates[c]=[e.join(" "),f.join(" ")])}for(c in y.Hooks.templates)if(y.Hooks.templates.hasOwnProperty(c)){d=y.Hooks.templates[c],e=d[0].split(" ");for(var g in e)if(e.hasOwnProperty(g)){var h=c+e[g],i=g;y.Hooks.registered[h]=[c,i]}}},getRoot:function(a){var b=y.Hooks.registered[a];return b?b[0]:a},getUnit:function(a,b){var c=(a.substr(b||0,5).match(/^[a-z%]+/)||[])[0]||"";return c&&y.Lists.units.indexOf(c)>=0?c:""},fixColors:function(a){return a.replace(/(rgba?\(\s*)?(\b[a-z]+\b)/g,function(a,b,c){return y.Lists.colorNames.hasOwnProperty(c)?(b?b:"rgba(")+y.Lists.colorNames[c]+(b?"":",1)"):b+c})},cleanRootPropertyValue:function(a,b){return y.RegEx.valueUnwrap.test(b)&&(b=b.match(y.RegEx.valueUnwrap)[1]),y.Values.isCSSNullValue(b)&&(b=y.Hooks.templates[a][1]),b},extractValue:function(a,b){var c=y.Hooks.registered[a];if(c){var d=c[0],e=c[1];return b=y.Hooks.cleanRootPropertyValue(d,b),b.toString().match(y.RegEx.valueSplit)[e]}return b},injectValue:function(a,b,c){var d=y.Hooks.registered[a];if(d){var e,f,g=d[0],h=d[1];return c=y.Hooks.cleanRootPropertyValue(g,c),e=c.toString().match(y.RegEx.valueSplit),e[h]=b,f=e.join(" ")}return c}},Normalizations:{registered:{clip:function(a,b,c){switch(a){case"name":return"clip";case"extract":var d;return y.RegEx.wrappedValueAlreadyExtracted.test(c)?d=c:(d=c.toString().match(y.RegEx.valueUnwrap),d=d?d[1].replace(/,(\s+)?/g," "):c),d;case"inject":return"rect("+c+")"}},blur:function(a,b,c){switch(a){case"name":return w.State.isFirefox?"filter":"-webkit-filter";case"extract":var d=parseFloat(c);if(!d&&0!==d){var e=c.toString().match(/blur\(([0-9]+[A-z]+)\)/i);d=e?e[1]:0}return d;case"inject":return parseFloat(c)?"blur("+c+")":"none"}},opacity:function(a,b,c){if(p<=8)switch(a){case"name":return"filter";case"extract":var d=c.toString().match(/alpha\(opacity=(.*)\)/i);return c=d?d[1]/100:1;case"inject":return b.style.zoom=1,parseFloat(c)>=1?"":"alpha(opacity="+parseInt(100*parseFloat(c),10)+")"}else switch(a){case"name":return"opacity";case"extract":return c;case"inject":return c}}},register:function(){function a(a,b,c){var d="border-box"===y.getPropertyValue(b,"boxSizing").toString().toLowerCase();if(d===(c||!1)){var e,f,g=0,h="width"===a?["Left","Right"]:["Top","Bottom"],i=["padding"+h[0],"padding"+h[1],"border"+h[0]+"Width","border"+h[1]+"Width"];for(e=0;e<i.length;e++)f=parseFloat(y.getPropertyValue(b,i[e])),isNaN(f)||(g+=f);return c?-g:g}return 0}function b(b,c){return function(d,e,f){switch(d){case"name":return b;case"extract":return parseFloat(f)+a(b,e,c);case"inject":return parseFloat(f)-a(b,e,c)+"px"}}}p&&!(p>9)||w.State.isGingerbread||(y.Lists.transformsBase=y.Lists.transformsBase.concat(y.Lists.transforms3D));for(var c=0;c<y.Lists.transformsBase.length;c++)!function(){var a=y.Lists.transformsBase[c];y.Normalizations.registered[a]=function(b,c,e){switch(b){case"name":return"transform";case"extract":return g(c)===d||g(c).transformCache[a]===d?/^scale/i.test(a)?1:0:g(c).transformCache[a].replace(/[()]/g,"");case"inject":var f=!1;switch(a.substr(0,a.length-1)){case"translate":f=!/(%|px|em|rem|vw|vh|\d)$/i.test(e);break;case"scal":case"scale":w.State.isAndroid&&g(c).transformCache[a]===d&&e<1&&(e=1),f=!/(\d)$/i.test(e);break;case"skew":f=!/(deg|\d)$/i.test(e);break;case"rotate":f=!/(deg|\d)$/i.test(e)}return f||(g(c).transformCache[a]="("+e+")"),g(c).transformCache[a]}}}();for(var e=0;e<y.Lists.colors.length;e++)!function(){var a=y.Lists.colors[e];y.Normalizations.registered[a]=function(b,c,e){switch(b){case"name":return a;case"extract":var f;if(y.RegEx.wrappedValueAlreadyExtracted.test(e))f=e;else{var g,h={black:"rgb(0, 0, 0)",blue:"rgb(0, 0, 255)",gray:"rgb(128, 128, 128)",green:"rgb(0, 128, 0)",red:"rgb(255, 0, 0)",white:"rgb(255, 255, 255)"};/^[A-z]+$/i.test(e)?g=h[e]!==d?h[e]:h.black:y.RegEx.isHex.test(e)?g="rgb("+y.Values.hexToRgb(e).join(" ")+")":/^rgba?\(/i.test(e)||(g=h.black),f=(g||e).toString().match(y.RegEx.valueUnwrap)[1].replace(/,(\s+)?/g," ")}return(!p||p>8)&&3===f.split(" ").length&&(f+=" 1"),f;case"inject":return/^rgb/.test(e)?e:(p<=8?4===e.split(" ").length&&(e=e.split(/\s+/).slice(0,3).join(" ")):3===e.split(" ").length&&(e+=" 1"),(p<=8?"rgb":"rgba")+"("+e.replace(/\s+/g,",").replace(/\.(\d)+(?=,)/g,"")+")")}}}();y.Normalizations.registered.innerWidth=b("width",!0),y.Normalizations.registered.innerHeight=b("height",!0),y.Normalizations.registered.outerWidth=b("width"),y.Normalizations.registered.outerHeight=b("height")}},Names:{camelCase:function(a){return a.replace(/-(\w)/g,function(a,b){return b.toUpperCase()})},SVGAttribute:function(a){var b="width|height|x|y|cx|cy|r|rx|ry|x1|x2|y1|y2";return(p||w.State.isAndroid&&!w.State.isChrome)&&(b+="|transform"),new RegExp("^("+b+")$","i").test(a)},prefixCheck:function(a){if(w.State.prefixMatches[a])return[w.State.prefixMatches[a],!0];for(var b=["","Webkit","Moz","ms","O"],c=0,d=b.length;c<d;c++){var e;if(e=0===c?a:b[c]+a.replace(/^\w/,function(a){return a.toUpperCase()}),s.isString(w.State.prefixElement.style[e]))return w.State.prefixMatches[a]=e,[e,!0]}return[a,!1]}},Values:{hexToRgb:function(a){var b,c=/^#?([a-f\d])([a-f\d])([a-f\d])$/i,d=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i;return a=a.replace(c,function(a,b,c,d){return b+b+c+c+d+d}),b=d.exec(a),b?[parseInt(b[1],16),parseInt(b[2],16),parseInt(b[3],16)]:[0,0,0]},isCSSNullValue:function(a){return!a||/^(none|auto|transparent|(rgba\(0, ?0, ?0, ?0\)))$/i.test(a)},getUnitType:function(a){return/^(rotate|skew)/i.test(a)?"deg":/(^(scale|scaleX|scaleY|scaleZ|alpha|flexGrow|flexHeight|zIndex|fontWeight)$)|((opacity|red|green|blue|alpha)$)/i.test(a)?"":"px"},getDisplayType:function(a){var b=a&&a.tagName.toString().toLowerCase();return/^(b|big|i|small|tt|abbr|acronym|cite|code|dfn|em|kbd|strong|samp|var|a|bdo|br|img|map|object|q|script|span|sub|sup|button|input|label|select|textarea)$/i.test(b)?"inline":/^(li)$/i.test(b)?"list-item":/^(tr)$/i.test(b)?"table-row":/^(table)$/i.test(b)?"table":/^(tbody)$/i.test(b)?"table-row-group":"block"},addClass:function(a,b){if(a)if(a.classList)a.classList.add(b);else if(s.isString(a.className))a.className+=(a.className.length?" ":"")+b;else{var c=a.getAttribute(p<=7?"className":"class")||"";a.setAttribute("class",c+(c?" ":"")+b)}},removeClass:function(a,b){if(a)if(a.classList)a.classList.remove(b);else if(s.isString(a.className))a.className=a.className.toString().replace(new RegExp("(^|\\s)"+b.split(" ").join("|")+"(\\s|$)","gi")," ");else{var c=a.getAttribute(p<=7?"className":"class")||"";a.setAttribute("class",c.replace(new RegExp("(^|s)"+b.split(" ").join("|")+"(s|$)","gi")," "))}}},getPropertyValue:function(a,c,e,f){function h(a,c){var e=0;if(p<=8)e=o.css(a,c);else{var i=!1;/^(width|height)$/.test(c)&&0===y.getPropertyValue(a,"display")&&(i=!0,y.setPropertyValue(a,"display",y.Values.getDisplayType(a)));var j=function(){i&&y.setPropertyValue(a,"display","none")};if(!f){if("height"===c&&"border-box"!==y.getPropertyValue(a,"boxSizing").toString().toLowerCase()){var k=a.offsetHeight-(parseFloat(y.getPropertyValue(a,"borderTopWidth"))||0)-(parseFloat(y.getPropertyValue(a,"borderBottomWidth"))||0)-(parseFloat(y.getPropertyValue(a,"paddingTop"))||0)-(parseFloat(y.getPropertyValue(a,"paddingBottom"))||0);return j(),k}if("width"===c&&"border-box"!==y.getPropertyValue(a,"boxSizing").toString().toLowerCase()){var l=a.offsetWidth-(parseFloat(y.getPropertyValue(a,"borderLeftWidth"))||0)-(parseFloat(y.getPropertyValue(a,"borderRightWidth"))||0)-(parseFloat(y.getPropertyValue(a,"paddingLeft"))||0)-(parseFloat(y.getPropertyValue(a,"paddingRight"))||0);return j(),l}}var m;m=g(a)===d?b.getComputedStyle(a,null):g(a).computedStyle?g(a).computedStyle:g(a).computedStyle=b.getComputedStyle(a,null),"borderColor"===c&&(c="borderTopColor"),e=9===p&&"filter"===c?m.getPropertyValue(c):m[c],""!==e&&null!==e||(e=a.style[c]),j()}if("auto"===e&&/^(top|right|bottom|left)$/i.test(c)){var n=h(a,"position");("fixed"===n||"absolute"===n&&/top|left/i.test(c))&&(e=o(a).position()[c]+"px")}return e}var i;if(y.Hooks.registered[c]){var j=c,k=y.Hooks.getRoot(j);e===d&&(e=y.getPropertyValue(a,y.Names.prefixCheck(k)[0])),y.Normalizations.registered[k]&&(e=y.Normalizations.registered[k]("extract",a,e)),i=y.Hooks.extractValue(j,e)}else if(y.Normalizations.registered[c]){var l,m;l=y.Normalizations.registered[c]("name",a),"transform"!==l&&(m=h(a,y.Names.prefixCheck(l)[0]),y.Values.isCSSNullValue(m)&&y.Hooks.templates[c]&&(m=y.Hooks.templates[c][1])),i=y.Normalizations.registered[c]("extract",a,m)}if(!/^[\d-]/.test(i)){var n=g(a);if(n&&n.isSVG&&y.Names.SVGAttribute(c))if(/^(height|width)$/i.test(c))try{i=a.getBBox()[c]}catch(q){i=0}else i=a.getAttribute(c);else i=h(a,y.Names.prefixCheck(c)[0])}return y.Values.isCSSNullValue(i)&&(i=0),w.debug>=2&&console.log("Get "+c+": "+i),i},setPropertyValue:function(a,c,d,e,f){var h=c;if("scroll"===c)f.container?f.container["scroll"+f.direction]=d:"Left"===f.direction?b.scrollTo(d,f.alternateValue):b.scrollTo(f.alternateValue,d);else if(y.Normalizations.registered[c]&&"transform"===y.Normalizations.registered[c]("name",a))y.Normalizations.registered[c]("inject",a,d),h="transform",d=g(a).transformCache[c];else{if(y.Hooks.registered[c]){var i=c,j=y.Hooks.getRoot(c);e=e||y.getPropertyValue(a,j),d=y.Hooks.injectValue(i,d,e),c=j}if(y.Normalizations.registered[c]&&(d=y.Normalizations.registered[c]("inject",a,d),c=y.Normalizations.registered[c]("name",a)),h=y.Names.prefixCheck(c)[0],p<=8)try{a.style[h]=d}catch(k){w.debug&&console.log("Browser does not support ["+d+"] for ["+h+"]")}else{var l=g(a);l&&l.isSVG&&y.Names.SVGAttribute(c)?a.setAttribute(c,d):a.style[h]=d}w.debug>=2&&console.log("Set "+c+" ("+h+"): "+d)}return[h,d]},flushTransformCache:function(a){var b="",c=g(a);if((p||w.State.isAndroid&&!w.State.isChrome)&&c&&c.isSVG){var d=function(b){return parseFloat(y.getPropertyValue(a,b))},e={translate:[d("translateX"),d("translateY")],skewX:[d("skewX")],skewY:[d("skewY")],scale:1!==d("scale")?[d("scale"),d("scale")]:[d("scaleX"),d("scaleY")],rotate:[d("rotateZ"),0,0]};o.each(g(a).transformCache,function(a){/^translate/i.test(a)?a="translate":/^scale/i.test(a)?a="scale":/^rotate/i.test(a)&&(a="rotate"),e[a]&&(b+=a+"("+e[a].join(" ")+") ",delete e[a])})}else{var f,h;o.each(g(a).transformCache,function(c){return f=g(a).transformCache[c],"transformPerspective"===c?(h=f,!0):(9===p&&"rotateZ"===c&&(c="rotate"),void(b+=c+f+" "))}),h&&(b="perspective"+h+" "+b)}y.setPropertyValue(a,"transform",b)}};y.Hooks.register(),y.Normalizations.register(),w.hook=function(a,b,c){var e;return a=f(a),o.each(a,function(a,f){if(g(f)===d&&w.init(f),c===d)e===d&&(e=y.getPropertyValue(f,b));else{var h=y.setPropertyValue(f,b,c);"transform"===h[0]&&w.CSS.flushTransformCache(f),e=h}}),e};var z=function(){function a(){return k?A.promise||null:p}function e(a,e){function f(f){var k,n;if(i.begin&&0===C)try{i.begin.call(r,r)}catch(p){setTimeout(function(){throw p},1)}if("scroll"===F){var q,u,x,z=/^x$/i.test(i.axis)?"Left":"Top",D=parseFloat(i.offset)||0;i.container?s.isWrapped(i.container)||s.isNode(i.container)?(i.container=i.container[0]||i.container,q=i.container["scroll"+z],x=q+o(a).position()[z.toLowerCase()]+D):i.container=null:(q=w.State.scrollAnchor[w.State["scrollProperty"+z]],u=w.State.scrollAnchor[w.State["scrollProperty"+("Left"===z?"Top":"Left")]],x=o(a).offset()[z.toLowerCase()]+D),j={scroll:{rootPropertyValue:!1,startValue:q,currentValue:q,endValue:x,unitType:"",easing:i.easing,scrollData:{container:i.container,direction:z,alternateValue:u}},element:a},w.debug&&console.log("tweensContainer (scroll): ",j.scroll,a)}else if("reverse"===F){if(k=g(a),!k)return;if(!k.tweensContainer)return void o.dequeue(a,i.queue);"none"===k.opts.display&&(k.opts.display="auto"),"hidden"===k.opts.visibility&&(k.opts.visibility="visible"),k.opts.loop=!1,k.opts.begin=null,k.opts.complete=null,v.easing||delete i.easing,v.duration||delete i.duration,i=o.extend({},k.opts,i),n=o.extend(!0,{},k?k.tweensContainer:null);for(var E in n)if(n.hasOwnProperty(E)&&"element"!==E){var G=n[E].startValue;n[E].startValue=n[E].currentValue=n[E].endValue,n[E].endValue=G,s.isEmptyObject(v)||(n[E].easing=i.easing),w.debug&&console.log("reverse tweensContainer ("+E+"): "+JSON.stringify(n[E]),a)}j=n}else if("start"===F){k=g(a),k&&k.tweensContainer&&k.isAnimating===!0&&(n=k.tweensContainer);var H=function(b,c){var d,f,g;return s.isFunction(b)&&(b=b.call(a,e,B)),s.isArray(b)?(d=b[0],!s.isArray(b[1])&&/^[\d-]/.test(b[1])||s.isFunction(b[1])||y.RegEx.isHex.test(b[1])?g=b[1]:s.isString(b[1])&&!y.RegEx.isHex.test(b[1])&&w.Easings[b[1]]||s.isArray(b[1])?(f=c?b[1]:l(b[1],i.duration),g=b[2]):g=b[1]||b[2]):d=b,c||(f=f||i.easing),s.isFunction(d)&&(d=d.call(a,e,B)),s.isFunction(g)&&(g=g.call(a,e,B)),[d||0,f,g]},I=function(e,f){var g,l=y.Hooks.getRoot(e),m=!1,p=f[0],q=f[1],r=f[2];if(!(k&&k.isSVG||"tween"===l||y.Names.prefixCheck(l)[1]!==!1||y.Normalizations.registered[l]!==d))return void(w.debug&&console.log("Skipping ["+l+"] due to a lack of browser support."));
+    (i.display!==d&&null!==i.display&&"none"!==i.display||i.visibility!==d&&"hidden"!==i.visibility)&&/opacity|filter/.test(e)&&!r&&0!==p&&(r=0),i._cacheValues&&n&&n[e]?(r===d&&(r=n[e].endValue+n[e].unitType),m=k.rootPropertyValueCache[l]):y.Hooks.registered[e]?r===d?(m=y.getPropertyValue(a,l),r=y.getPropertyValue(a,e,m)):m=y.Hooks.templates[l][1]:r===d&&(r=y.getPropertyValue(a,e));var t,u,v,x=!1,z=function(a,b){var c,d;return d=(b||"0").toString().toLowerCase().replace(/[%A-z]+$/,function(a){return c=a,""}),c||(c=y.Values.getUnitType(a)),[d,c]};if(r!==p&&s.isString(r)&&s.isString(p)){g="";var A=0,B=0,C=[],D=[],E=0,F=0,G=0;for(r=y.Hooks.fixColors(r),p=y.Hooks.fixColors(p);A<r.length&&B<p.length;){var H=r[A],I=p[B];if(/[\d\.]/.test(H)&&/[\d\.]/.test(I)){for(var J=H,K=I,M=".",N=".";++A<r.length;){if(H=r[A],H===M)M="..";else if(!/\d/.test(H))break;J+=H}for(;++B<p.length;){if(I=p[B],I===N)N="..";else if(!/\d/.test(I))break;K+=I}var O=y.Hooks.getUnit(r,A),P=y.Hooks.getUnit(p,B);if(A+=O.length,B+=P.length,O===P)J===K?g+=J+O:(g+="{"+C.length+(F?"!":"")+"}"+O,C.push(parseFloat(J)),D.push(parseFloat(K)));else{var Q=parseFloat(J),R=parseFloat(K);g+=(E<5?"calc":"")+"("+(Q?"{"+C.length+(F?"!":"")+"}":"0")+O+" + "+(R?"{"+(C.length+(Q?1:0))+(F?"!":"")+"}":"0")+P+")",Q&&(C.push(Q),D.push(0)),R&&(C.push(0),D.push(R))}}else{if(H!==I){E=0;break}g+=H,A++,B++,0===E&&"c"===H||1===E&&"a"===H||2===E&&"l"===H||3===E&&"c"===H||E>=4&&"("===H?E++:(E&&E<5||E>=4&&")"===H&&--E<5)&&(E=0),0===F&&"r"===H||1===F&&"g"===H||2===F&&"b"===H||3===F&&"a"===H||F>=3&&"("===H?(3===F&&"a"===H&&(G=1),F++):G&&","===H?++G>3&&(F=G=0):(G&&F<(G?5:4)||F>=(G?4:3)&&")"===H&&--F<(G?5:4))&&(F=G=0)}}A===r.length&&B===p.length||(w.debug&&console.error('Trying to pattern match mis-matched strings ["'+p+'", "'+r+'"]'),g=d),g&&(C.length?(w.debug&&console.log('Pattern found "'+g+'" -> ',C,D,"["+r+","+p+"]"),r=C,p=D,u=v=""):g=d)}g||(t=z(e,r),r=t[0],v=t[1],t=z(e,p),p=t[0].replace(/^([+-\/*])=/,function(a,b){return x=b,""}),u=t[1],r=parseFloat(r)||0,p=parseFloat(p)||0,"%"===u&&(/^(fontSize|lineHeight)$/.test(e)?(p/=100,u="em"):/^scale/.test(e)?(p/=100,u=""):/(Red|Green|Blue)$/i.test(e)&&(p=p/100*255,u="")));var S=function(){var d={myParent:a.parentNode||c.body,position:y.getPropertyValue(a,"position"),fontSize:y.getPropertyValue(a,"fontSize")},e=d.position===L.lastPosition&&d.myParent===L.lastParent,f=d.fontSize===L.lastFontSize;L.lastParent=d.myParent,L.lastPosition=d.position,L.lastFontSize=d.fontSize;var g=100,h={};if(f&&e)h.emToPx=L.lastEmToPx,h.percentToPxWidth=L.lastPercentToPxWidth,h.percentToPxHeight=L.lastPercentToPxHeight;else{var i=k&&k.isSVG?c.createElementNS("http://www.w3.org/2000/svg","rect"):c.createElement("div");w.init(i),d.myParent.appendChild(i),o.each(["overflow","overflowX","overflowY"],function(a,b){w.CSS.setPropertyValue(i,b,"hidden")}),w.CSS.setPropertyValue(i,"position",d.position),w.CSS.setPropertyValue(i,"fontSize",d.fontSize),w.CSS.setPropertyValue(i,"boxSizing","content-box"),o.each(["minWidth","maxWidth","width","minHeight","maxHeight","height"],function(a,b){w.CSS.setPropertyValue(i,b,g+"%")}),w.CSS.setPropertyValue(i,"paddingLeft",g+"em"),h.percentToPxWidth=L.lastPercentToPxWidth=(parseFloat(y.getPropertyValue(i,"width",null,!0))||1)/g,h.percentToPxHeight=L.lastPercentToPxHeight=(parseFloat(y.getPropertyValue(i,"height",null,!0))||1)/g,h.emToPx=L.lastEmToPx=(parseFloat(y.getPropertyValue(i,"paddingLeft"))||1)/g,d.myParent.removeChild(i)}return null===L.remToPx&&(L.remToPx=parseFloat(y.getPropertyValue(c.body,"fontSize"))||16),null===L.vwToPx&&(L.vwToPx=parseFloat(b.innerWidth)/100,L.vhToPx=parseFloat(b.innerHeight)/100),h.remToPx=L.remToPx,h.vwToPx=L.vwToPx,h.vhToPx=L.vhToPx,w.debug>=1&&console.log("Unit ratios: "+JSON.stringify(h),a),h};if(/[\/*]/.test(x))u=v;else if(v!==u&&0!==r)if(0===p)u=v;else{h=h||S();var T=/margin|padding|left|right|width|text|word|letter/i.test(e)||/X$/.test(e)||"x"===e?"x":"y";switch(v){case"%":r*="x"===T?h.percentToPxWidth:h.percentToPxHeight;break;case"px":break;default:r*=h[v+"ToPx"]}switch(u){case"%":r*=1/("x"===T?h.percentToPxWidth:h.percentToPxHeight);break;case"px":break;default:r*=1/h[u+"ToPx"]}}switch(x){case"+":p=r+p;break;case"-":p=r-p;break;case"*":p=r*p;break;case"/":p=r/p}j[e]={rootPropertyValue:m,startValue:r,currentValue:r,endValue:p,unitType:u,easing:q},g&&(j[e].pattern=g),w.debug&&console.log("tweensContainer ("+e+"): "+JSON.stringify(j[e]),a)};for(var J in t)if(t.hasOwnProperty(J)){var K=y.Names.camelCase(J),N=H(t[J]);if(y.Lists.colors.indexOf(K)>=0){var O=N[0],P=N[1],Q=N[2];if(y.RegEx.isHex.test(O)){for(var R=["Red","Green","Blue"],S=y.Values.hexToRgb(O),T=Q?y.Values.hexToRgb(Q):d,U=0;U<R.length;U++){var V=[S[U]];P&&V.push(P),T!==d&&V.push(T[U]),I(K+R[U],V)}continue}}I(K,N)}j.element=a}j.element&&(y.Values.addClass(a,"velocity-animating"),M.push(j),k=g(a),k&&(""===i.queue&&(k.tweensContainer=j,k.opts=i),k.isAnimating=!0),C===B-1?(w.State.calls.push([M,r,i,null,A.resolver,null,0]),w.State.isTicking===!1&&(w.State.isTicking=!0,m())):C++)}var h,i=o.extend({},w.defaults,v),j={};switch(g(a)===d&&w.init(a),parseFloat(i.delay)&&i.queue!==!1&&o.queue(a,i.queue,function(b){w.velocityQueueEntryFlag=!0;var c=w.State.delayedElements.count++;w.State.delayedElements[c]=a;var d=function(a){return function(){w.State.delayedElements[a]=!1,b()}}(c);g(a).delayBegin=(new Date).getTime(),g(a).delay=parseFloat(i.delay),g(a).delayTimer={setTimeout:setTimeout(b,parseFloat(i.delay)),next:d}}),i.duration.toString().toLowerCase()){case"fast":i.duration=200;break;case"normal":i.duration=u;break;case"slow":i.duration=600;break;default:i.duration=parseFloat(i.duration)||1}if(w.mock!==!1&&(w.mock===!0?i.duration=i.delay=1:(i.duration*=parseFloat(w.mock)||1,i.delay*=parseFloat(w.mock)||1)),i.easing=l(i.easing,i.duration),i.begin&&!s.isFunction(i.begin)&&(i.begin=null),i.progress&&!s.isFunction(i.progress)&&(i.progress=null),i.complete&&!s.isFunction(i.complete)&&(i.complete=null),i.display!==d&&null!==i.display&&(i.display=i.display.toString().toLowerCase(),"auto"===i.display&&(i.display=w.CSS.Values.getDisplayType(a))),i.visibility!==d&&null!==i.visibility&&(i.visibility=i.visibility.toString().toLowerCase()),i.mobileHA=i.mobileHA&&w.State.isMobile&&!w.State.isGingerbread,i.queue===!1)if(i.delay){var k=w.State.delayedElements.count++;w.State.delayedElements[k]=a;var n=function(a){return function(){w.State.delayedElements[a]=!1,f()}}(k);g(a).delayBegin=(new Date).getTime(),g(a).delay=parseFloat(i.delay),g(a).delayTimer={setTimeout:setTimeout(f,parseFloat(i.delay)),next:n}}else f();else o.queue(a,i.queue,function(a,b){return b===!0?(A.promise&&A.resolver(r),!0):(w.velocityQueueEntryFlag=!0,void f(a))});""!==i.queue&&"fx"!==i.queue||"inprogress"===o.queue(a)[0]||o.dequeue(a)}var j,k,p,q,r,t,v,x=arguments[0]&&(arguments[0].p||o.isPlainObject(arguments[0].properties)&&!arguments[0].properties.names||s.isString(arguments[0].properties));s.isWrapped(this)?(k=!1,q=0,r=this,p=this):(k=!0,q=1,r=x?arguments[0].elements||arguments[0].e:arguments[0]);var A={promise:null,resolver:null,rejecter:null};if(k&&w.Promise&&(A.promise=new w.Promise(function(a,b){A.resolver=a,A.rejecter=b})),x?(t=arguments[0].properties||arguments[0].p,v=arguments[0].options||arguments[0].o):(t=arguments[q],v=arguments[q+1]),r=f(r),!r)return void(A.promise&&(t&&v&&v.promiseRejectEmpty===!1?A.resolver():A.rejecter()));var B=r.length,C=0;if(!/^(stop|finish|finishAll|pause|resume)$/i.test(t)&&!o.isPlainObject(v)){var D=q+1;v={};for(var E=D;E<arguments.length;E++)s.isArray(arguments[E])||!/^(fast|normal|slow)$/i.test(arguments[E])&&!/^\d/.test(arguments[E])?s.isString(arguments[E])||s.isArray(arguments[E])?v.easing=arguments[E]:s.isFunction(arguments[E])&&(v.complete=arguments[E]):v.duration=arguments[E]}var F;switch(t){case"scroll":F="scroll";break;case"reverse":F="reverse";break;case"pause":var G=(new Date).getTime();return o.each(r,function(a,b){h(b,G)}),o.each(w.State.calls,function(a,b){var c=!1;b&&o.each(b[1],function(a,e){var f=v===d?"":v;return f!==!0&&b[2].queue!==f&&(v!==d||b[2].queue!==!1)||(o.each(r,function(a,d){if(d===e)return b[5]={resume:!1},c=!0,!1}),!c&&void 0)})}),a();case"resume":return o.each(r,function(a,b){i(b,G)}),o.each(w.State.calls,function(a,b){var c=!1;b&&o.each(b[1],function(a,e){var f=v===d?"":v;return f!==!0&&b[2].queue!==f&&(v!==d||b[2].queue!==!1)||(!b[5]||(o.each(r,function(a,d){if(d===e)return b[5].resume=!0,c=!0,!1}),!c&&void 0))})}),a();case"finish":case"finishAll":case"stop":o.each(r,function(a,b){g(b)&&g(b).delayTimer&&(clearTimeout(g(b).delayTimer.setTimeout),g(b).delayTimer.next&&g(b).delayTimer.next(),delete g(b).delayTimer),"finishAll"!==t||v!==!0&&!s.isString(v)||(o.each(o.queue(b,s.isString(v)?v:""),function(a,b){s.isFunction(b)&&b()}),o.queue(b,s.isString(v)?v:"",[]))});var H=[];return o.each(w.State.calls,function(a,b){b&&o.each(b[1],function(c,e){var f=v===d?"":v;return f!==!0&&b[2].queue!==f&&(v!==d||b[2].queue!==!1)||void o.each(r,function(c,d){if(d===e)if((v===!0||s.isString(v))&&(o.each(o.queue(d,s.isString(v)?v:""),function(a,b){s.isFunction(b)&&b(null,!0)}),o.queue(d,s.isString(v)?v:"",[])),"stop"===t){var h=g(d);h&&h.tweensContainer&&f!==!1&&o.each(h.tweensContainer,function(a,b){b.endValue=b.currentValue}),H.push(a)}else"finish"!==t&&"finishAll"!==t||(b[2].duration=1)})})}),"stop"===t&&(o.each(H,function(a,b){n(b,!0)}),A.promise&&A.resolver(r)),a();default:if(!o.isPlainObject(t)||s.isEmptyObject(t)){if(s.isString(t)&&w.Redirects[t]){j=o.extend({},v);var I=j.duration,J=j.delay||0;return j.backwards===!0&&(r=o.extend(!0,[],r).reverse()),o.each(r,function(a,b){parseFloat(j.stagger)?j.delay=J+parseFloat(j.stagger)*a:s.isFunction(j.stagger)&&(j.delay=J+j.stagger.call(b,a,B)),j.drag&&(j.duration=parseFloat(I)||(/^(callout|transition)/.test(t)?1e3:u),j.duration=Math.max(j.duration*(j.backwards?1-a/B:(a+1)/B),.75*j.duration,200)),w.Redirects[t].call(b,b,j||{},a,B,r,A.promise?A:d)}),a()}var K="Velocity: First argument ("+t+") was not a property map, a known action, or a registered redirect. Aborting.";return A.promise?A.rejecter(new Error(K)):console.log(K),a()}F="start"}var L={lastParent:null,lastPosition:null,lastFontSize:null,lastPercentToPxWidth:null,lastPercentToPxHeight:null,lastEmToPx:null,remToPx:null,vwToPx:null,vhToPx:null},M=[];o.each(r,function(a,b){s.isNode(b)&&e(b,a)}),j=o.extend({},w.defaults,v),j.loop=parseInt(j.loop,10);var N=2*j.loop-1;if(j.loop)for(var O=0;O<N;O++){var P={delay:j.delay,progress:j.progress};O===N-1&&(P.display=j.display,P.visibility=j.visibility,P.complete=j.complete),z(r,"reverse",P)}return a()};w=o.extend(z,w),w.animate=z;var A=b.requestAnimationFrame||q;if(!w.State.isMobile&&c.hidden!==d){var B=function(){c.hidden?(A=function(a){return setTimeout(function(){a(!0)},16)},m()):A=b.requestAnimationFrame||q};B(),c.addEventListener("visibilitychange",B)}return a.Velocity=w,a!==b&&(a.fn.velocity=z,a.fn.velocity.defaults=w.defaults),o.each(["Down","Up"],function(a,b){w.Redirects["slide"+b]=function(a,c,e,f,g,h){var i=o.extend({},c),j=i.begin,k=i.complete,l={},m={height:"",marginTop:"",marginBottom:"",paddingTop:"",paddingBottom:""};i.display===d&&(i.display="Down"===b?"inline"===w.CSS.Values.getDisplayType(a)?"inline-block":"block":"none"),i.begin=function(){0===e&&j&&j.call(g,g);for(var c in m)if(m.hasOwnProperty(c)){l[c]=a.style[c];var d=y.getPropertyValue(a,c);m[c]="Down"===b?[d,0]:[0,d]}l.overflow=a.style.overflow,a.style.overflow="hidden"},i.complete=function(){for(var b in l)l.hasOwnProperty(b)&&(a.style[b]=l[b]);e===f-1&&(k&&k.call(g,g),h&&h.resolver(g))},w(a,m,i)}}),o.each(["In","Out"],function(a,b){w.Redirects["fade"+b]=function(a,c,e,f,g,h){var i=o.extend({},c),j=i.complete,k={opacity:"In"===b?1:0};0!==e&&(i.begin=null),e!==f-1?i.complete=null:i.complete=function(){j&&j.call(g,g),h&&h.resolver(g)},i.display===d&&(i.display="In"===b?"auto":"none"),w(this,k,i)}}),w}(window.jQuery||window.Zepto||window,window,window?window.document:void 0)});
+!function(a){"use strict";"function"==typeof require&&"object"==typeof exports?module.exports=a():"function"==typeof define&&define.amd?define('velocityUI',["velocity"],a):a()}(function(){"use strict";return function(a,b,c,d){function e(a,b){var c=[];return!(!a||!b)&&(g.each([a,b],function(a,b){var d=[];g.each(b,function(a,b){for(;b.toString().length<5;)b="0"+b;d.push(b)}),c.push(d.join(""))}),parseFloat(c[0])>parseFloat(c[1]))}var f=a.Velocity;if(!f||!f.Utilities)return void(b.console&&console.log("Velocity UI Pack: Velocity must be loaded first. Aborting."));var g=f.Utilities,h=f.version,i={major:1,minor:1,patch:0};if(e(i,h)){var j="Velocity UI Pack: You need to update Velocity (velocity.js) to a newer version. Visit http://github.com/julianshapiro/velocity.";throw alert(j),new Error(j)}f.RegisterEffect=f.RegisterUI=function(a,b){function c(a,b,c,d){var e,h=0;g.each(a.nodeType?[a]:a,function(a,b){d&&(c+=a*d),e=b.parentNode;var i=["height","paddingTop","paddingBottom","marginTop","marginBottom"];"border-box"===f.CSS.getPropertyValue(b,"boxSizing").toString().toLowerCase()&&(i=["height"]),g.each(i,function(a,c){h+=parseFloat(f.CSS.getPropertyValue(b,c))})}),f.animate(e,{height:("In"===b?"+":"-")+"="+h},{queue:!1,easing:"ease-in-out",duration:c*("In"===b?.6:1)})}return f.Redirects[a]=function(e,h,i,j,k,l,m){var n=i===j-1,o=0;m=m||b.loop,"function"==typeof b.defaultDuration?b.defaultDuration=b.defaultDuration.call(k,k):b.defaultDuration=parseFloat(b.defaultDuration);for(var p=0;p<b.calls.length;p++)u=b.calls[p][1],"number"==typeof u&&(o+=u);var q=o>=1?0:b.calls.length?(1-o)/b.calls.length:1;for(p=0;p<b.calls.length;p++){var r=b.calls[p],s=r[0],t=1e3,u=r[1],v=r[2]||{},w={};if(h.duration!==d?t=h.duration:b.defaultDuration!==d&&(t=b.defaultDuration),w.duration=t*("number"==typeof u?u:q),w.queue=h.queue||"",w.easing=v.easing||"ease",w.delay=parseFloat(v.delay)||0,w.loop=!b.loop&&v.loop,w._cacheValues=v._cacheValues||!0,0===p){if(w.delay+=parseFloat(h.delay)||0,0===i&&(w.begin=function(){h.begin&&h.begin.call(k,k);var b=a.match(/(In|Out)$/);b&&"In"===b[0]&&s.opacity!==d&&g.each(k.nodeType?[k]:k,function(a,b){f.CSS.setPropertyValue(b,"opacity",0)}),h.animateParentHeight&&b&&c(k,b[0],t+w.delay,h.stagger)}),null!==h.display)if(h.display!==d&&"none"!==h.display)w.display=h.display;else if(/In$/.test(a)){var x=f.CSS.Values.getDisplayType(e);w.display="inline"===x?"inline-block":x}h.visibility&&"hidden"!==h.visibility&&(w.visibility=h.visibility)}if(p===b.calls.length-1){var y=function(){h.display!==d&&"none"!==h.display||!/Out$/.test(a)||g.each(k.nodeType?[k]:k,function(a,b){f.CSS.setPropertyValue(b,"display","none")}),h.complete&&h.complete.call(k,k),l&&l.resolver(k||e)};w.complete=function(){if(m&&f.Redirects[a](e,h,i,j,k,l,m===!0||Math.max(0,m-1)),b.reset){for(var c in b.reset)if(b.reset.hasOwnProperty(c)){var g=b.reset[c];f.CSS.Hooks.registered[c]!==d||"string"!=typeof g&&"number"!=typeof g||(b.reset[c]=[b.reset[c],b.reset[c]])}var o={duration:0,queue:!1};n&&(o.complete=y),f.animate(e,b.reset,o)}else n&&y()},"hidden"===h.visibility&&(w.visibility=h.visibility)}f.animate(e,s,w)}},f},f.RegisterEffect.packagedEffects={"callout.bounce":{defaultDuration:550,calls:[[{translateY:-30},.25],[{translateY:0},.125],[{translateY:-15},.125],[{translateY:0},.25]]},"callout.shake":{defaultDuration:800,calls:[[{translateX:-11}],[{translateX:11}],[{translateX:-11}],[{translateX:11}],[{translateX:-11}],[{translateX:11}],[{translateX:-11}],[{translateX:0}]]},"callout.flash":{defaultDuration:1100,calls:[[{opacity:[0,"easeInOutQuad",1]}],[{opacity:[1,"easeInOutQuad"]}],[{opacity:[0,"easeInOutQuad"]}],[{opacity:[1,"easeInOutQuad"]}]]},"callout.pulse":{defaultDuration:825,calls:[[{scaleX:1.1,scaleY:1.1},.5,{easing:"easeInExpo"}],[{scaleX:1,scaleY:1},.5]]},"callout.swing":{defaultDuration:950,calls:[[{rotateZ:15}],[{rotateZ:-10}],[{rotateZ:5}],[{rotateZ:-5}],[{rotateZ:0}]]},"callout.tada":{defaultDuration:1e3,calls:[[{scaleX:.9,scaleY:.9,rotateZ:-3},.1],[{scaleX:1.1,scaleY:1.1,rotateZ:3},.1],[{scaleX:1.1,scaleY:1.1,rotateZ:-3},.1],["reverse",.125],["reverse",.125],["reverse",.125],["reverse",.125],["reverse",.125],[{scaleX:1,scaleY:1,rotateZ:0},.2]]},"transition.fadeIn":{defaultDuration:500,calls:[[{opacity:[1,0]}]]},"transition.fadeOut":{defaultDuration:500,calls:[[{opacity:[0,1]}]]},"transition.flipXIn":{defaultDuration:700,calls:[[{opacity:[1,0],transformPerspective:[800,800],rotateY:[0,-55]}]],reset:{transformPerspective:0}},"transition.flipXOut":{defaultDuration:700,calls:[[{opacity:[0,1],transformPerspective:[800,800],rotateY:55}]],reset:{transformPerspective:0,rotateY:0}},"transition.flipYIn":{defaultDuration:800,calls:[[{opacity:[1,0],transformPerspective:[800,800],rotateX:[0,-45]}]],reset:{transformPerspective:0}},"transition.flipYOut":{defaultDuration:800,calls:[[{opacity:[0,1],transformPerspective:[800,800],rotateX:25}]],reset:{transformPerspective:0,rotateX:0}},"transition.flipBounceXIn":{defaultDuration:900,calls:[[{opacity:[.725,0],transformPerspective:[400,400],rotateY:[-10,90]},.5],[{opacity:.8,rotateY:10},.25],[{opacity:1,rotateY:0},.25]],reset:{transformPerspective:0}},"transition.flipBounceXOut":{defaultDuration:800,calls:[[{opacity:[.9,1],transformPerspective:[400,400],rotateY:-10}],[{opacity:0,rotateY:90}]],reset:{transformPerspective:0,rotateY:0}},"transition.flipBounceYIn":{defaultDuration:850,calls:[[{opacity:[.725,0],transformPerspective:[400,400],rotateX:[-10,90]},.5],[{opacity:.8,rotateX:10},.25],[{opacity:1,rotateX:0},.25]],reset:{transformPerspective:0}},"transition.flipBounceYOut":{defaultDuration:800,calls:[[{opacity:[.9,1],transformPerspective:[400,400],rotateX:-15}],[{opacity:0,rotateX:90}]],reset:{transformPerspective:0,rotateX:0}},"transition.swoopIn":{defaultDuration:850,calls:[[{opacity:[1,0],transformOriginX:["100%","50%"],transformOriginY:["100%","100%"],scaleX:[1,0],scaleY:[1,0],translateX:[0,-700],translateZ:0}]],reset:{transformOriginX:"50%",transformOriginY:"50%"}},"transition.swoopOut":{defaultDuration:850,calls:[[{opacity:[0,1],transformOriginX:["50%","100%"],transformOriginY:["100%","100%"],scaleX:0,scaleY:0,translateX:-700,translateZ:0}]],reset:{transformOriginX:"50%",transformOriginY:"50%",scaleX:1,scaleY:1,translateX:0}},"transition.whirlIn":{defaultDuration:850,calls:[[{opacity:[1,0],transformOriginX:["50%","50%"],transformOriginY:["50%","50%"],scaleX:[1,0],scaleY:[1,0],rotateY:[0,160]},1,{easing:"easeInOutSine"}]]},"transition.whirlOut":{defaultDuration:750,calls:[[{opacity:[0,"easeInOutQuint",1],transformOriginX:["50%","50%"],transformOriginY:["50%","50%"],scaleX:0,scaleY:0,rotateY:160},1,{easing:"swing"}]],reset:{scaleX:1,scaleY:1,rotateY:0}},"transition.shrinkIn":{defaultDuration:750,calls:[[{opacity:[1,0],transformOriginX:["50%","50%"],transformOriginY:["50%","50%"],scaleX:[1,1.5],scaleY:[1,1.5],translateZ:0}]]},"transition.shrinkOut":{defaultDuration:600,calls:[[{opacity:[0,1],transformOriginX:["50%","50%"],transformOriginY:["50%","50%"],scaleX:1.3,scaleY:1.3,translateZ:0}]],reset:{scaleX:1,scaleY:1}},"transition.expandIn":{defaultDuration:700,calls:[[{opacity:[1,0],transformOriginX:["50%","50%"],transformOriginY:["50%","50%"],scaleX:[1,.625],scaleY:[1,.625],translateZ:0}]]},"transition.expandOut":{defaultDuration:700,calls:[[{opacity:[0,1],transformOriginX:["50%","50%"],transformOriginY:["50%","50%"],scaleX:.5,scaleY:.5,translateZ:0}]],reset:{scaleX:1,scaleY:1}},"transition.bounceIn":{defaultDuration:800,calls:[[{opacity:[1,0],scaleX:[1.05,.3],scaleY:[1.05,.3]},.35],[{scaleX:.9,scaleY:.9,translateZ:0},.2],[{scaleX:1,scaleY:1},.45]]},"transition.bounceOut":{defaultDuration:800,calls:[[{scaleX:.95,scaleY:.95},.35],[{scaleX:1.1,scaleY:1.1,translateZ:0},.35],[{opacity:[0,1],scaleX:.3,scaleY:.3},.3]],reset:{scaleX:1,scaleY:1}},"transition.bounceUpIn":{defaultDuration:800,calls:[[{opacity:[1,0],translateY:[-30,1e3]},.6,{easing:"easeOutCirc"}],[{translateY:10},.2],[{translateY:0},.2]]},"transition.bounceUpOut":{defaultDuration:1e3,calls:[[{translateY:20},.2],[{opacity:[0,"easeInCirc",1],translateY:-1e3},.8]],reset:{translateY:0}},"transition.bounceDownIn":{defaultDuration:800,calls:[[{opacity:[1,0],translateY:[30,-1e3]},.6,{easing:"easeOutCirc"}],[{translateY:-10},.2],[{translateY:0},.2]]},"transition.bounceDownOut":{defaultDuration:1e3,calls:[[{translateY:-20},.2],[{opacity:[0,"easeInCirc",1],translateY:1e3},.8]],reset:{translateY:0}},"transition.bounceLeftIn":{defaultDuration:750,calls:[[{opacity:[1,0],translateX:[30,-1250]},.6,{easing:"easeOutCirc"}],[{translateX:-10},.2],[{translateX:0},.2]]},"transition.bounceLeftOut":{defaultDuration:750,calls:[[{translateX:30},.2],[{opacity:[0,"easeInCirc",1],translateX:-1250},.8]],reset:{translateX:0}},"transition.bounceRightIn":{defaultDuration:750,calls:[[{opacity:[1,0],translateX:[-30,1250]},.6,{easing:"easeOutCirc"}],[{translateX:10},.2],[{translateX:0},.2]]},"transition.bounceRightOut":{defaultDuration:750,calls:[[{translateX:-30},.2],[{opacity:[0,"easeInCirc",1],translateX:1250},.8]],reset:{translateX:0}},"transition.slideUpIn":{defaultDuration:900,calls:[[{opacity:[1,0],translateY:[0,20],translateZ:0}]]},"transition.slideUpOut":{defaultDuration:900,calls:[[{opacity:[0,1],translateY:-20,translateZ:0}]],reset:{translateY:0}},"transition.slideDownIn":{defaultDuration:900,calls:[[{opacity:[1,0],translateY:[0,-20],translateZ:0}]]},"transition.slideDownOut":{defaultDuration:900,calls:[[{opacity:[0,1],translateY:20,translateZ:0}]],reset:{translateY:0}},"transition.slideLeftIn":{defaultDuration:1e3,calls:[[{opacity:[1,0],translateX:[0,-20],translateZ:0}]]},"transition.slideLeftOut":{defaultDuration:1050,calls:[[{opacity:[0,1],translateX:-20,translateZ:0}]],reset:{translateX:0}},"transition.slideRightIn":{defaultDuration:1e3,calls:[[{opacity:[1,0],translateX:[0,20],translateZ:0}]]},"transition.slideRightOut":{defaultDuration:1050,calls:[[{opacity:[0,1],translateX:20,translateZ:0}]],reset:{translateX:0}},"transition.slideUpBigIn":{defaultDuration:850,calls:[[{opacity:[1,0],translateY:[0,75],translateZ:0}]]},"transition.slideUpBigOut":{defaultDuration:800,calls:[[{opacity:[0,1],translateY:-75,translateZ:0}]],reset:{translateY:0}},"transition.slideDownBigIn":{defaultDuration:850,calls:[[{opacity:[1,0],translateY:[0,-75],translateZ:0}]]},"transition.slideDownBigOut":{defaultDuration:800,calls:[[{opacity:[0,1],translateY:75,translateZ:0}]],reset:{translateY:0}},"transition.slideLeftBigIn":{defaultDuration:800,calls:[[{opacity:[1,0],translateX:[0,-75],translateZ:0}]]},"transition.slideLeftBigOut":{defaultDuration:750,calls:[[{opacity:[0,1],translateX:-75,translateZ:0}]],reset:{translateX:0}},"transition.slideRightBigIn":{defaultDuration:800,calls:[[{opacity:[1,0],translateX:[0,75],translateZ:0}]]},"transition.slideRightBigOut":{defaultDuration:750,calls:[[{opacity:[0,1],translateX:75,translateZ:0}]],reset:{translateX:0}},"transition.perspectiveUpIn":{defaultDuration:800,calls:[[{opacity:[1,0],transformPerspective:[800,800],transformOriginX:[0,0],transformOriginY:["100%","100%"],rotateX:[0,-180]}]],reset:{transformPerspective:0,transformOriginX:"50%",transformOriginY:"50%"}},"transition.perspectiveUpOut":{defaultDuration:850,calls:[[{opacity:[0,1],transformPerspective:[800,800],transformOriginX:[0,0],transformOriginY:["100%","100%"],rotateX:-180}]],reset:{transformPerspective:0,transformOriginX:"50%",transformOriginY:"50%",rotateX:0}},"transition.perspectiveDownIn":{defaultDuration:800,calls:[[{opacity:[1,0],transformPerspective:[800,800],transformOriginX:[0,0],transformOriginY:[0,0],rotateX:[0,180]}]],reset:{transformPerspective:0,transformOriginX:"50%",transformOriginY:"50%"}},"transition.perspectiveDownOut":{defaultDuration:850,calls:[[{opacity:[0,1],transformPerspective:[800,800],transformOriginX:[0,0],transformOriginY:[0,0],rotateX:180}]],reset:{transformPerspective:0,transformOriginX:"50%",transformOriginY:"50%",rotateX:0}},"transition.perspectiveLeftIn":{defaultDuration:950,calls:[[{opacity:[1,0],transformPerspective:[2e3,2e3],transformOriginX:[0,0],transformOriginY:[0,0],rotateY:[0,-180]}]],reset:{transformPerspective:0,transformOriginX:"50%",transformOriginY:"50%"}},"transition.perspectiveLeftOut":{defaultDuration:950,calls:[[{opacity:[0,1],transformPerspective:[2e3,2e3],transformOriginX:[0,0],transformOriginY:[0,0],rotateY:-180}]],reset:{transformPerspective:0,transformOriginX:"50%",transformOriginY:"50%",rotateY:0}},"transition.perspectiveRightIn":{defaultDuration:950,calls:[[{opacity:[1,0],transformPerspective:[2e3,2e3],transformOriginX:["100%","100%"],transformOriginY:[0,0],rotateY:[0,180]}]],reset:{transformPerspective:0,transformOriginX:"50%",transformOriginY:"50%"}},"transition.perspectiveRightOut":{defaultDuration:950,calls:[[{opacity:[0,1],transformPerspective:[2e3,2e3],transformOriginX:["100%","100%"],transformOriginY:[0,0],rotateY:180}]],reset:{transformPerspective:0,transformOriginX:"50%",transformOriginY:"50%",rotateY:0}}};for(var k in f.RegisterEffect.packagedEffects)f.RegisterEffect.packagedEffects.hasOwnProperty(k)&&f.RegisterEffect(k,f.RegisterEffect.packagedEffects[k]);f.RunSequence=function(a){var b=g.extend(!0,[],a);b.length>1&&(g.each(b.reverse(),function(a,c){var d=b[a+1];if(d){var e=c.o||c.options,h=d.o||d.options,i=e&&e.sequenceQueue===!1?"begin":"complete",j=h&&h[i],k={};k[i]=function(){var a=d.e||d.elements,b=a.nodeType?[a]:a;j&&j.call(b,b),f(c)},d.o?d.o=g.extend({},h,k):d.options=g.extend({},h,k)}}),b.reverse()),f(b[0])}}(window.jQuery||window.Zepto||window,window,window?window.document:void 0)});
 /*!
  * jQuery Mousewheel 3.1.13
  *
@@ -1949,7 +1972,7 @@ define('app/util',[
 
     'use strict';
 
-    var config = {
+    let config = {
         ajaxOverlayClass: 'pf-loading-overlay',
         ajaxOverlayWrapperClass: 'pf-loading-overlay-wrapper',
 
@@ -1990,11 +2013,11 @@ define('app/util',[
 
     };
 
-    var stopTimerCache = {};                                                    // cache for stopwatch timer
+    let stopTimerCache = {};                                                    // cache for stopwatch timer
 
-    var animationTimerCache = {};                                               // cache for table row animation timeout
+    let animationTimerCache = {};                                               // cache for table row animation timeout
 
-    var localStorage;                                                           // cache for "localForage" singleton
+    let localStorage;                                                           // cache for "localForage" singleton
 
     /*
      *  ===========================================================================================================
@@ -2006,9 +2029,9 @@ define('app/util',[
      * displays a loading indicator on an element
      */
     $.fn.showLoadingAnimation = function(options){
-        var loadingElement = $(this);
+        let loadingElement = $(this);
 
-        var iconSize = 'fa-lg';
+        let iconSize = 'fa-lg';
 
         // disable all events
         loadingElement.css('pointer-events', 'none');
@@ -2021,7 +2044,7 @@ define('app/util',[
             }
         }
 
-        var overlay = $('<div>', {
+        let overlay = $('<div>', {
             class: config.ajaxOverlayClass
         }).append(
             $('<div>', {
@@ -2039,7 +2062,7 @@ define('app/util',[
         $(overlay).velocity({
             opacity: 0.6
         },{
-            duration: 180
+            duration: 120
         });
     };
 
@@ -2047,8 +2070,8 @@ define('app/util',[
      * removes a loading indicator
      */
     $.fn.hideLoadingAnimation = function(){
-        var loadingElement = $(this);
-        var overlay = loadingElement.find('.' + config.ajaxOverlayClass );
+        let loadingElement = $(this);
+        let overlay = loadingElement.find('.' + config.ajaxOverlayClass );
 
         // important: "stop" is required to stop "show" animation
         // -> otherwise "complete" callback is not fired!
@@ -2066,7 +2089,7 @@ define('app/util',[
      * @param callback
      */
     $.fn.showSplashOverlay = function(callback){
-        var splashOverlay = $(this);
+        let splashOverlay = $(this);
 
         splashOverlay.velocity('fadeIn', {
             duration: Init.animationSpeed.splashOverlay,
@@ -2083,7 +2106,7 @@ define('app/util',[
      * hide "splash" loading overlay
      */
     $.fn.hideSplashOverlay = function(){
-        var splashOverlay = $(this);
+        let splashOverlay = $(this);
 
         splashOverlay.velocity('fadeOut', {
             duration: Init.animationSpeed.splashOverlay
@@ -2098,8 +2121,8 @@ define('app/util',[
      */
     $.fn.showCaptchaImage = function(reason, callback){
         return this.each(function(){
-            var captchaWrapper = $(this);
-            var captchaImage = captchaWrapper.find('img');
+            let captchaWrapper = $(this);
+            let captchaImage = captchaWrapper.find('img');
 
             captchaWrapper.showLoadingAnimation(config.loadingOptions);
             getCaptchaImage(reason, function(base64Image){
@@ -2120,9 +2143,10 @@ define('app/util',[
 
     /**
      * request a captcha image
+     * @param reason
      * @param callback
      */
-    var getCaptchaImage = function(reason, callback){
+    let getCaptchaImage = function(reason, callback){
 
         $.ajax({
             type: 'POST',
@@ -2138,7 +2162,7 @@ define('app/util',[
                 callback(responseData.img);
             }
         }).fail(function( jqXHR, status, error) {
-            var reason = status + ' ' + error;
+            let reason = status + ' ' + error;
             showNotify({title: jqXHR.status + ': getCaptchaImage', text: reason, type: 'error'});
         });
 
@@ -2150,7 +2174,7 @@ define('app/util',[
      */
     $.fn.resetFormFields = function(){
         return this.each(function(){
-            var field = $(this);
+            let field = $(this);
 
             if( !field.is('select') ){
                 // "input"
@@ -2168,12 +2192,12 @@ define('app/util',[
      */
     $.fn.showFormMessage = function(errors){
 
-        var formElement = $(this);
+        let formElement = $(this);
 
-        var errorMessage = [];
-        var warningMessage = [];
-        var infoMessage = [];
-        for(var i = 0; i < errors.length; i++){
+        let errorMessage = [];
+        let warningMessage = [];
+        let infoMessage = [];
+        for(let i = 0; i < errors.length; i++){
             if(errors[i].type === 'error'){
                 errorMessage.push( errors[i].message );
 
@@ -2182,7 +2206,7 @@ define('app/util',[
                     errors[i].field &&
                     errors[i].field.length > 0
                 ){
-                    var formField = formElement.find('[name="' + errors[i].field + '"]');
+                    let formField = formElement.find('[name="' + errors[i].field + '"]');
                     formField.parents('.form-group').removeClass('has-success').addClass('has-error');
                 }
 
@@ -2222,9 +2246,9 @@ define('app/util',[
      */
     $.fn.hideFormMessage = function(type, callback){
 
-        var formElement = $(this);
+        let formElement = $(this);
 
-        var settingsMessageVelocityOptions = $.extend({}, config.settingsMessageVelocityOptions);
+        let settingsMessageVelocityOptions = $.extend({}, config.settingsMessageVelocityOptions);
 
         // check if callback exists
         if(callback !== undefined){
@@ -2234,7 +2258,7 @@ define('app/util',[
             settingsMessageVelocityOptions.display = 'block';
         }
 
-        var messageElement = null;
+        let messageElement = null;
 
         switch(type){
             case 'error':
@@ -2274,22 +2298,22 @@ define('app/util',[
         options = (typeof options === 'undefined')? {} : options;
 
         return this.each(function(){
-            var form = $(this);
+            let form = $(this);
 
             // init form validation
             form.validator(options);
 
             // validation event listener
             form.on('valid.bs.validator', function(validatorObj){
-                var inputGroup = $(validatorObj.relatedTarget).parents('.form-group');
+                let inputGroup = $(validatorObj.relatedTarget).parents('.form-group');
                 if(inputGroup){
                     inputGroup.removeClass('has-error').addClass('has-success');
                 }
             });
 
             form.on('invalid.bs.validator', function(validatorObj){
-                var field = $(validatorObj.relatedTarget);
-                var inputGroup = field.parents('.form-group');
+                let field = $(validatorObj.relatedTarget);
+                let inputGroup = field.parents('.form-group');
                 if(inputGroup){
                     inputGroup.removeClass('has-success').addClass('has-error');
                 }
@@ -2303,10 +2327,10 @@ define('app/util',[
      * @returns {boolean}
      */
     $.fn.isValidForm = function(){
-        var form = $(this);
-        var valid = false;
+        let form = $(this);
+        let valid = false;
 
-        var errorElements =  form.find('.has-error');
+        let errorElements =  form.find('.has-error');
 
         if(errorElements.length === 0){
             valid = true;
@@ -2321,9 +2345,9 @@ define('app/util',[
      * @returns {{}}
      */
     $.fn.getFormValues = function(){
-        var form = $(this);
-        var formData = {};
-        var values = form.serializeArray();
+        let form = $(this);
+        let formData = {};
+        let values = form.serializeArray();
 
         // add "unchecked" checkboxes as well
         values = values.concat(
@@ -2339,7 +2363,7 @@ define('app/util',[
 
             if(field.name.indexOf('[]') !== -1){
                 // array field
-                var key = field.name.replace('[]', '');
+                let key = field.name.replace('[]', '');
                 if( !$.isArray(formData[key]) ){
                     formData[key] = [];
                 }
@@ -2351,7 +2375,7 @@ define('app/util',[
         }
 
         // get xEditable values
-        var editableValues = form.find('.' + config.formEditableFieldClass).editable('getValue');
+        let editableValues = form.find('.' + config.formEditableFieldClass).editable('getValue');
 
         // merge values
         formData = $.extend(formData, editableValues);
@@ -2365,15 +2389,15 @@ define('app/util',[
      */
     $.fn.isInViewport = function(){
 
-        var visibleElement = [];
+        let visibleElement = [];
 
         this.each(function(){
-            var element = $(this)[0];
+            let element = $(this)[0];
 
-            var top = element.offsetTop;
-            var left = element.offsetLeft;
-            var width = element.offsetWidth;
-            var height = element.offsetHeight;
+            let top = element.offsetTop;
+            let left = element.offsetLeft;
+            let width = element.offsetWidth;
+            let height = element.offsetHeight;
 
             while(element.offsetParent) {
                 element = element.offsetParent;
@@ -2399,12 +2423,12 @@ define('app/util',[
      */
     $.fn.initMapUpdateCounter = function(){
 
-        var counterChart = $(this);
+        let counterChart = $(this);
 
         counterChart.easyPieChart({
             barColor: function(percent){
 
-                var color = '#568a89';
+                let color = '#568a89';
                 if(percent <= 30){
                     color = '#d9534f';
                 }else if(percent <= 50){
@@ -2431,14 +2455,14 @@ define('app/util',[
 
         options = (typeof options === 'object') ? options : {};
 
-        var defaultOptions = {
+        let defaultOptions = {
             container:  this,
             delay: 100
         };
         options = $.extend(defaultOptions, options);
 
         return this.each(function(){
-            var tooltipElements = $(this).find('[title]');
+            let tooltipElements = $(this).find('[title]');
             tooltipElements.tooltip('destroy').tooltip(options);
         });
     };
@@ -2448,14 +2472,14 @@ define('app/util',[
      * @param tooltipData
      */
     $.fn.addCharacterInfoTooltip = function(tooltipData){
-        var element = $(this);
+        let element = $(this);
 
         if(
             tooltipData.created.character &&
             tooltipData.updated.character
         ){
-            var createdData = tooltipData.created;
-            var updatedData = tooltipData.updated;
+            let createdData = tooltipData.created;
+            let updatedData = tooltipData.updated;
 
             // check if data has changed
             if(
@@ -2467,16 +2491,16 @@ define('app/util',[
                 element.data('created', createdData.created);
                 element.data('updated', updatedData.updated);
 
-                var statusCreatedClass = getStatusInfoForCharacter(createdData.character, 'class');
-                var statusUpdatedClass = getStatusInfoForCharacter(updatedData.character, 'class');
+                let statusCreatedClass = getStatusInfoForCharacter(createdData.character, 'class');
+                let statusUpdatedClass = getStatusInfoForCharacter(updatedData.character, 'class');
 
                 // convert timestamps
-                var dateCreated = new Date(createdData.created * 1000);
-                var dateUpdated = new Date(updatedData.updated * 1000);
-                var dateCreatedUTC = convertDateToUTC(dateCreated);
-                var dateUpdatedUTC = convertDateToUTC(dateUpdated);
+                let dateCreated = new Date(createdData.created * 1000);
+                let dateUpdated = new Date(updatedData.updated * 1000);
+                let dateCreatedUTC = convertDateToUTC(dateCreated);
+                let dateUpdatedUTC = convertDateToUTC(dateUpdated);
 
-                var data = {
+                let data = {
                     created: createdData,
                     updated: updatedData,
                     createdTime: convertDateToString(dateCreatedUTC),
@@ -2486,7 +2510,7 @@ define('app/util',[
                 };
 
                 requirejs(['text!templates/tooltip/character_info.html', 'mustache'], function(template, Mustache) {
-                    var content = Mustache.render(template, data);
+                    let content = Mustache.render(template, data);
 
                     element.popover({
                         placement: 'top',
@@ -2502,7 +2526,7 @@ define('app/util',[
                     });
 
                     // set new popover content
-                    var popover = element.data('bs.popover');
+                    let popover = element.data('bs.popover');
                     popover.options.content = content;
                 });
 
@@ -2515,12 +2539,12 @@ define('app/util',[
      * @param userData
      */
     $.fn.initCharacterSwitchPopover = function(userData){
-        var elements = $(this);
-        var eventNamespace = 'hideCharacterPopup';
+        let elements = $(this);
+        let eventNamespace = 'hideCharacterPopup';
 
         requirejs(['text!templates/tooltip/character_switch.html', 'mustache'], function (template, Mustache) {
 
-            var data = {
+            let data = {
                 id: config.headCharacterSwitchId,
                 routes:  Init.routes,
                 userData: userData,
@@ -2530,10 +2554,10 @@ define('app/util',[
                 })
             };
 
-            var content = Mustache.render(template, data);
+            let content = Mustache.render(template, data);
 
             return elements.each(function() {
-                var element = $(this);
+                let element = $(this);
 
                 // check if tooltip already exists -> remove it
                 if(element.data('bs.popover') !== undefined){
@@ -2544,11 +2568,11 @@ define('app/util',[
                     e.preventDefault();
                     e.stopPropagation();
 
-                    var easeEffect = $(this).attr('data-easein');
-                    var popoverData = $(this).data('bs.popover');
-                    var popoverElement = null;
+                    let easeEffect = $(this).attr('data-easein');
+                    let popoverData = $(this).data('bs.popover');
+                    let popoverElement = null;
 
-                    var velocityOptions = {
+                    let velocityOptions = {
                         duration: Init.animationSpeed.dialogEvents
                     };
 
@@ -2598,7 +2622,7 @@ define('app/util',[
             $('body').off('click.' + eventNamespace).on('click.' + eventNamespace + ' contextmenu', function (e) {
 
                 $('.' + config.popoverTriggerClass).each(function () {
-                    var popoverElement = $(this);
+                    let popoverElement = $(this);
                     //the 'is' for buttons that trigger popups
                     //the 'has' for icons within a button that triggers a popup
                     if(
@@ -2606,7 +2630,7 @@ define('app/util',[
                         popoverElement.has(e.target).length === 0 &&
                         $('.popover').has(e.target).length === 0
                     ){
-                        var popover = popoverElement.data('bs.popover');
+                        let popover = popoverElement.data('bs.popover');
 
                         if(
                             popover !== undefined &&
@@ -2627,10 +2651,10 @@ define('app/util',[
      */
     $.fn.addWormholeInfoTooltip = function(tooltipData){
         return this.each(function() {
-            var element = $(this);
+            let element = $(this);
 
             requirejs(['text!templates/tooltip/wormhole_info.html', 'mustache'], function (template, Mustache) {
-                var content = Mustache.render(template, tooltipData);
+                let content = Mustache.render(template, tooltipData);
 
                 element.popover({
                     placement: 'top',
@@ -2647,7 +2671,7 @@ define('app/util',[
                 });
 
                 // set new popover content
-                var popover = element.data('bs.popover');
+                let popover = element.data('bs.popover');
                 popover.options.content = content;
             });
         });
@@ -2659,12 +2683,12 @@ define('app/util',[
      * @param config
      */
     $.fn.showMessage = function(config){
-        var containerElement = $(this);
+        let containerElement = $(this);
 
         requirejs(['text!templates/form/message.html', 'mustache'], function(template, Mustache) {
 
-            var messageTypeClass = 'alert-danger';
-            var messageTextClass = 'txt-color-danger';
+            let messageTypeClass = 'alert-danger';
+            let messageTextClass = 'txt-color-danger';
 
             switch(config.type){
                 case 'info':
@@ -2681,14 +2705,14 @@ define('app/util',[
                     break;
             }
 
-            var data = {
+            let data = {
                 title: config.title,
                 text: config.text,
                 messageTypeClass: messageTypeClass,
                 messageTextClass: messageTextClass
             };
 
-            var content = Mustache.render(template, data);
+            let content = Mustache.render(template, data);
 
             containerElement.html(content);
 
@@ -2706,14 +2730,14 @@ define('app/util',[
      */
     $.fn.singleDoubleClick = function(singleClickCallback, doubleClickCallback, timeout) {
         return this.each(function(){
-            var clicks = 0, self = this;
+            let clicks = 0, self = this;
 
             // prevent default behaviour (e.g. open <a>-tag link)
-            $(this).on('click', function(e){
+            $(this).off('click').on('click', function(e){
                 e.preventDefault();
             });
 
-            $(this).on('mouseup', function(e){
+            $(this).off('mouseup').on('mouseup', function(e){
                 clicks++;
                 if (clicks === 1) {
                     setTimeout(function(){
@@ -2736,7 +2760,7 @@ define('app/util',[
      */
     $.fn.pulseTableRow = function(status, clear){
 
-        var animationClass = '';
+        let animationClass = '';
         switch(status){
             case 'added':
                 animationClass = config.animationPulseSuccessClass;
@@ -2746,9 +2770,9 @@ define('app/util',[
                 break;
         }
 
-        var clearTimer =  function(element) {
+        let clearTimer =  function(element) {
             element.removeClass( animationClass );
-            var currentTimer = element.data('animationTimer');
+            let currentTimer = element.data('animationTimer');
 
             if( animationTimerCache.hasOwnProperty(currentTimer) ){
                 clearTimeout( currentTimer );
@@ -2758,7 +2782,7 @@ define('app/util',[
         };
 
         return this.each(function(){
-            var element = $(this);
+            let element = $(this);
 
             if( element.hasClass(animationClass) ){
                 // clear timer -> set new timer
@@ -2767,7 +2791,7 @@ define('app/util',[
 
             if(clear !== true){
                 element.addClass( animationClass );
-                var timer = setTimeout(clearTimer, 1500, element);
+                let timer = setTimeout(clearTimer, 1500, element);
                 element.data('animationTimer', timer);
                 animationTimerCache[timer] = true;
             }
@@ -2785,21 +2809,21 @@ define('app/util',[
      * get current Pathfinder version number
      * @returns {*|jQuery}
      */
-    var getVersion = function(){
+    let getVersion = function(){
         return $('body').data('version');
     };
 
     /**
      * show current program version information in browser console
      */
-    var showVersionInfo = function(){
+    let showVersionInfo = function(){
         console.info('PATHFINDER ' + getVersion());
     };
 
     /**
      * init utility prototype functions
      */
-    var initPrototypes = function(){
+    let initPrototypes = function(){
         // Array diff
         // [1,2,3,4,5,6].diff( [3,4,5] );
         // => [1, 2, 6]
@@ -2811,7 +2835,7 @@ define('app/util',[
     /**
      * set default configuration  for "Bootbox" dialogs
      */
-    var initDefaultBootboxConfig = function(){
+    let initDefaultBootboxConfig = function(){
         bootbox.setDefaults({
             onEscape: true      // enables close dialogs on ESC key
         });
@@ -2824,7 +2848,7 @@ define('app/util',[
      * @param value
      * @returns {*}
      */
-    var getCurrentTriggerDelay = function( updateKey, value ){
+    let getCurrentTriggerDelay = function( updateKey, value ){
 
         // make sure the delay timer is valid!
         // if this is called for the first time -> set CURRENT_DELAY
@@ -2850,12 +2874,12 @@ define('app/util',[
      * get date obj with current EVE Server Time.
      * @returns {Date}
      */
-    var getServerTime = function(){
+    let getServerTime = function(){
 
         // Server is running with GMT/UTC (EVE Time)
-        var localDate = new Date();
+        let localDate = new Date();
 
-        var serverDate= new Date(
+        let serverDate= new Date(
             localDate.getUTCFullYear(),
             localDate.getUTCMonth(),
             localDate.getUTCDate(),
@@ -2872,8 +2896,8 @@ define('app/util',[
      * @param timestamp
      * @returns {Date}
      */
-    var convertTimestampToServerTime = function(timestamp){
-        var currentTimeZoneOffsetInMinutes = new Date().getTimezoneOffset();
+    let convertTimestampToServerTime = function(timestamp){
+        let currentTimeZoneOffsetInMinutes = new Date().getTimezoneOffset();
         return new Date( (timestamp + (currentTimeZoneOffsetInMinutes * 60)) * 1000);
     };
 
@@ -2883,11 +2907,11 @@ define('app/util',[
      * @param date2
      * @returns {{}}
      */
-    var getTimeDiffParts = function(date1, date2){
-        var parts = {};
-        var time1 = date1.getTime();
-        var time2 = date2.getTime();
-        var diff  = 0;
+    let getTimeDiffParts = function(date1, date2){
+        let parts = {};
+        let time1 = date1.getTime();
+        let time2 = date2.getTime();
+        let diff  = 0;
 
         if(
             time1 >= 0 &&
@@ -2899,7 +2923,7 @@ define('app/util',[
         diff = Math.abs(Math.floor(diff));
 
         parts.days = Math.floor(diff/(24*60*60));
-        var leftSec = diff - parts.days * 24*60*60;
+        let leftSec = diff - parts.days * 24*60*60;
 
         parts.hours = Math.floor(leftSec/(60*60));
         leftSec = leftSec - parts.hours * 60*60;
@@ -2913,7 +2937,7 @@ define('app/util',[
      * start time measurement by a unique string identifier
      * @param timerName
      */
-    var timeStart = function(timerName){
+    let timeStart = function(timerName){
 
         if(typeof performance === 'object'){
             stopTimerCache[timerName] = performance.now();
@@ -2927,13 +2951,13 @@ define('app/util',[
      * @param timerName
      * @returns {number}
      */
-    var timeStop = function(timerName){
+    let timeStop = function(timerName){
 
-        var duration = 0;
+        let duration = 0;
 
         if( stopTimerCache.hasOwnProperty(timerName) ){
             // check browser support for performance API
-            var timeNow = 0;
+            let timeNow = 0;
 
             if(typeof performance === 'object'){
                 timeNow = performance.now();
@@ -2953,10 +2977,10 @@ define('app/util',[
 
     /**
      * trigger main logging event with log information
-     * @param message
+     * @param logKey
      * @param options
      */
-    var log = function(logKey, options){
+    let log = function(logKey, options){
         $(window).trigger('pf:log', [logKey, options]);
     };
 
@@ -2965,7 +2989,7 @@ define('app/util',[
      * @param customConfig
      * @param desktop
      */
-    var showNotify = function(customConfig, desktop){
+    let showNotify = function(customConfig, desktop){
         requirejs(['app/notification'], function(Notification) {
             Notification.showNotify(customConfig, desktop);
         });
@@ -2974,7 +2998,7 @@ define('app/util',[
     /**
      * stop browser tab title "blinking"
      */
-    var stopTabBlink = function(){
+    let stopTabBlink = function(){
         requirejs(['app/notification'], function(Notification) {
             Notification.stopTabBlink();
         });
@@ -2986,8 +3010,8 @@ define('app/util',[
      * @param option
      * @returns {string}
      */
-    var getLogInfo = function(logType, option){
-        var logInfo = '';
+    let getLogInfo = function(logType, option){
+        let logInfo = '';
 
         if(Init.classes.logTypes.hasOwnProperty(logType)){
             logInfo = Init.classes.logTypes[logType][option];
@@ -2997,9 +3021,17 @@ define('app/util',[
     };
 
     /**
+     * get currentUserData from "global" variable
+     * @returns {*}
+     */
+    let getCurrentUserData = function(){
+        return Init.currentUserData;
+    };
+
+    /**
      * set default jQuery AJAX configuration
      */
-    var ajaxSetup = function(){
+    let ajaxSetup = function(){
         $.ajaxSetup({
             beforeSend: function(xhr, settings) {
                 // Add custom application headers on "same origin" requests only!
@@ -3007,8 +3039,8 @@ define('app/util',[
                 if(settings.crossDomain === false){
                     // add current character data to ANY XHR request (HTTP HEADER)
                     // -> This helps to identify multiple characters on multiple browser tabs
-                    var userData = getCurrentUserData();
-                    var currentCharacterId = 0;
+                    let userData = getCurrentUserData();
+                    let currentCharacterId = 0;
                     if(
                         userData &&
                         userData.character
@@ -3023,6 +3055,111 @@ define('app/util',[
     };
 
     /**
+     * get WebSocket readyState description from ID
+     * https://developer.mozilla.org/de/docs/Web/API/WebSocket
+     * @param readyState
+     * @returns {string}
+     */
+    let getWebSocketDescriptionByReadyState = (readyState) => {
+        let description = '';
+
+        switch(readyState){
+            case 0: description = 'connecting'; break;
+            case 1: description = 'open'; break;
+            case 2: description = 'closing'; break;
+            case 3: description = 'closed'; break;
+        }
+
+        return description;
+    };
+
+    /**
+     * set sync status for map updates
+     * -> if SharedWorker AND WebSocket connected -> status = "WebSocket"
+     * -> else -> status = "ajax" (long polling)
+     * @param type
+     * @param options
+     */
+    let setSyncStatus = (type, options) => {
+        // current syncStatus
+        let syncStatus = Init.syncStatus;
+
+        switch(type){
+            case 'ws:open':
+                // WebSocket open
+                syncStatus.webSocket.status = getWebSocketDescriptionByReadyState(options.readyState);
+                syncStatus.webSocket.class = 'txt-color-success';
+                syncStatus.webSocket.timestamp = new Date().getTime() / 1000;
+
+                syncStatus.type = 'webSocket';
+                setSyncStatus('ajax:disable');
+
+                $(window).trigger('pf:syncStatus');
+                break;
+            case 'ws:get':
+                // WebSocket data pushed from server
+                syncStatus.webSocket.timestamp = new Date().getTime() / 1000;
+                $(window).trigger('pf:syncStatus');
+                break;
+            case 'ws:closed':
+                // WebSocket closed
+                syncStatus.webSocket.status = getWebSocketDescriptionByReadyState(options.readyState);
+                syncStatus.webSocket.class = 'txt-color-danger';
+                syncStatus.webSocket.timestamp = undefined;
+
+                setSyncStatus('ajax:enable');
+                break;
+            case 'ws:error':
+                // WebSocket error
+                syncStatus.webSocket.status = getWebSocketDescriptionByReadyState(options.readyState);
+                syncStatus.webSocket.class = 'txt-color-danger';
+
+                setSyncStatus('ajax:enable');
+                break;
+            case 'sw:init':
+                // SharedWorker initialized
+                syncStatus.sharedWorker.status = 'online';
+                syncStatus.sharedWorker.class = 'txt-color-success';
+                break;
+            case 'sw:error':
+                // SharedWorker error
+                syncStatus.sharedWorker.status = 'offline';
+                syncStatus.sharedWorker.class = 'txt-color-danger';
+
+                setSyncStatus('ajax:enable');
+                break;
+            case 'ajax:enable':
+                // Ajax enabled (WebSocket error/not connected)
+                syncStatus.ajax.status = 'enabled';
+                syncStatus.ajax.class = 'txt-color-success';
+                syncStatus.ajax.timestamp = new Date().getTime() / 1000;
+
+                syncStatus.type = 'ajax';
+                $(window).trigger('pf:syncStatus');
+                break;
+            case 'ajax:get':
+                // Ajax data pulled from client
+                syncStatus.ajax.timestamp = new Date().getTime() / 1000;
+                $(window).trigger('pf:syncStatus');
+                break;
+            case 'ajax:disable':
+                // Ajax disabled (WebSocket open/ready)
+                syncStatus.ajax.status = 'disabled';
+                syncStatus.ajax.class = 'txt-color-warning';
+                break;
+        }
+    };
+
+    /**
+     * get current sync type for map updates
+     * -> "ajax" or "webSocket"
+     * @returns {string}
+     */
+    let getSyncType = () => {
+      return Init.syncStatus.type;
+    };
+
+    /**
      * Returns true if the user hit Esc or navigated away from the
      * current page before an AJAX call was done. (The response
      * headers will be null or empty, depending on the browser.)
@@ -3032,7 +3169,7 @@ define('app/util',[
      * @param jqXHR XMLHttpRequest instance
      * @returns {boolean}
      */
-    var isXHRAborted = function(jqXHR){
+    let isXHRAborted = function(jqXHR){
         return !jqXHR.getAllResponseHeaders();
     };
 
@@ -3045,9 +3182,9 @@ define('app/util',[
      */
     $.fn.getMapTabElements = function(mapId){
 
-        var mapModuleElement = $(this);
+        let mapModuleElement = $(this);
 
-        var mapTabElements = mapModuleElement.find('#' + config.mapTabBarId).find('a');
+        let mapTabElements = mapModuleElement.find('#' + config.mapTabBarId).find('a');
 
         if(mapId){
             // search for a specific tab element
@@ -3063,9 +3200,9 @@ define('app/util',[
      * get the map module object or create a new module
      * @returns {*|HTMLElement}
      */
-    var getMapModule = function(){
+    let getMapModule = function(){
 
-        var mapModule = $('#' + config.mapModuleId);
+        let mapModule = $('#' + config.mapModuleId);
         if(mapModule.length === 0){
             mapModule = $('<div>', {
                 id: config.mapModuleId
@@ -3076,18 +3213,54 @@ define('app/util',[
     };
 
     /**
+     * get Area ID by security string
+     * @param security
+     * @returns {number}
+     */
+    let getAreaIdBySecurity = function(security){
+
+        let areaId = 0;
+
+        switch(security){
+            case 'H':
+                areaId = 10;
+                break;
+            case 'L':
+                areaId = 11;
+                break;
+            case '0.0':
+                areaId = 12;
+                break;
+            case 'SH':
+                areaId = 13;
+                break;
+            default:
+                // w-space
+                for(let i = 1; i <= 6; i++){
+                    if(security === 'C' + i){
+                        areaId = i;
+                        break;
+                    }
+                }
+                break;
+        }
+
+        return areaId;
+    };
+
+    /**
      * get system effect data by system security and system class
      * if no search parameters given -> get all effect data
      * @param security
      * @param effect
      * @returns {boolean}
      */
-    var getSystemEffectData = function(security, effect){
-        var data =  SystemEffect;
+    let getSystemEffectData = function(security, effect){
+        let data =  SystemEffect;
         if(security){
             // look for specific data
             data = false;
-            var areaId = getAreaIdBySecurity(security);
+            let areaId = getAreaIdBySecurity(security);
 
             if(
                 areaId > 0 &&
@@ -3107,25 +3280,25 @@ define('app/util',[
      * @param option
      * @returns {string}
      */
-    var getStatusInfoForCharacter = function(characterData, option){
+    let getStatusInfoForCharacter = function(characterData, option){
 
-        var statusInfo = '';
+        let statusInfo = '';
 
         // character status can not be checked if there are no reference data
         // e.g. during registration process (login page)
         if(Init.characterStatus){
             // get info for current "main" character
-            var corporationId = getCurrentUserInfo('corporationId');
-            var allianceId = getCurrentUserInfo('allianceId');
+            let corporationId = getCurrentUserInfo('corporationId');
+            let allianceId = getCurrentUserInfo('allianceId');
 
             // get all user characters
-            var userData = getCurrentUserData();
+            let userData = getCurrentUserData();
 
             if(userData){
                 // check if character is one of his own characters
-                var userCharactersData = userData.characters;
+                let userCharactersData = userData.characters;
 
-                for(var i = 0; i < userCharactersData.length; i++){
+                for(let i = 0; i < userCharactersData.length; i++){
                     if(userCharactersData[i].id === characterData.id){
                         statusInfo = Init.characterStatus.own[option];
                         break;
@@ -3158,13 +3331,13 @@ define('app/util',[
      * @param data
      * @returns {string}
      */
-    var getSystemEffectTable = function(data){
-        var table = '';
+    let getSystemEffectTable = function(data){
+        let table = '';
 
         if(data.length > 0){
 
             table += '<table>';
-            for(var i = 0; i < data.length; i++){
+            for(let i = 0; i < data.length; i++){
                 table += '<tr>';
                 table += '<td>';
                 table += data[i].effect;
@@ -3186,16 +3359,16 @@ define('app/util',[
      * @param data
      * @returns {string}
      */
-    var getSystemsInfoTable = function(data){
-        var table = '';
+    let getSystemsInfoTable = function(data){
+        let table = '';
 
         if(data.length > 0){
 
             table += '<table>';
-            for(var i = 0; i < data.length; i++){
+            for(let i = 0; i < data.length; i++){
 
-                var trueSecClass = getTrueSecClassForSystem( data[i].trueSec );
-                var securityClass = getSecurityClassForSystem( data[i].security );
+                let trueSecClass = getTrueSecClassForSystem( data[i].trueSec );
+                let securityClass = getSecurityClassForSystem( data[i].security );
 
                 table += '<tr>';
                 table += '<td>';
@@ -3220,8 +3393,8 @@ define('app/util',[
      * @param sec
      * @returns {string}
      */
-    var getSecurityClassForSystem = function(sec){
-        var secClass = '';
+    let getSecurityClassForSystem = function(sec){
+        let secClass = '';
 
         if( Init.classes.systemSecurity.hasOwnProperty(sec) ){
             secClass = Init.classes.systemSecurity[sec]['class'];
@@ -3232,11 +3405,11 @@ define('app/util',[
 
     /**
      * get a css class for the trueSec level of a system
-     * @param sec
+     * @param trueSec
      * @returns {string}
      */
-    var getTrueSecClassForSystem = function(trueSec){
-        var trueSecClass = '';
+    let getTrueSecClassForSystem = function(trueSec){
+        let trueSecClass = '';
 
         trueSec = parseFloat(trueSec);
 
@@ -3265,9 +3438,9 @@ define('app/util',[
      * @param option
      * @returns {string}
      */
-    var getStatusInfoForSystem = function(status, option){
+    let getStatusInfoForSystem = function(status, option){
 
-        var statusInfo = '';
+        let statusInfo = '';
 
         if( Init.systemStatus.hasOwnProperty(status) ){
             // search by status string
@@ -3291,11 +3464,11 @@ define('app/util',[
      * @param option
      * @returns {{}}
      */
-    var getSignatureGroupInfo = function(option){
+    let getSignatureGroupInfo = function(option){
 
-        var groupInfo = {};
+        let groupInfo = {};
 
-        for (var prop in Init.signatureGroups) {
+        for (let prop in Init.signatureGroups) {
             if(Init.signatureGroups.hasOwnProperty(prop)){
                 prop = parseInt(prop);
                 groupInfo[prop] = Init.signatureGroups[prop][option];
@@ -3312,9 +3485,9 @@ define('app/util',[
      * @param sigGroupId
      * @returns {{}}
      */
-    var getAllSignatureNames = function(systemTypeId, areaId, sigGroupId){
+    let getAllSignatureNames = function(systemTypeId, areaId, sigGroupId){
 
-        var signatureNames = {};
+        let signatureNames = {};
 
         if(
             SignatureType[systemTypeId] &&
@@ -3334,17 +3507,17 @@ define('app/util',[
      * @param name
      * @returns {number}
      */
-    var getSignatureTypeIdByName = function(systemData, sigGroupId, name){
+    let getSignatureTypeIdByName = function(systemData, sigGroupId, name){
 
-        var signatureTypeId = 0;
+        let signatureTypeId = 0;
 
-        var areaId = getAreaIdBySecurity(systemData.security);
+        let areaId = getAreaIdBySecurity(systemData.security);
 
         if(areaId > 0){
-            var signatureNames = getAllSignatureNames(systemData.type.id, areaId, sigGroupId );
+            let signatureNames = getAllSignatureNames(systemData.type.id, areaId, sigGroupId );
             name = name.toLowerCase();
 
-            for(var prop in signatureNames) {
+            for(let prop in signatureNames) {
 
                 if(
                     signatureNames.hasOwnProperty(prop) &&
@@ -3360,48 +3533,12 @@ define('app/util',[
     };
 
     /**
-     * get Area ID by security string
-     * @param security
-     * @returns {number}
-     */
-    var getAreaIdBySecurity = function(security){
-
-        var areaId = 0;
-
-        switch(security){
-            case 'H':
-                areaId = 10;
-                break;
-            case 'L':
-                areaId = 11;
-                break;
-            case '0.0':
-                areaId = 12;
-                break;
-            case 'SH':
-                areaId = 13;
-                break;
-            default:
-                // w-space
-                for(var i = 1; i <= 6; i++){
-                    if(security === 'C' + i){
-                        areaId = i;
-                        break;
-                    }
-                }
-                break;
-        }
-
-        return areaId;
-    };
-
-    /**
      * set currentMapUserData as "global" variable (count of active pilots)
      * this function should be called continuously after data change
      * to keep the data always up2data
      * @param mapUserData
      */
-    var setCurrentMapUserData = function(mapUserData){
+    let setCurrentMapUserData = function(mapUserData){
         Init.currentMapUserData = mapUserData;
 
         return getCurrentMapUserData();
@@ -3412,16 +3549,15 @@ define('app/util',[
      * @param mapId
      * @returns {boolean}
      */
-    var getCurrentMapUserData = function(mapId){
-
-        var currentMapUserData = false;
+    let getCurrentMapUserData = function(mapId){
+        let currentMapUserData = false;
 
         if(
             mapId === parseInt(mapId, 10) &&
             Init.currentMapUserData
         ){
             // search for a specific map
-            for(var i = 0; i < Init.currentMapUserData.length; i++){
+            for(let i = 0; i < Init.currentMapUserData.length; i++){
                 if(Init.currentMapUserData[i].config.id === mapId){
                     currentMapUserData = Init.currentMapUserData[i];
                     break;
@@ -3446,10 +3582,46 @@ define('app/util',[
      * to keep the data always up2data
      * @param mapData
      */
-    var setCurrentMapData = function(mapData){
+    let setCurrentMapData = function(mapData){
         Init.currentMapData = mapData;
 
         return getCurrentMapData();
+    };
+
+    /**
+     * get mapData array index by mapId
+     * @param mapId
+     * @returns {boolean|int}
+     */
+    let getCurrentMapDataIndex = function(mapId){
+        let mapDataIndex = false;
+
+        if( mapId === parseInt(mapId, 10) ){
+            for(let i = 0; i < Init.currentMapData.length; i++){
+                if(Init.currentMapData[i].config.id === mapId){
+                    mapDataIndex = i;
+                    break;
+                }
+            }
+        }
+
+        return mapDataIndex;
+    };
+
+    /**
+     * update cached mapData for a single map
+     * @param mapData
+     */
+    let updateCurrentMapData = function(mapData){
+        let mapDataIndex = getCurrentMapDataIndex( mapData.config.id );
+
+        if(mapDataIndex !== false){
+            Init.currentMapData[mapDataIndex].config = mapData.config;
+            Init.currentMapData[mapDataIndex].data = mapData.data;
+        }else{
+            // new map data
+            Init.currentMapData.push(mapData);
+        }
     };
 
     /**
@@ -3457,12 +3629,12 @@ define('app/util',[
      * @param mapId
      * @returns {boolean}
      */
-    var getCurrentMapData = function(mapId){
-        var currentMapData = false;
+    let getCurrentMapData = function(mapId){
+        let currentMapData = false;
 
         if( mapId === parseInt(mapId, 10) ){
             // search for a specific map
-            for(var i = 0; i < Init.currentMapData.length; i++){
+            for(let i = 0; i < Init.currentMapData.length; i++){
                 if(Init.currentMapData[i].config.id === mapId){
                     currentMapData = Init.currentMapData[i];
                     break;
@@ -3477,25 +3649,14 @@ define('app/util',[
     };
 
     /**
-     * get mapData array index by mapId
+     * delete map data by mapId from currentMapData
      * @param mapId
-     * @returns {boolean|int}
      */
-    var getCurrentMapDataIndex = function(mapId){
-        var mapDataIndex = false;
-
-        if( mapId === parseInt(mapId, 10) ){
-            for(var i = 0; i < Init.currentMapData.length; i++){
-                if(Init.currentMapData[i].config.id === mapId){
-                    mapDataIndex = i;
-                    break;
-                }
-            }
-        }
-
-        return mapDataIndex;
+    let deleteCurrentMapData = (mapId) => {
+        Init.currentMapData = Init.currentMapData.filter((mapData) => {
+            return (mapData.config.id !== mapId);
+        });
     };
-
 
     /**
      * set currentUserData as "global" variable
@@ -3503,7 +3664,7 @@ define('app/util',[
      * to keep the data always up2data
      * @param userData
      */
-    var setCurrentUserData = function(userData){
+    let setCurrentUserData = function(userData){
         Init.currentUserData = userData;
 
         // check if function is available
@@ -3516,22 +3677,12 @@ define('app/util',[
     };
 
     /**
-     * get currentUserData from "global" variable
-     * @returns {*}
-     */
-    var getCurrentUserData = function(){
-        return Init.currentUserData;
-    };
-
-    /**
      * get the current log data for the current user character
      * @returns {boolean}
      */
-    var getCurrentCharacterLog = function(){
-
-        var characterLog = false;
-
-        var currentUserData = getCurrentUserData();
+    let getCurrentCharacterLog = function(){
+        let characterLog = false;
+        let currentUserData = getCurrentUserData();
 
         if(
             currentUserData &&
@@ -3549,13 +3700,13 @@ define('app/util',[
      * @param option
      * @returns {boolean}
      */
-    var getCurrentUserInfo = function(option){
-        var currentUserData = getCurrentUserData();
-        var userInfo = false;
+    let getCurrentUserInfo = function(option){
+        let currentUserData = getCurrentUserData();
+        let userInfo = false;
 
         if(currentUserData){
             // user data is set -> user data will be set AFTER the main init request!
-            var characterData = currentUserData.character;
+            let characterData = currentUserData.character;
 
             if(characterData){
                 if(
@@ -3583,8 +3734,8 @@ define('app/util',[
      * @param systemData
      * @param type
      */
-    var setDestination = function(systemData, type){
-        var description = '';
+    let setDestination = function(systemData, type){
+        let description = '';
         switch(type){
             case 'set_destination':
                 description = 'Set destination';
@@ -3617,7 +3768,7 @@ define('app/util',[
                 responseData.systemData &&
                 responseData.systemData.length > 0
             ){
-                for (var j = 0; j < responseData.systemData.length; j++) {
+                for (let j = 0; j < responseData.systemData.length; j++) {
                     showNotify({title: this.description, text: 'System: ' + responseData.systemData[j].name, type: 'success'});
                 }
             }
@@ -3626,13 +3777,13 @@ define('app/util',[
                 responseData.error &&
                 responseData.error.length > 0
             ){
-                for(var i = 0; i < responseData.error.length; i++){
+                for(let i = 0; i < responseData.error.length; i++){
                     showNotify({title: this.description + ' error', text: 'System: ' + responseData.error[i].message, type: 'error'});
                 }
             }
 
         }).fail(function( jqXHR, status, error) {
-            var reason = status + ' ' + error;
+            let reason = status + ' ' + error;
             showNotify({title: jqXHR.status + ': ' + this.description, text: reason, type: 'warning'});
         });
     };
@@ -3641,7 +3792,7 @@ define('app/util',[
      * set currentSystemData as "global" variable
      * @param systemData
      */
-    var setCurrentSystemData = function(systemData){
+    let setCurrentSystemData = function(systemData){
         Init.currentSystemData = systemData;
     };
 
@@ -3649,7 +3800,7 @@ define('app/util',[
      * get currentSystemData from "global" variables
      * @returns {*}
      */
-    var getCurrentSystemData = function(){
+    let getCurrentSystemData = function(){
         return Init.currentSystemData;
     };
 
@@ -3658,8 +3809,8 @@ define('app/util',[
      * -> system data where current user is located
      * @returns {{id: *, name: *}}
      */
-    var getCurrentLocationData = function(){
-        var currentLocationLink = $('#' + config.headCurrentLocationId).find('a');
+    let getCurrentLocationData = function(){
+        let currentLocationLink = $('#' + config.headCurrentLocationId).find('a');
         return {
           id: currentLocationLink.data('systemId'),
           name: currentLocationLink.data('systemName')
@@ -3670,7 +3821,7 @@ define('app/util',[
      * get all "open" dialog elements
      * @returns {*|jQuery}
      */
-    var getOpenDialogs = function(){
+    let getOpenDialogs = function(){
         return $('.' + config.dialogClass).filter(':visible');
     };
 
@@ -3679,10 +3830,10 @@ define('app/util',[
      * @param price
      * @returns {string}
      */
-    var formatPrice = function(price){
+    let formatPrice = function(price){
         price = Number( price ).toFixed(2);
 
-        var parts = price.toString().split('.');
+        let parts = price.toString().split('.');
         price = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (parts[1] ? '.' + parts[1] : '');
 
         return price + ' ISK';
@@ -3692,7 +3843,7 @@ define('app/util',[
      * get localForage instance (singleton) for offline client site storage
      * @returns {localforage}
      */
-    var getLocalStorage = function(){
+    let getLocalStorage = function(){
         if(localStorage === undefined){
             localStorage = localforage.createInstance({
                 driver: [localforage.INDEXEDDB, localforage.WEBSQL, localforage.LOCALSTORAGE],
@@ -3707,7 +3858,7 @@ define('app/util',[
      * @param date
      * @returns {Date}
      */
-    var createDateAsUTC = function(date) {
+    let createDateAsUTC = function(date) {
         return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()));
     };
 
@@ -3716,7 +3867,7 @@ define('app/util',[
      * @param date
      * @returns {Date}
      */
-    var convertDateToUTC = function(date) {
+    let convertDateToUTC = function(date) {
         return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
     };
 
@@ -3725,9 +3876,9 @@ define('app/util',[
      * @param date
      * @returns {string}
      */
-    var convertDateToString = function(date){
-        var dateString = ('0'+ (date.getMonth() + 1 )).slice(-2) + '/' + ('0'+date.getDate()).slice(-2) + '/' + date.getFullYear();
-        var timeString = ('0' + date.getHours()).slice(-2) + ':' + ('0'+date.getMinutes()).slice(-2);
+    let convertDateToString = function(date){
+        let dateString = ('0'+ (date.getMonth() + 1 )).slice(-2) + '/' + ('0'+date.getDate()).slice(-2) + '/' + date.getFullYear();
+        let timeString = ('0' + date.getHours()).slice(-2) + ':' + ('0'+date.getMinutes()).slice(-2);
         return   dateString + ' ' + timeString;
     };
 
@@ -3736,11 +3887,11 @@ define('app/util',[
      * -> www.pathfinder.com/pathfinder/ -> /pathfinder
      * @returns {string|string}
      */
-    var getDocumentPath = function(){
-        var pathname = window.location.pathname;
+    let getDocumentPath = function(){
+        let pathname = window.location.pathname;
         // replace file endings
-        var r = /[^\/]*$/;
-        var path = pathname.replace(r, '');
+        let r = /[^\/]*$/;
+        let path = pathname.replace(r, '');
         return path || '/';
     };
 
@@ -3749,8 +3900,8 @@ define('app/util',[
      * @param url
      * @param params
      */
-    var redirect = function(url, params){
-        var currentUrl = document.URL;
+    let redirect = function(url, params){
+        let currentUrl = document.URL;
 
         if(url !== currentUrl){
             if(
@@ -3767,8 +3918,8 @@ define('app/util',[
      * send logout request
      * @param  params
      */
-    var logout = function(params){
-        var data = {};
+    let logout = function(params){
+        let data = {};
         if(
             params &&
             params.ajaxData
@@ -3786,7 +3937,7 @@ define('app/util',[
                 redirect(data.reroute, ['logout']);
             }
         }).fail(function( jqXHR, status, error) {
-            var reason = status + ' ' + error;
+            let reason = status + ' ' + error;
             showNotify({title: jqXHR.status + ': logout', text: reason, type: 'error'});
         });
     };
@@ -3808,6 +3959,8 @@ define('app/util',[
         stopTabBlink: stopTabBlink,
         getLogInfo: getLogInfo,
         ajaxSetup: ajaxSetup,
+        setSyncStatus: setSyncStatus,
+        getSyncType: getSyncType,
         isXHRAborted: isXHRAborted,
         getMapModule: getMapModule,
         getSystemEffectData: getSystemEffectData,
@@ -3826,6 +3979,8 @@ define('app/util',[
         setCurrentMapData: setCurrentMapData,
         getCurrentMapData: getCurrentMapData,
         getCurrentMapDataIndex: getCurrentMapDataIndex,
+        updateCurrentMapData: updateCurrentMapData,
+        deleteCurrentMapData: deleteCurrentMapData,
         setCurrentUserData: setCurrentUserData,
         getCurrentUserData: getCurrentUserData,
         setCurrentSystemData: setCurrentSystemData,
@@ -3926,288 +4081,312 @@ define('app/logging',[
 
     'use strict';
 
-    var logData = [];                                               // cache object for all log entries
-    var logDataTable = null;                                        // "Datatables" Object
+    let logData = [];                                                                   // cache object for all log entries
+    let logDataTable = null;                                                            // "Datatables" Object
 
     // Morris charts data
-    var maxGraphDataCount = 30;                                     // max date entries for a graph
-    var chartData = {};                                             // chart Data object for all Morris Log graphs
+    let maxGraphDataCount = 30;                                                         // max date entries for a graph
+    let chartData = {};                                                                 // chart Data object for all Morris Log graphs
 
-    var config = {
-        dialogDynamicAreaClass: 'pf-dynamic-area',                  // class for dynamic areas
-        logGraphClass: 'pf-log-graph',                              // class for all log Morris graphs
-        tableToolsClass: 'pf-table-tools'                           // class for table tools
+    let config = {
+        taskDialogId: 'pf-task-dialog',                                                 // id for map "task manager" dialog
+        dialogDynamicAreaClass: 'pf-dynamic-area',                                      // class for dynamic areas
+        timestampCounterClass: 'pf-timestamp-counter',                                  // class for "timestamp" counter
+        taskDialogStatusAreaClass: 'pf-task-dialog-status',                             // class for "status" dynamic area
+        taskDialogLogTableAreaClass: 'pf-task-dialog-table',                            // class for "log table" dynamic area
+        logGraphClass: 'pf-log-graph',                                                  // class for all log Morris graphs
+        tableToolsClass: 'pf-table-tools'                                               // class for table tools
     };
 
     /**
      * get log time string
      * @returns {string}
      */
-    var getLogTime = function(){
-
-        var serverTime = Util.getServerTime();
-
-        var logTime = serverTime.toLocaleTimeString('en-US', { hour12: false });
+    let getLogTime = function(){
+        let serverTime = Util.getServerTime();
+        let logTime = serverTime.toLocaleTimeString('en-US', { hour12: false });
 
         return logTime;
     };
 
     /**
+     * updated "sync status" dynamic dialog area
+     */
+    let updateSyncStatus = function(){
+
+        // check if task manager dialog is open
+        let logDialog = $('#' + config.taskDialogId);
+        if(logDialog.length){
+            // dialog is open
+            requirejs(['text!templates/modules/sync_status.html', 'mustache'], function(templateSyncStatus, Mustache) {
+                let data = {
+                    timestampCounterClass: config.timestampCounterClass,
+                    syncStatus: Init.syncStatus,
+                    isWebSocket: () => {
+                        return (Util.getSyncType() === 'webSocket');
+                    },
+                    isAjax: () => {
+                        return (Util.getSyncType() === 'ajax');
+                    }
+                };
+
+                let syncStatusElement = $( Mustache.render(templateSyncStatus, data ) );
+
+                logDialog.find('.' + config.taskDialogStatusAreaClass).html( syncStatusElement );
+
+                logDialog.find('.' + config.timestampCounterClass).initTimestampCounter();
+
+                syncStatusElement.initTooltips({
+                    placement: 'right'
+                });
+            });
+        }
+
+    };
+
+    /**
      * shows the logging dialog
      */
-    var showDialog = function(){
-
+    let showDialog = function(){
         // dialog content
 
-        var content = $('<div>');
-
-        // content row  for log graphs
-        var rowElementGraphs = $('<div>', {
-            class: 'row'
-        });
-
-        content.append(rowElementGraphs);
-
-
-
-        var tableHeadline = $('<h4>', {
-            text: ' Processes'
-        }).prepend( $('<i>', {
-            class: ['fa', 'fa-fw', 'fa-lg', 'fa-microchip'].join(' ')
-        }));
-
-        // add content Structure to dome before table initialization
-        content.append(tableHeadline);
-
-        // log table area --------------------------------------------------
-        var logTableArea = $('<div>', {
-            class: config.dialogDynamicAreaClass
-        });
-
-        var logTableActionBar = $('<div>', {
-            class: config.tableToolsClass
-        });
-        logTableArea.append(logTableActionBar);
-
-        var logTable = $('<table>', {
-            class: ['compact', 'stripe', 'order-column', 'row-border'].join(' ')
-        });
-        logTableArea.append(logTable);
-
-        content.append(logTableArea);
-
-        // init log table
-        logDataTable = logTable.DataTable({
-            paging: true,
-            ordering: true,
-            order: [ 1, 'desc' ],
-            autoWidth: false,
-            hover: false,
-            pageLength: 15,
-            lengthMenu: [[10, 15, 25, 50, 50], [10, 15, 25, 50, 50]],
-            data: logData,                      // load cached logs (if available)
-            language: {
-                emptyTable:  'No entries',
-                zeroRecords: 'No entries found',
-                lengthMenu:  'Show _MENU_ entries',
-                info:        'Showing _START_ to _END_ of _TOTAL_ entries'
-            },
-            columnDefs: [
-                {
-                    targets: 0,
-                    title: '<i class="fa fa-lg fa-tag"></i>',
-                    width: '18px',
-                    searchable: false,
-                    class: ['text-center'].join(' '),
-                    data: 'status'
-                },{
-                    targets: 1,
-                    title: '<i class="fa fa-lg fa-fw fa-clock-o"></i>&nbsp;&nbsp;',
-                    width: '50px',
-                    searchable: true,
-                    class: 'text-right',
-                    data: 'time'
-                },{
-                    targets: 2,
-                    title: '<i class="fa fa-lg fa-fw fa-history"></i>&nbsp;&nbsp;',
-                    width: '35px',
-                    searchable: false,
-                    class: 'text-right',
-                    sType: 'html',
-                    data: 'duration'
-                },{
-                    targets: 3,
-                    title: 'description',
-                    searchable: true,
-                    data: 'description'
-                },{
-                    targets: 4,
-                    title: 'type',
-                    width: '40px',
-                    searchable: true,
-                    class: ['text-center'].join(' '),
-                    data: 'type'
-                },{
-                    targets: 5,
-                    title: 'Prozess-ID&nbsp;&nbsp;&nbsp;',
-                    width: '80px',
-                    searchable: false,
-                    class: 'text-right',
-                    data: 'key'
-                }
-            ]
-
-        });
-
-        // open dialog
-        var logDialog = bootbox.dialog({
-            title: 'Task-Manager',
-            message: content,
-            size: 'large',
-            buttons: {
-                close: {
-                    label: 'close',
-                    className: 'btn-default'
-                }
-            }
-        });
-
-        // modal dialog is shown
-        logDialog.on('shown.bs.modal', function(e) {
-
-            // show Morris graphs ----------------------------------------------------------
-
-            // function for chart label formation
-            var labelYFormat = function(y){
-                return Math.round(y) + 'ms';
+        requirejs(['text!templates/dialog/task_manager.html', 'mustache'], function(templateTaskManagerDialog, Mustache) {
+            let data = {
+                id: config.taskDialogId,
+                dialogDynamicAreaClass: config.dialogDynamicAreaClass,
+                taskDialogStatusAreaClass: config.taskDialogStatusAreaClass,
+                taskDialogLogTableAreaClass: config.taskDialogLogTableAreaClass,
+                tableActionBarClass: config.tableToolsClass
             };
 
-            for(var key in chartData) {
-                if(chartData.hasOwnProperty(key)) {
-                    // create a chart for each key
+            let contentTaskManager = $( Mustache.render(templateTaskManagerDialog, data) );
 
-                    var colElementGraph = $('<div>', {
-                        class: ['col-md-6'].join(' ')
-                    });
+            let rowElementGraphs = contentTaskManager.find('.row');
+            let taskDialogLogTableAreaElement  = contentTaskManager.find('.' + config.taskDialogLogTableAreaClass);
 
+            let logTable = $('<table>', {
+                class: ['compact', 'stripe', 'order-column', 'row-border'].join(' ')
+            });
 
-                    // graph element
-                    var graphElement = $('<div>', {
-                        class: config.logGraphClass
-                    });
+            taskDialogLogTableAreaElement.append(logTable);
 
-                    var graphArea = $('<div>', {
-                        class: config.dialogDynamicAreaClass
-                    }).append(  graphElement );
-
-                    // headline
-                    var headline = $('<h4>', {
-                        text: key
-                    }).prepend(
-                        $('<span>', {
-                            class: ['txt-color', 'txt-color-grayLight'].join(' '),
-                            text: 'Prozess-ID: '
-                        })
-                    );
-
-                    // show update ping between function calls
-                    var updateElement = $('<small>', {
-                        class: ['txt-color', 'txt-color-blue', 'pull-right'].join(' ')
-                    });
-                    headline.append(updateElement).append('<br>');
-
-                    // show average execution time
-                    var averageElement = $('<small>', {
-                        class: 'pull-right'
-                    });
-                    headline.append(averageElement);
-
-                    colElementGraph.append( headline );
-                    colElementGraph.append( graphArea );
-
-                    graphArea.showLoadingAnimation();
-
-                    rowElementGraphs.append( colElementGraph );
-
-                    // cache DOM Elements that will be updated frequently
-                    chartData[key].averageElement = averageElement;
-                    chartData[key].updateElement = updateElement;
-
-                    chartData[key].graph = Morris.Area({
-                        element: graphElement,
-                        data: [],
-                        xkey: 'x',
-                        ykeys: ['y'],
-                        labels: [key],
-                        units: 'ms',
-                        parseTime: false,
-                        ymin: 0,
-                        yLabelFormat: labelYFormat,
-                        padding: 10,
-                        hideHover: true,
-                        pointSize: 3,
-                        lineColors: ['#375959'],
-                        pointFillColors: ['#477372'],
-                        pointStrokeColors: ['#313335'],
-                        lineWidth: 2,
-                        grid: false,
-                        gridStrokeWidth: 0.3,
-                        gridTextSize: 9,
-                        gridTextFamily: 'Oxygen Bold',
-                        gridTextColor: '#63676a',
-                        behaveLikeLine: true,
-                        goals: [],
-                        goalLineColors: ['#66c84f'],
-                        smooth: false,
-                        fillOpacity: 0.3,
-                        resize: true
-                    });
-
-                    graphArea.hideLoadingAnimation();
-
-                }
-            }
-
-            // ------------------------------------------------------------------------------
-            // add dataTable buttons (extension)
-
-            var buttons = new $.fn.dataTable.Buttons( logDataTable, {
-                buttons: [
+            // init log table
+            logDataTable = logTable.DataTable({
+                paging: true,
+                ordering: true,
+                order: [ 1, 'desc' ],
+                autoWidth: false,
+                hover: false,
+                pageLength: 10,
+                lengthMenu: [[5, 10, 25, 50, 100, -1], [5, 10, 25, 50, 100, 'All']],
+                data: logData,                      // load cached logs (if available)
+                language: {
+                    emptyTable:  'No entries',
+                    zeroRecords: 'No entries found',
+                    lengthMenu:  'Show _MENU_ entries',
+                    info:        'Showing _START_ to _END_ of _TOTAL_ entries'
+                },
+                columnDefs: [
                     {
-                        extend: 'copy',
-                        className: 'btn btn-sm btn-default',
-                        text: '<i class="fa fa-fw fa-clipboard"></i> copy'
+                        targets: 0,
+                        title: '<i class="fa fa-lg fa-tag"></i>',
+                        width: '18px',
+                        searchable: false,
+                        class: ['text-center'].join(' '),
+                        data: 'status'
                     },{
-                        extend: 'csv',
-                        className: 'btn btn-sm btn-default',
-                        text: '<i class="fa fa-fw fa-download"></i> csv'
+                        targets: 1,
+                        title: '<i class="fa fa-lg fa-fw fa-clock-o"></i>&nbsp;&nbsp;',
+                        width: '50px',
+                        searchable: true,
+                        class: 'text-right',
+                        data: 'time'
+                    },{
+                        targets: 2,
+                        title: '<i class="fa fa-lg fa-fw fa-history"></i>&nbsp;&nbsp;',
+                        width: '35px',
+                        searchable: false,
+                        class: 'text-right',
+                        sType: 'html',
+                        data: 'duration'
+                    },{
+                        targets: 3,
+                        title: 'description',
+                        searchable: true,
+                        data: 'description'
+                    },{
+                        targets: 4,
+                        title: 'type',
+                        width: '40px',
+                        searchable: true,
+                        class: ['text-center'].join(' '),
+                        data: 'type'
+                    },{
+                        targets: 5,
+                        title: 'Prozess-ID&nbsp;&nbsp;&nbsp;',
+                        width: '80px',
+                        searchable: false,
+                        class: 'text-right',
+                        data: 'key'
                     }
                 ]
-            } );
 
-            logDataTable.buttons().container().appendTo( $(this).find('.' + config.tableToolsClass));
-        });
+            });
 
-
-        // modal dialog is closed
-        logDialog.on('hidden.bs.modal', function(e) {
-            // clear memory -> destroy all charts
-            for (var key in chartData) {
-                if (chartData.hasOwnProperty(key)) {
-                    chartData[key].graph = null;
+            // open dialog
+            let logDialog = bootbox.dialog({
+                title: 'Task-Manager',
+                message: contentTaskManager,
+                size: 'large',
+                buttons: {
+                    close: {
+                        label: 'close',
+                        className: 'btn-default'
+                    }
                 }
-            }
-        });
+            });
 
-        // modal dialog before hide
-        logDialog.on('hide.bs.modal', function(e) {
+            // modal dialog is shown
+            logDialog.on('shown.bs.modal', function(e) {
+                updateSyncStatus();
 
-            // destroy logTable
-            logDataTable.destroy(true);
-            logDataTable= null;
+                // show Morris graphs ----------------------------------------------------------
 
-            // remove event -> prevent calling this multiple times
-            $(this).off('hide.bs.modal');
+                // function for chart label formation
+                let labelYFormat = function(y){
+                    return Math.round(y) + 'ms';
+                };
+
+                for(let key in chartData) {
+                    if(chartData.hasOwnProperty(key)) {
+                        // create a chart for each key
+
+                        let colElementGraph = $('<div>', {
+                            class: ['col-md-6'].join(' ')
+                        });
+
+
+                        // graph element
+                        let graphElement = $('<div>', {
+                            class: config.logGraphClass
+                        });
+
+                        let graphArea = $('<div>', {
+                            class: config.dialogDynamicAreaClass
+                        }).append(  graphElement );
+
+                        // headline
+                        let headline = $('<h4>', {
+                            text: key
+                        }).prepend(
+                            $('<span>', {
+                                class: ['txt-color', 'txt-color-grayLight'].join(' '),
+                                text: 'Prozess-ID: '
+                            })
+                        );
+
+                        // show update ping between function calls
+                        let updateElement = $('<small>', {
+                            class: ['txt-color', 'txt-color-blue', 'pull-right'].join(' ')
+                        });
+                        headline.append(updateElement).append('<br>');
+
+                        // show average execution time
+                        let averageElement = $('<small>', {
+                            class: 'pull-right'
+                        });
+                        headline.append(averageElement);
+
+                        colElementGraph.append( headline );
+                        colElementGraph.append( graphArea );
+
+                        graphArea.showLoadingAnimation();
+
+                        rowElementGraphs.append( colElementGraph );
+
+                        // cache DOM Elements that will be updated frequently
+                        chartData[key].averageElement = averageElement;
+                        chartData[key].updateElement = updateElement;
+
+                        chartData[key].graph = Morris.Area({
+                            element: graphElement,
+                            data: [],
+                            xkey: 'x',
+                            ykeys: ['y'],
+                            labels: [key],
+                            units: 'ms',
+                            parseTime: false,
+                            ymin: 0,
+                            yLabelFormat: labelYFormat,
+                            padding: 10,
+                            hideHover: true,
+                            pointSize: 3,
+                            lineColors: ['#375959'],
+                            pointFillColors: ['#477372'],
+                            pointStrokeColors: ['#313335'],
+                            lineWidth: 2,
+                            grid: false,
+                            gridStrokeWidth: 0.3,
+                            gridTextSize: 9,
+                            gridTextFamily: 'Oxygen Bold',
+                            gridTextColor: '#63676a',
+                            behaveLikeLine: true,
+                            goals: [],
+                            goalLineColors: ['#66c84f'],
+                            smooth: false,
+                            fillOpacity: 0.3,
+                            resize: true
+                        });
+
+                        updateLogGraph(key);
+
+                        graphArea.hideLoadingAnimation();
+
+                    }
+                }
+
+                // ------------------------------------------------------------------------------
+                // add dataTable buttons (extension)
+
+                let buttons = new $.fn.dataTable.Buttons( logDataTable, {
+                    buttons: [
+                        {
+                            extend: 'copy',
+                            className: 'btn btn-sm btn-default',
+                            text: '<i class="fa fa-fw fa-clipboard"></i> copy'
+                        },{
+                            extend: 'csv',
+                            className: 'btn btn-sm btn-default',
+                            text: '<i class="fa fa-fw fa-download"></i> csv'
+                        }
+                    ]
+                } );
+
+                logDataTable.buttons().container().appendTo( $(this).find('.' + config.tableToolsClass));
+            });
+
+
+            // modal dialog is closed
+            logDialog.on('hidden.bs.modal', function(e) {
+                // clear memory -> destroy all charts
+                for (let key in chartData) {
+                    if (chartData.hasOwnProperty(key)) {
+                        chartData[key].graph = null;
+                    }
+                }
+            });
+
+            // modal dialog before hide
+            logDialog.on('hide.bs.modal', function(e) {
+
+                // destroy logTable
+                logDataTable.destroy(true);
+                logDataTable= null;
+
+                // remove event -> prevent calling this multiple times
+                $(this).off('hide.bs.modal');
+            });
+
         });
 
     };
@@ -4215,9 +4394,9 @@ define('app/logging',[
     /**
      * updates the log graph for a log key
      * @param key
-     * @param duration
+     * @param duration (if undefined -> just update graph with current data)
      */
-    var updateLogGraph = function(key, duration){
+    let updateLogGraph = function(key, duration){
 
         // check if graph data already exist
         if( !(chartData.hasOwnProperty(key))){
@@ -4229,21 +4408,23 @@ define('app/logging',[
         }
 
         // add new value
-        chartData[key].data.unshift(duration);
+        if(duration !== undefined){
+            chartData[key].data.unshift(duration);
+        }
 
         if(chartData[key].data.length > maxGraphDataCount){
             chartData[key].data = chartData[key].data.slice(0, maxGraphDataCount);
         }
 
         function getGraphData(data) {
-            var tempChartData = {
+            let tempChartData = {
                 data: [],
                 dataSum: 0,
                 average: 0
             };
 
-            for(var x = 0; x < maxGraphDataCount; x++){
-                var value = 0;
+            for(let x = 0; x < maxGraphDataCount; x++){
+                let value = 0;
                 if(data[x]){
                     value = data[x];
                     tempChartData.dataSum = Number( (tempChartData.dataSum + value).toFixed(2) );
@@ -4261,14 +4442,14 @@ define('app/logging',[
             return tempChartData;
         }
 
-        var tempChartData = getGraphData(chartData[key].data);
+        let tempChartData = getGraphData(chartData[key].data);
 
         // add new data to graph (Morris chart) - if is already initialized
         if(chartData[key].graph !== null){
-            var avgElement = chartData[key].averageElement;
-            var updateElement = chartData[key].updateElement;
+            let avgElement = chartData[key].averageElement;
+            let updateElement = chartData[key].updateElement;
 
-            var delay = Util.getCurrentTriggerDelay( key, 0 );
+            let delay = Util.getCurrentTriggerDelay( key, 0 );
 
             if(delay){
                 updateElement[0].textContent = ' delay: ' + delay + 'ms ';
@@ -4280,8 +4461,8 @@ define('app/logging',[
             // change avg. display
             avgElement[0].textContent = 'Avg. ' + tempChartData.average + 'ms';
 
-            var avgStatus = getLogStatusByDuration(key, tempChartData.average);
-            var avgStatusClass = Util.getLogInfo( avgStatus, 'class' );
+            let avgStatus = getLogStatusByDuration(key, tempChartData.average);
+            let avgStatusClass = Util.getLogInfo( avgStatus, 'class' );
 
             //change avg. display class
             if( !avgElement.hasClass(avgStatusClass) ){
@@ -4291,7 +4472,7 @@ define('app/logging',[
                 // change goals line color
                 if(avgStatus === 'warning'){
                     chartData[key].graph.options.goalLineColors = ['#e28a0d'];
-                    $(document).setProgramStatus('problem');
+                    $(document).setProgramStatus('slow connection');
                 }else{
                     chartData[key].graph.options.goalLineColors = ['#5cb85c'];
                 }
@@ -4311,9 +4492,8 @@ define('app/logging',[
      * @param logDuration
      * @returns {string}
      */
-    var getLogStatusByDuration = function(logKey, logDuration){
-
-        var logStatus = 'info';
+    let getLogStatusByDuration = function(logKey, logDuration){
+        let logStatus = 'info';
         if( logDuration > Init.timer[logKey].EXECUTION_LIMIT ){
             logStatus = 'warning';
         }
@@ -4325,9 +4505,9 @@ define('app/logging',[
      * @param logType
      * @returns {string}
      */
-    var getLogTypeIconClass = function(logType){
+    let getLogTypeIconClass = function(logType){
 
-        var logIconClass = '';
+        let logIconClass = '';
 
         switch(logType){
             case 'client':
@@ -4342,11 +4522,15 @@ define('app/logging',[
     };
 
     /**
-     * init logging -> set global log event
+     * init logging -> set global log events
      */
-    var init = function(){
+    let init = function(){
 
-        var maxEntries = 150;
+        let maxEntries = 150;
+
+        $(window).on('pf:syncStatus', function(){
+            updateSyncStatus();
+        });
 
         // set global logging listener
         $(window).on('pf:log', function(e, logKey, options){
@@ -4357,21 +4541,19 @@ define('app/logging',[
                 options.duration &&
                 options.description
             ){
-                var logDescription = options.description;
-                var logDuration = options.duration;
-                var logType = options.type;
+                let logDescription = options.description;
+                let logDuration = options.duration;
+                let logType = options.type;
 
                 // check log status by duration
-                var logStatus = getLogStatusByDuration(logKey, logDuration);
-
-                var statusClass = Util.getLogInfo( logStatus, 'class' );
-
-                var typeIconClass = getLogTypeIconClass(logType);
+                let logStatus = getLogStatusByDuration(logKey, logDuration);
+                let statusClass = Util.getLogInfo( logStatus, 'class' );
+                let typeIconClass = getLogTypeIconClass(logType);
 
                 // update graph data
                 updateLogGraph(logKey, logDuration);
 
-                var logRowData = {
+                let logRowData = {
                     status:  '<i class="fa fa-fw fa-circle txt-color ' + statusClass + '"></i>',
                     time: getLogTime(),
                     duration: '<span class="txt-color ' + statusClass + '">' + logDuration + '<small>ms</small></span>',
@@ -4391,7 +4573,7 @@ define('app/logging',[
             }
 
             // delete old log entries from table ---------------------------------
-            var rowCount = logData.length;
+            let rowCount = logData.length;
 
             if( rowCount >= maxEntries ){
 
@@ -4913,7 +5095,7 @@ define('dialog/stats',[
 ], function($, Init, Util, Render, bootbox, MapUtil) {
     'use strict';
 
-    var config = {
+    let config = {
         // dialog
         statsDialogId: 'pf-stats-dialog',                                       // id for "stats" dialog
         dialogNavigationClass: 'pf-dialog-navigation-list',                     // class for dialog navigation bar
@@ -4936,12 +5118,12 @@ define('dialog/stats',[
      * init blank statistics dataTable
      * @param dialogElement
      */
-    var initStatsTable = function(dialogElement){
-        var columnNumberWidth = 35;
-        var lineColor = '#477372';
+    let initStatsTable = function(dialogElement){
+        let columnNumberWidth = 35;
+        let lineColor = '#477372';
 
         // render function for inline-chart columns
-        var renderInlineChartColumn = function(data, type, row, meta){
+        let renderInlineChartColumn = function(data, type, row, meta){
             /*
              switch(data.type){
              case 'C': lineColor = '#5cb85c'; break;
@@ -4959,15 +5141,15 @@ define('dialog/stats',[
         };
 
         // render function for numeric columns
-        var renderNumericColumn = function(data, type, row, meta){
+        let renderNumericColumn = function(data, type, row, meta){
             return data.toLocaleString();
         };
 
         // get table element
         // Due to "complex" table headers, they are already rendered and part of the stats.html file
-        var table = dialogElement.find('#' + config.statsTableId);
+        let table = dialogElement.find('#' + config.statsTableId);
 
-        var  statsTable = table.DataTable({
+        let  statsTable = table.DataTable({
             pageLength: 30,
             lengthMenu: [[10, 20, 30, 50], [10, 20, 30, 50]],
             paging: true,
@@ -5170,10 +5352,10 @@ define('dialog/stats',[
                 }
             ],
             initComplete: function(settings){
-                var tableApi = this.api();
+                let tableApi = this.api();
 
                 // initial statistics data request
-                var requestData = getRequestDataFromTabPanels(dialogElement);
+                let requestData = getRequestDataFromTabPanels(dialogElement);
                 getStatsData(requestData, {tableApi: tableApi, callback: drawStatsTable});
             },
             drawCallback: function(settings){
@@ -5187,11 +5369,11 @@ define('dialog/stats',[
                 });
             },
             footerCallback: function ( row, data, start, end, display ) {
-                var api = this.api();
-                var sumColumnIndexes = [7, 11, 15, 16];
+                let api = this.api();
+                let sumColumnIndexes = [7, 11, 15, 16];
 
                 // column data for "sum" columns over this page
-                var pageTotalColumns = api
+                let pageTotalColumns = api
                     .columns( sumColumnIndexes, { page: 'current'} )
                     .data();
 
@@ -5215,7 +5397,7 @@ define('dialog/stats',[
             });
         }).draw();
 
-        var tooltipElements = dialogElement.find('[data-toggle="tooltip"]');
+        let tooltipElements = dialogElement.find('[data-toggle="tooltip"]');
         tooltipElements.tooltip();
     };
 
@@ -5224,7 +5406,7 @@ define('dialog/stats',[
      * @param requestData
      * @param context
      */
-    var getStatsData = function(requestData, context){
+    let getStatsData = function(requestData, context){
 
         context.dynamicArea = $('#' + config.statsContainerId + ' .pf-dynamic-area');
         context.dynamicArea.showLoadingAnimation();
@@ -5240,7 +5422,7 @@ define('dialog/stats',[
 
             this.callback(data);
         }).fail(function( jqXHR, status, error) {
-            var reason = status + ' ' + error;
+            let reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': loadStatistics', text: reason, type: 'warning'});
         });
     };
@@ -5250,21 +5432,21 @@ define('dialog/stats',[
      * update "header"/"filter" elements in dialog
      * @param responseData
      */
-    var drawStatsTable = function(responseData){
-        var dialogElement = $('#' + config.statsDialogId);
+    let drawStatsTable = function(responseData){
+        let dialogElement = $('#' + config.statsDialogId);
 
         // update filter/header -----------------------------------------------------------------------------
-        var navigationListElements = $('.' + config.dialogNavigationClass);
+        let navigationListElements = $('.' + config.dialogNavigationClass);
         navigationListElements.find('a[data-type="typeId"][data-value="' + responseData.typeId + '"]').tab('show');
         navigationListElements.find('a[data-type="period"][data-value="' + responseData.period + '"]').tab('show');
 
         // update period pagination -------------------------------------------------------------------------
-        var prevButton = dialogElement.find('.' + config.dialogNavigationPrevClass);
+        let prevButton = dialogElement.find('.' + config.dialogNavigationPrevClass);
         prevButton.data('newOffset', responseData.prev);
         prevButton.find('span').text('Week ' + responseData.prev.week + ', ' + responseData.prev.year);
         prevButton.css('visibility', 'visible');
 
-        var nextButton = dialogElement.find('.' + config.dialogNavigationNextClass);
+        let nextButton = dialogElement.find('.' + config.dialogNavigationNextClass);
         if(responseData.next){
             nextButton.data('newOffset', responseData.next);
             nextButton.find('span').text('Week ' + responseData.next.week + ', ' + responseData.next.year);
@@ -5275,7 +5457,7 @@ define('dialog/stats',[
 
         // update current period information label ----------------------------------------------------------
         // if period == "weekly" there is no "offset" -> just a single week
-        var offsetText = 'Week ' + responseData.start.week + ', ' + responseData.start.year;
+        let offsetText = 'Week ' + responseData.start.week + ', ' + responseData.start.year;
         if(responseData.period !== 'weekly'){
             offsetText += ' <small><i class="fa fa-fw fa-minus"></i></small> ' +
                             'Week ' + responseData.offset.week + ', ' + responseData.offset.year;
@@ -5286,7 +5468,7 @@ define('dialog/stats',[
             .html(offsetText);
 
         // clear and (re)-fill table ------------------------------------------------------------------------
-        var formattedData = formatStatisticsData(responseData);
+        let formattedData = formatStatisticsData(responseData);
         this.tableApi.clear();
         this.tableApi.rows.add(formattedData).draw();
     };
@@ -5297,23 +5479,23 @@ define('dialog/stats',[
      * @param statsData
      * @returns {Array}
      */
-    var formatStatisticsData = function(statsData){
-        var formattedData = [];
-        var yearStart = statsData.start.year;
-        var weekStart = statsData.start.week;
-        var weekCount = statsData.weekCount;
-        var yearWeeks = statsData.yearWeeks;
+    let formatStatisticsData = function(statsData){
+        let formattedData = [];
+        let yearStart = statsData.start.year;
+        let weekStart = statsData.start.week;
+        let weekCount = statsData.weekCount;
+        let yearWeeks = statsData.yearWeeks;
 
-        var tempRand = function(min, max){
+        let tempRand = function(min, max){
             return Math.random() * (max - min) + min;
         };
 
         // format/sum week statistics data for inline charts
-        var formatWeekData = function(weeksData){
-            var currentYear = yearStart;
-            var currentWeek = weekStart;
+        let formatWeekData = function(weeksData){
+            let currentYear = yearStart;
+            let currentWeek = weekStart;
 
-            var formattedWeeksData = {
+            let formattedWeeksData = {
                 systemCreate: [],
                 systemUpdate: [],
                 systemDelete: [],
@@ -5408,9 +5590,9 @@ define('dialog/stats',[
 
         $.each(statsData.statistics, function(characterId, data){
 
-            var formattedWeeksData = formatWeekData(data.weeks);
+            let formattedWeeksData = formatWeekData(data.weeks);
 
-            var rowData = {
+            let rowData = {
                 character: {
                     id: characterId,
                     name: data.name,
@@ -5469,20 +5651,20 @@ define('dialog/stats',[
      * @param dialogElement
      * @returns {{}}
      */
-    var getRequestDataFromTabPanels = function(dialogElement){
-        var requestData = {};
+    let getRequestDataFromTabPanels = function(dialogElement){
+        let requestData = {};
 
         // get data from "tab" panel links ------------------------------------------------------------------
-        var navigationListElements = dialogElement.find('.' + config.dialogNavigationClass);
+        let navigationListElements = dialogElement.find('.' + config.dialogNavigationClass);
         navigationListElements.find('.' + config.dialogNavigationListItemClass + '.active a').each(function(){
-            var linkElement = $(this);
+            let linkElement = $(this);
             requestData[linkElement.data('type')]= linkElement.data('value');
         });
 
         // get current period (no offset) data (if available) -----------------------------------------------
-        var navigationOffsetElement = dialogElement.find('.' + config.dialogNavigationOffsetClass);
-        var startData = navigationOffsetElement.data('start');
-        var periodOld = navigationOffsetElement.data('period');
+        let navigationOffsetElement = dialogElement.find('.' + config.dialogNavigationOffsetClass);
+        let startData = navigationOffsetElement.data('start');
+        let periodOld = navigationOffsetElement.data('period');
 
         // if period switch was detected
         // -> "year" and "week" should not be send
@@ -5503,18 +5685,18 @@ define('dialog/stats',[
      * @param type
      * @returns {boolean}
      */
-    var isTabTypeEnabled = function(type){
-        var enabled = false;
+    let isTabTypeEnabled = function(type){
+        let enabled = false;
 
         switch(type){
             case 'private':
-                if(Init.activityLogging.character){
+                if(Init.mapTypes.private.defaultConfig.activity_logging){
                     enabled = true;
                 }
                 break;
             case 'corporation':
                 if(
-                    Init.activityLogging.corporation &&
+                    Init.mapTypes.corporation.defaultConfig.activity_logging &&
                     Util.getCurrentUserInfo('corporationId')
                 ){
                     enabled = true;
@@ -5522,7 +5704,7 @@ define('dialog/stats',[
                 break;
             case 'alliance':
                 if(
-                    Init.activityLogging.alliance &&
+                    Init.mapTypes.alliance.defaultConfig.activity_logging &&
                     Util.getCurrentUserInfo('allianceId')
                 ){
                     enabled = true;
@@ -5539,7 +5721,7 @@ define('dialog/stats',[
     $.fn.showStatsDialog = function(){
         requirejs(['text!templates/dialog/stats.html', 'mustache', 'peityInlineChart'], function(template, Mustache) {
 
-            var data = {
+            let data = {
                 id: config.statsDialogId,
                 dialogNavigationClass: config.dialogNavigationClass,
                 dialogNavLiClass: config.dialogNavigationListItemClass,
@@ -5553,9 +5735,9 @@ define('dialog/stats',[
                 dialogNavigationNextClass: config.dialogNavigationNextClass
             };
 
-            var content = Mustache.render(template, data);
+            let content = Mustache.render(template, data);
 
-            var statsDialog = bootbox.dialog({
+            let statsDialog = bootbox.dialog({
                 title: 'Statistics',
                 message: content,
                 size: 'large',
@@ -5570,7 +5752,7 @@ define('dialog/stats',[
 
             // model events
             statsDialog.on('show.bs.modal', function(e) {
-                var dialogElement = $(e.target);
+                let dialogElement = $(e.target);
 
                 initStatsTable(dialogElement);
             });
@@ -5584,22 +5766,22 @@ define('dialog/stats',[
             });
 
             statsDialog.find('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-                var requestData = getRequestDataFromTabPanels(statsDialog);
-                var tableApi = statsDialog.find('#' + config.statsTableId).DataTable();
+                let requestData = getRequestDataFromTabPanels(statsDialog);
+                let tableApi = statsDialog.find('#' + config.statsTableId).DataTable();
 
                 getStatsData(requestData, {tableApi: tableApi, callback: drawStatsTable});
             });
 
             // offset change links
             statsDialog.find('.' + config.dialogNavigationPrevClass + ', .' + config.dialogNavigationNextClass).on('click', function(){
-                var offsetData = $(this).data('newOffset');
+                let offsetData = $(this).data('newOffset');
                 if(offsetData){
                     // this should NEVER fail!
                     // get "base" request data (e.g. typeId, period)
                     // --> overwrite period data with new period data
-                    var tmpRequestData = getRequestDataFromTabPanels(statsDialog);
-                    var requestData =  $.extend({}, tmpRequestData, offsetData);
-                    var tableApi = statsDialog.find('#' + config.statsTableId).DataTable();
+                    let tmpRequestData = getRequestDataFromTabPanels(statsDialog);
+                    let requestData =  $.extend({}, tmpRequestData, offsetData);
+                    let tableApi = statsDialog.find('#' + config.statsTableId).DataTable();
 
                     getStatsData(requestData, {tableApi: tableApi, callback: drawStatsTable});
                 }
@@ -5621,7 +5803,7 @@ define('app/map/util',[
 ], function($, Init, Util) {
     'use strict';
 
-    var config = {
+    let config = {
         mapSnapToGridDimension: 20,                                     // px for grid snapping (grid YxY)
 
         // local storage
@@ -5634,7 +5816,7 @@ define('app/map/util',[
     };
 
     // map menu options
-    var mapOptions = {
+    let mapOptions = {
         mapMagnetizer: {
             buttonId: Util.config.menuButtonMagnetizerId,
             description: 'Magnetizer',
@@ -5654,23 +5836,23 @@ define('app/map/util',[
      * @param {bool} filterByUser
      * @returns {Array}
      */
-    var getMapTypes = function(filterByUser){
-        var mapTypes = [];
+    let getMapTypes = function(filterByUser){
+        let mapTypes = [];
 
         $.each(Init.mapTypes, function(prop, data){
             // skip "default" type -> just for 'add' icon
             if(data.label.length > 0){
-                var tempData = data;
+                let tempData = data;
                 tempData.name = prop;
                 mapTypes.push(tempData);
             }
         });
 
         if(filterByUser === true){
-            var corporationId = Util.getCurrentUserInfo('corporationId');
-            var allianceId = Util.getCurrentUserInfo('allianceId');
+            let corporationId = Util.getCurrentUserInfo('corporationId');
+            let allianceId = Util.getCurrentUserInfo('allianceId');
 
-            var authorizedMapTypes = [];
+            let authorizedMapTypes = [];
             // check if character data exists
             if(corporationId > 0) {
                 authorizedMapTypes.push('corporation');
@@ -5683,9 +5865,9 @@ define('app/map/util',[
             authorizedMapTypes.push('private');
 
             // compare "all" map types with "authorized" types
-            var tempMapTypes = [];
-            for(var i = 0; i < mapTypes.length; i++){
-                for(var j = 0; j < authorizedMapTypes.length; j++){
+            let tempMapTypes = [];
+            for(let i = 0; i < mapTypes.length; i++){
+                for(let j = 0; j < authorizedMapTypes.length; j++){
                     if(mapTypes[i].name === authorizedMapTypes[j]){
                         tempMapTypes.push(mapTypes[i]);
                         break;
@@ -5703,10 +5885,10 @@ define('app/map/util',[
      * get all available scopes for a map
      * @returns {Array}
      */
-    var getMapScopes = function(){
-        var scopes = [];
+    let getMapScopes = function(){
+        let scopes = [];
         $.each(Init.mapScopes, function(prop, data){
-            var tempData = data;
+            let tempData = data;
             tempData.name = prop;
             scopes.push(tempData);
         });
@@ -5720,8 +5902,8 @@ define('app/map/util',[
      * @param {string} option
      * @returns {string}
      */
-    var getScopeInfoForMap = function(info, option){
-        var scopeInfo = '';
+    let getScopeInfoForMap = function(info, option){
+        let scopeInfo = '';
         if(Init.mapScopes.hasOwnProperty(info)){
             scopeInfo = Init.mapScopes[info][option];
         }
@@ -5732,7 +5914,7 @@ define('app/map/util',[
      * get all available map icons
      * @returns {Object[]}
      */
-    var getMapIcons = function(){
+    let getMapIcons = function(){
         return Init.mapIcons;
     };
 
@@ -5742,8 +5924,8 @@ define('app/map/util',[
      * @param {string} option
      * @returns {string}
      */
-    var getInfoForMap = function(mapType, option){
-        var mapInfo = '';
+    let getInfoForMap = function(mapType, option){
+        let mapInfo = '';
         if(Init.mapTypes.hasOwnProperty(mapType)){
             mapInfo = Init.mapTypes[mapType][option];
         }
@@ -5756,8 +5938,8 @@ define('app/map/util',[
      * @param {string} option
      * @returns {string}
      */
-    var getInfoForSystem = function(info, option){
-        var systemInfo = '';
+    let getInfoForSystem = function(info, option){
+        let systemInfo = '';
         if(Init.classes.systemInfo.hasOwnProperty(info)){
             systemInfo = Init.classes.systemInfo[info][option];
         }
@@ -5770,8 +5952,8 @@ define('app/map/util',[
      * @param {string} option
      * @returns {string}
      */
-    var getSystemTypeInfo = function(systemTypeId, option){
-        var systemTypeInfo = '';
+    let getSystemTypeInfo = function(systemTypeId, option){
+        let systemTypeInfo = '';
         $.each(Init.systemType, function(prop, data){
             if(systemTypeId === data.id){
                 systemTypeInfo = data[option];
@@ -5787,8 +5969,8 @@ define('app/map/util',[
      * @param option
      * @returns {string}
      */
-    var getEffectInfoForSystem = function(effect, option){
-        var effectInfo = '';
+    let getEffectInfoForSystem = function(effect, option){
+        let effectInfo = '';
         if( Init.classes.systemEffects.hasOwnProperty(effect) ){
             effectInfo = Init.classes.systemEffects[effect][option];
         }
@@ -5810,9 +5992,9 @@ define('app/map/util',[
      * @param {JQuery[]} systems - system DOM elements
      * @returns {Array} connections - found connection, DOM elements
      */
-    var searchConnectionsBySystems = function(map, systems){
-        var connections = [];
-        var withBackConnection = false;
+    let searchConnectionsBySystems = function(map, systems){
+        let connections = [];
+        let withBackConnection = false;
 
         $.each(systems, function(i, system){
             // get connections where system is source
@@ -5833,15 +6015,15 @@ define('app/map/util',[
      * @param {string|string[]} type
      * @returns {Array}
      */
-    var searchConnectionsByScopeAndType = function(map, scope, type){
-        var connections = [];
-        var scopeArray = (scope === undefined) ? ['*'] : ((Array.isArray(scope)) ? scope : [scope]);
-        var typeArray = (type === undefined) ? [] : ((Array.isArray(type)) ? type : [type]);
+    let searchConnectionsByScopeAndType = function(map, scope, type){
+        let connections = [];
+        let scopeArray = (scope === undefined) ? ['*'] : ((Array.isArray(scope)) ? scope : [scope]);
+        let typeArray = (type === undefined) ? [] : ((Array.isArray(type)) ? type : [type]);
 
         map.select({scope: scopeArray}).each(function(connection){
             if(typeArray.length > 0){
                 // filter by connection type as well...
-                for(var i = 0; i < typeArray.length; i++){
+                for(let i = 0; i < typeArray.length; i++){
                     if( connection.hasType(typeArray[i]) ){
                         connections.push(connection);
                         break; // don´t add same connection multiple times
@@ -5862,8 +6044,8 @@ define('app/map/util',[
      * @param {string} option
      * @returns {string}
      */
-    var getConnectionInfo = function(connectionTyp, option){
-        var connectionInfo = '';
+    let getConnectionInfo = function(connectionTyp, option){
+        let connectionInfo = '';
         if(Init.connectionTypes.hasOwnProperty(connectionTyp)){
             connectionInfo = Init.connectionTypes[connectionTyp][option];
         }
@@ -5877,8 +6059,8 @@ define('app/map/util',[
      * @param {JQuery} systemB
      * @returns {Array}
      */
-    var checkForConnection = function(map, systemA, systemB){
-        var connections = [];
+    let checkForConnection = function(map, systemA, systemB){
+        let connections = [];
         connections = connections.concat( map.getConnections({scope: '*', source: systemA, target: systemB}) );
         // get connections where system is target
         connections = connections.concat( map.getConnections({scope: '*', source: systemB, target: systemA}) );
@@ -5891,8 +6073,8 @@ define('app/map/util',[
      * @param {string} scope
      * @returns {string}
      */
-    var getDefaultConnectionTypeByScope = function(scope){
-        var type = '';
+    let getDefaultConnectionTypeByScope = function(scope){
+        let type = '';
         switch(scope){
             case 'wh':
                 type = 'wh_fresh';
@@ -5915,7 +6097,7 @@ define('app/map/util',[
      * @param {Object} connection - jsPlumb object
      * @param {string} status
      */
-    var setConnectionWHStatus = function(connection, status){
+    let setConnectionWHStatus = function(connection, status){
         if(
             status === 'wh_fresh' &&
             connection.hasType('wh_fresh') !== true
@@ -5956,13 +6138,13 @@ define('app/map/util',[
      * @param {string} option
      * @returns {string}
      */
-    var getScopeInfoForConnection = function(info, option){
-        var scopeInfo = '';
+    let getScopeInfoForConnection = function(info, option){
+        let scopeInfo = '';
         if(Init.connectionScopes.hasOwnProperty(info)){
             switch(option){
                 case 'connectorDefinition':
                     // json data in DB
-                    var temp = '{ "data": ' + Init.connectionScopes[info][option] + '}';
+                    let temp = '{ "data": ' + Init.connectionScopes[info][option] + '}';
                     scopeInfo = $.parseJSON( temp).data;
                     break;
                 default:
@@ -5979,9 +6161,112 @@ define('app/map/util',[
      * @param element
      * @returns {*}
      */
-    var getTabContentElementByMapElement = function(element){
-        var tabContentElement = $(element).parents('.' + config.mapTabContentClass);
+    let getTabContentElementByMapElement = function(element){
+        let tabContentElement = $(element).parents('.' + config.mapTabContentClass);
         return tabContentElement;
+    };
+
+    /**
+     * store mapId for current user (IndexedDB)
+     * @param mapId
+     */
+    let storeDefaultMapId = function(mapId){
+        if(mapId > 0){
+            let userData = Util.getCurrentUserData();
+            if(
+                userData &&
+                userData.character
+            ){
+                storeLocalData('character', userData.character.id, 'defaultMapId', mapId);
+            }
+        }
+    };
+
+    /**
+     * get key prefix for local storage data
+     * @param type
+     * @returns {boolean}
+     */
+    let getLocalStoragePrefixByType = function(type){
+        let prefix = false;
+        switch(type){
+            case 'character':   prefix = config.characterLocalStoragePrefix; break;
+            case 'map':   prefix = config.mapLocalStoragePrefix; break;
+            default:   prefix = config.mapLocalStoragePrefix;
+        }
+        return prefix;
+    };
+
+    /**
+     * get stored local data from client cache (IndexedDB)
+     * @param type
+     * @param objectId
+     * @returns {*}
+     */
+    let getLocaleData = function(type, objectId){
+        if(objectId > 0){
+            let storageKey = getLocalStoragePrefixByType(type) + objectId;
+            return Util.getLocalStorage().getItem(storageKey);
+        }else{
+            console.warn('Local storage requires object id > 0');
+        }
+    };
+
+    /**
+     * store local config data to client cache (IndexedDB)
+     * @param type
+     * @param objectId
+     * @param key
+     * @param value
+     */
+    let storeLocalData = function(type, objectId, key, value){
+        if(objectId > 0){
+            // get current map config
+            let storageKey = getLocalStoragePrefixByType(type) + objectId;
+            Util.getLocalStorage().getItem(storageKey).then(function(data) {
+                // This code runs once the value has been loaded
+                // from the offline store.
+                data = (data === null) ? {} : data;
+                // set/update value
+                data[this.key] = this.value;
+                Util.getLocalStorage().setItem(this.storageKey, data);
+            }.bind({
+                key: key,
+                value: value,
+                storageKey: storageKey
+            })).catch(function(err) {
+                // This code runs if there were any errors
+                console.error('Map local storage can not be accessed!');
+            });
+        }else{
+            console.warn('storeLocalData(): Local storage requires object id > 0');
+        }
+    };
+
+    /**
+     * delete local map configuration by key (IndexedDB)
+     * @param type
+     * @param objectId
+     * @param key
+     */
+    let deleteLocalData = function(type, objectId, key){
+        if(objectId > 0){
+            // get current map config
+            let storageKey = getLocalStoragePrefixByType(type) + objectId;
+            Util.getLocalStorage().getItem(storageKey).then(function(data) {
+                if(
+                    data &&
+                    data.hasOwnProperty(key)
+                ){
+                    delete data[key];
+                    Util.getLocalStorage().setItem(this.storageKey, data);
+                }
+            }.bind({
+                storageKey: storageKey
+            }));
+        }else{
+            console.warn('deleteLocalData(): Local storage requires object id > 0');
+        }
     };
 
     /**
@@ -5992,9 +6277,9 @@ define('app/map/util',[
      */
     $.fn.setSystemRally = function(rallyUpdated, options){
         rallyUpdated = rallyUpdated || 0;
-        var rallyPoke = false;
+        let rallyPoke = false;
 
-        var defaultOptions = {
+        let defaultOptions = {
             poke: false,
             hideNotification: false,
             hideCounter: false,
@@ -6002,8 +6287,8 @@ define('app/map/util',[
         options = $.extend({}, defaultOptions, options);
 
         return this.each(function(){
-            var system = $(this);
-            var rally = system.data('rallyUpdated') || 0;
+            let system = $(this);
+            let rally = system.data('rallyUpdated') || 0;
 
             if(rallyUpdated !== rally){
                 // rally status changed
@@ -6011,7 +6296,7 @@ define('app/map/util',[
                     system.getMapOverlay('timer').startMapUpdateCounter();
                 }
 
-                var rallyClass = getInfoForSystem('rally', 'class');
+                let rallyClass = getInfoForSystem('rally', 'class');
 
                 if(rallyUpdated > 0){
                     // new rally point set OR update system with rally information
@@ -6020,7 +6305,7 @@ define('app/map/util',[
                     // rallyUpdated > 0 is required for poke!
                     rallyPoke = options.poke;
 
-                    var notificationOptions = {
+                    let notificationOptions = {
                         title: 'Rally Point',
                         text: 'System: ' +  system.data('name')
                     };
@@ -6033,13 +6318,13 @@ define('app/map/util',[
                         // rally saved AND poke option active
 
                         // check if desktop notification was already send
-                        var mapId = system.data('mapid');
-                        var systemId = system.data('id');
-                        var promiseStore = getLocaleData('map', mapId);
+                        let mapId = system.data('mapid');
+                        let systemId = system.data('id');
+                        let promiseStore = getLocaleData('map', mapId);
                         promiseStore.then(function(data) {
                             // This code runs once the value has been loaded
                             // from the offline store.
-                            var rallyPokeData = {};
+                            let rallyPokeData = {};
 
                             if(
                                 data &&
@@ -6078,109 +6363,6 @@ define('app/map/util',[
             system.data('rallyUpdated', rallyUpdated);
             system.data('rallyPoke', rallyPoke);
         });
-    };
-
-    /**
-     * store mapId for current user (IndexedDB)
-     * @param mapId
-     */
-    var storeDefaultMapId = function(mapId){
-        if(mapId > 0){
-            var userData = Util.getCurrentUserData();
-            if(
-                userData &&
-                userData.character
-            ){
-                storeLocalData('character', userData.character.id, 'defaultMapId', mapId);
-            }
-        }
-    };
-
-    /**
-     * get key prefix for local storage data
-     * @param type
-     * @returns {boolean}
-     */
-    var getLocalStoragePrefixByType = function(type){
-        var prefix = false;
-        switch(type){
-            case 'character':   prefix = config.characterLocalStoragePrefix; break;
-            case 'map':   prefix = config.mapLocalStoragePrefix; break;
-            default:   prefix = config.mapLocalStoragePrefix;
-        }
-        return prefix;
-    };
-
-    /**
-     * get stored local data from client cache (IndexedDB)
-     * @param type
-     * @param objectId
-     * @returns {*}
-     */
-    var getLocaleData = function(type, objectId){
-        if(objectId > 0){
-            var storageKey = getLocalStoragePrefixByType(type) + objectId;
-            return Util.getLocalStorage().getItem(storageKey);
-        }else{
-            console.warn('Local storage requires object id > 0');
-        }
-    };
-
-    /**
-     * store local config data to client cache (IndexedDB)
-     * @param type
-     * @param objectId
-     * @param key
-     * @param value
-     */
-    var storeLocalData = function(type, objectId, key, value){
-        if(objectId > 0){
-            // get current map config
-            var storageKey = getLocalStoragePrefixByType(type) + objectId;
-            Util.getLocalStorage().getItem(storageKey).then(function(data) {
-                // This code runs once the value has been loaded
-                // from the offline store.
-                data = (data === null) ? {} : data;
-                // set/update value
-                data[this.key] = this.value;
-                Util.getLocalStorage().setItem(this.storageKey, data);
-            }.bind({
-                key: key,
-                value: value,
-                storageKey: storageKey
-            })).catch(function(err) {
-                // This code runs if there were any errors
-                console.error('Map local storage can not be accessed!');
-            });
-        }else{
-            console.warn('storeLocalData(): Local storage requires object id > 0');
-        }
-    };
-
-    /**
-     * delete local map configuration by key (IndexedDB)
-     * @param type
-     * @param objectId
-     * @param key
-     */
-    var deleteLocalData = function(type, objectId, key){
-        if(objectId > 0){
-            // get current map config
-            var storageKey = getLocalStoragePrefixByType(type) + objectId;
-            Util.getLocalStorage().getItem(storageKey).then(function(data) {
-                if(
-                    data &&
-                    data.hasOwnProperty(key)
-                ){
-                    delete data[key];
-                    Util.getLocalStorage().setItem(this.storageKey, data);
-                }
-            }.bind({
-                storageKey: storageKey
-            }));
-        }else{
-            console.warn('deleteLocalData(): Local storage requires object id > 0');
-        }
     };
 
     return {
@@ -6222,7 +6404,7 @@ define('dialog/map_info',[
 
     'use strict';
 
-    var config = {
+    let config = {
         // global dialog
         dialogNavigationClass: 'pf-dialog-navigation-list',                     // class for dialog navigation bar
 
@@ -6256,7 +6438,7 @@ define('dialog/map_info',[
     };
 
     // confirmation dialog settings (e.g. delete row)
-    var confirmationSettings = {
+    let confirmationSettings = {
         container: 'body',
         placement: 'left',
         btnCancelClass: 'btn btn-sm btn-default',
@@ -6272,28 +6454,32 @@ define('dialog/map_info',[
      * @param mapData
      */
     $.fn.loadMapInfoData = function(mapData){
-
-        var mapElement = $(this);
+        let mapElement = $(this);
 
         mapElement.empty();
-
         mapElement.showLoadingAnimation(config.loadingOptions);
 
-        var countSystems = mapData.data.systems.length;
-        var countConnections = mapData.data.connections.length;
+        let countSystems = mapData.data.systems.length;
+        let countConnections = mapData.data.connections.length;
 
         // map type
-        var mapTypes = MapUtil.getMapTypes();
-        var mapTypeName = '';
-        var mapTypeClass = '';
-        for(var i = 0; i < mapTypes.length; i++){
+        let mapTypes = MapUtil.getMapTypes();
+        let mapType = null;
+
+        for(let i = 0; i < mapTypes.length; i++){
             if(mapTypes[i].id === mapData.config.type.id){
-                mapTypeName = mapTypes[i].name;
-                mapTypeClass = mapTypes[i].class;
+                mapType = mapTypes[i];
+                break;
             }
         }
 
-        var dlElementLeft = $('<dl>', {
+        // check max map limits (e.g. max systems per map) ============================================================
+        let percentageSystems = (100 / mapType.defaultConfig.max_systems) * countSystems;
+        let maxSystemsClass = (percentageSystems < 90) ? 'txt-color-success' : (percentageSystems < 100) ? 'txt-color-warning' : 'txt-color-danger';
+
+        // build content ==============================================================================================
+
+        let dlElementLeft = $('<dl>', {
             class: 'dl-horizontal',
             css: {'float': 'left'}
         }).append(
@@ -6312,13 +6498,13 @@ define('dialog/map_info',[
                 $('<dt>').text( 'Type' )
             ).append(
                 $('<dd>', {
-                    class: mapTypeClass
-                }).text( mapTypeName )
+                    class: mapType.class
+                }).text( mapType.name )
             );
 
         mapElement.append(dlElementLeft);
 
-        var dlElementRight = $('<dl>', {
+        let dlElementRight = $('<dl>', {
             class: 'dl-horizontal',
             css: {'float': 'right'}
             }).append(
@@ -6331,7 +6517,9 @@ define('dialog/map_info',[
             ).append(
                 $('<dt>').text( 'Systems' )
             ).append(
-                $('<dd>').text( countSystems )
+                $('<dd>', {
+                    class: ['txt-color', maxSystemsClass].join(' ')
+                }).text( countSystems + ' / ' + mapType.defaultConfig.max_systems )
             ).append(
                 $('<dt>').text( 'Connections' )
             ).append(
@@ -6343,10 +6531,7 @@ define('dialog/map_info',[
         // init map lifetime counter
         $('.' + config.mapInfoLifetimeCounterClass).initTimestampCounter();
 
-
-
         mapElement.hideLoadingAnimation();
-
     };
 
     /**
@@ -6355,11 +6540,11 @@ define('dialog/map_info',[
      */
     $.fn.loadSystemInfoTable = function(mapData){
 
-        var systemsElement = $(this);
+        let systemsElement = $(this);
 
         systemsElement.empty();
 
-        var systemTable = $('<table>', {
+        let systemTable = $('<table>', {
             class: ['compact', 'stripe', 'order-column', 'row-border', config.mapInfoTableClass].join(' ')
         });
         systemsElement.append(systemTable);
@@ -6371,16 +6556,16 @@ define('dialog/map_info',[
             systemsElement.hideLoadingAnimation();
 
             // init table tooltips
-            var tooltipElements = systemsElement.find('[data-toggle="tooltip"]');
+            let tooltipElements = systemsElement.find('[data-toggle="tooltip"]');
             tooltipElements.tooltip();
         });
 
         // prepare data for dataTables
-        var systemsData = [];
-        for(var i = 0; i < mapData.data.systems.length; i++){
-            var tempSystemData = mapData.data.systems[i];
+        let systemsData = [];
+        for(let i = 0; i < mapData.data.systems.length; i++){
+            let tempSystemData = mapData.data.systems[i];
 
-            var tempData = {};
+            let tempData = {};
 
             // system id
             tempData.id = tempSystemData.id;
@@ -6412,7 +6597,7 @@ define('dialog/map_info',[
             };
 
             // security
-            var securityClass = Util.getSecurityClassForSystem(tempSystemData.security);
+            let securityClass = Util.getSecurityClassForSystem(tempSystemData.security);
             tempData.security = {
                 security: '<span class="' + securityClass + '">' + tempSystemData.security + '</span>',
                 security_sort: tempSystemData.security
@@ -6428,16 +6613,16 @@ define('dialog/map_info',[
             tempData.region = tempSystemData.region.name;
 
             // static
-            var statics = [];
-            for(var j = 0; j < tempSystemData.statics.length; j++){
-                var security = tempSystemData.statics[j].security;
-                var secClass = Util.getSecurityClassForSystem(security);
+            let statics = [];
+            for(let j = 0; j < tempSystemData.statics.length; j++){
+                let security = tempSystemData.statics[j].security;
+                let secClass = Util.getSecurityClassForSystem(security);
                 statics.push('<span class="' + secClass + '">' + security + '</span>');
             }
             tempData.static = statics.join('&nbsp;&nbsp;');
 
             // status
-            var systemStatusClass = Util.getStatusInfoForSystem(tempSystemData.status.id, 'class');
+            let systemStatusClass = Util.getStatusInfoForSystem(tempSystemData.status.id, 'class');
             if(systemStatusClass !== ''){
                 tempData.status = {
                     status: '<i class="fa fa fa-square-o fa-lg fa-fw ' + systemStatusClass + '"></i>',
@@ -6451,7 +6636,7 @@ define('dialog/map_info',[
             }
 
             // effect
-            var systemEffectClass = MapUtil.getEffectInfoForSystem(tempSystemData.effect, 'class');
+            let systemEffectClass = MapUtil.getEffectInfoForSystem(tempSystemData.effect, 'class');
             if(systemEffectClass !== ''){
                 tempData.effect = {
                     effect: '<i class="fa fa fa-square fa-lg fa-fw ' + systemEffectClass + '"></i>',
@@ -6465,7 +6650,7 @@ define('dialog/map_info',[
             }
 
             // trueSec
-            var systemTrueSecClass = Util.getTrueSecClassForSystem(tempSystemData.trueSec);
+            let systemTrueSecClass = Util.getTrueSecClassForSystem(tempSystemData.trueSec);
             if(systemTrueSecClass !== ''){
                 tempData.trueSec = {
                     trueSec: '<span class="' + systemTrueSecClass + '">' + tempSystemData.trueSec.toFixed(1) + '</span>',
@@ -6500,7 +6685,7 @@ define('dialog/map_info',[
             systemsData.push(tempData);
         }
 
-        var systemsDataTable = systemTable.dataTable( {
+        let systemsDataTable = systemTable.dataTable( {
             pageLength: 20,
             paging: true,
             lengthMenu: [[5, 10, 20, 50, -1], [5, 10, 20, 50, 'All']],
@@ -6615,8 +6800,8 @@ define('dialog/map_info',[
                         $(cell).initTimestampCounter();
 
                         // highlight cell
-                        var diff = new Date().getTime() - cellData * 1000;
-                        var dateDiff = new Date(diff);
+                        let diff = new Date().getTime() - cellData * 1000;
+                        let dateDiff = new Date(diff);
                         if(dateDiff.getUTCDate() > 1){
                             $(cell).addClass('txt-color txt-color-warning');
                         }
@@ -6629,15 +6814,15 @@ define('dialog/map_info',[
                     className: ['text-center', config.tableActionCellClass].join(' '),
                     data: 'clear',
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex) {
-                        var tempTableElement = this;
+                        let tempTableElement = this;
 
-                        var tempConfirmationSettings = confirmationSettings;
+                        let tempConfirmationSettings = confirmationSettings;
                         tempConfirmationSettings.title = 'Delete system';
                         tempConfirmationSettings.onConfirm = function(e, target){
-                            var deleteRowElement = $(target).parents('tr');
+                            let deleteRowElement = $(target).parents('tr');
 
-                            var activeMap = Util.getMapModule().getActiveMap();
-                            var systemElement = $('#' + config.systemIdPrefix + mapData.config.id + '-' + rowData.id);
+                            let activeMap = Util.getMapModule().getActiveMap();
+                            let systemElement = $('#' + config.systemIdPrefix + mapData.config.id + '-' + rowData.id);
 
                             if(systemElement){
                                 // trigger system delete event
@@ -6650,9 +6835,9 @@ define('dialog/map_info',[
 
                                         Util.showNotify({title: 'System deleted', text: rowData.name, type: 'success'});
 
-                                        // refresh connection table (connections might have changed) ------------------------------
-                                        var connectionsElement = $('#' + config.mapInfoConnectionsId);
-                                        var mapDataNew = activeMap.getMapDataFromClient({forceData: true});
+                                        // refresh connection table (connections might have changed) ==================
+                                        let connectionsElement = $('#' + config.mapInfoConnectionsId);
+                                        let mapDataNew = activeMap.getMapDataFromClient({forceData: true});
 
                                         connectionsElement.loadConnectionInfoTable(mapDataNew);
                                     }
@@ -6675,11 +6860,11 @@ define('dialog/map_info',[
      * @param mapData
      */
     $.fn.loadConnectionInfoTable = function(mapData){
-        var connectionsElement = $(this);
+        let connectionsElement = $(this);
 
         connectionsElement.empty();
 
-        var connectionTable = $('<table>', {
+        let connectionTable = $('<table>', {
             class: ['compact', 'stripe', 'order-column', 'row-border', config.mapInfoTableClass].join(' ')
         });
         connectionsElement.append(connectionTable);
@@ -6691,14 +6876,14 @@ define('dialog/map_info',[
             connectionsElement.hideLoadingAnimation();
         });
 
-        // connections table ==================================================
+        // connections table ==========================================================================================
 
         // prepare data for dataTables
-        var connectionData = [];
-        for(var j = 0; j < mapData.data.connections.length; j++){
-            var tempConnectionData = mapData.data.connections[j];
+        let connectionData = [];
+        for(let j = 0; j < mapData.data.connections.length; j++){
+            let tempConnectionData = mapData.data.connections[j];
 
-            var tempConData = {};
+            let tempConData = {};
 
             tempConData.id = tempConnectionData.id;
 
@@ -6711,8 +6896,8 @@ define('dialog/map_info',[
             tempConData.source = tempConnectionData.sourceName;
 
             // connection
-            var connectionClasses = [];
-            for(var k = 0; k < tempConnectionData.type.length; k++){
+            let connectionClasses = [];
+            for(let k = 0; k < tempConnectionData.type.length; k++){
                 connectionClasses.push( MapUtil.getConnectionInfo( tempConnectionData.type[k], 'cssClass') );
 
             }
@@ -6731,7 +6916,7 @@ define('dialog/map_info',[
             connectionData.push(tempConData);
         }
 
-        var connectionDataTable = connectionTable.dataTable( {
+        let connectionDataTable = connectionTable.dataTable( {
             pageLength: 20,
             paging: true,
             lengthMenu: [[5, 10, 20, 50, -1], [5, 10, 20, 50, 'All']],
@@ -6780,8 +6965,8 @@ define('dialog/map_info',[
                         $(cell).initTimestampCounter();
 
                         // highlight cell
-                        var diff = new Date().getTime() - cellData * 1000;
-                        var dateDiff = new Date(diff);
+                        let diff = new Date().getTime() - cellData * 1000;
+                        let dateDiff = new Date(diff);
                         if(dateDiff.getUTCDate() > 1){
                             $(cell).addClass('txt-color txt-color-warning');
                         }
@@ -6794,15 +6979,15 @@ define('dialog/map_info',[
                     className: ['text-center', config.tableActionCellClass].join(' '),
                     data: 'clear',
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex) {
-                        var tempTableElement = this;
+                        let tempTableElement = this;
 
-                        var tempConfirmationSettings = confirmationSettings;
+                        let tempConfirmationSettings = confirmationSettings;
                         tempConfirmationSettings.title = 'Delete connection';
                         tempConfirmationSettings.onConfirm = function(e, target){
-                            var deleteRowElement = $(target).parents('tr');
+                            let deleteRowElement = $(target).parents('tr');
 
                             // deleteSignatures(row);
-                            var connection = $().getConnectionById(mapData.config.id, rowData.id);
+                            let connection = $().getConnectionById(mapData.config.id, rowData.id);
 
                             $().deleteConnections([connection], function(){
                                 // callback function after ajax "delete" success
@@ -6820,11 +7005,11 @@ define('dialog/map_info',[
     };
 
     $.fn.loadUsersInfoTable = function(mapData){
-        var usersElement = $(this);
+        let usersElement = $(this);
 
         usersElement.empty();
 
-        var userTable = $('<table>', {
+        let userTable = $('<table>', {
             class: ['compact', 'stripe', 'order-column', 'row-border', config.mapInfoTableClass].join(' ')
         });
         usersElement.append(userTable);
@@ -6836,25 +7021,25 @@ define('dialog/map_info',[
             usersElement.hideLoadingAnimation();
         });
 
-        // users table ========================================================
+        // users table ================================================================================================
         // prepare users data for dataTables
-        var currentMapUserData = Util.getCurrentMapUserData( mapData.config.id );
-        var usersData = [];
+        let currentMapUserData = Util.getCurrentMapUserData( mapData.config.id );
+        let usersData = [];
 
         if(
             currentMapUserData &&
             currentMapUserData.data &&
             currentMapUserData.data.systems
         ){
-            for(var i = 0; i < currentMapUserData.data.systems.length; i++){
-                var tempSystemUserData = currentMapUserData.data.systems[i];
-                for(var j = 0; j < tempSystemUserData.user.length; j++){
+            for(let i = 0; i < currentMapUserData.data.systems.length; i++){
+                let tempSystemUserData = currentMapUserData.data.systems[i];
+                for(let j = 0; j < tempSystemUserData.user.length; j++){
                     usersData.push( tempSystemUserData.user[j] );
                 }
             }
         }
 
-        var userDataTable = userTable.dataTable( {
+        let userDataTable = userTable.dataTable( {
             pageLength: 20,
             paging: true,
             lengthMenu: [[5, 10, 20, 50, -1], [5, 10, 20, 50, 'All']],
@@ -6965,13 +7150,13 @@ define('dialog/map_info',[
      */
     $.fn.showMapInfoDialog = function(){
 
-        var activeMap = Util.getMapModule().getActiveMap();
-        var mapData = activeMap.getMapDataFromClient({forceData: true});
+        let activeMap = Util.getMapModule().getActiveMap();
+        let mapData = activeMap.getMapDataFromClient({forceData: true});
 
         if(mapData !== false){
             requirejs(['text!templates/dialog/map_info.html', 'mustache'], function(template, Mustache) {
 
-                var data = {
+                let data = {
                     dialogSummaryContainerId: config.dialogMapInfoSummaryId,
                     dialogUsersContainerId: config.dialogMapInfoUsersId,
                     dialogRefreshContainerId: config.dialogMapInfoRefreshId,
@@ -6982,9 +7167,9 @@ define('dialog/map_info',[
                     mapInfoUsersId: config.mapInfoUsersId
                 };
 
-                var content = Mustache.render(template, data);
+                let content = Mustache.render(template, data);
 
-                var mapInfoDialog = bootbox.dialog({
+                let mapInfoDialog = bootbox.dialog({
                     title: 'Map information',
                     message: content,
                     size: 'large',
@@ -7002,18 +7187,18 @@ define('dialog/map_info',[
                 mapInfoDialog.on('shown.bs.modal', function(e) {
                     // modal on open
 
-                    var mapElement = $('#' + config.mapInfoId);
-                    var systemsElement = $('#' + config.mapInfoSystemsId);
-                    var connectionsElement = $('#' + config.mapInfoConnectionsId);
-                    var usersElement = $('#' + config.mapInfoUsersId);
+                    let mapElement = $('#' + config.mapInfoId);
+                    let systemsElement = $('#' + config.mapInfoSystemsId);
+                    let connectionsElement = $('#' + config.mapInfoConnectionsId);
+                    let usersElement = $('#' + config.mapInfoUsersId);
 
 
                     // set refresh button observer
                     $('#' + config.dialogMapInfoRefreshId).on('click', function(){
-                        var menuAction = $(this).attr('data-action');
+                        let menuAction = $(this).attr('data-action');
                         if(menuAction === 'refresh'){
                             // get new map data
-                            var mapData = activeMap.getMapDataFromClient({forceData: true});
+                            let mapData = activeMap.getMapDataFromClient({forceData: true});
 
                             mapElement.loadMapInfoData(mapData);
                             systemsElement.loadSystemInfoTable(mapData);
@@ -7437,7 +7622,7 @@ define('dialog/map_settings',[
 ], function($, Init, Util, Render, bootbox, MapUtil) {
     'use strict';
 
-    var config = {
+    let config = {
         // map dialog
         newMapDialogId: 'pf-map-dialog',                                                // id for map settings dialog
         dialogMapCreateContainerId: 'pf-map-dialog-create',                             // id for the "new map" container
@@ -7468,11 +7653,11 @@ define('dialog/map_settings',[
      * @param filename
      * @returns {string}
      */
-    var formatFilename = function(filename){
+    let formatFilename = function(filename){
         filename = filename.replace(/[^a-zA-Z0-9]/g,'_');
 
-        var nowDate = new Date();
-        var filenameDate = nowDate.toISOString().slice(0,10).replace(/-/g, '_');
+        let nowDate = new Date();
+        let filenameDate = nowDate.toISOString().slice(0,10).replace(/-/g, '_');
 
         return  (filename + '_' + filenameDate).replace(/__/g,'_');
     };
@@ -7485,7 +7670,7 @@ define('dialog/map_settings',[
     $.fn.showMapSettingsDialog = function(mapData, options){
 
         // check if dialog is already open
-        var mapInfoDialogElement = $('#' + config.newMapDialogId);
+        let mapInfoDialogElement = $('#' + config.newMapDialogId);
         if(!mapInfoDialogElement.is(':visible')){
 
             requirejs([
@@ -7494,12 +7679,12 @@ define('dialog/map_settings',[
                 'mustache'
             ], function(templateMapDialog, templateMapSettings, Mustache) {
 
-                var dialogTitle = 'Map settings';
+                let dialogTitle = 'Map settings';
 
                 // if there are no maps -> hide settings tab
-                var hideSettingsTab = false;
-                var hideEditTab = false;
-                var hideDownloadTab = false;
+                let hideSettingsTab = false;
+                let hideEditTab = false;
+                let hideDownloadTab = false;
 
                 if(mapData === false){
                     hideSettingsTab = true;
@@ -7508,9 +7693,9 @@ define('dialog/map_settings',[
                 }
 
                 // available map "types" for a new or existing map
-                var mapTypes = MapUtil.getMapTypes(true);
+                let mapTypes = MapUtil.getMapTypes(true);
 
-                var data = {
+                let data = {
                     scope: MapUtil.getMapScopes(),
                     type: mapTypes,
                     icon: MapUtil.getMapIcons(),
@@ -7520,17 +7705,17 @@ define('dialog/map_settings',[
                 };
 
                 // render "new map" tab content -------------------------------------------
-                var contentNewMap = Mustache.render(templateMapSettings, data);
+                let contentNewMap = Mustache.render(templateMapSettings, data);
 
                 // render "edit map" tab content ------------------------------------------
-                var contentEditMap = Mustache.render(templateMapSettings, data);
+                let contentEditMap = Mustache.render(templateMapSettings, data);
                 contentEditMap = $(contentEditMap);
 
                 // current map access info
-                var accessCharacter = [];
-                var accessCorporation = [];
-                var accessAlliance = [];
-                var deleteExpiredConnections = true;
+                let accessCharacter = [];
+                let accessCorporation = [];
+                let accessAlliance = [];
+                let deleteExpiredConnections = true;
 
                 if(mapData !== false){
                     // set current map information
@@ -7587,9 +7772,9 @@ define('dialog/map_settings',[
                     accessAlliance: accessAlliance,
 
                     // access limitations --------
-                    maxCharacter: Init.maxSharedCount.character,
-                    maxCorporation: Init.maxSharedCount.corporation,
-                    maxAlliance: Init.maxSharedCount.alliance,
+                    maxCharacter: Init.mapTypes.private.defaultConfig.max_shared,
+                    maxCorporation: Init.mapTypes.corporation.defaultConfig.max_shared,
+                    maxAlliance: Init.mapTypes.alliance.defaultConfig.max_shared,
 
                     // download tab --------------
                     dialogMapExportFormId: config.dialogMapExportFormId,
@@ -7603,20 +7788,20 @@ define('dialog/map_settings',[
                     formatFilename: function(){
                         // format filename from "map name" (initial)
                         return function (mapName, render) {
-                            var filename = render(mapName);
+                            let filename = render(mapName);
                             return formatFilename(filename);
                         };
                     }
                 };
 
-                var contentDialog = Mustache.render(templateMapDialog, data);
+                let contentDialog = Mustache.render(templateMapDialog, data);
                 contentDialog = $(contentDialog);
 
                 // set tab content
                 $('#' + config.dialogMapCreateContainerId, contentDialog).html(contentNewMap);
                 $('#' + config.dialogMapEditContainerId, contentDialog).html(contentEditMap);
 
-                var mapInfoDialog = bootbox.dialog({
+                let mapInfoDialog = bootbox.dialog({
                     title: dialogTitle,
                     message: contentDialog,
                     buttons: {
@@ -7630,15 +7815,15 @@ define('dialog/map_settings',[
                             callback: function() {
 
                                 // get the current active form
-                                var form = $('#' + config.newMapDialogId).find('form').filter(':visible');
+                                let form = $('#' + config.newMapDialogId).find('form').filter(':visible');
 
                                 // validate form
                                 form.validator('validate');
 
                                 // validate select2 fields (settings tab)
                                 form.find('select').each(function(){
-                                    var selectField = $(this);
-                                    var selectValues = selectField.val();
+                                    let selectField = $(this);
+                                    let selectValues = selectField.val();
 
                                     if(selectValues.length > 0){
                                         selectField.parents('.form-group').removeClass('has-error');
@@ -7648,23 +7833,23 @@ define('dialog/map_settings',[
                                 });
 
                                 // check whether the form is valid
-                                var formValid = form.isValidForm();
+                                let formValid = form.isValidForm();
 
                                 if(formValid === true){
 
                                     // lock dialog
-                                    var dialogContent = mapInfoDialog.find('.modal-content');
+                                    let dialogContent = mapInfoDialog.find('.modal-content');
                                     dialogContent.showLoadingAnimation();
 
                                     // get form data
-                                    var formData = form.getFormValues();
+                                    let formData = form.getFormValues();
 
                                     // checkbox fix -> settings tab
                                     if( form.find('#' + config.deleteExpiredConnectionsId).length ){
                                         formData.deleteExpiredConnections = formData.hasOwnProperty('deleteExpiredConnections') ? parseInt( formData.deleteExpiredConnections ) : 0;
                                     }
 
-                                    var requestData = {formData: formData};
+                                    let requestData = {formData: formData};
 
                                     $.ajax({
                                         type: 'POST',
@@ -7682,7 +7867,8 @@ define('dialog/map_settings',[
                                             Util.showNotify({title: dialogTitle, text: 'Map: ' + responseData.mapData.mapData.name, type: 'success'});
 
                                             // update map-tab Element
-                                            var tabLinkElement = Util.getMapModule().getMapTabElements(responseData.mapData.mapData.id);
+                                            let tabLinkElement = Util.getMapModule().getMapTabElements(responseData.mapData.mapData.id);
+
                                             if(tabLinkElement.length === 1){
                                                 tabLinkElement.updateTabData(responseData.mapData.mapData);
                                             }
@@ -7691,7 +7877,7 @@ define('dialog/map_settings',[
                                             $(document).trigger('pf:closeMenu', [{}]);
                                         }
                                     }).fail(function( jqXHR, status, error) {
-                                        var reason = status + ' ' + error;
+                                        let reason = status + ' ' + error;
                                         Util.showNotify({title: jqXHR.status + ': saveMap', text: reason, type: 'warning'});
                                         $(document).setProgramStatus('problem');
 
@@ -7722,7 +7908,7 @@ define('dialog/map_settings',[
 
                     // show form messages -------------------------------------
                     // get current active form(tab)
-                    var form = $('#' + config.newMapDialogId).find('form').filter(':visible');
+                    let form = $('#' + config.newMapDialogId).find('form').filter(':visible');
 
                     form.showFormMessage([{type: 'info', message: 'Creating new maps or change settings may take a few seconds'}]);
 
@@ -7737,24 +7923,24 @@ define('dialog/map_settings',[
                     }
 
                     // init "download tab" ========================================================================
-                    var downloadTabElement = mapInfoDialog.find('#' + config.dialogMapDownloadContainerId);
+                    let downloadTabElement = mapInfoDialog.find('#' + config.dialogMapDownloadContainerId);
                     if(downloadTabElement.length){
                         // tab exists
 
                         // export map data ------------------------------------------------------------------------
                         downloadTabElement.find('#' + config.buttonExportId).on('click', { mapData: mapData }, function(e){
 
-                            var exportForm = $('#' + config.dialogMapExportFormId);
-                            var validExportForm = exportForm.isValidForm();
+                            let exportForm = $('#' + config.dialogMapExportFormId);
+                            let validExportForm = exportForm.isValidForm();
 
                             if(validExportForm){
-                                var mapElement = Util.getMapModule().getActiveMap();
+                                let mapElement = Util.getMapModule().getActiveMap();
 
                                 if(mapElement){
                                     // IMPORTANT: Get map data from client (NOT from global mapData which is available in here)
                                     // -> This excludes some data (e.g. wh statics)
                                     // -> Bring export inline with main map toggle requests
-                                    var exportMapData = mapElement.getMapDataFromClient({
+                                    let exportMapData = mapElement.getMapDataFromClient({
                                         forceData: true,
                                         getAll: true
                                     });
@@ -7774,7 +7960,7 @@ define('dialog/map_settings',[
 
                         // import map data ------------------------------------------------------------------------
                         // check if "FileReader" API is supported
-                        var importFormElement = downloadTabElement.find('#' + config.dialogMapImportFormId);
+                        let importFormElement = downloadTabElement.find('#' + config.dialogMapImportFormId);
                         if(window.File && window.FileReader && window.FileList && window.Blob){
 
                             // show file info in UI
@@ -7782,14 +7968,14 @@ define('dialog/map_settings',[
                                 e.stopPropagation();
                                 e.preventDefault();
 
-                                var infoContainerElement = importFormElement.find('#' + config.dialogMapImportInfoId);
+                                let infoContainerElement = importFormElement.find('#' + config.dialogMapImportInfoId);
                                 infoContainerElement.hide().empty();
                                 importFormElement.hideFormMessage('all');
 
-                                var output = [];
-                                var files = e.target.files;
+                                let output = [];
+                                let files = e.target.files;
 
-                                for (var i = 0, f; !!(f = files[i]); i++) {
+                                for (let i = 0, f; !!(f = files[i]); i++) {
                                     output.push(( i + 1 ) + '. file: ' + f.name + ' - ' +
                                         f.size + ' bytes; last modified: ' +
                                         f.lastModifiedDate.toLocaleDateString() );
@@ -7803,14 +7989,14 @@ define('dialog/map_settings',[
                             });
 
                             // drag&drop
-                            var importData = {};
+                            let importData = {};
                             importData.mapData = [];
-                            var files = [];
-                            var filesCount = 0;
-                            var filesCountFail = 0;
+                            let files = [];
+                            let filesCount = 0;
+                            let filesCountFail = 0;
 
                             // onLoad for FileReader API
-                            var readerOnLoad = function(readEvent) {
+                            let readerOnLoad = function(readEvent) {
 
                                 // get file content
                                 try{
@@ -7829,13 +8015,13 @@ define('dialog/map_settings',[
                                 }
                             };
 
-                            var handleDragOver = function(dragEvent) {
+                            let handleDragOver = function(dragEvent) {
                                 dragEvent.stopPropagation();
                                 dragEvent.preventDefault();
                                 dragEvent.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
                             };
 
-                            var handleFileSelect = function(evt){
+                            let handleFileSelect = function(evt){
                                 evt.stopPropagation();
                                 evt.preventDefault();
 
@@ -7846,14 +8032,14 @@ define('dialog/map_settings',[
 
                                 files = evt.dataTransfer.files; // FileList object.
 
-                                for (var file; !!(file = files[filesCount]); filesCount++){
-                                    var reader = new FileReader();
+                                for (let file; !!(file = files[filesCount]); filesCount++){
+                                    let reader = new FileReader();
                                     reader.onload = readerOnLoad;
                                     reader.readAsText(file);
                                 }
                             };
 
-                            var dropZone = downloadTabElement.find('.' + config.dragDropElementClass);
+                            let dropZone = downloadTabElement.find('.' + config.dragDropElementClass);
                             dropZone[0].addEventListener('dragover', handleDragOver, false);
                             dropZone[0].addEventListener('drop', handleFileSelect, false);
 
@@ -7861,19 +8047,19 @@ define('dialog/map_settings',[
                             downloadTabElement.find('#' + config.buttonImportId).on('click', function(e) {
 
                                 importFormElement.validator('validate');
-                                var validImportForm = importFormElement.isValidForm();
+                                let validImportForm = importFormElement.isValidForm();
 
                                 if(validImportForm){
                                     importData = importFormElement.getFormValues();
                                     importData.mapData = [];
 
-                                    var fileElement = downloadTabElement.find('#' + config.fieldImportId);
+                                    let fileElement = downloadTabElement.find('#' + config.fieldImportId);
                                     files = fileElement[0].files;
                                     filesCount = 0;
                                     filesCountFail = 0;
 
-                                    for (var file; !!(file = files[filesCount]); filesCount++){
-                                        var reader = new FileReader();
+                                    for (let file; !!(file = files[filesCount]); filesCount++){
+                                        let reader = new FileReader();
                                         reader.onload = readerOnLoad;
                                         reader.readAsText(file);
                                     }
@@ -7887,9 +8073,9 @@ define('dialog/map_settings',[
 
                 // events for tab change
                 mapInfoDialog.find('.navbar a').on('shown.bs.tab', function(e){
-                    var selectElementCharacter = mapInfoDialog.find('#' + config.characterSelectId);
-                    var selectElementCorporation = mapInfoDialog.find('#' + config.corporationSelectId);
-                    var selectElementAlliance = mapInfoDialog.find('#' + config.allianceSelectId);
+                    let selectElementCharacter = mapInfoDialog.find('#' + config.characterSelectId);
+                    let selectElementCorporation = mapInfoDialog.find('#' + config.corporationSelectId);
+                    let selectElementAlliance = mapInfoDialog.find('#' + config.allianceSelectId);
 
                     if($(e.target).attr('href') === '#' + config.dialogMapSettingsContainerId){
                         // "settings" tab
@@ -7923,13 +8109,13 @@ define('dialog/map_settings',[
      * import new map(s) data
      * @param importData
      */
-    var importMaps = function(importData){
+    let importMaps = function(importData){
 
-        var importForm = $('#' + config.dialogMapImportFormId);
+        let importForm = $('#' + config.dialogMapImportFormId);
         importForm.hideFormMessage('all');
 
         // lock dialog
-        var dialogContent = importForm.parents('.modal-content');
+        let dialogContent = importForm.parents('.modal-content');
         dialogContent.showLoadingAnimation();
 
         $.ajax({
@@ -7943,11 +8129,14 @@ define('dialog/map_settings',[
                 importForm.showFormMessage(responseData.error);
             }else{
                 // success
+                if(responseData.warning.length){
+                    importForm.showFormMessage(responseData.warning);
+                }
 
                 Util.showNotify({title: 'Import finished', text: 'Map(s) imported', type: 'success'});
             }
         }).fail(function( jqXHR, status, error) {
-            var reason = status + ' ' + error;
+            let reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': importMap', text: reason, type: 'error'});
         }).always(function() {
             importForm.find('input, select').resetFormFields().trigger('change');
@@ -7962,9 +8151,9 @@ define('dialog/map_settings',[
      */
     $.fn.setExportMapData = function(mapData){
 
-        var fieldExport = $('#' + config.fieldExportId);
-        var filename = '';
-        var mapDataEncoded = '';
+        let fieldExport = $('#' + config.fieldExportId);
+        let filename = '';
+        let mapDataEncoded = '';
 
         if(fieldExport.length){
             filename = fieldExport.val();
@@ -7975,7 +8164,7 @@ define('dialog/map_settings',[
         }
 
         return this.each(function(){
-            var exportButton = $(this);
+            let exportButton = $(this);
             exportButton.attr('href', 'data:' + mapDataEncoded);
             exportButton.attr('download', filename + '.json');
         });
@@ -7986,28 +8175,28 @@ define('dialog/map_settings',[
      * init select2 fields within the settings dialog
      * @param mapInfoDialog
      */
-    var initSettingsSelectFields = function(mapInfoDialog){
+    let initSettingsSelectFields = function(mapInfoDialog){
 
-        var selectElementCharacter = mapInfoDialog.find('#' + config.characterSelectId);
-        var selectElementCorporation = mapInfoDialog.find('#' + config.corporationSelectId);
-        var selectElementAlliance = mapInfoDialog.find('#' + config.allianceSelectId);
+        let selectElementCharacter = mapInfoDialog.find('#' + config.characterSelectId);
+        let selectElementCorporation = mapInfoDialog.find('#' + config.corporationSelectId);
+        let selectElementAlliance = mapInfoDialog.find('#' + config.allianceSelectId);
 
         // init character select live search
         selectElementCharacter.initAccessSelect({
             type: 'character',
-            maxSelectionLength: Init.maxSharedCount.character
+            maxSelectionLength: Init.mapTypes.private.defaultConfig.max_shared
         });
 
         // init corporation select live search
         selectElementCorporation.initAccessSelect({
             type: 'corporation',
-            maxSelectionLength: Init.maxSharedCount.corporation
+            maxSelectionLength: Init.mapTypes.corporation.defaultConfig.max_shared
         });
 
         // init alliance select live search
         selectElementAlliance.initAccessSelect({
             type: 'alliance',
-            maxSelectionLength: Init.maxSharedCount.alliance
+            maxSelectionLength: Init.mapTypes.alliance.defaultConfig.max_shared
         });
     };
 
@@ -8017,12 +8206,11 @@ define('dialog/map_settings',[
      */
     $.fn.showDeleteMapDialog = function(mapData){
 
-        var mapName = mapData.config.name;
+        let mapName = mapData.config.name;
 
-        var mapDeleteDialog = bootbox.confirm('Delete map "' + mapName + '"?', function(result){
+        let mapDeleteDialog = bootbox.confirm('Delete map "' + mapName + '"?', function(result){
             if(result){
-
-                var data = {mapData: mapData.config};
+                let data = {mapData: mapData.config};
 
                 $.ajax({
                     type: 'POST',
@@ -8031,12 +8219,12 @@ define('dialog/map_settings',[
                     dataType: 'json'
                 }).done(function(data){
                     Util.showNotify({title: 'Map deleted', text: 'Map: ' + mapName, type: 'success'});
-
-                    $(mapDeleteDialog).modal('hide');
                 }).fail(function( jqXHR, status, error) {
-                    var reason = status + ' ' + error;
+                    let reason = status + ' ' + error;
                     Util.showNotify({title: jqXHR.status + ': deleteMap', text: reason, type: 'warning'});
                     $(document).setProgramStatus('problem');
+                }).always(function() {
+                    $(mapDeleteDialog).modal('hide');
                 });
 
                 return false;
@@ -8894,7 +9082,7 @@ define('app/map/system',[
 ], ($, Init, Util, bootbox, MapUtil) => {
     'use strict';
 
-    var config = {
+    let config = {
         systemActiveClass: 'pf-system-active'                           // class for an active system in a map
     };
 
@@ -8904,13 +9092,13 @@ define('app/map/system',[
      */
     $.fn.showRallyPointDialog = (system) => {
         requirejs(['text!templates/dialog/system_rally.html', 'mustache'], function(template, Mustache) {
-            var data = {
+            let data = {
                 notificationStatus: Init.notificationStatus.rallySet
             };
 
-            var content = Mustache.render(template, data);
+            let content = Mustache.render(template, data);
 
-            var rallyDialog = bootbox.dialog({
+            let rallyDialog = bootbox.dialog({
                 message: content,
                 title: 'Set rally point for "' + system.getSystemInfo( ['alias'] ) + '"',
                 buttons: {
@@ -8948,9 +9136,9 @@ define('app/map/system',[
      * @returns {*}
      */
     $.fn.showDeleteSystemDialog = (map, systems = []) => {
-        var mapContainer = $( map.getContainer() );
-        var validDeleteSystems = [];
-        var activeCharacters = 0;
+        let mapContainer = $( map.getContainer() );
+        let validDeleteSystems = [];
+        let activeCharacters = 0;
         // check if systems belong to map -> security check
         for (let system of systems) {
             let systemElement = $(system);
@@ -8966,13 +9154,13 @@ define('app/map/system',[
         }
 
         if(validDeleteSystems.length){
-            var msg = '';
+            let msg = '';
             if(validDeleteSystems.length === 1){
-                var deleteSystem = $(validDeleteSystems[0]);
-                var systemName = deleteSystem.data('name');
-                var systemAlias = deleteSystem.getSystemInfo( ['alias'] );
+                let deleteSystem = $(validDeleteSystems[0]);
+                let systemName = deleteSystem.data('name');
+                let systemAlias = deleteSystem.getSystemInfo( ['alias'] );
 
-                var systemNameStr = (systemName === systemAlias) ? '"' + systemName + '"' : '"' + systemAlias + '" (' + systemName + ')';
+                let systemNameStr = (systemName === systemAlias) ? '"' + systemName + '"' : '"' + systemAlias + '" (' + systemName + ')';
                 systemNameStr = '<span class="txt-color txt-color-warning">' + systemNameStr + '</span>';
                 msg = 'Delete system ' + systemNameStr + ' and all its connections?';
             }else{
@@ -8984,7 +9172,7 @@ define('app/map/system',[
                 msg += ' <span class="txt-color txt-color-warning">Warning: ' + activeCharacters + ' active characters</span>';
             }
 
-            var systemDeleteDialog = bootbox.confirm(msg, result => {
+            let systemDeleteDialog = bootbox.confirm(msg, result => {
                 if(result){
                     deleteSystems(map, validDeleteSystems, (systems) => {
                         // callback function after deleted -> close dialog
@@ -9012,14 +9200,14 @@ define('app/map/system',[
      * @param systems
      * @param callback function
      */
-    var deleteSystems = (map, systems = [], callback = (systems) => {}) => {
-        var mapContainer = $( map.getContainer() );
-        mapContainer.getMapOverlay('timer').startMapUpdateCounter();
+    let deleteSystems = (map, systems = [], callback = (systems) => {}) => {
+        let mapContainer = $( map.getContainer() );
 
         $.ajax({
             type: 'POST',
             url: Init.path.deleteSystem,
             data: {
+                mapId: mapContainer.data('id'),
                 systemIds: systems.map( system => $(system).data('id') )
             },
             dataType: 'json',
@@ -9033,7 +9221,7 @@ define('app/map/system',[
 
             callback(this.systems);
         }).fail(function(jqXHR, status, error) {
-            var reason = status + ' ' + error;
+            let reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': deleteSystem', text: reason, type: 'warning'});
             $(document).setProgramStatus('problem');
         });
@@ -9044,9 +9232,9 @@ define('app/map/system',[
      * @param map
      * @param systems
      */
-    var removeSystems = (map, systems) => {
+    let removeSystems = (map, systems) => {
 
-        var removeSystemCallbak = function(deleteSystem){
+        let removeSystemCallbak = function(deleteSystem){
             map.remove(deleteSystem);
         };
 
@@ -9056,7 +9244,7 @@ define('app/map/system',[
             // check if system is "active"
             if( system.hasClass(config.systemActiveClass) ){
                 // get parent Tab Content and fire clear modules event
-                var tabContentElement = MapUtil.getTabContentElementByMapElement( system );
+                let tabContentElement = MapUtil.getTabContentElementByMapElement( system );
                 $(tabContentElement).trigger('pf:removeSystemModules');
             }
 
@@ -22815,10 +23003,10 @@ define('app/map/contextmenu',[
     $.fn.contextMenu = function (settings) {
 
         // animation
-        var animationInType = 'transition.flipXIn';
-        var animationInDuration = 150;
-        var animationOutType = 'transition.flipXOut';
-        var animationOutDuration = 150;
+        let animationInType = 'transition.flipXIn';
+        let animationInDuration = 150;
+        let animationOutType = 'transition.flipXOut';
+        let animationOutDuration = 150;
 
         return this.each(function () {
 
@@ -22828,15 +23016,15 @@ define('app/map/contextmenu',[
                 // hide all other open context menus
                $('#pf-dialog-wrapper > .dropdown-menu').hide();
 
-                var contextMenu = $(settings.menuSelector);
+                let contextMenu = $(settings.menuSelector);
 
-                var menuLiElements = contextMenu.find('li');
+                let menuLiElements = contextMenu.find('li');
 
                 // show all menu entries
                 menuLiElements.show();
 
                 // disable specific menu entries
-                for(var i = 0; i < hiddenOptions.length; i++){
+                for(let i = 0; i < hiddenOptions.length; i++){
                     contextMenu.find('li[data-action="' + hiddenOptions[i] + '"]').hide();
                 }
 
@@ -22844,7 +23032,7 @@ define('app/map/contextmenu',[
                 menuLiElements.removeClass('active');
 
                 //set active specific menu entries
-                for(var j = 0; j < activeOptions.length; j++){
+                for(let j = 0; j < activeOptions.length; j++){
                     contextMenu.find('li[data-action="' + activeOptions[j] + '"]').addClass('active');
                 }
 
@@ -22856,12 +23044,33 @@ define('app/map/contextmenu',[
                 }).velocity(animationInType, {
                     duration: animationInDuration,
                     complete: function(){
-                        // set context menu "click" observer
-                        $(this).off('click').one('click', {component: component, position:{x: originalEvent.offsetX, y: originalEvent.offsetY}}, function (e) {
+
+                        let posX = 0;
+                        let posY = 0;
+
+                        if(
+                            originalEvent.offsetX &&
+                            originalEvent.offsetY
+                        ){
+                            // Chrome
+                            posX = originalEvent.offsetX;
+                            posY = originalEvent.offsetY ;
+                        }else if(originalEvent.originalEvent){
+                            // Firefox -> #415
+                            posX =  originalEvent.originalEvent.layerX;
+                            posY = originalEvent.originalEvent.layerY ;
+                        }
+
+                        let position = {
+                            x: posX,
+                            y: posY
+                        };
+
+                        $(this).off('click').one('click', {component: component, position: position}, function (e) {
                             // hide contextmenu
                             $(this).hide();
 
-                            var params = {
+                            let params = {
                                 selectedMenu: $(e.target),
                                 component: e.data.component,
                                 position: e.data.position
@@ -22885,9 +23094,9 @@ define('app/map/contextmenu',[
         });
 
         function getLeftLocation(e) {
-            var mouseWidth = e.pageX;
-            var pageWidth = $(window).width();
-            var menuWidth = $(settings.menuSelector).width();
+            let mouseWidth = e.pageX;
+            let pageWidth = $(window).width();
+            let menuWidth = $(settings.menuSelector).width();
 
             // opening menu would pass the side of the page
             if (mouseWidth + menuWidth > pageWidth &&
@@ -22898,9 +23107,9 @@ define('app/map/contextmenu',[
         }
 
         function getTopLocation(e) {
-            var mouseHeight = e.pageY;
-            var pageHeight = $(window).height();
-            var menuHeight = $(settings.menuSelector).height();
+            let mouseHeight = e.pageY;
+            let pageHeight = $(window).height();
+            let menuHeight = $(settings.menuSelector).height();
 
             // opening menu would pass the bottom of the page
             if (mouseHeight + menuHeight > pageHeight &&
@@ -22924,7 +23133,7 @@ define('app/map/overlay',[
 
     'use strict';
 
-    var config = {
+    let config = {
         logTimerCount: 3,                                               // map log timer in seconds
 
         // map
@@ -22943,6 +23152,16 @@ define('app/map/overlay',[
         connectionOverlayEolId: 'overlayEol'                            // connection overlay ID (jsPlumb)
     };
 
+
+    /**
+     * get mapElement from overlay or any child of that
+     * @param mapOverlay
+     * @returns {JQuery}
+     */
+    let getMapFromOverlay = function(mapOverlay){
+        return $(mapOverlay).parents('.' + config.mapWrapperClass).find('.' + config.mapClass);
+    };
+
     /**
      * Overlay options (all available map options shown in overlay)
      * "active":    (active || hover) indicated whether an icon/option
@@ -22950,7 +23169,7 @@ define('app/map/overlay',[
      *              "active": Makes icon active when visible
      *              "hover": Make icon active on hover
      */
-    var options = {
+    let options = {
         filter: {
             title: 'active filter',
             trigger: 'active',
@@ -22976,9 +23195,9 @@ define('app/map/overlay',[
             iconClass: ['fa', 'fa-fw', 'fa-tags'],
             hoverIntent: {
                 over: function(e){
-                    var mapElement = getMapFromOverlay(this);
+                    let mapElement = getMapFromOverlay(this);
                     mapElement.find('.' + config.systemHeadClass).each(function(){
-                        var system = $(this);
+                        let system = $(this);
                         // init tooltip if not already exists
                         if ( !system.data('bs.tooltip') ){
                             system.tooltip({
@@ -22994,7 +23213,7 @@ define('app/map/overlay',[
                     });
                 },
                 out: function(e){
-                    var mapElement = getMapFromOverlay(this);
+                    let mapElement = getMapFromOverlay(this);
                     mapElement.find('.' + config.systemHeadClass).tooltip('hide');
                 }
             }
@@ -23006,20 +23225,20 @@ define('app/map/overlay',[
             iconClass: ['fa', 'fa-fw', 'fa-clock-o'],
             hoverIntent: {
                 over: function(e){
-                    var mapElement = getMapFromOverlay(this);
-                    var MapUtil = require('app/map/util');
-                    var Map = require('app/map/map');
-                    var map = Map.getMapInstance( mapElement.data('id') );
-                    var connections = MapUtil.searchConnectionsByScopeAndType(map, 'wh', ['wh_eol']);
-                    var serverDate = Util.getServerTime();
+                    let mapElement = getMapFromOverlay(this);
+                    let MapUtil = require('app/map/util');
+                    let Map = require('app/map/map');
+                    let map = Map.getMapInstance( mapElement.data('id') );
+                    let connections = MapUtil.searchConnectionsByScopeAndType(map, 'wh', ['wh_eol']);
+                    let serverDate = Util.getServerTime();
 
                     for (let connection of connections) {
-                        var eolTimestamp = connection.getParameter('eolUpdated');
-                        var eolDate = Util.convertTimestampToServerTime(eolTimestamp);
-                        var diff = Util.getTimeDiffParts(eolDate, serverDate);
+                        let eolTimestamp = connection.getParameter('eolUpdated');
+                        let eolDate = Util.convertTimestampToServerTime(eolTimestamp);
+                        let diff = Util.getTimeDiffParts(eolDate, serverDate);
 
                         // format overlay label
-                        var label = '';
+                        let label = '';
                         if(diff.days){
                             label += diff.days + 'd ';
                         }
@@ -23038,11 +23257,11 @@ define('app/map/overlay',[
                     }
                 },
                 out: function(e){
-                    var mapElement = getMapFromOverlay(this);
-                    var MapUtil = require('app/map/util');
-                    var Map = require('app/map/map');
-                    var map = Map.getMapInstance( mapElement.data('id') );
-                    var connections = MapUtil.searchConnectionsByScopeAndType(map, 'wh', ['wh_eol']);
+                    let mapElement = getMapFromOverlay(this);
+                    let MapUtil = require('app/map/util');
+                    let Map = require('app/map/map');
+                    let map = Map.getMapInstance( mapElement.data('id') );
+                    let connections = MapUtil.searchConnectionsByScopeAndType(map, 'wh', ['wh_eol']);
 
                     for (let connection of connections) {
                         connection.removeOverlay(config.connectionOverlayEolId);
@@ -23053,24 +23272,15 @@ define('app/map/overlay',[
     };
 
     /**
-     * get mapElement from overlay or any child of that
-     * @param mapOverlay
-     * @returns {JQuery}
-     */
-    var getMapFromOverlay = function(mapOverlay){
-        return $(mapOverlay).parents('.' + config.mapWrapperClass).find('.' + config.mapClass);
-    };
-
-    /**
      * get map overlay element by type e.g. timer/counter, info - overlay
      * @param overlayType
      * @returns {*}
      */
     $.fn.getMapOverlay = function(overlayType){
 
-        var mapWrapperElement = $(this).parents('.' + config.mapWrapperClass);
+        let mapWrapperElement = $(this).parents('.' + config.mapWrapperClass);
 
-        var mapOverlay = null;
+        let mapOverlay = null;
         switch(overlayType){
             case 'timer':
                 mapOverlay = mapWrapperElement.find('.' + config.mapOverlayTimerClass);
@@ -23086,14 +23296,15 @@ define('app/map/overlay',[
     /**
      * draws the map update counter to the map overlay timer
      * @param percent
+     * @param value
      * @returns {*}
      */
     $.fn.setMapUpdateCounter = function(percent, value){
 
-        var mapOverlayTimer = $(this);
+        let mapOverlayTimer = $(this);
 
         // check if counter already exists
-        var counterChart = mapOverlayTimer.getMapCounter();
+        let counterChart = mapOverlayTimer.getMapCounter();
 
         if(counterChart.length === 0){
             // create new counter
@@ -23126,7 +23337,7 @@ define('app/map/overlay',[
      */
     $.fn.getMapCounter = function(){
 
-        var mapOverlayTimer = $(this);
+        let mapOverlayTimer = $(this);
 
         return mapOverlayTimer.find('.' + Init.classes.pieChart.pieChartMapCounterClass);
     };
@@ -23136,18 +23347,18 @@ define('app/map/overlay',[
      */
     $.fn.startMapUpdateCounter = function(){
 
-        var mapOverlayTimer = $(this);
-        var counterChart = mapOverlayTimer.getMapCounter();
+        let mapOverlayTimer = $(this);
+        let counterChart = mapOverlayTimer.getMapCounter();
 
-        var maxSeconds = config.logTimerCount;
+        let maxSeconds = config.logTimerCount;
 
-        var counterChartLabel = counterChart.find('span');
+        let counterChartLabel = counterChart.find('span');
 
-        var percentPerCount = 100 / maxSeconds;
+        let percentPerCount = 100 / maxSeconds;
 
         // update counter
-        var updateChart = function(tempSeconds){
-            var pieChart = counterChart.data('easyPieChart');
+        let updateChart = function(tempSeconds){
+            let pieChart = counterChart.data('easyPieChart');
 
             if(pieChart !== undefined){
                 counterChart.data('easyPieChart').update( percentPerCount * tempSeconds);
@@ -23156,12 +23367,11 @@ define('app/map/overlay',[
         };
 
         // main timer function is called on any counter update
-        var timer = function(){
+        let timer = function(mapUpdateCounter){
             // decrease timer
-            var currentSeconds = counterChart.data('currentSeconds');
+            let currentSeconds = counterChart.data('currentSeconds');
             currentSeconds--;
             counterChart.data('currentSeconds', currentSeconds);
-
 
             if(currentSeconds >= 0){
                 // update counter
@@ -23180,7 +23390,7 @@ define('app/map/overlay',[
         };
 
         // get current seconds (in case the timer is already running)
-        var currentSeconds = counterChart.data('currentSeconds');
+        let currentSeconds = counterChart.data('currentSeconds');
 
         // start values for timer and chart
         counterChart.data('currentSeconds', maxSeconds);
@@ -23191,7 +23401,9 @@ define('app/map/overlay',[
             currentSeconds < 0
         ){
             // start timer
-            var mapUpdateCounter = setInterval(timer, 1000);
+            let mapUpdateCounter = setInterval(() => {
+                timer(mapUpdateCounter);
+            }, 1000);
 
             // store counter interval
             counterChart.data('interval', mapUpdateCounter);
@@ -23210,14 +23422,14 @@ define('app/map/overlay',[
      * @param viewType
      */
     $.fn.updateOverlayIcon = function(option, viewType){
-        var mapOverlayInfo = $(this);
+        let mapOverlayInfo = $(this);
 
-        var showOverlay = false;
+        let showOverlay = false;
 
-        var mapOverlayIconClass = options[option].class;
+        let mapOverlayIconClass = options[option].class;
 
         // look for the overlay icon that should be updated
-        var iconElement = mapOverlayInfo.find('.' + mapOverlayIconClass);
+        let iconElement = mapOverlayInfo.find('.' + mapOverlayIconClass);
 
         if(iconElement){
             if(viewType === 'show'){
@@ -23249,7 +23461,7 @@ define('app/map/overlay',[
                 iconElement.data('visible', false);
 
                 // check if there is any visible icon remaining
-                var visibleIcons = mapOverlayInfo.find('i:visible');
+                let visibleIcons = mapOverlayInfo.find('i:visible');
                 if(visibleIcons.length > 0){
                     showOverlay = true;
                 }
@@ -23278,23 +23490,23 @@ define('app/map/overlay',[
      */
     $.fn.initMapOverlays = function(){
         return this.each(function(){
-            var parentElement = $(this);
+            let parentElement = $(this);
 
-            var mapOverlayTimer = $('<div>', {
+            let mapOverlayTimer = $('<div>', {
                 class: [config.mapOverlayClass, config.mapOverlayTimerClass].join(' ')
             });
             parentElement.append(mapOverlayTimer);
 
             // ---------------------------------------------------------------------------
             // add map overlay info. after scrollbar is initialized
-            var mapOverlayInfo = $('<div>', {
+            let mapOverlayInfo = $('<div>', {
                 class: [config.mapOverlayClass, config.mapOverlayInfoClass].join(' ')
             });
 
             // add all overlay elements
-            for (var prop in options) {
+            for (let prop in options) {
                 if(options.hasOwnProperty(prop)){
-                    var icon = $('<i>', {
+                    let icon = $('<i>', {
                         class: options[prop].iconClass.concat( ['pull-right', options[prop].class] ).join(' ')
                     }).attr('title', options[prop].title).tooltip({
                         placement: 'bottom',
@@ -23340,7 +23552,7 @@ define('app/map/map',[
 
     'use strict';
 
-    var config = {
+    let config = {
         zIndexCounter: 110,
         newSystemOffset: {
           x: 130,
@@ -23394,13 +23606,13 @@ define('app/map/map',[
     };
 
     // active jsPlumb instances currently running
-    var activeInstances = {};
+    let activeInstances = {};
 
     // active connections per map (cache object)
-    var connectionCache = {};
+    let connectionCache = {};
 
     // jsPlumb config
-    var globalMapConfig =  {
+    let globalMapConfig =  {
         source: {
             filter: '.' + config.systemHeadNameClass,
             //isSource:true,
@@ -23440,19 +23652,19 @@ define('app/map/map',[
      */
     $.fn.updateSystemUserData = function(map, data, currentUserIsHere){
 
-        var system = $(this);
-        var systemId = system.attr('id');
+        let system = $(this);
+        let systemId = system.attr('id');
 
         // find system body
-        var systemBody = $( system.find('.' + config.systemBodyClass) );
+        let systemBody = $( system.find('.' + config.systemBodyClass) );
 
         // find expand arrow
-        var systemHeadExpand = $( system.find('.' + config.systemHeadExpandClass) );
+        let systemHeadExpand = $( system.find('.' + config.systemHeadExpandClass) );
 
-        var oldCacheKey = system.data('userCache');
-        var oldUserCount = system.data('userCount');
+        let oldCacheKey = system.data('userCache');
+        let oldUserCount = system.data('userCount');
         oldUserCount = (oldUserCount !== undefined ? oldUserCount : 0);
-        var userCounter = 0;
+        let userCounter = 0;
 
         system.data('currentUser', false);
 
@@ -23466,14 +23678,14 @@ define('app/map/map',[
             data &&
             data.user
         ){
-            var cacheArray = [];
+            let cacheArray = [];
             // loop all active pilots and build cache-key
-            for(var i = 0; i < data.user.length; i++){
+            for(let i = 0; i < data.user.length; i++){
                 userCounter++;
-                var tempUserData = data.user[i];
+                let tempUserData = data.user[i];
                 cacheArray.push(tempUserData.id + '_' + tempUserData.log.ship.id);
             }
-            var cacheKey = cacheArray.join('_');
+            let cacheKey = cacheArray.join('_');
 
             // check for if cacheKey has changed
             if(cacheKey !== oldCacheKey){
@@ -23486,12 +23698,12 @@ define('app/map/map',[
 
                 // loop "again" and build DOM object with user information
                 for(let j = 0; j < data.user.length; j++){
-                    var userData = data.user[j];
+                    let userData = data.user[j];
 
-                    var statusClass = Util.getStatusInfoForCharacter(userData, 'class');
-                    var userName = userData.name;
+                    let statusClass = Util.getStatusInfoForCharacter(userData, 'class');
+                    let userName = userData.name;
 
-                    var item = $('<div>', {
+                    let item = $('<div>', {
                         class: config.systemBodyItemClass
                     }).append(
                             $('<span>', {
@@ -23516,11 +23728,11 @@ define('app/map/map',[
                 // =================================================================
 
                 // user count changed -> change tooltip content
-                var tooltipOptions = {placement: 'top', trigger: 'manual'};
+                let tooltipOptions = {placement: 'top', trigger: 'manual'};
 
                 // set tooltip color
-                var highlight = false;
-                var tooltipIconClass = '';
+                let highlight = false;
+                let tooltipIconClass = '';
                 if(userCounter > oldUserCount){
                     highlight = 'good';
                     tooltipIconClass = 'fa-caret-up';
@@ -23585,10 +23797,10 @@ define('app/map/map',[
      * @param callback
      */
     $.fn.toggleBody = function(type, map, callback){
-        var system = $(this);
-        var systemBody = system.find('.' + config.systemBodyClass);
+        let system = $(this);
+        let systemBody = system.find('.' + config.systemBodyClass);
 
-        var systemDomId = system.attr('id');
+        let systemDomId = system.attr('id');
 
         if(type === true){
             // show minimal body
@@ -23640,15 +23852,15 @@ define('app/map/map',[
     $.fn.toggleSystemTooltip = function(show, options){
 
         // tooltip colors
-        var colorClasses = {
+        let colorClasses = {
             good: 'txt-color-green',
             bad: 'txt-color-red'
         };
 
         return this.each(function(){
-            var system = $(this);
-            var tooltipId = 0;
-            var tooltipClassHighlight = false;
+            let system = $(this);
+            let tooltipId = 0;
+            let tooltipClassHighlight = false;
 
             // do not update tooltips while a system is dragged
             if(system.hasClass('jsPlumb_dragged')){
@@ -23666,7 +23878,7 @@ define('app/map/map',[
             }else if(show === 'show'){
 
                 // check if tooltip is currently visible
-                var tooltipActive = (system.attr('aria-describedby') !== undefined);
+                let tooltipActive = (system.attr('aria-describedby') !== undefined);
 
                 if(options === undefined){
                     options = {};
@@ -23685,7 +23897,7 @@ define('app/map/map',[
                     // init new tooltip
                     tooltipId = config.systemTooltipInnerIdPrefix + options.id;
 
-                    var template = '<div class="tooltip" role="tooltip">' +
+                    let template = '<div class="tooltip" role="tooltip">' +
                         '<div class="tooltip-arrow"></div>' +
                         '<div id="' + tooltipId + '" class="tooltip-inner txt-color ' + config.systemTooltipInnerClass + '"></div>' +
                         '</div>';
@@ -23713,7 +23925,7 @@ define('app/map/map',[
                 }else{
                     // update/change/toggle tooltip text or color without tooltip reload
 
-                    var tooltipInner = false;
+                    let tooltipInner = false;
                     if(
                         options.title ||
                         tooltipClassHighlight !== false
@@ -23748,12 +23960,12 @@ define('app/map/map',[
      * @param status
      */
     $.fn.setSystemStatus = function(status){
-        var system = $(this);
+        let system = $(this);
 
-        var statusId = Util.getStatusInfoForSystem(status, 'id');
-        var statusClass = Util.getStatusInfoForSystem(status, 'class');
+        let statusId = Util.getStatusInfoForSystem(status, 'id');
+        let statusClass = Util.getStatusInfoForSystem(status, 'class');
 
-        for(var property in Init.systemStatus) {
+        for(let property in Init.systemStatus) {
             if (Init.systemStatus.hasOwnProperty(property)) {
                 system.removeClass( Init.systemStatus[property].class );
             }
@@ -23771,22 +23983,25 @@ define('app/map/map',[
      * @returns {HTMLElement}
      */
     $.fn.getSystem = function(map, data){
-
         // get map container for mapId information
-        var mapContainer = $(this);
-
-        var systemId = config.systemIdPrefix + mapContainer.data('id') + '-' + data.id;
+        let mapContainer = $(this);
+        let systemId = config.systemIdPrefix + mapContainer.data('id') + '-' + data.id;
 
         // check if system already exists
-        var system = document.getElementById( systemId );
+        let system = document.getElementById( systemId );
 
-        var newPosX =  data.position.x + 'px';
-        var newPosY = data.position.y + 'px';
+        // just update data if system is new OR "updated" timestamp  vary
+        let updateSystemData = false;
+
+        let updated = parseInt(data.updated.updated);
+        let newPosX =  data.position.x + 'px';
+        let newPosY = data.position.y + 'px';
 
         if(!system){
+            updateSystemData = true;
 
             // set system name or alias
-            var systemName = data.name;
+            let systemName = data.name;
 
             if(
                 data.alias &&
@@ -23796,10 +24011,10 @@ define('app/map/map',[
             }
 
             // get system info classes
-            var effectBasicClass = MapUtil.getEffectInfoForSystem('effect', 'class');
-            var effectName = MapUtil.getEffectInfoForSystem(data.effect, 'name');
-            var effectClass = MapUtil.getEffectInfoForSystem(data.effect, 'class');
-            var secClass = Util.getSecurityClassForSystem(data.security);
+            let effectBasicClass = MapUtil.getEffectInfoForSystem('effect', 'class');
+            let effectName = MapUtil.getEffectInfoForSystem(data.effect, 'name');
+            let effectClass = MapUtil.getEffectInfoForSystem(data.effect, 'class');
+            let secClass = Util.getSecurityClassForSystem(data.security);
 
             system = $('<div>', {
                 // system
@@ -23852,562 +24067,211 @@ define('app/map/map',[
         }else{
             system = $(system);
 
-            // set system position
-            var currentPosX = system.css('left');
-            var currentPosY = system.css('top');
+            if( system.data('updated') !== updated){
+                // system Data has changed
+                updateSystemData = true;
 
-            if(
-                newPosX !== currentPosX ||
-                newPosY !== currentPosY
-            ){
-                // change position with animation
-                system.velocity(
-                    {
-                        left: newPosX,
-                        top: newPosY
-                    },{
-                        easing: 'linear',
-                        duration: Init.animationSpeed.mapMoveSystem,
-                        begin: function(system){
-                            // hide system tooltip
-                            $(system).toggleSystemTooltip('hide', {});
+                // set system position
+                let currentPosX = system.css('left');
+                let currentPosY = system.css('top');
 
-                            // move them to the "top"
-                            $(system).updateSystemZIndex();
-                        },
-                        progress: function(){
-                            map.revalidate( systemId );
-                        },
-                        complete: function(system){
-                            // show tooltip
-                            $(system).toggleSystemTooltip('show', {show: true});
+                if(
+                    newPosX !== currentPosX ||
+                    newPosY !== currentPosY
+                ){
+                    // change position with animation
+                    system.velocity(
+                        {
+                            left: newPosX,
+                            top: newPosY
+                        },{
+                            easing: 'linear',
+                            duration: Init.animationSpeed.mapMoveSystem,
+                            begin: function(system){
+                                // hide system tooltip
+                                $(system).toggleSystemTooltip('hide', {});
 
-                            map.revalidate( systemId );
+                                // move them to the "top"
+                                $(system).updateSystemZIndex();
+                            },
+                            progress: function(){
+                                map.revalidate( systemId );
+                            },
+                            complete: function(system){
+                                // show tooltip
+                                $(system).toggleSystemTooltip('show', {show: true});
+
+                                map.revalidate( systemId );
+                            }
                         }
-                    }
-                );
-            }
+                    );
+                }
 
-            // set system alias
-            var alias = system.getSystemInfo(['alias']);
+                // set system alias
+                let alias = system.getSystemInfo(['alias']);
 
-            if(alias !== data.alias){
-                // alias changed
-                system.find('.' + config.systemHeadNameClass).editable('setValue', data.alias);
+                if(alias !== data.alias){
+                    // alias changed
+                    system.find('.' + config.systemHeadNameClass).editable('setValue', data.alias);
+                }
             }
         }
 
-        // set system status
-        system.setSystemStatus(data.status.name);
-        system.data('id', parseInt(data.id));
-        system.data('systemId', parseInt(data.systemId));
-        system.data('name', data.name);
-        system.data('typeId', parseInt(data.type.id));
-        system.data('effect', data.effect);
-        system.data('security', data.security);
-        system.data('trueSec', parseFloat(data.trueSec));
-        system.data('regionId', parseInt(data.region.id));
-        system.data('region', data.region.name);
-        system.data('constellationId', parseInt(data.constellation.id));
-        system.data('constellation', data.constellation.name);
-        system.data('statics', data.statics);
-        system.data('updated', parseInt(data.updated.updated));
-        system.attr('data-mapid', parseInt(mapContainer.data('id')));
+        if(updateSystemData){
+            // set system status
+            system.setSystemStatus(data.status.name);
+            system.data('id', parseInt(data.id));
+            system.data('systemId', parseInt(data.systemId));
+            system.data('name', data.name);
+            system.data('typeId', parseInt(data.type.id));
+            system.data('effect', data.effect);
+            system.data('security', data.security);
+            system.data('trueSec', parseFloat(data.trueSec));
+            system.data('regionId', parseInt(data.region.id));
+            system.data('region', data.region.name);
+            system.data('constellationId', parseInt(data.constellation.id));
+            system.data('constellation', data.constellation.name);
+            system.data('statics', data.statics);
+            system.data('updated', parseInt(data.updated.updated));
+            system.attr('data-mapid', parseInt(mapContainer.data('id')));
 
-        // locked system
-        if( Boolean( system.data( 'locked') ) !== data.locked ){
-            system.toggleLockSystem(false, {hideNotification: true, hideCounter: true, map: map});
+            // locked system
+            if( Boolean( system.data( 'locked') ) !== data.locked ){
+                system.toggleLockSystem(false, {hideNotification: true, hideCounter: true, map: map});
+            }
+
+            // rally system
+            system.setSystemRally(data.rallyUpdated,  {
+                poke: data.rallyPoke || false,
+                hideNotification: true,
+                hideCounter: true,
+            });
         }
-
-        // rally system
-        system.setSystemRally(data.rallyUpdated,  {
-            poke: data.rallyPoke || false,
-            hideNotification: true,
-            hideCounter: true,
-        });
 
         return system;
     };
 
     /**
-     * draw a new map or update an existing map with all its systems and connections
-     * @param parentElement
-     * @param mapConfig
-     * @returns {*}
-     */
-    var updateMap = function(parentElement, mapConfig){
-
-        var mapContainer = mapConfig.map.getContainer();
-
-        var newSystems = 0;
-
-        if(mapContainer === undefined){
-            // add new map
-
-            // create map wrapper
-            var mapWrapper = $('<div>', {
-                class: config.mapWrapperClass
-            });
-
-            // create new map container
-            mapContainer = $('<div>', {
-                id: config.mapIdPrefix + mapConfig.config.id,
-                class: [config.mapClass].join(' ')
-            });
-
-            // add additional information
-            mapContainer.data('id', mapConfig.config.id);
-
-            mapWrapper.append(mapContainer);
-
-            // append mapWrapper to parent element (at the top)
-            $(parentElement).prepend(mapWrapper);
-
-            // set main Container for current map -> the container exists now in DOM !! very important
-            mapConfig.map.setContainer( config.mapIdPrefix + mapConfig.config.id );
-
-            // set map observer
-            setMapObserver(mapConfig.map);
-        }
-
-        mapContainer = $(mapContainer);
-
-        // add additional information for this map
-        if(mapContainer.data('updated') !== mapConfig.config.updated){
-            mapContainer.data('name', mapConfig.config.name);
-            mapContainer.data('scopeId', mapConfig.config.scope.id);
-            mapContainer.data('typeId', mapConfig.config.type.id);
-            mapContainer.data('icon', mapConfig.config.icon);
-            mapContainer.data('created', mapConfig.config.created);
-            mapContainer.data('updated', mapConfig.config.updated);
-        }
-
-
-        // get map data
-        var mapData = mapContainer.getMapDataFromClient({forceData: false});
-
-        if(mapData !== false){
-            // map data available -> map not locked by update counter :)
-
-            var currentSystemData = mapData.data.systems;
-            var currentConnectionData = mapData.data.connections;
-
-            // update systems ===========================================================
-            for(var i = 0; i < mapConfig.data.systems.length; i++){
-                var systemData = mapConfig.data.systems[i];
-
-                // add system
-                var addNewSystem = true;
-
-                for(var k = 0; k < currentSystemData.length; k++){
-                    if(currentSystemData[k].id === systemData.id){
-                        if( currentSystemData[k].updated.updated < systemData.updated.updated ){
-                            // system changed -> update
-                            mapContainer.getSystem(mapConfig.map, systemData);
-                        }
-
-                        addNewSystem = false;
-                        break;
-                    }
-                }
-
-                if( addNewSystem === true){
-                    drawSystem(mapConfig.map, systemData);
-                    newSystems++;
-                }
-            }
-
-            // check for systems that are gone -> delete system
-            for(var a = 0; a < currentSystemData.length; a++){
-
-                var deleteThisSystem = true;
-
-                for(var b = 0; b < mapConfig.data.systems.length; b++){
-                    var deleteSystemData = mapConfig.data.systems[b];
-
-                    if(deleteSystemData.id === currentSystemData[a].id){
-                        deleteThisSystem = false;
-                        break;
-                    }
-                }
-
-                if(deleteThisSystem === true){
-                    var deleteSystem = $('#' + config.systemIdPrefix + mapContainer.data('id') + '-' + currentSystemData[a].id);
-
-                    // system not found -> delete system
-                    System.removeSystems(mapConfig.map, deleteSystem);
-                }
-            }
-
-            // update connections =========================================================
-
-            // jsPlumb batch() is used, otherwise there are some "strange" visual bugs
-            // when switching maps (Endpoints are not displayed correctly)
-            mapConfig.map.batch(function() {
-
-                for(var j = 0; j < mapConfig.data.connections.length; j++){
-                    var connectionData = mapConfig.data.connections[j];
-
-                    // add connection
-                    var addNewConnection= true;
-
-                    for(var c = 0; c < currentConnectionData.length; c++){
-                        if(
-                            currentConnectionData[c].id === connectionData.id
-                        ){
-                            // connection already exists -> check for updates
-                            if(
-                                currentConnectionData[c].updated < connectionData.updated
-                            ){
-                                // connection changed -> update
-                                var tempConnection = $().getConnectionById(mapData.config.id, connectionData.id);
-                                updateConnection(tempConnection, currentConnectionData[c], connectionData);
-                            }
-
-                            addNewConnection = false;
-                            break;
-                        }
-                    }
-
-                    if(addNewConnection === true){
-                        drawConnection(mapConfig.map, connectionData);
-                    }
-                }
-
-                // check for connections that are gone -> delete connection
-                for(var d = 0; d < currentConnectionData.length; d++){
-
-                    var deleteThisConnection = true;
-
-                    for(var e = 0; e < mapConfig.data.connections.length;e++){
-                        var deleteConnectionData = mapConfig.data.connections[e];
-
-                        if(deleteConnectionData.id === currentConnectionData[d].id){
-                            deleteThisConnection = false;
-                            break;
-                        }
-                    }
-
-                    if(deleteThisConnection === true){
-                        // get connection from cache -> delete connection
-                        var deleteConnection = $().getConnectionById(mapData.config.id, currentConnectionData[d].id);
-
-                        if(deleteConnection){
-                            // check if "source" and "target" still exist before remove
-                            // this is NOT the case if the system was removed previous
-                            if(
-                                deleteConnection.source &&
-                                deleteConnection.target
-                            ){
-                                mapConfig.map.detach(deleteConnection, {fireEvent: false});
-                            }
-                        }
-                    }
-                }
-
-            });
-
-            // update map "magnetization" when new systems where added
-            if(newSystems > 0){
-                MagnetizerWrapper.setElements(mapConfig.map);
-            }
-        }
-
-        return mapContainer;
-    };
-
-    /**
-     * update local connection cache
-     * @param mapId
+     * set observer for a given connection
+     * @param map
      * @param connection
      */
-    var updateConnectionCache = function(mapId, connection){
+    let setConnectionObserver = function(map, connection){
 
-        if(
-            mapId > 0 &&
-            connection
-        ){
-            var connectionId = parseInt( connection.getParameter('connectionId') );
+        // get map container
+        let mapElement = $( map.getContainer() );
 
-            if(connectionId > 0){
-                connectionCache[mapId][connectionId] = connection;
-            }else{
-                console.warn('updateConnectionCache', 'connectionId missing');
-            }
-        }else{
-            console.warn('updateConnectionCache', 'missing data');
-        }
-    };
+        // if the connection already exists -> do not set it twice
+        connection.unbind('contextmenu').bind('contextmenu', function(component, e) {
+            e.preventDefault();
+            e.stopPropagation();
 
-    /**
-     * get a connection object from "cache" (this requires the "connectionCache" cache to be actual!
-     * @param mapId
-     * @param connectionId
-     * @returns {*}
-     */
-    $.fn.getConnectionById = function(mapId, connectionId){
+            // trigger menu "open
 
-        var connection = null;
+            // get invisible menu entries
+            let hideOptions = getHiddenContextMenuOptions(component);
+            let activeOptions = getActiveContextMenuOptions(component);
+            $(e.target).trigger('pf:openContextMenu', [e, component, hideOptions, activeOptions]);
 
-        if(
-            connectionCache[mapId] &&
-            connectionCache[mapId][connectionId]
-        ){
-            connection = connectionCache[mapId][connectionId];
-        }
-
-        return connection;
-    };
-
-    /**
-     * make all systems appear visual on the map with its connections
-     * @param show
-     * @param callback
-     */
-    $.fn.visualizeMap = function(show, callback){
-        var mapElement = $(this);
-
-        // start map update counter -> prevent map updates during animations
-        mapElement.getMapOverlay('timer').startMapUpdateCounter();
-
-        var systemElements = mapElement.find('.' + config.systemClass);
-        var endpointElements =  mapElement.find('.jsplumb-endpoint');
-        var connectorElements = mapElement.find('.jsplumb-connector');
-        var overlayElements = mapElement.find('.jsplumb-overlay, .tooltip');
-
-        // if map empty (no systems), execute callback and return
-        // no visual effects on larger maps
-        if(
-            systemElements.length === 0 ||
-            systemElements.length > 20 ||
-            endpointElements.length === 0
-        ){
-            callback();
-            return;
-        }
-
-        // show nice animation
-        if(show === 'show'){
-            // hide elements
-            systemElements.css('opacity', 0);
-            endpointElements.css('opacity', 0);
-            connectorElements.css('opacity', 0);
-            overlayElements.css('opacity', 0);
-
-            systemElements.velocity('transition.whirlIn', {
-                stagger: 30,
-                drag: true,
-                duration: 100,
-                //display: 'auto',
-                complete: function(){
-                    // show connections
-                    endpointElements.velocity('transition.fadeIn', {
-                        duration: 0
-                    });
-
-                    connectorElements.velocity('transition.fadeIn', {
-                        stagger: 30,
-                        duration: 120,
-                        complete: function(){
-                            callback();
-                        }
-                    });
-
-                    // show overlay elements (if some exist)
-                    if(overlayElements.length > 0){
-                        overlayElements.delay(500).velocity('transition.fadeIn', {
-                            stagger: 50,
-                            duration: 180,
-                            display: 'auto'
-                        });
-                    }
-                }
-            });
-        }else if(show === 'hide'){
-
-            $('.mCSB_container').velocity('callout.shake', {
-                stagger: 0,
-                drag: false,
-                duration: 180,
-                display: 'auto'
-            });
-
-            overlayElements.velocity('transition.fadeOut', {
-                stagger: 50,
-                drag: true,
-                duration: 180,
-                display: 'auto'
-            });
-
-            endpointElements.velocity('transition.fadeOut', {
-                duration: 0,
-                display: 'block',
-                complete: function(){
-                    // show connections
-                    connectorElements.velocity('transition.fadeOut', {
-                        stagger: 0,
-                        drag: true,
-                        duration: 20,
-                        display: 'block'
-                    });
-
-                    systemElements.delay(100).velocity('transition.slideUpOut', {
-                        stagger: 30,
-                        drag: true,
-                        duration: 180,
-                        display: 'block',
-                        complete: function(){
-                            callback();
-                        }
-                    });
-                }
-            });
-        }
-    };
-
-    /**
-     * mark a system as source
-     * @param map
-     * @param system
-     */
-    var makeSource = function(map, system){
-
-        // get scope from map defaults
-        var sourceConfig = globalMapConfig.source;
-        sourceConfig.scope = map.Defaults.Scope;    // set all allowed connections for this scopes
-
-        // default connector for initial dragging a new connection
-        sourceConfig.connector = MapUtil.getScopeInfoForConnection('wh', 'connectorDefinition');
-
-        map.makeSource(system, sourceConfig);
-    };
-
-    /**
-     * mark a system as target
-     * @param map
-     * @param system
-     */
-    var makeTarget = function(map, system){
-
-        // get scope from map defaults
-        var targetConfig = globalMapConfig.target;
-        targetConfig.scope = map.Defaults.Scope;    // set all allowed connections for this scopes
-
-        map.makeTarget(system, targetConfig);
-    };
-
-    /**
-     * checks if json system data is valid
-     * @param systemData
-     * @returns {boolean}
-     */
-    var isValidSystem = function(systemData){
-
-        var isValid = true;
-
-        if(
-            ! systemData.hasOwnProperty('name') ||
-            systemData.name.length === 0
-        ){
             return false;
-        }
+        });
 
-        return isValid;
-    };
+        /**
+         *  init context menu for all connections
+         *  must be triggered manually on demand
+         */
+        $(connection.canvas).contextMenu({
+            menuSelector: '#' + config.connectionContextMenuId,
+            menuSelected: function (params){
 
-    /**
-     * draw a system with its data to a map
-     * @param map
-     * @param systemData
-     * @param connectedSystem
-     */
-    var drawSystem = function(map, systemData, connectedSystem){
+                let action = params.selectedMenu.attr('data-action');
+                let activeConnection = params.component;
+                let activeScope = activeConnection.scope;
+                let activeScopeName = MapUtil.getScopeInfoForConnection( activeScope, 'label');
 
-        // check if systemData is valid
-        if(isValidSystem(systemData)){
-            var mapContainer = $(map.getContainer());
+                switch(action){
+                    case 'delete_connection':
+                        // delete a single connection
 
-            // get System Element by data
-            var newSystem = mapContainer.getSystem(map, systemData);
+                        // confirm dialog
+                        bootbox.confirm('Is this connection really gone?', function(result) {
+                            if(result){
+                                $().deleteConnections([activeConnection]);
+                            }
+                        });
+                        break;
+                    case 'frigate':         // set as frigate hole
+                    case 'preserve_mass':   // set "preserve mass
+                    case 'wh_eol':          // set "end of life"
+                        mapElement.getMapOverlay('timer').startMapUpdateCounter();
 
-            // add new system to map
-            mapContainer.append(newSystem);
+                        activeConnection.toggleType( action );
 
-            // make new system editable
-            makeEditable(newSystem);
+                        $(activeConnection).markAsChanged();
+                        break;
+                    case 'status_fresh':
+                    case 'status_reduced':
+                    case 'status_critical':
+                        let newStatus = action.split('_')[1];
+                        mapElement.getMapOverlay('timer').startMapUpdateCounter();
 
-            // make target
-            makeTarget(map, newSystem);
+                        MapUtil.setConnectionWHStatus(activeConnection, 'wh_' + newStatus);
+                        $(activeConnection).markAsChanged();
+                        break;
+                    case 'scope_wh':
+                    case 'scope_stargate':
+                    case 'scope_jumpbridge':
+                        let newScope = action.split('_')[1];
+                        let newScopeName =  MapUtil.getScopeInfoForConnection( newScope, 'label');
 
-            // make source
-            makeSource(map, newSystem);
+                        bootbox.confirm('Change scope from ' + activeScopeName + ' to ' + newScopeName + '?', function(result) {
+                            if(result){
 
-            // set system observer
-            setSystemObserver(map, newSystem);
+                                mapElement.getMapOverlay('timer').startMapUpdateCounter();
 
-            // connect new system (if connection data is given)
-            if(connectedSystem){
+                                setConnectionScope(activeConnection, newScope);
 
-                // hint: "type" will be auto detected by jump distance
-                var connectionData = {
-                    source: $(connectedSystem).data('id'),
-                    target: newSystem.data('id'),
-                    type: ['wh_fresh'] // default type.
-                };
-                var connection = drawConnection(map, connectionData);
+                                Util.showNotify({title: 'Connection scope changed', text: 'New scope: ' + newScopeName, type: 'success'});
 
-                // store connection
-                saveConnection(connection);
+                                $(activeConnection).markAsChanged();
+                            }
+                        });
+                        break;
+                }
+
             }
+        });
+
+    };
+
+    /**
+     * set/change connection scope
+     * @param connection
+     * @param scope
+     */
+    let setConnectionScope = function(connection, scope){
+        let map = connection._jsPlumb.instance;
+        let currentConnector = connection.getConnector();
+        let newConnector = MapUtil.getScopeInfoForConnection(scope, 'connectorDefinition');
+
+        if(currentConnector.type !== newConnector[0]){
+            // connector has changed
+
+            connection.setConnector( newConnector );
+
+            // remove all connection types
+            connection.clearTypes();
+
+            // set new new connection type
+            // if scope changed -> connection type == scope
+            connection.setType( MapUtil.getDefaultConnectionTypeByScope(scope) );
+
+            // change scope
+            connection.scope = scope;
+
+            // new observer is required after scope change
+            setConnectionObserver(map, connection);
         }
-    };
-
-    /**
-     * make a system name/alias editable by x-editable
-     * @param system
-     */
-    var makeEditable = function(system){
-        system = $(system);
-        var headElement = $(system).find('.' + config.systemHeadNameClass);
-
-        headElement.editable({
-            mode: 'popup',
-            type: 'text',
-            name: 'alias',
-            emptytext: system.data('name'),
-            title: 'System alias',
-            placement: 'top',
-            onblur: 'submit',
-            container: 'body',
-            toggle: 'manual',       // is triggered manually on dblClick
-            showbuttons: false
-        });
-
-        headElement.on('save', function(e, params) {
-            // system alias changed -> mark system as updated
-            system.markAsChanged();
-        });
-
-        headElement.on('shown', function(e, editable) {
-            var inputElement =  editable.input.$input.select();
-
-            // "fake" timeout until dom rendered
-            setTimeout(function(input){
-                // pre-select value
-                input.select();
-            }, 0, inputElement);
-        });
-    };
-
-    /**
-     * update z-index for a system (dragged systems should be always on top)
-     */
-    $.fn.updateSystemZIndex = function(){
-        return this.each(function(){
-            // increase global counter
-            var newZIndexSystem = config.zIndexCounter++;
-            $(this).css('z-index', newZIndexSystem);
-        });
     };
 
     /**
@@ -24416,13 +24280,13 @@ define('app/map/map',[
      * @param connectionData
      * @returns new connection
      */
-    var drawConnection = function(map, connectionData){
-        var mapContainer = $( map.getContainer() );
-        var mapId = mapContainer.data('id');
-        var connectionId = connectionData.id || 0;
-        var connection;
-        var sourceSystem = $('#' + config.systemIdPrefix + mapId + '-' + connectionData.source);
-        var targetSystem = $('#' + config.systemIdPrefix + mapId + '-' + connectionData.target);
+    let drawConnection = function(map, connectionData){
+        let mapContainer = $( map.getContainer() );
+        let mapId = mapContainer.data('id');
+        let connectionId = connectionData.id || 0;
+        let connection;
+        let sourceSystem = $('#' + config.systemIdPrefix + mapId + '-' + connectionData.source);
+        let targetSystem = $('#' + config.systemIdPrefix + mapId + '-' + connectionData.target);
 
         // check if both systems exists
         // (If not -> something went wrong e.g. DB-Foreign keys for "ON DELETE",...)
@@ -24462,14 +24326,14 @@ define('app/map/map',[
 
                 // add connection types -------------------------------------------------------------------------
                 if(connectionData.type){
-                    for(var i = 0; i < connectionData.type.length; i++){
+                    for(let i = 0; i < connectionData.type.length; i++){
                         connection.addType(connectionData.type[i]);
                     }
                 }
 
                 // add connection scope -------------------------------------------------------------------------
                 // connection have the default map Scope scope
-                var scope = map.Defaults.Scope;
+                let scope = map.Defaults.Scope;
                 if(connectionData.scope){
                     scope = connectionData.scope;
                 }
@@ -24490,148 +24354,17 @@ define('app/map/map',[
     };
 
     /**
-     * stores a connection in database
-     * @param connection
-     */
-    var saveConnection = function(connection){
-
-        if( connection instanceof jsPlumb.Connection ){
-
-            var map = connection._jsPlumb.instance;
-            var mapContainer = $( map.getContainer() );
-            mapContainer.getMapOverlay('timer').startMapUpdateCounter();
-
-            var mapId = mapContainer.data('id');
-            var connectionData = getDataByConnection(connection);
-
-            var requestData = {
-                mapData: {
-                    id: mapId
-                },
-                connectionData: connectionData
-            };
-
-            $.ajax({
-                type: 'POST',
-                url: Init.path.saveConnection,
-                data: requestData,
-                dataType: 'json',
-                //context: connection
-                context: {
-                    connection: connection,
-                    map: map,
-                    mapId: mapId
-                }
-            }).done(function(newConnectionData){
-
-                if( !$.isEmptyObject(newConnectionData) ){
-                    // update connection data e.g. "scope" has auto detected
-                    connection = updateConnection(this.connection, connectionData, newConnectionData);
-
-                    // new connection should be cached immediately!
-                    updateConnectionCache(this.mapId, connection);
-
-                    // connection scope
-                    var scope = MapUtil.getScopeInfoForConnection(newConnectionData.scope, 'label');
-
-                    var title = 'New connection established';
-                    if(connectionData.id > 0){
-                        title = 'Connection switched';
-                    }
-
-                    Util.showNotify({title: title, text: 'Scope: ' + scope, type: 'success'});
-                }else{
-                    // some save errors
-                    this.map.detach(this.connection, {fireEvent: false});
-                }
-
-            }).fail(function( jqXHR, status, error) {
-                // remove this connection from map
-                this.map.detach(this.connection, {fireEvent: false});
-
-                var reason = status + ' ' + error;
-                Util.showNotify({title: jqXHR.status + ': saveConnection', text: reason, type: 'warning'});
-                $(document).setProgramStatus('problem');
-            });
-        }
-    };
-
-    /**
-     * delete a connection and all related data
-     * @param connections
-     * @param callback
-     */
-    $.fn.deleteConnections = function(connections, callback){
-        if(connections.length > 0){
-
-            // remove connections from map
-            var removeConnections = function(tempConnections){
-                for(var i = 0; i < tempConnections.length; i++){
-                    // if a connection is manually (drag&drop) detached, the jsPlumb instance does not exist any more
-                    // connection is already deleted!
-                    if(tempConnections[i]._jsPlumb){
-                        tempConnections[i]._jsPlumb.instance.detach(tempConnections[i], {fireEvent: false});
-                    }
-                }
-            };
-
-            // prepare delete request
-            var map = connections[0]._jsPlumb.instance;
-            var mapContainer = $( map.getContainer() );
-            mapContainer.getMapOverlay('timer').startMapUpdateCounter();
-
-            var connectionIds = [];
-            // connectionIds for delete request
-            for(var i = 0; i < connections.length; i++){
-                var connectionId = connections[i].getParameter('connectionId');
-                // drag&drop a new connection does not have an id yet, if connection is not established correct
-                if(connectionId !== undefined){
-                    connectionIds[i] = connections[i].getParameter('connectionId');
-                }
-            }
-
-            if(connectionIds.length > 0){
-                var requestData = {
-                    connectionIds: connectionIds
-                };
-
-                $.ajax({
-                    type: 'POST',
-                    url: Init.path.deleteConnection,
-                    data: requestData,
-                    dataType: 'json',
-                    context: connections
-                }).done(function(data){
-
-                    // remove connections from map
-                    removeConnections(this);
-
-                    // optional callback
-                    if(callback){
-                        callback();
-                    }
-
-                }).fail(function( jqXHR, status, error) {
-                    var reason = status + ' ' + error;
-                    Util.showNotify({title: jqXHR.status + ': deleteSystem', text: reason, type: 'warning'});
-                    $(document).setProgramStatus('problem');
-                });
-            }
-        }
-    };
-
-    /**
      * compares the current data and new data of a connection and updates status
      * @param connection
      * @param connectionData
      * @param newConnectionData
      * @returns {*}
      */
-    var updateConnection = function(connection, connectionData, newConnectionData){
+    let updateConnection = function(connection, connectionData, newConnectionData){
 
-        var map = connection._jsPlumb.instance;
-        var mapContainer = $( map.getContainer() );
-        var mapId = mapContainer.data('id');
+        let map = connection._jsPlumb.instance;
+        let mapContainer = $( map.getContainer() );
+        let mapId = mapContainer.data('id');
 
         // check id, IDs should never change but must be set after initial save
         if(connection.getParameter('connectionId') !== newConnectionData.id){
@@ -24645,8 +24378,8 @@ define('app/map/map',[
             setConnectionObserver(map, connection);
         }
 
-        var addType = newConnectionData.type.diff( connectionData.type );
-        var removeType = connectionData.type.diff( newConnectionData.type );
+        let addType = newConnectionData.type.diff( connectionData.type );
+        let removeType = connectionData.type.diff( newConnectionData.type );
 
         // check if source or target has changed
         if(connectionData.source !== newConnectionData.source ){
@@ -24658,7 +24391,7 @@ define('app/map/map',[
 
         // connection.targetId
         // add types
-        for(var i = 0; i < addType.length; i++){
+        for(let i = 0; i < addType.length; i++){
             if(
                 addType[i].indexOf('fresh') !== -1 ||
                 addType[i].indexOf('reduced') !== -1 ||
@@ -24673,7 +24406,7 @@ define('app/map/map',[
         }
 
         // remove types
-        for(var j = 0; j < removeType.length; j++){
+        for(let j = 0; j < removeType.length; j++){
             if(
                 removeType[j] === 'wh_eol' ||
                 removeType[j] === 'frigate' ||
@@ -24694,46 +24427,725 @@ define('app/map/map',[
     };
 
     /**
-     * set/change connection scope
-     * @param connection
-     * @param scope
+     * draw a new map or update an existing map with all its systems and connections
+     * @param parentElement
+     * @param mapConfig
+     * @returns {*}
      */
-    var setConnectionScope = function(connection, scope){
-        var map = connection._jsPlumb.instance;
-        var currentConnector = connection.getConnector();
-        var newConnector = MapUtil.getScopeInfoForConnection(scope, 'connectorDefinition');
+    let updateMap = function(parentElement, mapConfig){
 
-        if(currentConnector.type !== newConnector[0]){
-            // connector has changed
+        let mapContainer = mapConfig.map.getContainer();
 
-            connection.setConnector( newConnector );
+        let newSystems = 0;
 
-            // remove all connection types
-            connection.clearTypes();
+        if(mapContainer === undefined){
+            // add new map
 
-            // set new new connection type
-            // if scope changed -> connection type == scope
-            connection.setType( MapUtil.getDefaultConnectionTypeByScope(scope) );
+            // create map wrapper
+            let mapWrapper = $('<div>', {
+                class: config.mapWrapperClass
+            });
 
-            // change scope
-            connection.scope = scope;
+            // create new map container
+            mapContainer = $('<div>', {
+                id: config.mapIdPrefix + mapConfig.config.id,
+                class: [config.mapClass].join(' ')
+            });
 
-            // new observer is required after scope change
-            setConnectionObserver(map, connection);
+            // add additional information
+            mapContainer.data('id', mapConfig.config.id);
+
+            mapWrapper.append(mapContainer);
+
+            // append mapWrapper to parent element (at the top)
+            $(parentElement).prepend(mapWrapper);
+
+            // set main Container for current map -> the container exists now in DOM !! very important
+            mapConfig.map.setContainer( config.mapIdPrefix + mapConfig.config.id );
+
+            // set map observer
+            setMapObserver(mapConfig.map);
+        }
+
+        mapContainer = $(mapContainer);
+
+        // add additional information for this map
+        if(mapContainer.data('updated') !== mapConfig.config.updated){
+            mapContainer.data('name', mapConfig.config.name);
+            mapContainer.data('scopeId', mapConfig.config.scope.id);
+            mapContainer.data('typeId', mapConfig.config.type.id);
+            mapContainer.data('typeName', mapConfig.config.type.name);
+            mapContainer.data('icon', mapConfig.config.icon);
+            mapContainer.data('created', mapConfig.config.created);
+            mapContainer.data('updated', mapConfig.config.updated);
+        }
+
+
+        // get map data
+        let mapData = mapContainer.getMapDataFromClient({forceData: false});
+
+        if(mapData !== false){
+            // map data available -> map not locked by update counter :)
+
+            let currentSystemData = mapData.data.systems;
+            let currentConnectionData = mapData.data.connections;
+
+            // update systems ===========================================================
+            for(let i = 0; i < mapConfig.data.systems.length; i++){
+                let systemData = mapConfig.data.systems[i];
+
+                // add system
+                let addNewSystem = true;
+
+                for(let k = 0; k < currentSystemData.length; k++){
+                    if(currentSystemData[k].id === systemData.id){
+                        if( currentSystemData[k].updated.updated < systemData.updated.updated ){
+                            // system changed -> update
+                            mapContainer.getSystem(mapConfig.map, systemData);
+                        }
+
+                        addNewSystem = false;
+                        break;
+                    }
+                }
+
+                if( addNewSystem === true){
+                    drawSystem(mapConfig.map, systemData);
+                    newSystems++;
+                }
+            }
+
+            // check for systems that are gone -> delete system
+            for(let a = 0; a < currentSystemData.length; a++){
+
+                let deleteThisSystem = true;
+
+                for(let b = 0; b < mapConfig.data.systems.length; b++){
+                    let deleteSystemData = mapConfig.data.systems[b];
+
+                    if(deleteSystemData.id === currentSystemData[a].id){
+                        deleteThisSystem = false;
+                        break;
+                    }
+                }
+
+                if(deleteThisSystem === true){
+                    let deleteSystem = $('#' + config.systemIdPrefix + mapContainer.data('id') + '-' + currentSystemData[a].id);
+
+                    // system not found -> delete system
+                    System.removeSystems(mapConfig.map, deleteSystem);
+                }
+            }
+
+            // update connections =========================================================
+
+            // jsPlumb batch() is used, otherwise there are some "strange" visual bugs
+            // when switching maps (Endpoints are not displayed correctly)
+            mapConfig.map.batch(function() {
+
+                for(let j = 0; j < mapConfig.data.connections.length; j++){
+                    let connectionData = mapConfig.data.connections[j];
+
+                    // add connection
+                    let addNewConnection= true;
+
+                    for(let c = 0; c < currentConnectionData.length; c++){
+                        if(
+                            currentConnectionData[c].id === connectionData.id
+                        ){
+                            // connection already exists -> check for updates
+                            if(
+                                currentConnectionData[c].updated < connectionData.updated
+                            ){
+                                // connection changed -> update
+                                let tempConnection = $().getConnectionById(mapData.config.id, connectionData.id);
+                                updateConnection(tempConnection, currentConnectionData[c], connectionData);
+                            }
+
+                            addNewConnection = false;
+                            break;
+                        }
+                    }
+
+                    if(addNewConnection === true){
+                        drawConnection(mapConfig.map, connectionData);
+                    }
+                }
+
+                // check for connections that are gone -> delete connection
+                for(let d = 0; d < currentConnectionData.length; d++){
+
+                    let deleteThisConnection = true;
+
+                    for(let e = 0; e < mapConfig.data.connections.length;e++){
+                        let deleteConnectionData = mapConfig.data.connections[e];
+
+                        if(deleteConnectionData.id === currentConnectionData[d].id){
+                            deleteThisConnection = false;
+                            break;
+                        }
+                    }
+
+                    if(deleteThisConnection === true){
+                        // get connection from cache -> delete connection
+                        let deleteConnection = $().getConnectionById(mapData.config.id, currentConnectionData[d].id);
+
+                        if(deleteConnection){
+                            // check if "source" and "target" still exist before remove
+                            // this is NOT the case if the system was removed previous
+                            if(
+                                deleteConnection.source &&
+                                deleteConnection.target
+                            ){
+                                mapConfig.map.detach(deleteConnection, {fireEvent: false});
+                            }
+                        }
+                    }
+                }
+
+            });
+
+            // update local connection cache
+            updateConnectionsCache(mapConfig.map);
+
+            // update map "magnetization" when new systems where added
+            if(newSystems > 0){
+                MagnetizerWrapper.setElements(mapConfig.map);
+            }
+        }
+
+        return mapContainer;
+    };
+
+    /**
+     * update local connections cache (cache all connections from a map)
+     * @param map
+     */
+    let updateConnectionsCache = (map) => {
+        let connections = map.getAllConnections();
+        let mapContainer = $( map.getContainer() );
+        let mapId = mapContainer.data('id');
+
+        if(mapId > 0){
+            // clear cache
+            connectionCache[mapId] = [];
+
+            for(let i = 0; i < connections.length; i++){
+                updateConnectionCache(mapId, connections[i]);
+            }
+        }else{
+            console.warn('updateConnectionsCache', 'missing mapId');
+        }
+    };
+
+    /**
+     * update local connection cache (single connection)
+     * @param mapId
+     * @param connection
+     */
+    let updateConnectionCache = function(mapId, connection){
+
+        if(
+            mapId > 0 &&
+            connection
+        ){
+            let connectionId = parseInt( connection.getParameter('connectionId') );
+
+            if(connectionId > 0){
+                connectionCache[mapId][connectionId] = connection;
+            }
+        }else{
+            console.warn('updateConnectionCache', 'missing data');
+        }
+    };
+
+    /**
+     * get a connection object from "cache" (this requires the "connectionCache" cache to be actual!
+     * @param mapId
+     * @param connectionId
+     * @returns {*}
+     */
+    $.fn.getConnectionById = function(mapId, connectionId){
+
+        let connection = null;
+
+        if(
+            connectionCache[mapId] &&
+            connectionCache[mapId][connectionId]
+        ){
+            connection = connectionCache[mapId][connectionId];
+        }
+
+        return connection;
+    };
+
+    /**
+     * make all systems appear visual on the map with its connections
+     * @param show
+     * @param callback
+     */
+    $.fn.visualizeMap = function(show, callback){
+        let mapElement = $(this);
+
+        // start map update counter -> prevent map updates during animations
+        mapElement.getMapOverlay('timer').startMapUpdateCounter();
+
+        let systemElements = mapElement.find('.' + config.systemClass);
+        let endpointElements =  mapElement.find('.jsplumb-endpoint');
+        let connectorElements = mapElement.find('.jsplumb-connector');
+        let overlayElements = mapElement.find('.jsplumb-overlay, .tooltip');
+
+        let hideElements = (elements) => {
+            if(elements.length > 0){
+                // disable transition for next opacity change
+                elements.addClass('pf-notransition');
+                // hide elements
+                elements.css('opacity', 0);
+                // Trigger a reflow, flushing the CSS changes
+                // -> http://stackoverflow.com/questions/11131875/what-is-the-cleanest-way-to-disable-css-transition-effects-temporarily
+                elements[0].offsetHeight; // jshint ignore:line
+                elements.removeClass('pf-notransition');
+            }
+
+            return elements;
+        };
+
+        // if map empty (no systems), execute callback and return
+        // no visual effects on larger maps
+        if(
+            systemElements.length === 0 ||
+            systemElements.length > 20 ||
+            endpointElements.length === 0
+        ){
+            callback();
+            return;
+        }
+
+        // show nice animation
+        if(show === 'show'){
+            systemElements = hideElements(systemElements);
+            endpointElements = hideElements(endpointElements);
+            connectorElements = hideElements(connectorElements);
+            overlayElements = hideElements(overlayElements);
+
+            systemElements.velocity({
+                translateY: [ 0, -20],
+                opacity: [ 1, 0 ]
+            },{
+                duration: 300,
+                easing: 'easeOut',
+                complete: function(){
+                    // show connections
+                    endpointElements.velocity('transition.fadeIn', {
+                        duration: 0
+                    });
+
+                    connectorElements.velocity('transition.fadeIn', {
+                        stagger: 30,
+                        duration: 120,
+                        complete: function(){
+                            callback();
+                        }
+                    });
+
+                    // show overlay elements (if some exist)
+                    if(overlayElements.length > 0){
+                        overlayElements.delay(300).velocity('transition.fadeIn', {
+                            stagger: 50,
+                            duration: 180,
+                            display: 'auto'
+                        });
+                    }
+                }
+            });
+        }else if(show === 'hide'){
+
+            $('.mCSB_container').velocity('callout.shake', {
+                stagger: 0,
+                drag: false,
+                duration: 180,
+                display: 'auto'
+            });
+
+            overlayElements.velocity('transition.fadeOut', {
+                stagger: 50,
+                drag: true,
+                duration: 180,
+                display: 'auto'
+            });
+
+            endpointElements.velocity('transition.fadeOut', {
+                duration: 0,
+                display: 'block',
+                complete: function(){
+                    // show connections
+                    connectorElements.velocity('transition.fadeOut', {
+                        stagger: 0,
+                        drag: true,
+                        duration: 20,
+                        display: 'block'
+                    });
+
+                    systemElements.delay(100).velocity({
+                        translateY: [ -20, 0 ],
+                        opacity: [ 0, 1 ]
+                    },{
+                        duration: 180,
+                        display: 'block',
+                        easing: 'easeOut',
+                        complete: function(){
+                            callback();
+                        }
+                    });
+                }
+            });
+        }
+    };
+
+    /**
+     * mark a system as source
+     * @param map
+     * @param system
+     */
+    let makeSource = function(map, system){
+        if( !map.isSource(system) ){
+            // get scope from map defaults
+            let sourceConfig = globalMapConfig.source;
+            sourceConfig.scope = map.Defaults.Scope;    // set all allowed connections for this scopes
+
+            // default connector for initial dragging a new connection
+            sourceConfig.connector = MapUtil.getScopeInfoForConnection('wh', 'connectorDefinition');
+
+            map.makeSource(system, sourceConfig);
+        }
+    };
+
+    /**
+     * mark a system as target
+     * @param map
+     * @param system
+     */
+    let makeTarget = function(map, system){
+        if( !map.isTarget(system) ){
+            // get scope from map defaults
+            let targetConfig = globalMapConfig.target;
+            targetConfig.scope = map.Defaults.Scope;    // set all allowed connections for this scopes
+
+            map.makeTarget(system, targetConfig);
+        }
+    };
+
+    /**
+     * checks if json system data is valid
+     * @param systemData
+     * @returns {boolean}
+     */
+    let isValidSystem = function(systemData){
+
+        let isValid = true;
+
+        if(
+            ! systemData.hasOwnProperty('name') ||
+            systemData.name.length === 0
+        ){
+            return false;
+        }
+
+        return isValid;
+    };
+
+    /**
+     * draw a system with its data to a map
+     * @param map
+     * @param systemData
+     * @param connectedSystem
+     */
+    let drawSystem = function(map, systemData, connectedSystem){
+
+        // check if systemData is valid
+        if(isValidSystem(systemData)){
+            let mapContainer = $(map.getContainer());
+
+            // get System Element by data
+            let newSystem = mapContainer.getSystem(map, systemData);
+
+            // add new system to map
+            mapContainer.append(newSystem);
+
+            // make new system editable
+            makeEditable(newSystem);
+
+            // make target
+            makeTarget(map, newSystem);
+
+            // make source
+            makeSource(map, newSystem);
+
+            // set system observer
+            setSystemObserver(map, newSystem);
+
+            // connect new system (if connection data is given)
+            if(connectedSystem){
+
+                // hint: "type" will be auto detected by jump distance
+                let connectionData = {
+                    source: $(connectedSystem).data('id'),
+                    target: newSystem.data('id'),
+                    type: ['wh_fresh'] // default type.
+                };
+                let connection = drawConnection(map, connectionData);
+
+                // store connection
+                saveConnection(connection);
+            }
+        }
+    };
+
+    /**
+     * make a system name/alias editable by x-editable
+     * @param system
+     */
+    let makeEditable = function(system){
+        system = $(system);
+        let headElement = $(system).find('.' + config.systemHeadNameClass);
+
+        headElement.editable({
+            mode: 'popup',
+            type: 'text',
+            name: 'alias',
+            emptytext: system.data('name'),
+            title: 'System alias',
+            placement: 'top',
+            onblur: 'submit',
+            container: 'body',
+            toggle: 'manual',       // is triggered manually on dblClick
+            showbuttons: false
+        });
+
+        headElement.on('save', function(e, params) {
+            // system alias changed -> mark system as updated
+            system.markAsChanged();
+        });
+
+        headElement.on('shown', function(e, editable) {
+            let inputElement =  editable.input.$input.select();
+
+            // "fake" timeout until dom rendered
+            setTimeout(function(input){
+                // pre-select value
+                input.select();
+            }, 0, inputElement);
+        });
+    };
+
+    /**
+     * update z-index for a system (dragged systems should be always on top)
+     */
+    $.fn.updateSystemZIndex = function(){
+        return this.each(function(){
+            // increase global counter
+            let newZIndexSystem = config.zIndexCounter++;
+            $(this).css('z-index', newZIndexSystem);
+        });
+    };
+
+    /**
+     * get all relevant data for a connection object
+     * @param connection
+     * @returns {{id: Number, source: Number, sourceName: (*|T|JQuery|{}), target: Number, targetName: (*|T|JQuery), scope: *, type: *, updated: Number}}
+     */
+    let getDataByConnection = function(connection){
+
+        let source = $(connection.source);
+        let target = $(connection.target);
+
+        let id = connection.getParameter('connectionId');
+        let updated = connection.getParameter('updated');
+
+        let connectionTypes = connection.getType();
+
+        // normalize connection array
+        connectionTypes = $.grep(connectionTypes, function(n){
+            // 'default' is added by jsPlumb by default -_-
+            return ( n.length > 0 && n !== 'default');
+        });
+
+        let data = {
+            id: id ? id : 0,
+            source: parseInt( source.data('id') ),
+            sourceName: source.data('name'),
+            target: parseInt( target.data('id') ),
+            targetName: target.data('name'),
+            scope: connection.scope,
+            type: connectionTypes,
+            updated: updated ? updated : 0
+        };
+
+        return data;
+    };
+
+    /**
+     * stores a connection in database
+     * @param connection
+     */
+    let saveConnection = function(connection){
+        if( connection instanceof jsPlumb.Connection ){
+
+            let map = connection._jsPlumb.instance;
+            let mapContainer = $( map.getContainer() );
+
+            let mapId = mapContainer.data('id');
+            let connectionData = getDataByConnection(connection);
+
+            let requestData = {
+                mapData: {
+                    id: mapId
+                },
+                connectionData: connectionData
+            };
+
+            $.ajax({
+                type: 'POST',
+                url: Init.path.saveConnection,
+                data: requestData,
+                dataType: 'json',
+                context: {
+                    connection: connection,
+                    map: map,
+                    mapId: mapId,
+                    oldConnectionData: connectionData
+                }
+            }).done(function(newConnectionData){
+
+                if( !$.isEmptyObject(newConnectionData) ){
+                    let updateCon = false;
+
+                    if(this.oldConnectionData.id > 0){
+                        // connection exists (e.g. drag&drop new target system... (ids should never changed)
+                        let connection = $().getConnectionById(this.mapId, this.oldConnectionData.id);
+                        updateCon = true;
+                    }else{
+                        // new connection, check if connectionId was already updated (webSocket push is faster than ajax callback)
+                        let connection = $().getConnectionById(this.mapId, newConnectionData.id);
+
+                        if(connection){
+                            // connection already updated
+                            this.map.detach(this.connection, {fireEvent: false});
+                        }else{
+                            // .. else update this connection
+                            connection = this.connection;
+                            updateCon = true;
+                        }
+                    }
+
+                    if(updateCon){
+                        // update connection data e.g. "scope" has auto detected
+                        connection = updateConnection(connection, this.oldConnectionData, newConnectionData);
+
+                        // new/updated connection should be cached immediately!
+                        updateConnectionCache(this.mapId, connection);
+                    }
+
+                    // connection scope
+                    let scope = MapUtil.getScopeInfoForConnection(newConnectionData.scope, 'label');
+
+                    let title = 'New connection established';
+                    if(this.oldConnectionData.id > 0){
+                        title = 'Connection switched';
+                    }
+
+                    Util.showNotify({title: title, text: 'Scope: ' + scope, type: 'success'});
+                }else{
+                    // some save errors
+                    this.map.detach(this.connection, {fireEvent: false});
+                }
+
+            }).fail(function( jqXHR, status, error) {
+                // remove this connection from map
+                this.map.detach(this.connection, {fireEvent: false});
+
+                let reason = status + ' ' + error;
+                Util.showNotify({title: jqXHR.status + ': saveConnection', text: reason, type: 'warning'});
+                $(document).setProgramStatus('problem');
+            });
+        }
+    };
+
+    /**
+     * delete a connection and all related data
+     * @param connections
+     * @param callback
+     */
+    $.fn.deleteConnections = function(connections, callback){
+        if(connections.length > 0){
+
+            // remove connections from map
+            let removeConnections = function(tempConnections){
+                for(let i = 0; i < tempConnections.length; i++){
+                    // if a connection is manually (drag&drop) detached, the jsPlumb instance does not exist any more
+                    // connection is already deleted!
+                    if(tempConnections[i]._jsPlumb){
+                        tempConnections[i]._jsPlumb.instance.detach(tempConnections[i], {fireEvent: false});
+                    }
+                }
+            };
+
+            // prepare delete request
+            let map = connections[0]._jsPlumb.instance;
+            let mapContainer = $( map.getContainer() );
+
+            let connectionIds = [];
+            // connectionIds for delete request
+            for(let i = 0; i < connections.length; i++){
+                let connectionId = connections[i].getParameter('connectionId');
+                // drag&drop a new connection does not have an id yet, if connection is not established correct
+                if(connectionId !== undefined){
+                    connectionIds[i] = connections[i].getParameter('connectionId');
+                }
+            }
+
+            if(connectionIds.length > 0){
+                let requestData = {
+                    mapId: mapContainer.data('id'),
+                    connectionIds: connectionIds
+                };
+
+                $.ajax({
+                    type: 'POST',
+                    url: Init.path.deleteConnection,
+                    data: requestData,
+                    dataType: 'json',
+                    context: connections
+                }).done(function(data){
+
+                    // remove connections from map
+                    removeConnections(this);
+
+                    // optional callback
+                    if(callback){
+                        callback();
+                    }
+
+                }).fail(function( jqXHR, status, error) {
+                    let reason = status + ' ' + error;
+                    Util.showNotify({title: jqXHR.status + ': deleteSystem', text: reason, type: 'warning'});
+                    $(document).setProgramStatus('problem');
+                });
+            }
         }
     };
 
     /**
      * load context menu template for map
      */
-    var initMapContextMenu = function(){
+    let initMapContextMenu = function(){
 
-        var moduleConfig = {
+        let moduleConfig = {
             name: 'modules/contextmenu',
             position: $('#' + config.dynamicElementWrapperId)
         };
 
-        var moduleData = {
+        let moduleData = {
             id: config.mapContextMenuId,
             items: [
                 {icon: 'fa-street-view', action: 'info', text: 'information'},
@@ -24755,14 +25167,14 @@ define('app/map/map',[
     /**
      * load contextmenu template for connections
      */
-    var initConnectionContextMenu = function(){
+    let initConnectionContextMenu = function(){
 
-        var moduleConfig = {
+        let moduleConfig = {
             name: 'modules/contextmenu',
             position: $('#' + config.dynamicElementWrapperId)
         };
 
-        var moduleData = {
+        let moduleData = {
             id: config.connectionContextMenuId,
             items: [
                 {icon: 'fa-plane', action: 'frigate', text: 'frigate hole'},
@@ -24793,11 +25205,11 @@ define('app/map/map',[
     /**
      * load contextmenu template for systems
      */
-    var initSystemContextMenu = function(){
+    let initSystemContextMenu = function(){
 
-        var systemStatus = [];
+        let systemStatus = [];
         $.each(Init.systemStatus, function(status, statusData){
-            var tempStatus = {
+            let tempStatus = {
                 subIcon: 'fa-tag',
                 subIconClass: statusData.class,
                 subAction: 'change_status_' + status,
@@ -24806,12 +25218,12 @@ define('app/map/map',[
             systemStatus.push(tempStatus);
         });
 
-        var moduleConfig = {
+        let moduleConfig = {
             name: 'modules/contextmenu',
             position: $('#' + config.dynamicElementWrapperId)
         };
 
-        var moduleData = {
+        let moduleData = {
             id: config.systemContextMenuId,
             items: [
                 {icon: 'fa-plus', action: 'add_system', text: 'add system'},
@@ -24834,20 +25246,278 @@ define('app/map/map',[
     };
 
     /**
+     * get hidden menu entry options for a context menu
+     * @param component
+     * @returns {Array}
+     */
+    let getHiddenContextMenuOptions = function(component){
+
+        let hiddenOptions = [];
+
+        if(component instanceof jsPlumb.Connection){
+            // disable connection menu entries
+
+            let scope = component.scope;
+
+            if(scope === 'stargate'){
+                hiddenOptions.push('frigate');
+                hiddenOptions.push('preserve_mass');
+                hiddenOptions.push('change_status');
+
+                hiddenOptions.push('scope_stargate');
+            }else if(scope === 'jumpbridge'){
+                hiddenOptions.push('frigate');
+                hiddenOptions.push('preserve_mass');
+                hiddenOptions.push('change_status');
+                hiddenOptions.push('scope_jumpbridge');
+            }else if(scope === 'wh'){
+                hiddenOptions.push('scope_wh');
+            }
+
+        }else if( component.hasClass(config.systemClass) ){
+            // disable system menu entries
+            if(component.data('locked') === true){
+                hiddenOptions.push('delete_system');
+            }
+        }
+
+        return hiddenOptions;
+    };
+
+    /**
+     * get active menu entry options for a context menu
+     * @param component
+     * @returns {Array}
+     */
+    let getActiveContextMenuOptions = function(component){
+
+        let activeOptions = [];
+
+        if(component instanceof jsPlumb.Connection){
+            let scope = component.scope;
+
+            if(component.hasType('wh_eol') === true){
+                activeOptions.push('wh_eol');
+            }
+
+            if(component.hasType('frigate') === true){
+                activeOptions.push('frigate');
+            }
+            if(component.hasType('preserve_mass') === true){
+                activeOptions.push('preserve_mass');
+            }
+            if(component.hasType('wh_reduced') === true){
+                activeOptions.push('status_reduced');
+            }else if(component.hasType('wh_critical') === true){
+                activeOptions.push('status_critical');
+            }else{
+                // not reduced is default
+                activeOptions.push('status_fresh');
+            }
+
+        }else if( component.hasClass(config.mapClass) ){
+
+            // active map menu entries
+            if(component.data('filter_scope') === 'wh'){
+                activeOptions.push('filter_wh');
+            }
+            if(component.data('filter_scope') === 'stargate'){
+                activeOptions.push('filter_stargate');
+            }
+            if(component.data('filter_scope') === 'jumpbridge'){
+                activeOptions.push('filter_jumpbridge');
+            }
+        }else if( component.hasClass(config.systemClass) ){
+            // active system menu entries
+            if(component.data('locked') === true){
+                activeOptions.push('lock_system');
+            }
+            if(component.data('rallyUpdated') > 0){
+                activeOptions.push('set_rally');
+            }
+        }
+
+        return activeOptions;
+    };
+
+    /**
+     * open "new system" dialog and add the system to map
+     * optional the new system is connected to a "sourceSystem" (if available)
+     *
+     * @param map
+     * @param options
+     */
+    let showNewSystemDialog = function(map, options){
+        let mapContainer = $(map.getContainer());
+
+        // format system status for form select -------------------------------------------------------------
+        let systemStatus = {};
+        // "default" selection (id = 0) prevents status from being overwritten
+        // -> e.g. keep status information if system was just inactive (active = 0)
+        systemStatus[0] = 'default';
+
+        $.each(Init.systemStatus, function(status, statusData){
+            systemStatus[statusData.id] = statusData.label;
+        });
+
+        // default system status -> first status entry
+        let defaultSystemStatus = 0;
+
+        // get current map data -----------------------------------------------------------------------------
+        let mapData = mapContainer.getMapDataFromClient({forceData: true});
+        let mapSystems = mapData.data.systems;
+        let mapSystemCount = mapSystems.length;
+        let mapTypeName = mapContainer.data('typeName');
+        let maxAllowedSystems = Init.mapTypes[mapTypeName].defaultConfig.max_systems;
+
+        // show error if system max count reached -----------------------------------------------------------
+        if(mapSystemCount >= maxAllowedSystems){
+            Util.showNotify({title: 'Max system count exceeded', text: 'Limit of ' + maxAllowedSystems + ' systems reached', type: 'warning'});
+            return;
+        }
+
+        // disable systems that are already on it -----------------------------------------------------------
+        let mapSystemIds = [];
+        for(let i = 0; i < mapSystems.length; i++ ){
+            mapSystemIds.push( mapSystems[i].systemId );
+        }
+
+        // dialog data --------------------------------------------------------------------------------------
+        let data = {
+            id: config.systemDialogId,
+            selectClass: config.systemDialogSelectClass
+        };
+
+        // set current position as "default" system to add --------------------------------------------------
+        let currentCharacterLog = Util.getCurrentCharacterLog();
+
+        if(
+            currentCharacterLog !== false &&
+            mapSystemIds.indexOf( currentCharacterLog.system.id ) === -1
+        ){
+            // current system is NOT already on this map
+            // set current position as "default" system to add
+            data.currentSystem = currentCharacterLog.system;
+        }
+
+        requirejs(['text!templates/dialog/system.html', 'mustache'], function(template, Mustache) {
+
+            let content = Mustache.render(template, data);
+
+            let systemDialog = bootbox.dialog({
+                title: 'Add new system',
+                message: content,
+                buttons: {
+                    close: {
+                        label: 'cancel',
+                        className: 'btn-default'
+                    },
+                    success: {
+                        label: '<i class="fa fa-fw fa-check"></i> save',
+                        className: 'btn-success',
+                        callback: function (e) {
+                            // get form Values
+                            let form = $('#' + config.systemDialogId).find('form');
+
+                            let systemDialogData = $(form).getFormValues();
+
+                            // validate form
+                            form.validator('validate');
+
+                            // check whether the form is valid
+                            let formValid = form.isValidForm();
+
+                            if(formValid === false){
+                                // don't close dialog
+                                return false;
+                            }
+
+                            // calculate new system position ------------------------------------------------
+                            let newPosition = {
+                                x: 0,
+                                y: 0
+                            };
+
+                            let sourceSystem = null;
+
+                            // add new position
+                            if(options.sourceSystem !== undefined){
+
+                                sourceSystem = options.sourceSystem;
+
+                                // get new position
+                                newPosition = calculateNewSystemPosition(sourceSystem);
+                            }else{
+                                // check mouse cursor position (add system to map)
+                                newPosition = {
+                                    x: options.position.x,
+                                    y: options.position.y
+                                };
+                            }
+
+                            systemDialogData.position = newPosition;
+
+                            // ------------------------------------------------------------------------------
+
+                            let requestData = {
+                                systemData: systemDialogData,
+                                mapData: {
+                                    id: mapContainer.data('id')
+                                }
+                            };
+
+                            saveSystem(map, requestData, sourceSystem, function(){
+                                bootbox.hideAll();
+                            });
+                            return false;
+                        }
+                    }
+                }
+            });
+
+            // init dialog
+            systemDialog.on('shown.bs.modal', function(e) {
+
+                let modalContent = $('#' + config.systemDialogId);
+
+                // init system select live search  - some delay until modal transition has finished
+                let selectElement = modalContent.find('.' + config.systemDialogSelectClass);
+                selectElement.delay(240).initSystemSelect({
+                    key: 'systemId',
+                    disabledOptions: mapSystemIds
+                });
+            });
+
+            // init system status select
+            let modalFields = $('.bootbox .modal-dialog').find('.pf-editable-system-status');
+
+            modalFields.editable({
+                mode: 'inline',
+                emptytext: 'unknown',
+                onblur: 'submit',
+                showbuttons: false,
+                source: systemStatus,
+                value: defaultSystemStatus,
+                inputclass: config.systemDialogSelectClass
+            });
+        });
+    };
+
+    /**
      * set up all actions that can be preformed on a system
      * @param map
      * @param system
      */
-    var setSystemObserver = function(map, system){
+    let setSystemObserver = function(map, system){
         system = $(system);
 
         // get map container
-        var mapContainer = $( map.getContainer() );
-        var systemHeadExpand = $( system.find('.' + config.systemHeadExpandClass) );
-        var systemBody = $( system.find('.' + config.systemBodyClass) );
+        let mapContainer = $( map.getContainer() );
+        let systemHeadExpand = $( system.find('.' + config.systemHeadExpandClass) );
+        let systemBody = $( system.find('.' + config.systemBodyClass) );
 
         // map overlay will be set on "drag" start
-        var mapOverlayTimer = null;
+        let mapOverlayTimer = null;
 
         // make system draggable
         map.draggable(system, {
@@ -24857,7 +25527,7 @@ define('app/map/map',[
             filter: '.' + config.systemHeadNameClass,                   // disable drag on "system name"
             snapThreshold: MapUtil.config.mapSnapToGridDimension,       // distance for grid snapping "magnet" effect (optional)
             start: function(params){
-                var dragSystem = $(params.el);
+                let dragSystem = $(params.el);
 
                 mapOverlayTimer = dragSystem.getMapOverlay('timer');
 
@@ -24875,7 +25545,7 @@ define('app/map/map',[
                 dragSystem.addClass('no-click');
 
                 // drag system is not always selected
-                var selectedSystems = mapContainer.getSelectedSystems().get();
+                let selectedSystems = mapContainer.getSelectedSystems().get();
                 selectedSystems = selectedSystems.concat( dragSystem.get() );
                 selectedSystems = $.unique( selectedSystems );
 
@@ -24894,7 +25564,7 @@ define('app/map/map',[
                 MagnetizerWrapper.executeAtEvent(map, p.e);
             },
             stop: function(params){
-                var dragSystem = $(params.el);
+                let dragSystem = $(params.el);
 
                 // start map update timer
                 mapOverlayTimer.startMapUpdateCounter();
@@ -24910,9 +25580,9 @@ define('app/map/map',[
                 dragSystem.markAsChanged();
 
                 // set new position for popover edit field (system name)
-                var newPosition = dragSystem.position();
+                let newPosition = dragSystem.position();
 
-                var placement = 'top';
+                let placement = 'top';
                 if(newPosition.top < 100){
                     placement = 'bottom';
                 }
@@ -24922,12 +25592,12 @@ define('app/map/map',[
                 dragSystem.find('.' + config.systemHeadNameClass).editable('option', 'placement', placement);
 
                 // drag system is not always selected
-                var selectedSystems = mapContainer.getSelectedSystems().get();
+                let selectedSystems = mapContainer.getSelectedSystems().get();
                 selectedSystems = selectedSystems.concat( dragSystem.get() );
                 selectedSystems = $.unique( selectedSystems );
 
-                for(var i = 0; i < selectedSystems.length; i++){
-                    var tempSystem = $(selectedSystems[i]);
+                for(let i = 0; i < selectedSystems.length; i++){
+                    let tempSystem = $(selectedSystems[i]);
                     // repaint connections -> just in case something fails...
                     map.revalidate( tempSystem.attr('id') );
                 }
@@ -24939,7 +25609,7 @@ define('app/map/map',[
         }
 
         // init system tooltips =============================================================================
-        var systemTooltipOptions = {
+        let systemTooltipOptions = {
             toggle: 'tooltip',
             placement: 'right',
             container: 'body',
@@ -24951,16 +25621,16 @@ define('app/map/map',[
         // init system body expand ==========================================================================
         systemHeadExpand.hoverIntent(function(e){
             // hover in
-            var hoverSystem = $(this).parents('.' + config.systemClass);
-            var hoverSystemId = hoverSystem.attr('id');
+            let hoverSystem = $(this).parents('.' + config.systemClass);
+            let hoverSystemId = hoverSystem.attr('id');
 
             // bring system in front (increase zIndex)
             hoverSystem.updateSystemZIndex();
 
             // get ship counter and calculate expand height
-            var userCount = parseInt( hoverSystem.data('userCount') );
+            let userCount = parseInt( hoverSystem.data('userCount') );
 
-            var expandHeight = userCount * config.systemBodyItemHeight;
+            let expandHeight = userCount * config.systemBodyItemHeight;
 
             systemBody.velocity('stop').velocity(
                 {
@@ -24992,8 +25662,8 @@ define('app/map/map',[
 
         }, function(e){
             // hover out
-            var hoverSystem = $(this).parents('.' + config.systemClass);
-            var hoverSystemId = hoverSystem.attr('id');
+            let hoverSystem = $(this).parents('.' + config.systemClass);
+            let hoverSystemId = hoverSystem.attr('id');
 
             // stop animation (prevent visual bug if user spams hover-icon [in - out])
             systemBody.velocity('stop');
@@ -25027,12 +25697,12 @@ define('app/map/map',[
             e.preventDefault();
             e.stopPropagation();
 
-            var systemElement = $(this);
+            let systemElement = $(this);
 
             // hide all map contextmenu options
-            var hideOptions = getHiddenContextMenuOptions(systemElement);
+            let hideOptions = getHiddenContextMenuOptions(systemElement);
 
-            var activeOptions = getActiveContextMenuOptions(systemElement);
+            let activeOptions = getActiveContextMenuOptions(systemElement);
 
             $(e.target).trigger('pf:openContextMenu', [e, this, hideOptions, activeOptions]);
             return false;
@@ -25044,15 +25714,15 @@ define('app/map/map',[
             menuSelected: function (params) {
 
                 // click action
-                var action = params.selectedMenu.attr('data-action');
+                let action = params.selectedMenu.attr('data-action');
 
                 // current system
-                var currentSystem = $(params.component);
+                let currentSystem = $(params.component);
 
                 // system name
-                var currentSystemName = currentSystem.getSystemInfo( ['alias'] );
+                let currentSystemName = currentSystem.getSystemInfo( ['alias'] );
 
-                var systemData = {};
+                let systemData = {};
 
                 switch(action){
                     case 'add_system':
@@ -25088,7 +25758,7 @@ define('app/map/map',[
                         // change system status
                         currentSystem.getMapOverlay('timer').startMapUpdateCounter();
 
-                        var statusString = action.split('_');
+                        let statusString = action.split('_');
 
                         currentSystem.setSystemStatus(statusString[2]);
 
@@ -25096,7 +25766,7 @@ define('app/map/map',[
                         break;
                     case 'delete_system':
                         // delete this system AND delete selected systems as well
-                        var selectedSystems = mapContainer.getSelectedSystems();
+                        let selectedSystems = mapContainer.getSelectedSystems();
                         $.merge(selectedSystems, currentSystem);
                         $.uniqueSort(selectedSystems);
                         $.fn.showDeleteSystemDialog(map, selectedSystems);
@@ -25112,9 +25782,9 @@ define('app/map/map',[
         });
 
         // system click events ==============================================================================
-        var double = function(e){
-            var system = $(this);
-            var headElement = $(system).find('.' + config.systemHeadNameClass);
+        let double = function(e){
+            let system = $(this);
+            let headElement = $(system).find('.' + config.systemHeadNameClass);
 
             // update z-index for system, editable field should be on top
             // move them to the "top"
@@ -25124,17 +25794,17 @@ define('app/map/map',[
             headElement.editable('show');
         };
 
-        var single = function(e){
+        let single = function(e){
 
             // check if click was performed on "popover" (x-editable)
-            var popoverClick = false;
+            let popoverClick = false;
             if( $(e.target).parents('.popover').length ){
                 popoverClick = true;
             }
 
             // continue if click was *not* on a popover dialog of a system
             if( !popoverClick ){
-                var system = $(this);
+                let system = $(this);
 
                 // check if system is locked for "click" events
                 if( !system.hasClass('no-click') ){
@@ -25162,7 +25832,7 @@ define('app/map/map',[
      */
     $.fn.markAsChanged = function(){
         return this.each(function(){
-            var element = $(this);
+            let element = $(this);
 
             if( element.hasClass(config.systemClass) ){
                 // system element
@@ -25179,8 +25849,8 @@ define('app/map/map',[
      * @returns {boolean}
      */
     $.fn.hasChanged = function(){
-        var element = $(this);
-        var changed = false;
+        let element = $(this);
+        let changed = false;
 
         if( element.hasClass(config.systemClass) ){
             // system element
@@ -25198,17 +25868,17 @@ define('app/map/map',[
      * @param map
      */
     $.fn.showSystemInfo = function(map){
-        var system = $(this);
+        let system = $(this);
 
         // activate system
         markSystemActive(map, system);
 
         // get parent Tab Content and fire update event
-        var tabContentElement = MapUtil.getTabContentElementByMapElement( system );
+        let tabContentElement = MapUtil.getTabContentElementByMapElement( system );
 
         // collect all required data from map module to update the info element
         // store them global and assessable for each module
-        var currentSystemData = {
+        let currentSystemData = {
             systemData: system.getSystemData(),
             mapId: parseInt( system.attr('data-mapid') )
         };
@@ -25224,7 +25894,7 @@ define('app/map/map',[
     $.fn.toggleSelectSystem = function(map){
 
         return this.each(function(){
-            var system = $(this);
+            let system = $(this);
 
             if( system.data('locked') !== true ){
 
@@ -25245,7 +25915,7 @@ define('app/map/map',[
      * @returns {*}
      */
     $.fn.getSelectedSystems = function(){
-        var mapElement = $(this);
+        let mapElement = $(this);
         return mapElement.find('.' + config.systemSelectedClass);
     };
 
@@ -25256,21 +25926,21 @@ define('app/map/map',[
      */
     $.fn.toggleLockSystem = function(poke, options){
 
-        var system = $(this);
+        let system = $(this);
 
-        var map = options.map;
+        let map = options.map;
 
-        var hideNotification = false;
+        let hideNotification = false;
         if(options.hideNotification === true){
             hideNotification = true;
         }
 
-        var hideCounter = false;
+        let hideCounter = false;
         if(options.hideCounter === true){
             hideCounter = true;
         }
 
-        var systemName = system.getSystemInfo( ['alias'] );
+        let systemName = system.getSystemInfo( ['alias'] );
 
         if( system.data( 'locked' ) === true ){
             system.data('locked', false);
@@ -25305,13 +25975,115 @@ define('app/map/map',[
     };
 
     /**
+     * get a new jsPlumb map instance or or get a cached one for update
+     * @param mapId
+     * @returns {*}
+     */
+    let getMapInstance = function(mapId){
+
+        if(typeof activeInstances[mapId] !== 'object'){
+            // create new instance
+            jsPlumb.Defaults.LogEnabled = true;
+
+            let newJsPlumbInstance =  jsPlumb.getInstance({
+                Anchor: 'Continuous',                                               // anchors on each site
+                Container: null,                                                    // will be set as soon as container is connected to DOM
+                PaintStyle: {
+                    lineWidth: 4,                                                   // width of a Connector's line. An integer.
+                    strokeStyle: 'red',                                             // color for a Connector
+                    outlineColor: 'red',                                            // color of the outline for an Endpoint or Connector. see fillStyle examples.
+                    outlineWidth: 2                                                 // width of the outline for an Endpoint or Connector. An integer.
+                },
+                Connector: [ 'Bezier', { curviness: 40 } ],                         // default connector style (this is not used!) all connections have their own style (by scope)
+                Endpoint: [ 'Dot', { radius: 5 } ],
+                ReattachConnections: false,                                         // re-attach connection if dragged with mouse to "nowhere"
+                Scope: Init.defaultMapScope,                                        // default map scope for connections
+                LogEnabled: true
+            });
+
+            // register all available connection types ------------------------------------------------------
+            newJsPlumbInstance.registerConnectionTypes(globalMapConfig.connectionTypes);
+
+            // event after a new connection is established --------------------------
+            newJsPlumbInstance.bind('connection', function(info, e) {
+                // set connection observer
+                setConnectionObserver(newJsPlumbInstance, info.connection);
+            });
+
+            // event after connection moved -----------------------------------------------------------------
+            newJsPlumbInstance.bind('connectionMoved', function(info, e) {
+
+            });
+
+            // event after DragStop a connection or new connection ------------------------------------------
+            newJsPlumbInstance.bind('beforeDrop', function(info) {
+                let connection = info.connection;
+
+                // lock the target system for "click" events
+                // to prevent loading system information
+                let sourceSystem = $('#' + info.sourceId);
+                let targetSystem = $('#' + info.targetId);
+                sourceSystem.addClass('no-click');
+                targetSystem.addClass('no-click');
+                setTimeout(function(){
+                    sourceSystem.removeClass('no-click');
+                    targetSystem.removeClass('no-click');
+                }, Init.timer.DBL_CLICK + 50);
+
+                // set "default" connection status only for NEW connections
+                if(!connection.suspendedElement){
+                    MapUtil.setConnectionWHStatus(connection, MapUtil.getDefaultConnectionTypeByScope(connection.scope) );
+                }
+
+                // prevent multiple connections between same systems
+                let connections = MapUtil.checkForConnection(newJsPlumbInstance, info.sourceId, info.targetId );
+
+                if(connections.length > 1){
+                    bootbox.confirm('Connection already exists. Do you really want to add an additional one?', function(result) {
+                        if(!result){
+                            connection._jsPlumb.instance.detach(connection);
+                        }
+                    });
+                }
+
+                // always save the new connection
+                saveConnection(connection);
+
+                return true;
+            });
+
+            // event before Detach connection ---------------------------------------------------------------
+            newJsPlumbInstance.bind('beforeDetach', function(info) {
+                return true;
+            });
+
+            newJsPlumbInstance.bind('connectionDetached', function(info, e){
+                // a connection is manually (drag&drop) detached! otherwise this event should not be send!
+                let connection = info.connection;
+                $().deleteConnections([connection]);
+            });
+
+            newJsPlumbInstance.bind('checkDropAllowed', function(params){
+                // connections can not be attached to foreign endpoints
+                // the only endpoint available is endpoint from where the connection was dragged away (re-attach)
+
+                return true;
+            });
+
+            activeInstances[mapId] = newJsPlumbInstance;
+        }
+
+        return activeInstances[mapId];
+    };
+
+    /**
      * set observer for a map container
      * @param map
      */
-    var setMapObserver = function(map){
+    let setMapObserver = function(map){
 
         // get map container
-        var mapContainer = map.getContainer();
+        let mapContainer = map.getContainer();
 
         $(mapContainer).bind('contextmenu', function(e){
             e.preventDefault();
@@ -25319,11 +26091,11 @@ define('app/map/map',[
 
             // make sure map is clicked and NOT a connection
             if($(e.target).hasClass( config.mapClass )){
-                var mapElement = $(this);
+                let mapElement = $(this);
 
-                var hideOptions = getHiddenContextMenuOptions(mapElement);
+                let hideOptions = getHiddenContextMenuOptions(mapElement);
 
-                var activeOptions = getActiveContextMenuOptions(mapElement);
+                let activeOptions = getActiveContextMenuOptions(mapElement);
 
                 $(e.target).trigger('pf:openContextMenu', [e, mapElement, hideOptions, activeOptions]);
             }
@@ -25336,18 +26108,18 @@ define('app/map/map',[
             menuSelected: function (params) {
 
                 // click action
-                var action = params.selectedMenu.attr('data-action');
+                let action = params.selectedMenu.attr('data-action');
 
                 // current map
-                var currentMapElement = $(params.component);
+                let currentMapElement = $(params.component);
 
-                var currentMapId = parseInt( currentMapElement.data('id') );
+                let currentMapId = parseInt( currentMapElement.data('id') );
 
                 // get map instance
-               var currentMap = getMapInstance(currentMapId);
+               let currentMap = getMapInstance(currentMapId);
 
                 // click position
-                var position = params.position;
+                let position = params.position;
 
                 switch(action){
                     case 'add_system':
@@ -25356,7 +26128,7 @@ define('app/map/map',[
                         break;
                     case 'select_all':
 
-                        var allSystems =  currentMapElement.find('.' + config.systemClass + ':not(.' + config.systemSelectedClass + ')');
+                        let allSystems =  currentMapElement.find('.' + config.systemClass + ':not(.' + config.systemSelectedClass + ')');
 
                         // filter non-locked systems
                         allSystems = allSystems.filter(function(i, el){
@@ -25371,12 +26143,12 @@ define('app/map/map',[
                     case 'filter_stargate':
                     case 'filter_jumpbridge':
                         // filter (show/hide)
-                        var filterScope = action.split('_')[1];
+                        let filterScope = action.split('_')[1];
 
                         // scope label
-                        var filterScopeLabel = MapUtil.getScopeInfoForMap(filterScope, 'label');
+                        let filterScopeLabel = MapUtil.getScopeInfoForMap(filterScope, 'label');
 
-                        var showScope = true;
+                        let showScope = true;
                         if(
                             currentMapElement.data('filter_scope') &&
                             currentMapElement.data('filter_scope') === filterScope
@@ -25395,13 +26167,13 @@ define('app/map/map',[
                             currentMapElement.getMapOverlay('info').updateOverlayIcon('filter', 'show');
                         }
 
-                        var filteredConnections = currentMap.getAllConnections(filterScope);
+                        let filteredConnections = currentMap.getAllConnections(filterScope);
 
-                        for(var i = 0; i < filteredConnections.length; i++){
-                            var tempConnection = filteredConnections[i];
+                        for(let i = 0; i < filteredConnections.length; i++){
+                            let tempConnection = filteredConnections[i];
 
-                            var tempEndpoints = tempConnection.endpoints;
-                            var setVisible = true;
+                            let tempEndpoints = tempConnection.endpoints;
+                            let setVisible = true;
 
                             if(
                                 showScope &&
@@ -25411,7 +26183,7 @@ define('app/map/map',[
                             }
 
 
-                            for(var j = 0; j < tempEndpoints.length; j++){
+                            for(let j = 0; j < tempEndpoints.length; j++){
                                 tempEndpoints[j].setVisible( setVisible );
                             }
                         }
@@ -25421,7 +26193,7 @@ define('app/map/map',[
                         break;
                     case 'delete_systems':
                         // delete all selected systems with its connections
-                        var selectedSystems = currentMapElement.getSelectedSystems();
+                        let selectedSystems = currentMapElement.getSelectedSystems();
                         $.fn.showDeleteSystemDialog(currentMap, selectedSystems);
                         break;
                     case 'info':
@@ -25438,20 +26210,20 @@ define('app/map/map',[
             selectOnMove: true,
             selectables: '.' + config.systemClass,
             onHide: function (selectBox, deselectedSystems) {
-                var selectedSystems = $(mapContainer).getSelectedSystems();
+                let selectedSystems = $(mapContainer).getSelectedSystems();
 
                 if(selectedSystems.length > 0){
                     // make all selected systems draggable
                     Util.showNotify({title: selectedSystems.length + ' systems selected', type: 'success'});
 
                     // convert former group draggable systems so single draggable
-                    for(var i = 0; i < selectedSystems.length; i++){
+                    for(let i = 0; i < selectedSystems.length; i++){
                         map.addToDragSelection( selectedSystems[i] );
                     }
                 }
 
                 // convert former group draggable systems so single draggable
-                for(var j = 0; j < deselectedSystems.length; j++){
+                for(let j = 0; j < deselectedSystems.length; j++){
                     map.removeFromDragSelection( deselectedSystems[j] );
                 }
             },
@@ -25466,16 +26238,16 @@ define('app/map/map',[
 
         // toggle global map option (e.g. "grid snap", "magnetization")
         $(mapContainer).on('pf:menuMapOption', function(e, mapOption){
-            var mapElement = $(this);
+            let mapElement = $(this);
 
             // get map menu config options
-            var data = MapUtil.mapOptions[mapOption.option];
+            let data = MapUtil.mapOptions[mapOption.option];
 
-            var promiseStore = MapUtil.getLocaleData('map', mapElement.data('id') );
+            let promiseStore = MapUtil.getLocaleData('map', mapElement.data('id') );
             promiseStore.then(function(dataStore) {
-                var notificationText = 'disabled';
-                var button = $('#' + this.data.buttonId);
-                var dataExists = false;
+                let notificationText = 'disabled';
+                let button = $('#' + this.data.buttonId);
+                let dataExists = false;
 
                 if(
                     dataStore &&
@@ -25545,13 +26317,13 @@ define('app/map/map',[
         });
 
         $(mapContainer).on('pf:menuSelectSystem', function(e, data){
-            var tempMapContainer = $(this);
-            var systemId = config.systemIdPrefix + tempMapContainer.data('id') + '-' + data.systemId;
-            var system = $(this).find('#' + systemId);
+            let tempMapContainer = $(this);
+            let systemId = config.systemIdPrefix + tempMapContainer.data('id') + '-' + data.systemId;
+            let system = $(this).find('#' + systemId);
 
             if(system.length === 1){
                 // scroll to system
-                var tempMapWrapper = tempMapContainer.parents('.' + config.mapWrapperClass);
+                let tempMapWrapper = tempMapContainer.parents('.' + config.mapWrapperClass);
                 tempMapWrapper.mCustomScrollbar('scrollTo', system);
 
                 // select system
@@ -25561,202 +26333,14 @@ define('app/map/map',[
     };
 
     /**
-     * get hidden menu entry options for a context menu
-     * @param component
-     * @returns {Array}
-     */
-    var getHiddenContextMenuOptions = function(component){
-
-        var hiddenOptions = [];
-
-        if(component instanceof jsPlumb.Connection){
-            // disable connection menu entries
-
-            var scope = component.scope;
-
-            if(scope === 'stargate'){
-                hiddenOptions.push('frigate');
-                hiddenOptions.push('preserve_mass');
-                hiddenOptions.push('change_status');
-
-                hiddenOptions.push('scope_stargate');
-            }else if(scope === 'jumpbridge'){
-                hiddenOptions.push('frigate');
-                hiddenOptions.push('preserve_mass');
-                hiddenOptions.push('change_status');
-                hiddenOptions.push('scope_jumpbridge');
-            }else if(scope === 'wh'){
-                hiddenOptions.push('scope_wh');
-            }
-
-        }else if( component.hasClass(config.systemClass) ){
-            // disable system menu entries
-            if(component.data('locked') === true){
-                hiddenOptions.push('delete_system');
-            }
-        }
-
-        return hiddenOptions;
-    };
-
-    /**
-     * get active menu entry options for a context menu
-     * @param component
-     * @returns {Array}
-     */
-    var getActiveContextMenuOptions = function(component){
-
-        var activeOptions = [];
-
-        if(component instanceof jsPlumb.Connection){
-            var scope = component.scope;
-
-            if(component.hasType('wh_eol') === true){
-                activeOptions.push('wh_eol');
-            }
-
-            if(component.hasType('frigate') === true){
-                activeOptions.push('frigate');
-            }
-            if(component.hasType('preserve_mass') === true){
-                activeOptions.push('preserve_mass');
-            }
-            if(component.hasType('wh_reduced') === true){
-                activeOptions.push('status_reduced');
-            }else if(component.hasType('wh_critical') === true){
-                activeOptions.push('status_critical');
-            }else{
-                // not reduced is default
-                activeOptions.push('status_fresh');
-            }
-
-        }else if( component.hasClass(config.mapClass) ){
-
-            // active map menu entries
-            if(component.data('filter_scope') === 'wh'){
-                activeOptions.push('filter_wh');
-            }
-            if(component.data('filter_scope') === 'stargate'){
-                activeOptions.push('filter_stargate');
-            }
-            if(component.data('filter_scope') === 'jumpbridge'){
-                activeOptions.push('filter_jumpbridge');
-            }
-        }else if( component.hasClass(config.systemClass) ){
-            // active system menu entries
-            if(component.data('locked') === true){
-                activeOptions.push('lock_system');
-            }
-            if(component.data('rallyUpdated') > 0){
-                activeOptions.push('set_rally');
-            }
-        }
-
-        return activeOptions;
-    };
-
-    /**
-     * set observer for a given connection
-     * @param map
-     * @param connection
-     */
-    var setConnectionObserver = function(map, connection){
-
-        // get map container
-        var mapElement = $( map.getContainer() );
-
-        // if the connection already exists -> do not set it twice
-        connection.unbind('contextmenu').bind('contextmenu', function(component, e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            // trigger menu "open
-
-            // get invisible menu entries
-            var hideOptions = getHiddenContextMenuOptions(component);
-            var activeOptions = getActiveContextMenuOptions(component);
-            $(e.target).trigger('pf:openContextMenu', [e, component, hideOptions, activeOptions]);
-
-            return false;
-        });
-
-        /**
-         *  init context menu for all connections
-         *  must be triggered manually on demand
-         */
-        $(connection.canvas).contextMenu({
-            menuSelector: '#' + config.connectionContextMenuId,
-            menuSelected: function (params){
-
-                var action = params.selectedMenu.attr('data-action');
-                var activeConnection = params.component;
-                var activeScope = activeConnection.scope;
-                var activeScopeName = MapUtil.getScopeInfoForConnection( activeScope, 'label');
-
-                switch(action){
-                    case 'delete_connection':
-                        // delete a single connection
-
-                        // confirm dialog
-                        bootbox.confirm('Is this connection really gone?', function(result) {
-                            if(result){
-                                $().deleteConnections([activeConnection]);
-                            }
-                        });
-                        break;
-                    case 'frigate':         // set as frigate hole
-                    case 'preserve_mass':   // set "preserve mass
-                    case 'wh_eol':          // set "end of life"
-                        mapElement.getMapOverlay('timer').startMapUpdateCounter();
-
-                        activeConnection.toggleType( action );
-
-                        $(activeConnection).markAsChanged();
-                        break;
-                    case 'status_fresh':
-                    case 'status_reduced':
-                    case 'status_critical':
-                        var newStatus = action.split('_')[1];
-                        mapElement.getMapOverlay('timer').startMapUpdateCounter();
-
-                        MapUtil.setConnectionWHStatus(activeConnection, 'wh_' + newStatus);
-                        $(activeConnection).markAsChanged();
-                        break;
-                    case 'scope_wh':
-                    case 'scope_stargate':
-                    case 'scope_jumpbridge':
-                        var newScope = action.split('_')[1];
-                        var newScopeName =  MapUtil.getScopeInfoForConnection( newScope, 'label');
-
-                        bootbox.confirm('Change scope from ' + activeScopeName + ' to ' + newScopeName + '?', function(result) {
-                            if(result){
-
-                                mapElement.getMapOverlay('timer').startMapUpdateCounter();
-
-                                setConnectionScope(activeConnection, newScope);
-
-                                Util.showNotify({title: 'Connection scope changed', text: 'New scope: ' + newScopeName, type: 'success'});
-
-                                $(activeConnection).markAsChanged();
-                            }
-                        });
-                        break;
-                }
-
-            }
-        });
-
-    };
-
-    /**
      * mark a system as active
      * @param map
      * @param system
      */
-    var markSystemActive = function(map, system){
+    let markSystemActive = function(map, system){
 
         // deactivate all systems in map
-        var mapContainer = $( map.getContainer() );
+        let mapContainer = $( map.getContainer() );
 
         mapContainer.find('.' + config.systemClass).removeClass(config.systemActiveClass);
 
@@ -25770,14 +26354,14 @@ define('app/map/map',[
      * @returns {*}
      */
     $.fn.getSystemInfo = function(info){
-        var systemInfo = [];
+        let systemInfo = [];
 
-        for(var i = 0; i < info.length; i++){
+        for(let i = 0; i < info.length; i++){
             switch(info[i]){
                 case 'alias':
                     // get current system alias
-                    var systemHeadNameElement = $(this).find('.' + config.systemHeadNameClass);
-                    var alias = '';
+                    let systemHeadNameElement = $(this).find('.' + config.systemHeadNameClass);
+                    let alias = '';
                     if( systemHeadNameElement.hasClass('editable') ){
                         // xEditable is initiated
                         alias = systemHeadNameElement.editable('getValue', true);
@@ -25799,167 +26383,13 @@ define('app/map/map',[
     };
 
     /**
-     * open "new system" dialog and add the system to map
-     * optional the new system is connected to a "sourceSystem" (if available)
-     *
-     * @param map
-     * @param options
-     */
-    var showNewSystemDialog = function(map, options){
-        var mapContainer = $(map.getContainer());
-
-        // format system status for form select -------------------------------------------------------------
-        var systemStatus = {};
-        // "default" selection (id = 0) prevents status from being overwritten
-        // -> e.g. keep status information if system was just inactive (active = 0)
-        systemStatus[0] = 'default';
-
-        $.each(Init.systemStatus, function(status, statusData){
-            systemStatus[statusData.id] = statusData.label;
-        });
-
-        // default system status -> first status entry
-        var defaultSystemStatus = 0;
-
-        // get current map data -> disable systems that are already on it -----------------------------------
-        var mapData = mapContainer.getMapDataFromClient({forceData: true});
-        var mapSystems = mapData.data.systems;
-        var mapSystemIds = [];
-        for(let i = 0; i < mapSystems.length; i++ ){
-            mapSystemIds.push( mapSystems[i].systemId );
-        }
-
-        // dialog data --------------------------------------------------------------------------------------
-        var data = {
-            id: config.systemDialogId,
-            selectClass: config.systemDialogSelectClass
-        };
-
-        // set current position as "default" system to add --------------------------------------------------
-        var currentCharacterLog = Util.getCurrentCharacterLog();
-
-        if(
-            currentCharacterLog !== false &&
-            mapSystemIds.indexOf( currentCharacterLog.system.id ) === -1
-        ){
-            // current system is NOT already on this map
-            // set current position as "default" system to add
-            data.currentSystem = currentCharacterLog.system;
-        }
-
-        requirejs(['text!templates/dialog/system.html', 'mustache'], function(template, Mustache) {
-
-            var content = Mustache.render(template, data);
-
-            var systemDialog = bootbox.dialog({
-                title: 'Add new system',
-                message: content,
-                buttons: {
-                    close: {
-                        label: 'cancel',
-                        className: 'btn-default'
-                    },
-                    success: {
-                        label: '<i class="fa fa-fw fa-check"></i> save',
-                        className: 'btn-success',
-                        callback: function (e) {
-                            // get form Values
-                            var form = $('#' + config.systemDialogId).find('form');
-
-                            var systemDialogData = $(form).getFormValues();
-
-                            // validate form
-                            form.validator('validate');
-
-                            // check whether the form is valid
-                            var formValid = form.isValidForm();
-
-                            if(formValid === false){
-                                // don't close dialog
-                                return false;
-                            }
-
-                            mapContainer.getMapOverlay('timer').startMapUpdateCounter();
-
-                            // calculate new system position ------------------------------------------------
-                            var newPosition = {
-                                x: 0,
-                                y: 0
-                            };
-
-                            var sourceSystem = null;
-
-                            // add new position
-                            if(options.sourceSystem !== undefined){
-
-                                sourceSystem = options.sourceSystem;
-
-                                // get new position
-                                newPosition = calculateNewSystemPosition(sourceSystem);
-                            }else{
-                                // check mouse cursor position (add system to map)
-                                newPosition = {
-                                    x: options.position.x,
-                                    y: options.position.y
-                                };
-                            }
-
-                            systemDialogData.position = newPosition;
-
-                            // ------------------------------------------------------------------------------
-
-                            var requestData = {
-                                systemData: systemDialogData,
-                                mapData: {
-                                    id: mapContainer.data('id')
-                                }
-                            };
-
-                            saveSystem(map, requestData, sourceSystem, function(){
-                                bootbox.hideAll();
-                            });
-                            return false;
-                        }
-                    }
-                }
-            });
-
-            // init dialog
-            systemDialog.on('shown.bs.modal', function(e) {
-
-                var modalContent = $('#' + config.systemDialogId);
-
-                // init system select live search  - some delay until modal transition has finished
-                var selectElement = modalContent.find('.' + config.systemDialogSelectClass);
-                selectElement.delay(240).initSystemSelect({
-                    key: 'systemId',
-                    disabledOptions: mapSystemIds
-                });
-            });
-
-            // init system status select
-            var modalFields = $('.bootbox .modal-dialog').find('.pf-editable-system-status');
-
-            modalFields.editable({
-                mode: 'inline',
-                emptytext: 'unknown',
-                onblur: 'submit',
-                showbuttons: false,
-                source: systemStatus,
-                value: defaultSystemStatus,
-                inputclass: config.systemDialogSelectClass
-            });
-        });
-    };
-
-    /**
      * save a new system and add it to the map
      * @param map
      * @param requestData
      * @param sourceSystem
      * @param callback
      */
-    var saveSystem = function(map, requestData, sourceSystem, callback){
+    let saveSystem = function(map, requestData, sourceSystem, callback){
         $.ajax({
             type: 'POST',
             url: Init.path.saveSystem,
@@ -25970,11 +26400,10 @@ define('app/map/map',[
                 sourceSystem: sourceSystem
             }
         }).done(function(newSystemData){
+            Util.showNotify({title: 'New system', text: newSystemData.name, type: 'success'});
 
             // draw new system to map
             drawSystem(this.map, newSystemData, this.sourceSystem);
-
-            Util.showNotify({title: 'New system', text: newSystemData.name, type: 'success'});
 
             // re/arrange systems (prevent overlapping)
             MagnetizerWrapper.setElements(this.map);
@@ -25983,7 +26412,7 @@ define('app/map/map',[
                 callback();
             }
         }).fail(function( jqXHR, status, error) {
-            var reason = status + ' ' + error;
+            let reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': saveSystem', text: reason, type: 'warning'});
             $(document).setProgramStatus('problem');
         });
@@ -25994,17 +26423,17 @@ define('app/map/map',[
      * @param sourceSystem
      * @returns {{x: *, y: *}}
      */
-    var calculateNewSystemPosition = function(sourceSystem){
+    let calculateNewSystemPosition = function(sourceSystem){
 
         // related system is available
-        var currentX = sourceSystem.css('left');
-        var currentY = sourceSystem.css('top');
+        let currentX = sourceSystem.css('left');
+        let currentY = sourceSystem.css('top');
 
         // remove "px"
         currentX = parseInt( currentX.substring(0, currentX.length - 2) );
         currentY = parseInt( currentY.substring(0, currentY.length - 2) );
 
-        var newPosition = {
+        let newPosition = {
             x: currentX + config.newSystemOffset.x,
             y: currentY + config.newSystemOffset.y
         };
@@ -26020,12 +26449,12 @@ define('app/map/map',[
      */
     $.fn.updateUserData = function(userData){
 
-        var returnStatus = true;
+        let returnStatus = true;
 
         // get new map instance or load existing
-        var map = getMapInstance(userData.config.id);
+        let map = getMapInstance(userData.config.id);
 
-        var mapElement = map.getContainer();
+        let mapElement = map.getContainer();
 
         // container must exist! otherwise systems can not be updated
         if(mapElement !== undefined){
@@ -26033,8 +26462,8 @@ define('app/map/map',[
             mapElement = $(mapElement);
 
             // get current character log data
-            var characterLogExists = false;
-            var currentCharacterLog = Util.getCurrentCharacterLog();
+            let characterLogExists = false;
+            let currentCharacterLog = Util.getCurrentCharacterLog();
 
             // check if map is frozen
             if(mapElement.data('frozen') === true){
@@ -26042,7 +26471,7 @@ define('app/map/map',[
             }
 
             // data for header update
-            var headerUpdateData = {
+            let headerUpdateData = {
                 mapId: userData.config.id,
                 userCount: 0                        // active user in a map
             };
@@ -26056,28 +26485,28 @@ define('app/map/map',[
             }
 
             // check if current user was found on the map
-            var currentUserOnMap = false;
+            let currentUserOnMap = false;
 
             // get all systems
-            var systems = mapElement.find('.' + config.systemClass);
+            let systems = mapElement.find('.' + config.systemClass);
 
-            for(var i = 0; i < systems.length; i++){
+            for(let i = 0; i < systems.length; i++){
                 // get user Data for System
 
-                var system = $( systems[i] );
+                let system = $( systems[i] );
 
-                var systemId = $(system).data('systemId');
+                let systemId = $(system).data('systemId');
 
-                var tempUserData = null;
+                let tempUserData = null;
 
                 // check if user is currently in "this" system
-                var currentUserIsHere = false;
+                let currentUserIsHere = false;
 
-                var j = userData.data.systems.length;
+                let j = userData.data.systems.length;
 
                 // search backwards to avoid decrement the counter after splice()
                 while (j--) {
-                    var systemData = userData.data.systems[j];
+                    let systemData = userData.data.systems[j];
 
                     // check if any user is in this system
                     if (systemId === systemData.id) {
@@ -26122,17 +26551,17 @@ define('app/map/map',[
      * @returns {*}
      */
     $.fn.getMapDataFromClient = function(options){
-        var mapElement = $(this);
+        let mapElement = $(this);
 
-        var map = getMapInstance( mapElement.data('id') );
+        let map = getMapInstance( mapElement.data('id') );
 
-        var mapData = {};
+        let mapData = {};
 
         // check if there is an active map counter that prevents collecting map data
-        var overlay = mapElement.getMapOverlay('timer');
-        var counterChart = overlay.getMapCounter();
+        let overlay = mapElement.getMapOverlay('timer');
+        let counterChart = overlay.getMapCounter();
 
-        var interval = counterChart.data('interval');
+        let interval = counterChart.data('interval');
 
         if(
             ! interval ||
@@ -26155,17 +26584,17 @@ define('app/map/map',[
             };
 
             // map data -------------------------------------------------------------------------------------
-            var data = {};
+            let data = {};
 
             // systems data ---------------------------------------------------------------------------------
-            var systemsData = [];
-            var systems = mapElement.getSystems();
+            let systemsData = [];
+            let systems = mapElement.getSystems();
 
-            for(var i = 0; i < systems.length; i++){
-                var tempSystem = $(systems[i]);
+            for(let i = 0; i < systems.length; i++){
+                let tempSystem = $(systems[i]);
 
                 // check if system data should be added
-                var addSystemData = true;
+                let addSystemData = true;
                 if(
                     options.getAll !== true &&
                     options.checkForChange === true &&
@@ -26182,38 +26611,35 @@ define('app/map/map',[
             data.systems = systemsData;
 
             // connections ----------------------------------------------------------------------------------
-            var connections = map.getAllConnections();
-            var connectionsFormatted = [];
-
-            // new connections cache
-            var updatedConnectionCache = {};
+            let connections = map.getAllConnections();
+            let connectionsFormatted = [];
 
             // format connections
-            for(var j = 0; j < connections.length; j++){
-                var tempConnection = connections[j];
+            for(let j = 0; j < connections.length; j++){
+                let tempConnection = connections[j];
+                let connectionData = getDataByConnection(tempConnection);
 
-                // check if connection data should be added
-                var addConnectionData = true;
-                if(
-                    options.getAll !== true &&
-                    options.checkForChange === true &&
-                    !$(tempConnection).hasChanged()
-                ){
-                    addConnectionData = false;
+                // only add valid connections (id is required, this is not the case if connection is new)
+                if(connectionData.id > 0){
+                    // check if connection data should be added
+                    let addConnectionData = true;
+                    if(
+                        options.getAll !== true &&
+                        options.checkForChange === true &&
+                        !$(tempConnection).hasChanged()
+                    ){
+                        addConnectionData = false;
+                    }
+
+
+                    if(addConnectionData){
+                        connectionsFormatted.push( connectionData );
+                    }
+
+                    // add to cache
+                    updateConnectionCache(mapData.config.id, tempConnection);
                 }
-
-                var connectionData = getDataByConnection(tempConnection);
-
-                if(addConnectionData){
-                    connectionsFormatted.push( connectionData );
-                }
-
-                // add to cache
-                updatedConnectionCache[connectionData.id] = tempConnection;
             }
-
-            // overwrite connection cache
-            connectionCache[mapData.config.id] = updatedConnectionCache;
 
             data.connections = connectionsFormatted;
 
@@ -26230,9 +26656,9 @@ define('app/map/map',[
      * @returns {{}}
      */
     $.fn.getSystemData = function(){
-        var system = $(this);
+        let system = $(this);
 
-        var systemData = {};
+        let systemData = {};
         systemData.id = parseInt( system.data('id') );
         systemData.systemId = parseInt( system.data('systemId') );
         systemData.name = system.data('name');
@@ -26265,9 +26691,9 @@ define('app/map/map',[
         systemData.userCount = (system.data('userCount') ? parseInt( system.data('userCount') ) : 0);
 
         // position -----------------------------------------------------------------------------------------
-        var positionData = {};
-        var currentX = system.css('left');
-        var currentY = system.css('top');
+        let positionData = {};
+        let currentX = system.css('left');
+        let currentY = system.css('top');
 
         // remove 'px'
         positionData.x = parseInt( currentX.substring(0, currentX.length - 2) );
@@ -26279,150 +26705,13 @@ define('app/map/map',[
     };
 
     /**
-     * get all relevant data for a connection object
-     * @param connection
-     * @returns {{id: Number, source: Number, sourceName: (*|T|JQuery|{}), target: Number, targetName: (*|T|JQuery), scope: *, type: *, updated: Number}}
-     */
-    var getDataByConnection = function(connection){
-
-        var source = $(connection.source);
-        var target = $(connection.target);
-
-        var id = connection.getParameter('connectionId');
-        var updated = connection.getParameter('updated');
-
-        var connectionTypes = connection.getType();
-
-        // normalize connection array
-        connectionTypes = $.grep(connectionTypes, function(n){
-            // 'default' is added by jsPlumb by default -_-
-            return ( n.length > 0 && n !== 'default');
-        });
-
-        var data = {
-            id: id ? id : 0,
-            source: parseInt( source.data('id') ),
-            sourceName: source.data('name'),
-            target: parseInt( target.data('id') ),
-            targetName: target.data('name'),
-            scope: connection.scope,
-            type: connectionTypes,
-            updated: updated ? updated : 0
-        };
-
-        return data;
-    };
-
-    /**
      * removes a map instance from local cache
      * @param mapId
      */
-    var clearMapInstance = function(mapId){
+    let clearMapInstance = function(mapId){
         if(typeof activeInstances[mapId] === 'object'){
             delete activeInstances[mapId];
         }
-    };
-
-    /**
-     * get a new jsPlumb map instance or or get a cached one for update
-     * @param mapId
-     * @returns {*}
-     */
-    var getMapInstance = function(mapId){
-
-        if(typeof activeInstances[mapId] !== 'object'){
-            // create new instance
-            jsPlumb.Defaults.LogEnabled = true;
-
-            var newJsPlumbInstance =  jsPlumb.getInstance({
-                Anchor: 'Continuous',                                               // anchors on each site
-                Container: null,                                                    // will be set as soon as container is connected to DOM
-                PaintStyle: {
-                    lineWidth: 4,                                                   // width of a Connector's line. An integer.
-                    strokeStyle: 'red',                                             // color for a Connector
-                    outlineColor: 'red',                                            // color of the outline for an Endpoint or Connector. see fillStyle examples.
-                    outlineWidth: 2                                                 // width of the outline for an Endpoint or Connector. An integer.
-                },
-                Connector: [ 'Bezier', { curviness: 40 } ],                         // default connector style (this is not used!) all connections have their own style (by scope)
-                Endpoint: [ 'Dot', { radius: 5 } ],
-                ReattachConnections: false,                                         // re-attach connection if dragged with mouse to "nowhere"
-                Scope: Init.defaultMapScope,                                        // default map scope for connections
-                LogEnabled: true
-            });
-
-            // register all available connection types ------------------------------------------------------
-            newJsPlumbInstance.registerConnectionTypes(globalMapConfig.connectionTypes);
-
-            // event after a new connection is established --------------------------
-            newJsPlumbInstance.bind('connection', function(info, e) {
-                // set connection observer
-                setConnectionObserver(newJsPlumbInstance, info.connection);
-            });
-
-            // event after connection moved -----------------------------------------------------------------
-            newJsPlumbInstance.bind('connectionMoved', function(info, e) {
-
-            });
-
-            // event after DragStop a connection or new connection ------------------------------------------
-            newJsPlumbInstance.bind('beforeDrop', function(info) {
-                var connection = info.connection;
-
-                // lock the target system for "click" events
-                // to prevent loading system information
-                var sourceSystem = $('#' + info.sourceId);
-                var targetSystem = $('#' + info.targetId);
-                sourceSystem.addClass('no-click');
-                targetSystem.addClass('no-click');
-                setTimeout(function(){
-                    sourceSystem.removeClass('no-click');
-                    targetSystem.removeClass('no-click');
-                }, Init.timer.DBL_CLICK + 50);
-
-                // set "default" connection status only for NEW connections
-                if(!connection.suspendedElement){
-                    MapUtil.setConnectionWHStatus(connection, MapUtil.getDefaultConnectionTypeByScope(connection.scope) );
-                }
-
-                // prevent multiple connections between same systems
-                var connections = MapUtil.checkForConnection(newJsPlumbInstance, info.sourceId, info.targetId );
-
-                if(connections.length > 1){
-                    bootbox.confirm('Connection already exists. Do you really want to add an additional one?', function(result) {
-                        if(!result){
-                            connection._jsPlumb.instance.detach(connection);
-                        }
-                    });
-                }
-
-                // always save the new connection
-                saveConnection(connection);
-
-                return true;
-            });
-
-            // event before Detach connection ---------------------------------------------------------------
-            newJsPlumbInstance.bind('beforeDetach', function(info) {
-                return true;
-            });
-
-            newJsPlumbInstance.bind('connectionDetached', function(info, e){
-                // a connection is manually (drag&drop) detached! otherwise this event should not be send!
-                var connection = info.connection;
-                $().deleteConnections([connection]);
-            });
-
-            newJsPlumbInstance.bind('checkDropAllowed', function(params){
-                // connections can not be attached to foreign endpoints
-                // the only endpoint available is endpoint from where the connection was dragged away (re-attach)
-
-                return true;
-            });
-
-            activeInstances[mapId] = newJsPlumbInstance;
-        }
-
-        return activeInstances[mapId];
     };
 
     /**
@@ -26433,7 +26722,7 @@ define('app/map/map',[
     $.fn.loadMap = function(mapConfig, options){
 
         // parent element where the map will be loaded
-        var parentElement = $(this);
+        let parentElement = $(this);
 
         // add context menus to dom (if not already
         initMapContextMenu();
@@ -26441,7 +26730,7 @@ define('app/map/map',[
         initSystemContextMenu();
 
         // new map init
-        var newMap = false;
+        let newMap = false;
 
         // init jsPlumb
         jsPlumb.ready(function() {
@@ -26455,15 +26744,15 @@ define('app/map/map',[
             }
 
             //  draw/update map initial map and set container
-            var mapContainer = updateMap(parentElement, mapConfig);
+            let mapContainer = updateMap(parentElement, mapConfig);
 
             if(newMap){
                 // init custom scrollbars and add overlay
                 parentElement.initMapScrollbar();
 
                 // show static overlay actions
-                var mapElement = mapConfig.map.getContainer();
-                var mapOverlay = $(mapElement).getMapOverlay('info');
+                let mapElement = mapConfig.map.getContainer();
+                let mapOverlay = $(mapElement).getMapOverlay('info');
                 mapOverlay.updateOverlayIcon('systemRegion', 'show');
 
                 mapOverlay.updateOverlayIcon('systemConnectionTimer', 'show');
@@ -26473,10 +26762,10 @@ define('app/map/map',[
             function switchTabCallback( mapName, mapContainer ){
                 Util.showNotify({title: 'Map initialized', text: mapName  + ' - loaded', type: 'success'});
 
-                var mapWrapper = mapContainer.parents('.' + config.mapWrapperClass);
+                let mapWrapper = mapContainer.parents('.' + config.mapWrapperClass);
 
                 // auto scroll map to previous position -----------------------------------------------------
-                var promiseStore = MapUtil.getLocaleData('map', mapContainer.data('id') );
+                let promiseStore = MapUtil.getLocaleData('map', mapContainer.data('id') );
                 promiseStore.then(function(data) {
                     // This code runs once the value has been loaded
                     // from the offline store.
@@ -26517,13 +26806,13 @@ define('app/map/map',[
      */
     $.fn.initMapScrollbar = function(){
         // get Map Scrollbar
-        var scrollableElement = $(this).find('.' + config.mapWrapperClass);
+        let scrollableElement = $(this).find('.' + config.mapWrapperClass);
 
         scrollableElement.initCustomScrollbar({
             callbacks: {
                 onScroll: function(){
                     // scroll complete
-                    var mapElement = $(this).find('.' + config.mapClass);
+                    let mapElement = $(this).find('.' + config.mapClass);
                     // store new map scrollOffset -> localDB
                     MapUtil.storeLocalData('map', mapElement.data('id'), 'offsetX', Math.abs(this.mcs.left) );
                 },
@@ -26536,7 +26825,7 @@ define('app/map/map',[
                 },
                 whileScrolling:function(){
                     // update scroll position for drag-frame-selection
-                    var mapElement = $(scrollableElement).find('.' + config.mapClass);
+                    let mapElement = $(scrollableElement).find('.' + config.mapClass);
                     $(mapElement).data('scrollLeft', this.mcs.left);
                     $(mapElement).data('scrollTop', this.mcs.top);
                 }
@@ -26564,7 +26853,7 @@ define('app/counter',[
 ], function($, Init, Util) {
     'use strict';
 
-    var config = {
+    let config = {
       counterDigitSmallClass: 'pf-digit-counter-small',
       counterDigitLargeClass: 'pf-digit-counter-large'
     };
@@ -26574,13 +26863,13 @@ define('app/counter',[
      * @param element
      * @param tempDate
      */
-    var updateDateDiff = function(element, tempDate){
-        var diff = Util.getTimeDiffParts(tempDate, new Date());
-        var days = diff.days;
-        var hrs = diff.hours;
-        var min = diff.min;
-        var leftSec = diff.sec;
-        var value = [];
+    let updateDateDiff = function(element, tempDate){
+        let diff = Util.getTimeDiffParts(tempDate, new Date());
+        let days = diff.days;
+        let hrs = diff.hours;
+        let min = diff.min;
+        let leftSec = diff.sec;
+        let value = [];
 
         if(
             days > 0 ||
@@ -26617,19 +26906,22 @@ define('app/counter',[
      */
     $.fn.initTimestampCounter = function(){
         return this.each(function(){
-            var element = $(this);
-            var timestamp = parseInt( element.text() );
+            let element = $(this);
+            let timestamp = parseInt( element.text() );
 
             // do not init twice
             if(timestamp > 0){
                 // mark as init
                 element.attr('data-counter', 'init');
 
-                var date = new Date( timestamp * 1000);
+                let date = new Date( timestamp * 1000);
 
                 updateDateDiff(element, date);
 
-                var refreshIntervalId = window.setInterval(function(){
+                // show element (if invisible) after first update
+                element.css({'visibility': 'initial'});
+
+                let refreshIntervalId = window.setInterval(function(){
 
                     // update element with current time
                     if( !element.hasClass('stopCounter')){
@@ -27455,7 +27747,7 @@ define('app/ui/system_signature',[
 ], function($, Init, Util, Render, bootbox) {
     'use strict';
 
-    var config = {
+    let config = {
         // module info
         moduleClass: 'pf-module',                                               // class for each module
 
@@ -27499,16 +27791,16 @@ define('app/ui/system_signature',[
     };
 
     // lock Signature Table update temporary (until. some requests/animations) are finished
-    var disableTableUpdate = true;
+    let disableTableUpdate = true;
 
     // disable "copy&paste" from clipboard (until  request finished)
-    var disableCopyFromClipboard = false;
+    let disableCopyFromClipboard = false;
 
     // cache for dataTable object
-    var signatureTable = null;
+    let signatureTable = null;
 
     // empty signatureData object -> for "add row" table
-    var emptySignatureData = {
+    let emptySignatureData = {
         id: 0,
         name: '',
         groupId: 0,
@@ -27522,20 +27814,20 @@ define('app/ui/system_signature',[
         }
     };
 
-    var fullSignatureOptions = {
+    let fullSignatureOptions = {
         action: 'delete',
         actionClass: ['fa-close', 'txt-color', 'txt-color-redDarker'].join(' ')
     };
 
     // empty signatureData row Options
-    var emptySignatureOptions = {
+    let emptySignatureOptions = {
         action: 'add',
         actionClass: ['fa-plus'].join(' ')
     };
 
-    var sigNameCache = {};                                                      // cache signature names
+    let sigNameCache = {};                                                      // cache signature names
 
-    var validSignatureNames = [                                                 // allowed signature type/names
+    let validSignatureNames = [                                                 // allowed signature type/names
         'Cosmic Anomaly',
         'Cosmic Signature',
         'Космическая аномалия',                                                 // == "Cosmic Anomaly"
@@ -27543,29 +27835,29 @@ define('app/ui/system_signature',[
     ];
 
     // some static signature data
-    var signatureGroupsLabels   = Util.getSignatureGroupInfo('label');
-    var signatureGroupsNames    = Util.getSignatureGroupInfo('name');
+    let signatureGroupsLabels   = Util.getSignatureGroupInfo('label');
+    let signatureGroupsNames    = Util.getSignatureGroupInfo('name');
 
     /**
      * collect all data of all editable fields in a signature table
      * @returns {Array}
      */
-    var getSignatureTableData = function(){
-        var signatureTableApi = signatureTable.api();
-        var tableData = [];
+    let getSignatureTableData = function(){
+        let signatureTableApi = signatureTable.api();
+        let tableData = [];
 
         signatureTableApi.rows().eq(0).each(function(idx){
-            var row = signatureTableApi.row(idx);
+            let row = signatureTableApi.row(idx);
             // default row data
-            var defaultRowData = row.data();
-            var rowElement = row.nodes().to$();
+            let defaultRowData = row.data();
+            let rowElement = row.nodes().to$();
 
             if(defaultRowData.id > 0){
                 // get all editable fields per row
-                var editableFields = rowElement.find('.editable');
+                let editableFields = rowElement.find('.editable');
 
                 if(editableFields.length > 0){
-                    var values = $(editableFields).editable('getValue');
+                    let values = $(editableFields).editable('getValue');
 
                     if(values.name){
                         // convert to lower for better compare options
@@ -27595,13 +27887,13 @@ define('app/ui/system_signature',[
      * @param cellIndex
      * @param data
      */
-    var updateSignatureCell = function(rowElement, cellIndex, data){
+    let updateSignatureCell = function(rowElement, cellIndex, data){
 
-        var signatureTableApi = signatureTable.api();
-        var rowIndex = signatureTableApi.row( rowElement ).index();
+        let signatureTableApi = signatureTable.api();
+        let rowIndex = signatureTableApi.row( rowElement ).index();
 
-        var updateCell = signatureTableApi.cell( rowIndex, cellIndex );
-        var updateCellElement = updateCell.nodes().to$();
+        let updateCell = signatureTableApi.cell( rowIndex, cellIndex );
+        let updateCellElement = updateCell.nodes().to$();
 
         if(cellIndex === 6){
             // clear existing counter interval
@@ -27631,37 +27923,36 @@ define('app/ui/system_signature',[
         }
 
         // clone signature array because of further manipulation
-        var signatureData = $.extend([], signatureDataOrig);
+        let signatureData = $.extend([], signatureDataOrig);
 
         // disable update until function is ready;
         lockSignatureTable();
 
-        var moduleElement = $(this);
+        let moduleElement = $(this);
 
         // get signature table API
-        var signatureTableApi = signatureTable.api();
+        let signatureTableApi = signatureTable.api();
 
         // get current system data
-        var currentSystemData = Util.getCurrentSystemData();
+        let currentSystemData = Util.getCurrentSystemData();
 
 
-        var tableData = getSignatureTableData();
+        let tableData = getSignatureTableData();
 
-        var notificationCounter = {
+        let notificationCounter = {
             added: 0,
             changed: 0,
             deleted: 0
         };
 
-        for(var i = 0; i < signatureData.length; i++){
-            for(var j = 0; j < tableData.length; j++){
+        for(let i = 0; i < signatureData.length; i++){
+            for(let j = 0; j < tableData.length; j++){
                 if(signatureData[i].id === tableData[j].id){
 
                     // check if row was updated
                     if(signatureData[i].updated.updated > tableData[j].updated.updated){
-
                         // row element to remove
-                        var currentRowElement = signatureTableApi.row(tableData[j].index).nodes().to$();
+                        let currentRowElement = signatureTableApi.row(tableData[j].index).nodes().to$();
 
                         // hide open editable fields on the row before removing them
                         currentRowElement.find('.editable').editable('destroy');
@@ -27670,7 +27961,7 @@ define('app/ui/system_signature',[
                         signatureTableApi.row(currentRowElement).remove().draw();
 
                         // and add "new" row
-                        var changedRowElement = addSignatureRow(currentSystemData.systemData, signatureData[i], false);
+                        let changedRowElement = addSignatureRow(currentSystemData.systemData, signatureData[i], false);
 
                         // highlight
                         changedRowElement.pulseTableRow('changed');
@@ -27695,7 +27986,7 @@ define('app/ui/system_signature',[
         if(deleteOutdatedSignatures === true){
 
             // callback function after row deleted
-            var toggleTableRowCallback = function(tempRowElement){
+            let toggleTableRowCallback = function(tempRowElement){
                 // hide open editable fields on the row before removing them
                 tempRowElement.find('.editable').editable('destroy');
 
@@ -27703,17 +27994,17 @@ define('app/ui/system_signature',[
                 signatureTableApi.row(tempRowElement).remove().draw();
             };
 
-            for(var l = 0; l < tableData.length; l++){
-                var rowElement = signatureTableApi.row(tableData[l].index).nodes().to$();
+            for(let l = 0; l < tableData.length; l++){
+                let rowElement = signatureTableApi.row(tableData[l].index).nodes().to$();
                 rowElement.toggleTableRow(toggleTableRowCallback);
                 notificationCounter.deleted++;
             }
         }
 
         // add new signatures -----------------------------------------------------------------------------------------
-        for(var k = 0; k < signatureData.length; k++){
+        for(let k = 0; k < signatureData.length; k++){
             // and add "new" row
-            var newRowElement = addSignatureRow(currentSystemData.systemData, signatureData[k], false);
+            let newRowElement = addSignatureRow(currentSystemData.systemData, signatureData[k], false);
 
             // highlight
             newRowElement.pulseTableRow('added');
@@ -27732,7 +28023,7 @@ define('app/ui/system_signature',[
             moduleElement.updateScannedSignaturesBar({showNotice: true});
 
             // show Notification
-            var notification = notificationCounter.added + ' added<br>';
+            let notification = notificationCounter.added + ' added<br>';
             notification += notificationCounter.changed + ' changed<br>';
             notification += notificationCounter.deleted + ' deleted<br>';
             Util.showNotify({title: 'Signatures updated', text: notification, type: 'success'});
@@ -27748,7 +28039,7 @@ define('app/ui/system_signature',[
     /**
      * lock system signature table for
      */
-    var lockSignatureTable = function(){
+    let lockSignatureTable = function(){
         disableTableUpdate = true;
     };
 
@@ -27757,7 +28048,7 @@ define('app/ui/system_signature',[
      * -> make table "update-able" again
      * @param instant
      */
-    var unlockSignatureTable = function(instant){
+    let unlockSignatureTable = function(instant){
         if(disableTableUpdate === true){
             if(instant === true){
                 disableTableUpdate = false;
@@ -27775,25 +28066,27 @@ define('app/ui/system_signature',[
      */
     $.fn.updateScannedSignaturesBar = function(options){
 
-        var moduleElement = $(this);
+        let moduleElement = $(this);
 
         // get progress bar
-        var progressBarWrapper = moduleElement.find('.' + config.signatureScannedProgressBarClass);
-        var progressBar = $(progressBarWrapper).find('.progress-bar');
-        var progressBarLabel = $(progressBarWrapper).find('.progress-label-right');
+        let progressBarWrapper = moduleElement.find('.' + config.signatureScannedProgressBarClass);
+        let progressBar = $(progressBarWrapper).find('.progress-bar');
+        let progressBarLabel = $(progressBarWrapper).find('.progress-label-right');
 
-        var tableData = getSignatureTableData();
+        let tableData = getSignatureTableData();
 
-        var percent = 0;
-        var progressBarType = 'progress-bar-danger';
+        let sigCount = 0;
+        let percent = 0;
+        let sigIncompleteCount = 0;
+        let progressBarType = 'progress-bar-danger';
 
         if(tableData){
-            var sigCount = tableData.length;
-            var sigIncompleteCount = 0;
+            sigCount = tableData.length;
+
             // check for  signatures without "groupId" -> these are un scanned signatures
 
-            for(var i = 0; i < tableData.length; i++){
-                var groupId = parseInt(tableData[i].groupId);
+            for(let i = 0; i < tableData.length; i++){
+                let groupId = parseInt(tableData[i].groupId);
                 if(groupId === 0){
                     sigIncompleteCount++;
                 }
@@ -27819,7 +28112,7 @@ define('app/ui/system_signature',[
                 progressBar.attr('aria-valuenow', percent);
                 progressBar.css({width: percent + '%'});
 
-                var notification = (sigCount - sigIncompleteCount) + ' / ' + sigCount + ' (' + percent + '%) signatures scanned';
+                let notification = (sigCount - sigIncompleteCount) + ' / ' + sigCount + ' (' + percent + '%) signatures scanned';
 
                 // show notifications
                 if(options.showNotice !== false){
@@ -27840,17 +28133,17 @@ define('app/ui/system_signature',[
      */
     $.fn.showSignatureReaderDialog = function(systemData){
 
-        var moduleElement = $(this);
+        let moduleElement = $(this);
 
-        var data = {
+        let data = {
             id: config.signatureReaderDialogId
         };
 
         requirejs(['text!templates/dialog/signature_reader.html', 'mustache'], function(template, Mustache) {
 
-            var content = Mustache.render(template, data);
+            let content = Mustache.render(template, data);
 
-            var signatureReaderDialog = bootbox.dialog({
+            let signatureReaderDialog = bootbox.dialog({
                 title: 'Signature reader',
                 message: content,
                 buttons: {
@@ -27866,10 +28159,10 @@ define('app/ui/system_signature',[
                         className: 'btn-success',
                         callback: function () {
                             // get form Values
-                            var form = $('#' + config.signatureReaderDialogId).find('form');
-                            var formData = $(form).getFormValues();
+                            let form = $('#' + config.signatureReaderDialogId).find('form');
+                            let formData = $(form).getFormValues();
 
-                            var signatureOptions = {
+                            let signatureOptions = {
                                 deleteOld: (formData.deleteOld) ? 1 : 0
                             };
                             moduleElement.updateSignatureTableByClipboard(systemData, formData.clipboard, signatureOptions);
@@ -27898,15 +28191,16 @@ define('app/ui/system_signature',[
      * @param options
      */
     $.fn.updateSignatureTableByClipboard = function(systemData, clipboard, options){
+        let moduleElement = $(this);
 
-        var requestData = function(){
+        let saveSignatureData = function(signatureData){
             // lock update function until request is finished
             lockSignatureTable();
 
             // lock copy during request (prevent spamming (ctrl + c )
             disableCopyFromClipboard = true;
 
-            var requestData = {
+            let requestData = {
                 signatures: signatureData,
                 deleteOld: (options.deleteOld) ? 1 : 0,
                 systemId: parseInt(systemData.id)
@@ -27923,7 +28217,7 @@ define('app/ui/system_signature',[
                 // updates table with new/updated signature information
                 moduleElement.updateSignatureTable(responseData.signatures, false);
             }).fail(function( jqXHR, status, error) {
-                var reason = status + ' ' + error;
+                let reason = status + ' ' + error;
                 Util.showNotify({title: jqXHR.status + ': Update signatures', text: reason, type: 'warning'});
                 $(document).setProgramStatus('problem');
             }).always(function() {
@@ -27934,35 +28228,34 @@ define('app/ui/system_signature',[
 
         // check if copy&paste is enabled
         if( !disableCopyFromClipboard ){
-            var moduleElement = $(this);
 
             // parse input stream
-            var signatureData = parseSignatureString(systemData, clipboard);
+            let signatureData = parseSignatureString(systemData, clipboard);
 
             if(signatureData.length > 0){
                 // valid signature data parsed
 
                 // check if signatures will be added to a system where character is currently in
                 // if user is not in any system -> id === undefined -> no "confirmation required
-                var currentLocationData = Util.getCurrentLocationData();
+                let currentLocationData = Util.getCurrentLocationData();
                 if(
                     currentLocationData.id &&
                     currentLocationData.id !== systemData.id
                 ){
 
-                    var systemNameStr = (systemData.name === systemData.alias) ? '"' + systemData.name + '"' : '"' + systemData.alias + '" (' + systemData.name + ')';
+                    let systemNameStr = (systemData.name === systemData.alias) ? '"' + systemData.name + '"' : '"' + systemData.alias + '" (' + systemData.name + ')';
                     systemNameStr = '<span class="txt-color txt-color-warning">' + systemNameStr + '</span>';
 
-                    var msg = '';
+                    let msg = '';
                     msg += 'Update signatures in ' + systemNameStr + ' ? This not your current location, "' + currentLocationData.name + '" !';
                     bootbox.confirm(msg, function(result) {
                         if(result){
-                            requestData();
+                            saveSignatureData(signatureData);
                         }
                     });
                 }else{
                     // current system selected -> no "confirmation" required
-                    requestData();
+                    saveSignatureData(signatureData);
                 }
             }
         }
@@ -27974,29 +28267,29 @@ define('app/ui/system_signature',[
      * @param clipboard
      * @returns {Array}
      */
-    var parseSignatureString = function(systemData, clipboard){
-        var signatureData = [];
+    let parseSignatureString = function(systemData, clipboard){
+        let signatureData = [];
 
         if(clipboard.length){
-            var signatureRows = clipboard.split(/\r\n|\r|\n/g);
-            var signatureGroupOptions = signatureGroupsNames;
-            var invalidSignatures = 0;
+            let signatureRows = clipboard.split(/\r\n|\r|\n/g);
+            let signatureGroupOptions = signatureGroupsNames;
+            let invalidSignatures = 0;
 
-            for(var i = 0; i < signatureRows.length; i++){
-                var rowData = signatureRows[i].split(/\t/g);
+            for(let i = 0; i < signatureRows.length; i++){
+                let rowData = signatureRows[i].split(/\t/g);
 
                 if(rowData.length === 6){
 
                     // check if sig Type = anomaly or combat site
                     if(validSignatureNames.indexOf( rowData[1] ) !== -1){
 
-                        var sigGroup = $.trim(rowData[2]).toLowerCase();
-                        var sigDescription = $.trim(rowData[3]);
-                        var sigGroupId = 0;
-                        var typeId = 0;
+                        let sigGroup = $.trim(rowData[2]).toLowerCase();
+                        let sigDescription = $.trim(rowData[3]);
+                        let sigGroupId = 0;
+                        let typeId = 0;
 
                         // get groupId by groupName
-                        for (var prop in signatureGroupOptions) {
+                        for (let prop in signatureGroupOptions) {
                             if(signatureGroupOptions.hasOwnProperty(prop)){
                                 if(signatureGroupOptions[prop] === sigGroup){
                                     sigGroupId = parseInt( prop );
@@ -28017,9 +28310,9 @@ define('app/ui/system_signature',[
                         }
 
                         // map array values to signature Object
-                        var signatureObj = {
+                        let signatureObj = {
                             systemId: systemData.id,
-                            name: $.trim( rowData[0].substr(0, 3) ).toLowerCase(),
+                            name: $.trim( rowData[0] ).toLowerCase(),
                             groupId: sigGroupId,
                             typeId: typeId,
                             description: sigDescription
@@ -28035,7 +28328,7 @@ define('app/ui/system_signature',[
             }
 
             if(invalidSignatures > 0){
-                var notification = invalidSignatures + ' / ' + signatureRows.length + ' signatures invalid';
+                let notification = invalidSignatures + ' / ' + signatureRows.length + ' signatures invalid';
                 Util.showNotify({title: 'Invalid signature(s)', text: notification, type: 'warning'});
             }
         }
@@ -28044,13 +28337,146 @@ define('app/ui/system_signature',[
     };
 
     /**
+     * format signature data array into dataTable structure
+     * @param systemData
+     * @param signatureData
+     * @param options
+     * @returns {Array}
+     */
+    let formatSignatureData = function(systemData, signatureData, options){
+
+        let formattedData = [];
+
+        // security check
+        if(
+            systemData &&
+            systemData.id &&
+            systemData.id > 0
+        ){
+            let systemTypeId = systemData.type.id;
+
+            // areaId is required as a key for signature names
+            // if areaId is 0, no signature data is available for this system
+            let areaId = Util.getAreaIdBySecurity(systemData.security);
+
+            for(let i = 0; i < signatureData.length; i++){
+                let data = signatureData[i];
+
+                let tempData = {};
+
+                // set id ---------------------------------------------------------------------------------------------
+                let sigId = 0;
+                if(data.id > 0){
+                    sigId = data.id;
+                }
+                tempData.id = sigId;
+
+                // set status -----------------------------------------------------------------------------------------
+                let statusClass = '';
+                if(data.updated.character !== undefined){
+                    statusClass = Util.getStatusInfoForCharacter(data.updated.character, 'class');
+                }
+                let status = '<i class="fa fa-fw fa-circle pf-user-status ' + statusClass + '"></i>';
+
+                tempData.status = {
+                    status: status,
+                    status_sort: statusClass
+                };
+
+                // set name -------------------------------------------------------------------------------------------
+                let sigName = '<a href="#" class="' + config.sigTableEditSigNameInput + '" ';
+                if(data.id > 0){
+                    sigName += 'data-pk="' + data.id + '" ';
+                }
+                sigName += '>' + data.name + '</a>';
+
+                tempData.name = {
+                    render: sigName,
+                    name: data.name
+                };
+
+                // set group id ---------------------------------------------------------------------------------------
+                let sigGroup = '<a href="#" class="' + config.sigTableEditSigGroupSelect + '" ';
+                if(data.id > 0){
+                    sigGroup += 'data-pk="' + data.id + '" ';
+                }
+                sigGroup += 'data-systemTypeId="' + systemTypeId + '" ';
+                sigGroup += 'data-areaId="' + areaId + '" ';
+                sigGroup += 'data-value="' + data.groupId + '" ';
+                sigGroup += '></a>';
+
+                tempData.group = {
+                    group: sigGroup,
+                    sort: signatureGroupsLabels[data.groupId],
+                    filter: signatureGroupsLabels[data.groupId]
+                };
+
+                // set type id ----------------------------------------------------------------------------------------
+                let sigType = '<a href="#" class="' + config.sigTableEditSigTypeSelect + '" ';
+                if(data.id > 0){
+                    sigType += 'data-pk="' + data.id + '" ';
+                }
+
+                // set disabled if sig type is not selected
+                if(data.groupId < 1){
+                    sigType += 'data-disabled="1" ';
+                }
+
+                sigType += 'data-systemTypeId="' + systemTypeId + '" ';
+                sigType += 'data-areaId="' + areaId + '" ';
+                sigType += 'data-groupId="' + data.groupId + '" ';
+                sigType += 'data-value="' + data.typeId + '" ';
+                sigType += '></a>';
+
+                tempData.type = sigType;
+
+                // set description ------------------------------------------------------------------------------------
+                let sigDescription = '<a href="#" class="' + config.sigTableEditSigDescriptionTextarea + '" ';
+                if(data.id > 0){
+                    sigDescription += 'data-pk="' + data.id + '" ';
+                }
+                sigDescription += '>' + data.description + '</a>';
+
+                tempData.description = sigDescription;
+
+                // set created ----------------------------------------------------------------------------------------
+                tempData.created = data.created;
+
+                // set updated ----------------------------------------------------------------------------------------
+                tempData.updated = data.updated;
+
+                // info icon ------------------------------------------------------------------------------------------
+                let infoButton = '';
+                if(data.id > 0){
+                    infoButton = '<i class="fa fa-fw fa-question-circle"></i>';
+                }
+                tempData.info = infoButton;
+
+                // action icon ----------------------------------------------------------------------------------------
+
+                let actionButton = '<i class="fa ' + options.actionClass + '"></i>';
+                tempData.action = {
+                    action: options.action,
+                    button: actionButton
+                };
+
+                formattedData.push(tempData);
+
+            }
+
+        }
+
+        return formattedData;
+    };
+
+    /**
      * get a labeled button
      * @param options
      * @returns {*|jQuery}
      */
-    var getLabledButton = function(options){
+    let getLabledButton = function(options){
 
-        var buttonClasses = ['btn', 'btn-sm', 'btn-labeled'];
+        let buttonClasses = ['btn', 'btn-sm', 'btn-labeled'];
 
         switch(options.type){
             case 'default':
@@ -28070,7 +28496,7 @@ define('app/ui/system_signature',[
         }
 
 
-        var buttonElement = $('<button>', {
+        let buttonElement = $('<button>', {
             class: buttonClasses.join(' '),
             type: 'button',
             html: '&nbsp;' + options.label + '&nbsp;&nbsp;'
@@ -28100,15 +28526,81 @@ define('app/ui/system_signature',[
     };
 
     /**
+     * get all rows of a table
+     * @param table
+     * @returns {*}
+     */
+    let getRows = function(table){
+        let tableApi = table.api();
+        let rows = tableApi.rows();
+
+        return rows;
+    };
+
+    /**
+     * get all selected rows of a table
+     * @param table
+     * @returns {*}
+     */
+    let getSelectedRows = function(table){
+        let tableApi = table.api();
+
+        let selectedRows = tableApi.rows('.selected');
+
+        return selectedRows;
+    };
+
+    /**
+     * check the "delete signature" button. show/hide the button if a signature is selected
+     */
+    let checkDeleteSignaturesButton = function(){
+
+        let selectedRows = getSelectedRows(signatureTable);
+        let selectedRowCount = selectedRows.data().length;
+        let clearButton = $('.' + config.sigTableClearButtonClass);
+
+        if(selectedRowCount > 0){
+            let allRows = getRows(signatureTable);
+            let rowCount = allRows.data().length;
+
+            let badgetText = selectedRowCount;
+            if(selectedRowCount >= rowCount){
+                badgetText = 'all';
+            }
+            clearButton.find('.badge').text( badgetText );
+
+            // update clear signatures button text
+            clearButton.velocity('stop');
+
+            if( clearButton.is(':hidden') ){
+                // show button
+                clearButton.velocity('transition.bounceIn', {
+                    duration: 180
+                });
+            }else{
+                // highlight button
+                clearButton.velocity('callout.pulse', {
+                    duration: 240
+                });
+            }
+        }else{
+            // hide button
+            clearButton.velocity('transition.bounceOut', {
+                duration: 180
+            });
+        }
+    };
+
+    /**
      * draw signature table toolbar (add signature button, scan progress bar
      * @param systemData
      */
     $.fn.drawSignatureTableToolbar = function(systemData){
 
-        var moduleElement = $(this);
+        let moduleElement = $(this);
 
         // add toolbar buttons for table ------------------------------------------------------------------------------
-        var tableToolbar = $('<div>', {
+        let tableToolbar = $('<div>', {
             class: config.tableToolsClass
         }).append(
             getLabledButton({
@@ -28117,7 +28609,7 @@ define('app/ui/system_signature',[
                 icon: 'fa-plus',
                 onClick: function(e){
                     // show "add sig" div
-                    var toolsElement = $(e.target).parents('.' + config.moduleClass).find('.' + config.tableToolsActionClass);
+                    let toolsElement = $(e.target).parents('.' + config.moduleClass).find('.' + config.tableToolsActionClass);
 
                     // set toggle animation
                     if(toolsElement.is(':visible')){
@@ -28149,9 +28641,9 @@ define('app/ui/system_signature',[
                 label: 'select all',
                 icon: 'fa-check-square',
                 onClick: function(){
-                    var allRows = getRows(signatureTable);
-                    var selectedRows = getSelectedRows(signatureTable);
-                    var allRowElements = allRows.nodes().to$();
+                    let allRows = getRows(signatureTable);
+                    let selectedRows = getSelectedRows(signatureTable);
+                    let allRowElements = allRows.nodes().to$();
 
                     if(allRows.data().length === selectedRows.data().length){
                         allRowElements.removeClass('selected');
@@ -28175,7 +28667,7 @@ define('app/ui/system_signature',[
                 onClick: function(){
                     // delete all rows
 
-                    var selectedRows = getSelectedRows(signatureTable);
+                    let selectedRows = getSelectedRows(signatureTable);
 
                     bootbox.confirm('Delete ' + selectedRows.data().length + ' signature?', function(result) {
                         if(result){
@@ -28189,12 +28681,12 @@ define('app/ui/system_signature',[
         moduleElement.append(tableToolbar);
 
         // add toolbar action for table -------------------------------------------------------------------------------
-        var tableToolbarAction = $('<div>', {
+        let tableToolbarAction = $('<div>', {
             class: config.tableToolsActionClass
         });
 
         // create "empty table for new signature
-        var table = $('<table>', {
+        let table = $('<table>', {
             class: ['display', 'compact', 'nowrap', config.sigTableClass, config.sigTableSecondaryClass].join(' ')
         });
 
@@ -28202,7 +28694,7 @@ define('app/ui/system_signature',[
 
         tableToolbar.after(tableToolbarAction);
 
-        var signatureData = formatSignatureData(systemData, [emptySignatureData], emptySignatureOptions);
+        let signatureData = formatSignatureData(systemData, [emptySignatureData], emptySignatureOptions);
         table.dataTable( {
             data: signatureData,
             paging: false,
@@ -28214,13 +28706,13 @@ define('app/ui/system_signature',[
         table.makeEditable(systemData);
 
         // scanned signatures progress bar ----------------------------------------------------------------------------
-        var moduleConfig = {
+        let moduleConfig = {
             name: 'form/progress',
             position: tableToolbar,
             link: 'before'
         };
 
-        var moduleData = {
+        let moduleData = {
             label: true,
             wrapperClass: config.signatureScannedProgressBarClass,
             class: ['progress-bar-success'].join(' '),
@@ -28233,28 +28725,40 @@ define('app/ui/system_signature',[
     };
 
     /**
+     * Update/set tooltip for an element
+     * @param element
+     * @param title
+     */
+    let updateTooltip = function(element, title){
+        element = $(element);
+
+        element.attr('data-container', 'body').attr('title', title.toUpperCase()).tooltip('fixTitle')
+            .tooltip('setContent');
+    };
+
+    /**
      * make a table or row editable
      * @param systemData
      */
     $.fn.makeEditable = function(systemData){
 
         // table element OR row element
-        var tableElement = $(this);
+        let tableElement = $(this);
 
         // find editable fields
-        var sigNameFields = tableElement.find('.' + config.sigTableEditSigNameInput);
-        var sigGroupFields = tableElement.find('.' + config.sigTableEditSigGroupSelect);
-        var sigTypeFields = tableElement.find('.' + config.sigTableEditSigTypeSelect);
-        var sigDescriptionFields = tableElement.find('.' + config.sigTableEditSigDescriptionTextarea);
+        let sigNameFields = tableElement.find('.' + config.sigTableEditSigNameInput);
+        let sigGroupFields = tableElement.find('.' + config.sigTableEditSigGroupSelect);
+        let sigTypeFields = tableElement.find('.' + config.sigTableEditSigTypeSelect);
+        let sigDescriptionFields = tableElement.find('.' + config.sigTableEditSigDescriptionTextarea);
 
         // jump to "next" editable field on save
-        var openNextEditDialogOnSave = function(fields){
+        let openNextEditDialogOnSave = function(fields){
             fields.on('save', function(e, a){
 
-                var currentField = $(this);
+                let currentField = $(this);
 
                 setTimeout(function() {
-                    var nextField = getNextEditableField(currentField);
+                    let nextField = getNextEditableField(currentField);
                     nextField.editable('show');
 
                     // update scanning progressbar if sig "type" has changed AND
@@ -28270,8 +28774,8 @@ define('app/ui/system_signature',[
         };
 
         // helper function - get the next editable field in next table column
-        var getNextEditableField = function(field){
-            var nextEditableField = $(field).closest('td').next().find('.editable');
+        let getNextEditableField = function(field){
+            let nextEditableField = $(field).closest('td').next().find('.editable');
             return $(nextEditableField);
         };
 
@@ -28280,7 +28784,7 @@ define('app/ui/system_signature',[
          * @param params
          * @returns {*}
          */
-        var modifyFieldParamsOnSend = function(params){
+        let modifyFieldParamsOnSend = function(params){
             params.systemId = systemData.id;
 
             return params;
@@ -28293,8 +28797,8 @@ define('app/ui/system_signature',[
             mode: 'popup',
             container: 'body',
             error: function(jqXHR, newValue){
-                var reason = '';
-                var status = '';
+                let reason = '';
+                let status = '';
                 if(jqXHR.name){
                     // save error new sig (mass save)
                     reason = jqXHR.name;
@@ -28317,6 +28821,10 @@ define('app/ui/system_signature',[
             title: 'signature id',
             name: 'name',
             emptytext: '? ? ?',
+            display: function(value) {
+                // change display value to first 3 letters
+                $(this).text( $.trim( value.substr(0, 3) ).toLowerCase() );
+            },
             validate: function(value) {
                 if($.trim(value).length < 3) {
                     return 'Id is less than min of "3"';
@@ -28327,9 +28835,13 @@ define('app/ui/system_signature',[
             params: modifyFieldParamsOnSend,
             success: function(response, newValue){
                 if(response){
-                    var signatureTypeField = $(this);
-                    var rowElement = signatureTypeField.parents('tr');
-                    var newRowData = response.signatures[0];
+                    let signatureTypeField = $(this);
+                    let columnElement = signatureTypeField.parents('td');
+                    let rowElement = signatureTypeField.parents('tr');
+                    let newRowData = response.signatures[0];
+
+                    // update column tooltip
+                    updateTooltip(columnElement, newValue);
 
                     // update "updated" cell
                     updateSignatureCell(rowElement, 6, newRowData.updated);
@@ -28349,11 +28861,11 @@ define('app/ui/system_signature',[
             params: modifyFieldParamsOnSend,
             source: function(){
 
-                var signatureGroupField = $(this);
-                var systemTypeId = parseInt( signatureGroupField.attr('data-systemTypeId') );
+                let signatureGroupField = $(this);
+                let systemTypeId = parseInt( signatureGroupField.attr('data-systemTypeId') );
 
                 // get all available Signature Types
-                var availableTypes = signatureGroupsLabels;
+                let availableTypes = signatureGroupsLabels;
 
                 // add empty option
                 availableTypes[0] = '';
@@ -28361,24 +28873,24 @@ define('app/ui/system_signature',[
                 return availableTypes;
             },
             success: function(response, newValue){
-                var signatureTypeField = $(this);
-                var rowElement = signatureTypeField.parents('tr');
+                let signatureTypeField = $(this);
+                let rowElement = signatureTypeField.parents('tr');
                 newValue = parseInt(newValue);
 
                 if(response){
-                    var newRowData = response.signatures[0];
+                    let newRowData = response.signatures[0];
 
                     // update "updated" cell
                     updateSignatureCell(rowElement, 6, newRowData.updated);
                 }
 
                 // find related "type" select (same row) and change options
-                var typeSelect = getNextEditableField(signatureTypeField);
+                let typeSelect = getNextEditableField(signatureTypeField);
 
-                var systemTypeId = parseInt( signatureTypeField.attr('data-systemTypeId') );
-                var areaId = parseInt( signatureTypeField.attr('data-areaid') );
+                let systemTypeId = parseInt( signatureTypeField.attr('data-systemTypeId') );
+                let areaId = parseInt( signatureTypeField.attr('data-areaid') );
 
-                var newSelectOptions = getAllSignatureNames(systemData, systemTypeId, areaId, newValue);
+                let newSelectOptions = getAllSignatureNames(systemData, systemTypeId, areaId, newValue);
                 typeSelect.editable('option', 'source', newSelectOptions);
                 typeSelect.editable('setValue', null);
 
@@ -28397,7 +28909,7 @@ define('app/ui/system_signature',[
         // Select sig type (slave: depends on sig type) ---------------------------------------------------------------
         sigTypeFields.on('init', function(e, editable) {
             // check if there are initial options available
-            var options = editable.input.options.source.bind(e.target)();
+            let options = editable.input.options.source.bind(e.target)();
             if(options.length <= 0){
                 editable.disable();
             }
@@ -28412,20 +28924,20 @@ define('app/ui/system_signature',[
             showbuttons: false,
             params: modifyFieldParamsOnSend,
             source: function(){
-                var signatureTypeField = $(this);
+                let signatureTypeField = $(this);
 
-                var systemTypeId = parseInt( signatureTypeField.attr('data-systemTypeId') );
-                var areaId = parseInt( signatureTypeField.attr('data-areaid') );
-                var groupId = parseInt( signatureTypeField.attr('data-groupId') );
-                var availableSigs = getAllSignatureNames(systemData, systemTypeId, areaId, groupId);
+                let systemTypeId = parseInt( signatureTypeField.attr('data-systemTypeId') );
+                let areaId = parseInt( signatureTypeField.attr('data-areaid') );
+                let groupId = parseInt( signatureTypeField.attr('data-groupId') );
+                let availableSigs = getAllSignatureNames(systemData, systemTypeId, areaId, groupId);
 
                 return availableSigs;
             },
             success: function(response, newValue){
                 if(response){
-                    var signatureTypeField = $(this);
-                    var rowElement = signatureTypeField.parents('tr');
-                    var newRowData = response.signatures[0];
+                    let signatureTypeField = $(this);
+                    let rowElement = signatureTypeField.parents('tr');
+                    let newRowData = response.signatures[0];
 
                     // update "updated" cell
                     updateSignatureCell(rowElement, 6, newRowData.updated);
@@ -28446,9 +28958,9 @@ define('app/ui/system_signature',[
             params: modifyFieldParamsOnSend,
             success: function(response, newValue){
                 if(response){
-                    var signatureTypeField = $(this);
-                    var rowElement = signatureTypeField.parents('tr');
-                    var newRowData = response.signatures[0];
+                    let signatureTypeField = $(this);
+                    let rowElement = signatureTypeField.parents('tr');
+                    let newRowData = response.signatures[0];
 
                     // update "updated" cell
                     updateSignatureCell(rowElement, 6, newRowData.updated);
@@ -28481,10 +28993,10 @@ define('app/ui/system_signature',[
      * @param groupId
      * @returns {Array}
      */
-    var getAllSignatureNames = function(systemData, systemTypeId, areaId, groupId){
-        var newSelectOptions = [];
-        var cacheKey = [systemTypeId, areaId, groupId].join('_');
-        var newSelectOptionsCount = 0;
+    let getAllSignatureNames = function(systemData, systemTypeId, areaId, groupId){
+        let newSelectOptions = [];
+        let cacheKey = [systemTypeId, areaId, groupId].join('_');
+        let newSelectOptionsCount = 0;
 
         // check for cached signature names
         if(sigNameCache.hasOwnProperty( cacheKey )){
@@ -28494,12 +29006,12 @@ define('app/ui/system_signature',[
         }else{
             // get new Options ----------
             // get all possible "static" signature names by the selected groupId
-            var tempSelectOptions = Util.getAllSignatureNames(systemTypeId, areaId, groupId);
+            let tempSelectOptions = Util.getAllSignatureNames(systemTypeId, areaId, groupId);
 
             // format options into array with objects advantages: keep order, add more options (whs), use optgroup
             if(tempSelectOptions){
-                var fixSelectOptions = [];
-                for (var key in tempSelectOptions) {
+                let fixSelectOptions = [];
+                for (let key in tempSelectOptions) {
                     if (
                         key > 0 &&
                         tempSelectOptions.hasOwnProperty(key)
@@ -28523,9 +29035,9 @@ define('app/ui/system_signature',[
             if( groupId === 5 ){
 
                 // add possible frigate holes
-                var frigateHoles = getFrigateHolesBySystem(areaId);
-                var frigateWHData = [];
-                for(var frigKey in frigateHoles){
+                let frigateHoles = getFrigateHolesBySystem(areaId);
+                let frigateWHData = [];
+                for(let frigKey in frigateHoles){
                     if (
                         frigKey > 0 &&
                         frigateHoles.hasOwnProperty(frigKey)
@@ -28540,8 +29052,8 @@ define('app/ui/system_signature',[
                 }
 
                 // add possible incoming holes
-                var incomingWHData = [];
-                for(var incomingKey in Init.incomingWormholes){
+                let incomingWHData = [];
+                for(let incomingKey in Init.incomingWormholes){
                     if (
                         incomingKey > 0 &&
                         Init.incomingWormholes.hasOwnProperty(incomingKey)
@@ -28568,9 +29080,9 @@ define('app/ui/system_signature',[
         if( groupId === 5 ){
             // add static WH(s) for this system
             if(systemData.statics){
-                var staticWHData = [];
-                for(var i = 0; i < systemData.statics.length; i++){
-                    var staticWHName = systemData.statics[i].name + ' - ' + systemData.statics[i].security;
+                let staticWHData = [];
+                for(let i = 0; i < systemData.statics.length; i++){
+                    let staticWHName = systemData.statics[i].name + ' - ' + systemData.statics[i].security;
 
                     newSelectOptionsCount++;
                     staticWHData.push( {value: newSelectOptionsCount, text: staticWHName} );
@@ -28608,10 +29120,10 @@ define('app/ui/system_signature',[
      * @param obj
      * @returns {number}
      */
-    var sumSignaturesRecursive = function(key, obj){
-        var sum = 0;
+    let sumSignaturesRecursive = function(key, obj){
+        let sum = 0;
 
-        for (var prop in obj) {
+        for (let prop in obj) {
             if (obj.hasOwnProperty(prop) && key === prop) {
                 sum += obj[prop].length;
             }
@@ -28629,8 +29141,8 @@ define('app/ui/system_signature',[
      * @param systemTypeId
      * @returns {{}}
      */
-    var getFrigateHolesBySystem = function(systemTypeId){
-        var signatureNames = {};
+    let getFrigateHolesBySystem = function(systemTypeId){
+        let signatureNames = {};
 
         if(Init.frigateWormholes[systemTypeId]){
             signatureNames =  Init.frigateWormholes[systemTypeId];
@@ -28643,27 +29155,27 @@ define('app/ui/system_signature',[
      * deletes signature rows from signature table
      * @param rows
      */
-    var deleteSignatures = function(rows){
+    let deleteSignatures = function(rows){
 
-        var deletedSignatures = 0;
+        let deletedSignatures = 0;
 
-        var moduleElement = $('.' + config.systemSigModuleClass);
-        var data = rows.data();
-        var signatureTableApi = signatureTable.api();
-        var rowElements = rows.nodes().to$();
-        var signatureCount = data.length;
+        let moduleElement = $('.' + config.systemSigModuleClass);
+        let data = rows.data();
+        let signatureTableApi = signatureTable.api();
+        let rowElements = rows.nodes().to$();
+        let signatureCount = data.length;
 
-        var signatureIds = [];
-        for(var i = 0; i < data.length; i++){
+        let signatureIds = [];
+        for(let i = 0; i < data.length; i++){
             signatureIds.push(data[i].id);
         }
 
-        var requestData = {
+        let requestData = {
             signatureIds: signatureIds
         };
 
         // animation callback function
-        var removeCallback = function(rowElement){
+        let removeCallback = function(rowElement){
             // delete signature row
             signatureTableApi.row(rowElement).remove().draw();
 
@@ -28686,13 +29198,13 @@ define('app/ui/system_signature',[
             dataType: 'json'
         }).done(function(data){
 
-            for(var j = 0; j < rowElements.length; j++){
+            for(let j = 0; j < rowElements.length; j++){
                 // removeRow
                 $(rowElements[j]).toggleTableRow(removeCallback);
             }
 
         }).fail(function( jqXHR, status, error) {
-            var reason = status + ' ' + error;
+            let reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': Delete signature', text: reason, type: 'warning'});
             $(document).setProgramStatus('problem');
         });
@@ -28707,15 +29219,15 @@ define('app/ui/system_signature',[
      * @param animate
      * @returns {*}
      */
-    var addSignatureRow = function(systemData, signatureData, animate){
+    let addSignatureRow = function(systemData, signatureData, animate){
 
-        var newSignatureData = formatSignatureData(systemData, [signatureData], fullSignatureOptions);
+        let newSignatureData = formatSignatureData(systemData, [signatureData], fullSignatureOptions);
 
         // insert new row in main signature table
-        var tablePrimaryElement = $('.' + config.sigTablePrimaryClass);
-        var dataTablePrimary = tablePrimaryElement.DataTable();
-        var newRowNode = dataTablePrimary.row.add(newSignatureData.shift()).draw().nodes();
-        var newRowElement = newRowNode.to$();
+        let tablePrimaryElement = $('.' + config.sigTablePrimaryClass);
+        let dataTablePrimary = tablePrimaryElement.DataTable();
+        let newRowNode = dataTablePrimary.row.add(newSignatureData.shift()).draw().nodes();
+        let newRowElement = newRowNode.to$();
 
         if(animate === true){
             newRowElement.hide();
@@ -28740,11 +29252,10 @@ define('app/ui/system_signature',[
      * @param callback
      */
     $.fn.toggleTableRow = function(callback){
-        var rowElement = $(this);
-        var cellElements = rowElement.children('td');
+        let rowElement = $(this);
+        let cellElements = rowElement.children('td');
 
-        var duration = 100;
-        var tdCounter = 0;
+        let duration = 100;
 
 
         // wrap each <td> into a container (for better animation performance)
@@ -28766,15 +29277,11 @@ define('app/ui/system_signature',[
                 }).velocity('slideUp', {
                     duration: duration,
                     complete: function(animationElements){
-                        tdCounter++;
-                        // execute callback when last <td> animation finished
-                        if(tdCounter === animationElements.length){
-                            // remove wrapper
-                            $(animationElements).children().unwrap();
+                        // remove wrapper
+                        $(animationElements).children().unwrap();
 
-                            if(callback !== undefined){
-                                callback(rowElement);
-                            }
+                        if(callback !== undefined){
+                            callback(rowElement);
                         }
                     }
                 });
@@ -28808,25 +29315,18 @@ define('app/ui/system_signature',[
                         }).velocity('slideDown', {
                             duration: duration,
                             complete: function(animationElements){
-                                tdCounter++;
-                                // execute callback when last <td> animation finished
-                                if(tdCounter === animationElements.length){
-
-                                    // remove wrapper
-                                    var wrapperElements = cellElements.children();
-                                    for(var i = 0; i < wrapperElements.length; i++){
-                                        var currentWrapper = $(wrapperElements[i]);
-                                        if(currentWrapper.children().length > 0){
-                                            currentWrapper.children().unwrap();
-                                        }else{
-                                            currentWrapper.parent().html( currentWrapper.html() );
-                                        }
+                                // remove wrapper
+                                for(let i = 0; i < animationElements.length; i++){
+                                    let currentWrapper = $(animationElements[i]);
+                                    if(currentWrapper.children().length > 0){
+                                        currentWrapper.children().unwrap();
+                                    }else{
+                                        currentWrapper.parent().html( currentWrapper.html() );
                                     }
+                                }
 
-                                    if(callback !== undefined){
-                                        callback(rowElement);
-                                    }
-
+                                if(callback !== undefined){
+                                    callback(rowElement);
                                 }
                             }
                         });
@@ -28842,21 +29342,21 @@ define('app/ui/system_signature',[
      * @returns {*}
      */
     $.fn.drawSignatureTable = function(signatureData, systemData){
-        var moduleElement = $(this);
+        let moduleElement = $(this);
 
         // setup filter select in footer
         // column indexes that need a filter select
-        var filterColumnIndexes = [2];
+        let filterColumnIndexes = [2];
 
         // create new signature table ---------------------------------------------------------------------------------
-        var table = $('<table>', {
+        let table = $('<table>', {
             class: ['display', 'compact', 'nowrap', config.sigTableClass, config.sigTablePrimaryClass].join(' ')
         });
 
         // create table footer ----------------------------------------------------------------------------------------
         // get column count from default dataTable config
-        var columnCount = $.fn.dataTable.defaults.columnDefs.length;
-        var footerHtml = '<tfoot><tr>';
+        let columnCount = $.fn.dataTable.defaults.columnDefs.length;
+        let footerHtml = '<tfoot><tr>';
         for(let i = 0; i < columnCount; i++){
             footerHtml += '<td></td>';
         }
@@ -28865,13 +29365,13 @@ define('app/ui/system_signature',[
 
         moduleElement.append(table);
 
-        var dataTableOptions = {
+        let dataTableOptions = {
             data: signatureData,
             drawCallback: function(settings){
                 this.api().columns(filterColumnIndexes).every(function(){
-                    var column = this;
-                    var footerColumnElement = $(column.footer());
-                    var filterSelect = footerColumnElement.find('.editable');
+                    let column = this;
+                    let footerColumnElement = $(column.footer());
+                    let filterSelect = footerColumnElement.find('.editable');
 
                     // update select values
                     filterSelect.editable('option', 'source', getColumnTableDataForFilter(column));
@@ -28880,9 +29380,9 @@ define('app/ui/system_signature',[
             initComplete: function (settings, json){
 
                 this.api().columns(filterColumnIndexes).every(function(){
-                    var column = this;
-                    var headerLabel = $(column.header()).text();
-                    var selectField = $('<a class="pf-editable ' +
+                    let column = this;
+                    let headerLabel = $(column.header()).text();
+                    let selectField = $('<a class="pf-editable ' +
                         config.moduleIcon + ' ' +
                         config.editableFilterElementClass +
                         '" href="#" data-type="select" data-name="' + headerLabel + '"></a>');
@@ -28900,7 +29400,7 @@ define('app/ui/system_signature',[
                     });
 
                     selectField.on('save', { column: column }, function(e, params) {
-                        var val = $.fn.dataTable.util.escapeRegex( params.newValue );
+                        let val = $.fn.dataTable.util.escapeRegex( params.newValue );
                         e.data.column.search( val !== '0' ? '^' + val + '$' : '', true, false ).draw();
                     });
                 });
@@ -28923,13 +29423,13 @@ define('app/ui/system_signature',[
      * @param column
      * @returns {{}}
      */
-    var getColumnTableDataForFilter = function(column){
+    let getColumnTableDataForFilter = function(column){
         // get all available options from column
-        var source = {};
+        let source = {};
         column.data().unique().sort(function(a,b){
             // sort alphabetically
-            var valA = a.filter.toLowerCase();
-            var valB = b.filter.toLowerCase();
+            let valA = a.filter.toLowerCase();
+            let valB = b.filter.toLowerCase();
 
             if(valA < valB) return -1;
             if(valA > valB) return 1;
@@ -28947,140 +29447,10 @@ define('app/ui/system_signature',[
     };
 
     /**
-     * format signature data array into dataTable structure
-     * @param systemData
-     * @param signatureData
-     * @param options
-     * @returns {Array}
-     */
-    var formatSignatureData = function(systemData, signatureData, options){
-
-        var formattedData = [];
-
-        // security check
-        if(
-            systemData &&
-            systemData.id &&
-            systemData.id > 0
-        ){
-            var systemTypeId = systemData.type.id;
-
-            // areaId is required as a key for signature names
-            // if areaId is 0, no signature data is available for this system
-            var areaId = Util.getAreaIdBySecurity(systemData.security);
-
-            for(var i = 0; i < signatureData.length; i++){
-                var data = signatureData[i];
-
-                var tempData = {};
-
-                // set id ---------------------------------------------------------------------------------------------
-                var sigId = 0;
-                if(data.id > 0){
-                    sigId = data.id;
-                }
-                tempData.id = sigId;
-
-                // set status -----------------------------------------------------------------------------------------
-                var statusClass = '';
-                if(data.updated.character !== undefined){
-                    statusClass = Util.getStatusInfoForCharacter(data.updated.character, 'class');
-                }
-                var status = '<i class="fa fa-fw fa-circle pf-user-status ' + statusClass + '"></i>';
-
-                tempData.status = {
-                    status: status,
-                    status_sort: statusClass
-                };
-
-                // set name -------------------------------------------------------------------------------------------
-                var sigName = '<a href="#" class="' + config.sigTableEditSigNameInput + '" ';
-                if(data.id > 0){
-                    sigName += 'data-pk="' + data.id + '" ';
-                }
-                sigName += '>' + data.name + '</a>';
-
-                tempData.name = sigName;
-
-                // set group id ---------------------------------------------------------------------------------------
-                var sigGroup = '<a href="#" class="' + config.sigTableEditSigGroupSelect + '" ';
-                if(data.id > 0){
-                    sigGroup += 'data-pk="' + data.id + '" ';
-                }
-                sigGroup += 'data-systemTypeId="' + systemTypeId + '" ';
-                sigGroup += 'data-areaId="' + areaId + '" ';
-                sigGroup += 'data-value="' + data.groupId + '" ';
-                sigGroup += '></a>';
-
-                tempData.group = {
-                    group: sigGroup,
-                    sort: signatureGroupsLabels[data.groupId],
-                    filter: signatureGroupsLabels[data.groupId]
-                };
-
-                // set type id ----------------------------------------------------------------------------------------
-                var sigType = '<a href="#" class="' + config.sigTableEditSigTypeSelect + '" ';
-                if(data.id > 0){
-                    sigType += 'data-pk="' + data.id + '" ';
-                }
-
-                // set disabled if sig type is not selected
-                if(data.groupId < 1){
-                    sigType += 'data-disabled="1" ';
-                }
-
-                sigType += 'data-systemTypeId="' + systemTypeId + '" ';
-                sigType += 'data-areaId="' + areaId + '" ';
-                sigType += 'data-groupId="' + data.groupId + '" ';
-                sigType += 'data-value="' + data.typeId + '" ';
-                sigType += '></a>';
-
-                tempData.type = sigType;
-
-                // set description ------------------------------------------------------------------------------------
-                var sigDescription = '<a href="#" class="' + config.sigTableEditSigDescriptionTextarea + '" ';
-                if(data.id > 0){
-                    sigDescription += 'data-pk="' + data.id + '" ';
-                }
-                sigDescription += '>' + data.description + '</a>';
-
-                tempData.description = sigDescription;
-
-                // set created ----------------------------------------------------------------------------------------
-                tempData.created = data.created;
-
-                // set updated ----------------------------------------------------------------------------------------
-                tempData.updated = data.updated;
-
-                // info icon ------------------------------------------------------------------------------------------
-                var infoButton = '';
-                if(data.id > 0){
-                    infoButton = '<i class="fa fa-fw fa-question-circle"></i>';
-                }
-                tempData.info = infoButton;
-
-                // action icon ----------------------------------------------------------------------------------------
-
-                var actionButton = '<i class="fa ' + options.actionClass + '"></i>';
-                tempData.action = {
-                    action: options.action,
-                    button: actionButton
-                };
-
-                formattedData.push(tempData);
-
-            }
-
-        }
-
-        return formattedData;
-    };
-
-    /**
      * setup dataTable options for all signatureTables
      * @param systemData
      */
-    var initSignatureDataTable = function(systemData){
+    let initSignatureDataTable = function(systemData){
 
         $.extend( true, $.fn.dataTable.defaults, {
             pageLength: -1,
@@ -29117,7 +29487,14 @@ define('app/ui/system_signature',[
                     title: 'id',
                     type: 'html',
                     width: '30px',
-                    data: 'name'
+                    data: 'name',
+                    render: {
+                        _: 'render'
+                    },
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                        // update column tooltip
+                        updateTooltip(cell, cellData.name);
+                    }
                 },{
                     targets: 2,
                     orderable: true,
@@ -29175,7 +29552,7 @@ define('app/ui/system_signature',[
                         $(cell).initTimestampCounter();
 
                         // highlight cell
-                        var diff = Math.floor((new Date()).getTime()) - cellData.updated * 1000;
+                        let diff = Math.floor((new Date()).getTime()) - cellData.updated * 1000;
 
                         // age > 1 day
                         if( diff > 86400000){
@@ -29195,7 +29572,7 @@ define('app/ui/system_signature',[
                         if(rowData.id > 0){
 
                             // add row tooltip
-                            var tooltipData = {
+                            let tooltipData = {
                                 created: rowData.created,
                                 updated: rowData.updated
                             };
@@ -29216,15 +29593,15 @@ define('app/ui/system_signature',[
                         sort: 'action'
                     },
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
-                        var tempTableElement = this;
-                        var rowElement = $(cell).parents('tr');
+                        let tempTableElement = this;
+                        let rowElement = $(cell).parents('tr');
 
                         switch(cellData.action){
                             case 'add':
                                 // add new signature ------------------------------------------------------------------
                                 $(cell).on('click', function(e) {
                                     // submit all fields within a table row
-                                    var formFields = rowElement.find('.editable');
+                                    let formFields = rowElement.find('.editable');
 
                                     // the "hide" makes sure to take care about open editable fields (e.g. description)
                                     // otherwise, changes would not be submitted in this field (not necessary)
@@ -29247,17 +29624,17 @@ define('app/ui/system_signature',[
                                         success: function (data, editableConfig) {
                                             unlockSignatureTable(false);
 
-                                            var newRowElement = addSignatureRow(systemData, data.signatures[0], true);
+                                            let newRowElement = addSignatureRow(systemData, data.signatures[0], true);
 
                                             // highlight
                                             newRowElement.pulseTableRow('added');
 
                                             // prepare "add signature" table for new entry -> reset -------------------
-                                            var signatureData = formatSignatureData(systemData, [emptySignatureData], emptySignatureOptions);
+                                            let signatureData = formatSignatureData(systemData, [emptySignatureData], emptySignatureOptions);
 
-                                            var dataSecondaryElement = $('.' + config.sigTableSecondaryClass);
-                                            var dataTableSecondary = dataSecondaryElement.DataTable();
-                                            var newAddRowElement = dataTableSecondary.clear().row.add(signatureData.shift()).draw().nodes();
+                                            let dataSecondaryElement = $('.' + config.sigTableSecondaryClass);
+                                            let dataTableSecondary = dataSecondaryElement.DataTable();
+                                            let newAddRowElement = dataTableSecondary.clear().row.add(signatureData.shift()).draw().nodes();
 
                                             newAddRowElement.to$().makeEditable(systemData);
 
@@ -29272,7 +29649,7 @@ define('app/ui/system_signature',[
                                 break;
                             case 'delete':
                                 // delete signature -------------------------------------------------------------------
-                                var confirmationSettings = {
+                                let confirmationSettings = {
                                     container: 'body',
                                     placement: 'left',
                                     btnCancelClass: 'btn btn-sm btn-default',
@@ -29283,8 +29660,8 @@ define('app/ui/system_signature',[
                                     btnOkLabel: 'delete',
                                     btnOkIcon: 'fa fa-fw fa-close',
                                     onConfirm : function(e, target){
-                                        var deleteRowElement = $(target).parents('tr');
-                                        var row = tempTableElement.DataTable().rows(deleteRowElement);
+                                        let deleteRowElement = $(target).parents('tr');
+                                        let row = tempTableElement.DataTable().rows(deleteRowElement);
                                         deleteSignatures(row);
                                     }
                                 };
@@ -29307,10 +29684,10 @@ define('app/ui/system_signature',[
      * @param moduleElement
      * @param systemData
      */
-    var setModuleObserver = function(moduleElement, systemData){
-        var tablePrimaryElement = $('.' + config.sigTablePrimaryClass);
-        var dataTablePrimary = signatureTable.DataTable();
-        var signatureTableApi = signatureTable.api();
+    let setModuleObserver = function(moduleElement, systemData){
+        let tablePrimaryElement = $('.' + config.sigTablePrimaryClass);
+        let dataTablePrimary = signatureTable.DataTable();
+        let signatureTableApi = signatureTable.api();
 
         $(document).off('pf:updateSystemSignatureModule').on('pf:updateSystemSignatureModule', function(e, data){
             if(data.signatures){
@@ -29343,77 +29720,11 @@ define('app/ui/system_signature',[
                 $(e.target).prop('tagName').toLowerCase() !== 'input' &&
                 $(e.target).prop('tagName').toLowerCase() !== 'textarea'
             ){
-                var clipboard = (e.originalEvent || e).clipboardData.getData('text/plain');
+                let clipboard = (e.originalEvent || e).clipboardData.getData('text/plain');
 
                 moduleElement.updateSignatureTableByClipboard(systemData, clipboard, {});
             }
         });
-    };
-
-    /**
-     * check the "delete signature" button. show/hide the button if a signature is selected
-     */
-    var checkDeleteSignaturesButton = function(){
-
-        var selectedRows = getSelectedRows(signatureTable);
-        var selectedRowCount = selectedRows.data().length;
-        var clearButton = $('.' + config.sigTableClearButtonClass);
-
-        if(selectedRowCount > 0){
-            var allRows = getRows(signatureTable);
-            var rowCount = allRows.data().length;
-
-            var badgetText = selectedRowCount;
-            if(selectedRowCount >= rowCount){
-                badgetText = 'all';
-            }
-            clearButton.find('.badge').text( badgetText );
-
-            // update clear signatures button text
-            clearButton.velocity('stop');
-
-            if( clearButton.is(':hidden') ){
-                // show button
-                clearButton.velocity('transition.bounceIn', {
-                    duration: 180
-                });
-            }else{
-                // highlight button
-                clearButton.velocity('callout.pulse', {
-                    duration: 240
-                });
-            }
-        }else{
-            // hide button
-            clearButton.velocity('transition.bounceOut', {
-                duration: 180
-            });
-        }
-    };
-
-    /**
-     * get all rows of a table
-     * @param table
-     * @returns {*}
-     */
-    var getRows = function(table){
-        var tableApi = table.api();
-        var rows = tableApi.rows();
-
-        return rows;
-    };
-
-    /**
-     * get all selected rows of a table
-     * @param table
-     * @returns {*}
-     */
-    var getSelectedRows = function(table){
-        var tableApi = table.api();
-
-        var selectedRows = tableApi.rows('.selected');
-
-        return selectedRows;
     };
 
     /**
@@ -29422,16 +29733,16 @@ define('app/ui/system_signature',[
      * @param systemData
      * @returns {*|HTMLElement}
      */
-    var getModule = function(parentElement, systemData){
+    let getModule = function(parentElement, systemData){
 
         // create new module container
-        var moduleElement = $('<div>', {
+        let moduleElement = $('<div>', {
             class: [config.moduleClass, config.systemSigModuleClass].join(' '),
             css: {opacity: 0}
         });
 
         // headline
-        var headline = $('<h5>', {
+        let headline = $('<h5>', {
             text: 'Signatures'
         });
 
@@ -29448,7 +29759,7 @@ define('app/ui/system_signature',[
 
         // request signature data for system --------------------------------------------------------------------------
 
-        var requestData = {
+        let requestData = {
             systemIds: [systemData.id]
         };
 
@@ -29462,7 +29773,7 @@ define('app/ui/system_signature',[
             }
         }).done(function(signatureData){
 
-            var signatureTableData = formatSignatureData(this.systemData, signatureData, fullSignatureOptions);
+            let signatureTableData = formatSignatureData(this.systemData, signatureData, fullSignatureOptions);
 
             // draw signature table
             moduleElement.drawSignatureTable(signatureTableData, this.systemData);
@@ -29470,7 +29781,7 @@ define('app/ui/system_signature',[
             // set module observer
             setModuleObserver(moduleElement, this.systemData);
         }).fail(function( jqXHR, status, error) {
-            var reason = status + ' ' + error;
+            let reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': Get signatures', text: reason, type: 'warning'});
             $(document).setProgramStatus('problem');
         });
@@ -29483,10 +29794,10 @@ define('app/ui/system_signature',[
      * @param systemData
      */
     $.fn.drawSignatureTableModule = function(systemData){
-        var parentElement = $(this);
+        let parentElement = $(this);
 
         // show module
-        var showModule = function(moduleElement){
+        let showModule = function(moduleElement){
             if(moduleElement){
                 moduleElement.velocity('transition.slideDownIn', {
                     duration: Init.animationSpeed.mapModule,
@@ -29499,7 +29810,7 @@ define('app/ui/system_signature',[
         };
 
         // some custom array functions
-        var initArrayFunctions = function(){
+        let initArrayFunctions = function(){
             /**
              * sort array of objects by property name
              * @param p
@@ -29513,7 +29824,7 @@ define('app/ui/system_signature',[
         };
 
         // check if module already exists
-        var moduleElement = parentElement.find('.' + config.systemSigModuleClass);
+        let moduleElement = parentElement.find('.' + config.systemSigModuleClass);
 
         if(moduleElement.length > 0){
             // disable update
@@ -29557,7 +29868,7 @@ define('app/ui/system_route',[
 ], function($, Init, Util, bootbox, MapUtil) {
     'use strict';
 
-    var config = {
+    let config = {
         // module info
         moduleClass: 'pf-module',                                               // class for each module
 
@@ -29585,7 +29896,7 @@ define('app/ui/system_route',[
     };
 
     // cache for system routes
-    var cache = {
+    let cache = {
         systemRoutes: {}                                                        // jump information between solar systems
     };
 
@@ -29594,17 +29905,17 @@ define('app/ui/system_route',[
      * @param context
      * @param routesData
      */
-    var callbackAddRouteRow = function(context, routesData){
+    let callbackAddRouteRow = function(context, routesData){
 
         if(routesData.length > 0){
-            for(var i = 0; i < routesData.length; i++){
-                var routeData = routesData[i];
+            for(let i = 0; i < routesData.length; i++){
+                let routeData = routesData[i];
 
                 // format routeData
-                var rowData = formatRouteData(routeData);
+                let rowData = formatRouteData(routeData);
 
                 if(rowData.route){
-                    var cacheKey = routeData.systemFromData.name.toLowerCase() +
+                    let cacheKey = routeData.systemFromData.name.toLowerCase() +
                         '_' + routeData.systemToData.name.toLowerCase();
 
                     // update route cache
@@ -29613,7 +29924,7 @@ define('app/ui/system_route',[
                         updated: Util.getServerTime().getTime() / 1000
                     };
 
-                    var rowElement = addRow(context, rowData);
+                    let rowElement = addRow(context, rowData);
 
                     rowElement.initTooltips({
                         container: 'body'
@@ -29632,15 +29943,15 @@ define('app/ui/system_route',[
      * @param rowData
      * @returns {*}
      */
-    var addRow = function(context, rowData){
-        var dataTable = context.dataTable;
-        var rowElement = null;
-        var row = null;
-        var animationStatus = 'changed';
+    let addRow = function(context, rowData){
+        let dataTable = context.dataTable;
+        let rowElement = null;
+        let row = null;
+        let animationStatus = 'changed';
 
         // search for an existing row (e.g. on mass "table refresh" [all routes])
         // get rowIndex where column 1 (equals to "systemToData.name") matches rowData.systemToData.name
-        var indexes = dataTable.rows().eq(0).filter( function (rowIdx) {
+        let indexes = dataTable.rows().eq(0).filter( function (rowIdx) {
             return (dataTable.cell(rowIdx, 1 ).data().name === rowData.systemToData.name);
         });
 
@@ -29668,17 +29979,43 @@ define('app/ui/system_route',[
         return rowElement;
     };
 
+
+    /**
+     * requests route data from eveCentral API and execute callback
+     * @param requestData
+     * @param context
+     * @param callback
+     */
+    let getRouteData = function(requestData, context, callback){
+
+        context.moduleElement.showLoadingAnimation();
+
+        $.ajax({
+            url: Init.path.searchRoute,
+            type: 'POST',
+            dataType: 'json',
+            data: requestData,
+            context: context
+        }).done(function(routesData){
+            this.moduleElement.hideLoadingAnimation();
+
+            // execute callback
+            callback(this, routesData.routesData);
+        });
+
+    };
+
     /**
      * update complete routes table (refresh all)
      * @param moduleElement
      * @param dataTable
      */
-    var updateRoutesTable = function(moduleElement, dataTable){
-        var context = {
+    let updateRoutesTable = function(moduleElement, dataTable){
+        let context = {
             moduleElement: moduleElement,
             dataTable: dataTable
         };
-        var routeData = [];
+        let routeData = [];
 
         dataTable.rows().every( function() {
             routeData.push( getRouteRequestDataFromRowData( this.data() ));
@@ -29692,7 +30029,7 @@ define('app/ui/system_route',[
      * @param {Object} rowData
      * @returns {Object}
      */
-    var getRouteRequestDataFromRowData = function(rowData){
+    let getRouteRequestDataFromRowData = function(rowData){
         return {
             mapIds: (rowData.hasOwnProperty('mapIds')) ? rowData.mapIds : [],
             systemFromData: (rowData.hasOwnProperty('systemFromData')) ? rowData.systemFromData : {},
@@ -29703,7 +30040,8 @@ define('app/ui/system_route',[
             wormholes: (rowData.hasOwnProperty('wormholes')) ? rowData.wormholes | 0 : 1,
             wormholesReduced: (rowData.hasOwnProperty('wormholesReduced')) ? rowData.wormholesReduced | 0 : 1,
             wormholesCritical: (rowData.hasOwnProperty('wormholesCritical')) ? rowData.wormholesCritical | 0 : 1,
-            wormholesEOL: (rowData.hasOwnProperty('wormholesEOL')) ? rowData.wormholesEOL | 0 : 1
+            wormholesEOL: (rowData.hasOwnProperty('wormholesEOL')) ? rowData.wormholesEOL | 0 : 1,
+            safer: (rowData.hasOwnProperty('safer')) ? rowData.safer.value | 0 : 0
         };
     };
 
@@ -29711,12 +30049,12 @@ define('app/ui/system_route',[
      * show route dialog. User can search for systems and jump-info for each system is added to a data table
      * @param dialogData
      */
-    var showFindRouteDialog = function(dialogData){
+    let showFindRouteDialog = function(dialogData){
 
-        var mapSelectOptions = [];
-        var currentMapData = Util.getCurrentMapData();
+        let mapSelectOptions = [];
+        let currentMapData = Util.getCurrentMapData();
         if(currentMapData !== false){
-            for(var i = 0; i < currentMapData.length; i++){
+            for(let i = 0; i < currentMapData.length; i++){
                 mapSelectOptions.push({
                     id: currentMapData[i].config.id,
                     name: currentMapData[i].config.name,
@@ -29724,7 +30062,7 @@ define('app/ui/system_route',[
                 });
             }
         }
-        var data = {
+        let data = {
             id: config.routeDialogId,
             selectClass: config.systemDialogSelectClass,
             mapSelectId: config.mapSelectId,
@@ -29734,9 +30072,9 @@ define('app/ui/system_route',[
 
         requirejs(['text!templates/dialog/route.html', 'mustache'], function(template, Mustache) {
 
-            var content = Mustache.render(template, data);
+            let content = Mustache.render(template, data);
 
-            var findRouteDialog = bootbox.dialog({
+            let findRouteDialog = bootbox.dialog({
                 title: 'Route finder',
                 message: content,
                 show: false,
@@ -29752,15 +30090,15 @@ define('app/ui/system_route',[
                             // add new route to route table
 
                             // get form Values
-                            var form = $('#' + config.routeDialogId).find('form');
+                            let form = $('#' + config.routeDialogId).find('form');
 
-                            var routeDialogData = $(form).getFormValues();
+                            let routeDialogData = $(form).getFormValues();
 
                             // validate form
                             form.validator('validate');
 
                             // check whether the form is valid
-                            var formValid = form.isValidForm();
+                            let formValid = form.isValidForm();
 
                             if(formValid === false){
                                 // don't close dialog
@@ -29768,18 +30106,18 @@ define('app/ui/system_route',[
                             }
 
                             // get all system data from select2
-                            var systemSelectData = form.find('.' + config.systemDialogSelectClass).select2('data');
+                            let systemSelectData = form.find('.' + config.systemDialogSelectClass).select2('data');
 
                             if(
                                 systemSelectData &&
                                 systemSelectData.length === 1
                             ){
-                                var context = {
+                                let context = {
                                     moduleElement: dialogData.moduleElement,
                                     dataTable: dialogData.dataTable
                                 };
 
-                                var requestData = {
+                                let requestData = {
                                     routeData: [{
                                         mapIds: routeDialogData.mapIds,
                                         systemFromData: dialogData.systemFromData,
@@ -29810,7 +30148,7 @@ define('app/ui/system_route',[
                 setDialogObserver( $(this) );
 
                 // init map select ----------------------------------------------------------------
-                var mapSelect = $(this).find('#' + config.mapSelectId);
+                let mapSelect = $(this).find('#' + config.mapSelectId);
                 mapSelect.initMapSelect();
             });
 
@@ -29819,7 +30157,7 @@ define('app/ui/system_route',[
 
                 // init system select live  search ------------------------------------------------
                 // -> add some delay until modal transition has finished
-                var systemTargetSelect = $(this).find('.' + config.systemDialogSelectClass);
+                let systemTargetSelect = $(this).find('.' + config.systemDialogSelectClass);
                 systemTargetSelect.delay(240).initSystemSelect({key: 'name'});
             });
 
@@ -29829,18 +30167,81 @@ define('app/ui/system_route',[
     };
 
     /**
+     * draw route table
+     * @param  mapId
+     * @param moduleElement
+     * @param systemFromData
+     * @param routesTable
+     * @param systemsTo
+     */
+    let drawRouteTable = function(mapId, moduleElement, systemFromData, routesTable, systemsTo){
+        let requestRouteData = [];
+        let currentTimestamp = Util.getServerTime().getTime();
+
+        // Skip some routes from search
+        // -> this should help to throttle requests (heavy CPU load for route calculation)
+        let defaultRoutesCount = Init.routeSearch.defaultCount;
+
+        for(let i = 0; i < systemsTo.length; i++){
+            let systemToData = systemsTo[i];
+
+            if(systemFromData.name !== systemToData.name){
+                let cacheKey = 'route_' + mapId + '_' + systemFromData.name.toUpperCase() + '_' + systemToData.name.toUpperCase();
+
+                if(
+                    cache.systemRoutes.hasOwnProperty(cacheKey) &&
+                    Math.round(
+                        ( currentTimestamp - (new Date( cache.systemRoutes[cacheKey].updated * 1000).getTime())) / 1000
+                    ) <= config.routeCacheTTL
+                ){
+                    // route data is cached (client side)
+                    let context = {
+                        dataTable: routesTable
+                    };
+
+                    addRow(context, cache.systemRoutes[cacheKey].data);
+                }else{
+                    // get route data
+                    let searchData = {
+                        mapIds: [mapId],
+                        systemFromData: systemFromData,
+                        systemToData: systemToData,
+                        skipSearch: requestRouteData.length >= defaultRoutesCount
+                    };
+
+                    requestRouteData.push( getRouteRequestDataFromRowData( searchData ));
+                }
+            }
+        }
+
+        // check if routes data is not cached and is requested
+        if(requestRouteData.length > 0){
+            let contextData = {
+                moduleElement: moduleElement,
+                dataTable: routesTable
+            };
+
+            let requestData = {
+                routeData: requestRouteData
+            };
+
+            getRouteData(requestData, contextData, callbackAddRouteRow);
+        }
+    };
+
+    /**
      * show route settings dialog
      * @param dialogData
      * @param moduleElement
      * @param systemFromData
      * @param routesTable
      */
-    var showSettingsDialog = function(dialogData, moduleElement, systemFromData, routesTable){
+    let showSettingsDialog = function(dialogData, moduleElement, systemFromData, routesTable){
 
-        var promiseStore = MapUtil.getLocaleData('map', dialogData.mapId);
+        let promiseStore = MapUtil.getLocaleData('map', dialogData.mapId);
         promiseStore.then(function(dataStore) {
             // selected systems (if already stored)
-            var systemSelectOptions = [];
+            let systemSelectOptions = [];
             if(
                 dataStore &&
                 dataStore.routes
@@ -29849,9 +30250,9 @@ define('app/ui/system_route',[
             }
 
             // max count of "default" target systems
-            var maxSelectionLength = Init.routeSearch.maxDefaultCount;
+            let maxSelectionLength = Init.routeSearch.maxDefaultCount;
 
-            var data = {
+            let data = {
                 id: config.routeSettingsDialogId,
                 selectClass: config.systemDialogSelectClass,
                 systemSelectOptions: systemSelectOptions,
@@ -29859,9 +30260,9 @@ define('app/ui/system_route',[
             };
 
             requirejs(['text!templates/dialog/route_settings.html', 'mustache'], function(template, Mustache) {
-                var content = Mustache.render(template, data);
+                let content = Mustache.render(template, data);
 
-                var settingsDialog = bootbox.dialog({
+                let settingsDialog = bootbox.dialog({
                     title: 'Route settings',
                     message: content,
                     show: false,
@@ -29874,10 +30275,10 @@ define('app/ui/system_route',[
                             label: '<i class="fa fa-fw fa-check"></i>&nbsp;save',
                             className: 'btn-success',
                             callback: function () {
-                                var form = this.find('form');
+                                let form = this.find('form');
                                 // get all system data from select2
-                                var systemSelectData = form.find('.' + config.systemDialogSelectClass).select2('data');
-                                var systemsTo = [];
+                                let systemSelectData = form.find('.' + config.systemDialogSelectClass).select2('data');
+                                let systemsTo = [];
 
                                 if( systemSelectData.length > 0 ){
                                     systemsTo = formSystemSelectData(systemSelectData);
@@ -29899,7 +30300,7 @@ define('app/ui/system_route',[
 
                     // init default system select -----------------------------------------------------
                     // -> add some delay until modal transition has finished
-                    var systemTargetSelect = $(this).find('.' + config.systemDialogSelectClass);
+                    let systemTargetSelect = $(this).find('.' + config.systemDialogSelectClass);
                     systemTargetSelect.delay(240).initSystemSelect({key: 'name', maxSelectionLength: maxSelectionLength});
                 });
 
@@ -29914,10 +30315,10 @@ define('app/ui/system_route',[
      * @param {Array} data
      * @returns {Array}
      */
-    var formSystemSelectData = function(data){
-        var formattedData = [];
+    let formSystemSelectData = function(data){
+        let formattedData = [];
         for(let i = 0; i < data.length; i++){
-            var tmpData = data[i];
+            let tmpData = data[i];
 
             formattedData.push({
                 name: tmpData.id,
@@ -29932,21 +30333,21 @@ define('app/ui/system_route',[
      * set event observer for route finder dialog
      * @param routeDialog
      */
-    var setDialogObserver = function(routeDialog){
-        var wormholeCheckbox = routeDialog.find('input[type="checkbox"][name="wormholes"]');
-        var wormholeReducedCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesReduced"]');
-        var wormholeCriticalCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesCritical"]');
-        var wormholeEolCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesEOL"]');
+    let setDialogObserver = function(routeDialog){
+        let wormholeCheckbox = routeDialog.find('input[type="checkbox"][name="wormholes"]');
+        let wormholeReducedCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesReduced"]');
+        let wormholeCriticalCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesCritical"]');
+        let wormholeEolCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesEOL"]');
 
         // store current "checked" state for each box ---------------------------------------------
-        var storeCheckboxStatus = function(){
+        let storeCheckboxStatus = function(){
             wormholeReducedCheckbox.data('selectState', wormholeReducedCheckbox.prop('checked'));
             wormholeCriticalCheckbox.data('selectState', wormholeCriticalCheckbox.prop('checked'));
             wormholeEolCheckbox.data('selectState', wormholeEolCheckbox.prop('checked'));
         };
 
         // on wormhole checkbox change ------------------------------------------------------------
-        var onWormholeCheckboxChange = function(){
+        let onWormholeCheckboxChange = function(){
 
             if( $(this).is(':checked') ){
                 wormholeReducedCheckbox.prop('disabled', false);
@@ -29976,36 +30377,11 @@ define('app/ui/system_route',[
     };
 
     /**
-     * requests route data from eveCentral API and execute callback
-     * @param requestData
-     * @param context
-     * @param callback
-     */
-    var getRouteData = function(requestData, context, callback){
-
-        context.moduleElement.showLoadingAnimation();
-
-        $.ajax({
-            url: Init.path.searchRoute,
-            type: 'POST',
-            dataType: 'json',
-            data: requestData,
-            context: context
-        }).done(function(routesData){
-            this.moduleElement.hideLoadingAnimation();
-
-            // execute callback
-            callback(this, routesData.routesData);
-        });
-
-    };
-
-    /**
      * format route data from API request into dataTable row format
      * @param routeData
      * @returns {{}}
      */
-    var formatRouteData = function(routeData){
+    let formatRouteData = function(routeData){
 
         /**
          * get status icon for route
@@ -30033,14 +30409,18 @@ define('app/ui/system_route',[
         // 0: not found
         // 1: round (OK)
         // 2: not searched
-        var routeStatus = routeData.skipSearch ? 2 : 0;
+        let routeStatus = routeData.skipSearch ? 2 : 0;
 
-        var reloadButton = '<i class="fa ' + ['fa-refresh'].join(' ') + '"></i>';
-        var searchButton = '<i class="fa ' + ['fa-search-plus '].join(' ') + '"></i>';
-        var deleteButton = '<i class="fa ' + ['fa-close', 'txt-color', 'txt-color-redDarker'].join(' ') + '"></i>';
+        // button class for "safer" routes
+        let saferButtonClass = routeData.safer ? 'txt-color-success' : '';
+
+        let saferButton = '<i class="fa ' + ['fa-shield', 'txt-color', saferButtonClass].join(' ') + '"></i>';
+        let reloadButton = '<i class="fa ' + ['fa-refresh'].join(' ') + '"></i>';
+        let searchButton = '<i class="fa ' + ['fa-search-plus '].join(' ') + '"></i>';
+        let deleteButton = '<i class="fa ' + ['fa-close', 'txt-color', 'txt-color-redDarker'].join(' ') + '"></i>';
 
         // default row data (e.g. no route found)
-        var tableRowData = {
+        let tableRowData = {
             systemFromData:  routeData.systemFromData,
             systemToData:  routeData.systemToData,
             jumps: {
@@ -30058,6 +30438,10 @@ define('app/ui/system_route',[
             wormholesReduced: routeData.wormholesReduced,
             wormholesCritical: routeData.wormholesCritical,
             wormholesEOL: routeData.wormholesEOL,
+            safer: {
+                value: routeData.safer,
+                button: saferButton
+            },
             reload: {
                 button: routeData.skipSearch ? searchButton : reloadButton
             },
@@ -30076,14 +30460,14 @@ define('app/ui/system_route',[
             routeStatus = 1;
 
             // add route Data
-            var jumpData = [];
-            var avgSecTemp = 0;
+            let jumpData = [];
+            let avgSecTemp = 0;
 
             // loop all systems on this route
-            for(var i = 0; i < routeData.route.length; i++){
+            for(let i = 0; i < routeData.route.length; i++){
                 let routeNodeData = routeData.route[i];
-                // format system name (camelCase)
-                let systemName = routeNodeData.system.charAt(0).toUpperCase() + routeNodeData.system.slice(1).toLowerCase();
+                // format system name
+                let systemName = routeNodeData.system;
 
                 let systemSec = Number(routeNodeData.security).toFixed(1).toString();
                 let tempSystemSec = systemSec;
@@ -30111,14 +30495,14 @@ define('app/ui/system_route',[
                 }
             }
 
-            var avgSec = ( avgSecTemp /  (routeData.route.length - 1)).toFixed(2);
-            var avgSecForClass = Number(avgSec).toFixed(1);
+            let avgSec = ( avgSecTemp /  (routeData.route.length - 1)).toFixed(2);
+            let avgSecForClass = Number(avgSec).toFixed(1);
 
             if(avgSecForClass <= 0){
                 avgSecForClass = '0.0';
             }
 
-            var avgSecClass = config.systemSecurityClassPrefix + avgSecForClass.toString().replace('.', '-');
+            let avgSecClass = config.systemSecurityClassPrefix + avgSecForClass.toString().replace('.', '-');
 
             tableRowData.jumps = {
                 value: routeData.routeJumps,
@@ -30145,15 +30529,15 @@ define('app/ui/system_route',[
      * get the route finder moduleElement
      * @returns {*}
      */
-    var getModule = function(){
+    let getModule = function(){
 
         // create new module container
-        var moduleElement = $('<div>', {
+        let moduleElement = $('<div>', {
             class: [config.moduleClass, config.systemRouteModuleClass].join(' ')
         });
 
         // headline toolbar icons
-        var headlineToolbar  = $('<h5>', {
+        let headlineToolbar  = $('<h5>', {
             class: 'pull-right'
         }).append(
             $('<i>', {
@@ -30173,7 +30557,7 @@ define('app/ui/system_route',[
         moduleElement.append(headlineToolbar);
 
         // headline
-        var headline = $('<h5>', {
+        let headline = $('<h5>', {
             class: 'pull-left',
             text: 'Routes'
         });
@@ -30181,14 +30565,14 @@ define('app/ui/system_route',[
         moduleElement.append(headline);
 
         // crate new route table
-        var table = $('<table>', {
+        let table = $('<table>', {
             class: ['compact', 'stripe', 'order-column', 'row-border', config.systemInfoRoutesTableClass].join(' ')
         });
 
         moduleElement.append( $(table) );
 
         // init empty table
-        var routesTable = table.DataTable( {
+        let routesTable = table.DataTable( {
             paging: false,
             ordering: true,
             order: [[ 2, 'asc' ], [ 0, 'asc' ]],
@@ -30257,41 +30641,35 @@ define('app/ui/system_route',[
                     data: 'route'
                 },{
                     targets: 5,
-                    title: '',
+                    title: '<i title="search safer route (HS)" data-toggle="tooltip" class="fa fa-shield text-right"></i>',
                     orderable: false,
                     searchable: false,
                     width: '10px',
                     class: ['text-center', config.dataTableActionCellClass].join(' '),
-                    data: 'reload',
+                    data: 'safer',
                     render: {
                         _: 'button'
                     },
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
-                        var tempTableApi = this.api();
+                        let tempTableApi = this.api();
 
                         $(cell).on('click', function(e) {
                             // get current row data (important!)
                             // -> "rowData" param is not current state, values are "on createCell()" state
                             rowData = tempTableApi.row( $(cell).parents('tr')).data();
+                            let routeData = getRouteRequestDataFromRowData( rowData );
 
-                            var context = {
+                            // overwrite some params
+                            routeData.skipSearch = 0;
+                            routeData.safer = 1 - routeData.safer; // toggle
+
+                            let context = {
                                 moduleElement: moduleElement,
                                 dataTable: tempTableApi
                             };
 
-                            var requestData = {
-                                routeData: [{
-                                    mapIds: rowData.mapIds,
-                                    systemFromData: rowData.systemFromData,
-                                    systemToData: rowData.systemToData,
-                                    skipSearch: 0,
-                                    stargates: rowData.stargates ? 1 : 0,
-                                    jumpbridges: rowData.jumpbridges ? 1 : 0,
-                                    wormholes: rowData.wormholes ? 1 : 0,
-                                    wormholesReduced: rowData.wormholesReduced ? 1 : 0,
-                                    wormholesCritical: rowData.wormholesCritical ? 1 : 0,
-                                    wormholesEOL: rowData.wormholesEOL ? 1 : 0
-                                }]
+                            let requestData = {
+                                routeData: [routeData]
                             };
 
                             getRouteData(requestData, context, callbackAddRouteRow);
@@ -30304,14 +30682,49 @@ define('app/ui/system_route',[
                     searchable: false,
                     width: '10px',
                     class: ['text-center', config.dataTableActionCellClass].join(' '),
+                    data: 'reload',
+                    render: {
+                        _: 'button'
+                    },
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                        let tempTableApi = this.api();
+
+                        $(cell).on('click', function(e) {
+                            // get current row data (important!)
+                            // -> "rowData" param is not current state, values are "on createCell()" state
+                            rowData = tempTableApi.row( $(cell).parents('tr')).data();
+                            let routeData = getRouteRequestDataFromRowData( rowData );
+
+                            // overwrite some params
+                            routeData.skipSearch = 0;
+
+                            let context = {
+                                moduleElement: moduleElement,
+                                dataTable: tempTableApi
+                            };
+
+                            let requestData = {
+                                routeData: [routeData]
+                            };
+
+                            getRouteData(requestData, context, callbackAddRouteRow);
+                        });
+                    }
+                },{
+                    targets: 7,
+                    title: '',
+                    orderable: false,
+                    searchable: false,
+                    width: '10px',
+                    class: ['text-center', config.dataTableActionCellClass].join(' '),
                     data: 'clear',
                     render: {
                         _: 'button'
                     },
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
-                        var tempTableElement = this;
+                        let tempTableElement = this;
 
-                        var confirmationSettings = {
+                        let confirmationSettings = {
                             container: 'body',
                             placement: 'left',
                             btnCancelClass: 'btn btn-sm btn-default',
@@ -30322,7 +30735,7 @@ define('app/ui/system_route',[
                             btnOkLabel: 'delete',
                             btnOkIcon: 'fa fa-fw fa-close',
                             onConfirm : function(e, target){
-                                var deleteRowElement = $(cell).parents('tr');
+                                let deleteRowElement = $(cell).parents('tr');
                                 tempTableElement.api().rows(deleteRowElement).remove().draw();
                             }
                         };
@@ -30334,14 +30747,14 @@ define('app/ui/system_route',[
             ],
             drawCallback: function(settings){
 
-                var animationRows = this.api().rows().nodes().to$().filter(function() {
+                let animationRows = this.api().rows().nodes().to$().filter(function() {
                     return (
                         $(this).data('animationStatus') ||
                         $(this).data('animationTimer')
                     );
                 });
 
-                for(var i = 0; i < animationRows.length; i++){
+                for(let i = 0; i < animationRows.length; i++){
                     $(animationRows[i]).pulseTableRow($(animationRows[i]).data('animationStatus'));
                     $(animationRows[i]).removeData('animationStatus');
                 }
@@ -30351,7 +30764,7 @@ define('app/ui/system_route',[
         });
 
         // init tooltips for this module
-        var tooltipElements = moduleElement.find('[data-toggle="tooltip"]');
+        let tooltipElements = moduleElement.find('[data-toggle="tooltip"]');
         tooltipElements.tooltip({
             container: 'body'
         });
@@ -30365,19 +30778,19 @@ define('app/ui/system_route',[
      * @param options
      */
     $.fn.initSystemPopover = function(options){
-        var elements = $(this);
-        var eventNamespace = 'hideSystemPopup';
-        var systemToData = options.systemToData;
+        let elements = $(this);
+        let eventNamespace = 'hideSystemPopup';
+        let systemToData = options.systemToData;
 
         requirejs(['text!templates/tooltip/system_popover.html', 'mustache'], function (template, Mustache) {
-            var data = {
+            let data = {
                 systemToData: systemToData
             };
 
-            var content = Mustache.render(template, data);
+            let content = Mustache.render(template, data);
 
             elements.each(function() {
-                var element = $(this);
+                let element = $(this);
                 // destroy "popover" and remove "click" event for animation
                 element.popover('destroy').off();
 
@@ -30405,11 +30818,11 @@ define('app/ui/system_route',[
 
             // set link observer "on shown" event
             elements.on('shown.bs.popover', function () {
-                var popoverRoot = $(this);
+                let popoverRoot = $(this);
 
                 popoverRoot.data('bs.popover').tip().find('a').on('click', function(){
                     // hint: "data" attributes should be in lower case!
-                    var systemData = {
+                    let systemData = {
                         name: $(this).data('name'),
                         systemId: $(this).data('systemid')
                     };
@@ -30429,16 +30842,16 @@ define('app/ui/system_route',[
      * @param mapId
      * @param systemData
      */
-    var initModule = function(moduleElement, mapId, systemData){
+    let initModule = function(moduleElement, mapId, systemData){
 
-        var systemFromData = {
+        let systemFromData = {
             name: systemData.name,
             systemId: systemData.systemId
         };
 
-        var routesTableElement =  moduleElement.find('.' + config.systemInfoRoutesTableClass);
+        let routesTableElement =  moduleElement.find('.' + config.systemInfoRoutesTableClass);
 
-        var routesTable = routesTableElement.DataTable();
+        let routesTable = routesTableElement.DataTable();
 
         // init refresh routes --------------------------------------------------------------------
         moduleElement.find('.' + config.systemModuleHeadlineIconRefresh).on('click', function(e){
@@ -30453,7 +30866,7 @@ define('app/ui/system_route',[
                 // max routes limit reached -> show warning
                 Util.showNotify({title: 'Route limit reached', text: 'Serch is limited by ' + maxRouteSearchLimit, type: 'warning'});
             }else{
-                var dialogData = {
+                let dialogData = {
                     moduleElement: moduleElement,
                     mapId: mapId,
                     systemFromData: systemFromData,
@@ -30468,7 +30881,7 @@ define('app/ui/system_route',[
 
         // init settings dialog -------------------------------------------------------------------
         moduleElement.find('.' + config.systemModuleHeadlineIconSettings).on('click', function(e){
-            var dialogData = {
+            let dialogData = {
                 mapId: mapId
             };
 
@@ -30476,10 +30889,10 @@ define('app/ui/system_route',[
         });
 
         // fill routesTable with data -------------------------------------------------------------
-        var promiseStore = MapUtil.getLocaleData('map', mapId);
+        let promiseStore = MapUtil.getLocaleData('map', mapId);
         promiseStore.then(function(dataStore) {
             // selected systems (if already stored)
-            var systemsTo = [{
+            let systemsTo = [{
                 name: 'Jita',
                 systemId: 30000142
             }];
@@ -30497,79 +30910,16 @@ define('app/ui/system_route',[
     };
 
     /**
-     * draw route table
-     * @param  mapId
-     * @param moduleElement
-     * @param systemFromData
-     * @param routesTable
-     * @param systemsTo
-     */
-    var drawRouteTable = function(mapId, moduleElement, systemFromData, routesTable, systemsTo){
-        var requestRouteData = [];
-        var currentTimestamp = Util.getServerTime().getTime();
-
-        // Skip some routes from search
-        // -> this should help to throttle requests (heavy CPU load for route calculation)
-        var defaultRoutesCount = Init.routeSearch.defaultCount;
-
-        for(var i = 0; i < systemsTo.length; i++){
-            var systemToData = systemsTo[i];
-
-            if(systemFromData.name !== systemToData.name){
-                var cacheKey = 'route_' + mapId + '_' + systemFromData.name.toUpperCase() + '_' + systemToData.name.toUpperCase();
-
-                if(
-                    cache.systemRoutes.hasOwnProperty(cacheKey) &&
-                    Math.round(
-                        ( currentTimestamp - (new Date( cache.systemRoutes[cacheKey].updated * 1000).getTime())) / 1000
-                    ) <= config.routeCacheTTL
-                ){
-                    // route data is cached (client side)
-                    var context = {
-                        dataTable: routesTable
-                    };
-
-                    addRow(context, cache.systemRoutes[cacheKey].data);
-                }else{
-                    // get route data
-                    var searchData = {
-                        mapIds: [mapId],
-                        systemFromData: systemFromData,
-                        systemToData: systemToData,
-                        skipSearch: requestRouteData.length >= defaultRoutesCount
-                    };
-
-                    requestRouteData.push( getRouteRequestDataFromRowData( searchData ));
-                }
-            }
-        }
-
-        // check if routes data is not cached and is requested
-        if(requestRouteData.length > 0){
-            var contextData = {
-                moduleElement: moduleElement,
-                dataTable: routesTable
-            };
-
-            var requestData = {
-                routeData: requestRouteData
-            };
-
-            getRouteData(requestData, contextData, callbackAddRouteRow);
-        }
-    };
-
-    /**
      * updates an dom element with the system route module
      * @param mapId
      * @param systemData
      */
     $.fn.drawSystemRouteModule = function(mapId, systemData){
 
-        var parentElement = $(this);
+        let parentElement = $(this);
 
         // show route module
-        var showModule = function(moduleElement){
+        let showModule = function(moduleElement){
             if(moduleElement){
                 moduleElement.css({ opacity: 0 });
                 parentElement.append(moduleElement);
@@ -30585,7 +30935,7 @@ define('app/ui/system_route',[
         };
 
         // check if module already exists
-        var moduleElement = parentElement.find('.' + config.systemRouteModuleClass);
+        let moduleElement = parentElement.find('.' + config.systemRouteModuleClass);
 
         if(moduleElement.length > 0){
             moduleElement.velocity('transition.slideDownOut', {
@@ -31405,7 +31755,7 @@ define('app/module_map',[
 
     'use strict';
 
-    var config = {
+    let config = {
         dynamicElementWrapperId: 'pf-dialog-wrapper',                           // parent Element for dynamic content (dialogs,..)
         mapTabElementId: 'pf-map-tab-element',                                  // id for map tab element (tabs + content)
         mapTabBarId: 'pf-map-tabs',                                             // id for map tab bar
@@ -31431,15 +31781,14 @@ define('app/module_map',[
 
     };
 
-    var mapTabChangeBlocked = false;                                            // flag for preventing map tab switch
+    let mapTabChangeBlocked = false;                                            // flag for preventing map tab switch
 
     /**
      * get all maps for a maps module
      * @returns {*}
      */
     $.fn.getMaps = function(){
-        var maps = $(this).find('.' + config.mapClass);
-        return maps;
+        return $(this).find('.' + config.mapClass);
     };
 
     /**
@@ -31447,8 +31796,7 @@ define('app/module_map',[
      * @returns {*}
      */
     $.fn.getActiveMap = function(){
-
-        var map = $(this).find('.active.' + config.mapTabContentClass + ' .' + config.mapClass);
+        let map = $(this).find('.active.' + config.mapTabContentClass + ' .' + config.mapClass);
 
         if(map.length === 0){
             map = false;
@@ -31478,7 +31826,7 @@ define('app/module_map',[
      * @param tabContentElement
      * @param callback
      */
-    var removeSystemModules = function(tabContentElement, callback){
+    let removeSystemModules = function(tabContentElement, callback){
         tabContentElement.find('.' + config.moduleClass).velocity('transition.slideDownOut', {
             duration: Init.animationSpeed.mapModule,
             complete: function(tempElement){
@@ -31495,12 +31843,12 @@ define('app/module_map',[
      * clears and updates the system info element (signature table, system info,...)
      * @param tabContentElement
      */
-    var drawSystemModules = function(tabContentElement){
-        var currentSystemData = Util.getCurrentSystemData();
+    let drawSystemModules = function(tabContentElement){
+        let currentSystemData = Util.getCurrentSystemData();
 
         // get Table cell for system Info
-        var firstCell = $(tabContentElement).find('.' + config.mapTabContentCellFirst);
-        var secondCell = $(tabContentElement).find('.' + config.mapTabContentCellSecond);
+        let firstCell = $(tabContentElement).find('.' + config.mapTabContentCellFirst);
+        let secondCell = $(tabContentElement).find('.' + config.mapTabContentCellSecond);
 
         // draw system info module
         firstCell.drawSystemInfoModule(currentSystemData.mapId, currentSystemData.systemData);
@@ -31524,16 +31872,16 @@ define('app/module_map',[
     /**
      * set observer for each module
      */
-    var setModuleObserver = function(){
+    let setModuleObserver = function(){
 
         // toggle height for a module
         $(document).off('click.toggleModuleHeight').on('click.toggleModuleHeight', '.' + config.moduleClass, function(e){
-            var moduleElement = $(this);
+            let moduleElement = $(this);
             // get click position
-            var posX = moduleElement.offset().left;
-            var posY = moduleElement.offset().top;
-            var clickX = e.pageX - posX;
-            var clickY = e.pageY - posY;
+            let posX = moduleElement.offset().left;
+            let posY = moduleElement.offset().top;
+            let clickX = e.pageX - posX;
+            let clickY = e.pageY - posY;
 
             // check for top-left click
             if(clickX <= 8 && clickY <= 8){
@@ -31545,7 +31893,7 @@ define('app/module_map',[
                 }
 
                 if(moduleElement.hasClass( config.moduleClosedClass )){
-                    var moduleHeight = moduleElement.data('origHeight');
+                    let moduleHeight = moduleElement.data('origHeight');
                     moduleElement.velocity('finish').velocity({
                         height: [ moduleHeight + 'px', [ 400, 15 ] ]
                     },{
@@ -31577,21 +31925,29 @@ define('app/module_map',[
      * @returns {boolean}
      */
     $.fn.updateMapModuleData = function(){
-        var mapModule = $(this);
+        let mapModule = $(this);
+
+        // performance logging (time measurement)
+        let logKeyClientUserData = Init.performanceLogging.keyClientUserData;
+        Util.timeStart(logKeyClientUserData);
 
         // get all active map elements for module
-        var mapElement = mapModule.getActiveMap();
+        let mapElement = mapModule.getActiveMap();
 
         if(mapElement !== false){
-            var mapId = mapElement.data('id');
+            let mapId = mapElement.data('id');
 
-            var currentMapUserData = Util.getCurrentMapUserData(mapId);
+            let currentMapUserData = Util.getCurrentMapUserData(mapId);
 
             // update map with current user data
             if(currentMapUserData){
                 mapElement.updateUserData(currentMapUserData);
             }
         }
+
+        // log client user data update time
+        let duration = Util.timeStop(logKeyClientUserData);
+        Util.log(logKeyClientUserData, {duration: duration, type: 'client', description:'update users'});
 
         return true;
     };
@@ -31601,11 +31957,11 @@ define('app/module_map',[
      * @param systemData
      */
     $.fn.updateSystemModuleData = function(systemData){
-        var mapModule = $(this);
+        let mapModule = $(this);
 
         if(systemData){
             // check if current open system is still the requested info system
-            var currentSystemData = Util.getCurrentSystemData();
+            let currentSystemData = Util.getCurrentSystemData();
 
             if(currentSystemData){
                 if(systemData.id === currentSystemData.systemData.id){
@@ -31623,7 +31979,7 @@ define('app/module_map',[
     $.fn.initContentStructure = function(){
         return this.each(function(){
             // init bootstrap Grid
-            var contentStructure = $('<div>', {
+            let contentStructure = $('<div>', {
                 class: ['row', config.mapTabContentRow].join(' ')
             }).append(
                     $('<div>', {
@@ -31645,17 +32001,17 @@ define('app/module_map',[
      * @param options
      * @returns {*|jQuery|HTMLElement}
      */
-    var getTabElement = function(options){
-        var tabElement = $('<div>', {
+    let getTabElement = function(options){
+        let tabElement = $('<div>', {
             id: config.mapTabElementId
         });
 
-        var tabBar = $('<ul>', {
+        let tabBar = $('<ul>', {
             class: ['nav', 'nav-tabs'].join(' '),
             id: options.barId
         }).attr('role', 'tablist');
 
-        var tabContent = $('<div>', {
+        let tabContent = $('<div>', {
             class: 'tab-content'
         }).attr('data-map-tabs', options.barId);
 
@@ -31670,7 +32026,7 @@ define('app/module_map',[
      * @param options
      */
     $.fn.updateTabData = function(options){
-        var tabElement = $(this);
+        let tabElement = $(this);
 
         // set "main" data
         tabElement.data('map-id', options.id).data('updated', options.updated);
@@ -31679,17 +32035,17 @@ define('app/module_map',[
         tabElement.attr('href', '#' + config.mapTabIdPrefix + options.id);
 
         // change "map" icon
-        var mapIconElement = tabElement.find('.' + config.mapTabIconClass);
+        let mapIconElement = tabElement.find('.' + config.mapTabIconClass);
         mapIconElement.removeClass().addClass([config.mapTabIconClass, 'fa', 'fa-fw', options.icon].join(' '));
 
         // change "shared" icon
-        var mapSharedIconElement = tabElement.find('.' + config.mapTabSharedIconClass);
+        let mapSharedIconElement = tabElement.find('.' + config.mapTabSharedIconClass);
         mapSharedIconElement.hide();
 
         // check if the map is a "shared" map
         if(options.access){
             if(
-                options.access.user.length > 1 ||
+                options.access.character.length > 1 ||
                 options.access.corporation.length > 1 ||
                 options.access.alliance.length > 1
             ){
@@ -31698,14 +32054,14 @@ define('app/module_map',[
         }
 
         // change map name label
-        var tabLinkTextElement = tabElement.find('.' + config.mapTabLinkTextClass);
+        let tabLinkTextElement = tabElement.find('.' + config.mapTabLinkTextClass);
         tabLinkTextElement.text(options.name);
 
         // change tabClass
-        var listElement = tabElement.parent();
+        let listElement = tabElement.parent();
 
         // new tab classes
-        var tabClasses = [config.mapTabClass, options.type.classTab ];
+        let tabClasses = [config.mapTabClass, options.type.classTab ];
 
         // check if tab was "active" before
         if( listElement.hasClass('active') ){
@@ -31718,7 +32074,7 @@ define('app/module_map',[
             tabLinkTextElement.attr('title', options.type.name + ' map');
         }
 
-        var mapTooltipOptions = {
+        let mapTooltipOptions = {
             placement: 'bottom',
             container: 'body',
             trigger: 'hover',
@@ -31739,36 +32095,36 @@ define('app/module_map',[
      * @returns {{listElement: (*|void), contentElement: (*|HTMLElement)}}
      */
     $.fn.addTab = function(options){
-        var tabElement = $(this);
-        var tabBar = tabElement.find('ul.nav-tabs');
-        var tabContent = tabElement.find('div.tab-content');
+        let tabElement = $(this);
+        let tabBar = tabElement.find('ul.nav-tabs');
+        let tabContent = tabElement.find('div.tab-content');
 
-        var listElement = $('<li>').attr('role', 'presentation');
+        let listElement = $('<li>').attr('role', 'presentation');
 
         if(options.right === true){
             listElement.addClass('pull-right');
         }
 
         // link element
-        var linkElement = $('<a>').attr('role', 'tab');
+        let linkElement = $('<a>').attr('role', 'tab');
 
         // map icon element
-        var mapIconElement = $('<i>', {
+        let mapIconElement = $('<i>', {
             class: config.mapTabIconClass
         });
 
         // map shared icon element
-        var mapSharedIconElement = $('<i>', {
+        let mapSharedIconElement = $('<i>', {
             class: [config.mapTabSharedIconClass, 'fa', 'fa-fw', 'fa-share-alt'].join(' '),
             title: 'shared map'
         });
 
         // text element
-        var textElement = $('<span>', {
+        let textElement = $('<span>', {
             class: config.mapTabLinkTextClass
         });
 
-        var newListElement = listElement.append(
+        let newListElement = listElement.append(
             linkElement.append(mapIconElement).append(textElement).append(mapSharedIconElement)
         );
 
@@ -31778,7 +32134,7 @@ define('app/module_map',[
         linkElement.updateTabData(options);
 
         // tabs content =======================================================
-        var contentElement = $('<div>', {
+        let contentElement = $('<div>', {
             id: config.mapTabIdPrefix + parseInt( options.id ),
             class: [config.mapTabContentClass].join(' ')
         });
@@ -31800,12 +32156,12 @@ define('app/module_map',[
             }
 
             if(mapTabChangeBlocked === false){
-                var tabLinkElement = $(this);
-                var mapId = tabLinkElement.data('map-id');
+                let tabLinkElement = $(this);
+                let mapId = tabLinkElement.data('map-id');
 
                 // ignore "add" tab. no need for map change
                 if(mapId > 0){
-                    var mapElement = $('#' + config.mapTabElementId).getActiveMap();
+                    let mapElement = $('#' + config.mapTabElementId).getActiveMap();
 
                     if(mapId !== mapElement.data('id')){
                         // block tabs until switch is done
@@ -31837,17 +32193,17 @@ define('app/module_map',[
      * @param mapId
      */
     $.fn.deleteTab = function(mapId){
-        var tabElement = $(this);
-        var linkElement = tabElement.find('a[href="#' + config.mapTabIdPrefix + mapId + '"]');
-        var deletedTabName = '';
+        let tabElement = $(this);
+        let linkElement = tabElement.find('a[href="#' + config.mapTabIdPrefix + mapId + '"]');
+        let deletedTabName = '';
 
         if(linkElement.length > 0){
             deletedTabName = linkElement.find('.' + config.mapTabLinkTextClass).text();
 
-            var liElement = linkElement.parent();
-            var contentElement = tabElement.find('div[id="' + config.mapTabIdPrefix + mapId + '"]');
+            let liElement = linkElement.parent();
+            let contentElement = tabElement.find('div[id="' + config.mapTabIdPrefix + mapId + '"]');
 
-            var findNewActiveTab = false;
+            let findNewActiveTab = false;
             // check if liElement was active
             if(liElement.hasClass('active')){
                 // search any remaining li element and set active
@@ -31872,15 +32228,15 @@ define('app/module_map',[
      * clear all active maps
      */
     $.fn.clearMapModule = function(){
-        var mapModuleElement = $(this);
-        var tabMapElement = $('#' + config.mapTabElementId);
+        let mapModuleElement = $(this);
+        let tabMapElement = $('#' + config.mapTabElementId);
 
         if(tabMapElement.length > 0){
-            var tabElements = mapModuleElement.getMapTabElements();
+            let tabElements = mapModuleElement.getMapTabElements();
 
-            for(var i = 0; i < tabElements.length; i++){
-                var tabElement = $(tabElements[i]);
-                var mapId = tabElement.data('map-id');
+            for(let i = 0; i < tabElements.length; i++){
+                let tabElement = $(tabElements[i]);
+                let mapId = tabElement.data('map-id');
 
                 if(mapId > 0){
                     tabMapElement.deleteTab(mapId);
@@ -31891,43 +32247,52 @@ define('app/module_map',[
 
     /**
      * load/update map module into element (all maps)
-     * @param mapData
      * @returns {boolean}
      */
-    $.fn.updateMapModule = function(mapData){
-        if(mapData.length === 0){
-            return true;
-        }
+    $.fn.updateMapModule = function(){
+        let mapModuleElement = $(this);
 
         // store current map data global (cache)
         // temp store current map data to prevent data-change while function execution!
-        var tempMapData = Util.setCurrentMapData(mapData);
+        let tempMapData = Util.getCurrentMapData();
 
-        var mapModuleElement = $(this);
+        if(tempMapData.length === 0){
+            // clear all existing maps
+            mapModuleElement.clearMapModule();
+
+            // no map data available -> show "new map" dialog
+            $(document).trigger('pf:menuShowMapSettings', {tab: 'new'});
+
+            return true;
+        }
+
+        // performance logging (time measurement)
+        let logKeyClientMapData = Init.performanceLogging.keyClientMapData;
+        Util.timeStart(logKeyClientMapData);
 
         // check if tabs module is already loaded
-        var tabMapElement = $('#' + config.mapTabElementId);
+        let tabMapElement = $('#' + config.mapTabElementId);
 
         // check if tabs have changed
-        var tabsChanged = false;
+        let tabsChanged = false;
 
         if(tabMapElement.length > 0){
             // tab element already exists
-            var tabElements = mapModuleElement.getMapTabElements();
+            let tabElements = mapModuleElement.getMapTabElements();
 
             // map ID that is currently active
-            var activeMapId = 0;
+            let activeMapId = 0;
 
             // mapIds that are currently active
-            var activeMapIds = [];
+            let activeMapIds = [];
 
             // check whether a tab/map is still active
-            for(var i = 0; i < tabElements.length; i++){
-                var tabElement = $(tabElements[i]);
-                var mapId = tabElement.data('map-id');
+            for(let i = 0; i < tabElements.length; i++){
+                let tabElement = $(tabElements[i]);
+                let mapId = tabElement.data('map-id');
 
                 if(mapId > 0){
-                    var tabMapData = Util.getCurrentMapData(mapId);
+                    let tabMapData = Util.getCurrentMapData(mapId);
 
                     if(tabMapData !== false){
                         // map data available ->
@@ -31939,7 +32304,7 @@ define('app/module_map',[
                         }
                     }else{
                         // map data not available -> remove tab
-                        var deletedTabName = tabMapElement.deleteTab(mapId);
+                        let deletedTabName = tabMapElement.deleteTab(mapId);
 
                         tabsChanged = true;
 
@@ -31955,7 +32320,7 @@ define('app/module_map',[
                 if( activeMapIds.indexOf( data.config.id ) === -1 ){
                     // add new map tab
 
-                    var newTabElements = tabMapElement.addTab(data.config);
+                    let newTabElements = tabMapElement.addTab(data.config);
 
                     // check if there is any active map yet (this is not the case
                     // when ALL maps are removed AND new maps are added in one call
@@ -31982,11 +32347,11 @@ define('app/module_map',[
             if(activeMapId === 0){
                 activeMapId = Util.getMapModule().getActiveMap().data('id');
             }
-            var activeMapData = Util.getCurrentMapData(activeMapId);
+            let activeMapData = Util.getCurrentMapData(activeMapId);
 
             if(activeMapData !== false){
                 // update active map with new mapData
-                var currentTabContentElement = $('#' + config.mapTabIdPrefix + activeMapId);
+                let currentTabContentElement = $('#' + config.mapTabIdPrefix + activeMapId);
 
                 $( currentTabContentElement).loadMap( activeMapData, {} );
             }
@@ -31994,21 +32359,21 @@ define('app/module_map',[
             // create Tab Element
             tabsChanged = true;
 
-            var options = {
+            let options = {
                 barId: config.mapTabBarId
             };
 
             tabMapElement = getTabElement(options);
 
             // add new tab for each map
-            for(var j = 0; j < tempMapData.length; j++){
+            for(let j = 0; j < tempMapData.length; j++){
 
-                var data = tempMapData[j];
+                let data = tempMapData[j];
                 tabMapElement.addTab(data.config);
             }
 
             // add "add" button
-            var tabAddOptions = {
+            let tabAddOptions = {
                 id: 0,
                 type: {
                     classTab: MapUtil.getInfoForMap( 'standard', 'classTab')
@@ -32022,14 +32387,14 @@ define('app/module_map',[
 
             mapModuleElement.prepend(tabMapElement);
 
-            var currentUserData = Util.getCurrentUserData();
-            var promiseStore = MapUtil.getLocaleData('character', currentUserData.character.id);
+            let currentUserData = Util.getCurrentUserData();
+            let promiseStore = MapUtil.getLocaleData('character', currentUserData.character.id);
 
             promiseStore.then(function(data) {
                 // array key where map data is available (0 == first map found)
-                var mapDataIndex = 0;
+                let mapDataIndex = 0;
                 // tab dom selector
-                var mapKeyTabSelector = 'first';
+                let mapKeyTabSelector = 'first';
 
                 if(
                     data &&
@@ -32042,7 +32407,7 @@ define('app/module_map',[
                 // ==============================================================
 
                 // this new created module
-                var tabContentElements = tabMapElement.find('.' + config.mapTabContentClass);
+                let tabContentElements = tabMapElement.find('.' + config.mapTabContentClass);
 
                 // set observer for manually triggered map events
                 tabContentElements.setTabContentObserver();
@@ -32059,7 +32424,7 @@ define('app/module_map',[
         if(tabsChanged === true){
 
             // remove previous event handlers
-            var allTabElements = mapModuleElement.getMapTabElements();
+            let allTabElements = mapModuleElement.getMapTabElements();
             allTabElements.off('show.bs.tab');
             allTabElements.off('shown.bs.tab');
             allTabElements.off('hide.bs.tab');
@@ -32067,11 +32432,11 @@ define('app/module_map',[
 
             // check for "new map" action before tap-change
             allTabElements.on('show.bs.tab', function (e) {
-                var mapId = $(e.target).data('map-id');
+                let mapId = $(e.target).data('map-id');
 
                 if(mapId > 0){
                     // save mapId as new "default" (local storage)
-                    var userData = MapUtil.storeDefaultMapId(mapId);
+                    let userData = MapUtil.storeDefaultMapId(mapId);
                 }else{
                     // add new Tab selected
                     $(document).trigger('pf:menuShowMapSettings', {tab: 'new'});
@@ -32081,17 +32446,17 @@ define('app/module_map',[
 
             // load new map right after tab-change
             allTabElements.on('shown.bs.tab', function (e) {
-                var mapId = $(e.target).data('map-id');
-                var tabMapData = Util.getCurrentMapData(mapId);
+                let mapId = $(e.target).data('map-id');
+                let tabMapData = Util.getCurrentMapData(mapId);
 
                 if(tabMapData !== false){
                     // load map
-                    var currentTabContentElement = $('#' + config.mapTabIdPrefix + mapId);
+                    let currentTabContentElement = $('#' + config.mapTabIdPrefix + mapId);
 
                     $( currentTabContentElement).loadMap( tabMapData, {showAnimation: true} );
 
                     // "wake up" scrollbar for map and get previous state back
-                    var scrollableElement = currentTabContentElement.find('.' + config.mapWrapperClass);
+                    let scrollableElement = currentTabContentElement.find('.' + config.mapWrapperClass);
                     $(scrollableElement).mCustomScrollbar( 'update');
                 }else{
                     // no map data found -> remove tab
@@ -32100,19 +32465,23 @@ define('app/module_map',[
             });
 
             allTabElements.on('hide.bs.tab', function (e) {
-                var newMapId = $(e.relatedTarget).data('map-id');
-                var oldMapId = $(e.target).data('map-id');
+                let newMapId = $(e.relatedTarget).data('map-id');
+                let oldMapId = $(e.target).data('map-id');
 
                 // skip "add button"
                 if(newMapId > 0){
-                    var currentTabContentElement = $('#' + config.mapTabIdPrefix + oldMapId);
+                    let currentTabContentElement = $('#' + config.mapTabIdPrefix + oldMapId);
 
                     // disable scrollbar for map that will be hidden. "freeze" current state
-                    var scrollableElement = currentTabContentElement.find('.' + config.mapWrapperClass);
+                    let scrollableElement = currentTabContentElement.find('.' + config.mapWrapperClass);
                     $(scrollableElement).mCustomScrollbar( 'disable' );
                 }
             });
         }
+
+        // log client map update time
+        let duration = Util.timeStop(logKeyClientMapData);
+        Util.log(logKeyClientMapData, {duration: duration, type: 'client', description: 'update map'});
 
         return true;
     };
@@ -32123,14 +32492,13 @@ define('app/module_map',[
      * @returns {Array}
      */
     $.fn.getMapModuleDataForUpdate = function(){
-
         // get all active map elements for module
-        var mapElements = $(this).getMaps();
+        let mapElements = $(this).getMaps();
 
-        var data = [];
-        for(var i = 0; i < mapElements.length; i++){
+        let data = [];
+        for(let i = 0; i < mapElements.length; i++){
             // get all changed (system / connection) data from this map
-            var mapData = $(mapElements[i]).getMapDataFromClient({forceData: false, checkForChange: true});
+            let mapData = $(mapElements[i]).getMapDataFromClient({forceData: false, checkForChange: true});
 
             if(mapData !== false){
 
@@ -32176,7 +32544,7 @@ define('app/page',[
 
     'use strict';
 
-    var config = {
+    let config = {
         // page structure slidebars-menu classes
         pageId: 'sb-site',
         pageSlidebarClass: 'sb-slidebar',
@@ -32205,6 +32573,7 @@ define('app/page',[
         // footer
         pageFooterId: 'pf-footer',                                              // id for page footer
         footerLicenceLinkClass: 'pf-footer-licence',                            // class for "licence" link
+        globalInfoPanelId: 'pf-global-info',                                    // id for "global info panel"
 
         // menu
         menuHeadMenuLogoClass: 'pf-head-menu-logo',                             // class for main menu logo
@@ -32213,31 +32582,33 @@ define('app/page',[
         dynamicElementWrapperId: 'pf-dialog-wrapper'
     };
 
-    var programStatusCounter = 0;                                               // current count down in s until next status change is possible
-    var programStatusInterval = false;                                          // interval timer until next status change is possible
+    let programStatusCounter = 0;                                               // current count down in s until next status change is possible
+    let programStatusInterval = false;                                          // interval timer until next status change is possible
 
 
     /**
      * load main page structure elements and navigation container into body
+     * @returns {*|jQuery|HTMLElement}
      */
     $.fn.loadPageStructure = function(){
+        let body = $(this);
 
         // menu left
-        $(this).prepend(
+        body.prepend(
             $('<div>', {
                 class: [config.pageSlidebarClass, config.pageSlidebarLeftClass, 'sb-style-push', 'sb-width-custom'].join(' ')
             }).attr('data-sb-width', config.pageSlideLeftWidth)
         );
 
         // menu right
-        $(this).prepend(
+        body.prepend(
             $('<div>', {
                 class: [config.pageSlidebarClass, config.pageSlidebarRightClass, 'sb-style-push', 'sb-width-custom'].join(' ')
             }).attr('data-sb-width', config.pageSlideRightWidth)
         );
 
         // main page
-        $(this).prepend(
+        body.prepend(
             $('<div>', {
                 id: config.pageId,
                 class: config.pageClass
@@ -32261,6 +32632,8 @@ define('app/page',[
 
         // set document observer for global events
         setDocumentObserver();
+
+        return body;
     };
 
     /**
@@ -32268,7 +32641,7 @@ define('app/page',[
      * @param title
      * @returns {JQuery|*|jQuery}
      */
-    var getMenuHeadline = function(title){
+    let getMenuHeadline = function(title){
         return $('<div>', {
             class: 'panel-heading'
         }).prepend(
@@ -32360,7 +32733,7 @@ define('app/page',[
                             css: {width: '1.23em'}
                         })
                     ).on('click', function(){
-                        var fullScreenElement = $('body');
+                        let fullScreenElement = $('body');
                         requirejs(['jquery', 'fullScreen'], function($) {
 
                             if($.fullscreen.isFullScreen()){
@@ -32534,10 +32907,9 @@ define('app/page',[
      * load page header
      */
     $.fn.loadHeader = function(){
+        let pageElement = $(this);
 
-        var pageElement = $(this);
-
-        var moduleData = {
+        let moduleData = {
             id: config.pageHeaderId,
             logo: function(){
                 // render svg logo
@@ -32552,14 +32924,14 @@ define('app/page',[
             mapTrackingId: Util.config.headMapTrackingId
         };
 
-        var headRendered = Mustache.render(TplHead, moduleData);
+        let headRendered = Mustache.render(TplHead, moduleData);
 
         pageElement.prepend(headRendered);
 
         // init header =====================================================================
 
         // init slide menus
-        var slideMenu = new $.slidebars({
+        let slideMenu = new $.slidebars({
             scrollLock: false
         });
 
@@ -32594,7 +32966,7 @@ define('app/page',[
         });
 
         // tracking toggle
-        var mapTrackingCheckbox = $('#' + Util.config.headMapTrackingId);
+        let mapTrackingCheckbox = $('#' + Util.config.headMapTrackingId);
         mapTrackingCheckbox.bootstrapToggle({
             size: 'mini',
             on: 'on',
@@ -32610,10 +32982,10 @@ define('app/page',[
         mapTrackingCheckbox.bootstrapToggle('on');
 
         mapTrackingCheckbox.on('change', function(e) {
-            var value = $(this).is(':checked');
-            var tracking = 'off';
-            var trackingText = 'Your current location will not actually be added';
-            var trackingType = 'info';
+            let value = $(this).is(':checked');
+            let tracking = 'off';
+            let trackingText = 'Your current location will not actually be added';
+            let trackingType = 'info';
             if(value){
                 tracking = 'on';
                 trackingText = 'New connections will actually be added';
@@ -32625,7 +32997,7 @@ define('app/page',[
 
 
         // init all tooltips
-        var tooltipElements = $('#' + config.pageHeaderId).find('[title]');
+        let tooltipElements = $('#' + config.pageHeaderId).find('[title]');
         tooltipElements.tooltip({
             placement: 'bottom',
             delay: {
@@ -32641,15 +33013,15 @@ define('app/page',[
      * load page footer
      */
     $.fn.loadFooter = function(){
-        var pageElement = $(this);
+        let pageElement = $(this);
 
-        var moduleData = {
+        let moduleData = {
             id: config.pageFooterId,
             footerLicenceLinkClass: config.footerLicenceLinkClass,
             currentYear: new Date().getFullYear()
         };
 
-        var headRendered = Mustache.render(TplFooter, moduleData);
+        let headRendered = Mustache.render(TplFooter, moduleData);
 
         pageElement.prepend(headRendered);
 
@@ -32666,12 +33038,12 @@ define('app/page',[
     /**
      * catch all global document events
      */
-    var setDocumentObserver = function(){
+    let setDocumentObserver = function(){
 
         // on "full-screen" change event
         $(document).on('fscreenchange', function(e, state, elem){
 
-            var menuButton = $('#' + Util.config.menuButtonFullScreenId);
+            let menuButton = $('#' + Util.config.menuButtonFullScreenId);
 
             if(state === true){
                 // full screen active
@@ -32735,9 +33107,9 @@ define('app/page',[
 
         $(document).on('pf:menuShowMapSettings', function(e, data){
             // show map edit dialog or edit map
-            var mapData = false;
+            let mapData = false;
 
-            var activeMap = Util.getMapModule().getActiveMap();
+            let activeMap = Util.getMapModule().getActiveMap();
 
             if(activeMap){
                 mapData = Util.getCurrentMapData( activeMap.data('id') );
@@ -32749,9 +33121,9 @@ define('app/page',[
 
         $(document).on('pf:menuDeleteMap', function(e){
             // delete current active map
-            var mapData = false;
+            let mapData = false;
 
-            var activeMap = Util.getMapModule().getActiveMap();
+            let activeMap = Util.getMapModule().getActiveMap();
 
             if(activeMap){
                 mapData = activeMap.getMapDataFromClient({forceData: true});
@@ -32769,7 +33141,7 @@ define('app/page',[
 
         $(document).on('pf:menuLogout', function(e, data){
 
-            var clearCookies = false;
+            let clearCookies = false;
             if(
                 typeof data === 'object' &&
                 data.hasOwnProperty('clearCookies')
@@ -32791,10 +33163,10 @@ define('app/page',[
 
         // update header links with current map data
         $(document).on('pf:updateHeaderMapData', function(e, data){
-            var activeMap = Util.getMapModule().getActiveMap();
+            let activeMap = Util.getMapModule().getActiveMap();
 
-            var userCount = 0;
-            var currentLocationData = {};
+            let userCount = 0;
+            let currentLocationData = {};
 
             // show active user just for the current active map
             if(
@@ -32811,7 +33183,7 @@ define('app/page',[
         // shutdown the program -> show dialog
         $(document).on('pf:shutdown', function(e, data){
             // show shutdown dialog
-            var options = {
+            let options = {
                 buttons: {
                     logout: {
                         label: '<i class="fa fa-fw fa-refresh"></i> restart',
@@ -32873,21 +33245,21 @@ define('app/page',[
      * updates the header with current user data
      */
     $.fn.updateHeaderUserData = function(){
-        var userData = Util.getCurrentUserData();
+        let userData = Util.getCurrentUserData();
 
-        var userInfoElement = $('.' + config.headUserCharacterClass);
-        var currentCharacterId = userInfoElement.data('characterId');
-        var currentCharactersOptionIds = userInfoElement.data('characterOptionIds') ? userInfoElement.data('characterOptionIds') : [];
-        var newCharacterId = 0;
-        var newCharacterName = '';
+        let userInfoElement = $('.' + config.headUserCharacterClass);
+        let currentCharacterId = userInfoElement.data('characterId');
+        let currentCharactersOptionIds = userInfoElement.data('characterOptionIds') ? userInfoElement.data('characterOptionIds') : [];
+        let newCharacterId = 0;
+        let newCharacterName = '';
 
-        var userShipElement = $('.' + config.headUserShipClass);
-        var currentShipId = userShipElement.data('shipId');
-        var newShipId = 0;
-        var newShipName = '';
+        let userShipElement = $('.' + config.headUserShipClass);
+        let currentShipId = userShipElement.data('shipId');
+        let newShipId = 0;
+        let newShipName = '';
 
         // function for header element toggle animation
-        var animateHeaderElement = function(element, callback, triggerShow){
+        let animateHeaderElement = function(element, callback, triggerShow){
 
             element.show().velocity('stop').velocity({
                 opacity: 0
@@ -32933,14 +33305,14 @@ define('app/page',[
             updateMapTrackingToggle(userData.character.logLocation);
         }
 
-        var newCharactersOptionIds = userData.characters.map(function(data){
+        let newCharactersOptionIds = userData.characters.map(function(data){
             return data.id;
         });
 
         // update user character data ---------------------------------------------------
         if(currentCharactersOptionIds.toString() !== newCharactersOptionIds.toString()){
 
-            var  currentCharacterChanged = false;
+            let  currentCharacterChanged = false;
             if(currentCharacterId !== newCharacterId){
                 currentCharacterChanged = true;
             }
@@ -32963,7 +33335,7 @@ define('app/page',[
         // update user ship data --------------------------------------------------------
         if(currentShipId !== newShipId){
 
-            var showShipElement = true;
+            let showShipElement = true;
             if(newShipId === 0){
                 showShipElement = false;
             }
@@ -32983,8 +33355,8 @@ define('app/page',[
      * update "map tracking" toggle in header
      * @param status
      */
-    var updateMapTrackingToggle = function(status){
-        var mapTrackingCheckbox = $('#' + Util.config.headMapTrackingId);
+    let updateMapTrackingToggle = function(status){
+        let mapTrackingCheckbox = $('#' + Util.config.headMapTrackingId);
         if(status === true){
             mapTrackingCheckbox.bootstrapToggle('enable');
         }else{
@@ -32995,7 +33367,7 @@ define('app/page',[
     /**
      * delete active character log for the current user
      */
-    var deleteLog = function(){
+    let deleteLog = function(){
 
         $.ajax({
             type: 'POST',
@@ -33011,9 +33383,9 @@ define('app/page',[
      * update the "active user" badge in header
      * @param userCount
      */
-    var updateHeaderActiveUserCount = function(userCount){
-        var activeUserElement = $('.' + config.headActiveUserClass);
-        var badge = activeUserElement.find('.badge');
+    let updateHeaderActiveUserCount = function(userCount){
+        let activeUserElement = $('.' + config.headActiveUserClass);
+        let badge = activeUserElement.find('.badge');
 
         if(badge.data('userCount') !== userCount){
             badge.data('userCount', userCount);
@@ -33033,13 +33405,13 @@ define('app/page',[
      * update the "current location" element in head
      * @param locationData
      */
-    var updateHeaderCurrentLocation = function(locationData){
-        var currentLocationElement = $('#' + Util.config.headCurrentLocationId);
-        var linkElement = currentLocationElement.find('a');
-        var textElement = linkElement.find('span');
+    let updateHeaderCurrentLocation = function(locationData){
+        let currentLocationElement = $('#' + Util.config.headCurrentLocationId);
+        let linkElement = currentLocationElement.find('a');
+        let textElement = linkElement.find('span');
 
-        var tempSystemName = (locationData.currentSystemName) ? locationData.currentSystemName : false;
-        var tempSystemId = (locationData.currentSystemId) ? locationData.currentSystemId : 0;
+        let tempSystemName = (locationData.currentSystemName) ? locationData.currentSystemName : false;
+        let tempSystemId = (locationData.currentSystemId) ? locationData.currentSystemId : 0;
 
         if(
             linkElement.data('systemName') !== tempSystemName ||
@@ -33064,7 +33436,7 @@ define('app/page',[
     /**
      * shows a test notification for desktop messages
      */
-    var notificationTest = function(){
+    let notificationTest = function(){
         Util.showNotify({
             title: 'Test Notification',
             text: 'Accept browser security question'},
@@ -33079,17 +33451,17 @@ define('app/page',[
      *  set event listener if the program tab is active or not
      *  this is used to lower the update ping cycle to reduce server load
      */
-    var initTabChangeObserver = function(){
+    let initTabChangeObserver = function(){
 
         // increase the timer if a user is inactive
-        var increaseTimer = 10000;
+        let increaseTimer = 10000;
 
         // timer keys
-        var mapUpdateKey = 'UPDATE_SERVER_MAP';
-        var mapUserUpdateKey = 'UPDATE_SERVER_USER_DATA';
+        let mapUpdateKey = 'UPDATE_SERVER_MAP';
+        let mapUserUpdateKey = 'UPDATE_SERVER_USER_DATA';
 
         // Set the name of the hidden property and the change event for visibility
-        var hidden, visibilityChange;
+        let hidden, visibilityChange;
         if (typeof document.hidden !== 'undefined') { // Opera 12.10 and Firefox 18 and later support
             hidden = 'hidden';
             visibilityChange = 'visibilitychange';
@@ -33146,97 +33518,230 @@ define('app/page',[
      * @param status
      */
     $.fn.setProgramStatus = function(status){
-        var statusElement = $('.' + config.headProgramStatusClass);
-        var icon = statusElement.find('i');
-        var textElement = statusElement.find('span');
+        let statusElement = $('.' + config.headProgramStatusClass);
+        let icon = statusElement.find('i');
+        let textElement = statusElement.find('span');
 
-        var iconClass = false;
-        var textClass = false;
-        var text = '';
+        let iconClass = false;
+        let textClass = false;
 
         switch(status){
             case 'online':
-                if( ! statusElement.hasClass('txt-color-green')){
-                    iconClass = 'fa-wifi';
-                    textClass = 'txt-color-green';
-                    text = 'online';
-                }
+                iconClass = 'fa-wifi';
+                textClass = 'txt-color-green';
                 break;
+            case 'slow connection':
             case 'problem':
-                if( ! statusElement.hasClass('txt-color-orange')){
-                    iconClass = 'fa-warning';
-                    textClass = 'txt-color-orange';
-                    text = 'problem';
-                }
+                iconClass = 'fa-warning';
+                textClass = 'txt-color-orange';
                 break;
             case 'offline':
-                if( ! statusElement.hasClass('txt-color-red')){
-                    iconClass = 'fa-bolt';
-                    textClass = 'txt-color-red';
-                    text = 'offline';
-                }
+                iconClass = 'fa-bolt';
+                textClass = 'txt-color-red';
                 break;
         }
 
-        // change status, on status changed
-        if(iconClass !== false){
+        // "warnings" and "errors" always have priority -> ignore/clear interval
+        if(
+            textClass === 'txt-color-orange' ||
+            textClass === 'txt-color-red'
+        ){
+            clearInterval(programStatusInterval);
+            programStatusInterval = false;
+        }
 
-            // "problem" and "offline" always have priority -> ignore/clear interval
-            if(
-                status === 'problem' ||
-                status === 'offline'
-            ){
-                clearInterval(programStatusInterval);
-                programStatusInterval = false;
-            }
+        if( statusElement.data('status') !== status ){
+            // status has changed
+            if(! programStatusInterval){
 
-            if(! statusElement.hasClass(textClass) ){
+                let timer = function(){
+                    // change status on first timer iteration
+                    if(programStatusCounter === Init.timer.PROGRAM_STATUS_VISIBLE){
+
+                        statusElement.velocity('stop').velocity('fadeOut', {
+                            duration: Init.animationSpeed.headerLink,
+                            complete: function(){
+                                // store current status
+                                statusElement.data('status', status);
+                                statusElement.removeClass('txt-color-green txt-color-orange txt-color-red');
+                                icon.removeClass('fa-wifi fa-warning fa-bolt');
+                                statusElement.addClass(textClass);
+                                icon.addClass(iconClass);
+                                textElement.text(status);
+                            }
+                        }).velocity('fadeIn', {
+                            duration: Init.animationSpeed.headerLink
+                        });
+                    }
+
+                    // decrement counter
+                    programStatusCounter -= 1000;
+
+                    if(programStatusCounter <= 0){
+                        clearInterval(programStatusInterval);
+                        programStatusInterval = false;
+                    }
+                };
 
                 if(! programStatusInterval){
-
-                    var timer = function(){
-
-                        // change status on first timer iteration
-                        if(programStatusCounter === Init.timer.PROGRAM_STATUS_VISIBLE){
-
-                            statusElement.velocity('stop').velocity('fadeOut', {
-                                duration: Init.animationSpeed.headerLink,
-                                complete: function(){
-                                    statusElement.removeClass('txt-color-green txt-color-orange txt-color-red');
-                                    icon.removeClass('fa-wifi fa-warning fa-bolt');
-                                    statusElement.addClass(textClass);
-                                    icon.addClass(iconClass);
-                                    textElement.text(text);
-                                }
-                            }).velocity('fadeIn', {
-                                duration: Init.animationSpeed.headerLink
-                            });
-                        }
-
-                        // decrement counter
-                        programStatusCounter -= 1000;
-
-                        if(programStatusCounter <= 0){
-                            clearInterval(programStatusInterval);
-                            programStatusInterval = false;
-                        }
-                    };
-
-                    if(! programStatusInterval){
-                        programStatusCounter = Init.timer.PROGRAM_STATUS_VISIBLE;
-                        programStatusInterval = setInterval(timer, 1000);
-                    }
+                    programStatusCounter = Init.timer.PROGRAM_STATUS_VISIBLE;
+                    programStatusInterval = setInterval(timer, 1000);
                 }
             }
         }
     };
 
+    /**
+     * show information panel to active users (on bottom)
+     * @returns {*|jQuery|HTMLElement}
+     */
+    $.fn.showGlobalInfoPanel = function (){
+        let body = $(this);
+        let infoTemplate = 'text!templates/ui/info_panel.html';
+
+        requirejs([infoTemplate, 'mustache'], function(template, Mustache) {
+            let data = {
+                id: config.globalInfoPanelId
+            };
+            let content = $( Mustache.render(template, data) );
+            content.insertBefore( '#' + config.pageFooterId );
+        });
+
+        return body;
+    };
 
     return {
         initTabChangeObserver: initTabChangeObserver
     };
 
 
+});
+/**
+ * SharedWorker config for map
+ */
+
+define('app/map/worker',[
+    'app/util'
+], function(Util) {
+    'use strict';
+
+    let config = {
+
+    };
+
+    let sharedWorker    = null;
+    let MsgWorker       = null;
+    let characterId     = null;
+
+    /**
+     * get WebSocket URL for SharedWorker script
+     * @returns {string}
+     */
+    let getWebSocketURL = () => {
+        let domain = location.host;
+        let workerProtocol = (window.location.protocol === 'https:') ? 'wss:' : 'ws:';
+        return workerProtocol + '//' + domain + '/ws/map/update';
+    };
+
+    /**
+     * get SharedWorker Script path
+     * @returns {string}
+     */
+    let getWorkerScript = () => {
+        return '/public/js/' + Util.getVersion() + '/app/worker/map.js';
+    };
+
+    /**
+     * get path to message object
+     * @returns {string}
+     */
+    let getMessageWorkerObjectPath = () => {
+        return '/public/js/' + Util.getVersion() + '/app/worker/message.js';
+    };
+
+    /**
+     * init (connect) WebSocket within SharedWorker
+     */
+    let initSocket = () => {
+        let MsgWorkerInit = new MsgWorker('ws:init');
+        MsgWorkerInit.data({
+            uri: getWebSocketURL(),
+            characterId: characterId,
+        });
+
+        sharedWorker.port.postMessage(MsgWorkerInit);
+    };
+
+    /**
+     * init (start/connect) to "SharedWorker"
+     * -> set worker events
+     */
+    let init = (config) => {
+        // set characterId that is connected with this SharedWorker PORT
+        characterId = parseInt(config.characterId);
+
+        // get  message Class for App <=> SharedWorker MessageEvent communication
+        requirejs([getMessageWorkerObjectPath()], () => {
+            MsgWorker = window.MsgWorker;
+
+            // start/connect to "SharedWorker"
+            sharedWorker = new SharedWorker( getWorkerScript(), getMessageWorkerObjectPath() );
+
+            sharedWorker.port.addEventListener('message', (e) => {
+                let MsgWorkerMessage = e.data;
+                Object.setPrototypeOf(MsgWorkerMessage, MsgWorker.prototype);
+
+                switch(MsgWorkerMessage.command){
+                    case 'ws:open':
+                        config.callbacks.onOpen(MsgWorkerMessage);
+                        break;
+                    case 'ws:send':
+                        config.callbacks.onGet(MsgWorkerMessage);
+                        break;
+                    case 'ws:closed':
+                        config.callbacks.onClosed(MsgWorkerMessage);
+                        break;
+                    case 'ws:error':
+                        config.callbacks.onError(MsgWorkerMessage);
+                        break;
+
+                }
+            }, false);
+
+            sharedWorker.onerror = (e) => {
+                // could not connect to SharedWorker script -> send error back
+                let MsgWorkerError = new MsgWorker('sw:error');
+                MsgWorkerError.meta({
+                    reason: 'Could not connect to SharedWorker: ' + getWorkerScript()
+                });
+
+                config.callbacks.onError(MsgWorkerError);
+            };
+
+            sharedWorker.port.start();
+
+            // SharedWorker initialized
+            let MsgWorkerInit = new MsgWorker('sw:init');
+            config.callbacks.onInit(MsgWorkerInit);
+
+            // startWebSocket
+            initSocket();
+        });
+    };
+
+    let send = (task, data) => {
+        let MsgWorkerSend = new MsgWorker('ws:send');
+        MsgWorkerSend.task(task);
+        MsgWorkerSend.data(data);
+
+        sharedWorker.port.postMessage(MsgWorkerSend);
+    };
+
+    return {
+        getWebSocketURL: getWebSocketURL,
+        init: init,
+        send: send
+    };
 });
 /**
  * form elements
@@ -33530,16 +34035,17 @@ define('mappage',[
     'app/render',
     'app/logging',
     'app/page',
+    'app/map/worker',
     'app/ui/form_element',
     'app/module_map'
-], function($, Init, Util, Render, Logging, Page) {
+], ($, Init, Util, Render, Logging, Page, MapWorker) => {
 
     'use strict';
 
     /**
      * main init "map" page
      */
-    $(function(){
+    $(() => {
         Util.initPrototypes();
 
         // set default AJAX config
@@ -33549,6 +34055,7 @@ define('mappage',[
         Util.initDefaultBootboxConfig();
 
         // load page
+        // load info (maintenance) info panel (if scheduled)
         $('body').loadPageStructure();
 
         // show app information in browser console
@@ -33557,14 +34064,14 @@ define('mappage',[
         // init logging
         Logging.init();
 
-        var mapModule = $('#' + Util.config.mapModuleId);
+        let mapModule = $('#' + Util.config.mapModuleId);
 
         // map init load static data =======================================================
-        $.getJSON( Init.path.initMap, function( initData ) {
+        $.getJSON( Init.path.initMap, (initData) => {
 
 
             if( initData.error.length > 0 ){
-                for(var i = 0; i < initData.error.length; i++){
+                for(let i = 0; i < initData.error.length; i++){
                     Util.showNotify({
                         title: initData.error[i].title,
                         text: initData.error[i].message,
@@ -33580,11 +34087,10 @@ define('mappage',[
             Init.systemStatus       = initData.systemStatus;
             Init.systemType         = initData.systemType;
             Init.characterStatus    = initData.characterStatus;
-            Init.maxSharedCount     = initData.maxSharedCount;
             Init.routes             = initData.routes;
             Init.notificationStatus = initData.notificationStatus;
-            Init.activityLogging    = initData.activityLogging;
             Init.routeSearch        = initData.routeSearch;
+            Init.programMode        = initData.programMode;
 
             // init tab change observer, Once the timers are available
             Page.initTabChangeObserver();
@@ -33592,207 +34098,82 @@ define('mappage',[
             // init map module
             mapModule.initMapModule();
 
-        }).fail(function( jqXHR, status, error) {
-            var reason = status + ' ' + jqXHR.status + ': ' + error;
+            // load info (maintenance) info panel (if scheduled)
+            if(Init.programMode.maintenance){
+                $('body').showGlobalInfoPanel();
+            }
+
+        }).fail(( jqXHR, status, error) => {
+            let reason = status + ' ' + jqXHR.status + ': ' + error;
 
             $(document).trigger('pf:shutdown', {status: jqXHR.status, reason: reason});
         });
+
+        /**
+         * request all map access data (tokens) -> required wor WebSocket subscription
+         */
+        let getMapAccessData = () => {
+            $.getJSON( Init.path.getAccessData, ( response ) => {
+                if(response.status === 'OK'){
+                    // init SharedWorker for maps
+                    MapWorker.init({
+                        characterId:  response.data.id,
+                        callbacks: {
+                            onInit: (MsgWorkerMessage) => {
+                                Util.setSyncStatus(MsgWorkerMessage.command);
+                            },
+                            onOpen: (MsgWorkerMessage) => {
+                                Util.setSyncStatus(MsgWorkerMessage.command, MsgWorkerMessage.meta());
+
+                                MapWorker.send( 'subscribe', response.data);
+                            },
+                            onGet: (MsgWorkerMessage) => {
+                                switch(MsgWorkerMessage.task()){
+                                    case 'mapUpdate':
+                                        Util.updateCurrentMapData( MsgWorkerMessage.data() );
+                                        mapModule.updateMapModule();
+                                        break;
+                                    case 'mapAccess':
+                                    case 'mapDeleted':
+                                        Util.deleteCurrentMapData( MsgWorkerMessage.data() );
+                                        mapModule.updateMapModule();
+                                        break;
+                                }
+
+                                Util.setSyncStatus('ws:get');
+                            },
+                            onClosed: (MsgWorkerMessage) => {
+                                Util.setSyncStatus(MsgWorkerMessage.command, MsgWorkerMessage.meta());
+                            },
+                            onError: (MsgWorkerMessage) => {
+                                Util.setSyncStatus(MsgWorkerMessage.command, MsgWorkerMessage.meta());
+                            }
+                        }
+                    });
+                }
+            });
+        };
+
+        getMapAccessData();
 
         /**
          * main function for init all map relevant trigger calls
          */
         $.fn.initMapModule = function(){
 
-            var mapModule = $(this);
+            let mapModule = $(this);
 
             // log keys ------------------------------------------------------------------------
-
-            // ajax request update map data
-            var logKeyServerMapData = 'UPDATE_SERVER_MAP';
-
-            // update client map data
-            var logKeyClientMapData = 'UPDATE_CLIENT_MAP';
-
-            // ajax request update map user data
-            var logKeyServerUserData = 'UPDATE_SERVER_USER_DATA';
-
-            // update client map user data
-            var logKeyClientUserData = 'UPDATE_CLIENT_USER_DATA';
+            let logKeyServerMapData = Init.performanceLogging.keyServerMapData;
+            let logKeyServerUserData = Init.performanceLogging.keyServerUserData;
 
             // main update intervals/trigger (heartbeat)
-            var updateTimeouts = {
+            let updateTimeouts = {
                 mapUpdate: 0,
                 userUpdate: 0
             };
 
-            var locationToggle = $('#' + Util.config.headMapTrackingId);
-
-            // ping for main map update ========================================================
-            var triggerMapUpdatePing = function(){
-
-                // check each execution time if map module  is still available
-                var check = $('#' + mapModule.attr('id')).length;
-
-                if(check === 0){
-                    // program crash stop any update
-                    return;
-                }
-
-                // get updated map data
-                var updatedMapData = {
-                    mapData: mapModule.getMapModuleDataForUpdate(),
-                    getUserData: ( Util.getCurrentUserData() ) ? 0 : 1
-                };
-
-                // start log
-                Util.timeStart(logKeyServerMapData);
-
-                // store updatedMapData
-                $.ajax({
-                    type: 'POST',
-                    url: Init.path.updateMapData,
-                    data: updatedMapData,
-                    dataType: 'json'
-                }).done(function(data){
-
-                    // log request time
-                    var duration = Util.timeStop(logKeyServerMapData);
-                    Util.log(logKeyServerMapData, {duration: duration, type: 'server', description: 'request map data'});
-
-                    if(
-                        data.error &&
-                        data.error.length > 0
-                    ){
-                        // any error in the main trigger functions result in a user log-off
-                        $(document).trigger('pf:menuLogout');
-                    }else{
-                        $(document).setProgramStatus('online');
-
-                        if(data.userData !== undefined) {
-                            // store current user data global (cache)
-                            Util.setCurrentUserData(data.userData);
-                        }
-
-                        if(data.mapData.length === 0){
-                            // clear all existing maps
-                            mapModule.clearMapModule();
-
-                            // no map data available -> show "new map" dialog
-                            $(document).trigger('pf:menuShowMapSettings', {tab: 'new'});
-                        }else{
-                            // map data found
-
-                            // start log
-                            Util.timeStart(logKeyClientMapData);
-
-                            // load/update main map module
-                            mapModule.updateMapModule(data.mapData);
-
-                            // log client map update time
-                            duration = Util.timeStop(logKeyClientMapData);
-                            Util.log(logKeyClientMapData, {duration: duration, type: 'client', description: 'update map'});
-                        }
-
-                        // get the current update delay (this can change if a user is inactive)
-                        var mapUpdateDelay = Util.getCurrentTriggerDelay( logKeyServerMapData, 0 );
-
-                        // init new trigger
-                        updateTimeouts.mapUpdate = setTimeout(function(){
-                            triggerMapUpdatePing();
-                        }, mapUpdateDelay);
-
-                        // initial start for the userUpdate trigger
-                        // this should only be called at the first time!
-                        if(updateTimeouts.userUpdate === 0){
-
-                            // start user update trigger after map loaded
-                            updateTimeouts.userUpdate = setTimeout(function(){
-                                 triggerUserUpdatePing();
-                            }, 3000);
-                        }
-                    }
-
-                }).fail(handleAjaxErrorResponse);
-            };
-
-            // ping for user data update =======================================================
-            var triggerUserUpdatePing = function(){
-
-                // IMPORTANT: Get user data for ONE map that is currently visible
-                // On later releases this can be easy changed to "full update" all maps for a user
-                //
-                var mapIds = [];
-                var activeMap = Util.getMapModule().getActiveMap();
-                if(activeMap){
-                    mapIds = [ activeMap.data('id') ];
-                }
-
-                var updatedUserData = {
-                    mapIds: mapIds,
-                    systemData: Util.getCurrentSystemData(),
-                    characterMapData: {
-                        mapTracking: (locationToggle.is(':checked') ? 1 : 0) // location tracking
-                    }
-                };
-
-                Util.timeStart(logKeyServerUserData);
-
-                $.ajax({
-                    type: 'POST',
-                    url: Init.path.updateUserData,
-                    data: updatedUserData,
-                    dataType: 'json'
-                }).done(function(data){
-
-                    // log request time
-                    var duration = Util.timeStop(logKeyServerUserData);
-                    Util.log(logKeyServerUserData, {duration: duration, type: 'server', description:'request user data'});
-
-                    if(data.error.length > 0){
-                        // any error in the main trigger functions result in a user log-off
-                        $(document).trigger('pf:menuLogout');
-                    }else{
-
-                        $(document).setProgramStatus('online');
-
-                        if(data.userData !== undefined){
-                            // store current user data global (cache)
-                            var userData = Util.setCurrentUserData(data.userData);
-
-                            // store current map user data (cache)
-                            if(data.mapUserData !== undefined){
-                                Util.setCurrentMapUserData(data.mapUserData);
-                            }
-
-                            // start log
-                            Util.timeStart(logKeyClientUserData);
-
-                            // active character data found
-                            mapModule.updateMapModuleData();
-
-                            // log client user data update time
-                            duration = Util.timeStop(logKeyClientUserData);
-                            Util.log(logKeyClientUserData, {duration: duration, type: 'client', description:'update users'});
-
-                            // update system info panels
-                            if(data.system){
-                                mapModule.updateSystemModuleData(data.system);
-                            }
-
-                            // get the current update delay (this can change if a user is inactive)
-                            var mapUserUpdateDelay = Util.getCurrentTriggerDelay( logKeyServerUserData, 0 );
-
-                            // init new trigger
-                            updateTimeouts.userUpdate = setTimeout(function(){
-                                triggerUserUpdatePing();
-                            }, mapUserUpdateDelay);
-
-                        }
-                    }
-
-                }).fail(handleAjaxErrorResponse);
-
-            };
+            let locationToggle = $('#' + Util.config.headMapTrackingId);
 
             /**
              * Ajax error response handler function for main-ping functions
@@ -33800,16 +34181,16 @@ define('mappage',[
              * @param status
              * @param error
              */
-            var handleAjaxErrorResponse = function(jqXHR, status, error){
+            let handleAjaxErrorResponse = (jqXHR, status, error) => {
                 // clear both main update request trigger timer
                 clearUpdateTimeouts();
 
-                var reason = status + ' ' + jqXHR.status + ': ' + error;
-                var errorData = [];
+                let reason = status + ' ' + jqXHR.status + ': ' + error;
+                let errorData = [];
 
                 if(jqXHR.responseJSON){
                     // handle JSON
-                    var errorObj = $.parseJSON(jqXHR.responseText);
+                    let errorObj = $.parseJSON(jqXHR.responseText);
 
                     if(
                         errorObj.error &&
@@ -33830,11 +34211,187 @@ define('mappage',[
             };
 
             /**
+             * init (schedule) next MapUpdate Ping
+             */
+            let initMapUpdatePing = (forceUpdateMapData) => {
+                // get the current update delay (this can change if a user is inactive)
+                let delay = Util.getCurrentTriggerDelay( logKeyServerMapData, 0 );
+
+                updateTimeouts.mapUpdate = setTimeout((forceUpdateMapData) => {
+                    triggerMapUpdatePing(forceUpdateMapData);
+                }, delay, forceUpdateMapData);
+            };
+
+            // ping for main map update ========================================================
+            /**
+             * @param forceUpdateMapData // force request to be send
+             */
+            let triggerMapUpdatePing = (forceUpdateMapData) => {
+
+                // check each interval if map module  is still available
+                let check = $('#' + mapModule.attr('id')).length;
+
+                if(check === 0){
+                    // program crash stop any update
+                    return;
+                }
+
+                // get updated map data
+                let updatedMapData = {
+                    mapData: mapModule.getMapModuleDataForUpdate(),
+                    getUserData: ( Util.getCurrentUserData() ) ? 0 : 1
+                };
+
+                // check if mapUpdate trigger should be send
+                // -> if "syncType" === "ajax" -> send always
+                // -> if "syncType" === "webSocket" -> send initial AND on map changes
+                if(
+                    forceUpdateMapData ||
+                    Util.getSyncType() === 'ajax' ||
+                    (
+                        Util.getSyncType() === 'webSocket' &&
+                        updatedMapData.mapData.length
+                    )
+                ){
+                    // start log
+                    Util.timeStart(logKeyServerMapData);
+
+                    // store updatedMapData
+                    $.ajax({
+                        type: 'POST',
+                        url: Init.path.updateMapData,
+                        data: updatedMapData,
+                        dataType: 'json'
+                    }).done((data) => {
+                        // log request time
+                        let duration = Util.timeStop(logKeyServerMapData);
+                        Util.log(logKeyServerMapData, {duration: duration, type: 'server', description: 'request map data'});
+
+                        Util.setSyncStatus('ajax:get');
+
+                        if(
+                            data.error &&
+                            data.error.length > 0
+                        ){
+                            // any error in the main trigger functions result in a user log-off
+                            $(document).trigger('pf:menuLogout');
+                        }else{
+                            $(document).setProgramStatus('online');
+
+                            if(data.userData !== undefined) {
+                                // store current user data global (cache)
+                                Util.setCurrentUserData(data.userData);
+                            }
+
+                            // map data found
+                            Util.setCurrentMapData(data.mapData);
+
+                            // load/update main map module
+                            mapModule.updateMapModule();
+
+                            // get the current update delay (this can change if a user is inactive)
+                            let mapUpdateDelay = Util.getCurrentTriggerDelay( logKeyServerMapData, 0 );
+
+                            // init new trigger
+                            initMapUpdatePing(false);
+
+                            // initial start for the userUpdate trigger
+                            // this should only be called at the first time!
+                            if(updateTimeouts.userUpdate === 0){
+                                // start user update trigger after map loaded
+                                updateTimeouts.userUpdate = setTimeout(() => {
+                                    triggerUserUpdatePing();
+                                }, 1000);
+                            }
+                        }
+
+                    }).fail(handleAjaxErrorResponse);
+                }else{
+                    // skip this mapUpdate trigger and init next one
+                    initMapUpdatePing(false);
+                }
+
+            };
+
+            // ping for user data update =======================================================
+            let triggerUserUpdatePing = () => {
+
+                // IMPORTANT: Get user data for ONE map that is currently visible
+                // On later releases this can be easy changed to "full update" all maps for a user
+                //
+                let mapIds = [];
+                let activeMap = Util.getMapModule().getActiveMap();
+                if(activeMap){
+                    mapIds = [ activeMap.data('id') ];
+                }
+
+                let updatedUserData = {
+                    mapIds: mapIds,
+                    systemData: Util.getCurrentSystemData(),
+                    characterMapData: {
+                        mapTracking: (locationToggle.is(':checked') ? 1 : 0) // location tracking
+                    }
+                };
+
+                Util.timeStart(logKeyServerUserData);
+
+                $.ajax({
+                    type: 'POST',
+                    url: Init.path.updateUserData,
+                    data: updatedUserData,
+                    dataType: 'json'
+                }).done((data) => {
+
+                    // log request time
+                    let duration = Util.timeStop(logKeyServerUserData);
+                    Util.log(logKeyServerUserData, {duration: duration, type: 'server', description:'request user data'});
+
+                    if(data.error.length > 0){
+                        // any error in the main trigger functions result in a user log-off
+                        $(document).trigger('pf:menuLogout');
+                    }else{
+
+                        $(document).setProgramStatus('online');
+
+                        if(data.userData !== undefined){
+                            // store current user data global (cache)
+                            let userData = Util.setCurrentUserData(data.userData);
+
+                            // store current map user data (cache)
+                            if(data.mapUserData !== undefined){
+                                Util.setCurrentMapUserData(data.mapUserData);
+                            }
+
+                            // active character data found
+                            mapModule.updateMapModuleData();
+
+                            // update system info panels
+                            if(data.system){
+                                mapModule.updateSystemModuleData(data.system);
+                            }
+
+                            // get the current update delay (this can change if a user is inactive)
+                            let mapUserUpdateDelay = Util.getCurrentTriggerDelay( logKeyServerUserData, 0 );
+
+                            // init new trigger
+                            updateTimeouts.userUpdate = setTimeout(() => {
+                                triggerUserUpdatePing();
+                            }, mapUserUpdateDelay);
+
+                        }
+                    }
+
+                }).fail(handleAjaxErrorResponse);
+
+            };
+
+
+            /**
              * clear both main update timeouts
              * -> stop program from working -> shutdown
              */
-            var clearUpdateTimeouts = function(){
-                for(var intervalKey in updateTimeouts) {
+            let clearUpdateTimeouts = () => {
+                for(let intervalKey in updateTimeouts) {
 
                     if(updateTimeouts.hasOwnProperty(intervalKey)){
                         clearTimeout( updateTimeouts[intervalKey] );
@@ -33843,7 +34400,7 @@ define('mappage',[
             };
 
             // initial start of the  map update function
-            triggerMapUpdatePing();
+            triggerMapUpdatePing(true);
 
         };
 
