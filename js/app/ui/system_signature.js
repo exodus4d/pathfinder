@@ -1924,6 +1924,9 @@ define([
                                     btnOkLabel: 'delete',
                                     btnOkIcon: 'fa fa-fw fa-close',
                                     onConfirm : function(e, target){
+                                        // top scroll to top
+                                        e.preventDefault();
+
                                         let deleteRowElement = $(target).parents('tr');
                                         let row = tempTableElement.DataTable().rows(deleteRowElement);
                                         deleteSignatures(row);
