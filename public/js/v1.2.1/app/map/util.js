@@ -17,6 +17,7 @@ define([
         mapLocalStoragePrefix: 'map_',                                  // prefix for map data local storage key
         mapTabContentClass: 'pf-map-tab-content',                       // Tab-Content element (parent element)
 
+        systemIdPrefix: 'pf-system-',                                   // id prefix for a system
         systemClass: 'pf-system',                                       // class for all systems
         mapGridClass: 'pf-grid-small'                                   // class for map grid snapping
     };
@@ -191,7 +192,6 @@ define([
         return this.find('.' + config.systemClass);
     };
 
-
     /**
      * search connections by systems
      * @param {Object} map - jsPlumb
@@ -200,7 +200,7 @@ define([
      */
     let searchConnectionsBySystems = function(map, systems){
         let connections = [];
-        let withBackConnection = false;
+        let withBackConnection = true;
 
         $.each(systems, function(i, system){
             // get connections where system is source
@@ -571,6 +571,16 @@ define([
         });
     };
 
+    /**
+     * get systemId string (selector
+     * @param mapId
+     * @param systemId
+     * @returns {string}
+     */
+    let getSystemId = (mapId, systemId) => {
+        return config.systemIdPrefix + mapId + '-' + systemId;
+    };
+
     return {
         config: config,
         mapOptions: mapOptions,
@@ -593,6 +603,7 @@ define([
         storeDefaultMapId: storeDefaultMapId,
         getLocaleData: getLocaleData,
         storeLocalData: storeLocalData,
-        deleteLocalData: deleteLocalData
+        deleteLocalData: deleteLocalData,
+        getSystemId: getSystemId
     };
 });

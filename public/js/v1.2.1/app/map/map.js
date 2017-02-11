@@ -32,7 +32,6 @@ define([
 
         mapClass: 'pf-map',                                             // class for all maps
         mapIdPrefix: 'pf-map-',                                         // id prefix for all maps
-        systemIdPrefix: 'pf-system-',                                   // id prefix for a system
         systemClass: 'pf-system',                                       // class for all systems
         systemActiveClass: 'pf-system-active',                          // class for an active system in a map
         systemSelectedClass: 'pf-system-selected',                      // class for selected systems in a map
@@ -453,7 +452,7 @@ define([
     $.fn.getSystem = function(map, data){
         // get map container for mapId information
         let mapContainer = $(this);
-        let systemId = config.systemIdPrefix + mapContainer.data('id') + '-' + data.id;
+        let systemId = MapUtil.getSystemId(mapContainer.data('id'), data.id);
 
         // check if system already exists
         let system = document.getElementById( systemId );
@@ -753,8 +752,8 @@ define([
         let mapId = mapContainer.data('id');
         let connectionId = connectionData.id || 0;
         let connection;
-        let sourceSystem = $('#' + config.systemIdPrefix + mapId + '-' + connectionData.source);
-        let targetSystem = $('#' + config.systemIdPrefix + mapId + '-' + connectionData.target);
+        let sourceSystem = $('#' + MapUtil.getSystemId(mapId, connectionData.source) );
+        let targetSystem = $('#' + MapUtil.getSystemId(mapId, connectionData.target) );
 
         // check if both systems exists
         // (If not -> something went wrong e.g. DB-Foreign keys for "ON DELETE",...)
@@ -851,10 +850,10 @@ define([
 
         // check if source or target has changed
         if(connectionData.source !== newConnectionData.source ){
-            map.setSource(connection, config.systemIdPrefix + mapId + '-' + newConnectionData.source);
+            map.setSource(connection, MapUtil.getSystemId(mapId, newConnectionData.source) );
         }
         if(connectionData.target !== newConnectionData.target ){
-            map.setTarget(connection, config.systemIdPrefix + mapId + '-' + newConnectionData.target);
+            map.setTarget(connection, MapUtil.getSystemId(mapId, newConnectionData.target) );
         }
 
         // connection.targetId
@@ -998,7 +997,7 @@ define([
                 }
 
                 if(deleteThisSystem === true){
-                    let deleteSystem = $('#' + config.systemIdPrefix + mapContainer.data('id') + '-' + currentSystemData[a].id);
+                    let deleteSystem = $('#' + MapUtil.getSystemId(mapContainer.data('id'), currentSystemData[a].id) );
 
                     // system not found -> delete system
                     System.removeSystems(mapConfig.map, deleteSystem);
@@ -1423,7 +1422,6 @@ define([
      * @returns {{id: Number, source: Number, sourceName: (*|T|JQuery|{}), target: Number, targetName: (*|T|JQuery), scope: *, type: *, updated: Number}}
      */
     let getDataByConnection = function(connection){
-
         let source = $(connection.source);
         let target = $(connection.target);
 
@@ -2786,7 +2784,7 @@ define([
 
         $(mapContainer).on('pf:menuSelectSystem', function(e, data){
             let tempMapContainer = $(this);
-            let systemId = config.systemIdPrefix + tempMapContainer.data('id') + '-' + data.systemId;
+            let systemId = MapUtil.getSystemId(tempMapContainer.data('id'), data.systemId);
             let system = $(this).find('#' + systemId);
 
             if(system.length === 1){
@@ -3309,7 +3307,6 @@ define([
     return {
         getMapInstance: getMapInstance,
         clearMapInstance: clearMapInstance,
-
         getDataByConnection: getDataByConnection
     };
 

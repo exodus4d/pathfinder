@@ -79,9 +79,7 @@ class ConnectionModel extends BasicModel{
      * @param $systemData
      */
     public function setData($systemData){
-
         foreach((array)$systemData as $key => $value){
-
             if( !is_array($value) ){
                 if( $this->exists($key) ){
                     $this->$key = $value;
@@ -98,7 +96,6 @@ class ConnectionModel extends BasicModel{
      * @return array
      */
     public function getData(){
-
         $connectionData = [
             'id' => $this->id,
             'source' => $this->source->id,
@@ -140,7 +137,11 @@ class ConnectionModel extends BasicModel{
      * @return mixed
      */
     public function hasAccess(CharacterModel $characterModel){
-        return $this->mapId->hasAccess($characterModel);
+        $access = false;
+        if( !$this->dry() ){
+            $access = $this->mapId->hasAccess($characterModel);
+        }
+        return $access;
     }
 
     /**

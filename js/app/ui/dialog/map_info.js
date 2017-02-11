@@ -36,8 +36,6 @@ define([
         tableActionCellClass: 'pf-table-action-cell',                           // class for table "action" cells
         tableCounterCellClass: 'pf-table-counter-cell',                         // class for table "counter" cells
 
-        systemIdPrefix: 'pf-system-',                                           // id prefix for a system
-
         loadingOptions: {                                                       // config for loading overlay
             icon: {
                 size: 'fa-2x'
@@ -430,7 +428,7 @@ define([
                             let deleteRowElement = $(target).parents('tr');
 
                             let activeMap = Util.getMapModule().getActiveMap();
-                            let systemElement = $('#' + config.systemIdPrefix + mapData.config.id + '-' + rowData.id);
+                            let systemElement = MapUtil.getSystemId(mapData.config.id, rowData.id);
 
                             if(systemElement){
                                 // trigger system delete event
