@@ -50,7 +50,7 @@ class MailController extends \SMTP{
      */
     public function sendRallyPoint($to, $msg){
         $this->set('To', '<' . $to . '>');
-        $this->set('From', 'Pathfinder <' . Controller::getEnvironmentData('SMTP_FROM') . '>');
+        $this->set('From', '"Pathfinder" <' . Controller::getEnvironmentData('SMTP_FROM') . '>');
         $this->set('Subject', 'PATHFINDER - New rally point');
         $status = $this->send($msg);
 
