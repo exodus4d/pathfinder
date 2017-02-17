@@ -22,7 +22,7 @@ class MailController extends \SMTP{
         parent::__construct($host,$port,$scheme,$user,$pw);
 
         // error handling
-        $this->set('Errors-to', '' . Controller::getEnvironmentData('SMTP_ERROR') . '>');
+        $this->set('Errors-to', '<' . Controller::getEnvironmentData('SMTP_ERROR') . '>');
         $this->set('MIME-Version', '1.0');
         $this->set('Content-Type', 'text/html; charset=ISO-8859-1');
     }
@@ -35,7 +35,7 @@ class MailController extends \SMTP{
      */
     public function sendDeleteAccount($to, $msg){
         $this->set('To', '<' . $to . '>');
-        $this->set('From', 'Pathfinder <' . Controller::getEnvironmentData('SMTP_FROM') . '>');
+        $this->set('From', '"Pathfinder" <' . Controller::getEnvironmentData('SMTP_FROM') . '>');
         $this->set('Subject', 'Account deleted');
         $status = $this->send($msg);
 
