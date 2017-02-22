@@ -23,8 +23,8 @@ define([
     let config = {
         zIndexCounter: 110,
         newSystemOffset: {
-          x: 130,
-          y: 0
+            x: 130,
+            y: 0
         },
 
         mapSnapToGrid: false,                                           // "Snap to Grid" feature for drag&drop systems on map (optional)
@@ -91,7 +91,7 @@ define([
             },
             connectionsDetachable: true,            // dragOptions are set -> allow detaching them
             maxConnections: 10,                      // due to isTarget is true, this is the max count of !out!-going connections
-           // isSource:true,
+            // isSource:true,
             anchor: 'Continuous'
         },
         target: {
@@ -104,8 +104,8 @@ define([
                 hoverClass: config.systemActiveClass,
                 activeClass: 'dragActive'
             },
-           // isTarget:true,
-           // uniqueEndpoint: false,
+            // isTarget:true,
+            // uniqueEndpoint: false,
             anchor: 'Continuous'
         },
         connectionTypes: Init.connectionTypes
@@ -173,20 +173,20 @@ define([
                     let item = $('<div>', {
                         class: config.systemBodyItemClass
                     }).append(
-                            $('<span>', {
-                                text: userData.log.ship.typeName,
-                                class: config.systemBodyRightClass
-                            })
-                        ).append(
-                            $('<i>', {
-                                class: ['fa', 'fa-circle', config.systemBodyItemStatusClass, statusClass].join(' ')
-                            })
-                        ).append(
-                            $('<span>', {
-                                class: config.systemBodyItemNameClass,
-                                text: userName
-                            })
-                        );
+                        $('<span>', {
+                            text: userData.log.ship.typeName,
+                            class: config.systemBodyRightClass
+                        })
+                    ).append(
+                        $('<i>', {
+                            class: ['fa', 'fa-circle', config.systemBodyItemStatusClass, statusClass].join(' ')
+                        })
+                    ).append(
+                        $('<span>', {
+                            class: config.systemBodyItemNameClass,
+                            text: userName
+                        })
+                    );
 
                     systemBody.append(item);
                 }
@@ -492,32 +492,32 @@ define([
                 $('<div>', {
                     class: config.systemHeadClass
                 }).append(
-                        // System name is editable
-                        $('<a>', {
-                            href: '#',
-                            class: config.systemHeadNameClass
-                        }).attr('data-value', systemName)
-                    ).append(
-                        // System locked status
-                        $('<i>', {
-                            class: ['fa', 'fa-lock', 'fa-fw'].join(' ')
-                        }).attr('title', 'locked')
-                    ).append(
-                        // System effect color
-                        $('<i>', {
-                            class: ['fa', 'fa-square ', 'fa-fw', effectBasicClass, effectClass].join(' ')
-                        }).attr('title', effectName)
-                    ).append(
-                        // expand option
-                        $('<i>', {
-                            class: ['fa', 'fa-angle-down ', config.systemHeadExpandClass].join(' ')
-                        })
-                    ).prepend(
-                        $('<span>', {
-                            class: [config.systemSec, secClass].join(' '),
-                            text: data.security
-                        })
-                    )
+                    // System name is editable
+                    $('<a>', {
+                        href: '#',
+                        class: config.systemHeadNameClass
+                    }).attr('data-value', systemName)
+                ).append(
+                    // System locked status
+                    $('<i>', {
+                        class: ['fa', 'fa-lock', 'fa-fw'].join(' ')
+                    }).attr('title', 'locked')
+                ).append(
+                    // System effect color
+                    $('<i>', {
+                        class: ['fa', 'fa-square ', 'fa-fw', effectBasicClass, effectClass].join(' ')
+                    }).attr('title', effectName)
+                ).append(
+                    // expand option
+                    $('<i>', {
+                        class: ['fa', 'fa-angle-down ', config.systemHeadExpandClass].join(' ')
+                    })
+                ).prepend(
+                    $('<span>', {
+                        class: [config.systemSec, secClass].join(' '),
+                        text: data.security
+                    })
+                )
             ).append(
                 // system body
                 $('<div>', {
@@ -527,8 +527,8 @@ define([
 
             // set initial system position
             system.css({
-                    'left': newPosX,
-                    'top': newPosY
+                'left': newPosX,
+                'top': newPosY
             });
 
         }else{
@@ -788,6 +788,7 @@ define([
                 connection.setParameters({
                     connectionId: connectionId,
                     updated: connectionData.updated,
+                    created: connectionData.created,
                     eolUpdated: connectionData.eolUpdated
                 });
 
@@ -887,6 +888,7 @@ define([
         // set update date (important for update check)
         // important: set parameters ONE-by-ONE!
         // -> (setParameters() will overwrite all previous params)
+        connection.setParameter('created', newConnectionData.created);
         connection.setParameter('updated', newConnectionData.updated);
         connection.setParameter('eolUpdated', newConnectionData.eolUpdated);
 
@@ -2582,7 +2584,7 @@ define([
                 let currentMapId = parseInt( currentMapElement.data('id') );
 
                 // get map instance
-               let currentMap = getMapInstance(currentMapId);
+                let currentMap = getMapInstance(currentMapId);
 
                 // click position
                 let position = params.position;
@@ -3220,8 +3222,8 @@ define([
                 let mapElement = mapConfig.map.getContainer();
                 let mapOverlay = $(mapElement).getMapOverlay('info');
                 mapOverlay.updateOverlayIcon('systemRegion', 'show');
-
-                mapOverlay.updateOverlayIcon('systemConnectionTimer', 'show');
+                mapOverlay.updateOverlayIcon('connection', 'show');
+                mapOverlay.updateOverlayIcon('connectionEol', 'show');
             }
 
             // callback function after tab switch
@@ -3252,6 +3254,12 @@ define([
                 // init grid snap ---------------------------------------------------------------------------
                 mapContainer.triggerMenuEvent('MapOption', {
                     option: 'mapSnapToGrid',
+                    toggle: false
+                });
+
+                // init endpoint overlay --------------------------------------------------------------------
+                mapContainer.triggerMenuEvent('MapOption', {
+                    option: 'mapEndpoint',
                     toggle: false
                 });
 

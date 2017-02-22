@@ -14,7 +14,7 @@
   }
 }
 
-// slide in and show ==================================
+// slide in and show ==============================================================================
 .pf-animation-slide-in {
   -moz-animation-duration: 1.2s;
   -webkit-animation-duration: 1.2s;
@@ -35,8 +35,20 @@
   }
 };
 
-// pulse-out ==========================================
+// SVG pulse "fill" ===============================================================================
+@include keyframes(pfPulseDanger){
+  0% {
+    fill: $red;
+  }
+  50% {
+    fill: $red-darkest;
+  }
+  100% {
+    fill: $red;
+  }
+}
 
+// pulse-out ======================================================================================
 .pf-animation-pulse-success{
   @include animation( pulseBackgroundSuccess 1.5s 1 );
   @include animation-timing-function( cubic-bezier(0.53, -0.03, 0.68, 0.38) );
@@ -91,7 +103,7 @@
   100% {}
 };
 
-// rotate =============================================
+// rotate =========================================================================================
 .pf-animate-rotate{
   @include transition( all 0.08s linear );
 }

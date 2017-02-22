@@ -124,6 +124,10 @@ class SystemSignatureModel extends BasicModel {
 
         $signatureData                              = (object) [];
         $signatureData->id                          = $this->id;
+
+        $signatureData->system                      = (object) [];
+        $signatureData->system->id                  = $this->get('systemId', true);
+
         $signatureData->groupId                     = $this->groupId;
         $signatureData->typeId                      = $this->typeId;
         $signatureData->name                        = $this->name;

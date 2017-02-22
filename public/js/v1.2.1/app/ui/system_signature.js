@@ -1316,6 +1316,7 @@ define([
             source: function(a,b){
                 let activeMap = Util.getMapModule().getActiveMap();
                 let mapId = activeMap.data('id');
+
                 let availableConnections = getSignatureConnectionOptions(mapId, systemData);
 
                 return availableConnections;
@@ -1445,7 +1446,8 @@ define([
     };
 
     /**
-     * get all signatures that can exist for a given system
+     * get all signature types that can exist for a given system
+     * -> result is partially cached
      * @param systemData
      * @param systemTypeId
      * @param areaId
@@ -1460,6 +1462,7 @@ define([
         // check for cached signature names
         if(sigNameCache.hasOwnProperty( cacheKey )){
             // cached signatures do not include static WHs!
+            // -> ".slice(0)" creates copy
             newSelectOptions =  sigNameCache[cacheKey].slice(0);
             newSelectOptionsCount = sumSignaturesRecursive('children', newSelectOptions);
         }else{
@@ -1476,7 +1479,7 @@ define([
                         tempSelectOptions.hasOwnProperty(key)
                     ) {
                         newSelectOptionsCount++;
-                        fixSelectOptions.push( {value: key, text: tempSelectOptions[key] } );
+                        fixSelectOptions.push( {value: parseInt(key), text: tempSelectOptions[key] } );
                     }
                 }
 
@@ -1559,6 +1562,19 @@ define([
         }
 
         return newSelectOptions;
+    };
+
+    /**
+     * get all signature types that can exist for a system (jQuery obj)
+     * @param systemElement
+     * @param groupId
+     * @returns {Array}
+     */
+    let getAllSignatureNamesBySystem = (systemElement, groupId) => {
+        let systemTypeId = systemElement.data('typeId');
+        let areaId = Util.getAreaIdBySecurity(systemElement.data('security'));
+        let systemData = {statics: systemElement.data('statics')};
+        return getAllSignatureNames(systemData, systemTypeId, areaId, groupId);
     };
 
     /**
@@ -1737,16 +1753,16 @@ define([
                 .css({
                     'willChange': 'height'
                 }).velocity('slideUp', {
-                    duration: duration,
-                    complete: function(animationElements){
-                        // remove wrapper
-                        $(animationElements).children().unwrap();
+                duration: duration,
+                complete: function(animationElements){
+                    // remove wrapper
+                    $(animationElements).children().unwrap();
 
-                        if(callback !== undefined){
-                            callback(rowElement);
-                        }
+                    if(callback !== undefined){
+                        callback(rowElement);
                     }
-                });
+                }
+            });
         }else{
             // show row
 
@@ -1775,23 +1791,23 @@ define([
                         .css({
                             'willChange': 'height'
                         }).velocity('slideDown', {
-                            duration: duration,
-                            complete: function(animationElements){
-                                // remove wrapper
-                                for(let i = 0; i < animationElements.length; i++){
-                                    let currentWrapper = $(animationElements[i]);
-                                    if(currentWrapper.children().length > 0){
-                                        currentWrapper.children().unwrap();
-                                    }else{
-                                        currentWrapper.parent().html( currentWrapper.html() );
-                                    }
-                                }
-
-                                if(callback !== undefined){
-                                    callback(rowElement);
+                        duration: duration,
+                        complete: function(animationElements){
+                            // remove wrapper
+                            for(let i = 0; i < animationElements.length; i++){
+                                let currentWrapper = $(animationElements[i]);
+                                if(currentWrapper.children().length > 0){
+                                    currentWrapper.children().unwrap();
+                                }else{
+                                    currentWrapper.parent().html( currentWrapper.html() );
                                 }
                             }
-                        });
+
+                            if(callback !== undefined){
+                                callback(rowElement);
+                            }
+                        }
+                    });
                 }
             });
         }
@@ -2310,9 +2326,9 @@ define([
             moduleElement.velocity('transition.slideDownOut', {
                 duration: Init.animationSpeed.mapModule,
                 complete: function(tempElement){
-                     // Destroying the data tables throws
-                     // save remove of all dataTables
-                     signatureTable.api().destroy();
+                    // Destroying the data tables throws
+                    // save remove of all dataTables
+                    signatureTable.api().destroy();
 
                     $(tempElement).remove();
 
@@ -2329,6 +2345,10 @@ define([
             moduleElement = getModule(parentElement, systemData);
             showModule(moduleElement);
         }
+    };
+
+    return {
+        getAllSignatureNamesBySystem: getAllSignatureNamesBySystem
     };
 
 });

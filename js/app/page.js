@@ -96,12 +96,12 @@ define([
                 id: config.pageId,
                 class: config.pageClass
             }).append(
-                    Util.getMapModule()
-                ).append(
-                    $('<div>', {
-                        id: config.dynamicElementWrapperId
-                    })
-                )
+                Util.getMapModule()
+            ).append(
+                $('<div>', {
+                    id: config.dynamicElementWrapperId
+                })
+            )
         );
 
         // load header / footer
@@ -148,10 +148,10 @@ define([
                     class: 'list-group-item',
                     href: '/'
                 }).html('&nbsp;&nbsp;Home').prepend(
-                        $('<i>',{
-                            class: 'fa fa-home fa-fw'
-                        })
-                    )
+                    $('<i>',{
+                        class: 'fa fa-home fa-fw'
+                    })
+                )
             ).append(
                 getMenuHeadline('Information')
             ).append(
@@ -162,11 +162,6 @@ define([
                     $('<i>',{
                         class: 'fa fa-line-chart fa-fw'
                     })
-                ).append(
-                    $('<span>',{
-                        class: 'badge bg-color bg-color-gray txt-color txt-color-warning',
-                        text: 'beta'
-                    })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowStatsDialog');
                 })
@@ -175,23 +170,23 @@ define([
                     class: 'list-group-item list-group-item-info',
                     href: '#'
                 }).html('&nbsp;&nbsp;Effect info').prepend(
-                        $('<i>',{
-                            class: 'fa fa-crosshairs fa-fw'
-                        })
-                    ).on('click', function(){
-                        $(document).triggerMenuEvent('ShowSystemEffectInfo');
+                    $('<i>',{
+                        class: 'fa fa-crosshairs fa-fw'
                     })
+                ).on('click', function(){
+                    $(document).triggerMenuEvent('ShowSystemEffectInfo');
+                })
             ).append(
                 $('<a>', {
                     class: 'list-group-item list-group-item-info',
                     href: '#'
                 }).html('&nbsp;&nbsp;Jump info').prepend(
-                        $('<i>',{
-                            class: 'fa fa-space-shuttle fa-fw'
-                        })
-                    ).on('click', function(){
-                        $(document).triggerMenuEvent('ShowJumpInfo');
+                    $('<i>',{
+                        class: 'fa fa-space-shuttle fa-fw'
                     })
+                ).on('click', function(){
+                    $(document).triggerMenuEvent('ShowJumpInfo');
+                })
             ).append(
                 getMenuHeadline('Settings')
             ).append(
@@ -211,32 +206,32 @@ define([
                     id: Util.config.menuButtonFullScreenId,
                     href: '#'
                 }).html('&nbsp;&nbsp;Full screen').prepend(
-                        $('<i>',{
-                            class: 'glyphicon glyphicon-fullscreen',
-                            css: {width: '1.23em'}
-                        })
-                    ).on('click', function(){
-                        let fullScreenElement = $('body');
-                        requirejs(['jquery', 'fullScreen'], function($) {
-
-                            if($.fullscreen.isFullScreen()){
-                                $.fullscreen.exit();
-                            }else{
-                                fullScreenElement.fullscreen({overflow: 'scroll', toggleClass: config.fullScreenClass});
-                            }
-                        });
+                    $('<i>',{
+                        class: 'glyphicon glyphicon-fullscreen',
+                        css: {width: '1.23em'}
                     })
+                ).on('click', function(){
+                    let fullScreenElement = $('body');
+                    requirejs(['jquery', 'fullScreen'], function($) {
+
+                        if($.fullscreen.isFullScreen()){
+                            $.fullscreen.exit();
+                        }else{
+                            fullScreenElement.fullscreen({overflow: 'scroll', toggleClass: config.fullScreenClass});
+                        }
+                    });
+                })
             ).append(
                 $('<a>', {
                     class: 'list-group-item',
                     href: '#'
                 }).html('&nbsp;&nbsp;Notification test').prepend(
-                        $('<i>',{
-                            class: 'fa fa-volume-up fa-fw'
-                        })
-                    ).on('click', function(){
-                        $(document).triggerMenuEvent('NotificationTest');
+                    $('<i>',{
+                        class: 'fa fa-volume-up fa-fw'
                     })
+                ).on('click', function(){
+                    $(document).triggerMenuEvent('NotificationTest');
+                })
             ).append(
                 getMenuHeadline('Danger zone')
             ).append(
@@ -248,19 +243,19 @@ define([
                         class: 'fa fa-user-times fa-fw'
                     })
                 ).on('click', function(){
-                        $(document).triggerMenuEvent('DeleteAccount');
-                    })
+                    $(document).triggerMenuEvent('DeleteAccount');
+                })
             ).append(
                 $('<a>', {
                     class: 'list-group-item list-group-item-warning',
                     href: '#'
                 }).html('&nbsp;&nbsp;Logout').prepend(
-                        $('<i>',{
-                            class: 'fa fa-sign-in fa-fw'
-                        })
-                    ).on('click', function(){
-                        $(document).triggerMenuEvent('Logout', {clearCookies: 1});
+                    $('<i>',{
+                        class: 'fa fa-sign-in fa-fw'
                     })
+                ).on('click', function(){
+                    $(document).triggerMenuEvent('Logout', {clearCookies: 1});
+                })
             )
         );
 
@@ -333,6 +328,21 @@ define([
                     });
                 })
             ).append(
+                $('<a>', {
+                    class: 'list-group-item',
+                    id: Util.config.menuButtonEndpointId,
+                    href: '#'
+                }).html('&nbsp;&nbsp;&nbsp;Signatures').prepend(
+                    $('<i>',{
+                        class: 'fa fa-link fa-fw'
+                    })
+                ).on('click', function(){
+                    Util.getMapModule().getActiveMap().triggerMenuEvent('MapOption', {
+                        option: 'mapEndpoint',
+                        toggle: true
+                    });
+                })
+            ).append(
                 getMenuHeadline('Help')
             ).append(
                 $('<a>', {
@@ -343,8 +353,8 @@ define([
                         class: 'fa fa-book fa-fw'
                     })
                 ).on('click', function(){
-                        $(document).triggerMenuEvent('Manual');
-                    })
+                    $(document).triggerMenuEvent('Manual');
+                })
             ).append(
                 $('<a>', {
                     class: 'list-group-item list-group-item-info',
@@ -367,8 +377,8 @@ define([
                         class: 'fa fa-trash fa-fw'
                     })
                 ).on('click', function(){
-                        $(document).triggerMenuEvent('DeleteMap');
-                    })
+                    $(document).triggerMenuEvent('DeleteMap');
+                })
             )
         );
     };
@@ -921,8 +931,8 @@ define([
      */
     let notificationTest = function(){
         Util.showNotify({
-            title: 'Test Notification',
-            text: 'Accept browser security question'},
+                title: 'Test Notification',
+                text: 'Accept browser security question'},
             {
                 desktop: true,
                 stack: 'barBottom'

@@ -1069,6 +1069,39 @@ class Map extends Controller\AccessController {
         return $map;
     }
 
+    /**
+     * get connectionData
+     * @param \Base $f3
+     */
+    public function getConnectionData (\Base $f3){
+        $postData = (array)$f3->get('POST');
+        $connectionData = [];
+
+        if($mapId = (int)$postData['mapId']){
+            $activeCharacter = $this->getCharacter();
+
+            /**
+             * @var Model\MapModel $map
+             */
+            $map = Model\BasicModel::getNew('MapModel');
+            $map->getById($mapId);
+
+            if($map->hasAccess($activeCharacter)){
+                $connections = $map->getConnections('wh');
+                foreach($connections as $connection){
+                    $data =  $connection->getData(true);
+                    // skip connections whiteout signature data
+                    if($data->signatures){
+                        $connectionData[] = $data;
+
+                    }
+                }
+            }
+        }
+
+        echo json_encode($connectionData);
+    }
+
 }
 
 

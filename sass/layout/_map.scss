@@ -142,7 +142,7 @@ $mapWidth: 2500px ;
     // hover effect for connections
     &.jsplumb-overlay{
       opacity: 0 !important; // hide opacity on hover
-    }    
+    }
 
     &:not(.jsplumb-overlay){
       @include bounce-up-down; // label should not bounce
@@ -187,7 +187,7 @@ $mapWidth: 2500px ;
     .pf-system-head{
       padding: 0px 3px 0px 3px;
       cursor: pointer;
-      font-family: Arial; // fix for element width on custom font family
+      font-family: Arial, sans-serif; // fix for element width on custom font family
       font-weight: bold;
 
       .pf-system-head-name{
@@ -273,7 +273,7 @@ $mapWidth: 2500px ;
       &.in{
         opacity: 1;
       }
-      
+
       .tooltip-inner{
         color: $gray-dark;
         background-color: $gray-lighter;
@@ -336,7 +336,7 @@ $mapWidth: 2500px ;
     // hover (with cursor) effect for  Endpoints
     &:hover{
       circle{
-          stroke: $orange !important;
+        stroke: $orange !important;
       }
     }
 
@@ -380,7 +380,7 @@ $mapWidth: 2500px ;
       @include transition( stroke 0.18s ease-out) ;
     }
 
-    path:not(:first-child){
+    path:nth-child(2){
       stroke: $gray; // inner line
     }
 
@@ -410,7 +410,7 @@ $mapWidth: 2500px ;
       stroke: rgba(255,255,255,0);  // invisible border color
     }
 
-    path:not(:first-child){
+    path:nth-child(2){
       stroke: $teal-lighter;
     }
 
@@ -419,7 +419,7 @@ $mapWidth: 2500px ;
         stroke: rgba(255,255,255,0);  // invisible border color
       }
 
-      path:not(:first-child){
+      path:nth-child(2){
         stroke: $gray-lightest;
       }
     }
@@ -432,7 +432,7 @@ $mapWidth: 2500px ;
       stroke: $gray-light;
     }
 
-    path:not(:first-child){
+    path:nth-child(2){
       stroke: $indigo-darkest;
     }
 
@@ -467,23 +467,25 @@ $mapWidth: 2500px ;
 
   svg.pf-map-connection-wh-reduced {
 
-    path:not(:first-child){
+    path:nth-child(2){
       stroke: $orange;
     }
   }
 
   svg.pf-map-connection-wh-critical {
 
-    path:not(:first-child){
+    path:nth-child(2){
       stroke: $red-darker;
     }
   }
 
-  // Connection overlay =======================================================
+  // Connection overlays ======================================================
   .pf-map-connection-overlay{
     padding: 1px 4px;
     font-size: 11px;
     z-index: 1020;
+    background-color: $gray;
+    color: $gray-lighter;
     @include border-radius(6px);
     @include box-shadow(0 6px 12px rgba(0,0,0,.4));
   }
@@ -501,6 +503,33 @@ $mapWidth: 2500px ;
   .eol{
     background-color: $gray;
     color: $pink-dark;
+  }
+
+  // Arrow overlays ===========================================================
+  .pf-map-connection-arrow-overlay{
+    stroke: $gray-dark;
+    fill: $green;
+  }
+
+  .pf-map-connection-diamond-overlay{
+    stroke: $gray-dark;
+    fill: $red;
+
+    animation-name: pfPulseDanger;
+    animation-duration: 4s;
+    animation-iteration-count: infinite;
+  }
+
+  // Endpoint overlays ========================================================
+  .pf-map-connection-small-overlay{
+    font-family: Arial, sans-serif;         // fix for element width on custom font family
+    padding: 0 2px;
+    font-size: 10px;
+    z-index: 1020;
+    background-color: $gray;
+    color: $gray-lighter;
+    @include border-radius(4px);
+    @include box-shadow(0 6px 12px rgba(0,0,0,.4));
   }
 }
 

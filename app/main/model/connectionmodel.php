@@ -71,6 +71,9 @@ class ConnectionModel extends BasicModel{
         'eolUpdated' => [
             'type' => Schema::DT_TIMESTAMP,
             'default' => null
+        ],
+        'signatures' => [
+            'has-many' => ['Model\SystemSignatureModel', 'connectionId']
         ]
     ];
 
@@ -93,18 +96,26 @@ class ConnectionModel extends BasicModel{
 
     /**
      * get connection data as array
-     * @return array
+     * @param bool $addSignatureData
+     * @return \stdClass
      */
-    public function getData(){
-        $connectionData = [
-            'id' => $this->id,
-            'source' => $this->source->id,
-            'target' => $this->target->id,
-            'scope' => $this->scope,
-            'type' => $this->type,
-            'updated' => strtotime($this->updated),
-            'eolUpdated' => strtotime($this->eolUpdated)
-        ];
+    public function getData($addSignatureData = false){
+
+        $connectionData = (object) [];
+        $connectionData->id            = $this->id;
+        $connectionData->source        = $this->source->id;
+        $connectionData->target        = $this->target->id;
+        $connectionData->scope         = $this->scope;
+        $connectionData->type          = $this->type;
+        $connectionData->updated       = strtotime($this->updated);
+        $connectionData->created       = strtotime($this->created);
+        $connectionData->eolUpdated    = strtotime($this->eolUpdated);
+
+        if($addSignatureData){
+            if( !empty($signaturesData = $this->getSignaturesData()) ){
+                $connectionData->signatures = $signaturesData;
+            }
+        }
 
         return $connectionData;
     }
@@ -301,6 +312,35 @@ class ConnectionModel extends BasicModel{
      */
     public function clearCacheData(){
         $this->mapId->clearCacheData();
+    }
+
+    /**
+     * get all signatures that are connected with this connection
+     * @return array|mixed
+     */
+    public function getSignatures(){
+        $signatures = [];
+        $this->filter('signatures', [
+            'active = :active',
+            ':active' => 1
+        ]);
+
+        if($this->signatures){
+            $signatures = $this->signatures;
+        }
+
+        return $signatures;
+    }
+
+    public function getSignaturesData(){
+        $signaturesData = [];
+        $signatures = $this->getSignatures();
+
+        foreach($signatures as $signature){
+            $signaturesData[] = $signature->getData();
+        }
+
+        return $signaturesData;
     }
 
     /**

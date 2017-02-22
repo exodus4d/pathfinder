@@ -40,6 +40,7 @@ define([
         menuButtonFullScreenId: 'pf-menu-button-fullscreen',                    // id for menu button "fullscreen"
         menuButtonMagnetizerId: 'pf-menu-button-magnetizer',                    // id for menu button "magnetizer"
         menuButtonGridId: 'pf-menu-button-grid',                                // id for menu button "grid snap"
+        menuButtonEndpointId: 'pf-menu-button-endpoint',                        // id for menu button "endpoint" overlays
 
 
         settingsMessageVelocityOptions: {
@@ -712,7 +713,7 @@ define([
                     content: '',
                     container: 'body',
                     title: tooltipData.name +
-                        '<span class="pull-right ' + tooltipData.class +'">' + tooltipData.security + '</span>',
+                    '<span class="pull-right ' + tooltipData.class +'">' + tooltipData.security + '</span>',
                     delay: {
                         show: 250,
                         hide: 0
@@ -880,6 +881,27 @@ define([
             return this.filter(function(i) {return a.indexOf(i) < 0;});
         };
     };
+
+    /**
+     * flatten XEditable array for select fields
+     * @param dataArray
+     * @returns {{}}
+     */
+    let flattenXEditableSelectArray = (dataArray) => {
+        let flatten = {};
+
+        for(let data of dataArray){
+            if(data.children && data.children.length > 0){
+                for(let child of data.children){
+                    flatten[child.value] = child.text;
+                }
+            }else{
+                flatten[data.value] = data.text;
+            }
+        }
+
+        return flatten;
+    } ;
 
     /**
      * set default configuration  for "Bootbox" dialogs
@@ -1205,7 +1227,7 @@ define([
      * @returns {string}
      */
     let getSyncType = () => {
-      return Init.syncStatus.type;
+        return Init.syncStatus.type;
     };
 
     /**
@@ -1861,8 +1883,8 @@ define([
     let getCurrentLocationData = function(){
         let currentLocationLink = $('#' + config.headCurrentLocationId).find('a');
         return {
-          id: currentLocationLink.data('systemId'),
-          name: currentLocationLink.data('systemName')
+            id: currentLocationLink.data('systemId'),
+            name: currentLocationLink.data('systemName')
         };
     };
 
@@ -2037,6 +2059,7 @@ define([
         getCurrentLocationData: getCurrentLocationData,
         getCurrentUserInfo: getCurrentUserInfo,
         getCurrentCharacterLog: getCurrentCharacterLog,
+        flattenXEditableSelectArray: flattenXEditableSelectArray,
         setDestination: setDestination,
         convertDateToString: convertDateToString,
         getOpenDialogs: getOpenDialogs,

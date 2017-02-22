@@ -27,13 +27,19 @@ define([
         mapMagnetizer: {
             buttonId: Util.config.menuButtonMagnetizerId,
             description: 'Magnetizer',
-            onEnable: 'initMagnetizer',     // jQuery extension function
-            onDisable: 'destroyMagnetizer'  // jQuery extension function
+            onEnable: 'initMagnetizer',                                 // jQuery extension function
+            onDisable: 'destroyMagnetizer'                              // jQuery extension function
         },
         mapSnapToGrid : {
             buttonId: Util.config.menuButtonGridId,
             description: 'Grid snapping',
             class: 'mapGridClass'
+        },
+        mapEndpoint : {
+            buttonId: Util.config.menuButtonEndpointId,
+            description: 'Endpoint overlay',
+            onEnable: 'showEndpointOverlays',                           // jQuery extension function
+            onDisable: 'hideEndpointOverlays'                           // jQuery extension function
         }
     };
 

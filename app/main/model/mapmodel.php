@@ -391,15 +391,23 @@ class MapModel extends BasicModel {
 
     /**
      * get all connections in this map
+     * @param string $scope
      * @return ConnectionModel[]
      */
-    public function getConnections(){
+    public function getConnections($scope = ''){
         $connections = [];
 
-        $this->filter('connections', [
+        $query = [
             'active = :active AND source > 0 AND target > 0',
             ':active' => 1
-        ]);
+        ];
+
+        if(!empty($scope)){
+            $query[0] .= ' AND scope = :scope';
+            $query[':scope'] = $scope;
+        }
+
+        $this->filter('connections', $query);
 
         if($this->connections){
             $connections = $this->connections;

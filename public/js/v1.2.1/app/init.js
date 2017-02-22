@@ -8,51 +8,52 @@ define(['jquery'], function($) {
 
     let Config = {
         path: {
-            img: 'public/img/',                                     // path for images
+            img: 'public/img/',                                             // path for images
             // user API
-            getCaptcha: 'api/user/getCaptcha',                      // ajax URL - get captcha image
-            getServerStatus: 'api/user/getEveServerStatus',         // ajax URL - get EVE-Online server status
-            getCookieCharacterData: 'api/user/getCookieCharacter',  // ajax URL - get character data from cookie
-            logIn: 'api/user/logIn',                                // ajax URL - login
-            logout: 'api/user/logout',                              // ajax URL - logout
-            deleteLog: 'api/user/deleteLog',                        // ajax URL - delete character log
-            saveUserConfig: 'api/user/saveAccount',                 // ajax URL - saves/update user account
-            deleteAccount: 'api/user/deleteAccount',                // ajax URL - delete Account data
+            getCaptcha: 'api/user/getCaptcha',                              // ajax URL - get captcha image
+            getServerStatus: 'api/user/getEveServerStatus',                 // ajax URL - get EVE-Online server status
+            getCookieCharacterData: 'api/user/getCookieCharacter',          // ajax URL - get character data from cookie
+            logIn: 'api/user/logIn',                                        // ajax URL - login
+            logout: 'api/user/logout',                                      // ajax URL - logout
+            deleteLog: 'api/user/deleteLog',                                // ajax URL - delete character log
+            saveUserConfig: 'api/user/saveAccount',                         // ajax URL - saves/update user account
+            deleteAccount: 'api/user/deleteAccount',                        // ajax URL - delete Account data
             // access API
-            searchAccess: 'api/access/search',                      // ajax URL - search user/corporation/ally by name
+            searchAccess: 'api/access/search',                              // ajax URL - search user/corporation/ally by name
             // main config/map ping API
-            initMap: 'api/map/init',                                // ajax URL - get static data
-            getAccessData: 'api/map/getAccessData',                 // ajax URL - get map access tokens (WebSocket)
-            updateMapData: 'api/map/updateData',                    // ajax URL - main map update trigger
-            updateUserData: 'api/map/updateUserData',               // ajax URL - main map user data trigger
+            initMap: 'api/map/init',                                        // ajax URL - get static data
+            getAccessData: 'api/map/getAccessData',                         // ajax URL - get map access tokens (WebSocket)
+            updateMapData: 'api/map/updateData',                            // ajax URL - main map update trigger
+            updateUserData: 'api/map/updateUserData',                       // ajax URL - main map user data trigger
             // map API
-            saveMap: 'api/map/save',                                // ajax URL - save/update map
-            deleteMap: 'api/map/delete',                            // ajax URL - delete map
-            importMap: 'api/map/import',                            // ajax URL - import map
+            saveMap: 'api/map/save',                                        // ajax URL - save/update map
+            deleteMap: 'api/map/delete',                                    // ajax URL - delete map
+            importMap: 'api/map/import',                                    // ajax URL - import map
+            getMapConnectionData: 'api/map/getConnectionData',              // ajax URL - get connection data
             // system API
-            searchSystem: 'api/system/search',                      // ajax URL - search system by name
-            saveSystem: 'api/system/save',                          // ajax URL - saves system to map
-            deleteSystem: 'api/system/delete',                      // ajax URL - delete system from map
-            getSystemGraphData: 'api/system/graphData',             // ajax URL - get all system graph data
-            getConstellationData: 'api/system/constellationData',   // ajax URL - get system constellation data
-            setDestination: 'api/system/setDestination',            // ajax URL - set destination
+            searchSystem: 'api/system/search',                              // ajax URL - search system by name
+            saveSystem: 'api/system/save',                                  // ajax URL - saves system to map
+            deleteSystem: 'api/system/delete',                              // ajax URL - delete system from map
+            getSystemGraphData: 'api/system/graphData',                     // ajax URL - get all system graph data
+            getConstellationData: 'api/system/constellationData',           // ajax URL - get system constellation data
+            setDestination: 'api/system/setDestination',                    // ajax URL - set destination
             // connection API
-            saveConnection: 'api/connection/save',                  // ajax URL - save new connection to map
-            deleteConnection: 'api/connection/delete',              // ajax URL - delete connection from map
+            saveConnection: 'api/connection/save',                          // ajax URL - save new connection to map
+            deleteConnection: 'api/connection/delete',                      // ajax URL - delete connection from map
             // signature API
-            getSignatures: 'api/signature/getAll',                  // ajax URL - get all signature data for system
-            saveSignatureData: 'api/signature/save',                // ajax URL - save signature data for system
-            deleteSignatureData: 'api/signature/delete',            // ajax URL - delete signature data for system
+            getSignatures: 'api/signature/getAll',                          // ajax URL - get all signature data for system
+            saveSignatureData: 'api/signature/save',                        // ajax URL - save signature data for system
+            deleteSignatureData: 'api/signature/delete',                    // ajax URL - delete signature data for system
             // route API
-            searchRoute: 'api/route/search',                        // ajax URL - search system routes
+            searchRoute: 'api/route/search',                                // ajax URL - search system routes
             // stats API
-            getStatisticsData: 'api/statistic/getData',             // ajax URL - get statistics data (activity log)
+            getStatisticsData: 'api/statistic/getData',                     // ajax URL - get statistics data (activity log)
             // GitHub API
-            gitHubReleases: 'api/github/releases'                   // ajax URL - get release info from GitHub
+            gitHubReleases: 'api/github/releases'                           // ajax URL - get release info from GitHub
         },
         url: {
-            ccpImageServer: 'https://image.eveonline.com/',         // CCP image Server
-            zKillboard: 'https://zkillboard.com/api/'               // killboard api
+            ccpImageServer: 'https://image.eveonline.com/',                 // CCP image Server
+            zKillboard: 'https://zkillboard.com/api/'                       // killboard api
         },
         breakpoints: [
             { name: 'desktop', width: Infinity },
@@ -61,13 +62,13 @@ define(['jquery'], function($) {
             { name: 'phone',   width: 480 }
         ],
         animationSpeed: {
-            splashOverlay: 300,                                     // "splash" loading overlay
-            headerLink: 100,                                        // links in head bar
-            mapOverlay: 200,                                        // show/hide duration for map overlays
-            mapMoveSystem: 180,                                     // system position has changed animation
-            mapDeleteSystem: 200,                                   // remove system from map
-            mapModule: 200,                                         // show/hide of an map module
-            dialogEvents: 180                                       // dialog events /slide/show/...
+            splashOverlay: 300,                                             // "splash" loading overlay
+            headerLink: 100,                                                // links in head bar
+            mapOverlay: 200,                                                // show/hide duration for map overlays
+            mapMoveSystem: 180,                                             // system position has changed animation
+            mapDeleteSystem: 200,                                           // remove system from map
+            mapModule: 200,                                                 // show/hide of an map module
+            dialogEvents: 180                                               // dialog events /slide/show/...
         },
         syncStatus: {
             type: 'ajax',
@@ -77,7 +78,7 @@ define(['jquery'], function($) {
                 timestamp: undefined
             },
             sharedWorker: {
-                status: 'offline',                                  // SharedWorker status
+                status: 'offline',                                          // SharedWorker status
                 class: 'txt-color-danger',
                 timestamp: undefined
             },
@@ -88,12 +89,12 @@ define(['jquery'], function($) {
             }
         },
         performanceLogging: {
-            keyServerMapData: 'UPDATE_SERVER_MAP',                  // ajax request update map data
-            keyClientMapData: 'UPDATE_CLIENT_MAP',                  // update client map data
-            keyServerUserData: 'UPDATE_SERVER_USER_DATA',           // ajax request update map user data
-            keyClientUserData: 'UPDATE_CLIENT_USER_DATA',           // update client map user data
+            keyServerMapData: 'UPDATE_SERVER_MAP',                          // ajax request update map data
+            keyClientMapData: 'UPDATE_CLIENT_MAP',                          // update client map data
+            keyServerUserData: 'UPDATE_SERVER_USER_DATA',                   // ajax request update map user data
+            keyClientUserData: 'UPDATE_CLIENT_USER_DATA',                   // update client map user data
         },
-        mapIcons: [                                                 // map tab-icons
+        mapIcons: [                                                         // map tab-icons
             {
                 class: 'fa-desktop',
                 label: 'desktop',
@@ -186,7 +187,7 @@ define(['jquery'], function($) {
                     class: 'pf-system-sec-unknown'
                 },
                 'H': {
-                     class: 'pf-system-sec-highSec'
+                    class: 'pf-system-sec-highSec'
                 },
                 'L': {
                     class: 'pf-system-sec-lowSec'
@@ -258,12 +259,12 @@ define(['jquery'], function($) {
             },
             // easy-pie-charts
             pieChart: {
-                class: 'pf-pie-chart',                              // class for all pie charts
-                pieChartMapCounterClass: 'pf-pie-chart-map-timer'   // class for timer chart
+                class: 'pf-pie-chart',                                      // class for all pie charts
+                pieChartMapCounterClass: 'pf-pie-chart-map-timer'           // class for timer chart
             }
         },
         // map scopes
-        defaultMapScope: 'wh',                                      // default scope for connection
+        defaultMapScope: 'wh',                                              // default scope for connection
         // map connection types
         connectionTypes: {
             jumpbridge: {
@@ -400,7 +401,7 @@ define(['jquery'], function($) {
                 6: 'G008 - C6',
                 7: 'Q003 - 0.0',
                 8: 'A009 - (shattered)'
-	    },
+            },
             5: {    // C5
                 1: 'E004 - C1',
                 2: 'L005 - C2',
