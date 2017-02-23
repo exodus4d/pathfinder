@@ -2,7 +2,7 @@
 
 /*
 
-	Copyright (c) 2009-2016 F3::Factory/Bong Cosca, All rights reserved.
+	Copyright (c) 2009-2017 F3::Factory/Bong Cosca, All rights reserved.
 
 	This file is part of the Fat-Free Framework (http://fatfreeframework.com).
 
@@ -226,7 +226,8 @@ class Mapper extends \DB\Cursor {
 					return preg_replace_callback(
 						'/\b(\w+)\h*(HAVING.+|$)/i',
 						function($parts) use($db) {
-							return $db->quotekey($parts[1]).(isset($parts[2])?(' '.$parts[2]):'');
+							return $db->quotekey($parts[1]).
+								(isset($parts[2])?(' '.$parts[2]):'');
 						},
 						$str
 					);
@@ -324,24 +325,18 @@ class Mapper extends \DB\Cursor {
 	*	Count records that match criteria
 	*	@return int
 	*	@param $filter string|array
+	*	@param $options array
 	*	@param $ttl int|array
 	**/
-	function count($filter=NULL,$ttl=0) {
-		$sql='SELECT COUNT(*) AS '.
-			$this->db->quotekey('rows').' FROM '.$this->table;
-		$args=[];
-		if ($filter) {
-			if (is_array($filter)) {
-				$args=isset($filter[1]) && is_array($filter[1])?
-					$filter[1]:
-					array_slice($filter,1,NULL,TRUE);
-				$args=is_array($args)?$args:[1=>$args];
-				list($filter)=$filter;
-			}
-			$sql.=' WHERE '.$filter;
-		}
-		$result=$this->db->exec($sql,$args,$ttl);
-		return $result[0]['rows'];
+	function count($filter=NULL,array $options=NULL,$ttl=0) {
+		$expr='COUNT(*)';
+		$field='rows';
+		$this->adhoc[$field]=['expr'=>$expr,'value'=>NULL];
+		$result=$this->select($expr.' AS '.$this->db->quotekey($field),
+			$filter,$options,$ttl);
+		$out=$result[0]->adhoc[$field]['value'];
+		unset($this->adhoc[$field]);
+		return $out;
 	}
 
 	/**
@@ -473,10 +468,10 @@ class Mapper extends \DB\Cursor {
 		if ($pairs) {
 			$sql='UPDATE '.$this->table.' SET '.$pairs.$filter;
 			$this->db->exec($sql,$args);
-			if (isset($this->trigger['afterupdate']))
-				\Base::instance()->call($this->trigger['afterupdate'],
-					[$this,$pkeys]);
 		}
+		if (isset($this->trigger['afterupdate']))
+			\Base::instance()->call($this->trigger['afterupdate'],
+				[$this,$pkeys]);
 		// reset changed flag after calling afterupdate
 		foreach ($this->fields as $key=>&$field) {
 				$field['changed']=FALSE;
@@ -492,7 +487,7 @@ class Mapper extends \DB\Cursor {
 	*	@param $filter string|array
 	**/
 	function erase($filter=NULL) {
-		if ($filter) {
+		if (isset($filter)) {
 			$args=[];
 			if (is_array($filter)) {
 				$args=isset($filter[1]) && is_array($filter[1])?
@@ -502,7 +497,7 @@ class Mapper extends \DB\Cursor {
 				list($filter)=$filter;
 			}
 			return $this->db->
-				exec('DELETE FROM '.$this->table.' WHERE '.$filter.';',$args);
+				exec('DELETE FROM '.$this->table.($filter?' WHERE '.$filter:'').';',$args);
 		}
 		$args=[];
 		$ctr=0;

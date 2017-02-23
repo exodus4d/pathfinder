@@ -2,7 +2,7 @@
 
 /*
 
-	Copyright (c) 2009-2016 F3::Factory/Bong Cosca, All rights reserved.
+	Copyright (c) 2009-2017 F3::Factory/Bong Cosca, All rights reserved.
 
 	This file is part of the Fat-Free Framework (http://fatfreeframework.com).
 
@@ -59,13 +59,13 @@ class Session extends Mapper {
 
 	/**
 	*	Return session data in serialized format
-	*	@return string|FALSE
+	*	@return string
 	*	@param $id string
 	**/
 	function read($id) {
 		$this->load(['session_id=?',$this->sid=$id]);
 		if ($this->dry())
-			return FALSE;
+			return '';
 		if ($this->get('ip')!=$this->_ip || $this->get('agent')!=$this->_agent) {
 			$fw=\Base::instance();
 			if (!isset($this->onsuspect) ||

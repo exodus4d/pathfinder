@@ -2,7 +2,7 @@
 
 /*
 
-	Copyright (c) 2009-2016 F3::Factory/Bong Cosca, All rights reserved.
+	Copyright (c) 2009-2017 F3::Factory/Bong Cosca, All rights reserved.
 
 	This file is part of the Fat-Free Framework (http://fatfreeframework.com).
 
@@ -286,11 +286,12 @@ class Mapper extends \DB\Cursor {
 	*	Count records that match criteria
 	*	@return int
 	*	@param $filter array
+	*	@param $options array
 	*	@param $ttl int
 	**/
-	function count($filter=NULL,$ttl=0) {
+	function count($filter=NULL,array $options=NULL,$ttl=0) {
 		$now=microtime(TRUE);
-		$out=count($this->find($filter,NULL,$ttl,FALSE));
+		$out=count($this->find($filter,$options,$ttl,FALSE));
 		$this->db->jot('('.sprintf('%.1f',1e3*(microtime(TRUE)-$now)).'ms) '.
 			$this->file.' [count] '.($filter?json_encode($filter):''));
 		return $out;

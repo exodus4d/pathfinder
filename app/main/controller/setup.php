@@ -423,7 +423,7 @@ class Setup extends Controller {
             ],
             'php' => [
                 'label' => 'PHP',
-                'required' => $f3->get('REQUIREMENTS.PHP.VERSION'),
+                'required' => number_format((float)$f3->get('REQUIREMENTS.PHP.VERSION'), 1, '.', ''),
                 'version' => phpversion(),
                 'check' => version_compare( phpversion(), $f3->get('REQUIREMENTS.PHP.VERSION'), '>=')
             ],

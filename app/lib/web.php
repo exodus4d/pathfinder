@@ -2,7 +2,7 @@
 
 /*
 
-	Copyright (c) 2009-2016 F3::Factory/Bong Cosca, All rights reserved.
+	Copyright (c) 2009-2017 F3::Factory/Bong Cosca, All rights reserved.
 
 	This file is part of the Fat-Free Framework (http://fatfreeframework.com).
 
@@ -140,26 +140,33 @@ class Web extends Prefab {
 			header('Content-Length: '.$size);
 			header('X-Powered-By: '.Base::instance()->get('PACKAGE'));
 		}
-		$ctr=0;
-		$handle=fopen($file,'rb');
-		$start=microtime(TRUE);
-		while (!feof($handle) &&
-			($info=stream_get_meta_data($handle)) &&
-			!$info['timed_out'] && !connection_aborted()) {
-			if ($kbps) {
-				// Throttle output
-				$ctr++;
-				if ($ctr/$kbps>$elapsed=microtime(TRUE)-$start)
-					usleep(1e6*($ctr/$kbps-$elapsed));
-			}
-			// Send 1KiB and reset timer
-			echo fread($handle,1024);
-			if ($flush) {
-				ob_flush();
-				flush();
-			}
+		if (!$kbps && $flush) {
+			while (ob_get_level())
+				ob_end_clean();
+			readfile($file);
 		}
-		fclose($handle);
+		else {
+			$ctr=0;
+			$handle=fopen($file,'rb');
+			$start=microtime(TRUE);
+			while (!feof($handle) &&
+				($info=stream_get_meta_data($handle)) &&
+				!$info['timed_out'] && !connection_aborted()) {
+				if ($kbps) {
+					// Throttle output
+					$ctr++;
+					if ($ctr/$kbps>$elapsed=microtime(TRUE)-$start)
+						usleep(1e6*($ctr/$kbps-$elapsed));
+				}
+				// Send 1KiB and reset timer
+				echo fread($handle,1024);
+				if ($flush) {
+					ob_flush();
+					flush();
+				}
+			}
+			fclose($handle);
+		}
 		return $size;
 	}
 
