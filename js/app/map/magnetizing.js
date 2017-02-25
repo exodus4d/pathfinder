@@ -15,15 +15,15 @@ define([
      * Cached current "Magnetizer" object
      * @type {Magnetizer}
      */
-    var m8 = null;
+    let m8 = null;
 
     /**
      * init a jsPlumb (map) Element for "magnetised" function.
      * this is optional and prevents systems from being overlapped
      */
     $.fn.initMagnetizer = function(){
-        var mapContainer = this;
-        var systems = mapContainer.getSystems();
+        let mapContainer = this;
+        let systems = mapContainer.getSystems();
 
         /**
          * helper function
@@ -32,10 +32,10 @@ define([
          * @returns {{left, top}}
          * @private
          */
-        var _offset = function(system) {
+        let _offset = function(system) {
 
-            var _ = function(p) {
-                var v = system.style[p];
+            let _ = function(p) {
+                let v = system.style[p];
                 return parseInt(v.substring(0, v.length - 2));
             };
 
@@ -52,8 +52,8 @@ define([
          * @param o
          * @private
          */
-        var _setOffset = function(system, o) {
-            var markAsUpdated = false;
+        let _setOffset = function(system, o) {
+            let markAsUpdated = false;
 
             // new position must be within parent container
             // no negative offset!
@@ -85,11 +85,11 @@ define([
          * @returns {boolean}
          * @private
          */
-        var _dragFilter = function(id) {
+        let _dragFilter = function(id) {
             return !$('#' + id).is('.jsPlumb_dragged, .pf-system-locked');
         };
 
-        var gridConstrain = function(gridX, gridY) {
+        let gridConstrain = function(gridX, gridY) {
             return function(id, current, delta) {
                 if( mapContainer.hasClass(MapUtil.config.mapGridClass) ){
                     // active grid
@@ -126,7 +126,7 @@ define([
     };
 
     $.fn.destroyMagnetizer = function(){
-        var mapContainer = this;
+        let mapContainer = this;
 
         // remove cached "magnetizer" instance
         m8 = null;
@@ -137,7 +137,7 @@ define([
      * @param map
      * @param e
      */
-    var executeAtEvent = function(map, e){
+    let executeAtEvent = function(map, e){
         if(m8 !== null && e ){
             m8.executeAtEvent(e);
             map.repaintEverything();
@@ -149,7 +149,7 @@ define([
      * needs "magnetization" to be active
      * @param map
      */
-    var executeAtCenter = function(map){
+    let executeAtCenter = function(map){
         if(m8 !== null){
             m8.executeAtCenter();
             map.repaintEverything();
@@ -161,10 +161,10 @@ define([
      * -> (e.g. new systems was added)
      * @param map
      */
-    var setElements = function(map){
+    let setElements = function(map){
         if(m8 !== null){
-            var mapContainer = $(map.getContainer());
-            var systems = mapContainer.getSystems();
+            let mapContainer = $(map.getContainer());
+            let systems = mapContainer.getSystems();
             m8.setElements(systems);
 
             // re-arrange systems

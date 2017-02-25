@@ -1252,9 +1252,7 @@ define([
      * @returns {JQuery|*|{}|T}
      */
     $.fn.getMapTabElements = function(mapId){
-
         let mapModuleElement = $(this);
-
         let mapTabElements = mapModuleElement.find('#' + config.mapTabBarId).find('a');
 
         if(mapId){

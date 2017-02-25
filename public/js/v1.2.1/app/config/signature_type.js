@@ -15,7 +15,7 @@ define(['jquery'], function($) {
 
 
     // NullSec Relic sites, which can also spawn in C1, C2, C3 wormholes
-    var nullSecRelicSites = {
+    let nullSecRelicSites = {
         10: 'Ruined Angel Crystal Quarry',
         11: 'Ruined Angel Monument Site',
         12: 'Ruined Angel Science Outpost',
@@ -39,7 +39,7 @@ define(['jquery'], function($) {
     };
 
     // NulSec Data sites, which can also spawn in C1, C2, C3 wormholes
-    var nullSecDataSites = {
+    let nullSecDataSites = {
         10: 'Abandoned Research Complex DA005',
         11: 'Abandoned Research Complex DA015',
         12: 'Abandoned Research Complex DC007',
@@ -70,7 +70,7 @@ define(['jquery'], function($) {
 
 
     // signature types
-    var signatureTypes = {
+    let signatureTypes = {
         1: { // system type (wh)
             1: {    // C1 (area id)
                 1: {    // Combat

@@ -91,7 +91,10 @@ define([
             if(label.length > 0){
                 newLabel = label;
 
-                if( !label.includes('K162') ){
+                // check if multiple labels found => conflict
+                if( label.includes(', ') ){
+                    colorClass = 'txt-color-orangeLight';
+                }else if( !label.includes('K162') ){
                     colorClass = 'txt-color-yellow';
                 }
             }else{
@@ -570,14 +573,15 @@ define([
     };
 
     /**
-     * get the map counter chart by an overlay
-     * @returns {*}
+     * get the map counter chart from overlay
+     * @returns {JQuery|*|T|{}|jQuery}
      */
     $.fn.getMapCounter = function(){
+        return $(this).find('.' + Init.classes.pieChart.pieChartMapCounterClass);
+    };
 
-        let mapOverlayTimer = $(this);
-
-        return mapOverlayTimer.find('.' + Init.classes.pieChart.pieChartMapCounterClass);
+    $.fn.getMapOverlayInterval = function(){
+        return $(this).getMapOverlay('timer').getMapCounter().data('interval');
     };
 
     /**
@@ -622,6 +626,7 @@ define([
                     duration: Init.animationSpeed.mapOverlay,
                     complete: function(){
                         counterChart.data('interval', false);
+                        getMapElementFromOverlay(mapOverlayTimer).trigger('pf:unlocked');
                     }
                 });
             }

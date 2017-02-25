@@ -9,7 +9,7 @@ define([], function() {
     'use strict';
 
     // system effects
-    var systemEffects = {
+    let systemEffects = {
             wh: {
                 magnetar: {
                     1: [

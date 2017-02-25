@@ -20,6 +20,11 @@ class MapModel extends BasicModel {
      */
     const DATA_CACHE_KEY_CHARACTER = 'CHARACTERS';
 
+    /**
+     * default TTL for getData(); cache
+     */
+    const DEFAULT_CACHE_TTL = 60;
+
     protected $fieldConf = [
         'active' => [
             'type' => Schema::DT_BOOL,
@@ -205,7 +210,7 @@ class MapModel extends BasicModel {
             // max caching time for a map
             // the cached date has to be cleared manually on any change
             // this includes system, connection,... changes (all dependencies)
-            $this->updateCacheData($mapDataAll);
+            $this->updateCacheData($mapDataAll, '', self::DEFAULT_CACHE_TTL);
         }
 
         return $mapDataAll;

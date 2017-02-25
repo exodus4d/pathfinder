@@ -1119,7 +1119,7 @@ final class Base extends Prefab implements ArrayAccess {
 				$time=microtime(TRUE);
 				header_remove('Pragma');
 				header('Cache-Control: max-age='.(int)$secs);
-				header('Expires: '.gmdate('r',$time+(int)$secs));
+				header('Expires: '.gmdate('r',$time+$secs));
 				header('Last-Modified: '.gmdate('r'));
 			}
 			else {

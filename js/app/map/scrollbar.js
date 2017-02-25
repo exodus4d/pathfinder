@@ -16,7 +16,7 @@ define([
     $.fn.initCustomScrollbar = function(config){
 
         // default config -------------------------------------------------------------------------
-        var defaultConfig = {
+        let defaultConfig = {
             axis: 'x',
             theme: 'light-thick',
             scrollInertia: 300,
@@ -52,7 +52,7 @@ define([
         config = $.extend(true, {}, defaultConfig, config);
 
         return this.each(function(){
-            var scrollableElement = $(this);
+            let scrollableElement = $(this);
 
             // prevent multiple initialization
             scrollableElement.mCustomScrollbar('destroy');

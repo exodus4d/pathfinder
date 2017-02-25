@@ -21,7 +21,7 @@ requirejs.config({
         mappage: './app/mappage',                                       // initial start "map page" view
         setup: './app/setup',                                           // initial start "setup page" view
 
-        jquery: 'lib/jquery-3.0.0.min',                                 // v3.0.0 jQuery
+        jquery: 'lib/jquery-3.1.1.min',                                 // v3.1.1 jQuery
         bootstrap: 'lib/bootstrap.min',                                 // v3.3.0 Bootstrap js code - http://getbootstrap.com/javascript
         text: 'lib/requirejs/text',                                     // v2.0.12 A RequireJS/AMD loader plugin for loading text resources.
         mustache: 'lib/mustache.min',                                   // v1.0.0 Javascript template engine - http://mustache.github.io

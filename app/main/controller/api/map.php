@@ -577,23 +577,17 @@ class Map extends Controller\AccessController {
      * -> if characters with map access found -> broadcast mapData to them
      * @param Model\MapModel $map
      * @param array $characterIds
-     * @return int
      */
     protected function broadcastMapAccess($map, $characterIds){
-        $connectionCount = 0;
-
         $mapAccess =  [
             'id' => $map->_id,
             'characterIds' => $characterIds
         ];
-        $charCount = (int)(new Socket( Config::getSocketUri() ))->sendData('mapAccess', $mapAccess);
 
-        if($charCount > 0){
-            // map has active connections that should receive map Data
-            $connectionCount = $this->broadcastMapData($map);
-        }
+        (new Socket( Config::getSocketUri() ))->sendData('mapAccess', $mapAccess);
 
-        return $connectionCount;
+        // map has (probably) active connections that should receive map Data
+        $this->broadcastMapData($map);
     }
 
     /**
