@@ -428,12 +428,12 @@ define([
                             let deleteRowElement = $(target).parents('tr');
 
                             let activeMap = Util.getMapModule().getActiveMap();
-                            let systemElement = MapUtil.getSystemId(mapData.config.id, rowData.id);
+                            let systemElement = $('#' + MapUtil.getSystemId(mapData.config.id, rowData.id) );
 
-                            if(systemElement){
+                            if(systemElement.length){
                                 // trigger system delete event
                                 activeMap.trigger('pf:deleteSystems', [{
-                                    systems: [systemElement],
+                                    systems: [systemElement[0]],
                                     callback: function(){
                                         // callback function after ajax "delete" success
                                         // remove table row
