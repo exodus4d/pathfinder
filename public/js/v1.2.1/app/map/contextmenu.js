@@ -85,6 +85,7 @@ define([
                             };
 
                             settings.menuSelected.call(this, params);
+                            return false;
                         });
                     }
                 });
