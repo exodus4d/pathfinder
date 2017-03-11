@@ -423,7 +423,7 @@ class Setup extends Controller {
             ],
             'php' => [
                 'label' => 'PHP',
-                'required' => $f3->get('REQUIREMENTS.PHP.VERSION'),
+                'required' => number_format((float)$f3->get('REQUIREMENTS.PHP.VERSION'), 1, '.', ''),
                 'version' => phpversion(),
                 'check' => version_compare( phpversion(), $f3->get('REQUIREMENTS.PHP.VERSION'), '>=')
             ],
@@ -925,7 +925,7 @@ class Setup extends Controller {
         $checkTables = [];
         if($db){
             // set/change default "character set" and "collation"
-            $db->exec('ALTER DATABASE ' . $db->name()
+            $db->exec('ALTER DATABASE ' . $db->quotekey($db->name())
                 . ' CHARACTER SET ' . self::getRequiredMySqlVariables('CHARACTER_SET_DATABASE')
                 . ' COLLATE ' . self::getRequiredMySqlVariables('COLLATION_DATABASE')
             );

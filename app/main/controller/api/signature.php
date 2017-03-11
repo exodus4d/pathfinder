@@ -68,7 +68,6 @@ class Signature extends Controller\AccessController {
         // delete all signatures that are not available in this request
         $deleteOldSignatures = (bool)$requestData['deleteOld'];
 
-
         $return = (object) [];
         $return->error = [];
         $return->signatures = [];
@@ -135,9 +134,17 @@ class Signature extends Controller\AccessController {
                                 $data['name'] => $data['value']
                             ];
 
-                            // if groupID changed -> typeID set to 0
+                            // if groupId changed
                             if($data['name'] == 'groupId'){
+                                //  -> typeId set to 0
                                 $newData['typeId'] = 0;
+                                //  -> connectionId set to 0
+                                $newData['connectionId'] = 0;
+                            }
+
+                            // if connectionId changed
+                            if($data['name'] == 'connectionId'){
+                                $newData['connectionId'] = (int)$newData['connectionId'];
                             }
 
                         }else{

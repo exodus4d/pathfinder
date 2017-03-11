@@ -2,7 +2,7 @@
 
 /*
 
-	Copyright (c) 2009-2016 F3::Factory/Bong Cosca, All rights reserved.
+	Copyright (c) 2009-2017 F3::Factory/Bong Cosca, All rights reserved.
 
 	This file is part of the Fat-Free Framework (http://fatfreeframework.com).
 
@@ -28,6 +28,8 @@ class Mapper extends \DB\Cursor {
 	protected
 		//! MongoDB wrapper
 		$db,
+		//! Legacy flag
+		$legacy,
 		//! Mongo collection
 		$collection,
 		//! Mongo document
@@ -155,16 +157,26 @@ class Mapper extends \DB\Cursor {
 				$filter=$filter?:[];
 				$collection=$this->collection;
 			}
-			$this->cursor=$collection->find($filter,$fields?:[]);
-			if ($options['order'])
-				$this->cursor=$this->cursor->sort($options['order']);
-			if ($options['limit'])
-				$this->cursor=$this->cursor->limit($options['limit']);
-			if ($options['offset'])
-				$this->cursor=$this->cursor->skip($options['offset']);
-			$result=[];
-			while ($this->cursor->hasnext())
-				$result[]=$this->cursor->getnext();
+			if ($this->legacy) {
+				$this->cursor=$collection->find($filter,$fields?:[]);
+				if ($options['order'])
+					$this->cursor=$this->cursor->sort($options['order']);
+				if ($options['limit'])
+					$this->cursor=$this->cursor->limit($options['limit']);
+				if ($options['offset'])
+					$this->cursor=$this->cursor->skip($options['offset']);
+				$result=[];
+				while ($this->cursor->hasnext())
+					$result[]=$this->cursor->getnext();
+			}
+			else {
+				$this->cursor=$collection->find($filter,[
+					'sort'=>$options['order'],
+					'limit'=>$options['limit'],
+					'skip'=>$options['offset']
+				]);
+				$result=$this->cursor->toarray();
+			}
 			if ($options['group'])
 				$tmp->drop();
 			if ($fw->get('CACHE') && $ttl)
@@ -200,9 +212,10 @@ class Mapper extends \DB\Cursor {
 	*	Count records that match criteria
 	*	@return int
 	*	@param $filter array
+	*	@param $options array
 	*	@param $ttl int
 	**/
-	function count($filter=NULL,$ttl=0) {
+	function count($filter=NULL,array $options=NULL,$ttl=0) {
 		$fw=\Base::instance();
 		$cache=\Cache::instance();
 		if (!($cached=$cache->exists($hash=$fw->hash($fw->stringify(
@@ -240,8 +253,14 @@ class Mapper extends \DB\Cursor {
 			\Base::instance()->call($this->trigger['beforeinsert'],
 				[$this,['_id'=>$this->document['_id']]])===FALSE)
 			return $this->document;
-		$this->collection->insert($this->document);
-		$pkey=['_id'=>$this->document['_id']];
+		if ($this->legacy) {
+			$this->collection->insert($this->document);
+			$pkey=['_id'=>$this->document['_id']];
+		}
+		else {
+			$result=$this->collection->insertone($this->document);
+			$pkey=['_id'=>$result->getinsertedid()];
+		}
 		if (isset($this->trigger['afterinsert']))
 			\Base::instance()->call($this->trigger['afterinsert'],
 				[$this,$pkey]);
@@ -259,8 +278,11 @@ class Mapper extends \DB\Cursor {
 			\Base::instance()->call($this->trigger['beforeupdate'],
 				[$this,$pkey])===FALSE)
 			return $this->document;
-		$this->collection->update(
-			$pkey,$this->document,['upsert'=>TRUE]);
+		$upsert=['upsert'=>TRUE];
+		if ($this->legacy)
+			$this->collection->update($pkey,$this->document,$upsert);
+		else
+			$this->collection->replaceone($pkey,$this->document,$upsert);
 		if (isset($this->trigger['afterupdate']))
 			\Base::instance()->call($this->trigger['afterupdate'],
 				[$this,$pkey]);
@@ -273,15 +295,19 @@ class Mapper extends \DB\Cursor {
 	*	@param $filter array
 	**/
 	function erase($filter=NULL) {
-		if ($filter)
-			return $this->collection->remove($filter);
+		if ($filter) {
+			return $this->legacy?
+				$this->collection->remove($filter):
+				$this->collection->deletemany($filter);
+		}
 		$pkey=['_id'=>$this->document['_id']];
 		if (isset($this->trigger['beforeerase']) &&
 			\Base::instance()->call($this->trigger['beforeerase'],
 				[$this,$pkey])===FALSE)
 			return FALSE;
-		$result=$this->collection->
-			remove(['_id'=>$this->document['_id']]);
+		$result=$this->legacy?
+			$this->collection->remove(['_id'=>$this->document['_id']]):
+			$this->collection->deleteone(['_id'=>$this->document['_id']]);
 		parent::erase();
 		if (isset($this->trigger['aftererase']))
 			\Base::instance()->call($this->trigger['aftererase'],
@@ -357,6 +383,7 @@ class Mapper extends \DB\Cursor {
 	**/
 	function __construct(\DB\Mongo $db,$collection,$fields=NULL) {
 		$this->db=$db;
+		$this->legacy=$db->legacy();
 		$this->collection=$db->selectcollection($collection);
 		$this->fields=$fields;
 		$this->reset();

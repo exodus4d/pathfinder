@@ -12,7 +12,7 @@ define([
 
     'use strict';
 
-    var config = {
+    let config = {
         // global dialog
         dialogNavigationClass: 'pf-dialog-navigation-list',                     // class for dialog navigation bar
         dialogNavigationListItemClass: 'pf-dialog-navigation-list-item',        // class for map manual li main navigation elements
@@ -28,7 +28,7 @@ define([
 
         requirejs(['text!templates/dialog/map_manual.html', 'mustache'], function(template, Mustache) {
 
-            var data = {
+            let data = {
                 dialogNavigationClass: config.dialogNavigationClass,
                 dialogNavLiClass: config.dialogNavigationListItemClass,
                 scrollspyId: config.mapManualScrollspyId,
@@ -36,10 +36,10 @@ define([
                 mapCounterClass : Init.classes.pieChart.pieChartMapCounterClass
             };
 
-            var content = Mustache.render(template, data);
+            let content = Mustache.render(template, data);
 
             // show dialog
-            var mapManualDialog = bootbox.dialog({
+            let mapManualDialog = bootbox.dialog({
                 title: 'Manual',
                 message: content,
                 size: 'large',
@@ -56,15 +56,15 @@ define([
             });
 
             // modal offset top
-            var modalOffsetTop = 200;
+            let modalOffsetTop = 200;
 
             // disable on scroll event
-            var disableOnScrollEvent = false;
+            let disableOnScrollEvent = false;
 
             // scroll breakpoints
-            var scrolLBreakpointElements = null;
+            let scrolLBreakpointElements = null;
             // scroll navigation links
-            var scrollNavLiElements = null;
+            let scrollNavLiElements = null;
 
             mapManualDialog.on('shown.bs.modal', function(e) {
                 // modal on open
@@ -72,13 +72,13 @@ define([
                 scrollNavLiElements = $('.' + config.dialogNavigationListItemClass);
             });
 
-            var scrollspyElement = $('#' + config.mapManualScrollspyId);
+            let scrollspyElement = $('#' + config.mapManualScrollspyId);
 
-            var whileScrolling = function(){
+            let whileScrolling = function(){
 
                 if(disableOnScrollEvent === false){
-                    for(var i = 0; i < scrolLBreakpointElements.length; i++){
-                        var offset = $(scrolLBreakpointElements[i]).offset().top;
+                    for(let i = 0; i < scrolLBreakpointElements.length; i++){
+                        let offset = $(scrolLBreakpointElements[i]).offset().top;
 
                         if( (offset - modalOffsetTop) > 0){
 
@@ -116,11 +116,11 @@ define([
                         scrollspyElement.find('.' + data.mapCounterClass).initMapUpdateCounter();
 
                         // set navigation button observer
-                        var mainNavigationLinks = $('.' + config.dialogNavigationClass).find('a');
+                        let mainNavigationLinks = $('.' + config.dialogNavigationClass).find('a');
                         // text anchor links
-                        var subNavigationLinks = scrollspyElement.find('a[data-target]');
+                        let subNavigationLinks = scrollspyElement.find('a[data-target]');
 
-                        var navigationLinks = mainNavigationLinks.add(subNavigationLinks);
+                        let navigationLinks = mainNavigationLinks.add(subNavigationLinks);
 
                         navigationLinks.on('click', function(e){
                             e.preventDefault();
@@ -130,7 +130,7 @@ define([
                             // scroll to anchor
                             scrollspyElement.mCustomScrollbar('scrollTo', $(this).attr('data-target'));
 
-                            var mainNavigationLiElement = $(this).parent('.' + config.dialogNavigationListItemClass);
+                            let mainNavigationLiElement = $(this).parent('.' + config.dialogNavigationListItemClass);
 
 
                             whileScrolling();

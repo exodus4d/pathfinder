@@ -13,6 +13,11 @@ define([
     'use strict';
 
     let config = {
+        newSystemOffset: {
+            x: 130,
+            y: 0
+        },
+
         systemActiveClass: 'pf-system-active'                           // class for an active system in a map
     };
 
@@ -193,8 +198,32 @@ define([
         }
     };
 
+    /**
+     * calculate the x/y coordinates for a new system - relativ to a source system
+     * @param sourceSystem
+     * @returns {{x: *, y: *}}
+     */
+    let calculateNewSystemPosition = function(sourceSystem){
+
+        // related system is available
+        let currentX = sourceSystem.css('left');
+        let currentY = sourceSystem.css('top');
+
+        // remove "px"
+        currentX = parseInt( currentX.substring(0, currentX.length - 2) );
+        currentY = parseInt( currentY.substring(0, currentY.length - 2) );
+
+        let newPosition = {
+            x: currentX + config.newSystemOffset.x,
+            y: currentY + config.newSystemOffset.y
+        };
+
+        return newPosition;
+    };
+
     return {
         deleteSystems: deleteSystems,
-        removeSystems: removeSystems
+        removeSystems: removeSystems,
+        calculateNewSystemPosition: calculateNewSystemPosition
     };
 });

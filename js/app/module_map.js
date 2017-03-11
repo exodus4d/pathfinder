@@ -56,16 +56,14 @@ define([
     };
 
     /**
-     * get the current active map for
-     * @returns {*}
+     * get the current active mapElement
+     * @returns {JQuery|*|T|{}|jQuery}
      */
     $.fn.getActiveMap = function(){
         let map = $(this).find('.active.' + config.mapTabContentClass + ' .' + config.mapClass);
-
-        if(map.length === 0){
+        if(!map.length){
             map = false;
         }
-
         return map;
     };
 
@@ -563,7 +561,7 @@ define([
                         activeMapIds.push(mapId);
 
                         // check for map data change and update tab
-                        if(tabMapData.config.updated !== tabElement.data('updated')){
+                        if(tabMapData.config.updated > tabElement.data('updated')){
                             tabElement.updateTabData(tabMapData.config);
                         }
                     }else{
@@ -631,7 +629,6 @@ define([
 
             // add new tab for each map
             for(let j = 0; j < tempMapData.length; j++){
-
                 let data = tempMapData[j];
                 tabMapElement.addTab(data.config);
             }

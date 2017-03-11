@@ -13,12 +13,12 @@ define([
 ], function($, Init, Util, Render, bootbox, MapUtil) {
     'use strict';
 
-    var config = {
+    let config = {
         // system effect dialog
         systemEffectDialogWrapperClass: 'pf-system-effect-dialog-wrapper'       // class for system effect dialog
     };
 
-    var cache = {
+    let cache = {
         systemEffectDialog: false                                               // system effect info dialog
     };
 
@@ -30,31 +30,31 @@ define([
         // cache table structure
         if(!cache.systemEffectDialog){
 
-            var dialogWrapperElement = $('<div>', {
+            let dialogWrapperElement = $('<div>', {
                 class: config.systemEffectDialogWrapperClass
             });
 
-            var systemEffectData = Util.getSystemEffectData();
+            let systemEffectData = Util.getSystemEffectData();
 
             $.each( systemEffectData.wh, function( effectName, effectData ) {
 
-                var table = $('<table>', {
+                let table = $('<table>', {
                     class: ['table', 'table-condensed'].join(' ')
                 });
 
-                var tbody = $('<tbody>');
-                var thead = $('<thead>');
+                let tbody = $('<tbody>');
+                let thead = $('<thead>');
 
-                var rows = [];
+                let rows = [];
 
                 // get formatted system effect name
-                var systemEffectName = MapUtil.getEffectInfoForSystem(effectName, 'name');
-                var systemEffectClass = MapUtil.getEffectInfoForSystem(effectName, 'class');
+                let systemEffectName = MapUtil.getEffectInfoForSystem(effectName, 'name');
+                let systemEffectClass = MapUtil.getEffectInfoForSystem(effectName, 'class');
 
                 $.each( effectData, function( areaId, areaData ) {
 
-                    var systemType = 'C' + areaId;
-                    var securityClass = Util.getSecurityClassForSystem( systemType );
+                    let systemType = 'C' + areaId;
+                    let securityClass = Util.getSecurityClassForSystem( systemType );
 
                     if(areaId === '1'){
                         rows.push( $('<tr>') );

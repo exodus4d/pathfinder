@@ -1,7 +1,7 @@
 
 app/login.js
 ----------------
-lib/jquery-3.0.0.min.js
+lib/jquery-3.1.1.min.js
 app/init.js
 app/config/system_effect.js
 app/config/signature_type.js
@@ -40,7 +40,7 @@ lib/requirejs/text.js
 
 app/mappage.js
 ----------------
-lib/jquery-3.0.0.min.js
+lib/jquery-3.1.1.min.js
 app/init.js
 app/config/system_effect.js
 app/config/signature_type.js
@@ -71,6 +71,8 @@ app/map/util.js
 app/ui/dialog/map_info.js
 app/ui/dialog/account_settings.js
 app/ui/dialog/manual.js
+app/key.js
+app/ui/dialog/shortcuts.js
 app/ui/dialog/map_settings.js
 app/ui/dialog/system_effects.js
 app/ui/dialog/jump_info.js
@@ -110,7 +112,7 @@ app/mappage.js
 
 app/setup.js
 ----------------
-lib/jquery-3.0.0.min.js
+lib/jquery-3.1.1.min.js
 app/init.js
 app/config/system_effect.js
 app/config/signature_type.js

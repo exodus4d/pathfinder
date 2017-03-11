@@ -7,8 +7,10 @@ define([
     'app/init',
     'app/util',
     'app/render',
-    'bootbox'
-], function($, Init, Util, Render, bootbox) {
+    'bootbox',
+    'app/map/map',
+    'app/map/util'
+], function($, Init, Util, Render, bootbox, Map, MapUtil) {
     'use strict';
 
     let config = {
@@ -40,10 +42,12 @@ define([
         sigTableEditSigNameInput: 'pf-sig-table-edit-name-input',               // class for editable fields (input)
         sigTableEditSigGroupSelect: 'pf-sig-table-edit-group-select',           // class for editable fields (sig group)
         sigTableEditSigTypeSelect: 'pf-sig-table-edit-type-select',             // class for editable fields (sig type)
+        sigTableEditSigConnectionSelect: 'pf-sig-table-edit-connection-select', // class for editable fields (sig connection)
         sigTableEditSigDescriptionTextarea: 'pf-sig-table-edit-desc-text',      // class for editable fields (sig description)
         sigTableCreatedCellClass: 'pf-sig-table-created',                       // class for "created" cells
         sigTableUpdatedCellClass: 'pf-sig-table-updated',                       // class for "updated" cells
 
+        sigTableConnectionClass: 'pf-table-connection-cell',                    // class for "connection" cells
         sigTableCounterClass: 'pf-table-counter-cell',                          // class for "counter" cells
         sigTableActionCellClass: 'pf-table-action-cell',                        // class for "action" cells
 
@@ -159,7 +163,7 @@ define([
         let updateCell = signatureTableApi.cell( rowIndex, cellIndex );
         let updateCellElement = updateCell.nodes().to$();
 
-        if(cellIndex === 6){
+        if(cellIndex === 7){
             // clear existing counter interval
             clearInterval( updateCellElement.data('interval') );
         }
@@ -167,7 +171,7 @@ define([
         // set new value
         updateCell.data( data ).draw();
 
-        if(cellIndex === 6){
+        if(cellIndex === 7){
             updateCellElement.initTimestampCounter();
         }
     };
@@ -694,6 +698,27 @@ define([
 
                 tempData.type = sigType;
 
+                // set connection (to target system) ------------------------------------------------------------------
+                let sigConnection = '<a href="#" class="' + config.sigTableEditSigConnectionSelect + '" ';
+                if(data.id > 0){
+                    sigConnection += 'data-pk="' + data.id + '" ';
+                }
+
+                // set disabled if group is not wromhole
+                if(data.groupId !== 5){
+                    sigConnection += 'data-disabled="1" ';
+                }
+
+                if(data.connection){
+                    sigConnection += 'data-value="' + data.connection.id + '" ';
+                }
+                sigConnection += '></a>';
+
+                tempData.connection = {
+                    render: sigConnection,
+                    connection: data.connection
+                };
+
                 // set description ------------------------------------------------------------------------------------
                 let sigDescription = '<a href="#" class="' + config.sigTableEditSigDescriptionTextarea + '" ';
                 if(data.id > 0){
@@ -1014,6 +1039,7 @@ define([
         let sigGroupFields = tableElement.find('.' + config.sigTableEditSigGroupSelect);
         let sigTypeFields = tableElement.find('.' + config.sigTableEditSigTypeSelect);
         let sigDescriptionFields = tableElement.find('.' + config.sigTableEditSigDescriptionTextarea);
+        let sigConnectionFields = tableElement.find('.' + config.sigTableEditSigConnectionSelect);
 
         // jump to "next" editable field on save
         let openNextEditDialogOnSave = function(fields){
@@ -1038,8 +1064,16 @@ define([
         };
 
         // helper function - get the next editable field in next table column
-        let getNextEditableField = function(field){
-            let nextEditableField = $(field).closest('td').next().find('.editable');
+        let getNextEditableField = function(field, selector){
+            let nextEditableField = null;
+            if(selector){
+                // search specific sibling
+                nextEditableField = $(field).closest('td').nextAll(selector).find('.editable');
+            }else{
+                // get next sibling
+                nextEditableField = $(field).closest('td').next().find('.editable');
+            }
+
             return $(nextEditableField);
         };
 
@@ -1108,7 +1142,7 @@ define([
                     updateTooltip(columnElement, newValue);
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 6, newRowData.updated);
+                    updateSignatureCell(rowElement, 7, newRowData.updated);
                 }
             }
         });
@@ -1145,7 +1179,7 @@ define([
                     let newRowData = response.signatures[0];
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 6, newRowData.updated);
+                    updateSignatureCell(rowElement, 7, newRowData.updated);
                 }
 
                 // find related "type" select (same row) and change options
@@ -1165,6 +1199,18 @@ define([
                     typeSelect.editable('enable');
                 }else{
                     typeSelect.editable('disable');
+                }
+
+                // find "connection" select (same row) and change "enabled" flag
+                let connectionSelect = getNextEditableField(signatureTypeField, '.' + config.sigTableConnectionClass);
+                connectionSelect.editable('setValue', null);
+
+                if(newValue === 5){
+                    // wormhole
+                    connectionSelect.editable('enable');
+                }else{
+                    checkConnectionConflicts();
+                    connectionSelect.editable('disable');
                 }
             }
         });
@@ -1204,7 +1250,7 @@ define([
                     let newRowData = response.signatures[0];
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 6, newRowData.updated);
+                    updateSignatureCell(rowElement, 7, newRowData.updated);
                 }
             }
         });
@@ -1227,7 +1273,62 @@ define([
                     let newRowData = response.signatures[0];
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 6, newRowData.updated);
+                    updateSignatureCell(rowElement, 7, newRowData.updated);
+                }
+            }
+        });
+
+        // Select connection (target system) --------------------------------------------------------------------------
+        let initCount = 0;
+        sigConnectionFields.on('init', function(e, editable) {
+            if(++initCount >= sigConnectionFields.length){
+                checkConnectionConflicts();
+            }
+        });
+
+        sigConnectionFields.editable({
+            type: 'select',
+            title: 'system',
+            name: 'connectionId',
+            emptytext: 'unknown',
+            onblur: 'submit',
+            showbuttons: false,
+            params: modifyFieldParamsOnSend,
+            display: function(value, sourceData) {
+                let editableElement = $(this);
+                let newValue = '';
+
+                if(value !== null){
+                    let selected = $.fn.editableutils.itemsByValue(value, sourceData);
+                    if(
+                        selected.length &&
+                        selected[0].text !== ''
+                    ){
+                        newValue += '<i class="fa fa-exclamation-triangle txt-color txt-color-danger hide"></i>';
+                        newValue += ' ' + selected[0].text;
+                    }else{
+                        newValue = '<span class="editable-empty">unknown</span>';
+                    }
+                }
+
+                editableElement.html(newValue);
+            },
+            source: function(a,b){
+                let activeMap = Util.getMapModule().getActiveMap();
+                let mapId = activeMap.data('id');
+
+                let availableConnections = getSignatureConnectionOptions(mapId, systemData);
+
+                return availableConnections;
+            },
+            success: function(response, newValue){
+                if(response){
+                    let signatureConnectionField = $(this);
+                    let rowElement = signatureConnectionField.parents('tr');
+                    let newRowData = response.signatures[0];
+
+                    // update "updated" cell
+                    updateSignatureCell(rowElement, 7, newRowData.updated);
                 }
             }
         });
@@ -1244,13 +1345,109 @@ define([
             tableElement.parents('.' + config.tableToolsActionClass).css( 'height', '-=35px' );
         });
 
+        // save events
+        sigConnectionFields.on('save', function(e, editable){
+            checkConnectionConflicts();
+        });
+
         // open next field dialog -------------------------------------------------------------------------------------
         openNextEditDialogOnSave(sigNameFields);
         openNextEditDialogOnSave(sigGroupFields);
     };
 
     /**
-     * get all signatures that can exist for a given system
+     * get all connection select options
+     * @param mapId
+     * @param systemData
+     * @returns {Array}
+     */
+    let getSignatureConnectionOptions = (mapId, systemData) => {
+        let map = Map.getMapInstance( mapId );
+        let systemId = MapUtil.getSystemId(mapId, systemData.id);
+        let systemConnections = MapUtil.searchConnectionsBySystems(map, [systemId]);
+        let connectionOptions = [];
+
+        for(let i = 0; i < systemConnections.length; i++){
+            let connectionData = Map.getDataByConnection(systemConnections[i]);
+
+            // connectionId is required (must be stored)
+            if(connectionData.id){
+                // check whether "source" or "target" system is relevant for this connection
+                // -> hint "source" === 'target' --> loop
+                if(systemData.id !== connectionData.target){
+                    // take target...
+                    connectionOptions.push({
+                        value: connectionData.id,
+                        text: connectionData.targetName
+                    });
+                }else if(systemData.id !== connectionData.source){
+                    // take source...
+                    connectionOptions.push({
+                        value: connectionData.id,
+                        text: connectionData.sourceName
+                    });
+                }
+            }
+        }
+
+        // add empty entry
+        connectionOptions.unshift({ value: null, text: ''});
+
+        return connectionOptions;
+    };
+
+    /**
+     * check connectionIds for conflicts (multiple signatures -> same connection)
+     * -> show "conflict" icon next to select
+     */
+    let checkConnectionConflicts = () => {
+        setTimeout(function() {
+            let connectionSelects = $('.' + config.sigTableConnectionClass + ' .editable');
+            let connectionIds = [];
+            let duplicateConnectionIds = [];
+            let groupedSelects = [];
+
+            connectionSelects.each(function(){
+                let select = $(this);
+                let value = parseInt(select.editable('getValue', true) )|| 0;
+
+                if(
+                    connectionIds.indexOf(value) > -1 &&
+                    duplicateConnectionIds.indexOf(value) === -1
+                ){
+                    // duplicate found
+                    duplicateConnectionIds.push(value);
+                }
+
+                if(groupedSelects[value] !== undefined){
+                    groupedSelects[value].push(select[0]);
+                }else{
+                    groupedSelects[value] = [select[0]];
+                }
+
+                connectionIds.push(value);
+            });
+
+            // update "conflict" icon next to select label for connectionIds
+            connectionSelects.each(function(){
+                let select = $(this);
+                let value = parseInt(select.editable('getValue', true) )|| 0;
+                let conflictIcon = select.find('.fa-exclamation-triangle');
+                if(
+                    duplicateConnectionIds.indexOf(value) > -1 &&
+                    groupedSelects[value].indexOf(select[0]) > -1
+                ){
+                    conflictIcon.removeClass('hide');
+                }else{
+                    conflictIcon.addClass('hide');
+                }
+            });
+        }, 200);
+    };
+
+    /**
+     * get all signature types that can exist for a given system
+     * -> result is partially cached
      * @param systemData
      * @param systemTypeId
      * @param areaId
@@ -1265,6 +1462,7 @@ define([
         // check for cached signature names
         if(sigNameCache.hasOwnProperty( cacheKey )){
             // cached signatures do not include static WHs!
+            // -> ".slice(0)" creates copy
             newSelectOptions =  sigNameCache[cacheKey].slice(0);
             newSelectOptionsCount = sumSignaturesRecursive('children', newSelectOptions);
         }else{
@@ -1281,7 +1479,7 @@ define([
                         tempSelectOptions.hasOwnProperty(key)
                     ) {
                         newSelectOptionsCount++;
-                        fixSelectOptions.push( {value: key, text: tempSelectOptions[key] } );
+                        fixSelectOptions.push( {value: parseInt(key), text: tempSelectOptions[key] } );
                     }
                 }
 
@@ -1364,6 +1562,19 @@ define([
         }
 
         return newSelectOptions;
+    };
+
+    /**
+     * get all signature types that can exist for a system (jQuery obj)
+     * @param systemElement
+     * @param groupId
+     * @returns {Array}
+     */
+    let getAllSignatureNamesBySystem = (systemElement, groupId) => {
+        let systemTypeId = systemElement.data('typeId');
+        let areaId = Util.getAreaIdBySecurity(systemElement.data('security'));
+        let systemData = {statics: systemElement.data('statics')};
+        return getAllSignatureNames(systemData, systemTypeId, areaId, groupId);
     };
 
     /**
@@ -1450,6 +1661,9 @@ define([
 
                 // update signature bar
                 moduleElement.updateScannedSignaturesBar({showNotice: false});
+
+                // update connection conflicts
+                checkConnectionConflicts();
 
                 Util.showNotify({title: 'Signature deleted', text: signatureCount + ' signatures deleted', type: 'success'});
             }
@@ -1539,16 +1753,16 @@ define([
                 .css({
                     'willChange': 'height'
                 }).velocity('slideUp', {
-                    duration: duration,
-                    complete: function(animationElements){
-                        // remove wrapper
-                        $(animationElements).children().unwrap();
+                duration: duration,
+                complete: function(animationElements){
+                    // remove wrapper
+                    $(animationElements).children().unwrap();
 
-                        if(callback !== undefined){
-                            callback(rowElement);
-                        }
+                    if(callback !== undefined){
+                        callback(rowElement);
                     }
-                });
+                }
+            });
         }else{
             // show row
 
@@ -1577,23 +1791,23 @@ define([
                         .css({
                             'willChange': 'height'
                         }).velocity('slideDown', {
-                            duration: duration,
-                            complete: function(animationElements){
-                                // remove wrapper
-                                for(let i = 0; i < animationElements.length; i++){
-                                    let currentWrapper = $(animationElements[i]);
-                                    if(currentWrapper.children().length > 0){
-                                        currentWrapper.children().unwrap();
-                                    }else{
-                                        currentWrapper.parent().html( currentWrapper.html() );
-                                    }
-                                }
-
-                                if(callback !== undefined){
-                                    callback(rowElement);
+                        duration: duration,
+                        complete: function(animationElements){
+                            // remove wrapper
+                            for(let i = 0; i < animationElements.length; i++){
+                                let currentWrapper = $(animationElements[i]);
+                                if(currentWrapper.children().length > 0){
+                                    currentWrapper.children().unwrap();
+                                }else{
+                                    currentWrapper.parent().html( currentWrapper.html() );
                                 }
                             }
-                        });
+
+                            if(callback !== undefined){
+                                callback(rowElement);
+                            }
+                        }
+                    });
                 }
             });
         }
@@ -1789,6 +2003,18 @@ define([
                     data: 'description'
                 },{
                     targets: 5,
+                    orderable: false,
+                    searchable: false,
+                    className: [config.sigTableConnectionClass].join(' '),
+                    title: 'leads to',
+                    type: 'html',
+                    width: '70px',
+                    data: 'connection',
+                    render: {
+                        _: 'render'
+                    }
+                },{
+                    targets: 6,
                     title: 'created',
                     width: '90px',
                     searchable: false,
@@ -1802,7 +2028,7 @@ define([
                         $(cell).initTimestampCounter();
                     }
                 },{
-                    targets: 6,
+                    targets: 7,
                     title: 'updated',
                     width: '90px',
                     searchable: false,
@@ -1824,7 +2050,7 @@ define([
                         }
                     }
                 },{
-                    targets: 7,
+                    targets: 8,
                     title: '',
                     orderable: false,
                     searchable: false,
@@ -1845,7 +2071,7 @@ define([
                         }
                     }
                 },{
-                    targets: 8,
+                    targets: 9,
                     title: '',
                     orderable: false,
                     searchable: false,
@@ -1924,6 +2150,9 @@ define([
                                     btnOkLabel: 'delete',
                                     btnOkIcon: 'fa fa-fw fa-close',
                                     onConfirm : function(e, target){
+                                        // top scroll to top
+                                        e.preventDefault();
+
                                         let deleteRowElement = $(target).parents('tr');
                                         let row = tempTableElement.DataTable().rows(deleteRowElement);
                                         deleteSignatures(row);
@@ -1977,17 +2206,8 @@ define([
         });
 
         // event listener for global "paste" signatures into the page -------------------------------------------------
-        $(document).off('paste').on('paste', function(e){
-
-            // do not read clipboard if pasting into form elements
-            if(
-                $(e.target).prop('tagName').toLowerCase() !== 'input' &&
-                $(e.target).prop('tagName').toLowerCase() !== 'textarea'
-            ){
-                let clipboard = (e.originalEvent || e).clipboardData.getData('text/plain');
-
-                moduleElement.updateSignatureTableByClipboard(systemData, clipboard, {});
-            }
+        moduleElement.on('pf:updateSystemSignatureModuleByClipboard', function(e, clipboard){
+            $(this).updateSignatureTableByClipboard(systemData, clipboard, {});
         });
     };
 
@@ -2097,9 +2317,9 @@ define([
             moduleElement.velocity('transition.slideDownOut', {
                 duration: Init.animationSpeed.mapModule,
                 complete: function(tempElement){
-                     // Destroying the data tables throws
-                     // save remove of all dataTables
-                     signatureTable.api().destroy();
+                    // Destroying the data tables throws
+                    // save remove of all dataTables
+                    signatureTable.api().destroy();
 
                     $(tempElement).remove();
 
@@ -2116,6 +2336,10 @@ define([
             moduleElement = getModule(parentElement, systemData);
             showModule(moduleElement);
         }
+    };
+
+    return {
+        getAllSignatureNamesBySystem: getAllSignatureNamesBySystem
     };
 
 });

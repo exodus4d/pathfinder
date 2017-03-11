@@ -46,6 +46,18 @@ class SystemSignatureModel extends BasicModel {
             'index' => true,
             'activity-log' => true
         ],
+        'connectionId' => [
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'belongs-to-one' => 'Model\ConnectionModel',
+            'constraint' => [
+                [
+                    'table' => 'connection',
+                    'on-delete' => 'CASCADE'
+                ]
+            ],
+            'activity-log' => true
+        ],
         'name' => [
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
@@ -112,10 +124,19 @@ class SystemSignatureModel extends BasicModel {
 
         $signatureData                              = (object) [];
         $signatureData->id                          = $this->id;
+
+        $signatureData->system                      = (object) [];
+        $signatureData->system->id                  = $this->get('systemId', true);
+
         $signatureData->groupId                     = $this->groupId;
         $signatureData->typeId                      = $this->typeId;
         $signatureData->name                        = $this->name;
         $signatureData->description                 = $this->description;
+
+        if($connection = $this->getConnection()){
+            $signatureData->connection                 = (object) [];
+            $signatureData->connection->id             = $connection->_id;
+        }
 
         $signatureData->created                     = (object) [];
         $signatureData->created->created            = strtotime($this->created);
@@ -130,6 +151,48 @@ class SystemSignatureModel extends BasicModel {
         }
 
         return $signatureData;
+    }
+
+    /**
+     * setter for connectionId
+     * @param $connectionId
+     * @return int|null
+     */
+    public function set_connectionId($connectionId){
+        $connectionId = (int)$connectionId;
+        $validConnectionId = null;
+
+        if($connectionId > 0){
+            // check if connectionId is valid
+            $systemId = (int) $this->get('systemId', true);
+
+            /**
+             * @var $connection ConnectionModel
+             */
+            $connection = $this->rel('connectionId');
+            $connection->getById($connectionId);
+
+            if(
+                !$connection->dry() &&
+                (
+                    $connection->get('source', true) === $systemId||
+                    $connection->get('target', true) === $systemId
+                )
+            ){
+                // connectionId belongs to same system as $this signature -> is valid
+                $validConnectionId = $connectionId;
+            }
+        }
+
+        return $validConnectionId;
+    }
+
+    /**
+     * get the connection (if attached)
+     * @return \Model\ConnectionModel|null
+     */
+    public function getConnection(){
+        return $this->connectionId;
     }
 
     /**

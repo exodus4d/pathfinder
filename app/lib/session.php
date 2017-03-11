@@ -2,7 +2,7 @@
 
 /*
 
-	Copyright (c) 2009-2016 F3::Factory/Bong Cosca, All rights reserved.
+	Copyright (c) 2009-2017 F3::Factory/Bong Cosca, All rights reserved.
 
 	This file is part of the Fat-Free Framework (http://fatfreeframework.com).
 
@@ -58,13 +58,13 @@ class Session {
 
 	/**
 	*	Return session data in serialized format
-	*	@return string|FALSE
+	*	@return string
 	*	@param $id string
 	**/
 	function read($id) {
 		$this->sid=$id;
 		if (!$data=$this->_cache->get($id.'.@'))
-			return FALSE;
+			return '';
 		if ($data['ip']!=$this->_ip || $data['agent']!=$this->_agent) {
 			$fw=Base::instance();
 			if (!isset($this->onsuspect) ||

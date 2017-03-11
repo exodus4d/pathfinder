@@ -126,16 +126,31 @@
   color: inherit;
 }
 
-.timeline-body > p,
-.timeline-body > ul {
-  margin-bottom: 0;
-  list-style-type: disc;
-  margin-left: 15px;
+.timeline-body{
+
+  // hide all elements AFTER first <hr> tag
+  > hr {
+    display: none;
+
+    ~ *{
+      display: none;
+    }
+  }
+
+
+  > p,
+  > ul {
+    margin-bottom: 0;
+    list-style-type: disc;
+    margin-left: 15px;
+  }
+
+  > p + p {
+    margin-top: 5px;
+  }
+
 }
 
-.timeline-body > p + p {
-  margin-top: 5px;
-}
 
 @media (max-width: 1200px) {
   ul.timeline:before {

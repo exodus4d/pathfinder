@@ -20,6 +20,11 @@ class MapModel extends BasicModel {
      */
     const DATA_CACHE_KEY_CHARACTER = 'CHARACTERS';
 
+    /**
+     * default TTL for getData(); cache
+     */
+    const DEFAULT_CACHE_TTL = 60;
+
     protected $fieldConf = [
         'active' => [
             'type' => Schema::DT_BOOL,
@@ -205,7 +210,7 @@ class MapModel extends BasicModel {
             // max caching time for a map
             // the cached date has to be cleared manually on any change
             // this includes system, connection,... changes (all dependencies)
-            $this->updateCacheData($mapDataAll);
+            $this->updateCacheData($mapDataAll, '', self::DEFAULT_CACHE_TTL);
         }
 
         return $mapDataAll;
@@ -391,15 +396,23 @@ class MapModel extends BasicModel {
 
     /**
      * get all connections in this map
+     * @param string $scope
      * @return ConnectionModel[]
      */
-    public function getConnections(){
+    public function getConnections($scope = ''){
         $connections = [];
 
-        $this->filter('connections', [
+        $query = [
             'active = :active AND source > 0 AND target > 0',
             ':active' => 1
-        ]);
+        ];
+
+        if(!empty($scope)){
+            $query[0] .= ' AND scope = :scope';
+            $query[':scope'] = $scope;
+        }
+
+        $this->filter('connections', $query);
 
         if($this->connections){
             $connections = $this->connections;

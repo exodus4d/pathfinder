@@ -16,6 +16,7 @@ define([
     'dialog/map_info',
     'dialog/account_settings',
     'dialog/manual',
+    'dialog/shortcuts',
     'dialog/map_settings',
     'dialog/system_effects',
     'dialog/jump_info',
@@ -62,7 +63,10 @@ define([
         menuHeadMenuLogoClass: 'pf-head-menu-logo',                             // class for main menu logo
 
         // helper element
-        dynamicElementWrapperId: 'pf-dialog-wrapper'
+        dynamicElementWrapperId: 'pf-dialog-wrapper',
+
+        // system signature module
+        systemSigModuleClass: 'pf-sig-table-module',                            // module wrapper (signatures)
     };
 
     let programStatusCounter = 0;                                               // current count down in s until next status change is possible
@@ -74,49 +78,84 @@ define([
      * @returns {*|jQuery|HTMLElement}
      */
     $.fn.loadPageStructure = function(){
-        let body = $(this);
+        return this.each((i, body) => {
+            body = $(body);
 
-        // menu left
-        body.prepend(
-            $('<div>', {
-                class: [config.pageSlidebarClass, config.pageSlidebarLeftClass, 'sb-style-push', 'sb-width-custom'].join(' ')
-            }).attr('data-sb-width', config.pageSlideLeftWidth)
-        );
+            // menu left
+            body.prepend(
+                $('<div>', {
+                    class: [config.pageSlidebarClass, config.pageSlidebarLeftClass, 'sb-style-push', 'sb-width-custom'].join(' ')
+                }).attr('data-sb-width', config.pageSlideLeftWidth)
+            );
 
-        // menu right
-        body.prepend(
-            $('<div>', {
-                class: [config.pageSlidebarClass, config.pageSlidebarRightClass, 'sb-style-push', 'sb-width-custom'].join(' ')
-            }).attr('data-sb-width', config.pageSlideRightWidth)
-        );
+            // menu right
+            body.prepend(
+                $('<div>', {
+                    class: [config.pageSlidebarClass, config.pageSlidebarRightClass, 'sb-style-push', 'sb-width-custom'].join(' ')
+                }).attr('data-sb-width', config.pageSlideRightWidth)
+            );
 
-        // main page
-        body.prepend(
-            $('<div>', {
-                id: config.pageId,
-                class: config.pageClass
-            }).append(
+            // main page
+            body.prepend(
+                $('<div>', {
+                    id: config.pageId,
+                    class: config.pageClass
+                }).append(
                     Util.getMapModule()
                 ).append(
                     $('<div>', {
                         id: config.dynamicElementWrapperId
                     })
                 )
-        );
+            );
 
-        // load header / footer
-        $('.' + config.pageClass).loadHeader().loadFooter();
+            // load header / footer
+            $('.' + config.pageClass).loadHeader().loadFooter();
 
-        // load left menu
-        $('.' + config.pageSlidebarLeftClass).loadLeftMenu();
+            // load left menu
+            $('.' + config.pageSlidebarLeftClass).loadLeftMenu();
 
-        // load right menu
-        $('.' + config.pageSlidebarRightClass).loadRightMenu();
+            // load right menu
+            $('.' + config.pageSlidebarRightClass).loadRightMenu();
 
-        // set document observer for global events
-        setDocumentObserver();
+            // set document observer for global events
+            setDocumentObserver();
+        });
+    };
 
-        return body;
+    /**
+     * set global shortcuts to <body> element
+     */
+    $.fn.setGlobalShortcuts = function(){
+        return this.each((i, body) => {
+            body = $(body);
+
+            body.watchKey('tabReload', (body) => {
+                location.reload();
+            });
+
+            body.watchKey('signaturePaste', (e) => {
+                let moduleElement = $('.' + config.systemSigModuleClass);
+
+                // check if there is a signature module active (system clicked)
+                if(moduleElement.length){
+                    e = e.originalEvent;
+                    let targetElement = $(e.target);
+
+                    // do not read clipboard if pasting into form elements
+                    if(
+                        targetElement.prop('tagName').toLowerCase() !== 'input' &&
+                        targetElement.prop('tagName').toLowerCase() !== 'textarea' || (
+                            targetElement.is('input[type="search"]')                   // Datatables "search" field bubbles `paste.DT` event :(
+                        )
+                    ){
+                        let clipboard = (e.originalEvent || e).clipboardData.getData('text/plain');
+                        moduleElement.trigger('pf:updateSystemSignatureModuleByClipboard', [clipboard]);
+                    }
+                }
+            });
+
+        });
     };
 
     /**
@@ -148,10 +187,10 @@ define([
                     class: 'list-group-item',
                     href: '/'
                 }).html('&nbsp;&nbsp;Home').prepend(
-                        $('<i>',{
-                            class: 'fa fa-home fa-fw'
-                        })
-                    )
+                    $('<i>',{
+                        class: 'fa fa-home fa-fw'
+                    })
+                )
             ).append(
                 getMenuHeadline('Information')
             ).append(
@@ -162,11 +201,6 @@ define([
                     $('<i>',{
                         class: 'fa fa-line-chart fa-fw'
                     })
-                ).append(
-                    $('<span>',{
-                        class: 'badge bg-color bg-color-gray txt-color txt-color-warning',
-                        text: 'beta'
-                    })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowStatsDialog');
                 })
@@ -175,23 +209,23 @@ define([
                     class: 'list-group-item list-group-item-info',
                     href: '#'
                 }).html('&nbsp;&nbsp;Effect info').prepend(
-                        $('<i>',{
-                            class: 'fa fa-crosshairs fa-fw'
-                        })
-                    ).on('click', function(){
-                        $(document).triggerMenuEvent('ShowSystemEffectInfo');
+                    $('<i>',{
+                        class: 'fa fa-crosshairs fa-fw'
                     })
+                ).on('click', function(){
+                    $(document).triggerMenuEvent('ShowSystemEffectInfo');
+                })
             ).append(
                 $('<a>', {
                     class: 'list-group-item list-group-item-info',
                     href: '#'
                 }).html('&nbsp;&nbsp;Jump info').prepend(
-                        $('<i>',{
-                            class: 'fa fa-space-shuttle fa-fw'
-                        })
-                    ).on('click', function(){
-                        $(document).triggerMenuEvent('ShowJumpInfo');
+                    $('<i>',{
+                        class: 'fa fa-space-shuttle fa-fw'
                     })
+                ).on('click', function(){
+                    $(document).triggerMenuEvent('ShowJumpInfo');
+                })
             ).append(
                 getMenuHeadline('Settings')
             ).append(
@@ -211,32 +245,32 @@ define([
                     id: Util.config.menuButtonFullScreenId,
                     href: '#'
                 }).html('&nbsp;&nbsp;Full screen').prepend(
-                        $('<i>',{
-                            class: 'glyphicon glyphicon-fullscreen',
-                            css: {width: '1.23em'}
-                        })
-                    ).on('click', function(){
-                        let fullScreenElement = $('body');
-                        requirejs(['jquery', 'fullScreen'], function($) {
-
-                            if($.fullscreen.isFullScreen()){
-                                $.fullscreen.exit();
-                            }else{
-                                fullScreenElement.fullscreen({overflow: 'scroll', toggleClass: config.fullScreenClass});
-                            }
-                        });
+                    $('<i>',{
+                        class: 'glyphicon glyphicon-fullscreen',
+                        css: {width: '1.23em'}
                     })
+                ).on('click', function(){
+                    let fullScreenElement = $('body');
+                    requirejs(['jquery', 'fullScreen'], function($) {
+
+                        if($.fullscreen.isFullScreen()){
+                            $.fullscreen.exit();
+                        }else{
+                            fullScreenElement.fullscreen({overflow: 'scroll', toggleClass: config.fullScreenClass});
+                        }
+                    });
+                })
             ).append(
                 $('<a>', {
                     class: 'list-group-item',
                     href: '#'
                 }).html('&nbsp;&nbsp;Notification test').prepend(
-                        $('<i>',{
-                            class: 'fa fa-volume-up fa-fw'
-                        })
-                    ).on('click', function(){
-                        $(document).triggerMenuEvent('NotificationTest');
+                    $('<i>',{
+                        class: 'fa fa-volume-up fa-fw'
                     })
+                ).on('click', function(){
+                    $(document).triggerMenuEvent('NotificationTest');
+                })
             ).append(
                 getMenuHeadline('Danger zone')
             ).append(
@@ -248,19 +282,19 @@ define([
                         class: 'fa fa-user-times fa-fw'
                     })
                 ).on('click', function(){
-                        $(document).triggerMenuEvent('DeleteAccount');
-                    })
+                    $(document).triggerMenuEvent('DeleteAccount');
+                })
             ).append(
                 $('<a>', {
                     class: 'list-group-item list-group-item-warning',
                     href: '#'
                 }).html('&nbsp;&nbsp;Logout').prepend(
-                        $('<i>',{
-                            class: 'fa fa-sign-in fa-fw'
-                        })
-                    ).on('click', function(){
-                        $(document).triggerMenuEvent('Logout', {clearCookies: 1});
+                    $('<i>',{
+                        class: 'fa fa-sign-in fa-fw'
                     })
+                ).on('click', function(){
+                    $(document).triggerMenuEvent('Logout', {clearCookies: 1});
+                })
             )
         );
 
@@ -333,6 +367,21 @@ define([
                     });
                 })
             ).append(
+                $('<a>', {
+                    class: 'list-group-item',
+                    id: Util.config.menuButtonEndpointId,
+                    href: '#'
+                }).html('&nbsp;&nbsp;&nbsp;Signatures').prepend(
+                    $('<i>',{
+                        class: 'fa fa-link fa-fw'
+                    })
+                ).on('click', function(){
+                    Util.getMapModule().getActiveMap().triggerMenuEvent('MapOption', {
+                        option: 'mapEndpoint',
+                        toggle: true
+                    });
+                })
+            ).append(
                 getMenuHeadline('Help')
             ).append(
                 $('<a>', {
@@ -343,8 +392,24 @@ define([
                         class: 'fa fa-book fa-fw'
                     })
                 ).on('click', function(){
-                        $(document).triggerMenuEvent('Manual');
+                    $(document).triggerMenuEvent('Manual');
+                })
+            ).append(
+                $('<a>', {
+                    class: 'list-group-item list-group-item-info',
+                    href: '#'
+                }).html('&nbsp;&nbsp;Shortcuts').prepend(
+                    $('<i>',{
+                        class: 'fa fa-keyboard-o fa-fw'
                     })
+                ).append(
+                    $('<span>',{
+                        class: 'badge bg-color bg-color-gray txt-color txt-color-warning',
+                        text: 'beta'
+                    })
+                ).on('click', function(){
+                    $(document).triggerMenuEvent('Shortcuts');
+                })
             ).append(
                 $('<a>', {
                     class: 'list-group-item list-group-item-info',
@@ -367,8 +432,8 @@ define([
                         class: 'fa fa-trash fa-fw'
                     })
                 ).on('click', function(){
-                        $(document).triggerMenuEvent('DeleteMap');
-                    })
+                    $(document).triggerMenuEvent('DeleteMap');
+                })
             )
         );
     };
@@ -576,6 +641,18 @@ define([
             return false;
         });
 
+        $(document).on('pf:menuShowTaskManager', function(e, data){
+            // show log dialog
+            Logging.showDialog();
+            return false;
+        });
+
+        $(document).on('pf:menuShortcuts', function(e, data){
+            // show shortcuts dialog
+            $.fn.showShortcutsDialog();
+            return false;
+        });
+
         $(document).on('pf:menuShowSettingsDialog', function(e){
             // show character select dialog
             $.fn.showSettingsDialog();
@@ -613,12 +690,6 @@ define([
             }
 
             $.fn.showDeleteMapDialog(mapData);
-            return false;
-        });
-
-        $(document).on('pf:menuShowTaskManager', function(e, data){
-            // show log dialog
-            Logging.showDialog();
             return false;
         });
 
@@ -921,8 +992,8 @@ define([
      */
     let notificationTest = function(){
         Util.showNotify({
-            title: 'Test Notification',
-            text: 'Accept browser security question'},
+                title: 'Test Notification',
+                text: 'Accept browser security question'},
             {
                 desktop: true,
                 stack: 'barBottom'

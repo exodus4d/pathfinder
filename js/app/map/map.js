@@ -22,17 +22,12 @@ define([
 
     let config = {
         zIndexCounter: 110,
-        newSystemOffset: {
-          x: 130,
-          y: 0
-        },
 
         mapSnapToGrid: false,                                           // "Snap to Grid" feature for drag&drop systems on map (optional)
         mapWrapperClass: 'pf-map-wrapper',                              // wrapper div (scrollable)
 
         mapClass: 'pf-map',                                             // class for all maps
         mapIdPrefix: 'pf-map-',                                         // id prefix for all maps
-        systemIdPrefix: 'pf-system-',                                   // id prefix for a system
         systemClass: 'pf-system',                                       // class for all systems
         systemActiveClass: 'pf-system-active',                          // class for an active system in a map
         systemSelectedClass: 'pf-system-selected',                      // class for selected systems in a map
@@ -79,6 +74,10 @@ define([
     // active connections per map (cache object)
     let connectionCache = {};
 
+    // mapIds that receive updates while they are "locked" (active timer)
+    // -> those maps queue their updates until "pf:unlocked" event
+    let mapUpdateQueue = [];
+
     // jsPlumb config
     let globalMapConfig =  {
         source: {
@@ -92,7 +91,7 @@ define([
             },
             connectionsDetachable: true,            // dragOptions are set -> allow detaching them
             maxConnections: 10,                      // due to isTarget is true, this is the max count of !out!-going connections
-           // isSource:true,
+            // isSource:true,
             anchor: 'Continuous'
         },
         target: {
@@ -105,8 +104,8 @@ define([
                 hoverClass: config.systemActiveClass,
                 activeClass: 'dragActive'
             },
-           // isTarget:true,
-           // uniqueEndpoint: false,
+            // isTarget:true,
+            // uniqueEndpoint: false,
             anchor: 'Continuous'
         },
         connectionTypes: Init.connectionTypes
@@ -174,20 +173,20 @@ define([
                     let item = $('<div>', {
                         class: config.systemBodyItemClass
                     }).append(
-                            $('<span>', {
-                                text: userData.log.ship.typeName,
-                                class: config.systemBodyRightClass
-                            })
-                        ).append(
-                            $('<i>', {
-                                class: ['fa', 'fa-circle', config.systemBodyItemStatusClass, statusClass].join(' ')
-                            })
-                        ).append(
-                            $('<span>', {
-                                class: config.systemBodyItemNameClass,
-                                text: userName
-                            })
-                        );
+                        $('<span>', {
+                            text: userData.log.ship.typeName,
+                            class: config.systemBodyRightClass
+                        })
+                    ).append(
+                        $('<i>', {
+                            class: ['fa', 'fa-circle', config.systemBodyItemStatusClass, statusClass].join(' ')
+                        })
+                    ).append(
+                        $('<span>', {
+                            class: config.systemBodyItemNameClass,
+                            text: userName
+                        })
+                    );
 
                     systemBody.append(item);
                 }
@@ -453,21 +452,14 @@ define([
     $.fn.getSystem = function(map, data){
         // get map container for mapId information
         let mapContainer = $(this);
-        let systemId = config.systemIdPrefix + mapContainer.data('id') + '-' + data.id;
+        let systemId = MapUtil.getSystemId(mapContainer.data('id'), data.id);
 
         // check if system already exists
         let system = document.getElementById( systemId );
-
-        // just update data if system is new OR "updated" timestamp  vary
-        let updateSystemData = false;
-
-        let updated = parseInt(data.updated.updated);
         let newPosX =  data.position.x + 'px';
         let newPosY = data.position.y + 'px';
 
         if(!system){
-            updateSystemData = true;
-
             // set system name or alias
             let systemName = data.name;
 
@@ -493,32 +485,32 @@ define([
                 $('<div>', {
                     class: config.systemHeadClass
                 }).append(
-                        // System name is editable
-                        $('<a>', {
-                            href: '#',
-                            class: config.systemHeadNameClass
-                        }).attr('data-value', systemName)
-                    ).append(
-                        // System locked status
-                        $('<i>', {
-                            class: ['fa', 'fa-lock', 'fa-fw'].join(' ')
-                        }).attr('title', 'locked')
-                    ).append(
-                        // System effect color
-                        $('<i>', {
-                            class: ['fa', 'fa-square ', 'fa-fw', effectBasicClass, effectClass].join(' ')
-                        }).attr('title', effectName)
-                    ).append(
-                        // expand option
-                        $('<i>', {
-                            class: ['fa', 'fa-angle-down ', config.systemHeadExpandClass].join(' ')
-                        })
-                    ).prepend(
-                        $('<span>', {
-                            class: [config.systemSec, secClass].join(' '),
-                            text: data.security
-                        })
-                    )
+                    // System name is editable
+                    $('<a>', {
+                        href: '#',
+                        class: config.systemHeadNameClass
+                    }).attr('data-value', systemName)
+                ).append(
+                    // System locked status
+                    $('<i>', {
+                        class: ['fa', 'fa-lock', 'fa-fw'].join(' ')
+                    }).attr('title', 'locked')
+                ).append(
+                    // System effect color
+                    $('<i>', {
+                        class: ['fa', 'fa-square ', 'fa-fw', effectBasicClass, effectClass].join(' ')
+                    }).attr('title', effectName)
+                ).append(
+                    // expand option
+                    $('<i>', {
+                        class: ['fa', 'fa-angle-down ', config.systemHeadExpandClass].join(' ')
+                    })
+                ).prepend(
+                    $('<span>', {
+                        class: [config.systemSec, secClass].join(' '),
+                        text: data.security
+                    })
+                )
             ).append(
                 // system body
                 $('<div>', {
@@ -528,93 +520,87 @@ define([
 
             // set initial system position
             system.css({
-                    'left': newPosX,
-                    'top': newPosY
+                'left': newPosX,
+                'top': newPosY
             });
 
         }else{
             system = $(system);
 
-            if( system.data('updated') !== updated){
-                // system Data has changed
-                updateSystemData = true;
+            // set system position
+            let currentPosX = system.css('left');
+            let currentPosY = system.css('top');
 
-                // set system position
-                let currentPosX = system.css('left');
-                let currentPosY = system.css('top');
+            if(
+                newPosX !== currentPosX ||
+                newPosY !== currentPosY
+            ){
+                // change position with animation
+                system.velocity(
+                    {
+                        left: newPosX,
+                        top: newPosY
+                    },{
+                        easing: 'linear',
+                        duration: Init.animationSpeed.mapMoveSystem,
+                        begin: function(system){
+                            // hide system tooltip
+                            $(system).toggleSystemTooltip('hide', {});
 
-                if(
-                    newPosX !== currentPosX ||
-                    newPosY !== currentPosY
-                ){
-                    // change position with animation
-                    system.velocity(
-                        {
-                            left: newPosX,
-                            top: newPosY
-                        },{
-                            easing: 'linear',
-                            duration: Init.animationSpeed.mapMoveSystem,
-                            begin: function(system){
-                                // hide system tooltip
-                                $(system).toggleSystemTooltip('hide', {});
+                            // move them to the "top"
+                            $(system).updateSystemZIndex();
+                        },
+                        progress: function(){
+                            map.revalidate( systemId );
+                        },
+                        complete: function(system){
+                            // show tooltip
+                            $(system).toggleSystemTooltip('show', {show: true});
 
-                                // move them to the "top"
-                                $(system).updateSystemZIndex();
-                            },
-                            progress: function(){
-                                map.revalidate( systemId );
-                            },
-                            complete: function(system){
-                                // show tooltip
-                                $(system).toggleSystemTooltip('show', {show: true});
-
-                                map.revalidate( systemId );
-                            }
+                            map.revalidate( systemId );
                         }
-                    );
-                }
+                    }
+                );
+            }
 
-                // set system alias
-                let alias = system.getSystemInfo(['alias']);
+            // set system alias
+            let alias = system.getSystemInfo(['alias']);
 
-                if(alias !== data.alias){
-                    // alias changed
-                    system.find('.' + config.systemHeadNameClass).editable('setValue', data.alias);
-                }
+            if(alias !== data.alias){
+                // alias changed
+                system.find('.' + config.systemHeadNameClass).editable('setValue', data.alias);
             }
         }
 
-        if(updateSystemData){
-            // set system status
-            system.setSystemStatus(data.status.name);
-            system.data('id', parseInt(data.id));
-            system.data('systemId', parseInt(data.systemId));
-            system.data('name', data.name);
-            system.data('typeId', parseInt(data.type.id));
-            system.data('effect', data.effect);
-            system.data('security', data.security);
-            system.data('trueSec', parseFloat(data.trueSec));
-            system.data('regionId', parseInt(data.region.id));
-            system.data('region', data.region.name);
-            system.data('constellationId', parseInt(data.constellation.id));
-            system.data('constellation', data.constellation.name);
-            system.data('statics', data.statics);
-            system.data('updated', parseInt(data.updated.updated));
-            system.attr('data-mapid', parseInt(mapContainer.data('id')));
+        // set system status
+        system.setSystemStatus(data.status.name);
+        system.data('id', parseInt(data.id));
+        system.data('systemId', parseInt(data.systemId));
+        system.data('name', data.name);
+        system.data('typeId', parseInt(data.type.id));
+        system.data('effect', data.effect);
+        system.data('security', data.security);
+        system.data('trueSec', parseFloat(data.trueSec));
+        system.data('regionId', parseInt(data.region.id));
+        system.data('region', data.region.name);
+        system.data('constellationId', parseInt(data.constellation.id));
+        system.data('constellation', data.constellation.name);
+        system.data('statics', data.statics);
+        system.data('updated', parseInt(data.updated.updated));
+        system.data('changed', false);
+        system.attr('data-mapid', parseInt(mapContainer.data('id')));
 
-            // locked system
-            if( Boolean( system.data( 'locked') ) !== data.locked ){
-                system.toggleLockSystem(false, {hideNotification: true, hideCounter: true, map: map});
-            }
-
-            // rally system
-            system.setSystemRally(data.rallyUpdated,  {
-                poke: data.rallyPoke || false,
-                hideNotification: true,
-                hideCounter: true,
-            });
+        // locked system
+        if( Boolean( system.data( 'locked') ) !== data.locked ){
+            system.toggleLockSystem(false, {hideNotification: true, hideCounter: true, map: map});
         }
+
+        // rally system
+        system.setSystemRally(data.rallyUpdated,  {
+            poke: data.rallyPoke || false,
+            hideNotification: true,
+            hideCounter: true,
+        });
 
         return system;
     };
@@ -753,8 +739,8 @@ define([
         let mapId = mapContainer.data('id');
         let connectionId = connectionData.id || 0;
         let connection;
-        let sourceSystem = $('#' + config.systemIdPrefix + mapId + '-' + connectionData.source);
-        let targetSystem = $('#' + config.systemIdPrefix + mapId + '-' + connectionData.target);
+        let sourceSystem = $('#' + MapUtil.getSystemId(mapId, connectionData.source) );
+        let targetSystem = $('#' + MapUtil.getSystemId(mapId, connectionData.target) );
 
         // check if both systems exists
         // (If not -> something went wrong e.g. DB-Foreign keys for "ON DELETE",...)
@@ -789,6 +775,7 @@ define([
                 connection.setParameters({
                     connectionId: connectionId,
                     updated: connectionData.updated,
+                    created: connectionData.created,
                     eolUpdated: connectionData.eolUpdated
                 });
 
@@ -851,10 +838,10 @@ define([
 
         // check if source or target has changed
         if(connectionData.source !== newConnectionData.source ){
-            map.setSource(connection, config.systemIdPrefix + mapId + '-' + newConnectionData.source);
+            map.setSource(connection, MapUtil.getSystemId(mapId, newConnectionData.source) );
         }
         if(connectionData.target !== newConnectionData.target ){
-            map.setTarget(connection, config.systemIdPrefix + mapId + '-' + newConnectionData.target);
+            map.setTarget(connection, MapUtil.getSystemId(mapId, newConnectionData.target) );
         }
 
         // connection.targetId
@@ -888,52 +875,60 @@ define([
         // set update date (important for update check)
         // important: set parameters ONE-by-ONE!
         // -> (setParameters() will overwrite all previous params)
+        connection.setParameter('created', newConnectionData.created);
         connection.setParameter('updated', newConnectionData.updated);
         connection.setParameter('eolUpdated', newConnectionData.eolUpdated);
+        connection.setParameter('changed', false);
 
         return connection;
     };
 
     /**
-     * draw a new map or update an existing map with all its systems and connections
+     * get a mapMapElement
      * @param parentElement
      * @param mapConfig
      * @returns {*}
      */
-    let updateMap = function(parentElement, mapConfig){
+    let newMapElement = (parentElement, mapConfig) => {
+        let mapId = mapConfig.config.id;
 
+        // create map wrapper
+        let mapWrapper = $('<div>', {
+            class: config.mapWrapperClass
+        });
+
+        // create new map container
+        let mapContainer = $('<div>', {
+            id: config.mapIdPrefix + mapId,
+            class: [config.mapClass].join(' ')
+        });
+
+        // add additional information
+        mapContainer.data('id', mapId);
+
+        mapWrapper.append(mapContainer);
+
+        // append mapWrapper to parent element (at the top)
+        $(parentElement).prepend(mapWrapper);
+
+        // set main Container for current map -> the container exists now in DOM !! very important
+        mapConfig.map.setContainer( config.mapIdPrefix + mapId );
+
+        // set map observer
+        setMapObserver(mapConfig.map);
+
+        return mapConfig;
+    };
+
+    /**
+     * draw a new map or update an existing map with all its systems and connections
+     * @param mapConfig
+     * @returns {*}
+     */
+    let updateMap = function(mapConfig){
         let mapContainer = mapConfig.map.getContainer();
-
+        let mapId = mapConfig.config.id;
         let newSystems = 0;
-
-        if(mapContainer === undefined){
-            // add new map
-
-            // create map wrapper
-            let mapWrapper = $('<div>', {
-                class: config.mapWrapperClass
-            });
-
-            // create new map container
-            mapContainer = $('<div>', {
-                id: config.mapIdPrefix + mapConfig.config.id,
-                class: [config.mapClass].join(' ')
-            });
-
-            // add additional information
-            mapContainer.data('id', mapConfig.config.id);
-
-            mapWrapper.append(mapContainer);
-
-            // append mapWrapper to parent element (at the top)
-            $(parentElement).prepend(mapWrapper);
-
-            // set main Container for current map -> the container exists now in DOM !! very important
-            mapConfig.map.setContainer( config.mapIdPrefix + mapConfig.config.id );
-
-            // set map observer
-            setMapObserver(mapConfig.map);
-        }
 
         mapContainer = $(mapContainer);
 
@@ -947,7 +942,6 @@ define([
             mapContainer.data('created', mapConfig.config.created);
             mapContainer.data('updated', mapConfig.config.updated);
         }
-
 
         // get map data
         let mapData = mapContainer.getMapDataFromClient({forceData: false});
@@ -998,7 +992,7 @@ define([
                 }
 
                 if(deleteThisSystem === true){
-                    let deleteSystem = $('#' + config.systemIdPrefix + mapContainer.data('id') + '-' + currentSystemData[a].id);
+                    let deleteSystem = $('#' + MapUtil.getSystemId(mapContainer.data('id'), currentSystemData[a].id) );
 
                     // system not found -> delete system
                     System.removeSystems(mapConfig.map, deleteSystem);
@@ -1079,6 +1073,11 @@ define([
             // update map "magnetization" when new systems where added
             if(newSystems > 0){
                 MagnetizerWrapper.setElements(mapConfig.map);
+            }
+        }else{
+            // map is currently logged -> queue update for this map until unlock
+            if( mapUpdateQueue.indexOf(mapId) === -1 ){
+                mapUpdateQueue.push(mapId);
             }
         }
 
@@ -1370,6 +1369,205 @@ define([
     };
 
     /**
+     * save a new system and add it to the map
+     * @param map
+     * @param requestData
+     * @param sourceSystem
+     * @param callback
+     */
+    let saveSystem = function(map, requestData, sourceSystem, callback){
+        $.ajax({
+            type: 'POST',
+            url: Init.path.saveSystem,
+            data: requestData,
+            dataType: 'json',
+            context: {
+                map: map,
+                sourceSystem: sourceSystem
+            }
+        }).done(function(newSystemData){
+            Util.showNotify({title: 'New system', text: newSystemData.name, type: 'success'});
+
+            // draw new system to map
+            drawSystem(this.map, newSystemData, this.sourceSystem);
+
+            // re/arrange systems (prevent overlapping)
+            MagnetizerWrapper.setElements(this.map);
+
+            if(callback){
+                callback();
+            }
+        }).fail(function( jqXHR, status, error) {
+            let reason = status + ' ' + error;
+            Util.showNotify({title: jqXHR.status + ': saveSystem', text: reason, type: 'warning'});
+            $(document).setProgramStatus('problem');
+        });
+    };
+
+    /**
+     * open "new system" dialog and add the system to map
+     * optional the new system is connected to a "sourceSystem" (if available)
+     *
+     * @param map
+     * @param options
+     */
+    let showNewSystemDialog = function(map, options){
+        let mapContainer = $(map.getContainer());
+
+        // format system status for form select -------------------------------------------------------------
+        let systemStatus = {};
+        // "default" selection (id = 0) prevents status from being overwritten
+        // -> e.g. keep status information if system was just inactive (active = 0)
+        systemStatus[0] = 'default';
+
+        $.each(Init.systemStatus, function(status, statusData){
+            systemStatus[statusData.id] = statusData.label;
+        });
+
+        // default system status -> first status entry
+        let defaultSystemStatus = 0;
+
+        // get current map data -----------------------------------------------------------------------------
+        let mapData = mapContainer.getMapDataFromClient({forceData: true});
+        let mapSystems = mapData.data.systems;
+        let mapSystemCount = mapSystems.length;
+        let mapTypeName = mapContainer.data('typeName');
+        let maxAllowedSystems = Init.mapTypes[mapTypeName].defaultConfig.max_systems;
+
+        // show error if system max count reached -----------------------------------------------------------
+        if(mapSystemCount >= maxAllowedSystems){
+            Util.showNotify({title: 'Max system count exceeded', text: 'Limit of ' + maxAllowedSystems + ' systems reached', type: 'warning'});
+            return;
+        }
+
+        // disable systems that are already on it -----------------------------------------------------------
+        let mapSystemIds = [];
+        for(let i = 0; i < mapSystems.length; i++ ){
+            mapSystemIds.push( mapSystems[i].systemId );
+        }
+
+        // dialog data --------------------------------------------------------------------------------------
+        let data = {
+            id: config.systemDialogId,
+            selectClass: config.systemDialogSelectClass
+        };
+
+        // set current position as "default" system to add --------------------------------------------------
+        let currentCharacterLog = Util.getCurrentCharacterLog();
+
+        if(
+            currentCharacterLog !== false &&
+            mapSystemIds.indexOf( currentCharacterLog.system.id ) === -1
+        ){
+            // current system is NOT already on this map
+            // set current position as "default" system to add
+            data.currentSystem = currentCharacterLog.system;
+        }
+
+        requirejs(['text!templates/dialog/system.html', 'mustache'], function(template, Mustache) {
+
+            let content = Mustache.render(template, data);
+
+            let systemDialog = bootbox.dialog({
+                title: 'Add new system',
+                message: content,
+                buttons: {
+                    close: {
+                        label: 'cancel',
+                        className: 'btn-default'
+                    },
+                    success: {
+                        label: '<i class="fa fa-fw fa-check"></i> save',
+                        className: 'btn-success',
+                        callback: function (e) {
+                            // get form Values
+                            let form = $('#' + config.systemDialogId).find('form');
+
+                            let systemDialogData = $(form).getFormValues();
+
+                            // validate form
+                            form.validator('validate');
+
+                            // check whether the form is valid
+                            let formValid = form.isValidForm();
+
+                            if(formValid === false){
+                                // don't close dialog
+                                return false;
+                            }
+
+                            // calculate new system position ------------------------------------------------
+                            let newPosition = {
+                                x: 0,
+                                y: 0
+                            };
+
+                            let sourceSystem = null;
+
+                            // add new position
+                            if(options.sourceSystem !== undefined){
+
+                                sourceSystem = options.sourceSystem;
+
+                                // get new position
+                                newPosition = System.calculateNewSystemPosition(sourceSystem);
+                            }else{
+                                // check mouse cursor position (add system to map)
+                                newPosition = {
+                                    x: options.position.x,
+                                    y: options.position.y
+                                };
+                            }
+
+                            systemDialogData.position = newPosition;
+
+                            // ------------------------------------------------------------------------------
+
+                            let requestData = {
+                                systemData: systemDialogData,
+                                mapData: {
+                                    id: mapContainer.data('id')
+                                }
+                            };
+
+                            saveSystem(map, requestData, sourceSystem, function(){
+                                bootbox.hideAll();
+                            });
+                            return false;
+                        }
+                    }
+                }
+            });
+
+            // init dialog
+            systemDialog.on('shown.bs.modal', function(e) {
+
+                let modalContent = $('#' + config.systemDialogId);
+
+                // init system select live search  - some delay until modal transition has finished
+                let selectElement = modalContent.find('.' + config.systemDialogSelectClass);
+                selectElement.delay(240).initSystemSelect({
+                    key: 'systemId',
+                    disabledOptions: mapSystemIds
+                });
+            });
+
+            // init system status select
+            let modalFields = $('.bootbox .modal-dialog').find('.pf-editable-system-status');
+
+            modalFields.editable({
+                mode: 'inline',
+                emptytext: 'unknown',
+                onblur: 'submit',
+                showbuttons: false,
+                source: systemStatus,
+                value: defaultSystemStatus,
+                inputclass: config.systemDialogSelectClass
+            });
+        });
+    };
+
+    /**
      * make a system name/alias editable by x-editable
      * @param system
      */
@@ -1423,7 +1621,6 @@ define([
      * @returns {{id: Number, source: Number, sourceName: (*|T|JQuery|{}), target: Number, targetName: (*|T|JQuery), scope: *, type: *, updated: Number}}
      */
     let getDataByConnection = function(connection){
-
         let source = $(connection.source);
         let target = $(connection.target);
 
@@ -1607,7 +1804,6 @@ define([
      * load context menu template for map
      */
     let initMapContextMenu = function(){
-
         let moduleConfig = {
             name: 'modules/contextmenu',
             position: $('#' + config.dynamicElementWrapperId)
@@ -1636,7 +1832,6 @@ define([
      * load contextmenu template for connections
      */
     let initConnectionContextMenu = function(){
-
         let moduleConfig = {
             name: 'modules/contextmenu',
             position: $('#' + config.dynamicElementWrapperId)
@@ -1674,8 +1869,8 @@ define([
      * load contextmenu template for systems
      */
     let initSystemContextMenu = function(){
-
         let systemStatus = [];
+
         $.each(Init.systemStatus, function(status, statusData){
             let tempStatus = {
                 subIcon: 'fa-tag',
@@ -1719,7 +1914,6 @@ define([
      * @returns {Array}
      */
     let getHiddenContextMenuOptions = function(component){
-
         let hiddenOptions = [];
 
         if(component instanceof jsPlumb.Connection){
@@ -1758,7 +1952,6 @@ define([
      * @returns {Array}
      */
     let getActiveContextMenuOptions = function(component){
-
         let activeOptions = [];
 
         if(component instanceof jsPlumb.Connection){
@@ -1806,169 +1999,6 @@ define([
         }
 
         return activeOptions;
-    };
-
-    /**
-     * open "new system" dialog and add the system to map
-     * optional the new system is connected to a "sourceSystem" (if available)
-     *
-     * @param map
-     * @param options
-     */
-    let showNewSystemDialog = function(map, options){
-        let mapContainer = $(map.getContainer());
-
-        // format system status for form select -------------------------------------------------------------
-        let systemStatus = {};
-        // "default" selection (id = 0) prevents status from being overwritten
-        // -> e.g. keep status information if system was just inactive (active = 0)
-        systemStatus[0] = 'default';
-
-        $.each(Init.systemStatus, function(status, statusData){
-            systemStatus[statusData.id] = statusData.label;
-        });
-
-        // default system status -> first status entry
-        let defaultSystemStatus = 0;
-
-        // get current map data -----------------------------------------------------------------------------
-        let mapData = mapContainer.getMapDataFromClient({forceData: true});
-        let mapSystems = mapData.data.systems;
-        let mapSystemCount = mapSystems.length;
-        let mapTypeName = mapContainer.data('typeName');
-        let maxAllowedSystems = Init.mapTypes[mapTypeName].defaultConfig.max_systems;
-
-        // show error if system max count reached -----------------------------------------------------------
-        if(mapSystemCount >= maxAllowedSystems){
-            Util.showNotify({title: 'Max system count exceeded', text: 'Limit of ' + maxAllowedSystems + ' systems reached', type: 'warning'});
-            return;
-        }
-
-        // disable systems that are already on it -----------------------------------------------------------
-        let mapSystemIds = [];
-        for(let i = 0; i < mapSystems.length; i++ ){
-            mapSystemIds.push( mapSystems[i].systemId );
-        }
-
-        // dialog data --------------------------------------------------------------------------------------
-        let data = {
-            id: config.systemDialogId,
-            selectClass: config.systemDialogSelectClass
-        };
-
-        // set current position as "default" system to add --------------------------------------------------
-        let currentCharacterLog = Util.getCurrentCharacterLog();
-
-        if(
-            currentCharacterLog !== false &&
-            mapSystemIds.indexOf( currentCharacterLog.system.id ) === -1
-        ){
-            // current system is NOT already on this map
-            // set current position as "default" system to add
-            data.currentSystem = currentCharacterLog.system;
-        }
-
-        requirejs(['text!templates/dialog/system.html', 'mustache'], function(template, Mustache) {
-
-            let content = Mustache.render(template, data);
-
-            let systemDialog = bootbox.dialog({
-                title: 'Add new system',
-                message: content,
-                buttons: {
-                    close: {
-                        label: 'cancel',
-                        className: 'btn-default'
-                    },
-                    success: {
-                        label: '<i class="fa fa-fw fa-check"></i> save',
-                        className: 'btn-success',
-                        callback: function (e) {
-                            // get form Values
-                            let form = $('#' + config.systemDialogId).find('form');
-
-                            let systemDialogData = $(form).getFormValues();
-
-                            // validate form
-                            form.validator('validate');
-
-                            // check whether the form is valid
-                            let formValid = form.isValidForm();
-
-                            if(formValid === false){
-                                // don't close dialog
-                                return false;
-                            }
-
-                            // calculate new system position ------------------------------------------------
-                            let newPosition = {
-                                x: 0,
-                                y: 0
-                            };
-
-                            let sourceSystem = null;
-
-                            // add new position
-                            if(options.sourceSystem !== undefined){
-
-                                sourceSystem = options.sourceSystem;
-
-                                // get new position
-                                newPosition = calculateNewSystemPosition(sourceSystem);
-                            }else{
-                                // check mouse cursor position (add system to map)
-                                newPosition = {
-                                    x: options.position.x,
-                                    y: options.position.y
-                                };
-                            }
-
-                            systemDialogData.position = newPosition;
-
-                            // ------------------------------------------------------------------------------
-
-                            let requestData = {
-                                systemData: systemDialogData,
-                                mapData: {
-                                    id: mapContainer.data('id')
-                                }
-                            };
-
-                            saveSystem(map, requestData, sourceSystem, function(){
-                                bootbox.hideAll();
-                            });
-                            return false;
-                        }
-                    }
-                }
-            });
-
-            // init dialog
-            systemDialog.on('shown.bs.modal', function(e) {
-
-                let modalContent = $('#' + config.systemDialogId);
-
-                // init system select live search  - some delay until modal transition has finished
-                let selectElement = modalContent.find('.' + config.systemDialogSelectClass);
-                selectElement.delay(240).initSystemSelect({
-                    key: 'systemId',
-                    disabledOptions: mapSystemIds
-                });
-            });
-
-            // init system status select
-            let modalFields = $('.bootbox .modal-dialog').find('.pf-editable-system-status');
-
-            modalFields.editable({
-                mode: 'inline',
-                emptytext: 'unknown',
-                onblur: 'submit',
-                showbuttons: false,
-                source: systemStatus,
-                value: defaultSystemStatus,
-                inputclass: config.systemDialogSelectClass
-            });
-        });
     };
 
     /**
@@ -2304,10 +2334,10 @@ define([
 
             if( element.hasClass(config.systemClass) ){
                 // system element
-                element.data('updated', 0);
+                element.data('changed', true);
             }else{
                 // connection element
-                this.setParameter('updated', 0);
+                this.setParameter('changed', true);
             }
         });
     };
@@ -2322,10 +2352,10 @@ define([
 
         if( element.hasClass(config.systemClass) ){
             // system element
-            changed = (element.data('updated') === 0);
+            changed = element.data('changed') || false;
         }else{
             // connection element
-            changed = (this[0].getParameter('updated') === 0);
+            changed = this[0].getParameter('changed') || false;
         }
 
         return changed;
@@ -2357,6 +2387,28 @@ define([
     };
 
     /**
+     * select all (selectable) systems on a mapElement
+     */
+    $.fn.selectAllSystems = function(){
+        return this.each(function(){
+            let mapElement = $(this);
+            let map = getMapInstance(mapElement.data('id'));
+
+            let allSystems =  mapElement.find('.' + config.systemClass + ':not(.' + config.systemSelectedClass + ')');
+
+            // filter non-locked systems
+            allSystems = allSystems.filter(function(i, el){
+                return ( $(el).data('locked') !== true );
+            });
+
+            allSystems.toggleSelectSystem(map);
+
+            Util.showNotify({title: allSystems.length + ' systems selected', type: 'success'});
+
+        });
+    };
+
+    /**
      * toggle selectable status of a system
      */
     $.fn.toggleSelectSystem = function(map){
@@ -2376,15 +2428,6 @@ define([
                 }
             }
         });
-    };
-
-    /**
-     * get all selected (NOT active) systems in a map
-     * @returns {*}
-     */
-    $.fn.getSelectedSystems = function(){
-        let mapElement = $(this);
-        return mapElement.find('.' + config.systemSelectedClass);
     };
 
     /**
@@ -2486,11 +2529,14 @@ define([
             // event after DragStop a connection or new connection ------------------------------------------
             newJsPlumbInstance.bind('beforeDrop', function(info) {
                 let connection = info.connection;
+                let dropEndpoint = info.dropEndpoint;
+                let sourceId = info.sourceId;
+                let targetId = info.targetId;
 
                 // lock the target system for "click" events
                 // to prevent loading system information
-                let sourceSystem = $('#' + info.sourceId);
-                let targetSystem = $('#' + info.targetId);
+                let sourceSystem = $('#' + sourceId);
+                let targetSystem = $('#' + targetId);
                 sourceSystem.addClass('no-click');
                 targetSystem.addClass('no-click');
                 setTimeout(function(){
@@ -2498,14 +2544,25 @@ define([
                     targetSystem.removeClass('no-click');
                 }, Init.timer.DBL_CLICK + 50);
 
+                // loop connection not allowed
+                if(sourceId === targetId){
+                    console.warn('Source/Target systems are identical');
+                    return false;
+                }
+
+                // connection can not be dropped on an endpoint that already has other connections on it
+                if(dropEndpoint.connections.length > 0){
+                    console.warn('Endpoint already occupied');
+                    return false;
+                }
+
                 // set "default" connection status only for NEW connections
                 if(!connection.suspendedElement){
                     MapUtil.setConnectionWHStatus(connection, MapUtil.getDefaultConnectionTypeByScope(connection.scope) );
                 }
 
                 // prevent multiple connections between same systems
-                let connections = MapUtil.checkForConnection(newJsPlumbInstance, info.sourceId, info.targetId );
-
+                let connections = MapUtil.checkForConnection(newJsPlumbInstance, sourceId, targetId);
                 if(connections.length > 1){
                     bootbox.confirm('Connection already exists. Do you really want to add an additional one?', function(result) {
                         if(!result){
@@ -2520,7 +2577,12 @@ define([
                 return true;
             });
 
-            // event before Detach connection ---------------------------------------------------------------
+            // event before detach (existing connection) ----------------------------------------------------
+            newJsPlumbInstance.bind('beforeStartDetach', function(info) {
+                return true;
+            });
+
+            // event before detach connection ---------------------------------------------------------------
             newJsPlumbInstance.bind('beforeDetach', function(info) {
                 return true;
             });
@@ -2532,10 +2594,12 @@ define([
             });
 
             newJsPlumbInstance.bind('checkDropAllowed', function(params){
-                // connections can not be attached to foreign endpoints
-                // the only endpoint available is endpoint from where the connection was dragged away (re-attach)
+                let sourceEndpoint = params.sourceEndpoint;
+                let targetEndpoint = params.targetEndpoint;
 
-                return true;
+                // connections can not be attached to foreign endpoints
+                // the only endpoint available is the endpoint from where the connection was dragged away (re-attach)
+                return (targetEndpoint.connections.length === 0);
             });
 
             activeInstances[mapId] = newJsPlumbInstance;
@@ -2549,11 +2613,10 @@ define([
      * @param map
      */
     let setMapObserver = function(map){
-
         // get map container
-        let mapContainer = map.getContainer();
+        let mapContainer = $( map.getContainer() );
 
-        $(mapContainer).bind('contextmenu', function(e){
+        mapContainer.bind('contextmenu', function(e){
             e.preventDefault();
             e.stopPropagation();
 
@@ -2571,7 +2634,7 @@ define([
             return false;
         });
 
-        $(mapContainer).contextMenu({
+        mapContainer.contextMenu({
             menuSelector: '#' + config.mapContextMenuId,
             menuSelected: function (params) {
 
@@ -2584,7 +2647,7 @@ define([
                 let currentMapId = parseInt( currentMapElement.data('id') );
 
                 // get map instance
-               let currentMap = getMapInstance(currentMapId);
+                let currentMap = getMapInstance(currentMapId);
 
                 // click position
                 let position = params.position;
@@ -2595,17 +2658,7 @@ define([
                         showNewSystemDialog(currentMap, {position: position});
                         break;
                     case 'select_all':
-
-                        let allSystems =  currentMapElement.find('.' + config.systemClass + ':not(.' + config.systemSelectedClass + ')');
-
-                        // filter non-locked systems
-                        allSystems = allSystems.filter(function(i, el){
-                            return ( $(el).data('locked') !== true );
-                        });
-
-                        allSystems.toggleSelectSystem(currentMap);
-
-                        Util.showNotify({title: allSystems.length + ' systems selected', type: 'success'});
+                        currentMapElement.selectAllSystems();
                         break;
                     case 'filter_wh':
                     case 'filter_stargate':
@@ -2674,11 +2727,11 @@ define([
         });
 
         // init drag-frame selection
-        $(mapContainer).dragToSelect({
+        mapContainer.dragToSelect({
             selectOnMove: true,
             selectables: '.' + config.systemClass,
             onHide: function (selectBox, deselectedSystems) {
-                let selectedSystems = $(mapContainer).getSelectedSystems();
+                let selectedSystems = mapContainer.getSelectedSystems();
 
                 if(selectedSystems.length > 0){
                     // make all selected systems draggable
@@ -2702,10 +2755,10 @@ define([
             }
         });
 
-        // catch events =========================================================
+        // catch events =====================================================================================
 
         // toggle global map option (e.g. "grid snap", "magnetization")
-        $(mapContainer).on('pf:menuMapOption', function(e, mapOption){
+        mapContainer.on('pf:menuMapOption', function(e, mapOption){
             let mapElement = $(this);
 
             // get map menu config options
@@ -2780,13 +2833,14 @@ define([
 
         // delete system event
         // triggered from "map info" dialog scope
-        $(mapContainer).on('pf:deleteSystems', function(e, data){
+        mapContainer.on('pf:deleteSystems', function(e, data){
             System.deleteSystems(map, data.systems, data.callback);
         });
 
-        $(mapContainer).on('pf:menuSelectSystem', function(e, data){
+        // triggered from "header" link (if user is active in one of the systems)
+        mapContainer.on('pf:menuSelectSystem', function(e, data){
             let tempMapContainer = $(this);
-            let systemId = config.systemIdPrefix + tempMapContainer.data('id') + '-' + data.systemId;
+            let systemId = MapUtil.getSystemId(tempMapContainer.data('id'), data.systemId);
             let system = $(this).find('#' + systemId);
 
             if(system.length === 1){
@@ -2796,6 +2850,27 @@ define([
 
                 // select system
                 system.showSystemInfo(map);
+            }
+        });
+
+        // triggered when map lock timer (interval) was cleared
+        mapContainer.on('pf:unlocked', function(){
+            let mapElement = $(this);
+            let mapId = mapElement.data('id');
+
+            // check if there was a mapUpdate during map was locked
+            let mapQueueIndex = mapUpdateQueue.indexOf(mapId);
+            if(mapQueueIndex !== -1){
+                // get current mapConfig
+                let mapConfig = Util.getCurrentMapData(mapId);
+
+                if(mapConfig){
+                    // map data is available => update map
+                    updateMap(mapConfig);
+                }
+
+                // update done -> clear mapId from mapUpdateQueue
+                mapUpdateQueue.splice(mapQueueIndex, 1);
             }
         });
     };
@@ -2848,65 +2923,6 @@ define([
         }else{
             return systemInfo;
         }
-    };
-
-    /**
-     * save a new system and add it to the map
-     * @param map
-     * @param requestData
-     * @param sourceSystem
-     * @param callback
-     */
-    let saveSystem = function(map, requestData, sourceSystem, callback){
-        $.ajax({
-            type: 'POST',
-            url: Init.path.saveSystem,
-            data: requestData,
-            dataType: 'json',
-            context: {
-                map: map,
-                sourceSystem: sourceSystem
-            }
-        }).done(function(newSystemData){
-            Util.showNotify({title: 'New system', text: newSystemData.name, type: 'success'});
-
-            // draw new system to map
-            drawSystem(this.map, newSystemData, this.sourceSystem);
-
-            // re/arrange systems (prevent overlapping)
-            MagnetizerWrapper.setElements(this.map);
-
-            if(callback){
-                callback();
-            }
-        }).fail(function( jqXHR, status, error) {
-            let reason = status + ' ' + error;
-            Util.showNotify({title: jqXHR.status + ': saveSystem', text: reason, type: 'warning'});
-            $(document).setProgramStatus('problem');
-        });
-    };
-
-    /**
-     * calculate the x/y coordinates for a new system - relativ to a source system
-     * @param sourceSystem
-     * @returns {{x: *, y: *}}
-     */
-    let calculateNewSystemPosition = function(sourceSystem){
-
-        // related system is available
-        let currentX = sourceSystem.css('left');
-        let currentY = sourceSystem.css('top');
-
-        // remove "px"
-        currentX = parseInt( currentX.substring(0, currentX.length - 2) );
-        currentY = parseInt( currentY.substring(0, currentY.length - 2) );
-
-        let newPosition = {
-            x: currentX + config.newSystemOffset.x,
-            y: currentY + config.newSystemOffset.y
-        };
-
-        return newPosition;
     };
 
     /**
@@ -3020,16 +3036,11 @@ define([
      */
     $.fn.getMapDataFromClient = function(options){
         let mapElement = $(this);
-
         let map = getMapInstance( mapElement.data('id') );
-
         let mapData = {};
 
-        // check if there is an active map counter that prevents collecting map data
-        let overlay = mapElement.getMapOverlay('timer');
-        let counterChart = overlay.getMapCounter();
-
-        let interval = counterChart.data('interval');
+        // check if there is an active map counter that prevents collecting map data (locked map)
+        let interval = mapElement.getMapOverlayInterval();
 
         if(
             ! interval ||
@@ -3188,7 +3199,6 @@ define([
      * @param options
      */
     $.fn.loadMap = function(mapConfig, options){
-
         // parent element where the map will be loaded
         let parentElement = $(this);
 
@@ -3196,9 +3206,6 @@ define([
         initMapContextMenu();
         initConnectionContextMenu();
         initSystemContextMenu();
-
-        // new map init
-        let newMap = false;
 
         // init jsPlumb
         jsPlumb.ready(function() {
@@ -3208,23 +3215,25 @@ define([
             // check for map Container -> first time initialization
             if(mapConfig.map.getContainer() === undefined){
                 // new map instance
-                newMap = true;
-            }
+                mapConfig = newMapElement(parentElement, mapConfig);
 
-            //  draw/update map initial map and set container
-            let mapContainer = updateMap(parentElement, mapConfig);
-
-            if(newMap){
                 // init custom scrollbars and add overlay
                 parentElement.initMapScrollbar();
 
-                // show static overlay actions
-                let mapElement = mapConfig.map.getContainer();
-                let mapOverlay = $(mapElement).getMapOverlay('info');
-                mapOverlay.updateOverlayIcon('systemRegion', 'show');
+                let mapElement = $(mapConfig.map.getContainer());
 
-                mapOverlay.updateOverlayIcon('systemConnectionTimer', 'show');
+                // set shortcuts
+                parentElement.find('.' + config.mapWrapperClass).setMapShortcuts();
+
+                // show static overlay actions
+                let mapOverlay = mapElement.getMapOverlay('info');
+                mapOverlay.updateOverlayIcon('systemRegion', 'show');
+                mapOverlay.updateOverlayIcon('connection', 'show');
+                mapOverlay.updateOverlayIcon('connectionEol', 'show');
             }
+
+            //  draw/update map initial map and set container
+            let mapContainer = updateMap(mapConfig);
 
             // callback function after tab switch
             function switchTabCallback( mapName, mapContainer ){
@@ -3254,6 +3263,12 @@ define([
                 // init grid snap ---------------------------------------------------------------------------
                 mapContainer.triggerMenuEvent('MapOption', {
                     option: 'mapSnapToGrid',
+                    toggle: false
+                });
+
+                // init endpoint overlay --------------------------------------------------------------------
+                mapContainer.triggerMenuEvent('MapOption', {
+                    option: 'mapEndpoint',
                     toggle: false
                 });
 
@@ -3309,8 +3324,8 @@ define([
     return {
         getMapInstance: getMapInstance,
         clearMapInstance: clearMapInstance,
-
-        getDataByConnection: getDataByConnection
+        getDataByConnection: getDataByConnection,
+        showNewSystemDialog: showNewSystemDialog
     };
 
 });

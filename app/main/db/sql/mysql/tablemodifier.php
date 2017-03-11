@@ -52,7 +52,7 @@ class TableModifier extends SQL\TableModifier {
             ':constraint_name' => $constraintName
         ]);
         // switch back to current DB
-        $this->db->exec("USE " . $this->db->name());
+        $this->db->exec("USE " . $this->db->quotekey($this->db->name()));
 
         $constraints = [];
         foreach($constraintsData as $data){
