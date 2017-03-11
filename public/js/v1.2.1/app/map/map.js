@@ -22,10 +22,6 @@ define([
 
     let config = {
         zIndexCounter: 110,
-        newSystemOffset: {
-            x: 130,
-            y: 0
-        },
 
         mapSnapToGrid: false,                                           // "Snap to Grid" feature for drag&drop systems on map (optional)
         mapWrapperClass: 'pf-map-wrapper',                              // wrapper div (scrollable)
@@ -1373,6 +1369,205 @@ define([
     };
 
     /**
+     * save a new system and add it to the map
+     * @param map
+     * @param requestData
+     * @param sourceSystem
+     * @param callback
+     */
+    let saveSystem = function(map, requestData, sourceSystem, callback){
+        $.ajax({
+            type: 'POST',
+            url: Init.path.saveSystem,
+            data: requestData,
+            dataType: 'json',
+            context: {
+                map: map,
+                sourceSystem: sourceSystem
+            }
+        }).done(function(newSystemData){
+            Util.showNotify({title: 'New system', text: newSystemData.name, type: 'success'});
+
+            // draw new system to map
+            drawSystem(this.map, newSystemData, this.sourceSystem);
+
+            // re/arrange systems (prevent overlapping)
+            MagnetizerWrapper.setElements(this.map);
+
+            if(callback){
+                callback();
+            }
+        }).fail(function( jqXHR, status, error) {
+            let reason = status + ' ' + error;
+            Util.showNotify({title: jqXHR.status + ': saveSystem', text: reason, type: 'warning'});
+            $(document).setProgramStatus('problem');
+        });
+    };
+
+    /**
+     * open "new system" dialog and add the system to map
+     * optional the new system is connected to a "sourceSystem" (if available)
+     *
+     * @param map
+     * @param options
+     */
+    let showNewSystemDialog = function(map, options){
+        let mapContainer = $(map.getContainer());
+
+        // format system status for form select -------------------------------------------------------------
+        let systemStatus = {};
+        // "default" selection (id = 0) prevents status from being overwritten
+        // -> e.g. keep status information if system was just inactive (active = 0)
+        systemStatus[0] = 'default';
+
+        $.each(Init.systemStatus, function(status, statusData){
+            systemStatus[statusData.id] = statusData.label;
+        });
+
+        // default system status -> first status entry
+        let defaultSystemStatus = 0;
+
+        // get current map data -----------------------------------------------------------------------------
+        let mapData = mapContainer.getMapDataFromClient({forceData: true});
+        let mapSystems = mapData.data.systems;
+        let mapSystemCount = mapSystems.length;
+        let mapTypeName = mapContainer.data('typeName');
+        let maxAllowedSystems = Init.mapTypes[mapTypeName].defaultConfig.max_systems;
+
+        // show error if system max count reached -----------------------------------------------------------
+        if(mapSystemCount >= maxAllowedSystems){
+            Util.showNotify({title: 'Max system count exceeded', text: 'Limit of ' + maxAllowedSystems + ' systems reached', type: 'warning'});
+            return;
+        }
+
+        // disable systems that are already on it -----------------------------------------------------------
+        let mapSystemIds = [];
+        for(let i = 0; i < mapSystems.length; i++ ){
+            mapSystemIds.push( mapSystems[i].systemId );
+        }
+
+        // dialog data --------------------------------------------------------------------------------------
+        let data = {
+            id: config.systemDialogId,
+            selectClass: config.systemDialogSelectClass
+        };
+
+        // set current position as "default" system to add --------------------------------------------------
+        let currentCharacterLog = Util.getCurrentCharacterLog();
+
+        if(
+            currentCharacterLog !== false &&
+            mapSystemIds.indexOf( currentCharacterLog.system.id ) === -1
+        ){
+            // current system is NOT already on this map
+            // set current position as "default" system to add
+            data.currentSystem = currentCharacterLog.system;
+        }
+
+        requirejs(['text!templates/dialog/system.html', 'mustache'], function(template, Mustache) {
+
+            let content = Mustache.render(template, data);
+
+            let systemDialog = bootbox.dialog({
+                title: 'Add new system',
+                message: content,
+                buttons: {
+                    close: {
+                        label: 'cancel',
+                        className: 'btn-default'
+                    },
+                    success: {
+                        label: '<i class="fa fa-fw fa-check"></i> save',
+                        className: 'btn-success',
+                        callback: function (e) {
+                            // get form Values
+                            let form = $('#' + config.systemDialogId).find('form');
+
+                            let systemDialogData = $(form).getFormValues();
+
+                            // validate form
+                            form.validator('validate');
+
+                            // check whether the form is valid
+                            let formValid = form.isValidForm();
+
+                            if(formValid === false){
+                                // don't close dialog
+                                return false;
+                            }
+
+                            // calculate new system position ------------------------------------------------
+                            let newPosition = {
+                                x: 0,
+                                y: 0
+                            };
+
+                            let sourceSystem = null;
+
+                            // add new position
+                            if(options.sourceSystem !== undefined){
+
+                                sourceSystem = options.sourceSystem;
+
+                                // get new position
+                                newPosition = System.calculateNewSystemPosition(sourceSystem);
+                            }else{
+                                // check mouse cursor position (add system to map)
+                                newPosition = {
+                                    x: options.position.x,
+                                    y: options.position.y
+                                };
+                            }
+
+                            systemDialogData.position = newPosition;
+
+                            // ------------------------------------------------------------------------------
+
+                            let requestData = {
+                                systemData: systemDialogData,
+                                mapData: {
+                                    id: mapContainer.data('id')
+                                }
+                            };
+
+                            saveSystem(map, requestData, sourceSystem, function(){
+                                bootbox.hideAll();
+                            });
+                            return false;
+                        }
+                    }
+                }
+            });
+
+            // init dialog
+            systemDialog.on('shown.bs.modal', function(e) {
+
+                let modalContent = $('#' + config.systemDialogId);
+
+                // init system select live search  - some delay until modal transition has finished
+                let selectElement = modalContent.find('.' + config.systemDialogSelectClass);
+                selectElement.delay(240).initSystemSelect({
+                    key: 'systemId',
+                    disabledOptions: mapSystemIds
+                });
+            });
+
+            // init system status select
+            let modalFields = $('.bootbox .modal-dialog').find('.pf-editable-system-status');
+
+            modalFields.editable({
+                mode: 'inline',
+                emptytext: 'unknown',
+                onblur: 'submit',
+                showbuttons: false,
+                source: systemStatus,
+                value: defaultSystemStatus,
+                inputclass: config.systemDialogSelectClass
+            });
+        });
+    };
+
+    /**
      * make a system name/alias editable by x-editable
      * @param system
      */
@@ -1807,169 +2002,6 @@ define([
     };
 
     /**
-     * open "new system" dialog and add the system to map
-     * optional the new system is connected to a "sourceSystem" (if available)
-     *
-     * @param map
-     * @param options
-     */
-    let showNewSystemDialog = function(map, options){
-        let mapContainer = $(map.getContainer());
-
-        // format system status for form select -------------------------------------------------------------
-        let systemStatus = {};
-        // "default" selection (id = 0) prevents status from being overwritten
-        // -> e.g. keep status information if system was just inactive (active = 0)
-        systemStatus[0] = 'default';
-
-        $.each(Init.systemStatus, function(status, statusData){
-            systemStatus[statusData.id] = statusData.label;
-        });
-
-        // default system status -> first status entry
-        let defaultSystemStatus = 0;
-
-        // get current map data -----------------------------------------------------------------------------
-        let mapData = mapContainer.getMapDataFromClient({forceData: true});
-        let mapSystems = mapData.data.systems;
-        let mapSystemCount = mapSystems.length;
-        let mapTypeName = mapContainer.data('typeName');
-        let maxAllowedSystems = Init.mapTypes[mapTypeName].defaultConfig.max_systems;
-
-        // show error if system max count reached -----------------------------------------------------------
-        if(mapSystemCount >= maxAllowedSystems){
-            Util.showNotify({title: 'Max system count exceeded', text: 'Limit of ' + maxAllowedSystems + ' systems reached', type: 'warning'});
-            return;
-        }
-
-        // disable systems that are already on it -----------------------------------------------------------
-        let mapSystemIds = [];
-        for(let i = 0; i < mapSystems.length; i++ ){
-            mapSystemIds.push( mapSystems[i].systemId );
-        }
-
-        // dialog data --------------------------------------------------------------------------------------
-        let data = {
-            id: config.systemDialogId,
-            selectClass: config.systemDialogSelectClass
-        };
-
-        // set current position as "default" system to add --------------------------------------------------
-        let currentCharacterLog = Util.getCurrentCharacterLog();
-
-        if(
-            currentCharacterLog !== false &&
-            mapSystemIds.indexOf( currentCharacterLog.system.id ) === -1
-        ){
-            // current system is NOT already on this map
-            // set current position as "default" system to add
-            data.currentSystem = currentCharacterLog.system;
-        }
-
-        requirejs(['text!templates/dialog/system.html', 'mustache'], function(template, Mustache) {
-
-            let content = Mustache.render(template, data);
-
-            let systemDialog = bootbox.dialog({
-                title: 'Add new system',
-                message: content,
-                buttons: {
-                    close: {
-                        label: 'cancel',
-                        className: 'btn-default'
-                    },
-                    success: {
-                        label: '<i class="fa fa-fw fa-check"></i> save',
-                        className: 'btn-success',
-                        callback: function (e) {
-                            // get form Values
-                            let form = $('#' + config.systemDialogId).find('form');
-
-                            let systemDialogData = $(form).getFormValues();
-
-                            // validate form
-                            form.validator('validate');
-
-                            // check whether the form is valid
-                            let formValid = form.isValidForm();
-
-                            if(formValid === false){
-                                // don't close dialog
-                                return false;
-                            }
-
-                            // calculate new system position ------------------------------------------------
-                            let newPosition = {
-                                x: 0,
-                                y: 0
-                            };
-
-                            let sourceSystem = null;
-
-                            // add new position
-                            if(options.sourceSystem !== undefined){
-
-                                sourceSystem = options.sourceSystem;
-
-                                // get new position
-                                newPosition = calculateNewSystemPosition(sourceSystem);
-                            }else{
-                                // check mouse cursor position (add system to map)
-                                newPosition = {
-                                    x: options.position.x,
-                                    y: options.position.y
-                                };
-                            }
-
-                            systemDialogData.position = newPosition;
-
-                            // ------------------------------------------------------------------------------
-
-                            let requestData = {
-                                systemData: systemDialogData,
-                                mapData: {
-                                    id: mapContainer.data('id')
-                                }
-                            };
-
-                            saveSystem(map, requestData, sourceSystem, function(){
-                                bootbox.hideAll();
-                            });
-                            return false;
-                        }
-                    }
-                }
-            });
-
-            // init dialog
-            systemDialog.on('shown.bs.modal', function(e) {
-
-                let modalContent = $('#' + config.systemDialogId);
-
-                // init system select live search  - some delay until modal transition has finished
-                let selectElement = modalContent.find('.' + config.systemDialogSelectClass);
-                selectElement.delay(240).initSystemSelect({
-                    key: 'systemId',
-                    disabledOptions: mapSystemIds
-                });
-            });
-
-            // init system status select
-            let modalFields = $('.bootbox .modal-dialog').find('.pf-editable-system-status');
-
-            modalFields.editable({
-                mode: 'inline',
-                emptytext: 'unknown',
-                onblur: 'submit',
-                showbuttons: false,
-                source: systemStatus,
-                value: defaultSystemStatus,
-                inputclass: config.systemDialogSelectClass
-            });
-        });
-    };
-
-    /**
      * set up all actions that can be preformed on a system
      * @param map
      * @param system
@@ -2355,6 +2387,28 @@ define([
     };
 
     /**
+     * select all (selectable) systems on a mapElement
+     */
+    $.fn.selectAllSystems = function(){
+        return this.each(function(){
+            let mapElement = $(this);
+            let map = getMapInstance(mapElement.data('id'));
+
+            let allSystems =  mapElement.find('.' + config.systemClass + ':not(.' + config.systemSelectedClass + ')');
+
+            // filter non-locked systems
+            allSystems = allSystems.filter(function(i, el){
+                return ( $(el).data('locked') !== true );
+            });
+
+            allSystems.toggleSelectSystem(map);
+
+            Util.showNotify({title: allSystems.length + ' systems selected', type: 'success'});
+
+        });
+    };
+
+    /**
      * toggle selectable status of a system
      */
     $.fn.toggleSelectSystem = function(map){
@@ -2374,15 +2428,6 @@ define([
                 }
             }
         });
-    };
-
-    /**
-     * get all selected (NOT active) systems in a map
-     * @returns {*}
-     */
-    $.fn.getSelectedSystems = function(){
-        let mapElement = $(this);
-        return mapElement.find('.' + config.systemSelectedClass);
     };
 
     /**
@@ -2613,17 +2658,7 @@ define([
                         showNewSystemDialog(currentMap, {position: position});
                         break;
                     case 'select_all':
-
-                        let allSystems =  currentMapElement.find('.' + config.systemClass + ':not(.' + config.systemSelectedClass + ')');
-
-                        // filter non-locked systems
-                        allSystems = allSystems.filter(function(i, el){
-                            return ( $(el).data('locked') !== true );
-                        });
-
-                        allSystems.toggleSelectSystem(currentMap);
-
-                        Util.showNotify({title: allSystems.length + ' systems selected', type: 'success'});
+                        currentMapElement.selectAllSystems();
                         break;
                     case 'filter_wh':
                     case 'filter_stargate':
@@ -2888,65 +2923,6 @@ define([
         }else{
             return systemInfo;
         }
-    };
-
-    /**
-     * save a new system and add it to the map
-     * @param map
-     * @param requestData
-     * @param sourceSystem
-     * @param callback
-     */
-    let saveSystem = function(map, requestData, sourceSystem, callback){
-        $.ajax({
-            type: 'POST',
-            url: Init.path.saveSystem,
-            data: requestData,
-            dataType: 'json',
-            context: {
-                map: map,
-                sourceSystem: sourceSystem
-            }
-        }).done(function(newSystemData){
-            Util.showNotify({title: 'New system', text: newSystemData.name, type: 'success'});
-
-            // draw new system to map
-            drawSystem(this.map, newSystemData, this.sourceSystem);
-
-            // re/arrange systems (prevent overlapping)
-            MagnetizerWrapper.setElements(this.map);
-
-            if(callback){
-                callback();
-            }
-        }).fail(function( jqXHR, status, error) {
-            let reason = status + ' ' + error;
-            Util.showNotify({title: jqXHR.status + ': saveSystem', text: reason, type: 'warning'});
-            $(document).setProgramStatus('problem');
-        });
-    };
-
-    /**
-     * calculate the x/y coordinates for a new system - relativ to a source system
-     * @param sourceSystem
-     * @returns {{x: *, y: *}}
-     */
-    let calculateNewSystemPosition = function(sourceSystem){
-
-        // related system is available
-        let currentX = sourceSystem.css('left');
-        let currentY = sourceSystem.css('top');
-
-        // remove "px"
-        currentX = parseInt( currentX.substring(0, currentX.length - 2) );
-        currentY = parseInt( currentY.substring(0, currentY.length - 2) );
-
-        let newPosition = {
-            x: currentX + config.newSystemOffset.x,
-            y: currentY + config.newSystemOffset.y
-        };
-
-        return newPosition;
     };
 
     /**
@@ -3244,9 +3220,13 @@ define([
                 // init custom scrollbars and add overlay
                 parentElement.initMapScrollbar();
 
+                let mapElement = $(mapConfig.map.getContainer());
+
+                // set shortcuts
+                parentElement.find('.' + config.mapWrapperClass).setMapShortcuts();
+
                 // show static overlay actions
-                let mapElement = mapConfig.map.getContainer();
-                let mapOverlay = $(mapElement).getMapOverlay('info');
+                let mapOverlay = mapElement.getMapOverlay('info');
                 mapOverlay.updateOverlayIcon('systemRegion', 'show');
                 mapOverlay.updateOverlayIcon('connection', 'show');
                 mapOverlay.updateOverlayIcon('connectionEol', 'show');
@@ -3344,7 +3324,8 @@ define([
     return {
         getMapInstance: getMapInstance,
         clearMapInstance: clearMapInstance,
-        getDataByConnection: getDataByConnection
+        getDataByConnection: getDataByConnection,
+        showNewSystemDialog: showNewSystemDialog
     };
 
 });

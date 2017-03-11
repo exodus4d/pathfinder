@@ -16,6 +16,7 @@ define([
     'dialog/map_info',
     'dialog/account_settings',
     'dialog/manual',
+    'dialog/shortcuts',
     'dialog/map_settings',
     'dialog/system_effects',
     'dialog/jump_info',
@@ -62,7 +63,10 @@ define([
         menuHeadMenuLogoClass: 'pf-head-menu-logo',                             // class for main menu logo
 
         // helper element
-        dynamicElementWrapperId: 'pf-dialog-wrapper'
+        dynamicElementWrapperId: 'pf-dialog-wrapper',
+
+        // system signature module
+        systemSigModuleClass: 'pf-sig-table-module',                            // module wrapper (signatures)
     };
 
     let programStatusCounter = 0;                                               // current count down in s until next status change is possible
@@ -74,49 +78,83 @@ define([
      * @returns {*|jQuery|HTMLElement}
      */
     $.fn.loadPageStructure = function(){
-        let body = $(this);
+        return this.each((i, body) => {
+            body = $(body);
 
-        // menu left
-        body.prepend(
-            $('<div>', {
-                class: [config.pageSlidebarClass, config.pageSlidebarLeftClass, 'sb-style-push', 'sb-width-custom'].join(' ')
-            }).attr('data-sb-width', config.pageSlideLeftWidth)
-        );
-
-        // menu right
-        body.prepend(
-            $('<div>', {
-                class: [config.pageSlidebarClass, config.pageSlidebarRightClass, 'sb-style-push', 'sb-width-custom'].join(' ')
-            }).attr('data-sb-width', config.pageSlideRightWidth)
-        );
-
-        // main page
-        body.prepend(
-            $('<div>', {
-                id: config.pageId,
-                class: config.pageClass
-            }).append(
-                Util.getMapModule()
-            ).append(
+            // menu left
+            body.prepend(
                 $('<div>', {
-                    id: config.dynamicElementWrapperId
-                })
-            )
-        );
+                    class: [config.pageSlidebarClass, config.pageSlidebarLeftClass, 'sb-style-push', 'sb-width-custom'].join(' ')
+                }).attr('data-sb-width', config.pageSlideLeftWidth)
+            );
 
-        // load header / footer
-        $('.' + config.pageClass).loadHeader().loadFooter();
+            // menu right
+            body.prepend(
+                $('<div>', {
+                    class: [config.pageSlidebarClass, config.pageSlidebarRightClass, 'sb-style-push', 'sb-width-custom'].join(' ')
+                }).attr('data-sb-width', config.pageSlideRightWidth)
+            );
 
-        // load left menu
-        $('.' + config.pageSlidebarLeftClass).loadLeftMenu();
+            // main page
+            body.prepend(
+                $('<div>', {
+                    id: config.pageId,
+                    class: config.pageClass
+                }).append(
+                    Util.getMapModule()
+                ).append(
+                    $('<div>', {
+                        id: config.dynamicElementWrapperId
+                    })
+                )
+            );
 
-        // load right menu
-        $('.' + config.pageSlidebarRightClass).loadRightMenu();
+            // load header / footer
+            $('.' + config.pageClass).loadHeader().loadFooter();
 
-        // set document observer for global events
-        setDocumentObserver();
+            // load left menu
+            $('.' + config.pageSlidebarLeftClass).loadLeftMenu();
 
-        return body;
+            // load right menu
+            $('.' + config.pageSlidebarRightClass).loadRightMenu();
+
+            // set document observer for global events
+            setDocumentObserver();
+        });
+    };
+
+    $.fn.setGlobalShortcuts = function(){
+        return this.each((i, body) => {
+            body = $(body);
+
+            console.log('setGlobalShortcuts');
+
+            body.watchKey('tabReload', (body) => {
+                location.reload();
+            });
+
+            body.watchKey('signaturePaste', (e) => {
+                let moduleElement = $('.' + config.systemSigModuleClass);
+
+                // check if there is a signature module active (system clicked)
+                if(moduleElement.length){
+                    e = e.originalEvent;
+                    let targetElement = $(e.target);
+
+                    // do not read clipboard if pasting into form elements
+                    if(
+                        targetElement.prop('tagName').toLowerCase() !== 'input' &&
+                        targetElement.prop('tagName').toLowerCase() !== 'textarea' || (
+                            targetElement.is('input[type="search"]')                   // Datatables "search" field bubbles `paste.DT` event :(
+                        )
+                    ){
+                        let clipboard = (e.originalEvent || e).clipboardData.getData('text/plain');
+                        moduleElement.trigger('pf:updateSystemSignatureModuleByClipboard', [clipboard]);
+                    }
+                }
+            });
+
+        });
     };
 
     /**
@@ -359,6 +397,22 @@ define([
                 $('<a>', {
                     class: 'list-group-item list-group-item-info',
                     href: '#'
+                }).html('&nbsp;&nbsp;Shortcuts').prepend(
+                    $('<i>',{
+                        class: 'fa fa-keyboard-o fa-fw'
+                    })
+                ).append(
+                    $('<span>',{
+                        class: 'badge bg-color bg-color-gray txt-color txt-color-warning',
+                        text: 'beta'
+                    })
+                ).on('click', function(){
+                    $(document).triggerMenuEvent('Shortcuts');
+                })
+            ).append(
+                $('<a>', {
+                    class: 'list-group-item list-group-item-info',
+                    href: '#'
                 }).html('&nbsp;&nbsp;Task-Manager').prepend(
                     $('<i>',{
                         class: 'fa fa-tasks fa-fw'
@@ -586,6 +640,18 @@ define([
             return false;
         });
 
+        $(document).on('pf:menuShowTaskManager', function(e, data){
+            // show log dialog
+            Logging.showDialog();
+            return false;
+        });
+
+        $(document).on('pf:menuShortcuts', function(e, data){
+            // show shortcuts dialog
+            $.fn.showShortcutsDialog();
+            return false;
+        });
+
         $(document).on('pf:menuShowSettingsDialog', function(e){
             // show character select dialog
             $.fn.showSettingsDialog();
@@ -623,12 +689,6 @@ define([
             }
 
             $.fn.showDeleteMapDialog(mapData);
-            return false;
-        });
-
-        $(document).on('pf:menuShowTaskManager', function(e, data){
-            // show log dialog
-            Logging.showDialog();
             return false;
         });
 

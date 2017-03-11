@@ -15,7 +15,7 @@ define([
      * init a select element as "select2" for map selection
      */
     $.fn.initMapSelect = function(){
-        var selectElement = $(this);
+        let selectElement = $(this);
 
         $.when(
             selectElement.select2({
@@ -31,9 +31,9 @@ define([
      * @param options
      */
     $.fn.initSystemSelect = function(options){
-        var selectElement = $(this);
+        let selectElement = $(this);
 
-        var config = {
+        let config = {
             maxSelectionLength: 1
         };
         options = $.extend({}, config, options);
@@ -46,12 +46,12 @@ define([
             }
 
             // show effect info just for wormholes
-            var hideEffectClass = '';
+            let hideEffectClass = '';
             if(data.effect === ''){
                 hideEffectClass = 'hide';
             }
 
-            var markup = '<div class="clearfix">';
+            let markup = '<div class="clearfix">';
             markup += '<div class="col-sm-5 pf-select-item-anchor">' + data.text + '</div>';
             markup += '<div class="col-sm-2 text-right ' + data.effectClass + '">';
             markup += '<i class="fa fa-fw fa-square ' + hideEffectClass + '"></i>';
@@ -83,12 +83,12 @@ define([
                             results: data.map( function(item){
 
                                 // "systemId" or "name"
-                                var id = item[options.key];
-                                var disabled = false;
-                                var trueSec = parseFloat(item.trueSec);
-                                var secClass = Util.getSecurityClassForSystem(item.security);
-                                var trueSecClass = Util.getTrueSecClassForSystem( trueSec );
-                                var effectClass = MapUtil.getEffectInfoForSystem(item.effect, 'class');
+                                let id = item[options.key];
+                                let disabled = false;
+                                let trueSec = parseFloat(item.trueSec);
+                                let secClass = Util.getSecurityClassForSystem(item.security);
+                                let trueSecClass = Util.getTrueSecClassForSystem( trueSec );
+                                let effectClass = MapUtil.getEffectInfoForSystem(item.effect, 'class');
 
                                 // check if system is dialed
                                 if(
@@ -126,7 +126,7 @@ define([
                     error: function (jqXHR, status, error) {
                         if( !Util.isXHRAborted(jqXHR) ){
 
-                            var reason = status + ' ' + jqXHR.status + ': ' + error;
+                            let reason = status + ' ' + jqXHR.status + ': ' + error;
                             Util.showNotify({title: 'System select warning', text: reason + ' deleted', type: 'warning'});
                         }
 
@@ -161,7 +161,7 @@ define([
 
         return this.each(function(){
 
-            var selectElement = $(this);
+            let selectElement = $(this);
 
             // format result data
             function formatResultData (data) {
@@ -172,7 +172,7 @@ define([
 
                 // check if an option is already selected
                 // do not show the same result twice
-                var currentValues = selectElement.val();
+                let currentValues = selectElement.val();
 
                 if(
                     currentValues &&
@@ -181,8 +181,8 @@ define([
                     return ;
                 }
 
-                var imagePath = '';
-                var previewContent = '';
+                let imagePath = '';
+                let previewContent = '';
 
                 switch(options.type){
                     case 'character':
@@ -199,7 +199,7 @@ define([
                         break;
                 }
 
-                var markup = '<div class="clearfix">';
+                let markup = '<div class="clearfix">';
                 markup += '<div class="col-sm-2">' + previewContent + '</div>';
                 markup += '<div class="col-sm-10">' + data.text + '</div></div>';
 
@@ -213,7 +213,7 @@ define([
                     return data.text;
                 }
 
-                var markup = '<div class="clearfix">';
+                let markup = '<div class="clearfix">';
                 markup += '<div class="col-sm-10">' + data.text + '</div></div>';
 
                 return markup;
@@ -248,7 +248,7 @@ define([
                         error: function (jqXHR, status, error) {
                             if( !Util.isXHRAborted(jqXHR) ){
 
-                                var reason = status + ' ' + jqXHR.status + ': ' + error;
+                                let reason = status + ' ' + jqXHR.status + ': ' + error;
                                 Util.showNotify({title: 'Access select warning', text: reason + ' deleted', type: 'warning'});
                             }
 

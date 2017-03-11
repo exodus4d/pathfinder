@@ -5,8 +5,9 @@
 define([
     'jquery',
     'app/init',
-    'app/util'
-], function($, Init, Util) {
+    'app/util',
+    'bootbox'
+], function($, Init, Util, bootbox) {
     'use strict';
 
     let config = {
@@ -17,9 +18,12 @@ define([
         mapLocalStoragePrefix: 'map_',                                  // prefix for map data local storage key
         mapTabContentClass: 'pf-map-tab-content',                       // Tab-Content element (parent element)
 
+        mapClass: 'pf-map',                                             // class for all maps
+        mapGridClass: 'pf-grid-small',                                  // class for map grid snapping
+
         systemIdPrefix: 'pf-system-',                                   // id prefix for a system
         systemClass: 'pf-system',                                       // class for all systems
-        mapGridClass: 'pf-grid-small'                                   // class for map grid snapping
+        systemSelectedClass: 'pf-system-selected'                       // class for selected systems in a map
     };
 
     // map menu options
@@ -196,6 +200,15 @@ define([
      */
     $.fn.getSystems = function(){
         return this.find('.' + config.systemClass);
+    };
+
+    /**
+     * get all selected (NOT active) systems in a map
+     * @returns {*}
+     */
+    $.fn.getSelectedSystems = function(){
+        let mapElement = $(this);
+        return mapElement.find('.' + config.systemSelectedClass);
     };
 
     /**
@@ -575,6 +588,40 @@ define([
             system.data('rallyUpdated', rallyUpdated);
             system.data('rallyPoke', rallyPoke);
         });
+    };
+
+    /**
+     * set map "shortcut" events
+     */
+    $.fn.setMapShortcuts = function(){
+        return this.each((i, mapWrapper) => {
+            mapWrapper = $(mapWrapper);
+            let mapElement = mapWrapper.findMapElement();
+
+            // dynamic require Map module -> otherwise there is a require(), loop
+            let Map = require('app/map/map');
+            let map = Map.getMapInstance( mapElement.data('id'));
+
+            mapWrapper.watchKey('mapSystemAdd', (mapWrapper) => {
+                console.log('mapSystemAdd');
+                Map.showNewSystemDialog(map, {position: {x: 0, y: 0}});
+            },{focus: true});
+
+            mapWrapper.watchKey('mapSystemsSelect', (mapWrapper) => {
+                mapElement.selectAllSystems();
+            },{focus: true});
+
+            mapWrapper.watchKey('mapSystemsDelete', (mapWrapper) => {
+                console.log('mapSystemsDelete');
+                let selectedSystems = mapElement.getSelectedSystems();
+                $.fn.showDeleteSystemDialog(map, selectedSystems);
+            },{focus: true});
+
+        });
+    };
+
+    $.fn.findMapElement = function(){
+        return $(this).find('.' + config.mapClass);
     };
 
     /**

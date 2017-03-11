@@ -121,6 +121,15 @@
   }
 }
 
+// shortcuts dialog ===========================================================
+#pf-shortcuts-dialog{
+  td kbd:last-of-type{
+    & + i {
+      display: none
+    }
+  }
+}
+
 // map manual dialog ==========================================================
 #pf-manual-scrollspy{
   position: relative;

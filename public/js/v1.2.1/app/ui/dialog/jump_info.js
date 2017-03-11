@@ -9,9 +9,10 @@ define([
     'app/render',
     'bootbox',
 ], function($, Init, Util, Render, bootbox) {
+
     'use strict';
 
-    var config = {
+    let config = {
         // jump info dialog
         jumpInfoDialogClass: 'pf-jump-info-dialog'                              // class for jump info dialog
     };
@@ -22,12 +23,10 @@ define([
     $.fn.showJumpInfoDialog = function(){
 
         requirejs(['text!templates/dialog/jump_info.html', 'mustache'], function(template, Mustache) {
+            let data = {};
+            let content = Mustache.render(template, data);
 
-            var data = {};
-
-            var content = Mustache.render(template, data);
-
-            var signatureReaderDialog = bootbox.dialog({
+            let signatureReaderDialog = bootbox.dialog({
                 className: config.jumpInfoDialogClass,
                 title: 'Wormhole jump information',
                 message: content

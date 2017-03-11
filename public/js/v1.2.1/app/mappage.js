@@ -10,6 +10,7 @@ define([
     'app/logging',
     'app/page',
     'app/map/worker',
+    'app/key',
     'app/ui/form_element',
     'app/module_map'
 ], ($, Init, Util, Render, Logging, Page, MapWorker) => {
@@ -30,7 +31,7 @@ define([
 
         // load page
         // load info (maintenance) info panel (if scheduled)
-        $('body').loadPageStructure();
+        $('body').loadPageStructure().setGlobalShortcuts();
 
         // show app information in browser console
         Util.showVersionInfo();

@@ -56,6 +56,11 @@ $mapWidth: 2500px ;
       style: solid;
       color: $gray-dark;
     }
+
+    &:focus{
+      border: 1px solid $gray;
+    }
+
   }
 }
 

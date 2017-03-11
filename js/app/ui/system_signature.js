@@ -2206,20 +2206,8 @@ define([
         });
 
         // event listener for global "paste" signatures into the page -------------------------------------------------
-        $('body').off('paste').on('paste', function(e){
-            let targetElement = $(e.target);
-
-            // do not read clipboard if pasting into form elements
-            if(
-                targetElement.prop('tagName').toLowerCase() !== 'input' &&
-                targetElement.prop('tagName').toLowerCase() !== 'textarea' || (
-                    targetElement.is('input[type="search"]')                        // Datatables "search" field bubbles `paste.DT` event :(
-                )
-            ){
-                let clipboard = (e.originalEvent || e).clipboardData.getData('text/plain');
-
-                moduleElement.updateSignatureTableByClipboard(systemData, clipboard, {});
-            }
+        moduleElement.on('pf:updateSystemSignatureModuleByClipboard', function(e, clipboard){
+            $(this).updateSignatureTableByClipboard(systemData, clipboard, {});
         });
     };
 

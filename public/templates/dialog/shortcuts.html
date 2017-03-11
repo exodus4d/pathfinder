@@ -1,0 +1,22 @@
+<div id="{{id}}" class="row">
+    {{#shortcuts}}
+        <div class="col-sm-6">
+            <h4>{{label}}</h4>
+
+            <table class="table table-condensed">
+                <tbody>
+                {{#events}}
+                    <tr>
+                        <td>{{label}}</td>
+                        <td class="text-right">
+                            {{#keyNames}}
+                            <kbd>{{.}}</kbd>&nbsp;<i class="fa fa-fw fa-plus"></i>&nbsp;
+                            {{/keyNames}}
+                        </td>
+                    </tr>
+                {{/events}}
+                </tbody>
+            </table>
+        </div>
+    {{/shortcuts}}
+</div>
