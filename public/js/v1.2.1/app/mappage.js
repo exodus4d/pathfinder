@@ -6418,7 +6418,6 @@ define('app/map/util',[
             let map = Map.getMapInstance( mapElement.data('id'));
 
             mapWrapper.watchKey('mapSystemAdd', (mapWrapper) => {
-                console.log('mapSystemAdd');
                 Map.showNewSystemDialog(map, {position: {x: 0, y: 0}});
             },{focus: true});
 
@@ -6427,7 +6426,6 @@ define('app/map/util',[
             },{focus: true});
 
             mapWrapper.watchKey('mapSystemsDelete', (mapWrapper) => {
-                console.log('mapSystemsDelete');
                 let selectedSystems = mapElement.getSelectedSystems();
                 $.fn.showDeleteSystemDialog(map, selectedSystems);
             },{focus: true});
@@ -33852,11 +33850,12 @@ define('app/page',[
         });
     };
 
+    /**
+     * set global shortcuts to <body> element
+     */
     $.fn.setGlobalShortcuts = function(){
         return this.each((i, body) => {
             body = $(body);
-
-            console.log('setGlobalShortcuts');
 
             body.watchKey('tabReload', (body) => {
                 location.reload();

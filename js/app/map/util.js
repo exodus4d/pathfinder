@@ -603,7 +603,6 @@ define([
             let map = Map.getMapInstance( mapElement.data('id'));
 
             mapWrapper.watchKey('mapSystemAdd', (mapWrapper) => {
-                console.log('mapSystemAdd');
                 Map.showNewSystemDialog(map, {position: {x: 0, y: 0}});
             },{focus: true});
 
@@ -612,7 +611,6 @@ define([
             },{focus: true});
 
             mapWrapper.watchKey('mapSystemsDelete', (mapWrapper) => {
-                console.log('mapSystemsDelete');
                 let selectedSystems = mapElement.getSelectedSystems();
                 $.fn.showDeleteSystemDialog(map, selectedSystems);
             },{focus: true});

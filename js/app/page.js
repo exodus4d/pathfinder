@@ -123,11 +123,12 @@ define([
         });
     };
 
+    /**
+     * set global shortcuts to <body> element
+     */
     $.fn.setGlobalShortcuts = function(){
         return this.each((i, body) => {
             body = $(body);
-
-            console.log('setGlobalShortcuts');
 
             body.watchKey('tabReload', (body) => {
                 location.reload();
