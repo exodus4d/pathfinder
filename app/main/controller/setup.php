@@ -925,7 +925,7 @@ class Setup extends Controller {
         $checkTables = [];
         if($db){
             // set/change default "character set" and "collation"
-            $db->exec('ALTER DATABASE ' . $db->name()
+            $db->exec('ALTER DATABASE ' . $db->quotekey($db->name())
                 . ' CHARACTER SET ' . self::getRequiredMySqlVariables('CHARACTER_SET_DATABASE')
                 . ' COLLATE ' . self::getRequiredMySqlVariables('COLLATION_DATABASE')
             );
