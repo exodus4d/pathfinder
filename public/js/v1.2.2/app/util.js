@@ -79,40 +79,41 @@ define([
      * displays a loading indicator on an element
      */
     $.fn.showLoadingAnimation = function(options){
-        let loadingElement = $(this);
+        return this.each(function(){
+            let loadingElement = $(this);
+            let iconSize = 'fa-lg';
 
-        let iconSize = 'fa-lg';
+            // disable all events
+            loadingElement.css('pointer-events', 'none');
 
-        // disable all events
-        loadingElement.css('pointer-events', 'none');
-
-        if(options){
-            if(options.icon){
-                if(options.icon.size){
-                    iconSize = options.icon.size;
+            if(options){
+                if(options.icon){
+                    if(options.icon.size){
+                        iconSize = options.icon.size;
+                    }
                 }
             }
-        }
 
-        let overlay = $('<div>', {
-            class: config.ajaxOverlayClass
-        }).append(
-            $('<div>', {
-                class: [config.ajaxOverlayWrapperClass].join(' ')
+            let overlay = $('<div>', {
+                class: config.ajaxOverlayClass
             }).append(
-                $('<i>', {
-                    class: ['fa', 'fa-fw', iconSize, 'fa-refresh', 'fa-spin'].join(' ')
-                })
-            )
-        );
+                $('<div>', {
+                    class: [config.ajaxOverlayWrapperClass].join(' ')
+                }).append(
+                    $('<i>', {
+                        class: ['fa', 'fa-fw', iconSize, 'fa-refresh', 'fa-spin'].join(' ')
+                    })
+                )
+            );
 
-        loadingElement.append(overlay);
+            loadingElement.append(overlay);
 
-        // fade in
-        $(overlay).velocity({
-            opacity: 0.6
-        },{
-            duration: 120
+            // fade in
+            $(overlay).velocity({
+                opacity: 0.6
+            },{
+                duration: 120
+            });
         });
     };
 
@@ -120,16 +121,20 @@ define([
      * removes a loading indicator
      */
     $.fn.hideLoadingAnimation = function(){
-        let loadingElement = $(this);
-        let overlay = loadingElement.find('.' + config.ajaxOverlayClass );
+        return this.each(function(){
+            let loadingElement = $(this);
+            let overlay = loadingElement.find('.' + config.ajaxOverlayClass );
 
-        // important: "stop" is required to stop "show" animation
-        // -> otherwise "complete" callback is not fired!
-        $(overlay).velocity('stop').velocity('reverse', {
-            complete: function(){
-                $(this).remove();
-                // enable all events
-                loadingElement.css('pointer-events', 'auto');
+            if(overlay.length){
+                // important: "stop" is required to stop "show" animation
+                // -> otherwise "complete" callback is not fired!
+                overlay.velocity('stop').velocity('reverse', {
+                    complete: function(){
+                        $(this).remove();
+                        // enable all events
+                        loadingElement.css('pointer-events', 'auto');
+                    }
+                });
             }
         });
     };

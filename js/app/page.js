@@ -8,6 +8,7 @@ define([
     'app/util',
     'app/logging',
     'mustache',
+    'app/map/util',
     'text!img/logo.svg!strip',
     'text!templates/modules/header.html',
     'text!templates/modules/footer.html',
@@ -24,7 +25,7 @@ define([
     'dialog/credit',
     'slidebars',
     'app/module_map'
-], function($, Init, Util, Logging, Mustache, TplLogo, TplHead, TplFooter) {
+], function($, Init, Util, Logging, Mustache, MapUtil, TplLogo, TplHead, TplFooter) {
 
     'use strict';
 
@@ -135,26 +136,27 @@ define([
             });
 
             body.watchKey('signaturePaste', (e) => {
-                let moduleElement = $('.' + config.systemSigModuleClass);
-
-                // check if there is a signature module active (system clicked)
-                if(moduleElement.length){
-                    e = e.originalEvent;
-                    let targetElement = $(e.target);
-
-                    // do not read clipboard if pasting into form elements
-                    if(
-                        targetElement.prop('tagName').toLowerCase() !== 'input' &&
-                        targetElement.prop('tagName').toLowerCase() !== 'textarea' || (
-                            targetElement.is('input[type="search"]')                   // Datatables "search" field bubbles `paste.DT` event :(
-                        )
-                    ){
-                        let clipboard = (e.originalEvent || e).clipboardData.getData('text/plain');
-                        moduleElement.trigger('pf:updateSystemSignatureModuleByClipboard', [clipboard]);
+                // just send event to the current active map
+                let activeMap = Util.getMapModule().getActiveMap();
+                if(activeMap){
+                    // look for active signature module (active system)
+                    let signatureModuleElement = MapUtil.getTabContentElementByMapElement(activeMap).find('.' + config.systemSigModuleClass);
+                    if(signatureModuleElement.length){
+                        e = e.originalEvent;
+                        let targetElement = $(e.target);
+                        // do not read clipboard if pasting into form elements
+                        if(
+                            targetElement.prop('tagName').toLowerCase() !== 'input' &&
+                            targetElement.prop('tagName').toLowerCase() !== 'textarea' || (
+                                targetElement.is('input[type="search"]')                   // Datatables "search" field bubbles `paste.DT` event :(
+                            )
+                        ){
+                            let clipboard = (e.originalEvent || e).clipboardData.getData('text/plain');
+                            signatureModuleElement.trigger('pf:updateSystemSignatureModuleByClipboard', [clipboard]);
+                        }
                     }
                 }
             });
-
         });
     };
 

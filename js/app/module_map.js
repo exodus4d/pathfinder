@@ -119,7 +119,7 @@ define([
         firstCell.drawSystemGraphModule(currentSystemData.systemData);
 
         // draw signature table module
-        firstCell.drawSignatureTableModule(currentSystemData.systemData);
+        firstCell.drawSignatureTableModule(currentSystemData.mapId, currentSystemData.systemData);
 
         // draw system routes module
         secondCell.drawSystemRouteModule(currentSystemData.mapId, currentSystemData.systemData);

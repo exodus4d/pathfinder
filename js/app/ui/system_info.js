@@ -11,7 +11,7 @@ define([
 ], function($, Init, Util, Render, MapUtil) {
     'use strict';
 
-    var config = {
+    let config = {
         // module info
         moduleClass: 'pf-module',                                               // class for each module
 
@@ -35,41 +35,38 @@ define([
         descriptionArea: 'pf-system-info-description-area',                     // class for "description" area
         addDescriptionButtonClass: 'pf-system-info-description-button',         // class for "add description" button
         moduleElementToolbarClass: 'pf-table-tools',                            // class for "module toolbar" element
-        moduleToolbarActionId: 'pf-system-info-collapse-container',             // id for "module toolbar action" element
+        tableToolsActionClass: 'pf-table-tools-action',                         // class for "edit" action
+
         descriptionTextareaElementClass: 'pf-system-info-description',          // class for "description" textarea element (xEditable)
         descriptionTextareaCharCounter: 'pf-form-field-char-count'              // class for "character counter" element for form field
     };
 
     // disable Module update temporary (until. some requests/animations) are finished
-    var disableModuleUpdate = true;
+    let disableModuleUpdate = true;
 
     // animation speed values
-    var animationSpeedToolbarAction = 200;
+    let animationSpeedToolbarAction = 200;
 
     // max character length for system description
-    var maxDescriptionLength = 512;
+    let maxDescriptionLength = 512;
 
     /**
      * set module observer and look for relevant system data to update
      */
-    var setModuleObserver = function(moduleElement){
+    let setModuleObserver = function(moduleElement){
+
         $(document).off('pf:updateSystemInfoModule').on('pf:updateSystemInfoModule', function(e, data){
             if(data){
                 moduleElement.updateSystemInfoModule(data);
             }
-
         });
     };
 
-
     /**
      * shows the tool action element by animation
+     * @param toolsActionElement
      */
-    var showToolsActionElement = function(){
-
-        // "toolbar action" element
-        var toolsActionElement = $('#' +  config.moduleToolbarActionId);
-
+    let showToolsActionElement = function(toolsActionElement){
         toolsActionElement.velocity('stop').velocity({
             opacity: 1,
             height: '100%'
@@ -82,12 +79,9 @@ define([
 
     /**
      * hides the tool action element by animation
+     * @param toolsActionElement
      */
-    var hideToolsActionElement = function(){
-
-        // "toolbar action" element
-        var toolsActionElement = $('#' +  config.moduleToolbarActionId);
-
+    let hideToolsActionElement = function(toolsActionElement){
         toolsActionElement.velocity('stop').velocity('reverse', {
             display: 'none',
             visibility: 'hidden'
@@ -106,24 +100,23 @@ define([
             return;
         }
 
-        var moduleElement = $(this);
+        let moduleElement = $(this);
 
-        var systemId = moduleElement.data('id');
+        let systemId = moduleElement.data('id');
 
         if(systemId === systemData.id){
             // update module
 
             // system status =====================================================================================
-            var systemStatusLabelElement = moduleElement.find('.' + config.systemInfoStatusLabelClass);
-            var systemStatusId = parseInt( systemStatusLabelElement.attr( config.systemInfoStatusAttributeName ) );
-
+            let systemStatusLabelElement = moduleElement.find('.' + config.systemInfoStatusLabelClass);
+            let systemStatusId = parseInt( systemStatusLabelElement.attr( config.systemInfoStatusAttributeName ) );
 
             if(systemStatusId !== systemData.status.id){
                 // status changed
 
-                var currentStatusClass = Util.getStatusInfoForSystem(systemStatusId, 'class');
-                var newStatusClass = Util.getStatusInfoForSystem(systemData.status.id, 'class');
-                var newStatusLabel = Util.getStatusInfoForSystem(systemData.status.id, 'label');
+                let currentStatusClass = Util.getStatusInfoForSystem(systemStatusId, 'class');
+                let newStatusClass = Util.getStatusInfoForSystem(systemData.status.id, 'class');
+                let newStatusLabel = Util.getStatusInfoForSystem(systemData.status.id, 'label');
 
                 systemStatusLabelElement.removeClass(currentStatusClass).addClass(newStatusClass).text(newStatusLabel);
 
@@ -132,18 +125,19 @@ define([
             }
 
             // description textarea element ======================================================================
-            var descriptionTextareaElement =  moduleElement.find('.' + config.descriptionTextareaElementClass);
-
-            var description = descriptionTextareaElement.editable('getValue', true);
+            let descriptionTextareaElement =  moduleElement.find('.' + config.descriptionTextareaElementClass);
+            let description = descriptionTextareaElement.editable('getValue', true);
 
             if(description !== systemData.description){
                 // description changed
 
                 // description button
-                var descriptionButton = moduleElement.find('.' + config.addDescriptionButtonClass);
+                let descriptionButton = moduleElement.find('.' + config.addDescriptionButtonClass);
 
                 // set new value
                 descriptionTextareaElement.editable('setValue', systemData.description);
+
+                let actionElement = descriptionButton.siblings('.' + config.tableToolsActionClass);
 
                 if(systemData.description.length === 0){
                     // show/activate description field
@@ -151,24 +145,20 @@ define([
                     // show button if value is empty
                     descriptionButton.show();
 
-
-                    hideToolsActionElement();
-
+                    hideToolsActionElement(actionElement);
                 }else{
                     // hide/disable description field
-
                     // hide tool button
                     descriptionButton.hide();
-
-                    showToolsActionElement();
+                    showToolsActionElement(actionElement);
                 }
             }
 
             // created/updated tooltip ===========================================================================
 
-            var nameRowElement = $(moduleElement).find('.' + config.systemInfoNameInfoClass);
+            let nameRowElement = $(moduleElement).find('.' + config.systemInfoNameInfoClass);
 
-            var tooltipData = {
+            let tooltipData = {
                 created: systemData.created,
                 updated: systemData.updated
             };
@@ -176,7 +166,7 @@ define([
             nameRowElement.addCharacterInfoTooltip( tooltipData );
         }
 
-        $('.' + config.descriptionArea).hideLoadingAnimation();
+        moduleElement.find('.' + config.descriptionArea).hideLoadingAnimation();
     };
 
     /**
@@ -185,13 +175,13 @@ define([
      * @param charCounterElement
      * @param maxCharLength
      */
-    var updateCounter = function(field, charCounterElement, maxCharLength){
-        var value = field.val();
-        var inputLength = value.length;
+    let updateCounter = function(field, charCounterElement, maxCharLength){
+        let value = field.val();
+        let inputLength = value.length;
 
         // line breaks are 2 characters!
-        var newLines = value.match(/(\r\n|\n|\r)/g);
-        var addition = 0;
+        let newLines = value.match(/(\r\n|\n|\r)/g);
+        let addition = 0;
         if (newLines != null) {
             addition = newLines.length;
         }
@@ -212,10 +202,10 @@ define([
      * @param mapId
      * @param systemData
      */
-    var drawModule = function(parentElement, mapId, systemData){
+    let drawModule = function(parentElement, mapId, systemData){
 
         // create new module container
-        var moduleElement = $('<div>', {
+        let moduleElement = $('<div>', {
             class: [config.moduleClass, config.systemInfoModuleClass].join(' '),
             css: {opacity: 0}
         });
@@ -226,14 +216,14 @@ define([
         parentElement.prepend(moduleElement);
 
         // shattered wormhole info data
-        var shatteredWormholeInfo = false;
+        let shatteredWormholeInfo = false;
 
         // add security class for statics
         if(
             systemData.statics &&
             systemData.statics.length > 0
         ){
-            for(var i = 0; i < systemData.statics.length; i++){
+            for(let i = 0; i < systemData.statics.length; i++){
                 systemData.statics[i].class = Util.getSecurityClassForSystem( systemData.statics[i].security );
             }
         }else if(systemData.type.id === 1){
@@ -241,27 +231,26 @@ define([
             shatteredWormholeInfo = true;
         }
 
-        var effectName = MapUtil.getEffectInfoForSystem(systemData.effect, 'name');
-        var effectClass = MapUtil.getEffectInfoForSystem(systemData.effect, 'class');
+        let effectName = MapUtil.getEffectInfoForSystem(systemData.effect, 'name');
+        let effectClass = MapUtil.getEffectInfoForSystem(systemData.effect, 'class');
 
         // systemInfo template config
-        var moduleConfig = {
+        let moduleConfig = {
             name: 'modules/system_info',
             position: moduleElement,
             link: 'append',
             functions: {
                 after: function(){
+                    let tempModuleElement = parentElement.find('.' + config.systemInfoModuleClass);
+
                     // lock "description" field until first update
-                    $('.' + config.descriptionArea).showLoadingAnimation();
-
-
-                    var tempModuleElement = $('.' + config.systemInfoModuleClass);
+                    tempModuleElement.find('.' + config.descriptionArea).showLoadingAnimation();
 
                     // "add description" button
-                    var descriptionButton = tempModuleElement.find('.' + config.addDescriptionButtonClass);
+                    let descriptionButton = tempModuleElement.find('.' + config.addDescriptionButtonClass);
 
                     // description textarea element
-                    var descriptionTextareaElement =  tempModuleElement.find('.' + config.descriptionTextareaElementClass);
+                    let descriptionTextareaElement =  tempModuleElement.find('.' + config.descriptionTextareaElementClass);
 
                     // init description textarea
                     descriptionTextareaElement.editable({
@@ -304,9 +293,8 @@ define([
                             Util.showNotify({title: 'System updated', text: 'Name: ' + response.name, type: 'success'});
                         },
                         error: function(jqXHR, newValue){
-
-                            var reason = '';
-                            var status = '';
+                            let reason = '';
+                            let status = '';
                             if(jqXHR.name){
                                 // save error new sig (mass save)
                                 reason = jqXHR.name;
@@ -324,13 +312,13 @@ define([
 
                     // on xEditable open -------------------------------------------------------------------------
                     descriptionTextareaElement.on('shown', function(e, editable){
-                        var textarea = editable.input.$input;
+                        let textarea = editable.input.$input;
 
                         // disable module update until description field is open
                         disableModuleUpdate = true;
 
                         // create character counter
-                        var charCounter = $('<kbd>', {
+                        let charCounter = $('<kbd>', {
                             class: [config.descriptionTextareaCharCounter, 'txt-color', 'text-right'].join(' ')
                         });
                         textarea.parent().next().append(charCounter);
@@ -345,11 +333,10 @@ define([
 
                     // on xEditable close ------------------------------------------------------------------------
                     descriptionTextareaElement.on('hidden', function(e){
-                        var value = $(this).editable('getValue', true);
-
+                        let value = $(this).editable('getValue', true);
                         if(value.length === 0){
                             // show button if value is empty
-                            hideToolsActionElement();
+                            hideToolsActionElement(descriptionButton.siblings('.' + config.tableToolsActionClass));
                             descriptionButton.show();
                         }
 
@@ -360,6 +347,7 @@ define([
                     // enable xEditable field on Button click ----------------------------------------------------
                     descriptionButton.on('click', function(e){
                         e.stopPropagation();
+                        let descriptionButton = $(this);
 
                         // hide tool buttons
                         descriptionButton.hide();
@@ -367,24 +355,23 @@ define([
                         // show field *before* showing the element
                         descriptionTextareaElement.editable('show');
 
-                        showToolsActionElement();
+                        showToolsActionElement(descriptionButton.siblings('.' + config.tableToolsActionClass));
                     });
 
-
                     // init tooltips -----------------------------------------------------------------------------
-                    var tooltipElements = $('.' + config.systemInfoModuleClass + ' [data-toggle="tooltip"]');
+                    let tooltipElements = tempModuleElement.find('[data-toggle="tooltip"]');
                     tooltipElements.tooltip();
 
                     // init system effect popover ----------------------------------------------------------------
-                    var infoEffectElement = $(moduleElement).find('.' + config.systemInfoEffectInfoClass);
+                    let infoEffectElement = $(moduleElement).find('.' + config.systemInfoEffectInfoClass);
 
                     if(infoEffectElement.length){
                         // effect row exists -> get effect data
-                        var systemEffectData = Util.getSystemEffectData( systemData.security, systemData.effect);
+                        let systemEffectData = Util.getSystemEffectData( systemData.security, systemData.effect);
 
                         if(systemEffectData !== false){
                             // transform data into table
-                            var systemEffectTable = Util.getSystemEffectTable( systemEffectData );
+                            let systemEffectTable = Util.getSystemEffectTable( systemEffectData );
 
                             infoEffectElement.popover({
                                 html: true,
@@ -403,9 +390,9 @@ define([
 
                     // init static wormhole information ----------------------------------------------------------
                     if(systemData.statics){
-                        for(var i = 0; i < systemData.statics.length; i++){
-                            var staticData = systemData.statics[i];
-                            var staticRowElement = tempModuleElement.find('.' + config.systemInfoWormholeClass + staticData.name);
+                        for(let i = 0; i < systemData.statics.length; i++){
+                            let staticData = systemData.statics[i];
+                            let staticRowElement = tempModuleElement.find('.' + config.systemInfoWormholeClass + staticData.name);
                             staticRowElement.addWormholeInfoTooltip(staticData);
                         }
                     }
@@ -424,13 +411,13 @@ define([
 
                     function details_in_popup(popoverElement){
                         popoverElement = $(popoverElement);
-                        var popover = popoverElement.data('bs.popover');
+                        let popover = popoverElement.data('bs.popover');
 
 
                         $.ajax({
                             url: popoverElement.data('url'),
                             success: function(data){
-                                var systemEffectTable = Util.getSystemsInfoTable( data.systemData );
+                                let systemEffectTable = Util.getSystemsInfoTable( data.systemData );
                                 popover.options.content = systemEffectTable;
                                 // reopen popover (new content size)
                                 popover.show();
@@ -444,7 +431,7 @@ define([
             }
         };
 
-        var moduleData = {
+        let moduleData = {
             system: systemData,
             tableClass: config.systemInfoTableClass,
             nameInfoClass: config.systemInfoNameInfoClass,
@@ -463,7 +450,7 @@ define([
             effectClass: effectClass,
             moduleToolbarClass: config.moduleElementToolbarClass,
             descriptionButtonClass: config.addDescriptionButtonClass,
-            moduleToolbarActionId: config.moduleToolbarActionId,
+            tableToolsActionClass: config.tableToolsActionClass,
             descriptionTextareaClass: config.descriptionTextareaElementClass,
 
             shatteredWormholeInfo: shatteredWormholeInfo,
@@ -483,7 +470,7 @@ define([
      * show system info module with animation
      * @param moduleElement
      */
-    var showModule = function(moduleElement){
+    let showModule = function(moduleElement){
         moduleElement.velocity('transition.slideDownIn', {
             duration: Init.animationSpeed.mapModule,
             delay: Init.animationSpeed.mapModule,
@@ -504,10 +491,10 @@ define([
      */
     $.fn.drawSystemInfoModule = function(mapId, systemData){
 
-        var parentElement = $(this);
+        let parentElement = $(this);
 
         // check if module already exists
-        var moduleElement = parentElement.find('.' + config.systemInfoModuleClass);
+        let moduleElement = parentElement.find('.' + config.systemInfoModuleClass);
 
         if(moduleElement.length > 0){
             moduleElement.velocity('transition.slideDownOut', {

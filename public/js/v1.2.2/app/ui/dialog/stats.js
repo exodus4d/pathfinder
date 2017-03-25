@@ -9,7 +9,7 @@ define([
     'app/util',
     'app/render',
     'bootbox'
-], function($, Init, Util, Render, bootbox, MapUtil) {
+], function($, Init, Util, Render, bootbox) {
     'use strict';
 
     let config = {
