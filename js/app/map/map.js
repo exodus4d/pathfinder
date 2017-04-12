@@ -2719,7 +2719,7 @@ define([
                         break;
                     case 'info':
                         // open map info dialog
-                        $(document).triggerMenuEvent('ShowMapInfo');
+                        $(document).triggerMenuEvent('ShowMapInfo', {tab: 'information'});
                         break;
 
                 }
@@ -3015,7 +3015,7 @@ define([
 
                     // set current location data for header update
                     headerUpdateData.currentSystemId =  $(system).data('id');
-                    //headerUpdateData.currentSystemName = currentCharacterLog.system.name;
+                    headerUpdateData.currentSystemName = currentCharacterLog.system.name;
                 }
 
                 system.updateSystemUserData(map, tempUserData, currentUserIsHere);

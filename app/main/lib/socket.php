@@ -8,8 +8,6 @@
 
 namespace lib;
 
-use controller\LogController;
-
 class Socket {
 
     // max TTL time (ms)

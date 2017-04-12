@@ -1900,6 +1900,34 @@ define([
     };
 
     /**
+     * send Ajax request that remote opens an ingame Window
+     * @param targetId
+     */
+    let openIngameWindow = (targetId) => {
+        targetId = parseInt(targetId);
+
+        if(targetId > 0){
+            $.ajax({
+                type: 'POST',
+                url: Init.path.openIngameWindow,
+                data: {
+                    targetId: targetId
+                },
+                dataType: 'json'
+            }).done(function(data){
+                if(data.error.length > 0){
+                    showNotify({title: 'Open window in client', text: 'Remote window open failed', type: 'error'});
+                }else{
+                    showNotify({title: 'Open window in client', text: 'Check your EVE client', type: 'success'});
+                }
+            }).fail(function( jqXHR, status, error) {
+                let reason = status + ' ' + error;
+                showNotify({title: jqXHR.status + ': openWindow', text: reason, type: 'error'});
+            });
+        }
+    };
+
+    /**
      * formats a price string into an ISK Price
      * @param price
      * @returns {string}
@@ -2066,6 +2094,7 @@ define([
         setDestination: setDestination,
         convertDateToString: convertDateToString,
         getOpenDialogs: getOpenDialogs,
+        openIngameWindow: openIngameWindow,
         formatPrice: formatPrice,
         getLocalStorage: getLocalStorage,
         getDocumentPath: getDocumentPath,

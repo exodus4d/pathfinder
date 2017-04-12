@@ -189,8 +189,9 @@ class Controller {
      * set/update logged in cookie by character model
      * -> store validation data in DB
      * @param Model\CharacterModel $character
+     * @param string $scopeHash
      */
-    protected function setLoginCookie(Model\CharacterModel $character){
+    protected function setLoginCookie(Model\CharacterModel $character, $scopeHash = ''){
 
         if( $this->getCookieState() ){
             $expireSeconds = (int) $this->getF3()->get('PATHFINDER.LOGIN.COOKIE_EXPIRE');
@@ -222,7 +223,8 @@ class Controller {
                 'characterId'   => $character,
                 'selector'      => $selector,
                 'token'         => $token,
-                'expires'       => $expireTime->format('Y-m-d H:i:s')
+                'expires'       => $expireTime->format('Y-m-d H:i:s'),
+                'scopeHash'     => $scopeHash
             ];
 
             $authenticationModel = $character->rel('characterAuthentications');
@@ -270,20 +272,20 @@ class Controller {
                     // cookie data is well formatted
                     $characterAuth->getByForeignKey('selector', $data[0], ['limit' => 1]);
 
-                    // validate expire data
-                    // validate token
+                    // validate "scope hash", "expire data" and "validate token"
                     if( !$characterAuth->dry() ){
                         if(
+                            $characterAuth->scopeHash === $this->getRequestedScopeHash() &&
                             strtotime($characterAuth->expires) >= $currentTime->getTimestamp() &&
                             hash_equals($characterAuth->token, hash('sha256', $data[1]))
                         ){
                             // cookie information is valid
-                            // -> try to update character information from CREST
+                            // -> try to update character information from ESI
                             // e.g. Corp has changed, this also ensures valid "access_token"
                             /**
                              * @var $character Model\CharacterModel
                              */
-                            $updateStatus = $characterAuth->characterId->updateFromCrest();
+                            $updateStatus = $characterAuth->characterId->updateFromESI();
 
                             if( empty($updateStatus) ){
                                 // make sure character data is up2date!
@@ -293,13 +295,15 @@ class Controller {
 
                                 // check if character still has user (is not the case of "ownerHash" changed
                                 // check if character is still authorized to log in (e.g. corp/ally or config has changed
-                                // -> do NOT remove cookie on failure. This can be a temporary problem (e.g. CREST is down,..)
+                                // -> do NOT remove cookie on failure. This can be a temporary problem (e.g. ESI is down,..)
                                 if(
                                     $character->hasUserCharacter() &&
                                     $character->isAuthorized()
                                 ){
                                     $characters[$name] = $character;
                                 }
+                            }else{
+                                $invalidCookie = true;
                             }
                         }else{
                             // clear existing authentication data from DB
@@ -450,6 +454,15 @@ class Controller {
     }
 
     /**
+     * get a hash over all requested ESI scopes
+     * -> this helps to invalidate "authentication data" after scope change
+     * @return string
+     */
+    protected function getRequestedScopeHash(){
+        return md5(serialize( self::getEnvironmentData('CCP_ESI_SCOPES') ));
+    }
+
+    /**
      * log out current character
      * @param \Base $f3
      */
@@ -477,16 +490,33 @@ class Controller {
      * @param \Base $f3
      */
     public function getEveServerStatus(\Base $f3){
-        // server status can be cached for some seconds
         $cacheKey = 'eve_server_status';
         if( !$f3->exists($cacheKey, $return) ){
             $return = (object) [];
             $return->error = [];
+            $return->status = [
+                'serverName' => strtoupper( self::getEnvironmentData('CCP_ESI_DATASOURCE') ),
+                'serviceStatus' => 'offline'
+            ];
 
-            $sso = new Sso();
-            $return->status = $sso->getCrestServerStatus();
+            $response = $f3->ccpClient->getServerStatus();
 
-            if( !$return->status->crestOffline ){
+            if( !empty($response) ){
+                // calculate time diff since last server restart
+                $timezone = new \DateTimeZone( $f3->get('TZ') );
+                $dateNow = new \DateTime('now', $timezone);
+                $dateServerStart = new \DateTime($response['startTime']);
+                $interval = $dateNow->diff($dateServerStart);
+                $startTimestampFormat = $interval->format('%hh %im');
+                if($interval->days > 0){
+                    $startTimestampFormat = $interval->days . 'd ' . $startTimestampFormat;
+                }
+
+                $response['serverName'] = strtoupper( self::getEnvironmentData('CCP_ESI_DATASOURCE') );
+                $response['serviceStatus'] = 'online';
+                $response['startTime'] = $startTimestampFormat;
+                $return->status = $response;
+
                 $f3->set($cacheKey, $return, 60);
             }
         }
@@ -797,7 +827,7 @@ class Controller {
     /**
      * get environment specific configuration data
      * @param string $key
-     * @return string|null
+     * @return string|array|null
      */
     static function getEnvironmentData($key){
         return Config::getEnvironmentData($key);

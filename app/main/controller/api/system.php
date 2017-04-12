@@ -385,20 +385,25 @@ class System extends Controller\AccessController {
             $return->clearOtherWaypoints = (bool)$postData['clearOtherWaypoints'];
             $return->first = (bool)$postData['first'];
 
-             /**
-             * @var Sso $ssoController
-             */
-            $ssoController = self::getController('Sso');
-            foreach($postData['systemData'] as $systemData){
-                $waypointData = $ssoController->setWaypoint($activeCharacter, $systemData['systemId'], [
+            if( $accessToken = $activeCharacter->getAccessToken() ){
+                $options = [
                     'clearOtherWaypoints' => $return->clearOtherWaypoints,
-                    'first' => $return->first,
-                ]);
-                if($waypointData['systemId']){
-                    $return->systemData[] = $systemData;
-                }elseif( isset($waypointData['error']) ){
-                    $return->error[] = $waypointData['error'];
+                    'addToBeginning' => $return->first,
+                ];
+
+                foreach($postData['systemData'] as $systemData){
+                    $response =  $f3->ccpClient->setWaypoint($systemData['systemId'], $accessToken, $options);
+
+                    if(empty($response)){
+                        $return->systemData[] = $systemData;
+                    }else{
+                        $error = (object) [];
+                        $error->type = 'error';
+                        $error->message = $response['error'];
+                        $return->error[] = $error;
+                    }
                 }
+
             }
         }
 

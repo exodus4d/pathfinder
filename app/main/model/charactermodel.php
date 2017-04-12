@@ -75,15 +75,6 @@ class CharacterModel extends BasicModel {
                 ]
             ]
         ],
-        'factionId' => [
-            'type' => Schema::DT_INT,
-            'index' => true
-        ],
-        'factionName' => [
-            'type' => Schema::DT_VARCHAR128,
-            'nullable' => false,
-            'default' => ''
-        ],
         'shared' => [
             'type' => Schema::DT_BOOL,
             'nullable' => false,
@@ -93,6 +84,11 @@ class CharacterModel extends BasicModel {
             'type' => Schema::DT_BOOL,
             'nullable' => false,
             'default' => 1
+        ],
+        'securityStatus' => [
+            'type' => Schema::DT_FLOAT,
+            'nullable' => false,
+            'default' => 0
         ],
         'userCharacter' => [
             'has-one' => ['Model\UserCharacterModel', 'characterId']
@@ -178,7 +174,7 @@ class CharacterModel extends BasicModel {
     }
 
     /**
-     * set CREST accessToken for current session
+     * set API accessToken for current session
      * -> update "tokenUpdated" column on change
      * -> this is required for expire checking!
      * @param string $accessToken
@@ -191,6 +187,11 @@ class CharacterModel extends BasicModel {
         return $accessToken;
     }
 
+    /**
+     * logLocation specifies whether the current system should be tracked or not
+     * @param $logLocation
+     * @return bool
+     */
     public function set_logLocation($logLocation){
         $logLocation = (bool)$logLocation;
         if(
@@ -304,7 +305,7 @@ class CharacterModel extends BasicModel {
     }
 
     /**
-     * get CREST API "access_token" from OAuth
+     * get ESI API "access_token" from OAuth
      * @return bool|string
      */
     public function getAccessToken(){
@@ -405,32 +406,75 @@ class CharacterModel extends BasicModel {
 
     /**
      * update character log (active system, ...)
-     * -> CREST API request for character log data
+     * -> API request for character log data
      * @param array $additionalOptions (optional) request options for cURL request
      * @return $this
      */
     public function updateLog($additionalOptions = []){
+        $deleteLog = true;
+
+
         //check if log update is enabled for this user
         if( $this->logLocation ){
-            // Try to pull data from CREST
-            $ssoController = new Sso();
-            $logData = $ssoController->getCharacterLocationData($this->getAccessToken(), $additionalOptions);
+            // Try to pull data from API
+            if( $accessToken = $this->getAccessToken() ){
 
-            if($logData['timeout'] === false){
-                if( empty($logData['system']) ){
-                    // character is not in-game
-                    if( $this->hasLog() ){
-                        // delete existing log
-                        $this->characterLog->erase();
-                        $this->save();
-                    }
-                }else{
+                $locationData = self::getF3()->ccpClient->getCharacterLocationData($this->_id, $accessToken, $additionalOptions);
+
+                if( !empty($locationData['system']['id']) ){
                     // character is currently in-game
+
+
+                    // IDs for "systemId", "stationId and "shipTypeId" that require more data
+                    $lookupIds = [];
+
                     if( !$characterLog = $this->getLog() ){
                         // create new log
                         $characterLog = $this->rel('characterLog');
                         $characterLog->characterId = $this->_id;
                     }
+
+                    // get current log data and modify on change
+                    $logData = json_decode(json_encode( $characterLog->getData()), true);
+
+                    if($logData['system']['id'] !== $locationData['system']['id']){
+                        // system changed -> request "system name" for current system
+                        $lookupIds[] = $locationData['system']['id'];
+                    }
+
+                    if( !empty($locationData['station']['id']) ){
+                        if( $logData['station']['id']  !== $locationData['station']['id'] ){
+                            // station changed -> request "station name" for current station
+                            $lookupIds[] = $locationData['station']['id'];
+                        }
+                    }else{
+                        unset($logData['station']);
+                    }
+
+                    $logData = array_replace_recursive($logData, $locationData);
+
+                    // get current ship data
+                    $shipData = self::getF3()->ccpClient->getCharacterShipData($this->_id, $accessToken, $additionalOptions);
+
+                    if( !empty($shipData['ship']['typeId']) ){
+                        if($logData['ship']['typeId'] !== $shipData['ship']['typeId']){
+                            // ship changed -> request "station name" for current station
+                            $lookupIds[] = $shipData['ship']['typeId'];
+                        }
+
+                        // "shipName"/"shipId" could have changed...
+                        $logData = array_replace_recursive($logData, $shipData);
+                    }else{
+                        unset($logData['ship']);
+                    }
+
+                    if( !empty($lookupIds) ){
+                        // get "more" information for some Ids (e.g. name)
+                        $universeData = self::getF3()->ccpClient->getUniverseNamesData($lookupIds, $additionalOptions);
+                        $logData = array_replace_recursive($logData, $universeData);
+                    }
+
+                    $deleteLog = false;
                     $characterLog->setData($logData);
                     $characterLog->save();
 
@@ -439,14 +483,23 @@ class CharacterModel extends BasicModel {
             }
         }
 
+        if(
+            $deleteLog &&
+            $this->hasLog()
+        ){
+            // delete existing log
+            $this->characterLog->erase();
+            $this->save();
+        }
+
         return $this;
     }
 
     /**
-     * update character data from CCPs CREST API
+     * update character data from CCPs ESI API
      * @return array (some status messages)
      */
-    public function updateFromCrest(){
+    public function updateFromESI(){
         $status = [];
 
         if( $accessToken = $this->getAccessToken() ){
@@ -458,36 +511,14 @@ class CharacterModel extends BasicModel {
                 !is_null( $verificationCharacterData = $ssoController->verifyCharacterData($accessToken) ) &&
                 $verificationCharacterData->CharacterID === $this->_id
             ){
-                // get character data from CREST
-                $characterData = $ssoController->getCharacterData($accessToken);
-                if( isset($characterData->character) ){
+                // get character data from API
+                $characterData = $ssoController->getCharacterData($this->_id);
+                if( !empty($characterData->character) ){
                     $characterData->character['ownerHash'] = $verificationCharacterData->CharacterOwnerHash;
 
-                    $corporation = null;
-                    $alliance = null;
-                    if( isset($characterData->corporation) ){
-                        /**
-                         * @var $corporation CorporationModel
-                         */
-                        $corporation = $this->rel('corporationId');
-                        $corporation->getById($characterData->corporation['id'], 0);
-                        $corporation->copyfrom($characterData->corporation, ['id', 'name', 'isNPC']);
-                        $corporation->save();
-                    }
-
-                    if( isset($characterData->alliance) ){
-                        /**
-                         * @var $alliance AllianceModel
-                         */
-                        $alliance = $this->rel('allianceId');
-                        $alliance->getById($characterData->alliance['id'], 0);
-                        $alliance->copyfrom($characterData->alliance, ['id', 'name']);
-                        $alliance->save();
-                    }
-
-                    $this->copyfrom($characterData->character, ['name', 'ownerHash']);
-                    $this->set('corporationId', is_object($corporation) ? $corporation->get('id') : null);
-                    $this->set('allianceId', is_object($alliance) ? $alliance->get('id') : null);
+                    $this->copyfrom($characterData->character, ['ownerHash', 'securityStatus']);
+                    $this->corporationId = $characterData->corporation;
+                    $this->allianceId = $characterData->alliance;
                     $this->save();
                 }
             }else{

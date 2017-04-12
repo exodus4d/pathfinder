@@ -34,10 +34,11 @@ class Setup extends Controller {
         'DB_CCP_NAME',
         'DB_CCP_USER',
         'DB_CCP_PASS',
-        'CCP_CREST_URL',
-        'SSO_CCP_URL',
-        'SSO_CCP_CLIENT_ID',
-        'SSO_CCP_SECRET_KEY',
+        'CCP_SSO_URL',
+        'CCP_SSO_CLIENT_ID',
+        'CCP_SSO_SECRET_KEY',
+        'CCP_ESI_URL',
+        'CCP_ESI_DATASOURCE',
         'CCP_XML',
         'SMTP_HOST',
         'SMTP_PORT',
@@ -183,6 +184,8 @@ class Setup extends Controller {
             $this->exportTable($params['exportTable']);
         }elseif( !empty($params['clearCache']) ){
             $this->clearCache($f3);
+        }elseif( !empty($params['invalidateCookies']) ){
+            $this->invalidateCookies($f3);
         }
 
         // set template data ----------------------------------------------------------------
@@ -314,7 +317,7 @@ class Setup extends Controller {
         ];
 
         // obscure some values
-        $obscureVars = ['SSO_CCP_CLIENT_ID', 'SSO_CCP_SECRET_KEY', 'SMTP_PASS'];
+        $obscureVars = ['CCP_SSO_CLIENT_ID', 'CCP_SSO_SECRET_KEY', 'SMTP_PASS'];
 
         foreach($this->environmentVars as $var){
             if( !in_array($var, $excludeVars) ){
@@ -1201,6 +1204,21 @@ class Setup extends Controller {
      */
     protected function clearCache(\Base $f3){
         $f3->clear('CACHE');
+    }
+
+    /**
+     * clear all character authentication (Cookie) data
+     * @param \Base $f3
+     */
+    protected function invalidateCookies(\Base $f3){
+        $this->getDB('PF');
+        $authentidationModel = Model\BasicModel::getNew('CharacterAuthenticationModel');
+        $results = $authentidationModel->find();
+        if($results){
+            foreach($results as $result){
+                $result->erase();
+            }
+        }
     }
 
     /**

@@ -50,6 +50,11 @@ class CharacterAuthenticationModel extends BasicModel{
             'type' => Schema::DT_TIMESTAMP,
             'default' => Schema::DF_CURRENT_TIMESTAMP,
             'index' => true
+        ],
+        'scopeHash' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
         ]
     ];
 

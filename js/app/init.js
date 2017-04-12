@@ -16,6 +16,7 @@ define(['jquery'], function($) {
             logIn: 'api/user/logIn',                                        // ajax URL - login
             logout: 'api/user/logout',                                      // ajax URL - logout
             deleteLog: 'api/user/deleteLog',                                // ajax URL - delete character log
+            openIngameWindow: 'api/user/openIngameWindow',                  // ajax URL - open inGame Window
             saveUserConfig: 'api/user/saveAccount',                         // ajax URL - saves/update user account
             deleteAccount: 'api/user/deleteAccount',                        // ajax URL - delete Account data
             // access API

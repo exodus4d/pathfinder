@@ -35,6 +35,7 @@ define([
         tableImageSmallCellClass: 'pf-table-image-small-cell',                  // class for table "small image" cells
         tableActionCellClass: 'pf-table-action-cell',                           // class for table "action" cells
         tableCounterCellClass: 'pf-table-counter-cell',                         // class for table "counter" cells
+        tableActionCellIconClass: 'pf-table-action-icon-cell',                  // class for table "action" icon (icon is part of cell content)
 
         loadingOptions: {                                                       // config for loading overlay
             icon: {
@@ -625,7 +626,15 @@ define([
         // table init complete
         userTable.on( 'init.dt', function () {
             usersElement.hideLoadingAnimation();
+
+            // init table tooltips
+            let tooltipElements = usersElement.find('[data-toggle="tooltip"]');
+            tooltipElements.tooltip();
         });
+
+        let getIconForInformationWindow = () => {
+            return '<i class="fa fa-fw fa-id-card ' + config.tableActionCellIconClass + '" title="open ingame" data-toggle="tooltip"></i>';
+        };
 
         // users table ================================================================================================
         // prepare users data for dataTables
@@ -681,7 +690,9 @@ define([
                     searchable: true,
                     data: 'log.ship',
                     render: {
-                        _: 'typeName',
+                        _: function(data, type, row){
+                            return data.typeName + '&nbsp;<i class="fa fa-fw fa-question-circle pf-help" title="' + data.name + '" data-toggle="tooltip"></i>';
+                        },
                         sort: 'typeName'
                     }
                 },{
@@ -702,7 +713,24 @@ define([
                     title: 'pilot',
                     orderable: true,
                     searchable: true,
-                    data: 'name'
+                    className: [config.tableActionCellClass].join(' '),
+                    data: 'name',
+                    render: {
+                        _: function(data, type, row, meta){
+                            let value = data;
+                            if(type === 'display'){
+                                value += '&nbsp;' + getIconForInformationWindow();
+                            }
+                            return value;
+                        }
+                    },
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                        // open character information window (ingame)
+                        $(cell).on('click', { tableApi: this.DataTable() }, function(e) {
+                            let rowData = e.data.tableApi.row(this).data();
+                            Util.openIngameWindow(rowData.id);
+                        });
+                    }
                 },{
                     targets: 4,
                     title: '',
@@ -721,9 +749,23 @@ define([
                     title: 'corporation',
                     orderable: true,
                     searchable: true,
+                    className: [config.tableActionCellClass].join(' '),
                     data: 'corporation',
                     render: {
-                        _: 'name'
+                        _: function (data, type, row, meta) {
+                            let value = data.name;
+                            if(type === 'display'){
+                                value += '&nbsp;' + getIconForInformationWindow();
+                            }
+                            return value;
+                        }
+                    },
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                        // open character information window (ingame)
+                        $(cell).on('click', { tableApi: this.DataTable() }, function(e) {
+                            let cellData = e.data.tableApi.cell(this).data();
+                            Util.openIngameWindow(cellData.id);
+                        });
                     }
                 },{
                     targets: 6,
@@ -753,9 +795,9 @@ define([
 
     /**
      * shows the map information modal dialog
+     * @param options
      */
-    $.fn.showMapInfoDialog = function(){
-
+    $.fn.showMapInfoDialog = function(options){
         let activeMap = Util.getMapModule().getActiveMap();
         let mapData = activeMap.getMapDataFromClient({forceData: true});
 
@@ -770,7 +812,11 @@ define([
                     mapInfoId: config.mapInfoId,
                     mapInfoSystemsId: config.mapInfoSystemsId,
                     mapInfoConnectionsId: config.mapInfoConnectionsId,
-                    mapInfoUsersId: config.mapInfoUsersId
+                    mapInfoUsersId: config.mapInfoUsersId,
+
+                    // default open tab ----------
+                    openTabInformation: options.tab === 'information',
+                    openTabActivity: options.tab === 'activity'
                 };
 
                 let content = Mustache.render(template, data);

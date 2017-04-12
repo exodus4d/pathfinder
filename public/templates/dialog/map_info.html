@@ -1,12 +1,12 @@
 <nav class="navbar navbar-default" role="navigation">
     <div class="navbar-header pull-left">
         <ul class="nav navbar-nav {{dialogNavigationClass}}" role="tablist">
-            <li class="active">
+            <li class="{{#openTabInformation}}active{{/openTabInformation}}">
                 <a role="tab" data-toggle="tab" data-name="infoSummary" href="#{{dialogSummaryContainerId}}">
                     <i class="fa fa-street-view fa-fw"></i>&nbsp;Information
                 </a>
             </li>
-            <li class="">
+            <li class="{{#openTabActivity}}active{{/openTabActivity}}">
                 <a role="tab" data-toggle="tab" data-name="infoUsers" href="#{{dialogUsersContainerId}}">
                     <i class="fa fa-fighter-jet fa-fw"></i>&nbsp;Activity
                 </a>
@@ -28,7 +28,7 @@
 <div class="tab-content">
 
     {{! "summary" tab ------------------------------------------------------ }}
-    <div role="tabpanel" class="tab-pane fade in active" id="{{dialogSummaryContainerId}}">
+    <div role="tabpanel" class="tab-pane fade {{#openTabInformation}}in active{{/openTabInformation}}" id="{{dialogSummaryContainerId}}">
         <div class="alert alert-info fade in hidden-md hidden-lg">
             <button type="button" class="close" data-dismiss="alert" aria-label="Close"><i class="fa fa-close"></i></button>
             <span class="txt-color txt-color-information">Info</span>
@@ -52,7 +52,7 @@
     </div>
 
     {{! "users" tab -------------------------------------------------------- }}
-    <div role="tabpanel" class="tab-pane fade" id="{{dialogUsersContainerId}}">
+    <div role="tabpanel" class="tab-pane fade {{#openTabActivity}}in active{{/openTabActivity}}" id="{{dialogUsersContainerId}}">
         <h4><i class="fa fa-male fa-lg fa-fw"></i> Active pilots</h4>
 
         <div id="{{mapInfoUsersId}}" class="pf-dynamic-area">

@@ -323,7 +323,7 @@ define([
                         class: 'fa fa-street-view fa-fw'
                     })
                 ).on('click', function(){
-                    $(document).triggerMenuEvent('ShowMapInfo');
+                    $(document).triggerMenuEvent('ShowMapInfo', {tab: 'information'});
                 })
             ).append(
                 getMenuHeadline('Settings')
@@ -496,7 +496,7 @@ define([
 
         // active pilots
         $('.' + config.headActiveUserClass).find('a').on('click', function(){
-            $(document).triggerMenuEvent('ShowMapInfo');
+            $(document).triggerMenuEvent('ShowMapInfo', {tab: 'activity'});
         });
 
         // current location
@@ -661,9 +661,9 @@ define([
             return false;
         });
 
-        $(document).on('pf:menuShowMapInfo', function(e){
+        $(document).on('pf:menuShowMapInfo', function(e, data){
             // show map information dialog
-            $.fn.showMapInfoDialog();
+            $.fn.showMapInfoDialog(data);
             return false;
         });
 
