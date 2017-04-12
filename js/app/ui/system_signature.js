@@ -98,6 +98,8 @@ define([
     let validSignatureNames = [                                                 // allowed signature type/names
         'Cosmic Anomaly',
         'Cosmic Signature',
+        'Kosmische Anomalie',
+        'Kosmische Signatur',
         'Космическая аномалия',                                                 // == "Cosmic Anomaly"
         'Источники сигналов'                                                    // == "Cosmic Signature"
     ];
@@ -658,7 +660,8 @@ define([
                         // get groupId by groupName
                         for (let prop in signatureGroupOptions) {
                             if(signatureGroupOptions.hasOwnProperty(prop)){
-                                if(signatureGroupOptions[prop] === sigGroup){
+                                let reg = new RegExp(signatureGroupOptions[prop], 'i');
+                                if (reg.test(sigGroup)) {
                                     sigGroupId = parseInt( prop );
                                     break;
                                 }
