@@ -8,10 +8,8 @@
 
 namespace Controller;
 use Controller\Api as Api;
-use Controller\Ccp\Sso as Sso;
 use lib\Config;
 use lib\Socket;
-use Lib\Util;
 use Model;
 use DB;
 
@@ -486,7 +484,7 @@ class Controller {
     }
 
     /**
-     * get EVE server status from CREST
+     * get EVE server status from ESI
      * @param \Base $f3
      */
     public function getEveServerStatus(\Base $f3){

@@ -130,13 +130,9 @@ class System extends Controller\AccessController {
      * @return array
      */
     public function getSystems(){
-
         $ccpDB = $this->getDB('CCP');
-
         $query = $this->_getQuery();
-
         $rows = $ccpDB->exec($query, null, 60 * 60 * 24);
-
         // format result
         $mapper = new Mapper\CcpSystemsMapper($rows);
 
@@ -456,24 +452,4 @@ class System extends Controller\AccessController {
         echo json_encode([]);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

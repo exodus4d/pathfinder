@@ -167,7 +167,7 @@ class Sso extends Api\User{
                 $f3->clear(self::SESSION_KEY_SSO_STATE);
                 $f3->clear(self::SESSION_KEY_SSO_FROM_MAP);
 
-                $accessData = $this->getCrestAccessData($getParams['code']);
+                $accessData = $this->getSsoAccessData($getParams['code']);
 
                 if(
                     isset($accessData->accessToken) &&
@@ -320,7 +320,7 @@ class Sso extends Api\User{
      * @param bool $authCode
      * @return null|\stdClass
      */
-    public function getCrestAccessData($authCode){
+    public function getSsoAccessData($authCode){
         $accessData = null;
 
         if( !empty($authCode) ){

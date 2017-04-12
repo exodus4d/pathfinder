@@ -98,7 +98,7 @@ class Web extends \Web {
      * @param string $url
      * @param array|null $options
      * @param array $additionalOptions
-     * @param int $retryCount request counter for failed crest call
+     * @param int $retryCount request counter for failed call
      * @return array|FALSE|mixed
      */
     public function request($url,array $options = null, $additionalOptions = [], $retryCount = 0 ) {

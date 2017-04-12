@@ -98,17 +98,26 @@ class Database extends \Prefab {
      */
     protected function connect($dns, $name, $user, $password){
         $db = null;
+        $f3 = \Base::instance();
+
+        $options = [
+            \PDO::MYSQL_ATTR_COMPRESS  => true,
+            \PDO::ATTR_TIMEOUT => \Base::instance()->get('REQUIREMENTS.MYSQL.PDO_TIMEOUT'),
+        ];
+
+        // set ERRMODE depending on pathfinders global DEBUG level
+        if($f3->get('DEBUG') >= 3){
+            $options[\PDO::ATTR_ERRMODE] = \PDO::ERRMODE_WARNING;
+        }else{
+            $options[\PDO::ATTR_ERRMODE] = \PDO::ERRMODE_EXCEPTION;
+        }
 
         try {
             $db = new SQL(
                 $dns . $name,
                 $user,
                 $password,
-                [
-                    \PDO::MYSQL_ATTR_COMPRESS  => true,
-                    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                    \PDO::ATTR_TIMEOUT => \Base::instance()->get('REQUIREMENTS.MYSQL.PDO_TIMEOUT'),
-                ]
+                $options
             );
         }catch(\PDOException $e){
             // DB connection error

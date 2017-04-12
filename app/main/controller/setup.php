@@ -39,7 +39,6 @@ class Setup extends Controller {
         'CCP_SSO_SECRET_KEY',
         'CCP_ESI_URL',
         'CCP_ESI_DATASOURCE',
-        'CCP_XML',
         'SMTP_HOST',
         'SMTP_PORT',
         'SMTP_SCHEME',
