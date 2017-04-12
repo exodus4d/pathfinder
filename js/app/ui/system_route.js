@@ -183,6 +183,7 @@ define([
             wormholes: (rowData.hasOwnProperty('wormholes')) ? rowData.wormholes | 0 : 1,
             wormholesReduced: (rowData.hasOwnProperty('wormholesReduced')) ? rowData.wormholesReduced | 0 : 1,
             wormholesCritical: (rowData.hasOwnProperty('wormholesCritical')) ? rowData.wormholesCritical | 0 : 1,
+            wormholesFrigate: (rowData.hasOwnProperty('wormholesFrigate')) ? rowData.wormholesFrigate | 0 : 1,
             wormholesEOL: (rowData.hasOwnProperty('wormholesEOL')) ? rowData.wormholesEOL | 0 : 1,
             safer: (rowData.hasOwnProperty('safer')) ? rowData.safer.value | 0 : 0
         };
@@ -273,6 +274,7 @@ define([
                                         wormholes: routeDialogData.hasOwnProperty('wormholes') ? parseInt( routeDialogData.wormholes ) : 0,
                                         wormholesReduced: routeDialogData.hasOwnProperty('wormholesReduced') ? parseInt( routeDialogData.wormholesReduced ) : 0,
                                         wormholesCritical: routeDialogData.hasOwnProperty('wormholesCritical') ? parseInt( routeDialogData.wormholesCritical ) : 0,
+                                        wormholesFrigate: routeDialogData.hasOwnProperty('wormholesFrigate') ? parseInt( routeDialogData.wormholesFrigate ) : 0,
                                         wormholesEOL: routeDialogData.hasOwnProperty('wormholesEOL') ? parseInt( routeDialogData.wormholesEOL ) : 0
                                     }]
                                 };
@@ -480,12 +482,14 @@ define([
         let wormholeCheckbox = routeDialog.find('input[type="checkbox"][name="wormholes"]');
         let wormholeReducedCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesReduced"]');
         let wormholeCriticalCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesCritical"]');
+        let wormholeFrigateCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesFrigate"]');
         let wormholeEolCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesEOL"]');
 
         // store current "checked" state for each box ---------------------------------------------
         let storeCheckboxStatus = function(){
             wormholeReducedCheckbox.data('selectState', wormholeReducedCheckbox.prop('checked'));
             wormholeCriticalCheckbox.data('selectState', wormholeCriticalCheckbox.prop('checked'));
+            wormholeFrigateCheckbox.data('selectState', wormholeFrigateCheckbox.prop('checked'));
             wormholeEolCheckbox.data('selectState', wormholeEolCheckbox.prop('checked'));
         };
 
@@ -495,10 +499,12 @@ define([
             if( $(this).is(':checked') ){
                 wormholeReducedCheckbox.prop('disabled', false);
                 wormholeCriticalCheckbox.prop('disabled', false);
+                wormholeFrigateCheckbox.prop('disabled', false);
                 wormholeEolCheckbox.prop('disabled', false);
 
                 wormholeReducedCheckbox.prop('checked', wormholeReducedCheckbox.data('selectState'));
                 wormholeCriticalCheckbox.prop('checked', wormholeCriticalCheckbox.data('selectState'));
+                wormholeFrigateCheckbox.prop('checked', wormholeFrigateCheckbox.data('selectState'));
                 wormholeEolCheckbox.prop('checked', wormholeEolCheckbox.data('selectState'));
             }else{
                 storeCheckboxStatus();
@@ -507,6 +513,8 @@ define([
                 wormholeReducedCheckbox.prop('disabled', true);
                 wormholeCriticalCheckbox.prop('checked', false);
                 wormholeCriticalCheckbox.prop('disabled', true);
+                wormholeFrigateCheckbox.prop('checked', false);
+                wormholeFrigateCheckbox.prop('disabled', true);
                 wormholeEolCheckbox.prop('checked', false);
                 wormholeEolCheckbox.prop('disabled', true);
             }
@@ -580,6 +588,7 @@ define([
             wormholes: routeData.wormholes,
             wormholesReduced: routeData.wormholesReduced,
             wormholesCritical: routeData.wormholesCritical,
+            wormholesFrigate: routeData.wormholesFrigate,
             wormholesEOL: routeData.wormholesEOL,
             safer: {
                 value: routeData.safer,

@@ -60,7 +60,7 @@
                                 <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
                                 {{/mapSelectOptions}}
                             </select>
-                            <span class="help-block with-errors">Set maps from search</span>
+                            <span class="help-block with-errors">Set maps for search</span>
                         </div>
                     </div>
                 </div>
@@ -105,7 +105,18 @@
                 </div>
             </div>
 
-            <div class="col-sm-4 col-sm-offset-8">
+            <div class="col-sm-4 col-sm-offset-4">
+                <div class="form-group">
+                    <div class="col-sm-offset-1 col-sm-11">
+                        <div class="col-sm-12 col-xs-6 checkbox checkbox checkbox-circle" title="include frigate connections">
+                            <input id="form_wormholes_frigate" name="wormholesFrigate" value="1" type="checkbox" checked>
+                            <label for="form_wormholes_frigate">Frigate</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-4">
                 <div class="form-group">
                     <div class="col-sm-offset-1 col-sm-11">
                         <div class="col-sm-12 col-xs-6 checkbox checkbox-danger checkbox-circle" title="include EOL connections">

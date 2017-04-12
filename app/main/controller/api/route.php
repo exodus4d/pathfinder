@@ -118,6 +118,7 @@ class Route extends Controller\AccessController {
             $whereQuery = "";
             $includeScopes = [];
             $includeTypes = [];
+            $excludeTypes = [];
             $includeEOL = true;
 
             if( $filterData['stargates'] === true){
@@ -147,6 +148,10 @@ class Route extends Controller\AccessController {
                     $includeTypes[] = 'wh_critical';
                 }
 
+                if( $filterData['wormholesFrigate'] !== true ){
+                    $excludeTypes[] = 'frigate';
+                }
+
                 if( $filterData['wormholesEOL'] === false ){
                     $includeEOL = false;
                 }
@@ -156,6 +161,10 @@ class Route extends Controller\AccessController {
 
             if( !empty($includeScopes) ){
                 $whereQuery .= " `connection`.`scope` IN ('" . implode("', '", $includeScopes) . "') AND ";
+
+                if( !empty($excludeTypes) ){
+                    $whereQuery .= " `connection`.`type` NOT REGEXP '" . implode("|", $excludeTypes) . "' AND ";
+                }
 
                 if( !empty($includeTypes) ){
                     $whereQuery .= " `connection`.`type` REGEXP '" . implode("|", $includeTypes) . "' AND ";
@@ -561,6 +570,7 @@ class Route extends Controller\AccessController {
                     'wormholes' => (bool) $routeData['wormholes'],
                     'wormholesReduced' => (bool) $routeData['wormholesReduced'],
                     'wormholesCritical' => (bool) $routeData['wormholesCritical'],
+                    'wormholesFrigate' => (bool) $routeData['wormholesFrigate'],
                     'wormholesEOL' => (bool) $routeData['wormholesEOL'],
                     'safer' => (bool) $routeData['safer']
                 ];
