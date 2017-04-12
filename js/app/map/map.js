@@ -1639,8 +1639,10 @@ define([
             id: id ? id : 0,
             source: parseInt( source.data('id') ),
             sourceName: source.data('name'),
+            sourceAlias: source.getSystemInfo(['alias']),
             target: parseInt( target.data('id') ),
             targetName: target.data('name'),
+            targetAlias: target.getSystemInfo(['alias']),
             scope: connection.scope,
             type: connectionTypes,
             updated: updated ? updated : 0

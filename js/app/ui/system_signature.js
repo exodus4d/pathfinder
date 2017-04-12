@@ -1478,13 +1478,13 @@ define([
                     // take target...
                     connectionOptions.push({
                         value: connectionData.id,
-                        text: connectionData.targetName
+                        text: connectionData.targetAlias
                     });
                 }else if(systemData.id !== connectionData.source){
                     // take source...
                     connectionOptions.push({
                         value: connectionData.id,
-                        text: connectionData.sourceName
+                        text: connectionData.sourceAlias
                     });
                 }
             }
