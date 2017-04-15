@@ -345,7 +345,7 @@ define(['jquery'], function($) {
                 label: 'Data'
             },
             4: {
-                name: '(gas site)',
+                name: '(gas site|gasgebiet)',
                 label: 'Gas'
             },
             5: {
