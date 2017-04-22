@@ -1,0 +1,21 @@
+server {
+    listen 80;
+    listen [::]:80 default_server ipv6only=on;
+    server_name {name};
+    underscores_in_headers on;
+
+    root /home/{USER}/pathfinder;
+    index index.php index.html index.htm;
+
+    location / {
+        index index.php;
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass unix:/var/run/php5-fpm.sock; 
+        fastcgi_index index.php;
+        include fastcgi_params;
+    }
+}
