@@ -15,7 +15,8 @@ define([
     'dragToSelect',
     'select2',
     'app/map/contextmenu',
-    'app/map/overlay'
+    'app/map/overlay',
+    'app/map/local'
 ], function($, Init, Util, Render, bootbox, MapUtil, System, MagnetizerWrapper) {
 
     'use strict';
@@ -59,13 +60,7 @@ define([
         systemDialogSelectClass: 'pf-system-dialog-select',             // class for system select Element
 
         // system security classes
-        systemSec: 'pf-system-sec',
-        systemSecHigh: 'pf-system-sec-highSec',
-        systemSecLow: 'pf-system-sec-lowSec',
-        systemSecNull: 'pf-system-sec-nullSec',
-        systemSecWHHeigh: 'pf-system-sec-high',
-        systemSecWHMid: 'pf-system-sec-mid',
-        systemSecWHLow: 'pf-system-sec-low'
+        systemSec: 'pf-system-sec'
     };
 
     // active jsPlumb instances currently running
@@ -2875,6 +2870,44 @@ define([
                 mapUpdateQueue.splice(mapQueueIndex, 1);
             }
         });
+
+        // update "local" overlay for this map
+        mapContainer.on('pf:updateLocal', function(e, userData){
+            let mapElement = $(this);
+            let mapOverlay = mapElement.getMapOverlay('local');
+
+            let currentCharacterLog = Util.getCurrentCharacterLog();
+            let currentMapData = Util.getCurrentMapData(userData.config.id);
+            let clearLocal = true;
+
+            if(
+                currentMapData &&
+                currentCharacterLog &&
+                currentCharacterLog.system
+            ){
+                let currentSystemData = currentMapData.data.systems.filter(function (system) {
+                    return system.systemId === currentCharacterLog.system.id;
+                });
+
+                if(currentSystemData.length){
+                    // current user system is on this map
+                    currentSystemData = currentSystemData[0];
+
+                    // check for active users "near by" (x jumps radius)
+                    let nearBySystemData = Util.getNearBySystemData(currentSystemData, currentMapData,  3);
+                    let nearByCharacterData = Util.getNearByCharacterData(nearBySystemData, userData.data.systems);
+
+                    // update "local" table in overlay
+                    mapOverlay.updateLocalTable(currentSystemData, nearByCharacterData);
+                    clearLocal = false;
+                }
+            }
+
+            if(clearLocal){
+                mapOverlay.clearLocalTable();
+            }
+
+        });
     };
 
     /**
@@ -3009,15 +3042,16 @@ define([
                 // the current user can only be in a single system ------------------------------------------
                 if(
                     characterLogExists &&
-                    !currentUserOnMap &&
                     currentCharacterLog.system.id === systemId
                 ){
-                    currentUserIsHere = true;
-                    currentUserOnMap = true;
+                    if( !currentUserOnMap ){
+                        currentUserIsHere = true;
+                        currentUserOnMap = true;
 
-                    // set current location data for header update
-                    headerUpdateData.currentSystemId =  $(system).data('id');
-                    headerUpdateData.currentSystemName = currentCharacterLog.system.name;
+                        // set current location data for header update
+                        headerUpdateData.currentSystemId =  $(system).data('id');
+                        headerUpdateData.currentSystemName = currentCharacterLog.system.name;
+                    }
                 }
 
                 system.updateSystemUserData(map, tempUserData, currentUserIsHere);
@@ -3291,15 +3325,17 @@ define([
      */
     $.fn.initMapScrollbar = function(){
         // get Map Scrollbar
-        let scrollableElement = $(this).find('.' + config.mapWrapperClass);
+        let mapTabContentElement = $(this);
+        let scrollableElement = mapTabContentElement.find('.' + config.mapWrapperClass);
+        let mapElement = mapTabContentElement.find('.' + config.mapClass);
+        let mapId = mapElement.data('id');
+
 
         scrollableElement.initCustomScrollbar({
             callbacks: {
                 onScroll: function(){
-                    // scroll complete
-                    let mapElement = $(this).find('.' + config.mapClass);
                     // store new map scrollOffset -> localDB
-                    MapUtil.storeLocalData('map', mapElement.data('id'), 'offsetX', Math.abs(this.mcs.left) );
+                    MapUtil.storeLocalData('map', mapId, 'offsetX', Math.abs(this.mcs.left) );
                 },
                 onScrollStart: function(){
                     // hide all open xEditable fields
@@ -3310,9 +3346,8 @@ define([
                 },
                 whileScrolling:function(){
                     // update scroll position for drag-frame-selection
-                    let mapElement = $(scrollableElement).find('.' + config.mapClass);
-                    $(mapElement).data('scrollLeft', this.mcs.left);
-                    $(mapElement).data('scrollTop', this.mcs.top);
+                    mapElement.data('scrollLeft', this.mcs.left);
+                    mapElement.data('scrollTop', this.mcs.top);
                 }
             }
         });
@@ -3321,6 +3356,8 @@ define([
         // add map overlays after scrollbar is initialized
         // because of its absolute position
         scrollableElement.initMapOverlays();
+
+        scrollableElement.initLocalOverlay(mapId);
     };
 
     return {

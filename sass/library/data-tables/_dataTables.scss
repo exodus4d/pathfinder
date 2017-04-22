@@ -117,7 +117,7 @@ table.dataTable.order-column tbody tr > .sorting_2,
 table.dataTable.order-column tbody tr > .sorting_3, table.dataTable.display tbody tr > .sorting_1,
 table.dataTable.display tbody tr > .sorting_2,
 table.dataTable.display tbody tr > .sorting_3 {
-  background-color: #fafafa;
+  background-color: $gray-darker;
 }
 table.dataTable.order-column tbody tr.selected > .sorting_1,
 table.dataTable.order-column tbody tr.selected > .sorting_2,
@@ -186,9 +186,13 @@ table.dataTable.no-footer {
 table.dataTable.nowrap th, table.dataTable.nowrap td {
   white-space: nowrap;
 }
+table.dataTable.compact thead th:not(.sorting_disabled),
+table.dataTable.compact thead td:not(.sorting_disabled) {
+  padding: 4px 17px 4px 4px;
+}
 table.dataTable.compact thead th,
 table.dataTable.compact thead td {
-  padding: 4px 17px 4px 4px;
+  padding: 4px 4px 4px 4px;
 }
 table.dataTable.compact tfoot th,
 table.dataTable.compact tfoot td {

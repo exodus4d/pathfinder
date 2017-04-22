@@ -413,17 +413,14 @@ class CharacterModel extends BasicModel {
     public function updateLog($additionalOptions = []){
         $deleteLog = true;
 
-
         //check if log update is enabled for this user
         if( $this->logLocation ){
             // Try to pull data from API
             if( $accessToken = $this->getAccessToken() ){
-
                 $locationData = self::getF3()->ccpClient->getCharacterLocationData($this->_id, $accessToken, $additionalOptions);
 
                 if( !empty($locationData['system']['id']) ){
                     // character is currently in-game
-
 
                     // IDs for "systemId", "stationId and "shipTypeId" that require more data
                     $lookupIds = [];
@@ -437,13 +434,19 @@ class CharacterModel extends BasicModel {
                     // get current log data and modify on change
                     $logData = json_decode(json_encode( $characterLog->getData()), true);
 
-                    if($logData['system']['id'] !== $locationData['system']['id']){
+                    if(
+                        empty($logData['system']['name']) ||
+                        $logData['system']['id'] !== $locationData['system']['id']
+                    ){
                         // system changed -> request "system name" for current system
                         $lookupIds[] = $locationData['system']['id'];
                     }
 
                     if( !empty($locationData['station']['id']) ){
-                        if( $logData['station']['id']  !== $locationData['station']['id'] ){
+                        if(
+                            empty($logData['station']['name']) ||
+                            $logData['station']['id']  !== $locationData['station']['id']
+                        ){
                             // station changed -> request "station name" for current station
                             $lookupIds[] = $locationData['station']['id'];
                         }
@@ -457,7 +460,10 @@ class CharacterModel extends BasicModel {
                     $shipData = self::getF3()->ccpClient->getCharacterShipData($this->_id, $accessToken, $additionalOptions);
 
                     if( !empty($shipData['ship']['typeId']) ){
-                        if($logData['ship']['typeId'] !== $shipData['ship']['typeId']){
+                        if(
+                            empty($logData['ship']['typeName']) ||
+                            $logData['ship']['typeId'] !== $shipData['ship']['typeId']
+                        ){
                             // ship changed -> request "station name" for current station
                             $lookupIds[] = $shipData['ship']['typeId'];
                         }
@@ -471,14 +477,21 @@ class CharacterModel extends BasicModel {
                     if( !empty($lookupIds) ){
                         // get "more" information for some Ids (e.g. name)
                         $universeData = self::getF3()->ccpClient->getUniverseNamesData($lookupIds, $additionalOptions);
-                        $logData = array_replace_recursive($logData, $universeData);
+
+                        if( !empty($universeData) ){
+                            $deleteLog = false;
+                            $logData = array_replace_recursive($logData, $universeData);
+                        }
+                    }else{
+                        $deleteLog = false;
                     }
 
-                    $deleteLog = false;
-                    $characterLog->setData($logData);
-                    $characterLog->save();
+                    if( !$deleteLog ){
+                        $characterLog->setData($logData);
+                        $characterLog->save();
 
-                    $this->characterLog = $characterLog;
+                        $this->characterLog = $characterLog;
+                    }
                 }
             }
         }

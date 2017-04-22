@@ -53,6 +53,9 @@ define([
         // map module
         mapModuleId: 'pf-map-module',                                           // id for main map module
         mapTabBarId: 'pf-map-tabs',                                             // id for map tab bar
+        mapWrapperClass: 'pf-map-wrapper',                                      // wrapper div (scrollable)
+        mapClass: 'pf-map' ,                                                    // class for all maps
+
 
         // animation
         animationPulseSuccessClass: 'pf-animation-pulse-success',               // animation class
@@ -1271,6 +1274,15 @@ define([
     };
 
     /**
+     * get mapElement from overlay or any child of that
+     * @param mapOverlay
+     * @returns {jQuery}
+     */
+    let getMapElementFromOverlay = (mapOverlay) => {
+        return $(mapOverlay).parents('.' + config.mapWrapperClass).find('.' + config.mapClass);
+    };
+
+    /**
      * get the map module object or create a new module
      * @returns {*|HTMLElement}
      */
@@ -1803,6 +1815,98 @@ define([
     };
 
     /**
+     * get "nearBy" systemData based on a jump radius around a currentSystem
+     * @param currentSystemData
+     * @param currentMapData
+     * @param jumps
+     * @param foundSystemIds
+     * @returns {{systemData: *, tree: {}}}
+     */
+    let getNearBySystemData = (currentSystemData, currentMapData, jumps, foundSystemIds = []) => {
+
+        // look for systemData by ID
+        let getSystemData = (systemId) => {
+            for(let j = 0; j < currentMapData.data.systems.length; j++){
+                let systemData = currentMapData.data.systems[j];
+                if(systemData.id === systemId){
+                    return systemData;
+                }
+            }
+            return false;
+        };
+
+        // skip systems that are already found in recursive calls
+        foundSystemIds.push(currentSystemData.id);
+
+        let nearBySystems = {
+            systemData: currentSystemData,
+            tree: {}
+        };
+
+        jumps--;
+        if(jumps > 0){
+            for(let i = 0; i < currentMapData.data.connections.length; i++){
+                let connectionData = currentMapData.data.connections[i];
+                let type = ''; // "source" OR "target"
+                if(connectionData.source === currentSystemData.id){
+                    type = 'target';
+                }else if(connectionData.target === currentSystemData.id){
+                    type = 'source';
+                }
+
+                if(
+                    type &&
+                    foundSystemIds.indexOf(connectionData[type]) === -1
+                ){
+                    let newSystemData = getSystemData(connectionData[type]);
+                    if(newSystemData){
+                        nearBySystems.tree[connectionData[type]] = getNearBySystemData(newSystemData, currentMapData, jumps, foundSystemIds);
+                    }
+                }
+            }
+        }
+        return nearBySystems;
+    };
+
+    /**
+     * get current character data from all characters who are "near by" the current user
+     * -> see getNearBySystemData()
+     * @param nearBySystems
+     * @param userData
+     * @param jumps
+     * @param data
+     * @returns {{}}
+     */
+    let getNearByCharacterData = (nearBySystems, userData, jumps = 0, data = {}) => {
+
+        let getCharacterDataBySystemId = (systemId) => {
+            for(let i = 0; i < userData.length; i++){
+                if(userData[i].id === systemId){
+                    return userData[i].user;
+                }
+            }
+            return [];
+        };
+
+        let characterData = getCharacterDataBySystemId(nearBySystems.systemData.systemId);
+
+        if(characterData.length){
+            data[jumps] = data[jumps] ? data[jumps] : [];
+            data[jumps] = [...data[jumps], ...characterData];
+        }
+
+        jumps++;
+        for(let prop in nearBySystems.tree) {
+            if( nearBySystems.tree.hasOwnProperty(prop) ){
+                let tmpSystemData = nearBySystems.tree[prop];
+                data = getNearByCharacterData(tmpSystemData, userData, jumps, data);
+            }
+        }
+
+        return data;
+    };
+
+    /**
      * set new destination for a system
      * -> CREST request
      * @param systemData
@@ -2064,6 +2168,7 @@ define([
         setSyncStatus: setSyncStatus,
         getSyncType: getSyncType,
         isXHRAborted: isXHRAborted,
+        getMapElementFromOverlay: getMapElementFromOverlay,
         getMapModule: getMapModule,
         getSystemEffectData: getSystemEffectData,
         getSystemEffectTable: getSystemEffectTable,
@@ -2091,6 +2196,8 @@ define([
         getCurrentUserInfo: getCurrentUserInfo,
         getCurrentCharacterLog: getCurrentCharacterLog,
         flattenXEditableSelectArray: flattenXEditableSelectArray,
+        getNearBySystemData: getNearBySystemData,
+        getNearByCharacterData: getNearByCharacterData,
         setDestination: setDestination,
         convertDateToString: convertDateToString,
         getOpenDialogs: getOpenDialogs,

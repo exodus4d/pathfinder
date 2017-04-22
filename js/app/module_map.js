@@ -201,8 +201,12 @@ define([
 
             let currentMapUserData = Util.getCurrentMapUserData(mapId);
 
-            // update map with current user data
+
             if(currentMapUserData){
+                // trigger "update local" for this map => async
+                mapElement.trigger('pf:updateLocal', currentMapUserData);
+
+                // update map with current user data
                 mapElement.updateUserData(currentMapUserData);
             }
         }
