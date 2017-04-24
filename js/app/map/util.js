@@ -12,6 +12,7 @@ define([
 
     let config = {
         mapSnapToGridDimension: 20,                                     // px for grid snapping (grid YxY)
+        defaultLocalJumpRadius: 3,                                      // default search radius (in jumps) for "near by" pilots
 
         // local storage
         characterLocalStoragePrefix: 'character_',                      // prefix for character data local storage key

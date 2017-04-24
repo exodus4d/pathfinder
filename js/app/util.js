@@ -1822,7 +1822,7 @@ define([
      * @param foundSystemIds
      * @returns {{systemData: *, tree: {}}}
      */
-    let getNearBySystemData = (currentSystemData, currentMapData, jumps, foundSystemIds = []) => {
+    let getNearBySystemData = (currentSystemData, currentMapData, jumps, foundSystemIds = {}) => {
 
         // look for systemData by ID
         let getSystemData = (systemId) => {
@@ -1836,7 +1836,7 @@ define([
         };
 
         // skip systems that are already found in recursive calls
-        foundSystemIds.push(currentSystemData.id);
+        foundSystemIds[currentSystemData.id] = {distance: jumps};
 
         let nearBySystems = {
             systemData: currentSystemData,
@@ -1844,7 +1844,7 @@ define([
         };
 
         jumps--;
-        if(jumps > 0){
+        if(jumps >= 0){
             for(let i = 0; i < currentMapData.data.connections.length; i++){
                 let connectionData = currentMapData.data.connections[i];
                 let type = ''; // "source" OR "target"
@@ -1856,7 +1856,10 @@ define([
 
                 if(
                     type &&
-                    foundSystemIds.indexOf(connectionData[type]) === -1
+                    (
+                        foundSystemIds[connectionData[type]] === undefined ||
+                        foundSystemIds[connectionData[type]].distance < jumps
+                    )
                 ){
                     let newSystemData = getSystemData(connectionData[type]);
                     if(newSystemData){
@@ -1888,9 +1891,40 @@ define([
             return [];
         };
 
+        let filterFinalCharData = function(tmpFinalCharData){
+            return this.id !== tmpFinalCharData.id;
+        };
+
         let characterData = getCharacterDataBySystemId(nearBySystems.systemData.systemId);
 
         if(characterData.length){
+            // filter (remove) characterData for "already" added chars
+            characterData = characterData.filter(function(tmpCharacterData, index, allData){
+                let keepData = true;
+
+                for(let tmpJump in data) {
+                    // just scan systems with > jumps than current system
+                    if(tmpJump > jumps){
+                        let filteredFinalData = data[tmpJump].filter(filterFinalCharData, tmpCharacterData);
+
+                        if(filteredFinalData.length > 0){
+                            data[tmpJump] = filteredFinalData;
+                        }else{
+                            delete data[tmpJump];
+                        }
+                    }else{
+                        for(let k = 0; k < data[tmpJump].length; k++){
+                            if(data[tmpJump][k].id === tmpCharacterData.id){
+                                keepData = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                return keepData;
+            });
+
             data[jumps] = data[jumps] ? data[jumps] : [];
             data[jumps] = [...data[jumps], ...characterData];
         }

@@ -2894,7 +2894,7 @@ define([
                     currentSystemData = currentSystemData[0];
 
                     // check for active users "near by" (x jumps radius)
-                    let nearBySystemData = Util.getNearBySystemData(currentSystemData, currentMapData,  3);
+                    let nearBySystemData = Util.getNearBySystemData(currentSystemData, currentMapData, MapUtil.config.defaultLocalJumpRadius);
                     let nearByCharacterData = Util.getNearByCharacterData(nearBySystemData, userData.data.systems);
 
                     // update "local" table in overlay

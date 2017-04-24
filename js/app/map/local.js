@@ -1,5 +1,5 @@
 /**
- * map overlay functions
+ * map overlay functions for "Near by" table
  * Created by Exodus on 13.04.2017.
  */
 
@@ -34,10 +34,7 @@ define([
 
         tableCellEllipsisClass: 'pf-table-cell-ellipsis',
         tableCellEllipsis80Class: 'pf-table-cell-80',
-        tableCellEllipsis90Class: 'pf-table-cell-90',
-
-        // default "search" radius (jumps) for "near by" pilots
-        jumps: 3
+        tableCellEllipsis90Class: 'pf-table-cell-90'
     };
 
     /**
@@ -322,7 +319,7 @@ define([
                 }).append(
                     $('<span>', {
                         class: ['badge', 'txt-color', 'txt-color-grayLight'].join(' '),
-                        text: config.jumps
+                        text: MapUtil.config.defaultLocalJumpRadius
                     }).attr('title', 'jumps')
                 )
 
