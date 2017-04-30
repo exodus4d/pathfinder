@@ -118,7 +118,7 @@ class Sso extends Api\User{
 
             $urlParams = [
                 'response_type' => 'code',
-                'redirect_uri' => Controller\Controller::getEnvironmentData('URL') . $f3->build('/sso/callbackAuthorization'),
+                'redirect_uri' => Controller\Controller::getEnvironmentData('URL') . Controller\Controller::getEnvironmentData('BASE') . $f3->build('/sso/callbackAuthorization'),
                 'client_id' => Controller\Controller::getEnvironmentData('CCP_SSO_CLIENT_ID'),
                 'scope' => implode(' ', Controller\Controller::getEnvironmentData('CCP_ESI_SCOPES')),
                 'state' => $state
