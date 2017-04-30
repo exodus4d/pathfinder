@@ -2893,7 +2893,7 @@ define([
                     // current user system is on this map
                     currentSystemData = currentSystemData[0];
 
-                    // check for active users "near by" (x jumps radius)
+                    // check for active users "nearby" (x jumps radius)
                     let nearBySystemData = Util.getNearBySystemData(currentSystemData, currentMapData, MapUtil.config.defaultLocalJumpRadius);
                     let nearByCharacterData = Util.getNearByCharacterData(nearBySystemData, userData.data.systems);
 

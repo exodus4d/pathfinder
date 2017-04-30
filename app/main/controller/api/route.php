@@ -109,12 +109,14 @@ class Route extends Controller\AccessController {
      * @param array $filterData
      */
     private function setDynamicJumpData($mapIds = [], $filterData = []){
+        // make sure, mapIds are integers (protect against SQL injections)
+        $mapIds = array_unique( array_map('intval', $mapIds), SORT_NUMERIC);
 
         if( !empty($mapIds) ){
-            // make sure, mapIds are integers (protect against SQL injections)
-            $mapIds = array_map('intval', $mapIds);
+            // map filter ---------------------------------------------------------------------------------------------
+            $whereMapIdsQuery = (count($mapIds) == 1) ? " = " . reset($mapIds) : " IN (" . implode(', ', $mapIds) . ")";
 
-            // connection filter --------------------------------------------------------
+            // connection filter --------------------------------------------------------------------------------------
             $whereQuery = "";
             $includeScopes = [];
             $includeTypes = [];
@@ -157,7 +159,7 @@ class Route extends Controller\AccessController {
                 }
             }
 
-            // search connections -------------------------------------------------------
+            // search connections -------------------------------------------------------------------------------------
 
             if( !empty($includeScopes) ){
                 $whereQuery .= " `connection`.`scope` IN ('" . implode("', '", $includeScopes) . "') AND ";
@@ -188,7 +190,7 @@ class Route extends Controller\AccessController {
                               `system_tar`.`id` = `connection`.`source` OR
                               `system_tar`.`id` = `connection`.`target`
                           WHERE
-                            `connection`.`mapId` IN (" . implode(', ', $mapIds) . ") AND
+                            `connection`.`mapId` " . $whereMapIdsQuery . " AND
                             `connection`.`active` = 1 AND
                             (
                               `connection`.`source` = `system_src`.`id` OR
@@ -204,7 +206,7 @@ class Route extends Controller\AccessController {
                         `map` ON
                           `map`.`id` = `system_src`.`mapId`
                     WHERE
-                        `system_src`.`mapId` IN (" . implode(', ', $mapIds) . ") AND
+                        `system_src`.`mapId` " . $whereMapIdsQuery . " AND
                         `system_src`.`active` = 1 AND
                         `map`.`active` = 1
                     HAVING
@@ -237,7 +239,7 @@ class Route extends Controller\AccessController {
             $systemId       = (int)$row['systemId'];
             $secStatus      = (float)$row['trueSec'];
 
-            // fill "nameArray" data ----------------------------------------------------
+            // fill "nameArray" data ----------------------------------------------------------------------------------
             if( !isset($this->nameArray[$systemId]) ){
                 $this->nameArray[$systemId][0] = $systemName;
                 $this->nameArray[$systemId][1] = $regionId;
@@ -245,12 +247,12 @@ class Route extends Controller\AccessController {
                 $this->nameArray[$systemId][3] = $secStatus;
             }
 
-            // fill "idArray" data ------------------------------------------------------
+            // fill "idArray" data ------------------------------------------------------------------------------------
             if( !isset($this->idArray[$systemName]) ){
                 $this->idArray[$systemName] = $systemId;
             }
 
-            // fill "jumpArray" data ----------------------------------------------------
+            // fill "jumpArray" data ----------------------------------------------------------------------------------
             if( !is_array($this->jumpArray[$systemName]) ){
                 $this->jumpArray[$systemName] = [];
             }
@@ -536,7 +538,7 @@ class Route extends Controller\AccessController {
                 $mapData = (array)$routeData['mapIds'];
                 $mapData = array_flip( array_map('intval', $mapData) );
 
-                // check map access (filter requested mapIDs and format) --------------------
+                // check map access (filter requested mapIDs and format) ----------------------------------------------
                 array_walk($mapData, function(&$item, &$key, $data){
 
                     if( isset($data[1][$key]) ){

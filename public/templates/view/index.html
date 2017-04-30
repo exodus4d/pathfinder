@@ -53,7 +53,25 @@
     {* Youtube verification code *}
     <meta name="google-site-verification" content="sHoh0gfMw3x1wiwLTK5OsKsxt7kRgxi69hRgWEGh9DQ" />
 
-    <link rel="stylesheet" type="text/css" media="screen" href="{{ @BASE }}/public/css/pathfinder.css?{{ @PATHFINDER.VERSION }}">
+    {* Resources *}
+    <set pathCSS="{{ @BASE . '/public/css/pathfinder.css?' . @PATHFINDER.VERSION }}" />
+    <set pathJSApp="{{ @BASE . '/' . @pathJs . '/app' }}" />
+    <set pathJSRequire="{{ @BASE . '/' . @pathJs . '/lib/require.js' }}" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="{{@pathCSS}}">
+
+    {* Prefetch / Preload *}
+    <link rel="preload" href="{{@pathCSS}}" as="style">
+    <link rel="preload" href="{{@pathJSRequire}}" as="script">
+    <link rel="preload" href="{{@pathJSApp}}.js" as="script">
+    <link rel="preload" href="{{@pathJSApp}}/{{@jsView}}.js" as="script">
+    <link rel="dns-prefetch" href="https://login.eveonline.com">
+    <link rel="dns-prefetch" href="https://image.eveonline.com">
+    <link rel="dns-prefetch" href="https://i.ytimg.com">
+
+    <check if="{{ @jsView != 'mappage' }}">
+        <link rel="prefetch" href="{{@pathJSApp}}/mappage.js" as="script">
+    </check>
 
 </head>
 <body class="{{ @bodyClass }}" data-js-path="{{ @BASE }}/{{ @pathJs }}" data-script="{{ @jsView }}" data-version="{{ @PATHFINDER.VERSION }}">
@@ -61,7 +79,7 @@
 
     <!-- Hey dude! Where is all the magic? -->
 
-    <script data-main="{{ @BASE }}/{{ @pathJs }}/app" src="{{ @BASE }}/{{ @pathJs }}/lib/require.js" ></script>
+    <script data-main="{{@pathJSApp}}" src="{{@pathJSRequire}}" ></script>
 </body>
 
 </html>

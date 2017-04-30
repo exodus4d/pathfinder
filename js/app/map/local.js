@@ -1,5 +1,5 @@
 /**
- * map overlay functions for "Near by" table
+ * map overlay functions for "Nearby" table
  * Created by Exodus on 13.04.2017.
  */
 
@@ -329,7 +329,7 @@ define([
                 class: config.overlayLocalHeadlineClass
             }).append(
                 $('<span>', {
-                    html: 'Near&nbsp;by&nbsp;&nbsp;&nbsp;',
+                    html: 'Nearby&nbsp;&nbsp;&nbsp;',
                     class: 'pull-left'
                 }),
                 $('<span>'),

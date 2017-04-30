@@ -1872,7 +1872,7 @@ define([
     };
 
     /**
-     * get current character data from all characters who are "near by" the current user
+     * get current character data from all characters who are "nearby" the current user
      * -> see getNearBySystemData()
      * @param nearBySystems
      * @param userData
