@@ -2252,7 +2252,7 @@ define([
                                     btnOkClass: 'btn btn-sm btn-danger',
                                     btnOkLabel: 'delete',
                                     btnOkIcon: 'fa fa-fw fa-close',
-                                    onConfirm : function(e, target){
+                                    onConfirm: function(e, target){
                                         // top scroll to top
                                         e.preventDefault();
 
