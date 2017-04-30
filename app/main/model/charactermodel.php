@@ -366,13 +366,8 @@ class CharacterModel extends BasicModel {
         $isAuthorized = false;
         $f3 = self::getF3();
 
-        $whitelistCorporations = $whitelistAlliance = [];
-        if( !empty($f3->get('PATHFINDER.LOGIN.CORPORATION')) ){
-            $whitelistCorporations = array_map('trim',(array) $f3->get('PATHFINDER.LOGIN.CORPORATION') );
-        }
-        if( !empty($f3->get('PATHFINDER.LOGIN.ALLIANCE')) ){
-            $whitelistAlliance = array_map('trim',(array) $f3->get('PATHFINDER.LOGIN.ALLIANCE') );
-        }
+        $whitelistCorporations = array_filter( array_map('trim', (array)$f3->get('PATHFINDER.LOGIN.CORPORATION') ) );
+        $whitelistAlliance = array_filter( array_map('trim', (array)$f3->get('PATHFINDER.LOGIN.ALLIANCE') ) );
 
         if(
             empty($whitelistCorporations) &&
