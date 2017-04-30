@@ -34,10 +34,14 @@ class MailController extends \SMTP{
      * @return bool
      */
     public function sendDeleteAccount($to, $msg){
-        $this->set('To', '<' . $to . '>');
-        $this->set('From', '"Pathfinder" <' . Controller::getEnvironmentData('SMTP_FROM') . '>');
-        $this->set('Subject', 'Account deleted');
-        $status = $this->send($msg);
+        $status = false;
+
+        if( !empty($to)){
+            $this->set('To', '<' . $to . '>');
+            $this->set('From', '"Pathfinder" <' . Controller::getEnvironmentData('SMTP_FROM') . '>');
+            $this->set('Subject', 'Account deleted');
+            $status = $this->send($msg);
+        }
 
         return $status;
     }
@@ -49,10 +53,27 @@ class MailController extends \SMTP{
      * @return bool
      */
     public function sendRallyPoint($to, $msg){
-        $this->set('To', '<' . $to . '>');
-        $this->set('From', '"Pathfinder" <' . Controller::getEnvironmentData('SMTP_FROM') . '>');
-        $this->set('Subject', 'PATHFINDER - New rally point');
-        $status = $this->send($msg);
+        $status = false;
+
+        if( !empty($to)){
+            $this->set('To', '<' . $to . '>');
+            $this->set('From', '"Pathfinder" <' . Controller::getEnvironmentData('SMTP_FROM') . '>');
+            $this->set('Subject', 'PATHFINDER - New rally point');
+            $status = $this->send($msg);
+        }
+
+        return $status;
+    }
+
+    public function send($message, $log = true, $mock = false){
+        $status = false;
+
+        if(
+            !empty($this->host) &&
+            !empty($this->port)
+        ){
+            $status = parent::send($message, $log, $mock);
+        }
 
         return $status;
     }

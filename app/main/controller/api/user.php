@@ -369,25 +369,23 @@ class User extends Controller\Controller{
             $user = $activeCharacter->getUser();
 
             if($user){
-                // send delete account mail
+                // try to send delete account mail
                 $msg = 'Hello ' . $user->name . ',<br><br>';
                 $msg .= 'your account data has been successfully deleted.';
 
                 $mailController = new MailController();
-                $status = $mailController->sendDeleteAccount($user->email, $msg);
+                $mailController->sendDeleteAccount($user->email, $msg);
 
-                if($status){
-                    // save log
-                    self::getLogger('DELETE_ACCOUNT')->write(
-                        sprintf(self::LOG_DELETE_ACCOUNT, $user->id, $user->name)
-                    );
+                // save log
+                self::getLogger('DELETE_ACCOUNT')->write(
+                    sprintf(self::LOG_DELETE_ACCOUNT, $user->id, $user->name)
+                );
 
-                    // remove user
-                    $user->erase();
+                // remove user
+                $user->erase();
 
-                    $this->logout($f3);
-                    die();
-                }
+                $this->logout($f3);
+                die();
             }
         }else{
             // captcha not valid -> return error
