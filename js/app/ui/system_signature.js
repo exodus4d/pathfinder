@@ -100,6 +100,8 @@ define([
         'Cosmic Signature',
         'Kosmische Anomalie',
         'Kosmische Signatur',
+        'Anomalie cosmique',
+        'Signature cosmique',
         'Космическая аномалия',                                                 // == "Cosmic Anomaly"
         'Источники сигналов'                                                    // == "Cosmic Signature"
     ];
