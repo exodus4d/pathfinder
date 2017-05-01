@@ -1,4 +1,4 @@
-'use strict';
+
 
 // "fake" window object will contain "MsgWorker" after import
 let window = {};                    // jshint ignore:line
