@@ -46,6 +46,9 @@ define([
         // cookie hint
         cookieHintId: 'pf-cookie-hint',                                         // id for "cookie hint" element
 
+        // login
+        ssoButtonClass: 'pf-sso-login-button',                                  // class for SSO login button
+
         // character select
         characterSelectionClass: 'pf-character-selection',                      // class for character panel wrapper
         characterRowAnimateClass: 'pf-character-row-animate',                   // class for character panel row during animation
@@ -66,7 +69,9 @@ define([
         serverPanelId: 'pf-server-panel',                                       // id for EVE Online server status panel
 
         // animation
-        animateElementClass: 'pf-animate-on-visible'                            // class for elements that will be animated to show
+        animateElementClass: 'pf-animate-on-visible',                           // class for elements that will be animated to show
+
+        defaultAcceptCookieExpire: 365                                          // default expire for "accept coolies" cookie
     };
 
     /**
@@ -123,10 +128,39 @@ define([
         if(getCookie('cookie') !== '1'){
             // hint not excepted
             $('#' + config.cookieHintId).collapse('show');
+
+            // show Cookie accept hint on SSO login button
+            let confirmationSettings = {
+                container: 'body',
+                placement: 'bottom',
+                btnOkClass: 'btn btn-sm btn-default',
+                btnOkLabel: 'dismiss',
+                btnOkIcon: 'fa fa-fw fa-sign-in',
+                title: 'Accept cookies',
+                btnCancelClass: 'btn btn-sm btn-success',
+                btnCancelLabel: 'accept',
+                btnCancelIcon: 'fa fa-fw fa-check',
+                onCancel: function(e, target){
+                    // "Accept cookies"
+                    setCookie('cookie', 1, config.defaultAcceptCookieExpire);
+
+                    // set "default" href
+                    let href = $(target).data('bs.confirmation').getHref();
+                    $(e.target).attr('href', href);
+                },
+                onConfirm : function(e, target){
+                    // "NO cookies" => trigger "default" href link action
+                },
+                href: function(target){
+                    return $(target).attr('href');
+                }
+            };
+
+            $('.' + config.ssoButtonClass).confirmation(confirmationSettings);
         }
 
         $('#' + config.cookieHintId + ' .btn-success').on('click', function(){
-           setCookie('cookie', 1, 365);
+           setCookie('cookie', 1, config.defaultAcceptCookieExpire);
         });
 
         // manual -------------------------------------------------------------

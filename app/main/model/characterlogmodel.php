@@ -35,9 +35,6 @@ class CharacterLogModel extends BasicModel {
                 ]
             ]
         ],
-
-        // --------------------------------------------------------------------
-
         'systemId' => [
             'type' => Schema::DT_INT,
             'index' => true
@@ -47,26 +44,6 @@ class CharacterLogModel extends BasicModel {
             'nullable' => false,
             'default' => ''
         ],
-        'constellationId' => [
-            'type' => Schema::DT_INT,
-            'index' => true
-        ],
-        'constellationName' => [
-            'type' => Schema::DT_VARCHAR128,
-            'nullable' => false,
-            'default' => ''
-        ],
-        'regionId' => [
-            'type' => Schema::DT_INT,
-            'index' => true
-        ],
-        'regionName' => [
-            'type' => Schema::DT_VARCHAR128,
-            'nullable' => false,
-            'default' => ''
-        ],
-
-        // --------------------------------------------------------------------
         'shipTypeId' => [
             'type' => Schema::DT_INT,
             'index' => true
@@ -110,24 +87,6 @@ class CharacterLogModel extends BasicModel {
             $this->systemName = '';
         }
 
-        if( isset($logData['constellation']) ){
-            $this->constellationId = (int)$logData['constellation']['id'];
-            $this->constellationName = $logData['constellation']['name'];
-        }else{
-            $this->constellationId = null;
-            $this->constellationName = '';
-        }
-
-        if( isset($logData['region']) ){
-            $this->regionId = (int)$logData['region']['id'];
-            $this->regionName = $logData['region']['name'];
-        }else{
-            $this->regionId = null;
-            $this->regionName = '';
-        }
-
-        // --------------------------------------------------------------------
-
         if( isset($logData['ship']) ){
             $this->shipTypeId = (int)$logData['ship']['typeId'];
             $this->shipTypeName = $logData['ship']['typeName'];
@@ -160,16 +119,6 @@ class CharacterLogModel extends BasicModel {
         $logData->system = (object) [];
         $logData->system->id = (int)$this->systemId;
         $logData->system->name = $this->systemName;
-
-        $logData->constellation = (object) [];
-        $logData->constellation->id = (int)$this->constellationId;
-        $logData->constellation->name = $this->constellationName;
-
-        $logData->region = (object) [];
-        $logData->region->id = (int)$this->regionId;
-        $logData->region->name = $this->regionName;
-
-        // --------------------------------------------------------------------
 
         $logData->ship = (object) [];
         $logData->ship->typeId = (int)$this->shipTypeId;

@@ -9,7 +9,6 @@
 namespace Cron;
 use Controller;
 use DB;
-use lib\Config;
 
 class CcpSystemsUpdate {
 
@@ -26,9 +25,9 @@ class CcpSystemsUpdate {
      */
     protected $logTables = [
         'jumps' => 'system_jumps',
-        'shipKills' => 'system_kills_ships',
-        'podKills' => 'system_kills_pods',
-        'factionKills' => 'system_kills_factions'
+        'ship_kills' => 'system_kills_ships',
+        'pod_kills' => 'system_kills_pods',
+        'npc_kills' => 'system_kills_factions'
     ];
 
     /**
@@ -74,77 +73,37 @@ class CcpSystemsUpdate {
      */
     function importSystemData($f3){
 
+        // prepare system jump log table ------------------------------------------------------------------------------
         $time_start = microtime(true);
-        // prepare system jump log table
         $systemsData = $this->prepareSystemLogTables();
         $time_end = microtime(true);
         $execTimePrepareSystemLogTables = $time_end - $time_start;
 
+        // switch DB for data import..
         $pfDB = DB\Database::instance()->getDB('PF');
 
-        // get current jump Data -------------------------------------------------------
+        // get current jump data --------------------------------------------------------------------------------------
         $time_start = microtime(true);
-        $apiPath = Config::getEnvironmentData('CCP_XML') . '/map/Jumps.xml.aspx';
-
-        $apiResponse = \Web::instance()->request($apiPath, $this->apiRequestOptions );
-
-        $jumpData = [];
-        $updateJumps = false;
-        if($apiResponse['body']){
-            $xml = simplexml_load_string($apiResponse['body']);
-            $rowApiData = $xml->result->rowset;
-
-            foreach($rowApiData->children() as $systemApiData){
-                $attributeApiData = $systemApiData->attributes();
-                $systemId = $attributeApiData->solarSystemID->__toString();
-                $shipJumps =$attributeApiData->shipJumps->__toString();
-
-                $jumpData[$systemId] = $shipJumps;
-            }
-
-            $updateJumps = true;
-        }
+        $jumpData = $f3->ccpClient->getUniverseJumps();
         $time_end = microtime(true);
         $execTimeGetJumpData = $time_end - $time_start;
 
-        // get current kill Data -------------------------------------------------------
+        // get current kill data --------------------------------------------------------------------------------------
         $time_start = microtime(true);
-        $apiPath = Config::getEnvironmentData('CCP_XML') . '/map/Kills.xml.aspx';
-
-        $apiResponse = \Web::instance()->request($apiPath, $this->apiRequestOptions );
-        $killData = [];
-        $updateKills = false;
-        if($apiResponse['body']){
-            $xml = simplexml_load_string($apiResponse['body']);
-            $rowApiData = $xml->result->rowset;
-            foreach($rowApiData->children() as $systemApiData){
-                $attributeApiData = $systemApiData->attributes();
-                $systemId = $attributeApiData->solarSystemID->__toString();
-                $shipKills =$attributeApiData->shipKills->__toString();
-                $podKills =$attributeApiData->podKills->__toString();
-                $factionKills =$attributeApiData->factionKills->__toString();
-
-                $killData[$systemId] = [
-                    'shipKills' => $shipKills,
-                    'podKills' => $podKills,
-                    'factionKills' => $factionKills,
-                ];
-            }
-
-            $updateKills = true;
-
-        }
+        $killData = $f3->ccpClient->getUniverseKills();
         $time_end = microtime(true);
         $execTimeGetKillData = $time_end - $time_start;
 
-        // update system log tables -----------------------------------------------------
+        // merge both results
+        $systemValues = array_replace_recursive($jumpData, $killData);
+
+        // update system log tables -----------------------------------------------------------------------------------
         $time_start = microtime(true);
-        // make sure last update is (at least) 1h ago
         $pfDB->begin();
 
         foreach($this->logTables as $key => $tableName){
             $sql = "UPDATE
-                    " . $tableName . "
+                    $tableName
                 SET
                     updated = now(),
                     value24 = value23,
@@ -173,47 +132,30 @@ class CcpSystemsUpdate {
                     value1 = :value
                 WHERE
                   systemId = :systemId
-                ";
+            ";
 
             foreach($systemsData as $systemData){
+                $systemId = $systemData['systemId'];
 
-                if(
-                    $key == 'jumps' &&
-                    $updateJumps
-                ){
-                    // update jump data (if available)
-                    $currentJumps = 0;
-                    if(array_key_exists($systemData['systemId'], $jumpData)){
-                        $currentJumps = $jumpData[$systemData['systemId']];
-                    }
-
-                    $pfDB->exec($sql, array(
-                        ':systemId' => $systemData['systemId'],
-                        ':value' => $currentJumps
-                    ), 0, false);
-                }else if($updateKills){
-
-                    // update kill data (if available)
-                    $currentKills = 0;
-                    if(array_key_exists($systemData['systemId'], $killData)){
-                        $currentKillData = $killData[$systemData['systemId']];
-
-                        $currentKills = $currentKillData[$key];
-                    }
-
-                    $pfDB->exec($sql, array(
-                        ':systemId' => $systemData['systemId'],
-                        ':value' => $currentKills
-                    ), 0, false);
+                // update data (if available)
+                $currentData = 0;
+                if( isset($systemValues[$systemId][$key]) ){
+                    $currentData = (int)$systemValues[$systemId][$key];
                 }
+
+                $pfDB->exec($sql, [
+                    ':systemId' => $systemId,
+                    ':value' => $currentData
+                ], 0, false);
             }
         }
+
         $pfDB->commit();
 
         $time_end = microtime(true);
         $execTimeUpdateTables = $time_end - $time_start;
 
-        // Log ------------------------
+        // Log --------------------------------------------------------------------------------------------------------
         $log = new \Log('cron_' . __FUNCTION__ . '.log');
         $log->write( sprintf(self::LOG_TEXT, __FUNCTION__, $execTimePrepareSystemLogTables, $execTimeGetJumpData, $execTimeGetKillData, $execTimeUpdateTables) );
     }

@@ -21,6 +21,7 @@ define('app/init',['jquery'], function($) {
             logIn: 'api/user/logIn',                                        // ajax URL - login
             logout: 'api/user/logout',                                      // ajax URL - logout
             deleteLog: 'api/user/deleteLog',                                // ajax URL - delete character log
+            openIngameWindow: 'api/user/openIngameWindow',                  // ajax URL - open inGame Window
             saveUserConfig: 'api/user/saveAccount',                         // ajax URL - saves/update user account
             deleteAccount: 'api/user/deleteAccount',                        // ajax URL - delete Account data
             // access API
@@ -70,6 +71,7 @@ define('app/init',['jquery'], function($) {
             splashOverlay: 300,                                             // "splash" loading overlay
             headerLink: 100,                                                // links in head bar
             mapOverlay: 200,                                                // show/hide duration for map overlays
+            mapOverlayLocal: 180,                                           // show/hide duration for map "local" overlay
             mapMoveSystem: 180,                                             // system position has changed animation
             mapDeleteSystem: 200,                                           // remove system from map
             mapModule: 200,                                                 // show/hide of an map module
@@ -1688,255 +1690,270 @@ define("xEditable", ["bootstrap"], function(){});
 (function($){$.fn.hoverIntent=function(handlerIn,handlerOut,selector){var cfg={interval:100,sensitivity:6,timeout:0};if(typeof handlerIn==="object"){cfg=$.extend(cfg,handlerIn)}else{if($.isFunction(handlerOut)){cfg=$.extend(cfg,{over:handlerIn,out:handlerOut,selector:selector})}else{cfg=$.extend(cfg,{over:handlerIn,out:handlerIn,selector:handlerOut})}}var cX,cY,pX,pY;var track=function(ev){cX=ev.pageX;cY=ev.pageY};var compare=function(ev,ob){ob.hoverIntent_t=clearTimeout(ob.hoverIntent_t);if(Math.sqrt((pX-cX)*(pX-cX)+(pY-cY)*(pY-cY))<cfg.sensitivity){$(ob).off("mousemove.hoverIntent",track);ob.hoverIntent_s=true;return cfg.over.apply(ob,[ev])}else{pX=cX;pY=cY;ob.hoverIntent_t=setTimeout(function(){compare(ev,ob)},cfg.interval)}};var delay=function(ev,ob){ob.hoverIntent_t=clearTimeout(ob.hoverIntent_t);ob.hoverIntent_s=false;return cfg.out.apply(ob,[ev])};var handleHover=function(e){var ev=$.extend({},e);var ob=this;if(ob.hoverIntent_t){ob.hoverIntent_t=clearTimeout(ob.hoverIntent_t)}if(e.type==="mouseenter"){pX=ev.pageX;pY=ev.pageY;$(ob).on("mousemove.hoverIntent",track);if(!ob.hoverIntent_s){ob.hoverIntent_t=setTimeout(function(){compare(ev,ob)},cfg.interval)}}else{$(ob).off("mousemove.hoverIntent",track);if(ob.hoverIntent_s){ob.hoverIntent_t=setTimeout(function(){delay(ev,ob)},cfg.timeout)}}};return this.on({"mouseenter.hoverIntent":handleHover,"mouseleave.hoverIntent":handleHover},cfg.selector)}})(jQuery);
 define("hoverIntent", ["jquery"], function(){});
 
+/*!
+ * Bootstrap Confirmation v1.0.5
+ * https://github.com/tavicu/bs-confirmation
+ */
 +function ($) {
-	'use strict';
+    'use strict';
 
-	//var for check event at body can have only one.
-	var event_body = false;
+    //var for check event at body can have only one.
+    var event_body = false;
 
-	// CONFIRMATION PUBLIC CLASS DEFINITION
-	// ===============================
-	var Confirmation = function (element, options) {
-		var that = this;
+    // CONFIRMATION PUBLIC CLASS DEFINITION
+    // ===============================
+    var Confirmation = function (element, options) {
+        var that = this;
 
-		this.init('confirmation', element, options);
+        this.init('confirmation', element, options);
 
+        $(element).on('show.bs.confirmation', function(e) {
+            that.options.onShow(e, this);
 
-		$(element).on('show.bs.confirmation', function(e) {
-			that.options.onShow(e, this);
+            $(this).addClass('open');
 
-			$(this).addClass('open');
+            var options = that.options;
+            var all = options.all_selector;
 
-			var options = that.options;
-			var all = options.all_selector;
+            if(options.singleton)
+            {
+                $(all).not(that.$element).each(function()
+                {
+                    if( $(this).hasClass('open') )
+                    {
+                        $(this).confirmation('hide');
+                    }
+                });
+            }
+        });
 
-			if(options.singleton)
-			{
-				$(all).not(that.$element).each(function()
-				{
-					if( $(this).hasClass('open') )
-					{
-						$(this).confirmation('hide');
-					}
-				});
-			}
-		});
+        $(element).on('hide.bs.confirmation', function(e) {
+            that.options.onHide(e, this);
 
-		$(element).on('hide.bs.confirmation', function(e) {
-			that.options.onHide(e, this);
+            $(this).removeClass('open');
+        });
 
-			$(this).removeClass('open');
-		});
+        $(element).on('shown.bs.confirmation', function(e) {
+            var options = that.options;
+            var all = options.all_selector;
 
-		$(element).on('shown.bs.confirmation', function(e) {
-			var options = that.options;
-			var all = options.all_selector;
+            if(that.isPopout()) {
+                if(!event_body) {
+                    event_body = $('body').on('click', function (e) {
+                        if(that.$element.is(e.target)) return;
+                        if(that.$element.has(e.target).length) return;
+                        if($('.popover').has(e.target).length) return;
 
-			that.$element.on('click.dismiss.bs.confirmation', '[data-dismiss="confirmation"]', $.proxy(that.hide, that));
+                        that.hide();
+                        that.inState.click = false;
 
-			if(that.isPopout()) {
-				if(!event_body) {
-					event_body = $('body').on('click', function (e) {
-						if(that.$element.is(e.target)) return;
-						if(that.$element.has(e.target).length) return;
-						if($('.popover').has(e.target).length) return;
+                        $('body').unbind(e);
 
-						that.$element.confirmation('hide');
+                        event_body = false;
 
-						$('body').unbind(e);
+                        return;
+                    });
+                }
+            }
+        });
 
-						event_body = false;
+        if(options.selector) {
+            $(element).on('click.bs.confirmation', options.selector, function(e) {
+                e.preventDefault();
+            });
+        } else {
+            $(element).on('click.bs.confirmation', function(e) {
+                e.preventDefault();
+            });
+        }
+    }
 
-						return;
-					});
-				}
-			}
-		});
+    if (!$.fn.popover || !$.fn.tooltip) throw new Error('Confirmation requires popover.js and tooltip.js');
 
-		$(element).on('click', function(e) {
-			e.preventDefault();
-		});
-	}
+    Confirmation.VERSION  = '1.0.5'
 
-	if (!$.fn.popover || !$.fn.tooltip) throw new Error('Confirmation requires popover.js and tooltip.js');
-
-	Confirmation.DEFAULTS = $.extend({}, $.fn.popover.Constructor.DEFAULTS, {
-		placement 		: 'right',
-		title 			: 'Are you sure?',
-		btnOkClass 		: 'btn btn-sm btn-danger',
-		btnOkLabel 		: 'Delete',
-		btnOkIcon 		: 'glyphicon glyphicon-ok',
-		btnCancelClass 	: 'btn btn-sm btn-default',
-		btnCancelLabel 	: 'Cancel',
-		btnCancelIcon 	: 'glyphicon glyphicon-remove',
-		href 			: '#',
-		target 			: '_self',
-		singleton 		: true,
-		popout 			: true,
-		onShow 			: function(event, element){},
-		onHide 			: function(event, element){},
-		onConfirm 		: function(event, element){},
-		onCancel 		: function(event, element){},
-		template 		:   '<div class="popover"><div class="arrow"></div>'
-							+ '<h3 class="popover-title"></h3>'
-							+ '<div class="popover-content">'
-                            + '<div class="btn-group">'
-                            + '<a data-dismiss="confirmation">No</a>'
-							+ '<a data-apply="confirmation">Yes</a>'
-                            + '</div>'
-							+ '</div>'
-							+ '</div>'
-	});
-
-
-	// NOTE: CONFIRMATION EXTENDS popover.js
-	// ================================
-	Confirmation.prototype = $.extend({}, $.fn.popover.Constructor.prototype);
-
-	Confirmation.prototype.constructor = Confirmation;
-
-	Confirmation.prototype.getDefaults = function () {
-		return Confirmation.DEFAULTS;
-	}
-
-	Confirmation.prototype.setContent = function () {
-		var that = this;
-		var $tip    = this.tip();
-		var title   = this.getTitle();
-		var $btnOk	    = $tip.find('[data-apply="confirmation"]');
-		var $btnCancel  = $tip.find('[data-dismiss="confirmation"]');
-		var options	    = this.options
-
-		$btnOk.addClass(this.getBtnOkClass())
-			.html(this.getBtnOkLabel())
-			.prepend($('<i></i>').addClass(this.getBtnOkIcon()), " ")
-			.attr('href', this.getHref())
-			.attr('target', this.getTarget())
-			.off('click').on('click', function(event) {
-                that.$element.confirmation('hide');
-
-				options.onConfirm(event, that.$element);
-			});
-
-		$btnCancel.addClass(this.getBtnCancelClass())
-			.html(this.getBtnCancelLabel())
-			.prepend($('<i></i>').addClass(this.getBtnCancelIcon()), " ")
-			.off('click').on('click', function(event){
-				options.onCancel(event, that.$element);
-
-				that.$element.confirmation('hide');
-			});
-
-		$tip.find('.popover-title')[this.options.html ? 'html' : 'text'](title);
-
-		$tip.removeClass('fade top bottom left right in');
-
-		// IE8 doesn't accept hiding via the `:empty` pseudo selector, we have to do
-		// this manually by checking the contents.
-		if (!$tip.find('.popover-title').html()) $tip.find('.popover-title').hide();
-	}
-
-	Confirmation.prototype.getBtnOkClass = function () {
-		var $e = this.$element;
-		var o  = this.options;
-
-		return $e.attr('data-btnOkClass') || (typeof o.btnOkClass == 'function' ? o.btnOkClass.call($e[0]) : o.btnOkClass);
-	}
-
-	Confirmation.prototype.getBtnOkLabel = function () {
-		var $e = this.$element;
-		var o  = this.options;
-
-		return $e.attr('data-btnOkLabel') || (typeof o.btnOkLabel == 'function' ? o.btnOkLabel.call($e[0]) : o.btnOkLabel);
-	}
-
-	Confirmation.prototype.getBtnOkIcon = function () {
-		var $e = this.$element;
-		var o  = this.options;
-
-		return $e.attr('data-btnOkIcon') || (typeof o.btnOkIcon == 'function' ?  o.btnOkIcon.call($e[0]) : o.btnOkIcon);
-	}
-
-	Confirmation.prototype.getBtnCancelClass = function () {
-		var $e = this.$element;
-		var o  = this.options;
-
-		return $e.attr('data-btnCancelClass') || (typeof o.btnCancelClass == 'function' ? o.btnCancelClass.call($e[0]) : o.btnCancelClass);
-	}
-
-	Confirmation.prototype.getBtnCancelLabel = function () {
-		var $e = this.$element;
-		var o  = this.options;
-
-		return $e.attr('data-btnCancelLabel') || (typeof o.btnCancelLabel == 'function' ? o.btnCancelLabel.call($e[0]) : o.btnCancelLabel);
-	}
-
-	Confirmation.prototype.getBtnCancelIcon = function () {
-		var $e = this.$element;
-		var o  = this.options;
-
-		return $e.attr('data-btnCancelIcon') || (typeof o.btnCancelIcon == 'function' ? o.btnCancelIcon.call($e[0]) : o.btnCancelIcon);
-	}
-
-	Confirmation.prototype.getHref = function () {
-		var $e = this.$element;
-		var o  = this.options;
-
-		return $e.attr('data-href') || (typeof o.href == 'function' ? o.href.call($e[0]) : o.href);
-	}
-
-	Confirmation.prototype.getTarget = function () {
-		var $e = this.$element;
-		var o  = this.options;
-
-		return $e.attr('data-target') || (typeof o.target == 'function' ? o.target.call($e[0]) : o.target);
-	}
-
-	Confirmation.prototype.isPopout = function () {
-		var popout;
-		var $e = this.$element;
-		var o = this.options;
-
-		popout = $e.attr('data-popout') || (typeof o.popout == 'function' ? o.popout.call($e[0]) :	o.popout);
-
-		if(popout == 'false') popout = false;
-
-		return popout
-	}
+    Confirmation.DEFAULTS = $.extend({}, $.fn.popover.Constructor.DEFAULTS, {
+        placement 		: 'right',
+        title 			: 'Are you sure?',
+        btnOkClass 		: 'btn btn-sm btn-danger',
+        btnOkLabel 		: 'Delete',
+        btnOkIcon 		: 'glyphicon glyphicon-ok',
+        btnCancelClass 	: 'btn btn-sm btn-default',
+        btnCancelLabel 	: 'Cancel',
+        btnCancelIcon 	: 'glyphicon glyphicon-remove',
+        href 			: '#',
+        target 			: '_self',
+        singleton 		: true,
+        popout 			: true,
+        onShow 			: function(event, element){},
+        onHide 			: function(event, element){},
+        onConfirm 		: function(event, element){},
+        onCancel 		: function(event, element){},
+        template 		:   '<div class="popover"><div class="arrow"></div>'
+        + '<h3 class="popover-title"></h3>'
+        + '<div class="popover-content">'
+        + '<a data-apply="confirmation">Yes</a>'
+        + '<a data-dismiss="confirmation">No</a>'
+        + '</div>'
+        + '</div>'
+    });
 
 
-	// CONFIRMATION PLUGIN DEFINITION
-	// =========================
-	var old = $.fn.confirmation;
+    // NOTE: CONFIRMATION EXTENDS popover.js
+    // ================================
+    Confirmation.prototype = $.extend({}, $.fn.popover.Constructor.prototype);
 
-	$.fn.confirmation = function (option) {
-		var that = this;
+    Confirmation.prototype.constructor = Confirmation;
 
-		return this.each(function () {
-			var $this   = $(this);
-			var data    = $this.data('bs.confirmation');
-			var options = typeof option == 'object' && option;
+    Confirmation.prototype.getDefaults = function () {
+        return Confirmation.DEFAULTS;
+    }
 
-			options = options || {};
-			options.all_selector = that.selector;
+    Confirmation.prototype.setContent = function () {
+        var that       = this;
+        var $tip       = this.tip();
+        var title      = this.getTitle();
+        var $btnOk     = $tip.find('[data-apply="confirmation"]');
+        var $btnCancel = $tip.find('[data-dismiss="confirmation"]');
+        var options    = this.options
 
-			if (!data && option == 'destroy') return;
-			if (!data) $this.data('bs.confirmation', (data = new Confirmation(this, options)));
-			if (typeof option == 'string') data[option]();
-		});
-	}
+        $btnOk.addClass(this.getBtnOkClass())
+            .html(this.getBtnOkLabel())
+            .prepend($('<i></i>').addClass(this.getBtnOkIcon()), " ")
+            .attr('href', this.getHref())
+            .attr('target', this.getTarget())
+            .off('click').on('click', function(event) {
+            options.onConfirm(event, that.$element);
 
-	$.fn.confirmation.Constructor = Confirmation
+            // If the button is a submit one
+            if (that.$element.attr('type') == 'submit')
+                that.$element.closest('form:first').submit();
+
+            that.hide();
+            that.inState.click = false;
+        });
+
+        $btnCancel.addClass(this.getBtnCancelClass())
+            .html(this.getBtnCancelLabel())
+            .prepend($('<i></i>').addClass(this.getBtnCancelIcon()), " ")
+            .off('click').on('click', function(event){
+            options.onCancel(event, that.$element);
+
+            that.hide();
+            that.inState.click = false;
+        });
+
+        $tip.find('.popover-title')[this.options.html ? 'html' : 'text'](title);
+
+        $tip.removeClass('fade top bottom left right in');
+
+        // IE8 doesn't accept hiding via the `:empty` pseudo selector, we have to do
+        // this manually by checking the contents.
+        if (!$tip.find('.popover-title').html()) $tip.find('.popover-title').hide();
+    }
+
+    Confirmation.prototype.getBtnOkClass = function () {
+        var $e = this.$element;
+        var o  = this.options;
+
+        return $e.attr('data-btnOkClass') || (typeof o.btnOkClass == 'function' ? o.btnOkClass.call(this, $e[0]) : o.btnOkClass);
+    }
+
+    Confirmation.prototype.getBtnOkLabel = function () {
+        var $e = this.$element;
+        var o  = this.options;
+
+        return $e.attr('data-btnOkLabel') || (typeof o.btnOkLabel == 'function' ? o.btnOkLabel.call(this, $e[0]) : o.btnOkLabel);
+    }
+
+    Confirmation.prototype.getBtnOkIcon = function () {
+        var $e = this.$element;
+        var o  = this.options;
+
+        return $e.attr('data-btnOkIcon') || (typeof o.btnOkIcon == 'function' ?  o.btnOkIcon.call(this, $e[0]) : o.btnOkIcon);
+    }
+
+    Confirmation.prototype.getBtnCancelClass = function () {
+        var $e = this.$element;
+        var o  = this.options;
+
+        return $e.attr('data-btnCancelClass') || (typeof o.btnCancelClass == 'function' ? o.btnCancelClass.call(this, $e[0]) : o.btnCancelClass);
+    }
+
+    Confirmation.prototype.getBtnCancelLabel = function () {
+        var $e = this.$element;
+        var o  = this.options;
+
+        return $e.attr('data-btnCancelLabel') || (typeof o.btnCancelLabel == 'function' ? o.btnCancelLabel.call(this, $e[0]) : o.btnCancelLabel);
+    }
+
+    Confirmation.prototype.getBtnCancelIcon = function () {
+        var $e = this.$element;
+        var o  = this.options;
+
+        return $e.attr('data-btnCancelIcon') || (typeof o.btnCancelIcon == 'function' ? o.btnCancelIcon.call(this, $e[0]) : o.btnCancelIcon);
+    }
+
+    Confirmation.prototype.getHref = function () {
+        var $e = this.$element;
+        var o  = this.options;
+
+        return $e.attr('data-href') || (typeof o.href == 'function' ? o.href.call(this, $e[0]) : o.href);
+    }
+
+    Confirmation.prototype.getTarget = function () {
+        var $e = this.$element;
+        var o  = this.options;
+
+        return $e.attr('data-target') || (typeof o.target == 'function' ? o.target.call(this, $e[0]) : o.target);
+    }
+
+    Confirmation.prototype.isPopout = function () {
+        var popout;
+        var $e = this.$element;
+        var o  = this.options;
+
+        popout = $e.attr('data-popout') || (typeof o.popout == 'function' ? o.popout.call(this, $e[0]) :	o.popout);
+
+        if(popout == 'false') popout = false;
+
+        return popout
+    }
 
 
-	// CONFIRMATION NO CONFLICT
-	// ===================
-	$.fn.confirmation.noConflict = function () {
-		$.fn.confirmation = old;
+    // CONFIRMATION PLUGIN DEFINITION
+    // =========================
+    var old = $.fn.confirmation;
 
-		return this;
-	}
+    $.fn.confirmation = function (option) {
+        var that = this;
+
+        return this.each(function () {
+            var $this            = $(this);
+            var data             = $this.data('bs.confirmation');
+            var options          = typeof option == 'object' && option;
+
+            options              = options || {};
+            options.all_selector = that.selector;
+
+            if (!data && option == 'destroy') return;
+            if (!data) $this.data('bs.confirmation', (data = new Confirmation(this, options)));
+            if (typeof option == 'string') data[option]();
+        });
+    }
+
+    $.fn.confirmation.Constructor = Confirmation
+
+
+    // CONFIRMATION NO CONFLICT
+    // ===================
+    $.fn.confirmation.noConflict = function () {
+        $.fn.confirmation = old;
+
+        return this;
+    }
 }(jQuery);
+
 define("bootstrapConfirmation", ["bootstrap"], function(){});
 
 /*! ========================================================================
@@ -2004,6 +2021,9 @@ define('app/util',[
         // map module
         mapModuleId: 'pf-map-module',                                           // id for main map module
         mapTabBarId: 'pf-map-tabs',                                             // id for map tab bar
+        mapWrapperClass: 'pf-map-wrapper',                                      // wrapper div (scrollable)
+        mapClass: 'pf-map' ,                                                    // class for all maps
+
 
         // animation
         animationPulseSuccessClass: 'pf-animation-pulse-success',               // animation class
@@ -2030,40 +2050,41 @@ define('app/util',[
      * displays a loading indicator on an element
      */
     $.fn.showLoadingAnimation = function(options){
-        let loadingElement = $(this);
+        return this.each(function(){
+            let loadingElement = $(this);
+            let iconSize = 'fa-lg';
 
-        let iconSize = 'fa-lg';
+            // disable all events
+            loadingElement.css('pointer-events', 'none');
 
-        // disable all events
-        loadingElement.css('pointer-events', 'none');
-
-        if(options){
-            if(options.icon){
-                if(options.icon.size){
-                    iconSize = options.icon.size;
+            if(options){
+                if(options.icon){
+                    if(options.icon.size){
+                        iconSize = options.icon.size;
+                    }
                 }
             }
-        }
 
-        let overlay = $('<div>', {
-            class: config.ajaxOverlayClass
-        }).append(
-            $('<div>', {
-                class: [config.ajaxOverlayWrapperClass].join(' ')
+            let overlay = $('<div>', {
+                class: config.ajaxOverlayClass
             }).append(
-                $('<i>', {
-                    class: ['fa', 'fa-fw', iconSize, 'fa-refresh', 'fa-spin'].join(' ')
-                })
-            )
-        );
+                $('<div>', {
+                    class: [config.ajaxOverlayWrapperClass].join(' ')
+                }).append(
+                    $('<i>', {
+                        class: ['fa', 'fa-fw', iconSize, 'fa-refresh', 'fa-spin'].join(' ')
+                    })
+                )
+            );
 
-        loadingElement.append(overlay);
+            loadingElement.append(overlay);
 
-        // fade in
-        $(overlay).velocity({
-            opacity: 0.6
-        },{
-            duration: 120
+            // fade in
+            $(overlay).velocity({
+                opacity: 0.6
+            },{
+                duration: 120
+            });
         });
     };
 
@@ -2071,16 +2092,20 @@ define('app/util',[
      * removes a loading indicator
      */
     $.fn.hideLoadingAnimation = function(){
-        let loadingElement = $(this);
-        let overlay = loadingElement.find('.' + config.ajaxOverlayClass );
+        return this.each(function(){
+            let loadingElement = $(this);
+            let overlay = loadingElement.find('.' + config.ajaxOverlayClass );
 
-        // important: "stop" is required to stop "show" animation
-        // -> otherwise "complete" callback is not fired!
-        $(overlay).velocity('stop').velocity('reverse', {
-            complete: function(){
-                $(this).remove();
-                // enable all events
-                loadingElement.css('pointer-events', 'auto');
+            if(overlay.length){
+                // important: "stop" is required to stop "show" animation
+                // -> otherwise "complete" callback is not fired!
+                overlay.velocity('stop').velocity('reverse', {
+                    complete: function(){
+                        $(this).remove();
+                        // enable all events
+                        loadingElement.css('pointer-events', 'auto');
+                    }
+                });
             }
         });
     };
@@ -3217,6 +3242,15 @@ define('app/util',[
     };
 
     /**
+     * get mapElement from overlay or any child of that
+     * @param mapOverlay
+     * @returns {jQuery}
+     */
+    let getMapElementFromOverlay = (mapOverlay) => {
+        return $(mapOverlay).parents('.' + config.mapWrapperClass).find('.' + config.mapClass);
+    };
+
+    /**
      * get the map module object or create a new module
      * @returns {*|HTMLElement}
      */
@@ -3749,6 +3783,132 @@ define('app/util',[
     };
 
     /**
+     * get "nearBy" systemData based on a jump radius around a currentSystem
+     * @param currentSystemData
+     * @param currentMapData
+     * @param jumps
+     * @param foundSystemIds
+     * @returns {{systemData: *, tree: {}}}
+     */
+    let getNearBySystemData = (currentSystemData, currentMapData, jumps, foundSystemIds = {}) => {
+
+        // look for systemData by ID
+        let getSystemData = (systemId) => {
+            for(let j = 0; j < currentMapData.data.systems.length; j++){
+                let systemData = currentMapData.data.systems[j];
+                if(systemData.id === systemId){
+                    return systemData;
+                }
+            }
+            return false;
+        };
+
+        // skip systems that are already found in recursive calls
+        foundSystemIds[currentSystemData.id] = {distance: jumps};
+
+        let nearBySystems = {
+            systemData: currentSystemData,
+            tree: {}
+        };
+
+        jumps--;
+        if(jumps >= 0){
+            for(let i = 0; i < currentMapData.data.connections.length; i++){
+                let connectionData = currentMapData.data.connections[i];
+                let type = ''; // "source" OR "target"
+                if(connectionData.source === currentSystemData.id){
+                    type = 'target';
+                }else if(connectionData.target === currentSystemData.id){
+                    type = 'source';
+                }
+
+                if(
+                    type &&
+                    (
+                        foundSystemIds[connectionData[type]] === undefined ||
+                        foundSystemIds[connectionData[type]].distance < jumps
+                    )
+                ){
+                    let newSystemData = getSystemData(connectionData[type]);
+                    if(newSystemData){
+                        nearBySystems.tree[connectionData[type]] = getNearBySystemData(newSystemData, currentMapData, jumps, foundSystemIds);
+                    }
+                }
+            }
+        }
+        return nearBySystems;
+    };
+
+    /**
+     * get current character data from all characters who are "nearby" the current user
+     * -> see getNearBySystemData()
+     * @param nearBySystems
+     * @param userData
+     * @param jumps
+     * @param data
+     * @returns {{}}
+     */
+    let getNearByCharacterData = (nearBySystems, userData, jumps = 0, data = {}) => {
+
+        let getCharacterDataBySystemId = (systemId) => {
+            for(let i = 0; i < userData.length; i++){
+                if(userData[i].id === systemId){
+                    return userData[i].user;
+                }
+            }
+            return [];
+        };
+
+        let filterFinalCharData = function(tmpFinalCharData){
+            return this.id !== tmpFinalCharData.id;
+        };
+
+        let characterData = getCharacterDataBySystemId(nearBySystems.systemData.systemId);
+
+        if(characterData.length){
+            // filter (remove) characterData for "already" added chars
+            characterData = characterData.filter(function(tmpCharacterData, index, allData){
+                let keepData = true;
+
+                for(let tmpJump in data) {
+                    // just scan systems with > jumps than current system
+                    if(tmpJump > jumps){
+                        let filteredFinalData = data[tmpJump].filter(filterFinalCharData, tmpCharacterData);
+
+                        if(filteredFinalData.length > 0){
+                            data[tmpJump] = filteredFinalData;
+                        }else{
+                            delete data[tmpJump];
+                        }
+                    }else{
+                        for(let k = 0; k < data[tmpJump].length; k++){
+                            if(data[tmpJump][k].id === tmpCharacterData.id){
+                                keepData = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                return keepData;
+            });
+
+            data[jumps] = data[jumps] ? data[jumps] : [];
+            data[jumps] = [...data[jumps], ...characterData];
+        }
+
+        jumps++;
+        for(let prop in nearBySystems.tree) {
+            if( nearBySystems.tree.hasOwnProperty(prop) ){
+                let tmpSystemData = nearBySystems.tree[prop];
+                data = getNearByCharacterData(tmpSystemData, userData, jumps, data);
+            }
+        }
+
+        return data;
+    };
+
+    /**
      * set new destination for a system
      * -> CREST request
      * @param systemData
@@ -3843,6 +4003,34 @@ define('app/util',[
      */
     let getOpenDialogs = function(){
         return $('.' + config.dialogClass).filter(':visible');
+    };
+
+    /**
+     * send Ajax request that remote opens an ingame Window
+     * @param targetId
+     */
+    let openIngameWindow = (targetId) => {
+        targetId = parseInt(targetId);
+
+        if(targetId > 0){
+            $.ajax({
+                type: 'POST',
+                url: Init.path.openIngameWindow,
+                data: {
+                    targetId: targetId
+                },
+                dataType: 'json'
+            }).done(function(data){
+                if(data.error.length > 0){
+                    showNotify({title: 'Open window in client', text: 'Remote window open failed', type: 'error'});
+                }else{
+                    showNotify({title: 'Open window in client', text: 'Check your EVE client', type: 'success'});
+                }
+            }).fail(function( jqXHR, status, error) {
+                let reason = status + ' ' + error;
+                showNotify({title: jqXHR.status + ': openWindow', text: reason, type: 'error'});
+            });
+        }
     };
 
     /**
@@ -3982,6 +4170,7 @@ define('app/util',[
         setSyncStatus: setSyncStatus,
         getSyncType: getSyncType,
         isXHRAborted: isXHRAborted,
+        getMapElementFromOverlay: getMapElementFromOverlay,
         getMapModule: getMapModule,
         getSystemEffectData: getSystemEffectData,
         getSystemEffectTable: getSystemEffectTable,
@@ -4009,9 +4198,12 @@ define('app/util',[
         getCurrentUserInfo: getCurrentUserInfo,
         getCurrentCharacterLog: getCurrentCharacterLog,
         flattenXEditableSelectArray: flattenXEditableSelectArray,
+        getNearBySystemData: getNearBySystemData,
+        getNearByCharacterData: getNearByCharacterData,
         setDestination: setDestination,
         convertDateToString: convertDateToString,
         getOpenDialogs: getOpenDialogs,
+        openIngameWindow: openIngameWindow,
         formatPrice: formatPrice,
         getLocalStorage: getLocalStorage,
         getDocumentPath: getDocumentPath,
@@ -4621,6 +4813,667 @@ define('app/logging',[
     };
 });
 /**
+ * Map util functions
+ */
+
+define('app/map/util',[
+    'jquery',
+    'app/init',
+    'app/util',
+    'bootbox'
+], function($, Init, Util, bootbox) {
+    'use strict';
+
+    let config = {
+        mapSnapToGridDimension: 20,                                     // px for grid snapping (grid YxY)
+        defaultLocalJumpRadius: 3,                                      // default search radius (in jumps) for "nearby" pilots
+
+        // local storage
+        characterLocalStoragePrefix: 'character_',                      // prefix for character data local storage key
+        mapLocalStoragePrefix: 'map_',                                  // prefix for map data local storage key
+        mapTabContentClass: 'pf-map-tab-content',                       // Tab-Content element (parent element)
+
+        mapClass: 'pf-map',                                             // class for all maps
+        mapGridClass: 'pf-grid-small',                                  // class for map grid snapping
+
+        systemIdPrefix: 'pf-system-',                                   // id prefix for a system
+        systemClass: 'pf-system',                                       // class for all systems
+        systemSelectedClass: 'pf-system-selected'                       // class for selected systems in a map
+    };
+
+    // map menu options
+    let mapOptions = {
+        mapMagnetizer: {
+            buttonId: Util.config.menuButtonMagnetizerId,
+            description: 'Magnetizer',
+            onEnable: 'initMagnetizer',                                 // jQuery extension function
+            onDisable: 'destroyMagnetizer'                              // jQuery extension function
+        },
+        mapSnapToGrid : {
+            buttonId: Util.config.menuButtonGridId,
+            description: 'Grid snapping',
+            class: 'mapGridClass'
+        },
+        mapEndpoint : {
+            buttonId: Util.config.menuButtonEndpointId,
+            description: 'Endpoint overlay',
+            onEnable: 'showEndpointOverlays',                           // jQuery extension function
+            onDisable: 'hideEndpointOverlays'                           // jQuery extension function
+        }
+    };
+
+    /**
+     * get all available map Types
+     * optional they can be filtered by current access level of a user
+     * @param {bool} filterByUser
+     * @returns {Array}
+     */
+    let getMapTypes = function(filterByUser){
+        let mapTypes = [];
+
+        $.each(Init.mapTypes, function(prop, data){
+            // skip "default" type -> just for 'add' icon
+            if(data.label.length > 0){
+                let tempData = data;
+                tempData.name = prop;
+                mapTypes.push(tempData);
+            }
+        });
+
+        if(filterByUser === true){
+            let corporationId = Util.getCurrentUserInfo('corporationId');
+            let allianceId = Util.getCurrentUserInfo('allianceId');
+
+            let authorizedMapTypes = [];
+            // check if character data exists
+            if(corporationId > 0) {
+                authorizedMapTypes.push('corporation');
+            }
+            if(allianceId > 0){
+                authorizedMapTypes.push('alliance');
+            }
+
+            // private maps are always allowed
+            authorizedMapTypes.push('private');
+
+            // compare "all" map types with "authorized" types
+            let tempMapTypes = [];
+            for(let i = 0; i < mapTypes.length; i++){
+                for(let j = 0; j < authorizedMapTypes.length; j++){
+                    if(mapTypes[i].name === authorizedMapTypes[j]){
+                        tempMapTypes.push(mapTypes[i]);
+                        break;
+                    }
+
+                }
+            }
+            mapTypes = tempMapTypes;
+        }
+
+        return mapTypes;
+    };
+
+    /**
+     * get all available scopes for a map
+     * @returns {Array}
+     */
+    let getMapScopes = function(){
+        let scopes = [];
+        $.each(Init.mapScopes, function(prop, data){
+            let tempData = data;
+            tempData.name = prop;
+            scopes.push(tempData);
+        });
+
+        return scopes;
+    };
+
+    /**
+     * get some scope info for a given info string
+     * @param {string} info
+     * @param {string} option
+     * @returns {string}
+     */
+    let getScopeInfoForMap = function(info, option){
+        let scopeInfo = '';
+        if(Init.mapScopes.hasOwnProperty(info)){
+            scopeInfo = Init.mapScopes[info][option];
+        }
+        return scopeInfo;
+    };
+
+    /**
+     * get all available map icons
+     * @returns {Object[]}
+     */
+    let getMapIcons = function(){
+        return Init.mapIcons;
+    };
+
+    /**
+     * get map info
+     * @param {string} mapType
+     * @param {string} option
+     * @returns {string}
+     */
+    let getInfoForMap = function(mapType, option){
+        let mapInfo = '';
+        if(Init.mapTypes.hasOwnProperty(mapType)){
+            mapInfo = Init.mapTypes[mapType][option];
+        }
+        return mapInfo;
+    };
+
+    /**
+     * get some system info for a given info string (e.g. rally class)
+     * @param {string} info
+     * @param {string} option
+     * @returns {string}
+     */
+    let getInfoForSystem = function(info, option){
+        let systemInfo = '';
+        if(Init.classes.systemInfo.hasOwnProperty(info)){
+            systemInfo = Init.classes.systemInfo[info][option];
+        }
+        return systemInfo;
+    };
+
+    /**
+     * get system type information
+     * @param {number} systemTypeId
+     * @param {string} option
+     * @returns {string}
+     */
+    let getSystemTypeInfo = function(systemTypeId, option){
+        let systemTypeInfo = '';
+        $.each(Init.systemType, function(prop, data){
+            if(systemTypeId === data.id){
+                systemTypeInfo = data[option];
+                return;
+            }
+        });
+        return systemTypeInfo;
+    };
+
+    /**
+     * get some info for a given effect string
+     * @param effect
+     * @param option
+     * @returns {string}
+     */
+    let getEffectInfoForSystem = function(effect, option){
+        let effectInfo = '';
+        if( Init.classes.systemEffects.hasOwnProperty(effect) ){
+            effectInfo = Init.classes.systemEffects[effect][option];
+        }
+        return effectInfo;
+    };
+
+    /**
+     * get system elements on a map
+     * @returns {*|jQuery}
+     */
+    $.fn.getSystems = function(){
+        return this.find('.' + config.systemClass);
+    };
+
+    /**
+     * get all selected (NOT active) systems in a map
+     * @returns {*}
+     */
+    $.fn.getSelectedSystems = function(){
+        let mapElement = $(this);
+        return mapElement.find('.' + config.systemSelectedClass);
+    };
+
+    /**
+     * search connections by systems
+     * @param {Object} map - jsPlumb
+     * @param {JQuery[]} systems - system DOM elements
+     * @returns {Array} connections - found connection, DOM elements
+     */
+    let searchConnectionsBySystems = function(map, systems){
+        let connections = [];
+        let withBackConnection = true;
+
+        $.each(systems, function(i, system){
+            // get connections where system is source
+            connections = connections.concat( map.getConnections({source: system}) );
+            if(withBackConnection === true){
+                // get connections where system is target
+                connections = connections.concat( map.getConnections({target: system}) );
+            }
+        });
+        return connections;
+    };
+
+    /**
+     * search connections by scope and/or type
+     * -> scope and target can be an array
+     * @param {Object} map - jsPlumb
+     * @param {string|string[]} scope
+     * @param {string|string[]} type
+     * @returns {Array}
+     */
+    let searchConnectionsByScopeAndType = function(map, scope, type){
+        let connections = [];
+        let scopeArray = (scope === undefined) ? ['*'] : ((Array.isArray(scope)) ? scope : [scope]);
+        let typeArray = (type === undefined) ? [] : ((Array.isArray(type)) ? type : [type]);
+
+        map.select({scope: scopeArray}).each(function(connection){
+            if(typeArray.length > 0){
+                // filter by connection type as well...
+                for(let i = 0; i < typeArray.length; i++){
+                    if( connection.hasType(typeArray[i]) ){
+                        connections.push(connection);
+                        break; // don´t add same connection multiple times
+                    }
+                }
+            }else{
+                // connection type is ignored
+                connections.push(connection);
+            }
+        });
+
+        return connections;
+    };
+
+    /**
+     * get Connection Info by option
+     * @param {string} connectionTyp
+     * @param {string} option
+     * @returns {string}
+     */
+    let getConnectionInfo = function(connectionTyp, option){
+        let connectionInfo = '';
+        if(Init.connectionTypes.hasOwnProperty(connectionTyp)){
+            connectionInfo = Init.connectionTypes[connectionTyp][option];
+        }
+        return connectionInfo;
+    };
+
+    /**
+     * get all direct connections between two given systems
+     * @param map
+     * @param {JQuery} systemA
+     * @param {JQuery} systemB
+     * @returns {Array}
+     */
+    let checkForConnection = function(map, systemA, systemB){
+        let connections = [];
+        connections = connections.concat( map.getConnections({scope: '*', source: systemA, target: systemB}) );
+        // get connections where system is target
+        connections = connections.concat( map.getConnections({scope: '*', source: systemB, target: systemA}) );
+        return connections;
+    };
+
+    /**
+     * get the default connection type for a scope
+     * e.g. for new type after scope change
+     * @param {string} scope
+     * @returns {string}
+     */
+    let getDefaultConnectionTypeByScope = function(scope){
+        let type = '';
+        switch(scope){
+            case 'wh':
+                type = 'wh_fresh';
+                break;
+            case 'jumpbridge':
+                type = 'jumpbridge';
+                break;
+            case'stargate':
+                type = 'stargate';
+                break;
+            default:
+                console.error('Connection scope "' + scope + '" unknown!');
+        }
+
+        return type;
+    };
+
+    /**
+     * set/change connection status of a wormhole
+     * @param {Object} connection - jsPlumb object
+     * @param {string} status
+     */
+    let setConnectionWHStatus = function(connection, status){
+        if(
+            status === 'wh_fresh' &&
+            connection.hasType('wh_fresh') !== true
+        ){
+            connection.removeType('wh_reduced');
+            connection.removeType('wh_critical');
+            connection.addType('wh_fresh');
+        }else if(
+            status === 'wh_reduced' &&
+            connection.hasType('wh_reduced') !== true
+        ){
+            connection.removeType('wh_fresh');
+            connection.removeType('wh_critical');
+            connection.addType('wh_reduced');
+        }else if(
+            status === 'wh_critical' &&
+            connection.hasType('wh_critical') !== true
+        ){
+            connection.removeType('wh_fresh');
+            connection.removeType('wh_reduced');
+            connection.addType('wh_critical');
+        }else if(
+            status === 'wh_eol' &&
+            connection.hasType('wh_eol') !== true
+        ){
+            connection.addType('wh_eol');
+        }else if(
+            status === 'wh_eol' &&
+            connection.hasType('wh_eol') !== true
+        ){
+            connection.addType('wh_eol');
+        }
+    };
+
+    /**
+     * get some scope info for a given info string
+     * @param {string} info
+     * @param {string} option
+     * @returns {string}
+     */
+    let getScopeInfoForConnection = function(info, option){
+        let scopeInfo = '';
+        if(Init.connectionScopes.hasOwnProperty(info)){
+            switch(option){
+                case 'connectorDefinition':
+                    // json data in DB
+                    let temp = '{ "data": ' + Init.connectionScopes[info][option] + '}';
+                    scopeInfo = $.parseJSON( temp).data;
+                    break;
+                default:
+                    scopeInfo = Init.connectionScopes[info][option];
+                    break;
+            }
+        }
+
+        return scopeInfo;
+    };
+
+    /**
+     * get TabContentElement by any element on a map e.g. system
+     * @param element
+     * @returns {*}
+     */
+    let getTabContentElementByMapElement = function(element){
+        let tabContentElement = $(element).parents('.' + config.mapTabContentClass);
+        return tabContentElement;
+    };
+
+    /**
+     * store mapId for current user (IndexedDB)
+     * @param mapId
+     */
+    let storeDefaultMapId = function(mapId){
+        if(mapId > 0){
+            let userData = Util.getCurrentUserData();
+            if(
+                userData &&
+                userData.character
+            ){
+                storeLocalData('character', userData.character.id, 'defaultMapId', mapId);
+            }
+        }
+    };
+
+    /**
+     * get key prefix for local storage data
+     * @param type
+     * @returns {boolean}
+     */
+    let getLocalStoragePrefixByType = function(type){
+        let prefix = false;
+        switch(type){
+            case 'character':   prefix = config.characterLocalStoragePrefix; break;
+            case 'map':   prefix = config.mapLocalStoragePrefix; break;
+            default:   prefix = config.mapLocalStoragePrefix;
+        }
+        return prefix;
+    };
+
+    /**
+     * get stored local data from client cache (IndexedDB)
+     * @param type
+     * @param objectId
+     * @returns {*}
+     */
+    let getLocaleData = function(type, objectId){
+        if(objectId > 0){
+            let storageKey = getLocalStoragePrefixByType(type) + objectId;
+            return Util.getLocalStorage().getItem(storageKey);
+        }else{
+            console.warn('Local storage requires object id > 0');
+        }
+    };
+
+    /**
+     * store local config data to client cache (IndexedDB)
+     * @param type
+     * @param objectId
+     * @param key
+     * @param value
+     */
+    let storeLocalData = function(type, objectId, key, value){
+        if(objectId > 0){
+            // get current map config
+            let storageKey = getLocalStoragePrefixByType(type) + objectId;
+            Util.getLocalStorage().getItem(storageKey).then(function(data) {
+                // This code runs once the value has been loaded
+                // from the offline store.
+                data = (data === null) ? {} : data;
+                // set/update value
+                data[this.key] = this.value;
+                Util.getLocalStorage().setItem(this.storageKey, data);
+            }.bind({
+                key: key,
+                value: value,
+                storageKey: storageKey
+            })).catch(function(err) {
+                // This code runs if there were any errors
+                console.error('Map local storage can not be accessed!');
+            });
+        }else{
+            console.warn('storeLocalData(): Local storage requires object id > 0');
+        }
+    };
+
+    /**
+     * delete local map configuration by key (IndexedDB)
+     * @param type
+     * @param objectId
+     * @param key
+     */
+    let deleteLocalData = function(type, objectId, key){
+        if(objectId > 0){
+            // get current map config
+            let storageKey = getLocalStoragePrefixByType(type) + objectId;
+            Util.getLocalStorage().getItem(storageKey).then(function(data) {
+                if(
+                    data &&
+                    data.hasOwnProperty(key)
+                ){
+                    delete data[key];
+                    Util.getLocalStorage().setItem(this.storageKey, data);
+                }
+            }.bind({
+                storageKey: storageKey
+            }));
+        }else{
+            console.warn('deleteLocalData(): Local storage requires object id > 0');
+        }
+    };
+
+    /**
+     * set or change rallyPoint for systems
+     * @param rallyUpdated
+     * @param options
+     * @returns {*}
+     */
+    $.fn.setSystemRally = function(rallyUpdated, options){
+        rallyUpdated = rallyUpdated || 0;
+        let rallyPoke = false;
+
+        let defaultOptions = {
+            poke: false,
+            hideNotification: false,
+            hideCounter: false,
+        };
+        options = $.extend({}, defaultOptions, options);
+
+        return this.each(function(){
+            let system = $(this);
+            let rally = system.data('rallyUpdated') || 0;
+
+            if(rallyUpdated !== rally){
+                // rally status changed
+                if( !options.hideCounter ){
+                    system.getMapOverlay('timer').startMapUpdateCounter();
+                }
+
+                let rallyClass = getInfoForSystem('rally', 'class');
+
+                if(rallyUpdated > 0){
+                    // new rally point set OR update system with rally information
+
+                    system.addClass( rallyClass );
+                    // rallyUpdated > 0 is required for poke!
+                    rallyPoke = options.poke;
+
+                    let notificationOptions = {
+                        title: 'Rally Point',
+                        text: 'System: ' +  system.data('name')
+                    };
+
+                    if(rallyUpdated === 1){
+                        // rally point not saved on DB
+                        notificationOptions.type = 'success';
+                        Util.showNotify(notificationOptions);
+                    }else if(options.poke){
+                        // rally saved AND poke option active
+
+                        // check if desktop notification was already send
+                        let mapId = system.data('mapid');
+                        let systemId = system.data('id');
+                        let promiseStore = getLocaleData('map', mapId);
+                        promiseStore.then(function(data) {
+                            // This code runs once the value has been loaded
+                            // from the offline store.
+                            let rallyPokeData = {};
+
+                            if(
+                                data &&
+                                data.rallyPoke
+                            ){
+                                // poke data exists
+                                rallyPokeData = data.rallyPoke;
+                            }
+
+                            if(
+                                !rallyPokeData.hasOwnProperty(this.systemId) || // rally poke was not already send to client
+                                rallyPokeData[this.systemId] !== rallyUpdated // already send to that system but in the past
+                            ){
+                                rallyPokeData[this.systemId] = rallyUpdated;
+                                storeLocalData('map', this.mapId, 'rallyPoke', rallyPokeData);
+
+                                notificationOptions.type = 'info';
+                                Util.showNotify(notificationOptions, {desktop: true, stack: 'barBottom'});
+                            }
+                        }.bind({
+                            mapId: mapId,
+                            systemId: systemId,
+                            rallyUpdated: rallyUpdated
+                        }));
+                    }
+                }else{
+                    // rally point removed
+                    system.removeClass( rallyClass );
+
+                    if( !options.hideNotification ){
+                        Util.showNotify({title: 'Rally point removed', type: 'success'});
+                    }
+                }
+            }
+
+            system.data('rallyUpdated', rallyUpdated);
+            system.data('rallyPoke', rallyPoke);
+        });
+    };
+
+    /**
+     * set map "shortcut" events
+     */
+    $.fn.setMapShortcuts = function(){
+        return this.each((i, mapWrapper) => {
+            mapWrapper = $(mapWrapper);
+            let mapElement = mapWrapper.findMapElement();
+
+            // dynamic require Map module -> otherwise there is a require(), loop
+            let Map = require('app/map/map');
+            let map = Map.getMapInstance( mapElement.data('id'));
+
+            mapWrapper.watchKey('mapSystemAdd', (mapWrapper) => {
+                Map.showNewSystemDialog(map, {position: {x: 0, y: 0}});
+            },{focus: true});
+
+            mapWrapper.watchKey('mapSystemsSelect', (mapWrapper) => {
+                mapElement.selectAllSystems();
+            },{focus: true});
+
+            mapWrapper.watchKey('mapSystemsDelete', (mapWrapper) => {
+                let selectedSystems = mapElement.getSelectedSystems();
+                $.fn.showDeleteSystemDialog(map, selectedSystems);
+            },{focus: true});
+
+        });
+    };
+
+    $.fn.findMapElement = function(){
+        return $(this).find('.' + config.mapClass);
+    };
+
+    /**
+     * get systemId string (selector
+     * @param mapId
+     * @param systemId
+     * @returns {string}
+     */
+    let getSystemId = (mapId, systemId) => {
+        return config.systemIdPrefix + mapId + '-' + systemId;
+    };
+
+    return {
+        config: config,
+        mapOptions: mapOptions,
+        getMapTypes: getMapTypes,
+        getMapScopes: getMapScopes,
+        getScopeInfoForMap: getScopeInfoForMap,
+        getMapIcons: getMapIcons,
+        getInfoForMap: getInfoForMap,
+        getInfoForSystem: getInfoForSystem,
+        getSystemTypeInfo: getSystemTypeInfo,
+        getEffectInfoForSystem: getEffectInfoForSystem,
+        searchConnectionsBySystems: searchConnectionsBySystems,
+        searchConnectionsByScopeAndType: searchConnectionsByScopeAndType,
+        getConnectionInfo: getConnectionInfo,
+        checkForConnection: checkForConnection,
+        getDefaultConnectionTypeByScope: getDefaultConnectionTypeByScope,
+        setConnectionWHStatus: setConnectionWHStatus,
+        getScopeInfoForConnection: getScopeInfoForConnection,
+        getTabContentElementByMapElement: getTabContentElementByMapElement,
+        storeDefaultMapId: storeDefaultMapId,
+        getLocaleData: getLocaleData,
+        storeLocalData: storeLocalData,
+        deleteLocalData: deleteLocalData,
+        getSystemId: getSystemId
+    };
+});
+/**
  * @license RequireJS text 2.0.12 Copyright (c) 2010-2014, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
  * see: http://github.com/requirejs/text for details
@@ -5113,7 +5966,7 @@ define('dialog/stats',[
     'app/util',
     'app/render',
     'bootbox'
-], function($, Init, Util, Render, bootbox, MapUtil) {
+], function($, Init, Util, Render, bootbox) {
     'use strict';
 
     let config = {
@@ -5814,666 +6667,6 @@ define('dialog/stats',[
     };
 });
 /**
- * Map util functions
- */
-
-define('app/map/util',[
-    'jquery',
-    'app/init',
-    'app/util',
-    'bootbox'
-], function($, Init, Util, bootbox) {
-    'use strict';
-
-    let config = {
-        mapSnapToGridDimension: 20,                                     // px for grid snapping (grid YxY)
-
-        // local storage
-        characterLocalStoragePrefix: 'character_',                      // prefix for character data local storage key
-        mapLocalStoragePrefix: 'map_',                                  // prefix for map data local storage key
-        mapTabContentClass: 'pf-map-tab-content',                       // Tab-Content element (parent element)
-
-        mapClass: 'pf-map',                                             // class for all maps
-        mapGridClass: 'pf-grid-small',                                  // class for map grid snapping
-
-        systemIdPrefix: 'pf-system-',                                   // id prefix for a system
-        systemClass: 'pf-system',                                       // class for all systems
-        systemSelectedClass: 'pf-system-selected'                       // class for selected systems in a map
-    };
-
-    // map menu options
-    let mapOptions = {
-        mapMagnetizer: {
-            buttonId: Util.config.menuButtonMagnetizerId,
-            description: 'Magnetizer',
-            onEnable: 'initMagnetizer',                                 // jQuery extension function
-            onDisable: 'destroyMagnetizer'                              // jQuery extension function
-        },
-        mapSnapToGrid : {
-            buttonId: Util.config.menuButtonGridId,
-            description: 'Grid snapping',
-            class: 'mapGridClass'
-        },
-        mapEndpoint : {
-            buttonId: Util.config.menuButtonEndpointId,
-            description: 'Endpoint overlay',
-            onEnable: 'showEndpointOverlays',                           // jQuery extension function
-            onDisable: 'hideEndpointOverlays'                           // jQuery extension function
-        }
-    };
-
-    /**
-     * get all available map Types
-     * optional they can be filtered by current access level of a user
-     * @param {bool} filterByUser
-     * @returns {Array}
-     */
-    let getMapTypes = function(filterByUser){
-        let mapTypes = [];
-
-        $.each(Init.mapTypes, function(prop, data){
-            // skip "default" type -> just for 'add' icon
-            if(data.label.length > 0){
-                let tempData = data;
-                tempData.name = prop;
-                mapTypes.push(tempData);
-            }
-        });
-
-        if(filterByUser === true){
-            let corporationId = Util.getCurrentUserInfo('corporationId');
-            let allianceId = Util.getCurrentUserInfo('allianceId');
-
-            let authorizedMapTypes = [];
-            // check if character data exists
-            if(corporationId > 0) {
-                authorizedMapTypes.push('corporation');
-            }
-            if(allianceId > 0){
-                authorizedMapTypes.push('alliance');
-            }
-
-            // private maps are always allowed
-            authorizedMapTypes.push('private');
-
-            // compare "all" map types with "authorized" types
-            let tempMapTypes = [];
-            for(let i = 0; i < mapTypes.length; i++){
-                for(let j = 0; j < authorizedMapTypes.length; j++){
-                    if(mapTypes[i].name === authorizedMapTypes[j]){
-                        tempMapTypes.push(mapTypes[i]);
-                        break;
-                    }
-
-                }
-            }
-            mapTypes = tempMapTypes;
-        }
-
-        return mapTypes;
-    };
-
-    /**
-     * get all available scopes for a map
-     * @returns {Array}
-     */
-    let getMapScopes = function(){
-        let scopes = [];
-        $.each(Init.mapScopes, function(prop, data){
-            let tempData = data;
-            tempData.name = prop;
-            scopes.push(tempData);
-        });
-
-        return scopes;
-    };
-
-    /**
-     * get some scope info for a given info string
-     * @param {string} info
-     * @param {string} option
-     * @returns {string}
-     */
-    let getScopeInfoForMap = function(info, option){
-        let scopeInfo = '';
-        if(Init.mapScopes.hasOwnProperty(info)){
-            scopeInfo = Init.mapScopes[info][option];
-        }
-        return scopeInfo;
-    };
-
-    /**
-     * get all available map icons
-     * @returns {Object[]}
-     */
-    let getMapIcons = function(){
-        return Init.mapIcons;
-    };
-
-    /**
-     * get map info
-     * @param {string} mapType
-     * @param {string} option
-     * @returns {string}
-     */
-    let getInfoForMap = function(mapType, option){
-        let mapInfo = '';
-        if(Init.mapTypes.hasOwnProperty(mapType)){
-            mapInfo = Init.mapTypes[mapType][option];
-        }
-        return mapInfo;
-    };
-
-    /**
-     * get some system info for a given info string (e.g. rally class)
-     * @param {string} info
-     * @param {string} option
-     * @returns {string}
-     */
-    let getInfoForSystem = function(info, option){
-        let systemInfo = '';
-        if(Init.classes.systemInfo.hasOwnProperty(info)){
-            systemInfo = Init.classes.systemInfo[info][option];
-        }
-        return systemInfo;
-    };
-
-    /**
-     * get system type information
-     * @param {number} systemTypeId
-     * @param {string} option
-     * @returns {string}
-     */
-    let getSystemTypeInfo = function(systemTypeId, option){
-        let systemTypeInfo = '';
-        $.each(Init.systemType, function(prop, data){
-            if(systemTypeId === data.id){
-                systemTypeInfo = data[option];
-                return;
-            }
-        });
-        return systemTypeInfo;
-    };
-
-    /**
-     * get some info for a given effect string
-     * @param effect
-     * @param option
-     * @returns {string}
-     */
-    let getEffectInfoForSystem = function(effect, option){
-        let effectInfo = '';
-        if( Init.classes.systemEffects.hasOwnProperty(effect) ){
-            effectInfo = Init.classes.systemEffects[effect][option];
-        }
-        return effectInfo;
-    };
-
-    /**
-     * get system elements on a map
-     * @returns {*|jQuery}
-     */
-    $.fn.getSystems = function(){
-        return this.find('.' + config.systemClass);
-    };
-
-    /**
-     * get all selected (NOT active) systems in a map
-     * @returns {*}
-     */
-    $.fn.getSelectedSystems = function(){
-        let mapElement = $(this);
-        return mapElement.find('.' + config.systemSelectedClass);
-    };
-
-    /**
-     * search connections by systems
-     * @param {Object} map - jsPlumb
-     * @param {JQuery[]} systems - system DOM elements
-     * @returns {Array} connections - found connection, DOM elements
-     */
-    let searchConnectionsBySystems = function(map, systems){
-        let connections = [];
-        let withBackConnection = true;
-
-        $.each(systems, function(i, system){
-            // get connections where system is source
-            connections = connections.concat( map.getConnections({source: system}) );
-            if(withBackConnection === true){
-                // get connections where system is target
-                connections = connections.concat( map.getConnections({target: system}) );
-            }
-        });
-        return connections;
-    };
-
-    /**
-     * search connections by scope and/or type
-     * -> scope and target can be an array
-     * @param {Object} map - jsPlumb
-     * @param {string|string[]} scope
-     * @param {string|string[]} type
-     * @returns {Array}
-     */
-    let searchConnectionsByScopeAndType = function(map, scope, type){
-        let connections = [];
-        let scopeArray = (scope === undefined) ? ['*'] : ((Array.isArray(scope)) ? scope : [scope]);
-        let typeArray = (type === undefined) ? [] : ((Array.isArray(type)) ? type : [type]);
-
-        map.select({scope: scopeArray}).each(function(connection){
-            if(typeArray.length > 0){
-                // filter by connection type as well...
-                for(let i = 0; i < typeArray.length; i++){
-                    if( connection.hasType(typeArray[i]) ){
-                        connections.push(connection);
-                        break; // don´t add same connection multiple times
-                    }
-                }
-            }else{
-                // connection type is ignored
-                connections.push(connection);
-            }
-        });
-
-        return connections;
-    };
-
-    /**
-     * get Connection Info by option
-     * @param {string} connectionTyp
-     * @param {string} option
-     * @returns {string}
-     */
-    let getConnectionInfo = function(connectionTyp, option){
-        let connectionInfo = '';
-        if(Init.connectionTypes.hasOwnProperty(connectionTyp)){
-            connectionInfo = Init.connectionTypes[connectionTyp][option];
-        }
-        return connectionInfo;
-    };
-
-    /**
-     * get all direct connections between two given systems
-     * @param map
-     * @param {JQuery} systemA
-     * @param {JQuery} systemB
-     * @returns {Array}
-     */
-    let checkForConnection = function(map, systemA, systemB){
-        let connections = [];
-        connections = connections.concat( map.getConnections({scope: '*', source: systemA, target: systemB}) );
-        // get connections where system is target
-        connections = connections.concat( map.getConnections({scope: '*', source: systemB, target: systemA}) );
-        return connections;
-    };
-
-    /**
-     * get the default connection type for a scope
-     * e.g. for new type after scope change
-     * @param {string} scope
-     * @returns {string}
-     */
-    let getDefaultConnectionTypeByScope = function(scope){
-        let type = '';
-        switch(scope){
-            case 'wh':
-                type = 'wh_fresh';
-                break;
-            case 'jumpbridge':
-                type = 'jumpbridge';
-                break;
-            case'stargate':
-                type = 'stargate';
-                break;
-            default:
-                console.error('Connection scope "' + scope + '" unknown!');
-        }
-
-        return type;
-    };
-
-    /**
-     * set/change connection status of a wormhole
-     * @param {Object} connection - jsPlumb object
-     * @param {string} status
-     */
-    let setConnectionWHStatus = function(connection, status){
-        if(
-            status === 'wh_fresh' &&
-            connection.hasType('wh_fresh') !== true
-        ){
-            connection.removeType('wh_reduced');
-            connection.removeType('wh_critical');
-            connection.addType('wh_fresh');
-        }else if(
-            status === 'wh_reduced' &&
-            connection.hasType('wh_reduced') !== true
-        ){
-            connection.removeType('wh_fresh');
-            connection.removeType('wh_critical');
-            connection.addType('wh_reduced');
-        }else if(
-            status === 'wh_critical' &&
-            connection.hasType('wh_critical') !== true
-        ){
-            connection.removeType('wh_fresh');
-            connection.removeType('wh_reduced');
-            connection.addType('wh_critical');
-        }else if(
-            status === 'wh_eol' &&
-            connection.hasType('wh_eol') !== true
-        ){
-            connection.addType('wh_eol');
-        }else if(
-            status === 'wh_eol' &&
-            connection.hasType('wh_eol') !== true
-        ){
-            connection.addType('wh_eol');
-        }
-    };
-
-    /**
-     * get some scope info for a given info string
-     * @param {string} info
-     * @param {string} option
-     * @returns {string}
-     */
-    let getScopeInfoForConnection = function(info, option){
-        let scopeInfo = '';
-        if(Init.connectionScopes.hasOwnProperty(info)){
-            switch(option){
-                case 'connectorDefinition':
-                    // json data in DB
-                    let temp = '{ "data": ' + Init.connectionScopes[info][option] + '}';
-                    scopeInfo = $.parseJSON( temp).data;
-                    break;
-                default:
-                    scopeInfo = Init.connectionScopes[info][option];
-                    break;
-            }
-        }
-
-        return scopeInfo;
-    };
-
-    /**
-     * get TabContentElement by any element on a map e.g. system
-     * @param element
-     * @returns {*}
-     */
-    let getTabContentElementByMapElement = function(element){
-        let tabContentElement = $(element).parents('.' + config.mapTabContentClass);
-        return tabContentElement;
-    };
-
-    /**
-     * store mapId for current user (IndexedDB)
-     * @param mapId
-     */
-    let storeDefaultMapId = function(mapId){
-        if(mapId > 0){
-            let userData = Util.getCurrentUserData();
-            if(
-                userData &&
-                userData.character
-            ){
-                storeLocalData('character', userData.character.id, 'defaultMapId', mapId);
-            }
-        }
-    };
-
-    /**
-     * get key prefix for local storage data
-     * @param type
-     * @returns {boolean}
-     */
-    let getLocalStoragePrefixByType = function(type){
-        let prefix = false;
-        switch(type){
-            case 'character':   prefix = config.characterLocalStoragePrefix; break;
-            case 'map':   prefix = config.mapLocalStoragePrefix; break;
-            default:   prefix = config.mapLocalStoragePrefix;
-        }
-        return prefix;
-    };
-
-    /**
-     * get stored local data from client cache (IndexedDB)
-     * @param type
-     * @param objectId
-     * @returns {*}
-     */
-    let getLocaleData = function(type, objectId){
-        if(objectId > 0){
-            let storageKey = getLocalStoragePrefixByType(type) + objectId;
-            return Util.getLocalStorage().getItem(storageKey);
-        }else{
-            console.warn('Local storage requires object id > 0');
-        }
-    };
-
-    /**
-     * store local config data to client cache (IndexedDB)
-     * @param type
-     * @param objectId
-     * @param key
-     * @param value
-     */
-    let storeLocalData = function(type, objectId, key, value){
-        if(objectId > 0){
-            // get current map config
-            let storageKey = getLocalStoragePrefixByType(type) + objectId;
-            Util.getLocalStorage().getItem(storageKey).then(function(data) {
-                // This code runs once the value has been loaded
-                // from the offline store.
-                data = (data === null) ? {} : data;
-                // set/update value
-                data[this.key] = this.value;
-                Util.getLocalStorage().setItem(this.storageKey, data);
-            }.bind({
-                key: key,
-                value: value,
-                storageKey: storageKey
-            })).catch(function(err) {
-                // This code runs if there were any errors
-                console.error('Map local storage can not be accessed!');
-            });
-        }else{
-            console.warn('storeLocalData(): Local storage requires object id > 0');
-        }
-    };
-
-    /**
-     * delete local map configuration by key (IndexedDB)
-     * @param type
-     * @param objectId
-     * @param key
-     */
-    let deleteLocalData = function(type, objectId, key){
-        if(objectId > 0){
-            // get current map config
-            let storageKey = getLocalStoragePrefixByType(type) + objectId;
-            Util.getLocalStorage().getItem(storageKey).then(function(data) {
-                if(
-                    data &&
-                    data.hasOwnProperty(key)
-                ){
-                    delete data[key];
-                    Util.getLocalStorage().setItem(this.storageKey, data);
-                }
-            }.bind({
-                storageKey: storageKey
-            }));
-        }else{
-            console.warn('deleteLocalData(): Local storage requires object id > 0');
-        }
-    };
-
-    /**
-     * set or change rallyPoint for systems
-     * @param rallyUpdated
-     * @param options
-     * @returns {*}
-     */
-    $.fn.setSystemRally = function(rallyUpdated, options){
-        rallyUpdated = rallyUpdated || 0;
-        let rallyPoke = false;
-
-        let defaultOptions = {
-            poke: false,
-            hideNotification: false,
-            hideCounter: false,
-        };
-        options = $.extend({}, defaultOptions, options);
-
-        return this.each(function(){
-            let system = $(this);
-            let rally = system.data('rallyUpdated') || 0;
-
-            if(rallyUpdated !== rally){
-                // rally status changed
-                if( !options.hideCounter ){
-                    system.getMapOverlay('timer').startMapUpdateCounter();
-                }
-
-                let rallyClass = getInfoForSystem('rally', 'class');
-
-                if(rallyUpdated > 0){
-                    // new rally point set OR update system with rally information
-
-                    system.addClass( rallyClass );
-                    // rallyUpdated > 0 is required for poke!
-                    rallyPoke = options.poke;
-
-                    let notificationOptions = {
-                        title: 'Rally Point',
-                        text: 'System: ' +  system.data('name')
-                    };
-
-                    if(rallyUpdated === 1){
-                        // rally point not saved on DB
-                        notificationOptions.type = 'success';
-                        Util.showNotify(notificationOptions);
-                    }else if(options.poke){
-                        // rally saved AND poke option active
-
-                        // check if desktop notification was already send
-                        let mapId = system.data('mapid');
-                        let systemId = system.data('id');
-                        let promiseStore = getLocaleData('map', mapId);
-                        promiseStore.then(function(data) {
-                            // This code runs once the value has been loaded
-                            // from the offline store.
-                            let rallyPokeData = {};
-
-                            if(
-                                data &&
-                                data.rallyPoke
-                            ){
-                                // poke data exists
-                                rallyPokeData = data.rallyPoke;
-                            }
-
-                            if(
-                                !rallyPokeData.hasOwnProperty(this.systemId) || // rally poke was not already send to client
-                                rallyPokeData[this.systemId] !== rallyUpdated // already send to that system but in the past
-                            ){
-                                rallyPokeData[this.systemId] = rallyUpdated;
-                                storeLocalData('map', this.mapId, 'rallyPoke', rallyPokeData);
-
-                                notificationOptions.type = 'info';
-                                Util.showNotify(notificationOptions, {desktop: true, stack: 'barBottom'});
-                            }
-                        }.bind({
-                            mapId: mapId,
-                            systemId: systemId,
-                            rallyUpdated: rallyUpdated
-                        }));
-                    }
-                }else{
-                    // rally point removed
-                    system.removeClass( rallyClass );
-
-                    if( !options.hideNotification ){
-                        Util.showNotify({title: 'Rally point removed', type: 'success'});
-                    }
-                }
-            }
-
-            system.data('rallyUpdated', rallyUpdated);
-            system.data('rallyPoke', rallyPoke);
-        });
-    };
-
-    /**
-     * set map "shortcut" events
-     */
-    $.fn.setMapShortcuts = function(){
-        return this.each((i, mapWrapper) => {
-            mapWrapper = $(mapWrapper);
-            let mapElement = mapWrapper.findMapElement();
-
-            // dynamic require Map module -> otherwise there is a require(), loop
-            let Map = require('app/map/map');
-            let map = Map.getMapInstance( mapElement.data('id'));
-
-            mapWrapper.watchKey('mapSystemAdd', (mapWrapper) => {
-                Map.showNewSystemDialog(map, {position: {x: 0, y: 0}});
-            },{focus: true});
-
-            mapWrapper.watchKey('mapSystemsSelect', (mapWrapper) => {
-                mapElement.selectAllSystems();
-            },{focus: true});
-
-            mapWrapper.watchKey('mapSystemsDelete', (mapWrapper) => {
-                let selectedSystems = mapElement.getSelectedSystems();
-                $.fn.showDeleteSystemDialog(map, selectedSystems);
-            },{focus: true});
-
-        });
-    };
-
-    $.fn.findMapElement = function(){
-        return $(this).find('.' + config.mapClass);
-    };
-
-    /**
-     * get systemId string (selector
-     * @param mapId
-     * @param systemId
-     * @returns {string}
-     */
-    let getSystemId = (mapId, systemId) => {
-        return config.systemIdPrefix + mapId + '-' + systemId;
-    };
-
-    return {
-        config: config,
-        mapOptions: mapOptions,
-        getMapTypes: getMapTypes,
-        getMapScopes: getMapScopes,
-        getScopeInfoForMap: getScopeInfoForMap,
-        getMapIcons: getMapIcons,
-        getInfoForMap: getInfoForMap,
-        getInfoForSystem: getInfoForSystem,
-        getSystemTypeInfo: getSystemTypeInfo,
-        getEffectInfoForSystem: getEffectInfoForSystem,
-        searchConnectionsBySystems: searchConnectionsBySystems,
-        searchConnectionsByScopeAndType: searchConnectionsByScopeAndType,
-        getConnectionInfo: getConnectionInfo,
-        checkForConnection: checkForConnection,
-        getDefaultConnectionTypeByScope: getDefaultConnectionTypeByScope,
-        setConnectionWHStatus: setConnectionWHStatus,
-        getScopeInfoForConnection: getScopeInfoForConnection,
-        getTabContentElementByMapElement: getTabContentElementByMapElement,
-        storeDefaultMapId: storeDefaultMapId,
-        getLocaleData: getLocaleData,
-        storeLocalData: storeLocalData,
-        deleteLocalData: deleteLocalData,
-        getSystemId: getSystemId
-    };
-});
-/**
  * map info dialog
  */
 
@@ -6510,6 +6703,7 @@ define('dialog/map_info',[
         tableImageSmallCellClass: 'pf-table-image-small-cell',                  // class for table "small image" cells
         tableActionCellClass: 'pf-table-action-cell',                           // class for table "action" cells
         tableCounterCellClass: 'pf-table-counter-cell',                         // class for table "counter" cells
+        tableActionCellIconClass: 'pf-table-action-icon-cell',                  // class for table "action" icon (icon is part of cell content)
 
         loadingOptions: {                                                       // config for loading overlay
             icon: {
@@ -7100,7 +7294,15 @@ define('dialog/map_info',[
         // table init complete
         userTable.on( 'init.dt', function () {
             usersElement.hideLoadingAnimation();
+
+            // init table tooltips
+            let tooltipElements = usersElement.find('[data-toggle="tooltip"]');
+            tooltipElements.tooltip();
         });
+
+        let getIconForInformationWindow = () => {
+            return '<i class="fa fa-fw fa-id-card ' + config.tableActionCellIconClass + '" title="open ingame" data-toggle="tooltip"></i>';
+        };
 
         // users table ================================================================================================
         // prepare users data for dataTables
@@ -7156,7 +7358,9 @@ define('dialog/map_info',[
                     searchable: true,
                     data: 'log.ship',
                     render: {
-                        _: 'typeName',
+                        _: function(data, type, row){
+                            return data.typeName + '&nbsp;<i class="fa fa-fw fa-question-circle pf-help" title="' + data.name + '" data-toggle="tooltip"></i>';
+                        },
                         sort: 'typeName'
                     }
                 },{
@@ -7177,7 +7381,24 @@ define('dialog/map_info',[
                     title: 'pilot',
                     orderable: true,
                     searchable: true,
-                    data: 'name'
+                    className: [config.tableActionCellClass].join(' '),
+                    data: 'name',
+                    render: {
+                        _: function(data, type, row, meta){
+                            let value = data;
+                            if(type === 'display'){
+                                value += '&nbsp;' + getIconForInformationWindow();
+                            }
+                            return value;
+                        }
+                    },
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                        // open character information window (ingame)
+                        $(cell).on('click', { tableApi: this.DataTable() }, function(e) {
+                            let rowData = e.data.tableApi.row(this).data();
+                            Util.openIngameWindow(rowData.id);
+                        });
+                    }
                 },{
                     targets: 4,
                     title: '',
@@ -7196,9 +7417,23 @@ define('dialog/map_info',[
                     title: 'corporation',
                     orderable: true,
                     searchable: true,
+                    className: [config.tableActionCellClass].join(' '),
                     data: 'corporation',
                     render: {
-                        _: 'name'
+                        _: function (data, type, row, meta) {
+                            let value = data.name;
+                            if(type === 'display'){
+                                value += '&nbsp;' + getIconForInformationWindow();
+                            }
+                            return value;
+                        }
+                    },
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                        // open character information window (ingame)
+                        $(cell).on('click', { tableApi: this.DataTable() }, function(e) {
+                            let cellData = e.data.tableApi.cell(this).data();
+                            Util.openIngameWindow(cellData.id);
+                        });
                     }
                 },{
                     targets: 6,
@@ -7228,9 +7463,9 @@ define('dialog/map_info',[
 
     /**
      * shows the map information modal dialog
+     * @param options
      */
-    $.fn.showMapInfoDialog = function(){
-
+    $.fn.showMapInfoDialog = function(options){
         let activeMap = Util.getMapModule().getActiveMap();
         let mapData = activeMap.getMapDataFromClient({forceData: true});
 
@@ -7245,7 +7480,11 @@ define('dialog/map_info',[
                     mapInfoId: config.mapInfoId,
                     mapInfoSystemsId: config.mapInfoSystemsId,
                     mapInfoConnectionsId: config.mapInfoConnectionsId,
-                    mapInfoUsersId: config.mapInfoUsersId
+                    mapInfoUsersId: config.mapInfoUsersId,
+
+                    // default open tab ----------
+                    openTabInformation: options.tab === 'information',
+                    openTabActivity: options.tab === 'activity'
                 };
 
                 let content = Mustache.render(template, data);
@@ -23738,16 +23977,13 @@ define('app/map/overlay',[
         logTimerCount: 3,                                                   // map log timer in seconds
 
         // map
-        mapClass: 'pf-map',                                                 // class for all maps
         mapWrapperClass: 'pf-map-wrapper',                                  // wrapper div (scrollable)
 
         // map overlay positions
         mapOverlayClass: 'pf-map-overlay',                                  // class for all map overlays
         mapOverlayTimerClass: 'pf-map-overlay-timer',                       // class for map overlay timer e.g. map timer
         mapOverlayInfoClass: 'pf-map-overlay-info',                         // class for map overlay info e.g. map info
-
-        // connection overlays
-
+        overlayLocalClass: 'pf-map-overlay-local',                          // class for map overlay "local" table
 
         // system
         systemHeadClass: 'pf-system-head',                                  // class for system head
@@ -23763,16 +23999,6 @@ define('app/map/overlay',[
         connectionArrowOverlayClass: 'pf-map-connection-arrow-overlay',     // class for "connection arrow" overlay
         connectionDiamondOverlayClass: 'pf-map-connection-diamond-overlay', // class for "connection diamond" overlay
         connectionOverlaySmallClass: 'pf-map-connection-small-overlay'      // class for "smaller" overlays
-    };
-
-
-    /**
-     * get mapElement from overlay or any child of that
-     * @param mapOverlay
-     * @returns {JQuery}
-     */
-    let getMapElementFromOverlay = (mapOverlay) => {
-        return $(mapOverlay).parents('.' + config.mapWrapperClass).find('.' + config.mapClass);
     };
 
     /**
@@ -23791,7 +24017,7 @@ define('app/map/overlay',[
      * @returns {*}
      */
     let getMapObjectFromOverlayIcon = (overlayIcon) => {
-        let mapElement = getMapElementFromOverlay(overlayIcon);
+        let mapElement = Util.getMapElementFromOverlay(overlayIcon);
 
         return getMapObjectFromMapElement( mapElement );
     };
@@ -24106,7 +24332,7 @@ define('app/map/overlay',[
             iconClass: ['fa', 'fa-fw', 'fa-tags'],
             hoverIntent: {
                 over: function(e){
-                    let mapElement = getMapElementFromOverlay(this);
+                    let mapElement = Util.getMapElementFromOverlay(this);
                     mapElement.find('.' + config.systemHeadClass).each(function(){
                         let system = $(this);
                         // init tooltip if not already exists
@@ -24124,7 +24350,7 @@ define('app/map/overlay',[
                     });
                 },
                 out: function(e){
-                    let mapElement = getMapElementFromOverlay(this);
+                    let mapElement = Util.getMapElementFromOverlay(this);
                     mapElement.find('.' + config.systemHeadClass).tooltip('hide');
                 }
             }
@@ -24136,7 +24362,7 @@ define('app/map/overlay',[
             iconClass: ['fa', 'fa-fw', 'fa-link'],
             hoverIntent: {
                 over: function(e){
-                    let mapElement = getMapElementFromOverlay(this);
+                    let mapElement = Util.getMapElementFromOverlay(this);
                     mapElement.showEndpointOverlays();
                 },
                 out: function(e){
@@ -24243,7 +24469,6 @@ define('app/map/overlay',[
      * @returns {*}
      */
     $.fn.getMapOverlay = function(overlayType){
-
         let mapWrapperElement = $(this).parents('.' + config.mapWrapperClass);
 
         let mapOverlay = null;
@@ -24253,6 +24478,9 @@ define('app/map/overlay',[
                 break;
             case 'info':
                 mapOverlay = mapWrapperElement.find('.' + config.mapOverlayInfoClass);
+                break;
+            case 'local':
+                mapOverlay = mapWrapperElement.find('.' + config.overlayLocalClass);
                 break;
         }
 
@@ -24351,7 +24579,7 @@ define('app/map/overlay',[
                     duration: Init.animationSpeed.mapOverlay,
                     complete: function(){
                         counterChart.data('interval', false);
-                        getMapElementFromOverlay(mapOverlayTimer).trigger('pf:unlocked');
+                        Util.getMapElementFromOverlay(mapOverlayTimer).trigger('pf:unlocked');
                     }
                 });
             }
@@ -24505,6 +24733,539 @@ define('app/map/overlay',[
 
 });
 /**
+ * map overlay functions for "Nearby" table
+ * Created by Exodus on 13.04.2017.
+ */
+
+define('app/map/local',[
+    'jquery',
+    'app/init',
+    'app/util',
+    'app/map/util'
+], function($, Init, Util, MapUtil) {
+    'use strict';
+
+    let config = {
+        overlayClass: 'pf-map-overlay',                                     // class for all map overlays
+        overlayLocalClass: 'pf-map-overlay-local',                          // class for "local" overlay
+
+        // left section
+        overlayLocalContentClass: 'pf-map-overlay-local-content',           // class for left area - content
+        overlayLocalHeadlineClass: 'pf-map-overlay-headline',               // class for headline
+        overlayLocalTableClass: 'pf-local-table',                           // class for local tables
+
+        // right section
+        overlayLocalTriggerClass: 'pf-map-overlay-local-trigger',           // class for open/close trigger icon
+        overlayLocalOpenClass: 'pf-map-overlay-local-open',                 // class for open status
+        overlayLocalMainClass: 'pf-map-overlay-local-main',                 // class for right area (always visible)
+        overlayLocalUsersClass: 'pf-map-overlay-local-users',               // class for active user count
+        overlayLocalJumpsClass: 'pf-map-overlay-local-jumps',               // class for jump distance for table results
+
+        // dataTable
+        tableImageCellClass: 'pf-table-image-cell',                         // class for table "image" cells
+        tableActionCellClass: 'pf-table-action-cell',                       // class for table "action" cells
+        tableActionCellIconClass: 'pf-table-action-icon-cell',              // class for table "action" icon (icon is part of cell content)
+
+        tableCellEllipsisClass: 'pf-table-cell-ellipsis',
+        tableCellEllipsis80Class: 'pf-table-cell-80',
+        tableCellEllipsis90Class: 'pf-table-cell-90'
+    };
+
+    /**
+     * checks whether overlay is currently open or not
+     * @param overlay
+     * @returns {*}
+     */
+    let isOpen = (overlay) => {
+        return overlay.hasClass(config.overlayLocalOpenClass);
+    };
+
+    /**
+     * open overlay -> animation
+     * @param overlay
+     */
+    let openOverlay = (overlay) => {
+        if( !isOpen(overlay) ){
+            let overlayMain = overlay.find('.' + config.overlayLocalMainClass);
+            overlayMain.find('.' + config.overlayLocalTriggerClass).addClass('right');
+            overlay.addClass(config.overlayLocalOpenClass);
+
+            overlay.velocity({
+                width: '350px'
+            },{
+                duration: Init.animationSpeed.mapOverlayLocal,
+                easing: 'easeOut'
+            });
+        }
+    };
+
+    /**
+     * close overlay -> animation
+     * @param overlay
+     */
+    let closeOverlay = (overlay) => {
+        if( isOpen(overlay) ){
+            let overlayMain = overlay.find('.' + config.overlayLocalMainClass);
+            overlayMain.find('.' + config.overlayLocalTriggerClass).removeClass('right');
+            overlay.removeClass(config.overlayLocalOpenClass);
+
+            overlay.velocity({
+                width: '32px'
+            },{
+                duration: Init.animationSpeed.mapOverlayLocal,
+                easing: 'easeOut'
+            });
+        }
+    };
+
+    /**
+     * sets overlay observer
+     * @param overlay
+     * @param mapId
+     */
+    let setOverlayObserver = (overlay, mapId) => {
+        let overlayMain = overlay.find('.' + config.overlayLocalMainClass);
+
+        overlayMain.on('click', function(){
+            let overlayMain = $(this).parent('.' + config.overlayLocalClass);
+            let isOpenStatus = isOpen(overlayMain);
+
+            // store current state in indexDB (client)
+            MapUtil.storeLocalData('map', mapId, 'showLocal', !isOpenStatus );
+
+           // trigger open/close
+           if( isOpenStatus ){
+               closeOverlay(overlay);
+           }else{
+               openOverlay(overlay);
+           }
+        });
+
+        overlayMain.initTooltips({
+            container: 'body',
+            placement: 'bottom'
+        });
+    };
+
+    /**
+     * filter DataTable rows by column data and return rowIds
+     * @param table
+     * @param data
+     * @param values
+     * @param checkExistence
+     */
+    let filterRows = (table, data = 'id', values = [], checkExistence = true) => {
+        return table.rows().eq(0).filter( function (rowIdx) {
+            let rowExists = values.indexOf( table.row(rowIdx ).data()[data] ) !== -1;
+
+            if( !checkExistence ){
+                rowExists = !rowExists;
+            }
+
+            return rowExists;
+        });
+    };
+
+    /**
+     * Update the "headline" within the Overlay
+     * @param overlay
+     * @param systemData
+     * @param characterAll
+     * @param characterLocal
+     */
+    let updateLocaleHeadline = (overlay, systemData, characterAll = 0, characterLocal = 0) => {
+        let headlineElement = overlay.find('.' + config.overlayLocalHeadlineClass);
+        let userCountElement = overlay.find('.' + config.overlayLocalUsersClass);
+
+
+        let secClassBase = Util.getSecurityClassForSystem('security');
+        let secClass = Util.getSecurityClassForSystem(systemData.security);
+
+        let childElements = headlineElement.children('span');
+        childElements.eq(1).removeClass().addClass(
+            [secClassBase, secClass].join(' ')
+        ).text(systemData.security);
+
+        childElements.eq(2).text(systemData.alias ? systemData.alias : systemData.name);
+
+        // update userCount for "near by" count -------------------------------------------------------------------
+        if( characterAll > 0){
+            userCountElement.toggleClass( 'txt-color-green', true).toggleClass( 'txt-color-red', false);
+        }else{
+            userCountElement.toggleClass( 'txt-color-green', false).toggleClass( 'txt-color-red', true);
+        }
+        userCountElement.text(characterAll);
+
+        // update userCount in current system ---------------------------------------------------------------------
+        if( characterLocal > 0){
+            childElements.eq(3).toggleClass( 'txt-color-green', true).toggleClass( 'txt-color-red', false);
+        }else{
+            childElements.eq(3).toggleClass( 'txt-color-green', false).toggleClass( 'txt-color-red', true);
+        }
+        childElements.eq(3).text(characterLocal);
+    };
+
+    /**
+     * updates all changed table rows
+     * @param systemData
+     * @param userData
+     */
+    $.fn.updateLocalTable = function(systemData, userData){
+        return this.each(function(){
+            let overlay = $(this);
+            let tableElement = overlay.find('.' + config.overlayLocalTableClass);
+            let localTable = tableElement.DataTable();
+            let mapId = systemData.mapId;
+
+            let characterAllIds = [];
+            let characterLocalIds = [];
+
+            // system is on map (just for security check)
+            for(let jumps in userData) {
+                if( userData.hasOwnProperty(jumps) ){
+                    jumps = parseInt(jumps);
+
+                    for(let j = 0; j < userData[jumps].length; j++){
+                        // add jump distance
+                        userData[jumps][j].jumps = jumps;
+
+                        let rowData = userData[jumps][j];
+
+                        // check for existing rows
+                        let indexes = filterRows(localTable, 'id', [rowData.id]);
+
+                        if(indexes.length > 0){
+                            // row exists -> update
+                            let changedRow = localTable.row( parseInt(indexes[0]) );
+                            let changedRowElement = changedRow.nodes().to$();
+
+                            // remove tooltips
+                            changedRowElement.find('[title]').tooltip('hide').tooltip('destroy');
+
+                            // update data
+                            changedRow.data(rowData);
+                        }else{
+                            // new row
+                            localTable.row.add(rowData);
+                        }
+
+                        if(jumps === 0){
+                            characterLocalIds.push(rowData.id);
+                        }
+
+                        characterAllIds.push(rowData.id);
+                    }
+                }
+            }
+
+            // remove rows that no longer exists ----------------------------------------------------------------------
+            let indexesRemove = filterRows(localTable, 'id', characterAllIds, false);
+            localTable.rows(indexesRemove).remove();
+
+            localTable.draw();
+
+            // update system relevant data in overlay -----------------------------------------------------------------
+            updateLocaleHeadline(overlay, systemData, characterAllIds.length, characterLocalIds.length);
+
+            // open Overlay -------------------------------------------------------------------------------------------
+            if( !isOpen(overlay) ){
+                let promiseStore = MapUtil.getLocaleData('map', mapId);
+                promiseStore.then(function(dataStore) {
+                    if(
+                        dataStore &&
+                        dataStore.showLocal
+                    ){
+                        openOverlay(overlay);
+                    }
+                });
+            }
+        });
+    };
+
+    /**
+     * Access a nested JSON object by "dot.notation" syntax
+     * @param obj
+     * @param selector
+     * @returns {*}
+     */
+    let getDescendantProp = (obj, selector) => {
+        return selector.split('.').reduce(function(a, b) {
+            return a[b];
+        }, obj);
+    };
+
+    /**
+     * init tooltip for a "DataTables" Cell
+     * @param api
+     * @param cell
+     * @param titleSelector
+     */
+    let initCellTooltip = (api, cell, titleSelector = '') => {
+        $(cell).hover( function(e){
+            let rowIdx = api.cell(cell).index().row;
+            let rowData = api.row(rowIdx).data();
+
+            $(this).tooltip({
+                container: 'body',
+                title: String( getDescendantProp(rowData, titleSelector) ),
+                placement: 'left',
+                delay: 100
+            }).tooltip('show');
+        }, function(e){
+            $(this).tooltip('hide');
+        });
+    };
+
+    /**
+     * init all map local overlay on a "parent" element
+     * @returns {*}
+     */
+    $.fn.initLocalOverlay = function(mapId){
+        return this.each(function(){
+            let parentElement = $(this);
+
+            let overlay = $('<div>', {
+                class: [config.overlayClass, config.overlayLocalClass].join(' ')
+            });
+
+            let content = $('<div>', {
+                class: [ 'text-right', config.overlayLocalContentClass].join(' ')
+            });
+
+            // crate new route table
+            let table = $('<table>', {
+                class: ['compact', 'order-column', config.overlayLocalTableClass].join(' ')
+            });
+
+            let overlayMain = $('<div>', {
+                text: '',
+                class: config.overlayLocalMainClass
+            }).append(
+                $('<i>', {
+                    class: ['fa', 'fa-chevron-down', 'fa-fw', 'pf-animate-rotate', config.overlayLocalTriggerClass].join(' ')
+                }),
+                $('<span>', {
+                    class: ['badge', 'txt-color', 'txt-color-red', config.overlayLocalUsersClass].join(' '),
+                    text: 0
+                }),
+                $('<div>', {
+                    class: config.overlayLocalJumpsClass
+                }).append(
+                    $('<span>', {
+                        class: ['badge', 'txt-color', 'txt-color-grayLight'].join(' '),
+                        text: MapUtil.config.defaultLocalJumpRadius
+                    }).attr('title', 'jumps')
+                )
+
+            );
+
+            let headline = $('<div>', {
+                class: config.overlayLocalHeadlineClass
+            }).append(
+                $('<span>', {
+                    html: 'Nearby&nbsp;&nbsp;&nbsp;',
+                    class: 'pull-left'
+                }),
+                $('<span>'),
+                $('<span>'),
+                $('<span>', {
+                    class: ['badge', ' txt-color', 'txt-color-red'].join(' '),
+                    text: 0
+                })
+            );
+
+            content.append(headline);
+            content.append(table);
+
+            overlay.append(overlayMain);
+            overlay.append(content);
+
+            // set observer
+            setOverlayObserver(overlay, mapId);
+
+            parentElement.append(overlay);
+
+            // init local table ---------------------------------------------------------------------------------------
+
+            table.on('draw.dt', function(e, settings){
+                // init table tooltips
+                $(this).find('td').initTooltips({
+                    container: 'body',
+                    placement: 'left'
+                });
+
+                // hide pagination in case of only one page
+                let paginationElement = overlay.find('.dataTables_paginate');
+                let pageElements = paginationElement.find('span .paginate_button');
+                if(pageElements.length <= 1){
+                    paginationElement.hide();
+                }else{
+                    paginationElement.show();
+                }
+            });
+
+            // table init complete
+            table.on( 'init.dt', function (){
+                // init table head tooltips
+                $(this).initTooltips({
+                    container: 'body',
+                    placement: 'top'
+                });
+            });
+
+            let localTable = table.DataTable( {
+                pageLength: 13, // hint: if pagination visible => we need space to show it
+                paging: true,
+                lengthChange: false,
+                ordering: true,
+                order: [ 0, 'asc' ],
+                info: false,
+                searching: false,
+                hover: false,
+                autoWidth: false,
+                rowId: function(rowData) {
+                    return 'pf-local-row_' + rowData.id; // characterId
+                },
+                language: {
+                    emptyTable: '<span>You&nbsp;are&nbsp;alone</span>'
+                },
+                columnDefs: [
+                    {
+                        targets: 0,
+                        orderable: true,
+                        title: '<span title="jumps" data-toggle="tooltip">&nbsp;</span>',
+                        width: '1px',
+                        className: ['pf-help-default', 'text-center'].join(' '),
+                        data: 'jumps',
+                        createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                            let api = this.DataTable();
+                            initCellTooltip(api, cell, 'log.system.name');
+                        }
+                    },{
+                        targets: 1,
+                        orderable: false,
+                        title: '',
+                        width: '26px',
+                        className: ['pf-help-default', 'text-center', config.tableImageCellClass].join(' '),
+                        data: 'log.ship',
+                        render: {
+                            _: function(data, type, row, meta){
+                                let value = data.typeName;
+                                if(type === 'display'){
+                                    value = '<img src="' + Init.url.ccpImageServer + 'Render/' + data.typeId + '_32.png"/>';
+                                }
+                                return value;
+                            }
+                        },
+                        createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                            let api = this.DataTable();
+                            initCellTooltip(api, cell, 'log.ship.typeName');
+                        }
+                    }, {
+                        targets: 2,
+                        orderable: true,
+                        title: 'ship&nbsp;name',
+                        width: '80px',
+                        data: 'log.ship',
+                        render: {
+                            _: function(data, type, row, meta){
+                                let value = data.name;
+                                if(type === 'display'){
+                                    value = '<div class="' + config.tableCellEllipsisClass + ' ' + config.tableCellEllipsis80Class + '">' + data.name + '</div>';
+                                }
+                                return value;
+                            },
+                            sort: 'name'
+                        }
+                    },{
+                        targets: 3,
+                        orderable: true,
+                        title: 'pilot',
+                        data: 'name',
+                        render: {
+                            _: function(data, type, row, meta){
+                                let value = data;
+                                if(type === 'display'){
+                                    value = '<div class="' + config.tableCellEllipsisClass + ' ' + config.tableCellEllipsis90Class + '">' + data + '</div>';
+                                }
+                                return value;
+                            }
+                        }
+                    },{
+                        targets: 4,
+                        orderable: false,
+                        title: '<i title="docked station" data-toggle="tooltip" class="fa fa-home text-right"></i>',
+                        width: '10px',
+                        className: ['pf-help-default'].join(' '),
+                        data: 'log.station',
+                        render: {
+                            _: function(data, type, row, meta){
+                                let value = '';
+                                if(
+                                    type === 'display' &&
+                                    data.id
+                                ){
+                                    value = '<i class="fa fa-home"></i>';
+                                }
+                                return value;
+                            }
+                        },
+                        createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                            let api = this.DataTable();
+                            initCellTooltip(api, cell, 'log.station.name');
+                        }
+                    },{
+                        targets: 5,
+                        orderable: false,
+                        title: '<i title="open ingame" data-toggle="tooltip" class="fa fa-id-card text-right"></i>',
+                        width: '10px',
+                        className: [config.tableActionCellClass].join(' '),
+                        data: 'id',
+                        render: {
+                            _: function(data, type, row, meta){
+                                let value = data;
+                                if(type === 'display'){
+                                    value = '<i class="fa fa-id-card ' + config.tableActionCellIconClass + '"></i>';
+                                }
+                                return value;
+                            }
+                        },
+                        createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                            // open character information window (ingame)
+                            $(cell).on('click', { tableApi: this.DataTable(), cellData: cellData }, function(e){
+                                let cellData = e.data.tableApi.cell(this).data();
+                                Util.openIngameWindow(e.data.cellData);
+                            });
+                        }
+                    }
+                ]
+            });
+        });
+    };
+
+    /**
+     * Clear Overlay and "Reset"
+     * @param mapId
+     */
+    $.fn.clearLocalTable = function(mapId){
+        return this.each(function(){
+            let overlay = $(this);
+
+            // update locale overlay headline -------------------------------------------------------------------------
+            updateLocaleHeadline(overlay, {
+                name: 'unknown',
+                security: ''
+            });
+
+            // clear all table rows -----------------------------------------------------------------------------------
+            let tableElement = overlay.find('.' + config.overlayLocalTableClass);
+            let localTable = tableElement.DataTable();
+            localTable.rows().remove().draw();
+        });
+    };
+
+});
+/**
  * Main map functionality
  */
 
@@ -24521,7 +25282,8 @@ define('app/map/map',[
     'dragToSelect',
     'select2',
     'app/map/contextmenu',
-    'app/map/overlay'
+    'app/map/overlay',
+    'app/map/local'
 ], function($, Init, Util, Render, bootbox, MapUtil, System, MagnetizerWrapper) {
 
     'use strict';
@@ -24565,13 +25327,7 @@ define('app/map/map',[
         systemDialogSelectClass: 'pf-system-dialog-select',             // class for system select Element
 
         // system security classes
-        systemSec: 'pf-system-sec',
-        systemSecHigh: 'pf-system-sec-highSec',
-        systemSecLow: 'pf-system-sec-lowSec',
-        systemSecNull: 'pf-system-sec-nullSec',
-        systemSecWHHeigh: 'pf-system-sec-high',
-        systemSecWHMid: 'pf-system-sec-mid',
-        systemSecWHLow: 'pf-system-sec-low'
+        systemSec: 'pf-system-sec'
     };
 
     // active jsPlumb instances currently running
@@ -26145,8 +26901,10 @@ define('app/map/map',[
             id: id ? id : 0,
             source: parseInt( source.data('id') ),
             sourceName: source.data('name'),
+            sourceAlias: source.getSystemInfo(['alias']),
             target: parseInt( target.data('id') ),
             targetName: target.data('name'),
+            targetAlias: target.getSystemInfo(['alias']),
             scope: connection.scope,
             type: connectionTypes,
             updated: updated ? updated : 0
@@ -27225,7 +27983,7 @@ define('app/map/map',[
                         break;
                     case 'info':
                         // open map info dialog
-                        $(document).triggerMenuEvent('ShowMapInfo');
+                        $(document).triggerMenuEvent('ShowMapInfo', {tab: 'information'});
                         break;
 
                 }
@@ -27379,6 +28137,44 @@ define('app/map/map',[
                 mapUpdateQueue.splice(mapQueueIndex, 1);
             }
         });
+
+        // update "local" overlay for this map
+        mapContainer.on('pf:updateLocal', function(e, userData){
+            let mapElement = $(this);
+            let mapOverlay = mapElement.getMapOverlay('local');
+
+            let currentCharacterLog = Util.getCurrentCharacterLog();
+            let currentMapData = Util.getCurrentMapData(userData.config.id);
+            let clearLocal = true;
+
+            if(
+                currentMapData &&
+                currentCharacterLog &&
+                currentCharacterLog.system
+            ){
+                let currentSystemData = currentMapData.data.systems.filter(function (system) {
+                    return system.systemId === currentCharacterLog.system.id;
+                });
+
+                if(currentSystemData.length){
+                    // current user system is on this map
+                    currentSystemData = currentSystemData[0];
+
+                    // check for active users "nearby" (x jumps radius)
+                    let nearBySystemData = Util.getNearBySystemData(currentSystemData, currentMapData, MapUtil.config.defaultLocalJumpRadius);
+                    let nearByCharacterData = Util.getNearByCharacterData(nearBySystemData, userData.data.systems);
+
+                    // update "local" table in overlay
+                    mapOverlay.updateLocalTable(currentSystemData, nearByCharacterData);
+                    clearLocal = false;
+                }
+            }
+
+            if(clearLocal){
+                mapOverlay.clearLocalTable();
+            }
+
+        });
     };
 
     /**
@@ -27513,15 +28309,16 @@ define('app/map/map',[
                 // the current user can only be in a single system ------------------------------------------
                 if(
                     characterLogExists &&
-                    !currentUserOnMap &&
                     currentCharacterLog.system.id === systemId
                 ){
-                    currentUserIsHere = true;
-                    currentUserOnMap = true;
+                    if( !currentUserOnMap ){
+                        currentUserIsHere = true;
+                        currentUserOnMap = true;
 
-                    // set current location data for header update
-                    headerUpdateData.currentSystemId =  $(system).data('id');
-                    //headerUpdateData.currentSystemName = currentCharacterLog.system.name;
+                        // set current location data for header update
+                        headerUpdateData.currentSystemId =  $(system).data('id');
+                        headerUpdateData.currentSystemName = currentCharacterLog.system.name;
+                    }
                 }
 
                 system.updateSystemUserData(map, tempUserData, currentUserIsHere);
@@ -27795,15 +28592,17 @@ define('app/map/map',[
      */
     $.fn.initMapScrollbar = function(){
         // get Map Scrollbar
-        let scrollableElement = $(this).find('.' + config.mapWrapperClass);
+        let mapTabContentElement = $(this);
+        let scrollableElement = mapTabContentElement.find('.' + config.mapWrapperClass);
+        let mapElement = mapTabContentElement.find('.' + config.mapClass);
+        let mapId = mapElement.data('id');
+
 
         scrollableElement.initCustomScrollbar({
             callbacks: {
                 onScroll: function(){
-                    // scroll complete
-                    let mapElement = $(this).find('.' + config.mapClass);
                     // store new map scrollOffset -> localDB
-                    MapUtil.storeLocalData('map', mapElement.data('id'), 'offsetX', Math.abs(this.mcs.left) );
+                    MapUtil.storeLocalData('map', mapId, 'offsetX', Math.abs(this.mcs.left) );
                 },
                 onScrollStart: function(){
                     // hide all open xEditable fields
@@ -27814,9 +28613,8 @@ define('app/map/map',[
                 },
                 whileScrolling:function(){
                     // update scroll position for drag-frame-selection
-                    let mapElement = $(scrollableElement).find('.' + config.mapClass);
-                    $(mapElement).data('scrollLeft', this.mcs.left);
-                    $(mapElement).data('scrollTop', this.mcs.top);
+                    mapElement.data('scrollLeft', this.mcs.left);
+                    mapElement.data('scrollTop', this.mcs.top);
                 }
             }
         });
@@ -27825,6 +28623,8 @@ define('app/map/map',[
         // add map overlays after scrollbar is initialized
         // because of its absolute position
         scrollableElement.initMapOverlays();
+
+        scrollableElement.initLocalOverlay(mapId);
     };
 
     return {
@@ -27939,7 +28739,7 @@ define('app/ui/system_info',[
 ], function($, Init, Util, Render, MapUtil) {
     'use strict';
 
-    var config = {
+    let config = {
         // module info
         moduleClass: 'pf-module',                                               // class for each module
 
@@ -27963,41 +28763,38 @@ define('app/ui/system_info',[
         descriptionArea: 'pf-system-info-description-area',                     // class for "description" area
         addDescriptionButtonClass: 'pf-system-info-description-button',         // class for "add description" button
         moduleElementToolbarClass: 'pf-table-tools',                            // class for "module toolbar" element
-        moduleToolbarActionId: 'pf-system-info-collapse-container',             // id for "module toolbar action" element
+        tableToolsActionClass: 'pf-table-tools-action',                         // class for "edit" action
+
         descriptionTextareaElementClass: 'pf-system-info-description',          // class for "description" textarea element (xEditable)
         descriptionTextareaCharCounter: 'pf-form-field-char-count'              // class for "character counter" element for form field
     };
 
     // disable Module update temporary (until. some requests/animations) are finished
-    var disableModuleUpdate = true;
+    let disableModuleUpdate = true;
 
     // animation speed values
-    var animationSpeedToolbarAction = 200;
+    let animationSpeedToolbarAction = 200;
 
     // max character length for system description
-    var maxDescriptionLength = 512;
+    let maxDescriptionLength = 512;
 
     /**
      * set module observer and look for relevant system data to update
      */
-    var setModuleObserver = function(moduleElement){
+    let setModuleObserver = function(moduleElement){
+
         $(document).off('pf:updateSystemInfoModule').on('pf:updateSystemInfoModule', function(e, data){
             if(data){
                 moduleElement.updateSystemInfoModule(data);
             }
-
         });
     };
 
-
     /**
      * shows the tool action element by animation
+     * @param toolsActionElement
      */
-    var showToolsActionElement = function(){
-
-        // "toolbar action" element
-        var toolsActionElement = $('#' +  config.moduleToolbarActionId);
-
+    let showToolsActionElement = function(toolsActionElement){
         toolsActionElement.velocity('stop').velocity({
             opacity: 1,
             height: '100%'
@@ -28010,12 +28807,9 @@ define('app/ui/system_info',[
 
     /**
      * hides the tool action element by animation
+     * @param toolsActionElement
      */
-    var hideToolsActionElement = function(){
-
-        // "toolbar action" element
-        var toolsActionElement = $('#' +  config.moduleToolbarActionId);
-
+    let hideToolsActionElement = function(toolsActionElement){
         toolsActionElement.velocity('stop').velocity('reverse', {
             display: 'none',
             visibility: 'hidden'
@@ -28034,24 +28828,23 @@ define('app/ui/system_info',[
             return;
         }
 
-        var moduleElement = $(this);
+        let moduleElement = $(this);
 
-        var systemId = moduleElement.data('id');
+        let systemId = moduleElement.data('id');
 
         if(systemId === systemData.id){
             // update module
 
             // system status =====================================================================================
-            var systemStatusLabelElement = moduleElement.find('.' + config.systemInfoStatusLabelClass);
-            var systemStatusId = parseInt( systemStatusLabelElement.attr( config.systemInfoStatusAttributeName ) );
-
+            let systemStatusLabelElement = moduleElement.find('.' + config.systemInfoStatusLabelClass);
+            let systemStatusId = parseInt( systemStatusLabelElement.attr( config.systemInfoStatusAttributeName ) );
 
             if(systemStatusId !== systemData.status.id){
                 // status changed
 
-                var currentStatusClass = Util.getStatusInfoForSystem(systemStatusId, 'class');
-                var newStatusClass = Util.getStatusInfoForSystem(systemData.status.id, 'class');
-                var newStatusLabel = Util.getStatusInfoForSystem(systemData.status.id, 'label');
+                let currentStatusClass = Util.getStatusInfoForSystem(systemStatusId, 'class');
+                let newStatusClass = Util.getStatusInfoForSystem(systemData.status.id, 'class');
+                let newStatusLabel = Util.getStatusInfoForSystem(systemData.status.id, 'label');
 
                 systemStatusLabelElement.removeClass(currentStatusClass).addClass(newStatusClass).text(newStatusLabel);
 
@@ -28060,18 +28853,19 @@ define('app/ui/system_info',[
             }
 
             // description textarea element ======================================================================
-            var descriptionTextareaElement =  moduleElement.find('.' + config.descriptionTextareaElementClass);
-
-            var description = descriptionTextareaElement.editable('getValue', true);
+            let descriptionTextareaElement =  moduleElement.find('.' + config.descriptionTextareaElementClass);
+            let description = descriptionTextareaElement.editable('getValue', true);
 
             if(description !== systemData.description){
                 // description changed
 
                 // description button
-                var descriptionButton = moduleElement.find('.' + config.addDescriptionButtonClass);
+                let descriptionButton = moduleElement.find('.' + config.addDescriptionButtonClass);
 
                 // set new value
                 descriptionTextareaElement.editable('setValue', systemData.description);
+
+                let actionElement = descriptionButton.siblings('.' + config.tableToolsActionClass);
 
                 if(systemData.description.length === 0){
                     // show/activate description field
@@ -28079,24 +28873,20 @@ define('app/ui/system_info',[
                     // show button if value is empty
                     descriptionButton.show();
 
-
-                    hideToolsActionElement();
-
+                    hideToolsActionElement(actionElement);
                 }else{
                     // hide/disable description field
-
                     // hide tool button
                     descriptionButton.hide();
-
-                    showToolsActionElement();
+                    showToolsActionElement(actionElement);
                 }
             }
 
             // created/updated tooltip ===========================================================================
 
-            var nameRowElement = $(moduleElement).find('.' + config.systemInfoNameInfoClass);
+            let nameRowElement = $(moduleElement).find('.' + config.systemInfoNameInfoClass);
 
-            var tooltipData = {
+            let tooltipData = {
                 created: systemData.created,
                 updated: systemData.updated
             };
@@ -28104,7 +28894,7 @@ define('app/ui/system_info',[
             nameRowElement.addCharacterInfoTooltip( tooltipData );
         }
 
-        $('.' + config.descriptionArea).hideLoadingAnimation();
+        moduleElement.find('.' + config.descriptionArea).hideLoadingAnimation();
     };
 
     /**
@@ -28113,13 +28903,13 @@ define('app/ui/system_info',[
      * @param charCounterElement
      * @param maxCharLength
      */
-    var updateCounter = function(field, charCounterElement, maxCharLength){
-        var value = field.val();
-        var inputLength = value.length;
+    let updateCounter = function(field, charCounterElement, maxCharLength){
+        let value = field.val();
+        let inputLength = value.length;
 
         // line breaks are 2 characters!
-        var newLines = value.match(/(\r\n|\n|\r)/g);
-        var addition = 0;
+        let newLines = value.match(/(\r\n|\n|\r)/g);
+        let addition = 0;
         if (newLines != null) {
             addition = newLines.length;
         }
@@ -28140,10 +28930,10 @@ define('app/ui/system_info',[
      * @param mapId
      * @param systemData
      */
-    var drawModule = function(parentElement, mapId, systemData){
+    let drawModule = function(parentElement, mapId, systemData){
 
         // create new module container
-        var moduleElement = $('<div>', {
+        let moduleElement = $('<div>', {
             class: [config.moduleClass, config.systemInfoModuleClass].join(' '),
             css: {opacity: 0}
         });
@@ -28154,14 +28944,14 @@ define('app/ui/system_info',[
         parentElement.prepend(moduleElement);
 
         // shattered wormhole info data
-        var shatteredWormholeInfo = false;
+        let shatteredWormholeInfo = false;
 
         // add security class for statics
         if(
             systemData.statics &&
             systemData.statics.length > 0
         ){
-            for(var i = 0; i < systemData.statics.length; i++){
+            for(let i = 0; i < systemData.statics.length; i++){
                 systemData.statics[i].class = Util.getSecurityClassForSystem( systemData.statics[i].security );
             }
         }else if(systemData.type.id === 1){
@@ -28169,27 +28959,26 @@ define('app/ui/system_info',[
             shatteredWormholeInfo = true;
         }
 
-        var effectName = MapUtil.getEffectInfoForSystem(systemData.effect, 'name');
-        var effectClass = MapUtil.getEffectInfoForSystem(systemData.effect, 'class');
+        let effectName = MapUtil.getEffectInfoForSystem(systemData.effect, 'name');
+        let effectClass = MapUtil.getEffectInfoForSystem(systemData.effect, 'class');
 
         // systemInfo template config
-        var moduleConfig = {
+        let moduleConfig = {
             name: 'modules/system_info',
             position: moduleElement,
             link: 'append',
             functions: {
                 after: function(){
+                    let tempModuleElement = parentElement.find('.' + config.systemInfoModuleClass);
+
                     // lock "description" field until first update
-                    $('.' + config.descriptionArea).showLoadingAnimation();
-
-
-                    var tempModuleElement = $('.' + config.systemInfoModuleClass);
+                    tempModuleElement.find('.' + config.descriptionArea).showLoadingAnimation();
 
                     // "add description" button
-                    var descriptionButton = tempModuleElement.find('.' + config.addDescriptionButtonClass);
+                    let descriptionButton = tempModuleElement.find('.' + config.addDescriptionButtonClass);
 
                     // description textarea element
-                    var descriptionTextareaElement =  tempModuleElement.find('.' + config.descriptionTextareaElementClass);
+                    let descriptionTextareaElement =  tempModuleElement.find('.' + config.descriptionTextareaElementClass);
 
                     // init description textarea
                     descriptionTextareaElement.editable({
@@ -28232,9 +29021,8 @@ define('app/ui/system_info',[
                             Util.showNotify({title: 'System updated', text: 'Name: ' + response.name, type: 'success'});
                         },
                         error: function(jqXHR, newValue){
-
-                            var reason = '';
-                            var status = '';
+                            let reason = '';
+                            let status = '';
                             if(jqXHR.name){
                                 // save error new sig (mass save)
                                 reason = jqXHR.name;
@@ -28252,13 +29040,13 @@ define('app/ui/system_info',[
 
                     // on xEditable open -------------------------------------------------------------------------
                     descriptionTextareaElement.on('shown', function(e, editable){
-                        var textarea = editable.input.$input;
+                        let textarea = editable.input.$input;
 
                         // disable module update until description field is open
                         disableModuleUpdate = true;
 
                         // create character counter
-                        var charCounter = $('<kbd>', {
+                        let charCounter = $('<kbd>', {
                             class: [config.descriptionTextareaCharCounter, 'txt-color', 'text-right'].join(' ')
                         });
                         textarea.parent().next().append(charCounter);
@@ -28273,11 +29061,10 @@ define('app/ui/system_info',[
 
                     // on xEditable close ------------------------------------------------------------------------
                     descriptionTextareaElement.on('hidden', function(e){
-                        var value = $(this).editable('getValue', true);
-
+                        let value = $(this).editable('getValue', true);
                         if(value.length === 0){
                             // show button if value is empty
-                            hideToolsActionElement();
+                            hideToolsActionElement(descriptionButton.siblings('.' + config.tableToolsActionClass));
                             descriptionButton.show();
                         }
 
@@ -28288,6 +29075,7 @@ define('app/ui/system_info',[
                     // enable xEditable field on Button click ----------------------------------------------------
                     descriptionButton.on('click', function(e){
                         e.stopPropagation();
+                        let descriptionButton = $(this);
 
                         // hide tool buttons
                         descriptionButton.hide();
@@ -28295,24 +29083,23 @@ define('app/ui/system_info',[
                         // show field *before* showing the element
                         descriptionTextareaElement.editable('show');
 
-                        showToolsActionElement();
+                        showToolsActionElement(descriptionButton.siblings('.' + config.tableToolsActionClass));
                     });
 
-
                     // init tooltips -----------------------------------------------------------------------------
-                    var tooltipElements = $('.' + config.systemInfoModuleClass + ' [data-toggle="tooltip"]');
+                    let tooltipElements = tempModuleElement.find('[data-toggle="tooltip"]');
                     tooltipElements.tooltip();
 
                     // init system effect popover ----------------------------------------------------------------
-                    var infoEffectElement = $(moduleElement).find('.' + config.systemInfoEffectInfoClass);
+                    let infoEffectElement = $(moduleElement).find('.' + config.systemInfoEffectInfoClass);
 
                     if(infoEffectElement.length){
                         // effect row exists -> get effect data
-                        var systemEffectData = Util.getSystemEffectData( systemData.security, systemData.effect);
+                        let systemEffectData = Util.getSystemEffectData( systemData.security, systemData.effect);
 
                         if(systemEffectData !== false){
                             // transform data into table
-                            var systemEffectTable = Util.getSystemEffectTable( systemEffectData );
+                            let systemEffectTable = Util.getSystemEffectTable( systemEffectData );
 
                             infoEffectElement.popover({
                                 html: true,
@@ -28331,9 +29118,9 @@ define('app/ui/system_info',[
 
                     // init static wormhole information ----------------------------------------------------------
                     if(systemData.statics){
-                        for(var i = 0; i < systemData.statics.length; i++){
-                            var staticData = systemData.statics[i];
-                            var staticRowElement = tempModuleElement.find('.' + config.systemInfoWormholeClass + staticData.name);
+                        for(let i = 0; i < systemData.statics.length; i++){
+                            let staticData = systemData.statics[i];
+                            let staticRowElement = tempModuleElement.find('.' + config.systemInfoWormholeClass + staticData.name);
                             staticRowElement.addWormholeInfoTooltip(staticData);
                         }
                     }
@@ -28352,13 +29139,13 @@ define('app/ui/system_info',[
 
                     function details_in_popup(popoverElement){
                         popoverElement = $(popoverElement);
-                        var popover = popoverElement.data('bs.popover');
+                        let popover = popoverElement.data('bs.popover');
 
 
                         $.ajax({
                             url: popoverElement.data('url'),
                             success: function(data){
-                                var systemEffectTable = Util.getSystemsInfoTable( data.systemData );
+                                let systemEffectTable = Util.getSystemsInfoTable( data.systemData );
                                 popover.options.content = systemEffectTable;
                                 // reopen popover (new content size)
                                 popover.show();
@@ -28372,7 +29159,7 @@ define('app/ui/system_info',[
             }
         };
 
-        var moduleData = {
+        let moduleData = {
             system: systemData,
             tableClass: config.systemInfoTableClass,
             nameInfoClass: config.systemInfoNameInfoClass,
@@ -28391,7 +29178,7 @@ define('app/ui/system_info',[
             effectClass: effectClass,
             moduleToolbarClass: config.moduleElementToolbarClass,
             descriptionButtonClass: config.addDescriptionButtonClass,
-            moduleToolbarActionId: config.moduleToolbarActionId,
+            tableToolsActionClass: config.tableToolsActionClass,
             descriptionTextareaClass: config.descriptionTextareaElementClass,
 
             shatteredWormholeInfo: shatteredWormholeInfo,
@@ -28411,7 +29198,7 @@ define('app/ui/system_info',[
      * show system info module with animation
      * @param moduleElement
      */
-    var showModule = function(moduleElement){
+    let showModule = function(moduleElement){
         moduleElement.velocity('transition.slideDownIn', {
             duration: Init.animationSpeed.mapModule,
             delay: Init.animationSpeed.mapModule,
@@ -28432,10 +29219,10 @@ define('app/ui/system_info',[
      */
     $.fn.drawSystemInfoModule = function(mapId, systemData){
 
-        var parentElement = $(this);
+        let parentElement = $(this);
 
         // check if module already exists
-        var moduleElement = parentElement.find('.' + config.systemInfoModuleClass);
+        let moduleElement = parentElement.find('.' + config.systemInfoModuleClass);
 
         if(moduleElement.length > 0){
             moduleElement.velocity('transition.slideDownOut', {
@@ -28789,8 +29576,8 @@ define('app/ui/system_signature',[
     // disable "copy&paste" from clipboard (until  request finished)
     let disableCopyFromClipboard = false;
 
-    // cache for dataTable object
-    let signatureTable = null;
+    // cache for dataTable object6
+    let dataTableInstances = {};
 
     // empty signatureData object -> for "add row" table
     let emptySignatureData = {
@@ -28832,15 +29619,116 @@ define('app/ui/system_signature',[
     let signatureGroupsNames    = Util.getSignatureGroupInfo('name');
 
     /**
+     * check whether a dataTable API instance exists in the global cache
+     * args: 1. mapId, 2. systemId, 3, tableType (primary/secondary) string
+     * @param args
+     * @returns {boolean}
+     */
+    let checkDataTableInstance = (...args) => {
+        let obj = dataTableInstances;
+        for(let arg of args){
+            if ( !obj || !obj.hasOwnProperty(arg) ){
+                return false;
+            }
+            obj = obj[arg];
+        }
+        return true;
+    };
+
+    /**
+     * stores a dataTableApi instance to global cache ( overwrites existing)
+     * @param mapId
+     * @param systemId
+     * @param tableType
+     * @param instance
+     */
+    let setDataTableInstance = (mapId, systemId, tableType, instance) => {
+        let tmpObj = {
+            [mapId]: {
+                [systemId]: {
+                    [tableType]: instance
+                }
+            }
+        };
+
+        $.extend(true, dataTableInstances, tmpObj);
+    };
+
+    /**
+     * get a dataTableApi instance from global cache
+     * @param mapId
+     * @param systemId
+     * @param tableType
+     * @returns {*}
+     */
+    let getDataTableInstance = (mapId, systemId, tableType) => {
+        let instance = null;
+        if( checkDataTableInstance(mapId, systemId, tableType) ){
+            instance = dataTableInstances[mapId][systemId][tableType];
+        }
+        return instance;
+    };
+
+    /**
+     * get dataTable instance from "moduleElement" (DOM node)
+     * @param moduleElement
+     * @param tableType
+     * @returns {*}
+     */
+    let getDataTableInstanceByModuleElement = (moduleElement, tableType) => {
+        return getDataTableInstance(moduleElement.data('mapId'), moduleElement.data('systemId'), tableType);
+    };
+
+    /**
+     * delete a dataTableApi instance from global cache
+     * -> see checkDataTableInstance() for parameter order
+     * @param args
+     */
+    let deleteDataTableInstance = (...args) => {
+        // check if instance exists
+        if( checkDataTableInstance.apply(null, args) ){
+
+            // callback for "leaf" delete callback
+            let deleteCallback = (dataTableApi) => {
+                dataTableApi.destroy();
+            };
+
+            // recursive delete from dataTableInstances Object cache
+            let deepDelete = (target, obj, callback) => {
+                if(target.length > 1){
+                    // remove first target param for next recursive call
+                    let currentTarget = target.shift();
+
+                    deepDelete(target, obj[currentTarget], callback);
+
+                    // delete "parent" key when current key became empty
+                    if( !Object.keys( obj[currentTarget] ).length ){
+                        delete obj[currentTarget];
+                    }
+                }else{
+                    // check for callback function
+                    if( typeof callback === 'function' ){
+                        callback(obj[target]);
+                    }
+
+                    delete obj[target];
+                }
+            };
+
+            deepDelete(args, dataTableInstances, deleteCallback);
+        }
+    };
+
+    /**
      * collect all data of all editable fields in a signature table
+     * @param tableApi
      * @returns {Array}
      */
-    let getSignatureTableData = function(){
-        let signatureTableApi = signatureTable.api();
+    let getTableData = function(tableApi){
         let tableData = [];
 
-        signatureTableApi.rows().eq(0).each(function(idx){
-            let row = signatureTableApi.row(idx);
+        tableApi.rows().eq(0).each(function(idx){
+            let row = tableApi.row(idx);
             // default row data
             let defaultRowData = row.data();
             let rowElement = row.nodes().to$();
@@ -28876,16 +29764,14 @@ define('app/ui/system_signature',[
 
     /**
      * updates a single cell with new data (e.g. "updated" cell)
+     * @param tableApi
      * @param rowElement
      * @param cellIndex
      * @param data
      */
-    let updateSignatureCell = function(rowElement, cellIndex, data){
-
-        let signatureTableApi = signatureTable.api();
-        let rowIndex = signatureTableApi.row( rowElement ).index();
-
-        let updateCell = signatureTableApi.cell( rowIndex, cellIndex );
+    let updateSignatureCell = function(tableApi, rowElement, cellIndex, data){
+        let rowIndex = tableApi.row( rowElement ).index();
+        let updateCell = tableApi.cell( rowIndex, cellIndex );
         let updateCellElement = updateCell.nodes().to$();
 
         if(cellIndex === 7){
@@ -28909,7 +29795,6 @@ define('app/ui/system_signature',[
      * @param deleteOutdatedSignatures -> set to "true" if signatures should be deleted that are not included in "signatureData"
      */
     $.fn.updateSignatureTable = function(signatureDataOrig, deleteOutdatedSignatures){
-
         // check if table update is allowed
         if(disableTableUpdate === true){
             return;
@@ -28924,13 +29809,12 @@ define('app/ui/system_signature',[
         let moduleElement = $(this);
 
         // get signature table API
-        let signatureTableApi = signatureTable.api();
+        let signatureTableApi = getDataTableInstanceByModuleElement(moduleElement, 'primary');
 
         // get current system data
         let currentSystemData = Util.getCurrentSystemData();
 
-
-        let tableData = getSignatureTableData();
+        let tableData = getTableData(signatureTableApi);
 
         let notificationCounter = {
             added: 0,
@@ -28954,7 +29838,7 @@ define('app/ui/system_signature',[
                         signatureTableApi.row(currentRowElement).remove().draw();
 
                         // and add "new" row
-                        let changedRowElement = addSignatureRow(currentSystemData.systemData, signatureData[i], false);
+                        let changedRowElement = addSignatureRow(signatureTableApi, currentSystemData.systemData, signatureData[i], false);
 
                         // highlight
                         changedRowElement.pulseTableRow('changed');
@@ -28997,7 +29881,7 @@ define('app/ui/system_signature',[
         // add new signatures -----------------------------------------------------------------------------------------
         for(let k = 0; k < signatureData.length; k++){
             // and add "new" row
-            let newRowElement = addSignatureRow(currentSystemData.systemData, signatureData[k], false);
+            let newRowElement = addSignatureRow(signatureTableApi, currentSystemData.systemData, signatureData[k], false);
 
             // highlight
             newRowElement.pulseTableRow('added');
@@ -29058,15 +29942,15 @@ define('app/ui/system_signature',[
      * @param options
      */
     $.fn.updateScannedSignaturesBar = function(options){
-
         let moduleElement = $(this);
+        let signatureTableApi = getDataTableInstanceByModuleElement(moduleElement, 'primary');
 
         // get progress bar
         let progressBarWrapper = moduleElement.find('.' + config.signatureScannedProgressBarClass);
         let progressBar = $(progressBarWrapper).find('.progress-bar');
         let progressBarLabel = $(progressBarWrapper).find('.progress-label-right');
 
-        let tableData = getSignatureTableData();
+        let tableData = getTableData(signatureTableApi);
 
         let sigCount = 0;
         let percent = 0;
@@ -29117,7 +30001,6 @@ define('app/ui/system_signature',[
                 }
 
             }, 100);
-
     };
 
     /**
@@ -29203,12 +30086,15 @@ define('app/ui/system_signature',[
                 type: 'POST',
                 url: Init.path.saveSignatureData,
                 data: requestData,
-                dataType: 'json'
+                dataType: 'json',
+                context: {
+                    moduleElement: moduleElement
+                }
             }).done(function(responseData){
                 unlockSignatureTable(true);
 
                 // updates table with new/updated signature information
-                moduleElement.updateSignatureTable(responseData.signatures, false);
+                this.moduleElement.updateSignatureTable(responseData.signatures, false);
             }).fail(function( jqXHR, status, error) {
                 let reason = status + ' ' + error;
                 Util.showNotify({title: jqXHR.status + ': Update signatures', text: reason, type: 'warning'});
@@ -29541,47 +30427,45 @@ define('app/ui/system_signature',[
 
     /**
      * get all rows of a table
-     * @param table
+     * @param tableApi
      * @returns {*}
      */
-    let getRows = function(table){
-        let tableApi = table.api();
+    let getRows = function(tableApi){
         let rows = tableApi.rows();
-
         return rows;
     };
 
     /**
      * get all selected rows of a table
-     * @param table
+     * @param tableApi
      * @returns {*}
      */
-    let getSelectedRows = function(table){
-        let tableApi = table.api();
-
+    let getSelectedRows = function(tableApi){
         let selectedRows = tableApi.rows('.selected');
-
         return selectedRows;
     };
 
     /**
      * check the "delete signature" button. show/hide the button if a signature is selected
+     * @param moduleElement
      */
-    let checkDeleteSignaturesButton = function(){
+    let checkDeleteSignaturesButton = function(moduleElement){
+        moduleElement = $(moduleElement);
+        let signatureTableApi = getDataTableInstanceByModuleElement(moduleElement, 'primary');
 
-        let selectedRows = getSelectedRows(signatureTable);
+        let selectedRows = getSelectedRows(signatureTableApi);
         let selectedRowCount = selectedRows.data().length;
-        let clearButton = $('.' + config.sigTableClearButtonClass);
+        let clearButton = moduleElement.find('.' + config.sigTableClearButtonClass);
 
         if(selectedRowCount > 0){
-            let allRows = getRows(signatureTable);
+            let allRows = getRows(signatureTableApi);
             let rowCount = allRows.data().length;
 
-            let badgetText = selectedRowCount;
+            let badgeText = selectedRowCount;
             if(selectedRowCount >= rowCount){
-                badgetText = 'all';
+                badgeText = 'all';
             }
-            clearButton.find('.badge').text( badgetText );
+            clearButton.find('.badge').text( badgeText );
 
             // update clear signatures button text
             clearButton.velocity('stop');
@@ -29607,10 +30491,10 @@ define('app/ui/system_signature',[
 
     /**
      * draw signature table toolbar (add signature button, scan progress bar
+     * @param mapId
      * @param systemData
      */
-    $.fn.drawSignatureTableToolbar = function(systemData){
-
+    $.fn.drawSignatureTableToolbar = function(mapId, systemData){
         let moduleElement = $(this);
 
         // add toolbar buttons for table ------------------------------------------------------------------------------
@@ -29655,8 +30539,10 @@ define('app/ui/system_signature',[
                 label: 'select all',
                 icon: 'fa-check-square',
                 onClick: function(){
-                    let allRows = getRows(signatureTable);
-                    let selectedRows = getSelectedRows(signatureTable);
+                    let signatureTableApi = getDataTableInstanceByModuleElement(moduleElement, 'primary');
+
+                    let allRows = getRows(signatureTableApi);
+                    let selectedRows = getSelectedRows(signatureTableApi);
                     let allRowElements = allRows.nodes().to$();
 
                     if(allRows.data().length === selectedRows.data().length){
@@ -29666,7 +30552,7 @@ define('app/ui/system_signature',[
                     }
 
                     // check delete button
-                    checkDeleteSignaturesButton();
+                    checkDeleteSignaturesButton(moduleElement);
                 }
             })
         ).append(
@@ -29680,12 +30566,12 @@ define('app/ui/system_signature',[
                 },
                 onClick: function(){
                     // delete all rows
-
-                    let selectedRows = getSelectedRows(signatureTable);
+                    let signatureTableApi = getDataTableInstanceByModuleElement(moduleElement, 'primary');
+                    let selectedRows = getSelectedRows(signatureTableApi);
 
                     bootbox.confirm('Delete ' + selectedRows.data().length + ' signature?', function(result) {
                         if(result){
-                            deleteSignatures(selectedRows);
+                            deleteSignatures(signatureTableApi, selectedRows);
                         }
                     });
                 }
@@ -29709,15 +30595,18 @@ define('app/ui/system_signature',[
         tableToolbar.after(tableToolbarAction);
 
         let signatureData = formatSignatureData(systemData, [emptySignatureData], emptySignatureOptions);
-        table.dataTable( {
+        let signatureTable = table.dataTable( {
             data: signatureData,
             paging: false,
             ordering: false,
             info: false,
             searching: false
         } );
+        let signatureTableApi = signatureTable.api();
 
-        table.makeEditable(systemData);
+        setDataTableInstance(mapId, systemData.id, 'secondary', signatureTableApi);
+
+        table.makeEditable(signatureTableApi, systemData);
 
         // scanned signatures progress bar ----------------------------------------------------------------------------
         let moduleConfig = {
@@ -29744,18 +30633,16 @@ define('app/ui/system_signature',[
      * @param title
      */
     let updateTooltip = function(element, title){
-        element = $(element);
-
-        element.attr('data-container', 'body').attr('title', title.toUpperCase()).tooltip('fixTitle')
+        $(element).attr('data-container', 'body').attr('title', title.toUpperCase()).tooltip('fixTitle')
             .tooltip('setContent');
     };
 
     /**
      * make a table or row editable
+     * @param tableApi
      * @param systemData
      */
-    $.fn.makeEditable = function(systemData){
-
+    $.fn.makeEditable = function(tableApi, systemData){
         // table element OR row element
         let tableElement = $(this);
 
@@ -29780,7 +30667,7 @@ define('app/ui/system_signature',[
                     // the current field is in the "primary" table (not the "add" new sig row)
                     if(
                         $(e.target).hasClass(config.sigTableEditSigGroupSelect) &&
-                        tableElement.hasClass(config.sigTablePrimaryClass)
+                        $(e.target).parents('.' + config.sigTableClass).hasClass(config.sigTablePrimaryClass)
                     ){
                         currentField.parents('.' + config.moduleClass).updateScannedSignaturesBar({showNotice: true});
                     }
@@ -29867,7 +30754,7 @@ define('app/ui/system_signature',[
                     updateTooltip(columnElement, newValue);
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 7, newRowData.updated);
+                    updateSignatureCell(tableApi, rowElement, 7, newRowData.updated);
                 }
             }
         });
@@ -29904,7 +30791,7 @@ define('app/ui/system_signature',[
                     let newRowData = response.signatures[0];
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 7, newRowData.updated);
+                    updateSignatureCell(tableApi, rowElement, 7, newRowData.updated);
                 }
 
                 // find related "type" select (same row) and change options
@@ -29975,7 +30862,7 @@ define('app/ui/system_signature',[
                     let newRowData = response.signatures[0];
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 7, newRowData.updated);
+                    updateSignatureCell(tableApi, rowElement, 7, newRowData.updated);
                 }
             }
         });
@@ -29998,7 +30885,7 @@ define('app/ui/system_signature',[
                     let newRowData = response.signatures[0];
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 7, newRowData.updated);
+                    updateSignatureCell(tableApi, rowElement, 7, newRowData.updated);
                 }
             }
         });
@@ -30053,7 +30940,7 @@ define('app/ui/system_signature',[
                     let newRowData = response.signatures[0];
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 7, newRowData.updated);
+                    updateSignatureCell(tableApi, rowElement, 7, newRowData.updated);
                 }
             }
         });
@@ -30103,13 +30990,13 @@ define('app/ui/system_signature',[
                     // take target...
                     connectionOptions.push({
                         value: connectionData.id,
-                        text: connectionData.targetName
+                        text: connectionData.targetAlias
                     });
                 }else if(systemData.id !== connectionData.source){
                     // take source...
                     connectionOptions.push({
                         value: connectionData.id,
-                        text: connectionData.sourceName
+                        text: connectionData.sourceAlias
                     });
                 }
             }
@@ -30353,15 +31240,14 @@ define('app/ui/system_signature',[
 
     /**
      * deletes signature rows from signature table
+     * @param tableApi
      * @param rows
      */
-    let deleteSignatures = function(rows){
-
+    let deleteSignatures = function(tableApi, rows){
         let deletedSignatures = 0;
 
         let moduleElement = $('.' + config.systemSigModuleClass);
         let data = rows.data();
-        let signatureTableApi = signatureTable.api();
         let rowElements = rows.nodes().to$();
         let signatureCount = data.length;
 
@@ -30377,7 +31263,7 @@ define('app/ui/system_signature',[
         // animation callback function
         let removeCallback = function(rowElement){
             // delete signature row
-            signatureTableApi.row(rowElement).remove().draw();
+            tableApi.row(rowElement).remove().draw();
 
             deletedSignatures++;
 
@@ -30411,25 +31297,20 @@ define('app/ui/system_signature',[
             Util.showNotify({title: jqXHR.status + ': Delete signature', text: reason, type: 'warning'});
             $(document).setProgramStatus('problem');
         });
-
     };
-
 
     /**
      * adds a new row to signature Table
+     * @param signatureTableApi
      * @param systemData
      * @param signatureData
      * @param animate
      * @returns {*}
      */
-    let addSignatureRow = function(systemData, signatureData, animate){
-
+    let addSignatureRow = function(signatureTableApi, systemData, signatureData, animate){
         let newSignatureData = formatSignatureData(systemData, [signatureData], fullSignatureOptions);
 
-        // insert new row in main signature table
-        let tablePrimaryElement = $('.' + config.sigTablePrimaryClass);
-        let dataTablePrimary = tablePrimaryElement.DataTable();
-        let newRowNode = dataTablePrimary.row.add(newSignatureData.shift()).draw().nodes();
+        let newRowNode = signatureTableApi.row.add(newSignatureData.shift()).draw().nodes();
         let newRowElement = newRowNode.to$();
 
         if(animate === true){
@@ -30438,13 +31319,13 @@ define('app/ui/system_signature',[
             newRowElement.toggleTableRow(function(newRowElement){
                 // make new row editable
 
-                newRowElement.makeEditable(systemData);
+                newRowElement.makeEditable(signatureTableApi, systemData);
 
                 // update scan progress bar
                 newRowElement.parents('.' + config.moduleClass).updateScannedSignaturesBar({showNotice: true});
             });
         }else{
-            newRowElement.makeEditable(systemData);
+            newRowElement.makeEditable(signatureTableApi, systemData);
         }
 
         return newRowElement;
@@ -30457,9 +31338,7 @@ define('app/ui/system_signature',[
     $.fn.toggleTableRow = function(callback){
         let rowElement = $(this);
         let cellElements = rowElement.children('td');
-
         let duration = 100;
-
 
         // wrap each <td> into a container (for better animation performance)
         // slideUp new wrapper divs
@@ -30540,11 +31419,11 @@ define('app/ui/system_signature',[
 
     /**
      * draw a signature table with data
+     * @param mapId
      * @param signatureData
      * @param systemData
-     * @returns {*}
      */
-    $.fn.drawSignatureTable = function(signatureData, systemData){
+    $.fn.drawSignatureTable = function(mapId, signatureData, systemData){
         let moduleElement = $(this);
 
         // setup filter select in footer
@@ -30611,14 +31490,14 @@ define('app/ui/system_signature',[
         };
 
         // create signature table and store the jquery object global for this module
-        signatureTable = table.dataTable(dataTableOptions);
+        let signatureTable = table.dataTable(dataTableOptions);
+        let signatureTableApi = signatureTable.api();
+        setDataTableInstance(mapId, systemData.id, 'primary', signatureTableApi);
 
         // make Table editable
-        signatureTable.makeEditable(systemData);
+        signatureTable.makeEditable(signatureTableApi, systemData);
 
         moduleElement.updateScannedSignaturesBar({showNotice: true});
-
-        return signatureTable;
     };
 
     /**
@@ -30818,6 +31697,12 @@ define('app/ui/system_signature',[
                                     // submit all fields within a table row
                                     let formFields = rowElement.find('.editable');
 
+                                    // get the current "primary table" for insert row on ajax callback
+                                    // -> important: in case of long response, target table might have changed...
+                                    let moduleElement =  $(e.target).parents('.' + config.moduleClass);
+                                    let primaryTable = moduleElement.find('.' + config.sigTablePrimaryClass);
+                                    let secondaryTable = moduleElement.find('.' + config.sigTableSecondaryClass);
+
                                     // the "hide" makes sure to take care about open editable fields (e.g. description)
                                     // otherwise, changes would not be submitted in this field (not necessary)
                                     formFields.editable('hide');
@@ -30829,6 +31714,10 @@ define('app/ui/system_signature',[
                                             dataType: 'json', //assuming json response
                                             beforeSend: function( xhr, settings ){
                                                 lockSignatureTable();
+                                            },
+                                            context: {
+                                                primaryTable: primaryTable,
+                                                secondaryTable: secondaryTable
                                             }
                                         },
                                         data: {
@@ -30837,21 +31726,22 @@ define('app/ui/system_signature',[
                                         },
                                         error: $.fn.editable.defaults.error, // user default xEditable error function
                                         success: function (data, editableConfig) {
+                                            let context = editableConfig.ajaxOptions.context;
+                                            let primaryTableApi = context.primaryTable.DataTable();
+                                            let secondaryTableApi = context.secondaryTable.DataTable();
+
                                             unlockSignatureTable(false);
 
-                                            let newRowElement = addSignatureRow(systemData, data.signatures[0], true);
+                                            let newRowElement = addSignatureRow(primaryTableApi, systemData, data.signatures[0], true);
 
                                             // highlight
                                             newRowElement.pulseTableRow('added');
 
                                             // prepare "add signature" table for new entry -> reset -------------------
                                             let signatureData = formatSignatureData(systemData, [emptySignatureData], emptySignatureOptions);
+                                            let newAddRowElement = secondaryTableApi.clear().row.add(signatureData.shift()).draw().nodes();
 
-                                            let dataSecondaryElement = $('.' + config.sigTableSecondaryClass);
-                                            let dataTableSecondary = dataSecondaryElement.DataTable();
-                                            let newAddRowElement = dataTableSecondary.clear().row.add(signatureData.shift()).draw().nodes();
-
-                                            newAddRowElement.to$().makeEditable(systemData);
+                                            newAddRowElement.to$().makeEditable(secondaryTableApi, systemData);
 
                                             Util.showNotify({
                                                 title: 'Signature added',
@@ -30874,19 +31764,20 @@ define('app/ui/system_signature',[
                                     btnOkClass: 'btn btn-sm btn-danger',
                                     btnOkLabel: 'delete',
                                     btnOkIcon: 'fa fa-fw fa-close',
-                                    onConfirm : function(e, target){
+                                    onConfirm: function(e, target){
                                         // top scroll to top
                                         e.preventDefault();
 
+                                        let tableApi = tempTableElement.DataTable();
+
                                         let deleteRowElement = $(target).parents('tr');
-                                        let row = tempTableElement.DataTable().rows(deleteRowElement);
-                                        deleteSignatures(row);
+                                        let row = tableApi.rows(deleteRowElement);
+                                        deleteSignatures(tableApi, row);
                                     }
                                 };
 
                                 // init confirmation dialog
                                 $(cell).confirmation(confirmationSettings);
-
 
                                 break;
                         }
@@ -30903,31 +31794,29 @@ define('app/ui/system_signature',[
      * @param systemData
      */
     let setModuleObserver = function(moduleElement, systemData){
-        let tablePrimaryElement = $('.' + config.sigTablePrimaryClass);
-        let dataTablePrimary = signatureTable.DataTable();
-        let signatureTableApi = signatureTable.api();
+        let tablePrimaryElement = moduleElement.find('.' + config.sigTablePrimaryClass);
+        let signatureTableApi = getDataTableInstanceByModuleElement(moduleElement, 'primary');
 
         $(document).off('pf:updateSystemSignatureModule').on('pf:updateSystemSignatureModule', function(e, data){
             if(data.signatures){
                 moduleElement.updateSignatureTable(data.signatures, true);
             }
-
         });
 
         // set multi row select ---------------------------------------------------------------------------------------
-        tablePrimaryElement.on('click', 'tr', function(e){
+        tablePrimaryElement.on('click', 'tr', {moduleElement: moduleElement}, function(e){
             if(e.ctrlKey) {
                 $(this).toggleClass('selected');
 
                 // check delete button
-                checkDeleteSignaturesButton();
+                checkDeleteSignaturesButton(e.data.moduleElement);
             }
         });
 
         // draw event for signature table -----------------------------------------------------------------------------
-        signatureTableApi.on('draw.dt', function(){
+        signatureTableApi.on('draw.dt', {moduleElement: moduleElement}, function(e, settings){
             // check delete button
-            checkDeleteSignaturesButton();
+            checkDeleteSignaturesButton(e.data.moduleElement);
         });
 
         // event listener for global "paste" signatures into the page -------------------------------------------------
@@ -30939,16 +31828,20 @@ define('app/ui/system_signature',[
     /**
      * get module element
      * @param parentElement
+     * @param mapId
      * @param systemData
-     * @returns {*|HTMLElement}
+     * @returns {*|jQuery|HTMLElement}
      */
-    let getModule = function(parentElement, systemData){
+    let getModule = function(parentElement, mapId, systemData){
 
         // create new module container
         let moduleElement = $('<div>', {
             class: [config.moduleClass, config.systemSigModuleClass].join(' '),
             css: {opacity: 0}
         });
+
+        moduleElement.data('mapId', mapId);
+        moduleElement.data('systemId', systemData.id);
 
         // headline
         let headline = $('<h5>', {
@@ -30964,7 +31857,7 @@ define('app/ui/system_signature',[
 
         // draw "new signature" add table -----------------------------------------------------------------------------
 
-        moduleElement.drawSignatureTableToolbar(systemData);
+        moduleElement.drawSignatureTableToolbar(mapId, systemData);
 
         // request signature data for system --------------------------------------------------------------------------
 
@@ -30978,14 +31871,14 @@ define('app/ui/system_signature',[
             data: requestData,
             dataType: 'json',
             context: {
+                mapId: mapId,
                 systemData: systemData
             }
         }).done(function(signatureData){
-
             let signatureTableData = formatSignatureData(this.systemData, signatureData, fullSignatureOptions);
 
             // draw signature table
-            moduleElement.drawSignatureTable(signatureTableData, this.systemData);
+            moduleElement.drawSignatureTable(this.mapId, signatureTableData, this.systemData);
 
             // set module observer
             setModuleObserver(moduleElement, this.systemData);
@@ -31000,9 +31893,10 @@ define('app/ui/system_signature',[
 
     /**
      * main module load function
+     * @param mapId
      * @param systemData
      */
-    $.fn.drawSignatureTableModule = function(systemData){
+    $.fn.drawSignatureTableModule = function(mapId, systemData){
         let parentElement = $(this);
 
         // show module
@@ -31042,13 +31936,17 @@ define('app/ui/system_signature',[
             moduleElement.velocity('transition.slideDownOut', {
                 duration: Init.animationSpeed.mapModule,
                 complete: function(tempElement){
+                    tempElement = $(tempElement);
                     // Destroying the data tables throws
                     // save remove of all dataTables
-                    signatureTable.api().destroy();
+                    let mapId = tempElement.data('mapId');
+                    let systemId = tempElement.data('systemId');
+                    deleteDataTableInstance(mapId, systemId, 'primary');
+                    deleteDataTableInstance(mapId, systemId, 'secondary');
 
-                    $(tempElement).remove();
+                    tempElement.remove();
 
-                    moduleElement = getModule(parentElement, systemData);
+                    moduleElement = getModule(parentElement, mapId,  systemData);
                     // make modules appear "nice"
                     moduleElement.delay(150);
                     showModule(moduleElement);
@@ -31058,7 +31956,7 @@ define('app/ui/system_signature',[
             // init array prototype functions
             initArrayFunctions();
 
-            moduleElement = getModule(parentElement, systemData);
+            moduleElement = getModule(parentElement, mapId, systemData);
             showModule(moduleElement);
         }
     };
@@ -31253,6 +32151,7 @@ define('app/ui/system_route',[
             wormholes: (rowData.hasOwnProperty('wormholes')) ? rowData.wormholes | 0 : 1,
             wormholesReduced: (rowData.hasOwnProperty('wormholesReduced')) ? rowData.wormholesReduced | 0 : 1,
             wormholesCritical: (rowData.hasOwnProperty('wormholesCritical')) ? rowData.wormholesCritical | 0 : 1,
+            wormholesFrigate: (rowData.hasOwnProperty('wormholesFrigate')) ? rowData.wormholesFrigate | 0 : 1,
             wormholesEOL: (rowData.hasOwnProperty('wormholesEOL')) ? rowData.wormholesEOL | 0 : 1,
             safer: (rowData.hasOwnProperty('safer')) ? rowData.safer.value | 0 : 0
         };
@@ -31343,6 +32242,7 @@ define('app/ui/system_route',[
                                         wormholes: routeDialogData.hasOwnProperty('wormholes') ? parseInt( routeDialogData.wormholes ) : 0,
                                         wormholesReduced: routeDialogData.hasOwnProperty('wormholesReduced') ? parseInt( routeDialogData.wormholesReduced ) : 0,
                                         wormholesCritical: routeDialogData.hasOwnProperty('wormholesCritical') ? parseInt( routeDialogData.wormholesCritical ) : 0,
+                                        wormholesFrigate: routeDialogData.hasOwnProperty('wormholesFrigate') ? parseInt( routeDialogData.wormholesFrigate ) : 0,
                                         wormholesEOL: routeDialogData.hasOwnProperty('wormholesEOL') ? parseInt( routeDialogData.wormholesEOL ) : 0
                                     }]
                                 };
@@ -31550,12 +32450,14 @@ define('app/ui/system_route',[
         let wormholeCheckbox = routeDialog.find('input[type="checkbox"][name="wormholes"]');
         let wormholeReducedCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesReduced"]');
         let wormholeCriticalCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesCritical"]');
+        let wormholeFrigateCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesFrigate"]');
         let wormholeEolCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesEOL"]');
 
         // store current "checked" state for each box ---------------------------------------------
         let storeCheckboxStatus = function(){
             wormholeReducedCheckbox.data('selectState', wormholeReducedCheckbox.prop('checked'));
             wormholeCriticalCheckbox.data('selectState', wormholeCriticalCheckbox.prop('checked'));
+            wormholeFrigateCheckbox.data('selectState', wormholeFrigateCheckbox.prop('checked'));
             wormholeEolCheckbox.data('selectState', wormholeEolCheckbox.prop('checked'));
         };
 
@@ -31565,10 +32467,12 @@ define('app/ui/system_route',[
             if( $(this).is(':checked') ){
                 wormholeReducedCheckbox.prop('disabled', false);
                 wormholeCriticalCheckbox.prop('disabled', false);
+                wormholeFrigateCheckbox.prop('disabled', false);
                 wormholeEolCheckbox.prop('disabled', false);
 
                 wormholeReducedCheckbox.prop('checked', wormholeReducedCheckbox.data('selectState'));
                 wormholeCriticalCheckbox.prop('checked', wormholeCriticalCheckbox.data('selectState'));
+                wormholeFrigateCheckbox.prop('checked', wormholeFrigateCheckbox.data('selectState'));
                 wormholeEolCheckbox.prop('checked', wormholeEolCheckbox.data('selectState'));
             }else{
                 storeCheckboxStatus();
@@ -31577,6 +32481,8 @@ define('app/ui/system_route',[
                 wormholeReducedCheckbox.prop('disabled', true);
                 wormholeCriticalCheckbox.prop('checked', false);
                 wormholeCriticalCheckbox.prop('disabled', true);
+                wormholeFrigateCheckbox.prop('checked', false);
+                wormholeFrigateCheckbox.prop('disabled', true);
                 wormholeEolCheckbox.prop('checked', false);
                 wormholeEolCheckbox.prop('disabled', true);
             }
@@ -31650,6 +32556,7 @@ define('app/ui/system_route',[
             wormholes: routeData.wormholes,
             wormholesReduced: routeData.wormholesReduced,
             wormholesCritical: routeData.wormholesCritical,
+            wormholesFrigate: routeData.wormholesFrigate,
             wormholesEOL: routeData.wormholesEOL,
             safer: {
                 value: routeData.safer,
@@ -33068,7 +33975,7 @@ define('app/module_map',[
         firstCell.drawSystemGraphModule(currentSystemData.systemData);
 
         // draw signature table module
-        firstCell.drawSignatureTableModule(currentSystemData.systemData);
+        firstCell.drawSignatureTableModule(currentSystemData.mapId, currentSystemData.systemData);
 
         // draw system routes module
         secondCell.drawSystemRouteModule(currentSystemData.mapId, currentSystemData.systemData);
@@ -33150,8 +34057,12 @@ define('app/module_map',[
 
             let currentMapUserData = Util.getCurrentMapUserData(mapId);
 
-            // update map with current user data
+
             if(currentMapUserData){
+                // trigger "update local" for this map => async
+                mapElement.trigger('pf:updateLocal', currentMapUserData);
+
+                // update map with current user data
                 mapElement.updateUserData(currentMapUserData);
             }
         }
@@ -33735,6 +34646,7 @@ define('app/page',[
     'app/util',
     'app/logging',
     'mustache',
+    'app/map/util',
     'text!img/logo.svg!strip',
     'text!templates/modules/header.html',
     'text!templates/modules/footer.html',
@@ -33751,7 +34663,7 @@ define('app/page',[
     'dialog/credit',
     'slidebars',
     'app/module_map'
-], function($, Init, Util, Logging, Mustache, TplLogo, TplHead, TplFooter) {
+], function($, Init, Util, Logging, Mustache, MapUtil, TplLogo, TplHead, TplFooter) {
 
     'use strict';
 
@@ -33862,26 +34774,27 @@ define('app/page',[
             });
 
             body.watchKey('signaturePaste', (e) => {
-                let moduleElement = $('.' + config.systemSigModuleClass);
-
-                // check if there is a signature module active (system clicked)
-                if(moduleElement.length){
-                    e = e.originalEvent;
-                    let targetElement = $(e.target);
-
-                    // do not read clipboard if pasting into form elements
-                    if(
-                        targetElement.prop('tagName').toLowerCase() !== 'input' &&
-                        targetElement.prop('tagName').toLowerCase() !== 'textarea' || (
-                            targetElement.is('input[type="search"]')                   // Datatables "search" field bubbles `paste.DT` event :(
-                        )
-                    ){
-                        let clipboard = (e.originalEvent || e).clipboardData.getData('text/plain');
-                        moduleElement.trigger('pf:updateSystemSignatureModuleByClipboard', [clipboard]);
+                // just send event to the current active map
+                let activeMap = Util.getMapModule().getActiveMap();
+                if(activeMap){
+                    // look for active signature module (active system)
+                    let signatureModuleElement = MapUtil.getTabContentElementByMapElement(activeMap).find('.' + config.systemSigModuleClass);
+                    if(signatureModuleElement.length){
+                        e = e.originalEvent;
+                        let targetElement = $(e.target);
+                        // do not read clipboard if pasting into form elements
+                        if(
+                            targetElement.prop('tagName').toLowerCase() !== 'input' &&
+                            targetElement.prop('tagName').toLowerCase() !== 'textarea' || (
+                                targetElement.is('input[type="search"]')                   // Datatables "search" field bubbles `paste.DT` event :(
+                            )
+                        ){
+                            let clipboard = (e.originalEvent || e).clipboardData.getData('text/plain');
+                            signatureModuleElement.trigger('pf:updateSystemSignatureModuleByClipboard', [clipboard]);
+                        }
                     }
                 }
             });
-
         });
     };
 
@@ -34048,7 +34961,7 @@ define('app/page',[
                         class: 'fa fa-street-view fa-fw'
                     })
                 ).on('click', function(){
-                    $(document).triggerMenuEvent('ShowMapInfo');
+                    $(document).triggerMenuEvent('ShowMapInfo', {tab: 'information'});
                 })
             ).append(
                 getMenuHeadline('Settings')
@@ -34221,7 +35134,7 @@ define('app/page',[
 
         // active pilots
         $('.' + config.headActiveUserClass).find('a').on('click', function(){
-            $(document).triggerMenuEvent('ShowMapInfo');
+            $(document).triggerMenuEvent('ShowMapInfo', {tab: 'activity'});
         });
 
         // current location
@@ -34386,9 +35299,9 @@ define('app/page',[
             return false;
         });
 
-        $(document).on('pf:menuShowMapInfo', function(e){
+        $(document).on('pf:menuShowMapInfo', function(e, data){
             // show map information dialog
-            $.fn.showMapInfoDialog();
+            $.fn.showMapInfoDialog(data);
             return false;
         });
 
@@ -35171,10 +36084,21 @@ define('app/ui/form_element',[
                 }
             }).on('change', function(e){
                 // select changed
+            }).on('select2:open', function(){
+                // clear selected system (e.g. default system)
+                // => improves usability (not necessary). There is a small "x" whe it could be cleared manually
+                if(
+                    options.maxSelectionLength === 1 &&
+                    $(this).val() !== null
+                ){
+                    $(this).val('').trigger('change');
+                }
             })
-        ).done(function(){
-            // open select
-            selectElement.select2('open');
+        ).done(function(a,b){
+            // open select if not already pre-selected
+            if($(this).val() === null){
+                selectElement.select2('open');
+            }
         });
     };
 

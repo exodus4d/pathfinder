@@ -69,23 +69,24 @@ $mapWidth: 2500px ;
   position: absolute;
   display: none; // triggered by js
   z-index: 10000;
-  height: 36px;
   right: 10px;
   background: rgba($black, 0.25);
   @include border-radius(5px);
 
   &.pf-map-overlay-timer{
-    width: 36px;
     bottom: 23px;
+    width: 36px;
+    height: 36px;
   }
 
   &.pf-map-overlay-info{
     top: 8px;
+    height: 36px;
+    min-height: 36px;
+    min-width: 36px;
     color: $gray-darker;
     padding: 3px;
     line-height: 26px;
-    min-height: 36px;
-    min-width: 36px;
 
     i{
       margin: 0; // overwrite default
@@ -115,6 +116,93 @@ $mapWidth: 2500px ;
       }
     }
   }
+
+  &.pf-map-overlay-local{
+    top: 54px;
+    min-height: 80px;
+    width: 32px;
+    display: block;
+    will-change: width;
+
+    .pf-map-overlay-local-content {
+      margin-right: 36px;
+      padding: 5px 0 5px 5px;
+      overflow: hidden;
+
+      .pf-map-overlay-headline{
+        font-size: 12px;
+        font-family: $font-family-bold;
+        white-space: nowrap;
+
+        .badge{
+          margin-left: 5px;
+        }
+
+        .pf-system-sec{
+          cursor: default; // overwrite
+        }
+      }
+
+      .pf-local-table {
+        font-size: 10px;
+
+        td {
+          white-space: nowrap;
+
+          .pf-table-cell-ellipsis{
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          .pf-table-cell-80{
+            width: 90px; // 100 + padding for "order" icons
+          }
+
+          .pf-table-cell-90{
+            width: 100px; // 100 + padding for "order" icons
+          }
+        }
+      }
+
+      .dataTables_paginate,
+      .dataTables_empty{
+        white-space: nowrap;
+      }
+    }
+
+    .pf-map-overlay-local-main{
+      position: absolute;
+      top: 0;
+      right: 0;
+      height: 100%;
+      padding: 3px;
+      width: 32px;
+      cursor: pointer;
+      text-align: center;
+      border-left: 1px solid $gray-darker;
+
+      .pf-map-overlay-local-trigger{
+        margin-bottom: 10px;
+      }
+
+      i{
+        font-size: 12px;
+      }
+    }
+
+    .pf-map-overlay-local-jumps{
+      position: absolute;
+      bottom: 5px;
+      width: calc(100% - 6px);
+    }
+
+    .badge{
+      font-family: Arial, sans-serif;         // fix for element width on custom font family
+      background-color: $gray-darker;
+    }
+  }
+
 }
 
 // 20x20px grid background

@@ -15,8 +15,8 @@ class Web extends \Web {
     const ERROR_STATUS_LOG                  = 'HTTP %s: \'%s\' | url: %s \'%s\'%s';
 
     /**
-     * max number of CREST curls for a single endpoint until giving up...
-     * this is because CREST is not very stable
+     * max number of curls calls for a single resource until giving up...
+     * this is because SSO API is not very stable
      */
     const RETRY_COUNT_MAX                   = 3;
 
@@ -98,7 +98,7 @@ class Web extends \Web {
      * @param string $url
      * @param array|null $options
      * @param array $additionalOptions
-     * @param int $retryCount request counter for failed crest call
+     * @param int $retryCount request counter for failed call
      * @return array|FALSE|mixed
      */
     public function request($url,array $options = null, $additionalOptions = [], $retryCount = 0 ) {

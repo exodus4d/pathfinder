@@ -145,10 +145,21 @@ define([
                 }
             }).on('change', function(e){
                 // select changed
+            }).on('select2:open', function(){
+                // clear selected system (e.g. default system)
+                // => improves usability (not necessary). There is a small "x" whe it could be cleared manually
+                if(
+                    options.maxSelectionLength === 1 &&
+                    $(this).val() !== null
+                ){
+                    $(this).val('').trigger('change');
+                }
             })
-        ).done(function(){
-            // open select
-            selectElement.select2('open');
+        ).done(function(a,b){
+            // open select if not already pre-selected
+            if($(this).val() === null){
+                selectElement.select2('open');
+            }
         });
     };
 

@@ -119,7 +119,7 @@ class User extends Controller\Controller{
                 }else{
                     $characterError = (object) [];
                     $characterError->type = 'warning';
-                    $characterError->message = 'This can happen through "invalid cookie data", "login restrictions", "CREST problems".';
+                    $characterError->message = 'This can happen through "invalid cookies(SSO)", "login restrictions", "ESI problems".';
                     $return->error[] = $characterError;
                 }
             }
@@ -197,9 +197,38 @@ class User extends Controller\Controller{
     }
 
     /**
+     * remote open ingame information window (character, corporation or alliance) Id
+     * -> the type is auto-recognized by CCP
+     * @param \Base $f3
+     */
+    public function openIngameWindow(\Base $f3){
+        $data = $f3->get('POST');
+
+        $return = (object) [];
+        $return->error = [];
+
+        if( $targetId = (int)$data['targetId']){
+            $activeCharacter = $this->getCharacter();
+
+            $response =  $f3->ccpClient->openWindow($targetId, $activeCharacter->getAccessToken());
+
+            if(empty($response)){
+                $return->targetId = $targetId;
+            }else{
+                $error = (object) [];
+                $error->type = 'error';
+                $error->message = $response['error'];
+                $return->error[] = $error;
+            }
+        }
+
+        echo json_encode($return);
+    }
+
+    /**
      * update user account data
      * -> a fresh user automatically generated on first login with a new character
-     * -> see CREST SSO login
+     * -> see SSO login
      * @param \Base $f3
      */
     public function saveAccount(\Base $f3){
@@ -340,25 +369,23 @@ class User extends Controller\Controller{
             $user = $activeCharacter->getUser();
 
             if($user){
-                // send delete account mail
+                // try to send delete account mail
                 $msg = 'Hello ' . $user->name . ',<br><br>';
                 $msg .= 'your account data has been successfully deleted.';
 
                 $mailController = new MailController();
-                $status = $mailController->sendDeleteAccount($user->email, $msg);
+                $mailController->sendDeleteAccount($user->email, $msg);
 
-                if($status){
-                    // save log
-                    self::getLogger('DELETE_ACCOUNT')->write(
-                        sprintf(self::LOG_DELETE_ACCOUNT, $user->id, $user->name)
-                    );
+                // save log
+                self::getLogger('DELETE_ACCOUNT')->write(
+                    sprintf(self::LOG_DELETE_ACCOUNT, $user->id, $user->name)
+                );
 
-                    // remove user
-                    $user->erase();
+                // remove user
+                $user->erase();
 
-                    $this->logout($f3);
-                    die();
-                }
+                $this->logout($f3);
+                die();
             }
         }else{
             // captcha not valid -> return error

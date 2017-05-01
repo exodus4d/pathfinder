@@ -13,16 +13,13 @@ define([
         logTimerCount: 3,                                                   // map log timer in seconds
 
         // map
-        mapClass: 'pf-map',                                                 // class for all maps
         mapWrapperClass: 'pf-map-wrapper',                                  // wrapper div (scrollable)
 
         // map overlay positions
         mapOverlayClass: 'pf-map-overlay',                                  // class for all map overlays
         mapOverlayTimerClass: 'pf-map-overlay-timer',                       // class for map overlay timer e.g. map timer
         mapOverlayInfoClass: 'pf-map-overlay-info',                         // class for map overlay info e.g. map info
-
-        // connection overlays
-
+        overlayLocalClass: 'pf-map-overlay-local',                          // class for map overlay "local" table
 
         // system
         systemHeadClass: 'pf-system-head',                                  // class for system head
@@ -38,16 +35,6 @@ define([
         connectionArrowOverlayClass: 'pf-map-connection-arrow-overlay',     // class for "connection arrow" overlay
         connectionDiamondOverlayClass: 'pf-map-connection-diamond-overlay', // class for "connection diamond" overlay
         connectionOverlaySmallClass: 'pf-map-connection-small-overlay'      // class for "smaller" overlays
-    };
-
-
-    /**
-     * get mapElement from overlay or any child of that
-     * @param mapOverlay
-     * @returns {JQuery}
-     */
-    let getMapElementFromOverlay = (mapOverlay) => {
-        return $(mapOverlay).parents('.' + config.mapWrapperClass).find('.' + config.mapClass);
     };
 
     /**
@@ -66,7 +53,7 @@ define([
      * @returns {*}
      */
     let getMapObjectFromOverlayIcon = (overlayIcon) => {
-        let mapElement = getMapElementFromOverlay(overlayIcon);
+        let mapElement = Util.getMapElementFromOverlay(overlayIcon);
 
         return getMapObjectFromMapElement( mapElement );
     };
@@ -381,7 +368,7 @@ define([
             iconClass: ['fa', 'fa-fw', 'fa-tags'],
             hoverIntent: {
                 over: function(e){
-                    let mapElement = getMapElementFromOverlay(this);
+                    let mapElement = Util.getMapElementFromOverlay(this);
                     mapElement.find('.' + config.systemHeadClass).each(function(){
                         let system = $(this);
                         // init tooltip if not already exists
@@ -399,7 +386,7 @@ define([
                     });
                 },
                 out: function(e){
-                    let mapElement = getMapElementFromOverlay(this);
+                    let mapElement = Util.getMapElementFromOverlay(this);
                     mapElement.find('.' + config.systemHeadClass).tooltip('hide');
                 }
             }
@@ -411,7 +398,7 @@ define([
             iconClass: ['fa', 'fa-fw', 'fa-link'],
             hoverIntent: {
                 over: function(e){
-                    let mapElement = getMapElementFromOverlay(this);
+                    let mapElement = Util.getMapElementFromOverlay(this);
                     mapElement.showEndpointOverlays();
                 },
                 out: function(e){
@@ -518,7 +505,6 @@ define([
      * @returns {*}
      */
     $.fn.getMapOverlay = function(overlayType){
-
         let mapWrapperElement = $(this).parents('.' + config.mapWrapperClass);
 
         let mapOverlay = null;
@@ -528,6 +514,9 @@ define([
                 break;
             case 'info':
                 mapOverlay = mapWrapperElement.find('.' + config.mapOverlayInfoClass);
+                break;
+            case 'local':
+                mapOverlay = mapWrapperElement.find('.' + config.overlayLocalClass);
                 break;
         }
 
@@ -626,7 +615,7 @@ define([
                     duration: Init.animationSpeed.mapOverlay,
                     complete: function(){
                         counterChart.data('interval', false);
-                        getMapElementFromOverlay(mapOverlayTimer).trigger('pf:unlocked');
+                        Util.getMapElementFromOverlay(mapOverlayTimer).trigger('pf:unlocked');
                     }
                 });
             }

@@ -130,13 +130,9 @@ class System extends Controller\AccessController {
      * @return array
      */
     public function getSystems(){
-
         $ccpDB = $this->getDB('CCP');
-
         $query = $this->_getQuery();
-
         $rows = $ccpDB->exec($query, null, 60 * 60 * 24);
-
         // format result
         $mapper = new Mapper\CcpSystemsMapper($rows);
 
@@ -385,20 +381,25 @@ class System extends Controller\AccessController {
             $return->clearOtherWaypoints = (bool)$postData['clearOtherWaypoints'];
             $return->first = (bool)$postData['first'];
 
-             /**
-             * @var Sso $ssoController
-             */
-            $ssoController = self::getController('Sso');
-            foreach($postData['systemData'] as $systemData){
-                $waypointData = $ssoController->setWaypoint($activeCharacter, $systemData['systemId'], [
+            if( $accessToken = $activeCharacter->getAccessToken() ){
+                $options = [
                     'clearOtherWaypoints' => $return->clearOtherWaypoints,
-                    'first' => $return->first,
-                ]);
-                if($waypointData['systemId']){
-                    $return->systemData[] = $systemData;
-                }elseif( isset($waypointData['error']) ){
-                    $return->error[] = $waypointData['error'];
+                    'addToBeginning' => $return->first,
+                ];
+
+                foreach($postData['systemData'] as $systemData){
+                    $response =  $f3->ccpClient->setWaypoint($systemData['systemId'], $accessToken, $options);
+
+                    if(empty($response)){
+                        $return->systemData[] = $systemData;
+                    }else{
+                        $error = (object) [];
+                        $error->type = 'error';
+                        $error->message = $response['error'];
+                        $return->error[] = $error;
+                    }
                 }
+
             }
         }
 
@@ -428,14 +429,14 @@ class System extends Controller\AccessController {
                     if( $system = $map->getSystemById($systemId) ){
                         // check whether system should be deleted OR set "inactive"
                         if(
-                            empty($system->alias) &&
-                            empty($system->description)
+                            !empty($system->description) ||
+                            ( !empty($system->alias) && ($system->alias != $system->name) )
                         ){
-                            $system->erase();
-                        }else{
                             // keep data -> set "inactive"
                             $system->setActive(false);
                             $system->save();
+                        }else{
+                            $system->erase();
                         }
 
                         $system->reset();
@@ -451,24 +452,4 @@ class System extends Controller\AccessController {
         echo json_encode([]);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

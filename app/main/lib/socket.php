@@ -8,8 +8,6 @@
 
 namespace lib;
 
-use controller\LogController;
-
 class Socket {
 
     // max TTL time (ms)
@@ -106,7 +104,10 @@ class Socket {
 
         $this->initSocket();
 
-        if( !$this->socket ){
+        if(
+            !$this->socket ||
+            !$this->socketUri
+        ){
             // Socket not active (e.g. URI missing)
             return $response;
         }

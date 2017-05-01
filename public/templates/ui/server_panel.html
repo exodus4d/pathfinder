@@ -4,8 +4,14 @@
         {{#serviceStatus}}
             <li><i class="fa-li fa fa-server " aria-hidden="true"></i><span class="txt-color {{ style }}">{{ eve }}</span></li>
         {{/serviceStatus}}
-        {{#userCounts}}
-            <li><i class="fa-li fa fa-users" aria-hidden="true"></i>{{ userCounts }}</li>
-        {{/userCounts}}
+        {{#playerCount}}
+            <li><i class="fa-li fa fa-users" aria-hidden="true"></i>{{ playerCount }}</li>
+        {{/playerCount}}
+        {{#startTime}}
+            <li><i class="fa-li fa fa-clock-o" aria-hidden="true"></i>up {{ startTime }}</li>
+        {{/startTime}}
+        {{#serverVersion}}
+            <li><i class="fa-li fa fa-certificate" aria-hidden="true"></i>v. {{ serverVersion }}</li>
+        {{/serverVersion}}
     </ul>
 </div>

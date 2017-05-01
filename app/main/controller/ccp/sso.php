@@ -5,7 +5,7 @@
  * Date: 23.01.2016
  * Time: 17:18
  *
- * Handles access to EVE-Online "CREST API" and "SSO" auth functions
+ * Handles access to EVE-Online "ESI API" and "SSO" auth functions
  * - Add your API credentials in "environment.ini"
  * - Check "PATHFINDER.API" in "pathfinder.ini" for correct API URLs
  * Hint: \Web::instance()->request automatically caches responses by their response "Cache-Control" header!
@@ -14,7 +14,6 @@
 namespace Controller\Ccp;
 use Controller;
 use Controller\Api as Api;
-use Data\Mapper as Mapper;
 use Model;
 use Lib;
 
@@ -23,7 +22,7 @@ class Sso extends Api\User{
     /**
      * @var int timeout (seconds) for API calls
      */
-    const CREST_TIMEOUT                             = 4;
+    const SSO_TIMEOUT                               = 4;
 
     /**
      * @var int expire time (seconds) for an valid "accessToken"
@@ -37,31 +36,15 @@ class Sso extends Api\User{
     const SESSION_KEY_SSO_FROM_MAP                  = 'SESSION.SSO.FROM_MAP';
 
     // error messages
-    const ERROR_CCP_SSO_URL                         = 'Invalid "ENVIRONMENT.[ENVIRONMENT].SSO_CCP_URL" url. %s';
-    const ERROR_CCP_CREST_URL                       = 'Invalid "ENVIRONMENT.[ENVIRONMENT].CCP_CREST_URL" url. %s';
-    const ERROR_CCP_CLIENT_ID                       = 'Missing "ENVIRONMENT.[ENVIRONMENT].SSO_CCP_CLIENT_ID".';
-    const ERROR_RESOURCE_DEPRECATED                 = 'Resource: %s has been marked as deprecated. %s';
+    const ERROR_CCP_SSO_URL                         = 'Invalid "ENVIRONMENT.[ENVIRONMENT].CCP_SSO_URL" url. %s';
+    const ERROR_CCP_CLIENT_ID                       = 'Missing "ENVIRONMENT.[ENVIRONMENT].CCP_SSO_CLIENT_ID".';
     const ERROR_ACCESS_TOKEN                        = 'Unable to get a valid "access_token. %s';
     const ERROR_VERIFY_CHARACTER                    = 'Unable to verify character data. %s';
-    const ERROR_GET_ENDPOINT                        = 'Unable to get endpoint data. $s';
-    const ERROR_FIND_ENDPOINT                       = 'Unable to find endpoint: %s';
     const ERROR_LOGIN_FAILED                        = 'Failed authentication due to technical problems: %s';
-    const ERROR_CHARACTER_VERIFICATION              = 'Character verification failed from CREST';
+    const ERROR_CHARACTER_VERIFICATION              = 'Character verification failed by SSP SSO';
     const ERROR_CHARACTER_FORBIDDEN                 = 'Character "%s" is not authorized to log in';
     const ERROR_SERVICE_TIMEOUT                     = 'CCP SSO service timeout (%ss). Try again later';
     const ERROR_COOKIE_LOGIN                        = 'Login from Cookie failed. Please retry by CCP SSO';
-
-    /**
-     * CREST "Scopes" are used by pathfinder
-     * -> Enable scopes: https://developers.eveonline.com
-     * @var array
-     */
-    private $requestScopes = [
-        // 'characterFittingsRead',
-        // 'characterFittingsWrite',
-        'characterLocationRead',
-        'characterNavigationWrite'
-    ];
 
     /**
      * redirect user to CCP SSO page and request authorization
@@ -70,7 +53,7 @@ class Sso extends Api\User{
      */
     public function requestAuthorization($f3){
 
-        if( !empty($ssoCcpClientId = Controller\Controller::getEnvironmentData('SSO_CCP_CLIENT_ID')) ){
+        if( !empty($ssoCcpClientId = Controller\Controller::getEnvironmentData('CCP_SSO_CLIENT_ID')) ){
             $params = $f3->get('GET');
 
             if(
@@ -94,8 +77,8 @@ class Sso extends Api\User{
                     ($activeCharacter->getUser()->_id === $character->getUser()->_id)
                 ){
                     // requested character belongs to current user
-                    // -> update character vom CREST (e.g. corp changed,..)
-                    $updateStatus = $character->updateFromCrest();
+                    // -> update character vom ESI (e.g. corp changed,..)
+                    $updateStatus = $character->updateFromESI();
 
                     if( empty($updateStatus) ){
 
@@ -111,7 +94,7 @@ class Sso extends Api\User{
 
                             if($loginCheck){
                                 // set "login" cookie
-                                $this->setLoginCookie($character);
+                                $this->setLoginCookie($character, $this->getRequestedScopeHash());
 
                                 // -> pass current character data to target page
                                 $f3->set(Api\User::SESSION_KEY_TEMP_CHARACTER_ID, $character->_id);
@@ -135,9 +118,9 @@ class Sso extends Api\User{
 
             $urlParams = [
                 'response_type' => 'code',
-                'redirect_uri' => Controller\Controller::getEnvironmentData('URL') . $f3->build('/sso/callbackAuthorization'),
-                'client_id' => Controller\Controller::getEnvironmentData('SSO_CCP_CLIENT_ID'),
-                'scope' => implode(' ', $this->requestScopes),
+                'redirect_uri' => Controller\Controller::getEnvironmentData('URL') . Controller\Controller::getEnvironmentData('BASE') . $f3->build('/sso/callbackAuthorization'),
+                'client_id' => Controller\Controller::getEnvironmentData('CCP_SSO_CLIENT_ID'),
+                'scope' => implode(' ', Controller\Controller::getEnvironmentData('CCP_ESI_SCOPES')),
                 'state' => $state
             ];
 
@@ -149,7 +132,7 @@ class Sso extends Api\User{
         }else{
             // SSO clientId missing
             $f3->set(self::SESSION_KEY_SSO_ERROR, self::ERROR_CCP_CLIENT_ID);
-            self::getCrestLogger()->write(self::ERROR_CCP_CLIENT_ID);
+            self::getSSOLogger()->write(self::ERROR_CCP_CLIENT_ID);
             $f3->reroute('@login');
         }
     }
@@ -184,7 +167,7 @@ class Sso extends Api\User{
                 $f3->clear(self::SESSION_KEY_SSO_STATE);
                 $f3->clear(self::SESSION_KEY_SSO_FROM_MAP);
 
-                $accessData = $this->getCrestAccessData($getParams['code']);
+                $accessData = $this->getSsoAccessData($getParams['code']);
 
                 if(
                     isset($accessData->accessToken) &&
@@ -199,11 +182,11 @@ class Sso extends Api\User{
 
                         // verification available data. Data is needed for "ownerHash" check
 
-                        // get character data from CREST
-                        $characterData = $this->getCharacterData($accessData->accessToken);
+                        // get character data from ESI
+                        $characterData = $this->getCharacterData($verificationCharacterData->CharacterID);
 
                         if( isset($characterData->character) ){
-                            // add "ownerHash" and CREST tokens
+                            // add "ownerHash" and SSO tokens
                             $characterData->character['ownerHash'] = $verificationCharacterData->CharacterOwnerHash;
                             $characterData->character['crestAccessToken'] = $accessData->accessToken;
                             $characterData->character['crestRefreshToken'] = $accessData->refreshToken;
@@ -253,7 +236,7 @@ class Sso extends Api\User{
 
                                     if($loginCheck){
                                         // set "login" cookie
-                                        $this->setLoginCookie($characterModel);
+                                        $this->setLoginCookie($characterModel, $this->getRequestedScopeHash());
 
                                         // -> pass current character data to target page
                                         $f3->set(Api\User::SESSION_KEY_TEMP_CHARACTER_ID, $characterModel->_id);
@@ -270,15 +253,15 @@ class Sso extends Api\User{
                             }
                         }
                     }else{
-                        // failed to verify character by CREST
+                        // failed to verify character by CCP SSO
                         $f3->set(self::SESSION_KEY_SSO_ERROR, self::ERROR_CHARACTER_VERIFICATION);
                     }
                 }else{
-                    // CREST "accessData" missing (e.g. timeout)
-                    $f3->set(self::SESSION_KEY_SSO_ERROR, sprintf(self::ERROR_SERVICE_TIMEOUT, self::CREST_TIMEOUT));
+                    // SSO "accessData" missing (e.g. timeout)
+                    $f3->set(self::SESSION_KEY_SSO_ERROR, sprintf(self::ERROR_SERVICE_TIMEOUT, self::SSO_TIMEOUT));
                 }
             }else{
-                // invalid CREST response
+                // invalid SSO response
                 $f3->set(self::SESSION_KEY_SSO_ERROR, sprintf(self::ERROR_LOGIN_FAILED, 'Invalid response'));
             }
         }
@@ -337,7 +320,7 @@ class Sso extends Api\User{
      * @param bool $authCode
      * @return null|\stdClass
      */
-    public function getCrestAccessData($authCode){
+    public function getSsoAccessData($authCode){
         $accessData = null;
 
         if( !empty($authCode) ){
@@ -345,7 +328,7 @@ class Sso extends Api\User{
             $accessData = $this->verifyAuthorizationCode($authCode);
         }else{
             // Unable to get Token -> trigger error
-            self::getCrestLogger()->write(sprintf(self::ERROR_ACCESS_TOKEN, $authCode));
+            self::getSSOLogger()->write(sprintf(self::ERROR_ACCESS_TOKEN, $authCode));
         }
 
         return $accessData;
@@ -398,7 +381,7 @@ class Sso extends Api\User{
         if($verifyAuthCodeUrlParts){
             $contentType = 'application/x-www-form-urlencoded';
             $requestOptions = [
-                'timeout' => self::CREST_TIMEOUT,
+                'timeout' => self::SSO_TIMEOUT,
                 'method' => 'POST',
                 'user_agent' => $this->getUserAgent(),
                 'header' => [
@@ -428,7 +411,7 @@ class Sso extends Api\User{
                     }
                 }
             }else{
-                self::getCrestLogger()->write(
+                self::getSSOLogger()->write(
                     sprintf(
                         self::ERROR_ACCESS_TOKEN,
                         print_r($requestParams, true)
@@ -436,7 +419,7 @@ class Sso extends Api\User{
                 );
             }
         }else{
-            self::getCrestLogger()->write(
+            self::getSSOLogger()->write(
                 sprintf(self::ERROR_CCP_SSO_URL, __METHOD__)
             );
         }
@@ -447,7 +430,7 @@ class Sso extends Api\User{
     /**
      * verify character data by "access_token"
      * -> get some basic information (like character id)
-     * -> if more character information is required, use CREST endpoints request instead
+     * -> if more character information is required, use ESI "characters" endpoints request instead
      * @param $accessToken
      * @return mixed|null
      */
@@ -458,7 +441,7 @@ class Sso extends Api\User{
 
         if($verifyUrlParts){
             $requestOptions = [
-                'timeout' => self::CREST_TIMEOUT,
+                'timeout' => self::SSO_TIMEOUT,
                 'method' => 'GET',
                 'user_agent' => $this->getUserAgent(),
                 'header' => [
@@ -472,271 +455,83 @@ class Sso extends Api\User{
             if($apiResponse['body']){
                 $characterData = json_decode($apiResponse['body']);
             }else{
-                self::getCrestLogger()->write(sprintf(self::ERROR_VERIFY_CHARACTER, __METHOD__));
+                self::getSSOLogger()->write(sprintf(self::ERROR_VERIFY_CHARACTER, __METHOD__));
             }
         }else{
-            self::getCrestLogger()->write(sprintf(self::ERROR_CCP_SSO_URL, __METHOD__));
+            self::getSSOLogger()->write(sprintf(self::ERROR_CCP_SSO_URL, __METHOD__));
         }
 
         return $characterData;
-    }
-
-    /**
-     * get all available Endpoints
-     * @param $accessToken
-     * @param array $additionalOptions
-     * @return mixed|null
-     */
-    protected function getEndpoints($accessToken = '', $additionalOptions = []){
-        $crestUrl = self::getCrestEndpoint();
-        $additionalOptions['accept'] = 'application/vnd.ccp.eve.Api-v5+json';
-        $endpoint = $this->getEndpoint($crestUrl, $accessToken, $additionalOptions);
-
-        return $endpoint;
-    }
-
-    /**
-     * get a specific endpoint by its $resourceUrl
-     * @param string $resourceUrl endpoint API url
-     * @param string $accessToken CREST access token
-     * @param array $additionalOptions optional request options (pathfinder specific)
-     * @return mixed|null
-     */
-    protected function getEndpoint($resourceUrl, $accessToken = '', $additionalOptions = []){
-        $resourceUrlParts = parse_url($resourceUrl);
-        $endpoint = null;
-
-        if($resourceUrlParts){
-            $requestOptions = [
-                'timeout' => self::CREST_TIMEOUT,
-                'method' => 'GET',
-                'user_agent' => $this->getUserAgent(),
-                'header' => [
-                    'Host: login.eveonline.com',
-                    'Host: ' . $resourceUrlParts['host']
-                ]
-            ];
-
-            // some endpoints don´t require an "access_token" (e.g. public crest data)
-            if( !empty($accessToken) ){
-                $requestOptions['header'][] = 'Authorization: Bearer ' . $accessToken;
-            }
-
-            // if specific contentType is required -> add it to request header
-            // CREST versioning can be done by calling different "Accept:" Headers
-            if( isset($additionalOptions['accept']) ){
-                $requestOptions['header'][] = 'Accept: ' . $additionalOptions['accept'];
-            }
-
-            $apiResponse = Lib\Web::instance()->request($resourceUrl, $requestOptions, $additionalOptions);
-
-            if(
-                $apiResponse['timeout'] === false &&
-                $apiResponse['headers']
-            ){
-                // check headers for  error
-                $this->checkResponseHeaders($apiResponse['headers'], $requestOptions);
-
-                if($apiResponse['body']){
-                    $endpoint = json_decode($apiResponse['body'], true);
-                }else{
-                    self::getCrestLogger()->write(sprintf(self::ERROR_GET_ENDPOINT, __METHOD__));
-                }
-            }
-        }else{
-            self::getCrestLogger()->write(sprintf(self::ERROR_CCP_CREST_URL, __METHOD__));
-        }
-
-        return $endpoint;
-    }
-
-    /**
-     * recursively walk down the CREST API tree by a given $path array
-     * -> return "leaf" endpoint
-     * @param $endpoint
-     * @param $accessToken
-     * @param array $path
-     * @param array $additionalOptions
-     * @return null
-     */
-    protected function walkEndpoint($endpoint, $accessToken, $path = [], $additionalOptions = []){
-        $targetEndpoint = null;
-
-        if( !empty($path) ){
-            $newNode = array_shift($path);
-            if(isset($endpoint[$newNode])){
-                $currentEndpoint = $endpoint[$newNode];
-                if(isset($currentEndpoint['href'])){
-                    $newEndpoint = $this->getEndpoint($currentEndpoint['href'], $accessToken, $additionalOptions);
-                    $targetEndpoint = $this->walkEndpoint($newEndpoint, $accessToken, $path, $additionalOptions);
-                }else{
-                    // leaf found
-                    $targetEndpoint = $currentEndpoint;
-                }
-            }else{
-                // endpoint not found
-                self::getCrestLogger()->write(sprintf(self::ERROR_FIND_ENDPOINT, $newNode));
-            }
-        }else{
-            $targetEndpoint = $endpoint;
-        }
-
-        return $targetEndpoint;
     }
 
     /**
      * get character data
-     * @param $accessToken
-     * @param array $additionalOptions
+     * @param int $characterId
      * @return object
      */
-    public function getCharacterData($accessToken, $additionalOptions = []){
-        $endpoints = $this->getEndpoints($accessToken, $additionalOptions);
+    public function getCharacterData($characterId){
         $characterData = (object) [];
 
-        $endpoint = $this->walkEndpoint($endpoints, $accessToken, [
-            'decode',
-            'character'
-        ], $additionalOptions);
+        $characterDataBasic =  $this->getF3()->ccpClient->getCharacterData($characterId);
 
-        if( !empty($endpoint) ){
-            $crestCharacterData = (new Mapper\CrestCharacter($endpoint))->getData();
-            $characterData->character = $crestCharacterData
-            ;
-            if(isset($endpoint['corporation'])){
-                $characterData->corporation = (new Mapper\CrestCorporation($endpoint['corporation']))->getData();
-            }
+        if( !empty($characterDataBasic) ){
+            // remove some "unwanted" data -> not relevant for Pathfinder
+            $characterData->character = array_filter($characterDataBasic, function($key){
+                return in_array($key, ['id', 'name', 'securityStatus']);
+            }, ARRAY_FILTER_USE_KEY);
 
-            // IMPORTANT: alliance data is not yet available over CREST!
-            // -> we need to request them over the XML api
-            /*
-            if(isset($endpoint['alliance'])){
-                $characterData->alliance = (new Mapper\CrestAlliance($endpoint['alliance']))->getData();
-            }
-            */
+            $characterData->corporation = null;
+            $characterData->alliance = null;
 
-            $xmlCharacterData = (new Xml())->getPublicCharacterData( (int)$crestCharacterData['id'] );
-            if(isset($xmlCharacterData['alli'])){
-                $characterData->alliance = $xmlCharacterData['alli'];
-            }
-        }
+            if(isset($characterDataBasic['corporation'])){
+                $corporationId = (int)$characterDataBasic['corporation']['id'];
 
-        return $characterData;
-    }
+                /**
+                 * @var Model\CorporationModel $corporationModel
+                 */
+                $corporationModel = Model\BasicModel::getNew('CorporationModel');
+                $corporationModel->getById($corporationId, 0);
 
-    /**
-     * get current character location data (result is cached!)
-     * -> solarSystem data where character is currently active
-     * @param $accessToken
-     * @param array $additionalOptions
-     * @return array
-     */
-    public function getCharacterLocationData($accessToken, $additionalOptions = []){
-        // null == CREST call failed (e.g. timeout)
-        $locationData = [
-            'timeout' => false
-        ];
+                if($corporationModel->dry()){
+                    // request corporation data
+                    $corporationData = $this->getF3()->ccpClient->getCorporationData($corporationId);
 
-        $endpoints = $this->getEndpoints($accessToken, $additionalOptions);
+                    if( !empty($corporationData) ){
+                        // check for NPC corporation
+                        $corporationData['isNPC'] = $this->getF3()->ccpClient->isNpcCorporation($corporationId);
 
-        $additionalOptions['accept'] = 'application/vnd.ccp.eve.CharacterLocation-v1+json';
-        $endpoint = $this->walkEndpoint($endpoints, $accessToken, [
-            'decode',
-            'character',
-            'location'
-        ], $additionalOptions);
-
-        if( !is_null($endpoint) ){
-            // request succeeded (e.g. no timeout)
-            if(isset($endpoint['solarSystem'])){
-                $locationData['system'] = (new Mapper\CrestSystem($endpoint['solarSystem']))->getData();
-            }
-
-            if(isset($endpoint['station'])){
-                $locationData['station'] = (new Mapper\CrestStation($endpoint['station']))->getData();
-            }
-        }else{
-            // timeout
-            $locationData['timeout'] = true;
-        }
-
-        return $locationData;
-    }
-
-    /**
-     * set new ingame waypoint
-     * @param Model\CharacterModel $character
-     * @param int $systemId
-     * @param array $options
-     * @return array
-     */
-    public function setWaypoint( Model\CharacterModel $character, $systemId, $options = []){
-        $crestUrlParts = parse_url( self::getCrestEndpoint() );
-        $waypointData = [];
-
-        if( $crestUrlParts ){
-            $accessToken = $character->getAccessToken();
-            $endpoints = $this->getEndpoints($accessToken);
-
-            // get endpoint list for "ui" endpoints
-            $uiEndpoints = $endpoint = $this->walkEndpoint($endpoints, $accessToken, [
-                'decode',
-                'character',
-                'ui'
-            ]);
-
-            if(
-                isset($uiEndpoints['setWaypoints']) &&
-                isset($uiEndpoints['setWaypoints']['href'])
-            ){
-                $endpointUrl = $uiEndpoints['setWaypoints']['href'];
-                $systemEndpoint = self::getCrestEndpoint() . '/solarsystems/' . $systemId . '/';
-
-                // request body
-                $content = [
-                    'clearOtherWaypoints' => (bool)$options['clearOtherWaypoints'],
-                    'first' => (bool)$options['first'],
-                    'solarSystem' => [
-                        'href' => $systemEndpoint,
-                        'id' => (int)$systemId
-                    ]
-                ];
-
-                $requestOptions = [
-                    'timeout' => self::CREST_TIMEOUT,
-                    'method' => 'POST',
-                    'user_agent' => $this->getUserAgent(),
-                    'header' => [
-                        'Scope: characterNavigationWrite',
-                        'Authorization: Bearer ' . $character->getAccessToken(),
-                        'Host: ' . $crestUrlParts['host'],
-                        'Content-Type: application/vnd.ccp.eve.PostWaypoint-v1+json;charset=utf-8',
-                    ],
-                    'content' => json_encode($content, JSON_UNESCAPED_SLASHES)
-                ];
-
-                $apiResponse = Lib\Web::instance()->request($endpointUrl, $requestOptions);
-
-                if( isset($apiResponse['body']) ){
-                    $responseData = json_decode($apiResponse['body']);
-
-                    if( empty($responseData) ){
-                        $waypointData['systemId'] = (int)$systemId;
-                    }elseif(
-                        isset($responseData->message) &&
-                        isset($responseData->key)
-                    ){
-                        // waypoint could not be set...
-                        $error = (object) [];
-                        $error->type = 'error';
-                        $error->message = $responseData->key;
-                        $waypointData['error'] = $error;
+                        $corporationModel->copyfrom($corporationData, ['id', 'name', 'isNPC']);
+                        $characterData->corporation = $corporationModel->save();
                     }
+                }else{
+                    $characterData->corporation = $corporationModel;
+                }
+            }
+
+            if(isset($characterDataBasic['alliance'])){
+                $allianceId = (int)$characterDataBasic['alliance']['id'];
+
+                /**
+                 * @var Model\AllianceModel $allianceModel
+                 */
+                $allianceModel = Model\BasicModel::getNew('AllianceModel');
+                $allianceModel->getById($allianceId, 0);
+
+                if($allianceModel->dry()){
+                    // request alliance data
+                    $allianceData = $this->getF3()->ccpClient->getAllianceData($allianceId);
+
+                    if( !empty($allianceData) ){
+                        $allianceModel->copyfrom($allianceData, ['id', 'name']);
+                        $characterData->alliance = $allianceModel->save();
+                    }
+                }else{
+                    $characterData->alliance = $allianceModel;
                 }
             }
         }
 
-        return $waypointData;
+        return $characterData;
     }
 
     /**
@@ -746,94 +541,22 @@ class Sso extends Api\User{
      * @throws \Exception
      */
     protected function updateCharacter($characterData){
-
         $characterModel = null;
-        $corporationModel = null;
-        $allianceModel = null;
 
-        if( isset($characterData->corporation) ){
-            /**
-             * @var Model\CorporationModel $corporationModel
-             */
-            $corporationModel = Model\BasicModel::getNew('CorporationModel');
-            $corporationModel->getById((int)$characterData->corporation['id'], 0);
-            $corporationModel->copyfrom($characterData->corporation);
-            $corporationModel->save();
-        }
+        if( !empty($characterData->character) ){
 
-        if( isset($characterData->alliance) ){
-            /**
-             * @var Model\AllianceModel $allianceModel
-             */
-            $allianceModel = Model\BasicModel::getNew('AllianceModel');
-            $allianceModel->getById((int)$characterData->alliance['id'], 0);
-            $allianceModel->copyfrom($characterData->alliance);
-            $allianceModel->save();
-        }
-
-        if( isset($characterData->character) ){
             /**
              * @var Model\CharacterModel $characterModel
              */
             $characterModel = Model\BasicModel::getNew('CharacterModel');
             $characterModel->getById((int)$characterData->character['id'], 0);
-            $characterModel->copyfrom($characterData->character);
-            $characterModel->corporationId = $corporationModel;
-            $characterModel->allianceId = $allianceModel;
+            $characterModel->copyfrom($characterData->character, ['id', 'name', 'ownerHash', 'crestAccessToken', 'crestRefreshToken', 'securityStatus']);
+            $characterModel->corporationId = $characterData->corporation;
+            $characterModel->allianceId = $characterData->alliance;
             $characterModel = $characterModel->save();
         }
 
         return $characterModel;
-    }
-
-    /**
-     * get CREST server status (online/offline)
-     * @return \stdClass object
-     */
-    public function getCrestServerStatus(){
-        $endpoints = $this->getEndpoints();
-
-        // set default status e.g. Endpoints don´t work
-        $data = (object) [];
-        $data->crestOffline = true;
-        $data->serverName = 'EVE ONLINE';
-        $data->serviceStatus = [
-            'eve' => 'offline',
-            'server' => 'offline',
-        ];
-        $data->userCounts = [
-            'eve' => 0
-        ];
-
-        $endpoint = $this->walkEndpoint($endpoints, '', ['serverName']);
-        if( !empty($endpoint) ){
-            $data->crestOffline = false;
-            $data->serverName = (string) $endpoint;
-        }
-        $endpoint = $this->walkEndpoint($endpoints, '', ['serviceStatus']);
-        if( !empty($endpoint) ){
-            $data->crestOffline = false;
-            $data->serviceStatus = (string) $endpoint;
-        }
-        $endpoint = $this->walkEndpoint($endpoints, '', ['userCount_str']);
-        if( !empty($endpoint) ){
-            $data->crestOffline = false;
-            $data->userCounts = (string) $endpoint;
-        }
-        return $data;
-    }
-
-    /**
-     * check response "Header" data for errors
-     * @param $headers
-     * @param string $requestUrl
-     * @param string $contentType
-     */
-    protected function checkResponseHeaders($headers, $requestUrl = '', $contentType = ''){
-        $headers = (array)$headers;
-        if( preg_grep('/^X-Deprecated/i', $headers) ){
-            self::getCrestLogger()->write(sprintf(self::ERROR_RESOURCE_DEPRECATED, $requestUrl, $contentType));
-        }
     }
 
     /**
@@ -843,27 +566,9 @@ class Sso extends Api\User{
      */
     protected function getAuthorizationHeader(){
         return base64_encode(
-            Controller\Controller::getEnvironmentData('SSO_CCP_CLIENT_ID') . ':'
-            . Controller\Controller::getEnvironmentData('SSO_CCP_SECRET_KEY')
+            Controller\Controller::getEnvironmentData('CCP_SSO_CLIENT_ID') . ':'
+            . Controller\Controller::getEnvironmentData('CCP_SSO_SECRET_KEY')
         );
-    }
-
-    /**
-     * get CCP CREST url from configuration file
-     * -> throw error if url is broken/missing
-     * @return string
-     */
-    static function getCrestEndpoint(){
-        $url = '';
-        if( \Audit::instance()->url(self::getEnvironmentData('CCP_CREST_URL')) ){
-            $url = self::getEnvironmentData('CCP_CREST_URL');
-        }else{
-            $error = sprintf(self::ERROR_CCP_CREST_URL, __METHOD__);
-            self::getCrestLogger()->write($error);
-            \Base::instance()->error(502, $error);
-        }
-
-        return $url;
     }
 
     /**
@@ -873,11 +578,11 @@ class Sso extends Api\User{
      */
     static function getSsoUrlRoot(){
         $url = '';
-        if( \Audit::instance()->url(self::getEnvironmentData('SSO_CCP_URL')) ){
-            $url = self::getEnvironmentData('SSO_CCP_URL');
+        if( \Audit::instance()->url(self::getEnvironmentData('CCP_SSO_URL')) ){
+            $url = self::getEnvironmentData('CCP_SSO_URL');
         }else{
             $error = sprintf(self::ERROR_CCP_SSO_URL, __METHOD__);
-            self::getCrestLogger()->write($error);
+            self::getSSOLogger()->write($error);
             \Base::instance()->error(502, $error);
         }
 
@@ -897,10 +602,10 @@ class Sso extends Api\User{
     }
 
     /**
-     * get logger for CREST logging
+     * get logger for SSO logging
      * @return \Log
      */
-    static function getCrestLogger(){
-        return parent::getLogger('CREST');
+    static function getSSOLogger(){
+        return parent::getLogger('SSO');
     }
 }

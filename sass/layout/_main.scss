@@ -216,6 +216,19 @@ select:active, select:hover {
   td{
     &.pf-table-action-cell{
       cursor: pointer;
+
+      // icon within <td> cell content that should be highlighted on hover
+      > .pf-table-action-icon-cell{
+        @extend .txt-color;
+        @extend .txt-color-gray;
+        @include transition( color 0.08s ease-out );
+      }
+
+      &:hover{
+        > .pf-table-action-icon-cell{
+          @extend .txt-color-orange;
+        }
+      }
     }
 
     &.pf-table-image-cell{

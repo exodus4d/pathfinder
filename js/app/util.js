@@ -53,6 +53,9 @@ define([
         // map module
         mapModuleId: 'pf-map-module',                                           // id for main map module
         mapTabBarId: 'pf-map-tabs',                                             // id for map tab bar
+        mapWrapperClass: 'pf-map-wrapper',                                      // wrapper div (scrollable)
+        mapClass: 'pf-map' ,                                                    // class for all maps
+
 
         // animation
         animationPulseSuccessClass: 'pf-animation-pulse-success',               // animation class
@@ -79,40 +82,41 @@ define([
      * displays a loading indicator on an element
      */
     $.fn.showLoadingAnimation = function(options){
-        let loadingElement = $(this);
+        return this.each(function(){
+            let loadingElement = $(this);
+            let iconSize = 'fa-lg';
 
-        let iconSize = 'fa-lg';
+            // disable all events
+            loadingElement.css('pointer-events', 'none');
 
-        // disable all events
-        loadingElement.css('pointer-events', 'none');
-
-        if(options){
-            if(options.icon){
-                if(options.icon.size){
-                    iconSize = options.icon.size;
+            if(options){
+                if(options.icon){
+                    if(options.icon.size){
+                        iconSize = options.icon.size;
+                    }
                 }
             }
-        }
 
-        let overlay = $('<div>', {
-            class: config.ajaxOverlayClass
-        }).append(
-            $('<div>', {
-                class: [config.ajaxOverlayWrapperClass].join(' ')
+            let overlay = $('<div>', {
+                class: config.ajaxOverlayClass
             }).append(
-                $('<i>', {
-                    class: ['fa', 'fa-fw', iconSize, 'fa-refresh', 'fa-spin'].join(' ')
-                })
-            )
-        );
+                $('<div>', {
+                    class: [config.ajaxOverlayWrapperClass].join(' ')
+                }).append(
+                    $('<i>', {
+                        class: ['fa', 'fa-fw', iconSize, 'fa-refresh', 'fa-spin'].join(' ')
+                    })
+                )
+            );
 
-        loadingElement.append(overlay);
+            loadingElement.append(overlay);
 
-        // fade in
-        $(overlay).velocity({
-            opacity: 0.6
-        },{
-            duration: 120
+            // fade in
+            $(overlay).velocity({
+                opacity: 0.6
+            },{
+                duration: 120
+            });
         });
     };
 
@@ -120,16 +124,20 @@ define([
      * removes a loading indicator
      */
     $.fn.hideLoadingAnimation = function(){
-        let loadingElement = $(this);
-        let overlay = loadingElement.find('.' + config.ajaxOverlayClass );
+        return this.each(function(){
+            let loadingElement = $(this);
+            let overlay = loadingElement.find('.' + config.ajaxOverlayClass );
 
-        // important: "stop" is required to stop "show" animation
-        // -> otherwise "complete" callback is not fired!
-        $(overlay).velocity('stop').velocity('reverse', {
-            complete: function(){
-                $(this).remove();
-                // enable all events
-                loadingElement.css('pointer-events', 'auto');
+            if(overlay.length){
+                // important: "stop" is required to stop "show" animation
+                // -> otherwise "complete" callback is not fired!
+                overlay.velocity('stop').velocity('reverse', {
+                    complete: function(){
+                        $(this).remove();
+                        // enable all events
+                        loadingElement.css('pointer-events', 'auto');
+                    }
+                });
             }
         });
     };
@@ -1266,6 +1274,15 @@ define([
     };
 
     /**
+     * get mapElement from overlay or any child of that
+     * @param mapOverlay
+     * @returns {jQuery}
+     */
+    let getMapElementFromOverlay = (mapOverlay) => {
+        return $(mapOverlay).parents('.' + config.mapWrapperClass).find('.' + config.mapClass);
+    };
+
+    /**
      * get the map module object or create a new module
      * @returns {*|HTMLElement}
      */
@@ -1798,6 +1815,132 @@ define([
     };
 
     /**
+     * get "nearBy" systemData based on a jump radius around a currentSystem
+     * @param currentSystemData
+     * @param currentMapData
+     * @param jumps
+     * @param foundSystemIds
+     * @returns {{systemData: *, tree: {}}}
+     */
+    let getNearBySystemData = (currentSystemData, currentMapData, jumps, foundSystemIds = {}) => {
+
+        // look for systemData by ID
+        let getSystemData = (systemId) => {
+            for(let j = 0; j < currentMapData.data.systems.length; j++){
+                let systemData = currentMapData.data.systems[j];
+                if(systemData.id === systemId){
+                    return systemData;
+                }
+            }
+            return false;
+        };
+
+        // skip systems that are already found in recursive calls
+        foundSystemIds[currentSystemData.id] = {distance: jumps};
+
+        let nearBySystems = {
+            systemData: currentSystemData,
+            tree: {}
+        };
+
+        jumps--;
+        if(jumps >= 0){
+            for(let i = 0; i < currentMapData.data.connections.length; i++){
+                let connectionData = currentMapData.data.connections[i];
+                let type = ''; // "source" OR "target"
+                if(connectionData.source === currentSystemData.id){
+                    type = 'target';
+                }else if(connectionData.target === currentSystemData.id){
+                    type = 'source';
+                }
+
+                if(
+                    type &&
+                    (
+                        foundSystemIds[connectionData[type]] === undefined ||
+                        foundSystemIds[connectionData[type]].distance < jumps
+                    )
+                ){
+                    let newSystemData = getSystemData(connectionData[type]);
+                    if(newSystemData){
+                        nearBySystems.tree[connectionData[type]] = getNearBySystemData(newSystemData, currentMapData, jumps, foundSystemIds);
+                    }
+                }
+            }
+        }
+        return nearBySystems;
+    };
+
+    /**
+     * get current character data from all characters who are "nearby" the current user
+     * -> see getNearBySystemData()
+     * @param nearBySystems
+     * @param userData
+     * @param jumps
+     * @param data
+     * @returns {{}}
+     */
+    let getNearByCharacterData = (nearBySystems, userData, jumps = 0, data = {}) => {
+
+        let getCharacterDataBySystemId = (systemId) => {
+            for(let i = 0; i < userData.length; i++){
+                if(userData[i].id === systemId){
+                    return userData[i].user;
+                }
+            }
+            return [];
+        };
+
+        let filterFinalCharData = function(tmpFinalCharData){
+            return this.id !== tmpFinalCharData.id;
+        };
+
+        let characterData = getCharacterDataBySystemId(nearBySystems.systemData.systemId);
+
+        if(characterData.length){
+            // filter (remove) characterData for "already" added chars
+            characterData = characterData.filter(function(tmpCharacterData, index, allData){
+                let keepData = true;
+
+                for(let tmpJump in data) {
+                    // just scan systems with > jumps than current system
+                    if(tmpJump > jumps){
+                        let filteredFinalData = data[tmpJump].filter(filterFinalCharData, tmpCharacterData);
+
+                        if(filteredFinalData.length > 0){
+                            data[tmpJump] = filteredFinalData;
+                        }else{
+                            delete data[tmpJump];
+                        }
+                    }else{
+                        for(let k = 0; k < data[tmpJump].length; k++){
+                            if(data[tmpJump][k].id === tmpCharacterData.id){
+                                keepData = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                return keepData;
+            });
+
+            data[jumps] = data[jumps] ? data[jumps] : [];
+            data[jumps] = [...data[jumps], ...characterData];
+        }
+
+        jumps++;
+        for(let prop in nearBySystems.tree) {
+            if( nearBySystems.tree.hasOwnProperty(prop) ){
+                let tmpSystemData = nearBySystems.tree[prop];
+                data = getNearByCharacterData(tmpSystemData, userData, jumps, data);
+            }
+        }
+
+        return data;
+    };
+
+    /**
      * set new destination for a system
      * -> CREST request
      * @param systemData
@@ -1892,6 +2035,34 @@ define([
      */
     let getOpenDialogs = function(){
         return $('.' + config.dialogClass).filter(':visible');
+    };
+
+    /**
+     * send Ajax request that remote opens an ingame Window
+     * @param targetId
+     */
+    let openIngameWindow = (targetId) => {
+        targetId = parseInt(targetId);
+
+        if(targetId > 0){
+            $.ajax({
+                type: 'POST',
+                url: Init.path.openIngameWindow,
+                data: {
+                    targetId: targetId
+                },
+                dataType: 'json'
+            }).done(function(data){
+                if(data.error.length > 0){
+                    showNotify({title: 'Open window in client', text: 'Remote window open failed', type: 'error'});
+                }else{
+                    showNotify({title: 'Open window in client', text: 'Check your EVE client', type: 'success'});
+                }
+            }).fail(function( jqXHR, status, error) {
+                let reason = status + ' ' + error;
+                showNotify({title: jqXHR.status + ': openWindow', text: reason, type: 'error'});
+            });
+        }
     };
 
     /**
@@ -2031,6 +2202,7 @@ define([
         setSyncStatus: setSyncStatus,
         getSyncType: getSyncType,
         isXHRAborted: isXHRAborted,
+        getMapElementFromOverlay: getMapElementFromOverlay,
         getMapModule: getMapModule,
         getSystemEffectData: getSystemEffectData,
         getSystemEffectTable: getSystemEffectTable,
@@ -2058,9 +2230,12 @@ define([
         getCurrentUserInfo: getCurrentUserInfo,
         getCurrentCharacterLog: getCurrentCharacterLog,
         flattenXEditableSelectArray: flattenXEditableSelectArray,
+        getNearBySystemData: getNearBySystemData,
+        getNearByCharacterData: getNearByCharacterData,
         setDestination: setDestination,
         convertDateToString: convertDateToString,
         getOpenDialogs: getOpenDialogs,
+        openIngameWindow: openIngameWindow,
         formatPrice: formatPrice,
         getLocalStorage: getLocalStorage,
         getDocumentPath: getDocumentPath,

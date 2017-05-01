@@ -332,6 +332,10 @@ class ConnectionModel extends BasicModel{
         return $signatures;
     }
 
+    /**
+     * get all signature data linked to this connection
+     * @return array
+     */
     public function getSignaturesData(){
         $signaturesData = [];
         $signatures = $this->getSignatures();

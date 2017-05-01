@@ -17,6 +17,12 @@ class Config extends \Prefab {
     const HIVE_KEY_ENVIRONMENT                      = 'ENVIRONMENT';
 
     /**
+     * environment config keys that should be parsed as array
+     * -> use "," as delimiter in config files/data
+     */
+    const ARRAY_KEYS                                = ['CCP_ESI_SCOPES'];
+
+    /**
      * all environment data
      * @var array
      */
@@ -79,6 +85,12 @@ class Config extends \Prefab {
         if( !empty($this->serverConfigData['ENV']) ){
             // get environment config from $_SERVER data
             $environmentData = (array)$this->serverConfigData['ENV'];
+
+            // some environment variables should be parsed as array
+            array_walk($environmentData, function(&$item, $key){
+                $item = (in_array($key, self::ARRAY_KEYS)) ? explode(',', $item) : $item;
+            });
+
             $environmentData['TYPE'] = 'PHP: environment variables';
         }else{
             // get environment data from *.ini file config

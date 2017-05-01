@@ -16,6 +16,7 @@ define(['jquery'], function($) {
             logIn: 'api/user/logIn',                                        // ajax URL - login
             logout: 'api/user/logout',                                      // ajax URL - logout
             deleteLog: 'api/user/deleteLog',                                // ajax URL - delete character log
+            openIngameWindow: 'api/user/openIngameWindow',                  // ajax URL - open inGame Window
             saveUserConfig: 'api/user/saveAccount',                         // ajax URL - saves/update user account
             deleteAccount: 'api/user/deleteAccount',                        // ajax URL - delete Account data
             // access API
@@ -65,6 +66,7 @@ define(['jquery'], function($) {
             splashOverlay: 300,                                             // "splash" loading overlay
             headerLink: 100,                                                // links in head bar
             mapOverlay: 200,                                                // show/hide duration for map overlays
+            mapOverlayLocal: 180,                                           // show/hide duration for map "local" overlay
             mapMoveSystem: 180,                                             // system position has changed animation
             mapDeleteSystem: 200,                                           // remove system from map
             mapModule: 200,                                                 // show/hide of an map module

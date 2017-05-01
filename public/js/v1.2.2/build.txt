@@ -61,13 +61,13 @@ app/util.js
 lib/mustache.min.js
 app/render.js
 app/logging.js
+app/map/util.js
 lib/requirejs/text.js
 text!img/logo.svg!strip
 text!templates/modules/header.html
 text!templates/modules/footer.html
 app/ui/dialog/notification.js
 app/ui/dialog/stats.js
-app/map/util.js
 app/ui/dialog/map_info.js
 app/ui/dialog/account_settings.js
 app/ui/dialog/manual.js
@@ -90,6 +90,7 @@ lib/jquery.dragToSelect.js
 lib/select2.min.js
 app/map/contextmenu.js
 app/map/overlay.js
+app/map/local.js
 app/map/map.js
 app/counter.js
 app/ui/system_info.js

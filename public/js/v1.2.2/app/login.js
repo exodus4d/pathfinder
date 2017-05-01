@@ -21,6 +21,7 @@ define('app/init',['jquery'], function($) {
             logIn: 'api/user/logIn',                                        // ajax URL - login
             logout: 'api/user/logout',                                      // ajax URL - logout
             deleteLog: 'api/user/deleteLog',                                // ajax URL - delete character log
+            openIngameWindow: 'api/user/openIngameWindow',                  // ajax URL - open inGame Window
             saveUserConfig: 'api/user/saveAccount',                         // ajax URL - saves/update user account
             deleteAccount: 'api/user/deleteAccount',                        // ajax URL - delete Account data
             // access API
@@ -70,6 +71,7 @@ define('app/init',['jquery'], function($) {
             splashOverlay: 300,                                             // "splash" loading overlay
             headerLink: 100,                                                // links in head bar
             mapOverlay: 200,                                                // show/hide duration for map overlays
+            mapOverlayLocal: 180,                                           // show/hide duration for map "local" overlay
             mapMoveSystem: 180,                                             // system position has changed animation
             mapDeleteSystem: 200,                                           // remove system from map
             mapModule: 200,                                                 // show/hide of an map module
@@ -1688,255 +1690,270 @@ define("xEditable", ["bootstrap"], function(){});
 (function($){$.fn.hoverIntent=function(handlerIn,handlerOut,selector){var cfg={interval:100,sensitivity:6,timeout:0};if(typeof handlerIn==="object"){cfg=$.extend(cfg,handlerIn)}else{if($.isFunction(handlerOut)){cfg=$.extend(cfg,{over:handlerIn,out:handlerOut,selector:selector})}else{cfg=$.extend(cfg,{over:handlerIn,out:handlerIn,selector:handlerOut})}}var cX,cY,pX,pY;var track=function(ev){cX=ev.pageX;cY=ev.pageY};var compare=function(ev,ob){ob.hoverIntent_t=clearTimeout(ob.hoverIntent_t);if(Math.sqrt((pX-cX)*(pX-cX)+(pY-cY)*(pY-cY))<cfg.sensitivity){$(ob).off("mousemove.hoverIntent",track);ob.hoverIntent_s=true;return cfg.over.apply(ob,[ev])}else{pX=cX;pY=cY;ob.hoverIntent_t=setTimeout(function(){compare(ev,ob)},cfg.interval)}};var delay=function(ev,ob){ob.hoverIntent_t=clearTimeout(ob.hoverIntent_t);ob.hoverIntent_s=false;return cfg.out.apply(ob,[ev])};var handleHover=function(e){var ev=$.extend({},e);var ob=this;if(ob.hoverIntent_t){ob.hoverIntent_t=clearTimeout(ob.hoverIntent_t)}if(e.type==="mouseenter"){pX=ev.pageX;pY=ev.pageY;$(ob).on("mousemove.hoverIntent",track);if(!ob.hoverIntent_s){ob.hoverIntent_t=setTimeout(function(){compare(ev,ob)},cfg.interval)}}else{$(ob).off("mousemove.hoverIntent",track);if(ob.hoverIntent_s){ob.hoverIntent_t=setTimeout(function(){delay(ev,ob)},cfg.timeout)}}};return this.on({"mouseenter.hoverIntent":handleHover,"mouseleave.hoverIntent":handleHover},cfg.selector)}})(jQuery);
 define("hoverIntent", ["jquery"], function(){});
 
+/*!
+ * Bootstrap Confirmation v1.0.5
+ * https://github.com/tavicu/bs-confirmation
+ */
 +function ($) {
-	'use strict';
+    'use strict';
 
-	//var for check event at body can have only one.
-	var event_body = false;
+    //var for check event at body can have only one.
+    var event_body = false;
 
-	// CONFIRMATION PUBLIC CLASS DEFINITION
-	// ===============================
-	var Confirmation = function (element, options) {
-		var that = this;
+    // CONFIRMATION PUBLIC CLASS DEFINITION
+    // ===============================
+    var Confirmation = function (element, options) {
+        var that = this;
 
-		this.init('confirmation', element, options);
+        this.init('confirmation', element, options);
 
+        $(element).on('show.bs.confirmation', function(e) {
+            that.options.onShow(e, this);
 
-		$(element).on('show.bs.confirmation', function(e) {
-			that.options.onShow(e, this);
+            $(this).addClass('open');
 
-			$(this).addClass('open');
+            var options = that.options;
+            var all = options.all_selector;
 
-			var options = that.options;
-			var all = options.all_selector;
+            if(options.singleton)
+            {
+                $(all).not(that.$element).each(function()
+                {
+                    if( $(this).hasClass('open') )
+                    {
+                        $(this).confirmation('hide');
+                    }
+                });
+            }
+        });
 
-			if(options.singleton)
-			{
-				$(all).not(that.$element).each(function()
-				{
-					if( $(this).hasClass('open') )
-					{
-						$(this).confirmation('hide');
-					}
-				});
-			}
-		});
+        $(element).on('hide.bs.confirmation', function(e) {
+            that.options.onHide(e, this);
 
-		$(element).on('hide.bs.confirmation', function(e) {
-			that.options.onHide(e, this);
+            $(this).removeClass('open');
+        });
 
-			$(this).removeClass('open');
-		});
+        $(element).on('shown.bs.confirmation', function(e) {
+            var options = that.options;
+            var all = options.all_selector;
 
-		$(element).on('shown.bs.confirmation', function(e) {
-			var options = that.options;
-			var all = options.all_selector;
+            if(that.isPopout()) {
+                if(!event_body) {
+                    event_body = $('body').on('click', function (e) {
+                        if(that.$element.is(e.target)) return;
+                        if(that.$element.has(e.target).length) return;
+                        if($('.popover').has(e.target).length) return;
 
-			that.$element.on('click.dismiss.bs.confirmation', '[data-dismiss="confirmation"]', $.proxy(that.hide, that));
+                        that.hide();
+                        that.inState.click = false;
 
-			if(that.isPopout()) {
-				if(!event_body) {
-					event_body = $('body').on('click', function (e) {
-						if(that.$element.is(e.target)) return;
-						if(that.$element.has(e.target).length) return;
-						if($('.popover').has(e.target).length) return;
+                        $('body').unbind(e);
 
-						that.$element.confirmation('hide');
+                        event_body = false;
 
-						$('body').unbind(e);
+                        return;
+                    });
+                }
+            }
+        });
 
-						event_body = false;
+        if(options.selector) {
+            $(element).on('click.bs.confirmation', options.selector, function(e) {
+                e.preventDefault();
+            });
+        } else {
+            $(element).on('click.bs.confirmation', function(e) {
+                e.preventDefault();
+            });
+        }
+    }
 
-						return;
-					});
-				}
-			}
-		});
+    if (!$.fn.popover || !$.fn.tooltip) throw new Error('Confirmation requires popover.js and tooltip.js');
 
-		$(element).on('click', function(e) {
-			e.preventDefault();
-		});
-	}
+    Confirmation.VERSION  = '1.0.5'
 
-	if (!$.fn.popover || !$.fn.tooltip) throw new Error('Confirmation requires popover.js and tooltip.js');
-
-	Confirmation.DEFAULTS = $.extend({}, $.fn.popover.Constructor.DEFAULTS, {
-		placement 		: 'right',
-		title 			: 'Are you sure?',
-		btnOkClass 		: 'btn btn-sm btn-danger',
-		btnOkLabel 		: 'Delete',
-		btnOkIcon 		: 'glyphicon glyphicon-ok',
-		btnCancelClass 	: 'btn btn-sm btn-default',
-		btnCancelLabel 	: 'Cancel',
-		btnCancelIcon 	: 'glyphicon glyphicon-remove',
-		href 			: '#',
-		target 			: '_self',
-		singleton 		: true,
-		popout 			: true,
-		onShow 			: function(event, element){},
-		onHide 			: function(event, element){},
-		onConfirm 		: function(event, element){},
-		onCancel 		: function(event, element){},
-		template 		:   '<div class="popover"><div class="arrow"></div>'
-							+ '<h3 class="popover-title"></h3>'
-							+ '<div class="popover-content">'
-                            + '<div class="btn-group">'
-                            + '<a data-dismiss="confirmation">No</a>'
-							+ '<a data-apply="confirmation">Yes</a>'
-                            + '</div>'
-							+ '</div>'
-							+ '</div>'
-	});
-
-
-	// NOTE: CONFIRMATION EXTENDS popover.js
-	// ================================
-	Confirmation.prototype = $.extend({}, $.fn.popover.Constructor.prototype);
-
-	Confirmation.prototype.constructor = Confirmation;
-
-	Confirmation.prototype.getDefaults = function () {
-		return Confirmation.DEFAULTS;
-	}
-
-	Confirmation.prototype.setContent = function () {
-		var that = this;
-		var $tip    = this.tip();
-		var title   = this.getTitle();
-		var $btnOk	    = $tip.find('[data-apply="confirmation"]');
-		var $btnCancel  = $tip.find('[data-dismiss="confirmation"]');
-		var options	    = this.options
-
-		$btnOk.addClass(this.getBtnOkClass())
-			.html(this.getBtnOkLabel())
-			.prepend($('<i></i>').addClass(this.getBtnOkIcon()), " ")
-			.attr('href', this.getHref())
-			.attr('target', this.getTarget())
-			.off('click').on('click', function(event) {
-                that.$element.confirmation('hide');
-
-				options.onConfirm(event, that.$element);
-			});
-
-		$btnCancel.addClass(this.getBtnCancelClass())
-			.html(this.getBtnCancelLabel())
-			.prepend($('<i></i>').addClass(this.getBtnCancelIcon()), " ")
-			.off('click').on('click', function(event){
-				options.onCancel(event, that.$element);
-
-				that.$element.confirmation('hide');
-			});
-
-		$tip.find('.popover-title')[this.options.html ? 'html' : 'text'](title);
-
-		$tip.removeClass('fade top bottom left right in');
-
-		// IE8 doesn't accept hiding via the `:empty` pseudo selector, we have to do
-		// this manually by checking the contents.
-		if (!$tip.find('.popover-title').html()) $tip.find('.popover-title').hide();
-	}
-
-	Confirmation.prototype.getBtnOkClass = function () {
-		var $e = this.$element;
-		var o  = this.options;
-
-		return $e.attr('data-btnOkClass') || (typeof o.btnOkClass == 'function' ? o.btnOkClass.call($e[0]) : o.btnOkClass);
-	}
-
-	Confirmation.prototype.getBtnOkLabel = function () {
-		var $e = this.$element;
-		var o  = this.options;
-
-		return $e.attr('data-btnOkLabel') || (typeof o.btnOkLabel == 'function' ? o.btnOkLabel.call($e[0]) : o.btnOkLabel);
-	}
-
-	Confirmation.prototype.getBtnOkIcon = function () {
-		var $e = this.$element;
-		var o  = this.options;
-
-		return $e.attr('data-btnOkIcon') || (typeof o.btnOkIcon == 'function' ?  o.btnOkIcon.call($e[0]) : o.btnOkIcon);
-	}
-
-	Confirmation.prototype.getBtnCancelClass = function () {
-		var $e = this.$element;
-		var o  = this.options;
-
-		return $e.attr('data-btnCancelClass') || (typeof o.btnCancelClass == 'function' ? o.btnCancelClass.call($e[0]) : o.btnCancelClass);
-	}
-
-	Confirmation.prototype.getBtnCancelLabel = function () {
-		var $e = this.$element;
-		var o  = this.options;
-
-		return $e.attr('data-btnCancelLabel') || (typeof o.btnCancelLabel == 'function' ? o.btnCancelLabel.call($e[0]) : o.btnCancelLabel);
-	}
-
-	Confirmation.prototype.getBtnCancelIcon = function () {
-		var $e = this.$element;
-		var o  = this.options;
-
-		return $e.attr('data-btnCancelIcon') || (typeof o.btnCancelIcon == 'function' ? o.btnCancelIcon.call($e[0]) : o.btnCancelIcon);
-	}
-
-	Confirmation.prototype.getHref = function () {
-		var $e = this.$element;
-		var o  = this.options;
-
-		return $e.attr('data-href') || (typeof o.href == 'function' ? o.href.call($e[0]) : o.href);
-	}
-
-	Confirmation.prototype.getTarget = function () {
-		var $e = this.$element;
-		var o  = this.options;
-
-		return $e.attr('data-target') || (typeof o.target == 'function' ? o.target.call($e[0]) : o.target);
-	}
-
-	Confirmation.prototype.isPopout = function () {
-		var popout;
-		var $e = this.$element;
-		var o = this.options;
-
-		popout = $e.attr('data-popout') || (typeof o.popout == 'function' ? o.popout.call($e[0]) :	o.popout);
-
-		if(popout == 'false') popout = false;
-
-		return popout
-	}
+    Confirmation.DEFAULTS = $.extend({}, $.fn.popover.Constructor.DEFAULTS, {
+        placement 		: 'right',
+        title 			: 'Are you sure?',
+        btnOkClass 		: 'btn btn-sm btn-danger',
+        btnOkLabel 		: 'Delete',
+        btnOkIcon 		: 'glyphicon glyphicon-ok',
+        btnCancelClass 	: 'btn btn-sm btn-default',
+        btnCancelLabel 	: 'Cancel',
+        btnCancelIcon 	: 'glyphicon glyphicon-remove',
+        href 			: '#',
+        target 			: '_self',
+        singleton 		: true,
+        popout 			: true,
+        onShow 			: function(event, element){},
+        onHide 			: function(event, element){},
+        onConfirm 		: function(event, element){},
+        onCancel 		: function(event, element){},
+        template 		:   '<div class="popover"><div class="arrow"></div>'
+        + '<h3 class="popover-title"></h3>'
+        + '<div class="popover-content">'
+        + '<a data-apply="confirmation">Yes</a>'
+        + '<a data-dismiss="confirmation">No</a>'
+        + '</div>'
+        + '</div>'
+    });
 
 
-	// CONFIRMATION PLUGIN DEFINITION
-	// =========================
-	var old = $.fn.confirmation;
+    // NOTE: CONFIRMATION EXTENDS popover.js
+    // ================================
+    Confirmation.prototype = $.extend({}, $.fn.popover.Constructor.prototype);
 
-	$.fn.confirmation = function (option) {
-		var that = this;
+    Confirmation.prototype.constructor = Confirmation;
 
-		return this.each(function () {
-			var $this   = $(this);
-			var data    = $this.data('bs.confirmation');
-			var options = typeof option == 'object' && option;
+    Confirmation.prototype.getDefaults = function () {
+        return Confirmation.DEFAULTS;
+    }
 
-			options = options || {};
-			options.all_selector = that.selector;
+    Confirmation.prototype.setContent = function () {
+        var that       = this;
+        var $tip       = this.tip();
+        var title      = this.getTitle();
+        var $btnOk     = $tip.find('[data-apply="confirmation"]');
+        var $btnCancel = $tip.find('[data-dismiss="confirmation"]');
+        var options    = this.options
 
-			if (!data && option == 'destroy') return;
-			if (!data) $this.data('bs.confirmation', (data = new Confirmation(this, options)));
-			if (typeof option == 'string') data[option]();
-		});
-	}
+        $btnOk.addClass(this.getBtnOkClass())
+            .html(this.getBtnOkLabel())
+            .prepend($('<i></i>').addClass(this.getBtnOkIcon()), " ")
+            .attr('href', this.getHref())
+            .attr('target', this.getTarget())
+            .off('click').on('click', function(event) {
+            options.onConfirm(event, that.$element);
 
-	$.fn.confirmation.Constructor = Confirmation
+            // If the button is a submit one
+            if (that.$element.attr('type') == 'submit')
+                that.$element.closest('form:first').submit();
+
+            that.hide();
+            that.inState.click = false;
+        });
+
+        $btnCancel.addClass(this.getBtnCancelClass())
+            .html(this.getBtnCancelLabel())
+            .prepend($('<i></i>').addClass(this.getBtnCancelIcon()), " ")
+            .off('click').on('click', function(event){
+            options.onCancel(event, that.$element);
+
+            that.hide();
+            that.inState.click = false;
+        });
+
+        $tip.find('.popover-title')[this.options.html ? 'html' : 'text'](title);
+
+        $tip.removeClass('fade top bottom left right in');
+
+        // IE8 doesn't accept hiding via the `:empty` pseudo selector, we have to do
+        // this manually by checking the contents.
+        if (!$tip.find('.popover-title').html()) $tip.find('.popover-title').hide();
+    }
+
+    Confirmation.prototype.getBtnOkClass = function () {
+        var $e = this.$element;
+        var o  = this.options;
+
+        return $e.attr('data-btnOkClass') || (typeof o.btnOkClass == 'function' ? o.btnOkClass.call(this, $e[0]) : o.btnOkClass);
+    }
+
+    Confirmation.prototype.getBtnOkLabel = function () {
+        var $e = this.$element;
+        var o  = this.options;
+
+        return $e.attr('data-btnOkLabel') || (typeof o.btnOkLabel == 'function' ? o.btnOkLabel.call(this, $e[0]) : o.btnOkLabel);
+    }
+
+    Confirmation.prototype.getBtnOkIcon = function () {
+        var $e = this.$element;
+        var o  = this.options;
+
+        return $e.attr('data-btnOkIcon') || (typeof o.btnOkIcon == 'function' ?  o.btnOkIcon.call(this, $e[0]) : o.btnOkIcon);
+    }
+
+    Confirmation.prototype.getBtnCancelClass = function () {
+        var $e = this.$element;
+        var o  = this.options;
+
+        return $e.attr('data-btnCancelClass') || (typeof o.btnCancelClass == 'function' ? o.btnCancelClass.call(this, $e[0]) : o.btnCancelClass);
+    }
+
+    Confirmation.prototype.getBtnCancelLabel = function () {
+        var $e = this.$element;
+        var o  = this.options;
+
+        return $e.attr('data-btnCancelLabel') || (typeof o.btnCancelLabel == 'function' ? o.btnCancelLabel.call(this, $e[0]) : o.btnCancelLabel);
+    }
+
+    Confirmation.prototype.getBtnCancelIcon = function () {
+        var $e = this.$element;
+        var o  = this.options;
+
+        return $e.attr('data-btnCancelIcon') || (typeof o.btnCancelIcon == 'function' ? o.btnCancelIcon.call(this, $e[0]) : o.btnCancelIcon);
+    }
+
+    Confirmation.prototype.getHref = function () {
+        var $e = this.$element;
+        var o  = this.options;
+
+        return $e.attr('data-href') || (typeof o.href == 'function' ? o.href.call(this, $e[0]) : o.href);
+    }
+
+    Confirmation.prototype.getTarget = function () {
+        var $e = this.$element;
+        var o  = this.options;
+
+        return $e.attr('data-target') || (typeof o.target == 'function' ? o.target.call(this, $e[0]) : o.target);
+    }
+
+    Confirmation.prototype.isPopout = function () {
+        var popout;
+        var $e = this.$element;
+        var o  = this.options;
+
+        popout = $e.attr('data-popout') || (typeof o.popout == 'function' ? o.popout.call(this, $e[0]) :	o.popout);
+
+        if(popout == 'false') popout = false;
+
+        return popout
+    }
 
 
-	// CONFIRMATION NO CONFLICT
-	// ===================
-	$.fn.confirmation.noConflict = function () {
-		$.fn.confirmation = old;
+    // CONFIRMATION PLUGIN DEFINITION
+    // =========================
+    var old = $.fn.confirmation;
 
-		return this;
-	}
+    $.fn.confirmation = function (option) {
+        var that = this;
+
+        return this.each(function () {
+            var $this            = $(this);
+            var data             = $this.data('bs.confirmation');
+            var options          = typeof option == 'object' && option;
+
+            options              = options || {};
+            options.all_selector = that.selector;
+
+            if (!data && option == 'destroy') return;
+            if (!data) $this.data('bs.confirmation', (data = new Confirmation(this, options)));
+            if (typeof option == 'string') data[option]();
+        });
+    }
+
+    $.fn.confirmation.Constructor = Confirmation
+
+
+    // CONFIRMATION NO CONFLICT
+    // ===================
+    $.fn.confirmation.noConflict = function () {
+        $.fn.confirmation = old;
+
+        return this;
+    }
 }(jQuery);
+
 define("bootstrapConfirmation", ["bootstrap"], function(){});
 
 /*! ========================================================================
@@ -2004,6 +2021,9 @@ define('app/util',[
         // map module
         mapModuleId: 'pf-map-module',                                           // id for main map module
         mapTabBarId: 'pf-map-tabs',                                             // id for map tab bar
+        mapWrapperClass: 'pf-map-wrapper',                                      // wrapper div (scrollable)
+        mapClass: 'pf-map' ,                                                    // class for all maps
+
 
         // animation
         animationPulseSuccessClass: 'pf-animation-pulse-success',               // animation class
@@ -2030,40 +2050,41 @@ define('app/util',[
      * displays a loading indicator on an element
      */
     $.fn.showLoadingAnimation = function(options){
-        let loadingElement = $(this);
+        return this.each(function(){
+            let loadingElement = $(this);
+            let iconSize = 'fa-lg';
 
-        let iconSize = 'fa-lg';
+            // disable all events
+            loadingElement.css('pointer-events', 'none');
 
-        // disable all events
-        loadingElement.css('pointer-events', 'none');
-
-        if(options){
-            if(options.icon){
-                if(options.icon.size){
-                    iconSize = options.icon.size;
+            if(options){
+                if(options.icon){
+                    if(options.icon.size){
+                        iconSize = options.icon.size;
+                    }
                 }
             }
-        }
 
-        let overlay = $('<div>', {
-            class: config.ajaxOverlayClass
-        }).append(
-            $('<div>', {
-                class: [config.ajaxOverlayWrapperClass].join(' ')
+            let overlay = $('<div>', {
+                class: config.ajaxOverlayClass
             }).append(
-                $('<i>', {
-                    class: ['fa', 'fa-fw', iconSize, 'fa-refresh', 'fa-spin'].join(' ')
-                })
-            )
-        );
+                $('<div>', {
+                    class: [config.ajaxOverlayWrapperClass].join(' ')
+                }).append(
+                    $('<i>', {
+                        class: ['fa', 'fa-fw', iconSize, 'fa-refresh', 'fa-spin'].join(' ')
+                    })
+                )
+            );
 
-        loadingElement.append(overlay);
+            loadingElement.append(overlay);
 
-        // fade in
-        $(overlay).velocity({
-            opacity: 0.6
-        },{
-            duration: 120
+            // fade in
+            $(overlay).velocity({
+                opacity: 0.6
+            },{
+                duration: 120
+            });
         });
     };
 
@@ -2071,16 +2092,20 @@ define('app/util',[
      * removes a loading indicator
      */
     $.fn.hideLoadingAnimation = function(){
-        let loadingElement = $(this);
-        let overlay = loadingElement.find('.' + config.ajaxOverlayClass );
+        return this.each(function(){
+            let loadingElement = $(this);
+            let overlay = loadingElement.find('.' + config.ajaxOverlayClass );
 
-        // important: "stop" is required to stop "show" animation
-        // -> otherwise "complete" callback is not fired!
-        $(overlay).velocity('stop').velocity('reverse', {
-            complete: function(){
-                $(this).remove();
-                // enable all events
-                loadingElement.css('pointer-events', 'auto');
+            if(overlay.length){
+                // important: "stop" is required to stop "show" animation
+                // -> otherwise "complete" callback is not fired!
+                overlay.velocity('stop').velocity('reverse', {
+                    complete: function(){
+                        $(this).remove();
+                        // enable all events
+                        loadingElement.css('pointer-events', 'auto');
+                    }
+                });
             }
         });
     };
@@ -3217,6 +3242,15 @@ define('app/util',[
     };
 
     /**
+     * get mapElement from overlay or any child of that
+     * @param mapOverlay
+     * @returns {jQuery}
+     */
+    let getMapElementFromOverlay = (mapOverlay) => {
+        return $(mapOverlay).parents('.' + config.mapWrapperClass).find('.' + config.mapClass);
+    };
+
+    /**
      * get the map module object or create a new module
      * @returns {*|HTMLElement}
      */
@@ -3749,6 +3783,132 @@ define('app/util',[
     };
 
     /**
+     * get "nearBy" systemData based on a jump radius around a currentSystem
+     * @param currentSystemData
+     * @param currentMapData
+     * @param jumps
+     * @param foundSystemIds
+     * @returns {{systemData: *, tree: {}}}
+     */
+    let getNearBySystemData = (currentSystemData, currentMapData, jumps, foundSystemIds = {}) => {
+
+        // look for systemData by ID
+        let getSystemData = (systemId) => {
+            for(let j = 0; j < currentMapData.data.systems.length; j++){
+                let systemData = currentMapData.data.systems[j];
+                if(systemData.id === systemId){
+                    return systemData;
+                }
+            }
+            return false;
+        };
+
+        // skip systems that are already found in recursive calls
+        foundSystemIds[currentSystemData.id] = {distance: jumps};
+
+        let nearBySystems = {
+            systemData: currentSystemData,
+            tree: {}
+        };
+
+        jumps--;
+        if(jumps >= 0){
+            for(let i = 0; i < currentMapData.data.connections.length; i++){
+                let connectionData = currentMapData.data.connections[i];
+                let type = ''; // "source" OR "target"
+                if(connectionData.source === currentSystemData.id){
+                    type = 'target';
+                }else if(connectionData.target === currentSystemData.id){
+                    type = 'source';
+                }
+
+                if(
+                    type &&
+                    (
+                        foundSystemIds[connectionData[type]] === undefined ||
+                        foundSystemIds[connectionData[type]].distance < jumps
+                    )
+                ){
+                    let newSystemData = getSystemData(connectionData[type]);
+                    if(newSystemData){
+                        nearBySystems.tree[connectionData[type]] = getNearBySystemData(newSystemData, currentMapData, jumps, foundSystemIds);
+                    }
+                }
+            }
+        }
+        return nearBySystems;
+    };
+
+    /**
+     * get current character data from all characters who are "nearby" the current user
+     * -> see getNearBySystemData()
+     * @param nearBySystems
+     * @param userData
+     * @param jumps
+     * @param data
+     * @returns {{}}
+     */
+    let getNearByCharacterData = (nearBySystems, userData, jumps = 0, data = {}) => {
+
+        let getCharacterDataBySystemId = (systemId) => {
+            for(let i = 0; i < userData.length; i++){
+                if(userData[i].id === systemId){
+                    return userData[i].user;
+                }
+            }
+            return [];
+        };
+
+        let filterFinalCharData = function(tmpFinalCharData){
+            return this.id !== tmpFinalCharData.id;
+        };
+
+        let characterData = getCharacterDataBySystemId(nearBySystems.systemData.systemId);
+
+        if(characterData.length){
+            // filter (remove) characterData for "already" added chars
+            characterData = characterData.filter(function(tmpCharacterData, index, allData){
+                let keepData = true;
+
+                for(let tmpJump in data) {
+                    // just scan systems with > jumps than current system
+                    if(tmpJump > jumps){
+                        let filteredFinalData = data[tmpJump].filter(filterFinalCharData, tmpCharacterData);
+
+                        if(filteredFinalData.length > 0){
+                            data[tmpJump] = filteredFinalData;
+                        }else{
+                            delete data[tmpJump];
+                        }
+                    }else{
+                        for(let k = 0; k < data[tmpJump].length; k++){
+                            if(data[tmpJump][k].id === tmpCharacterData.id){
+                                keepData = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                return keepData;
+            });
+
+            data[jumps] = data[jumps] ? data[jumps] : [];
+            data[jumps] = [...data[jumps], ...characterData];
+        }
+
+        jumps++;
+        for(let prop in nearBySystems.tree) {
+            if( nearBySystems.tree.hasOwnProperty(prop) ){
+                let tmpSystemData = nearBySystems.tree[prop];
+                data = getNearByCharacterData(tmpSystemData, userData, jumps, data);
+            }
+        }
+
+        return data;
+    };
+
+    /**
      * set new destination for a system
      * -> CREST request
      * @param systemData
@@ -3843,6 +4003,34 @@ define('app/util',[
      */
     let getOpenDialogs = function(){
         return $('.' + config.dialogClass).filter(':visible');
+    };
+
+    /**
+     * send Ajax request that remote opens an ingame Window
+     * @param targetId
+     */
+    let openIngameWindow = (targetId) => {
+        targetId = parseInt(targetId);
+
+        if(targetId > 0){
+            $.ajax({
+                type: 'POST',
+                url: Init.path.openIngameWindow,
+                data: {
+                    targetId: targetId
+                },
+                dataType: 'json'
+            }).done(function(data){
+                if(data.error.length > 0){
+                    showNotify({title: 'Open window in client', text: 'Remote window open failed', type: 'error'});
+                }else{
+                    showNotify({title: 'Open window in client', text: 'Check your EVE client', type: 'success'});
+                }
+            }).fail(function( jqXHR, status, error) {
+                let reason = status + ' ' + error;
+                showNotify({title: jqXHR.status + ': openWindow', text: reason, type: 'error'});
+            });
+        }
     };
 
     /**
@@ -3982,6 +4170,7 @@ define('app/util',[
         setSyncStatus: setSyncStatus,
         getSyncType: getSyncType,
         isXHRAborted: isXHRAborted,
+        getMapElementFromOverlay: getMapElementFromOverlay,
         getMapModule: getMapModule,
         getSystemEffectData: getSystemEffectData,
         getSystemEffectTable: getSystemEffectTable,
@@ -4009,9 +4198,12 @@ define('app/util',[
         getCurrentUserInfo: getCurrentUserInfo,
         getCurrentCharacterLog: getCurrentCharacterLog,
         flattenXEditableSelectArray: flattenXEditableSelectArray,
+        getNearBySystemData: getNearBySystemData,
+        getNearByCharacterData: getNearByCharacterData,
         setDestination: setDestination,
         convertDateToString: convertDateToString,
         getOpenDialogs: getOpenDialogs,
+        openIngameWindow: openIngameWindow,
         formatPrice: formatPrice,
         getLocalStorage: getLocalStorage,
         getDocumentPath: getDocumentPath,
@@ -7066,6 +7258,9 @@ define('login',[
         // cookie hint
         cookieHintId: 'pf-cookie-hint',                                         // id for "cookie hint" element
 
+        // login
+        ssoButtonClass: 'pf-sso-login-button',                                  // class for SSO login button
+
         // character select
         characterSelectionClass: 'pf-character-selection',                      // class for character panel wrapper
         characterRowAnimateClass: 'pf-character-row-animate',                   // class for character panel row during animation
@@ -7086,7 +7281,9 @@ define('login',[
         serverPanelId: 'pf-server-panel',                                       // id for EVE Online server status panel
 
         // animation
-        animateElementClass: 'pf-animate-on-visible'                            // class for elements that will be animated to show
+        animateElementClass: 'pf-animate-on-visible',                           // class for elements that will be animated to show
+
+        defaultAcceptCookieExpire: 365                                          // default expire for "accept coolies" cookie
     };
 
     /**
@@ -7143,10 +7340,39 @@ define('login',[
         if(getCookie('cookie') !== '1'){
             // hint not excepted
             $('#' + config.cookieHintId).collapse('show');
+
+            // show Cookie accept hint on SSO login button
+            let confirmationSettings = {
+                container: 'body',
+                placement: 'bottom',
+                btnOkClass: 'btn btn-sm btn-default',
+                btnOkLabel: 'dismiss',
+                btnOkIcon: 'fa fa-fw fa-sign-in',
+                title: 'Accept cookies',
+                btnCancelClass: 'btn btn-sm btn-success',
+                btnCancelLabel: 'accept',
+                btnCancelIcon: 'fa fa-fw fa-check',
+                onCancel: function(e, target){
+                    // "Accept cookies"
+                    setCookie('cookie', 1, config.defaultAcceptCookieExpire);
+
+                    // set "default" href
+                    let href = $(target).data('bs.confirmation').getHref();
+                    $(e.target).attr('href', href);
+                },
+                onConfirm : function(e, target){
+                    // "NO cookies" => trigger "default" href link action
+                },
+                href: function(target){
+                    return $(target).attr('href');
+                }
+            };
+
+            $('.' + config.ssoButtonClass).confirmation(confirmationSettings);
         }
 
         $('#' + config.cookieHintId + ' .btn-success').on('click', function(){
-           setCookie('cookie', 1, 365);
+           setCookie('cookie', 1, config.defaultAcceptCookieExpire);
         });
 
         // manual -------------------------------------------------------------

@@ -867,30 +867,23 @@ input[type="email"]{
 	overflow: hidden;
 	height: 18px;
 	background: $gray-lighter;
-	box-shadow: 0 1px 0 transparent, 0 0 0 1px lighten( $gray-light, 29%) inset;
-	-webkit-box-shadow: 0 1px 0 transparent, 0 0 0 1px lighten( $gray-light, 29%) inset;
-	-moz-box-shadow: 0 1px 0 transparent, 0 0 0 1px lighten( $gray-light, 29%) inset;
-
-	border-radius:$progressbar-radius;
-	-moz-border-radius:$progressbar-radius;
-	-webkit-border-radius:$progressbar-radius;
+	@include box-shadow( 0 1px 0 transparent, 0 0 0 1px lighten( $gray-light, 29%) inset);
+	@include border-radius($progressbar-radius);
 }
 
 .progress-bar {
-  float: left;
-  width: 0;
-  height: 100%;
-  font-size: 11px;
-  color: $white;
-  text-align: center;
-  background-color: $blue;
-  -webkit-box-shadow: inset 0 -1px 0 rgba(red($black), green($black), blue($black), 0.15);
-          box-shadow: inset 0 -1px 0 rgba(red($black), green($black), blue($black), 0.15);
-  font-weight:bold;
-  text-shadow: 0 -1px 0 rgba(red($black), green($black), blue($black), 0.25);
-  //background-image:url("#{$base-url}/overlay-pattern.png");
-  -webkit-transition: width 1.5s ease-in-out;
-  transition: width 1.5s ease-in-out;
+	float: left;
+	width: 0;
+	height: 100%;
+	font-size: 11px;
+	color: $white;
+	text-align: center;
+	background-color: $blue;
+	font-weight: bold;
+	text-shadow: 0 -1px 0 rgba(red($black), green($black), blue($black), 0.25);
+	//background-image:url("#{$base-url}/overlay-pattern.png");
+	@include box-shadow( inset 0 -1px 0 rgba(red($black), green($black), blue($black), 0.15));
+	@include transition(width 1s ease-in-out) ;
 }
 
 .progress-striped .progress-bar {

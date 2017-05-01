@@ -64,8 +64,8 @@ define([
     // disable "copy&paste" from clipboard (until  request finished)
     let disableCopyFromClipboard = false;
 
-    // cache for dataTable object
-    let signatureTable = null;
+    // cache for dataTable object6
+    let dataTableInstances = {};
 
     // empty signatureData object -> for "add row" table
     let emptySignatureData = {
@@ -107,15 +107,116 @@ define([
     let signatureGroupsNames    = Util.getSignatureGroupInfo('name');
 
     /**
+     * check whether a dataTable API instance exists in the global cache
+     * args: 1. mapId, 2. systemId, 3, tableType (primary/secondary) string
+     * @param args
+     * @returns {boolean}
+     */
+    let checkDataTableInstance = (...args) => {
+        let obj = dataTableInstances;
+        for(let arg of args){
+            if ( !obj || !obj.hasOwnProperty(arg) ){
+                return false;
+            }
+            obj = obj[arg];
+        }
+        return true;
+    };
+
+    /**
+     * stores a dataTableApi instance to global cache ( overwrites existing)
+     * @param mapId
+     * @param systemId
+     * @param tableType
+     * @param instance
+     */
+    let setDataTableInstance = (mapId, systemId, tableType, instance) => {
+        let tmpObj = {
+            [mapId]: {
+                [systemId]: {
+                    [tableType]: instance
+                }
+            }
+        };
+
+        $.extend(true, dataTableInstances, tmpObj);
+    };
+
+    /**
+     * get a dataTableApi instance from global cache
+     * @param mapId
+     * @param systemId
+     * @param tableType
+     * @returns {*}
+     */
+    let getDataTableInstance = (mapId, systemId, tableType) => {
+        let instance = null;
+        if( checkDataTableInstance(mapId, systemId, tableType) ){
+            instance = dataTableInstances[mapId][systemId][tableType];
+        }
+        return instance;
+    };
+
+    /**
+     * get dataTable instance from "moduleElement" (DOM node)
+     * @param moduleElement
+     * @param tableType
+     * @returns {*}
+     */
+    let getDataTableInstanceByModuleElement = (moduleElement, tableType) => {
+        return getDataTableInstance(moduleElement.data('mapId'), moduleElement.data('systemId'), tableType);
+    };
+
+    /**
+     * delete a dataTableApi instance from global cache
+     * -> see checkDataTableInstance() for parameter order
+     * @param args
+     */
+    let deleteDataTableInstance = (...args) => {
+        // check if instance exists
+        if( checkDataTableInstance.apply(null, args) ){
+
+            // callback for "leaf" delete callback
+            let deleteCallback = (dataTableApi) => {
+                dataTableApi.destroy();
+            };
+
+            // recursive delete from dataTableInstances Object cache
+            let deepDelete = (target, obj, callback) => {
+                if(target.length > 1){
+                    // remove first target param for next recursive call
+                    let currentTarget = target.shift();
+
+                    deepDelete(target, obj[currentTarget], callback);
+
+                    // delete "parent" key when current key became empty
+                    if( !Object.keys( obj[currentTarget] ).length ){
+                        delete obj[currentTarget];
+                    }
+                }else{
+                    // check for callback function
+                    if( typeof callback === 'function' ){
+                        callback(obj[target]);
+                    }
+
+                    delete obj[target];
+                }
+            };
+
+            deepDelete(args, dataTableInstances, deleteCallback);
+        }
+    };
+
+    /**
      * collect all data of all editable fields in a signature table
+     * @param tableApi
      * @returns {Array}
      */
-    let getSignatureTableData = function(){
-        let signatureTableApi = signatureTable.api();
+    let getTableData = function(tableApi){
         let tableData = [];
 
-        signatureTableApi.rows().eq(0).each(function(idx){
-            let row = signatureTableApi.row(idx);
+        tableApi.rows().eq(0).each(function(idx){
+            let row = tableApi.row(idx);
             // default row data
             let defaultRowData = row.data();
             let rowElement = row.nodes().to$();
@@ -151,16 +252,14 @@ define([
 
     /**
      * updates a single cell with new data (e.g. "updated" cell)
+     * @param tableApi
      * @param rowElement
      * @param cellIndex
      * @param data
      */
-    let updateSignatureCell = function(rowElement, cellIndex, data){
-
-        let signatureTableApi = signatureTable.api();
-        let rowIndex = signatureTableApi.row( rowElement ).index();
-
-        let updateCell = signatureTableApi.cell( rowIndex, cellIndex );
+    let updateSignatureCell = function(tableApi, rowElement, cellIndex, data){
+        let rowIndex = tableApi.row( rowElement ).index();
+        let updateCell = tableApi.cell( rowIndex, cellIndex );
         let updateCellElement = updateCell.nodes().to$();
 
         if(cellIndex === 7){
@@ -184,7 +283,6 @@ define([
      * @param deleteOutdatedSignatures -> set to "true" if signatures should be deleted that are not included in "signatureData"
      */
     $.fn.updateSignatureTable = function(signatureDataOrig, deleteOutdatedSignatures){
-
         // check if table update is allowed
         if(disableTableUpdate === true){
             return;
@@ -199,13 +297,12 @@ define([
         let moduleElement = $(this);
 
         // get signature table API
-        let signatureTableApi = signatureTable.api();
+        let signatureTableApi = getDataTableInstanceByModuleElement(moduleElement, 'primary');
 
         // get current system data
         let currentSystemData = Util.getCurrentSystemData();
 
-
-        let tableData = getSignatureTableData();
+        let tableData = getTableData(signatureTableApi);
 
         let notificationCounter = {
             added: 0,
@@ -229,7 +326,7 @@ define([
                         signatureTableApi.row(currentRowElement).remove().draw();
 
                         // and add "new" row
-                        let changedRowElement = addSignatureRow(currentSystemData.systemData, signatureData[i], false);
+                        let changedRowElement = addSignatureRow(signatureTableApi, currentSystemData.systemData, signatureData[i], false);
 
                         // highlight
                         changedRowElement.pulseTableRow('changed');
@@ -272,7 +369,7 @@ define([
         // add new signatures -----------------------------------------------------------------------------------------
         for(let k = 0; k < signatureData.length; k++){
             // and add "new" row
-            let newRowElement = addSignatureRow(currentSystemData.systemData, signatureData[k], false);
+            let newRowElement = addSignatureRow(signatureTableApi, currentSystemData.systemData, signatureData[k], false);
 
             // highlight
             newRowElement.pulseTableRow('added');
@@ -333,15 +430,15 @@ define([
      * @param options
      */
     $.fn.updateScannedSignaturesBar = function(options){
-
         let moduleElement = $(this);
+        let signatureTableApi = getDataTableInstanceByModuleElement(moduleElement, 'primary');
 
         // get progress bar
         let progressBarWrapper = moduleElement.find('.' + config.signatureScannedProgressBarClass);
         let progressBar = $(progressBarWrapper).find('.progress-bar');
         let progressBarLabel = $(progressBarWrapper).find('.progress-label-right');
 
-        let tableData = getSignatureTableData();
+        let tableData = getTableData(signatureTableApi);
 
         let sigCount = 0;
         let percent = 0;
@@ -392,7 +489,6 @@ define([
                 }
 
             }, 100);
-
     };
 
     /**
@@ -478,12 +574,15 @@ define([
                 type: 'POST',
                 url: Init.path.saveSignatureData,
                 data: requestData,
-                dataType: 'json'
+                dataType: 'json',
+                context: {
+                    moduleElement: moduleElement
+                }
             }).done(function(responseData){
                 unlockSignatureTable(true);
 
                 // updates table with new/updated signature information
-                moduleElement.updateSignatureTable(responseData.signatures, false);
+                this.moduleElement.updateSignatureTable(responseData.signatures, false);
             }).fail(function( jqXHR, status, error) {
                 let reason = status + ' ' + error;
                 Util.showNotify({title: jqXHR.status + ': Update signatures', text: reason, type: 'warning'});
@@ -816,47 +915,45 @@ define([
 
     /**
      * get all rows of a table
-     * @param table
+     * @param tableApi
      * @returns {*}
      */
-    let getRows = function(table){
-        let tableApi = table.api();
+    let getRows = function(tableApi){
         let rows = tableApi.rows();
-
         return rows;
     };
 
     /**
      * get all selected rows of a table
-     * @param table
+     * @param tableApi
      * @returns {*}
      */
-    let getSelectedRows = function(table){
-        let tableApi = table.api();
-
+    let getSelectedRows = function(tableApi){
         let selectedRows = tableApi.rows('.selected');
-
         return selectedRows;
     };
 
     /**
      * check the "delete signature" button. show/hide the button if a signature is selected
+     * @param moduleElement
      */
-    let checkDeleteSignaturesButton = function(){
+    let checkDeleteSignaturesButton = function(moduleElement){
+        moduleElement = $(moduleElement);
+        let signatureTableApi = getDataTableInstanceByModuleElement(moduleElement, 'primary');
 
-        let selectedRows = getSelectedRows(signatureTable);
+        let selectedRows = getSelectedRows(signatureTableApi);
         let selectedRowCount = selectedRows.data().length;
-        let clearButton = $('.' + config.sigTableClearButtonClass);
+        let clearButton = moduleElement.find('.' + config.sigTableClearButtonClass);
 
         if(selectedRowCount > 0){
-            let allRows = getRows(signatureTable);
+            let allRows = getRows(signatureTableApi);
             let rowCount = allRows.data().length;
 
-            let badgetText = selectedRowCount;
+            let badgeText = selectedRowCount;
             if(selectedRowCount >= rowCount){
-                badgetText = 'all';
+                badgeText = 'all';
             }
-            clearButton.find('.badge').text( badgetText );
+            clearButton.find('.badge').text( badgeText );
 
             // update clear signatures button text
             clearButton.velocity('stop');
@@ -882,10 +979,10 @@ define([
 
     /**
      * draw signature table toolbar (add signature button, scan progress bar
+     * @param mapId
      * @param systemData
      */
-    $.fn.drawSignatureTableToolbar = function(systemData){
-
+    $.fn.drawSignatureTableToolbar = function(mapId, systemData){
         let moduleElement = $(this);
 
         // add toolbar buttons for table ------------------------------------------------------------------------------
@@ -930,8 +1027,10 @@ define([
                 label: 'select all',
                 icon: 'fa-check-square',
                 onClick: function(){
-                    let allRows = getRows(signatureTable);
-                    let selectedRows = getSelectedRows(signatureTable);
+                    let signatureTableApi = getDataTableInstanceByModuleElement(moduleElement, 'primary');
+
+                    let allRows = getRows(signatureTableApi);
+                    let selectedRows = getSelectedRows(signatureTableApi);
                     let allRowElements = allRows.nodes().to$();
 
                     if(allRows.data().length === selectedRows.data().length){
@@ -941,7 +1040,7 @@ define([
                     }
 
                     // check delete button
-                    checkDeleteSignaturesButton();
+                    checkDeleteSignaturesButton(moduleElement);
                 }
             })
         ).append(
@@ -955,12 +1054,12 @@ define([
                 },
                 onClick: function(){
                     // delete all rows
-
-                    let selectedRows = getSelectedRows(signatureTable);
+                    let signatureTableApi = getDataTableInstanceByModuleElement(moduleElement, 'primary');
+                    let selectedRows = getSelectedRows(signatureTableApi);
 
                     bootbox.confirm('Delete ' + selectedRows.data().length + ' signature?', function(result) {
                         if(result){
-                            deleteSignatures(selectedRows);
+                            deleteSignatures(signatureTableApi, selectedRows);
                         }
                     });
                 }
@@ -984,15 +1083,18 @@ define([
         tableToolbar.after(tableToolbarAction);
 
         let signatureData = formatSignatureData(systemData, [emptySignatureData], emptySignatureOptions);
-        table.dataTable( {
+        let signatureTable = table.dataTable( {
             data: signatureData,
             paging: false,
             ordering: false,
             info: false,
             searching: false
         } );
+        let signatureTableApi = signatureTable.api();
 
-        table.makeEditable(systemData);
+        setDataTableInstance(mapId, systemData.id, 'secondary', signatureTableApi);
+
+        table.makeEditable(signatureTableApi, systemData);
 
         // scanned signatures progress bar ----------------------------------------------------------------------------
         let moduleConfig = {
@@ -1019,18 +1121,16 @@ define([
      * @param title
      */
     let updateTooltip = function(element, title){
-        element = $(element);
-
-        element.attr('data-container', 'body').attr('title', title.toUpperCase()).tooltip('fixTitle')
+        $(element).attr('data-container', 'body').attr('title', title.toUpperCase()).tooltip('fixTitle')
             .tooltip('setContent');
     };
 
     /**
      * make a table or row editable
+     * @param tableApi
      * @param systemData
      */
-    $.fn.makeEditable = function(systemData){
-
+    $.fn.makeEditable = function(tableApi, systemData){
         // table element OR row element
         let tableElement = $(this);
 
@@ -1055,7 +1155,7 @@ define([
                     // the current field is in the "primary" table (not the "add" new sig row)
                     if(
                         $(e.target).hasClass(config.sigTableEditSigGroupSelect) &&
-                        tableElement.hasClass(config.sigTablePrimaryClass)
+                        $(e.target).parents('.' + config.sigTableClass).hasClass(config.sigTablePrimaryClass)
                     ){
                         currentField.parents('.' + config.moduleClass).updateScannedSignaturesBar({showNotice: true});
                     }
@@ -1142,7 +1242,7 @@ define([
                     updateTooltip(columnElement, newValue);
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 7, newRowData.updated);
+                    updateSignatureCell(tableApi, rowElement, 7, newRowData.updated);
                 }
             }
         });
@@ -1179,7 +1279,7 @@ define([
                     let newRowData = response.signatures[0];
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 7, newRowData.updated);
+                    updateSignatureCell(tableApi, rowElement, 7, newRowData.updated);
                 }
 
                 // find related "type" select (same row) and change options
@@ -1250,7 +1350,7 @@ define([
                     let newRowData = response.signatures[0];
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 7, newRowData.updated);
+                    updateSignatureCell(tableApi, rowElement, 7, newRowData.updated);
                 }
             }
         });
@@ -1273,7 +1373,7 @@ define([
                     let newRowData = response.signatures[0];
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 7, newRowData.updated);
+                    updateSignatureCell(tableApi, rowElement, 7, newRowData.updated);
                 }
             }
         });
@@ -1328,7 +1428,7 @@ define([
                     let newRowData = response.signatures[0];
 
                     // update "updated" cell
-                    updateSignatureCell(rowElement, 7, newRowData.updated);
+                    updateSignatureCell(tableApi, rowElement, 7, newRowData.updated);
                 }
             }
         });
@@ -1378,13 +1478,13 @@ define([
                     // take target...
                     connectionOptions.push({
                         value: connectionData.id,
-                        text: connectionData.targetName
+                        text: connectionData.targetAlias
                     });
                 }else if(systemData.id !== connectionData.source){
                     // take source...
                     connectionOptions.push({
                         value: connectionData.id,
-                        text: connectionData.sourceName
+                        text: connectionData.sourceAlias
                     });
                 }
             }
@@ -1628,15 +1728,14 @@ define([
 
     /**
      * deletes signature rows from signature table
+     * @param tableApi
      * @param rows
      */
-    let deleteSignatures = function(rows){
-
+    let deleteSignatures = function(tableApi, rows){
         let deletedSignatures = 0;
 
         let moduleElement = $('.' + config.systemSigModuleClass);
         let data = rows.data();
-        let signatureTableApi = signatureTable.api();
         let rowElements = rows.nodes().to$();
         let signatureCount = data.length;
 
@@ -1652,7 +1751,7 @@ define([
         // animation callback function
         let removeCallback = function(rowElement){
             // delete signature row
-            signatureTableApi.row(rowElement).remove().draw();
+            tableApi.row(rowElement).remove().draw();
 
             deletedSignatures++;
 
@@ -1686,25 +1785,20 @@ define([
             Util.showNotify({title: jqXHR.status + ': Delete signature', text: reason, type: 'warning'});
             $(document).setProgramStatus('problem');
         });
-
     };
-
 
     /**
      * adds a new row to signature Table
+     * @param signatureTableApi
      * @param systemData
      * @param signatureData
      * @param animate
      * @returns {*}
      */
-    let addSignatureRow = function(systemData, signatureData, animate){
-
+    let addSignatureRow = function(signatureTableApi, systemData, signatureData, animate){
         let newSignatureData = formatSignatureData(systemData, [signatureData], fullSignatureOptions);
 
-        // insert new row in main signature table
-        let tablePrimaryElement = $('.' + config.sigTablePrimaryClass);
-        let dataTablePrimary = tablePrimaryElement.DataTable();
-        let newRowNode = dataTablePrimary.row.add(newSignatureData.shift()).draw().nodes();
+        let newRowNode = signatureTableApi.row.add(newSignatureData.shift()).draw().nodes();
         let newRowElement = newRowNode.to$();
 
         if(animate === true){
@@ -1713,13 +1807,13 @@ define([
             newRowElement.toggleTableRow(function(newRowElement){
                 // make new row editable
 
-                newRowElement.makeEditable(systemData);
+                newRowElement.makeEditable(signatureTableApi, systemData);
 
                 // update scan progress bar
                 newRowElement.parents('.' + config.moduleClass).updateScannedSignaturesBar({showNotice: true});
             });
         }else{
-            newRowElement.makeEditable(systemData);
+            newRowElement.makeEditable(signatureTableApi, systemData);
         }
 
         return newRowElement;
@@ -1732,9 +1826,7 @@ define([
     $.fn.toggleTableRow = function(callback){
         let rowElement = $(this);
         let cellElements = rowElement.children('td');
-
         let duration = 100;
-
 
         // wrap each <td> into a container (for better animation performance)
         // slideUp new wrapper divs
@@ -1815,11 +1907,11 @@ define([
 
     /**
      * draw a signature table with data
+     * @param mapId
      * @param signatureData
      * @param systemData
-     * @returns {*}
      */
-    $.fn.drawSignatureTable = function(signatureData, systemData){
+    $.fn.drawSignatureTable = function(mapId, signatureData, systemData){
         let moduleElement = $(this);
 
         // setup filter select in footer
@@ -1886,14 +1978,14 @@ define([
         };
 
         // create signature table and store the jquery object global for this module
-        signatureTable = table.dataTable(dataTableOptions);
+        let signatureTable = table.dataTable(dataTableOptions);
+        let signatureTableApi = signatureTable.api();
+        setDataTableInstance(mapId, systemData.id, 'primary', signatureTableApi);
 
         // make Table editable
-        signatureTable.makeEditable(systemData);
+        signatureTable.makeEditable(signatureTableApi, systemData);
 
         moduleElement.updateScannedSignaturesBar({showNotice: true});
-
-        return signatureTable;
     };
 
     /**
@@ -2093,6 +2185,12 @@ define([
                                     // submit all fields within a table row
                                     let formFields = rowElement.find('.editable');
 
+                                    // get the current "primary table" for insert row on ajax callback
+                                    // -> important: in case of long response, target table might have changed...
+                                    let moduleElement =  $(e.target).parents('.' + config.moduleClass);
+                                    let primaryTable = moduleElement.find('.' + config.sigTablePrimaryClass);
+                                    let secondaryTable = moduleElement.find('.' + config.sigTableSecondaryClass);
+
                                     // the "hide" makes sure to take care about open editable fields (e.g. description)
                                     // otherwise, changes would not be submitted in this field (not necessary)
                                     formFields.editable('hide');
@@ -2104,6 +2202,10 @@ define([
                                             dataType: 'json', //assuming json response
                                             beforeSend: function( xhr, settings ){
                                                 lockSignatureTable();
+                                            },
+                                            context: {
+                                                primaryTable: primaryTable,
+                                                secondaryTable: secondaryTable
                                             }
                                         },
                                         data: {
@@ -2112,21 +2214,22 @@ define([
                                         },
                                         error: $.fn.editable.defaults.error, // user default xEditable error function
                                         success: function (data, editableConfig) {
+                                            let context = editableConfig.ajaxOptions.context;
+                                            let primaryTableApi = context.primaryTable.DataTable();
+                                            let secondaryTableApi = context.secondaryTable.DataTable();
+
                                             unlockSignatureTable(false);
 
-                                            let newRowElement = addSignatureRow(systemData, data.signatures[0], true);
+                                            let newRowElement = addSignatureRow(primaryTableApi, systemData, data.signatures[0], true);
 
                                             // highlight
                                             newRowElement.pulseTableRow('added');
 
                                             // prepare "add signature" table for new entry -> reset -------------------
                                             let signatureData = formatSignatureData(systemData, [emptySignatureData], emptySignatureOptions);
+                                            let newAddRowElement = secondaryTableApi.clear().row.add(signatureData.shift()).draw().nodes();
 
-                                            let dataSecondaryElement = $('.' + config.sigTableSecondaryClass);
-                                            let dataTableSecondary = dataSecondaryElement.DataTable();
-                                            let newAddRowElement = dataTableSecondary.clear().row.add(signatureData.shift()).draw().nodes();
-
-                                            newAddRowElement.to$().makeEditable(systemData);
+                                            newAddRowElement.to$().makeEditable(secondaryTableApi, systemData);
 
                                             Util.showNotify({
                                                 title: 'Signature added',
@@ -2149,19 +2252,20 @@ define([
                                     btnOkClass: 'btn btn-sm btn-danger',
                                     btnOkLabel: 'delete',
                                     btnOkIcon: 'fa fa-fw fa-close',
-                                    onConfirm : function(e, target){
+                                    onConfirm: function(e, target){
                                         // top scroll to top
                                         e.preventDefault();
 
+                                        let tableApi = tempTableElement.DataTable();
+
                                         let deleteRowElement = $(target).parents('tr');
-                                        let row = tempTableElement.DataTable().rows(deleteRowElement);
-                                        deleteSignatures(row);
+                                        let row = tableApi.rows(deleteRowElement);
+                                        deleteSignatures(tableApi, row);
                                     }
                                 };
 
                                 // init confirmation dialog
                                 $(cell).confirmation(confirmationSettings);
-
 
                                 break;
                         }
@@ -2178,31 +2282,29 @@ define([
      * @param systemData
      */
     let setModuleObserver = function(moduleElement, systemData){
-        let tablePrimaryElement = $('.' + config.sigTablePrimaryClass);
-        let dataTablePrimary = signatureTable.DataTable();
-        let signatureTableApi = signatureTable.api();
+        let tablePrimaryElement = moduleElement.find('.' + config.sigTablePrimaryClass);
+        let signatureTableApi = getDataTableInstanceByModuleElement(moduleElement, 'primary');
 
         $(document).off('pf:updateSystemSignatureModule').on('pf:updateSystemSignatureModule', function(e, data){
             if(data.signatures){
                 moduleElement.updateSignatureTable(data.signatures, true);
             }
-
         });
 
         // set multi row select ---------------------------------------------------------------------------------------
-        tablePrimaryElement.on('click', 'tr', function(e){
+        tablePrimaryElement.on('click', 'tr', {moduleElement: moduleElement}, function(e){
             if(e.ctrlKey) {
                 $(this).toggleClass('selected');
 
                 // check delete button
-                checkDeleteSignaturesButton();
+                checkDeleteSignaturesButton(e.data.moduleElement);
             }
         });
 
         // draw event for signature table -----------------------------------------------------------------------------
-        signatureTableApi.on('draw.dt', function(){
+        signatureTableApi.on('draw.dt', {moduleElement: moduleElement}, function(e, settings){
             // check delete button
-            checkDeleteSignaturesButton();
+            checkDeleteSignaturesButton(e.data.moduleElement);
         });
 
         // event listener for global "paste" signatures into the page -------------------------------------------------
@@ -2214,16 +2316,20 @@ define([
     /**
      * get module element
      * @param parentElement
+     * @param mapId
      * @param systemData
-     * @returns {*|HTMLElement}
+     * @returns {*|jQuery|HTMLElement}
      */
-    let getModule = function(parentElement, systemData){
+    let getModule = function(parentElement, mapId, systemData){
 
         // create new module container
         let moduleElement = $('<div>', {
             class: [config.moduleClass, config.systemSigModuleClass].join(' '),
             css: {opacity: 0}
         });
+
+        moduleElement.data('mapId', mapId);
+        moduleElement.data('systemId', systemData.id);
 
         // headline
         let headline = $('<h5>', {
@@ -2239,7 +2345,7 @@ define([
 
         // draw "new signature" add table -----------------------------------------------------------------------------
 
-        moduleElement.drawSignatureTableToolbar(systemData);
+        moduleElement.drawSignatureTableToolbar(mapId, systemData);
 
         // request signature data for system --------------------------------------------------------------------------
 
@@ -2253,14 +2359,14 @@ define([
             data: requestData,
             dataType: 'json',
             context: {
+                mapId: mapId,
                 systemData: systemData
             }
         }).done(function(signatureData){
-
             let signatureTableData = formatSignatureData(this.systemData, signatureData, fullSignatureOptions);
 
             // draw signature table
-            moduleElement.drawSignatureTable(signatureTableData, this.systemData);
+            moduleElement.drawSignatureTable(this.mapId, signatureTableData, this.systemData);
 
             // set module observer
             setModuleObserver(moduleElement, this.systemData);
@@ -2275,9 +2381,10 @@ define([
 
     /**
      * main module load function
+     * @param mapId
      * @param systemData
      */
-    $.fn.drawSignatureTableModule = function(systemData){
+    $.fn.drawSignatureTableModule = function(mapId, systemData){
         let parentElement = $(this);
 
         // show module
@@ -2317,13 +2424,17 @@ define([
             moduleElement.velocity('transition.slideDownOut', {
                 duration: Init.animationSpeed.mapModule,
                 complete: function(tempElement){
+                    tempElement = $(tempElement);
                     // Destroying the data tables throws
                     // save remove of all dataTables
-                    signatureTable.api().destroy();
+                    let mapId = tempElement.data('mapId');
+                    let systemId = tempElement.data('systemId');
+                    deleteDataTableInstance(mapId, systemId, 'primary');
+                    deleteDataTableInstance(mapId, systemId, 'secondary');
 
-                    $(tempElement).remove();
+                    tempElement.remove();
 
-                    moduleElement = getModule(parentElement, systemData);
+                    moduleElement = getModule(parentElement, mapId,  systemData);
                     // make modules appear "nice"
                     moduleElement.delay(150);
                     showModule(moduleElement);
@@ -2333,7 +2444,7 @@ define([
             // init array prototype functions
             initArrayFunctions();
 
-            moduleElement = getModule(parentElement, systemData);
+            moduleElement = getModule(parentElement, mapId, systemData);
             showModule(moduleElement);
         }
     };

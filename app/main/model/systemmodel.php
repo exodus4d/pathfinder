@@ -284,6 +284,22 @@ class SystemModel extends BasicModel {
     }
 
     /**
+     *  setter for system alias
+     * @param string $alias
+     * @return string
+     */
+    public function set_alias($alias){
+        $alias = trim($alias);
+
+        // we don´t need redundant data. "name" is always preferred if "alias" is empty
+        if($alias === $this->name){
+            $alias = '';
+        }
+
+        return $alias;
+    }
+
+    /**
      * setter for system security value
      * @param float $trueSec
      * @return float
