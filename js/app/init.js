@@ -341,7 +341,7 @@ define(['jquery'], function($) {
                 label: 'Relic'
             },
             3: {
-                name: '(data site|datengebiet|site de donnes)',
+                name: '(data site|datengebiet|site de données)',
                 label: 'Data'
             },
             4: {
