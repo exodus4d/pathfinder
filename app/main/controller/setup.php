@@ -599,44 +599,50 @@ class Setup extends Controller {
             // check DB for valid connection
             $db = DB\Database::instance()->getDB($dbKey);
 
+            // check config that does NOT require a valid DB connection
             switch($dbKey){
                 case 'PF':
                     $dbLabel = 'Pathfinder';
                     $dbName = Controller::getEnvironmentData('DB_NAME');
                     $dbUser = Controller::getEnvironmentData('DB_USER');
-
-                    // enable (table) setup for this DB
-                    $dbSetupEnable = true;
-
-                    // get table data from model
-                    foreach($dbData['models'] as $model){
-                        $tableConfig =  call_user_func($model . '::resolveConfiguration');
-                        $requiredTables[$tableConfig['table']] = [
-                            'model' => $model,
-                            'name' => $tableConfig['table'],
-                            'fieldConf' => $tableConfig['fieldConf'],
-                            'exists' => false,
-                            'empty' => true,
-                            'foreignKeys' => []
-                        ];
-                    }
                     break;
                 case 'CCP':
                     $dbLabel = 'EVE-Online [SDE]';
                     $dbName = Controller::getEnvironmentData('DB_CCP_NAME');
                     $dbUser = Controller::getEnvironmentData('DB_CCP_USER');
-
-                    // get table model from static table array
-                    foreach($dbData['tables'] as $tableName){
-                        $requiredTables[$tableName] = [
-                            'exists' => false,
-                            'empty' => true
-                        ];
-                    }
                     break;
             }
 
             if($db){
+                switch($dbKey){
+                    case 'PF':
+                        // enable (table) setup for this DB
+                        $dbSetupEnable = true;
+
+                        // get table data from model
+                        foreach($dbData['models'] as $model){
+                            $tableConfig =  call_user_func($model . '::resolveConfiguration');
+                            $requiredTables[$tableConfig['table']] = [
+                                'model' => $model,
+                                'name' => $tableConfig['table'],
+                                'fieldConf' => $tableConfig['fieldConf'],
+                                'exists' => false,
+                                'empty' => true,
+                                'foreignKeys' => []
+                            ];
+                        }
+                        break;
+                    case 'CCP':
+                        // get table model from static table array
+                        foreach($dbData['tables'] as $tableName){
+                            $requiredTables[$tableName] = [
+                                'exists' => false,
+                                'empty' => true
+                            ];
+                        }
+                        break;
+                }
+
                 // db connect was successful
                 $dbConnected = true;
                 $dbDriver = $db->driver();
