@@ -34,7 +34,12 @@ define([
 
         tableCellEllipsisClass: 'pf-table-cell-ellipsis',
         tableCellEllipsis80Class: 'pf-table-cell-80',
-        tableCellEllipsis90Class: 'pf-table-cell-90'
+        tableCellEllipsis90Class: 'pf-table-cell-90',
+
+        // toolbar
+        toolbarClass: 'pf-map-overlay-toolbar',                             // class for toolbar - content
+        toolbarIconClass: 'pf-map-overlay-toolbar-icon',                    // class for toolbar icon
+        toolbarCheckboxClass: 'pf-map-overlay-toolbar-checkbox'             // class for toolbar checkbox
     };
 
     /**
@@ -322,7 +327,6 @@ define([
                         text: MapUtil.config.defaultLocalJumpRadius
                     }).attr('title', 'jumps')
                 )
-
             );
 
             let headline = $('<div>', {
@@ -342,6 +346,8 @@ define([
 
             content.append(headline);
             content.append(table);
+            // toolbar not used for now
+            // content.append(initToolbar());
 
             overlay.append(overlayMain);
             overlay.append(content);
@@ -507,6 +513,44 @@ define([
                 ]
             });
         });
+    };
+
+    let initToolbar = () => {
+
+        let getCheckbox = (options) => {
+          return $('<div>', {
+              class: [config.toolbarCheckboxClass, 'checkbox'].join(' ')
+          }).append(
+              $('<input>', {
+                  type: 'checkbox',
+                  id: options.id,
+                  name: options.name,
+                  value: options.value,
+                  checked: 'checked'
+              }),
+              $('<label>',{
+                  'for': options.id,
+                  html: options.label
+              })
+          );
+        };
+
+        let toolbar = $('<div>', {
+            class: [config.toolbarClass].join(' ')
+        }).append(
+            $('<i>', {
+                class: ['fa', 'fa-fw', 'fa-lg', 'fa-filter', config.toolbarIconClass, 'pull-left'].join(' ')
+            }),
+            getCheckbox({
+                id: 'test',
+                name: 'filter_character_active',
+                value: 1,
+                checked: true,
+                label: 'active'
+            })
+        );
+
+        return toolbar;
     };
 
     /**

@@ -116,6 +116,7 @@ class CharacterLogModel extends BasicModel {
     public function getData(){
 
         $logData = (object) [];
+        $logData->active = $this->active;
         $logData->system = (object) [];
         $logData->system->id = (int)$this->systemId;
         $logData->system->name = $this->systemName;
@@ -134,14 +135,58 @@ class CharacterLogModel extends BasicModel {
     }
 
     /**
+     *  setter for systemId
      * @param int $systemId
      * @return int
      */
     public function set_systemId($systemId){
+        if($this->systemId != $systemId){
+            $this->setActive(true);
+        }
+
         if($systemId > 0){
             $this->updateCharacterSessionLocation($systemId);
         }
         return $systemId;
+    }
+
+    /**
+     *  setter for $shipTypeId
+     * @param int $shipTypeId
+     * @return int
+     */
+    public function set_shipTypeId($shipTypeId){
+        if($this->shipTypeId != $shipTypeId){
+            $this->setActive(true);
+        }
+
+        return $shipTypeId;
+    }
+
+    /**
+     *  setter for $shipId
+     * @param int $shipId
+     * @return int
+     */
+    public function set_shipId($shipId){
+        if($this->shipId != $shipId){
+            $this->setActive(true);
+        }
+
+        return $shipId;
+    }
+
+    /**
+     *  setter for $stationId
+     * @param int $stationId
+     * @return int
+     */
+    public function set_stationId($stationId){
+        if($this->stationId != $stationId){
+            $this->setActive(true);
+        }
+
+        return $stationId;
     }
 
     /**

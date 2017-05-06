@@ -142,7 +142,7 @@ define([
     };
 
     /**
-     * loads the system info table into an element
+     * loads system info table into an element
      * @param mapData
      */
     $.fn.loadSystemInfoTable = function(mapData){
@@ -463,7 +463,7 @@ define([
     };
 
     /**
-     * loads the connection info table into an element
+     * loads connection info table into an element
      * @param mapData
      */
     $.fn.loadConnectionInfoTable = function(mapData){
@@ -611,6 +611,10 @@ define([
         });
     };
 
+    /**
+     * loads user info table into an element
+     * @param mapData
+     */
     $.fn.loadUsersInfoTable = function(mapData){
         let usersElement = $(this);
 
@@ -629,7 +633,9 @@ define([
 
             // init table tooltips
             let tooltipElements = usersElement.find('[data-toggle="tooltip"]');
-            tooltipElements.tooltip();
+            tooltipElements.tooltip({
+                container: usersElement.parent()
+            });
         });
 
         let getIconForInformationWindow = () => {
@@ -659,7 +665,7 @@ define([
             paging: true,
             lengthMenu: [[5, 10, 20, 50, -1], [5, 10, 20, 50, 'All']],
             ordering: true,
-            order: [ 1, 'asc' ],
+            order: [[ 0, 'desc' ], [ 4, 'asc' ]],
             autoWidth: false,
             hover: false,
             data: usersData,
@@ -672,6 +678,25 @@ define([
             columnDefs: [
                 {
                     targets: 0,
+                    title: '<i title="active" data-toggle="tooltip" class="fa fa-user text-right"></i>',
+                    width: '10px',
+                    orderable: true,
+                    searchable: false,
+                    className: ['text-center'].join(' '),
+                    data: 'log.active',
+                    render: {
+                        _: function(data, type, row, meta){
+                            let value = data;
+                            if(type === 'display'){
+                                let icon = value ? 'fa-user' : 'fa-user-o';
+                                value = '<i class="fa ' + icon + '"></i>';
+                            }
+                            return value;
+                        }
+                    }
+                },
+                {
+                    targets: 1,
                     title: '',
                     width: '26px',
                     orderable: false,
@@ -680,23 +705,31 @@ define([
                     data: 'log.ship',
                     render: {
                         _: function(data, type, row, meta){
-                            return '<img src="' + Init.url.ccpImageServer + 'Render/' + data.typeId + '_32.png" />';
+                            let value = data;
+                            if(type === 'display'){
+                                value = '<img src="' + Init.url.ccpImageServer + 'Render/' + value.typeId + '_32.png" />';
+                            }
+                            return value;
                         }
                     }
                 },{
-                    targets: 1,
+                    targets: 2,
                     title: 'ship',
                     orderable: true,
                     searchable: true,
                     data: 'log.ship',
                     render: {
                         _: function(data, type, row){
-                            return data.typeName + '&nbsp;<i class="fa fa-fw fa-question-circle pf-help" title="' + data.name + '" data-toggle="tooltip"></i>';
+                            let value = data;
+                            if(type === 'display'){
+                                value = data.typeName + '&nbsp;<i class="fa fa-fw fa-question-circle pf-help" title="' + value.name + '" data-toggle="tooltip"></i>';
+                            }
+                            return value;
                         },
                         sort: 'typeName'
                     }
                 },{
-                    targets: 2,
+                    targets: 3,
                     title: '',
                     width: '26px',
                     orderable: false,
@@ -705,11 +738,15 @@ define([
                     data: 'id',
                     render: {
                         _: function(data, type, row, meta){
-                            return '<img src="' + Init.url.ccpImageServer + 'Character/' + data + '_32.jpg" />';
+                            let value = data;
+                            if(type === 'display'){
+                                value = '<img src="' + Init.url.ccpImageServer + 'Character/' + value + '_32.jpg" />';
+                            }
+                            return value;
                         }
                     }
                 },{
-                    targets: 3,
+                    targets: 4,
                     title: 'pilot',
                     orderable: true,
                     searchable: true,
@@ -732,7 +769,7 @@ define([
                         });
                     }
                 },{
-                    targets: 4,
+                    targets: 5,
                     title: '',
                     width: '26px',
                     orderable: false,
@@ -741,11 +778,15 @@ define([
                     data: 'corporation',
                     render: {
                         _: function(data, type, row, meta){
-                            return '<img src="' + Init.url.ccpImageServer + 'Corporation/' + data.id + '_32.png" />';
+                            let value = data;
+                            if(type === 'display'){
+                                value = '<img src="' + Init.url.ccpImageServer + 'Corporation/' + value.id + '_32.png" />';
+                            }
+                            return value;
                         }
                     }
                 },{
-                    targets: 5,
+                    targets: 6,
                     title: 'corporation',
                     orderable: true,
                     searchable: true,
@@ -768,7 +809,7 @@ define([
                         });
                     }
                 },{
-                    targets: 6,
+                    targets: 7,
                     title: 'system',
                     orderable: true,
                     searchable: true,
@@ -778,7 +819,7 @@ define([
                         sort: 'name'
                     }
                 },{
-                    targets: 7,
+                    targets: 8,
                     title: 'station',
                     orderable: true,
                     searchable: true,

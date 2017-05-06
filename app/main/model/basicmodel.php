@@ -49,20 +49,20 @@ abstract class BasicModel extends \DB\Cortex {
     protected $validate = [];
 
     /**
-     * enables change for "active" column
-     * -> see setActive();
-     * -> $this->active = false; will NOT work (prevent abuse)!
-     * @var bool
-     */
-    protected $allowActiveChange = false;
-
-    /**
      * enables check for $fieldChanges on update/insert
      * -> fields that should be checked need an "activity-log" flag
      * in $fieldConf config
      * @var bool
      */
     protected $enableActivityLogging = true;
+
+    /**
+     * enables change for "active" column
+     * -> see setActive();
+     * -> $this->active = false; will NOT work (prevent abuse)!
+     * @var bool
+     */
+    private $allowActiveChange = false;
 
     /**
      * getData() cache key prefix

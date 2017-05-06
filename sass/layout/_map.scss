@@ -169,6 +169,18 @@ $mapWidth: 2500px ;
       .dataTables_empty{
         white-space: nowrap;
       }
+
+      .pf-map-overlay-toolbar{
+        .pf-map-overlay-toolbar-icon{
+          vertical-align: 0; // overwrite default
+          margin-top: 14px;
+        }
+
+        .pf-map-overlay-toolbar-checkbox{
+          display: inline-block;
+          margin-bottom: 0; // overwrite default
+        }
+      }
     }
 
     .pf-map-overlay-local-main{

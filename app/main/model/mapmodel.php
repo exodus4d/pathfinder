@@ -266,8 +266,14 @@ class MapModel extends BasicModel {
             // get blank system
             $systemController = new System();
             $systems = $systemController->getSystemModelByIds([$systemId]);
-            $system = reset($systems);
-            $system->mapId = $this->_id;
+            if( count($systems) ){
+                $system = reset($systems);
+                $system->mapId = $this->_id;
+            }else{
+                // should NEVER happen -> systemId does NOT exist in New Eden!!
+                $this->getF3()->error(500, 'SystemId "' . $systemId . '"" does not exist in EVE!' );
+            }
+
         }
         $system->setActive(true);
 
@@ -834,6 +840,15 @@ class MapModel extends BasicModel {
         // get data of characters which have with map access
         $activeUserCharactersData = $this->getCharactersData();
 
+        // sort characters by "active" status
+        $sortByActiveLog = function($a, $b){
+            if($a->log->active == $b->log->active){
+                return 0;
+            }else{
+                return ($a->log->active && !$b->log->active) ? 0 : 1;
+            }
+        };
+
         $mapUserData = (object)[];
         $mapUserData->config = (object)[];
         $mapUserData->config->id = $this->id;
@@ -857,14 +872,15 @@ class MapModel extends BasicModel {
                         unset($activeUserCharactersData[$key]);
                     }
                 }else{
-                    // user has NO log data. If its an corp/ally map not each member is active
-                    // user is not relevant for this function!
+                    // character has NO log data. If its an corp/ally map not each member is active
+                    // -> character is not relevant for this function!
                     unset($activeUserCharactersData[$key]);
                 }
             }
 
             // add system if active users were found
             if(count($systemUserData->user) > 0){
+                usort($systemUserData->user, $sortByActiveLog);
                 $mapUserData->data->systems[] = $systemUserData;
             }
         }
