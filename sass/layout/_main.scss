@@ -267,6 +267,25 @@ select:active, select:hover {
         font-size: 10px;
       }
     }
+
+
+    .pf-table-cell-ellipsis{
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .pf-table-cell-80{
+      width: 90px;
+    }
+
+    .pf-table-cell-90{
+      width: 100px;
+    }
+
+    .pf-table-cell-100{
+      width: 110px;
+    }
   }
 
   // column separator

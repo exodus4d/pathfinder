@@ -24,7 +24,13 @@ define([
 
         systemIdPrefix: 'pf-system-',                                   // id prefix for a system
         systemClass: 'pf-system',                                       // class for all systems
-        systemSelectedClass: 'pf-system-selected'                       // class for selected systems in a map
+        systemSelectedClass: 'pf-system-selected',                      // class for selected systems in a map
+
+        // dataTable
+        tableCellEllipsisClass: 'pf-table-cell-ellipsis',
+        tableCellEllipsis80Class: 'pf-table-cell-80',
+        tableCellEllipsis90Class: 'pf-table-cell-90',
+        tableCellEllipsis100Class: 'pf-table-cell-100'
     };
 
     // map menu options

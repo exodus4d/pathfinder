@@ -701,32 +701,32 @@ define([
                     width: '26px',
                     orderable: false,
                     searchable: false,
-                    className: ['text-center', config.tableImageCellClass].join(' '),
+                    className: ['pf-help-default', 'text-center', config.tableImageCellClass].join(' '),
                     data: 'log.ship',
                     render: {
                         _: function(data, type, row, meta){
                             let value = data;
                             if(type === 'display'){
-                                value = '<img src="' + Init.url.ccpImageServer + 'Render/' + value.typeId + '_32.png" />';
+                                value = '<img src="' + Init.url.ccpImageServer + 'Render/' + value.typeId + '_32.png" title="' + value.typeName + '" data-toggle="tooltip" />';
                             }
                             return value;
                         }
                     }
                 },{
                     targets: 2,
-                    title: 'ship',
+                    title: 'ship name',
+                    width: '100px',
                     orderable: true,
                     searchable: true,
                     data: 'log.ship',
                     render: {
                         _: function(data, type, row){
-                            let value = data;
+                            let value = data.name;
                             if(type === 'display'){
-                                value = data.typeName + '&nbsp;<i class="fa fa-fw fa-question-circle pf-help" title="' + value.name + '" data-toggle="tooltip"></i>';
+                                value = '<div class="' + MapUtil.config.tableCellEllipsisClass + ' ' + MapUtil.config.tableCellEllipsis100Class + '">' + data.name + '</div>';
                             }
                             return value;
-                        },
-                        sort: 'typeName'
+                        }
                     }
                 },{
                     targets: 3,

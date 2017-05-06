@@ -32,10 +32,6 @@ define([
         tableActionCellClass: 'pf-table-action-cell',                       // class for table "action" cells
         tableActionCellIconClass: 'pf-table-action-icon-cell',              // class for table "action" icon (icon is part of cell content)
 
-        tableCellEllipsisClass: 'pf-table-cell-ellipsis',
-        tableCellEllipsis80Class: 'pf-table-cell-80',
-        tableCellEllipsis90Class: 'pf-table-cell-90',
-
         // toolbar
         toolbarClass: 'pf-map-overlay-toolbar',                             // class for toolbar - content
         toolbarIconClass: 'pf-map-overlay-toolbar-icon',                    // class for toolbar icon
@@ -443,7 +439,7 @@ define([
                             _: function(data, type, row, meta){
                                 let value = data.name;
                                 if(type === 'display'){
-                                    value = '<div class="' + config.tableCellEllipsisClass + ' ' + config.tableCellEllipsis80Class + '">' + data.name + '</div>';
+                                    value = '<div class="' + MapUtil.config.tableCellEllipsisClass + ' ' + MapUtil.config.tableCellEllipsis80Class + '">' + data.name + '</div>';
                                 }
                                 return value;
                             },
@@ -458,7 +454,7 @@ define([
                             _: function(data, type, row, meta){
                                 let value = data;
                                 if(type === 'display'){
-                                    value = '<div class="' + config.tableCellEllipsisClass + ' ' + config.tableCellEllipsis90Class + '">' + data + '</div>';
+                                    value = '<div class="' + MapUtil.config.tableCellEllipsisClass + ' ' + MapUtil.config.tableCellEllipsis90Class + '">' + data + '</div>';
                                 }
                                 return value;
                             }
