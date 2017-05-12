@@ -615,6 +615,7 @@ class Controller {
             echo json_encode($return);
             die();
         }else{
+            $f3->set('pageTitle', 'ERROR - ' . $error->code);
             // set error data for template rendering
             $error->redirectUrl = $this->getRouteUrl();
             $f3->set('errorData', $error);
