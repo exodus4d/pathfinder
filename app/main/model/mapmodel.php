@@ -70,6 +70,11 @@ class MapModel extends BasicModel {
             'nullable' => false,
             'default' => 1
         ],
+        'deleteEolConnections' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => 1
+        ],
         'systems' => [
             'has-many' => ['Model\SystemModel', 'mapId']
         ],
@@ -150,6 +155,7 @@ class MapModel extends BasicModel {
             $mapData->name = $this->name;
             $mapData->icon = $this->icon;
             $mapData->deleteExpiredConnections = $this->deleteExpiredConnections;
+            $mapData->deleteEolConnections = $this->deleteEolConnections;
             $mapData->created = strtotime($this->created);
             $mapData->updated = strtotime($this->updated);
 
