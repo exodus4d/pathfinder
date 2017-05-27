@@ -663,6 +663,7 @@ define([
                         responseData.error.length > 0
                     ){
                         $('.' + config.dynamicMessageContainerClass).showMessage({
+                            dismissible: false,
                             type: responseData.error[0].type,
                             title: 'Character verification failed',
                             text: responseData.error[0].message

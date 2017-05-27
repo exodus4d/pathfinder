@@ -763,14 +763,15 @@ define([
                     break;
             }
 
-            let data = {
-                title: config.title,
-                text: config.text,
+            let defaultOptions = {
+                dismissible: true,
                 messageTypeClass: messageTypeClass,
                 messageTextClass: messageTextClass
             };
 
-            let content = Mustache.render(template, data);
+            defaultOptions = $.extend(defaultOptions, config);
+
+            let content = Mustache.render(template, defaultOptions);
 
             containerElement.html(content);
 
