@@ -27,7 +27,7 @@
         </div>
         <div  class="navbar-collapse collapse">
             <ul class="nav navbar-nav navbar-right" role="tablist">
-                <li><a class="page-scroll" data-anchor="#pf-landing-top" href="#">Home</a></li>
+                <li><a class="page-scroll" data-anchor="#pf-landing-top" href="#">Login</a></li>
                 <li> <a class="page-scroll" data-anchor="#pf-landing-gallery" href="#">Features</a></li>
                 <li> <a class="page-scroll" data-anchor="#pf-landing-maps" href="#">Maps</a></li>
                 <li> <a class="page-scroll" data-anchor="#pf-landing-install" href="#">Install</a></li>
@@ -41,6 +41,10 @@
 
 {* header *}
 <header id="pf-landing-top">
+
+    {* Admin login panel *}
+    <include href="templates/ui/admin_panel.html"/>
+
     <div id="pf-header-container">
         <canvas id="pf-header-canvas" class="hidden-xs" width="500" height="480"></canvas>
         <div class="container">
@@ -113,29 +117,8 @@
             </false>
         </check>
 
-        {* login message container *}
-        <check if="{{ @SESSION.SSO.ERROR }}">
-            <div class="container-fluid">
-                <div class="row ">
-                    <div class="col-sm-8 col-sm-offset-2">
-                        <div class="alert alert-danger" >
-                            <span class="txt-color txt-color-danger">Access denied</span>
-                            <small>{{ @SESSION.SSO.ERROR }}</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </check>
-
         {* SSO login *}
-        <div class="container-fluid">
-            <div class="row text-center">
-                <div class="col-xs-12">
-                    <a class="pf-sso-login-button {{@registrationStatusButton}}" target="_self" href="{{ 'sso','action=requestAuthorization' | alias }}" type="button" tabindex="3" title="{{@registrationStatusTitle}}">&nbsp;</a><br>
-                    <a class="font-lg" target="_blank" href="http://community.eveonline.com/news/dev-blogs/eve-online-sso-and-what-you-need-to-know">What is this?</a>
-                </div>
-            </div>
-        </div>
+        <include href="templates/modules/sso.html"/>
 
         {* splash page -> shown by Javascript *}
         <div id="pf-notification-panel"></div>
@@ -858,7 +841,7 @@
                     Feel free to contact me with your problem, either by submitting a <a target="_blank" href="https://github.com/exodus4d/pathfinder/issues">bug report</a> or contact me in game.
                     I´ll give my best to find a solution for your problem or path <em>Pathfinder</em>.
                 </p>
-                <h3>I don´t trust you, can I host <em>Pathfinder</em> on my own webserver?</h3>
+                <h3>I don´t trust you, can I host <em>Pathfinder</em> on my own?</h3>
                 <p>
                     Yes you can! I developed this application for the great community of <em>EVE Online</em>.
                     The program code is open source and can be used by anyone who have the required software skills.
@@ -870,10 +853,10 @@
                 </p>
                 <ul class="fa-ul pf-landing-list">
                     <li><i></i> A webserver with a <em><a target="_blank" href="https://en.wikipedia.org/wiki/LAMP_(software_bundle)">LAMP</a></em> environment</li>
-                    <li><i></i> PHP 5.6+</li>
-                    <li><i></i> PHP framework <a target="_blank" href="http://fatfreeframework.com/system-requirements">requirements</a> </li>
-                    <li><i></i> MySQL 5.6+ </li>
-                    <li><i></i> Some kind of server side caching technology (Memcache,APC,xCache) file caching will also work</li>
+                    <li><i></i> PHP 7.0+</li>
+                    <li><i></i> PHP framework <a target="_blank" href="http://fatfreeframework.com/system-requirements">requirements</a></li>
+                    <li><i></i> MySQL 5.7+ </li>
+                    <li><i></i> Some kind of server side caching. <em><a target="_blank" href="https://redis.io/">Redis</a></em> is preferred, file cache will also work</li>
                 </ul>
             </div>
         </div>

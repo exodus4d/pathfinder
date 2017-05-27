@@ -121,8 +121,9 @@ class Setup extends Controller {
      * event handler for all "views"
      * some global template variables are set in here
      * @param \Base $f3
+     * @param array $params
      */
-    function beforeroute(\Base $f3) {
+    function beforeroute(\Base $f3, $params) {
         // page title
         $f3->set('pageTitle', 'Setup');
 
@@ -405,6 +406,7 @@ class Setup extends Controller {
         // server type ------------------------------------------------------------------
         $serverData = self::getServerData(0);
 
+
         $checkRequirements = [
             'serverType' => [
                 'label' => 'Server type',
@@ -428,6 +430,12 @@ class Setup extends Controller {
                 'required' => number_format((float)$f3->get('REQUIREMENTS.PHP.VERSION'), 1, '.', ''),
                 'version' => phpversion(),
                 'check' => version_compare( phpversion(), $f3->get('REQUIREMENTS.PHP.VERSION'), '>=')
+            ],
+            'php_bit' => [
+                'label' => 'php_int_size',
+                'required' => ($f3->get('REQUIREMENTS.PHP.PHP_INT_SIZE') * 8 ) . '-bit',
+                'version' => (PHP_INT_SIZE * 8) . '-bit',
+                'check' => $f3->get('REQUIREMENTS.PHP.PHP_INT_SIZE') == PHP_INT_SIZE
             ],
             'pcre' => [
                 'label' => 'PCRE',

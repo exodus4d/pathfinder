@@ -42,6 +42,9 @@ class AppController extends Controller {
         // JS main file
         $f3->set('jsView', 'login');
 
+        // href for SSO Auth
+        $f3->set('tplAuthType', $f3->alias( 'sso', ['action' => 'requestAuthorization'] ));
+
         // characters  from cookies
         $f3->set('cookieCharacters', $this->getCookieByName(self::COOKIE_PREFIX_CHARACTER, true));
         $f3->set('getCharacterGrid', function($characters){

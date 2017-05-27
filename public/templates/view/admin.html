@@ -1,0 +1,32 @@
+{* splash page *}
+<include href="templates/ui/splash.html"/>
+
+<nav id="pf-navbar" class="navbar navbar-default navbar-fixed-top pf-head">
+    <div class="container col-sm-12">
+        {* Logged in *}
+        <check if="{{ @tplLogged }}">
+            <div id="pf-head" class="navbar-header">
+                <span class="navbar-brand">
+                    <img class="pull-left" style="width: 16px" src="https://image.eveonline.com/Corporation/{{ @character->corporationId->id }}_64.png"/>&nbsp;{{ @character->corporationId->name }}
+                </span>
+
+                <p class="navbar-text">
+                    {{ @character->name }}
+                </p>
+            </div>
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right" role="tablist">
+                    <li class="{{ @tplPage == 'settings' ? 'active' : '' }}"><a href="/admin/settings">Settings</a></li>
+                    <li class="{{ @tplPage == 'members' ? 'active' : '' }}"><a href="/admin/members"><i class="fa fa-fw fa-users"></i>&nbsp;Members</a></li>
+                    <li class="{{ @tplPage == 'maps' ? 'active' : '' }}"><a href="/admin/maps">Maps</a></li>
+                    <li class="{{ @tplPage == 'activity' ? 'active' : '' }}"><a href="/admin/activity">Activity</a></li>
+                    <li class="{{ @tplPage == 'login' ? 'active' : '' }}"><a href="/admin/login"><i class="fa fa-fw fa-sign-in"></i>&nbsp;SSO</a></li>
+                </ul>
+            </div>
+        </check>
+    </div>
+</nav>
+
+<include if="{{ @tplPage }}" href="{{ 'templates/admin/' . @tplPage . '.html' }}" />
+
+

@@ -21,6 +21,34 @@ class CharacterModel extends BasicModel {
      */
     const DATA_CACHE_KEY_LOG = 'LOG';
 
+    /**
+     * character authorization status
+     * @var array
+     */
+    const AUTHORIZATION_STATUS = [
+        'OK'            => true,                                        // success
+        'UNKNOWN'       => 'error',                                     // general authorization error
+        'CORPORATION'   => 'failed to match corporation whitelist',
+        'ALLIANCE'      => 'failed to match alliance whitelist',
+        'KICKED'        => 'character is kicked',
+        'BANNED'        => 'character is banned'
+    ];
+    
+    /**
+     * enables change for "kicked" column
+     * -> see kick();
+     * @var bool
+     */
+    private $allowKickChange = false;
+
+    /**
+     * enables change for "banned" column
+     * -> see ban();
+     * @var bool
+     */
+    private $allowBanChange = false;
+    
+
     protected $fieldConf = [
         'lastLogin' => [
             'type' => Schema::DT_TIMESTAMP,
@@ -75,6 +103,20 @@ class CharacterModel extends BasicModel {
                 ]
             ]
         ],
+        'roleId' => [
+            'type' => Schema::DT_TINYINT,
+            'nullable' => false,
+            'default' => 0,
+            'index' => true
+        ],
+        'kicked' => [
+            'type' => Schema::DT_TIMESTAMP,
+            'index' => true
+        ],
+        'banned' => [
+            'type' => Schema::DT_TIMESTAMP,
+            'index' => true
+        ],
         'shared' => [
             'type' => Schema::DT_BOOL,
             'nullable' => false,
@@ -125,8 +167,13 @@ class CharacterModel extends BasicModel {
             $characterData = (object) [];
             $characterData->id = $this->id;
             $characterData->name = $this->name;
+            $characterData->roleId = $this->roleId;
             $characterData->shared = $this->shared;
             $characterData->logLocation = $this->logLocation;
+
+            if( $this->authStatus ){
+                $characterData->authStatus = $this->authStatus;
+            }
 
             if($addCharacterLogData){
                 if($logModel = $this->getLog()){
@@ -188,6 +235,58 @@ class CharacterModel extends BasicModel {
     }
 
     /**
+     * setter for "kicked" until time
+     * @param bool|int $minutes
+     * @return mixed
+     */
+    public function set_kicked($minutes){
+        if($this->allowKickChange){
+            // allowed to set/change -> reset "allowed" property
+            $this->allowKickChange = false;
+            $kicked = null;
+
+            if($minutes){
+                $seconds = $minutes * 60;
+                $timezone = new \DateTimeZone(  self::getF3()->get('TZ') );
+                $kickedUntil = new \DateTime('now', $timezone);
+
+                // add cookie expire time
+                $kickedUntil->add(new \DateInterval('PT' . $seconds . 'S'));
+                $kicked = $kickedUntil->format('Y-m-d H:i:s');
+            }
+        }else{
+            // not allowed to set/change -> keep current status
+            $kicked = $this->kicked;
+        }
+
+        return $kicked;
+    }
+
+    /**
+     * setter for "banned" status
+     * @param bool|int $status
+     * @return mixed
+     */
+    public function set_banned($status){
+        if($this->allowBanChange){
+            // allowed to set/change -> reset "allowed" property
+            $this->allowBanChange = false;
+            $banned = null;
+
+            if($status){
+                $timezone = new \DateTimeZone(  self::getF3()->get('TZ') );
+                $bannedSince = new \DateTime('now', $timezone);
+                $banned = $bannedSince->format('Y-m-d H:i:s');
+            }
+        }else{
+            // not allowed to set/change -> keep current status
+            $banned = $this->banned;
+        }
+
+        return $banned;
+    }
+
+    /**
      * logLocation specifies whether the current system should be tracked or not
      * @param $logLocation
      * @return bool
@@ -203,6 +302,30 @@ class CharacterModel extends BasicModel {
         }
 
         return $logLocation;
+    }
+
+    /**
+     * kick character for $minutes
+     * -> do NOT use $this->kicked!
+     * -> this will not work (prevent abuse)
+     * @param bool|int $minutes
+     */
+    public function kick($minutes = false){
+        // enables "kicked" change for this model
+        $this->allowKickChange = true;
+        $this->kicked = $minutes;
+    }
+
+    /**
+     * ban character
+     * -> do NOT use $this->banned!
+     * -> this will not work (prevent abuse)
+     * @param bool|int $status
+     */
+    public function ban($status = false){
+        // enables "banned" change for this model
+        $this->allowBanChange = true;
+        $this->banned = $status;
     }
 
     /**
@@ -317,7 +440,7 @@ class CharacterModel extends BasicModel {
             !empty($this->crestAccessToken) &&
             !empty($this->crestAccessTokenUpdated)
         ){
-            $timezone = new \DateTimeZone( $this->getF3()->get('TZ') );
+            $timezone = new \DateTimeZone( self::getF3()->get('TZ') );
             $tokenTime = \DateTime::createFromFormat(
                 'Y-m-d H:i:s',
                 $this->crestAccessTokenUpdated,
@@ -358,45 +481,111 @@ class CharacterModel extends BasicModel {
     }
 
     /**
+     * check if character  is currently kicked
+     * @return bool
+     */
+    public function isKicked(){
+        $kicked = false;
+        if( !is_null($this->kicked) ){
+            $kickedUntil = new \DateTime();
+            $kickedUntil->setTimestamp( (int)strtotime($this->kicked) );
+            $now = new \DateTime();
+            $kicked = ($kickedUntil > $now);
+        }
+
+        return $kicked;
+    }
+
+    /**
      * checks whether this character is authorized to log in
      * -> check corp/ally whitelist config (pathfinder.ini)
      * @return bool
      */
     public function isAuthorized(){
-        $isAuthorized = false;
-        $f3 = self::getF3();
+        $authStatus = 'UNKNOWN';
 
-        $whitelistCorporations = array_filter( array_map('trim', (array)$f3->get('PATHFINDER.LOGIN.CORPORATION') ) );
-        $whitelistAlliance = array_filter( array_map('trim', (array)$f3->get('PATHFINDER.LOGIN.ALLIANCE') ) );
+        // check whether character is banned or temp kicked
+        if(is_null($this->banned)){
+            if( !$this->isKicked() ){
+                $f3 = self::getF3();
+                $whitelistCorporations = array_filter( array_map('trim', (array)$f3->get('PATHFINDER.LOGIN.CORPORATION') ) );
+                $whitelistAlliance = array_filter( array_map('trim', (array)$f3->get('PATHFINDER.LOGIN.ALLIANCE') ) );
 
-        if(
-            empty($whitelistCorporations) &&
-            empty($whitelistAlliance)
-        ){
-            // no corp/ally restrictions set -> any character is allowed to login
-            $isAuthorized = true;
-        }else{
-            // check if character corporation is set in whitelist
-            if(
-                !empty($whitelistCorporations) &&
-                $this->hasCorporation() &&
-                in_array((int)$this->get('corporationId', true), $whitelistCorporations)
-            ){
-                $isAuthorized = true;
+                if(
+                    empty($whitelistCorporations) &&
+                    empty($whitelistAlliance)
+                ){
+                    // no corp/ally restrictions set -> any character is allowed to login
+                    $authStatus = 'OK';
+                }else{
+                    // check if character corporation is set in whitelist
+                    if(
+                        !empty($whitelistCorporations) &&
+                        $this->hasCorporation() &&
+                        in_array((int)$this->get('corporationId', true), $whitelistCorporations)
+                    ){
+                        $authStatus = 'OK';
+                    }else{
+                        $authStatus = 'CORPORATION';
+                    }
+
+                    // check if character alliance is set in whitelist
+                    if(
+                        !$authStatus &&
+                        !empty($whitelistAlliance) &&
+                        $this->hasAlliance() &&
+                        in_array((int)$this->get('allianceId', true), $whitelistAlliance)
+                    ){
+                        $authStatus =  'OK';
+                    }else{
+                        $authStatus = 'ALLIANCE';
+                    }
+                }
+            }else{
+                $authStatus = 'KICKED';
             }
+        }else{
+            $authStatus = 'BANNED';
+        }
 
-            // check if character alliance is set in whitelist
-            if(
-                !$isAuthorized &&
-                !empty($whitelistAlliance) &&
-                $this->hasAlliance() &&
-                in_array((int)$this->get('allianceId', true), $whitelistAlliance)
-            ){
-                $isAuthorized = true;
+        return $authStatus;
+    }
+
+    /**
+     * get pathfinder roleId
+     * @return int
+     */
+    public function requestRoleId(){
+        $roleId = 0;
+        $rolesData = $this->requestRoles();
+        if( !empty($rolesData) ){
+            // roles that grant admin access for this character
+            $adminRoles = array_intersect(CorporationModel::ADMIN_ROLES, $rolesData);
+            if( !empty($adminRoles) ){
+                $roleId = 1;
             }
         }
 
-        return $isAuthorized;
+        return $roleId;
+    }
+
+    /**
+     * request all corporation roles granted to this character
+     * @return array
+     */
+    protected function requestRoles(){
+        $rolesData = [];
+        if( $accessToken = $this->getAccessToken() ){
+            // check if corporation exists (should never fail)
+            if( $corporation = $this->getCorporation() ){
+                $characterRolesData = $corporation->getCharactersRoles($accessToken);
+                if( !empty($characterRolesData[$this->_id]) ){
+                    $rolesData = $characterRolesData[$this->_id];
+                }
+            }
+        }
+
+        return $rolesData;
     }
 
     /**

@@ -80,6 +80,7 @@ class User extends Controller\Controller{
             $this->f3->set(self::SESSION_KEY_CHARACTERS, $sessionCharacters);
 
             // save user login information --------------------------------------------------------
+            $characterModel->roleId = $characterModel->requestRoleId();
             $characterModel->touch('lastLogin');
             $characterModel->save();
 
@@ -113,7 +114,8 @@ class User extends Controller\Controller{
         if( !empty($data['cookie']) ){
             if( !empty($cookieData = $this->getCookieByName($data['cookie']) )){
                 // cookie data is valid -> validate data against DB (security check!)
-                if( !empty($characters = $this->getCookieCharacters(array_slice($cookieData, 0, 1, true))) ){
+                // -> add characters WITHOUT permission to log in too!
+                if( !empty($characters = $this->getCookieCharacters(array_slice($cookieData, 0, 1, true), false)) ){
                     // character is valid and allowed to login
                     $return->character = reset($characters)->getData();
                 }else{

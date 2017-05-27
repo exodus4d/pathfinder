@@ -20,7 +20,7 @@ class Config extends \Prefab {
      * environment config keys that should be parsed as array
      * -> use "," as delimiter in config files/data
      */
-    const ARRAY_KEYS                                = ['CCP_ESI_SCOPES'];
+    const ARRAY_KEYS                                = ['CCP_ESI_SCOPES', 'CCP_ESI_SCOPES_ADMIN'];
 
     /**
      * all environment data

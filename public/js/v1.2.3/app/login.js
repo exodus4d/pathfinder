@@ -65,8 +65,9 @@ define([
         // notification panel
         notificationPanelId: 'pf-notification-panel',                           // id for "notification panel" (e.g. last update information)
 
-        // server panel
-        serverPanelId: 'pf-server-panel',                                       // id for EVE Online server status panel
+        // sticky panel
+        stickyPanelClass: 'pf-landing-sticky-panel',                            // class for sticky panels
+        stickyPanelServerId: 'pf-landing-server-panel',                         // id for EVE Online server status panel
 
         // animation
         animateElementClass: 'pf-animate-on-visible',                           // class for elements that will be animated to show
@@ -376,14 +377,14 @@ define([
 
         $('.youtube').each(function() {
             // Based on the YouTube ID, we can easily find the thumbnail image
-            $(this).css('background-image', 'url(https://i.ytimg.com/vi/' + this.id + '/sddefault.jpg)');
+            $(this).css('background-image', 'url(//i.ytimg.com/vi/' + this.id + '/sddefault.jpg)');
 
             // Overlay the Play icon to make it look like a video player
             $(this).append($('<div/>', {'class': 'play'}));
 
             $(document).delegate('#' + this.id, 'click', function() {
                 // Create an iFrame with autoplay set to true
-                let iFrameUrl = 'https://www.youtube.com/embed/' + this.id + '?autoplay=1&autohide=1';
+                let iFrameUrl = '//www.youtube.com/embed/' + this.id + '?autoplay=1&autohide=1';
                 if ( $(this).data('params') ){
                     iFrameUrl += '&'+$(this).data('params');
                 }
@@ -467,7 +468,8 @@ define([
 
             if(responseData.hasOwnProperty('status')){
                 let data = responseData.status;
-                data.serverPanelId = config.serverPanelId;
+                data.stickyPanelServerId = config.stickyPanelServerId;
+                data.stickyPanelClass = config.stickyPanelClass;
 
                 let statusClass = '';
                 switch(data.serviceStatus.toLowerCase()){
@@ -483,7 +485,7 @@ define([
                 requirejs(['text!templates/ui/server_panel.html', 'mustache'], function(template, Mustache) {
                     let content = Mustache.render(template, data);
                     $('#' + config.headerId).prepend(content);
-                    $('#' + config.serverPanelId).velocity('transition.slideLeftBigIn', {
+                    $('#' + config.stickyPanelServerId).velocity('transition.slideLeftBigIn', {
                         duration: 240
                     });
                 });
@@ -613,6 +615,25 @@ define([
         };
 
         // --------------------------------------------------------------------
+
+        let getCharacterAuthLabel = (authStatus) => {
+            let label = '';
+            switch(authStatus){
+                case 'UNKNOWN':
+                    label = 'ERROR';
+                    break;
+                case 'CORPORATION':
+                case 'ALLIANCE':
+                    label = 'INVALID';
+                    break;
+                default:
+                    label = authStatus;
+                    break;
+            }
+            return label;
+        };
+
+        // --------------------------------------------------------------------
         // request character data for each character panel
         requirejs(['text!templates/ui/character_panel.html', 'mustache'], function(template, Mustache){
 
@@ -653,7 +674,9 @@ define([
                         let data = {
                             link: this.characterElement.data('href'),
                             cookieName: this.cookieName,
-                            character: responseData.character
+                            character: responseData.character,
+                            authLabel: getCharacterAuthLabel(responseData.character.authStatus),
+                            authOK: responseData.character.authStatus === 'OK'
                         };
 
                         let content = Mustache.render(template, data);
@@ -800,6 +823,38 @@ define([
 
             });
         }, false);
+
+
+        require([
+            'datatables.net',
+            'datatables.net-buttons',
+            'datatables.net-buttons-html',
+            'datatables.net-responsive',
+            'datatables.net-select'
+        ], function (startup) {
+            let systemsDataTable = $('.dataTable').dataTable( {
+                pageLength: 100,
+                paging: true,
+               // lengthMenu: [[5, 10, 20, 50, -1], [5, 10, 20, 50, 'All']],
+                ordering: true,
+               // order: [[ 9, 'desc' ], [ 3, 'asc' ]],
+                autoWidth: false,
+             //   responsive: {
+             //       breakpoints: Init.breakpoints,
+             //       details: false
+              //  },
+                hover: false,
+                //data: systemsData,
+                columnDefs: [],
+                language: {
+                    emptyTable:  'No members',
+                    zeroRecords: 'No members found',
+                    lengthMenu:  'Show _MENU_ members',
+                    info:        'Showing _START_ to _END_ of _TOTAL_ members'
+                }
+            });
+        });
+
 
     });
 

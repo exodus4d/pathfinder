@@ -6,7 +6,7 @@ define([
 ], function($, Init, Util, Morris) {
     'use strict';
 
-    var config = {
+    let config = {
         // module info
         moduleClass: 'pf-module',                                               // class for each module
 
@@ -23,10 +23,9 @@ define([
         systemKillboardListImgShip: 'pf-system-killboard-img-ship',             // class for all ship images
         systemKillboardListImgAlly: 'pf-system-killboard-img-ally',             // class for all alliance logos
         systemKillboardListImgCorp: 'pf-system-killboard-img-corp'              // class for all corp logos
-
     };
 
-    var cache = {
+    let cache = {
         systemKillsGraphData: {} // data for system kills info graph
     };
 
@@ -35,8 +34,8 @@ define([
      * @param text
      * @returns {*|XMLList}
      */
-    var getLabel = function(text, options){
-        var label = $('<span>', {
+    let getLabel = function(text, options){
+        let label = $('<span>', {
             class: ['label', options.type, options.align].join(' ')
         }).text( text );
 
@@ -44,16 +43,16 @@ define([
     };
 
 
-    var showKillmails = function(moduleElement, killboardData){
+    let showKillmails = function(moduleElement, killboardData){
 
         // show number of killMails
-        var killMailCounterMax = 20;
-        var killMailCounter = 0;
+        let killMailCounterMax = 20;
+        let killMailCounter = 0;
 
         // change order (show right to left)
         killboardData.tableData.reverse();
 
-        for(var i = 0; i < killboardData.tableData.length; i++){
+        for(let i = 0; i < killboardData.tableData.length; i++){
 
             // check if killMails exist in this hour
             if(killboardData.tableData[i].killmails){
@@ -64,43 +63,43 @@ define([
 
                 moduleElement.append( $('<h5>').text(i + 'h ago'));
 
-                var killMailData = killboardData.tableData[i].killmails;
+                let killMailData = killboardData.tableData[i].killmails;
 
-                var listeElement = $('<ul>', {
+                let listeElement = $('<ul>', {
                     class: ['media-list', config.systemKillboardListClass].join(' ')
                 });
 
-                for(var j = 0; j < killMailData.length; j++){
+                for(let j = 0; j < killMailData.length; j++){
                     killMailCounter++;
                     if(killMailCounter >= killMailCounterMax){
                         break;
                     }
 
-                    var killData = killMailData[j];
+                    let killData = killMailData[j];
 
-                    var linkUrl = 'https://zkillboard.com/kill/' + killData.killID + '/';
-                    var victimImageUrl = 'https://image.eveonline.com/Type/' + killData.victim.shipTypeID + '_64.png';
-                    var killDate = getDateObjectByTimeString(killData.killTime);
-                    var killDateString = Util.convertDateToString(killDate);
-                    var killLossValue = Util.formatPrice( killData.zkb.totalValue );
+                    let linkUrl = '//zkillboard.com/kill/' + killData.killID + '/';
+                    let victimImageUrl = Init.url.ccpImageServer + 'Type/' + killData.victim.shipTypeID + '_64.png';
+                    let killDate = getDateObjectByTimeString(killData.killTime);
+                    let killDateString = Util.convertDateToString(killDate);
+                    let killLossValue = Util.formatPrice( killData.zkb.totalValue );
 
                     // check for ally
-                    var victimAllyLogoUrl = '';
-                    var displayAlly = 'none';
+                    let victimAllyLogoUrl = '';
+                    let displayAlly = 'none';
                     if(killData.victim.allianceID > 0){
-                        victimAllyLogoUrl = 'https://image.eveonline.com/Alliance/' + killData.victim.allianceID + '_32.png';
+                        victimAllyLogoUrl = Init.url.ccpImageServer + 'Alliance/' + killData.victim.allianceID + '_32.png';
                         displayAlly = 'block';
                     }
 
                     // check for corp
-                    var victimCorpLogoUrl = '';
-                    var displayCorp = 'none';
+                    let victimCorpLogoUrl = '';
+                    let displayCorp = 'none';
                     if(killData.victim.corporationID > 0){
-                        victimCorpLogoUrl = 'https://image.eveonline.com/Corporation/' + killData.victim.corporationID + '_32.png';
+                        victimCorpLogoUrl = Init.url.ccpImageServer + 'Corporation/' + killData.victim.corporationID + '_32.png';
                         displayCorp = 'inline';
                     }
 
-                    var liElement = $('<li>', {
+                    let liElement = $('<li>', {
                         class: ['media', config.systemKillboardListEntryClass].join(' ')
                     }).append(
                             $('<a>', {
@@ -180,11 +179,11 @@ define([
      */
     $.fn.updateSystemInfoGraphs = function(systemData){
 
-        var moduleElement = $(this);
+        let moduleElement = $(this);
 
 
         // headline toolbar icons
-        var headlineToolbar  = $('<h5>', {
+        let headlineToolbar  = $('<h5>', {
             class: 'pull-right'
         }).append(
                 $('<i>', {
@@ -192,7 +191,7 @@ define([
                     title: 'zkillboard.com'
                 }).on('click', function(e){
                     window.open(
-                        'https://zkillboard.com/system/' + systemData.systemId,
+                        '//zkillboard.com/system/' + systemData.systemId,
                         '_blank'
                     );
                 }).attr('data-toggle', 'tooltip')
@@ -201,30 +200,30 @@ define([
         moduleElement.append(headlineToolbar);
 
         // headline
-        var headline = $('<h5>', {
+        let headline = $('<h5>', {
             text: 'Killboard'
         });
 
         moduleElement.append(headline);
 
-        var killboardGraphElement = $('<div>', {
+        let killboardGraphElement = $('<div>', {
             class: config.systemKillboardGraphKillsClass
         });
 
         moduleElement.append(killboardGraphElement);
 
-        var showHours = 24;
-        var maxKillmailCount = 200; // limited by API
+        let showHours = 24;
+        let maxKillmailCount = 200; // limited by API
 
-        var labelOptions = {
+        let labelOptions = {
             align: 'center-block'
         };
-        var label = '';
+        let label = '';
 
         // private function draws a "system kills" graph
-        var drawGraph = function(data){
+        let drawGraph = function(data){
 
-            var tableData = data.tableData;
+            let tableData = data.tableData;
 
             // change order (show right to left)
             tableData.reverse();
@@ -240,7 +239,7 @@ define([
                  return;
              }
 
-            var labelYFormat = function(y){
+            let labelYFormat = function(y){
                 return Math.round(y);
             };
 
@@ -287,10 +286,10 @@ define([
         };
 
         // get recent KB stats (last 24h))
-        var localDate = new Date();
+        let localDate = new Date();
 
         // cache result for 5min
-        var cacheKey = systemData.systemId + '_' + localDate.getHours() + '_' + ( Math.ceil( localDate.getMinutes() / 5 ) * 5);
+        let cacheKey = systemData.systemId + '_' + localDate.getHours() + '_' + ( Math.ceil( localDate.getMinutes() / 5 ) * 5);
 
         if(cache.systemKillsGraphData.hasOwnProperty(cacheKey) ){
             // cached results
@@ -302,10 +301,10 @@ define([
         }else{
 
             // chart data
-            var chartData = [];
+            let chartData = [];
 
-            for(var i = 0; i < showHours; i++){
-                var tempData = {
+            for(let i = 0; i < showHours; i++){
+                let tempData = {
                     label: i + 'h',
                     kills: 0
                 };
@@ -314,18 +313,18 @@ define([
             }
 
             // get kills within the last 24h
-            var timeFrameInSeconds = 60 * 60 * 24;
+            let timeFrameInSeconds = 60 * 60 * 24;
 
             // get current server time
-            var serverDate= Util.getServerTime();
+            let serverDate= Util.getServerTime();
 
             // if system is w-space system -> add link modifier
-            var wSpaceLinkModifier = '';
+            let wSpaceLinkModifier = '';
             if(systemData.type.id === 1){
                 wSpaceLinkModifier = 'w-space/';
             }
 
-            var url = Init.url.zKillboard;
+            let url = Init.url.zKillboard;
             url += 'no-items/' + wSpaceLinkModifier + 'no-attackers/solarSystemID/' + systemData.systemId + '/pastSeconds/' + timeFrameInSeconds + '/';
 
             killboardGraphElement.showLoadingAnimation();
@@ -337,18 +336,18 @@ define([
             }).done(function(kbData) {
 
                 // the API wont return more than 200KMs ! - remember last bar block with complete KM information
-                var lastCompleteDiffHourData = 0;
+                let lastCompleteDiffHourData = 0;
 
 
                 // loop kills and count kills by hour
-                for (var i = 0; i < kbData.length; i++) {
-                    var killmailData = kbData[i];
+                for (let i = 0; i < kbData.length; i++) {
+                    let killmailData = kbData[i];
 
-                    var killDate = getDateObjectByTimeString(killmailData.killTime);
+                    let killDate = getDateObjectByTimeString(killmailData.killTime);
 
                     // get time diff
-                    var timeDiffMin = Math.round(( serverDate - killDate ) / 1000 / 60);
-                    var timeDiffHour = Math.round(timeDiffMin / 60);
+                    let timeDiffMin = Math.round(( serverDate - killDate ) / 1000 / 60);
+                    let timeDiffHour = Math.round(timeDiffMin / 60);
 
                     // update chart data
                     if (chartData[timeDiffHour]) {
@@ -401,7 +400,7 @@ define([
 
 
         // init tooltips
-        var tooltipElements = moduleElement.find('[data-toggle="tooltip"]');
+        let tooltipElements = moduleElement.find('[data-toggle="tooltip"]');
         tooltipElements.tooltip({
             container: 'body'
         });
@@ -412,7 +411,7 @@ define([
      * minify the killboard graph element e.g. if no kills where found, or on error
      * @param killboardGraphElement
      */
-    var minifyKillboardGraphElement = function(killboardGraphElement){
+    let minifyKillboardGraphElement = function(killboardGraphElement){
         killboardGraphElement.velocity({
             height: '20px',
             marginBottom: '0px'
@@ -426,9 +425,9 @@ define([
      * @param timeString
      * @returns {Date}
      */
-    var getDateObjectByTimeString = function(timeString){
-        var match = timeString.match(/^(\d+)-(\d+)-(\d+) (\d+)\:(\d+)\:(\d+)$/);
-        var date = new Date(match[1], match[2] - 1, match[3], match[4], match[5], match[6]);
+    let getDateObjectByTimeString = function(timeString){
+        let match = timeString.match(/^(\d+)-(\d+)-(\d+) (\d+)\:(\d+)\:(\d+)$/);
+        let date = new Date(match[1], match[2] - 1, match[3], match[4], match[5], match[6]);
 
         return date;
     };
@@ -438,10 +437,10 @@ define([
      * @param systemData
      * @returns {*|HTMLElement}
      */
-    var getModule = function(parentElement, systemData){
+    let getModule = function(parentElement, systemData){
 
         // create new module container
-        var moduleElement = $('<div>', {
+        let moduleElement = $('<div>', {
             class: [config.moduleClass, config.systemKillboardModuleClass].join(' '),
             css: {opacity: 0}
         });
@@ -461,10 +460,10 @@ define([
      */
     $.fn.drawSystemKillboardModule = function(systemData){
 
-        var parentElement = $(this);
+        let parentElement = $(this);
 
         // show route module
-        var showModule = function(moduleElement){
+        let showModule = function(moduleElement){
             if(moduleElement){
                 moduleElement.velocity('transition.slideDownIn', {
                     duration: Init.animationSpeed.mapModule,
@@ -474,7 +473,7 @@ define([
         };
 
         // check if module already exists
-        var moduleElement = parentElement.find('.' + config.systemKillboardModuleClass);
+        let moduleElement = parentElement.find('.' + config.systemKillboardModuleClass);
 
         if(moduleElement.length > 0){
             moduleElement.velocity('transition.slideDownOut', {

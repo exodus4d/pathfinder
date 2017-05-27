@@ -16,11 +16,12 @@ class Signature extends Controller\AccessController {
     /**
      * event handler
      * @param \Base $f3
+     * @param array $params
      */
-    function beforeroute(\Base $f3) {
+    function beforeroute(\Base $f3, $params) {
         // set header for all routes
         header('Content-type: application/json');
-        parent::beforeroute($f3);
+        parent::beforeroute($f3, $params);
     }
 
     /**

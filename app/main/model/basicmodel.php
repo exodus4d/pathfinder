@@ -139,28 +139,26 @@ abstract class BasicModel extends \DB\Cortex {
      * @throws Exception\ValidationException
      */
     public function set($key, $val){
-
         if(
             !$this->dry() &&
             $key != 'updated'
         ){
             if( $this->exists($key) ){
-                $currentVal = $this->get($key);
+                // get raw column data (no objects)
+                $currentVal = $this->get($key, true);
 
-                // if current value is not a relational object
-                // and value has changed -> update table col
-                if(is_object($currentVal)){
+                if(is_object($val)){
                     if(
-                        is_numeric($val) &&
-                        is_subclass_of($currentVal, 'Model\BasicModel') &&
-                        $currentVal->_id !== (int)$val
+                        is_subclass_of($val, 'Model\BasicModel') &&
+                        $val->_id != $currentVal
                     ){
+                        // relational object changed
                         $this->touch('updated');
                     }
-                }elseif($currentVal != $val){
+                }elseif($val != $currentVal){
+                    // non object value
                     $this->touch('updated');
                 }
-
             }
         }
 
@@ -601,6 +599,16 @@ abstract class BasicModel extends \DB\Cortex {
     }
 
     /**
+     * format dateTime column
+     * @param $column
+     * @param string $format
+     * @return false|null|string
+     */
+    public function getFormattedColumn($column, $format = 'Y-m-d H:i'){
+        return $this->get($column) ? date($format, strtotime( $this->get($column) )) : null;;
+    }
+
+    /**
      * export and download table data as *.csv
      * this is primarily used for static tables
      * @return bool
@@ -773,8 +781,7 @@ abstract class BasicModel extends \DB\Cortex {
      * @param string $text
      * @param string $type
      */
-    public static function log($text, $type = null){
-        $type = isset($type) ? $type : 'DEBUG';
+    public static function log($text, $type = 'DEBUG'){
         Controller\LogController::getLogger($type)->write($text);
     }
 

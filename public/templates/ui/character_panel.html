@@ -1,4 +1,15 @@
+{{ character.authorizationStatus}}
+
 <a href="{{ link }}?cookie={{ cookieName }}">
+    {{#authOK}}
+        {{#character.roleId}}
+            <div class="ribbon-wrapper fade in"><div class="ribbon ribbon-blue">ADMIN</div></div>
+        {{/character.roleId}}
+    {{/authOK}}
+    {{^authOK}}
+        <div class="ribbon-wrapper fade in"><div class="ribbon ribbon-red">{{authLabel}}</div></div>
+    {{/authOK}}
+
     <div class="pf-character-image-wrapper">
         <div class="pf-character-select-image">
             <img class="pf-character-image" src="https://image.eveonline.com/Character/{{ character.id }}_128.jpg" alt="{{ character.name }}"/>

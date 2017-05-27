@@ -6,6 +6,7 @@
   position: absolute;
   top: -3px;
   right: -3px;
+  pointer-events: none;
 }
 
 .ribbon {
@@ -54,9 +55,28 @@
     @include background-image(linear-gradient(top, darken($orange, 3%), darken($orange-dark, 3%)));
 
     &:before, &:after{
-      border-top:   3px solid darken($orange-dark, 18%);
+      border-top:   3px solid darken($orange-dark, 18%) ;
     }
   }
+
+  &.ribbon-red{
+    background-color:  $red;
+    @include background-image(linear-gradient(top, darken($red, 10%), darken($red, 18%)));
+
+    &:before, &:after{
+      border-top:   3px solid darken($red, 38%);
+    }
+  }
+
+  &.ribbon-blue{
+    background-color: $blue;
+    @include background-image(linear-gradient(top, darken($blue, 3%), darken($blue-dark, 3%)));
+
+    &:before, &:after{
+      border-top:   3px solid darken($blue-dark, 18%);
+    }
+  }
+
 }
 
 .ribbon:before {

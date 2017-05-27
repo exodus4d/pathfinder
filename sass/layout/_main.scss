@@ -252,6 +252,10 @@ select:active, select:hover {
       }
     }
 
+    &.pf-table-button-sm-cell{
+      padding: 0;
+    }
+
     &.pf-table-counter-cell{
       color: $gray-light;
 

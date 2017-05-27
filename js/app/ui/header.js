@@ -9,22 +9,22 @@ define([
 ], function($) {
     'use strict';
 
-    var config = {
+    let config = {
         previewElementClass: 'pf-header-preview-element'                                // class for "preview" elements
     };
 
 
-    var width, height, largeHeader, canvas, ctx, points, target, animateHeader = true;
+    let width, height, largeHeader, canvas, ctx, points, target, animateHeader = true;
 
-    var canvasHeight = 450;
-    var colorRGB = '108, 174, 173';
-    var connectionCount = 4;
+    let canvasHeight = 355;
+    let colorRGB = '108, 174, 173';
+    let connectionCount = 4;
 
 
-    var initHeader = function() {
+    let initHeader = function() {
         width = window.innerWidth;
         height = canvasHeight;
-        target = {x: width * 0.8, y: 230};
+        target = {x: width * 1, y: 230};
 
         largeHeader.style.height = height+'px';
 
@@ -34,24 +34,24 @@ define([
 
         // create points
         points = [];
-        for(var x = 0; x < width; x = x + width/20) {
-            for(var y = 0; y < height; y = y + height/15) {
-                var px = x + Math.random()*width/15;
-                var py = y + Math.random()*height/15;
-                var p = {x: px, originX: px, y: py, originY: py };
+        for(let x = 0; x < width; x = x + width/20) {
+            for(let y = 0; y < height; y = y + height/15) {
+                let px = x + Math.random()*width/15;
+                let py = y + Math.random()*height/15;
+                let p = {x: px, originX: px, y: py, originY: py };
                 points.push(p);
             }
         }
 
         // for each point find the 5 closest points
-        for(var i = 0; i < points.length; i++) {
-            var closest = [];
-            var p1 = points[i];
-            for(var j = 0; j < points.length; j++) {
-                var p2 = points[j];
+        for(let i = 0; i < points.length; i++) {
+            let closest = [];
+            let p1 = points[i];
+            for(let j = 0; j < points.length; j++) {
+                let p2 = points[j];
                 if(p1 !== p2) {
-                    var placed = false;
-                    for(var k = 0; k < connectionCount; k++) {
+                    let placed = false;
+                    for(let k = 0; k < connectionCount; k++) {
                         if(!placed) {
                             if(closest[k] === undefined) {
                                 closest[k] = p2;
@@ -60,7 +60,7 @@ define([
                         }
                     }
 
-                    for(var m = 0; m < connectionCount; m++) {
+                    for(let m = 0; m < connectionCount; m++) {
                         if(!placed) {
                             if(getDistance(p1, p2) < getDistance(p1, closest[m])) {
                                 closest[m] = p2;
@@ -74,14 +74,14 @@ define([
         }
 
         // assign a circle to each point
-        for(var n in points) {
-            var c = new Circle(points[n], 2+Math.random()*2, 'rgba(255,255,255,0.3)');
+        for(let n in points) {
+            let c = new Circle(points[n], 2+Math.random()*2, 'rgba(255,255,255,0.3)');
             points[n].circle = c;
         }
     };
 
     // Event handling
-    var addListeners = function() {
+    let addListeners = function() {
         if(!('ontouchstart' in window)) {
             window.addEventListener('mousemove', mouseMove);
         }
@@ -89,9 +89,9 @@ define([
         window.addEventListener('resize', resize);
     };
 
-    var mouseMove = function(e) {
-        var posx = 0;
-        var posy = 0;
+    let mouseMove = function(e) {
+        let posx = 0;
+        let posy = 0;
         if (e.pageX || e.pageY) {
             posx = e.pageX;
             posy = e.pageY;
@@ -103,7 +103,7 @@ define([
         target.y = posy;
     };
 
-    var scrollCheck = function() {
+    let scrollCheck = function() {
         if(document.body.scrollTop > height){
             animateHeader = false;
         }else{
@@ -111,7 +111,7 @@ define([
         }
     };
 
-    var resize = function() {
+    let resize = function() {
         width = window.innerWidth;
         height = canvasHeight;
         largeHeader.style.height = height+'px';
@@ -120,17 +120,17 @@ define([
     };
 
     // animation
-    var initAnimation = function() {
+    let initAnimation = function() {
         animate();
-        for(var i in points) {
+        for(let i in points) {
             shiftPoint(points[i]);
         }
     };
 
-    var animate = function animate() {
+    let animate = function animate() {
         if(animateHeader) {
             ctx.clearRect(0,0,width,height);
-            for(var i in points) {
+            for(let i in points) {
                 // detect points in range
                 if(Math.abs(getDistance(target, points[i])) < 4000) {
                     points[i].active = 0.25;
@@ -153,7 +153,7 @@ define([
         requestAnimationFrame(animate);
     };
 
-    var shiftPoint = function (p) {
+    let shiftPoint = function (p) {
         TweenLite.to(p, 1 + 1 * Math.random(), {x: p.originX - 50 + Math.random() * 100,
             y: p.originY - 50 + Math.random() * 100, ease: Circ.easeInOut,
             onComplete: function () {
@@ -162,9 +162,9 @@ define([
     };
 
     // Canvas manipulation
-    var drawLines = function (p) {
+    let drawLines = function (p) {
         if(!p.active) return;
-        for(var i in p.closest) {
+        for(let i in p.closest) {
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(p.closest[i].x, p.closest[i].y);
@@ -173,8 +173,8 @@ define([
         }
     };
 
-    var Circle = function(pos,rad,color) {
-        var _this = this;
+    let Circle = function(pos,rad,color) {
+        let _this = this;
 
         // constructor
         (function() {
@@ -193,7 +193,7 @@ define([
     };
 
     // Util
-    var getDistance = function(p1, p2) {
+    let getDistance = function(p1, p2) {
         return Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2);
     };
 
