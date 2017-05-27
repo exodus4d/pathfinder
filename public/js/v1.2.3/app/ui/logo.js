@@ -9,7 +9,7 @@ define([
 
     'use strict';
 
-    var config = {
+    let config = {
 
         staticLogoId: 'pf-static-logo-svg',                                     // id for "static" logo
 
@@ -26,9 +26,9 @@ define([
      * @param enableHover
      */
     $.fn.drawLogo = function(callback, enableHover){
-        var canvasElement = $(this);
+        let canvasElement = $(this);
 
-        var pathObj = {
+        let pathObj = {
             logo: {
                 strokepath: [
                     {
@@ -61,7 +61,7 @@ define([
 
         // load Logo svg
         requirejs(['text!templates/ui/logo.html', 'mustache'], function(template, Mustache) {
-            var logoData = {
+            let logoData = {
                 staticLogoId: config.staticLogoId,
                 logoPartTopRightClass: config.logoPartTopRightClass,
                 logoPartBottomLeftClass: config.logoPartBottomLeftClass,
@@ -69,7 +69,7 @@ define([
                 logoPartTopLeftClass: config.logoPartTopLeftClass
             };
 
-            var logoContent = Mustache.render(template, logoData);
+            let logoContent = Mustache.render(template, logoData);
 
             canvasElement.html(logoContent);
 
@@ -106,17 +106,17 @@ define([
 
                                 // init logo animation
                                 if(enableHover === true){
-                                    var logoElements = $('#' + config.staticLogoId + ' path');
+                                    let logoElements = $('#' + config.staticLogoId + ' path');
 
-                                    var animate = [];
+                                    let animate = [];
                                     logoElements.on('mouseover', function(e){
-                                        var currentLogoElement = $(e.target);
-                                        var currentLogoElementIndex = logoElements.index(currentLogoElement);
+                                        let currentLogoElement = $(e.target);
+                                        let currentLogoElementIndex = logoElements.index(currentLogoElement);
 
-                                        var animationXValue = currentLogoElement.attr('data-animationX');
-                                        var animationYValue = currentLogoElement.attr('data-animationY');
+                                        let animationXValue = currentLogoElement.attr('data-animationX');
+                                        let animationYValue = currentLogoElement.attr('data-animationY');
 
-                                        var animationConfig = {};
+                                        let animationConfig = {};
                                         animationConfig.opacity = [1, 1];
                                         animationConfig.translateZ = [0, 0];
                                         animationConfig.translateX = [animationXValue, 0 ];
