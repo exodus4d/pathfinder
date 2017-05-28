@@ -201,15 +201,34 @@ class CharacterModel extends BasicModel {
     }
 
     /**
+     * set corporation for this character
+     * -> corp change resets admin actions (e.g. kick/ban)
+     * @param $corporationId
+     * @return mixed
+     */
+    public function set_corporationId($corporationId){
+        $currentCorporationId = (int)$this->get('corporationId', true);
+
+        if($currentCorporationId !== $corporationId){
+             $this->resetAdminColumns();
+        }
+
+        return $corporationId;
+    }
+
+    /**
      * set unique "ownerHash" for this character
      * -> Hash will change when  character is transferred (sold)
      * @param string $ownerHash
      * @return string
      */
     public function set_ownerHash($ownerHash){
-
         if( $this->ownerHash !== $ownerHash ){
             if( $this->hasUserCharacter() ){
+                // reset admin actions (e.g. kick/ban)
+                $this->resetAdminColumns();
+
+                // new ownerHash -> new user (reset)
                 $this->userCharacter->erase();
             }
 
@@ -363,6 +382,13 @@ class CharacterModel extends BasicModel {
 
         // clear data with "log" as well!
         parent::clearCacheDataWithPrefix(self::DATA_CACHE_KEY_LOG);
+    }
+
+    /**
+     * resets some columns that could have changed by admins (e.g. kick/ban)
+     */
+    private function resetAdminColumns(){
+        $this->kick();
     }
 
     /**

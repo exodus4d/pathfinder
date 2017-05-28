@@ -429,10 +429,7 @@ class System extends Controller\AccessController {
                 foreach($systemIds as $systemId){
                     if( $system = $map->getSystemById($systemId) ){
                         // check whether system should be deleted OR set "inactive"
-                        if(
-                            !empty($system->description) ||
-                            ( !empty($system->alias) && ($system->alias != $system->name) )
-                        ){
+                        if( !empty($system->description) ){
                             // keep data -> set "inactive"
                             $system->setActive(false);
                             $system->save();
