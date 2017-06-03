@@ -665,7 +665,7 @@ define([
             paging: true,
             lengthMenu: [[5, 10, 20, 50, -1], [5, 10, 20, 50, 'All']],
             ordering: true,
-            order: [[ 0, 'desc' ], [ 4, 'asc' ]],
+            order: [[ 3, 'asc' ]],
             autoWidth: false,
             hover: false,
             data: usersData,
@@ -678,25 +678,6 @@ define([
             columnDefs: [
                 {
                     targets: 0,
-                    title: '<i title="active" data-toggle="tooltip" class="fa fa-user text-right"></i>',
-                    width: '10px',
-                    orderable: true,
-                    searchable: false,
-                    className: ['text-center'].join(' '),
-                    data: 'log.active',
-                    render: {
-                        _: function(data, type, row, meta){
-                            let value = data;
-                            if(type === 'display'){
-                                let icon = value ? 'fa-user' : 'fa-user-o';
-                                value = '<i class="fa ' + icon + '"></i>';
-                            }
-                            return value;
-                        }
-                    }
-                },
-                {
-                    targets: 1,
                     title: '',
                     width: '26px',
                     orderable: false,
@@ -713,7 +694,7 @@ define([
                         }
                     }
                 },{
-                    targets: 2,
+                    targets: 1,
                     title: 'ship name',
                     width: '100px',
                     orderable: true,
@@ -729,7 +710,7 @@ define([
                         }
                     }
                 },{
-                    targets: 3,
+                    targets: 2,
                     title: '',
                     width: '26px',
                     orderable: false,
@@ -746,7 +727,7 @@ define([
                         }
                     }
                 },{
-                    targets: 4,
+                    targets: 3,
                     title: 'pilot',
                     orderable: true,
                     searchable: true,
@@ -769,7 +750,7 @@ define([
                         });
                     }
                 },{
-                    targets: 5,
+                    targets: 4,
                     title: '',
                     width: '26px',
                     orderable: false,
@@ -786,7 +767,7 @@ define([
                         }
                     }
                 },{
-                    targets: 6,
+                    targets: 5,
                     title: 'corporation',
                     orderable: true,
                     searchable: true,
@@ -809,7 +790,7 @@ define([
                         });
                     }
                 },{
-                    targets: 7,
+                    targets: 6,
                     title: 'system',
                     orderable: true,
                     searchable: true,
@@ -819,7 +800,7 @@ define([
                         sort: 'name'
                     }
                 },{
-                    targets: 8,
+                    targets: 7,
                     title: 'station',
                     orderable: true,
                     searchable: true,

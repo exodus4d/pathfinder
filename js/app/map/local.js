@@ -197,7 +197,7 @@ define([
                         userData[jumps][j].jumps = jumps;
 
                         let rowData = userData[jumps][j];
-
+console.log(rowData)
                         // check for existing rows
                         let indexes = filterRows(localTable, 'id', [rowData.id]);
 
@@ -405,6 +405,17 @@ define([
                         width: '1px',
                         className: ['pf-help-default', 'text-center'].join(' '),
                         data: 'jumps',
+                        render: {
+                            _: function(data, type, row, meta){
+                                let value = data;
+                                if(type === 'display'){
+                                    if(value === 0){
+                                        value = '<i class="fa fa-map-marker"></i>';
+                                    }
+                                }
+                                return value;
+                            }
+                        },
                         createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                             let api = this.DataTable();
                             initCellTooltip(api, cell, 'log.system.name');

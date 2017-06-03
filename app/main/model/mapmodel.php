@@ -611,7 +611,7 @@ class MapModel extends BasicModel {
         $characters = [];
 
         if($this->isPrivate()){
-            $activeCharacters = $this->getCharacters();
+            $activeCharacters = $this->getCharacters([], $options);
 
             // add active character for each user
             foreach($activeCharacters as $activeCharacter){
