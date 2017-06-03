@@ -157,9 +157,10 @@ class CorporationModel extends BasicModel {
     /**
      * get all characters in this corporation
      * @param array $characterIds
+     * @param array $options
      * @return CharacterModel[]
      */
-    public function getCharacters( $characterIds = []){
+    public function getCharacters($characterIds = [], $options = []){
         $characters = [];
         $filter = ['active = ?', 1];
 
@@ -169,6 +170,11 @@ class CorporationModel extends BasicModel {
         }
 
         $this->filter('corporationCharacters', $filter);
+
+        if($options['hasLog']){
+            // just characters with active log data
+            $this->has('corporationCharacters.characterLog', ['active = ?', 1]);
+        }
 
         if($this->corporationCharacters){
             foreach($this->corporationCharacters as $character){

@@ -621,87 +621,144 @@ class CharacterModel extends BasicModel {
      * @return $this
      */
     public function updateLog($additionalOptions = []){
-        $deleteLog = true;
+        $deleteLog = false;
+        $invalidResponse = false;
 
         //check if log update is enabled for this user
         if( $this->logLocation ){
             // Try to pull data from API
             if( $accessToken = $this->getAccessToken() ){
-                $locationData = self::getF3()->ccpClient->getCharacterLocationData($this->_id, $accessToken, $additionalOptions);
+                $onlineData = self::getF3()->ccpClient->getCharacterOnlineData($this->_id, $accessToken, $additionalOptions);
 
-                if( !empty($locationData['system']['id']) ){
-                    // character is currently in-game
+                // check whether character is currently ingame online
+                if(is_bool($onlineData['online'])){
+                    if($onlineData['online'] === true){
+                        $locationData = self::getF3()->ccpClient->getCharacterLocationData($this->_id, $accessToken, $additionalOptions);
 
-                    // IDs for "systemId", "stationId and "shipTypeId" that require more data
-                    $lookupIds = [];
+                        if( !empty($locationData['system']['id']) ){
+                            // character is currently in-game
 
-                    if( !$characterLog = $this->getLog() ){
-                        // create new log
-                        $characterLog = $this->rel('characterLog');
-                        $characterLog->characterId = $this->_id;
-                    }
+                            // IDs for "systemId", "stationId and "shipTypeId" that require more data
+                            $lookupIds = [];
 
-                    // get current log data and modify on change
-                    $logData = json_decode(json_encode( $characterLog->getData()), true);
+                            if( !$characterLog = $this->getLog() ){
+                                // create new log
+                                $characterLog = $this->rel('characterLog');
+                                $characterLog->characterId = $this->_id;
+                            }
 
-                    if(
-                        empty($logData['system']['name']) ||
-                        $logData['system']['id'] !== $locationData['system']['id']
-                    ){
-                        // system changed -> request "system name" for current system
-                        $lookupIds[] = $locationData['system']['id'];
-                    }
+                            // get current log data and modify on change
+                            $logData = json_decode(json_encode( $characterLog->getData()), true);
 
-                    if( !empty($locationData['station']['id']) ){
-                        if(
-                            empty($logData['station']['name']) ||
-                            $logData['station']['id']  !== $locationData['station']['id']
-                        ){
-                            // station changed -> request "station name" for current station
-                            $lookupIds[] = $locationData['station']['id'];
+                            if(
+                                empty($logData['system']['name']) ||
+                                $logData['system']['id'] !== $locationData['system']['id']
+                            ){
+                                // system changed -> request "system name" for current system
+                                $lookupIds[] = $locationData['system']['id'];
+                            }
+
+                            if( !empty($locationData['station']['id']) ){
+                                if(
+                                    empty($logData['station']['name']) ||
+                                    $logData['station']['id']  !== $locationData['station']['id']
+                                ){
+                                    // station changed -> request "station name" for current station
+                                    $lookupIds[] = $locationData['station']['id'];
+                                }
+                            }else{
+                                unset($logData['station']);
+                            }
+
+                            $logData = array_replace_recursive($logData, $locationData);
+
+                            // get current ship data
+                            $shipData = self::getF3()->ccpClient->getCharacterShipData($this->_id, $accessToken, $additionalOptions);
+
+                            if( !empty($shipData['ship']['typeId']) ){
+                                if(
+                                    empty($logData['ship']['typeName']) ||
+                                    $logData['ship']['typeId'] !== $shipData['ship']['typeId']
+                                ){
+                                    // ship changed -> request "station name" for current station
+                                    $lookupIds[] = $shipData['ship']['typeId'];
+                                }
+
+                                // "shipName"/"shipId" could have changed...
+                                $logData = array_replace_recursive($logData, $shipData);
+                            }else{
+                                // ship data should never be empty -> keep current one
+                                //unset($logData['ship']);
+                                $invalidResponse = true;
+                            }
+
+                            if( !empty($lookupIds) ){
+                                // get "more" information for some Ids (e.g. name)
+                                $universeData = self::getF3()->ccpClient->getUniverseNamesData($lookupIds, $additionalOptions);
+
+                                if( !empty($universeData) ){
+                                    $logData = array_replace_recursive($logData, $universeData);
+                                }else{
+                                    // this is important! universe data is a MUST HAVE!
+                                    $deleteLog = true;
+                                }
+                            }
+
+                            if( !$deleteLog ){
+                                // mark log as "updated" even if no changes were made
+                                if($additionalOptions['markUpdated'] === true){
+                                    $characterLog->touch('updated');
+                                }
+
+                                $characterLog->setData($logData);
+                                $characterLog->save();
+
+                                $this->characterLog = $characterLog;
+                            }
+                        }else{
+                            // systemId should always exists
+                            $invalidResponse = true;
                         }
                     }else{
-                        unset($logData['station']);
+                        // user is in-game offline
+                        $deleteLog = true;
                     }
+                }else{
+                    // online status request failed
+                    $invalidResponse = true;
+                }
+            }else{
+                // access token request failed
+                $deleteLog = true;
+            }
+        }else{
+            // character deactivated location logging
+            $deleteLog = true;
+        }
 
-                    $logData = array_replace_recursive($logData, $locationData);
+        if( $user = $this->getUser() ){
+            // Session data does not exists in CLI mode (Cronjob)
+            if( $sessionCharacterData = $user->getSessionCharacterData($this->id, false) ){
+                $updateRetry = (int)$sessionCharacterData['UPDATE_RETRY'];
+                $newRetry =  $updateRetry;
+                if($invalidResponse){
+                    $newRetry++;
 
-                    // get current ship data
-                    $shipData = self::getF3()->ccpClient->getCharacterShipData($this->_id, $accessToken, $additionalOptions);
-
-                    if( !empty($shipData['ship']['typeId']) ){
-                        if(
-                            empty($logData['ship']['typeName']) ||
-                            $logData['ship']['typeId'] !== $shipData['ship']['typeId']
-                        ){
-                            // ship changed -> request "station name" for current station
-                            $lookupIds[] = $shipData['ship']['typeId'];
-                        }
-
-                        // "shipName"/"shipId" could have changed...
-                        $logData = array_replace_recursive($logData, $shipData);
-                    }else{
-                        unset($logData['ship']);
+                    if($newRetry >= 3){
+                        // no proper character log data (3 fails in a row))
+                        $newRetry = 0;
+                        $deleteLog = true;
                     }
+                }else{
+                    // reset retry counter
+                    $newRetry = 0;
+                }
 
-                    if( !empty($lookupIds) ){
-                        // get "more" information for some Ids (e.g. name)
-                        $universeData = self::getF3()->ccpClient->getUniverseNamesData($lookupIds, $additionalOptions);
-
-                        if( !empty($universeData) ){
-                            $deleteLog = false;
-                            $logData = array_replace_recursive($logData, $universeData);
-                        }
-                    }else{
-                        $deleteLog = false;
-                    }
-
-                    if( !$deleteLog ){
-                        $characterLog->setData($logData);
-                        $characterLog->save();
-
-                        $this->characterLog = $characterLog;
-                    }
+                if($updateRetry !== $newRetry){
+                    // update retry counter
+                    $sessionCharacterData['UPDATE_RETRY'] = $newRetry;
+                    $sessionCharacters = self::mergeSessionCharacterData([$sessionCharacterData]);
+                    self::getF3()->set(User::SESSION_KEY_CHARACTERS, $sessionCharacters);
                 }
             }
         }

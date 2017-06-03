@@ -58,7 +58,8 @@ class User extends Controller\Controller{
                 [
                     'ID' => $characterModel->_id,
                     'NAME' => $characterModel->name,
-                    'TIME' => (new \DateTime())->getTimestamp()
+                    'TIME' => (new \DateTime())->getTimestamp(),
+                    'UPDATE_RETRY' => 0
                 ]
             ];
 

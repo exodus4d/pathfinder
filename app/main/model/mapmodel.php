@@ -573,12 +573,25 @@ class MapModel extends BasicModel {
 
     /**
      * get all (private) characters for this map
+     * @param array $characterIds
+     * @param array $options
      * @return CharacterModel[]
      */
-    private function getCharacters(){
+    private function getCharacters($characterIds = [], $options = []){
         $characters = [];
+        $filter = ['active = ?', 1];
 
-        $this->filter('mapCharacters', ['active = ?', 1]);
+        if( !empty($characterIds) ){
+            $filter[0] .= ' AND id IN (?)';
+            $filter[] =  $characterIds;
+        }
+
+        $this->filter('mapCharacters', $filter);
+
+        if($options['hasLog']){
+            // just characters with active log data
+            $this->has('mapCharacters.characterLog', ['active = ?', 1]);
+        }
 
         if($this->mapCharacters){
             foreach($this->mapCharacters as $characterMapModel){
@@ -591,9 +604,10 @@ class MapModel extends BasicModel {
 
     /**
      * get all character models that are currently online "viewing" this map
+     * @param array $options filter options
      * @return CharacterModel[]
      */
-    private function getAllCharacters(){
+    private function getAllCharacters($options = []){
         $characters = [];
 
         if($this->isPrivate()){
@@ -607,13 +621,13 @@ class MapModel extends BasicModel {
             $corporations = $this->getCorporations();
 
             foreach($corporations as $corporation){
-                $characters = array_merge($characters, $corporation->getCharacters());
+                $characters = array_merge($characters, $corporation->getCharacters([], $options));
             }
         }elseif($this->isAlliance()){
             $alliances = $this->getAlliances();
 
             foreach($alliances as $alliance){
-                $characters = array_merge($characters, $alliance->getCharacters());
+                $characters = array_merge($characters, $alliance->getCharacters([], $options));
             }
         }
 
@@ -623,15 +637,16 @@ class MapModel extends BasicModel {
     /**
      * get data for ALL characters with map access
      * -> The result of this function is cached!
-     * @return \stdClass[]
+     * @param array $options filter options
+     * @return \stdClass
      */
-    public function getCharactersData(){
+    public function getCharactersData($options = []){
         // check if there is cached data
         $charactersData = $this->getCacheData(self::DATA_CACHE_KEY_CHARACTER);
 
         if(is_null($charactersData)){
             $charactersData = [];
-            $characters = $this->getAllCharacters();
+            $characters = $this->getAllCharacters($options);
 
             foreach($characters as $character){
                 $charactersData[] = $character->getData(true);
@@ -844,7 +859,7 @@ class MapModel extends BasicModel {
         $mapDataAll = $this->getData();
 
         // get data of characters which have with map access
-        $activeUserCharactersData = $this->getCharactersData();
+        $activeUserCharactersData = $this->getCharactersData(['hasLog' => true]);
 
         // sort characters by "active" status
         $sortByActiveLog = function($a, $b){

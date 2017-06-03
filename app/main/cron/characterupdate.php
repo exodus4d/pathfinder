@@ -13,60 +13,21 @@ use Model;
 
 class CharacterUpdate {
 
-    const CHARACTER_LOG_ACTIVE = 300;
-    const CHARACTER_LOG_INACTIVE = 300;
+    const CHARACTER_LOG_INACTIVE            =   300;
 
     /**
-     * get "active" time for character log data in seconds
-     * -> get default value in case of nothing found in *.ini file
-     * @param \Base $f3
-     * @return int
+     * max count of "inactive" character log data that will be checked for offline status
      */
-    protected function getCharacterLogActiveTime(\Base $f3){
-        $logActiveTime = (int)$f3->get('PATHFINDER.CACHE.CHARACTER_LOG_ACTIVE');
-        return ($logActiveTime >= 0) ? $logActiveTime : self::CHARACTER_LOG_ACTIVE;
-    }
+    const CHARACTERS_UPDATE_LOGS_MAX        =   20;
 
     /**
-     * get "incactive" time for character log data in seconeds
+     * get "inactive" time for character log data in seconds
      * @param \Base $f3
      * @return int
      */
     protected function getCharacterLogInactiveTime(\Base $f3){
         $logInactiveTime =  (int)$f3->get('PATHFINDER.CACHE.CHARACTER_LOG_INACTIVE');
         return ($logInactiveTime >= 0) ? $logInactiveTime : self::CHARACTER_LOG_INACTIVE;
-    }
-
-    /**
-     * set character log data as inactive in case of not changed within X seconds
-     * >> php index.php "/cron/deactivateLogData"
-     * @param \Base $f3
-     */
-    public function deactivateLogData(\Base $f3){
-        DB\Database::instance()->getDB('PF');
-        $logActiveTime = $this->getCharacterLogActiveTime($f3);
-
-        /**
-         * @var $characterLogModel Model\CharacterLogModel
-         */
-        $characterLogModel = Model\BasicModel::getNew('CharacterLogModel', 0);
-
-        // find expired character logs
-        $characterLogs = $characterLogModel->find([
-            'active = :active AND TIMESTAMPDIFF(SECOND, updated, NOW() ) > :lifetime',
-            ':active' => 1,
-            ':lifetime' => $logActiveTime
-        ]);
-
-        if(is_object($characterLogs)){
-            foreach($characterLogs as $characterLog){
-                /**
-                 * @var $characterLog Model\CharacterLogModel
-                 */
-                $characterLog->setActive(false);
-                $characterLog->save();
-            }
-        }
     }
 
     /**
@@ -84,11 +45,13 @@ class CharacterUpdate {
          */
         $characterLogModel = Model\BasicModel::getNew('CharacterLogModel', 0);
 
-        // find expired character logs
+        // find character logs that were not checked recently and update
         $characterLogs = $characterLogModel->find([
-            'active = :active AND TIMESTAMPDIFF(SECOND, updated, NOW() ) > :lifetime',
-            ':active' => 0,
+            'TIMESTAMPDIFF(SECOND, updated, NOW() ) > :lifetime',
             ':lifetime' => $logInactiveTime
+        ], [
+            'order' => 'updated asc',
+            'limit' => self::CHARACTERS_UPDATE_LOGS_MAX
         ]);
 
         if(is_object($characterLogs)){
@@ -96,7 +59,11 @@ class CharacterUpdate {
                 /**
                  * @var $characterLog Model\CharacterLogModel
                  */
-                $characterLog->erase();
+                // force characterLog as "updated" even if no changes were made
+                $characterLog->characterId->updateLog([
+                    'markUpdated' =>  true,
+                    'suppressHTTPErrors' => true
+                ]);
             }
         }
     }
