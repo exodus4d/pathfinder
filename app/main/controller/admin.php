@@ -211,7 +211,7 @@ class Admin extends Controller{
     protected function filterValidCharacters(CharacterModel $character, $characterId){
         $characters = [];
         // check if kickCharacters belong to same Corp as admin character
-        // -> remove admin char from kickCharacters...
+        // -> remove admin char from valid characters...
         if( !empty($characterIds = array_diff( [$characterId], [$character->_id])) ){
             $characters = $character->getCorporation()->getCharacters($characterIds);
         }

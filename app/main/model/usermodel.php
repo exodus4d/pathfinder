@@ -123,7 +123,7 @@ class UserModel extends BasicModel {
         switch($registrationStatus){
             case 0:
                 $f3 = self::getF3();
-                throw new Exception\RegistrationException($f3->get('PATHFINDER.REGISTRATION.MSG_DISABLED'));
+                throw new Exception\RegistrationException('User registration is currently not allowed');
                 break;
             case 1:
                 return true;

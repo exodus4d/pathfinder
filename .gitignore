@@ -50,5 +50,5 @@ Temporary Items
 .sass-cache
 .usage
 *.gz
-/composer-dev.lock
-/composer.lock
+*.lock
+/conf/

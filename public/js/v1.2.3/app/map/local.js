@@ -197,7 +197,7 @@ define([
                         userData[jumps][j].jumps = jumps;
 
                         let rowData = userData[jumps][j];
-console.log(rowData)
+
                         // check for existing rows
                         let indexes = filterRows(localTable, 'id', [rowData.id]);
 
