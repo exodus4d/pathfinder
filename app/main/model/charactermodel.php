@@ -33,6 +33,15 @@ class CharacterModel extends BasicModel {
         'KICKED'        => 'character is kicked',
         'BANNED'        => 'character is banned'
     ];
+
+    /**
+     * all admin roles and related roleId for a character
+     */
+    const ROLES = [
+        'MEMBER'        => 0,
+        'SUPERADMIN'    => 1,
+        'CORPORATION'   => 2
+    ];
     
     /**
      * enables change for "kicked" column
@@ -582,13 +591,13 @@ class CharacterModel extends BasicModel {
      * @return int
      */
     public function requestRoleId(){
-        $roleId = 0;
-        $rolesData = $this->requestRoles();
-        if( !empty($rolesData) ){
+        $roleId = self::ROLES['MEMBER'];
+
+        if( !empty($rolesData = $this->requestRoles()) ){
             // roles that grant admin access for this character
             $adminRoles = array_intersect(CorporationModel::ADMIN_ROLES, $rolesData);
             if( !empty($adminRoles) ){
-                $roleId = 1;
+                $roleId = self::ROLES['CORPORATION'];
             }
         }
 

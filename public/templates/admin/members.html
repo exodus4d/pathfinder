@@ -4,99 +4,102 @@
 
         <h4><i class="fa fa-fw fa-users"></i>&nbsp;{{ ucfirst(@tplPage) }}</h4>
 
-        <div class="row text-center">
-            <div class="col-xs-12 pf-landing-pricing-panel">
-                <div class="panel panel-default pricing-big">
-                    <div class="panel-heading text-left">
-                        <h3 class="panel-title">Corporation</h3>
-                    </div>
-                    <div class="panel-body">
-                        <table id="table_id" class="stripe order-column row-border dataTable" data-order="[1, &quot;asc&quot;]" data-length-change="0" data-paging-type="full_numbers">
-                            <thead>
-                            <tr>
-                                <th data-width="50">id</th>
-                                <th>name</th>
-                                <th data-width="50">role</th>
-                                <th data-width="50">share</th>
-                                <th data-width="50">tracking</th>
-                                <th data-width="50">security</th>
-                                <th data-width="90">last login</th>
-                                <th data-width="90">kicked until</th>
-                                <th data-width="90" data-orderable="false">kick</th>
-                                <th data-width="90">banned since</th>
-                                <th data-width="30" data-orderable="false">ban</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <repeat group="{{ @tplMembers->members }}" value="{{ @member }}" counter="{{ @ctr }}">
-                                <set disableRow = "{{@member->_id}} == {{@character->_id}}"  />
-
+        <repeat group="{{ @tplMembers->corpMembers }}" value="{{ @corpMember }}" key="{{@corpName}}" counter="{{ @corpCount }}">
+            <div class="row text-center">
+                <div class="col-xs-12 pf-landing-pricing-panel">
+                    <div class="panel panel-default pricing-big">
+                        <div class="panel-heading text-left">
+                            <h3 class="panel-title">{{ @corpCount }}. {{@corpName}}</h3>
+                        </div>
+                        <div class="panel-body">
+                            <table id="table_id" class="stripe order-column row-border dataTable" data-order="[1, &quot;asc&quot;]" data-length-change="0" data-paging-type="full_numbers">
+                                <thead>
                                 <tr>
-                                    <td class="text-right">{{ @member->_id }}</td>
-                                    <td class="pf-table-button-sm-cell" data-order="{{ @member->name }}" data-search="{{ @member->name }}">
-                                        <img src="//image.eveonline.com/Character/{{ @member->_id }}_32.jpg" >&nbsp;{{ @member->name }}
-                                    </td>
-                                    <td class="text-right">
-                                        <check if="{{ @member->roleId }}">
-                                            <span class="label label-success">admin</span>
-                                        </check>
-                                    </td>
-                                    <td class="text-right">
-                                        <check if="{{ @member->shared }}">
-                                            <true>
-                                                <span class="label label-info">active</span>
-                                            </true>
-                                            <false>
-                                                <span class="label label-default">disabled</span>
-                                            </false>
-                                        </check>
-                                    </td>
-                                    <td class="text-right">
-                                        <check if="{{ @member->logLocation }}">
-                                            <true>
-                                                <span class="label label-success">active</span>
-                                            </true>
-                                            <false>
-                                                <span class="label label-warning">disabled</span>
-                                            </false>
-                                        </check>
-                                    </td>
-                                    <td class="text-right txt-color {{ @member->securityStatus >= 0 ? 'txt-color-green' : 'txt-color-orange' }}">{{ number_format(round(@member->securityStatus, 2), 2) }}</td>
-                                    <td class="text-right">{{ @member->getFormattedColumn('lastLogin') }}</td>
-                                    <td class="text-right txt-color txt-color-orange">{{ @member->getFormattedColumn('kicked') }}</td>
-                                    <td class="text-center pf-table-button-sm-cell">
-                                        <div class="btn-group btn-group-sm" role="group">
-                                            <check if="{{ @member->kicked }}">
+                                    <th data-width="50">id</th>
+                                    <th>name</th>
+                                    <th data-width="50">role</th>
+                                    <th data-width="50">share</th>
+                                    <th data-width="50">tracking</th>
+                                    <th data-width="50">security</th>
+                                    <th data-width="90">last login</th>
+                                    <th data-width="90">kicked until</th>
+                                    <th data-width="90" data-orderable="false">kick</th>
+                                    <th data-width="90">banned since</th>
+                                    <th data-width="30" data-orderable="false">ban</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+
+                                <repeat group="{{ @corpMember }}" value="{{ @member }}" counter="{{ @memberCount }}">
+                                    <set disableRow = "{{@member->_id}} == {{@character->_id}}"  />
+
+                                    <tr>
+                                        <td class="text-right">{{ @member->_id }}</td>
+                                        <td class="pf-table-button-sm-cell" data-order="{{ @member->name }}" data-search="{{ @member->name }}">
+                                            <img src="//image.eveonline.com/Character/{{ @member->_id }}_32.jpg" >&nbsp;{{ @member->name }}
+                                        </td>
+                                        <td class="text-right">
+                                            <check if="{{ @member->roleId }}">
+                                                <span class="label label-success">admin</span>
+                                            </check>
+                                        </td>
+                                        <td class="text-right">
+                                            <check if="{{ @member->shared }}">
                                                 <true>
-                                                    <a class="btn btn-primary {{ @disableRow ? 'disabled' : '' }}" href="/admin/{{ @tplPage}}/kick/{{ @member->_id }}">revoke</a>
+                                                    <span class="label label-info">active</span>
                                                 </true>
                                                 <false>
-                                                    <repeat group="{{ @tplKickOptions }}" key="{{ @key }}" value="{{ @label }}">
-                                                        <a class="btn btn-default {{ @disableRow ? 'disabled' : '' }}" href="/admin/{{ @tplPage}}/kick/{{ @member->_id }}/{{ @key }}">{{ @label }}</a>
-                                                    </repeat>
+                                                    <span class="label label-default">disabled</span>
                                                 </false>
                                             </check>
-                                        </div>
-                                    </td>
-                                    <td class="text-right txt-color txt-color-danger">{{ @member->getFormattedColumn('banned') }}</td>
-                                    <td class="text-center pf-table-button-sm-cell">
-                                        <check if="{{ @member->banned }}">
-                                            <true>
-                                                <a class="btn btn-sm btn-primary {{ @disableRow ? 'disabled' : '' }}" href="/admin/{{ @tplPage}}/ban/{{ @member->_id }}">revoke</a>
-                                            </true>
-                                            <false>
-                                                <a class="btn btn-sm btn-danger {{ @disableRow ? 'disabled' : '' }}" href="/admin/{{ @tplPage}}/ban/{{ @member->_id }}/1">ban</a>
-                                            </false>
-                                        </check>
-                                    </td>
-                                </tr>
-                            </repeat>
-                            </tbody>
-                        </table>
+                                        </td>
+                                        <td class="text-right">
+                                            <check if="{{ @member->logLocation }}">
+                                                <true>
+                                                    <span class="label label-success">active</span>
+                                                </true>
+                                                <false>
+                                                    <span class="label label-warning">disabled</span>
+                                                </false>
+                                            </check>
+                                        </td>
+                                        <td class="text-right txt-color {{ @member->securityStatus >= 0 ? 'txt-color-green' : 'txt-color-orange' }}">{{ number_format(round(@member->securityStatus, 2), 2) }}</td>
+                                        <td class="text-right">{{ @member->getFormattedColumn('lastLogin') }}</td>
+                                        <td class="text-right txt-color txt-color-orange">{{ @member->getFormattedColumn('kicked') }}</td>
+                                        <td class="text-center pf-table-button-sm-cell">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <check if="{{ @member->kicked }}">
+                                                    <true>
+                                                        <a class="btn btn-primary {{ @disableRow ? 'disabled' : '' }}" href="/admin/{{ @tplPage}}/kick/{{ @member->_id }}">revoke</a>
+                                                    </true>
+                                                    <false>
+                                                        <repeat group="{{ @tplKickOptions }}" key="{{ @key }}" value="{{ @label }}">
+                                                            <a class="btn btn-default {{ @disableRow ? 'disabled' : '' }}" href="/admin/{{ @tplPage}}/kick/{{ @member->_id }}/{{ @key }}">{{ @label }}</a>
+                                                        </repeat>
+                                                    </false>
+                                                </check>
+                                            </div>
+                                        </td>
+                                        <td class="text-right txt-color txt-color-danger">{{ @member->getFormattedColumn('banned') }}</td>
+                                        <td class="text-center pf-table-button-sm-cell">
+                                            <check if="{{ @member->banned }}">
+                                                <true>
+                                                    <a class="btn btn-sm btn-primary {{ @disableRow ? 'disabled' : '' }}" href="/admin/{{ @tplPage}}/ban/{{ @member->_id }}">revoke</a>
+                                                </true>
+                                                <false>
+                                                    <a class="btn btn-sm btn-danger {{ @disableRow ? 'disabled' : '' }}" href="/admin/{{ @tplPage}}/ban/{{ @member->_id }}/1">ban</a>
+                                                </false>
+                                            </check>
+                                        </td>
+                                    </tr>
+                                </repeat>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </repeat>
     </div>
 </section>
 

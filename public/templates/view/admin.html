@@ -11,15 +11,15 @@
                 </span>
 
                 <p class="navbar-text">
-                    {{ @character->name }}
+                    {{ @character->name }}&nbsp;&nbsp;&nbsp;&nbsp;<span class="label  label-success">{{ @character->role }}</span>
                 </p>
             </div>
             <div class="navbar-collapse">
                 <ul class="nav navbar-nav navbar-right" role="tablist">
-                    <li class="{{ @tplPage == 'settings' ? 'active' : '' }}"><a href="/admin/settings">Settings</a></li>
+                    <li class="{{ @tplPage == 'settings' ? 'active' : '' }}"><a href="/admin/settings"><i class="fa fa-fw fa-gears"></i>&nbsp;Settings</a></li>
                     <li class="{{ @tplPage == 'members' ? 'active' : '' }}"><a href="/admin/members"><i class="fa fa-fw fa-users"></i>&nbsp;Members</a></li>
-                    <li class="{{ @tplPage == 'maps' ? 'active' : '' }}"><a href="/admin/maps">Maps</a></li>
-                    <li class="{{ @tplPage == 'activity' ? 'active' : '' }}"><a href="/admin/activity">Activity</a></li>
+                    <li class="{{ @tplPage == 'maps' ? 'active' : '' }} disabled"><a href="/admin/maps"><i class="fa fa-fw fa-code-fork"></i>&nbsp;Maps</a></li>
+                    <li class="{{ @tplPage == 'activity' ? 'active' : '' }} disabled"><a href="/admin/activity"><i class="fa fa-fw fa-line-chart"></i>&nbsp;Activity</a></li>
                     <li class="{{ @tplPage == 'login' ? 'active' : '' }}"><a href="/admin/login"><i class="fa fa-fw fa-sign-in"></i>&nbsp;SSO</a></li>
                 </ul>
             </div>

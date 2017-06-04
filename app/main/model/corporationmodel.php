@@ -202,4 +202,23 @@ class CorporationModel extends BasicModel {
 
         return $characterRolesData;
     }
+
+    /**
+     * get all corporations
+     * @param array $options
+     * @return \DB\CortexCollection
+     */
+    public static function getAll($options = []){
+        $query = [
+            'active = :active',
+            ':active' => 1
+        ];
+
+        if( !$options['addNPC'] ){
+            $query[0] .= ' AND isNPC = :isNPC';
+            $query[':isNPC'] = 1;
+        }
+
+        return (new self())->find($query);
+    }
 } 

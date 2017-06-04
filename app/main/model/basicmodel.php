@@ -605,7 +605,7 @@ abstract class BasicModel extends \DB\Cortex {
      * @return false|null|string
      */
     public function getFormattedColumn($column, $format = 'Y-m-d H:i'){
-        return $this->get($column) ? date($format, strtotime( $this->get($column) )) : null;;
+        return $this->get($column) ? date($format, strtotime( $this->get($column) )) : null;
     }
 
     /**

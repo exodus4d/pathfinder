@@ -10,7 +10,6 @@ namespace Controller;
 
 
 use Controller\Ccp\Sso;
-use Model\BasicModel;
 use Model\CharacterModel;
 use Model\CorporationModel;
 
@@ -84,7 +83,9 @@ class Admin extends Controller{
         $adminCharacter = null;
         if( !$f3->exists(Sso::SESSION_KEY_SSO_ERROR) ){
             if( $character = $this->getCharacter() ){
-                if($character->roleId == 1){
+                $this->setCharacterRole($character);
+
+                if($character->role != 'MEMBER'){
                     // current character is admin
                     $adminCharacter = $character;
                 }else{
@@ -104,6 +105,36 @@ class Admin extends Controller{
     }
 
     /**
+     * set temp "virtual" field with current admin role name for a $characterModel
+     * @param CharacterModel $character
+     */
+    protected function setCharacterRole(CharacterModel $character){
+        $character->virtual('role', function($character){
+            // default role based on roleId (auto-detected)
+            if( ($role = array_search ($character->roleId, CharacterModel::ROLES)) === false ){
+                $role = 'MEMBER';
+            }
+
+            /**
+             * check config files for hardcoded character roles
+             * -> overwrites default role (e.g. auto detected by corp in-game roles)
+             */
+            if($this->getF3()->exists('PATHFINDER.ADMIN.CHARACTER', $globalAdminData)){
+                foreach((array)$globalAdminData as $adminData){
+                    if($adminData['ID'] === $character->_id){
+                        if( CharacterModel::ROLES[$adminData['ROLE']] ){
+                            $role = $adminData['ROLE'];
+                        }
+                        break;
+                    }
+                }
+            }
+
+            return $role;
+        });
+    }
+
+    /**
      * dispatch page events by URL $params
      * @param \Base $f3
      * @param array $params
@@ -112,7 +143,6 @@ class Admin extends Controller{
     public function dispatch(\Base $f3, $params, $character = null){
         if($character instanceof CharacterModel){
             // user logged in
-
             $parts = array_values(array_filter(array_map('strtolower', explode('/', $params['*']))));
             $f3->set('tplPage', $parts[0]);
 
@@ -233,12 +263,31 @@ class Admin extends Controller{
      * @param CharacterModel $character
      */
     protected function initMembers(\Base $f3, CharacterModel $character){
-        $data = (object) [];;
+        $data = (object) [];
 
-        $test = BasicModel::getNew('CharacterModel');
-        $test->getById( $character->_id, 0);
+        if($characterCorporation = $character->getCorporation()){
+            $corporations = [];
 
-        $data->members = $test->getCorporation()->getCharacters();
+            switch($character->role){
+                case 'SUPERADMIN':
+                    if($accessCorporations =  CorporationModel::getAll(['addNPC' => true])){
+                        $corporations = $accessCorporations;
+                    }
+                    break;
+                case 'CORPORATION':
+                    $corporations[] = $characterCorporation;
+                    break;
+            }
+
+            foreach($corporations as $corporation){
+                $data->corpMembers[$corporation->name] = $corporation->getCharacters();
+            }
+
+            // sort corporation from current user first
+            if( !empty($data->corpMembers[$characterCorporation->name]) ){
+                $data->corpMembers = array($characterCorporation->name => $data->corpMembers[$characterCorporation->name]) + $data->corpMembers;
+            }
+        }
 
         $f3->set('tplMembers', $data);
     }
