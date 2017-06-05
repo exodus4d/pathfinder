@@ -653,7 +653,6 @@ class CharacterModel extends BasicModel {
                             if( !$characterLog = $this->getLog() ){
                                 // create new log
                                 $characterLog = $this->rel('characterLog');
-                                $characterLog->characterId = $this->_id;
                             }
 
                             // get current log data and modify on change
@@ -720,6 +719,7 @@ class CharacterModel extends BasicModel {
                                 }
 
                                 $characterLog->setData($logData);
+                                $characterLog->characterId = $this;
                                 $characterLog->save();
 
                                 $this->characterLog = $characterLog;
@@ -745,6 +745,7 @@ class CharacterModel extends BasicModel {
             $deleteLog = true;
         }
 
+        //in case of failure (invalid API response) increase or reset "retry counter"
         if( $user = $this->getUser() ){
             // Session data does not exists in CLI mode (Cronjob)
             if( $sessionCharacterData = $user->getSessionCharacterData($this->id, false) ){
@@ -840,7 +841,7 @@ class CharacterModel extends BasicModel {
             $this->hasLog() &&
             !$this->characterLog->dry()
         ){
-            $characterLog = &$this->characterLog;
+            $characterLog = $this->characterLog;
         }
 
         return $characterLog;

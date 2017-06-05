@@ -573,11 +573,9 @@ class MapModel extends BasicModel {
 
     /**
      * get all (private) characters for this map
-     * @param array $characterIds
-     * @param array $options
      * @return CharacterModel[]
      */
-    private function getCharacters($characterIds = [], $options = []){
+    private function getCharacters(){
         $characters = [];
         $filter = ['active = ?', 1];
 
@@ -587,11 +585,6 @@ class MapModel extends BasicModel {
         }
 
         $this->filter('mapCharacters', $filter);
-
-        if($options['hasLog']){
-            // just characters with active log data
-            $this->has('mapCharacters.characterLog', ['active = ?', 1]);
-        }
 
         if($this->mapCharacters){
             foreach($this->mapCharacters as $characterMapModel){
@@ -611,7 +604,7 @@ class MapModel extends BasicModel {
         $characters = [];
 
         if($this->isPrivate()){
-            $activeCharacters = $this->getCharacters([], $options);
+            $activeCharacters = $this->getCharacters();
 
             // add active character for each user
             foreach($activeCharacters as $activeCharacter){
