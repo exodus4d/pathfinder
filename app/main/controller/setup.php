@@ -125,21 +125,21 @@ class Setup extends Controller {
      */
     function beforeroute(\Base $f3, $params) {
         // page title
-        $f3->set('pageTitle', 'Setup');
+        $f3->set('tplPageTitle', 'Setup | ' . Config::getPathfinderData('name'));
 
         // main page content
-        $f3->set('pageContent', $f3->get('PATHFINDER.VIEW.SETUP'));
+        $f3->set('tplPageContent', Config::getPathfinderData('view.setup'));
 
         // body element class
-        $f3->set('bodyClass', 'pf-body pf-landing');
+        $f3->set('tplBodyClass', 'pf-landing');
 
         // js path (build/minified or raw uncompressed files)
-        $f3->set('pathJs', 'public/js/' . $f3->get('PATHFINDER.VERSION') );
+        $f3->set('tplPathJs', 'public/js/' . Config::getPathfinderData('version') );
     }
 
     public function afterroute(\Base $f3) {
         // js view (file)
-        $f3->set('jsView', 'setup');
+        $f3->set('tplJsView', 'setup');
 
         // set render functions (called within template)
         $f3->set('cacheType', function(){
@@ -151,7 +151,7 @@ class Setup extends Controller {
         });
 
         // render view
-        echo \Template::instance()->render( $f3->get('PATHFINDER.VIEW.INDEX') );
+        echo \Template::instance()->render( Config::getPathfinderData('view.index') );
     }
 
     /**

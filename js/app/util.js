@@ -12,7 +12,6 @@ define([
     'velocityUI',
     'customScrollbar',
     'validator',
-    'xEditable',
     'easyPieChart',
     'hoverIntent',
     'bootstrapConfirmation',
@@ -395,50 +394,6 @@ define([
         }
 
         return valid;
-    };
-
-    /**
-     * get all form Values as object
-     * this includes all xEditable fields
-     * @returns {{}}
-     */
-    $.fn.getFormValues = function(){
-        let form = $(this);
-        let formData = {};
-        let values = form.serializeArray();
-
-        // add "unchecked" checkboxes as well
-        values = values.concat(
-            form.find('input[type=checkbox]:not(:checked)').map(
-                function() {
-                    return {name: this.name, value: 0};
-                }).get()
-        );
-
-        for(let field of values){
-            // check for numeric values -> convert to Int
-            let value = ( /^\d+$/.test(field.value) ) ? parseInt(field.value) : field.value;
-
-            if(field.name.indexOf('[]') !== -1){
-                // array field
-                let key = field.name.replace('[]', '');
-                if( !$.isArray(formData[key]) ){
-                    formData[key] = [];
-                }
-
-                formData[key].push( value);
-            }else{
-                formData[field.name] = value;
-            }
-        }
-
-        // get xEditable values
-        let editableValues = form.find('.' + config.formEditableFieldClass).editable('getValue');
-
-        // merge values
-        formData = $.extend(formData, editableValues);
-
-        return formData;
     };
 
     /**

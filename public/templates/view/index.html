@@ -31,7 +31,7 @@
     <meta name="keywords" content="eve,wormhole,mapping,tool,mmo,space,game">
     <meta name="author" content="Exodus 4D">
 
-    <title>{{ @pageTitle}}</title>
+    <title>{{ @tplPageTitle}}</title>
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content="{{ @PATHFINDER.NAME }}">
@@ -55,8 +55,8 @@
 
     {* Resources *}
     <set pathCSS="{{ @BASE . '/public/css/pathfinder.css?' . @PATHFINDER.VERSION }}" />
-    <set pathJSApp="{{ @BASE . '/' . @pathJs . '/app' }}" />
-    <set pathJSRequire="{{ @BASE . '/' . @pathJs . '/lib/require.js' }}" />
+    <set pathJSApp="{{ @BASE . '/' . @tplPathJs . '/app' }}" />
+    <set pathJSRequire="{{ @BASE . '/' . @tplPathJs . '/lib/require.js' }}" />
 
     <link rel="stylesheet" type="text/css" media="screen" href="{{@pathCSS}}">
 
@@ -64,18 +64,18 @@
     <link rel="preload" href="{{@pathCSS}}" as="style">
     <link rel="preload" href="{{@pathJSRequire}}" as="script">
     <link rel="preload" href="{{@pathJSApp}}.js" as="script">
-    <link rel="preload" href="{{@pathJSApp}}/{{@jsView}}.js" as="script">
+    <link rel="preload" href="{{@pathJSApp}}/{{@tplJsView}}.js" as="script">
     <link rel="dns-prefetch" href="https://login.eveonline.com">
     <link rel="dns-prefetch" href="https://image.eveonline.com">
     <link rel="dns-prefetch" href="https://i.ytimg.com">
 
-    <check if="{{ @jsView != 'mappage' }}">
+    <check if="{{ @tplJsView != 'mappage' }}">
         <link rel="prefetch" href="{{@pathJSApp}}/mappage.js" as="script">
     </check>
 
 </head>
-<body class="{{ @bodyClass }}" data-js-path="{{ @BASE }}/{{ @pathJs }}" data-script="{{ @jsView }}" data-version="{{ @PATHFINDER.VERSION }}">
-    <include if="{{ @pageContent }}" href="{{ @pageContent }}"/>
+<body class="pf-body {{ @tplBodyClass }}" data-js-path="{{ @BASE }}/{{ @tplPathJs }}" data-script="{{ @tplJsView }}" data-version="{{ @PATHFINDER.VERSION }}">
+    <include if="{{ @tplPageContent }}" href="{{ @tplPageContent }}"/>
 
     <!-- Hey dude! Where is all the magic? -->
 

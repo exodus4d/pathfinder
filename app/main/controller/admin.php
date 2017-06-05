@@ -12,6 +12,7 @@ namespace Controller;
 use Controller\Ccp\Sso;
 use Model\CharacterModel;
 use Model\CorporationModel;
+use lib\Config;
 
 class Admin extends Controller{
 
@@ -45,16 +46,13 @@ class Admin extends Controller{
         $f3->set('tplAuthType', $f3->alias( 'sso', ['action' => 'requestAdminAuthorization']));
 
         // page title
-        $f3->set('pageTitle', 'Admin');
+        $f3->set('tplPageTitle', 'Admin | ' . Config::getPathfinderData('name'));
 
         // main page content
-        $f3->set('pageContent', $f3->get('PATHFINDER.VIEW.ADMIN'));
+        $f3->set('tplPageContent', Config::getPathfinderData('view.admin'));
 
         // body element class
-        $f3->set('bodyClass', 'pf-body pf-landing');
-
-        // js path (build/minified or raw uncompressed files)
-        $f3->set('pathJs', 'public/js/' . $f3->get('PATHFINDER.VERSION') );
+        $f3->set('tplBodyClass', 'pf-landing');
     }
 
     /**
@@ -63,10 +61,10 @@ class Admin extends Controller{
      */
     public function afterroute(\Base $f3) {
         // js view (file)
-        $f3->set('jsView', 'login');
+        $f3->set('tplJsView', 'admin');
 
         // render view
-        echo \Template::instance()->render( $f3->get('PATHFINDER.VIEW.INDEX') );
+        echo \Template::instance()->render( Config::getPathfinderData('view.index') );
 
         // clear all SSO related temp data
         if( $f3->exists(Sso::SESSION_KEY_SSO) ){
@@ -236,14 +234,20 @@ class Admin extends Controller{
      * -> must be in same corporation
      * @param CharacterModel $character
      * @param int $characterId
-     * @return array|CharacterModel[]
+     * @return array|\DB\CortexCollection
      */
     protected function filterValidCharacters(CharacterModel $character, $characterId){
         $characters = [];
         // check if kickCharacters belong to same Corp as admin character
         // -> remove admin char from valid characters...
         if( !empty($characterIds = array_diff( [$characterId], [$character->_id])) ){
-            $characters = $character->getCorporation()->getCharacters($characterIds);
+            if($character->role === 'SUPERADMIN'){
+                if($filterCharacters = CharacterModel::getAll($characterIds)){
+                    $characters = $filterCharacters;
+                }
+            }else{
+                $characters = $character->getCorporation()->getCharacters($characterIds);
+            }
         }
         return $characters;
     }

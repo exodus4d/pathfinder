@@ -6,13 +6,13 @@
     //then all the files from the app directory will be copied to the dir:
     //output area, and baseUrl will assume to be a relative path under
     //this directory.
-    appDir: "./js",
+    appDir: './js',
 
     //By default, all modules are located relative to this path. If baseUrl
     //is not explicitly set, then all modules are loaded relative to
     //the directory that holds the build file. If appDir is set, then
     //baseUrl should be specified as relative to the appDir.
-    baseUrl: "./",
+    baseUrl: './',
 
     //By default all the configuration for optimization happens from the command
     //line or by properties in the config file, and configuration that was
@@ -89,6 +89,11 @@
             ]
         },{
             name: 'setup',
+            excludeShallow: [
+                'app'
+            ]
+        },{
+            name: 'admin',
             excludeShallow: [
                 'app'
             ]
@@ -196,13 +201,13 @@
     },
 
     paths: {
-        app: "./../js/app" // the main config file will not be build
+        app: './../js/app' // the main config file will not be build
     },
 
     //The directory path to save the output. If not specified, then
     //the path will default to be a directory called "build" as a sibling
     //to the build file. All relative paths are relative to the build file.
-    dir: "./build_js"
+    dir: './build_js'
 
 
 

@@ -924,7 +924,7 @@ class CharacterModel extends BasicModel {
      * @param array $characterDataBase
      * @return array
      */
-    static function mergeSessionCharacterData(array $characterDataBase = []){
+    public static function mergeSessionCharacterData(array $characterDataBase = []){
         $addData = [];
         // get current session characters to be merged with
         $characterData = (array)self::getF3()->get(User::SESSION_KEY_CHARACTERS);
@@ -944,4 +944,13 @@ class CharacterModel extends BasicModel {
         return array_merge($characterDataBase, $addData);
     }
 
+    public static function getAll($characterIds = []){
+        $query = [
+            'active = :active AND id IN :characterIds',
+            ':active' => 1,
+            ':characterIds' => $characterIds
+        ];
+
+        return (new self())->find($query);
+    }
 } 

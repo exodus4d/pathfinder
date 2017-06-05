@@ -82,11 +82,10 @@ class Controller {
         $this->initSession();
 
         if( !$f3->get('AJAX') ){
-
             // js path (build/minified or raw uncompressed files)
-            $f3->set('pathJs', 'public/js/' . $f3->get('PATHFINDER.VERSION') );
+            $f3->set('tplPathJs', 'public/js/' . Config::getPathfinderData('version') );
 
-            $this->setTemplate( $f3->get('PATHFINDER.VIEW.INDEX') );
+            $this->setTemplate( Config::getPathfinderData('view.index') );
         }
     }
 
@@ -568,9 +567,9 @@ class Controller {
      */
     protected function getUserAgent(){
         $userAgent = '';
-        $userAgent .= $this->getF3()->get('PATHFINDER.NAME');
-        $userAgent .=  ' - ' . $this->getF3()->get('PATHFINDER.VERSION');
-        $userAgent .=  ' | ' . $this->getF3()->get('PATHFINDER.CONTACT');
+        $userAgent .= Config::getPathfinderData('name');
+        $userAgent .=  ' - ' . Config::getPathfinderData('version');
+        $userAgent .=  ' | ' . Config::getPathfinderData('contact');
         $userAgent .=  ' (' . $_SERVER['SERVER_NAME'] . ')';
 
         return $userAgent;
@@ -619,19 +618,19 @@ class Controller {
             echo json_encode($return);
             die();
         }else{
-            $f3->set('pageTitle', 'ERROR - ' . $error->code);
+            $f3->set('tplPageTitle', 'ERROR - ' . $error->code . ' | Pathfinder');
             // set error data for template rendering
             $error->redirectUrl = $this->getRouteUrl();
             $f3->set('errorData', $error);
 
             if( preg_match('/^4[0-9]{2}$/', $error->code) ){
                 // 4xx error -> render error page
-                $f3->set('pageContent', $f3->get('PATHFINDER.STATUS.4XX'));
+                $f3->set('tplPageContent', Config::getPathfinderData('STATUS.4XX') );
             }elseif( preg_match('/^5[0-9]{2}$/', $error->code) ){
-                $f3->set('pageContent', $f3->get('PATHFINDER.STATUS.5XX'));
+                $f3->set('tplPageContent', Config::getPathfinderData('STATUS.5XX'));
             }
 
-            echo \Template::instance()->render( $f3->get('PATHFINDER.VIEW.INDEX') );
+            echo \Template::instance()->render( Config::getPathfinderData('view.index') );
             die();
         }
     }

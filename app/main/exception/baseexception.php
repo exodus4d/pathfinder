@@ -13,6 +13,7 @@ class BaseException extends \Exception {
 
     const VALIDATION_FAILED = 403;
     const REGISTRATION_FAILED = 403;
+    const CONFIGURATION_FAILED = 500;
 
     public function __construct($message, $code = 0){
         parent::__construct($message, $code);
