@@ -111,7 +111,7 @@ define([
                 )
             );
 
-            // load header / footer
+            // load footer
             $('.' + config.pageClass).loadHeader().loadFooter();
 
             // load left menu
@@ -405,11 +405,6 @@ define([
                     $('<i>',{
                         class: 'fa fa-keyboard-o fa-fw'
                     })
-                ).append(
-                    $('<span>',{
-                        class: 'badge bg-color bg-color-gray txt-color txt-color-warning',
-                        text: 'beta'
-                    })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('Shortcuts');
                 })
@@ -572,12 +567,11 @@ define([
             currentYear: new Date().getFullYear()
         };
 
-        let headRendered = Mustache.render(TplFooter, moduleData);
+        let footerElement = Mustache.render(TplFooter, moduleData);
 
-        pageElement.prepend(headRendered);
+        pageElement.prepend(footerElement);
 
         // init footer ==================================================
-
         pageElement.find('.' + config.footerLicenceLinkClass).on('click', function(){
             //show credits info dialog
             $.fn.showCreditsDialog();

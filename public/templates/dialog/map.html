@@ -41,7 +41,7 @@
             <div role="tabpanel" class="tab-pane fade {{#openTabSettings}}in active{{/openTabSettings}}" id="{{dialogMapSettingsContainerId}}">
                 <form role="form" class="form-horizontal">
 
-                    <h4 class="pf-dynamic-area">Configuration</h4>
+                    <h4 class="pf-dynamic-area">Map settings</h4>
 
                     <div class="row">
                         <div class="col-sm-6">
@@ -63,6 +63,20 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <div class="col-sm-offset-1 col-sm-11">
+                                    <div class="col-sm-12 col-xs-6 checkbox" title="Keep custom aliases after delete">
+                                        <input id="{{persistentAliasesId}}" name="persistentAliases" value="1" type="checkbox" {{#persistentAliases}}checked{{/persistentAliases}}>
+                                        <label for="{{persistentAliasesId}}">Persistent system aliases</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+
                         </div>
                     </div>
 

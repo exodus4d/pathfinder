@@ -22,6 +22,20 @@ class Util {
             if( is_array($item) )
                 $item = self::arrayChangeKeyCaseRecursive($item);
             return $item;
-        },array_change_key_case($arr, $case));
+        }, array_change_key_case($arr, $case));
+    }
+
+    /**
+     * convert array keys by a custom callback
+     * @param $arr
+     * @param $callback
+     * @return array
+     */
+    static function arrayChangeKeys($arr, $callback){
+        return array_combine(
+            array_map(function ($key) use ($callback){
+               return $callback($key);
+            }, array_keys($arr)), $arr
+        );
     }
 }

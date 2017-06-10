@@ -1,7 +1,7 @@
 {* config *}
 <check if="{{ @PATHFINDER.REGISTRATION.STATUS != '1' }}">
     <set registrationStatusButton="disabled" />
-    <set registrationStatusTitle= "User registration is currently not allowed" />
+    <set registrationStatusTitle= "User registration is currently disabled" />
 </check>
 
 {* splash page *}
@@ -30,6 +30,7 @@
                 <li><a class="page-scroll" data-anchor="#pf-landing-top" href="#">Login</a></li>
                 <li> <a class="page-scroll" data-anchor="#pf-landing-gallery" href="#">Features</a></li>
                 <li> <a class="page-scroll" data-anchor="#pf-landing-maps" href="#">Maps</a></li>
+                <li> <a class="page-scroll" data-anchor="#pf-landing-admin" href="#" title="new" data-placement="bottom" data-show="1">Admin&nbsp;<span class="badge txt-color txt-color-orange">beta</span></a></li>
                 <li> <a class="page-scroll" data-anchor="#pf-landing-install" href="#">Install</a></li>
                 <li> <a class="page-scroll" data-anchor="#pf-landing-about" href="#">About</a></li>
                 <li> <a class="page-scroll" data-anchor="#pf-landing-faq" href="#">FAQ</a></li>
@@ -154,8 +155,6 @@
         </div>
 
 
-
-
         <div class="row">
             <div class="col-xs-12 col-sm-3 col-lg-2">
                 <a class="pf-animate-on-visible pf-animate" href="public/img/landing/login_1.jpg" data-description="Character login" data-gallery="#pf-gallery">
@@ -181,12 +180,7 @@
                     </li>
                     <li><i></i><em>CCP</em> s <em>SSO</em> login</li>
                     <li><i></i>Cookie based <a target="_blank" href="https://github.com/exodus4d/pathfinder/issues/138#issuecomment-216036606">login system</a></li>
-                    <li><i></i><a target="_blank" href="{{ @PATHFINDER.REPO }}/issues/84"><em>CREST</em> API support</a></li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>Character/Location data is pulled from CREST</li>
-                        </ul>
-                    </li>
+                    <li><i></i><em>ESI</em> API support</a></li>
                     <li><i></i>HTML5 features</li>
                     <li>
                         <ul class="fa-ul">
@@ -254,7 +248,7 @@
                         <ul class="fa-ul">
                             <li><i></i>Pilot/Ship names</li>
                             <li><i></i>In-/decreasing pilot count per system</li>
-                            <li><i></i>Location tracking (<em>CREST</em>)</li>
+                            <li><i></i>Location tracking (<em>ESI</em>)</li>
                         </ul>
                     </li>
                     <li><i></i>System status</li>
@@ -269,7 +263,7 @@
                             <li><i></i>'Stargate', 'Wormhole', 'Jumpbridge'</li>
                         </ul>
                     </li>
-                    <li><i></i>In game actions (<em>CREST</em>)</li>
+                    <li><i></i>In game actions (<em>ESI</em>)</li>
                     <li>
                         <ul class="fa-ul">
                             <li><i></i>'Set destination', 'add waypoint'</li>
@@ -624,6 +618,67 @@
     </div>
 </section>
 
+{* admin *}
+<section id="pf-landing-admin">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-6 col-md-offset-3">
+                <h2><span class="text-primary">Admin</span> interface <small class="txt-color txt-color-warning">[BETA]</small></h2>
+                <p class="lead">
+                    Characters with in-game corporation roles can grant acces to <em>PATHFINDER</em> corporation admin interface.
+                </p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xs-12 col-sm-3 col-lg-2">
+                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/admin_1.jpg" data-description="Member administration" data-gallery="#pf-gallery">
+                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/admin_1.jpg" width="160" height="160" alt="Member administration">
+                </a>
+            </div>
+
+            <div class="col-xs-12 col-sm-9 col-lg-4">
+                <h4><i class="fa fa-fw fa-users"></i> Member administration</h4>
+                <ul class="fa-ul pf-landing-list">
+                    <li><i></i>Manage your corporation members</li>
+                    <li><i></i>View member information</li>
+                    <li><i></i>Kick members temporary or forever</li>
+                    <li><i></i>Ban members from installation</li>
+                </ul>
+            </div>
+
+            <div class="clearfix visible-xs visible-sm visible-md"></div>
+
+            <div class="col-xs-12 col-sm-3 col-lg-2">
+                <a class="pf-animate-on-visible pf-animate disabled" href="javascript:void(0);" data-description="Database settings" data-gallery="#pf-gallery">
+                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/wip.jpg" width="160" height="160" alt="WIP">
+                </a>
+            </div>
+
+            <div class="col-xs-12 col-sm-9 col-lg-4">
+                <h4><i class="fa fa-fw fa-code-fork"></i> Map settings</h4>
+                <ul class="fa-ul pf-landing-list">
+                    <li><i></i>Manage global corporation map settings</li>
+                    <li><i></i>Set default map settings</li>
+                    <li><i></i>Disable some sensitive map settings (e.g. im/export maps)</li>
+                </ul>
+            </div>
+
+        </div>
+
+        <div class="row text-center pf-landing-admin-login">
+            <i class="fa fa-fw fa-chevron-right"></i>
+            <a class="btn btn-labeled btn-primary" href="{{ 'admin', ['*' => ''] | alias }}">
+                <span class="btn-label">
+                    <i class="fa fa-sign-in fa-fw"></i>
+                </span>&nbsp;admin&nbsp;SSO&nbsp;login
+            </a>
+            <i class="fa fa-fw fa-chevron-left"></i>
+        </div>
+
+    </div>
+</section>
+
 {* install *}
 <section id="pf-landing-install">
     <div class="container">
@@ -682,9 +737,7 @@
                     </li>
                 </ul>
             </div>
-
         </div>
-
 
     </div>
 </section>

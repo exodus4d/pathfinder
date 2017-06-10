@@ -2,9 +2,26 @@
     <div class="container col-xs-12">
 
         <div class="row text-center">
+            <div class="col-md-6 col-md-offset-3">
+                <check if="{{ @tplLogged }}">
+                    <true>
+                        {* Logged IN *}
+                        <h2>Admin <span class="txt-color txt-color-warning">{{ @character->name }}</span></h2>
+                        <p class="lead">
+                            You have already admin privileges. Switch character?
+                        </p>
+                    </true>
+                    <false>
+                        {* Logged OUT *}
+                        <h2><span class="txt-color txt-color-primary">Admin login</span></h2>
+                    </false>
+                </check>
+            </div>
+        </div>
+
+        <div class="row text-center">
             <div class="col-xs-12 col-sm-10 col-sm-offset-1 col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3 pf-landing-pricing-panel">
-                <div class="panel panel-default pricing-big pf-animate-on-visible pf-animate">
-                    <div class="ribbon-wrapper"><div class="ribbon ribbon-orange">BETA</div></div>
+                <div class="panel panel-default pricing-big">
                     <div class="panel-heading text-left">
                         <h3 class="panel-title">Admin  access</h3>
                     </div>
@@ -12,7 +29,7 @@
                         <div class="price-features price-features-fluid">
                             <ul class="list-unstyled text-left">
                                 <li><i class="fa fa-fw fa-caret-right"></i> Click the SSO button below for <em>PATHFINDER</em> access with admin roles</li>
-                                <li><i class="fa fa-fw fa-caret-right"></i> Admin roles require at least on of these in-game corporation roles granted to your character</li>
+                                <li><i class="fa fa-fw fa-caret-right"></i> Admin roles require at least one of these in-game corporation roles granted to your character</li>
                                 <li>
                                     <ul>
                                         <li><i class="fa fa-fw fa-angle-right"></i> <kbd>director</kbd>, <kbd>personnel_manager</kbd> or <kbd>security_officer</kbd></li>

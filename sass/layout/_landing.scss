@@ -413,6 +413,10 @@
         opacity: 0;
       }
     }
+
+    &.disabled{
+      pointer-events: auto; // required for tooltips to be shown on "disabled" links
+    }
   }
 
   #pf-notification-panel{
@@ -569,6 +573,13 @@
   }
 }
 
+// admin ----------------------------------------------------------------------
+#pf-landing-admin{
+  .pf-landing-admin-login{
+    margin-bottom: 0;
+  }
+}
+
 // about ----------------------------------------------------------------------
 #pf-landing-about{
 
@@ -584,7 +595,11 @@
 .pf-landing-footer{
   padding: 30px 0;
   font-family: $font-family-bold;
-  background-color: darken($gray-darker, 8%);
+  background-color: darken($gray-darker, 8%) ;
+
+  .row{
+    margin-bottom: 0 !important; // overwrite default
+  }
 
   .pf-social-networks > li{
     display: inline-block;

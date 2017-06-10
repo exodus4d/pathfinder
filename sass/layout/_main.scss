@@ -1056,12 +1056,6 @@ td.pf-popover-trigger{
 
   }
 
-  .badge{
-    background-color: $gray;
-    color: $gray-lighter;
-  }
-
-
   .pf-head-user-character, .pf-head-user-ship{
     opacity: 0; // triggered by js
     visibility: hidden;
@@ -1105,6 +1099,11 @@ td.pf-popover-trigger{
 
 .pf-head{
   @include box-shadow(0 6px 12px rgba(0,0,0,.4));
+
+  .badge{
+    background-color: $gray;
+    color: $gray-lighter;
+  }
 }
 
 // character switch popover

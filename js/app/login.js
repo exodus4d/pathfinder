@@ -68,6 +68,7 @@ define([
         // sticky panel
         stickyPanelClass: 'pf-landing-sticky-panel',                            // class for sticky panels
         stickyPanelServerId: 'pf-landing-server-panel',                         // id for EVE Online server status panel
+        stickyPanelAdminId: 'pf-landing-admin-panel',                           // id for admin login panel
 
         // animation
         animateElementClass: 'pf-animate-on-visible',                           // class for elements that will be animated to show
@@ -121,14 +122,33 @@ define([
     };
 
     /**
+     * move panel out of "cookie" accept hint
+     * @param direction
+     */
+    let moveAdminPanel = (direction) => {
+        let adminPanel = $('#' + config.stickyPanelAdminId);
+        adminPanel.css({bottom: ((direction === 'up') ? '+' : '-') + '=35px'});
+    };
+
+    /**
      * set page observer
      */
     let setPageObserver = function(){
+        let cookieHintElement = $('#' + config.cookieHintId);
 
         // cookie hint --------------------------------------------------------
+        cookieHintElement.on('show.bs.collapse', function () {
+            // move admin panel upwards (prevents overlapping with cookie notice)
+            moveAdminPanel('up');
+        });
+
+        cookieHintElement.on('hidden.bs.collapse', function () {
+            moveAdminPanel('down');
+        });
+
         if(getCookie('cookie') !== '1'){
             // hint not excepted
-            $('#' + config.cookieHintId).collapse('show');
+            cookieHintElement.collapse('show');
 
             // show Cookie accept hint on SSO login button
             let confirmationSettings = {
@@ -160,8 +180,8 @@ define([
             $('.' + config.ssoButtonClass).confirmation(confirmationSettings);
         }
 
-        $('#' + config.cookieHintId + ' .btn-success').on('click', function(){
-           setCookie('cookie', 1, config.defaultAcceptCookieExpire);
+        cookieHintElement.find('.btn-success').on('click', function(){
+            setCookie('cookie', 1, config.defaultAcceptCookieExpire);
         });
 
         // manual -------------------------------------------------------------
@@ -182,11 +202,14 @@ define([
         // tooltips -----------------------------------------------------------
         let mapTooltipOptions = {
             toggle: 'tooltip',
-            container: 'body',
             delay: 150
         };
 
-        $('[title]').not('.slide img').tooltip(mapTooltipOptions);
+        let tooltipElements = $('[title]').not('.slide img');
+        tooltipElements.tooltip(mapTooltipOptions);
+
+        // initial show some tooltips
+        tooltipElements.filter('[data-show="1"]').tooltip('show');
     };
 
     /**
@@ -327,7 +350,7 @@ define([
      * @returns {*|jQuery|HTMLElement}
      */
     let getThumbnailElements = function(){
-        return $('a[data-gallery="#' + config.galleryId + '"]');
+        return $('a[data-gallery="#' + config.galleryId + '"]').not('.disabled');
     };
 
     /**
@@ -406,9 +429,9 @@ define([
 
 
     /**
-     * init scrollspy for navigation bar
+     * init scrollSpy for navigation bar
      */
-    let initScrollspy = function(){
+    let initScrollSpy = function(){
         // init scrollspy
 
         // show elements that are currently in the viewport
@@ -812,7 +835,7 @@ define([
 
         // init scrollspy
         // -> after "Carousel"! required for correct "viewport" calculation (Gallery)!
-        initScrollspy();
+        initScrollSpy();
 
         // init youtube videos
         initYoutube();
@@ -825,39 +848,6 @@ define([
             });
         }, false);
 
-
-        require([
-            'datatables.net',
-            'datatables.net-buttons',
-            'datatables.net-buttons-html',
-            'datatables.net-responsive',
-            'datatables.net-select'
-        ], function (startup) {
-            let systemsDataTable = $('.dataTable').dataTable( {
-                pageLength: 100,
-                paging: true,
-               // lengthMenu: [[5, 10, 20, 50, -1], [5, 10, 20, 50, 'All']],
-                ordering: true,
-               // order: [[ 9, 'desc' ], [ 3, 'asc' ]],
-                autoWidth: false,
-             //   responsive: {
-             //       breakpoints: Init.breakpoints,
-             //       details: false
-              //  },
-                hover: false,
-                //data: systemsData,
-                columnDefs: [],
-                language: {
-                    emptyTable:  'No members',
-                    zeroRecords: 'No members found',
-                    lengthMenu:  'Show _MENU_ members',
-                    info:        'Showing _START_ to _END_ of _TOTAL_ members'
-                }
-            });
-        });
-
-
     });
-
 
 });
