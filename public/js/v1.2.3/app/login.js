@@ -121,6 +121,10 @@ define([
         });
     };
 
+    /**
+     * move panel out of "cookie" accept hint
+     * @param direction
+     */
     let moveAdminPanel = (direction) => {
         let adminPanel = $('#' + config.stickyPanelAdminId);
         adminPanel.css({bottom: ((direction === 'up') ? '+' : '-') + '=35px'});

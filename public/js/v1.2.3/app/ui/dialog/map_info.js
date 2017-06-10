@@ -435,18 +435,24 @@ define([
                                 // trigger system delete event
                                 activeMap.trigger('pf:deleteSystems', [{
                                     systems: [systemElement[0]],
-                                    callback: function(){
+                                    callback: function(deletedSystems){
                                         // callback function after ajax "delete" success
-                                        // remove table row
-                                        tempTableElement.DataTable().rows(deleteRowElement).remove().draw();
+                                        // check if system was deleted
+                                        if(deletedSystems.length === 1){
+                                            // remove table row
+                                            tempTableElement.DataTable().rows(deleteRowElement).remove().draw();
 
-                                        Util.showNotify({title: 'System deleted', text: rowData.name, type: 'success'});
+                                            Util.showNotify({title: 'System deleted', text: rowData.name, type: 'success'});
 
-                                        // refresh connection table (connections might have changed) ==================
-                                        let connectionsElement = $('#' + config.mapInfoConnectionsId);
-                                        let mapDataNew = activeMap.getMapDataFromClient({forceData: true});
+                                            // refresh connection table (connections might have changed) ==================
+                                            let connectionsElement = $('#' + config.mapInfoConnectionsId);
+                                            let mapDataNew = activeMap.getMapDataFromClient({forceData: true});
 
-                                        connectionsElement.loadConnectionInfoTable(mapDataNew);
+                                            connectionsElement.loadConnectionInfoTable(mapDataNew);
+                                        }else{
+                                            // error
+                                            Util.showNotify({title: 'Failed to delete system', text: rowData.name, type: 'error'});
+                                        }
                                     }
                                 }]);
                             }

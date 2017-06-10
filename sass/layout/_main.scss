@@ -1141,6 +1141,11 @@ td.pf-popover-trigger{
 // footer (navigation) ============================================================================
 .navbar-fixed-bottom{
   padding: 2px 0;
+
+  .container-fluid{
+    padding-left: 0;    // overwrite default
+    padding-right: 0;   // verwrite default
+  }
 }
 // global info panel ==============================================================================
 #pf-global-info{
