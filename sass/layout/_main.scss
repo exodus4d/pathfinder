@@ -1104,6 +1104,10 @@ td.pf-popover-trigger{
     background-color: $gray;
     color: $gray-lighter;
   }
+
+  small{
+    font-family: $font-family-bold;
+  }
 }
 
 // character switch popover
