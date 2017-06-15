@@ -566,14 +566,15 @@ class CharacterModel extends BasicModel {
 
                     // check if character alliance is set in whitelist
                     if(
-                        !$authStatus &&
+                        $authStatus != 'OK' &&
                         !empty($whitelistAlliance) &&
-                        $this->hasAlliance() &&
-                        in_array((int)$this->get('allianceId', true), $whitelistAlliance)
+                        $this->hasAlliance()
                     ){
-                        $authStatus =  'OK';
-                    }else{
-                        $authStatus = 'ALLIANCE';
+                        if( in_array((int)$this->get('allianceId', true), $whitelistAlliance) ){
+                            $authStatus =  'OK';
+                        }else{
+                            $authStatus = 'ALLIANCE';
+                        }
                     }
                 }
             }else{
