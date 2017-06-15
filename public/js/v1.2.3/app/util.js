@@ -1898,7 +1898,6 @@ define([
 
     /**
      * set new destination for a system
-     * -> CREST request
      * @param systemData
      * @param type
      */

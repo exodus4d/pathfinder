@@ -11,7 +11,7 @@ Mapping tool for [*EVE ONLINE*](https://www.eveonline.com)
 -  Test server
   - URL: http://www.dev.pathfinder-w.space
   - Running current `develop` branch
-  - Using Singularity (SISI) CREST (make sure to use your test-server client)
+  - _SISI_ _ESI_ (make sure to use your test-server client)
   - Available for public testing (e.g. new feature,.. )
   - Database will be cleared from time to time
 - Installation guide:
