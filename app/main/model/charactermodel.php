@@ -21,6 +21,43 @@ class CharacterModel extends BasicModel {
      */
     const DATA_CACHE_KEY_LOG = 'LOG';
 
+    /**
+     * character authorization status
+     * @var array
+     */
+    const AUTHORIZATION_STATUS = [
+        'OK'            => true,                                        // success
+        'UNKNOWN'       => 'error',                                     // general authorization error
+        'CORPORATION'   => 'failed to match corporation whitelist',
+        'ALLIANCE'      => 'failed to match alliance whitelist',
+        'KICKED'        => 'character is kicked',
+        'BANNED'        => 'character is banned'
+    ];
+
+    /**
+     * all admin roles and related roleId for a character
+     */
+    const ROLES = [
+        'MEMBER'        => 0,
+        'SUPERADMIN'    => 1,
+        'CORPORATION'   => 2
+    ];
+    
+    /**
+     * enables change for "kicked" column
+     * -> see kick();
+     * @var bool
+     */
+    private $allowKickChange = false;
+
+    /**
+     * enables change for "banned" column
+     * -> see ban();
+     * @var bool
+     */
+    private $allowBanChange = false;
+    
+
     protected $fieldConf = [
         'lastLogin' => [
             'type' => Schema::DT_TIMESTAMP,
@@ -75,6 +112,20 @@ class CharacterModel extends BasicModel {
                 ]
             ]
         ],
+        'roleId' => [
+            'type' => Schema::DT_TINYINT,
+            'nullable' => false,
+            'default' => 0,
+            'index' => true
+        ],
+        'kicked' => [
+            'type' => Schema::DT_TIMESTAMP,
+            'index' => true
+        ],
+        'banned' => [
+            'type' => Schema::DT_TIMESTAMP,
+            'index' => true
+        ],
         'shared' => [
             'type' => Schema::DT_BOOL,
             'nullable' => false,
@@ -125,8 +176,13 @@ class CharacterModel extends BasicModel {
             $characterData = (object) [];
             $characterData->id = $this->id;
             $characterData->name = $this->name;
+            $characterData->roleId = $this->roleId;
             $characterData->shared = $this->shared;
             $characterData->logLocation = $this->logLocation;
+
+            if( $this->authStatus ){
+                $characterData->authStatus = $this->authStatus;
+            }
 
             if($addCharacterLogData){
                 if($logModel = $this->getLog()){
@@ -154,15 +210,34 @@ class CharacterModel extends BasicModel {
     }
 
     /**
+     * set corporation for this character
+     * -> corp change resets admin actions (e.g. kick/ban)
+     * @param $corporationId
+     * @return mixed
+     */
+    public function set_corporationId($corporationId){
+        $currentCorporationId = (int)$this->get('corporationId', true);
+
+        if($currentCorporationId !== $corporationId){
+             $this->resetAdminColumns();
+        }
+
+        return $corporationId;
+    }
+
+    /**
      * set unique "ownerHash" for this character
      * -> Hash will change when  character is transferred (sold)
      * @param string $ownerHash
      * @return string
      */
     public function set_ownerHash($ownerHash){
-
         if( $this->ownerHash !== $ownerHash ){
             if( $this->hasUserCharacter() ){
+                // reset admin actions (e.g. kick/ban)
+                $this->resetAdminColumns();
+
+                // new ownerHash -> new user (reset)
                 $this->userCharacter->erase();
             }
 
@@ -188,6 +263,58 @@ class CharacterModel extends BasicModel {
     }
 
     /**
+     * setter for "kicked" until time
+     * @param bool|int $minutes
+     * @return mixed
+     */
+    public function set_kicked($minutes){
+        if($this->allowKickChange){
+            // allowed to set/change -> reset "allowed" property
+            $this->allowKickChange = false;
+            $kicked = null;
+
+            if($minutes){
+                $seconds = $minutes * 60;
+                $timezone = new \DateTimeZone(  self::getF3()->get('TZ') );
+                $kickedUntil = new \DateTime('now', $timezone);
+
+                // add cookie expire time
+                $kickedUntil->add(new \DateInterval('PT' . $seconds . 'S'));
+                $kicked = $kickedUntil->format('Y-m-d H:i:s');
+            }
+        }else{
+            // not allowed to set/change -> keep current status
+            $kicked = $this->kicked;
+        }
+
+        return $kicked;
+    }
+
+    /**
+     * setter for "banned" status
+     * @param bool|int $status
+     * @return mixed
+     */
+    public function set_banned($status){
+        if($this->allowBanChange){
+            // allowed to set/change -> reset "allowed" property
+            $this->allowBanChange = false;
+            $banned = null;
+
+            if($status){
+                $timezone = new \DateTimeZone(  self::getF3()->get('TZ') );
+                $bannedSince = new \DateTime('now', $timezone);
+                $banned = $bannedSince->format('Y-m-d H:i:s');
+            }
+        }else{
+            // not allowed to set/change -> keep current status
+            $banned = $this->banned;
+        }
+
+        return $banned;
+    }
+
+    /**
      * logLocation specifies whether the current system should be tracked or not
      * @param $logLocation
      * @return bool
@@ -203,6 +330,30 @@ class CharacterModel extends BasicModel {
         }
 
         return $logLocation;
+    }
+
+    /**
+     * kick character for $minutes
+     * -> do NOT use $this->kicked!
+     * -> this will not work (prevent abuse)
+     * @param bool|int $minutes
+     */
+    public function kick($minutes = false){
+        // enables "kicked" change for this model
+        $this->allowKickChange = true;
+        $this->kicked = $minutes;
+    }
+
+    /**
+     * ban character
+     * -> do NOT use $this->banned!
+     * -> this will not work (prevent abuse)
+     * @param bool|int $status
+     */
+    public function ban($status = false){
+        // enables "banned" change for this model
+        $this->allowBanChange = true;
+        $this->banned = $status;
     }
 
     /**
@@ -240,6 +391,13 @@ class CharacterModel extends BasicModel {
 
         // clear data with "log" as well!
         parent::clearCacheDataWithPrefix(self::DATA_CACHE_KEY_LOG);
+    }
+
+    /**
+     * resets some columns that could have changed by admins (e.g. kick/ban)
+     */
+    private function resetAdminColumns(){
+        $this->kick();
     }
 
     /**
@@ -317,7 +475,7 @@ class CharacterModel extends BasicModel {
             !empty($this->crestAccessToken) &&
             !empty($this->crestAccessTokenUpdated)
         ){
-            $timezone = new \DateTimeZone( $this->getF3()->get('TZ') );
+            $timezone = new \DateTimeZone( self::getF3()->get('TZ') );
             $tokenTime = \DateTime::createFromFormat(
                 'Y-m-d H:i:s',
                 $this->crestAccessTokenUpdated,
@@ -358,45 +516,111 @@ class CharacterModel extends BasicModel {
     }
 
     /**
+     * check if character  is currently kicked
+     * @return bool
+     */
+    public function isKicked(){
+        $kicked = false;
+        if( !is_null($this->kicked) ){
+            $kickedUntil = new \DateTime();
+            $kickedUntil->setTimestamp( (int)strtotime($this->kicked) );
+            $now = new \DateTime();
+            $kicked = ($kickedUntil > $now);
+        }
+
+        return $kicked;
+    }
+
+    /**
      * checks whether this character is authorized to log in
      * -> check corp/ally whitelist config (pathfinder.ini)
      * @return bool
      */
     public function isAuthorized(){
-        $isAuthorized = false;
-        $f3 = self::getF3();
+        $authStatus = 'UNKNOWN';
 
-        $whitelistCorporations = array_filter( array_map('trim', (array)$f3->get('PATHFINDER.LOGIN.CORPORATION') ) );
-        $whitelistAlliance = array_filter( array_map('trim', (array)$f3->get('PATHFINDER.LOGIN.ALLIANCE') ) );
+        // check whether character is banned or temp kicked
+        if(is_null($this->banned)){
+            if( !$this->isKicked() ){
+                $f3 = self::getF3();
+                $whitelistCorporations = array_filter( array_map('trim', (array)$f3->get('PATHFINDER.LOGIN.CORPORATION') ) );
+                $whitelistAlliance = array_filter( array_map('trim', (array)$f3->get('PATHFINDER.LOGIN.ALLIANCE') ) );
 
-        if(
-            empty($whitelistCorporations) &&
-            empty($whitelistAlliance)
-        ){
-            // no corp/ally restrictions set -> any character is allowed to login
-            $isAuthorized = true;
-        }else{
-            // check if character corporation is set in whitelist
-            if(
-                !empty($whitelistCorporations) &&
-                $this->hasCorporation() &&
-                in_array((int)$this->get('corporationId', true), $whitelistCorporations)
-            ){
-                $isAuthorized = true;
+                if(
+                    empty($whitelistCorporations) &&
+                    empty($whitelistAlliance)
+                ){
+                    // no corp/ally restrictions set -> any character is allowed to login
+                    $authStatus = 'OK';
+                }else{
+                    // check if character corporation is set in whitelist
+                    if(
+                        !empty($whitelistCorporations) &&
+                        $this->hasCorporation() &&
+                        in_array((int)$this->get('corporationId', true), $whitelistCorporations)
+                    ){
+                        $authStatus = 'OK';
+                    }else{
+                        $authStatus = 'CORPORATION';
+                    }
+
+                    // check if character alliance is set in whitelist
+                    if(
+                        !$authStatus &&
+                        !empty($whitelistAlliance) &&
+                        $this->hasAlliance() &&
+                        in_array((int)$this->get('allianceId', true), $whitelistAlliance)
+                    ){
+                        $authStatus =  'OK';
+                    }else{
+                        $authStatus = 'ALLIANCE';
+                    }
+                }
+            }else{
+                $authStatus = 'KICKED';
             }
+        }else{
+            $authStatus = 'BANNED';
+        }
 
-            // check if character alliance is set in whitelist
-            if(
-                !$isAuthorized &&
-                !empty($whitelistAlliance) &&
-                $this->hasAlliance() &&
-                in_array((int)$this->get('allianceId', true), $whitelistAlliance)
-            ){
-                $isAuthorized = true;
+        return $authStatus;
+    }
+
+    /**
+     * get pathfinder roleId
+     * @return int
+     */
+    public function requestRoleId(){
+        $roleId = self::ROLES['MEMBER'];
+
+        if( !empty($rolesData = $this->requestRoles()) ){
+            // roles that grant admin access for this character
+            $adminRoles = array_intersect(CorporationModel::ADMIN_ROLES, $rolesData);
+            if( !empty($adminRoles) ){
+                $roleId = self::ROLES['CORPORATION'];
             }
         }
 
-        return $isAuthorized;
+        return $roleId;
+    }
+
+    /**
+     * request all corporation roles granted to this character
+     * @return array
+     */
+    protected function requestRoles(){
+        $rolesData = [];
+        if( $accessToken = $this->getAccessToken() ){
+            // check if corporation exists (should never fail)
+            if( $corporation = $this->getCorporation() ){
+                $characterRolesData = $corporation->getCharactersRoles($accessToken);
+                if( !empty($characterRolesData[$this->_id]) ){
+                    $rolesData = $characterRolesData[$this->_id];
+                }
+            }
+        }
+
+        return $rolesData;
     }
 
     /**
@@ -406,87 +630,145 @@ class CharacterModel extends BasicModel {
      * @return $this
      */
     public function updateLog($additionalOptions = []){
-        $deleteLog = true;
+        $deleteLog = false;
+        $invalidResponse = false;
 
         //check if log update is enabled for this user
         if( $this->logLocation ){
             // Try to pull data from API
             if( $accessToken = $this->getAccessToken() ){
-                $locationData = self::getF3()->ccpClient->getCharacterLocationData($this->_id, $accessToken, $additionalOptions);
+                $onlineData = self::getF3()->ccpClient->getCharacterOnlineData($this->_id, $accessToken, $additionalOptions);
 
-                if( !empty($locationData['system']['id']) ){
-                    // character is currently in-game
+                // check whether character is currently ingame online
+                if(is_bool($onlineData['online'])){
+                    if($onlineData['online'] === true){
+                        $locationData = self::getF3()->ccpClient->getCharacterLocationData($this->_id, $accessToken, $additionalOptions);
 
-                    // IDs for "systemId", "stationId and "shipTypeId" that require more data
-                    $lookupIds = [];
+                        if( !empty($locationData['system']['id']) ){
+                            // character is currently in-game
 
-                    if( !$characterLog = $this->getLog() ){
-                        // create new log
-                        $characterLog = $this->rel('characterLog');
-                        $characterLog->characterId = $this->_id;
-                    }
+                            // IDs for "systemId", "stationId and "shipTypeId" that require more data
+                            $lookupIds = [];
 
-                    // get current log data and modify on change
-                    $logData = json_decode(json_encode( $characterLog->getData()), true);
+                            if( !$characterLog = $this->getLog() ){
+                                // create new log
+                                $characterLog = $this->rel('characterLog');
+                            }
 
-                    if(
-                        empty($logData['system']['name']) ||
-                        $logData['system']['id'] !== $locationData['system']['id']
-                    ){
-                        // system changed -> request "system name" for current system
-                        $lookupIds[] = $locationData['system']['id'];
-                    }
+                            // get current log data and modify on change
+                            $logData = json_decode(json_encode( $characterLog->getData()), true);
 
-                    if( !empty($locationData['station']['id']) ){
-                        if(
-                            empty($logData['station']['name']) ||
-                            $logData['station']['id']  !== $locationData['station']['id']
-                        ){
-                            // station changed -> request "station name" for current station
-                            $lookupIds[] = $locationData['station']['id'];
+                            if(
+                                empty($logData['system']['name']) ||
+                                $logData['system']['id'] !== $locationData['system']['id']
+                            ){
+                                // system changed -> request "system name" for current system
+                                $lookupIds[] = $locationData['system']['id'];
+                            }
+
+                            if( !empty($locationData['station']['id']) ){
+                                if(
+                                    empty($logData['station']['name']) ||
+                                    $logData['station']['id']  !== $locationData['station']['id']
+                                ){
+                                    // station changed -> request "station name" for current station
+                                    $lookupIds[] = $locationData['station']['id'];
+                                }
+                            }else{
+                                unset($logData['station']);
+                            }
+
+                            $logData = array_replace_recursive($logData, $locationData);
+
+                            // get current ship data
+                            $shipData = self::getF3()->ccpClient->getCharacterShipData($this->_id, $accessToken, $additionalOptions);
+
+                            if( !empty($shipData['ship']['typeId']) ){
+                                if(
+                                    empty($logData['ship']['typeName']) ||
+                                    $logData['ship']['typeId'] !== $shipData['ship']['typeId']
+                                ){
+                                    // ship changed -> request "station name" for current station
+                                    $lookupIds[] = $shipData['ship']['typeId'];
+                                }
+
+                                // "shipName"/"shipId" could have changed...
+                                $logData = array_replace_recursive($logData, $shipData);
+                            }else{
+                                // ship data should never be empty -> keep current one
+                                //unset($logData['ship']);
+                                $invalidResponse = true;
+                            }
+
+                            if( !empty($lookupIds) ){
+                                // get "more" information for some Ids (e.g. name)
+                                $universeData = self::getF3()->ccpClient->getUniverseNamesData($lookupIds, $additionalOptions);
+
+                                if( !empty($universeData) ){
+                                    $logData = array_replace_recursive($logData, $universeData);
+                                }else{
+                                    // this is important! universe data is a MUST HAVE!
+                                    $deleteLog = true;
+                                }
+                            }
+
+                            if( !$deleteLog ){
+                                // mark log as "updated" even if no changes were made
+                                if($additionalOptions['markUpdated'] === true){
+                                    $characterLog->touch('updated');
+                                }
+
+                                $characterLog->setData($logData);
+                                $characterLog->characterId = $this;
+                                $characterLog->save();
+
+                                $this->characterLog = $characterLog;
+                            }
+                        }else{
+                            // systemId should always exists
+                            $invalidResponse = true;
                         }
                     }else{
-                        unset($logData['station']);
+                        // user is in-game offline
+                        $deleteLog = true;
                     }
+                }else{
+                    // online status request failed
+                    $invalidResponse = true;
+                }
+            }else{
+                // access token request failed
+                $deleteLog = true;
+            }
+        }else{
+            // character deactivated location logging
+            $deleteLog = true;
+        }
 
-                    $logData = array_replace_recursive($logData, $locationData);
+        //in case of failure (invalid API response) increase or reset "retry counter"
+        if( $user = $this->getUser() ){
+            // Session data does not exists in CLI mode (Cronjob)
+            if( $sessionCharacterData = $user->getSessionCharacterData($this->id, false) ){
+                $updateRetry = (int)$sessionCharacterData['UPDATE_RETRY'];
+                $newRetry =  $updateRetry;
+                if($invalidResponse){
+                    $newRetry++;
 
-                    // get current ship data
-                    $shipData = self::getF3()->ccpClient->getCharacterShipData($this->_id, $accessToken, $additionalOptions);
-
-                    if( !empty($shipData['ship']['typeId']) ){
-                        if(
-                            empty($logData['ship']['typeName']) ||
-                            $logData['ship']['typeId'] !== $shipData['ship']['typeId']
-                        ){
-                            // ship changed -> request "station name" for current station
-                            $lookupIds[] = $shipData['ship']['typeId'];
-                        }
-
-                        // "shipName"/"shipId" could have changed...
-                        $logData = array_replace_recursive($logData, $shipData);
-                    }else{
-                        unset($logData['ship']);
+                    if($newRetry >= 3){
+                        // no proper character log data (3 fails in a row))
+                        $newRetry = 0;
+                        $deleteLog = true;
                     }
+                }else{
+                    // reset retry counter
+                    $newRetry = 0;
+                }
 
-                    if( !empty($lookupIds) ){
-                        // get "more" information for some Ids (e.g. name)
-                        $universeData = self::getF3()->ccpClient->getUniverseNamesData($lookupIds, $additionalOptions);
-
-                        if( !empty($universeData) ){
-                            $deleteLog = false;
-                            $logData = array_replace_recursive($logData, $universeData);
-                        }
-                    }else{
-                        $deleteLog = false;
-                    }
-
-                    if( !$deleteLog ){
-                        $characterLog->setData($logData);
-                        $characterLog->save();
-
-                        $this->characterLog = $characterLog;
-                    }
+                if($updateRetry !== $newRetry){
+                    // update retry counter
+                    $sessionCharacterData['UPDATE_RETRY'] = $newRetry;
+                    $sessionCharacters = self::mergeSessionCharacterData([$sessionCharacterData]);
+                    self::getF3()->set(User::SESSION_KEY_CHARACTERS, $sessionCharacters);
                 }
             }
         }
@@ -559,7 +841,7 @@ class CharacterModel extends BasicModel {
             $this->hasLog() &&
             !$this->characterLog->dry()
         ){
-            $characterLog = &$this->characterLog;
+            $characterLog = $this->characterLog;
         }
 
         return $characterLog;
@@ -642,7 +924,7 @@ class CharacterModel extends BasicModel {
      * @param array $characterDataBase
      * @return array
      */
-    static function mergeSessionCharacterData(array $characterDataBase = []){
+    public static function mergeSessionCharacterData(array $characterDataBase = []){
         $addData = [];
         // get current session characters to be merged with
         $characterData = (array)self::getF3()->get(User::SESSION_KEY_CHARACTERS);
@@ -662,4 +944,13 @@ class CharacterModel extends BasicModel {
         return array_merge($characterDataBase, $addData);
     }
 
+    public static function getAll($characterIds = []){
+        $query = [
+            'active = :active AND id IN :characterIds',
+            ':active' => 1,
+            ':characterIds' => $characterIds
+        ];
+
+        return (new self())->find($query);
+    }
 } 

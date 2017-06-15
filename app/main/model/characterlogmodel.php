@@ -134,6 +134,7 @@ class CharacterLogModel extends BasicModel {
     }
 
     /**
+     *  setter for systemId
      * @param int $systemId
      * @return int
      */

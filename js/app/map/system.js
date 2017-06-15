@@ -109,12 +109,21 @@ define([
 
             let systemDeleteDialog = bootbox.confirm(msg, result => {
                 if(result){
-                    deleteSystems(map, validDeleteSystems, (systems) => {
+                    deleteSystems(map, validDeleteSystems, (deletedSystems) => {
                         // callback function after deleted -> close dialog
                         systemDeleteDialog.modal('hide');
 
-                        if(systems.length === 1){
-                            Util.showNotify({title: 'System deleted', text: $(systems[0]).data('name'), type: 'success'});
+                        // check whether all systems were deleted properly
+                        if(deletedSystems.length !== validDeleteSystems.length){
+                            let notDeletedCount = validDeleteSystems.length - deletedSystems.length;
+
+                            Util.showNotify({
+                                title: 'Failed to delete systems',
+                                text: '(' + notDeletedCount + '/' +  validDeleteSystems.length + ') systems could not be deleted',
+                                type: 'warning'}
+                            );
+                        }else if(deletedSystems.length === 1){
+                            Util.showNotify({title: 'System deleted', text: $(deletedSystems[0]).data('name'), type: 'success'});
                         }else{
                             Util.showNotify({title: systems.length + ' systems deleted', type: 'success'});
                         }
@@ -150,11 +159,18 @@ define([
                 map: map,
                 systems: systems
             }
-        }).done(function(){
-            // remove systems from map
-            removeSystems(this.map,  this.systems);
+        }).done(function(data){
+            // check if all systems were deleted that should get deleted
+            let deletedSystems = this.systems.filter(
+                function(system){
+                    return this.indexOf( $(system).data('id') ) !== -1;
+                }, data.deletedSystemIds
+            );
 
-            callback(this.systems);
+            // remove systems from map
+            removeSystems(this.map,  deletedSystems);
+
+            callback(deletedSystems);
         }).fail(function(jqXHR, status, error) {
             let reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': deleteSystem', text: reason, type: 'warning'});

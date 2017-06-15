@@ -1,0 +1,25 @@
+<check if="{{ @SESSION.SSO.ERROR }}">
+    <div class="container-fluid no-padding text-left">
+        <div class="row">
+            <div class="col-xs-12 col-md-8 col-md-offset-2">
+                <div class="alert alert-danger" >
+                    <span class="txt-color txt-color-danger">Access denied</span>
+                    <small>{{ @SESSION.SSO.ERROR }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</check>
+
+{* SSO login *}
+<div class="container-fluid">
+    <div class="row text-center">
+        <div class="col-xs-12">
+            <a class="pf-sso-login-button {{@registrationStatusButton}}" target="_self" href="{{ @tplAuthType }}" type="button" tabindex="3" title="{{@registrationStatusTitle}}">&nbsp;</a><br>
+            <a target="_blank" href="http://community.eveonline.com/news/dev-blogs/eve-online-sso-and-what-you-need-to-know">What is this?</a>
+        </div>
+    </div>
+</div>
+
+{* splash page -> shown by Javascript *}
+<div id="pf-notification-panel"></div>

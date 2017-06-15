@@ -142,7 +142,7 @@ define([
     };
 
     /**
-     * loads the system info table into an element
+     * loads system info table into an element
      * @param mapData
      */
     $.fn.loadSystemInfoTable = function(mapData){
@@ -435,18 +435,24 @@ define([
                                 // trigger system delete event
                                 activeMap.trigger('pf:deleteSystems', [{
                                     systems: [systemElement[0]],
-                                    callback: function(){
+                                    callback: function(deletedSystems){
                                         // callback function after ajax "delete" success
-                                        // remove table row
-                                        tempTableElement.DataTable().rows(deleteRowElement).remove().draw();
+                                        // check if system was deleted
+                                        if(deletedSystems.length === 1){
+                                            // remove table row
+                                            tempTableElement.DataTable().rows(deleteRowElement).remove().draw();
 
-                                        Util.showNotify({title: 'System deleted', text: rowData.name, type: 'success'});
+                                            Util.showNotify({title: 'System deleted', text: rowData.name, type: 'success'});
 
-                                        // refresh connection table (connections might have changed) ==================
-                                        let connectionsElement = $('#' + config.mapInfoConnectionsId);
-                                        let mapDataNew = activeMap.getMapDataFromClient({forceData: true});
+                                            // refresh connection table (connections might have changed) ==================
+                                            let connectionsElement = $('#' + config.mapInfoConnectionsId);
+                                            let mapDataNew = activeMap.getMapDataFromClient({forceData: true});
 
-                                        connectionsElement.loadConnectionInfoTable(mapDataNew);
+                                            connectionsElement.loadConnectionInfoTable(mapDataNew);
+                                        }else{
+                                            // error
+                                            Util.showNotify({title: 'Failed to delete system', text: rowData.name, type: 'error'});
+                                        }
                                     }
                                 }]);
                             }
@@ -463,7 +469,7 @@ define([
     };
 
     /**
-     * loads the connection info table into an element
+     * loads connection info table into an element
      * @param mapData
      */
     $.fn.loadConnectionInfoTable = function(mapData){
@@ -611,6 +617,10 @@ define([
         });
     };
 
+    /**
+     * loads user info table into an element
+     * @param mapData
+     */
     $.fn.loadUsersInfoTable = function(mapData){
         let usersElement = $(this);
 
@@ -629,7 +639,9 @@ define([
 
             // init table tooltips
             let tooltipElements = usersElement.find('[data-toggle="tooltip"]');
-            tooltipElements.tooltip();
+            tooltipElements.tooltip({
+                container: usersElement.parent()
+            });
         });
 
         let getIconForInformationWindow = () => {
@@ -659,7 +671,7 @@ define([
             paging: true,
             lengthMenu: [[5, 10, 20, 50, -1], [5, 10, 20, 50, 'All']],
             ordering: true,
-            order: [ 1, 'asc' ],
+            order: [[ 3, 'asc' ]],
             autoWidth: false,
             hover: false,
             data: usersData,
@@ -676,24 +688,32 @@ define([
                     width: '26px',
                     orderable: false,
                     searchable: false,
-                    className: ['text-center', config.tableImageCellClass].join(' '),
+                    className: ['pf-help-default', 'text-center', config.tableImageCellClass].join(' '),
                     data: 'log.ship',
                     render: {
                         _: function(data, type, row, meta){
-                            return '<img src="' + Init.url.ccpImageServer + 'Render/' + data.typeId + '_32.png" />';
+                            let value = data;
+                            if(type === 'display'){
+                                value = '<img src="' + Init.url.ccpImageServer + 'Render/' + value.typeId + '_32.png" title="' + value.typeName + '" data-toggle="tooltip" />';
+                            }
+                            return value;
                         }
                     }
                 },{
                     targets: 1,
-                    title: 'ship',
+                    title: 'ship name',
+                    width: '100px',
                     orderable: true,
                     searchable: true,
                     data: 'log.ship',
                     render: {
                         _: function(data, type, row){
-                            return data.typeName + '&nbsp;<i class="fa fa-fw fa-question-circle pf-help" title="' + data.name + '" data-toggle="tooltip"></i>';
-                        },
-                        sort: 'typeName'
+                            let value = data.name;
+                            if(type === 'display'){
+                                value = '<div class="' + MapUtil.config.tableCellEllipsisClass + ' ' + MapUtil.config.tableCellEllipsis100Class + '">' + data.name + '</div>';
+                            }
+                            return value;
+                        }
                     }
                 },{
                     targets: 2,
@@ -705,7 +725,11 @@ define([
                     data: 'id',
                     render: {
                         _: function(data, type, row, meta){
-                            return '<img src="' + Init.url.ccpImageServer + 'Character/' + data + '_32.jpg" />';
+                            let value = data;
+                            if(type === 'display'){
+                                value = '<img src="' + Init.url.ccpImageServer + 'Character/' + value + '_32.jpg" />';
+                            }
+                            return value;
                         }
                     }
                 },{
@@ -741,7 +765,11 @@ define([
                     data: 'corporation',
                     render: {
                         _: function(data, type, row, meta){
-                            return '<img src="' + Init.url.ccpImageServer + 'Corporation/' + data.id + '_32.png" />';
+                            let value = data;
+                            if(type === 'display'){
+                                value = '<img src="' + Init.url.ccpImageServer + 'Corporation/' + value.id + '_32.png" />';
+                            }
+                            return value;
                         }
                     }
                 },{

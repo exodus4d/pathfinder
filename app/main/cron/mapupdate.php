@@ -64,11 +64,11 @@ class MapUpdate {
     }
 
     /**
-     * delete expired connections (EOL connections)
-     * >> php index.php "/cron/deleteConnections"
+     * delete expired EOL connections
+     * >> php index.php "/cron/deleteEolConnections"
      * @param \Base $f3
      */
-    function deleteConnections(\Base $f3){
+    function deleteEolConnections(\Base $f3){
         $eolExpire = (int)$f3->get('PATHFINDER.CACHE.EXPIRE_CONNECTIONS_EOL');
 
         if($eolExpire > 0){
@@ -81,13 +81,57 @@ class MapUpdate {
                   `map` ON 
                     `map`.`id` = `con`.`mapId`
                 WHERE
-                  `map`.`deleteExpiredConnections` = :deleteExpiredConnections AND
+                  `map`.`deleteEolConnections` = :deleteEolConnections AND
                   TIMESTAMPDIFF(SECOND, `con`.`eolUpdated`, NOW() ) > :expire_time
             ";
 
             $connectionsData = $pfDB->exec($sql, [
-                'deleteExpiredConnections' => 1,
+                'deleteEolConnections' => 1,
                 'expire_time' => $eolExpire
+            ]);
+
+            if($connectionsData){
+                /**
+                 * @var $connection Model\ConnectionModel
+                 */
+                $connection = Model\BasicModel::getNew('ConnectionModel');
+                foreach($connectionsData as $data){
+                    $connection->getById( (int)$data['id'] );
+                    if( !$connection->dry() ){
+                        $connection->erase();
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * delete expired WH connections after max lifetime for wormholes is reached
+     * >> php index.php "/cron/deleteExpiredConnections"
+     * @param \Base $f3
+     */
+    function deleteExpiredConnections(\Base $f3){
+        $whExpire = (int)$f3->get('PATHFINDER.CACHE.EXPIRE_CONNECTIONS_WH');
+
+        if($whExpire > 0){
+            $pfDB = DB\Database::instance()->getDB('PF');
+
+            $sql = "SELECT
+                    `con`.`id`
+                FROM
+                  `connection` `con` INNER JOIN
+                  `map` ON 
+                    `map`.`id` = `con`.`mapId`
+                WHERE
+                  `map`.`deleteExpiredConnections` = :deleteExpiredConnections AND
+                  `con`.`scope` = :scope AND
+                  TIMESTAMPDIFF(SECOND, `con`.`created`, NOW() ) > :expire_time
+            ";
+
+            $connectionsData = $pfDB->exec($sql, [
+                'deleteExpiredConnections' => 1,
+                'scope' => 'wh',
+                'expire_time' => $whExpire
             ]);
 
             if($connectionsData){

@@ -12,7 +12,6 @@ define([
     'velocityUI',
     'customScrollbar',
     'validator',
-    'xEditable',
     'easyPieChart',
     'hoverIntent',
     'bootstrapConfirmation',
@@ -398,50 +397,6 @@ define([
     };
 
     /**
-     * get all form Values as object
-     * this includes all xEditable fields
-     * @returns {{}}
-     */
-    $.fn.getFormValues = function(){
-        let form = $(this);
-        let formData = {};
-        let values = form.serializeArray();
-
-        // add "unchecked" checkboxes as well
-        values = values.concat(
-            form.find('input[type=checkbox]:not(:checked)').map(
-                function() {
-                    return {name: this.name, value: 0};
-                }).get()
-        );
-
-        for(let field of values){
-            // check for numeric values -> convert to Int
-            let value = ( /^\d+$/.test(field.value) ) ? parseInt(field.value) : field.value;
-
-            if(field.name.indexOf('[]') !== -1){
-                // array field
-                let key = field.name.replace('[]', '');
-                if( !$.isArray(formData[key]) ){
-                    formData[key] = [];
-                }
-
-                formData[key].push( value);
-            }else{
-                formData[field.name] = value;
-            }
-        }
-
-        // get xEditable values
-        let editableValues = form.find('.' + config.formEditableFieldClass).editable('getValue');
-
-        // merge values
-        formData = $.extend(formData, editableValues);
-
-        return formData;
-    };
-
-    /**
      * check multiple element if they arecurrently visible in viewport
      * @returns {Array}
      */
@@ -763,14 +718,15 @@ define([
                     break;
             }
 
-            let data = {
-                title: config.title,
-                text: config.text,
+            let defaultOptions = {
+                dismissible: true,
                 messageTypeClass: messageTypeClass,
                 messageTextClass: messageTextClass
             };
 
-            let content = Mustache.render(template, data);
+            defaultOptions = $.extend(defaultOptions, config);
+
+            let content = Mustache.render(template, defaultOptions);
 
             containerElement.html(content);
 
@@ -1942,7 +1898,6 @@ define([
 
     /**
      * set new destination for a system
-     * -> CREST request
      * @param systemData
      * @param type
      */

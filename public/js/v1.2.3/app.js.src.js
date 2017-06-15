@@ -20,6 +20,7 @@ requirejs.config({
         login: './app/login',                                           // initial start "login page" view
         mappage: './app/mappage',                                       // initial start "map page" view
         setup: './app/setup',                                           // initial start "setup page" view
+        admin: './app/admin',                                           // initial start "admin page" view
 
         jquery: 'lib/jquery-3.1.1.min',                                 // v3.1.1 jQuery
         bootstrap: 'lib/bootstrap.min',                                 // v3.3.0 Bootstrap js code - http://getbootstrap.com/javascript

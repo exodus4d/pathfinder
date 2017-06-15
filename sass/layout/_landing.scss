@@ -167,7 +167,7 @@
 }
  // header --------------------------------------------------------------------
 #pf-landing-top{
-  height: 450px;
+  height: 355px;
   border-bottom: 1px solid $gray-dark;
   position: relative;
 
@@ -180,6 +180,10 @@
     background-repeat: no-repeat;
     background-position: 0 0;
     @include filter(brightness(0.9))
+  }
+
+  #pf-logo-container{
+    @include transform( scale3d(0.8, 0.8, 1) ); // downscales logo
   }
 
   #pf-header-container{
@@ -203,7 +207,7 @@
       left: 400px;
       width: 590px;
       height: 350px;
-      top: 92px;
+      top: 37px;
 
       .pf-header-preview-element{
         position: relative;
@@ -241,7 +245,7 @@
 
   .container{
     position: relative;
-    margin-top: 50px;
+    margin-top: 10px;
   }
 }
 
@@ -301,8 +305,13 @@
     padding: 10px 10px 5px 10px;
     min-width: 155px;
     min-height: 184px;
+    overflow: visible;  // overwrite default
     @include border-radius(10px);
     @include box-shadow(0 4px 10px rgba(0,0,0, 0.4));
+
+    .ribbon-wrapper{
+      z-index: 5 ;
+    }
 
     // character images
     .pf-character-image-wrapper{
@@ -403,6 +412,10 @@
       &:after{
         opacity: 0;
       }
+    }
+
+    &.disabled{
+      pointer-events: auto; // required for tooltips to be shown on "disabled" links
     }
   }
 
@@ -538,8 +551,11 @@
     background: $gray;
     color: $gray-lighter;
     padding: 20px 15px;
-    min-height: 205px;
     line-height: 22px;
+
+    &:not(.price-features-fluid){
+      min-height: 205px;
+    }
 
     .list-unstyled.text-left li{
       text-indent: -1em;
@@ -554,6 +570,13 @@
   // table
   table tr td {
     line-height: 1;
+  }
+}
+
+// admin ----------------------------------------------------------------------
+#pf-landing-admin{
+  .pf-landing-admin-login{
+    margin-bottom: 0;
   }
 }
 
@@ -572,7 +595,11 @@
 .pf-landing-footer{
   padding: 30px 0;
   font-family: $font-family-bold;
-  background-color: darken($gray-darker, 8%);
+  background-color: darken($gray-darker, 8%) ;
+
+  .row{
+    margin-bottom: 0 !important; // overwrite default
+  }
 
   .pf-social-networks > li{
     display: inline-block;

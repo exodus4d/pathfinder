@@ -70,8 +70,9 @@ class Controller {
      * event handler for all "views"
      * some global template variables are set in here
      * @param \Base $f3
+     * @param array $params
      */
-    function beforeroute(\Base $f3) {
+    function beforeroute(\Base $f3, $params) {
         $this->setF3($f3);
 
         // initiate DB connection
@@ -81,11 +82,10 @@ class Controller {
         $this->initSession();
 
         if( !$f3->get('AJAX') ){
-
             // js path (build/minified or raw uncompressed files)
-            $f3->set('pathJs', 'public/js/' . $f3->get('PATHFINDER.VERSION') );
+            $f3->set('tplPathJs', 'public/js/' . Config::getPathfinderData('version') );
 
-            $this->setTemplate( $f3->get('PATHFINDER.VIEW.INDEX') );
+            $this->setTemplate( Config::getPathfinderData('view.index') );
         }
     }
 
@@ -242,11 +242,12 @@ class Controller {
      * -> validate cookie data
      * -> validate characters
      * -> cf. Sso->requestAuthorization() ( equivalent DB based login)
+     *
      * @param array $cookieData
-     * @return array
-     * @throws \Exception
+     * @param bool $checkAuthorization
+     * @return Model\CharacterModel[]
      */
-    protected function getCookieCharacters($cookieData = []){
+    protected function getCookieCharacters($cookieData = [], $checkAuthorization = true){
         $characters = [];
 
         if(
@@ -268,12 +269,17 @@ class Controller {
                 $data = explode(':', $value);
                 if(count($data) === 2){
                     // cookie data is well formatted
-                    $characterAuth->getByForeignKey('selector', $data[0], ['limit' => 1]);
+                    $characterAuth->getByForeignKey('selector', $data[0], ['limit' => 1], 0);
 
-                    // validate "scope hash", "expire data" and "validate token"
+                    // validate "scope hash"
+                    // -> either "normal" scopes OR "admin" scopes
+                    // "expire data" and "validate token"
                     if( !$characterAuth->dry() ){
                         if(
-                            $characterAuth->scopeHash === $this->getRequestedScopeHash() &&
+                            (
+                                $characterAuth->scopeHash === $this->generateHashFromScopes($this->getScopesByAuthType()) ||
+                                $characterAuth->scopeHash === $this->generateHashFromScopes($this->getScopesByAuthType('admin'))
+                            ) &&
                             strtotime($characterAuth->expires) >= $currentTime->getTimestamp() &&
                             hash_equals($characterAuth->token, hash('sha256', $data[1]))
                         ){
@@ -294,10 +300,16 @@ class Controller {
                                 // check if character still has user (is not the case of "ownerHash" changed
                                 // check if character is still authorized to log in (e.g. corp/ally or config has changed
                                 // -> do NOT remove cookie on failure. This can be a temporary problem (e.g. ESI is down,..)
-                                if(
-                                    $character->hasUserCharacter() &&
-                                    $character->isAuthorized()
-                                ){
+                                if( $character->hasUserCharacter() ){
+                                    $authStatus = $character->isAuthorized();
+
+                                    if(
+                                        $authStatus == 'OK' ||
+                                        !$checkAuthorization
+                                    ){
+                                        $character->virtual( 'authStatus', $authStatus);
+                                    }
+
                                     $characters[$name] = $character;
                                 }
                             }else{
@@ -366,35 +378,6 @@ class Controller {
     }
 
     /**
-     * checks whether a user/character is currently logged in
-     * @param \Base $f3
-     * @return bool
-     */
-    protected function checkLogTimer($f3){
-        $loginCheck = false;
-        $characterData = $this->getSessionCharacterData();
-
-        if( !empty($characterData) ){
-            // check logIn time
-            $logInTime = new \DateTime();
-            $logInTime->setTimestamp( (int)$characterData['TIME'] );
-            $now = new \DateTime();
-
-            $timeDiff = $now->diff($logInTime);
-
-            $minutes = $timeDiff->days * 60 * 24 * 60;
-            $minutes += $timeDiff->h * 60;
-            $minutes += $timeDiff->i;
-
-            if($minutes <= $f3->get('PATHFINDER.TIMER.LOGGED')){
-                $loginCheck = true;
-            }
-        }
-
-        return $loginCheck;
-    }
-
-    /**
      * get current character
      * @param int $ttl
      * @return Model\CharacterModel|null
@@ -452,12 +435,32 @@ class Controller {
     }
 
     /**
-     * get a hash over all requested ESI scopes
-     * -> this helps to invalidate "authentication data" after scope change
+     * get scope array by a "role"
+     * @param string $authType
+     * @return array
+     */
+    protected function getScopesByAuthType($authType = ''){
+        $scopes = (array)self::getEnvironmentData('CCP_ESI_SCOPES');
+
+        switch($authType){
+            case 'admin':
+                $scopesAdmin = (array)self::getEnvironmentData('CCP_ESI_SCOPES_ADMIN');
+                $scopes = array_merge($scopes, $scopesAdmin);
+                break;
+        }
+        sort($scopes, SORT_NUMERIC);
+        return $scopes;
+    }
+
+    /**
+     * get hash from an array of ESI scopes
+     * @param array $scopes
      * @return string
      */
-    protected function getRequestedScopeHash(){
-        return md5(serialize( self::getEnvironmentData('CCP_ESI_SCOPES') ));
+    protected function generateHashFromScopes($scopes){
+        $scopes = (array)$scopes;
+        sort($scopes);
+        return md5(serialize( $scopes ));
     }
 
     /**
@@ -564,9 +567,9 @@ class Controller {
      */
     protected function getUserAgent(){
         $userAgent = '';
-        $userAgent .= $this->getF3()->get('PATHFINDER.NAME');
-        $userAgent .=  ' - ' . $this->getF3()->get('PATHFINDER.VERSION');
-        $userAgent .=  ' | ' . $this->getF3()->get('PATHFINDER.CONTACT');
+        $userAgent .= Config::getPathfinderData('name');
+        $userAgent .=  ' - ' . Config::getPathfinderData('version');
+        $userAgent .=  ' | ' . Config::getPathfinderData('contact');
         $userAgent .=  ' (' . $_SERVER['SERVER_NAME'] . ')';
 
         return $userAgent;
@@ -615,18 +618,19 @@ class Controller {
             echo json_encode($return);
             die();
         }else{
+            $f3->set('tplPageTitle', 'ERROR - ' . $error->code . ' | Pathfinder');
             // set error data for template rendering
             $error->redirectUrl = $this->getRouteUrl();
             $f3->set('errorData', $error);
 
             if( preg_match('/^4[0-9]{2}$/', $error->code) ){
                 // 4xx error -> render error page
-                $f3->set('pageContent', $f3->get('PATHFINDER.STATUS.4XX'));
+                $f3->set('tplPageContent', Config::getPathfinderData('STATUS.4XX') );
             }elseif( preg_match('/^5[0-9]{2}$/', $error->code) ){
-                $f3->set('pageContent', $f3->get('PATHFINDER.STATUS.5XX'));
+                $f3->set('tplPageContent', Config::getPathfinderData('STATUS.5XX'));
             }
 
-            echo \Template::instance()->render( $f3->get('PATHFINDER.VIEW.INDEX') );
+            echo \Template::instance()->render( Config::getPathfinderData('view.index') );
             die();
         }
     }

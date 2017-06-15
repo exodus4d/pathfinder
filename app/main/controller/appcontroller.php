@@ -7,8 +7,9 @@
  */
 
 namespace Controller;
+
 use Controller\Ccp as Ccp;
-use Model;
+use lib\Config;
 
 class AppController extends Controller {
 
@@ -31,16 +32,19 @@ class AppController extends Controller {
      */
     public function init(\Base $f3) {
         // page title
-        $f3->set('pageTitle', 'Pathfinder');
+        $f3->set('tplPageTitle',  Config::getPathfinderData('name'));
 
         // main page content
-        $f3->set('pageContent', $f3->get('PATHFINDER.VIEW.LOGIN'));
+        $f3->set('tplPageContent', Config::getPathfinderData('view.login'));
 
         // body element class
-        $f3->set('bodyClass', 'pf-body pf-landing');
+        $f3->set('tplBodyClass', 'pf-landing');
 
         // JS main file
-        $f3->set('jsView', 'login');
+        $f3->set('tplJsView', 'login');
+
+        // href for SSO Auth
+        $f3->set('tplAuthType', $f3->alias( 'sso', ['action' => 'requestAuthorization'] ));
 
         // characters  from cookies
         $f3->set('cookieCharacters', $this->getCookieByName(self::COOKIE_PREFIX_CHARACTER, true));

@@ -74,7 +74,7 @@ class MapTypeModel extends BasicModel{
         ],
         [
             'id' => 5,
-            'name' => 'globald',
+            'name' => 'global',
             'label' => 'global',
             'class' => 'pf-map-type-global',
             'classTab' => 'pf-map-type-tab-global'

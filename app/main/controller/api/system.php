@@ -67,9 +67,10 @@ class System extends Controller\AccessController {
 
     /**
      * @param \Base $f3
+     * @param array $params
      */
-    function beforeroute(\Base $f3) {
-        parent::beforeroute($f3);
+    function beforeroute(\Base $f3, $params) {
+        parent::beforeroute($f3, $params);
 
         // set header for all routes
         header('Content-type: application/json');
@@ -413,7 +414,10 @@ class System extends Controller\AccessController {
      */
     public function delete(\Base $f3){
         $mapId = (int)$f3->get('POST.mapId');
-        $systemIds = (array)$f3->get('POST.systemIds');
+        $systemIds = array_map('intval', (array)$f3->get('POST.systemIds'));
+
+        $return = (object) [];
+        $return->deletedSystemIds = [];
 
         if($mapId){
             $activeCharacter = $this->getCharacter();
@@ -428,28 +432,52 @@ class System extends Controller\AccessController {
                 foreach($systemIds as $systemId){
                     if( $system = $map->getSystemById($systemId) ){
                         // check whether system should be deleted OR set "inactive"
-                        if(
-                            !empty($system->description) ||
-                            ( !empty($system->alias) && ($system->alias != $system->name) )
-                        ){
+                        if( $this->checkDeleteMode($map, $system) ){
+                            $system->erase();
+                        }else{
                             // keep data -> set "inactive"
                             $system->setActive(false);
                             $system->save();
-                        }else{
-                            $system->erase();
                         }
 
                         $system->reset();
+
+                        $return->deletedSystemIds[] = $systemId;
                     }
                 }
-
                 // broadcast map changes
-                $this->broadcastMapData($map);
+                if(count($return->deletedSystemIds)){
+                    $this->broadcastMapData($map);
+                }
             }
-
         }
 
-        echo json_encode([]);
+        echo json_encode($return);
+    }
+
+    /**
+     * checks whether a system should be "deleted" or set "inactive" (keep some data)
+     * @param Model\MapModel $map
+     * @param Model\SystemModel $system
+     * @return bool
+     */
+    protected function checkDeleteMode(Model\MapModel $map, Model\SystemModel $system){
+        $delete = true;
+
+        if( !empty($system->description) ){
+            // never delete systems with custom description set!
+            $delete = false;
+        }elseif(
+            $map->persistentAliases &&
+            !empty($system->alias) &&
+            ($system->alias != $system->name)
+        ){
+            // map setting "persistentAliases" is active (default) AND
+            // alias is set and != name
+            $delete = false;
+        }
+
+        return $delete;
     }
 }
 

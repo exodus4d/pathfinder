@@ -70,6 +70,16 @@ class MapModel extends BasicModel {
             'nullable' => false,
             'default' => 1
         ],
+        'deleteEolConnections' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => 1
+        ],
+        'persistentAliases' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => 1
+        ],
         'systems' => [
             'has-many' => ['Model\SystemModel', 'mapId']
         ],
@@ -150,6 +160,8 @@ class MapModel extends BasicModel {
             $mapData->name = $this->name;
             $mapData->icon = $this->icon;
             $mapData->deleteExpiredConnections = $this->deleteExpiredConnections;
+            $mapData->deleteEolConnections = $this->deleteEolConnections;
+            $mapData->persistentAliases = $this->persistentAliases;
             $mapData->created = strtotime($this->created);
             $mapData->updated = strtotime($this->updated);
 
@@ -266,8 +278,14 @@ class MapModel extends BasicModel {
             // get blank system
             $systemController = new System();
             $systems = $systemController->getSystemModelByIds([$systemId]);
-            $system = reset($systems);
-            $system->mapId = $this->_id;
+            if( count($systems) ){
+                $system = reset($systems);
+                $system->mapId = $this->_id;
+            }else{
+                // should NEVER happen -> systemId does NOT exist in New Eden!!
+                $this->getF3()->error(500, 'SystemId "' . $systemId . '"" does not exist in EVE!' );
+            }
+
         }
         $system->setActive(true);
 
@@ -565,8 +583,14 @@ class MapModel extends BasicModel {
      */
     private function getCharacters(){
         $characters = [];
+        $filter = ['active = ?', 1];
 
-        $this->filter('mapCharacters', ['active = ?', 1]);
+        if( !empty($characterIds) ){
+            $filter[0] .= ' AND id IN (?)';
+            $filter[] =  $characterIds;
+        }
+
+        $this->filter('mapCharacters', $filter);
 
         if($this->mapCharacters){
             foreach($this->mapCharacters as $characterMapModel){
@@ -579,9 +603,10 @@ class MapModel extends BasicModel {
 
     /**
      * get all character models that are currently online "viewing" this map
+     * @param array $options filter options
      * @return CharacterModel[]
      */
-    private function getAllCharacters(){
+    private function getAllCharacters($options = []){
         $characters = [];
 
         if($this->isPrivate()){
@@ -595,13 +620,13 @@ class MapModel extends BasicModel {
             $corporations = $this->getCorporations();
 
             foreach($corporations as $corporation){
-                $characters = array_merge($characters, $corporation->getCharacters());
+                $characters = array_merge($characters, $corporation->getCharacters([], $options));
             }
         }elseif($this->isAlliance()){
             $alliances = $this->getAlliances();
 
             foreach($alliances as $alliance){
-                $characters = array_merge($characters, $alliance->getCharacters());
+                $characters = array_merge($characters, $alliance->getCharacters([], $options));
             }
         }
 
@@ -611,15 +636,16 @@ class MapModel extends BasicModel {
     /**
      * get data for ALL characters with map access
      * -> The result of this function is cached!
-     * @return \stdClass[]
+     * @param array $options filter options
+     * @return \stdClass
      */
-    public function getCharactersData(){
+    public function getCharactersData($options = []){
         // check if there is cached data
         $charactersData = $this->getCacheData(self::DATA_CACHE_KEY_CHARACTER);
 
         if(is_null($charactersData)){
             $charactersData = [];
-            $characters = $this->getAllCharacters();
+            $characters = $this->getAllCharacters($options);
 
             foreach($characters as $character){
                 $charactersData[] = $character->getData(true);
@@ -832,7 +858,16 @@ class MapModel extends BasicModel {
         $mapDataAll = $this->getData();
 
         // get data of characters which have with map access
-        $activeUserCharactersData = $this->getCharactersData();
+        $activeUserCharactersData = $this->getCharactersData(['hasLog' => true]);
+
+        // sort characters by "active" status
+        $sortByActiveLog = function($a, $b){
+            if($a->log->active == $b->log->active){
+                return 0;
+            }else{
+                return ($a->log->active && !$b->log->active) ? 0 : 1;
+            }
+        };
 
         $mapUserData = (object)[];
         $mapUserData->config = (object)[];
@@ -857,14 +892,15 @@ class MapModel extends BasicModel {
                         unset($activeUserCharactersData[$key]);
                     }
                 }else{
-                    // user has NO log data. If its an corp/ally map not each member is active
-                    // user is not relevant for this function!
+                    // character has NO log data. If its an corp/ally map not each member is active
+                    // -> character is not relevant for this function!
                     unset($activeUserCharactersData[$key]);
                 }
             }
 
             // add system if active users were found
             if(count($systemUserData->user) > 0){
+                usort($systemUserData->user, $sortByActiveLog);
                 $mapUserData->data->systems[] = $systemUserData;
             }
         }

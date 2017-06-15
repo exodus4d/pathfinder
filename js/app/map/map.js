@@ -190,7 +190,6 @@ define([
                 // =================================================================
 
                 // user count changed -> change tooltip content
-                let tooltipOptions = {placement: 'top', trigger: 'manual'};
 
                 // set tooltip color
                 let highlight = false;
@@ -203,10 +202,12 @@ define([
                     tooltipIconClass = 'fa-caret-down';
                 }
 
-                tooltipOptions.id = systemId;
-                tooltipOptions.highlight = highlight;
-                tooltipOptions.title = '<i class="fa ' + tooltipIconClass + '"></i>';
-                tooltipOptions.title += '&nbsp;' + userCounter;
+                let tooltipOptions = {
+                    trigger: 'manual',
+                    id: systemId,
+                    highlight: highlight,
+                    title: '<i class="fa ' + tooltipIconClass + '"></i>&nbsp;' + userCounter
+                };
 
                 // show system head
                 systemHeadExpand.velocity('stop', true).velocity({
@@ -364,6 +365,7 @@ define([
                         '<div id="' + tooltipId + '" class="tooltip-inner txt-color ' + config.systemTooltipInnerClass + '"></div>' +
                         '</div>';
 
+                    options.placement = getSystemTooltipPlacement(system);
                     options.html = true;
                     options.animation = true;
                     options.template = template;
@@ -405,6 +407,9 @@ define([
                         }
                     }
 
+                    // update tooltip placement based on system position
+                    system.data('bs.tooltip').options.placement = getSystemTooltipPlacement(system);
+
                     // show() can be forced
                     if(options.show === true){
                         system.tooltip('show');
@@ -412,9 +417,19 @@ define([
 
                 }
             }
-
-
         });
+    };
+
+    /**
+     * get tooltip position based on current system position
+     * @param system
+     * @returns {string}
+     */
+    let getSystemTooltipPlacement = (system) => {
+        let offsetParent = system.parent().offset();
+        let offsetSystem = system.offset();
+
+        return (offsetSystem.top - offsetParent.top < 27)  ? 'bottom' : 'top';
     };
 
     /**
@@ -1634,10 +1649,10 @@ define([
             id: id ? id : 0,
             source: parseInt( source.data('id') ),
             sourceName: source.data('name'),
-            sourceAlias: source.getSystemInfo(['alias']),
+            sourceAlias: source.getSystemInfo(['alias']) || source.data('name'),
             target: parseInt( target.data('id') ),
             targetName: target.data('name'),
-            targetAlias: target.getSystemInfo(['alias']),
+            targetAlias: target.getSystemInfo(['alias']) || target.data('name'),
             scope: connection.scope,
             type: connectionTypes,
             updated: updated ? updated : 0

@@ -41,20 +41,43 @@
             <div role="tabpanel" class="tab-pane fade {{#openTabSettings}}in active{{/openTabSettings}}" id="{{dialogMapSettingsContainerId}}">
                 <form role="form" class="form-horizontal">
 
-                    <h4 class="pf-dynamic-area">Configuration</h4>
+                    <h4 class="pf-dynamic-area">Map settings</h4>
 
                     <div class="row">
                         <div class="col-sm-6">
                             <div class="form-group">
                                 <div class="col-sm-offset-1 col-sm-11">
-                                    <div class="col-sm-12 col-xs-6 checkbox checkbox-primary" title="remove expired EOL connections">
+                                    <div class="col-sm-12 col-xs-6 checkbox" title="outdated WHs (~2 days)">
                                         <input id="{{deleteExpiredConnectionsId}}" name="deleteExpiredConnections" value="1" type="checkbox" {{#deleteExpiredConnections}}checked{{/deleteExpiredConnections}}>
-                                        <label for="{{deleteExpiredConnectionsId}}">Auto delete expired connections</label>
+                                        <label for="{{deleteExpiredConnectionsId}}">Auto delete outdated wormholes</label>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-sm-6"></div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <div class="col-sm-offset-1 col-sm-11">
+                                    <div class="col-sm-12 col-xs-6 checkbox" title="expired EOL WHs (~4h 15min)">
+                                        <input id="{{deleteEolConnectionsId}}" name="deleteEolConnections" value="1" type="checkbox" {{#deleteEolConnections}}checked{{/deleteEolConnections}}>
+                                        <label for="{{deleteEolConnectionsId}}">Auto delete expired wormholes</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <div class="col-sm-offset-1 col-sm-11">
+                                    <div class="col-sm-12 col-xs-6 checkbox" title="Keep custom aliases after delete">
+                                        <input id="{{persistentAliasesId}}" name="persistentAliases" value="1" type="checkbox" {{#persistentAliases}}checked{{/persistentAliases}}>
+                                        <label for="{{persistentAliasesId}}">Persistent system aliases</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+
+                        </div>
                     </div>
 
                     <h4 class="pf-dynamic-area">Share settings</h4>

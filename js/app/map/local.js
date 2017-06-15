@@ -32,9 +32,10 @@ define([
         tableActionCellClass: 'pf-table-action-cell',                       // class for table "action" cells
         tableActionCellIconClass: 'pf-table-action-icon-cell',              // class for table "action" icon (icon is part of cell content)
 
-        tableCellEllipsisClass: 'pf-table-cell-ellipsis',
-        tableCellEllipsis80Class: 'pf-table-cell-80',
-        tableCellEllipsis90Class: 'pf-table-cell-90'
+        // toolbar
+        toolbarClass: 'pf-map-overlay-toolbar',                             // class for toolbar - content
+        toolbarIconClass: 'pf-map-overlay-toolbar-icon',                    // class for toolbar icon
+        toolbarCheckboxClass: 'pf-map-overlay-toolbar-checkbox'             // class for toolbar checkbox
     };
 
     /**
@@ -322,7 +323,6 @@ define([
                         text: MapUtil.config.defaultLocalJumpRadius
                     }).attr('title', 'jumps')
                 )
-
             );
 
             let headline = $('<div>', {
@@ -342,6 +342,8 @@ define([
 
             content.append(headline);
             content.append(table);
+            // toolbar not used for now
+            // content.append(initToolbar());
 
             overlay.append(overlayMain);
             overlay.append(content);
@@ -403,6 +405,17 @@ define([
                         width: '1px',
                         className: ['pf-help-default', 'text-center'].join(' '),
                         data: 'jumps',
+                        render: {
+                            _: function(data, type, row, meta){
+                                let value = data;
+                                if(type === 'display'){
+                                    if(value === 0){
+                                        value = '<i class="fa fa-map-marker"></i>';
+                                    }
+                                }
+                                return value;
+                            }
+                        },
                         createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                             let api = this.DataTable();
                             initCellTooltip(api, cell, 'log.system.name');
@@ -437,7 +450,7 @@ define([
                             _: function(data, type, row, meta){
                                 let value = data.name;
                                 if(type === 'display'){
-                                    value = '<div class="' + config.tableCellEllipsisClass + ' ' + config.tableCellEllipsis80Class + '">' + data.name + '</div>';
+                                    value = '<div class="' + MapUtil.config.tableCellEllipsisClass + ' ' + MapUtil.config.tableCellEllipsis80Class + '">' + data.name + '</div>';
                                 }
                                 return value;
                             },
@@ -452,7 +465,7 @@ define([
                             _: function(data, type, row, meta){
                                 let value = data;
                                 if(type === 'display'){
-                                    value = '<div class="' + config.tableCellEllipsisClass + ' ' + config.tableCellEllipsis90Class + '">' + data + '</div>';
+                                    value = '<div class="' + MapUtil.config.tableCellEllipsisClass + ' ' + MapUtil.config.tableCellEllipsis90Class + '">' + data + '</div>';
                                 }
                                 return value;
                             }
@@ -507,6 +520,44 @@ define([
                 ]
             });
         });
+    };
+
+    let initToolbar = () => {
+
+        let getCheckbox = (options) => {
+          return $('<div>', {
+              class: [config.toolbarCheckboxClass, 'checkbox'].join(' ')
+          }).append(
+              $('<input>', {
+                  type: 'checkbox',
+                  id: options.id,
+                  name: options.name,
+                  value: options.value,
+                  checked: 'checked'
+              }),
+              $('<label>',{
+                  'for': options.id,
+                  html: options.label
+              })
+          );
+        };
+
+        let toolbar = $('<div>', {
+            class: [config.toolbarClass].join(' ')
+        }).append(
+            $('<i>', {
+                class: ['fa', 'fa-fw', 'fa-lg', 'fa-filter', config.toolbarIconClass, 'pull-left'].join(' ')
+            }),
+            getCheckbox({
+                id: 'test',
+                name: 'filter_character_active',
+                value: 1,
+                checked: true,
+                label: 'active'
+            })
+        );
+
+        return toolbar;
     };
 
     /**

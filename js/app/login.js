@@ -65,8 +65,10 @@ define([
         // notification panel
         notificationPanelId: 'pf-notification-panel',                           // id for "notification panel" (e.g. last update information)
 
-        // server panel
-        serverPanelId: 'pf-server-panel',                                       // id for EVE Online server status panel
+        // sticky panel
+        stickyPanelClass: 'pf-landing-sticky-panel',                            // class for sticky panels
+        stickyPanelServerId: 'pf-landing-server-panel',                         // id for EVE Online server status panel
+        stickyPanelAdminId: 'pf-landing-admin-panel',                           // id for admin login panel
 
         // animation
         animateElementClass: 'pf-animate-on-visible',                           // class for elements that will be animated to show
@@ -120,14 +122,33 @@ define([
     };
 
     /**
+     * move panel out of "cookie" accept hint
+     * @param direction
+     */
+    let moveAdminPanel = (direction) => {
+        let adminPanel = $('#' + config.stickyPanelAdminId);
+        adminPanel.css({bottom: ((direction === 'up') ? '+' : '-') + '=35px'});
+    };
+
+    /**
      * set page observer
      */
     let setPageObserver = function(){
+        let cookieHintElement = $('#' + config.cookieHintId);
 
         // cookie hint --------------------------------------------------------
+        cookieHintElement.on('show.bs.collapse', function () {
+            // move admin panel upwards (prevents overlapping with cookie notice)
+            moveAdminPanel('up');
+        });
+
+        cookieHintElement.on('hidden.bs.collapse', function () {
+            moveAdminPanel('down');
+        });
+
         if(getCookie('cookie') !== '1'){
             // hint not excepted
-            $('#' + config.cookieHintId).collapse('show');
+            cookieHintElement.collapse('show');
 
             // show Cookie accept hint on SSO login button
             let confirmationSettings = {
@@ -159,8 +180,8 @@ define([
             $('.' + config.ssoButtonClass).confirmation(confirmationSettings);
         }
 
-        $('#' + config.cookieHintId + ' .btn-success').on('click', function(){
-           setCookie('cookie', 1, config.defaultAcceptCookieExpire);
+        cookieHintElement.find('.btn-success').on('click', function(){
+            setCookie('cookie', 1, config.defaultAcceptCookieExpire);
         });
 
         // manual -------------------------------------------------------------
@@ -181,11 +202,14 @@ define([
         // tooltips -----------------------------------------------------------
         let mapTooltipOptions = {
             toggle: 'tooltip',
-            container: 'body',
             delay: 150
         };
 
-        $('[title]').not('.slide img').tooltip(mapTooltipOptions);
+        let tooltipElements = $('[title]').not('.slide img');
+        tooltipElements.tooltip(mapTooltipOptions);
+
+        // initial show some tooltips
+        tooltipElements.filter('[data-show="1"]').tooltip('show');
     };
 
     /**
@@ -326,7 +350,7 @@ define([
      * @returns {*|jQuery|HTMLElement}
      */
     let getThumbnailElements = function(){
-        return $('a[data-gallery="#' + config.galleryId + '"]');
+        return $('a[data-gallery="#' + config.galleryId + '"]').not('.disabled');
     };
 
     /**
@@ -376,14 +400,14 @@ define([
 
         $('.youtube').each(function() {
             // Based on the YouTube ID, we can easily find the thumbnail image
-            $(this).css('background-image', 'url(https://i.ytimg.com/vi/' + this.id + '/sddefault.jpg)');
+            $(this).css('background-image', 'url(//i.ytimg.com/vi/' + this.id + '/sddefault.jpg)');
 
             // Overlay the Play icon to make it look like a video player
             $(this).append($('<div/>', {'class': 'play'}));
 
             $(document).delegate('#' + this.id, 'click', function() {
                 // Create an iFrame with autoplay set to true
-                let iFrameUrl = 'https://www.youtube.com/embed/' + this.id + '?autoplay=1&autohide=1';
+                let iFrameUrl = '//www.youtube.com/embed/' + this.id + '?autoplay=1&autohide=1';
                 if ( $(this).data('params') ){
                     iFrameUrl += '&'+$(this).data('params');
                 }
@@ -405,9 +429,9 @@ define([
 
 
     /**
-     * init scrollspy for navigation bar
+     * init scrollSpy for navigation bar
      */
-    let initScrollspy = function(){
+    let initScrollSpy = function(){
         // init scrollspy
 
         // show elements that are currently in the viewport
@@ -467,7 +491,8 @@ define([
 
             if(responseData.hasOwnProperty('status')){
                 let data = responseData.status;
-                data.serverPanelId = config.serverPanelId;
+                data.stickyPanelServerId = config.stickyPanelServerId;
+                data.stickyPanelClass = config.stickyPanelClass;
 
                 let statusClass = '';
                 switch(data.serviceStatus.toLowerCase()){
@@ -483,7 +508,7 @@ define([
                 requirejs(['text!templates/ui/server_panel.html', 'mustache'], function(template, Mustache) {
                     let content = Mustache.render(template, data);
                     $('#' + config.headerId).prepend(content);
-                    $('#' + config.serverPanelId).velocity('transition.slideLeftBigIn', {
+                    $('#' + config.stickyPanelServerId).velocity('transition.slideLeftBigIn', {
                         duration: 240
                     });
                 });
@@ -613,6 +638,25 @@ define([
         };
 
         // --------------------------------------------------------------------
+
+        let getCharacterAuthLabel = (authStatus) => {
+            let label = '';
+            switch(authStatus){
+                case 'UNKNOWN':
+                    label = 'ERROR';
+                    break;
+                case 'CORPORATION':
+                case 'ALLIANCE':
+                    label = 'INVALID';
+                    break;
+                default:
+                    label = authStatus;
+                    break;
+            }
+            return label;
+        };
+
+        // --------------------------------------------------------------------
         // request character data for each character panel
         requirejs(['text!templates/ui/character_panel.html', 'mustache'], function(template, Mustache){
 
@@ -642,6 +686,7 @@ define([
                         responseData.error.length > 0
                     ){
                         $('.' + config.dynamicMessageContainerClass).showMessage({
+                            dismissible: false,
                             type: responseData.error[0].type,
                             title: 'Character verification failed',
                             text: responseData.error[0].message
@@ -653,7 +698,9 @@ define([
                         let data = {
                             link: this.characterElement.data('href'),
                             cookieName: this.cookieName,
-                            character: responseData.character
+                            character: responseData.character,
+                            authLabel: getCharacterAuthLabel(responseData.character.authStatus),
+                            authOK: responseData.character.authStatus === 'OK'
                         };
 
                         let content = Mustache.render(template, data);
@@ -788,7 +835,7 @@ define([
 
         // init scrollspy
         // -> after "Carousel"! required for correct "viewport" calculation (Gallery)!
-        initScrollspy();
+        initScrollSpy();
 
         // init youtube videos
         initYoutube();
@@ -802,6 +849,5 @@ define([
         }, false);
 
     });
-
 
 });

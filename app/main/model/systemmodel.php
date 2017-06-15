@@ -394,6 +394,8 @@ class SystemModel extends BasicModel {
 
         if( !$self->isActive()){
             // system becomes inactive
+            $self->alias = '';
+
             // reset "rally point" fields
             $self->rallyUpdated = 0;
             $self->rallyPoke = false;

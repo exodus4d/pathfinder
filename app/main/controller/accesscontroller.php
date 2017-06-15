@@ -17,13 +17,14 @@ class AccessController extends Controller {
     /**
      * event handler
      * @param \Base $f3
+     * @param array $params
      */
-    function beforeroute(\Base $f3) {
-        parent::beforeroute($f3);
+    function beforeroute(\Base $f3, $params) {
+        parent::beforeroute($f3, $params);
 
         // Any route/endpoint of a child class of this one,
         // requires a valid logged in user!
-        $loginCheck = $this->checkLogTimer($f3);
+        $loginCheck = $this->isLoggedIn($f3);
 
         if( !$loginCheck ){
             // no user found or login timer expired
@@ -34,12 +35,61 @@ class AccessController extends Controller {
                 $f3->status(403);
             }else{
                 // redirect to landing page
-                $f3->reroute('@login');
+                $f3->reroute(['login']);
             }
 
             // die() triggers unload() function
             die();
         }
+    }
+
+    /**
+     * get current character and check if it is a valid character
+     * @param \Base $f3
+     * @return bool
+     */
+    protected function isLoggedIn(\Base $f3){
+        $loginCheck = false;
+        if( $character = $this->getCharacter() ){
+            if($this->checkLogTimer($f3, $character)){
+                if($character->isAuthorized() === 'OK'){
+                    $loginCheck = true;
+                }
+            }
+        }
+
+        return $loginCheck;
+    }
+
+    /**
+     * checks whether a user/character is currently logged in
+     * @param \Base $f3
+     * @param Model\CharacterModel $character
+     * @return bool
+     */
+    private function checkLogTimer(\Base  $f3, Model\CharacterModel $character){
+        $loginCheck = false;
+
+        if(
+            !$character->dry() &&
+            $character->lastLogin
+        ){
+            // check logIn time
+            $logInTime = new \DateTime($character->lastLogin);
+            $now = new \DateTime();
+
+            $timeDiff = $now->diff($logInTime);
+
+            $minutes = $timeDiff->days * 60 * 24 * 60;
+            $minutes += $timeDiff->h * 60;
+            $minutes += $timeDiff->i;
+
+            if($minutes <= $f3->get('PATHFINDER.TIMER.LOGGED')){
+                $loginCheck = true;
+            }
+        }
+
+        return $loginCheck;
     }
 
     /**

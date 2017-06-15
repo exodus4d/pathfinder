@@ -148,26 +148,24 @@ $mapWidth: 2500px ;
 
         td {
           white-space: nowrap;
-
-          .pf-table-cell-ellipsis{
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-          }
-
-          .pf-table-cell-80{
-            width: 90px; // 100 + padding for "order" icons
-          }
-
-          .pf-table-cell-90{
-            width: 100px; // 100 + padding for "order" icons
-          }
         }
       }
 
       .dataTables_paginate,
       .dataTables_empty{
         white-space: nowrap;
+      }
+
+      .pf-map-overlay-toolbar{
+        .pf-map-overlay-toolbar-icon{
+          vertical-align: 0; // overwrite default
+          margin-top: 14px;
+        }
+
+        .pf-map-overlay-toolbar-checkbox{
+          display: inline-block;
+          margin-bottom: 0; // overwrite default
+        }
       }
     }
 

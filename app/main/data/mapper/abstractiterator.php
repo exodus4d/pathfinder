@@ -8,6 +8,7 @@
 
 namespace data\mapper;
 
+use Lib\Util;
 
 class AbstractIterator extends \RecursiveArrayIterator {
 
@@ -38,6 +39,15 @@ class AbstractIterator extends \RecursiveArrayIterator {
         iterator_apply($this, 'self::recursiveIterator', [$this]);
 
         return iterator_to_array($this, true);
+    }
+
+    /**
+     * convert array keys to camelCase
+     * @param $array
+     * @return array
+     */
+    protected function camelCaseKeys($array){
+        return Util::arrayChangeKeys($array, [\Base::instance(), 'camelcase']);
     }
 
     /**

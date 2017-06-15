@@ -33,7 +33,7 @@ class Sso extends Api\User{
     const SESSION_KEY_SSO                           = 'SESSION.SSO';
     const SESSION_KEY_SSO_ERROR                     = 'SESSION.SSO.ERROR';
     const SESSION_KEY_SSO_STATE                     = 'SESSION.SSO.STATE';
-    const SESSION_KEY_SSO_FROM_MAP                  = 'SESSION.SSO.FROM_MAP';
+    const SESSION_KEY_SSO_FROM                      = 'SESSION.SSO.FROM';
 
     // error messages
     const ERROR_CCP_SSO_URL                         = 'Invalid "ENVIRONMENT.[ENVIRONMENT].CCP_SSO_URL" url. %s';
@@ -42,9 +42,22 @@ class Sso extends Api\User{
     const ERROR_VERIFY_CHARACTER                    = 'Unable to verify character data. %s';
     const ERROR_LOGIN_FAILED                        = 'Failed authentication due to technical problems: %s';
     const ERROR_CHARACTER_VERIFICATION              = 'Character verification failed by SSP SSO';
-    const ERROR_CHARACTER_FORBIDDEN                 = 'Character "%s" is not authorized to log in';
+    const ERROR_CHARACTER_FORBIDDEN                 = 'Character "%s" is not authorized to log in. Reason: %s';
     const ERROR_SERVICE_TIMEOUT                     = 'CCP SSO service timeout (%ss). Try again later';
     const ERROR_COOKIE_LOGIN                        = 'Login from Cookie failed. Please retry by CCP SSO';
+
+
+    /**
+     * redirect user to CCP SSO page and request authorization
+     * -> cf. Controller->getCookieCharacters() ( equivalent cookie based login)
+     * @param \Base $f3
+     */
+    public function requestAdminAuthorization($f3){
+        $f3->set(self::SESSION_KEY_SSO_FROM, 'admin');
+
+        $scopes = $this->getScopesByAuthType('admin');
+        $this->rerouteAuthorization($f3, $scopes, 'admin');
+    }
 
     /**
      * redirect user to CCP SSO page and request authorization
@@ -52,66 +65,75 @@ class Sso extends Api\User{
      * @param \Base $f3
      */
     public function requestAuthorization($f3){
+        $params = $f3->get('GET');
 
-        if( !empty($ssoCcpClientId = Controller\Controller::getEnvironmentData('CCP_SSO_CLIENT_ID')) ){
-            $params = $f3->get('GET');
+        if(
+            isset($params['characterId']) &&
+            ( $activeCharacter = $this->getCharacter(0) )
+        ){
+            // authentication restricted to a characterId -----------------------------------------------
+            // restrict login to this characterId e.g. for character switch on map page
+            $characterId = (int)trim($params['characterId']);
 
+            /**
+             * @var Model\CharacterModel $character
+             */
+            $character = Model\BasicModel::getNew('CharacterModel');
+            $character->getById($characterId, 0);
+
+            // check if character is valid and exists
             if(
-                isset($params['characterId']) &&
-                ( $activeCharacter = $this->getCharacter(0) )
+                !$character->dry() &&
+                $character->hasUserCharacter() &&
+                ($activeCharacter->getUser()->_id === $character->getUser()->_id)
             ){
-                // authentication restricted to a characterId -----------------------------------------------
-                // restrict login to this characterId e.g. for character switch on map page
-                $characterId = (int)trim($params['characterId']);
+                // requested character belongs to current user
+                // -> update character vom ESI (e.g. corp changed,..)
+                $updateStatus = $character->updateFromESI();
 
-                /**
-                 * @var Model\CharacterModel $character
-                 */
-                $character = Model\BasicModel::getNew('CharacterModel');
-                $character->getById($characterId, 0);
+                if( empty($updateStatus) ){
 
-                // check if character is valid and exists
-                if(
-                    !$character->dry() &&
-                    $character->hasUserCharacter() &&
-                    ($activeCharacter->getUser()->_id === $character->getUser()->_id)
-                ){
-                    // requested character belongs to current user
-                    // -> update character vom ESI (e.g. corp changed,..)
-                    $updateStatus = $character->updateFromESI();
+                    // make sure character data is up2date!
+                    // -> this is not the case if e.g. userCharacters was removed "ownerHash" changed...
+                    $character->getById($character->_id);
 
-                    if( empty($updateStatus) ){
+                    if(
+                        $character->hasUserCharacter() &&
+                        ($character->isAuthorized() === 'OK')
+                    ){
+                        $loginCheck = $this->loginByCharacter($character);
 
-                        // make sure character data is up2date!
-                        // -> this is not the case if e.g. userCharacters was removed "ownerHash" changed...
-                        $character->getById($character->_id);
+                        if($loginCheck){
+                            // set "login" cookie
+                            $this->setLoginCookie($character, $this->generateHashFromScopes($this->getScopesByAuthType()) );
 
-                        if(
-                            $character->hasUserCharacter() &&
-                            $character->isAuthorized()
-                        ){
-                            $loginCheck = $this->loginByCharacter($character);
+                            // -> pass current character data to target page
+                            $f3->set(Api\User::SESSION_KEY_TEMP_CHARACTER_ID, $character->_id);
 
-                            if($loginCheck){
-                                // set "login" cookie
-                                $this->setLoginCookie($character, $this->getRequestedScopeHash());
-
-                                // -> pass current character data to target page
-                                $f3->set(Api\User::SESSION_KEY_TEMP_CHARACTER_ID, $character->_id);
-
-                                // route to "map"
-                                $f3->reroute('@map');
-                            }
+                            // route to "map"
+                            $f3->reroute(['map']);
                         }
                     }
                 }
-
-                // redirect to map map page on successful login
-                $f3->set(self::SESSION_KEY_SSO_FROM_MAP, true);
             }
 
-            // redirect to CCP SSO ----------------------------------------------------------------------
+            // redirect to map map page on successful login
+            $f3->set(self::SESSION_KEY_SSO_FROM, 'map');
+        }
 
+        // redirect to CCP SSO ----------------------------------------------------------------------
+        $scopes = $this->getScopesByAuthType();
+        $this->rerouteAuthorization($f3, $scopes);
+    }
+
+    /**
+     * redirect user to CCPs SSO page
+     * @param \Base $f3
+     * @param array $scopes
+     * @param string $rootAlias
+     */
+    private function rerouteAuthorization(\Base $f3, $scopes = [], $rootAlias = 'login'){
+        if( !empty( Controller\Controller::getEnvironmentData('CCP_SSO_CLIENT_ID') ) ){
             // used for "state" check between request and callback
             $state = bin2hex( openssl_random_pseudo_bytes(12) );
             $f3->set(self::SESSION_KEY_SSO_STATE, $state);
@@ -120,7 +142,7 @@ class Sso extends Api\User{
                 'response_type' => 'code',
                 'redirect_uri' => Controller\Controller::getEnvironmentData('URL') . Controller\Controller::getEnvironmentData('BASE') . $f3->build('/sso/callbackAuthorization'),
                 'client_id' => Controller\Controller::getEnvironmentData('CCP_SSO_CLIENT_ID'),
-                'scope' => implode(' ', Controller\Controller::getEnvironmentData('CCP_ESI_SCOPES')),
+                'scope' => implode(' ', $scopes),
                 'state' => $state
             ];
 
@@ -128,12 +150,11 @@ class Sso extends Api\User{
 
             $f3->status(302);
             $f3->reroute($ssoAuthUrl);
-
         }else{
             // SSO clientId missing
             $f3->set(self::SESSION_KEY_SSO_ERROR, self::ERROR_CCP_CLIENT_ID);
             self::getSSOLogger()->write(self::ERROR_CCP_CLIENT_ID);
-            $f3->reroute('@login');
+            $f3->reroute([$rootAlias, ['*' => '']]);
         }
     }
 
@@ -146,8 +167,12 @@ class Sso extends Api\User{
         $getParams = (array)$f3->get('GET');
 
         // users can log in either from @login (new user) or @map (existing user) root alias
+        // -> or from /admin page
         // -> in case login fails, users should be redirected differently
-        $authFromMapAlias = false;
+        $rootAlias = 'login';
+        if( !empty($f3->get(self::SESSION_KEY_SSO_FROM)) ){
+            $rootAlias = $f3->get(self::SESSION_KEY_SSO_FROM);
+        }
 
         if($f3->exists(self::SESSION_KEY_SSO_STATE)){
             // check response and validate 'state'
@@ -158,14 +183,9 @@ class Sso extends Api\User{
                 !empty($getParams['state']) &&
                 $f3->get(self::SESSION_KEY_SSO_STATE) === $getParams['state']
             ){
-                // check if user came from map (for redirect)
-                if( $f3->get(self::SESSION_KEY_SSO_FROM_MAP) ){
-                    $authFromMapAlias = true;
-                }
-
                 // clear 'state' for new next login request
                 $f3->clear(self::SESSION_KEY_SSO_STATE);
-                $f3->clear(self::SESSION_KEY_SSO_FROM_MAP);
+                $f3->clear(self::SESSION_KEY_SSO_FROM);
 
                 $accessData = $this->getSsoAccessData($getParams['code']);
 
@@ -196,8 +216,7 @@ class Sso extends Api\User{
 
                             if( !is_null($characterModel) ){
                                 // check if character is authorized to log in
-                                if($characterModel->isAuthorized()){
-
+                                if( ($authStatus = $characterModel->isAuthorized()) === 'OK'){
                                     // character is authorized to log in
                                     // -> update character log (current location,...)
                                     $characterModel = $characterModel->updateLog();
@@ -236,19 +255,25 @@ class Sso extends Api\User{
 
                                     if($loginCheck){
                                         // set "login" cookie
-                                        $this->setLoginCookie($characterModel, $this->getRequestedScopeHash());
+                                        $this->setLoginCookie($characterModel, $this->generateHashFromScopes( explode(' ', $verificationCharacterData->Scopes) ));
 
                                         // -> pass current character data to target page
                                         $f3->set(Api\User::SESSION_KEY_TEMP_CHARACTER_ID, $characterModel->_id);
 
                                         // route to "map"
-                                        $f3->reroute('@map');
+                                        if($rootAlias == 'admin'){
+                                            $f3->reroute([$rootAlias, ['*' => '']]);
+                                        }else{
+                                            $f3->reroute(['map']);
+                                        }
                                     }else{
                                         $f3->set(self::SESSION_KEY_SSO_ERROR, sprintf(self::ERROR_LOGIN_FAILED, $characterModel->name));
                                     }
                                 }else{
                                     // character is not authorized to log in
-                                    $f3->set(self::SESSION_KEY_SSO_ERROR, sprintf(self::ERROR_CHARACTER_FORBIDDEN, $characterModel->name));
+                                    $f3->set(self::SESSION_KEY_SSO_ERROR,
+                                        sprintf(self::ERROR_CHARACTER_FORBIDDEN, $characterModel->name, Model\CharacterModel::AUTHORIZATION_STATUS[$authStatus])
+                                    );
                                 }
                             }
                         }
@@ -266,13 +291,7 @@ class Sso extends Api\User{
             }
         }
 
-        if($authFromMapAlias){
-            // on error -> route back to map
-            $f3->reroute('@map');
-        }else{
-            // on error -> route back to login form
-            $f3->reroute('@login');
-        }
+        $f3->reroute([$rootAlias, ['*' => '']]);
     }
 
     /**
@@ -303,13 +322,13 @@ class Sso extends Api\User{
                 $f3->set(Api\User::SESSION_KEY_TEMP_CHARACTER_ID, $character->_id);
 
                 // route to "map"
-                $f3->reroute('@map');
+                $f3->reroute(['map']);
             }
         }
 
         // on error -> route back to login form
         $f3->set(self::SESSION_KEY_SSO_ERROR, self::ERROR_COOKIE_LOGIN);
-        $f3->reroute('@login');
+        $f3->reroute(['login']);
     }
 
     /**

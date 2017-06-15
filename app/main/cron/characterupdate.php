@@ -13,32 +13,87 @@ use Model;
 
 class CharacterUpdate {
 
+    const CHARACTER_LOG_INACTIVE            =   300;
+
     /**
-     * delete all character log data
+     * max count of "inactive" character log data that will be checked for offline status
+     */
+    const CHARACTERS_UPDATE_LOGS_MAX        =   20;
+
+    /**
+     * get "inactive" time for character log data in seconds
+     * @param \Base $f3
+     * @return int
+     */
+    protected function getCharacterLogInactiveTime(\Base $f3){
+        $logInactiveTime =  (int)$f3->get('PATHFINDER.CACHE.CHARACTER_LOG_INACTIVE');
+        return ($logInactiveTime >= 0) ? $logInactiveTime : self::CHARACTER_LOG_INACTIVE;
+    }
+
+    /**
+     * delete all character log data that were set to "active = 0"  after X seconds of no changes
+     * -> see deactivateLogData()
      * >> php index.php "/cron/deleteLogData"
      * @param \Base $f3
      */
-    function deleteLogData($f3){
-        $logExpire = (int)$f3->get('PATHFINDER.CACHE.CHARACTER_LOG');
+    public function deleteLogData(\Base $f3){
+        DB\Database::instance()->getDB('PF');
+        $logInactiveTime = $this->getCharacterLogInactiveTime($f3);
 
-        if($logExpire > 0){
-            DB\Database::instance()->getDB('PF');
+        /**
+         * @var $characterLogModel Model\CharacterLogModel
+         */
+        $characterLogModel = Model\BasicModel::getNew('CharacterLogModel', 0);
 
-            /**
-             * @var $characterLogModel Model\CharacterLogModel
-             */
-            $characterLogModel = Model\BasicModel::getNew('CharacterLogModel', 0);
+        // find character logs that were not checked recently and update
+        $characterLogs = $characterLogModel->find([
+            'TIMESTAMPDIFF(SECOND, updated, NOW() ) > :lifetime',
+            ':lifetime' => $logInactiveTime
+        ], [
+            'order' => 'updated asc',
+            'limit' => self::CHARACTERS_UPDATE_LOGS_MAX
+        ]);
 
-            // find expired character logs
-            $characterLogs = $characterLogModel->find([
-                'TIMESTAMPDIFF(SECOND, updated, NOW() ) > :lifetime',
-                ':lifetime' => $logExpire
-            ]);
+        if(is_object($characterLogs)){
+            foreach($characterLogs as $characterLog){
+                /**
+                 * @var $characterLog Model\CharacterLogModel
+                 */
+                // force characterLog as "updated" even if no changes were made
+                $characterLog->characterId->updateLog([
+                    'markUpdated' =>  true,
+                    'suppressHTTPErrors' => true
+                ]);
+            }
+        }
+    }
 
-            if(is_object($characterLogs)){
-                foreach($characterLogs as $characterLog){
-                    $characterLog->erase();
-                }
+    /**
+     * clean up outdated character data e.g. kicked until status
+     * >> php index.php "/cron/cleanUpCharacterData"
+     * @param \Base $f3
+     */
+    public function cleanUpCharacterData(\Base $f3){
+        DB\Database::instance()->getDB('PF');
+
+        /**
+         * @var $characterModel Model\CharacterModel
+         */
+        $characterModel = Model\BasicModel::getNew('CharacterModel', 0);
+
+        $characters = $characterModel->find([
+            'active = :active AND TIMESTAMPDIFF(SECOND, kicked, NOW() ) > 0',
+            ':active' => 1
+        ]);
+
+
+        if(is_object($characters)){
+            foreach($characters as $character){
+                /**
+                 * @var $character Model\CharacterModel
+                 */
+                $character->kick();
+                $character->save();
             }
         }
     }
@@ -49,7 +104,7 @@ class CharacterUpdate {
      * >> php index.php "/cron/deleteAuthenticationData"
      * @param \Base $f3
      */
-    function deleteAuthenticationData($f3){
+    public function deleteAuthenticationData($f3){
         DB\Database::instance()->getDB('PF');
 
         /**

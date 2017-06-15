@@ -8,6 +8,9 @@
 
 namespace Controller;
 
+use lib\Config;
+
+
 class MapController extends AccessController {
 
     /**
@@ -17,17 +20,13 @@ class MapController extends AccessController {
         $character = $this->getCharacter();
 
         // page title
-        $pageTitle = $character ? $character->name : 'Map';
-        $f3->set('pageTitle', $pageTitle);
+        $f3->set('tplPageTitle', $character->name . ' | ' .  Config::getPathfinderData('name'));
 
         // main page content
-        $f3->set('pageContent', false);
-
-        // body element class
-        $f3->set('bodyClass', 'pf-body');
+        $f3->set('tplPageContent', false);
 
         // JS main file
-        $f3->set('jsView', 'mappage');
+        $f3->set('tplJsView', 'mappage');
     }
 
 } 

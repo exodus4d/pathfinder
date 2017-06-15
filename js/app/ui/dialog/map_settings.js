@@ -20,7 +20,9 @@ define([
         dialogMapSettingsContainerId: 'pf-map-dialog-settings',                         // id for the "settings" container
         dialogMapDownloadContainerId: 'pf-map-dialog-download',                         // id for the "download" container
 
-        deleteExpiredConnectionsId: 'pf-map-dialog-delete-connections',                 // id for "deleteExpiredConnections" checkbox
+        deleteExpiredConnectionsId: 'pf-map-dialog-delete-connections-expired',         // id for "deleteExpiredConnections" checkbox
+        deleteEolConnectionsId: 'pf-map-dialog-delete-connections-eol',                 // id for "deleteEOLConnections" checkbox
+        persistentAliasesId: 'pf-map-dialog-persistent-aliases',                        // id for "persistentAliases" checkbox
 
         characterSelectId: 'pf-map-dialog-character-select',                            // id for "character" select
         corporationSelectId: 'pf-map-dialog-corporation-select',                        // id for "corporation" select
@@ -106,6 +108,8 @@ define([
                 let accessCorporation = [];
                 let accessAlliance = [];
                 let deleteExpiredConnections = true;
+                let deleteEolConnections = true;
+                let persistentAliases = true;
 
                 if(mapData !== false){
                     // set current map information
@@ -120,6 +124,8 @@ define([
                     accessAlliance = mapData.config.access.alliance;
 
                     deleteExpiredConnections = mapData.config.deleteExpiredConnections;
+                    deleteEolConnections = mapData.config.deleteEolConnections;
+                    persistentAliases = mapData.config.persistentAliases;
                 }
 
                 // render main dialog -----------------------------------------------------
@@ -150,7 +156,11 @@ define([
 
                     // settings tab --------------
                     deleteExpiredConnectionsId : config.deleteExpiredConnectionsId,
+                    deleteEolConnectionsId : config.deleteEolConnectionsId,
+                    persistentAliasesId : config.persistentAliasesId,
                     deleteExpiredConnections: deleteExpiredConnections,
+                    deleteEolConnections: deleteEolConnections,
+                    persistentAliases: persistentAliases,
 
                     characterSelectId: config.characterSelectId,
                     corporationSelectId: config.corporationSelectId,
@@ -237,6 +247,12 @@ define([
                                     // checkbox fix -> settings tab
                                     if( form.find('#' + config.deleteExpiredConnectionsId).length ){
                                         formData.deleteExpiredConnections = formData.hasOwnProperty('deleteExpiredConnections') ? parseInt( formData.deleteExpiredConnections ) : 0;
+                                    }
+                                    if( form.find('#' + config.deleteEolConnectionsId).length ){
+                                        formData.deleteEolConnections = formData.hasOwnProperty('deleteEolConnections') ? parseInt( formData.deleteEolConnections ) : 0;
+                                    }
+                                    if( form.find('#' + config.persistentAliasesId).length ){
+                                        formData.persistentAliases = formData.hasOwnProperty('persistentAliases') ? parseInt( formData.persistentAliases ) : 0;
                                     }
 
                                     let requestData = {formData: formData};

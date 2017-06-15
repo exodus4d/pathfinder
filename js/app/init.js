@@ -53,8 +53,8 @@ define(['jquery'], function($) {
             gitHubReleases: 'api/github/releases'                           // ajax URL - get release info from GitHub
         },
         url: {
-            ccpImageServer: 'https://image.eveonline.com/',                 // CCP image Server
-            zKillboard: 'https://zkillboard.com/api/'                       // killboard api
+            ccpImageServer: '//image.eveonline.com/',                       // CCP image Server
+            zKillboard: '//zkillboard.com/api/'                             // killboard api
         },
         breakpoints: [
             { name: 'desktop', width: Infinity },

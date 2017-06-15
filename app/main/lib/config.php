@@ -9,6 +9,8 @@
 namespace lib;
 
 
+use Exception;
+
 class Config extends \Prefab {
 
     const PREFIX_KEY                                = 'PF';
@@ -16,11 +18,14 @@ class Config extends \Prefab {
     const HIVE_KEY_PATHFINDER                       = 'PATHFINDER';
     const HIVE_KEY_ENVIRONMENT                      = 'ENVIRONMENT';
 
+    const ERROR_CONF_PATHFINDER                     = 'Config value missing in pathfinder.ini file [%s]';
+
+
     /**
      * environment config keys that should be parsed as array
      * -> use "," as delimiter in config files/data
      */
-    const ARRAY_KEYS                                = ['CCP_ESI_SCOPES'];
+    const ARRAY_KEYS                                = ['CCP_ESI_SCOPES', 'CCP_ESI_SCOPES_ADMIN'];
 
     /**
      * all environment data
@@ -163,17 +168,10 @@ class Config extends \Prefab {
     /**
      * get email for notifications by hive key
      * @param $key
-     * @return bool|mixed
+     * @return mixed
      */
     static function getNotificationMail($key){
-        $f3 = \Base::instance();
-        $hiveKey = self::HIVE_KEY_PATHFINDER . '.NOTIFICATION.' . $key;
-        $mail = false;
-        if( $f3->exists($hiveKey, $cachedMail) ){
-            $mail = $cachedMail;
-        }
-
-        return $mail;
+        return self::getPathfinderData('notification' . ($key ? '.' . $key : ''));
     }
 
     /**
@@ -183,12 +181,11 @@ class Config extends \Prefab {
      * @return array
      */
     static function getMapsDefaultConfig($mapType = ''){
-        $f3 = \Base::instance();
-        $hiveKey = 'PATHFINDER.MAP';
-        if( !empty($mapType) ){
-            $hiveKey .= '.' . strtoupper($mapType);
+        if( $mapConfig = self::getPathfinderData('map' . ($mapType ? '.' . $mapType : '')) ){
+            $mapConfig = Util::arrayChangeKeyCaseRecursive( $mapConfig );
         }
-        return Util::arrayChangeKeyCaseRecursive( $f3->get($hiveKey) );
+
+        return $mapConfig;
     }
 
     /**
@@ -208,5 +205,20 @@ class Config extends \Prefab {
         return $uri;
     }
 
+    /**
+     * get PATHFINDER config data
+     * @param string $key
+     * @return mixed
+     * @throws Exception\PathfinderException
+     */
+    static function getPathfinderData($key = ''){
+        $hiveKey = self::HIVE_KEY_PATHFINDER . ($key ? '.' . strtoupper($key) : '');
+
+        if( !\Base::instance()->exists($hiveKey, $data) ){
+            throw new Exception\PathfinderException(sprintf(self::ERROR_CONF_PATHFINDER, $hiveKey));
+        }
+
+        return $data;
+    }
 
 }

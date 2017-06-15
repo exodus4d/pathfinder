@@ -1,8 +1,6 @@
-#pf-server-panel{
+.pf-landing-sticky-panel{
   position: fixed;
-  top: 50px;
   min-width: 100px;
-  left: 10px;
   border-radius: 5px;
   padding: 7px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.4);
@@ -21,5 +19,14 @@
       text-transform: lowercase;
     }
   }
+}
 
+#pf-landing-server-panel{
+  top: 50px;
+  left: 10px;
+}
+
+#pf-landing-admin-panel{
+  bottom: 10px;
+  right: 10px;
 }

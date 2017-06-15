@@ -155,6 +155,7 @@
   .pf-credits-logo-background{
     overflow: visible;
     background: url("#{$base-url}/logo_bg.png");
+    background-size: cover;
     padding: 20px;
     margin-bottom: 20px;
   }

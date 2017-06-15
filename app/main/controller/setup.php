@@ -121,24 +121,25 @@ class Setup extends Controller {
      * event handler for all "views"
      * some global template variables are set in here
      * @param \Base $f3
+     * @param array $params
      */
-    function beforeroute(\Base $f3) {
+    function beforeroute(\Base $f3, $params) {
         // page title
-        $f3->set('pageTitle', 'Setup');
+        $f3->set('tplPageTitle', 'Setup | ' . Config::getPathfinderData('name'));
 
         // main page content
-        $f3->set('pageContent', $f3->get('PATHFINDER.VIEW.SETUP'));
+        $f3->set('tplPageContent', Config::getPathfinderData('view.setup'));
 
         // body element class
-        $f3->set('bodyClass', 'pf-body pf-landing');
+        $f3->set('tplBodyClass', 'pf-landing');
 
         // js path (build/minified or raw uncompressed files)
-        $f3->set('pathJs', 'public/js/' . $f3->get('PATHFINDER.VERSION') );
+        $f3->set('tplPathJs', 'public/js/' . Config::getPathfinderData('version') );
     }
 
     public function afterroute(\Base $f3) {
         // js view (file)
-        $f3->set('jsView', 'setup');
+        $f3->set('tplJsView', 'setup');
 
         // set render functions (called within template)
         $f3->set('cacheType', function(){
@@ -150,7 +151,7 @@ class Setup extends Controller {
         });
 
         // render view
-        echo \Template::instance()->render( $f3->get('PATHFINDER.VIEW.INDEX') );
+        echo \Template::instance()->render( Config::getPathfinderData('view.index') );
     }
 
     /**
@@ -405,6 +406,7 @@ class Setup extends Controller {
         // server type ------------------------------------------------------------------
         $serverData = self::getServerData(0);
 
+
         $checkRequirements = [
             'serverType' => [
                 'label' => 'Server type',
@@ -428,6 +430,12 @@ class Setup extends Controller {
                 'required' => number_format((float)$f3->get('REQUIREMENTS.PHP.VERSION'), 1, '.', ''),
                 'version' => phpversion(),
                 'check' => version_compare( phpversion(), $f3->get('REQUIREMENTS.PHP.VERSION'), '>=')
+            ],
+            'php_bit' => [
+                'label' => 'php_int_size',
+                'required' => ($f3->get('REQUIREMENTS.PHP.PHP_INT_SIZE') * 8 ) . '-bit',
+                'version' => (PHP_INT_SIZE * 8) . '-bit',
+                'check' => $f3->get('REQUIREMENTS.PHP.PHP_INT_SIZE') == PHP_INT_SIZE
             ],
             'pcre' => [
                 'label' => 'PCRE',
@@ -599,44 +607,50 @@ class Setup extends Controller {
             // check DB for valid connection
             $db = DB\Database::instance()->getDB($dbKey);
 
+            // check config that does NOT require a valid DB connection
             switch($dbKey){
                 case 'PF':
                     $dbLabel = 'Pathfinder';
                     $dbName = Controller::getEnvironmentData('DB_NAME');
                     $dbUser = Controller::getEnvironmentData('DB_USER');
-
-                    // enable (table) setup for this DB
-                    $dbSetupEnable = true;
-
-                    // get table data from model
-                    foreach($dbData['models'] as $model){
-                        $tableConfig =  call_user_func($model . '::resolveConfiguration');
-                        $requiredTables[$tableConfig['table']] = [
-                            'model' => $model,
-                            'name' => $tableConfig['table'],
-                            'fieldConf' => $tableConfig['fieldConf'],
-                            'exists' => false,
-                            'empty' => true,
-                            'foreignKeys' => []
-                        ];
-                    }
                     break;
                 case 'CCP':
                     $dbLabel = 'EVE-Online [SDE]';
                     $dbName = Controller::getEnvironmentData('DB_CCP_NAME');
                     $dbUser = Controller::getEnvironmentData('DB_CCP_USER');
-
-                    // get table model from static table array
-                    foreach($dbData['tables'] as $tableName){
-                        $requiredTables[$tableName] = [
-                            'exists' => false,
-                            'empty' => true
-                        ];
-                    }
                     break;
             }
 
             if($db){
+                switch($dbKey){
+                    case 'PF':
+                        // enable (table) setup for this DB
+                        $dbSetupEnable = true;
+
+                        // get table data from model
+                        foreach($dbData['models'] as $model){
+                            $tableConfig =  call_user_func($model . '::resolveConfiguration');
+                            $requiredTables[$tableConfig['table']] = [
+                                'model' => $model,
+                                'name' => $tableConfig['table'],
+                                'fieldConf' => $tableConfig['fieldConf'],
+                                'exists' => false,
+                                'empty' => true,
+                                'foreignKeys' => []
+                            ];
+                        }
+                        break;
+                    case 'CCP':
+                        // get table model from static table array
+                        foreach($dbData['tables'] as $tableName){
+                            $requiredTables[$tableName] = [
+                                'exists' => false,
+                                'empty' => true
+                            ];
+                        }
+                        break;
+                }
+
                 // db connect was successful
                 $dbConnected = true;
                 $dbDriver = $db->driver();

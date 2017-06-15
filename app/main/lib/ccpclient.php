@@ -33,21 +33,20 @@ class CcpClient extends \Prefab {
             $client = new ApiClient($f3);
             $client->setUrl( Config::getEnvironmentData('CCP_ESI_URL') );
             $client->setDatasource( Config::getEnvironmentData('CCP_ESI_DATASOURCE') );
-            $client->setUserAgent($this->getUserAgent($f3));
+            $client->setUserAgent($this->getUserAgent());
         }
 
         return $client;
     }
 
     /**
-     * @param  \Base $f3
      * @return string
      */
-    protected function getUserAgent($f3){
+    protected function getUserAgent(){
         $userAgent = '';
-        $userAgent .= $f3->get('PATHFINDER.NAME');
-        $userAgent .=  ' - ' . $f3->get('PATHFINDER.VERSION');
-        $userAgent .=  ' | ' . $f3->get('PATHFINDER.CONTACT');
+        $userAgent .= Config::getPathfinderData('name');
+        $userAgent .=  ' - ' . Config::getPathfinderData('version');
+        $userAgent .=  ' | ' . Config::getPathfinderData('contact');
         $userAgent .=  ' (' . $_SERVER['SERVER_NAME'] . ')';
 
         return $userAgent;

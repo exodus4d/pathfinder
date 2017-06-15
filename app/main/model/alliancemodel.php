@@ -85,12 +85,26 @@ class AllianceModel extends BasicModel {
 
     /**
      * get all characters in this alliance
+     * @param array $characterIds
+     * @param array $options
      * @return array
      */
-    public function getCharacters(){
+    public function getCharacters($characterIds = [], $options = []){
         $characters = [];
+        $filter = ['active = ?', 1];
 
-        $this->filter('allianceCharacters', ['active = ?', 1]);
+        if( !empty($characterIds) ){
+            $filter[0] .= ' AND id IN (?)';
+            $filter[] =  $characterIds;
+        }
+
+        $this->filter('allianceCharacters', $filter);
+
+        if($options['hasLog']){
+            // just characters with active log data
+            $this->has('allianceCharacters.characterLog', ['active = ?', 1]);
+        }
+
 
         if($this->allianceCharacters){
             foreach($this->allianceCharacters as $character){

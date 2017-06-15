@@ -252,6 +252,10 @@ select:active, select:hover {
       }
     }
 
+    &.pf-table-button-sm-cell{
+      padding: 0;
+    }
+
     &.pf-table-counter-cell{
       color: $gray-light;
 
@@ -266,6 +270,25 @@ select:active, select:hover {
         display: inline-block;
         font-size: 10px;
       }
+    }
+
+
+    .pf-table-cell-ellipsis{
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .pf-table-cell-80{
+      width: 90px;
+    }
+
+    .pf-table-cell-90{
+      width: 100px;
+    }
+
+    .pf-table-cell-100{
+      width: 110px;
     }
   }
 
@@ -1033,12 +1056,6 @@ td.pf-popover-trigger{
 
   }
 
-  .badge{
-    background-color: $gray;
-    color: $gray-lighter;
-  }
-
-
   .pf-head-user-character, .pf-head-user-ship{
     opacity: 0; // triggered by js
     visibility: hidden;
@@ -1082,6 +1099,15 @@ td.pf-popover-trigger{
 
 .pf-head{
   @include box-shadow(0 6px 12px rgba(0,0,0,.4));
+
+  .badge{
+    background-color: $gray;
+    color: $gray-lighter;
+  }
+
+  small{
+    font-family: $font-family-bold;
+  }
 }
 
 // character switch popover
@@ -1119,6 +1145,11 @@ td.pf-popover-trigger{
 // footer (navigation) ============================================================================
 .navbar-fixed-bottom{
   padding: 2px 0;
+
+  .container-fluid{
+    padding-left: 0;    // overwrite default
+    padding-right: 0;   // verwrite default
+  }
 }
 // global info panel ==============================================================================
 #pf-global-info{
