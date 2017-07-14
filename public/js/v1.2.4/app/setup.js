@@ -160,7 +160,7 @@ define([
     /**
      * main init "setup" page
      */
-    $(() => {
+    $(function(){
 
         // show app information in browser console --------
         Util.showVersionInfo();

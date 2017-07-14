@@ -1,28 +1,39 @@
 {
   "name": "pathfinder-eve",
-  "version": "0.0.10",
+  "version": "1.2.4",
   "engines": {
     "node": "6.x"
   },
   "description": "Pathfinder is a system mapping tool for EVE ONLINE",
   "main": "index.php",
   "dependencies": {
-
   },
   "devDependencies": {
-    "critical": "^0.x",
-    "gulp": "^3.9.x",
-    "gulp-clean": "^0.3.x",
-    "gulp-gzip": "^1.x.x",
-    "gulp-if": "^2.0.x",
-    "gulp-jshint": "^2.0.x",
-    "gulp-notify": "^2.2.x",
-    "gulp-param": "^1.0.x",
-    "gulp-plumber": "^1.x.x",
+    "gulp": "gulpjs/gulp#4.0",
+    "gulp-util": "3.0.x",
+    "gulp-requirejs-optimize": "1.2.x",
+    "gulp-filter": "5.0.x",
+    "gulp-if": "2.0.x",
+    "gulp-jshint": "2.0.x",
+    "gulp-sourcemaps": "2.6.x",
+    "gulp-gzip": "1.x.x",
+    "gulp-brotli": "1.2.x",
+    "gulp-uglify": "^3.0.x",
+    "gulp-rename": "1.2.x",
+    "gulp-compass": "2.1.x",
+    "gulp-clean-css": "3.x.x",
+    "gulp-bytediff": "1.0.x",
+    "gulp-debug": "^3.1.x",
+    "uglify-es": "^3.0.x",
     "jshint": "^2.9.x",
     "jshint-stylish": "^2.x.x",
-    "requirejs": "^2.x.x",
-    "run-sequence": "^1.1.x"
+    "terminal-table": "0.0.x",
+    "pretty-bytes": "4.0.x",
+    "promised-del": "1.0.x",
+    "flat": "2.0.x",
+    "lodash.padend": "4.6.x",
+    "slash": "1.0.x",
+    "file-extension": "3.1.x"
   },
   "scripts": {
     "gulp": "gulp"

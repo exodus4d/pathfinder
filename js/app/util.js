@@ -1025,7 +1025,7 @@ define([
      * @param desktop
      */
     let showNotify = function(customConfig, desktop){
-        requirejs(['app/notification'], function(Notification) {
+        requirejs(['notification'], function(Notification) {
             Notification.showNotify(customConfig, desktop);
         });
     };
@@ -1034,7 +1034,7 @@ define([
      * stop browser tab title "blinking"
      */
     let stopTabBlink = function(){
-        requirejs(['app/notification'], function(Notification) {
+        requirejs(['notification'], function(Notification) {
             Notification.stopTabBlink();
         });
     };
