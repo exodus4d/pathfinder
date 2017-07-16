@@ -633,6 +633,14 @@ class CharacterModel extends BasicModel {
     }
 
     /**
+     * check whether this char has accepted all "basic" api scopes
+     * @return bool
+     */
+    public function hasBasicScopes(){
+        return empty( array_diff(Sso::getScopesByAuthType(), $this->esiScopes) );
+    }
+
+    /**
      * check whether this char has accepted all admin api scopes
      * @return bool
      */
@@ -650,8 +658,12 @@ class CharacterModel extends BasicModel {
         $deleteLog = false;
         $invalidResponse = false;
 
-        //check if log update is enabled for this user
-        if( $this->logLocation ){
+        //check if log update is enabled for this character
+        // check if character has accepted all scopes. (This fkt is called by cron as well)
+        if(
+            $this->logLocation &&
+            $this->hasBasicScopes()
+        ){
             // Try to pull data from API
             if( $accessToken = $this->getAccessToken() ){
                 $onlineData = self::getF3()->ccpClient->getCharacterOnlineData($this->_id, $accessToken, $additionalOptions);

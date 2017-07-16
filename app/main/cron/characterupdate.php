@@ -13,7 +13,10 @@ use Model;
 
 class CharacterUpdate {
 
-    const CHARACTER_LOG_INACTIVE            =   300;
+    /**
+     * default character_log time until a log entry get re-checked by cronjob
+     */
+    const CHARACTER_LOG_INACTIVE            =   180;
 
     /**
      * max count of "inactive" character log data that will be checked for offline status
@@ -31,7 +34,7 @@ class CharacterUpdate {
     }
 
     /**
-     * delete all character log data that were set to "active = 0"  after X seconds of no changes
+     * delete all character log data that have not changed since X seconds
      * -> see deactivateLogData()
      * >> php index.php "/cron/deleteLogData"
      * @param \Base $f3
