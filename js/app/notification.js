@@ -12,7 +12,7 @@ define([
 
     'use strict';
 
-    var config = {
+    let config = {
         title: '',
         text: '',
         type: '',                                                       // 'info', 'success', error, 'warning'
@@ -38,13 +38,13 @@ define([
     };
 
     // initial page title (cached)
-    var initialPageTitle = document.title;
+    let initialPageTitle = document.title;
 
     // global blink timeout cache
-    var blinkTimer;
+    let blinkTimer;
 
     // stack container for all notifications
-    var stack = {
+    let stack = {
         bottomRight: {
             stack: {
                 dir1: 'up',
@@ -76,7 +76,7 @@ define([
      * @param customConfig
      * @param settings
      */
-    var showNotify = function(customConfig, settings){
+    let showNotify = function(customConfig, settings){
 
         customConfig = $.extend(true, {}, config, customConfig );
 
@@ -140,13 +140,13 @@ define([
      * change document.title and make the browsers tab blink
      * @param blinkTitle
      */
-    var startTabBlink = function(blinkTitle){
-        var initBlink = (function(blinkTitle){
+    let startTabBlink = function(blinkTitle){
+        let initBlink = (function(blinkTitle){
 
             // count blinks if tab is currently active
-            var activeTabBlinkCount = 0;
+            let activeTabBlinkCount = 0;
 
-            var blink = function(){
+            let blink = function(){
                 // number of "blinks" should be limited if tab is currently active
                 if(window.isVisible){
                     activeTabBlinkCount++;
@@ -173,7 +173,7 @@ define([
     /**
      * stop blinking document.title
      */
-    var stopTabBlink = function(){
+    let stopTabBlink = function(){
         if(blinkTimer){
             clearInterval(blinkTimer);
             document.title = initialPageTitle;

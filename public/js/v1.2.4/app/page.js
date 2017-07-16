@@ -1005,7 +1005,7 @@ define([
     let initTabChangeObserver = function(){
 
         // increase the timer if a user is inactive
-        let increaseTimer = 10000;
+        let increaseTimer = 5000;
 
         // timer keys
         let mapUpdateKey = 'UPDATE_SERVER_MAP';

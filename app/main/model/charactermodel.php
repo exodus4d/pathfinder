@@ -11,6 +11,7 @@ namespace Model;
 use Controller\Ccp\Sso as Sso;
 use Controller\Api\User as User;
 use DB\SQL\Schema;
+use Lib\Util;
 
 class CharacterModel extends BasicModel {
 
@@ -89,6 +90,9 @@ class CharacterModel extends BasicModel {
         ],
         'crestRefreshToken' => [
             'type' => Schema::DT_VARCHAR256
+        ],
+        'esiScopes' => [
+            'type' => self::DT_JSON
         ],
         'corporationId' => [
             'type' => Schema::DT_INT,
@@ -611,12 +615,16 @@ class CharacterModel extends BasicModel {
      */
     protected function requestRoles(){
         $rolesData = [];
-        if( $accessToken = $this->getAccessToken() ){
-            // check if corporation exists (should never fail)
-            if( $corporation = $this->getCorporation() ){
-                $characterRolesData = $corporation->getCharactersRoles($accessToken);
-                if( !empty($characterRolesData[$this->_id]) ){
-                    $rolesData = $characterRolesData[$this->_id];
+
+        // check if character has accepted all admin scopes (one of them is required for "role" request)
+        if( $this->hasAdminScopes() ){
+            if( $accessToken = $this->getAccessToken() ){
+                // check if corporation exists (should never fail)
+                if( $corporation = $this->getCorporation() ){
+                    $characterRolesData = $corporation->getCharactersRoles($accessToken);
+                    if( !empty($characterRolesData[$this->_id]) ){
+                        $rolesData = $characterRolesData[$this->_id];
+                    }
                 }
             }
         }
@@ -625,10 +633,18 @@ class CharacterModel extends BasicModel {
     }
 
     /**
+     * check whether this char has accepted all admin api scopes
+     * @return bool
+     */
+    public function hasAdminScopes(){
+        return empty( array_diff(Sso::getScopesByAuthType('admin'), $this->esiScopes) );
+    }
+
+    /**
      * update character log (active system, ...)
      * -> API request for character log data
      * @param array $additionalOptions (optional) request options for cURL request
-     * @return $this
+     * @return CharacterModel
      */
     public function updateLog($additionalOptions = []){
         $deleteLog = false;
@@ -806,8 +822,9 @@ class CharacterModel extends BasicModel {
                 $characterData = $ssoController->getCharacterData($this->_id);
                 if( !empty($characterData->character) ){
                     $characterData->character['ownerHash'] = $verificationCharacterData->CharacterOwnerHash;
+                    $characterData->character['esiScopes'] = Util::convertScopesString($verificationCharacterData->Scopes);
 
-                    $this->copyfrom($characterData->character, ['ownerHash', 'securityStatus']);
+                    $this->copyfrom($characterData->character, ['ownerHash', 'esiScopes', 'securityStatus']);
                     $this->corporationId = $characterData->corporation;
                     $this->allianceId = $characterData->alliance;
                     $this->save();
