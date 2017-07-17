@@ -6,7 +6,7 @@
  * Time: 19:35
  */
 
-namespace cron;
+namespace Cron;
 use DB;
 use Model;
 
@@ -21,7 +21,7 @@ class CharacterUpdate {
     /**
      * max count of "inactive" character log data that will be checked for offline status
      */
-    const CHARACTERS_UPDATE_LOGS_MAX        =   20;
+    const CHARACTERS_UPDATE_LOGS_MAX        =   10;
 
     /**
      * get "inactive" time for character log data in seconds
@@ -39,7 +39,7 @@ class CharacterUpdate {
      * >> php index.php "/cron/deleteLogData"
      * @param \Base $f3
      */
-    public function deleteLogData(\Base $f3){
+    function deleteLogData(\Base $f3){
         DB\Database::instance()->getDB('PF');
         $logInactiveTime = $this->getCharacterLogInactiveTime($f3);
 
@@ -62,11 +62,16 @@ class CharacterUpdate {
                 /**
                  * @var $characterLog Model\CharacterLogModel
                  */
-                // force characterLog as "updated" even if no changes were made
-                $characterLog->characterId->updateLog([
-                    'markUpdated' =>  true,
-                    'suppressHTTPErrors' => true
-                ]);
+                if(is_object($characterLog->characterId)){
+                    // force characterLog as "updated" even if no changes were made
+                    $characterLog->characterId->updateLog([
+                        'markUpdated' =>  true,
+                        'suppressHTTPErrors' => true
+                    ]);
+                }else{
+                    // character_log does not have a character assigned -> delete
+                    $characterLog->erase();
+                }
             }
         }
     }
@@ -76,7 +81,7 @@ class CharacterUpdate {
      * >> php index.php "/cron/cleanUpCharacterData"
      * @param \Base $f3
      */
-    public function cleanUpCharacterData(\Base $f3){
+    function cleanUpCharacterData(\Base $f3){
         DB\Database::instance()->getDB('PF');
 
         /**
@@ -107,7 +112,7 @@ class CharacterUpdate {
      * >> php index.php "/cron/deleteAuthenticationData"
      * @param \Base $f3
      */
-    public function deleteAuthenticationData($f3){
+    function deleteAuthenticationData($f3){
         DB\Database::instance()->getDB('PF');
 
         /**

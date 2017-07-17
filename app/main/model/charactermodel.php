@@ -679,7 +679,7 @@ class CharacterModel extends BasicModel {
                             // IDs for "systemId", "stationId and "shipTypeId" that require more data
                             $lookupIds = [];
 
-                            if( !$characterLog = $this->getLog() ){
+                            if( !($characterLog = $this->getLog()) ){
                                 // create new log
                                 $characterLog = $this->rel('characterLog');
                             }
@@ -748,7 +748,7 @@ class CharacterModel extends BasicModel {
                                 }
 
                                 $characterLog->setData($logData);
-                                $characterLog->characterId = $this;
+                                $characterLog->characterId = $this->id;
                                 $characterLog->save();
 
                                 $this->characterLog = $characterLog;
@@ -808,7 +808,6 @@ class CharacterModel extends BasicModel {
         ){
             // delete existing log
             $this->characterLog->erase();
-            $this->save();
         }
 
         return $this;
