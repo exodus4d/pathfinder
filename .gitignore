@@ -54,3 +54,4 @@ Temporary Items
 /conf/
 /node_modules/
 /public/js/vX.X.X/
+/vendor/
