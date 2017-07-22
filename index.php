@@ -9,7 +9,7 @@ if(file_exists($composerAutoloader)){
 $f3 = require_once('app/lib/base.php');
 
 // load main config
-$f3->config('app/config.ini');
+$f3->config('app/config.ini', true);
 
 // load environment dependent config
 lib\Config::instance();

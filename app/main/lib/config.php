@@ -96,17 +96,24 @@ class Config extends \Prefab {
                 $item = (in_array($key, self::ARRAY_KEYS)) ? explode(',', $item) : $item;
             });
 
-            $environmentData['TYPE'] = 'PHP: environment variables';
+            $environmentData['ENVIRONMENT_CONFIG'] = 'PHP: environment variables';
         }else{
             // get environment data from *.ini file config
-            $f3->config('app/environment.ini');
+            $customConfDir = $f3->get('CONF');
 
-            if(
-                $f3->exists(self::HIVE_KEY_ENVIRONMENT) &&
-                ($environment = $f3->get(self::HIVE_KEY_ENVIRONMENT . '.SERVER')) &&
-                ($environmentData = $f3->get(self::HIVE_KEY_ENVIRONMENT . '.' . $environment))
-            ){
-                $environmentData['TYPE'] = 'Config: environment.ini';
+            // check "custom" ini dir, of not found check default ini dir
+            foreach($customConfDir as $type => $path){
+                $envConfFile = $path . 'environment.ini';
+                $f3->config($envConfFile, true);
+
+                if(
+                    $f3->exists(self::HIVE_KEY_ENVIRONMENT) &&
+                    ($environment = $f3->get(self::HIVE_KEY_ENVIRONMENT . '.SERVER')) &&
+                    ($environmentData = $f3->get(self::HIVE_KEY_ENVIRONMENT . '.' . $environment))
+                ){
+                    $environmentData['ENVIRONMENT_CONFIG'] = 'Config: ' . $envConfFile;
+                    break;
+                }
             }
         }
 

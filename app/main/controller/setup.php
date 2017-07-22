@@ -22,7 +22,7 @@ class Setup extends Controller {
      * @var array
      */
     protected $environmentVars = [
-        'TYPE',
+        'ENVIRONMENT_CONFIG',
         'BASE',
         'URL',
         'DEBUG',

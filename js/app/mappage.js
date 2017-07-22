@@ -377,6 +377,14 @@ define([
             // initial start of the  map update function
             triggerMapUpdatePing(true);
 
+            // Send map update request on tab close/reload, in order to save map changes that
+            // haven´t been saved through default update trigger
+            window.addEventListener('beforeunload', function(e) {
+                triggerMapUpdatePing();
+                // IMPORTANT, return false in order to not "abort" ajax request in background!
+                return false;
+            });
+
         };
 
     });

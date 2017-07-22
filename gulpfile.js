@@ -90,7 +90,7 @@ let trackTable = {
 // https://www.npmjs.com/package/uglify-es
 let uglifyJsOptions = {
     warnings: true,
-    toplevel: true
+    toplevel: false
 };
 
 // Sourcemaps options
@@ -795,7 +795,7 @@ gulp.task('task:buildCss', gulp.series(
 gulp.task(
     'task:watchJsSrc',
     gulp.series(
-       // 'task:hintJS',
+        'task:hintJS',
         'task:diffJS',
         'task:updateJsDest'
     )
