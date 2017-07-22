@@ -264,21 +264,25 @@ let printHelp = () => {
     gutil.log('')
         .log(chalk.cyan( '= HELP ' + '='.repeat(cliLineLength)))
         .log(`
-             ${chalk.cyan('usage:')}    ${chalk.gray('$ npm run gulp [task] -- [--options] ...')}
+             ${chalk.cyan('documentation:')}        ${chalk.gray('https://github.com/exodus4d/pathfinder/wiki/GulpJs')}
+             
+             ${chalk.cyan('usage:')}                ${chalk.gray('$ npm run gulp [task] -- [--options] ...')}
              
              ${chalk.cyan('tasks:')}
-                ${chalk.gray('default')}            Development environment. Working with row src files and file watcher, default:
-                ${chalk.gray('')}                       ${chalk.gray('--jsUglify=false --jsSourcemaps=false')}
-                ${chalk.gray('production')}         Production build. Concat and ugliry static resources, default:
-                ${chalk.gray('')}                       ${chalk.gray('--jsUglify=true --jsSourcemaps=true')}
                 ${chalk.gray('help')}               This view
+                ${chalk.gray('default')}            Development environment. Working with row src files and file watcher, default:
+                ${chalk.gray('')}                       ${chalk.gray('--jsUglify=false --jsSourcemaps=false --cssSourcemaps=false --gzip=false --brotli=false')}
+                ${chalk.gray('production')}         Production build. Concat and uglify static resources, default:
+                ${chalk.gray('')}                       ${chalk.gray('--jsUglify=true --jsSourcemaps=true --cssSourcemaps=true --gzip=true --brotli=true')}
              
              ${chalk.cyan('options:')}
-                 ${chalk.gray('--tag')}             Required build version. --tag="v1.2.4" -> dest path: public/js/v1.2.4
-                 ${chalk.gray('--jsUglify')}        Set js uglification. (true || false)     
-                 ${chalk.gray('--jsSourcemaps')}    Set js sourcemaps generation. (true || false)     
-                 ${chalk.gray('--gzip')}            Set "gzip" compression mode. (true || false)     
-                 ${chalk.gray('--brotli')}          Set "brotli" compression mode. (true || false)     
+                 ${chalk.gray('--tag')}             Set build version.              ${chalk.gray('default: --tag="v1.2.4" -> dest path: public/js/v1.2.4')}
+                 ${chalk.gray('--jsUglify')}        Set js uglification.            ${chalk.gray('(true || false)')}
+                 ${chalk.gray('--jsSourcemaps')}    Set js sourcemaps generation.   ${chalk.gray('(true || false)')}
+                 ${chalk.gray('--cssSourcemaps')}   Set CSS sourcemaps generation.  ${chalk.gray('(true || false)')}
+                 ${chalk.gray('--gzip')}            Set "gzip" compression mode.    ${chalk.gray('(true || false)')}
+                 ${chalk.gray('--brotli')}          Set "brotli" compression mode.  ${chalk.gray('(true || false)')}
+                 ${chalk.gray('--debug')}           Set debug mode (more output).   ${chalk.gray('(true || false)')}
         `)
         .log(chalk.cyan('='.repeat(cliBoxLength)))
         .log('');
@@ -825,14 +829,6 @@ gulp.task(
     'help',
     gulp.series(
         'task:printHelp'
-    )
-);
-
-gulp.task(
-    'test',
-    gulp.series(
-        'task:cleanCssBuild',
-        'task:watchCss'
     )
 );
 

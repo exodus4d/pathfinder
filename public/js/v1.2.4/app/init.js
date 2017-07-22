@@ -334,31 +334,31 @@ define(['jquery'], function($) {
         // signature groups
         signatureGroups: {
             1: {
-                name: 'combat site', //*
+                name: '(combat site|kampfgebiet|site de combat)', //*
                 label: 'Combat'
             },
             2: {
-                name: 'relic site', //*
+                name: '(relic site|reliktgebiet|site de reliques)', //*
                 label: 'Relic'
             },
             3: {
-                name: 'data site',
+                name: '(data site|datengebiet|site de données)',
                 label: 'Data'
             },
             4: {
-                name: 'gas site',
+                name: '(gas site|gasgebiet|site de collecte de gaz)',
                 label: 'Gas'
             },
             5: {
-                name: 'wormhole',
+                name: '(wormhole|wurmloch|trou de ver)',
                 label: 'Wormhole'
             },
             6: {
-                name: 'ore site',
+                name: '(ore site|mineraliengebiet|site de minerai)',
                 label: 'Ore'
             },
             7: {
-                name: 'ghost',
+                name: '(ghost)',
                 label: 'Ghost'
             }
         },
