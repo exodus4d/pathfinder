@@ -25747,7 +25747,9 @@ define('app/map/map',[
                     }
 
                     // update tooltip placement based on system position
-                    system.data('bs.tooltip').options.placement = getSystemTooltipPlacement(system);
+                    if (system.data('bs.tooltip')) {
+                        system.data('bs.tooltip').options.placement = getSystemTooltipPlacement(system);
+                    }
 
                     // show() can be forced
                     if(options.show === true){
