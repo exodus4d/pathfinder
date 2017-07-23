@@ -119,6 +119,8 @@ class Socket {
         ];
 
         $this->socket->connect($this->socketUri);
+        //$this->socket->send(json_encode($send), \ZMQ::MODE_DONTWAIT);
+
         $this->socket->send(json_encode($send));
         $this->socket->disconnect($this->socketUri);
 

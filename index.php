@@ -12,10 +12,10 @@ $f3 = require_once('app/lib/base.php');
 $f3->config('app/config.ini', true);
 
 // load environment dependent config
-lib\Config::instance();
+lib\Config::instance($f3);
 
 // initiate CCP API Client (ESI)
-lib\CcpClient::instance();
+lib\CcpClient::instance($f3);
 
 // initiate cron-jobs
 Cron::instance();

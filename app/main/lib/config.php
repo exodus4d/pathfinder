@@ -33,31 +33,28 @@ class Config extends \Prefab {
      */
     private $serverConfigData                       = [];
 
-    public function __construct(){
+    public function __construct(\Base $f3){
         // set server data
         // -> CGI params (Nginx)
         // -> .htaccess (Apache)
         $this->setServerData();
         // set environment data
-        $this->setAllEnvironmentData();
+        $this->setAllEnvironmentData($f3);
         // set hive configuration variables
         // -> overwrites default configuration
-        $this->setHiveVariables();
+        $this->setHiveVariables($f3);
     }
 
     /**
      * get environment configuration data
+     * @param \Base $f3
      * @return array|null
      */
-    protected function getAllEnvironmentData(){
-        $f3 = \Base::instance();
-        $environmentData = null;
-
-        if( $f3->exists(self::HIVE_KEY_ENVIRONMENT) ){
-            $environmentData = $f3->get(self::HIVE_KEY_ENVIRONMENT);
-        }else{
-            $environmentData =  $this->setAllEnvironmentData();
+    protected function getAllEnvironmentData(\Base $f3){
+        if( !$f3->exists(self::HIVE_KEY_ENVIRONMENT, $environmentData) ){
+            $environmentData =  $this->setAllEnvironmentData($f3);
         }
+
         return $environmentData;
     }
 
@@ -66,9 +63,9 @@ class Config extends \Prefab {
      * -> can be  overwritten in environments.ini OR ENV-Vars
      * -> see: https://github.com/exodus4d/pathfinder/issues/175
      * that depend on environment settings
+     * @param \Base $f3
      */
-    protected function setHiveVariables(){
-        $f3 = \Base::instance();
+    protected function setHiveVariables(\Base $f3){
         // hive keys that can be overwritten
         $hiveKeys = ['BASE', 'URL', 'DEBUG', 'CACHE'];
 
@@ -81,11 +78,11 @@ class Config extends \Prefab {
 
     /**
      * set all environment configuration data
-     * @return array|null
+     * @param \Base $f3
+     * @return array|mixed|null
      */
-    protected function setAllEnvironmentData(){
+    protected function setAllEnvironmentData(\Base $f3){
         $environmentData = null;
-        $f3 = \Base::instance();
 
         if( !empty($this->serverConfigData['ENV']) ){
             // get environment config from $_SERVER data
@@ -121,6 +118,7 @@ class Config extends \Prefab {
             ksort($environmentData);
             $f3->set(self::HIVE_KEY_ENVIRONMENT, $environmentData);
         }
+
 
         return $environmentData;
     }

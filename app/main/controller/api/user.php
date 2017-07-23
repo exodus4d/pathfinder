@@ -106,7 +106,7 @@ class User extends Controller\Controller{
      * -> return character data (if valid)
      * @param \Base $f3
      */
-    public function getCookieCharacter($f3){
+    public function getCookieCharacter(\Base $f3){
         $data = $f3->get('POST');
 
         $return = (object) [];
