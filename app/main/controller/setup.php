@@ -359,11 +359,11 @@ class Setup extends Controller {
             ],
             'os' => [
                 'label' => 'OS',
-                'value' => function_exists('php_uname') ? php_uname('s') : 'unknown'
+                'value' => function_exists('php_uname') ? php_uname('s') : $_SERVER['OS']
             ],
             'name' => [
                 'label' => 'Host name',
-                'value' => function_exists('php_uname') ? php_uname('n') : 'unknown'
+                'value' => function_exists('php_uname') ? php_uname('n') : $_SERVER['SERVER_NAME']
             ],
             'release' => [
                 'label' => 'Release name',
@@ -375,7 +375,7 @@ class Setup extends Controller {
             ],
             'machine' => [
                 'label' => 'Machine type',
-                'value' => function_exists('php_uname') ? php_uname('m') : 'unknown'
+                'value' => function_exists('php_uname') ? php_uname('m') : $_SERVER['PROCESSOR_ARCHITECTURE']
             ],
             'root' => [
                 'label' => 'Document root',
@@ -402,10 +402,8 @@ class Setup extends Controller {
      */
     protected function checkRequirements(\Base $f3){
 
-
         // server type ------------------------------------------------------------------
         $serverData = self::getServerData(0);
-
 
         $checkRequirements = [
             'serverType' => [
@@ -519,6 +517,16 @@ class Setup extends Controller {
                 'version' => (class_exists('ZMQ') && defined('ZMQ::LIBZMQ_VER')) ? \ZMQ::LIBZMQ_VER : 'unknown',
                 'check' => version_compare( (class_exists('ZMQ') && defined('ZMQ::LIBZMQ_VER')) ? \ZMQ::LIBZMQ_VER : 0, $f3->get('REQUIREMENTS.LIBS.ZMQ'), '>='),
                 'tooltip' => 'ØMQ version. Required for WebSocket configuration.'
+            ],
+            [
+                'label' => 'LibEvent library [optional]'
+            ],
+            'ext_event' => [
+                'label' => 'Event extension',
+                'required' => $f3->get('REQUIREMENTS.PHP.EVENT'),
+                'version' => extension_loaded('event') ? phpversion('event') : 'missing',
+                'check' => version_compare( phpversion('event'), $f3->get('REQUIREMENTS.PHP.EVENT'), '>='),
+                'tooltip' => 'LibEvent PHP extension. Optional performance boost for WebSocket configuration.'
             ]
         ];
 

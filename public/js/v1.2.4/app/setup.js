@@ -46,7 +46,10 @@ define([
     let testWebSocket = () => {
         let tcpSocketPanel = $('#pf-setup-tcpSocket');
         let webSocketPanel = $('#pf-setup-webSocket');
-        let WebSocketURI = MapWorker.getWebSocketURL();
+        let webSocketURI = MapWorker.getWebSocketURL();
+        let sslIcon = webSocketURI.startsWith('wss:') ?
+            '<i class="fa fa-fw fa-lock txt-color txt-color-success"></i>' :
+            '<i class="fa fa-fw fa-unlock txt-color txt-color-warning"></i>';
 
         webSocketPanel.showLoadingAnimation();
 
@@ -63,7 +66,7 @@ define([
         let updateWebSocketPanel = (data) => {
             if(data.uri){
                 let uriRow = webSocketPanel.find('.panel-body table tr');
-                uriRow.find('td:nth-child(2) kbd').text(data.uri.value);
+                uriRow.find('td:nth-child(2) kbd').html(data.uri.value);
                 if(data.uri.status){
                     let statusIcon = uriRow.find('td:nth-child(3) i');
                     removeColorClasses(statusIcon);
@@ -82,7 +85,7 @@ define([
         // update initial
         updateWebSocketPanel({
             uri: {
-                value: WebSocketURI,
+                value: sslIcon + '&nbsp;' + webSocketURI,
                 status: true
             },
             status: {
@@ -92,7 +95,7 @@ define([
         });
 
         // try to connect to WebSocket server
-        let socket = new WebSocket(WebSocketURI);
+        let socket = new WebSocket(webSocketURI);
 
         socket.onopen = (e) => {
             updateWebSocketPanel({
