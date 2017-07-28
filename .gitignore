@@ -52,3 +52,6 @@ Temporary Items
 *.gz
 *.lock
 /conf/
+/node_modules/
+/public/js/vX.X.X/
+/vendor/

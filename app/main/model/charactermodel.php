@@ -11,6 +11,7 @@ namespace Model;
 use Controller\Ccp\Sso as Sso;
 use Controller\Api\User as User;
 use DB\SQL\Schema;
+use Lib\Util;
 
 class CharacterModel extends BasicModel {
 
@@ -89,6 +90,9 @@ class CharacterModel extends BasicModel {
         ],
         'crestRefreshToken' => [
             'type' => Schema::DT_VARCHAR256
+        ],
+        'esiScopes' => [
+            'type' => self::DT_JSON
         ],
         'corporationId' => [
             'type' => Schema::DT_INT,
@@ -566,14 +570,15 @@ class CharacterModel extends BasicModel {
 
                     // check if character alliance is set in whitelist
                     if(
-                        !$authStatus &&
+                        $authStatus != 'OK' &&
                         !empty($whitelistAlliance) &&
-                        $this->hasAlliance() &&
-                        in_array((int)$this->get('allianceId', true), $whitelistAlliance)
+                        $this->hasAlliance()
                     ){
-                        $authStatus =  'OK';
-                    }else{
-                        $authStatus = 'ALLIANCE';
+                        if( in_array((int)$this->get('allianceId', true), $whitelistAlliance) ){
+                            $authStatus =  'OK';
+                        }else{
+                            $authStatus = 'ALLIANCE';
+                        }
                     }
                 }
             }else{
@@ -610,12 +615,16 @@ class CharacterModel extends BasicModel {
      */
     protected function requestRoles(){
         $rolesData = [];
-        if( $accessToken = $this->getAccessToken() ){
-            // check if corporation exists (should never fail)
-            if( $corporation = $this->getCorporation() ){
-                $characterRolesData = $corporation->getCharactersRoles($accessToken);
-                if( !empty($characterRolesData[$this->_id]) ){
-                    $rolesData = $characterRolesData[$this->_id];
+
+        // check if character has accepted all admin scopes (one of them is required for "role" request)
+        if( $this->hasAdminScopes() ){
+            if( $accessToken = $this->getAccessToken() ){
+                // check if corporation exists (should never fail)
+                if( $corporation = $this->getCorporation() ){
+                    $characterRolesData = $corporation->getCharactersRoles($accessToken);
+                    if( !empty($characterRolesData[$this->_id]) ){
+                        $rolesData = $characterRolesData[$this->_id];
+                    }
                 }
             }
         }
@@ -624,17 +633,37 @@ class CharacterModel extends BasicModel {
     }
 
     /**
+     * check whether this char has accepted all "basic" api scopes
+     * @return bool
+     */
+    public function hasBasicScopes(){
+        return empty( array_diff(Sso::getScopesByAuthType(), $this->esiScopes) );
+    }
+
+    /**
+     * check whether this char has accepted all admin api scopes
+     * @return bool
+     */
+    public function hasAdminScopes(){
+        return empty( array_diff(Sso::getScopesByAuthType('admin'), $this->esiScopes) );
+    }
+
+    /**
      * update character log (active system, ...)
      * -> API request for character log data
      * @param array $additionalOptions (optional) request options for cURL request
-     * @return $this
+     * @return CharacterModel
      */
     public function updateLog($additionalOptions = []){
         $deleteLog = false;
         $invalidResponse = false;
 
-        //check if log update is enabled for this user
-        if( $this->logLocation ){
+        //check if log update is enabled for this character
+        // check if character has accepted all scopes. (This fkt is called by cron as well)
+        if(
+            $this->logLocation &&
+            $this->hasBasicScopes()
+        ){
             // Try to pull data from API
             if( $accessToken = $this->getAccessToken() ){
                 $onlineData = self::getF3()->ccpClient->getCharacterOnlineData($this->_id, $accessToken, $additionalOptions);
@@ -650,7 +679,7 @@ class CharacterModel extends BasicModel {
                             // IDs for "systemId", "stationId and "shipTypeId" that require more data
                             $lookupIds = [];
 
-                            if( !$characterLog = $this->getLog() ){
+                            if( !($characterLog = $this->getLog()) ){
                                 // create new log
                                 $characterLog = $this->rel('characterLog');
                             }
@@ -719,7 +748,7 @@ class CharacterModel extends BasicModel {
                                 }
 
                                 $characterLog->setData($logData);
-                                $characterLog->characterId = $this;
+                                $characterLog->characterId = $this->id;
                                 $characterLog->save();
 
                                 $this->characterLog = $characterLog;
@@ -779,7 +808,6 @@ class CharacterModel extends BasicModel {
         ){
             // delete existing log
             $this->characterLog->erase();
-            $this->save();
         }
 
         return $this;
@@ -805,8 +833,9 @@ class CharacterModel extends BasicModel {
                 $characterData = $ssoController->getCharacterData($this->_id);
                 if( !empty($characterData->character) ){
                     $characterData->character['ownerHash'] = $verificationCharacterData->CharacterOwnerHash;
+                    $characterData->character['esiScopes'] = Util::convertScopesString($verificationCharacterData->Scopes);
 
-                    $this->copyfrom($characterData->character, ['ownerHash', 'securityStatus']);
+                    $this->copyfrom($characterData->character, ['ownerHash', 'esiScopes', 'securityStatus']);
                     $this->corporationId = $characterData->corporation;
                     $this->allianceId = $characterData->alliance;
                     $this->save();

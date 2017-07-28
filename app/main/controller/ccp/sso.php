@@ -55,7 +55,7 @@ class Sso extends Api\User{
     public function requestAdminAuthorization($f3){
         $f3->set(self::SESSION_KEY_SSO_FROM, 'admin');
 
-        $scopes = $this->getScopesByAuthType('admin');
+        $scopes = self::getScopesByAuthType('admin');
         $this->rerouteAuthorization($f3, $scopes, 'admin');
     }
 
@@ -105,7 +105,7 @@ class Sso extends Api\User{
 
                         if($loginCheck){
                             // set "login" cookie
-                            $this->setLoginCookie($character, $this->generateHashFromScopes($this->getScopesByAuthType()) );
+                            $this->setLoginCookie($character);
 
                             // -> pass current character data to target page
                             $f3->set(Api\User::SESSION_KEY_TEMP_CHARACTER_ID, $character->_id);
@@ -122,7 +122,7 @@ class Sso extends Api\User{
         }
 
         // redirect to CCP SSO ----------------------------------------------------------------------
-        $scopes = $this->getScopesByAuthType();
+        $scopes = self::getScopesByAuthType();
         $this->rerouteAuthorization($f3, $scopes);
     }
 
@@ -207,9 +207,10 @@ class Sso extends Api\User{
 
                         if( isset($characterData->character) ){
                             // add "ownerHash" and SSO tokens
-                            $characterData->character['ownerHash'] = $verificationCharacterData->CharacterOwnerHash;
-                            $characterData->character['crestAccessToken'] = $accessData->accessToken;
-                            $characterData->character['crestRefreshToken'] = $accessData->refreshToken;
+                            $characterData->character['ownerHash']          = $verificationCharacterData->CharacterOwnerHash;
+                            $characterData->character['crestAccessToken']   = $accessData->accessToken;
+                            $characterData->character['crestRefreshToken']  = $accessData->refreshToken;
+                            $characterData->character['esiScopes']          = Lib\Util::convertScopesString($verificationCharacterData->Scopes);
 
                             // add/update static character data
                             $characterModel = $this->updateCharacter($characterData);
@@ -255,7 +256,7 @@ class Sso extends Api\User{
 
                                     if($loginCheck){
                                         // set "login" cookie
-                                        $this->setLoginCookie($characterModel, $this->generateHashFromScopes( explode(' ', $verificationCharacterData->Scopes) ));
+                                        $this->setLoginCookie($characterModel);
 
                                         // -> pass current character data to target page
                                         $f3->set(Api\User::SESSION_KEY_TEMP_CHARACTER_ID, $characterModel->_id);
@@ -569,7 +570,9 @@ class Sso extends Api\User{
              */
             $characterModel = Model\BasicModel::getNew('CharacterModel');
             $characterModel->getById((int)$characterData->character['id'], 0);
-            $characterModel->copyfrom($characterData->character, ['id', 'name', 'ownerHash', 'crestAccessToken', 'crestRefreshToken', 'securityStatus']);
+            $characterModel->copyfrom($characterData->character, [
+                'id', 'name', 'ownerHash', 'crestAccessToken', 'crestRefreshToken', 'esiScopes', 'securityStatus'
+            ]);
             $characterModel->corporationId = $characterData->corporation;
             $characterModel->allianceId = $characterData->alliance;
             $characterModel = $characterModel->save();

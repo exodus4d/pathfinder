@@ -581,8 +581,9 @@ define([
                     e.preventDefault();
                     e.stopPropagation();
 
-                    let easeEffect = $(this).attr('data-easein');
-                    let popoverData = $(this).data('bs.popover');
+                    let button = $(this);
+                    let easeEffect = button.attr('data-easein');
+                    let popoverData = button.data('bs.popover');
                     let popoverElement = null;
 
                     let velocityOptions = {
@@ -591,8 +592,16 @@ define([
 
                     if(popoverData === undefined){
 
+                        button.on('shown.bs.popover', function (e) {
+                            let tmpPopupElement = $(this).data('bs.popover').tip();
+                            tmpPopupElement.find('.btn').on('click', function(e){
+                                // close popover
+                                $('body').click();
+                            });
+                        });
+
                         // init popover and add specific class to it (for styling)
-                        $(this).popover({
+                        button.popover({
                             html: true,
                             title: 'select character',
                             trigger: 'manual',
@@ -602,17 +611,17 @@ define([
                             animation: false
                         }).data('bs.popover').tip().addClass('pf-popover');
 
-                        $(this).popover('show');
+                        button.popover('show');
 
-                        popoverElement = $(this).data('bs.popover').tip();
+                        popoverElement = button.data('bs.popover').tip();
                         popoverElement.velocity('transition.' + easeEffect, velocityOptions);
                         popoverElement.initTooltips();
                     }else{
-                        popoverElement = $(this).data('bs.popover').tip();
+                        popoverElement = button.data('bs.popover').tip();
                         if(popoverElement.is(':visible')){
                             popoverElement.velocity('reverse');
                         }else{
-                            $(this).popover('show');
+                            button.popover('show');
                             popoverElement.initTooltips();
                             popoverElement.velocity('transition.' + easeEffect, velocityOptions);
                         }
@@ -1025,7 +1034,7 @@ define([
      * @param desktop
      */
     let showNotify = function(customConfig, desktop){
-        requirejs(['app/notification'], function(Notification) {
+        requirejs(['notification'], function(Notification) {
             Notification.showNotify(customConfig, desktop);
         });
     };
@@ -1034,7 +1043,7 @@ define([
      * stop browser tab title "blinking"
      */
     let stopTabBlink = function(){
-        requirejs(['app/notification'], function(Notification) {
+        requirejs(['notification'], function(Notification) {
             Notification.stopTabBlink();
         });
     };

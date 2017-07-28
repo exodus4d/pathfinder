@@ -66,7 +66,6 @@ Issues should be reported in the [Issue](https://github.com/exodus4d/pathfinder/
   CI/CD config files:
   --------------------------
   |-- .jshintrc             --> "JSHint" config (not used for production)
-  |-- build.js              --> "RequireJs Optimizer" config (not used for production)
   |-- config.rb             --> "Compass" config (not used for production)
   |-- gulpfile.js           --> "Gulp" task config (not used for production )
   |-- package.json          --> "Node.js" dependency config (not used for production)

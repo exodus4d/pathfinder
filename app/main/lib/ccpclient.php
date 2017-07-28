@@ -15,22 +15,22 @@ class CcpClient extends \Prefab {
 
     private $apiClient;
 
-    public function __construct(){
-        $f3 = \Base::instance();
-
-        $this->apiClient = $this->getClient($f3);
-
+    public function __construct(\Base $f3){
+        $this->apiClient = $this->getClient();
         $f3->set('ccpClient', $this);
     }
 
-
-    protected function getClient($f3){
+    /**
+     * get ApiClient instance
+     * @return ApiClient|null
+     */
+    protected function getClient(){
         $client = null;
 
         if( !class_exists(ApiClient::class) ){
             LogController::getLogger('ERROR')->write($this->getMissingClientError());
         }else{
-            $client = new ApiClient($f3);
+            $client = new ApiClient();
             $client->setUrl( Config::getEnvironmentData('CCP_ESI_URL') );
             $client->setDatasource( Config::getEnvironmentData('CCP_ESI_DATASOURCE') );
             $client->setUserAgent($this->getUserAgent());

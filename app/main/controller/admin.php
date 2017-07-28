@@ -17,6 +17,7 @@ use lib\Config;
 class Admin extends Controller{
 
     const ERROR_SSO_CHARACTER_EXISTS                = 'No character found. Please login first.';
+    const ERROR_SSO_CHARACTER_SCOPES                = 'Additional ESI scopes are required for "%s". Use the SSO button below.';
     const ERROR_SSO_CHARACTER_ROLES                 = 'Insufficient in-game roles. "%s" requires at least one of these corp roles: %s.';
 
     const LOG_TEXT_KICK_BAN                         = '%s "%s" from corporation "%s", by "%s"';
@@ -86,13 +87,19 @@ class Admin extends Controller{
                 if($character->role != 'MEMBER'){
                     // current character is admin
                     $adminCharacter = $character;
+                }elseif( !$character->hasAdminScopes() ){
+                    $f3->set(Sso::SESSION_KEY_SSO_ERROR,
+                        sprintf(
+                            self::ERROR_SSO_CHARACTER_SCOPES,
+                            $character->name
+                        ));
                 }else{
                     $f3->set(Sso::SESSION_KEY_SSO_ERROR,
                         sprintf(
                             self::ERROR_SSO_CHARACTER_ROLES,
                             $character->name,
-                            implode(', ', CorporationModel::ADMIN_ROLES
-                            )));
+                            implode(', ', CorporationModel::ADMIN_ROLES)
+                        ));
                 }
             }else{
                 $f3->set(Sso::SESSION_KEY_SSO_ERROR, self::ERROR_SSO_CHARACTER_EXISTS);
@@ -107,9 +114,9 @@ class Admin extends Controller{
      * @param CharacterModel $character
      */
     protected function setCharacterRole(CharacterModel $character){
-        $character->virtual('role', function($character){
+        $character->virtual('role', function ($character){
             // default role based on roleId (auto-detected)
-            if( ($role = array_search ($character->roleId, CharacterModel::ROLES)) === false ){
+            if(($role = array_search($character->roleId, CharacterModel::ROLES)) === false){
                 $role = 'MEMBER';
             }
 
@@ -119,9 +126,9 @@ class Admin extends Controller{
              */
             if($this->getF3()->exists('PATHFINDER.ADMIN.CHARACTER', $globalAdminData)){
                 foreach((array)$globalAdminData as $adminData){
-                    if($adminData['ID'] === $character->_id){
-                        if( CharacterModel::ROLES[$adminData['ROLE']] ){
-                            $role = $adminData['ROLE'];
+                    if($adminData[ 'ID' ] === $character->_id){
+                        if(CharacterModel::ROLES[ $adminData[ 'ROLE' ] ]){
+                            $role = $adminData[ 'ROLE' ];
                         }
                         break;
                     }

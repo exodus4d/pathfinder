@@ -10,6 +10,7 @@ namespace Controller;
 use Controller\Api as Api;
 use lib\Config;
 use lib\Socket;
+use Lib\Util;
 use Model;
 use DB;
 
@@ -187,9 +188,8 @@ class Controller {
      * set/update logged in cookie by character model
      * -> store validation data in DB
      * @param Model\CharacterModel $character
-     * @param string $scopeHash
      */
-    protected function setLoginCookie(Model\CharacterModel $character, $scopeHash = ''){
+    protected function setLoginCookie(Model\CharacterModel $character){
 
         if( $this->getCookieState() ){
             $expireSeconds = (int) $this->getF3()->get('PATHFINDER.LOGIN.COOKIE_EXPIRE');
@@ -221,8 +221,7 @@ class Controller {
                 'characterId'   => $character,
                 'selector'      => $selector,
                 'token'         => $token,
-                'expires'       => $expireTime->format('Y-m-d H:i:s'),
-                'scopeHash'     => $scopeHash
+                'expires'       => $expireTime->format('Y-m-d H:i:s')
             ];
 
             $authenticationModel = $character->rel('characterAuthentications');
@@ -276,10 +275,6 @@ class Controller {
                     // "expire data" and "validate token"
                     if( !$characterAuth->dry() ){
                         if(
-                            (
-                                $characterAuth->scopeHash === $this->generateHashFromScopes($this->getScopesByAuthType()) ||
-                                $characterAuth->scopeHash === $this->generateHashFromScopes($this->getScopesByAuthType('admin'))
-                            ) &&
                             strtotime($characterAuth->expires) >= $currentTime->getTimestamp() &&
                             hash_equals($characterAuth->token, hash('sha256', $data[1]))
                         ){
@@ -297,20 +292,32 @@ class Controller {
                                 $character = $characterAuth->rel('characterId');
                                 $character->getById( $characterAuth->get('characterId', true) );
 
-                                // check if character still has user (is not the case of "ownerHash" changed
-                                // check if character is still authorized to log in (e.g. corp/ally or config has changed
-                                // -> do NOT remove cookie on failure. This can be a temporary problem (e.g. ESI is down,..)
-                                if( $character->hasUserCharacter() ){
-                                    $authStatus = $character->isAuthorized();
+                                // check ESI scopes
+                                $scopeHash = Util::getHashFromScopes($character->esiScopes);
 
-                                    if(
-                                        $authStatus == 'OK' ||
-                                        !$checkAuthorization
-                                    ){
-                                        $character->virtual( 'authStatus', $authStatus);
+                                if(
+                                    $scopeHash === Util::getHashFromScopes(self::getScopesByAuthType()) ||
+                                    $scopeHash === Util::getHashFromScopes(self::getScopesByAuthType('admin'))
+                                ){
+                                    // check if character still has user (is not the case of "ownerHash" changed
+                                    // check if character is still authorized to log in (e.g. corp/ally or config has changed
+                                    // -> do NOT remove cookie on failure. This can be a temporary problem (e.g. ESI is down,..)
+                                    if( $character->hasUserCharacter() ){
+                                        $authStatus = $character->isAuthorized();
+
+                                        if(
+                                            $authStatus == 'OK' ||
+                                            !$checkAuthorization
+                                        ){
+                                            $character->virtual( 'authStatus', $authStatus);
+                                        }
+
+                                        $characters[$name] = $character;
                                     }
-
-                                    $characters[$name] = $character;
+                                }else{
+                                    // outdated/invalid ESI scopes
+                                    $characterAuth->erase();
+                                    $invalidCookie = true;
                                 }
                             }else{
                                 $invalidCookie = true;
@@ -432,35 +439,6 @@ class Controller {
         }
 
         return $user;
-    }
-
-    /**
-     * get scope array by a "role"
-     * @param string $authType
-     * @return array
-     */
-    protected function getScopesByAuthType($authType = ''){
-        $scopes = (array)self::getEnvironmentData('CCP_ESI_SCOPES');
-
-        switch($authType){
-            case 'admin':
-                $scopesAdmin = (array)self::getEnvironmentData('CCP_ESI_SCOPES_ADMIN');
-                $scopes = array_merge($scopes, $scopesAdmin);
-                break;
-        }
-        sort($scopes, SORT_NUMERIC);
-        return $scopes;
-    }
-
-    /**
-     * get hash from an array of ESI scopes
-     * @param array $scopes
-     * @return string
-     */
-    protected function generateHashFromScopes($scopes){
-        $scopes = (array)$scopes;
-        sort($scopes);
-        return md5(serialize( $scopes ));
     }
 
     /**
@@ -713,6 +691,25 @@ class Controller {
         }
 
         return $controller;
+    }
+
+
+    /**
+     * get scope array by a "role"
+     * @param string $authType
+     * @return array
+     */
+    static function getScopesByAuthType($authType = ''){
+        $scopes = (array)self::getEnvironmentData('CCP_ESI_SCOPES');
+
+        switch($authType){
+            case 'admin':
+                $scopesAdmin = (array)self::getEnvironmentData('CCP_ESI_SCOPES_ADMIN');
+                $scopes = array_merge($scopes, $scopesAdmin);
+                break;
+        }
+        sort($scopes);
+        return $scopes;
     }
 
     /**

@@ -128,7 +128,7 @@
     //build after r1592 (20111114 release).
     //The source files will show up in a browser developer tool that supports
     //source maps as ".js.src" files.
-    generateSourceMaps: true,
+    generateSourceMaps: false,
 
     //Sets the logging level. It is a number. If you want "silent" running,
     //set logLevel to 4. From the logger.js file:
@@ -194,7 +194,7 @@
         // show module names for each file
         if(moduleName === 'mappage'){
             // perform transformations on the original source
-            contents = contents.replace( /#version/i, new Date().toString() );
+        //    contents = contents.replace( /#version/i, new Date().toString() );
         }
 
         return contents;

@@ -1,7 +1,6 @@
 # Compass 1.0.1 (Polaris)
 
 require 'compass/import-once/activate'
-require 'compass/import-once/activate'
 
 # Require any additional compass plugins here.
 
@@ -26,7 +25,7 @@ relative_assets = true
 line_comments = false
 
 # Define the location of a the compass / sass cache directory.
-cache_path = '../../.sass-cache'
+cache_path = '.sass-cache'
 
 # If you prefer the indented syntax, you might want to regenerate this
 # project again passing --syntax sass, or you can uncomment this:

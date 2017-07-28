@@ -8,7 +8,6 @@
 
 namespace Lib;
 
-
 class Util {
 
     /**
@@ -37,5 +36,37 @@ class Util {
                return $callback($key);
             }, array_keys($arr)), $arr
         );
+    }
+
+    /**
+     * convert a string with multiple scopes into an array
+     * @param string $scopes
+     * @return array|null
+     */
+    static function convertScopesString($scopes){
+        $scopes = array_filter(
+            array_map('strtolower',
+                (array)explode(' ', $scopes)
+            )
+        );
+
+        if($scopes){
+            sort($scopes);
+        }else{
+            $scopes = null;
+        }
+
+        return $scopes;
+    }
+
+    /**
+     * get hash from an array of ESI scopes
+     * @param array $scopes
+     * @return string
+     */
+    static function getHashFromScopes($scopes){
+        $scopes = (array)$scopes;
+        sort($scopes);
+        return md5(serialize($scopes));
     }
 }
