@@ -9,6 +9,7 @@
 namespace DB;
 use Controller;
 use controller\LogController;
+use lib\Config;
 
 class Database extends \Prefab {
 
@@ -31,21 +32,9 @@ class Database extends \Prefab {
 
         // check if DB connection already exists
         if( !$f3->exists($dbHiveKey, $db) ){
-            if($database === 'CCP'){
-                // CCP DB
-                $dns = Controller\Controller::getEnvironmentData('DB_CCP_DNS');
-                $name = Controller\Controller::getEnvironmentData('DB_CCP_NAME');
-                $user = Controller\Controller::getEnvironmentData('DB_CCP_USER');
-                $password = Controller\Controller::getEnvironmentData('DB_CCP_PASS');
-            }else{
-                // Pathfinder(PF) DB
-                $dns = Controller\Controller::getEnvironmentData('DB_DNS');
-                $name = Controller\Controller::getEnvironmentData('DB_NAME');
-                $user = Controller\Controller::getEnvironmentData('DB_USER');
-                $password = Controller\Controller::getEnvironmentData('DB_PASS');
-            }
+            $dbConfig = Config::getDatabaseConfig($database);
 
-            $db = $this->connect($dns, $name, $user, $password);
+            $db  = call_user_func_array([$this, 'connect'], $dbConfig);
 
             if( !is_null($db) ){
                 // set DB timezone to UTC +00:00 (eve server time)

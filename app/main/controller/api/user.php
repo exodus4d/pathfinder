@@ -11,7 +11,6 @@ use Controller;
 use controller\MailController;
 use Model;
 use Exception;
-use DB;
 
 class User extends Controller\Controller{
 

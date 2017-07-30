@@ -95,6 +95,15 @@ class Setup extends Controller {
             ],
             'tables' =>  []
         ],
+        /* WIP ...
+        'UNIVERSE' => [
+            'info' => [],
+            'models' => [
+                'Model\Universe\RegionModel',
+                'Model\Universe\ConstellationModel'
+            ],
+            'tables' =>  []
+        ], */
         'CCP' => [
             'info' => [],
             'models' => [],
@@ -596,8 +605,6 @@ class Setup extends Controller {
         foreach($this->databases as $dbKey => $dbData){
 
             $dbLabel = '';
-            $dbName = '';
-            $dbUser = '';
             $dbConfig = [];
 
             // DB connection status
@@ -612,26 +619,25 @@ class Setup extends Controller {
             $dbColumnQueries = [];
             // tables that should exist in this DB
             $requiredTables = [];
+            // get DB config
+            $dbConfigValues = Config::getDatabaseConfig($dbKey);
             // check DB for valid connection
             $db = DB\Database::instance()->getDB($dbKey);
 
             // check config that does NOT require a valid DB connection
             switch($dbKey){
-                case 'PF':
-                    $dbLabel = 'Pathfinder';
-                    $dbName = Controller::getEnvironmentData('DB_NAME');
-                    $dbUser = Controller::getEnvironmentData('DB_USER');
-                    break;
-                case 'CCP':
-                    $dbLabel = 'EVE-Online [SDE]';
-                    $dbName = Controller::getEnvironmentData('DB_CCP_NAME');
-                    $dbUser = Controller::getEnvironmentData('DB_CCP_USER');
-                    break;
+                case 'PF':          $dbLabel = 'Pathfinder';            break;
+                case 'UNIVERSE':    $dbLabel = 'EVE-Online universe';   break;
+                case 'CCP':         $dbLabel = 'EVE-Online [SDE]';      break;
             }
+
+            $dbName = $dbConfigValues['NAME'];
+            $dbUser = $dbConfigValues['USER'];
 
             if($db){
                 switch($dbKey){
                     case 'PF':
+                    case 'UNIVERSE':
                         // enable (table) setup for this DB
                         $dbSetupEnable = true;
 
@@ -854,10 +860,6 @@ class Setup extends Controller {
                 $dbStatusCheckCount++;
             }
 
-            if($exec){
-                $f3->reroute('@setup');
-            }
-
             if($dbStatusCheckCount !== 0){
                 $this->databaseCheck = false;
             }
@@ -878,6 +880,10 @@ class Setup extends Controller {
                 'columnQueries' => $dbColumnQueries,
                 'tableData' => $requiredTables
             ];
+        }
+
+        if($exec){
+            $f3->reroute('@setup');
         }
 
         return $this->databases;
@@ -956,7 +962,7 @@ class Setup extends Controller {
 
             // setup tables
             foreach($this->databases[$dbKey]['models'] as $modelClass){
-                $checkTables[] = call_user_func($modelClass . '::setup');
+                $checkTables[] = call_user_func($modelClass . '::setup', $db);
             }
         }
         return $checkTables;

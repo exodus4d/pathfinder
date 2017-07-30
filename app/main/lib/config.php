@@ -132,8 +132,6 @@ class Config extends \Prefab {
      * Nginx (server config):
      * -> FastCGI syntax
      *      fastcgi_param PF-ENV-DEBUG 3;
-     *
-     * @return array
      */
     protected function setServerData(){
         $data = [];
@@ -168,6 +166,21 @@ class Config extends \Prefab {
         \Base::instance()->exists($hiveKey, $data);
 
         return $data;
+    }
+
+    /**
+     * get database config values
+     * @param string $dbKey
+     * @return array
+     */
+    static function getDatabaseConfig($dbKey  = 'PF'){
+        $dbConfKey = ($dbKey === 'PF') ? '' : $dbKey . '_';
+        return [
+            'DNS'   => self::getEnvironmentData('DB_' . $dbConfKey . 'DNS'),
+            'NAME'   => self::getEnvironmentData('DB_' . $dbConfKey . 'NAME'),
+            'USER'   => self::getEnvironmentData('DB_' . $dbConfKey . 'USER'),
+            'PASS'   => self::getEnvironmentData('DB_' . $dbConfKey . 'PASS')
+        ];
     }
 
     /**
