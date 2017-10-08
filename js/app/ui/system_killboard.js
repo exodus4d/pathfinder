@@ -77,25 +77,25 @@ define([
 
                     let killData = killMailData[j];
 
-                    let linkUrl = '//zkillboard.com/kill/' + killData.killID + '/';
-                    let victimImageUrl = Init.url.ccpImageServer + 'Type/' + killData.victim.shipTypeID + '_64.png';
-                    let killDate = getDateObjectByTimeString(killData.killTime);
+                    let linkUrl = '//zkillboard.com/kill/' + killData.killmail_id + '/';
+                    let victimImageUrl = Init.url.ccpImageServer + 'Type/' + killData.victim.ship_type_id + '_64.png';
+                    let killDate = getDateObjectByTimeString(killData.killmail_time);
                     let killDateString = Util.convertDateToString(killDate);
                     let killLossValue = Util.formatPrice( killData.zkb.totalValue );
 
                     // check for ally
                     let victimAllyLogoUrl = '';
                     let displayAlly = 'none';
-                    if(killData.victim.allianceID > 0){
-                        victimAllyLogoUrl = Init.url.ccpImageServer + 'Alliance/' + killData.victim.allianceID + '_32.png';
+                    if(killData.victim.alliance_id > 0){
+                        victimAllyLogoUrl = Init.url.ccpImageServer + 'Alliance/' + killData.victim.alliance_id + '_32.png';
                         displayAlly = 'block';
                     }
 
                     // check for corp
                     let victimCorpLogoUrl = '';
                     let displayCorp = 'none';
-                    if(killData.victim.corporationID > 0){
-                        victimCorpLogoUrl = Init.url.ccpImageServer + 'Corporation/' + killData.victim.corporationID + '_32.png';
+                    if(killData.victim.corporation_id > 0){
+                        victimCorpLogoUrl = Init.url.ccpImageServer + 'Corporation/' + killData.victim.corporation_id + '_32.png';
                         displayCorp = 'inline';
                     }
 
@@ -342,8 +342,11 @@ define([
                 // loop kills and count kills by hour
                 for (let i = 0; i < kbData.length; i++) {
                     let killmailData = kbData[i];
-
-                    let killDate = getDateObjectByTimeString(killmailData.killTime);
+                    killmailData.victim.characterName = getPlayerNameByID(killmailData.victim.character_id);
+                    killmailData.victim.corporationName = getCorpNameByID(killmailData.victim.corporation_id);
+                    killmailData.victim.allianceName = getAllianceNameByID(killmailData.victim.alliance_id);
+                    
+                    let killDate = getDateObjectByTimeString(killmailData.killmail_time);
 
                     // get time diff
                     let timeDiffMin = Math.round(( serverDate - killDate ) / 1000 / 60);
@@ -430,6 +433,63 @@ define([
         let date = new Date(match[1], match[2] - 1, match[3], match[4], match[5], match[6]);
 
         return date;
+    };
+    
+    /**
+     * Get PlayerName with CCP ESI API
+     * @param playerID
+     * @returns {String}
+     */
+    let getPlayerNameByID = function(playerID){
+        let playerName;
+        $.ajax({
+            url: '//esi.tech.ccp.is/latest/characters/' + playerID + '/?datasource=tranquility',
+            type: "POST",
+            async: false, // Mode synchrone
+            dataType: "json",
+            complete: function(data){
+                playerName = data.responseJSON.name;
+            }
+        });
+        return playerName;
+    };
+    
+    /**
+     * Get CorpName with CCP ESI API
+     * @param corpID
+     * @returns {String}
+     */
+    let getCorpNameByID = function(corpID){
+        let corpName;
+        $.ajax({
+            url: '//esi.tech.ccp.is/latest/corporations/' + corpID + '/?datasource=tranquility',
+            type: "POST",
+            async: false, // Mode synchrone
+            dataType: "json",
+            complete: function(data){
+                corpName = data.responseJSON.corporation_name;
+            }
+        });
+        return corpName;
+    };
+    
+    /**
+     * Get AllianceName with CCP ESI API
+     * @param allianceID
+     * @returns {String}
+     */
+    let getAllianceNameByID = function(allianceID){
+        let allianceName;
+        $.ajax({
+            url: '//esi.tech.ccp.is/latest/alliances/' + allianceID + '/?datasource=tranquility',
+            type: "POST",
+            async: false, // Mode synchrone
+            dataType: "json",
+            complete: function(data){
+                allianceName = data.responseJSON.name;
+            }
+        });
+        return allianceName;
     };
 
     /**
