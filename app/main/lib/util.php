@@ -17,11 +17,32 @@ class Util {
      * @return array
      */
     static function arrayChangeKeyCaseRecursive($arr, $case = CASE_LOWER){
-        return array_map( function($item){
-            if( is_array($item) )
-                $item = self::arrayChangeKeyCaseRecursive($item);
-            return $item;
-        }, array_change_key_case($arr, $case));
+        if(is_array($arr)){
+            $arr = array_map( function($item){
+                if( is_array($item) )
+                    $item = self::arrayChangeKeyCaseRecursive($item);
+                return $item;
+            }, array_change_key_case((array)$arr, $case));
+        }
+
+        return $arr;
+    }
+
+    /**
+     * checks whether an array is associative or not (sequential)
+     * @param mixed $array
+     * @return bool
+     */
+    static function is_assoc($array): bool {
+        $isAssoc = false;
+        if(
+            is_array($array) &&
+            array_keys($array) !== range(0, count($array) - 1)
+        ){
+            $isAssoc = true;
+        }
+
+        return $isAssoc;
     }
 
     /**
@@ -57,6 +78,23 @@ class Util {
         }
 
         return $scopes;
+    }
+
+    /**
+     * obsucre string e.g. password (hide last characters)
+     * @param string $string
+     * @param int $maxHideChars
+     * @return string
+     */
+    static function obscureString(string $string, int $maxHideChars = 10): string {
+        $formatted = '';
+        $length = mb_strlen((string)$string);
+        if($length > 0){
+            $hideChars = ($length < $maxHideChars) ? $length : $maxHideChars;
+            $formatted = substr_replace($string, str_repeat('_', min(3, $length)), -$hideChars) .
+                ' [' . $length . ']';
+        }
+        return $formatted;
     }
 
     /**

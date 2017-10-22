@@ -1,17 +1,80 @@
-Do you want poke active pilots?
-<hr>
-<h4>
-    <i class="fa fa-fw fa-volume-up"></i>
-    Desktop notification is
-    <kbd class="txt-color txt-color-success">enabled</kbd>.
-</h4>
-<h4>
-    <i class="fa fa-fw fa-envelope"></i>
-    Mail notification is
-    {{#notificationStatus}}
-        <kbd class="txt-color txt-color-success">enabled</kbd>.
-    {{/notificationStatus}}
-    {{^notificationStatus}}
-        <kbd>disabled</kbd>.
-    {{/notificationStatus}}
-</h4>
+<div id="{{id}}">
+    <form role="form" class="form-horizontal">
+        <div class="col-xs-4 col-sm-3">
+
+            <div class="checkbox {{#desktopRallyEnabled}}checkbox-primary{{/desktopRallyEnabled}}">
+                <input id="{{dialogRallyPokeDesktopId}}" name="pokeDesktop" value="1" type="checkbox" {{#desktopRallyEnabled}}checked=""{{/desktopRallyEnabled}}{{^desktopRallyEnabled}}disabled{{/desktopRallyEnabled}}>
+                <label for="{{dialogRallyPokeDesktopId}}">Desktop poke
+                    <i class="fa fa-fw fa-question-circle pf-help-light" title="Send desktop notifications to active pilots"></i>
+                </label>
+            </div>
+
+            <div class="checkbox {{#slackRallyEnabled}}checkbox-primary{{/slackRallyEnabled}}">
+                <input id="{{dialogRallyPokeSlackId}}" name="pokeSlack" value="1" type="checkbox" {{#slackRallyEnabled}}checked=""{{/slackRallyEnabled}}{{^slackRallyEnabled}}disabled{{/slackRallyEnabled}}>
+                <label for="{{dialogRallyPokeSlackId}}">Slack poke
+                    <i class="fa fa-fw fa-question-circle pf-help-light" title="Send Slack message to a public channel"></i>
+                </label>
+            </div>
+
+            <div class="checkbox {{#mailRallyEnabled}}checkbox-primary{{/mailRallyEnabled}}">
+                <input id="{{dialogRallyPokeMailId}}" name="pokeMail" value="1" type="checkbox" {{#mailRallyEnabled}}checked=""{{/mailRallyEnabled}}{{^mailRallyEnabled}}disabled{{/mailRallyEnabled}}>
+                <label for="{{dialogRallyPokeMailId}}">Mail poke
+                    <i class="fa fa-fw fa-question-circle pf-help-light" title="Send E-Mail with rally point data"></i>
+                </label>
+            </div>
+
+        </div>
+        <div class="col-xs-8 col-sm-9">
+            <div class="form-group">
+                <label for="{{dialogRallyMessageId}}" class="col-sm-2 control-label">Message <span class="txt-color txt-color-grayLight">[optional]</span></label>
+                <div class="col-sm-10">
+                    <textarea id="{{dialogRallyMessageId}}" name="message" class="form-control" rows="5" placeholder="{{dialogRallyMessageDefault}}"></textarea>
+                    <div class="note help-block with-errors"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <input type="hidden" name="systemId" value="{{ systemId }}" />
+    </form>
+
+
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="well well-sm">
+                <div class="row">
+                    <div class="col-xs-6 col-sm-2">Map settings:</div>
+                    <div class="col-xs-6 col-sm-4 text-right">
+                        <i class="fa fa-fw fa-volume-up"></i> Desktop poke&nbsp;
+                        {{#desktopRallyEnabled}}
+                        <kbd class="txt-color txt-color-success">enabled</kbd>
+                        {{/desktopRallyEnabled}}
+                        {{^desktopRallyEnabled}}
+                        <kbd>disabled</kbd>
+                        {{/desktopRallyEnabled}}
+                    </div>
+                    <div class="col-xs-6 col-sm-3 text-right">
+                        </i> Slack poke&nbsp;
+                        {{#slackRallyEnabled}}
+                        <kbd class="txt-color txt-color-success">enabled</kbd>
+                        {{/slackRallyEnabled}}
+                        {{^slackRallyEnabled}}
+                        <kbd>disabled</kbd>
+                        {{/slackRallyEnabled}}
+                    </div>
+                    <div class="col-xs-6 col-sm-3 text-right">
+                        <i class="fa fa-fw fa-envelope"></i> Mail poke&nbsp;
+                        {{#mailRallyEnabled}}
+                        <kbd class="txt-color txt-color-success">enabled</kbd>
+                        {{/mailRallyEnabled}}
+                        {{^mailRallyEnabled}}
+                        <kbd>disabled</kbd>
+                        {{/mailRallyEnabled}}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>

@@ -34,23 +34,23 @@ class Schema extends Controller
         $this->f3->set('CACHE', false);
 
         $dbs = array(
-            /*'mysql' => new \DB\SQL(
+            'mysql' => new \DB\SQL(
                 'mysql:host=localhost;port=3306;dbname=fatfree', 'fatfree', ''
-            ),*/
+            ),
             'sqlite' => new \DB\SQL(
                 'sqlite::memory:'
-            // 'sqlite:db/sqlite.db'
+//             'sqlite:db/sqlite.db'
             ),
-            /*'pgsql' => new \DB\SQL(
+            'pgsql' => new \DB\SQL(
                 'pgsql:host=localhost;dbname=fatfree', 'fatfree', 'fatfree'
-            ),*/
-            /*'sqlsrv2012' => new \DB\SQL(
-                'sqlsrv:SERVER=LOCALHOST\SQLEXPRESS2012;Database=fatfree','fatfree', 'fatfree'
-            ),*/
-            /*'sqlsrv2008' => new \DB\SQL(
-                'sqlsrv:SERVER=LOCALHOST\SQLEXPRESS2008;Database=fatfree','fatfree', 'fatfree'
-            )*/
-	);
+            ),
+//            'sqlsrv2012' => new \DB\SQL(
+//                'sqlsrv:SERVER=LOCALHOST\SQLEXPRESS2012;Database=fatfree','fatfree', 'fatfree'
+//            ),
+//            'sqlsrv2008' => new \DB\SQL(
+//                'sqlsrv:SERVER=LOCALHOST\SQLEXPRESS2008;Database=fatfree','fatfree', 'fatfree'
+//            )
+        );
 
         $this->roundTime = microtime(TRUE) - \Base::instance()->get('timer');
         $this->tname = 'test_table';
@@ -117,10 +117,27 @@ class Schema extends Controller
                 $this->getTestDesc('adding column ['.$field.'], nullable')
             );
         }
+
+        $r1 = $table->getCols(true);
+        foreach (array_keys($schema->dataTypes) as $index => $field) {
+            if (isset($r1['column_'.$index])) {
+                $datType=$schema->findQuery($schema->dataTypes[$field]);
+                $compatible = $schema->isCompatible($field,$r1['column_'.$index]['type']);
+                $this->test->expect(
+                    $compatible,
+                    $this->getTestDesc('reverse lookup compatible: '.
+                        ($compatible?'YES':'NO').
+                        ', '.$field.': ['.$datType.' > '.$r1['column_'.$index]['type'].']')
+                );
+            }
+        }
         unset($r1);
+
 
         // adding some testing data
         $mapper = new \DB\SQL\Mapper($db, $this->tname);
+        $mapper->column_5 = 123.456;
+        $mapper->column_6 = 123456.789012;
         $mapper->column_7 = 'hello world';
         $mapper->save();
         $mapper->reset();
@@ -130,11 +147,33 @@ class Schema extends Controller
             $result['column_7'] == 'hello world',
             $this->getTestDesc('mapping dummy data')
         );
+        $this->test->expect(
+            $result['column_5'] == 123.456,
+            $this->getTestDesc('testing float value: '.$result['column_5'])
+        );
+        $this->test->expect(
+            $result['column_6'] == 123456.789012,
+            $this->getTestDesc('testing decimal value: '.$result['column_6'])
+        );
+
+
+        $mapper = new \DB\SQL\Mapper($db, $this->tname);
+        $mapper->load();
+        $num = $this->current_engine == 'sqlite' ? '123456789.012345' : '123456789012.345678';
+        $mapper->column_6 = $num;
+        $mapper->save();
+        $mapper->reset();
+        $result = $mapper->findone(array('column_7 = ?', 'hello world'))->cast();
+        $this->test->expect(
+            $result['column_6'] == $num,
+            $this->getTestDesc('testing max decimal precision: '.$result['column_6'])
+        );
+        unset($mapper);
 
         // default value text, not nullable
         $table->addColumn('text_default_not_null')
-                    ->type($schema::DT_VARCHAR128)
-                    ->nullable(false)->defaults('foo bar');
+            ->type($schema::DT_VARCHAR128)
+            ->nullable(false)->defaults('foo bar');
         $table->build();
         $r1 = $table->getCols(true);
         $this->test->expect(
@@ -160,7 +199,7 @@ class Schema extends Controller
 
         // default value numeric, not nullable
         $table->addColumn('int_default_not_null')
-              ->type($schema::DT_INT4)->nullable(false)->defaults(123);
+            ->type($schema::DT_INT4)->nullable(false)->defaults(123);
         $table->build();
         $r1 = $table->getCols(true);
         $this->test->expect(
@@ -187,8 +226,8 @@ class Schema extends Controller
 
         // default value text, nullable
         $table->addColumn('text_default_nullable')
-              ->type($schema::DT_VARCHAR128)
-              ->defaults('foo bar');
+            ->type($schema::DT_VARCHAR128)
+            ->defaults('foo bar');
         $table->build();
         $r1 = $table->getCols(true);
         $this->test->expect(
@@ -253,9 +292,9 @@ class Schema extends Controller
 
         // current timestamp
         $table->addColumn('stamp')
-              ->type($schema::DT_TIMESTAMP)
-              ->nullable(false)
-              ->defaults($schema::DF_CURRENT_TIMESTAMP);
+            ->type($schema::DT_TIMESTAMP)
+            ->nullable(false)
+            ->defaults($schema::DF_CURRENT_TIMESTAMP);
         $table->build();
         $r1 = $table->getCols(true);
         $this->test->expect(
@@ -321,7 +360,7 @@ class Schema extends Controller
         $table->renameColumn('title123', 'text_default_not_null');
         $table->build();
         unset($result,$mapper);
-        
+
         // remove column
         $table->dropColumn('column_1');
         $table->build();
@@ -380,7 +419,7 @@ class Schema extends Controller
         // adding composite primary keys
         $table = $schema->createTable($this->tname);
         $table->addColumn('version')->type($schema::DT_INT4)
-              ->defaults(1)->nullable(false);
+            ->defaults(1)->nullable(false);
         $table->primary(array('id', 'version'));
         $table = $table->build();
         $r1 = $table->getCols(true);
@@ -399,7 +438,7 @@ class Schema extends Controller
         $table->addColumn('title')->type($schema::DT_VARCHAR256);
         $table->addColumn('title2')->type($schema::DT_TEXT);
         $table->addColumn('title_notnull')
-              ->type($schema::DT_VARCHAR128)->nullable(false)->defaults("foo");
+            ->type($schema::DT_VARCHAR128)->nullable(false)->defaults("foo");
         $table->build();
         $r1 = $table->getCols(true);
         $this->test->expect(
@@ -461,6 +500,18 @@ class Schema extends Controller
             $this->getTestDesc('adding items with composite primary-keys')
         );
 
+        $mapper = new \DB\SQL\Mapper($db, $this->tname);
+        $mapper->load();
+        $rec_count_cur = $mapper->loaded();
+        $schema->truncateTable($this->tname);
+        $mapper->reset();
+        $mapper->load();
+        $rec_count_new = $mapper->loaded();
+        $this->test->expect(
+            $rec_count_cur==3 && $rec_count_new == 0,
+            $this->getTestDesc('truncate table')
+        );
+
         $schema->dropTable($this->tname);
 
         // indexes
@@ -520,10 +571,53 @@ class Schema extends Controller
         $table->updateColumn('bar',$schema::DT_TEXT);
         $table->build();
         $r1 = $table->getCols(true);
+        $text = preg_match('/sybase|dblib|odbc|sqlsrv/',$this->current_engine)
+            ? 'nvarchar' : 'text';
         $this->test->expect(
-            array_key_exists('bar', $r1) && $r1['bar']['type'] == 'text',
+            array_key_exists('bar', $r1) && $r1['bar']['type'] == $text,
             $this->getTestDesc('update column')
         );
+
+        // update column
+        $cols = $table->getCols(true);
+        $bar = $cols['bar'];
+        $col = new \DB\SQL\Column('bar',$table);
+        $col->copyfrom($bar);
+        $col->type_varchar(60);
+        $col->defaults('great');
+        $table->updateColumn('bar',$col);
+        $table->build();
+        $r1 = $table->getCols(true);
+        $this->test->expect(
+            array_key_exists('bar', $r1)
+            && $r1['bar']['default'] == 'great',
+            $this->getTestDesc('update column and default')
+        );
+
+        // update column default only
+        $cols = $table->getCols(true);
+        $bar = $cols['bar'];
+        $col = new \DB\SQL\Column('bar',$table);
+        $col->copyfrom($bar);
+        $col->passThrough();
+        $col->defaults('');
+        $table->updateColumn('bar',$col);
+        $table->build();
+        $r1 = $table->getCols(true);
+        $this->test->expect(
+            array_key_exists('bar', $r1) && $r1['bar']['default'] == '',
+            $this->getTestDesc('update default value')
+        );
+
+        $col->nullable(false);
+        $table->updateColumn('bar',$col);
+        $table->build();
+        $r1 = $table->getCols(true);
+        $this->test->expect(
+            array_key_exists('bar', $r1) && $r1['bar']['nullable'] == false,
+            $this->getTestDesc('update nullable flag')
+        );
+
 
         // create table with text not nullable column
         $table2 = $schema->createTable($this->tname.'_notnulltext');
@@ -538,7 +632,37 @@ class Schema extends Controller
         );
         $table2->drop();
 
-        
+        // boolean fields are actually bit/tinyint
+        $schema->dropTable($this->tname.'_notnullbool');
+        $table2 = $schema->createTable($this->tname.'_notnullbool');
+        $table2->addColumn('active')->type($schema::DT_BOOL)->nullable(false);
+        $table2 = $table2->build();
+        $r1 = $schema->getTables();
+        $r2 = $table2->getCols(true);
+        $this->test->expect(
+            in_array($this->tname.'_notnullbool', $r1) && array_key_exists('active', $r2)
+            && $r2['active']['nullable']==false,
+            $this->getTestDesc('create new table with not nullable boolean column')
+        );
+
+        $table2->addColumn('active2')->type($schema::DT_BOOL)->nullable(false)->defaults(0);
+        $table2->addColumn('active3')->type($schema::DT_BOOL)->nullable(false)->defaults(1);
+        $table2->build();
+        $r1 = $schema->getTables();
+        $r2 = $table2->getCols(true);
+        $this->test->expect(
+            in_array($this->tname.'_notnullbool', $r1)
+            && array_key_exists('active2', $r2) && $r2['active2']['nullable']==false &&
+            ((int)$r2['active2']['default']==0||$r2['active2']['default']=='false')
+            && array_key_exists('active3', $r2) && $r2['active3']['nullable']==false &&
+            ((int)$r2['active3']['default']==1||$r2['active3']['default']=='true'),
+            $this->getTestDesc('add not nullable boolean columns with default to existing table')
+        );
+
+
+        $table2->drop();
+
+
     }
 
 }

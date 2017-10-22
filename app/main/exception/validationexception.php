@@ -11,27 +11,41 @@ namespace Exception;
 
 class ValidationException extends BaseException {
 
+    /**
+     * table column that triggers the exception
+     * @var string
+     */
     private $field;
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getField(){
+    public function getField(): string {
         return $this->field;
     }
 
     /**
-     * @param mixed $field
+     * @param string $field
      */
-    public function setField($field){
+    public function setField(string $field){
         $this->field = $field;
     }
 
 
-    public function __construct($message, $field = 0){
-
-        parent::__construct($message, self::VALIDATION_FAILED);
-
+    public function __construct(string $message, string $field = ''){
+        parent::__construct($message, self::VALIDATION_EXCEPTION);
         $this->setField($field);
+    }
+
+    /**
+     * get error object
+     * @return \stdClass
+     */
+    public function getError(){
+        $error = (object) [];
+        $error->type = 'error';
+        $error->field = $this->getField();
+        $error->message = $this->getMessage();
+        return $error;
     }
 } 

@@ -7,7 +7,7 @@
  */
 
 namespace Controller\Api;
-use Model;
+use lib\Config;
 use Controller;
 
 
@@ -43,7 +43,7 @@ class GitHub extends Controller\Controller {
         $releaseCount = 4;
 
         if( !$f3->exists($cacheKey) ){
-            $apiPath = $this->getF3()->get('PATHFINDER.API.GIT_HUB') . '/repos/exodus4d/pathfinder/releases';
+            $apiPath =  Config::getPathfinderData('api.git_hub') . '/repos/exodus4d/pathfinder/releases';
 
             // build request URL
             $options = $this->getRequestOptions();

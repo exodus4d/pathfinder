@@ -21,8 +21,12 @@
     }],
   "require": {
     "php-64bit": ">=7.0",
-    "ext-zmq": "1.1.*",
+    "ext-curl": ">=7.0",
+    "ext-zmq": ">=1.1.3",
     "react/zmq": "0.3.*",
-    "exodus4d/pathfinder_esi": "dev-master#v1.1.0"
+    "monolog/monolog": "1.*",
+    "websoftwares/monolog-zmq-handler": "0.2.*",
+    "swiftmailer/swiftmailer": "^6.0",
+    "exodus4d/pathfinder_esi": "dev-master#v1.2.0"
   }
 }

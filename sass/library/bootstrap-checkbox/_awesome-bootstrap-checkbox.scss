@@ -4,7 +4,7 @@
 
 
 $font-family-icon: 'FontAwesome' !default;
-$fa-var-check: "\f00c" !default;
+$fa-var-check: "\f028" !default;
 $check-icon: $fa-var-check !default;
 
 @mixin checkbox-variant($parent, $color) {
@@ -58,13 +58,19 @@ $check-icon: $fa-var-check !default;
       @include transition(border 0.15s ease-in-out, color 0.15s ease-in-out);
     }
 
-    &::after{
+    &::after {
+      font-family: $font-family-icon;
+      content: $check-icon;
       display: inline-block;
       position: absolute;
       width: 16px;
       height: 16px;
       left: 0;
       top: 0;
+      opacity: 0;
+      transform: scale(2) rotateZ(-20deg);
+      transition: all .18s ease-in;
+      will-change: transform, opacity;
       margin-left: -20px;
       padding-left: 3px;
       padding-top: 1px;
@@ -81,10 +87,15 @@ $check-icon: $fa-var-check !default;
     &:focus + label::before{
       @include tab-focus();
     }
-
+/*
     &:checked + label::after{
       font-family: $font-family-icon;
       content: $check-icon;
+    }
+*/
+    &:checked + label::after{
+      transform: scale(1) rotateZ(0deg);
+      opacity: 1;
     }
 
     &:indeterminate + label::after{

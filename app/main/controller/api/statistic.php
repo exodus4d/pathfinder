@@ -9,6 +9,7 @@
 namespace controller\api;
 
 use Controller;
+use lib\Config;
 use Model\CharacterModel;
 
 class Statistic extends Controller\AccessController {
@@ -131,19 +132,19 @@ class Statistic extends Controller\AccessController {
         $objectId = 0;
 
         // add map-"typeId" (private/corp/ally) condition -------------------------------------------------------------
-        // check  if "ACTIVITY_LOGGING" is active for a given "typeId"
+        // check  if "LOG_ACTIVITY_ENABLED" is active for a given "typeId"
         $sqlMapType = "";
 
         switch($typeId){
             case 2:
-                if( $this->getF3()->get('PATHFINDER.MAP.PRIVATE.ACTIVITY_LOGGING') ){
+                if( Config::getMapsDefaultConfig('private')['log_activity_enabled'] ){
                     $sqlMapType .= " AND `character`.`id` = :objectId ";
                     $objectId = $character->_id;
                 }
                 break;
             case 3:
                 if(
-                    $this->getF3()->get('PATHFINDER.MAP.CORPORATION.ACTIVITY_LOGGING') &&
+                    Config::getMapsDefaultConfig('corporation')['log_activity_enabled'] &&
                     $character->hasCorporation()
                 ){
                     $sqlMapType .= " AND `character`.`corporationId` = :objectId ";
@@ -152,7 +153,7 @@ class Statistic extends Controller\AccessController {
                 break;
             case 4:
                 if(
-                    $this->getF3()->get('PATHFINDER.MAP.ALLIANCE.ACTIVITY_LOGGING') &&
+                    Config::getMapsDefaultConfig('alliance')['log_activity_enabled'] &&
                     $character->hasAlliance()
                 ){
                     $sqlMapType .= " AND `character`.`allianceId` = :objectId ";
@@ -181,6 +182,9 @@ class Statistic extends Controller\AccessController {
                     `log`.`characterId`,
                     `character`.`name`,
                     `character`.`lastLogin`,
+                    SUM(`log`.`mapCreate`) `mapCreate`,
+                    SUM(`log`.`mapUpdate`) `mapUpdate`,
+                    SUM(`log`.`mapDelete`) `mapDelete`,
                     SUM(`log`.`systemCreate`) `systemCreate`,
                     SUM(`log`.`systemUpdate`) `systemUpdate`,
                     SUM(`log`.`systemDelete`) `systemDelete`,

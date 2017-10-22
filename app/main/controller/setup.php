@@ -13,6 +13,7 @@ use DB;
 use DB\SQL;
 use DB\SQL\MySQL as MySQL;
 use lib\Config;
+use Lib\Util;
 use Model;
 
 class Setup extends Controller {
@@ -26,10 +27,10 @@ class Setup extends Controller {
         'BASE',
         'URL',
         'DEBUG',
-        'DB_DNS',
-        'DB_NAME',
-        'DB_USER',
-        'DB_PASS',
+        'DB_PF_DNS',
+        'DB_PF_NAME',
+        'DB_PF_USER',
+        'DB_PF_PASS',
         'DB_CCP_DNS',
         'DB_CCP_NAME',
         'DB_CCP_USER',
@@ -95,15 +96,15 @@ class Setup extends Controller {
             ],
             'tables' =>  []
         ],
-        /* WIP ...
         'UNIVERSE' => [
             'info' => [],
             'models' => [
-                'Model\Universe\RegionModel',
-                'Model\Universe\ConstellationModel'
+                'Model\Universe\TypeModel',
+                //'Model\Universe\RegionModel',
+                //'Model\Universe\ConstellationModel'
             ],
             'tables' =>  []
-        ], */
+        ],
         'CCP' => [
             'info' => [],
             'models' => [],
@@ -121,18 +122,27 @@ class Setup extends Controller {
     ];
 
     /**
+     * @var DB\Database
+     */
+    protected $dbLib = null;
+
+    /**
      * database error
      * @var bool
      */
-    protected $databaseCheck = true;
+    protected $databaseHasError = false;
 
     /**
      * event handler for all "views"
      * some global template variables are set in here
      * @param \Base $f3
      * @param array $params
+     * @return bool
      */
-    function beforeroute(\Base $f3, $params) {
+    function beforeroute(\Base $f3, $params): bool {
+        // init dbLib class. Manages all DB connections
+        $this->dbLib = DB\Database::instance();
+
         // page title
         $f3->set('tplPageTitle', 'Setup | ' . Config::getPathfinderData('name'));
 
@@ -144,8 +154,13 @@ class Setup extends Controller {
 
         // js path (build/minified or raw uncompressed files)
         $f3->set('tplPathJs', 'public/js/' . Config::getPathfinderData('version') );
+
+        return true;
     }
 
+    /**
+     * @param \Base $f3
+     */
     public function afterroute(\Base $f3) {
         // js view (file)
         $f3->set('tplJsView', 'setup');
@@ -157,6 +172,16 @@ class Setup extends Controller {
                 $cacheType = 'redis';
             }
             return $cacheType;
+        });
+
+        // simple counter (called within template)
+        $counter = 0;
+        $f3->set('tplCounter', function(string $action = 'add') use (&$counter){
+            switch($action){
+                case 'add': $counter++; break;
+                case 'get': return $counter; break;
+                case 'reset': $counter = 0; break;
+            }
         });
 
         // render view
@@ -175,26 +200,31 @@ class Setup extends Controller {
         // enables automatic column fix
         $fixColumns = false;
 
-        // bootstrap database from model class definition
-        if( !empty($params['db']) ){
-            $this->bootstrapDB($params['db']);
-
-            // reload page
-            // -> remove GET param
-            $f3->reroute('@setup');
-            return;
-        }elseif( !empty($params['fixCols']) ){
-            $fixColumns = true;
-        }elseif( !empty($params['buildIndex']) ){
-            $this->setupSystemJumpTable();
-        }elseif( !empty($params['importTable']) ){
-            $this->importTable($params['importTable']);
-        }elseif( !empty($params['exportTable']) ){
-            $this->exportTable($params['exportTable']);
-        }elseif( !empty($params['clearCache']) ){
-            $this->clearCache($f3);
-        }elseif( !empty($params['invalidateCookies']) ){
-            $this->invalidateCookies($f3);
+        switch($params['action']){
+            case 'createDB':
+                $this->createDB($params['db']);
+                break;
+            case 'bootstrapDB':
+                $this->bootstrapDB($params['db']);
+                break;
+            case 'fixCols':
+                $fixColumns = true;
+                break;
+            case 'buildIndex':
+                $this->setupSystemJumpTable();
+                break;
+            case 'importTable':
+                $this->importTable($params['model']);
+                break;
+            case 'exportTable':
+                $this->exportTable($params['model']);
+                break;
+            case 'clearCache':
+                $this->clearCache($f3);
+                break;
+            case 'invalidateCookies':
+                $this->invalidateCookies($f3);
+                break;
         }
 
         // set template data ----------------------------------------------------------------
@@ -206,6 +236,12 @@ class Setup extends Controller {
 
         // set requirement check information
         $f3->set('checkRequirements', $this->checkRequirements($f3));
+
+        // set php config check information
+        $f3->set('checkPHPConfig', $this->checkPHPConfig($f3));
+
+        // set map default config
+        $f3->set('mapsDefaultConfig', $this->getMapsDefaultConfig($f3));
 
         // set database connection information
         $f3->set('checkDatabase', $this->checkDatabase($f3, $fixColumns));
@@ -320,9 +356,9 @@ class Setup extends Controller {
     protected function getEnvironmentInformation(\Base $f3){
         $environmentData = [];
         // exclude some sensitive data (e.g. database, passwords)
-        $excludeVars = ['DB_DNS', 'DB_NAME', 'DB_USER',
-            'DB_PASS', 'DB_CCP_DNS', 'DB_CCP_NAME',
-            'DB_CCP_USER', 'DB_CCP_PASS'
+        $excludeVars = [
+            'DB_PF_DNS',    'DB_PF_NAME',   'DB_PF_USER',   'DB_PF_PASS',
+            'DB_CCP_DNS',   'DB_CCP_NAME',  'DB_CCP_USER',  'DB_CCP_PASS'
         ];
 
         // obscure some values
@@ -338,10 +374,7 @@ class Setup extends Controller {
                     $check = false;
                     $value = '[missing]';
                 }elseif( in_array($var, $obscureVars)){
-                    $length = strlen($value);
-                    $hideChars = ($length < 10) ? $length : 10;
-                    $value = substr_replace($value, str_repeat('.', 3), -$hideChars);
-                    $value .= ' [' . $length . ']';
+                    $value = Util::obscureString($value);
                 }
 
                 $environmentData[$var] = [
@@ -444,6 +477,9 @@ class Setup extends Controller {
                 'version' => (PHP_INT_SIZE * 8) . '-bit',
                 'check' => $f3->get('REQUIREMENTS.PHP.PHP_INT_SIZE') == PHP_INT_SIZE
             ],
+            [
+                'label' => 'PHP extensions'
+            ],
             'pcre' => [
                 'label' => 'PCRE',
                 'required' => $f3->get('REQUIREMENTS.PHP.PCRE_VERSION'),
@@ -485,20 +521,6 @@ class Setup extends Controller {
                 'required' => 'installed',
                 'version' => (extension_loaded('curl') && function_exists('curl_version')) ? 'installed' : 'missing',
                 'check' => (extension_loaded('curl') && function_exists('curl_version'))
-            ],
-            'maxInputVars' => [
-                'label' => 'max_input_vars',
-                'required' => $f3->get('REQUIREMENTS.PHP.MAX_INPUT_VARS'),
-                'version' => ini_get('max_input_vars'),
-                'check' => ini_get('max_input_vars') >= $f3->get('REQUIREMENTS.PHP.MAX_INPUT_VARS'),
-                'tooltip' => 'PHP default = 1000. Increase it in order to import larger maps.'
-            ],
-            'maxExecutionTime' => [
-                'label' => 'max_execution_time',
-                'required' => $f3->get('REQUIREMENTS.PHP.MAX_EXECUTION_TIME'),
-                'version' => ini_get('max_execution_time'),
-                'check' => ini_get('max_execution_time') >= $f3->get('REQUIREMENTS.PHP.MAX_EXECUTION_TIME'),
-                'tooltip' => 'PHP default = 30. Max execution time for PHP scripts.'
             ],
             [
                 'label' => 'Redis Server [optional]'
@@ -595,6 +617,125 @@ class Setup extends Controller {
     }
 
     /**
+     * check PHP config (php.ini)
+     * @param \Base $f3
+     * @return array
+     */
+    protected function checkPHPConfig(\Base $f3): array {
+        $phpConfig = [
+            'maxInputVars' => [
+                'label' => 'max_input_vars',
+                'required' => $f3->get('REQUIREMENTS.PHP.MAX_INPUT_VARS'),
+                'version' => ini_get('max_input_vars'),
+                'check' => ini_get('max_input_vars') >= $f3->get('REQUIREMENTS.PHP.MAX_INPUT_VARS'),
+                'tooltip' => 'PHP default = 1000. Increase it in order to import larger maps.'
+            ],
+            'maxExecutionTime' => [
+                'label' => 'max_execution_time',
+                'required' => $f3->get('REQUIREMENTS.PHP.MAX_EXECUTION_TIME'),
+                'version' => ini_get('max_execution_time'),
+                'check' => ini_get('max_execution_time') >= $f3->get('REQUIREMENTS.PHP.MAX_EXECUTION_TIME'),
+                'tooltip' => 'PHP default = 30. Max execution time for PHP scripts.'
+            ],
+            'htmlErrors' => [
+                'label' => 'html_errors',
+                'required' => $f3->get('REQUIREMENTS.PHP.HTML_ERRORS'),
+                'version' => (int)ini_get('html_errors'),
+                'check' => (bool)ini_get('html_errors') == (bool)$f3->get('REQUIREMENTS.PHP.HTML_ERRORS'),
+                'tooltip' => 'Formatted HTML StackTrace on error.'
+            ],
+            [
+                'label' => 'Session'
+            ],
+            'sessionSaveHandler' => [
+                'label' => 'save_handler',
+                'version' => ini_get('session.save_handler'),
+                'check' => true,
+                'tooltip' => 'PHP Session save handler (Redis is preferred).'
+            ],
+            'sessionSavePath' => [
+                'label' => 'session.save_path',
+                'version' => ini_get('session.save_path'),
+                'check' => true,
+                'tooltip' => 'PHP Session save path (Redis is preferred).'
+            ],
+            'sessionName' => [
+                'label' => 'session.name',
+                'version' => ini_get('session.name'),
+                'check' => true,
+                'tooltip' => 'PHP Session name.'
+            ]
+        ];
+
+        return $phpConfig;
+    }
+
+    /**
+     * get default map config
+     * @param \Base $f3
+     * @return array
+     */
+    protected function getMapsDefaultConfig(\Base $f3): array {
+        $matrix = \Matrix::instance();
+        $mapsDefaultConfig = (array)Config::getMapsDefaultConfig();
+        $matrix->transpose($mapsDefaultConfig);
+        
+        $mapConfig = ['mapTypes' => array_keys(reset($mapsDefaultConfig))];
+
+        foreach($mapsDefaultConfig as $option => $defaultConfig){
+            $tooltip = '';
+            switch($option){
+                case 'lifetime':
+                    $label = 'Map lifetime (days)';
+                    $tooltip = 'Unchanged/inactive maps get auto deleted afterwards (cronjob).';
+                    break;
+                case 'max_count':
+                    $label = 'Max. maps count/user';
+                    break;
+                case 'max_shared':
+                    $label = 'Map share limit/map';
+                    $tooltip = 'E.g. A Corp map can be shared with X other corps.';
+                    break;
+                case 'max_systems':
+                    $label = 'Max. systems count/map';
+                    break;
+                case 'log_activity_enabled':
+                    $label = '<i class="fa fa-fw fa-bar-chart"></i> Activity statistics';
+                    $tooltip = 'If "enabled", map admins can enable user statistics for a map.';
+                    break;
+                case 'log_history_enabled':
+                    $label = '<i class="fa fa-fw fa-file-text"></i> History log files';
+                    $tooltip = 'If "enabled", map admins can pipe map logs to file. (one file per map)';
+                    break;
+                case 'send_history_slack_enabled':
+                    $label = '<i class="fa fa-fw fa-slack"></i> History log Slack';
+                    $tooltip = 'If "enabled", map admins can set a Slack channel were map logs get piped to.';
+                    break;
+                case 'send_rally_slack_enabled':
+                    $label = '<i class="fa fa-fw fa-slack"></i> Rally point poke Slack';
+                    $tooltip = 'If "enabled", map admins can set a Slack channel for rally point pokes.';
+                    break;
+                case 'send_rally_mail_enabled':
+                    $label = '<i class="fa fa-fw fa-envelope"></i> Rally point poke Email';
+                    $tooltip = 'If "enabled", rally point pokes can be send by Email (SMTP config + recipient address required).';
+                    break;
+                default:
+                    $label = 'unknown';
+            }
+
+            $mapsDefaultConfig[$option] = [
+                'label' => $label,
+                'tooltip' => $tooltip,
+                'data'  => $defaultConfig
+            ];
+        }
+
+        $mapConfig['mapConfig'] = $mapsDefaultConfig;
+
+        return $mapConfig;
+    }
+
+    /**
      * get database connection information
      * @param \Base $f3
      * @param bool|false $exec
@@ -611,7 +752,9 @@ class Setup extends Controller {
             $dbConnected = false;
             // DB type (e.g. MySql,..)
             $dbDriver = 'unknown';
-            // enable database ::setup() function in UI
+            // enable database ::create() function on UI
+            $dbCreate = false;
+            // enable database ::setup() function on UI
             $dbSetupEnable = false;
             // check  of everything is OK (connection, tables, columns, indexes,..)
             $dbStatusCheckCount = 0;
@@ -622,7 +765,9 @@ class Setup extends Controller {
             // get DB config
             $dbConfigValues = Config::getDatabaseConfig($dbKey);
             // check DB for valid connection
-            $db = DB\Database::instance()->getDB($dbKey);
+            $db = $this->dbLib->getDB($dbKey);
+            // collection for errors
+            $dbErrors = [];
 
             // check config that does NOT require a valid DB connection
             switch($dbKey){
@@ -631,8 +776,9 @@ class Setup extends Controller {
                 case 'CCP':         $dbLabel = 'EVE-Online [SDE]';      break;
             }
 
-            $dbName = $dbConfigValues['NAME'];
-            $dbUser = $dbConfigValues['USER'];
+            $dbName     = $dbConfigValues['NAME'];
+            $dbUser     = $dbConfigValues['USER'];
+            $dbAlias    = $dbConfigValues['ALIAS'];
 
             if($db){
                 switch($dbKey){
@@ -858,27 +1004,47 @@ class Setup extends Controller {
             }else{
                 // DB connection failed
                 $dbStatusCheckCount++;
+
+                foreach($this->dbLib->getErrors($dbAlias, 10) as $dbException){
+                    $dbErrors[] = $dbException->getMessage();
+                }
+
+                // try to connect without! DB (-> offer option to create them)
+                // do not log errors (silent)
+                $this->dbLib->setSilent(true);
+                $dbServer = $this->dbLib->connectToServer($dbAlias);
+                $this->dbLib->setSilent(false);
+                if(!is_null($dbServer)){
+                    // connection succeeded
+                    $dbCreate = true;
+                    $dbDriver = $dbServer->driver();
+                }
             }
 
             if($dbStatusCheckCount !== 0){
-                $this->databaseCheck = false;
+                $this->databaseHasError = true;
             }
 
             // sort tables for better readability
             ksort($requiredTables);
 
             $this->databases[$dbKey]['info'] = [
-                'db' => $db,
-                'label' => $dbLabel,
-                'driver' => $dbDriver,
-                'name' => $dbName,
-                'user' => $dbUser,
-                'dbConfig' => $dbConfig,
-                'setupEnable' => $dbSetupEnable,
-                'connected' => $dbConnected,
-                'statusCheckCount' => $dbStatusCheckCount,
-                'columnQueries' => $dbColumnQueries,
-                'tableData' => $requiredTables
+           //     'db' => $db,
+                'label'             => $dbLabel,
+                'host'              => Config::getDatabaseDNSValue((string)$dbConfigValues['DNS'], 'host'),
+                'port'              => Config::getDatabaseDNSValue((string)$dbConfigValues['DNS'], 'port'),
+                'driver'            => $dbDriver,
+                'name'              => $dbName,
+                'user'              => $dbUser,
+                'pass'              => Util::obscureString((string)$dbConfigValues['PASS'], 8),
+                'dbConfig'          => $dbConfig,
+                'dbCreate'          => $dbCreate,
+                'setupEnable'       => $dbSetupEnable,
+                'connected'         => $dbConnected,
+                'statusCheckCount'  => $dbStatusCheckCount,
+                'columnQueries'     => $dbColumnQueries,
+                'tableData'         => $requiredTables,
+                'errors'            => $dbErrors
             ];
         }
 
@@ -942,23 +1108,45 @@ class Setup extends Controller {
     }
 
     /**
+     * try to create a fresh database
+     * @param string $dbKey
+     */
+    protected function createDB(string $dbKey){
+        // check for valid key
+        if(!empty($this->databases[$dbKey])){
+            // disable logging (we expect the DB connect to fail -> no db created)
+            $this->dbLib->setSilent(true);
+            // try to connect
+            $db = $this->dbLib->getDB($dbKey);
+            // enable logging
+            $this->dbLib->setSilent(false, true);
+            if(is_null($db)){
+                // try create new db
+                $db = $this->dbLib->createDB($dbKey);
+                if(is_null($db)){
+                    foreach($this->dbLib->getErrors($dbKey, 5) as $error){
+                        // ... no further error handling here -> check log files
+                        //$error->getMessage()
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * init the complete database
      * - create tables
      * - create indexes
      * - set default static values
-     * @param $dbKey
+     * @param string $dbKey
      * @return array
      */
-    protected function bootstrapDB($dbKey){
-        $db = DB\Database::instance()->getDB($dbKey);
-
+    protected function bootstrapDB(string $dbKey){
+        $db = $this->dbLib->getDB($dbKey);
         $checkTables = [];
         if($db){
-            // set/change default "character set" and "collation"
-            $db->exec('ALTER DATABASE ' . $db->quotekey($db->name())
-                . ' CHARACTER SET ' . self::getRequiredMySqlVariables('CHARACTER_SET_DATABASE')
-                . ' COLLATE ' . self::getRequiredMySqlVariables('COLLATION_DATABASE')
-            );
+            // set some default config for this database
+            DB\Database::prepareDatabase($db);
 
             // setup tables
             foreach($this->databases[$dbKey]['models'] as $modelClass){
@@ -976,10 +1164,10 @@ class Setup extends Controller {
         // $ttl for health check
         $ttl = 600;
 
-        $heachCheckToken = microtime(true);
+        $healthCheckToken = microtime(true);
 
         // ping TCP Socket with checkToken
-        self::checkTcpSocket($ttl,  $heachCheckToken);
+        self::checkTcpSocket($ttl,  $healthCheckToken);
 
         $socketInformation = [
             'tcpSocket' => [
@@ -1004,7 +1192,7 @@ class Setup extends Controller {
                         'check' => !empty( $ttl )
                     ]
                 ],
-                'token' => $heachCheckToken
+                'token' => $healthCheckToken
             ],
             'webSocket' => [
                 'label' => 'WebSocket (clients) [HTTP]',
@@ -1026,78 +1214,77 @@ class Setup extends Controller {
      * @return array
      */
     protected function getIndexData(){
-
         // active DB and tables are required for obtain index data
-        if( $this->databaseCheck ){
+        if(!$this->databaseHasError){
             $indexInfo = [
                 'SystemNeighbourModel' => [
-                    'action' => [
+                    'task' => [
                         [
-                            'task' => 'buildIndex',
+                            'action' => 'buildIndex',
                             'label' => 'build',
                             'icon' => 'fa-refresh',
                             'btn' => 'btn-primary'
                         ]
                     ],
                     'table' => Model\BasicModel::getNew('SystemNeighbourModel')->getTable(),
-                    'count' => DB\Database::instance()->getRowCount( Model\BasicModel::getNew('SystemNeighbourModel')->getTable() )
+                    'count' => $this->dbLib->getRowCount( Model\BasicModel::getNew('SystemNeighbourModel')->getTable() )
                 ],
                 'WormholeModel' => [
-                    'action' => [
+                    'task' => [
                         [
-                            'task' => 'exportTable',
+                            'action' => 'exportTable',
                             'label' => 'export',
                             'icon' => 'fa-download',
                             'btn' => 'btn-default'
                         ],[
-                            'task' => 'importTable',
+                            'action' => 'importTable',
                             'label' => 'import',
                             'icon' => 'fa-upload',
                             'btn' => 'btn-primary'
                         ]
                     ],
                     'table' => Model\BasicModel::getNew('WormholeModel')->getTable(),
-                    'count' => DB\Database::instance()->getRowCount( Model\BasicModel::getNew('WormholeModel')->getTable() )
+                    'count' => $this->dbLib->getRowCount( Model\BasicModel::getNew('WormholeModel')->getTable() )
                 ],
                 'SystemWormholeModel' => [
-                    'action' => [
+                    'task' => [
                         [
-                            'task' => 'exportTable',
+                            'action' => 'exportTable',
                             'label' => 'export',
                             'icon' => 'fa-download',
                             'btn' => 'btn-default'
                         ],[
-                            'task' => 'importTable',
+                            'action' => 'importTable',
                             'label' => 'import',
                             'icon' => 'fa-upload',
                             'btn' => 'btn-primary'
                         ]
                     ],
                     'table' => Model\BasicModel::getNew('SystemWormholeModel')->getTable(),
-                    'count' => DB\Database::instance()->getRowCount( Model\BasicModel::getNew('SystemWormholeModel')->getTable() )
+                    'count' => $this->dbLib->getRowCount( Model\BasicModel::getNew('SystemWormholeModel')->getTable() )
                 ],
                 'ConstellationWormholeModel' => [
-                    'action' => [
+                    'task' => [
                         [
-                            'task' => 'exportTable',
+                            'action' => 'exportTable',
                             'label' => 'export',
                             'icon' => 'fa-download',
                             'btn' => 'btn-default'
                         ],[
-                            'task' => 'importTable',
+                            'action' => 'importTable',
                             'label' => 'import',
                             'icon' => 'fa-upload',
                             'btn' => 'btn-primary'
                         ]
                     ],
                     'table' => Model\BasicModel::getNew('ConstellationWormholeModel')->getTable(),
-                    'count' => DB\Database::instance()->getRowCount( Model\BasicModel::getNew('ConstellationWormholeModel')->getTable() )
+                    'count' => $this->dbLib->getRowCount( Model\BasicModel::getNew('ConstellationWormholeModel')->getTable() )
                 ]
             ];
         }else{
             $indexInfo = [
                 'SystemNeighbourModel' => [
-                    'action' => [],
+                    'task' => [],
                     'table' => 'Fix database errors first!'
                 ]
             ];
@@ -1178,7 +1365,7 @@ class Setup extends Controller {
 
     /**
      * import table data from existing dump file (e.g *.csv)
-     * @param $modelClass
+     * @param string $modelClass
      * @return bool
      * @throws \Exception
      */
@@ -1189,7 +1376,7 @@ class Setup extends Controller {
 
     /**
      * export table data
-     * @param $modelClass
+     * @param string $modelClass
      * @throws \Exception
      */
     protected function exportTable($modelClass){

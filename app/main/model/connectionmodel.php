@@ -9,10 +9,10 @@
 namespace Model;
 
 use DB\SQL\Schema;
-use Controller;
 use Controller\Api\Route;
+use Lib\Logging;
 
-class ConnectionModel extends BasicModel{
+class ConnectionModel extends AbstractMapTrackingModel {
 
     protected $table = 'connection';
 
@@ -79,10 +79,16 @@ class ConnectionModel extends BasicModel{
 
     /**
      * set an array with all data for a system
-     * @param $systemData
+     * @param array $data
      */
-    public function setData($systemData){
-        foreach((array)$systemData as $key => $value){
+    public function setData($data){
+        unset($data['id']);
+        unset($data['created']);
+        unset($data['updated']);
+        unset($data['createdCharacterId']);
+        unset($data['updatedCharacterId']);
+
+        foreach((array)$data as $key => $value){
             if( !is_array($value) ){
                 if( $this->exists($key) ){
                     $this->$key = $value;
@@ -100,7 +106,6 @@ class ConnectionModel extends BasicModel{
      * @return \stdClass
      */
     public function getData($addSignatureData = false){
-
         $connectionData = (object) [];
         $connectionData->id            = $this->id;
         $connectionData->source        = $this->source->id;
@@ -189,21 +194,21 @@ class ConnectionModel extends BasicModel{
      * check whether this model is valid or not
      * @return bool
      */
-    public function isValid(){
-        $isValid = true;
-
-        // check if source/target system are not equal
-        // check if source/target belong to same map
-        if(
-            is_object($this->source) &&
-            is_object($this->target) &&
-            $this->get('source', true) === $this->get('target', true) ||
-            $this->source->get('mapId', true) !== $this->target->get('mapId', true)
-        ){
-            $isValid = false;
+    public function isValid(): bool {
+        if($valid = parent::isValid()){
+            // check if source/target system are not equal
+            // check if source/target belong to same map
+            if(
+                is_object($this->source) &&
+                is_object($this->target) &&
+                $this->get('source', true) === $this->get('target', true) ||
+                $this->source->get('mapId', true) !== $this->target->get('mapId', true)
+            ){
+                $valid = false;
+            }
         }
 
-        return $isValid;
+        return $valid;
     }
 
     /**
@@ -218,7 +223,6 @@ class ConnectionModel extends BasicModel{
         // check for "default" connection type and add them if missing
         // -> get() with "true" returns RAW data! important for JSON table column check!
         $types = (array)json_decode( $this->get('type', true) );
-
         if(
             !$this->scope ||
             empty($types)
@@ -226,7 +230,7 @@ class ConnectionModel extends BasicModel{
             $this->setDefaultTypeData();
         }
 
-        return parent::beforeInsertEvent($self, $pkeys);
+        return $this->isValid() ? parent::beforeInsertEvent($self, $pkeys) : false;
     }
 
     /**
@@ -263,35 +267,18 @@ class ConnectionModel extends BasicModel{
     }
 
     /**
-     * log character activity create/update/delete events
      * @param string $action
+     * @return Logging\LogInterface
      */
-    protected function logActivity($action){
-
-        if(
-            $this->enableActivityLogging &&
-            (
-                $action === 'connectionDelete' ||
-                !empty($this->fieldChanges)
-            ) &&
-            $this->get('mapId')->isActivityLogEnabled()
-        ){
-            // TODO implement "dependency injection" for active character object...
-            $controller = new Controller\Controller();
-            $currentActiveCharacter = $controller->getCharacter();
-            $characterId = is_null($currentActiveCharacter) ? 0 : $currentActiveCharacter->_id;
-            $mapId = $this->get('mapId', true);
-
-            parent::bufferActivity($characterId, $mapId, $action);
-        }
+    public function newLog($action = ''): Logging\LogInterface{
+        return $this->getMap()->newLog($action)->setTempData($this->getLogObjectData());
     }
 
     /**
-     * save connection and check if obj is valid
-     * @return ConnectionModel|false
+     * @return MapModel
      */
-    public function save(){
-        return ( $this->isValid() ) ? parent::save() : false;
+    public function getMap(): MapModel{
+        return $this->get('mapId');
     }
 
     /**
@@ -305,6 +292,17 @@ class ConnectionModel extends BasicModel{
                 $this->erase();
             }
         }
+    }
+
+    /**
+     * get object relevant data for model log
+     * @return array
+     */
+    public function getLogObjectData() : array{
+        return [
+            'objId' => $this->_id,
+            'objName' => $this->scope
+        ];
     }
 
     /**

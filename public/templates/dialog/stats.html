@@ -2,13 +2,13 @@
     <nav class="navbar navbar-default" role="navigation">
         <div class="navbar-header pull-left">
             <ul class="nav navbar-nav {{dialogNavigationClass}}">
-                <li class="{{dialogNavLiClass}} {{^enablePrivateTab}} disabled {{/enablePrivateTab}}">
+                <li class="{{dialogNavLiClass}} {{#activePrivateTab}} active {{/activePrivateTab}} {{^enablePrivateTab}} disabled {{/enablePrivateTab}}">
                     <a role="tab" data-toggle="tab" data-type="typeId" data-value="2" href="#{{statsContainerId}}">Private</a>
                 </li>
-                <li class="{{dialogNavLiClass}} active {{^enableCorporationTab}} disabled {{/enableCorporationTab}}">
+                <li class="{{dialogNavLiClass}} {{#activeCorporationTab}} active {{/activeCorporationTab}} {{^enableCorporationTab}} disabled {{/enableCorporationTab}}">
                     <a role="tab" data-toggle="tab" data-type="typeId" data-value="3" href="#{{statsContainerId}}">Corporation</a>
                 </li>
-                <li class="{{dialogNavLiClass}} {{^enableAllianceTab}} disabled {{/enableAllianceTab}}">
+                <li class="{{dialogNavLiClass}} {{#activeAllianceTab}} active {{/activeAllianceTab}} {{^enableAllianceTab}} disabled {{/enableAllianceTab}}">
                     <a role="tab" data-toggle="tab" data-type="typeId" data-value="4" href="#{{statsContainerId}}">Alliance</a>
                 </li>
             </ul>
@@ -63,6 +63,8 @@
                     <thead>
                     <tr>
                         <th colspan="4" class="separator-right">character</th>
+                        <th colspan="3" class="hidden-xs hidden-sm">maps</th>
+                        <th class="text-right separator-right"><span class="hidden-md hidden-lg">map.</span></th>
                         <th colspan="3" class="hidden-xs hidden-sm">systems</th>
                         <th class="text-right separator-right"><span class="hidden-md hidden-lg">sys.</span></th>
                         <th colspan="3" class="hidden-xs hidden-sm">connection</th>
@@ -72,6 +74,10 @@
                         <th class="text-right">sum</th>
                     </tr>
                     <tr>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
                         <th></th>
                         <th></th>
                         <th></th>
@@ -109,11 +115,35 @@
                         <th></th>
                         <th></th>
                         <th class="bg-color bg-color-grayDarker"></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th class="bg-color bg-color-grayDarker"></th>
                         <th class="bg-color bg-color-tealDarker txt-color txt-color-orange"></th>
                     </tr>
                     </tfoot>
                 </table>
             </div>
+
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="well well-sm">
+                        <div class="row">
+                            <div class="col-xs-6 col-sm-2 col-md-2">Map settings:</div>
+                            <div class="col-xs-6 col-sm-10 col-md-10 text-right">
+                                Store user statistics&nbsp;
+                                {{#logActivityEnabled}}
+                                <kbd class="txt-color txt-color-success">enabled</kbd>
+                                {{/logActivityEnabled}}
+                                {{^logActivityEnabled}}
+                                <kbd>disabled</kbd>
+                                {{/logActivityEnabled}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>

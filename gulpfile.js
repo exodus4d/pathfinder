@@ -499,7 +499,7 @@ gulp.task('task:hintJS', () => {
  * concat/build JS files by modules
  */
 gulp.task('task:concatJS', () => {
-    let modules = ['login', 'mappage', 'setup', 'admin', 'notification'];
+    let modules = ['login', 'mappage', 'setup', 'admin', 'notification', 'datatables.loader'];
     let srcModules = ['./js/app/*(' + modules.join('|') + ').js'];
 
     return gulp.src(srcModules, {base: 'js'})
@@ -854,11 +854,15 @@ gulp.task(
     'production',
     gulp.series(
         'task:configProduction',
-        'task:cleanJsBuild',
-        'task:cleanCssBuild',
         gulp.parallel(
-            'task:buildJs',
-            'task:watchCss'
+            gulp.series(
+                'task:cleanJsBuild',
+                'task:buildJs'
+            ),
+            gulp.series(
+                'task:cleanCssBuild',
+                'task:watchCss'
+            )
         )
     )
 );

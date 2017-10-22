@@ -642,7 +642,31 @@ $mapWidth: 2500px ;
   }
 
   i{
-    width: 20px
+    width: 20px;
+    pointer-events: none;
+  }
+
+  // nested (sub) menu
+  .dropdown-menu{
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    clip-path: inset(-12px -12px -12px 0px); // hide left box shadow
+  }
+
+  // top menu
+  &[role]>li{
+    position: relative; // otherwise :before indicator gets to height
+    &:before{
+      @include navigation-active-indicator(left);
+      width: 2px;
+      height: 100%;
+      left: 0;
+    }
+
+    &:hover:before{
+      left: -4px;
+      opacity: 1;
+    }
   }
 }
 

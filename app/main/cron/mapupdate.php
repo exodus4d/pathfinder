@@ -8,6 +8,7 @@
 
 namespace cron;
 use DB;
+use lib\Config;
 use Model;
 
 class MapUpdate {
@@ -23,19 +24,20 @@ class MapUpdate {
      * @param \Base $f3
      */
     function deactivateMapData(\Base $f3){
-        $privateMapLifetime = (int)$f3->get('PATHFINDER.MAP.PRIVATE.LIFETIME');
+        $privateMapLifetime = (int)Config::getMapsDefaultConfig('private.lifetime');
 
         if($privateMapLifetime > 0){
             $pfDB = DB\Database::instance()->getDB('PF');
-
-            $sqlDeactivateExpiredMaps = "UPDATE map SET
+            if($pfDB){
+                $sqlDeactivateExpiredMaps = "UPDATE map SET
                 active = 0
             WHERE
                 map.active = 1 AND
                 map.typeId = 2 AND
                 TIMESTAMPDIFF(DAY, map.updated, NOW() ) > :lifetime";
 
-            $pfDB->exec($sqlDeactivateExpiredMaps, ['lifetime' => $privateMapLifetime]);
+                $pfDB->exec($sqlDeactivateExpiredMaps, ['lifetime' => $privateMapLifetime]);
+            }
         }
     }
 
@@ -45,18 +47,31 @@ class MapUpdate {
      * @param \Base $f3
      */
     function deleteMapData(\Base $f3){
-
         $pfDB = DB\Database::instance()->getDB('PF');
+        $deletedMapsCount = 0;
 
-        $sqlDeleteDisabledMaps = "DELETE FROM
+        if($pfDB){
+            $sqlDeleteDisabledMaps = "SELECT
+                id 
+            FROM
                 map
             WHERE
                 map.active = 0 AND
                 TIMESTAMPDIFF(DAY, map.updated, NOW() ) > :deletion_time";
 
-        $pfDB->exec($sqlDeleteDisabledMaps, ['deletion_time' => self::DAYS_UNTIL_MAP_DELETION]);
+            $disabledMaps = $pfDB->exec($sqlDeleteDisabledMaps, ['deletion_time' => self::DAYS_UNTIL_MAP_DELETION]);
 
-        $deletedMapsCount = $pfDB->count();
+            if($deletedMapsCount = $pfDB->count()){
+                $mapModel =  Model\BasicModel::getNew('MapModel');
+                foreach($disabledMaps as $data){
+                    $mapModel->getById( (int)$data['id'], 3, false );
+                    if( !$mapModel->dry() ){
+                         $mapModel->erase();
+                    }
+                    $mapModel->reset();
+                }
+            }
+        }
 
         // Log ------------------------
         $log = new \Log('cron_' . __FUNCTION__ . '.log');
@@ -73,8 +88,8 @@ class MapUpdate {
 
         if($eolExpire > 0){
             $pfDB = DB\Database::instance()->getDB('PF');
-
-            $sql = "SELECT
+            if($pfDB){
+                $sql = "SELECT
                     `con`.`id`
                 FROM
                   `connection` `con` INNER JOIN
@@ -85,20 +100,21 @@ class MapUpdate {
                   TIMESTAMPDIFF(SECOND, `con`.`eolUpdated`, NOW() ) > :expire_time
             ";
 
-            $connectionsData = $pfDB->exec($sql, [
-                'deleteEolConnections' => 1,
-                'expire_time' => $eolExpire
-            ]);
+                $connectionsData = $pfDB->exec($sql, [
+                    'deleteEolConnections' => 1,
+                    'expire_time' => $eolExpire
+                ]);
 
-            if($connectionsData){
-                /**
-                 * @var $connection Model\ConnectionModel
-                 */
-                $connection = Model\BasicModel::getNew('ConnectionModel');
-                foreach($connectionsData as $data){
-                    $connection->getById( (int)$data['id'] );
-                    if( !$connection->dry() ){
-                        $connection->erase();
+                if($connectionsData){
+                    /**
+                     * @var $connection Model\ConnectionModel
+                     */
+                    $connection = Model\BasicModel::getNew('ConnectionModel');
+                    foreach($connectionsData as $data){
+                        $connection->getById( (int)$data['id'] );
+                        if( !$connection->dry() ){
+                            $connection->erase();
+                        }
                     }
                 }
             }
@@ -115,8 +131,8 @@ class MapUpdate {
 
         if($whExpire > 0){
             $pfDB = DB\Database::instance()->getDB('PF');
-
-            $sql = "SELECT
+            if($pfDB){
+                $sql = "SELECT
                     `con`.`id`
                 FROM
                   `connection` `con` INNER JOIN
@@ -128,21 +144,22 @@ class MapUpdate {
                   TIMESTAMPDIFF(SECOND, `con`.`created`, NOW() ) > :expire_time
             ";
 
-            $connectionsData = $pfDB->exec($sql, [
-                'deleteExpiredConnections' => 1,
-                'scope' => 'wh',
-                'expire_time' => $whExpire
-            ]);
+                $connectionsData = $pfDB->exec($sql, [
+                    'deleteExpiredConnections' => 1,
+                    'scope' => 'wh',
+                    'expire_time' => $whExpire
+                ]);
 
-            if($connectionsData){
-                /**
-                 * @var $connection Model\ConnectionModel
-                 */
-                $connection = Model\BasicModel::getNew('ConnectionModel');
-                foreach($connectionsData as $data){
-                    $connection->getById( (int)$data['id'] );
-                    if( !$connection->dry() ){
-                        $connection->erase();
+                if($connectionsData){
+                    /**
+                     * @var $connection Model\ConnectionModel
+                     */
+                    $connection = Model\BasicModel::getNew('ConnectionModel');
+                    foreach($connectionsData as $data){
+                        $connection->getById( (int)$data['id'] );
+                        if( !$connection->dry() ){
+                            $connection->erase();
+                        }
                     }
                 }
             }
@@ -159,8 +176,8 @@ class MapUpdate {
 
         if($signatureExpire > 0){
             $pfDB = DB\Database::instance()->getDB('PF');
-
-            $sqlDeleteExpiredSignatures = "DELETE `sigs` FROM
+            if($pfDB){
+                $sqlDeleteExpiredSignatures = "DELETE `sigs` FROM
                 `system_signature` `sigs` INNER JOIN
                 `system` ON 
                   `system`.`id` = `sigs`.`systemId`
@@ -169,7 +186,8 @@ class MapUpdate {
                 TIMESTAMPDIFF(SECOND, `sigs`.`updated`, NOW() ) > :lifetime
             ";
 
-            $pfDB->exec($sqlDeleteExpiredSignatures, ['lifetime' => $signatureExpire]);
+                $pfDB->exec($sqlDeleteExpiredSignatures, ['lifetime' => $signatureExpire]);
+            }
         }
     }
 

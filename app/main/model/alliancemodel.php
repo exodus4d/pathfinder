@@ -9,6 +9,7 @@
 namespace Model;
 
 use DB\SQL\Schema;
+use lib\Config;
 
 class AllianceModel extends BasicModel {
 
@@ -60,8 +61,6 @@ class AllianceModel extends BasicModel {
     public function getMaps(){
         $maps = [];
 
-        $f3 = self::getF3();
-
         $this->filter('mapAlliances',
             ['active = ?', 1],
             ['order' => 'created']
@@ -72,7 +71,7 @@ class AllianceModel extends BasicModel {
             foreach($this->mapAlliances as $mapAlliance){
                 if(
                     $mapAlliance->mapId->isActive() &&
-                    $mapCount < $f3->get('PATHFINDER.MAP.ALLIANCE.MAX_COUNT')
+                    $mapCount < Config::getMapsDefaultConfig('alliance')['max_count']
                 ){
                     $maps[] = $mapAlliance->mapId;
                     $mapCount++;

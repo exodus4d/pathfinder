@@ -13,16 +13,6 @@ use Model;
 
 class Signature extends Controller\AccessController {
 
-    /**
-     * event handler
-     * @param \Base $f3
-     * @param array $params
-     */
-    function beforeroute(\Base $f3, $params) {
-        // set header for all routes
-        header('Content-type: application/json');
-        parent::beforeroute($f3, $params);
-    }
 
     /**
      * get signature data for systems
@@ -120,8 +110,6 @@ class Signature extends Controller\AccessController {
                     if($signature->dry()){
                         // new signature
                         $signature->systemId = $system;
-                        $signature->updatedCharacterId = $activeCharacter;
-                        $signature->createdCharacterId = $activeCharacter;
                         $signature->setData($data);
                     }else{
                         // update signature
@@ -181,13 +169,11 @@ class Signature extends Controller\AccessController {
                         }
 
                         if( $signature->hasChanged($newData) ){
-                            // Character should only be changed if something else has changed
-                            $signature->updatedCharacterId = $activeCharacter;
                             $signature->setData($newData);
                         }
                     }
 
-                    $signature->save();
+                    $signature->save($activeCharacter);
                     $updatedSignatureIds[] = $signature->id;
 
                     // get a fresh signature object with the new data. This is a bad work around!

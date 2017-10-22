@@ -8,7 +8,6 @@
 
 namespace Controller\Api;
 use Controller;
-use controller\MailController;
 use Model;
 use Exception;
 
@@ -26,8 +25,8 @@ class User extends Controller\Controller{
     // character specific session keys
     const SESSION_KEY_CHARACTERS                    = 'SESSION.CHARACTERS';
 
-    // temp login character ID (during HTTP redirects on login)
-    const SESSION_KEY_TEMP_CHARACTER_ID             = 'SESSION.TEMP_CHARACTER_ID';
+    // temp login character data (during HTTP redirects on login)
+    const SESSION_KEY_TEMP_CHARACTER_DATA           = 'SESSION.TEMP_CHARACTER_DATA';
 
     // log text
     const LOG_LOGGED_IN                             = 'userId: [%10s], userName: [%30s], charId: [%20s], charName: %s';
@@ -43,9 +42,10 @@ class User extends Controller\Controller{
     /**
      * login a valid character
      * @param Model\CharacterModel $characterModel
+     * @param string $browserTabId
      * @return bool
      */
-    protected function loginByCharacter(Model\CharacterModel &$characterModel){
+    protected function loginByCharacter(Model\CharacterModel &$characterModel, string $browserTabId){
         $login = false;
 
         if($user = $characterModel->getUser()){
@@ -68,7 +68,7 @@ class User extends Controller\Controller{
             ){
                 // user has changed OR new user ---------------------------------------------------
                 //-> set user/character data to session
-                $this->f3->set(self::SESSION_KEY_USER, [
+                $this->getF3()->set(self::SESSION_KEY_USER, [
                     'ID' => $user->_id,
                     'NAME' => $user->name
                 ]);
@@ -77,7 +77,7 @@ class User extends Controller\Controller{
                 $sessionCharacters = $characterModel::mergeSessionCharacterData($sessionCharacters);
             }
 
-            $this->f3->set(self::SESSION_KEY_CHARACTERS, $sessionCharacters);
+            $this->getF3()->set(self::SESSION_KEY_CHARACTERS, $sessionCharacters);
 
             // save user login information --------------------------------------------------------
             $characterModel->roleId = $characterModel->requestRoleId();
@@ -93,6 +93,10 @@ class User extends Controller\Controller{
                     $characterModel->name
                 )
             );
+
+            // set temp character data ------------------------------------------------------------
+            // -> pass character data over for next http request (reroute())
+            $this->setTempCharacterData($characterModel->_id, $browserTabId);
 
             $login = true;
         }
@@ -118,6 +122,14 @@ class User extends Controller\Controller{
                 if( !empty($characters = $this->getCookieCharacters(array_slice($cookieData, 0, 1, true), false)) ){
                     // character is valid and allowed to login
                     $return->character = reset($characters)->getData();
+                    // get Session status for character
+                    if($activeCharacter = $this->getCharacter()){
+                        if($activeUser = $activeCharacter->getUser()){
+                            if($sessionCharacterData = $activeUser->findSessionCharacterData($return->character->id)){
+                                $return->character->hasActiveSession = true;
+                            }
+                        }
+                    }
                 }else{
                     $characterError = (object) [];
                     $characterError->type = 'warning';
@@ -179,9 +191,7 @@ class User extends Controller\Controller{
      */
     public function deleteLog(\Base $f3){
         if($activeCharacter = $this->getCharacter()){
-            if($characterLog = $activeCharacter->getLog()){
-                $characterLog->erase();
-            }
+            $activeCharacter->logout(false, true, false);
         }
     }
 
@@ -190,8 +200,7 @@ class User extends Controller\Controller{
      * @param \Base $f3
      */
     public function logout(\Base $f3){
-        $this->deleteLog($f3);
-        parent::logout($f3);
+        $this->logoutCharacter(false, true, true, true);
 
         $return = (object) [];
         $return->reroute = rtrim(self::getEnvironmentData('URL'), '/') . $f3->alias('login');
@@ -371,23 +380,15 @@ class User extends Controller\Controller{
             $user = $activeCharacter->getUser();
 
             if($user){
-                // try to send delete account mail
-                $msg = 'Hello ' . $user->name . ',<br><br>';
-                $msg .= 'your account data has been successfully deleted.';
-
-                $mailController = new MailController();
-                $mailController->sendDeleteAccount($user->email, $msg);
-
                 // save log
                 self::getLogger('DELETE_ACCOUNT')->write(
                     sprintf(self::LOG_DELETE_ACCOUNT, $user->id, $user->name)
                 );
 
-                // remove user
+                $this->logoutCharacter(true, true, true, true);
                 $user->erase();
 
-                $this->logout($f3);
-                die();
+                $return->reroute = rtrim(self::getEnvironmentData('URL'), '/') . $f3->alias('login');
             }
         }else{
             // captcha not valid -> return error

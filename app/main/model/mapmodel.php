@@ -10,20 +10,21 @@ namespace Model;
 
 use Controller\Api\System;
 use DB\SQL\Schema;
+use data\file\FileHandler;
+use lib\Config;
+use Lib\Logging;
+use Exception\PathfinderException;
 
-class MapModel extends BasicModel {
+class MapModel extends AbstractMapTrackingModel {
 
     protected $table = 'map';
 
     /**
      * cache key prefix for getCharactersData();
      */
-    const DATA_CACHE_KEY_CHARACTER = 'CHARACTERS';
+    const DATA_CACHE_KEY_CHARACTER                  = 'CHARACTERS';
 
-    /**
-     * default TTL for getData(); cache
-     */
-    const DEFAULT_CACHE_TTL = 60;
+    const ERROR_SLACK_CHANNEL                       = 'Invalid #Slack channel column [%s]';
 
     protected $fieldConf = [
         'active' => [
@@ -31,7 +32,7 @@ class MapModel extends BasicModel {
             'nullable' => false,
             'default' => 1,
             'index' => true,
-            'after' => 'updated'
+            'activity-log' => true
         ],
         'scopeId' => [
             'type' => Schema::DT_INT,
@@ -42,7 +43,9 @@ class MapModel extends BasicModel {
                     'table' => 'map_scope',
                     'on-delete' => 'CASCADE'
                 ]
-            ]
+            ],
+            'validate' => 'validate_notDry',
+            'activity-log' => true
         ],
         'typeId' => [
             'type' => Schema::DT_INT,
@@ -53,32 +56,82 @@ class MapModel extends BasicModel {
                     'table' => 'map_type',
                     'on-delete' => 'CASCADE'
                 ]
-            ]
+            ],
+            'validate' => 'validate_notDry',
+            'activity-log' => true
         ],
         'name' => [
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
-            'default' => ''
+            'default' => '',
+            'activity-log' => true,
+            'validate' => true
         ],
         'icon' => [
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
-            'default' => ''
+            'default' => '',
+            'activity-log' => true
         ],
         'deleteExpiredConnections' => [
             'type' => Schema::DT_BOOL,
             'nullable' => false,
-            'default' => 1
+            'default' => 1,
+            'activity-log' => true
         ],
         'deleteEolConnections' => [
             'type' => Schema::DT_BOOL,
             'nullable' => false,
-            'default' => 1
+            'default' => 1,
+            'activity-log' => true
         ],
         'persistentAliases' => [
             'type' => Schema::DT_BOOL,
             'nullable' => false,
-            'default' => 1
+            'default' => 1,
+            'activity-log' => true
+        ],
+        'logActivity' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => 1,
+            'activity-log' => true
+        ],
+        'logHistory' => [
+            'type' => Schema::DT_BOOL,
+            'nullable' => false,
+            'default' => 0,
+            'activity-log' => true
+        ],
+        'slackWebHookURL' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => '',
+            'validate' => true
+        ],
+        'slackUsername' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => '',
+            'activity-log' => true
+        ],
+        'slackIcon' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => '',
+            'activity-log' => true
+        ],
+        'slackChannelHistory' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => '',
+            'activity-log' => true
+        ],
+        'slackChannelRally' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => '',
+            'activity-log' => true
         ],
         'systems' => [
             'has-many' => ['Model\SystemModel', 'mapId']
@@ -97,37 +150,18 @@ class MapModel extends BasicModel {
         ]
     ];
 
-    protected $validate = [
-        'name' => [
-            'length' => [
-                'min' => 3
-            ]
-        ],
-        'icon' => [
-            'length' => [
-                'min' => 3
-            ]
-        ],
-        'scopeId' => [
-            'regex' => '/^[1-9]+$/'
-        ],
-        'typeId' => [
-            'regex' => '/^[1-9]+$/'
-        ]
-    ];
-
     /**
      * set map data by an associative array
-     * @param $data
+     * @param array $data
      */
     public function setData($data){
+        unset($data['id']);
+        unset($data['created']);
+        unset($data['updated']);
+        unset($data['createdCharacterId']);
+        unset($data['updatedCharacterId']);
 
         foreach((array)$data as $key => $value){
-
-            if($key == 'created'){
-                continue;
-            }
-
             if(!is_array($value)){
                 if($this->exists($key)){
                     $this->$key = $value;
@@ -155,35 +189,62 @@ class MapModel extends BasicModel {
         if(is_null($mapDataAll)){
             // no cached map data found
 
-            $mapData = (object) [];
-            $mapData->id = $this->id;
-            $mapData->name = $this->name;
-            $mapData->icon = $this->icon;
-            $mapData->deleteExpiredConnections = $this->deleteExpiredConnections;
-            $mapData->deleteEolConnections = $this->deleteEolConnections;
-            $mapData->persistentAliases = $this->persistentAliases;
-            $mapData->created = strtotime($this->created);
-            $mapData->updated = strtotime($this->updated);
+            $mapData                                = (object) [];
+            $mapData->id                            = $this->id;
+            $mapData->name                          = $this->name;
+            $mapData->icon                          = $this->icon;
+            $mapData->deleteExpiredConnections      = $this->deleteExpiredConnections;
+            $mapData->deleteEolConnections          = $this->deleteEolConnections;
+            $mapData->persistentAliases             = $this->persistentAliases;
 
             // map scope
-            $mapData->scope = (object) [];
-            $mapData->scope->id = $this->scopeId->id;
-            $mapData->scope->name = $this->scopeId->name;
-            $mapData->scope->label = $this->scopeId->label;
+            $mapData->scope                         = (object) [];
+            $mapData->scope->id                     = $this->scopeId->id;
+            $mapData->scope->name                   = $this->scopeId->name;
+            $mapData->scope->label                  = $this->scopeId->label;
 
             // map type
-            $mapData->type = (object) [];
-            $mapData->type->id = $this->typeId->id;
-            $mapData->type->name = $this->typeId->name;
-            $mapData->type->classTab = $this->typeId->classTab;
+            $mapData->type                          = (object) [];
+            $mapData->type->id                      = $this->typeId->id;
+            $mapData->type->name                    = $this->typeId->name;
+            $mapData->type->classTab                = $this->typeId->classTab;
+
+            // map logging
+            $mapData->logging                       = (object) [];
+            $mapData->logging->activity             = $this->isActivityLogEnabled();
+            $mapData->logging->history              = $this->isHistoryLogEnabled();
+
+            // map Slack logging
+            $mapData->logging->slackHistory         = $this->isSlackChannelEnabled('slackChannelHistory');
+            $mapData->logging->slackRally           = $this->isSlackChannelEnabled('slackChannelRally');
+            $mapData->logging->slackWebHookURL      = $this->slackWebHookURL;
+            $mapData->logging->slackUsername        = $this->slackUsername;
+            $mapData->logging->slackIcon            = $this->slackIcon;
+            $mapData->logging->slackChannelHistory  = $this->slackChannelHistory;
+            $mapData->logging->slackChannelRally    = $this->slackChannelRally;
+
+            // map mail logging
+            $mapData->logging->mailRally            = $this->isMailSendEnabled('RALLY_SET');
 
             // map access
-            $mapData->access = (object) [];
-            $mapData->access->character = [];
-            $mapData->access->corporation = [];
-            $mapData->access->alliance = [];
+            $mapData->access                        = (object) [];
+            $mapData->access->character             = [];
+            $mapData->access->corporation           = [];
+            $mapData->access->alliance              = [];
 
-            // get access object data -------------------------------------
+            $mapData->created                       = (object) [];
+            $mapData->created->created              = strtotime($this->created);
+            if(is_object($this->createdCharacterId)){
+                $mapData->created->character        = $this->createdCharacterId->getData();
+            }
+
+            $mapData->updated                       = (object) [];
+            $mapData->updated->updated              = strtotime($this->updated);
+            if(is_object($this->updatedCharacterId)){
+                $mapData->updated->character        = $this->updatedCharacterId->getData();
+            }
+
+            // get access object data ---------------------------------------------------------------------------------
             if($this->isPrivate()){
                 $characters = $this->getCharacters();
                 $characterData = [];
@@ -209,14 +270,14 @@ class MapModel extends BasicModel {
                 $mapData->access->alliance = $allianceData;
             }
 
-            // merge all data ---------------------------------------------
+            // merge all data -----------------------------------------------------------------------------------------
             $mapDataAll = (object) [];
             $mapDataAll->mapData = $mapData;
 
-            // map system data --------------------------------------------
+            // map system data ----------------------------------------------------------------------------------------
             $mapDataAll->systems = $this->getSystemData();
 
-            // map connection data ----------------------------------------
+            // map connection data ------------------------------------------------------------------------------------
             $mapDataAll->connections = $this->getConnectionData();
 
             // max caching time for a map
@@ -229,12 +290,77 @@ class MapModel extends BasicModel {
     }
 
     /**
+     * validate name column
+     * @param string $key
+     * @param string $val
+     * @return bool
+     */
+    protected function validate_name(string $key, string $val): bool {
+        $valid = true;
+        if(mb_strlen($val) < 3){
+            $valid = false;
+            $this->throwValidationException($key);
+        }
+        return $valid;
+    }
+
+    /**
+     * validate Slack WebHook URL
+     * @param string $key
+     * @param string $val
+     * @return bool
+     */
+    protected function validate_slackWebHookURL(string $key, string $val): bool {
+        $valid = true;
+        if( !empty($val) ){
+            if(
+                !\Audit::instance()->url($val) ||
+                parse_url($val, PHP_URL_HOST) !== 'hooks.slack.com'
+            ){
+                $valid = false;
+                $this->throwValidationException($key);
+            }
+        }
+        return $valid;
+    }
+
+    /**
+     * @param $channel
+     * @return string
+     */
+    protected function set_slackChannelHistory($channel){
+        return $this->formatSlackChannelName($channel);
+    }
+
+    /**
+     * @param $channel
+     * @return string
+     */
+    protected function set_slackChannelRally($channel){
+        return $this->formatSlackChannelName($channel);
+    }
+
+    /**
+     * convert a Slack channel name into correct format
+     * @param $channel
+     * @return string
+     */
+    private function formatSlackChannelName($channel){
+        $channel = strtolower(str_replace(' ','', trim(trim((string)$channel), '#@')));
+        if($channel){
+            $channel = '#' . $channel;
+        }
+        return $channel;
+    }
+
+    /**
      * Event "Hook" function
      * @param self $self
      * @param $pkeys
      */
     public function afterInsertEvent($self, $pkeys){
         $self->clearCacheData();
+        $self->logActivity('mapCreate');
     }
 
     /**
@@ -244,6 +370,9 @@ class MapModel extends BasicModel {
      */
     public function afterUpdateEvent($self, $pkeys){
         $self->clearCacheData();
+
+        $activity = ($self->isActive()) ? 'mapUpdate' : 'mapDelete';
+        $self->logActivity($activity);
     }
 
     /**
@@ -253,6 +382,8 @@ class MapModel extends BasicModel {
      */
     public function afterEraseEvent($self, $pkeys){
         $self->clearCacheData();
+        $self->logActivity('mapDelete');
+        $self->deleteLogFile();
     }
 
     /**
@@ -701,49 +832,185 @@ class MapModel extends BasicModel {
     }
 
     /**
-     * delete this map and all dependencies
-     * @param CharacterModel $characterModel
-     * @param null $callback
+     * @param string $action
+     * @return Logging\LogInterface
      */
-    public function delete(CharacterModel $characterModel, $callback = null){
+    public function newLog($action = ''): Logging\LogInterface{
+        $logChannelData = $this->getLogChannelData();
+        $logObjectData = $this->getLogObjectData();
+        $log = (new Logging\MapLog($action, $logChannelData))->setTempData($logObjectData);
 
-        if( !$this->dry() ){
-            // check if character has access
-            if($this->hasAccess($characterModel)){
-                // all map related tables will be deleted on cascade
-                if(
-                    $this->erase() &&
-                    is_callable($callback)
-                ){
-                    $callback($this->_id);
-                }
+        // update map history *.log files -----------------------------------------------------------------------------
+        if($this->isHistoryLogEnabled()){
+            // check socket config
+            if(Config::validSocketConnect()){
+                $log->addHandler('zmq', 'json', $this->getSocketConfig());
+            }else{
+                // update log file local (slow)
+                $log->addHandler('stream', 'json', $this->getStreamConfig());
             }
         }
+
+        // send map history to Slack channel --------------------------------------------------------------------------
+        $slackChannelKey = 'slackChannelHistory';
+        if($this->isSlackChannelEnabled($slackChannelKey)){
+            $log->addHandler('slackMap', null, $this->getSlackWebHookConfig($slackChannelKey));
+            $log->addHandlerGroup('slackMap');
+        }
+
+        // update map activity ----------------------------------------------------------------------------------------
+        $log->logActivity($this->isActivityLogEnabled());
+
+        return $log;
+    }
+
+    /**
+     * @return MapModel
+     */
+    public function getMap(): MapModel{
+        return $this;
+    }
+
+    /**
+     * get object relevant data for model log channel
+     * @return array
+     */
+    public function getLogChannelData() : array{
+        return [
+            'channelId' => $this->_id,
+            'channelName' => $this->name
+        ];
+    }
+    /**
+     * get object relevant data for model log object
+     * @return array
+     */
+    public function getLogObjectData() : array{
+        return [
+            'objId' => $this->_id,
+            'objName' => $this->name
+        ];
+    }
+
+    protected function getLogFormatter(){
+        return function(&$rowDataObj){
+            unset($rowDataObj['extra']);
+        };
     }
 
     /**
      * check if "activity logging" is enabled for this map type
      * @return bool
      */
-    public function isActivityLogEnabled(){
-        $f3 = self::getF3();
-        $activityLogEnabled = false;
+    public function isActivityLogEnabled(): bool {
+        return $this->logActivity && (bool) Config::getMapsDefaultConfig($this->typeId->name)['log_activity_enabled'];
+    }
 
-        if( $this->isAlliance() ){
-            if( $f3->get('PATHFINDER.MAP.ALLIANCE.ACTIVITY_LOGGING') ){
-                $activityLogEnabled = true;
+    /**
+     * check if "history logging" is enabled for this map type
+     * @return bool
+     */
+    public function isHistoryLogEnabled(): bool {
+        return $this->logHistory && (bool) Config::getMapsDefaultConfig($this->typeId->name)['log_history_enabled'];
+    }
+
+    /**
+     * check if "Slack WebHook" is enabled for this map type
+     * @param string $channel
+     * @return bool
+     * @throws PathfinderException
+     */
+    public function isSlackChannelEnabled(string $channel): bool {
+        $enabled = false;
+        // check global Slack status
+        if((bool)Config::getPathfinderData('slack.status')){
+            // check global map default config for this channel
+            switch($channel){
+                case 'slackChannelHistory': $defaultMapConfigKey = 'send_history_slack_enabled'; break;
+                case 'slackChannelRally': $defaultMapConfigKey = 'send_rally_slack_enabled'; break;
+                default: throw new PathfinderException(sprintf(self::ERROR_SLACK_CHANNEL, $channel));
             }
-        }elseif( $this->isCorporation() ){
-            if( $f3->get('PATHFINDER.MAP.CORPORATION.ACTIVITY_LOGGING') ){
-                $activityLogEnabled = true;
-            }
-        }elseif( $this->isPrivate() ){
-            if( $f3->get('PATHFINDER.MAP.PRIVATE.ACTIVITY_LOGGING') ){
-                $activityLogEnabled = true;
+
+            if((bool) Config::getMapsDefaultConfig($this->typeId->name)[$defaultMapConfigKey]){
+                $config = $this->getSlackWebHookConfig($channel);
+                if($config->slackWebHookURL && $config->slackChannel){
+                    $enabled = true;
+                }
             }
         }
 
-        return $activityLogEnabled;
+        return $enabled;
+    }
+
+    /**
+     * check if "E-Mail" Log is enabled for this map
+     * @param string $type
+     * @return bool
+     */
+    public function isMailSendEnabled(string $type): bool{
+        $enabled = false;
+        if((bool) Config::getMapsDefaultConfig($this->typeId->name)['send_rally_mail_enabled']){
+            $enabled = Config::isValidSMTPConfig($this->getSMTPConfig($type));
+        }
+
+        return $enabled;
+    }
+
+    /**
+     * get config for stream logging
+     * @param bool $abs absolute path
+     * @return \stdClass
+     */
+    public function getStreamConfig(bool $abs = false): \stdClass{
+        $config = (object) [];
+        $config->stream = '';
+        if( $this->getF3()->exists('PATHFINDER.HISTORY.LOG', $dir) ){
+            $config->stream .= $abs ? $this->getF3()->get('ROOT') . '/' : './';
+            $config->stream .= $dir . 'map/map_' . $this->_id . '.log';
+            $config->stream = $this->getF3()->fixslashes($config->stream);
+        }
+        return $config;
+    }
+
+    /**
+     * get config for Socket connection (e.g. where to send log data)
+     * @return \stdClass
+     */
+    public function getSocketConfig(): \stdClass{
+        $config = (object) [];
+        $config->uri = Config::getSocketUri();
+        $config->streamConf = $this->getStreamConfig(true);
+        return $config;
+    }
+
+    /**
+     * get Config for Slack WebHook cURL calls
+     * -> https://api.slack.com/incoming-webhooks
+     * @param string $channel
+     * @return \stdClass
+     */
+    public function getSlackWebHookConfig(string $channel = ''): \stdClass{
+        $config = (object) [];
+        $config->slackWebHookURL = $this->slackWebHookURL;
+        $config->slackUsername = $this->slackUsername;
+        $config->slackIcon = $this->slackIcon;
+        if($channel && $this->exists($channel)){
+            $config->slackChannel = $this->$channel;
+        }
+        return $config;
+    }
+
+    /**
+     * get Config for SMTP connection and recipient address
+     * @param string $type
+     * @param bool $addJson
+     * @return \stdClass
+     */
+    public function getSMTPConfig(string $type, bool $addJson = true): \stdClass{
+        $config = Config::getSMTPConfig();
+        $config->to = Config::getNotificationMail($type);
+        $config->addJson = $addJson;
+        return $config;
     }
 
     /**
@@ -783,21 +1050,30 @@ class MapModel extends BasicModel {
     }
 
     /**
+     * get log file data
+     * @param int $offset
+     * @param int $limit
+     * @return array
+     */
+    public function getLogData(int $offset = FileHandler::LOG_FILE_OFFSET, int $limit = FileHandler::LOG_FILE_LIMIT): array {
+        $streamConf = $this->getStreamConfig();
+        return FileHandler::readLogFile($streamConf->stream, $offset, $limit, $this->getLogFormatter());
+    }
+
+    /**
      * save a system to this map
      * @param SystemModel $system
+     * @param CharacterModel $character
      * @param int $posX
      * @param int $posY
-     * @param null|CharacterModel $character
-     * @return mixed
+     * @return false|ConnectionModel
      */
-    public function saveSystem( SystemModel $system, $posX = 10, $posY = 0, $character = null){
+    public function saveSystem( SystemModel $system, CharacterModel $character, $posX = 10, $posY = 0){
         $system->setActive(true);
         $system->mapId = $this->id;
         $system->posX = $posX;
         $system->posY = $posY;
-        $system->createdCharacterId = $character;
-        $system->updatedCharacterId = $character;
-        return $system->save();
+        return $system->save($character);
     }
 
     /**
@@ -839,11 +1115,26 @@ class MapModel extends BasicModel {
      * save new connection
      * -> connection scope/type is automatically added
      * @param ConnectionModel $connection
+     * @param CharacterModel $character
      * @return false|ConnectionModel
      */
-    public function saveConnection(ConnectionModel $connection){
+    public function saveConnection(ConnectionModel $connection, CharacterModel $character){
         $connection->mapId = $this;
-        return $connection->save();
+        return $connection->save($character);
+    }
+
+    /**
+     * delete existing log file
+     */
+    protected function deleteLogFile(){
+        $config = $this->getStreamConfig();
+        if(is_file($config->stream)){
+            // try to set write access
+            if(!is_writable($config->stream)){
+                chmod($config->stream, 0666);
+            }
+            @unlink($config->stream);
+        }
     }
 
     /**
@@ -909,12 +1200,11 @@ class MapModel extends BasicModel {
     }
 
     /**
-     * save a map
-     * @return mixed
+     * @param CharacterModel|null $characterModel
+     * @return false|ConnectionModel
      */
-    public function save(){
-
-        $mapModel = parent::save();
+    public function save(CharacterModel $characterModel = null){
+        $mapModel = parent::save($characterModel);
 
         // check if map type has changed and clear access objects
         if( !$mapModel->dry() ){

@@ -16,24 +16,26 @@ class CcpClient extends \Prefab {
     private $apiClient;
 
     public function __construct(\Base $f3){
-        $this->apiClient = $this->getClient();
+        $this->apiClient = $this->getClient($f3);
         $f3->set('ccpClient', $this);
     }
 
     /**
      * get ApiClient instance
+     * @param \Base $f3
      * @return ApiClient|null
      */
-    protected function getClient(){
+    protected function getClient(\Base $f3){
         $client = null;
 
-        if( !class_exists(ApiClient::class) ){
-            LogController::getLogger('ERROR')->write($this->getMissingClientError());
-        }else{
+        if(class_exists(ApiClient::class)){
             $client = new ApiClient();
             $client->setUrl( Config::getEnvironmentData('CCP_ESI_URL') );
             $client->setDatasource( Config::getEnvironmentData('CCP_ESI_DATASOURCE') );
             $client->setUserAgent($this->getUserAgent());
+            $client->setDebugLevel($f3->get('DEBUG'));
+        }else{
+            LogController::getLogger('ERROR')->write(sprintf(Config::ERROR_CLASS_NOT_EXISTS_COMPOSER, ApiClient::class));
         }
 
         return $client;
@@ -50,14 +52,6 @@ class CcpClient extends \Prefab {
         $userAgent .=  ' (' . $_SERVER['SERVER_NAME'] . ')';
 
         return $userAgent;
-    }
-
-    /**
-     * get error msg for failed ApiClient() class -> Composer package not found
-     * @return string
-     */
-    protected function getMissingClientError(){
-        return "Class '" . ApiClient::class . "' not found. -> Check installed Composer packages.'";
     }
 
     /**
@@ -86,8 +80,8 @@ class CcpClient extends \Prefab {
                 \Base::instance()->error(501, $this->getMissingMethodError($name));
             }
         }else{
-            LogController::getLogger('ERROR')->write($this->getMissingClientError());
-            \Base::instance()->error(501, $this->getMissingClientError());
+            LogController::getLogger('ERROR')->write(sprintf(Config::ERROR_CLASS_NOT_EXISTS_COMPOSER, ApiClient::class));
+            \Base::instance()->error(501, sprintf(Config::ERROR_CLASS_NOT_EXISTS_COMPOSER, ApiClient::class));
         }
 
         return $return;

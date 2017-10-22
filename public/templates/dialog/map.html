@@ -1,7 +1,7 @@
 <div id="{{id}}" role="tabpanel">
 
-    <nav class="navbar navbar-default" role="navigation">
-        <div class="navbar-header pull-left">
+    <nav class="navbar navbar-default">
+        <div class="navbar-header navbar-header-block">
             <ul class="nav navbar-nav {{dialogNavigationClass}}" role="tablist">
                 <li class="{{#openTabNew}}active{{/openTabNew}}">
                     <a role="tab" data-toggle="tab" data-name="newMap" href="#{{dialogMapCreateContainerId}}">
@@ -22,8 +22,9 @@
                         </a>
                     </li>
                 {{/hideSettingsTab}}
+
                 {{^hideDownloadTab}}
-                    <li class="{{#openTabDownload}}active{{/openTabDownload}}" >
+                    <li class="{{#openTabDownload}}active{{/openTabDownload}} pull-right">
                         <a role="tab" data-toggle="tab" data-name="download" href="#{{dialogMapDownloadContainerId}}">
                             <i class="fa fa-exchange fa-fw"></i>&nbsp;Import/Export
                         </a>
@@ -41,43 +42,177 @@
             <div role="tabpanel" class="tab-pane fade {{#openTabSettings}}in active{{/openTabSettings}}" id="{{dialogMapSettingsContainerId}}">
                 <form role="form" class="form-horizontal">
 
-                    <h4 class="pf-dynamic-area">Map settings</h4>
-
-                    <div class="row">
+                    <div class="row ">
                         <div class="col-sm-6">
-                            <div class="form-group">
-                                <div class="col-sm-offset-1 col-sm-11">
-                                    <div class="col-sm-12 col-xs-6 checkbox" title="outdated WHs (~2 days)">
+                            <h4 class="pf-dynamic-area">Map options</h4>
+
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group">
+                                    <div class="col-sm-12 col-xs-6 checkbox">
                                         <input id="{{deleteExpiredConnectionsId}}" name="deleteExpiredConnections" value="1" type="checkbox" {{#deleteExpiredConnections}}checked{{/deleteExpiredConnections}}>
-                                        <label for="{{deleteExpiredConnectionsId}}">Auto delete outdated wormholes</label>
+                                        <label for="{{deleteExpiredConnectionsId}}">Auto delete outdated wormholes
+                                            <i class="fa fa-fw fa-question-circle pf-help-light" title="outdated WHs (~2 days)"></i>
+                                        </label>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-sm-6">
-                            <div class="form-group">
-                                <div class="col-sm-offset-1 col-sm-11">
-                                    <div class="col-sm-12 col-xs-6 checkbox" title="expired EOL WHs (~4h 15min)">
+
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group">
+                                    <div class="col-sm-12 col-xs-6 checkbox" >
                                         <input id="{{deleteEolConnectionsId}}" name="deleteEolConnections" value="1" type="checkbox" {{#deleteEolConnections}}checked{{/deleteEolConnections}}>
-                                        <label for="{{deleteEolConnectionsId}}">Auto delete expired wormholes</label>
+                                        <label for="{{deleteEolConnectionsId}}">Auto delete expired wormholes
+                                            <i class="fa fa-fw fa-question-circle pf-help-light" title="expired EOL WHs (~4h 15min)"></i>
+                                        </label>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="col-sm-6">
-                            <div class="form-group">
-                                <div class="col-sm-offset-1 col-sm-11">
-                                    <div class="col-sm-12 col-xs-6 checkbox" title="Keep custom aliases after delete">
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group">
+                                    <div class="col-sm-12 col-xs-6 checkbox">
                                         <input id="{{persistentAliasesId}}" name="persistentAliases" value="1" type="checkbox" {{#persistentAliases}}checked{{/persistentAliases}}>
-                                        <label for="{{persistentAliasesId}}">Persistent system aliases</label>
+                                        <label for="{{persistentAliasesId}}">Persistent system aliases
+                                            <i class="fa fa-fw fa-question-circle pf-help-light" title="Keep custom aliases after delete)"></i>
+                                        </label>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-sm-6">
 
+
+
+                        <div class="col-sm-6">
+                            <h4 class="pf-dynamic-area">Map logging</h4>
+
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group">
+                                    <div class="col-sm-12 col-xs-6 checkbox">
+                                        <input id="{{logHistoryId}}" name="logHistory" value="1" type="checkbox" {{#logHistory}}checked{{/logHistory}}>
+                                        <label for="{{logHistoryId}}">Save map changes to logfile
+                                            <i class="fa fa-fw fa-question-circle pf-help-light" title="Map changes will be stored in a log file"></i>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group">
+                                    <div class="col-sm-12 col-xs-6 checkbox">
+                                        <input id="{{logActivityId}}" name="logActivity" value="1" type="checkbox" {{#logActivity}}checked{{/logActivity}}>
+                                        <label for="{{logActivityId}}">Store user statistics
+                                            <i class="fa fa-fw fa-question-circle pf-help-light" title="Map changes will be tracked in order to generate user statistics"></i>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+                    </div>
+
+
+                    {{! Slack notification --------------------------------------------- }}
+                    <h4 class="pf-dynamic-area {{^slackSectionShow}}collapsed{{/slackSectionShow}}" data-toggle="collapse" data-target="#pf-map-dialog-slack-section"><i class="fa fa-slack"></i> Slack notifications <small class="txt-color txt-color-warning">[BETA]</small></h4>
+
+                    <div id="pf-map-dialog-slack-section" class="collapse {{#slackSectionShow}}in{{/slackSectionShow}}">
+                        <fieldset {{^slackEnabled}}disabled{{/slackEnabled}}>
+                            <div class="row ">
+                                <div class="col-xs-12 col-sm-12 col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{slackWebHookURLId}}" class="col-sm-3 col-md-4 control-label">WebHookURL
+                                            <i class="fa fa-fw fa-question-circle pf-help-light" title="Insert your WebHook URL from the configuration page for 'Incoming WebHooks'"></i>
+                                        </label>
+                                        <div class="col-sm-9 col-md-8">
+                                            <div class="input-group">
+                                                <input name="slackWebHookURL" type="url" class="form-control" id="{{slackWebHookURLId}}" value="{{slackWebHookURL}}" placeholder="https://hooks.slack.com/services/XXX/YYY/ZZZ" data-type-error="No valid URL" pattern="^https://hooks.slack.com/.*" data-pattern-error="Wrong domain. https://hooks.slack.com/)">
+                                                <div class="input-group-btn">
+                                                    <a class="btn btn-default" href="//slack.com/apps/A0F7XDUAZ-incoming-webhooks" target="_blank">
+                                                        add… <i class="fa fa-fw fa-external-link "></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <div class="note help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-xs-6 col-sm-6 col-md-3">
+                                    <div class="form-group">
+                                        <label for="{{slackUsernameId}}" class="col-sm-6 col-md-4 control-label">Name
+                                            <i class="fa fa-fw fa-question-circle pf-help-light" title="Set a 'username' for your Slack bot"></i>
+                                        </label>
+                                        <div class="col-sm-6 col-md-8">
+                                            <input name="slackUsername" type="text" class="form-control" id="{{slackUsernameId}}" value="{{slackUsername}}" placeholder="Pathfinder bot"  data-error="Please set a bot name">
+                                            <div class="note help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-xs-6 col-sm-6 col-md-3">
+                                    <div class="form-group">
+                                        <label for="{{slackIconId}}" class="col-sm-6 col-md-4 control-label">Bot icon
+                                            <i class="fa fa-fw fa-question-circle pf-help-light" title="Set a 'icon' for your Slack bot (e.g. :boom:)"></i>
+                                        </label>
+                                        <div class="col-sm-6 col-md-8">
+                                            <div class="input-icon-left input-icon-right">
+                                                <span class="fa-stack">
+                                                    <i class="fa fa-fw fa-lg fa-ellipsis-v fa-stack-1x"></i>
+                                                    <i class="fa fa-fw fa-lg fa-minus fa-stack-1x"></i>
+                                                </span>
+                                                <span class="fa-stack">
+                                                    <i class="fa fa-fw fa-lg fa-ellipsis-v fa-stack-1x"></i>
+                                                    <i class="fa fa-fw fa-lg fa-minus fa-stack-1x"></i>
+                                                </span>
+
+                                                <input name="slackIcon" type="text" class="form-control text-center" id="{{slackIconId}}" value="{{slackIcon}}" placeholder="slack" pattern="^[_\-A-z0-9]{1,}$" data-error="Allowed chars (A-z, 0-9, _, -)">
+                                            </div>
+                                            <div class="note help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{! group some columns -> Otherwise error msg would break the layout }}
+                                <div class="clearfix"></div>
+
+                                <div class="col-xs-6 col-sm-6 col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{slackChannelRallyId}}" class="col-sm-6 col-md-4 control-label">Channel 'rally point'
+                                            <i class="fa fa-fw fa-question-circle pf-help-light" title="Send new 'Rally point' notifications to a Slack channel."></i>
+                                        </label>
+                                        <div class="col-sm-6 col-md-8">
+                                            <div class="input-icon-left" {{^slackRallyEnabled}}title="Globally disabled for this map type"{{/slackRallyEnabled}}>
+                                                <i class="fa fa-hashtag"></i>
+                                                <input name="slackChannelRally" type="text" class="form-control" id="{{slackChannelRallyId}}" value="{{slackChannelRally}}" placeholder="map_rally" pattern="^[_\-A-z0-9]{1,}$" data-error="Allowed chars (A-z, 0-9, _, -)" {{^slackRallyEnabled}}disabled{{/slackRallyEnabled}}>
+                                            </div>
+                                            <div class="note help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-xs-6 col-sm-6 col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{slackChannelHistoryId}}" class="col-sm-6 col-md-4 control-label">Channel 'map changes'
+                                            <i class="fa fa-fw fa-question-circle pf-help-light" title="Send map changes to a Slack channel. This can be used in addition or replacement for the logfiles. (check 'Map logging' section above)"></i>
+                                        </label>
+                                        <div class="col-sm-6 col-md-8">
+                                            <div class="input-icon-left" {{^slackHistoryEnabled}}title="Globally disabled for this map type"{{/slackHistoryEnabled}}>
+                                                <i class="fa fa-hashtag"></i>
+                                                <input name="slackChannelHistory" type="text" class="form-control" id="{{slackChannelHistoryId}}" value="{{slackChannelHistory}}" placeholder="map_logging" pattern="^[_\-A-z0-9]{1,}$" data-error="Allowed chars (A-z, 0-9, _, -)" {{^slackHistoryEnabled}}disabled{{/slackHistoryEnabled}}>
+                                            </div>
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </fieldset>
+
+                        {{^slackEnabled}}
+                        <div class="pf-dialog-info-container alert alert-info" style="display: block; opacity: 1; transform: translateY(0px);">
+                            <span class="txt-color txt-color-information">Info</span>
+                            <small>Slack API is disabled for your map type '{{ mapData.config.type.name }}'</small>
+                        </div>
+                        {{/slackEnabled}}
+
                     </div>
 
                     <h4 class="pf-dynamic-area">Share settings</h4>
@@ -109,7 +244,7 @@
                                             <option value="{{id}}" selected>{{name}}</option>
                                             {{/accessCharacter}}
                                         </select>
-                                        <span class="help-block with-errors">Search character name (max {{maxCharacter}})</span>
+                                        <span class="note help-block with-errors">Search character name (max {{maxCharacter}})</span>
                                     </div>
                                 </div>
                             </div>
@@ -131,7 +266,7 @@
                                             <option value="{{id}}" selected="selected" >{{name}}</option>
                                             {{/accessCorporation}}
                                         </select>
-                                        <span class="help-block with-errors">Search corporation name (max {{maxCorporation}})</span>
+                                        <span class="note help-block with-errors">Search corporation name (max {{maxCorporation}})</span>
                                     </div>
                                 </div>
                             </div>
@@ -153,7 +288,7 @@
                                             <option value="{{id}}" selected="selected" >{{name}}</option>
                                             {{/accessAlliance}}
                                         </select>
-                                        <span class="help-block with-errors">Search alliance name (max {{maxAlliance}})</span>
+                                        <span class="note help-block with-errors">Search alliance name (max {{maxAlliance}})</span>
                                     </div>
                                 </div>
                             </div>
@@ -185,7 +320,7 @@
                                     </a>
                                 </div>
                             </div>
-                            <div class="help-block with-errors"></div>
+                            <div class="note help-block with-errors"></div>
                         </div>
                     </div>
 
@@ -219,13 +354,13 @@
                                             </button>
                                         </div>
                                     </div>
-                                    <div class="help-block with-errors"></div>
+                                    <div class="note help-block with-errors"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="pf-form-dropzone">Drop map file here</div>
+                    <div class="pf-form-dropzone">Drop file here</div>
 
                     <h4 id="{{dialogMapImportInfoId}}" class="pf-dynamic-area" style="display: none;"></h4>
 
@@ -244,7 +379,7 @@
 
 
         <div class="{{formInfoContainerClass}} alert alert-info" style="display: none;">
-            <span class="txt-color txt-color-information">Information</span>
+            <span class="txt-color txt-color-information">Info</span>
             <small> (important non-critical information)</small>
         </div>
 

@@ -86,8 +86,12 @@
   background-color: darken($modal-content-bg, 3%);
 }
 // Close icon
-.modal-header .close {
-  margin-top: -2px;
+.modal-header, .modal-body{
+  .close {
+    padding: 0 5px;
+    font-size: 22px;
+    margin-top: -2px;
+  }
 }
 
 // Title text within header

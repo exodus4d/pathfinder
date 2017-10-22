@@ -12,11 +12,25 @@ use data\filesystem\Search;
 
 class Cache {
 
-    const LOG_TEXT = '%s [%\'_10s] files, size [%\'_10s] byte, not writable [%\'_10s] files, errors [%\'_10s], exec (%.3Fs)';
+    const LOG_TEXT                          = '%s [%\'_10s] files, size [%\'_10s] byte, not writable [%\'_10s] files, errors [%\'_10s], exec (%.3Fs)';
 
     /**
+     * default max expire for files (seconds)
+     */
+    const CACHE_EXPIRE_MAX                  = 864000;
+
+    /**
+     * @param \Base $f3
+     * @return int
+     */
+    protected function getExpireMaxTime(\Base $f3): int {
+        $expireTime =  (int)$f3->get('PATHFINDER.CACHE.EXPIRE_MAX');
+        return ($expireTime >= 0) ? $expireTime : self::CACHE_EXPIRE_MAX;
+    }
+    
+    /**
      * clear expired cached files
-     * >> >php index.php "/cron/deleteExpiredCacheData"
+     * >> php index.php "/cron/deleteExpiredCacheData"
      * @param \Base $f3
      */
     function deleteExpiredData(\Base $f3){
@@ -25,8 +39,8 @@ class Cache {
         // cache dir (dir is recursively searched...)
         $cacheDir = $f3->get('TEMP');
 
-        $filterTime = (int)strtotime('-' . $f3->get('PATHFINDER.CACHE.EXPIRE_MAX') . ' seconds');
-        $expiredFiles = Search::getFilesByMTime($cacheDir, $filterTime);
+        $filterTime = (int)strtotime('-' . $this->getExpireMaxTime($f3) . ' seconds');
+        $expiredFiles = Search::getFilesByMTime($cacheDir, $filterTime, Search::DEFAULT_FILE_LIMIT);
 
         $deletedFiles = 0;
         $deletedSize = 0;
@@ -36,16 +50,18 @@ class Cache {
             /**
              * @var $file \SplFileInfo
              */
-            if( $file->isWritable() ){
-                $tmpSize = $file->getSize();
-                if( unlink($file->getRealPath()) ){
-                    $deletedSize += $tmpSize;
-                    $deletedFiles++;
+            if($file->isFile()){
+                if( $file->isWritable() ){
+                    $tmpSize = $file->getSize();
+                    if( unlink($file->getRealPath()) ){
+                        $deletedSize += $tmpSize;
+                        $deletedFiles++;
+                    }else{
+                        $deleteErrors++;
+                    }
                 }else{
-                    $deleteErrors++;
+                    $notWritableFiles++;
                 }
-            }else{
-                $notWritableFiles++;
             }
         }
 

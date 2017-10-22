@@ -12,6 +12,8 @@ use DB\SQL\Schema;
 use Controller;
 use Controller\Api\User as User;
 use Exception;
+use lib\Config;
+use Lib\Logging;
 
 class UserModel extends BasicModel {
 
@@ -28,24 +30,17 @@ class UserModel extends BasicModel {
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
             'default' => '',
-            'index' => true
+            'index' => true,
+            'validate' => true
         ],
         'email' => [
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
-            'default' => ''
+            'default' => '',
+            'validate' => true
         ],
         'userCharacters' => [
             'has-many' => ['Model\UserCharacterModel', 'userId']
-        ]
-    ];
-
-    protected $validate = [
-        'name' => [
-            'length' => [
-                'min' => 3,
-                'max' => 50
-            ]
         ]
     ];
 
@@ -94,23 +89,6 @@ class UserModel extends BasicModel {
     }
 
     /**
-     * validate and set a email address for this user
-     * -> empty email is allowed!
-     * @param string $email
-     * @return string
-     */
-    public function set_email($email){
-        if (
-            !empty($email) &&
-            \Audit::instance()->email($email) == false
-        ) {
-            // no valid email address
-            $this->throwValidationError('email');
-        }
-        return $email;
-    }
-
-    /**
      * check if new user registration is allowed
      * @param UserModel $self
      * @param $pkeys
@@ -119,10 +97,8 @@ class UserModel extends BasicModel {
      */
     public function beforeInsertEvent($self, $pkeys){
         $registrationStatus = Controller\Controller::getRegistrationStatus();
-
         switch($registrationStatus){
             case 0:
-                $f3 = self::getF3();
                 throw new Exception\RegistrationException('User registration is currently not allowed');
                 break;
             case 1:
@@ -131,6 +107,80 @@ class UserModel extends BasicModel {
             default:
                 return false;
         }
+    }
+
+    /**
+     * @param BasicModel $self
+     * @param $pkeys
+     */
+    public function afterEraseEvent($self, $pkeys){
+        $this->sendDeleteMail();
+    }
+
+    /**
+     * send delete confirm mail to  this user
+     */
+    protected function sendDeleteMail(){
+        if($this->isMailSendEnabled()){
+            $log = new Logging\UserLog('userDelete', $this->getLogChannelData());
+            $log->addHandler('mail', 'mail', $this->getSMTPConfig());
+            $log->setMessage('Delete Account - {channelName}');
+            $log->setData([
+                'message' =>'Your account was successfully deleted.'
+            ]);
+            $log->buffer();
+        }
+    }
+
+    /**
+     * checks whether user has a valid email address and pathfinder has a valid SMTP config
+     * @return bool
+     */
+    protected function isMailSendEnabled() : bool{
+        return Config::isValidSMTPConfig($this->getSMTPConfig());
+    }
+
+    /**
+     * get SMTP config for this user
+     * @return \stdClass
+     */
+    protected function getSMTPConfig() : \stdClass{
+        $config = Config::getSMTPConfig();
+        $config->to = $this->email;
+        return $config;
+    }
+
+    /**
+     * validate name column
+     * @param string $key
+     * @param string $val
+     * @return bool
+     */
+    protected function validate_name(string $key, string $val): bool {
+        $valid = true;
+        if(
+            mb_strlen($val) < 3 ||
+            mb_strlen($val) > 80
+        ){
+            $valid = false;
+            $this->throwValidationException($key);
+        }
+        return $valid;
+    }
+
+    /**
+     * validate email column
+     * @param string $key
+     * @param string $val
+     * @return bool
+     */
+    protected function validate_email(string $key, string $val): bool {
+        $valid = true;
+        if ( !empty($val) && \Audit::instance()->email($val) == false ){
+            $valid = false;
+            $this->throwValidationException($key);
+        }
+        return $valid;
     }
 
     /**
@@ -145,10 +195,10 @@ class UserModel extends BasicModel {
     /**
      * search for user by unique username
      * @param $name
-     * @return array|FALSE
+     * @return \DB\Cortex
      */
     public function getByName($name){
-        return $this->getByForeignKey('name', $name, [], 0);
+        return $this->getByForeignKey('name', $name, []);
     }
 
     /**
@@ -165,17 +215,9 @@ class UserModel extends BasicModel {
 
         if($this->_id === $currentSessionUser['ID']){
             // user matches session data
-            $sessionCharacters = (array)$this->getF3()->get(User::SESSION_KEY_CHARACTERS);
-
             if($characterId > 0){
-                // search for specific characterData
-                foreach($sessionCharacters as $characterData){
-                    if($characterId === (int)$characterData['ID']){
-                        $data = $characterData;
-                        break;
-                    }
-                }
-            }elseif( !empty($sessionCharacters) ){
+                $data = $this->findSessionCharacterData($characterId);
+            }elseif( !empty($sessionCharacters = (array)$this->getF3()->get(User::SESSION_KEY_CHARACTERS)) ){
                 // no character was requested ($requestedCharacterId = 0) AND session characters were found
                 // -> get first matched character (e.g. user open browser tab)
                 $data = $sessionCharacters[0];
@@ -203,6 +245,26 @@ class UserModel extends BasicModel {
             }
         }
 
+        return $data;
+    }
+
+    /**
+     * search in session data for $characterId
+     * @param int $characterId
+     * @return array
+     */
+    public function findSessionCharacterData(int $characterId): array{
+        $data = [];
+        if($characterId){
+            $sessionCharacters = (array)$this->getF3()->get(User::SESSION_KEY_CHARACTERS);
+            // search for specific characterData
+            foreach($sessionCharacters as $characterData){
+                if($characterId === (int)$characterData['ID']){
+                    $data = $characterData;
+                    break;
+                }
+            }
+        }
         return $data;
     }
 
@@ -291,5 +353,17 @@ class UserModel extends BasicModel {
 
         return $activeCharacters;
     }
+
+    /**
+     * get object relevant data for model log channel
+     * @return array
+     */
+    public function getLogChannelData() : array{
+        return [
+            'channelId' => $this->_id,
+            'channelName' => $this->name
+        ];
+    }
+
 
 } 

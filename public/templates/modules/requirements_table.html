@@ -1,0 +1,76 @@
+<table class="table">
+    <thead>
+    <tr>
+        <td>Feature</td>
+        <td class="text-right col-md-3">required</td>
+        <td class="text-right col-md-3">found</td>
+        <td class="text-right col-md-1"></td>
+    </tr>
+    </thead>
+    <tbody>
+    <repeat group="{{ @requirementsData }}" key="{{ @dbKey }}" value="{{ @requirement }}">
+
+        {* if for optional divider *}
+        <check if="{{ is_numeric( @dbKey ) }}">
+            <true>
+                    </tbody>
+                </table>
+
+                <div class="panel-footer text-left">
+                    <h3 class="panel-title">{{@requirement.label}}</h3>
+                </div>
+
+                <table class="table">
+                    <tbody>
+            </true>
+            <false>
+                <tr>
+                    <td>
+                        {{@requirement.label}}
+                        <check if="{{ @requirement.tooltip }}">
+                            <i class="fa fa-fw fa-question-circle pf-help-light" title="{{ @requirement.tooltip }}"></i>
+                        </check>
+                    </td>
+                    <check if="{{ isset(@requirement.required) }}">
+                        <td class="text-right col-md-3 text-right">
+                            <kbd>{{@requirement.required}}</kbd>
+                        </td>
+                    </check>
+
+                    <td
+                        <check if="{{ isset(@requirement.required) }}">
+                            <true>
+                                class="text-right col-md-3 text-right"
+                            </true>
+                            <false>
+                                class="text-right col-md-6 text-right" colspan="2"
+                            </false>
+                        </check>
+                    >
+                        <check if="{{ @requirement.check }}">
+                            <true>
+                                <kbd class="txt-color txt-color-success">{{@requirement.version }}</kbd>
+                            </true>
+                            <false>
+                                <kbd class="txt-color txt-color-warning">{{@requirement.version }}</kbd>
+                                {* Check failed *}
+                                {{ @tplCounter() }}
+                            </false>
+                        </check>
+                    </td>
+                    <td class="text-right col-md-1 text-right">
+                        <check if="{{ @requirement.check }}">
+                            <true>
+                                <i class="fa fa-lg fa-fw fa-check txt-color txt-color-success"></i>
+                            </true>
+                            <false>
+                                <i class="fa fa-lg fa-fw fa-warning txt-color txt-color-warning"></i>
+                            </false>
+                        </check>
+                    </td>
+                </tr>
+            </false>
+        </check>
+    </repeat>
+    </tbody>
+</table>

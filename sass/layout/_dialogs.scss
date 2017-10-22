@@ -12,16 +12,58 @@
   h2, h4{
     &.pf-dynamic-area{
       min-height: 0;
-      margin: 10px 0;
+      margin: 0 0 10px 0;
 
       & > img{
         margin: -10px 5px -10px -10px;
         width: 35px;
       }
     }
+
+    // collapse-able headline =================================================
+    &[data-toggle="collapse"]{
+      cursor: pointer;
+
+      &:hover{
+        &:after{
+          color: $orange !important;
+        }
+      }
+
+      &:after {
+        content: "\f078";
+        font-family: FontAwesome;
+        font-style: normal;
+        font-weight: normal;
+        font-size: 13px;
+        padding-right: 10px;
+        position: absolute;
+        color: $orange;
+        top: 10px;
+        right: 6px;
+
+        @extend .pf-animate-rotate;
+        @extend .fa-fw;
+      }
+
+      &.collapsed{
+        &:after{
+          top: 13px;
+          right: 5px;
+          color: $gray-light;
+          @extend .pf-animate-rotate.right;
+        }
+      }
+    }
   }
 
   // data tables ==============================================================
+  .dataTables_wrapper{
+    + .alert{
+      margin-top: 10px;
+    }
+  }
+
   .dataTable, .table{
     font-size: 10px;
     font-family: $font-family-bold;
@@ -31,6 +73,15 @@
   hr{
     margin: 5px 0 15px 0;
     border-color: $gray-light;
+  }
+
+  // well =====================================================================
+  .well{
+    margin-bottom: 0; // overwrite default
+
+    .list-inline{
+      margin-bottom: 0; // overwrite default
+    }
   }
 
   // form wizard ==============================================================
@@ -111,7 +162,7 @@
   #pf-map-dialog-character-select,
   #pf-map-dialog-corporation-select,
   #pf-map-dialog-alliance-select{
-    width: 300px;
+    width: 535px; // just to bring fields "in line" with each other
   }
 }
 
@@ -146,6 +197,18 @@
 #pf-task-dialog{
   .pf-task-dialog-status{
     min-height: auto;
+  }
+}
+
+// map info dialog ==========================================================
+#pf-map-info-logs {
+  margin-bottom: 10px;
+}
+
+// statistics dialog ==========================================================
+#pf-stats-dialog{
+  .pf-dynamic-area{
+    margin-bottom: 10px;
   }
 }
 

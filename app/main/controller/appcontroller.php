@@ -13,6 +13,33 @@ use lib\Config;
 
 class AppController extends Controller {
 
+    public function beforeroute(\Base $f3, $params) : bool{
+        // page title
+        $f3->set('tplPageTitle',  Config::getPathfinderData('name'));
+
+        // main page content
+        $f3->set('tplPageContent', Config::getPathfinderData('view.login'));
+
+        // body element class
+        $f3->set('tplBodyClass', 'pf-landing');
+
+        // JS main file
+        $f3->set('tplJsView', 'login');
+
+        if($return = parent::beforeroute($f3, $params)){
+            // href for SSO Auth
+            $f3->set('tplAuthType', $f3->alias( 'sso', ['action' => 'requestAuthorization'] ));
+
+            // characters  from cookies
+            $f3->set('cookieCharacters', $this->getCookieByName(self::COOKIE_PREFIX_CHARACTER, true));
+            $f3->set('getCharacterGrid', function($characters){
+                return ( ((12 / count($characters)) <= 3) ? 3 : (12 / count($characters)) );
+            });
+        }
+
+        return $return;
+    }
+
     /**
      * event handler after routing
      * @param \Base $f3
@@ -31,26 +58,7 @@ class AppController extends Controller {
      * @param \Base $f3
      */
     public function init(\Base $f3) {
-        // page title
-        $f3->set('tplPageTitle',  Config::getPathfinderData('name'));
 
-        // main page content
-        $f3->set('tplPageContent', Config::getPathfinderData('view.login'));
-
-        // body element class
-        $f3->set('tplBodyClass', 'pf-landing');
-
-        // JS main file
-        $f3->set('tplJsView', 'login');
-
-        // href for SSO Auth
-        $f3->set('tplAuthType', $f3->alias( 'sso', ['action' => 'requestAuthorization'] ));
-
-        // characters  from cookies
-        $f3->set('cookieCharacters', $this->getCookieByName(self::COOKIE_PREFIX_CHARACTER, true));
-        $f3->set('getCharacterGrid', function($characters){
-            return ( ((12 / count($characters)) <= 3) ? 3 : (12 / count($characters)) );
-        });
     }
 
 }

@@ -111,3 +111,17 @@
 .pf-animate-rotate.right{
   @include rotate( 90deg );
 }
+
+.pf-animate-rotate.left{
+  @include rotate( -90deg );
+}
+
+// navigation link active/hover indicator =========================================================
+@mixin navigation-active-indicator($position) {
+  content: '';
+  position: absolute;
+  background-color: $green;
+  opacity: 0;
+  will-change: opacity, $position ;
+  @include transition( $position 0.15s ease-out, opacity 0.15s ease-out );
+}

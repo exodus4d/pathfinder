@@ -1,0 +1,8 @@
+<check if="{{ @errorData->trace }}">
+    <div class="pf-splash-debug">
+        <h4 class="pf-splash-debug-headline">Trace:</kbd>
+            <span class="pull-right">Debug: <kbd>{{ @DEBUG }}</kbd></span>
+        </h4>
+        <pre class="pf-splash-pre">{{ @errorData->trace  | raw }}</pre>
+    </div>
+</check>

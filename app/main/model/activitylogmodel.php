@@ -44,22 +44,46 @@ class ActivityLogModel extends BasicModel {
             ]
         ],
 
+        // map actions -----------------------------------------------------
+
+        'mapCreate' => [
+            'type' => Schema::DT_SMALLINT,
+            'nullable' => false,
+            'default' => 0,
+            'counter' => true
+        ],
+        'mapUpdate' => [
+            'type' => Schema::DT_SMALLINT,
+            'nullable' => false,
+            'default' => 0,
+            'counter' => true
+        ],
+        'mapDelete' => [
+            'type' => Schema::DT_SMALLINT,
+            'nullable' => false,
+            'default' => 0,
+            'counter' => true
+        ],
+
         // system actions -----------------------------------------------------
 
         'systemCreate' => [
             'type' => Schema::DT_SMALLINT,
             'nullable' => false,
             'default' => 0,
+            'counter' => true
         ],
         'systemUpdate' => [
             'type' => Schema::DT_SMALLINT,
             'nullable' => false,
             'default' => 0,
+            'counter' => true
         ],
         'systemDelete' => [
             'type' => Schema::DT_SMALLINT,
             'nullable' => false,
             'default' => 0,
+            'counter' => true
         ],
 
         // connection actions -------------------------------------------------
@@ -68,16 +92,19 @@ class ActivityLogModel extends BasicModel {
             'type' => Schema::DT_SMALLINT,
             'nullable' => false,
             'default' => 0,
+            'counter' => true
         ],
         'connectionUpdate' => [
             'type' => Schema::DT_SMALLINT,
             'nullable' => false,
             'default' => 0,
+            'counter' => true
         ],
         'connectionDelete' => [
             'type' => Schema::DT_SMALLINT,
             'nullable' => false,
             'default' => 0,
+            'counter' => true
         ],
 
         // signature actions -------------------------------------------------
@@ -86,16 +113,19 @@ class ActivityLogModel extends BasicModel {
             'type' => Schema::DT_SMALLINT,
             'nullable' => false,
             'default' => 0,
+            'counter' => true
         ],
         'signatureUpdate' => [
             'type' => Schema::DT_SMALLINT,
             'nullable' => false,
             'default' => 0,
+            'counter' => true
         ],
         'signatureDelete' => [
             'type' => Schema::DT_SMALLINT,
             'nullable' => false,
             'default' => 0,
+            'counter' => true
         ],
     ];
 
@@ -126,6 +156,20 @@ class ActivityLogModel extends BasicModel {
             ];
             $this->fieldConf = array_merge($staticFieldConfig, $this->fieldConf);
         }
+    }
+
+    /**
+     * get all table columns that are used as "counter" columns
+     * @return array
+     */
+    public function getCountableColumnNames(): array {
+        $fieldConf = $this->getFieldConfiguration();
+
+        $filterCounterColumns = function($key, $value){
+            return isset($value['counter']) ? $key : false;
+        };
+
+        return array_values(array_filter(array_map($filterCounterColumns, array_keys($fieldConf), $fieldConf)));
     }
 
     /**

@@ -12,6 +12,6 @@ namespace Exception;
 class PathfinderException extends BaseException{
 
     public function __construct($message){
-        parent::__construct($message, self::CONFIGURATION_FAILED);
+        parent::__construct($message, self::CONFIG_VALUE_EXCEPTION);
     }
 }

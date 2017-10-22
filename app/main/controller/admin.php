@@ -32,9 +32,11 @@ class Admin extends Controller{
      * event handler for all "views"
      * some global template variables are set in here
      * @param \Base $f3
+     * @param $params
+     * @return bool
      */
-    function beforeroute(\Base $f3, $params) {
-        parent::beforeroute($f3, $params);
+    function beforeroute(\Base $f3, $params): bool {
+        $return = parent::beforeroute($f3, $params);
 
         $f3->set('tplPage', 'login');
 
@@ -54,6 +56,8 @@ class Admin extends Controller{
 
         // body element class
         $f3->set('tplBodyClass', 'pf-landing');
+
+        return $return;
     }
 
     /**
@@ -291,7 +295,9 @@ class Admin extends Controller{
             }
 
             foreach($corporations as $corporation){
-                $data->corpMembers[$corporation->name] = $corporation->getCharacters();
+                if($characters = $corporation->getCharacters()){
+                    $data->corpMembers[$corporation->name] = $corporation->getCharacters();
+                }
             }
 
             // sort corporation from current user first

@@ -12,15 +12,6 @@ use Model;
 
 class Connection extends Controller\AccessController {
 
-    /**
-     * @param \Base $f3
-     * @param array $params
-     */
-    function beforeroute(\Base $f3, $params) {
-        // set header for all routes
-        header('Content-type: application/json');
-        parent::beforeroute($f3, $params);
-    }
 
     /**
      * save a new connection or updates an existing (drag/drop) between two systems
@@ -29,7 +20,10 @@ class Connection extends Controller\AccessController {
      */
     public function save(\Base $f3){
         $postData = (array)$f3->get('POST');
-        $newConnectionData = [];
+
+        $return = (object) [];
+        $return->error = [];
+        $return->connectionData = (object) [];
 
         if(
             isset($postData['connectionData']) &&
@@ -75,27 +69,23 @@ class Connection extends Controller\AccessController {
                         $connectionData['scope'] = 'wh';
                         $connectionData['type'] = ['wh_fresh'];
                     }
-
                     $connectionData['mapId'] = $map;
-
-                    // "updated" should not be set by client e.g. after manual drag&drop
-                    unset($connectionData['updated']);
 
                     $connection->setData($connectionData);
 
-                    if( $connection->isValid() ){
-                        $connection->save();
-
-                        $newConnectionData = $connection->getData();
+                    if($connection->save($activeCharacter)){
+                        $return->connectionData = $connection->getData();
 
                         // broadcast map changes
                         $this->broadcastMapData($connection->mapId);
+                    }else{
+                        $return->error = $connection->getErrors();
                     }
                 }
             }
         }
 
-        echo json_encode($newConnectionData);
+        echo json_encode($return);
     }
 
     /**

@@ -32,9 +32,7 @@ class RegistrationException extends BaseException{
     }
 
     public function __construct($message, $field = ''){
-
-        parent::__construct($message, self::REGISTRATION_FAILED);
-
+        parent::__construct($message, self::REGISTRATION_EXCEPTION);
         $this->setField($field);
     }
 }

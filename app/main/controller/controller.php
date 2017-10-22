@@ -9,6 +9,7 @@
 namespace Controller;
 use Controller\Api as Api;
 use lib\Config;
+use Lib\Monolog;
 use lib\Socket;
 use Lib\Util;
 use Model;
@@ -21,8 +22,8 @@ class Controller {
     const COOKIE_PREFIX_CHARACTER                   = 'char';
 
     // log text
-    const LOG_UNAUTHORIZED                          = 'User-Agent: [%s]';
-    const ERROR_SESSION_SUSPECT                     = 'Suspect id: [%45s], ip: [%45s], new ip: [%45s], User-Agent: [%s]';
+    const ERROR_SESSION_SUSPECT                     = 'id: [%45s], ip: [%45s], User-Agent: [%s]';
+    const ERROR_TEMP_CHARACTER_ID                   = 'Invalid temp characterId: %s';
 
     /**
      * @var \Base
@@ -49,45 +50,37 @@ class Controller {
     }
 
     /**
-     * set $f3 base object
-     * @param \Base $f3
-     */
-    protected function setF3(\Base $f3){
-        $this->f3 = $f3;
-    }
-
-    /**
      * get $f3 base object
      * @return \Base
      */
     protected function getF3(){
-        if( !($this->f3 instanceof \Base) ){
-            $this->setF3( \Base::instance() );
-        }
-        return $this->f3;
+        return \Base::instance();
     }
 
     /**
      * event handler for all "views"
      * some global template variables are set in here
      * @param \Base $f3
-     * @param array $params
+     * @param $params
+     * @return bool
      */
-    function beforeroute(\Base $f3, $params) {
-        $this->setF3($f3);
-
+    function beforeroute(\Base $f3, $params): bool {
         // initiate DB connection
-        DB\Database::instance('PF');
+        DB\Database::instance()->getDB('PF');
 
         // init user session
-        $this->initSession();
+        $this->initSession($f3);
 
-        if( !$f3->get('AJAX') ){
+        if($f3->get('AJAX')){
+            header('Content-type: application/json');
+        }else{
             // js path (build/minified or raw uncompressed files)
             $f3->set('tplPathJs', 'public/js/' . Config::getPathfinderData('version') );
 
             $this->setTemplate( Config::getPathfinderData('view.index') );
         }
+
+        return true;
     }
 
     /**
@@ -96,9 +89,6 @@ class Controller {
      * @param \Base $f3
      */
     public function afterroute(\Base $f3){
-        // store all user activities that are buffered for logging in this request
-        self::storeActivities();
-
         if($this->getTemplate()){
             // Ajax calls don´t need a page render..
             // this happens on client side
@@ -118,32 +108,35 @@ class Controller {
     /**
      * init new Session handler
      */
-    protected function initSession(){
+    protected function initSession(\Base $f3){
+        $sessionCacheKey = $f3->get('SESSION_CACHE');
+        $session = null;
 
-        // init DB based Session (not file based)
-        if( $this->getDB('PF') instanceof DB\SQL){
-            // init session with custom "onsuspect()" handler
-            new DB\SQL\Session($this->getDB('PF'), 'sessions', true, function($session, $sid){
-                $f3 = $this->getF3();
-                if( ($ip = $session->ip() )!= $f3->get('IP') ){
-                    // IP address changed -> not critical
-                    self::getLogger('SESSION_SUSPECT')->write( sprintf(
-                        self::ERROR_SESSION_SUSPECT,
-                        $sid,
-                        $session->ip(),
-                        $f3->get('IP'),
-                        $f3->get('AGENT')
-                    ));
-                    // no more error handling here
-                    return true;
-                }elseif($session->agent() != $f3->get('AGENT') ){
-                    // The default behaviour destroys the suspicious session.
-                    return false;
-                }
+        /**
+         * callback() for suspect sessions
+         * @param $session
+         * @param $sid
+         * @return bool
+         */
+        $onSuspect = function($session, $sid){
+            self::getLogger('SESSION_SUSPECT')->write( sprintf(
+                self::ERROR_SESSION_SUSPECT,
+                $sid,
+                $session->ip(),
+                $session->agent()
+            ));
+            // .. continue with default onSuspect() handler
+            // -> destroy session
+            return false;
+        };
 
-                return true;
-            });
+        if(
+            $sessionCacheKey === 'mysql' &&
+            $this->getDB('PF') instanceof DB\SQL
+        ){
+            $session = new DB\SQL\Session($this->getDB('PF'), 'sessions', true, $onSuspect);
         }
+
     }
 
     /**
@@ -190,12 +183,11 @@ class Controller {
      * @param Model\CharacterModel $character
      */
     protected function setLoginCookie(Model\CharacterModel $character){
-
         if( $this->getCookieState() ){
-            $expireSeconds = (int) $this->getF3()->get('PATHFINDER.LOGIN.COOKIE_EXPIRE');
+            $expireSeconds = (int)Config::getPathfinderData('login.cookie_expire');
             $expireSeconds *= 24 * 60 * 60;
 
-            $timezone = new \DateTimeZone( $this->getF3()->get('TZ') );
+            $timezone = $this->getF3()->get('getTimeZone')();
             $expireTime = new \DateTime('now', $timezone);
 
             // add cookie expire time
@@ -258,7 +250,7 @@ class Controller {
              */
             $characterAuth = Model\BasicModel::getNew('CharacterAuthenticationModel');
 
-            $timezone = new \DateTimeZone( $this->getF3()->get('TZ') );
+            $timezone = $this->getF3()->get('getTimeZone')();
             $currentTime = new \DateTime('now', $timezone);
 
             foreach($cookieData as $name => $value){
@@ -268,7 +260,7 @@ class Controller {
                 $data = explode(':', $value);
                 if(count($data) === 2){
                     // cookie data is well formatted
-                    $characterAuth->getByForeignKey('selector', $data[0], ['limit' => 1], 0);
+                    $characterAuth->getByForeignKey('selector', $data[0], ['limit' => 1]);
 
                     // validate "scope hash"
                     // -> either "normal" scopes OR "admin" scopes
@@ -354,28 +346,37 @@ class Controller {
         $data = [];
 
         if($user = $this->getUser()){
-            $requestedCharacterId = 0;
+            $header                 = self::getRequestHeaders();
+            $requestedCharacterId   = (int)$header['Pf-Character'];
+            $browserTabId           = (string)$header['Pf-Tab-Id'];
+            $tempCharacterData       = (array)$this->getF3()->get(Api\User::SESSION_KEY_TEMP_CHARACTER_DATA);
 
-            // get all characterData from currently active characters
             if($this->getF3()->get('AJAX')){
-                // Ajax request -> get characterId from Header (if already available!)
-                $header = $this->getRequestHeaders();
-                $requestedCharacterId = (int)$header['Pf-Character'];
+
+                // _blank browser tab don´t have a $browserTabId jet..
+                // first Ajax call from that new tab with empty $requestedCharacterId -> bind to that new tab
+                if(
+                    !empty($browserTabId) &&
+                    $requestedCharacterId <= 0 &&
+                    (int)$tempCharacterData['ID'] > 0 &&
+                    empty($tempCharacterData['TAB_ID'])
+                ){
+                    $tempCharacterData['TAB_ID'] = $browserTabId;
+                    // update tempCharacterData (SESSION)
+                    $this->setTempCharacterData($tempCharacterData['ID'], $tempCharacterData['TAB_ID']);
+                }
 
                 if(
-                    $requestedCharacterId > 0 &&
-                    (int)$this->getF3()->get(Api\User::SESSION_KEY_TEMP_CHARACTER_ID) === $requestedCharacterId
+                    !empty($browserTabId) &&
+                    !empty($tempCharacterData['TAB_ID']) &&
+                    (int)$tempCharacterData['ID'] > 0 &&
+                    $browserTabId === $tempCharacterData['TAB_ID']
                 ){
-                    // requested characterId is "now" available on the client  (Javascript)
-                    // -> clear temp characterId for next character login/switch
-                    $this->getF3()->clear(Api\User::SESSION_KEY_TEMP_CHARACTER_ID);
+                    $requestedCharacterId = (int)$tempCharacterData['ID'];
                 }
-            }
 
-            if($requestedCharacterId <= 0){
-                // Ajax BUT characterID not yet set as HTTP header
-                // OR non Ajax -> get characterId from temp session (e.g. from HTTP redirect)
-                $requestedCharacterId = (int)$this->getF3()->get(Api\User::SESSION_KEY_TEMP_CHARACTER_ID);
+            }elseif((int)$tempCharacterData['ID'] > 0){
+                $requestedCharacterId = (int)$tempCharacterData['ID'];
             }
 
             $data = $user->getSessionCharacterData($requestedCharacterId);
@@ -420,21 +421,18 @@ class Controller {
     public function getUser($ttl = 0){
         $user = null;
 
-        if( $this->getF3()->exists(Api\User::SESSION_KEY_USER_ID) ){
-            $userId = (int)$this->getF3()->get(Api\User::SESSION_KEY_USER_ID);
-            if($userId){
-                /**
-                 * @var $userModel Model\UserModel
-                 */
-                $userModel = Model\BasicModel::getNew('UserModel');
-                $userModel->getById($userId, $ttl);
+        if($this->getF3()->exists(Api\User::SESSION_KEY_USER_ID, $userId)){
+            /**
+             * @var $userModel Model\UserModel
+             */
+            $userModel = Model\BasicModel::getNew('UserModel');
+            $userModel->getById($userId, $ttl);
 
-                if(
-                    !$userModel->dry() &&
-                    $userModel->hasUserCharacters()
-                ){
-                    $user = &$userModel;
-                }
+            if(
+                !$userModel->dry() &&
+                $userModel->hasUserCharacters()
+            ){
+                $user = &$userModel;
             }
         }
 
@@ -442,26 +440,57 @@ class Controller {
     }
 
     /**
-     * log out current character
-     * @param \Base $f3
+     * set temp login character data (required during HTTP redirects on login)
+     * @param int $characterId
+     * @param string $browserTabId
+     * @throws \Exception
      */
-    public function logout(\Base $f3){
-        $params = (array)$f3->get('POST');
+    protected function setTempCharacterData(int $characterId, string $browserTabId){
+        if($characterId > 0){
+            $tempCharacterData = [
+                'ID'    => $characterId,
+                'TAB_ID'    => trim($browserTabId)
+            ];
+            $this->getF3()->set(Api\User::SESSION_KEY_TEMP_CHARACTER_DATA, $tempCharacterData);
+        }else{
+            throw new \Exception( sprintf(self::ERROR_TEMP_CHARACTER_ID, $characterId) );
+        }
+    }
 
-        if( $activeCharacter = $this->getCharacter() ){
+    /**
+     * log out current character or all active characters (multiple browser tabs)
+     * @param bool $all
+     * @param bool $deleteSession
+     * @param bool $deleteLog
+     * @param bool $deleteCookie
+     */
+    protected function logoutCharacter(bool $all = false, bool $deleteSession = true, bool $deleteLog = true, bool $deleteCookie = false){
+        $sessionCharacterData = (array)$this->getF3()->get(Api\User::SESSION_KEY_CHARACTERS);
 
-            if($params['clearCookies'] === '1'){
-                // delete server side cookie validation data
-                // for the active character
-                $activeCharacter->logout();
+        if($sessionCharacterData){
+            $activeCharacterId = ($activeCharacter = $this->getCharacter()) ? $activeCharacter->_id : 0;
+            /**
+             * @var Model\CharacterModel $character
+             */
+            $character = Model\BasicModel::getNew('CharacterModel');
+            $characterIds = [];
+            foreach($sessionCharacterData as $characterData){
+                if($characterData['ID'] === $activeCharacterId){
+                    $characterIds[] = $activeCharacter->_id;
+                    $activeCharacter->logout($deleteSession, $deleteLog, $deleteCookie);
+                }elseif($all){
+                    $character->getById($characterData['ID']);
+                    $characterIds[] = $character->_id;
+                    $character->logout($deleteSession, $deleteLog, $deleteCookie);
+                }
+                $character->reset();
             }
 
-            // broadcast logout information to webSocket server
-            (new Socket( Config::getSocketUri() ))->sendData('characterLogout', $activeCharacter->_id);
+            if($characterIds){
+                // broadcast logout information to webSocket server
+                (new Socket( Config::getSocketUri() ))->sendData('characterLogout', $characterIds);
+            }
         }
-
-        // destroy session login data -------------------------------
-        $f3->clear('SESSION');
     }
 
     /**
@@ -482,7 +511,7 @@ class Controller {
 
             if( !empty($response) ){
                 // calculate time diff since last server restart
-                $timezone = new \DateTimeZone( $f3->get('TZ') );
+                $timezone = $f3->get('getTimeZone')();
                 $dateNow = new \DateTime('now', $timezone);
                 $dateServerStart = new \DateTime($response['startTime']);
                 $interval = $dateNow->diff($dateServerStart);
@@ -504,14 +533,24 @@ class Controller {
     }
 
     /**
-     * get error object is a user is not found/logged of
+     * @param int $code
+     * @param string $message
+     * @param string $status
+     * @param null $trace
      * @return \stdClass
      */
-    protected function getLogoutError(){
-        $userError = (object) [];
-        $userError->type = 'error';
-        $userError->message = 'User not found';
-        return $userError;
+    protected function getErrorObject(int $code, string $message = '', string $status = '', $trace = null): \stdClass{
+        $object = (object) [];
+        $object->type = 'error';
+        $object->code = $code;
+        $object->status = empty($status) ? @constant('Base::HTTP_' . $code) : $status;
+        if(!empty($message)){
+            $object->message = $message;
+        }
+        if(!empty($trace)){
+            $object->trace = $trace;
+        }
+        return $object;
     }
 
     /**
@@ -558,59 +597,53 @@ class Controller {
      * -> on AJAX request -> return JSON with error information
      * -> on HTTP request -> render error page
      * @param \Base $f3
+     * @return bool
      */
     public function showError(\Base $f3){
-        // set HTTP status
-        $errorCode = $f3->get('ERROR.code');
-        if(!empty($errorCode)){
-            $f3->status($errorCode);
-        }
+        if(!headers_sent()){
+            // collect error info -------------------------------------------------------------------------------------
+            $error = $this->getErrorObject(
+                $f3->get('ERROR.code'),
+                $f3->get('ERROR.status'),
+                $f3->get('ERROR.text'),
+                $f3->get('DEBUG') === 3 ? $f3->get('ERROR.trace') : null
+            );
 
-        // collect error info ---------------------------------------
-        $return = (object) [];
-        $error = (object) [];
-        $error->type = 'error';
-        $error->code = $errorCode;
-        $error->status = $f3->get('ERROR.status');
-        $error->message = $f3->get('ERROR.text');
+            // check if error is a PDO Exception ----------------------------------------------------------------------
+            if(strpos(strtolower( $f3->get('ERROR.text') ), 'duplicate') !== false){
+                preg_match_all('/\'([^\']+)\'/', $f3->get('ERROR.text'), $matches, PREG_SET_ORDER);
 
-        // append stack trace for greater debug level
-        if( $f3->get('DEBUG') === 3){
-            $error->trace = $f3->get('ERROR.trace');
-        }
-
-        // check if error is a PDO Exception
-        if(strpos(strtolower( $f3->get('ERROR.text') ), 'duplicate') !== false){
-            preg_match_all('/\'([^\']+)\'/', $f3->get('ERROR.text'), $matches, PREG_SET_ORDER);
-
-            if(count($matches) === 2){
-                $error->field = $matches[1][1];
-                $error->message = 'Value "' . $matches[0][1] . '" already exists';
-            }
-        }
-        $return->error[] = $error;
-
-        // return error information ---------------------------------
-        if($f3->get('AJAX')){
-            header('Content-type: application/json');
-            echo json_encode($return);
-            die();
-        }else{
-            $f3->set('tplPageTitle', 'ERROR - ' . $error->code . ' | Pathfinder');
-            // set error data for template rendering
-            $error->redirectUrl = $this->getRouteUrl();
-            $f3->set('errorData', $error);
-
-            if( preg_match('/^4[0-9]{2}$/', $error->code) ){
-                // 4xx error -> render error page
-                $f3->set('tplPageContent', Config::getPathfinderData('STATUS.4XX') );
-            }elseif( preg_match('/^5[0-9]{2}$/', $error->code) ){
-                $f3->set('tplPageContent', Config::getPathfinderData('STATUS.5XX'));
+                if(count($matches) === 2){
+                    $error->field = $matches[1][1];
+                    $error->message = 'Value "' . $matches[0][1] . '" already exists';
+                }
             }
 
-            echo \Template::instance()->render( Config::getPathfinderData('view.index') );
-            die();
+            // set response status ------------------------------------------------------------------------------------
+            if(!empty($error->code)){
+                $f3->status($error->code);
+            }
+
+            if($f3->get('AJAX')){
+                $return = (object) [];
+                $return->error[] = $error;
+                echo json_encode($return);
+            }else{
+                $f3->set('tplPageTitle', 'ERROR - ' . $error->code);
+                // set error data for template rendering
+                $error->redirectUrl = $this->getRouteUrl();
+                $f3->set('errorData', $error);
+
+                if( preg_match('/^4[0-9]{2}$/', $error->code) ){
+                    // 4xx error -> render error page
+                    $f3->set('tplPageContent', Config::getPathfinderData('STATUS.4XX') );
+                }elseif( preg_match('/^5[0-9]{2}$/', $error->code) ){
+                    $f3->set('tplPageContent', Config::getPathfinderData('STATUS.5XX'));
+                }
+            }
         }
+
+        return true;
     }
 
     /**
@@ -624,42 +657,34 @@ class Controller {
         // track some 4xx Client side errors
         // 5xx errors are handled in "ONERROR" callback
         $status = http_response_code();
-        $halt = false;
+        if(!headers_sent() && $status >= 300){
+            if($f3->get('AJAX')){
+                $params = (array)$f3->get('POST');
+                $return = (object) [];
+                if((bool)$params['reroute']){
+                    $return->reroute = rtrim(self::getEnvironmentData('URL'), '/') . $f3->alias('login');
+                }else{
+                    // no reroute -> errors can be shown
+                    $return->error[] = $this->getErrorObject($status, Config::getMessageFromHTTPStatus($status));
+                }
 
-        switch( $status ){
-            case 403: // Unauthorized
-                self::getLogger('UNAUTHORIZED')->write(sprintf(
-                    self::LOG_UNAUTHORIZED,
-                    $f3->get('AGENT')
-                ));
-                $halt = true;
-                break;
-        }
-
-        // Ajax
-        if(
-            $halt &&
-            $f3->get('AJAX')
-        ){
-            $params = (array)$f3->get('POST');
-            $response = (object) [];
-            $response->type = 'error';
-            $response->code = $status;
-            $response->message = 'Access denied: User not found';
-
-            $return = (object) [];
-            if( (bool)$params['reroute']){
-                $return->reroute = rtrim(self::getEnvironmentData('URL'), '/') . $f3->alias('login');
-            }else{
-                // no reroute -> errors can be shown
-                $return->error[] = $response;
+                echo json_encode($return);
             }
-
-            echo json_encode($return);
-            die();
         }
+
+        // store all user activities that are buffered for logging in this request
+        // this should work even on non HTTP200 responses
+        $this->logActivities();
 
         return true;
+    }
+
+    /**
+     * store activity log data to DB
+     */
+    protected function logActivities(){
+        LogController::instance()->logActivities();
+        Monolog::instance()->log();
     }
 
     /**
@@ -793,7 +818,7 @@ class Controller {
      * @return int
      */
     static function getRegistrationStatus(){
-        return (int)\Base::instance()->get('PATHFINDER.REGISTRATION.STATUS');
+        return (int)Config::getPathfinderData('registration.status');
     }
 
     /**
@@ -804,13 +829,6 @@ class Controller {
      */
     static function getLogger($type){
         return LogController::getLogger($type);
-    }
-
-    /**
-     * store activity log data to DB
-     */
-    static function storeActivities(){
-        LogController::instance()->storeActivities();
     }
 
     /**
@@ -840,22 +858,6 @@ class Controller {
      */
     static function checkTcpSocket($ttl, $load){
         (new Socket( Config::getSocketUri(), $ttl ))->sendData('healthCheck', $load);
-    }
-
-    /**
-     * get required MySQL variable value
-     * @param $key
-     * @return string|null
-     */
-    static function getRequiredMySqlVariables($key){
-        $f3 = \Base::instance();
-        $requiredMySqlVarKey = 'REQUIREMENTS[MYSQL][VARS][' . $key . ']';
-        $data = null;
-
-        if( $f3->exists($requiredMySqlVarKey) ){
-            $data = $f3->get($requiredMySqlVarKey);
-        }
-        return $data;
     }
 
 } 
