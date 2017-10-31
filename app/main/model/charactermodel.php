@@ -726,14 +726,45 @@ class CharacterModel extends BasicModel {
                                 }
                             }
 
+                            // check structure data for changes -------------------------------------------------------
+                            if(!$deleteLog){
+
+                                // IDs for "structureId" that require more data
+                                $lookupStructureId = 0;
+                                if( !empty($locationData['structure']['id']) ){
+                                    if(
+                                        empty($logData['structure']['name']) ||
+                                        $logData['structure']['id']  !== $locationData['structure']['id']
+                                    ){
+                                        // structure changed -> request "structure name" for current station
+                                        $lookupStructureId = $locationData['structure']['id'];
+                                    }
+                                }else{
+                                    unset($logData['structure']);
+                                }
+
+                                // get "more" data for structureId  ---------------------------------------------------
+                                if($lookupStructureId > 0){
+                                    /**
+                                     * @var $structureModel Universe\StructureModel
+                                     */
+                                    $structureModel = Universe\BasicUniverseModel::getNew('StructureModel');
+                                    $structureModel->loadById($lookupStructureId, $accessToken, $additionalOptions);
+                                    if(!$structureModel->dry()){
+                                        $structureData['structure'] = (array)$structureModel->getData();
+                                        $logData = array_replace_recursive($logData, $structureData);
+                                    }else{
+                                        unset($logData['structure']);
+                                    }
+                                }
+                            }
 
                             // check ship data for changes ------------------------------------------------------------
                             if( !$deleteLog ){
                                 $shipData = self::getF3()->ccpClient->getCharacterShipData($this->_id, $accessToken, $additionalOptions);
 
-                                // IDs for "systemId", "stationId" that require more data
+                                // IDs for "shipTypeId" that require more data
                                 $lookupShipTypeId = 0;
-
                                 if( !empty($shipData['ship']['typeId']) ){
                                     if(
                                         empty($logData['ship']['typeName']) ||
@@ -757,7 +788,7 @@ class CharacterModel extends BasicModel {
                                      * @var $typeModel Universe\TypeModel
                                      */
                                     $typeModel = Universe\BasicUniverseModel::getNew('TypeModel');
-                                    $typeModel->loadById($lookupShipTypeId, $additionalOptions);
+                                    $typeModel->loadById($lookupShipTypeId, '', $additionalOptions);
                                     if(!$typeModel->dry()){
                                         $shipData['ship'] = (array)$typeModel->getShipData();
                                         $logData = array_replace_recursive($logData, $shipData);

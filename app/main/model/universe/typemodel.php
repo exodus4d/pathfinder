@@ -53,12 +53,14 @@ class TypeModel extends BasicUniverseModel {
         'groupId' => [
             'type' => Schema::DT_INT,
             'nullable' => false,
-            'default' => 0
+            'default' => 0,
+            'index' => true
         ],
         'marketGroupId' => [
             'type' => Schema::DT_INT,
             'nullable' => false,
-            'default' => 0
+            'default' => 0,
+            'index' => true
         ],
         'packagedVolume' => [
             'type' => Schema::DT_FLOAT,
@@ -73,7 +75,11 @@ class TypeModel extends BasicUniverseModel {
         'graphicId' => [
             'type' => Schema::DT_INT,
             'nullable' => false,
-            'default' => 0
+            'default' => 0,
+            'index' => true
+        ],
+        'structures' => [
+            'has-many' => ['Model\Universe\StructureModel', 'typeId']
         ]
     ];
 
@@ -95,51 +101,14 @@ class TypeModel extends BasicUniverseModel {
     /**
      * load data from API into $this and save $this
      * @param int $id
+     * @param string $accessToken
      * @param array $additionalOptions
      */
-    protected function loadData(int $id, array $additionalOptions = []){
+    protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){
         $data = self::getF3()->ccpClient->getUniverseTypesData($id, $additionalOptions);
         if(!empty($data)){
             $this->copyfrom($data);
             $this->save();
         }
-    }
-
-    /**
-     * load object by $id
-     * -> if $id not exists in DB -> query API
-     * @param int $id
-     * @param array $additionalOptions
-     */
-    public function loadById(int $id, array $additionalOptions = []){
-        /**
-         * @var $model self
-         */
-        $model = parent::getById($id);
-        if($model->isOutdated()){
-           $model->loadData($id, $additionalOptions);
-        }
-    }
-
-    /**
-     * checks whether data is outdated and should be refreshed
-     * @return bool
-     */
-    protected function isOutdated(): bool {
-        $outdated = true;
-        if(!$this->dry()){
-            $timezone = $this->getF3()->get('getTimeZone')();
-            $currentTime = new \DateTime('now', $timezone);
-            $updateTime = \DateTime::createFromFormat(
-                'Y-m-d H:i:s',
-                $this->updated,
-                $timezone
-            );
-            $interval = $updateTime->diff($currentTime);
-            if($interval->days < self::CACHE_MAX_DAYS ){
-                $outdated = false;
-            }
-        }
-        return $outdated;
     }
 }

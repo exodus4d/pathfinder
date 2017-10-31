@@ -62,11 +62,21 @@ define([
     };
 
     /**
-     * get image that marks a table cell as clickable
+     * get icon that marks a table cell as clickable
      * @returns {string}
      */
     let getIconForInformationWindow = () => {
         return '<i class="fa fa-fw fa-id-card ' + config.tableCellActionIconClass + '" title="open ingame" data-toggle="tooltip"></i>';
+    };
+
+    /**
+     * get icon for socked status
+     * @param type
+     * @returns {string}
+     */
+    let getIconForDockedStatus = (type) => {
+        let icon = type === 'station' ? 'fa-home' : type === 'structure' ? 'fa-industry' : '';
+        return icon.length ? '<i class="fa fa-fw ' + icon + ' ' + config.tableCellActionIconClass + '" title="' + type + '" data-toggle="tooltip"></i>' : '';
     };
 
     /**
@@ -840,13 +850,21 @@ define([
                     }
                 },{
                     targets: 7,
-                    title: 'station',
+                    title: 'docked',
                     orderable: true,
                     searchable: true,
-                    data: 'log.station',
+                    className: [config.tableCellActionClass].join(' '),
+                    data: 'log',
                     render: {
-                        _: 'name',
-                        sort: 'name'
+                        _: function (data, type, row, meta) {
+                            let value = '';
+                            if(data.station && data.station.id > 0){
+                                value = data.station.name + '&nbsp;' + getIconForDockedStatus('station');
+                            }else if(data.structure && data.structure.id > 0){
+                                value = data.structure.name + '&nbsp;' + getIconForDockedStatus('structure');
+                            }
+                            return value;
+                        }
                     }
                 }
             ]

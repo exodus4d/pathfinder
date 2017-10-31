@@ -190,7 +190,7 @@
                                 <h3 class="panel-title txt-color txt-color-success">OK</h3>
                             </true>
                             <false>
-                                <h3 class="panel-title txt-color txt-color-warning">Warnings</h3>
+                                <h3 class="panel-title txt-color txt-color-warning">{{ @tplCounter('get') }} Warnings</h3>
                             </false>
                         </check>
                     </div>
@@ -199,7 +199,7 @@
             </div>
 
             <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
-                {* PHP config php.ini requirements*}
+                {* PHP config php.ini requirements *}
                 <set requirementsData="{{ @checkPHPConfig }}" />
 
                 <div class="panel panel-default pricing-big">
@@ -215,12 +215,37 @@
                                 <h3 class="panel-title txt-color txt-color-success">OK</h3>
                             </true>
                             <false>
-                                <h3 class="panel-title txt-color txt-color-warning">Warnings</h3>
+                                <h3 class="panel-title txt-color txt-color-warning">{{ @tplCounter('get') }} Warnings</h3>
                             </false>
                         </check>
                     </div>
                 </div>
                 {{ @tplCounter('reset') }}
+
+                {* System Env requirements *}
+                <check if="{{ @checkSystemConfig }}">
+                    <set requirementsData="{{ @checkSystemConfig }}" />
+
+                    <div class="panel panel-default pricing-big">
+                        <div class="panel-heading text-left">
+                            <h3 class="panel-title">Environment variables [optional]</h3>
+                        </div>
+                        <div class="panel-body no-padding text-align-center">
+                            <include href="templates/modules/requirements_table.html"/>
+                        </div>
+                        <div class="panel-footer text-align-center">
+                            <check if="{{ !@tplCounter('get') }}">
+                                <true>
+                                    <h3 class="panel-title txt-color txt-color-success">OK</h3>
+                                </true>
+                                <false>
+                                    <h3 class="panel-title txt-color txt-color-warning">{{ @tplCounter('get') }} Warnings</h3>
+                                </false>
+                            </check>
+                        </div>
+                    </div>
+                    {{ @tplCounter('reset') }}
+                </check>
             </div>
         </div>
 

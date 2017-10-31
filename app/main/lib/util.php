@@ -29,6 +29,18 @@ class Util {
     }
 
     /**
+     * flatten multidimensional array
+     * -> overwrites duplicate keys!
+     * @param array $array
+     * @return array
+     */
+    static function arrayFlatten(array $array) : array {
+        $return = [];
+        array_walk_recursive($array, function($value, $key) use (&$return) { $return[$key] = $value; });
+        return $return;
+    }
+
+    /**
      * checks whether an array is associative or not (sequential)
      * @param mixed $array
      * @return bool

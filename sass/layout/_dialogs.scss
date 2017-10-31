@@ -51,7 +51,7 @@
           top: 13px;
           right: 5px;
           color: $gray-light;
-          @extend .pf-animate-rotate.right;
+          @include rotate( 90deg );
         }
       }
     }

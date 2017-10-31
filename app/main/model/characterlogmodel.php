@@ -75,6 +75,15 @@ class CharacterLogModel extends BasicModel {
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
             'default' => ''
+        ],
+        'structureId' => [
+            'type' => Schema::DT_BIGINT,
+            'index' => true
+        ],
+        'structureName' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
         ]
     ];
 
@@ -114,6 +123,14 @@ class CharacterLogModel extends BasicModel {
             $this->stationName = '';
         }
 
+        if( isset($logData['structure']) ){
+            $this->structureId = (int)$logData['structure']['id'];
+            $this->structureName = $logData['structure']['name'];
+        }else{
+            $this->structureId = null;
+            $this->structureName = '';
+        }
+
     }
 
     /**
@@ -137,6 +154,10 @@ class CharacterLogModel extends BasicModel {
         $logData->station = (object) [];
         $logData->station->id = (int)$this->stationId;
         $logData->station->name = $this->stationName;
+
+        $logData->structure = (object) [];
+        $logData->structure->id = (int)$this->structureId;
+        $logData->structure->name = $this->structureName;
 
         return $logData;
     }

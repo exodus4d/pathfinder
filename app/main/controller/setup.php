@@ -100,6 +100,7 @@ class Setup extends Controller {
             'info' => [],
             'models' => [
                 'Model\Universe\TypeModel',
+                'Model\Universe\StructureModel',
                 //'Model\Universe\RegionModel',
                 //'Model\Universe\ConstellationModel'
             ],
@@ -239,6 +240,9 @@ class Setup extends Controller {
 
         // set php config check information
         $f3->set('checkPHPConfig', $this->checkPHPConfig($f3));
+
+        // set system config check information
+        $f3->set('checkSystemConfig', $this->checkSystemConfig($f3));
 
         // set map default config
         $f3->set('mapsDefaultConfig', $this->getMapsDefaultConfig($f3));
@@ -623,6 +627,13 @@ class Setup extends Controller {
      */
     protected function checkPHPConfig(\Base $f3): array {
         $phpConfig = [
+            'exec' => [
+                'label' => 'exec()',
+                'required' => $f3->get('REQUIREMENTS.PHP.EXEC'),
+                'version' => function_exists('exec'),
+                'check' => function_exists('exec') == $f3->get('REQUIREMENTS.PHP.EXEC'),
+                'tooltip' => 'exec() funktion. Check "disable_functions" in php.ini'
+            ],
             'maxInputVars' => [
                 'label' => 'max_input_vars',
                 'required' => $f3->get('REQUIREMENTS.PHP.MAX_INPUT_VARS'),
@@ -668,6 +679,81 @@ class Setup extends Controller {
         ];
 
         return $phpConfig;
+    }
+
+    /**
+     * check system environment vars
+     * -> mostly relevant for development/build/deployment
+     * @param \Base $f3
+     * @return array
+     */
+    protected function checkSystemConfig(\Base $f3): array {
+        $systemConf = [];
+        if(function_exists('exec')){
+            $gitOut = $composerOut = $rubyOut = $rubyGemsOut = $compassOut = $nodeOut = $npmOut = [];
+            $gitStatus = $composerStatus = $rubyStatus = $rubyGemsStatus = $compassStatus = $nodeStatus = $npmStatus = 1;
+
+            exec('git --version', $gitOut, $gitStatus);
+            exec('composer -V', $composerOut, $composerStatus);
+            exec('ruby -v', $rubyOut, $rubyStatus);
+            exec('gem -v', $rubyGemsOut, $rubyGemsStatus);
+            exec('compass -v', $compassOut, $compassStatus);
+            exec('node -v', $nodeOut, $nodeStatus);
+            exec('npm -v', $npmOut, $npmStatus);
+
+            $normalizeVersion = function($version): string {
+                return preg_replace("/[^0-9\.\s]/", '', (string)$version);
+            };
+
+            $systemConf = [
+                'git' => [
+                    'label' => 'Git',
+                    'version' => $gitOut[0] ? 'installed' : 'missing',
+                    'check' => $gitStatus == 0,
+                    'tooltip' => 'Git # git --version : ' . $gitOut[0]
+                ],
+                'composer' => [
+                    'label' => 'Composer',
+                    'version' => $composerOut[0] ? 'installed' : 'missing',
+                    'check' => $composerStatus == 0,
+                    'tooltip' => 'Composer # composer -V : ' . $composerOut[0]
+                ],
+                'Ruby' => [
+                    'label' => 'Ruby',
+                    'version' => $rubyOut[0] ? 'installed' : 'missing',
+                    'check' => $rubyStatus == 0,
+                    'tooltip' => 'Ruby # ruby -v : ' . $rubyOut[0]
+                ],
+                'rubyGems' => [
+                    'label' => 'Ruby gem',
+                    'version' => $normalizeVersion($rubyGemsOut[0]) ?: 'missing',
+                    'check' => $rubyGemsStatus == 0,
+                    'tooltip' => 'gem # gem -v'
+                ],
+                'compass' => [
+                    'label' => 'Compass',
+                    'version' => $compassOut[0] ? 'installed' : 'missing',
+                    'check' => $compassStatus == 0,
+                    'tooltip' => 'Compass # compass -v : ' . $compassOut[0]
+                ],
+                'node' => [
+                    'label' => 'NodeJs',
+                    'required' => number_format((float)$f3->get('REQUIREMENTS.PATH.NODE'), 1, '.', ''),
+                    'version' => $normalizeVersion($nodeOut[0]) ?: 'missing',
+                    'check' => version_compare( $normalizeVersion($nodeOut[0]), number_format((float)$f3->get('REQUIREMENTS.PATH.NODE'), 1, '.', ''), '>='),
+                    'tooltip' => 'NodeJs # node -v'
+                ],
+                'npm' => [
+                    'label' => 'npm',
+                    'required' => $f3->get('REQUIREMENTS.PATH.NPM'),
+                    'version' => $normalizeVersion($npmOut[0]) ?: 'missing',
+                    'check' => version_compare( $normalizeVersion($npmOut[0]), $f3->get('REQUIREMENTS.PATH.NPM'), '>='),
+                    'tooltip' => 'npm # npm -v'
+                ]
+            ];
+        }
+
+        return $systemConf;
     }
 
     /**
@@ -756,7 +842,7 @@ class Setup extends Controller {
             $dbCreate = false;
             // enable database ::setup() function on UI
             $dbSetupEnable = false;
-            // check  of everything is OK (connection, tables, columns, indexes,..)
+            // check  if everything is OK (connection, tables, columns, indexes,..)
             $dbStatusCheckCount = 0;
             // db queries for column fixes (types, indexes, unique)
             $dbColumnQueries = [];

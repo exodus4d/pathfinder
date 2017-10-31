@@ -476,25 +476,32 @@ define([
                         },{
                             targets: 4,
                             orderable: false,
-                            title: '<i title="docked station" data-toggle="tooltip" class="fa fa-home text-right"></i>',
+                            title: '',
                             width: '10px',
                             className: ['pf-help-default'].join(' '),
-                            data: 'log.station',
+                            data: 'log',
                             render: {
                                 _: function(data, type, row, meta){
                                     let value = '';
-                                    if(
-                                        type === 'display' &&
-                                        data.id
-                                    ){
-                                        value = '<i class="fa fa-home"></i>';
+                                    if(type === 'display'){
+                                        if(data.station && data.station.id > 0){
+                                            value = '<i class="fa fa-home"></i>';
+                                        }else if(data.structure && data.structure.id > 0){
+                                            value = '<i class="fa fa-industry"></i>';
+                                        }
                                     }
                                     return value;
                                 }
                             },
                             createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                                let selector = '';
+                                if(cellData.station && cellData.station.id > 0){
+                                    selector = 'log.station.name';
+                                }else if(cellData.structure && cellData.structure.id > 0){
+                                    selector = 'log.structure.name';
+                                }
                                 let api = this.DataTable();
-                                initCellTooltip(api, cell, 'log.station.name');
+                                initCellTooltip(api, cell, selector);
                             }
                         },{
                             targets: 5,

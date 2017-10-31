@@ -600,6 +600,7 @@ class Controller {
      * @return bool
      */
     public function showError(\Base $f3){
+
         if(!headers_sent()){
             // collect error info -------------------------------------------------------------------------------------
             $error = $this->getErrorObject(
