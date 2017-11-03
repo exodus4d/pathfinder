@@ -6,7 +6,7 @@
  * Time: 17:32
  */
 
-namespace Lib;
+namespace lib;
 
 class Util {
 

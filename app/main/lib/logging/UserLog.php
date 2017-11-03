@@ -6,7 +6,7 @@
  * Time: 14:15
  */
 
-namespace Lib\Logging;
+namespace lib\logging;
 
 
 class UserLog extends AbstractChannelLog {

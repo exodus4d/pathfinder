@@ -11,7 +11,7 @@ namespace Model;
 use DB\SQL\Schema;
 use Controller;
 use DB;
-use Lib\Logging;
+use lib\logging;
 use Exception\ValidationException;
 use Exception\DatabaseException;
 

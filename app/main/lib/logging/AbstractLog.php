@@ -6,10 +6,10 @@
  * Time: 22:13
  */
 
-namespace Lib\Logging;
+namespace lib\logging;
 
 
-use Lib\Monolog;
+use lib\Monolog;
 use Monolog\Logger;
 
 abstract class AbstractLog implements LogInterface {

@@ -9,7 +9,7 @@
 namespace Model;
 
 use DB\SQL\Schema;
-use Lib\Logging;
+use lib\logging;
 
 class SystemSignatureModel extends AbstractMapTrackingModel {
 

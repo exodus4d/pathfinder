@@ -6,7 +6,7 @@
  * Time: 16:50
  */
 
-namespace Lib\Logging;
+namespace lib\logging;
 
 use lib\Config;
 

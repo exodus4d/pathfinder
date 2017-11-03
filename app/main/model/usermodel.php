@@ -13,7 +13,7 @@ use Controller;
 use Controller\Api\User as User;
 use Exception;
 use lib\Config;
-use Lib\Logging;
+use lib\logging;
 
 class UserModel extends BasicModel {
 

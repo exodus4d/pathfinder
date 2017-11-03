@@ -6,7 +6,7 @@
  * Time: 14:10
  */
 
-namespace Lib\Logging;
+namespace lib\logging;
 
 
 interface LogInterface {

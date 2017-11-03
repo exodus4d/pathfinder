@@ -6,11 +6,11 @@
  * Time: 20:17
  */
 
-namespace Lib;
+namespace lib;
 
 
 use controller\LogController;
-use Lib\Logging;
+use lib\logging;
 use Monolog\Registry;
 use Monolog\Formatter\FormatterInterface;
 use Monolog\Handler\HandlerInterface;

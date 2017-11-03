@@ -11,7 +11,7 @@ namespace Model;
 use Controller\Ccp\Sso as Sso;
 use Controller\Api\User as User;
 use DB\SQL\Schema;
-use Lib\Util;
+use lib\Util;
 use lib\Config;
 use Model\Universe;
 

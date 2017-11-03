@@ -159,7 +159,7 @@ define([
             ).append(
                 $('<dt>').text( 'Created' )
             ).append(
-                $('<dd>').text( mapDataOrigin.config.created.character.name)
+                $('<dd>').text(Util.getObjVal(mapDataOrigin, 'config.created.character.name'))
             );
 
         mapElement.append(dlElementRight);

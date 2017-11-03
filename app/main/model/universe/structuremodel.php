@@ -11,7 +11,7 @@ namespace Model\Universe;
 
 use DB\SQL;
 use DB\SQL\Schema;
-use Lib\Util;
+use lib\Util;
 
 class StructureModel extends BasicUniverseModel {
 

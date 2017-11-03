@@ -6,7 +6,7 @@
  * Time: 14:49
  */
 
-namespace Lib\Logging\Formatter;
+namespace lib\logging\formatter;
 
 use lib\Config;
 use Monolog\Formatter;

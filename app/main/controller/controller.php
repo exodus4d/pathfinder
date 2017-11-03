@@ -9,9 +9,9 @@
 namespace Controller;
 use Controller\Api as Api;
 use lib\Config;
-use Lib\Monolog;
+use lib\Monolog;
 use lib\Socket;
-use Lib\Util;
+use lib\Util;
 use Model;
 use DB;
 

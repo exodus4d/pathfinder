@@ -13,7 +13,7 @@ use DB;
 use DB\SQL;
 use DB\SQL\MySQL as MySQL;
 use lib\Config;
-use Lib\Util;
+use lib\Util;
 use Model;
 
 class Setup extends Controller {

@@ -6,7 +6,7 @@
  * Time: 20:08
  */
 
-namespace Lib\Logging\Handler;
+namespace lib\logging\handler;
 
 use lib\Config;
 use Monolog\Handler;

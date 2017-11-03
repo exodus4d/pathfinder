@@ -9,7 +9,7 @@
 namespace controller;
 use DB;
 use lib\Config;
-use Lib\Logging\MapLog;
+use lib\logging\MapLog;
 use Model\ActivityLogModel;
 use Model\BasicModel;
 

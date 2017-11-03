@@ -6,7 +6,7 @@
  * Time: 12:28
  */
 
-namespace Lib;
+namespace lib;
 
 use controller\LogController;
 

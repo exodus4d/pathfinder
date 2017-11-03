@@ -12,7 +12,7 @@ use Controller\Api\System;
 use DB\SQL\Schema;
 use data\file\FileHandler;
 use lib\Config;
-use Lib\Logging;
+use lib\logging;
 use Exception\PathfinderException;
 
 class MapModel extends AbstractMapTrackingModel {
@@ -838,7 +838,7 @@ class MapModel extends AbstractMapTrackingModel {
     public function newLog($action = ''): Logging\LogInterface{
         $logChannelData = $this->getLogChannelData();
         $logObjectData = $this->getLogObjectData();
-        $log = (new Logging\MapLog($action, $logChannelData))->setTempData($logObjectData);
+        $log = (new logging\MapLog($action, $logChannelData))->setTempData($logObjectData);
 
         // update map history *.log files -----------------------------------------------------------------------------
         if($this->isHistoryLogEnabled()){

@@ -10,7 +10,7 @@ namespace Model;
 
 use DB\SQL\Schema;
 use Controller\Api\Route;
-use Lib\Logging;
+use lib\logging;
 
 class ConnectionModel extends AbstractMapTrackingModel {
 

@@ -6,7 +6,7 @@
  * Time: 19:17
  */
 
-namespace Lib;
+namespace lib;
 
 use controller\LogController;
 use \Exodus4D\ESI\ESI as ApiClient;

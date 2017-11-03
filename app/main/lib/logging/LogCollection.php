@@ -6,7 +6,7 @@
  * Time: 11:23
  */
 
-namespace Lib\Logging;
+namespace lib\logging;
 
 
 class LogCollection extends AbstractLog {

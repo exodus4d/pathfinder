@@ -6,7 +6,7 @@
  * Time: 19:05
  */
 
-namespace Lib\Logging;
+namespace lib\logging;
 
 use lib\Config;
 use Model\CharacterModel;

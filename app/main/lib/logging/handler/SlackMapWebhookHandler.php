@@ -6,9 +6,9 @@
  * Time: 20:52
  */
 
-namespace Lib\Logging\Handler;
+namespace lib\logging\handler;
 
-use Lib\Util;
+use lib\Util;
 
 class SlackMapWebhookHandler extends AbstractSlackWebhookHandler {
 
