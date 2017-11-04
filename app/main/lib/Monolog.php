@@ -28,15 +28,15 @@ class Monolog extends \Prefab {
         'line'          => 'Monolog\Formatter\LineFormatter',
         'json'          => 'Monolog\Formatter\JsonFormatter',
         'html'          => 'Monolog\Formatter\HtmlFormatter',
-        'mail'          => 'Lib\Logging\Formatter\MailFormatter'
+        'mail'          => 'lib\logging\formatter\MailFormatter'
     ];
 
     const HANDLER = [
         'stream'        => 'Monolog\Handler\StreamHandler',
         'mail'          => 'Monolog\Handler\SwiftMailerHandler',
-        'slackMap'      => 'Lib\Logging\Handler\SlackMapWebhookHandler',
-        'slackRally'    => 'Lib\Logging\Handler\SlackRallyWebhookHandler',
-        'zmq'           => 'Lib\Logging\Handler\ZMQHandler'
+        'slackMap'      => 'lib\logging\handler\SlackMapWebhookHandler',
+        'slackRally'    => 'lib\logging\handler\SlackRallyWebhookHandler',
+        'zmq'           => 'lib\logging\handler\ZMQHandler'
     ];
 
     const PROCESSOR = [
