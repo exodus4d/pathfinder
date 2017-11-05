@@ -676,7 +676,8 @@ define([
                     dataType: 'json',
                     context: {
                         cookieName: requestData.cookie,
-                        characterElement: characterElement
+                        characterElement: characterElement,
+                        browserTabId: Util.getBrowserTabId()
                     }
                 }).done(function(responseData, textStatus, request){
                     this.characterElement.hideLoadingAnimation();
@@ -698,9 +699,11 @@ define([
                         let data = {
                             link: this.characterElement.data('href'),
                             cookieName: this.cookieName,
+                            browserTabId: this.browserTabId,
                             character: responseData.character,
                             authLabel: getCharacterAuthLabel(responseData.character.authStatus),
-                            authOK: responseData.character.authStatus === 'OK'
+                            authOK: responseData.character.authStatus === 'OK',
+                            hasActiveSession: responseData.character.hasActiveSession === true
                         };
 
                         let content = Mustache.render(template, data);
@@ -766,6 +769,12 @@ define([
      * main init "landing" page
      */
     $(function(){
+        // clear sessionStorage
+        Util.clearSessionStorage();
+
+        // set default AJAX config
+        Util.ajaxSetup();
+
         // set Dialog default config
         Util.initDefaultBootboxConfig();
 

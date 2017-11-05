@@ -93,13 +93,26 @@ jQuery.fn.dragToSelect = function (conf) {
 		return this;
 	}
 
-	var parentOffset	= parent.offset();
-	var parentDim		= {
-		left:	parentOffset.left, 
-		top:	parentOffset.top, 
-		width:	parent.width(), 
-		height:	parent.height()
-	};
+    var parentDim = {
+        left:	0,
+        top:	0,
+        width:	10,
+        height:	10
+    };
+
+    // set parent dimensions
+    // -> should be updated in case of left/right menu is open
+    var setParentDimensions = (parent) => {
+        var parentOffset	= parent.offset();
+        parentDim		= {
+            left:	parentOffset.left,
+            top:	parentOffset.top,
+            width:	parent.width(),
+            height:	parent.height()
+        };
+    }
+
+	setParentDimensions(parent);
 
 	// Current origin of select box
 	var selectBoxOrigin = {
@@ -343,6 +356,7 @@ jQuery.fn.dragToSelect = function (conf) {
 	// Do the right stuff then return this --------------------------------------------------------
 
 	selectBox.mousemove(function(e){
+        setParentDimensions(parent);
 		lastMousePosition.x = e.pageX;
 		lastMousePosition.y = e.pageY;
 		e.preventDefault();
@@ -353,7 +367,6 @@ jQuery.fn.dragToSelect = function (conf) {
 			e.which === 1 && // left mouse down
 			e.target === realParent[0] // prevent while dragging a system :)
 		) {
-
 			// Make sure user isn't clicking scrollbar (or disallow clicks far to the right actually)
 			if ((e.pageX + 20) > jQuery(document.body).width()) {
 				return;
@@ -366,6 +379,7 @@ jQuery.fn.dragToSelect = function (conf) {
 
 		e.preventDefault();
 	}).mousemove(function(e){
+        setParentDimensions(parent);
 		lastMousePosition.x = e.pageX;
 		lastMousePosition.y = e.pageY;
 		e.preventDefault();

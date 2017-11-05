@@ -9,8 +9,9 @@
 namespace Model;
 
 use DB\SQL\Schema;
+use lib\logging;
 
-class SystemSignatureModel extends BasicModel {
+class SystemSignatureModel extends AbstractMapTrackingModel {
 
     protected $table = 'system_signature';
 
@@ -62,52 +63,29 @@ class SystemSignatureModel extends BasicModel {
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
             'default' => '',
-            'activity-log' => true
+            'activity-log' => true,
+            'validate' => true
         ],
         'description' => [
             'type' => Schema::DT_VARCHAR512,
             'nullable' => false,
             'default' => '',
             'activity-log' => true
-        ],
-        'createdCharacterId' => [
-            'type' => Schema::DT_INT,
-            'index' => true,
-            'belongs-to-one' => 'Model\CharacterModel',
-            'constraint' => [
-                [
-                    'table' => 'character',
-                    'on-delete' => 'CASCADE'
-                ]
-            ]
-        ],
-        'updatedCharacterId' => [
-            'type' => Schema::DT_INT,
-            'index' => true,
-            'belongs-to-one' => 'Model\CharacterModel',
-            'constraint' => [
-                [
-                    'table' => 'character',
-                    'on-delete' => 'CASCADE'
-                ]
-            ]
-        ]
-    ];
-
-    protected $validate = [
-        'name' => [
-            'length' => [
-                'min' => 3
-            ]
         ]
     ];
 
     /**
      * set an array with all data for a system
-     * @param $signatureData
+     * @param $data
      */
-    public function setData($signatureData){
-        foreach((array)$signatureData as $key => $value){
+    public function setData($data){
+        unset($data['id']);
+        unset($data['created']);
+        unset($data['updated']);
+        unset($data['createdCharacterId']);
+        unset($data['updatedCharacterId']);
+
+        foreach((array)$data as $key => $value){
             if(!is_array($value)){
                 if($this->exists($key)){
                     $this->$key = $value;
@@ -121,7 +99,6 @@ class SystemSignatureModel extends BasicModel {
      * @return \stdClass
      */
     public function getData(){
-
         $signatureData                              = (object) [];
         $signatureData->id                          = $this->id;
 
@@ -185,6 +162,36 @@ class SystemSignatureModel extends BasicModel {
         }
 
         return $validConnectionId;
+    }
+
+    /**
+     * validate name column
+     * @param string $key
+     * @param string $val
+     * @return bool
+     */
+    protected function validate_name(string $key, string $val): bool {
+        $valid = true;
+        if(mb_strlen($val) < 3){
+            $valid = false;
+            $this->throwValidationException($key);
+        }
+        return $valid;
+    }
+
+    /**
+     * @param string $action
+     * @return Logging\LogInterface
+     */
+    public function newLog($action = ''): Logging\LogInterface{
+        return $this->getMap()->newLog($action)->setTempData($this->getLogObjectData());
+    }
+
+    /**
+     * @return MapModel
+     */
+    public function getMap(): MapModel{
+        return $this->get('systemId')->getMap();
     }
 
     /**
@@ -270,29 +277,14 @@ class SystemSignatureModel extends BasicModel {
     }
 
     /**
-     * log character activity create/update/delete events
-     * @param string $action
+     * get object relevant data for model log
+     * @return array
      */
-    protected function logActivity($action){
-        if($this->enableActivityLogging){
-            /**
-             * @var $map MapModel
-             */
-            $map = $this->get('systemId')->get('mapId');
-
-            if(
-                (
-                    $action === 'signatureDelete' ||
-                    !empty($this->fieldChanges)
-                ) &&
-                $map->isActivityLogEnabled()
-            ){
-                $characterId = $this->get('updatedCharacterId', true);
-                $mapId = $map->_id;
-
-                parent::bufferActivity($characterId, $mapId, $action);
-            }
-        }
+    public function getLogObjectData() : array{
+        return [
+            'objId' => $this->_id,
+            'objName' => $this->name
+        ];
     }
 
     /**

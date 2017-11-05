@@ -197,15 +197,15 @@ define([
 
                 switch(options.type){
                     case 'character':
-                        imagePath = Init.url.ccpImageServer + 'Character/' + data.id + '_32.jpg';
+                        imagePath = Init.url.ccpImageServer + '/Character/' + data.id + '_32.jpg';
                         previewContent = '<img src="' + imagePath + '" style="max-width: 100%" />';
                         break;
                     case 'corporation':
-                        imagePath = Init.url.ccpImageServer + 'Corporation/' + data.id + '_32.png';
+                        imagePath = Init.url.ccpImageServer + '/Corporation/' + data.id + '_32.png';
                         previewContent = '<img src="' + imagePath + '" style="max-width: 100%" />';
                         break;
                     case 'alliance':
-                        imagePath = Init.url.ccpImageServer + 'Alliance/' + data.id + '_32.png';
+                        imagePath = Init.url.ccpImageServer + '/Alliance/' + data.id + '_32.png';
                         previewContent = '<img src="' + imagePath + '" style="max-width: 100%" />';
                         break;
                 }

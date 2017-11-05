@@ -4,8 +4,8 @@
 define([
     'jquery',
     'app/init',
-    'config/system_effect',
-    'config/signature_type',
+    'conf/system_effect',
+    'conf/signature_type',
     'bootbox',
     'localForage',
     'velocity',
@@ -264,7 +264,8 @@ define([
                     errors[i].field.length > 0
                 ){
                     let formField = formElement.find('[name="' + errors[i].field + '"]');
-                    formField.parents('.form-group').removeClass('has-success').addClass('has-error');
+                    let formGroup = formField.parents('.form-group').removeClass('has-success').addClass('has-error');
+                    let formHelp = formGroup.find('.help-block').text(errors[i].message);
                 }
 
             }else if(errors[i].type === 'warning'){
@@ -559,6 +560,7 @@ define([
 
             let data = {
                 id: config.headCharacterSwitchId,
+                browserTabId: getBrowserTabId(),
                 routes:  Init.routes,
                 userData: userData,
                 otherCharacters: $.grep( userData.characters, function( character ) {
@@ -729,17 +731,24 @@ define([
 
             let defaultOptions = {
                 dismissible: true,
+                messageId: 'pf-alert-' + Math.random().toString(36).substring(7),
                 messageTypeClass: messageTypeClass,
-                messageTextClass: messageTextClass
+                messageTextClass: messageTextClass,
+                insertElement: 'replace'
             };
 
             defaultOptions = $.extend(defaultOptions, config);
-
             let content = Mustache.render(template, defaultOptions);
 
-            containerElement.html(content);
+            switch(defaultOptions.insertElement){
+                case 'replace': containerElement.html(content); break;
+                case 'prepend': containerElement.prepend(content); break;
+                case 'append': containerElement.append(content); break;
+                default: console.error('insertElement: %s is not specified!', defaultOptions.insertElement);
+            }
 
-            containerElement.children().first().velocity('stop').velocity('fadeIn');
+            //containerElement.children().first().velocity('stop').velocity('fadeIn');
+            $('#' + defaultOptions.messageId).velocity('stop').velocity('fadeIn');
 
         });
     };
@@ -1073,6 +1082,20 @@ define([
     };
 
     /**
+     * get a unique ID for each tab
+     * -> store ID in session storage
+     */
+    let getBrowserTabId = () => {
+        let key = 'tabId';
+        let tabId = sessionStorage.getItem(key);
+        if(tabId === null){
+            tabId = Math.random().toString(36).substr(2, 5);
+            sessionStorage.setItem(key, tabId);
+        }
+        return tabId;
+    };
+
+    /**
      * set default jQuery AJAX configuration
      */
     let ajaxSetup = function(){
@@ -1081,6 +1104,9 @@ define([
                 // Add custom application headers on "same origin" requests only!
                 // -> Otherwise a "preflight" request is made, which will "probably" fail
                 if(settings.crossDomain === false){
+                    // Add browser tab information
+                    xhr.setRequestHeader('Pf-Tab-Id', getBrowserTabId()) ;
+
                     // add current character data to ANY XHR request (HTTP HEADER)
                     // -> This helps to identify multiple characters on multiple browser tabs
                     let userData = getCurrentUserData();
@@ -2058,32 +2084,57 @@ define([
     };
 
     /**
-     * Create Date as UTC
+     * clear session Storage
+     * -> otherwise a tab refresh does not clear sessionStorage!
+     */
+    let clearSessionStorage = () => {
+        if(sessionStorage){
+            sessionStorage.clear();
+        }
+    };
+
+    /**
+     * Create Date() as UTC
      * @param date
      * @returns {Date}
      */
-    let createDateAsUTC = function(date) {
+    let createDateAsUTC = function(date){
         return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()));
     };
 
     /**
-     * Convert Date to UTC (!important function!)
+     * Convert Date() to UTC (!important function!)
      * @param date
      * @returns {Date}
      */
-    let convertDateToUTC = function(date) {
+    let convertDateToUTC = function(date){
         return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
     };
 
     /**
-     * Convert Date to Time String
+     * Convert Date() to Time String
      * @param date
+     * @param showSeconds
      * @returns {string}
      */
-    let convertDateToString = function(date){
+    let convertDateToString = function(date, showSeconds){
         let dateString = ('0'+ (date.getMonth() + 1 )).slice(-2) + '/' + ('0'+date.getDate()).slice(-2) + '/' + date.getFullYear();
         let timeString = ('0' + date.getHours()).slice(-2) + ':' + ('0'+date.getMinutes()).slice(-2);
+        timeString += (showSeconds) ? ':' + ('0'+date.getSeconds()).slice(-2) : '';
         return   dateString + ' ' + timeString;
+    };
+
+    /**
+     * get deep json object value if exists
+     * -> e.g. key = 'first.last.third' string
+     * @param obj
+     * @param key
+     * @returns {*}
+     */
+    let getObjVal = (obj, key) => {
+        return key.split('.').reduce((o, x) => {
+            return (typeof o === 'undefined' || o === null) ? o : o[x];
+        }, obj);
     };
 
     /**
@@ -2197,11 +2248,15 @@ define([
         getNearBySystemData: getNearBySystemData,
         getNearByCharacterData: getNearByCharacterData,
         setDestination: setDestination,
+        convertDateToUTC: convertDateToUTC,
         convertDateToString: convertDateToString,
         getOpenDialogs: getOpenDialogs,
         openIngameWindow: openIngameWindow,
         formatPrice: formatPrice,
         getLocalStorage: getLocalStorage,
+        clearSessionStorage: clearSessionStorage,
+        getBrowserTabId: getBrowserTabId,
+        getObjVal: getObjVal,
         getDocumentPath: getDocumentPath,
         redirect: redirect,
         logout: logout

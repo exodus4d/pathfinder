@@ -28,9 +28,9 @@ define([
         overlayLocalJumpsClass: 'pf-map-overlay-local-jumps',               // class for jump distance for table results
 
         // dataTable
-        tableImageCellClass: 'pf-table-image-cell',                         // class for table "image" cells
-        tableActionCellClass: 'pf-table-action-cell',                       // class for table "action" cells
-        tableActionCellIconClass: 'pf-table-action-icon-cell',              // class for table "action" icon (icon is part of cell content)
+        tableCellImageClass: 'pf-table-image-cell',                         // class for table "image" cells
+        tableCellActionClass: 'pf-table-action-cell',                       // class for table "action" cells
+        tableCellActionIconClass: 'pf-table-action-icon-cell',              // class for table "action" icon (icon is part of cell content)
 
         // toolbar
         toolbarClass: 'pf-map-overlay-toolbar',                             // class for toolbar - content
@@ -288,236 +288,247 @@ define([
      * @returns {*}
      */
     $.fn.initLocalOverlay = function(mapId){
-        return this.each(function(){
-            let parentElement = $(this);
+        let parentElements = $(this);
 
-            let overlay = $('<div>', {
-                class: [config.overlayClass, config.overlayLocalClass].join(' ')
-            });
+        require(['datatables.loader'], () => {
+            parentElements.each(function(){
+                let parentElement = $(this);
 
-            let content = $('<div>', {
-                class: [ 'text-right', config.overlayLocalContentClass].join(' ')
-            });
+                let overlay = $('<div>', {
+                    class: [config.overlayClass, config.overlayLocalClass].join(' ')
+                });
 
-            // crate new route table
-            let table = $('<table>', {
-                class: ['compact', 'order-column', config.overlayLocalTableClass].join(' ')
-            });
+                let content = $('<div>', {
+                    class: [ 'text-right', config.overlayLocalContentClass].join(' ')
+                });
 
-            let overlayMain = $('<div>', {
-                text: '',
-                class: config.overlayLocalMainClass
-            }).append(
-                $('<i>', {
-                    class: ['fa', 'fa-chevron-down', 'fa-fw', 'pf-animate-rotate', config.overlayLocalTriggerClass].join(' ')
-                }),
-                $('<span>', {
-                    class: ['badge', 'txt-color', 'txt-color-red', config.overlayLocalUsersClass].join(' '),
-                    text: 0
-                }),
-                $('<div>', {
-                    class: config.overlayLocalJumpsClass
+                // crate new route table
+                let table = $('<table>', {
+                    class: ['compact', 'order-column', config.overlayLocalTableClass].join(' ')
+                });
+
+                let overlayMain = $('<div>', {
+                    text: '',
+                    class: config.overlayLocalMainClass
+                }).append(
+                    $('<i>', {
+                        class: ['fa', 'fa-chevron-down', 'fa-fw', 'pf-animate-rotate', config.overlayLocalTriggerClass].join(' ')
+                    }),
+                    $('<span>', {
+                        class: ['badge', 'txt-color', 'txt-color-red', config.overlayLocalUsersClass].join(' '),
+                        text: 0
+                    }),
+                    $('<div>', {
+                        class: config.overlayLocalJumpsClass
+                    }).append(
+                        $('<span>', {
+                            class: ['badge', 'txt-color', 'txt-color-grayLight'].join(' '),
+                            text: MapUtil.config.defaultLocalJumpRadius
+                        }).attr('title', 'jumps')
+                    )
+                );
+
+                let headline = $('<div>', {
+                    class: config.overlayLocalHeadlineClass
                 }).append(
                     $('<span>', {
-                        class: ['badge', 'txt-color', 'txt-color-grayLight'].join(' '),
-                        text: MapUtil.config.defaultLocalJumpRadius
-                    }).attr('title', 'jumps')
-                )
-            );
+                        html: 'Nearby&nbsp;&nbsp;&nbsp;',
+                        class: 'pull-left'
+                    }),
+                    $('<span>'),
+                    $('<span>'),
+                    $('<span>', {
+                        class: ['badge', ' txt-color', 'txt-color-red'].join(' '),
+                        text: 0
+                    })
+                );
 
-            let headline = $('<div>', {
-                class: config.overlayLocalHeadlineClass
-            }).append(
-                $('<span>', {
-                    html: 'Nearby&nbsp;&nbsp;&nbsp;',
-                    class: 'pull-left'
-                }),
-                $('<span>'),
-                $('<span>'),
-                $('<span>', {
-                    class: ['badge', ' txt-color', 'txt-color-red'].join(' '),
-                    text: 0
-                })
-            );
+                content.append(headline);
+                content.append(table);
+                // toolbar not used for now
+                // content.append(initToolbar());
 
-            content.append(headline);
-            content.append(table);
-            // toolbar not used for now
-            // content.append(initToolbar());
+                overlay.append(overlayMain);
+                overlay.append(content);
 
-            overlay.append(overlayMain);
-            overlay.append(content);
+                // set observer
+                setOverlayObserver(overlay, mapId);
 
-            // set observer
-            setOverlayObserver(overlay, mapId);
+                parentElement.append(overlay);
 
-            parentElement.append(overlay);
+                // init local table ---------------------------------------------------------------------------------------
 
-            // init local table ---------------------------------------------------------------------------------------
+                table.on('draw.dt', function(e, settings){
+                    // init table tooltips
+                    $(this).find('td').initTooltips({
+                        container: 'body',
+                        placement: 'left'
+                    });
 
-            table.on('draw.dt', function(e, settings){
-                // init table tooltips
-                $(this).find('td').initTooltips({
-                    container: 'body',
-                    placement: 'left'
-                });
-
-                // hide pagination in case of only one page
-                let paginationElement = overlay.find('.dataTables_paginate');
-                let pageElements = paginationElement.find('span .paginate_button');
-                if(pageElements.length <= 1){
-                    paginationElement.hide();
-                }else{
-                    paginationElement.show();
-                }
-            });
-
-            // table init complete
-            table.on( 'init.dt', function (){
-                // init table head tooltips
-                $(this).initTooltips({
-                    container: 'body',
-                    placement: 'top'
-                });
-            });
-
-            let localTable = table.DataTable( {
-                pageLength: 13, // hint: if pagination visible => we need space to show it
-                paging: true,
-                lengthChange: false,
-                ordering: true,
-                order: [ 0, 'asc' ],
-                info: false,
-                searching: false,
-                hover: false,
-                autoWidth: false,
-                rowId: function(rowData) {
-                    return 'pf-local-row_' + rowData.id; // characterId
-                },
-                language: {
-                    emptyTable: '<span>You&nbsp;are&nbsp;alone</span>'
-                },
-                columnDefs: [
-                    {
-                        targets: 0,
-                        orderable: true,
-                        title: '<span title="jumps" data-toggle="tooltip">&nbsp;</span>',
-                        width: '1px',
-                        className: ['pf-help-default', 'text-center'].join(' '),
-                        data: 'jumps',
-                        render: {
-                            _: function(data, type, row, meta){
-                                let value = data;
-                                if(type === 'display'){
-                                    if(value === 0){
-                                        value = '<i class="fa fa-map-marker"></i>';
-                                    }
-                                }
-                                return value;
-                            }
-                        },
-                        createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
-                            let api = this.DataTable();
-                            initCellTooltip(api, cell, 'log.system.name');
-                        }
-                    },{
-                        targets: 1,
-                        orderable: false,
-                        title: '',
-                        width: '26px',
-                        className: ['pf-help-default', 'text-center', config.tableImageCellClass].join(' '),
-                        data: 'log.ship',
-                        render: {
-                            _: function(data, type, row, meta){
-                                let value = data.typeName;
-                                if(type === 'display'){
-                                    value = '<img src="' + Init.url.ccpImageServer + 'Render/' + data.typeId + '_32.png"/>';
-                                }
-                                return value;
-                            }
-                        },
-                        createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
-                            let api = this.DataTable();
-                            initCellTooltip(api, cell, 'log.ship.typeName');
-                        }
-                    }, {
-                        targets: 2,
-                        orderable: true,
-                        title: 'ship&nbsp;name',
-                        width: '80px',
-                        data: 'log.ship',
-                        render: {
-                            _: function(data, type, row, meta){
-                                let value = data.name;
-                                if(type === 'display'){
-                                    value = '<div class="' + MapUtil.config.tableCellEllipsisClass + ' ' + MapUtil.config.tableCellEllipsis80Class + '">' + data.name + '</div>';
-                                }
-                                return value;
-                            },
-                            sort: 'name'
-                        }
-                    },{
-                        targets: 3,
-                        orderable: true,
-                        title: 'pilot',
-                        data: 'name',
-                        render: {
-                            _: function(data, type, row, meta){
-                                let value = data;
-                                if(type === 'display'){
-                                    value = '<div class="' + MapUtil.config.tableCellEllipsisClass + ' ' + MapUtil.config.tableCellEllipsis90Class + '">' + data + '</div>';
-                                }
-                                return value;
-                            }
-                        }
-                    },{
-                        targets: 4,
-                        orderable: false,
-                        title: '<i title="docked station" data-toggle="tooltip" class="fa fa-home text-right"></i>',
-                        width: '10px',
-                        className: ['pf-help-default'].join(' '),
-                        data: 'log.station',
-                        render: {
-                            _: function(data, type, row, meta){
-                                let value = '';
-                                if(
-                                    type === 'display' &&
-                                    data.id
-                                ){
-                                    value = '<i class="fa fa-home"></i>';
-                                }
-                                return value;
-                            }
-                        },
-                        createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
-                            let api = this.DataTable();
-                            initCellTooltip(api, cell, 'log.station.name');
-                        }
-                    },{
-                        targets: 5,
-                        orderable: false,
-                        title: '<i title="open ingame" data-toggle="tooltip" class="fa fa-id-card text-right"></i>',
-                        width: '10px',
-                        className: [config.tableActionCellClass].join(' '),
-                        data: 'id',
-                        render: {
-                            _: function(data, type, row, meta){
-                                let value = data;
-                                if(type === 'display'){
-                                    value = '<i class="fa fa-id-card ' + config.tableActionCellIconClass + '"></i>';
-                                }
-                                return value;
-                            }
-                        },
-                        createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
-                            // open character information window (ingame)
-                            $(cell).on('click', { tableApi: this.DataTable(), cellData: cellData }, function(e){
-                                let cellData = e.data.tableApi.cell(this).data();
-                                Util.openIngameWindow(e.data.cellData);
-                            });
-                        }
+                    // hide pagination in case of only one page
+                    let paginationElement = overlay.find('.dataTables_paginate');
+                    let pageElements = paginationElement.find('span .paginate_button');
+                    if(pageElements.length <= 1){
+                        paginationElement.hide();
+                    }else{
+                        paginationElement.show();
                     }
-                ]
+                });
+
+                // table init complete
+                table.on( 'init.dt', function (){
+                    // init table head tooltips
+                    $(this).initTooltips({
+                        container: 'body',
+                        placement: 'top'
+                    });
+                });
+
+                let localTable = table.DataTable( {
+                    pageLength: 13, // hint: if pagination visible => we need space to show it
+                    paging: true,
+                    lengthChange: false,
+                    ordering: true,
+                    order: [ 0, 'asc' ],
+                    info: false,
+                    searching: false,
+                    hover: false,
+                    autoWidth: false,
+                    rowId: function(rowData) {
+                        return 'pf-local-row_' + rowData.id; // characterId
+                    },
+                    language: {
+                        emptyTable: '<span>You&nbsp;are&nbsp;alone</span>'
+                    },
+                    columnDefs: [
+                        {
+                            targets: 0,
+                            orderable: true,
+                            title: '<span title="jumps" data-toggle="tooltip">&nbsp;</span>',
+                            width: '1px',
+                            className: ['pf-help-default', 'text-center'].join(' '),
+                            data: 'jumps',
+                            render: {
+                                _: function(data, type, row, meta){
+                                    let value = data;
+                                    if(type === 'display'){
+                                        if(value === 0){
+                                            value = '<i class="fa fa-map-marker"></i>';
+                                        }
+                                    }
+                                    return value;
+                                }
+                            },
+                            createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                                let api = this.DataTable();
+                                initCellTooltip(api, cell, 'log.system.name');
+                            }
+                        },{
+                            targets: 1,
+                            orderable: false,
+                            title: '',
+                            width: '26px',
+                            className: ['pf-help-default', 'text-center', config.tableCellImageClass].join(' '),
+                            data: 'log.ship',
+                            render: {
+                                _: function(data, type, row, meta){
+                                    let value = data.typeName;
+                                    if(type === 'display'){
+                                        value = '<img src="' + Init.url.ccpImageServer + '/Render/' + data.typeId + '_32.png"/>';
+                                    }
+                                    return value;
+                                }
+                            },
+                            createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                                let api = this.DataTable();
+                                initCellTooltip(api, cell, 'log.ship.typeName');
+                            }
+                        }, {
+                            targets: 2,
+                            orderable: true,
+                            title: 'ship&nbsp;name',
+                            width: '80px',
+                            data: 'log.ship',
+                            render: {
+                                _: function(data, type, row, meta){
+                                    let value = data.name;
+                                    if(type === 'display'){
+                                        value = '<div class="' + MapUtil.config.tableCellEllipsisClass + ' ' + MapUtil.config.tableCellEllipsis80Class + '">' + data.name + '</div>';
+                                    }
+                                    return value;
+                                },
+                                sort: 'name'
+                            }
+                        },{
+                            targets: 3,
+                            orderable: true,
+                            title: 'pilot',
+                            data: 'name',
+                            render: {
+                                _: function(data, type, row, meta){
+                                    let value = data;
+                                    if(type === 'display'){
+                                        value = '<div class="' + MapUtil.config.tableCellEllipsisClass + ' ' + MapUtil.config.tableCellEllipsis90Class + '">' + data + '</div>';
+                                    }
+                                    return value;
+                                }
+                            }
+                        },{
+                            targets: 4,
+                            orderable: false,
+                            title: '',
+                            width: '10px',
+                            className: ['pf-help-default'].join(' '),
+                            data: 'log',
+                            render: {
+                                _: function(data, type, row, meta){
+                                    let value = '';
+                                    if(type === 'display'){
+                                        if(data.station && data.station.id > 0){
+                                            value = '<i class="fa fa-home"></i>';
+                                        }else if(data.structure && data.structure.id > 0){
+                                            value = '<i class="fa fa-industry"></i>';
+                                        }
+                                    }
+                                    return value;
+                                }
+                            },
+                            createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                                let selector = '';
+                                if(cellData.station && cellData.station.id > 0){
+                                    selector = 'log.station.name';
+                                }else if(cellData.structure && cellData.structure.id > 0){
+                                    selector = 'log.structure.name';
+                                }
+                                let api = this.DataTable();
+                                initCellTooltip(api, cell, selector);
+                            }
+                        },{
+                            targets: 5,
+                            orderable: false,
+                            title: '<i title="open ingame" data-toggle="tooltip" class="fa fa-id-card text-right"></i>',
+                            width: '10px',
+                            className: [config.tableCellActionClass].join(' '),
+                            data: 'id',
+                            render: {
+                                _: function(data, type, row, meta){
+                                    let value = data;
+                                    if(type === 'display'){
+                                        value = '<i class="fa fa-id-card ' + config.tableCellActionIconClass + '"></i>';
+                                    }
+                                    return value;
+                                }
+                            },
+                            createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                                // open character information window (ingame)
+                                $(cell).on('click', { tableApi: this.DataTable(), cellData: cellData }, function(e){
+                                    let cellData = e.data.tableApi.cell(this).data();
+                                    Util.openIngameWindow(e.data.cellData);
+                                });
+                            }
+                        }
+                    ]
+                });
             });
         });
     };

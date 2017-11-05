@@ -23,6 +23,9 @@ define([
     $(() => {
         Util.initPrototypes();
 
+        // clear sessionStorage
+        //Util.clearSessionStorage();
+
         // set default AJAX config
         Util.ajaxSetup();
 
@@ -63,7 +66,8 @@ define([
             Init.systemType         = initData.systemType;
             Init.characterStatus    = initData.characterStatus;
             Init.routes             = initData.routes;
-            Init.notificationStatus = initData.notificationStatus;
+            Init.url                = initData.url;
+            Init.slack              = initData.slack;
             Init.routeSearch        = initData.routeSearch;
             Init.programMode        = initData.programMode;
 
@@ -165,8 +169,7 @@ define([
 
                 if(jqXHR.responseJSON){
                     // handle JSON
-                    let errorObj = $.parseJSON(jqXHR.responseText);
-
+                    let errorObj = jqXHR.responseJSON;
                     if(
                         errorObj.error &&
                         errorObj.error.length > 0
@@ -182,7 +185,6 @@ define([
                 }
 
                 $(document).trigger('pf:shutdown', {status: jqXHR.status, reason: reason, error: errorData});
-
             };
 
             /**

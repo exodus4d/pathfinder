@@ -23,7 +23,7 @@
   }
 }
 
-.pf-splash{
+.pf-splash, .pf-splash-warning, .pf-splash-error {
   position: absolute;
   z-index: 2000;
   background-color: $gray-darkest;
@@ -42,6 +42,20 @@
     max-width: 500px;
     padding: 20px;
     @include transform( translate(-50%, -50%) );
+  }
+
+  .pf-splash-debug{
+    position: absolute;
+    bottom: 0;
+    width:100%;
+
+    .pf-splash-debug-headline{
+      padding: 0 10px;
+    }
+
+    .pf-splash-pre{
+      margin-bottom: 0; // overwrite default
+    }
   }
 }
 
@@ -102,15 +116,14 @@
       color: $orange;
       position: absolute;
       top: 9px;
-      left: 8px;
       height: 100%;
       width: 100%;
       padding-top: calc(50% - 10px);
       z-index: 10;
       text-align: center;
-      @include transition(transform 0.1s 0.06s ease-in, opacity 0.1s ease-out);
+      @include transition(transform 0.1s ease-out, opacity 0.1s ease-out);
       will-change: transform, opacity;
-      transform: scale(0,0);
+      transform: scale(1.3,1.3);
       opacity: 0;
     }
 
@@ -338,6 +351,20 @@
         .pf-character-image{
           @include filter(grayscale(50%))
         }
+      }
+
+      // character is "online"
+      &.pf-character-active:after{
+        font-family: FontAwesome;
+        content: "\f111";
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        height: 14px;
+        width: 14px;
+        color: $green;
+        font-size: 10px;
+        @extend .fa-rotate-180;
       }
 
       .pf-character-select-image{

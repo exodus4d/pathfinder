@@ -6,11 +6,7 @@ define([
     'jquery',
     'app/init',
     'app/util',
-    'datatables.net',
-    'datatables.net-buttons',
-    'datatables.net-buttons-html',
-    'datatables.net-responsive',
-    'datatables.net-select'
+    'datatables.loader'
 ], function($, Init, Util) {
 
     'use strict';

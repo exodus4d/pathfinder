@@ -11,7 +11,7 @@ requirejs.config({
 
     paths: {
         layout: 'layout',
-        config: 'app/config',                                           // path for "configuration" files dir
+        conf: 'app/conf',                                               // path for "config" files dir
         dialog: 'app/ui/dialog',                                        // path for "dialog" files dir
         templates: '../../templates',                                   // template dir
         img: '../../img',                                               // images dir
@@ -59,11 +59,13 @@ requirejs.config({
         tweenLite: 'lib/TweenLite.min',
 
         // datatables                                                   // v1.10.12 DataTables - https://datatables.net
+        'datatables.loader': './app/datatables.loader',
         'datatables.net': 'lib/datatables/DataTables-1.10.12/js/jquery.dataTables.min',
         'datatables.net-buttons': 'lib/datatables/Buttons-1.2.1/js/dataTables.buttons.min',
         'datatables.net-buttons-html': 'lib/datatables/Buttons-1.2.1/js/buttons.html5.min',
         'datatables.net-responsive': 'lib/datatables/Responsive-2.1.0/js/dataTables.responsive.min',
         'datatables.net-select': 'lib/datatables/Select-1.2.0/js/dataTables.select.min',
+        'datatables.plugins.render.ellipsis': 'lib/datatables/plugins/render/ellipsis',
 
         // notification plugin
         pnotify: 'lib/pnotify/pnotify',                                 // v3.0.0 PNotify - notification core file - https://sciactive.com/pnotify/
@@ -94,6 +96,9 @@ requirejs.config({
         customScrollbar: {
             deps: ['jquery', 'mousewheel']
         },
+        'datatables.loader': {
+            deps: ['jquery']
+        },
         'datatables.net': {
             deps: ['jquery']
         },
@@ -107,6 +112,9 @@ requirejs.config({
             deps: ['datatables.net']
         },
         'datatables.net-select': {
+            deps: ['datatables.net']
+        },
+        'datatables.plugins.render.ellipsis': {
             deps: ['datatables.net']
         },
         xEditable: {

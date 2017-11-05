@@ -11,6 +11,11 @@
                     <i class="fa fa-fighter-jet fa-fw"></i>&nbsp;Activity
                 </a>
             </li>
+            <li class="{{#openTabLog}}active{{/openTabLog}}">
+                <a role="tab" data-toggle="tab" data-name="infoLog" href="#{{dialogLogsContainerId}}">
+                    <i class="fa fa-binoculars fa-fw"></i>&nbsp;Log&nbsp;&nbsp;<small class="txt-color txt-color-warning">[BETA]</small>
+                </a>
+            </li>
         </ul>
     </div>
 
@@ -35,7 +40,7 @@
             <small> Your browser window is to small. Resize it to obtain more columns.</small>
         </div>
 
-        <h4><i class="fa fa-code-fork fa-lg fa-fw"></i> Map</h4>
+        <h4><i class="fa fa-sitemap fa-lg fa-fw"></i> Map</h4>
 
         <div id="{{mapInfoId}}" class="pf-dynamic-area">
         </div>
@@ -47,15 +52,39 @@
 
         <h4><i class="fa fa-chain fa-lg fa-fw"></i> Connections</h4>
 
-        <div id="{{mapInfoConnectionsId}}" class="pf-dynamic-area">
-        </div>
+        <div id="{{mapInfoConnectionsId}}" class="pf-dynamic-area"></div>
     </div>
 
     {{! "users" tab -------------------------------------------------------- }}
     <div role="tabpanel" class="tab-pane fade {{#openTabActivity}}in active{{/openTabActivity}}" id="{{dialogUsersContainerId}}">
         <h4><i class="fa fa-male fa-lg fa-fw"></i> Active pilots</h4>
 
-        <div id="{{mapInfoUsersId}}" class="pf-dynamic-area">
+        <div id="{{mapInfoUsersId}}" class="pf-dynamic-area"></div>
+    </div>
+
+    {{! "log" tab ---------------------------------------------------------- }}
+    <div role="tabpanel" class="tab-pane fade {{#openTabLog}}in active{{/openTabLog}}" id="{{dialogLogsContainerId}}">
+        <h4><i class="fa fa-history fa-lg fa-fw"></i> Log viewer</h4>
+
+        <div id="{{mapInfoLogsId}}" class="pf-dynamic-area"></div>
+
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="well well-sm">
+                    <div class="row">
+                        <div class="col-xs-6 col-sm-2 col-md-2">Map settings:</div>
+                        <div class="col-xs-6 col-sm-10 col-md-10 text-right">
+                            Save map changes to logfile&nbsp;
+                            {{#logHistoryEnabled}}
+                            <kbd class="txt-color txt-color-success">enabled</kbd>
+                            {{/logHistoryEnabled}}
+                            {{^logHistoryEnabled}}
+                            <kbd>disabled</kbd>
+                            {{/logHistoryEnabled}}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

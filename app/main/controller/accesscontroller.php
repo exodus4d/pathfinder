@@ -17,30 +17,30 @@ class AccessController extends Controller {
     /**
      * event handler
      * @param \Base $f3
-     * @param array $params
+     * @param $params
+     * @return bool
      */
-    function beforeroute(\Base $f3, $params) {
-        parent::beforeroute($f3, $params);
+    function beforeroute(\Base $f3, $params): bool {
+        if($return = parent::beforeroute($f3, $params)){
+            // Any route/endpoint of a child class of this one,
+            // requires a valid logged in user!
+            if( !$this->isLoggedIn($f3) ){
+                // no character found or login timer expired
+                $this->logoutCharacter();
 
-        // Any route/endpoint of a child class of this one,
-        // requires a valid logged in user!
-        $loginCheck = $this->isLoggedIn($f3);
-
-        if( !$loginCheck ){
-            // no user found or login timer expired
-            $this->logout($f3);
-
-            if( $f3->get('AJAX') ){
-                // unauthorized request
-                $f3->status(403);
-            }else{
-                // redirect to landing page
-                $f3->reroute(['login']);
+                if($f3->get('AJAX')){
+                    // unauthorized request
+                    $f3->status(403);
+                }else{
+                    // redirect to landing page
+                    $f3->reroute(['login']);
+                }
+                // skip route handler and afterroute()
+                $return = false;
             }
-
-            // die() triggers unload() function
-            die();
         }
+
+        return $return;
     }
 
     /**
@@ -48,7 +48,7 @@ class AccessController extends Controller {
      * @param \Base $f3
      * @return bool
      */
-    protected function isLoggedIn(\Base $f3){
+    protected function isLoggedIn(\Base $f3): bool {
         $loginCheck = false;
         if( $character = $this->getCharacter() ){
             if($this->checkLogTimer($f3, $character)){
@@ -84,7 +84,7 @@ class AccessController extends Controller {
             $minutes += $timeDiff->h * 60;
             $minutes += $timeDiff->i;
 
-            if($minutes <= $f3->get('PATHFINDER.TIMER.LOGGED')){
+            if($minutes <= Config::getPathfinderData('timer.logged')){
                 $loginCheck = true;
             }
         }

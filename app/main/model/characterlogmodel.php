@@ -57,6 +57,11 @@ class CharacterLogModel extends BasicModel {
             'type' => Schema::DT_BIGINT,
             'index' => true
         ],
+        'shipMass' => [
+            'type' => Schema::DT_FLOAT,
+            'nullable' => false,
+            'default' => 0
+        ],
         'shipName' => [
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
@@ -67,6 +72,15 @@ class CharacterLogModel extends BasicModel {
             'index' => true
         ],
         'stationName' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
+        ],
+        'structureId' => [
+            'type' => Schema::DT_BIGINT,
+            'index' => true
+        ],
+        'structureName' => [
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
             'default' => ''
@@ -92,11 +106,13 @@ class CharacterLogModel extends BasicModel {
             $this->shipTypeName = $logData['ship']['typeName'];
             $this->shipId = (int)$logData['ship']['id'];
             $this->shipName = $logData['ship']['name'];
+            $this->shipMass = (float)$logData['ship']['mass'];
         }else{
             $this->shipTypeId = null;
             $this->shipTypeName = '';
             $this->shipId = null;
             $this->shipName = '';
+            $this->shipMass = 0;
         }
 
         if( isset($logData['station']) ){
@@ -105,6 +121,14 @@ class CharacterLogModel extends BasicModel {
         }else{
             $this->stationId = null;
             $this->stationName = '';
+        }
+
+        if( isset($logData['structure']) ){
+            $this->structureId = (int)$logData['structure']['id'];
+            $this->structureName = $logData['structure']['name'];
+        }else{
+            $this->structureId = null;
+            $this->structureName = '';
         }
 
     }
@@ -125,10 +149,15 @@ class CharacterLogModel extends BasicModel {
         $logData->ship->typeName = $this->shipTypeName;
         $logData->ship->id = $this->shipId;
         $logData->ship->name = $this->shipName;
+        $logData->ship->mass = $this->shipMass;
 
         $logData->station = (object) [];
         $logData->station->id = (int)$this->stationId;
         $logData->station->name = $this->stationName;
+
+        $logData->structure = (object) [];
+        $logData->structure->id = (int)$this->structureId;
+        $logData->structure->name = $this->structureName;
 
         return $logData;
     }
@@ -191,23 +220,26 @@ class CharacterLogModel extends BasicModel {
      * update session data for active character
      * @param int $systemId
      */
-    protected function updateCharacterSessionLocation($systemId){
+    protected function updateCharacterSessionLocation(int $systemId){
         $controller = new Controller();
 
         if(
             !empty($sessionCharacter = $controller->getSessionCharacterData()) &&
             $sessionCharacter['ID'] === $this->get('characterId', true)
         ){
-            $prevSystemId = (int)$sessionCharacter['PREV_SYSTEM_ID'];
-
-            if($prevSystemId === 0){
+            $systemChanged = false;
+            if((int)$sessionCharacter['PREV_SYSTEM_ID'] === 0){
                 $sessionCharacter['PREV_SYSTEM_ID'] = (int)$systemId;
-            }else{
+                $systemChanged = true;
+            }elseif((int)$sessionCharacter['PREV_SYSTEM_ID'] !== $this->systemId){
                 $sessionCharacter['PREV_SYSTEM_ID'] = $this->systemId;
+                $systemChanged = true;
             }
 
-            $sessionCharacters = CharacterModel::mergeSessionCharacterData([$sessionCharacter]);
-            $this->getF3()->set(User::SESSION_KEY_CHARACTERS, $sessionCharacters);
+            if($systemChanged){
+                $sessionCharacters = CharacterModel::mergeSessionCharacterData([$sessionCharacter]);
+                $this->getF3()->set(User::SESSION_KEY_CHARACTERS, $sessionCharacters);
+            }
         }
     }
 

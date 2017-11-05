@@ -8,7 +8,8 @@ define([
     'app/init',
     'app/util',
     'app/render',
-    'bootbox'
+    'bootbox',
+    'peityInlineChart'
 ], function($, Init, Util, Render, bootbox) {
     'use strict';
 
@@ -25,7 +26,7 @@ define([
         // stats/dataTable
         statsContainerId: 'pf-stats-dialog-container',                          // class for statistics container (dynamic ajax content)
         statsTableId: 'pf-stats-table',                                         // id for statistics table element
-        tableImageCellClass: 'pf-table-image-cell',                             // class for table "image" cells
+        tableCellImageClass: 'pf-table-image-cell',                             // class for table "image" cells
 
         // charts
         statsLineChartClass: 'pf-line-chart'                                    // class for inline chart elements
@@ -36,7 +37,9 @@ define([
      * @param dialogElement
      */
     let initStatsTable = function(dialogElement){
-        let columnNumberWidth = 35;
+        let columnNumberWidth = 28;
+        let cellPadding = 4;
+        let lineChartWidth = columnNumberWidth + (2 * cellPadding);
         let lineColor = '#477372';
 
         // render function for inline-chart columns
@@ -71,7 +74,7 @@ define([
             lengthMenu: [[10, 20, 30, 50], [10, 20, 30, 50]],
             paging: true,
             ordering: true,
-            order: [ 16, 'desc' ],
+            order: [ 20, 'desc' ],
             info: true,
             searching: true,
             hover: false,
@@ -97,11 +100,11 @@ define([
                     orderable: false,
                     searchable: false,
                     width: 26,
-                    className: ['text-center', config.tableImageCellClass].join(' '),
+                    className: ['text-center', config.tableCellImageClass].join(' '),
                     data: 'character',
                     render: {
                         _: function(data, type, row, meta){
-                            return '<img src="' + Init.url.ccpImageServer + 'Character/' + data.id + '_32.jpg" />';
+                            return '<img src="' + Init.url.ccpImageServer + '/Character/' + data.id + '_32.jpg" />';
                         }
                     }
                 },{
@@ -134,7 +137,7 @@ define([
                     searchable: false,
                     width: columnNumberWidth,
                     className: ['text-right', 'hidden-xs', 'hidden-sm'].join(' '),
-                    data: 'systemCreate',
+                    data: 'mapCreate',
                     render: {
                         _: renderInlineChartColumn
                     }
@@ -145,7 +148,7 @@ define([
                     searchable: false,
                     width: columnNumberWidth,
                     className: ['text-right', 'hidden-xs', 'hidden-sm'].join(' '),
-                    data: 'systemUpdate',
+                    data: 'mapUpdate',
                     render: {
                         _: renderInlineChartColumn
                     }
@@ -156,7 +159,7 @@ define([
                     searchable: false,
                     width: columnNumberWidth,
                     className: ['text-right', 'hidden-xs', 'hidden-sm'].join(' '),
-                    data: 'systemDelete',
+                    data: 'mapDelete',
                     render: {
                         _: renderInlineChartColumn
                     }
@@ -166,7 +169,7 @@ define([
                     searchable: false,
                     width: 20,
                     className: ['text-right', 'separator-right'].join(' ') ,
-                    data: 'systemSum',
+                    data: 'mapSum',
                     render: {
                         _: renderNumericColumn
                     }
@@ -177,7 +180,7 @@ define([
                     searchable: false,
                     width: columnNumberWidth,
                     className: ['text-right', 'hidden-xs', 'hidden-sm'].join(' '),
-                    data: 'connectionCreate',
+                    data: 'systemCreate',
                     render: {
                         _: renderInlineChartColumn
                     }
@@ -188,7 +191,7 @@ define([
                     searchable: false,
                     width: columnNumberWidth,
                     className: ['text-right', 'hidden-xs', 'hidden-sm'].join(' '),
-                    data: 'connectionUpdate',
+                    data: 'systemUpdate',
                     render: {
                         _: renderInlineChartColumn
                     }
@@ -199,7 +202,7 @@ define([
                     searchable: false,
                     width: columnNumberWidth,
                     className: ['text-right', 'hidden-xs', 'hidden-sm'].join(' '),
-                    data: 'connectionDelete',
+                    data: 'systemDelete',
                     render: {
                         _: renderInlineChartColumn
                     }
@@ -208,8 +211,8 @@ define([
                     title: 'Σ&nbsp;&nbsp;',
                     searchable: false,
                     width: 20,
-                    className: ['text-right', 'separator-right'].join(' '),
-                    data: 'connectionSum',
+                    className: ['text-right', 'separator-right'].join(' ') ,
+                    data: 'systemSum',
                     render: {
                         _: renderNumericColumn
                     }
@@ -220,7 +223,7 @@ define([
                     searchable: false,
                     width: columnNumberWidth,
                     className: ['text-right', 'hidden-xs', 'hidden-sm'].join(' '),
-                    data: 'signatureCreate',
+                    data: 'connectionCreate',
                     render: {
                         _: renderInlineChartColumn
                     }
@@ -231,7 +234,7 @@ define([
                     searchable: false,
                     width: columnNumberWidth,
                     className: ['text-right', 'hidden-xs', 'hidden-sm'].join(' '),
-                    data: 'signatureUpdate',
+                    data: 'connectionUpdate',
                     render: {
                         _: renderInlineChartColumn
                     }
@@ -242,7 +245,7 @@ define([
                     searchable: false,
                     width: columnNumberWidth,
                     className: ['text-right', 'hidden-xs', 'hidden-sm'].join(' '),
-                    data: 'signatureDelete',
+                    data: 'connectionDelete',
                     render: {
                         _: renderInlineChartColumn
                     }
@@ -252,12 +255,55 @@ define([
                     searchable: false,
                     width: 20,
                     className: ['text-right', 'separator-right'].join(' '),
-                    data: 'signatureSum',
+                    data: 'connectionSum',
                     render: {
                         _: renderNumericColumn
                     }
                 },{
                     targets: 16,
+                    title: '<span title="created" data-toggle="tooltip">C&nbsp;&nbsp;</span>',
+                    orderable: false,
+                    searchable: false,
+                    width: columnNumberWidth,
+                    className: ['text-right', 'hidden-xs', 'hidden-sm'].join(' '),
+                    data: 'signatureCreate',
+                    render: {
+                        _: renderInlineChartColumn
+                    }
+                },{
+                    targets: 17,
+                    title: '<span title="updated" data-toggle="tooltip">U&nbsp;&nbsp;</span>',
+                    orderable: false,
+                    searchable: false,
+                    width: columnNumberWidth,
+                    className: ['text-right', 'hidden-xs', 'hidden-sm'].join(' '),
+                    data: 'signatureUpdate',
+                    render: {
+                        _: renderInlineChartColumn
+                    }
+                },{
+                    targets: 18,
+                    title: '<span title="deleted" data-toggle="tooltip">D&nbsp;&nbsp;</span>',
+                    orderable: false,
+                    searchable: false,
+                    width: columnNumberWidth,
+                    className: ['text-right', 'hidden-xs', 'hidden-sm'].join(' '),
+                    data: 'signatureDelete',
+                    render: {
+                        _: renderInlineChartColumn
+                    }
+                },{
+                    targets: 19,
+                    title: 'Σ&nbsp;&nbsp;',
+                    searchable: false,
+                    width: 20,
+                    className: ['text-right', 'separator-right'].join(' '),
+                    data: 'signatureSum',
+                    render: {
+                        _: renderNumericColumn
+                    }
+                },{
+                    targets: 20,
                     title: 'Σ&nbsp;&nbsp;',
                     searchable: false,
                     width: 20,
@@ -277,17 +323,17 @@ define([
             },
             drawCallback: function(settings){
                 this.api().rows().nodes().to$().each(function(i, row){
-                    $(row).find('.' + config.statsLineChartClass).peity('line', {
+                    $($(row).find('.' + config.statsLineChartClass)).peity('line', {
                         fill: 'transparent',
                         height: 18,
                         min: 0,
-                        width: 50
+                        width: lineChartWidth
                     });
                 });
             },
             footerCallback: function ( row, data, start, end, display ) {
                 let api = this.api();
-                let sumColumnIndexes = [7, 11, 15, 16];
+                let sumColumnIndexes = [7, 11, 15, 19, 20];
 
                 // column data for "sum" columns over this page
                 let pageTotalColumns = api
@@ -310,7 +356,16 @@ define([
 
         statsTable.on('order.dt search.dt', function(){
             statsTable.column(0, {search:'applied', order:'applied'}).nodes().each(function(cell, i){
-                $(cell).html( (i + 1) + '.&nbsp;&nbsp;');
+                let rowCount = i + 1;
+                let content = '';
+                switch(rowCount){
+                    case 1: content = '<i class="fa fa-fw fa-trophy txt-color txt-color-gold"></i>'; break;
+                    case 2: content = '<i class="fa fa-fw fa-trophy txt-color txt-color-silver"></i>'; break;
+                    case 3: content = '<i class="fa fa-fw fa-trophy txt-color txt-color-bronze"></i>'; break;
+                    default: content = rowCount + '.&nbsp;&nbsp;';
+                }
+
+                $(cell).html(content);
             });
         }).draw();
 
@@ -413,6 +468,9 @@ define([
             let currentWeek = weekStart;
 
             let formattedWeeksData = {
+                mapCreate: [],
+                mapUpdate: [],
+                mapDelete: [],
                 systemCreate: [],
                 systemUpdate: [],
                 systemDelete: [],
@@ -422,6 +480,7 @@ define([
                 signatureCreate: [],
                 signatureUpdate: [],
                 signatureDelete: [],
+                mapSum: 0,
                 systemSum: 0,
                 connectionSum: 0,
                 signatureSum: 0
@@ -432,6 +491,16 @@ define([
 
                 if(weeksData.hasOwnProperty( yearWeekProp )){
                     let weekData = weeksData[ yearWeekProp ];
+
+                    // map ----------------------------------------------------------------------------------
+                    formattedWeeksData.mapCreate.push( weekData.mapCreate );
+                    formattedWeeksData.mapSum += parseInt( weekData.mapCreate );
+
+                    formattedWeeksData.mapUpdate.push( weekData.mapUpdate );
+                    formattedWeeksData.mapSum += parseInt( weekData.mapUpdate );
+
+                    formattedWeeksData.mapDelete.push( weekData.mapDelete );
+                    formattedWeeksData.mapSum += parseInt( weekData.mapDelete );
 
                     // system -------------------------------------------------------------------------------
                     formattedWeeksData.systemCreate.push( weekData.systemCreate );
@@ -463,6 +532,11 @@ define([
                     formattedWeeksData.signatureDelete.push( weekData.signatureDelete );
                     formattedWeeksData.signatureSum += parseInt( weekData.signatureDelete );
                 }else{
+                    // map -------------------------------------------------------------------------------
+                    formattedWeeksData.mapCreate.push(0);
+                    formattedWeeksData.mapUpdate.push(0);
+                    formattedWeeksData.mapDelete.push(0);
+
                     // system -------------------------------------------------------------------------------
                     formattedWeeksData.systemCreate.push(0);
                     formattedWeeksData.systemUpdate.push(0);
@@ -486,6 +560,11 @@ define([
                     currentYear++;
                 }
             }
+
+            // map ---------------------------------------------------------------------------------------
+            formattedWeeksData.mapCreate = formattedWeeksData.mapCreate.join(',');
+            formattedWeeksData.mapUpdate = formattedWeeksData.mapUpdate.join(',');
+            formattedWeeksData.mapDelete = formattedWeeksData.mapDelete.join(',');
 
             // system ---------------------------------------------------------------------------------------
             formattedWeeksData.systemCreate = formattedWeeksData.systemCreate.join(',');
@@ -515,6 +594,19 @@ define([
                     name: data.name,
                     lastLogin: data.lastLogin
                 },
+                mapCreate: {
+                    type: 'C',
+                    data: formattedWeeksData.mapCreate
+                },
+                mapUpdate: {
+                    type: 'U',
+                    data: formattedWeeksData.mapUpdate
+                },
+                mapDelete: {
+                    type: 'D',
+                    data: formattedWeeksData.mapDelete
+                },
+                mapSum: formattedWeeksData.mapSum,
                 systemCreate: {
                     type: 'C',
                     data: formattedWeeksData.systemCreate
@@ -554,7 +646,8 @@ define([
                     data: formattedWeeksData.signatureDelete
                 },
                 signatureSum: formattedWeeksData.signatureSum,
-                totalSum: formattedWeeksData.systemSum + formattedWeeksData.connectionSum + formattedWeeksData.signatureSum
+                totalSum: formattedWeeksData.mapSum + formattedWeeksData.systemSum +
+                            formattedWeeksData.connectionSum + formattedWeeksData.signatureSum
             };
 
             formattedData.push(rowData);
@@ -602,18 +695,18 @@ define([
      * @param type
      * @returns {boolean}
      */
-    let isTabTypeEnabled = function(type){
+    let isTabTypeEnabled = (type) => {
         let enabled = false;
 
         switch(type){
             case 'private':
-                if(Init.mapTypes.private.defaultConfig.activity_logging){
+                if( Boolean(Util.getObjVal(Init.mapTypes, type + '.defaultConfig.log_activity_enabled')) ){
                     enabled = true;
                 }
                 break;
             case 'corporation':
                 if(
-                    Init.mapTypes.corporation.defaultConfig.activity_logging &&
+                    Boolean(Util.getObjVal(Init.mapTypes, type + '.defaultConfig.log_activity_enabled')) &&
                     Util.getCurrentUserInfo('corporationId')
                 ){
                     enabled = true;
@@ -621,7 +714,7 @@ define([
                 break;
             case 'alliance':
                 if(
-                    Init.mapTypes.alliance.defaultConfig.activity_logging &&
+                    Boolean(Util.getObjVal(Init.mapTypes, type + '.defaultConfig.log_activity_enabled')) &&
                     Util.getCurrentUserInfo('allianceId')
                 ){
                     enabled = true;
@@ -636,15 +729,46 @@ define([
      * show activity stats dialog
      */
     $.fn.showStatsDialog = function(){
-        requirejs(['text!templates/dialog/stats.html', 'mustache', 'peityInlineChart'], function(template, Mustache) {
+        requirejs(['text!templates/dialog/stats.html', 'mustache', 'datatables.loader'], function(template, Mustache) {
+            // get current statistics map settings
+            let logActivityEnabled = false;
+            let activeMap = Util.getMapModule().getActiveMap();
+            if(activeMap){
+                let activeMapId = activeMap.data('id');
+                let activeMapData = Util.getCurrentMapData(activeMapId);
+                if(activeMapData){
+                    logActivityEnabled = Boolean(Util.getObjVal(activeMapData, 'config.logging.activity'));
+                }
+            }
+
+            // check which dialog tab is default active
+            let enablePrivateTab = isTabTypeEnabled('private');
+            let enableCorporationTab = isTabTypeEnabled('corporation');
+            let enableAllianceTab = isTabTypeEnabled('alliance');
+
+            let activePrivateTab = false;
+            let activeCorporationTab = false;
+            let activeAllianceTab = false;
+
+            if(enableCorporationTab){
+                activeCorporationTab = true;
+            }else if(enableAllianceTab){
+                activeAllianceTab = true;
+            }else if(enablePrivateTab){
+                activePrivateTab = true;
+            }
 
             let data = {
                 id: config.statsDialogId,
                 dialogNavigationClass: config.dialogNavigationClass,
                 dialogNavLiClass: config.dialogNavigationListItemClass,
-                enablePrivateTab: isTabTypeEnabled('private'),
-                enableCorporationTab: isTabTypeEnabled('corporation'),
-                enableAllianceTab: isTabTypeEnabled('alliance'),
+                enablePrivateTab: enablePrivateTab,
+                enableCorporationTab: enableCorporationTab,
+                enableAllianceTab: enableAllianceTab,
+                activePrivateTab: activePrivateTab,
+                activeCorporationTab: activeCorporationTab,
+                activeAllianceTab: activeAllianceTab,
+                logActivityEnabled: logActivityEnabled,
                 statsContainerId: config.statsContainerId,
                 statsTableId: config.statsTableId,
                 dialogNavigationOffsetClass: config.dialogNavigationOffsetClass,
@@ -670,7 +794,6 @@ define([
             // model events
             statsDialog.on('show.bs.modal', function(e) {
                 let dialogElement = $(e.target);
-
                 initStatsTable(dialogElement);
             });
 

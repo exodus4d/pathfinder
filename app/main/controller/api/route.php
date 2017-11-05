@@ -8,6 +8,7 @@
 
 namespace Controller\Api;
 use Controller;
+use lib\Config;
 use Model;
 
 
@@ -530,7 +531,7 @@ class Route extends Controller\AccessController {
             $map = Model\BasicModel::getNew('MapModel');
 
             // limit max search routes to max limit
-            array_splice($routesData, $f3->get('PATHFINDER.ROUTE.LIMIT'));
+            array_splice($routesData, Config::getPathfinderData('route.limit'));
 
             foreach($routesData as $key => $routeData){
                 // mapIds are optional. If mapIds is empty or not set
@@ -609,7 +610,7 @@ class Route extends Controller\AccessController {
                         $returnRoutData = $cachedData;
                     }else{
                         // max search depth for search
-                        $searchDepth = $f3->get('PATHFINDER.ROUTE.SEARCH_DEPTH');
+                        $searchDepth = Config::getPathfinderData('route.search_depth');
 
                         // set jump data for following route search
                         // --> don´t filter some systems (e.g. systemFrom, systemTo) even if they are are WH,LS,0.0

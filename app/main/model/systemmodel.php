@@ -8,11 +8,10 @@
 
 namespace Model;
 
-use controller\MailController;
 use DB\SQL\Schema;
-use lib\Config;
+use lib\logging;
 
-class SystemModel extends BasicModel {
+class SystemModel extends AbstractMapTrackingModel {
 
     const MAX_POS_X = 2300;
     const MAX_POS_Y = 498;
@@ -124,7 +123,8 @@ class SystemModel extends BasicModel {
         'rallyPoke' => [
             'type' => Schema::DT_BOOL,
             'nullable' => false,
-            'default' => 0
+            'default' => 0,
+            'activity-log' => true
         ],
         'description' => [
             'type' => Schema::DT_VARCHAR512,
@@ -142,28 +142,6 @@ class SystemModel extends BasicModel {
             'nullable' => false,
             'default' => 0
         ],
-        'createdCharacterId' => [
-            'type' => Schema::DT_INT,
-            'index' => true,
-            'belongs-to-one' => 'Model\CharacterModel',
-            'constraint' => [
-                [
-                    'table' => 'character',
-                    'on-delete' => 'CASCADE'
-                ]
-            ]
-        ],
-        'updatedCharacterId' => [
-            'type' => Schema::DT_INT,
-            'index' => true,
-            'belongs-to-one' => 'Model\CharacterModel',
-            'constraint' => [
-                [
-                    'table' => 'character',
-                    'on-delete' => 'CASCADE'
-                ]
-            ]
-        ],
         'signatures' => [
             'has-many' => ['Model\SystemSignatureModel', 'systemId']
         ],
@@ -177,16 +155,16 @@ class SystemModel extends BasicModel {
 
     /**
      * set an array with all data for a system
-     * @param array $systemData
+     * @param array $data
      */
-    public function setData($systemData){
+    public function setData($data){
+        unset($data['id']);
+        unset($data['created']);
+        unset($data['updated']);
+        unset($data['createdCharacterId']);
+        unset($data['updatedCharacterId']);
 
-        foreach((array)$systemData as $key => $value){
-
-            if($key == 'created'){
-                continue;
-            }
-
+        foreach((array)$data as $key => $value){
             if(!is_array($value)){
                 if($this->exists($key)){
                     $this->$key = $value;
@@ -361,8 +339,6 @@ class SystemModel extends BasicModel {
             case 1:
                 // new rally point set
                 $rally = date('Y-m-d H:i:s', time());
-                // flag system for mail poke -> after save()
-                $this->virtual('newRallyPointSet', true);
                 break;
             default:
                 $rally = date('Y-m-d H:i:s', $rally);
@@ -417,15 +393,6 @@ class SystemModel extends BasicModel {
      */
     public function afterUpdateEvent($self, $pkeys){
         $self->clearCacheData();
-
-        // check if rally point mail should be send
-        if(
-            $self->newRallyPointSet &&
-            $self->rallyPoke
-        ){
-            $self->sendRallyPointMail();
-        }
-
         $activity = ($self->isActive()) ? 'systemUpdate' : 'systemDelete';
         $self->logActivity($activity);
     }
@@ -441,23 +408,18 @@ class SystemModel extends BasicModel {
     }
 
     /**
-     * log character activity create/update/delete events
      * @param string $action
+     * @return Logging\LogInterface
      */
-    protected function logActivity($action){
-        if(
-            $this->enableActivityLogging &&
-            (
-                $action === 'systemDelete' ||
-                !empty($this->fieldChanges)
-            ) &&
-            $this->get('mapId')->isActivityLogEnabled()
-        ){
-            $characterId = $this->get('updatedCharacterId', true);
-            $mapId = $this->get('mapId', true);
+    public function newLog($action = ''): Logging\LogInterface{
+        return $this->getMap()->newLog($action)->setTempData($this->getLogObjectData());
+    }
 
-            parent::bufferActivity($characterId, $mapId, $action);
-        }
+    /**
+     * @return MapModel
+     */
+    public function getMap(): MapModel{
+        return $this->get('mapId');
     }
 
     /**
@@ -600,6 +562,52 @@ class SystemModel extends BasicModel {
     }
 
     /**
+     * send rally point poke to various "APIs"
+     * -> send to a Slack channel
+     * -> send to an Email
+     * @param array $rallyData
+     * @param CharacterModel $characterModel
+     */
+    public function sendRallyPoke(array $rallyData, CharacterModel $characterModel){
+        // rally log needs at least one handler to be valid
+        $isValidLog = false;
+        $log = new Logging\RallyLog('rallySet', $this->getMap()->getLogChannelData());
+
+        // Slack poke -----------------------------------------------------------------------------
+        $slackChannelKey = 'slackChannelRally';
+        if(
+            $rallyData['pokeSlack'] === true &&
+            $this->getMap()->isSlackChannelEnabled($slackChannelKey)
+        ){
+            $isValidLog = true;
+            $log->addHandler('slackRally', null, $this->getMap()->getSlackWebHookConfig($slackChannelKey));
+        }
+
+        // Mail poke ------------------------------------------------------------------------------
+        $mailAddressKey = 'RALLY_SET';
+        if(
+            $rallyData['pokeMail'] === true &&
+            $this->getMap()->isMailSendEnabled('RALLY_SET')
+        ){
+            $isValidLog = true;
+            $mailConf = $this->getMap()->getSMTPConfig($mailAddressKey, false);
+            $log->addHandler('mail', 'mail', $mailConf);
+        }
+
+        // Buffer log -----------------------------------------------------------------------------
+        if($isValidLog){
+            $log->setTempData($this->getLogObjectData(true));
+            $log->setCharacter($characterModel);
+            if( !empty($rallyData['message']) ){
+                $log->setData([
+                    'message' => $rallyData['message']
+                ]);
+            }
+            $log->buffer();
+        }
+    }
+
+    /**
      * get static WH data for this system
      * -> any WH system has at least one static WH
      * @return \stdClass[]
@@ -641,34 +649,27 @@ class SystemModel extends BasicModel {
     }
 
     /**
-     * send rally point information by mail
+     * get object relevant data for model log
+     * @param bool $fullData
+     * @return array
      */
-    protected function sendRallyPointMail(){
-        $recipient = Config::getNotificationMail('RALLY_SET');
+    public function getLogObjectData($fullData = false) : array{
+        $objectData = [
+            'objId' => $this->_id,
+            'objName' => $this->name
+        ];
 
-        if(
-            $recipient &&
-            \Audit::instance()->email($recipient)
-        ){
-            $updatedCharacterId = (int) $this->get('updatedCharacterId', true);
-            /**
-             * @var $character CharacterModel
-             */
-            $character = $this->rel('updatedCharacterId');
-            $character->getById( $updatedCharacterId );
-            if( !$character->dry() ){
-                $body = [];
-                $body[] = "Map:\t\t" . $this->mapId->name;
-                $body[] = "System:\t\t" . $this->name;
-                $body[] = "Region:\t\t" . $this->region;
-                $body[] = "Security:\t" . $this->security;
-                $body[] = "Character:\t" . $character->name;
-                $body[] = "Time:\t\t" . date('g:i a; F j, Y', strtotime($this->rallyUpdated) );
-                $bodyMsg = implode("\r\n", $body);
-
-                (new MailController())->sendRallyPoint($recipient, $bodyMsg);
-            }
+        if($fullData){
+            $objectData['objAlias'] = $this->alias;
+            $objectData['objRegion'] = $this->region;
+            $objectData['objIsWormhole'] = $this->isWormhole();
+            $objectData['objEffect'] = $this->effect;
+            $objectData['objSecurity'] = $this->security;
+            $objectData['objTrueSec'] = $this->trueSec;
+            $objectData['objDescription'] = $this->description;
         }
+
+        return $objectData;
     }
 
     /**

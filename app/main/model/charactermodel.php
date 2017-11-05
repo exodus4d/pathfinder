@@ -11,7 +11,9 @@ namespace Model;
 use Controller\Ccp\Sso as Sso;
 use Controller\Api\User as User;
 use DB\SQL\Schema;
-use Lib\Util;
+use lib\Util;
+use lib\Config;
+use Model\Universe;
 
 class CharacterModel extends BasicModel {
 
@@ -279,7 +281,7 @@ class CharacterModel extends BasicModel {
 
             if($minutes){
                 $seconds = $minutes * 60;
-                $timezone = new \DateTimeZone(  self::getF3()->get('TZ') );
+                $timezone = self::getF3()->get('getTimeZone')();
                 $kickedUntil = new \DateTime('now', $timezone);
 
                 // add cookie expire time
@@ -306,7 +308,7 @@ class CharacterModel extends BasicModel {
             $banned = null;
 
             if($status){
-                $timezone = new \DateTimeZone(  self::getF3()->get('TZ') );
+                $timezone = self::getF3()->get('getTimeZone')();
                 $bannedSince = new \DateTime('now', $timezone);
                 $banned = $bannedSince->format('Y-m-d H:i:s');
             }
@@ -479,7 +481,7 @@ class CharacterModel extends BasicModel {
             !empty($this->crestAccessToken) &&
             !empty($this->crestAccessTokenUpdated)
         ){
-            $timezone = new \DateTimeZone( self::getF3()->get('TZ') );
+            $timezone = self::getF3()->get('getTimeZone')();
             $tokenTime = \DateTime::createFromFormat(
                 'Y-m-d H:i:s',
                 $this->crestAccessTokenUpdated,
@@ -547,8 +549,8 @@ class CharacterModel extends BasicModel {
         if(is_null($this->banned)){
             if( !$this->isKicked() ){
                 $f3 = self::getF3();
-                $whitelistCorporations = array_filter( array_map('trim', (array)$f3->get('PATHFINDER.LOGIN.CORPORATION') ) );
-                $whitelistAlliance = array_filter( array_map('trim', (array)$f3->get('PATHFINDER.LOGIN.ALLIANCE') ) );
+                $whitelistCorporations = array_filter( array_map('trim', (array)Config::getPathfinderData('login.corporation') ) );
+                $whitelistAlliance = array_filter( array_map('trim', (array)Config::getPathfinderData('login.alliance') ) );
 
                 if(
                     empty($whitelistCorporations) &&
@@ -676,9 +678,7 @@ class CharacterModel extends BasicModel {
                         if( !empty($locationData['system']['id']) ){
                             // character is currently in-game
 
-                            // IDs for "systemId", "stationId and "shipTypeId" that require more data
-                            $lookupIds = [];
-
+                            // get current $characterLog or get new ---------------------------------------------------
                             if( !($characterLog = $this->getLog()) ){
                                 // create new log
                                 $characterLog = $this->rel('characterLog');
@@ -687,12 +687,17 @@ class CharacterModel extends BasicModel {
                             // get current log data and modify on change
                             $logData = json_decode(json_encode( $characterLog->getData()), true);
 
+                            // check system and station data for changes ----------------------------------------------
+
+                            // IDs for "systemId", "stationId" that require more data
+                            $lookupUniverseIds = [];
+
                             if(
                                 empty($logData['system']['name']) ||
                                 $logData['system']['id'] !== $locationData['system']['id']
                             ){
                                 // system changed -> request "system name" for current system
-                                $lookupIds[] = $locationData['system']['id'];
+                                $lookupUniverseIds[] = $locationData['system']['id'];
                             }
 
                             if( !empty($locationData['station']['id']) ){
@@ -701,7 +706,7 @@ class CharacterModel extends BasicModel {
                                     $logData['station']['id']  !== $locationData['station']['id']
                                 ){
                                     // station changed -> request "station name" for current station
-                                    $lookupIds[] = $locationData['station']['id'];
+                                    $lookupUniverseIds[] = $locationData['station']['id'];
                                 }
                             }else{
                                 unset($logData['station']);
@@ -709,35 +714,88 @@ class CharacterModel extends BasicModel {
 
                             $logData = array_replace_recursive($logData, $locationData);
 
-                            // get current ship data
-                            $shipData = self::getF3()->ccpClient->getCharacterShipData($this->_id, $accessToken, $additionalOptions);
-
-                            if( !empty($shipData['ship']['typeId']) ){
-                                if(
-                                    empty($logData['ship']['typeName']) ||
-                                    $logData['ship']['typeId'] !== $shipData['ship']['typeId']
-                                ){
-                                    // ship changed -> request "station name" for current station
-                                    $lookupIds[] = $shipData['ship']['typeId'];
-                                }
-
-                                // "shipName"/"shipId" could have changed...
-                                $logData = array_replace_recursive($logData, $shipData);
-                            }else{
-                                // ship data should never be empty -> keep current one
-                                //unset($logData['ship']);
-                                $invalidResponse = true;
-                            }
-
-                            if( !empty($lookupIds) ){
+                            // get "more" data for systemId and/or stationId -----------------------------------------
+                            if( !empty($lookupUniverseIds) ){
                                 // get "more" information for some Ids (e.g. name)
-                                $universeData = self::getF3()->ccpClient->getUniverseNamesData($lookupIds, $additionalOptions);
-
+                                $universeData = self::getF3()->ccpClient->getUniverseNamesData($lookupUniverseIds, $additionalOptions);
                                 if( !empty($universeData) ){
                                     $logData = array_replace_recursive($logData, $universeData);
                                 }else{
                                     // this is important! universe data is a MUST HAVE!
                                     $deleteLog = true;
+                                }
+                            }
+
+                            // check structure data for changes -------------------------------------------------------
+                            if(!$deleteLog){
+
+                                // IDs for "structureId" that require more data
+                                $lookupStructureId = 0;
+                                if( !empty($locationData['structure']['id']) ){
+                                    if(
+                                        empty($logData['structure']['name']) ||
+                                        $logData['structure']['id']  !== $locationData['structure']['id']
+                                    ){
+                                        // structure changed -> request "structure name" for current station
+                                        $lookupStructureId = $locationData['structure']['id'];
+                                    }
+                                }else{
+                                    unset($logData['structure']);
+                                }
+
+                                // get "more" data for structureId  ---------------------------------------------------
+                                if($lookupStructureId > 0){
+                                    /**
+                                     * @var $structureModel Universe\StructureModel
+                                     */
+                                    $structureModel = Universe\BasicUniverseModel::getNew('StructureModel');
+                                    $structureModel->loadById($lookupStructureId, $accessToken, $additionalOptions);
+                                    if(!$structureModel->dry()){
+                                        $structureData['structure'] = (array)$structureModel->getData();
+                                        $logData = array_replace_recursive($logData, $structureData);
+                                    }else{
+                                        unset($logData['structure']);
+                                    }
+                                }
+                            }
+
+                            // check ship data for changes ------------------------------------------------------------
+                            if( !$deleteLog ){
+                                $shipData = self::getF3()->ccpClient->getCharacterShipData($this->_id, $accessToken, $additionalOptions);
+
+                                // IDs for "shipTypeId" that require more data
+                                $lookupShipTypeId = 0;
+                                if( !empty($shipData['ship']['typeId']) ){
+                                    if(
+                                        empty($logData['ship']['typeName']) ||
+                                        $logData['ship']['typeId'] !== $shipData['ship']['typeId']
+                                    ){
+                                        // ship changed -> request "station name" for current station
+                                        $lookupShipTypeId = $shipData['ship']['typeId'];
+                                    }
+
+                                    // "shipName"/"shipId" could have changed...
+                                    $logData = array_replace_recursive($logData, $shipData);
+                                }else{
+                                    // ship data should never be empty -> keep current one
+                                    //unset($logData['ship']);
+                                    $invalidResponse = true;
+                                }
+
+                                // get "more" data for shipTypeId  ----------------------------------------------------
+                                if($lookupShipTypeId > 0){
+                                    /**
+                                     * @var $typeModel Universe\TypeModel
+                                     */
+                                    $typeModel = Universe\BasicUniverseModel::getNew('TypeModel');
+                                    $typeModel->loadById($lookupShipTypeId, '', $additionalOptions);
+                                    if(!$typeModel->dry()){
+                                        $shipData['ship'] = (array)$typeModel->getShipData();
+                                        $logData = array_replace_recursive($logData, $shipData);
+                                    }else{
+                                        // this is important! ship data is a MUST HAVE!
+                                        $deleteLog = true;
+                                    }
                                 }
                             }
 
@@ -921,7 +979,7 @@ class CharacterModel extends BasicModel {
             $mapCountPrivate = 0;
             foreach($this->characterMaps as $characterMap){
                 if(
-                    $mapCountPrivate < self::getF3()->get('PATHFINDER.MAP.PRIVATE.MAX_COUNT') &&
+                    $mapCountPrivate < Config::getMapsDefaultConfig('private')['max_count'] &&
                     $characterMap->mapId->isActive()
                 ){
                     $maps[] = $characterMap->mapId;
@@ -934,17 +992,59 @@ class CharacterModel extends BasicModel {
     }
 
     /**
-     * character logout
-     * -> clear authentication data
+     * delete current location
      */
-    public function logout(){
-        if( is_object($this->characterAuthentications) ){
+    protected function deleteLog(){
+        if($characterLog = $this->getLog()){
+            $characterLog->erase();
+        }
+    }
+
+    /**
+     * delete authentications data
+     */
+    protected function deleteAuthentications(){
+        if(is_object($this->characterAuthentications)){
             foreach($this->characterAuthentications as $characterAuthentication){
                 /**
                  * @var $characterAuthentication CharacterAuthenticationModel
                  */
                 $characterAuthentication->erase();
             }
+        }
+    }
+    /**
+     * character logout
+     * @param bool $deleteLog
+     * @param bool $deleteSession
+     * @param bool $deleteCookie
+     */
+    public function logout(bool $deleteSession = true, bool $deleteLog = true, bool $deleteCookie = false){
+        // delete current session data --------------------------------------------------------------------------------
+        if($deleteSession){
+            $sessionCharacterData = (array)$this->getF3()->get(User::SESSION_KEY_CHARACTERS);
+            $sessionCharacterData = array_filter($sessionCharacterData, function($data){
+                return ($data['ID'] != $this->_id);
+            });
+
+            if(empty($sessionCharacterData)){
+                // no active characters logged in -> log user out
+                $this->getF3()->clear(User::SESSION_KEY_USER);
+                $this->getF3()->clear(User::SESSION_KEY_CHARACTERS);
+            }else{
+                // update remaining active characters
+                $this->getF3()->set(User::SESSION_KEY_CHARACTERS, $sessionCharacterData);
+            }
+        }
+
+        // delete current location data -------------------------------------------------------------------------------
+        if($deleteLog){
+            $this->deleteLog();
+        }
+
+        // delete auth cookie data ------------------------------------------------------------------------------------
+        if($deleteCookie ){
+            $this->deleteAuthentications();
         }
     }
 

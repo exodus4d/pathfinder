@@ -28,10 +28,15 @@
   &.txt-color-lighten       { color: $lighten !important; }
   &.txt-color-white         { color: $white !important; }
   &.txt-color-magenta       { color: $magenta !important; }
+  &.txt-color-tealLightest  { color: $teal-lightest !important; }
   &.txt-color-tealLighter   { color: $teal-lighter !important; }
+  &.txt-color-teal          { color: $teal !important; }
   &.txt-color-indigoDark    { color: $indigo-dark !important; }
   &.txt-color-indigoDarkest { color: $indigo-darkest !important; }
 
+  &.txt-color-gold          { color: $gold !important; }
+  &.txt-color-silver        { color: $silver !important; }
+  &.txt-color-bronze        { color: $bronze !important; }
 
   &.txt-color-primary       { color: $brand-primary !important; }
   &.txt-color-success       { color: $brand-success !important; }

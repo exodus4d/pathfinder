@@ -198,8 +198,7 @@ define([
                 getMenuHeadline('Information')
             ).append(
                 $('<a>', {
-                    class: 'list-group-item list-group-item-info',
-                    href: '#'
+                    class: 'list-group-item list-group-item-info'
                 }).html('&nbsp;&nbsp;Statistics').prepend(
                     $('<i>',{
                         class: 'fa fa-line-chart fa-fw'
@@ -209,8 +208,7 @@ define([
                 })
             ).append(
                 $('<a>', {
-                    class: 'list-group-item list-group-item-info',
-                    href: '#'
+                    class: 'list-group-item list-group-item-info'
                 }).html('&nbsp;&nbsp;Effect info').prepend(
                     $('<i>',{
                         class: 'fa fa-crosshairs fa-fw'
@@ -220,8 +218,7 @@ define([
                 })
             ).append(
                 $('<a>', {
-                    class: 'list-group-item list-group-item-info',
-                    href: '#'
+                    class: 'list-group-item list-group-item-info'
                 }).html('&nbsp;&nbsp;Jump info').prepend(
                     $('<i>',{
                         class: 'fa fa-space-shuttle fa-fw'
@@ -233,8 +230,7 @@ define([
                 getMenuHeadline('Settings')
             ).append(
                 $('<a>', {
-                    class: 'list-group-item',
-                    href: '#'
+                    class: 'list-group-item'
                 }).html('&nbsp;&nbsp;Account').prepend(
                     $('<i>',{
                         class: 'fa fa-user fa-fw'
@@ -245,8 +241,7 @@ define([
             ).append(
                 $('<a>', {
                     class: 'list-group-item hide',                      // trigger by js
-                    id: Util.config.menuButtonFullScreenId,
-                    href: '#'
+                    id: Util.config.menuButtonFullScreenId
                 }).html('&nbsp;&nbsp;Full screen').prepend(
                     $('<i>',{
                         class: 'glyphicon glyphicon-fullscreen',
@@ -265,8 +260,7 @@ define([
                 })
             ).append(
                 $('<a>', {
-                    class: 'list-group-item',
-                    href: '#'
+                    class: 'list-group-item'
                 }).html('&nbsp;&nbsp;Notification test').prepend(
                     $('<i>',{
                         class: 'fa fa-volume-up fa-fw'
@@ -278,8 +272,7 @@ define([
                 getMenuHeadline('Danger zone')
             ).append(
                 $('<a>', {
-                    class: 'list-group-item list-group-item-danger',
-                    href: '#'
+                    class: 'list-group-item list-group-item-danger'
                 }).html('&nbsp;&nbsp;Delete account').prepend(
                     $('<i>',{
                         class: 'fa fa-user-times fa-fw'
@@ -289,8 +282,7 @@ define([
                 })
             ).append(
                 $('<a>', {
-                    class: 'list-group-item list-group-item-warning',
-                    href: '#'
+                    class: 'list-group-item list-group-item-warning'
                 }).html('&nbsp;&nbsp;Logout').prepend(
                     $('<i>',{
                         class: 'fa fa-sign-in fa-fw'
@@ -317,8 +309,7 @@ define([
                 class: 'list-group'
             }).append(
                 $('<a>', {
-                    class: 'list-group-item',
-                    href: '#'
+                    class: 'list-group-item'
                 }).html('&nbsp;&nbsp;Information').prepend(
                     $('<i>',{
                         class: 'fa fa-street-view fa-fw'
@@ -327,12 +318,11 @@ define([
                     $(document).triggerMenuEvent('ShowMapInfo', {tab: 'information'});
                 })
             ).append(
-                getMenuHeadline('Settings')
+                getMenuHeadline('Configuration')
             ).append(
                 $('<a>', {
-                    class: 'list-group-item',
-                    href: '#'
-                }).html('&nbsp;&nbsp;Configuration').prepend(
+                    class: 'list-group-item'
+                }).html('&nbsp;&nbsp;Settings').prepend(
                     $('<i>',{
                         class: 'fa fa-gears fa-fw'
                     })
@@ -342,8 +332,7 @@ define([
             ).append(
                 $('<a>', {
                     class: 'list-group-item',
-                    id: Util.config.menuButtonGridId,
-                    href: '#'
+                    id: Util.config.menuButtonGridId
                 }).html('&nbsp;&nbsp;&nbsp;Grid snapping').prepend(
                     $('<i>',{
                         class: 'glyphicon glyphicon-th'
@@ -357,8 +346,7 @@ define([
             ).append(
                 $('<a>', {
                     class: 'list-group-item',
-                    id: Util.config.menuButtonMagnetizerId,
-                    href: '#'
+                    id: Util.config.menuButtonMagnetizerId
                 }).html('&nbsp;&nbsp;&nbsp;Magnetizing').prepend(
                     $('<i>',{
                         class: 'fa fa-magnet fa-fw'
@@ -372,8 +360,7 @@ define([
             ).append(
                 $('<a>', {
                     class: 'list-group-item',
-                    id: Util.config.menuButtonEndpointId,
-                    href: '#'
+                    id: Util.config.menuButtonEndpointId
                 }).html('&nbsp;&nbsp;&nbsp;Signatures').prepend(
                     $('<i>',{
                         class: 'fa fa-link fa-fw'
@@ -388,8 +375,7 @@ define([
                 getMenuHeadline('Help')
             ).append(
                 $('<a>', {
-                    class: 'list-group-item list-group-item-info',
-                    href: '#'
+                    class: 'list-group-item list-group-item-info'
                 }).html('&nbsp;&nbsp;Manual').prepend(
                     $('<i>',{
                         class: 'fa fa-book fa-fw'
@@ -399,8 +385,7 @@ define([
                 })
             ).append(
                 $('<a>', {
-                    class: 'list-group-item list-group-item-info',
-                    href: '#'
+                    class: 'list-group-item list-group-item-info'
                 }).html('&nbsp;&nbsp;Shortcuts').prepend(
                     $('<i>',{
                         class: 'fa fa-keyboard-o fa-fw'
@@ -410,8 +395,7 @@ define([
                 })
             ).append(
                 $('<a>', {
-                    class: 'list-group-item list-group-item-info',
-                    href: '#'
+                    class: 'list-group-item list-group-item-info'
                 }).html('&nbsp;&nbsp;Task-Manager').prepend(
                     $('<i>',{
                         class: 'fa fa-tasks fa-fw'
@@ -423,8 +407,7 @@ define([
                 getMenuHeadline('Danger zone')
             ).append(
                 $('<a>', {
-                    class: 'list-group-item list-group-item-danger',
-                    href: '#'
+                    class: 'list-group-item list-group-item-danger'
                 }).html('&nbsp;&nbsp;Delete map').prepend(
                     $('<i>',{
                         class: 'fa fa-trash fa-fw'
@@ -482,11 +465,13 @@ define([
         });
 
         // main menus
-        $('.' + config.headMenuClass).on('click', function() {
+        $('.' + config.headMenuClass).on('click', function(e) {
+            e.preventDefault();
             slideMenu.slidebars.toggle('left');
         });
 
-        $('.' + config.headMapClass).on('click', function() {
+        $('.' + config.headMapClass).on('click', function(e) {
+            e.preventDefault();
             slideMenu.slidebars.toggle('right');
         });
 
@@ -872,7 +857,7 @@ define([
             animateHeaderElement(userInfoElement, function(){
                 if(currentCharacterChanged){
                     userInfoElement.find('span').text( newCharacterName );
-                    userInfoElement.find('img').attr('src', Init.url.ccpImageServer + 'Character/' + newCharacterId + '_32.jpg' );
+                    userInfoElement.find('img').attr('src', Init.url.ccpImageServer + '/Character/' + newCharacterId + '_32.jpg' );
                 }
                 // init "character switch" popover
                 userInfoElement.initCharacterSwitchPopover(userData);
@@ -894,7 +879,7 @@ define([
             // toggle element
             animateHeaderElement(userShipElement, function(){
                 userShipElement.find('span').text( newShipName );
-                userShipElement.find('img').attr('src', Init.url.ccpImageServer + 'Render/' + newShipId + '_32.png' );
+                userShipElement.find('img').attr('src', Init.url.ccpImageServer + '/Render/' + newShipId + '_32.png' );
             }, showShipElement);
 
             // set new id for next check
@@ -1104,10 +1089,12 @@ define([
         if( statusElement.data('status') !== status ){
             // status has changed
             if(! programStatusInterval){
+                // check if timer exists if not -> set default (in case of the "init" ajax call failed
+                let programStatusVisible = Init.timer ? Init.timer.PROGRAM_STATUS_VISIBLE : 5000;
 
                 let timer = function(){
                     // change status on first timer iteration
-                    if(programStatusCounter === Init.timer.PROGRAM_STATUS_VISIBLE){
+                    if(programStatusCounter === programStatusVisible){
 
                         statusElement.velocity('stop').velocity('fadeOut', {
                             duration: Init.animationSpeed.headerLink,
@@ -1134,8 +1121,8 @@ define([
                     }
                 };
 
-                if(! programStatusInterval){
-                    programStatusCounter = Init.timer.PROGRAM_STATUS_VISIBLE;
+                if(!programStatusInterval){
+                    programStatusCounter = programStatusVisible;
                     programStatusInterval = setInterval(timer, 1000);
                 }
             }

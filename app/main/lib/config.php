@@ -17,8 +17,11 @@ class Config extends \Prefab {
     const ARRAY_DELIMITER                           = '-';
     const HIVE_KEY_PATHFINDER                       = 'PATHFINDER';
     const HIVE_KEY_ENVIRONMENT                      = 'ENVIRONMENT';
+    const CACHE_KEY_SOCKET_VALID                    = 'CACHED_SOCKET_VALID';
+    const CACHE_TTL_SOCKET_VALID                    = 60;
 
     const ERROR_CONF_PATHFINDER                     = 'Config value missing in pathfinder.ini file [%s]';
+    const ERROR_CLASS_NOT_EXISTS_COMPOSER           = 'Class "%s" not found. -> Check installed Composer packages';
 
 
     /**
@@ -43,6 +46,11 @@ class Config extends \Prefab {
         // set hive configuration variables
         // -> overwrites default configuration
         $this->setHiveVariables($f3);
+
+        // set global function for current DateTimeZone()
+        $f3->set('getTimeZone', function() use ($f3){
+            return new \DateTimeZone( $f3->get('TZ') );
+        });
     }
 
     /**
@@ -132,8 +140,6 @@ class Config extends \Prefab {
      * Nginx (server config):
      * -> FastCGI syntax
      *      fastcgi_param PF-ENV-DEBUG 3;
-     *
-     * @return array
      */
     protected function setServerData(){
         $data = [];
@@ -166,8 +172,80 @@ class Config extends \Prefab {
     static function getEnvironmentData($key){
         $hiveKey = self::HIVE_KEY_ENVIRONMENT . '.' . $key;
         \Base::instance()->exists($hiveKey, $data);
-
         return $data;
+    }
+
+    /**
+     * get database config values
+     * @param string $dbKey
+     * @return array
+     */
+    static function getDatabaseConfig(string $dbKey  = 'PF'){
+        $dbKey = strtoupper($dbKey);
+        return [
+            'DNS'   => self::getEnvironmentData('DB_' . $dbKey . '_DNS'),
+            'NAME'  => self::getEnvironmentData('DB_' . $dbKey . '_NAME'),
+            'USER'  => self::getEnvironmentData('DB_' . $dbKey . '_USER'),
+            'PASS'  => self::getEnvironmentData('DB_' . $dbKey . '_PASS'),
+            'ALIAS' => $dbKey
+        ];
+    }
+
+    /**
+     * get DB config value from PDO connect $dns string
+     * @param string $dns
+     * @param string $key
+     * @return bool
+     */
+    static function getDatabaseDNSValue(string $dns, string $key = 'dbname'){
+        $value = false;
+        if(preg_match('/' . preg_quote($key, '/') . '=([[:alnum:]]+)/is', $dns, $parts)){
+            $value = $parts[1];
+        }
+        return $value;
+    }
+
+    /**
+     * get SMTP config values
+     * @return \stdClass
+     */
+    static function getSMTPConfig(): \stdClass{
+        $config             = new \stdClass();
+        $config->host       = self::getEnvironmentData('SMTP_HOST');
+        $config->port       = self::getEnvironmentData('SMTP_PORT');
+        $config->scheme     = self::getEnvironmentData('SMTP_SCHEME');
+        $config->username   = self::getEnvironmentData('SMTP_USER');
+        $config->password   = self::getEnvironmentData('SMTP_PASS');
+        $config->from       = [
+            self::getEnvironmentData('SMTP_FROM') => self::getPathfinderData('name')
+        ];
+        return $config;
+    }
+
+    /**
+     * validates an SMTP config
+     * @param \stdClass $config
+     * @return bool
+     */
+    static function isValidSMTPConfig(\stdClass $config): bool {
+        // validate email from either an configured array or plain string
+        $validateMailConfig = function($mailConf = null): bool {
+            $email = null;
+            if(is_array($mailConf)){
+                reset($mailConf);
+                $email = key($mailConf);
+            }elseif(is_string($mailConf)){
+                $email = $mailConf;
+            }
+            return \Audit::instance()->email($email);
+        };
+
+        return (
+            !empty($config->host) &&
+            !empty($config->username) &&
+            $validateMailConfig($config->from) &&
+            $validateMailConfig($config->to)
+        );
     }
 
     /**
@@ -183,7 +261,7 @@ class Config extends \Prefab {
      * get map default config values for map types (private/corp/ally)
      * -> read from pathfinder.ini
      * @param string $mapType
-     * @return array
+     * @return mixed
      */
     static function getMapsDefaultConfig($mapType = ''){
         if( $mapConfig = self::getPathfinderData('map' . ($mapType ? '.' . $mapType : '')) ){
@@ -191,6 +269,92 @@ class Config extends \Prefab {
         }
 
         return $mapConfig;
+    }
+
+    /**
+     * get custom $message for a a HTTP $status
+     * -> use this in addition to the very general Base::HTTP_XXX labels
+     * @param int $status
+     * @return string
+     */
+    static function getMessageFromHTTPStatus(int $status): string {
+        switch($status){
+            case 403:
+                $message = 'Access denied: User not found'; break;
+            default:
+                $message = '';
+        }
+        return $message;
+    }
+
+    /**
+     * check whether this installation fulfills all requirements
+     * -> check for ZMQ PHP extension and installed ZQM version
+     * -> this does NOT check versions! -> those can be verified on /setup page
+     * @return bool
+     */
+    static function checkSocketRequirements(): bool {
+        return extension_loaded('zmq') && class_exists('ZMQ');
+    }
+
+    /**
+     * use this function to "validate" the socket connection.
+     * The result will be CACHED for a few seconds!
+     * This function is intended to pre-check a Socket connection if it MIGHT exists.
+     * No data will be send to the Socket, this function just validates if a socket is available
+     * -> see pingDomain()
+     * @return bool
+     */
+    static function validSocketConnect(): bool{
+        $valid = false;
+        $f3 = \Base::instance();
+
+        if( !$f3->exists(self::CACHE_KEY_SOCKET_VALID, $valid) ){
+            if(self::checkSocketRequirements()  && ($socketUrl = self::getSocketUri()) ){
+                // get socket URI parts -> not elegant...
+                $domain = parse_url( $socketUrl, PHP_URL_SCHEME) . '://' . parse_url( $socketUrl, PHP_URL_HOST);
+                $port = parse_url( $socketUrl, PHP_URL_PORT);
+                // check connection -> get ms
+                $status = self::pingDomain($domain, $port);
+                if($status >= 0){
+                    // connection OK
+                    $valid = true;
+                }else{
+                    // connection error/timeout
+                    $valid = false;
+                }
+            }else{
+                // requirements check failed or URL not valid
+                $valid = false;
+            }
+
+            $f3->set(self::CACHE_KEY_SOCKET_VALID, $valid, self::CACHE_TTL_SOCKET_VALID);
+        }
+
+        return $valid;
+    }
+
+    /**
+     * get response time for a host in ms or -1 on error/timeout
+     * @param string $domain
+     * @param int $port
+     * @param int $timeout
+     * @return int
+     */
+    static function pingDomain(string $domain, int $port, $timeout = 1): int {
+        $starttime = microtime(true);
+        $file      = @fsockopen ($domain, $port, $errno, $errstr, $timeout);
+        $stoptime  = microtime(true);
+
+        if (!$file){
+            // Site is down
+            $status = -1;
+        }else {
+            fclose($file);
+            $status = ($stoptime - $starttime) * 1000;
+            $status = floor($status);
+        }
+        return $status;
     }
 
     /**

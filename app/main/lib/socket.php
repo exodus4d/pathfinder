@@ -79,27 +79,19 @@ class Socket {
     /**
      * init new socket
      */
-    /*
     public function initSocket(){
-        if(self::checkRequirements()){
-            $context = new \ZMQContext();
-            $this->socket = $context->getSocket(\ZMQ::SOCKET_REQ);
-            // The linger value of the socket. Specifies how long the socket blocks trying flush messages after it has been closed
-            $this->socket->setSockOpt(\ZMQ::SOCKOPT_LINGER, 0);
-        }
-    } */
-
-    /**
-     * init new socket
-     */
-    public function initSocket(){
-        if(self::checkRequirements()){
+        if(Config::checkSocketRequirements()){
             $context = new \ZMQContext();
             $this->socket = $context->getSocket(\ZMQ::SOCKET_PUSH);
         }
     }
 
-    public function sendData($task, $load = ''){
+    /**
+     * @param $task
+     * @param string $load
+     * @return bool|string
+     */
+    public function sendData(string $task, $load = ''){
         $response = false;
 
         $this->initSocket();
@@ -122,7 +114,7 @@ class Socket {
         //$this->socket->send(json_encode($send), \ZMQ::MODE_DONTWAIT);
 
         $this->socket->send(json_encode($send));
-        $this->socket->disconnect($this->socketUri);
+       // $this->socket->disconnect($this->socketUri);
 
         $response = 'OK';
 
@@ -229,25 +221,6 @@ class Socket {
 
         return $response;
     }*/
-
-    /**
-     * check whether this installation fulfills all requirements
-     * -> check for ZMQ PHP extension and installed ZQM version
-     * -> this does NOT check versions! -> those can be verified on /setup page
-     * @return bool
-     */
-    static function checkRequirements(){
-        $check = false;
-
-        if(
-            extension_loaded('zmq') &&
-            class_exists('ZMQ')
-        ){
-            $check = true;
-        }
-
-        return $check;
-    }
 
 
 }

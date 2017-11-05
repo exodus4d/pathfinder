@@ -54,7 +54,7 @@
                                         <input name="name" type="text" class="form-control" id="name" value="" placeholder="Your username" data-error="Username required" data-minlength="5" data-minlength-error="Min. of 5 characters" data-username="true" autocomplete="nickname">
                                         <span class="input-group-addon"><i class="fa fa-fw fa-user"></i></span>
                                     </div>
-                                    <div class="help-block with-errors"></div>
+                                    <div class="note help-block with-errors"></div>
                                 </div>
                             </div>
                         </div>
@@ -91,7 +91,7 @@
                                         <input name="email" type="email" class="form-control" id="email" value="" placeholder="your@email.com" data-error="Email required" autocomplete="email" required>
                                         <span class="input-group-addon"><i class="fa fa-fw fa-envelope"></i></span>
                                     </div>
-                                    <div class="help-block with-errors"></div>
+                                    <div class="note help-block with-errors"></div>
                                 </div>
                             </div>
                         </div>
@@ -106,7 +106,7 @@
                                         <input name="email_confirm" type="email" class="form-control" id="email_confirm" value="" placeholder="your@email.com" data-error="Email required" data-match="#email" data-match-error="Email fields do not match" autocomplete="email" required>
                                         <span class="input-group-addon"><i class="fa fa-fw fa-envelope"></i></span>
                                     </div>
-                                    <div class="help-block with-errors"></div>
+                                    <div class="note help-block with-errors"></div>
                                 </div>
                             </div>
                         </div>
@@ -139,7 +139,7 @@
                                         <input name="captcha" type="text" class="form-control" id="captcha" placeholder="" data-error="Captcha required" data-minlength="6" maxlength="6" autocomplete="off"  required>
                                         <span class="input-group-addon"><i class="fa fa-fw fa-picture-o"></i></span>
                                     </div>
-                                    <div class="help-block with-errors"></div>
+                                    <div class="note help-block with-errors"></div>
                                 </div>
                             </div>
                         </div>
@@ -171,9 +171,9 @@
                 </div>
 
                 {{#userData.character}}
-                    <h4 class="pf-dynamic-area"><img src="{{ccpImageServer}}Character/{{id}}_64.jpg">&nbsp;&nbsp;Private maps "<em class="pf-map-type-private">{{name}}</em>"</h4>
+                    <h4 class="pf-dynamic-area"><img src="{{ccpImageServer}}/Character/{{id}}_64.jpg">&nbsp;&nbsp;Private maps "<em class="pf-map-type-private">{{name}}</em>"</h4>
 
-                    <div class="row">
+                    <div class="form-group">
                         <div class="col-sm-9">
                             <label class="control-label" for="privateSharing">
                                 <input id="privateSharing" type="checkbox" name="privateSharing" data-toggle="toggle" value="1" {{#shared}}checked{{/shared}}>
@@ -184,9 +184,9 @@
                     </div>
 
                     {{#corporation}}
-                    <h4 class="pf-dynamic-area"><img src="{{ccpImageServer}}Corporation/{{id}}_64.png">&nbsp;&nbsp;Corporation maps "<em class="pf-map-type-corporation">{{name}}</em>"</h4>
+                    <h4 class="pf-dynamic-area"><img src="{{ccpImageServer}}/Corporation/{{id}}_64.png">&nbsp;&nbsp;Corporation maps "<em class="pf-map-type-corporation">{{name}}</em>"</h4>
 
-                    <div class="row">
+                    <div class="form-group">
                         <div class="col-sm-9">
                             <label class="control-label" for="corporationSharing">
                                 <input id="corporationSharing" type="checkbox" name="corporationSharing" data-toggle="toggle" value="1" {{#shared}}checked{{/shared}}>
@@ -199,9 +199,9 @@
                     {{/corporation}}
 
                     {{#alliance}}
-                    <h4 class="pf-dynamic-area"><img src="{{ccpImageServer}}Alliance/{{id}}_64.png">&nbsp;&nbsp;Alliance maps "<em class="pf-map-type-alliance">{{name}}</em>"</h4>
+                    <h4 class="pf-dynamic-area"><img src="{{ccpImageServer}}/Alliance/{{id}}_64.png">&nbsp;&nbsp;Alliance maps "<em class="pf-map-type-alliance">{{name}}</em>"</h4>
 
-                    <div class="row">
+                    <div class="form-group">
                         <div class="col-sm-9">
                             <label class="control-label" for="allianceSharing">
                                 <input id="allianceSharing" type="checkbox" name="allianceSharing" data-toggle="toggle" value="1" {{#shared}}checked{{/shared}}>
@@ -224,7 +224,7 @@
             <form role="form" class="form-horizontal">
 
                 {{#userData.character}}
-                    <h4 class="pf-dynamic-area"><img src="{{ccpImageServer}}Character/{{id}}_64.jpg">&nbsp;&nbsp;{{name}}</h4>
+                    <h4 class="pf-dynamic-area"><img src="{{ccpImageServer}}/Character/{{id}}_64.jpg">&nbsp;&nbsp;{{name}}</h4>
 
                     <div class="row">
                         <div class="col-xs-8 col-sm-6">

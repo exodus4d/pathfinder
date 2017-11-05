@@ -16,7 +16,7 @@ Mapping tool for [*EVE ONLINE*](https://www.eveonline.com)
   - Database will be cleared from time to time
 - Installation guide:
   - [wiki](https://github.com/exodus4d/pathfinder/wiki)
-- Developer chat [Slack](https://slack.com) :
+- Developer [Slack](https://slack.com) chat:
   - https://pathfinder-eve-online.slack.com
   - Please send me a mail for invite: pathfinder@exodus4d.de
 
@@ -28,44 +28,46 @@ Issues should be reported in the [Issue](https://github.com/exodus4d/pathfinder/
 ### Project structure
 
 ```
-  |-- (0755) app            --> backend [*.php]
-      |-- app               --> "Fat Free Framework" extensions
-      |-- lib               --> "Fat Free Framework"
-      |-- main              --> "PATHFINDER" root
+  |-- [0755] app/           --> backend [*.php]
+      |-- app/              --> "Fat Free Framework" extensions
+      |-- lib/              --> "Fat Free Framework"
+      |-- main/             --> "PATHFINDER" root
       |-- config.ini        --> config "f3" framework
       |-- cron.ini          --> config - cronjobs
       |-- environment.ini   --> config - system environment
       |-- pathfinder.ini    --> config - pathfinder
       |-- requirements.ini  --> config - system requirements
       |-- routes.ini        --> config - routes
-  |-- (0755) export         --> DB export data
-      |-- sql               --> static DB data for import (pathfinder.sql)
-  |-- (0755) favicon        --> Favicons
-  |-- (0755) js             --> JS source files (raw)
-      |-- app               --> "PASTHFINDER" core files (not used for production)
-      |-- lib               --> 3rd partie extension/library (not used for production)
+  |-- [0755] export/        --> static data
+      |-- csv/              --> *.csv used by /setup page
+      |-- json/             --> *.json used by /setup page
+      |-- sql/              --> DB dump for import (pathfinder.sql)
+  |-- [0755] favicon/       --> Favicons
+  |-- [0777] history/       --> log files (map history logs) [optional]
+  |-- [0755] js/            --> JS source files (raw)
+      |-- app/              --> "PASTHFINDER" core files (not used for production)
+      |-- lib/              --> 3rd partie extension/library (not used for production)
       |-- app.js            --> require.js config (!required for production!)
-  |-- (0777) logs           --> log files
+  |-- [0777] logs/          --> log files
       |-- ...
-  | -- node_modules         --> node.js modules (not used for production)
+  | -- node_modules/        --> node.js modules (not used for production)
       |-- ...
-  |-- (0755) public         --> frontend source
-      |-- css               --> CSS dist/build folder (minified)
-      |-- fonts             --> (icon)-Fonts
-      |-- img               --> images
-      |-- js                --> JS dist/build folder and source maps (minified, uglified)
-      |-- templates         --> templates
-  |-- sass                  --> SCSS source (not used for production)
-      |-- ...
-  |-- (0777) tmp            --> cache folder
-      |-- ...
-  |-- (0755) .htaccess      --> reroute/caching rules ("Apache" only!)
-  |-- (0755) index.php
+  |-- [0755] public/        --> frontend source
+      |-- css/              --> CSS dist/build folder (minified)
+      |-- fonts/            --> (icon)-Fonts
+      |-- img/              --> images
+      |-- js/               --> JS dist/build folder and source maps (minified, uglified)
+      |-- templates/        --> templates
+  |-- sass/                 --> SCSS source (not used for production)
+  |-- [0777] tmp/           --> cache folder
+  |-- [0755] .htaccess      --> reroute/caching rules ("Apache" only!)
+  |-- [0755] index.php
 
   --------------------------
   CI/CD config files:
   --------------------------
   |-- .jshintrc             --> "JSHint" config (not used for production)
+  |-- composer.json         --> Composer package definition
   |-- config.rb             --> "Compass" config (not used for production)
   |-- gulpfile.js           --> "Gulp" task config (not used for production )
   |-- package.json          --> "Node.js" dependency config (not used for production)

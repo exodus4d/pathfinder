@@ -10,7 +10,7 @@ define([
 ], function($, Init, Util, Morris) {
     'use strict';
 
-    var config = {
+    let config = {
         // module info
         moduleClass: 'pf-module',                                               // class for each module
 
@@ -53,8 +53,8 @@ define([
      * @param option
      * @returns {string}
      */
-    var getInfoForGraph = function(graphKey, option){
-        var info = '';
+    let getInfoForGraph = function(graphKey, option){
+        let info = '';
 
         if(config.systemGraphLabels.hasOwnProperty(graphKey)){
             info = config.systemGraphLabels[graphKey][option];
@@ -69,14 +69,14 @@ define([
      * @param graphKey
      * @param graphData
      */
-    var initGraph = function(graphElement, graphKey, graphData, eventLine){
+    let initGraph = function(graphElement, graphKey, graphData, eventLine){
 
         if(graphData.length > 0){
-            var labelYFormat = function(y){
+            let labelYFormat = function(y){
                 return Math.round(y);
             };
 
-            var graphConfig = {
+            let graphConfig = {
                 element: graphElement,
                 data: graphData,
                 xkey: 'x',
@@ -121,24 +121,24 @@ define([
      * @param parentElement
      * @param systemData
      */
-    var drawModule = function(parentElement, systemData){
+    let drawModule = function(parentElement, systemData){
 
         // graph data is available for k-space systems
         if(systemData.type.id === 2){
-            var requestData = {
+            let requestData = {
                 systemIds: [systemData.systemId]
             };
 
             // calculate time offset until system created
-            var serverData = Util.getServerTime();
+            let serverData = Util.getServerTime();
 
-            var timestampNow = Math.floor(serverData.getTime() / 1000);
-            var timeSinceUpdate = timestampNow - systemData.updated;
+            let timestampNow = Math.floor(serverData.getTime() / 1000);
+            let timeSinceUpdate = timestampNow - systemData.updated;
 
-            var timeInHours = Math.floor(timeSinceUpdate / 3600);
-            var timeInMinutes = Math.floor((timeSinceUpdate % 3600) / 60);
-            var timeInMinutesPercent = ( timeInMinutes / 60 ).toFixed(2);
-            var eventLine = timeInHours + timeInMinutesPercent;
+            let timeInHours = Math.floor(timeSinceUpdate / 3600);
+            let timeInMinutes = Math.floor((timeSinceUpdate % 3600) / 60);
+            let timeInMinutesPercent = ( timeInMinutes / 60 ).toFixed(2);
+            let eventLine = timeInHours + timeInMinutesPercent;
 
             // graph is from right to left -> convert event line
             eventLine = 23 - eventLine;
@@ -152,7 +152,7 @@ define([
 
                 if( Object.keys(systemGraphsData).length > 0 ){
                     // create new (hidden) module container
-                    var moduleElement = $('<div>', {
+                    let moduleElement = $('<div>', {
                         class: [config.moduleClass, config.systemGraphModuleClass].join(' '),
                         css: {opacity: 0}
                     });
@@ -165,7 +165,7 @@ define([
                     }
 
                     // row element
-                    var rowElement = $('<div>', {
+                    let rowElement = $('<div>', {
                         class: 'row'
                     });
                     moduleElement.append(rowElement);
@@ -173,15 +173,15 @@ define([
                     $.each(systemGraphsData, function(systemId, graphsData){
                         $.each(graphsData, function(graphKey, graphData){
 
-                            var colElement = $('<div>', {
+                            let colElement = $('<div>', {
                                 class: ['col-xs-12', 'col-sm-6', 'col-md-4'].join(' ')
                             });
 
-                            var headlineElement = $('<h5>').text( getInfoForGraph(graphKey, 'headline') );
+                            let headlineElement = $('<h5>').text( getInfoForGraph(graphKey, 'headline') );
 
                             colElement.append(headlineElement);
 
-                            var graphElement = $('<div>', {
+                            let graphElement = $('<div>', {
                                 class: config.systemGraphClass
                             });
 
@@ -203,7 +203,7 @@ define([
                     });
                 }
             }).fail(function( jqXHR, status, error) {
-                var reason = status + ' ' + error;
+                let reason = status + ' ' + error;
                 Util.showNotify({title: jqXHR.status + ': System graph data', text: reason, type: 'warning'});
                 $(document).setProgramStatus('problem');
             });
@@ -218,10 +218,10 @@ define([
      */
     $.fn.drawSystemGraphModule = function(systemData){
 
-        var parentElement = $(this);
+        let parentElement = $(this);
 
         // check if module already exists
-        var moduleElement = parentElement.find('.' + config.systemGraphModuleClass);
+        let moduleElement = parentElement.find('.' + config.systemGraphModuleClass);
 
         if(moduleElement.length > 0){
             moduleElement.velocity('transition.slideDownOut', {

@@ -9,12 +9,7 @@ define([
     'app/ui/system_graph',
     'app/ui/system_signature',
     'app/ui/system_route',
-    'app/ui/system_killboard',
-    'datatables.net',
-    'datatables.net-buttons',
-    'datatables.net-buttons-html',
-    'datatables.net-responsive',
-    'datatables.net-select'
+    'app/ui/system_killboard'
 ], function($, Init, Util, Map, MapUtil) {
 
     'use strict';
@@ -106,29 +101,31 @@ define([
      * @param tabContentElement
      */
     let drawSystemModules = function(tabContentElement){
-        let currentSystemData = Util.getCurrentSystemData();
+        require(['datatables.loader'], () => {
+            let currentSystemData = Util.getCurrentSystemData();
 
-        // get Table cell for system Info
-        let firstCell = $(tabContentElement).find('.' + config.mapTabContentCellFirst);
-        let secondCell = $(tabContentElement).find('.' + config.mapTabContentCellSecond);
+            // get Table cell for system Info
+            let firstCell = $(tabContentElement).find('.' + config.mapTabContentCellFirst);
+            let secondCell = $(tabContentElement).find('.' + config.mapTabContentCellSecond);
 
-        // draw system info module
-        firstCell.drawSystemInfoModule(currentSystemData.mapId, currentSystemData.systemData);
+            // draw system info module
+            firstCell.drawSystemInfoModule(currentSystemData.mapId, currentSystemData.systemData);
 
-        // draw system graph module
-        firstCell.drawSystemGraphModule(currentSystemData.systemData);
+            // draw system graph module
+            firstCell.drawSystemGraphModule(currentSystemData.systemData);
 
-        // draw signature table module
-        firstCell.drawSignatureTableModule(currentSystemData.mapId, currentSystemData.systemData);
+            // draw signature table module
+            firstCell.drawSignatureTableModule(currentSystemData.mapId, currentSystemData.systemData);
 
-        // draw system routes module
-        secondCell.drawSystemRouteModule(currentSystemData.mapId, currentSystemData.systemData);
+            // draw system routes module
+            secondCell.drawSystemRouteModule(currentSystemData.mapId, currentSystemData.systemData);
 
-        // draw system killboard module
-        secondCell.drawSystemKillboardModule(currentSystemData.systemData);
+            // draw system killboard module
+            secondCell.drawSystemKillboardModule(currentSystemData.systemData);
 
-        // set Module Observer
-        setModuleObserver();
+            // set Module Observer
+            setModuleObserver();
+        });
     };
 
     /**
@@ -295,7 +292,12 @@ define([
         let tabElement = $(this);
 
         // set "main" data
-        tabElement.data('map-id', options.id).data('updated', options.updated);
+        tabElement.data('map-id', options.id);
+
+        // add updated timestamp (not available for "add" tab
+        if(Util.getObjVal(options, 'updated.updated')){
+            tabElement.data('updated', options.updated.updated);
+        }
 
         // change "tab" link
         tabElement.attr('href', '#' + config.mapTabIdPrefix + options.id);
@@ -565,7 +567,7 @@ define([
                         activeMapIds.push(mapId);
 
                         // check for map data change and update tab
-                        if(tabMapData.config.updated > tabElement.data('updated')){
+                        if(tabMapData.config.updated.updated > tabElement.data('updated')){
                             tabElement.updateTabData(tabMapData.config);
                         }
                     }else{

@@ -26,9 +26,72 @@ input, select{
     color: $gray-light;
     outline: none;
   }
+
+  &[disabled]{
+    @include placeholder(transparent);
+  }
 }
 
-// "fake" button (no user interaction)
+textarea{
+  min-height: 32px;
+  max-height: 400px;
+  resize: vertical;
+}
+
+fieldset[disabled]{
+  .form-control{
+    color: $gray-light;
+    @include placeholder(transparent);
+  }
+
+  .input-icon-left, .input-icon-right{
+    .fa-stack{
+      i:last-child{
+        color: $gray;
+      }
+    }
+  }
+}
+
+
+// form fields with icons groups (stacked icons) ==================================================
+.input-icon-left:not(.input-icon-right){
+  .fa-stack:first-child{
+    left: 14px;
+  }
+}
+
+.input-icon-right:not(.input-icon-left){
+  .fa-stack:first-child{
+    right: 14px;
+  }
+}
+
+.input-icon-left.input-icon-right{
+  .fa-stack:first-child{
+    left: 14px;
+  }
+  .fa-stack:nth-child(2) {
+    right: 14px;
+  }
+}
+
+.input-icon-left, .input-icon-right{
+  .fa-stack{
+    position: absolute;
+    top: 4px;
+
+    i:first-child{
+      color: $gray-light;
+    }
+
+    i:last-child{
+      color: $gray-dark;
+    }
+  }
+}
+
+// "fake" button (no user interaction) ============================================================
 .btn-fake{
   border: none;
   text-align: left;

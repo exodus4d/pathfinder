@@ -12,19 +12,25 @@ namespace data\filesystem;
 class Search {
 
     /**
+     * max file count that should be deleted in this session
+     */
+    const DEFAULT_FILE_LIMIT                = 1000;
+
+    /**
      * timestamp (seconds) filter files by mTime()
      * -> default = "no filter"
      * @var int
      */
-    static $filterTime = 0;
+    static $filterTime                      = 0;
 
     /**
      * recursive file filter by mTime
      * @param string $dir
      * @param int $mTime
-     * @return array|\RecursiveCallbackFilterIterator
+     * @param int $limit
+     * @return array|\LimitIterator
      */
-    static function getFilesByMTime($dir, $mTime = null){
+    static function getFilesByMTime(string $dir, $mTime = null, $limit = self::DEFAULT_FILE_LIMIT){
         $files = [];
 
         if(is_dir($dir)){
@@ -53,7 +59,8 @@ class Search {
                 return false;
             });
 
-            $files = new \RecursiveIteratorIterator($files);
+            // limit max files
+            $files = new \LimitIterator($files, 0, $limit);
         }
 
         return $files;

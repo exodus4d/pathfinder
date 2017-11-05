@@ -945,14 +945,14 @@ define([
         mapContainer = $(mapContainer);
 
         // add additional information for this map
-        if(mapContainer.data('updated') !== mapConfig.config.updated){
+        if(mapContainer.data('updated') !== mapConfig.config.updated.updated){
             mapContainer.data('name', mapConfig.config.name);
             mapContainer.data('scopeId', mapConfig.config.scope.id);
             mapContainer.data('typeId', mapConfig.config.type.id);
             mapContainer.data('typeName', mapConfig.config.type.name);
             mapContainer.data('icon', mapConfig.config.icon);
-            mapContainer.data('created', mapConfig.config.created);
-            mapContainer.data('updated', mapConfig.config.updated);
+            mapContainer.data('created', mapConfig.config.created.created);
+            mapContainer.data('updated', mapConfig.config.updated.updated);
         }
 
         // get map data
@@ -1320,11 +1320,10 @@ define([
      * @returns {boolean}
      */
     let isValidSystem = function(systemData){
-
         let isValid = true;
 
         if(
-            ! systemData.hasOwnProperty('name') ||
+            !systemData.hasOwnProperty('name') ||
             systemData.name.length === 0
         ){
             return false;
@@ -1382,37 +1381,51 @@ define([
 
     /**
      * save a new system and add it to the map
-     * @param map
      * @param requestData
-     * @param sourceSystem
-     * @param callback
+     * @param context
      */
-    let saveSystem = function(map, requestData, sourceSystem, callback){
+    let saveSystem = function(requestData, context){
         $.ajax({
             type: 'POST',
             url: Init.path.saveSystem,
             data: requestData,
             dataType: 'json',
-            context: {
-                map: map,
-                sourceSystem: sourceSystem
+            context: context
+        }).done(function(responseData){
+            let newSystemData = responseData.systemData;
+
+            if( !$.isEmptyObject(newSystemData) ){
+                Util.showNotify({title: 'New system', text: newSystemData.name, type: 'success'});
+
+                // draw new system to map
+                drawSystem(this.map, newSystemData, this.sourceSystem);
+
+                // re/arrange systems (prevent overlapping)
+                MagnetizerWrapper.setElements(this.map);
+
+                if(this.onSuccess){
+                    this.onSuccess();
+                }
             }
-        }).done(function(newSystemData){
-            Util.showNotify({title: 'New system', text: newSystemData.name, type: 'success'});
 
-            // draw new system to map
-            drawSystem(this.map, newSystemData, this.sourceSystem);
-
-            // re/arrange systems (prevent overlapping)
-            MagnetizerWrapper.setElements(this.map);
-
-            if(callback){
-                callback();
+            // show errors
+            if(
+                responseData.error &&
+                responseData.error.length > 0
+            ){
+                for(let i = 0; i < responseData.error.length; i++){
+                    let error = responseData.error[i];
+                    Util.showNotify({title: error.field + ' error', text: 'System: ' + error.message, type: error.type});
+                }
             }
         }).fail(function( jqXHR, status, error) {
             let reason = status + ' ' + error;
             Util.showNotify({title: jqXHR.status + ': saveSystem', text: reason, type: 'warning'});
             $(document).setProgramStatus('problem');
+        }).always(function(){
+            if(this.onAlways){
+                this.onAlways(this);
+            }
         });
     };
 
@@ -1542,8 +1555,18 @@ define([
                                 }
                             };
 
-                            saveSystem(map, requestData, sourceSystem, function(){
-                                bootbox.hideAll();
+                            this.find('.modal-content').showLoadingAnimation();
+
+                            saveSystem(requestData, {
+                                map: map,
+                                sourceSystem: sourceSystem,
+                                systemDialog: this,
+                                onSuccess: () => {
+                                    bootbox.hideAll();
+                                },
+                                onAlways: (context) => {
+                                    context.systemDialog.find('.modal-content').hideLoadingAnimation();
+                                }
                             });
                             return false;
                         }
@@ -1694,7 +1717,8 @@ define([
                     mapId: mapId,
                     oldConnectionData: connectionData
                 }
-            }).done(function(newConnectionData){
+            }).done(function(responseData){
+                let newConnectionData = responseData.connectionData;
 
                 if( !$.isEmptyObject(newConnectionData) ){
                     let updateCon = false;
@@ -1739,6 +1763,16 @@ define([
                     this.map.detach(this.connection, {fireEvent: false});
                 }
 
+                // show errors
+                if(
+                    responseData.error &&
+                    responseData.error.length > 0
+                ){
+                    for(let i = 0; i < responseData.error.length; i++){
+                        let error = responseData.error[i];
+                        Util.showNotify({title: error.field + ' error', text: 'System: ' + error.message, type: error.type});
+                    }
+                }
             }).fail(function( jqXHR, status, error) {
                 // remove this connection from map
                 this.map.detach(this.connection, {fireEvent: false});
@@ -1826,13 +1860,16 @@ define([
         let moduleData = {
             id: config.mapContextMenuId,
             items: [
-                {icon: 'fa-street-view', action: 'info', text: 'information'},
                 {icon: 'fa-plus', action: 'add_system', text: 'add system'},
                 {icon: 'fa-object-ungroup', action: 'select_all', text: 'select all'},
                 {icon: 'fa-filter', action: 'filter_scope', text: 'filter scope', subitems: [
                     {subIcon: '', subAction: 'filter_wh', subText: 'wormhole'},
                     {subIcon: '', subAction: 'filter_stargate', subText: 'stargate'},
                     {subIcon: '', subAction: 'filter_jumpbridge', subText: 'jumpbridge'}
+                ]},
+                {icon: 'fa-sitemap', action: 'map', text: 'map', subitems: [
+                    {subIcon: 'fa-edit', subAction: 'map_edit', subText: 'edit map'},
+                    {subIcon: 'fa-street-view', subAction: 'map_info', subText: 'map info'},
                 ]},
                 {divider: true, action: 'delete_systems'},
                 {icon: 'fa-trash', action: 'delete_systems', text: 'delete systems'}
@@ -1905,7 +1942,7 @@ define([
             items: [
                 {icon: 'fa-plus', action: 'add_system', text: 'add system'},
                 {icon: 'fa-lock', action: 'lock_system', text: 'lock system'},
-                {icon: 'fa-users', action: 'set_rally', text: 'set rally point'},
+                {icon: 'fa-volume-up', action: 'set_rally', text: 'set rally point'},
                 {icon: 'fa-tags', text: 'set status', subitems: systemStatus},
                 {icon: 'fa-reply fa-rotate-180', text: 'waypoints', subitems: [
                     {subIcon: 'fa-flag-checkered', subAction: 'set_destination', subText: 'set destination'},
@@ -2731,8 +2768,12 @@ define([
                         let selectedSystems = currentMapElement.getSelectedSystems();
                         $.fn.showDeleteSystemDialog(currentMap, selectedSystems);
                         break;
-                    case 'info':
-                        // open map info dialog
+                    case 'map_edit':
+                        // open map edit dialog tab
+                        $(document).triggerMenuEvent('ShowMapSettings', {tab: 'edit'});
+                        break;
+                    case 'map_info':
+                        // open map info dialog tab
                         $(document).triggerMenuEvent('ShowMapInfo', {tab: 'information'});
                         break;
 
@@ -2893,37 +2934,38 @@ define([
             let mapElement = $(this);
             let mapOverlay = mapElement.getMapOverlay('local');
 
-            let currentCharacterLog = Util.getCurrentCharacterLog();
-            let currentMapData = Util.getCurrentMapData(userData.config.id);
-            let clearLocal = true;
+            if(userData && userData.config && userData.config.id){
+                let currentMapData = Util.getCurrentMapData(userData.config.id);
+                let currentCharacterLog = Util.getCurrentCharacterLog();
+                let clearLocal = true;
 
-            if(
-                currentMapData &&
-                currentCharacterLog &&
-                currentCharacterLog.system
-            ){
-                let currentSystemData = currentMapData.data.systems.filter(function (system) {
-                    return system.systemId === currentCharacterLog.system.id;
-                });
+                if(
+                    currentMapData &&
+                    currentCharacterLog &&
+                    currentCharacterLog.system
+                ){
+                    let currentSystemData = currentMapData.data.systems.filter(function (system) {
+                        return system.systemId === currentCharacterLog.system.id;
+                    });
 
-                if(currentSystemData.length){
-                    // current user system is on this map
-                    currentSystemData = currentSystemData[0];
+                    if(currentSystemData.length){
+                        // current user system is on this map
+                        currentSystemData = currentSystemData[0];
 
-                    // check for active users "nearby" (x jumps radius)
-                    let nearBySystemData = Util.getNearBySystemData(currentSystemData, currentMapData, MapUtil.config.defaultLocalJumpRadius);
-                    let nearByCharacterData = Util.getNearByCharacterData(nearBySystemData, userData.data.systems);
+                        // check for active users "nearby" (x jumps radius)
+                        let nearBySystemData = Util.getNearBySystemData(currentSystemData, currentMapData, MapUtil.config.defaultLocalJumpRadius);
+                        let nearByCharacterData = Util.getNearByCharacterData(nearBySystemData, userData.data.systems);
 
-                    // update "local" table in overlay
-                    mapOverlay.updateLocalTable(currentSystemData, nearByCharacterData);
-                    clearLocal = false;
+                        // update "local" table in overlay
+                        mapOverlay.updateLocalTable(currentSystemData, nearByCharacterData);
+                        clearLocal = false;
+                    }
+                }
+
+                if(clearLocal){
+                    mapOverlay.clearLocalTable();
                 }
             }
-
-            if(clearLocal){
-                mapOverlay.clearLocalTable();
-            }
-
         });
     };
 

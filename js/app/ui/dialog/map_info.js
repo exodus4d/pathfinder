@@ -6,9 +6,10 @@ define([
     'jquery',
     'app/init',
     'app/util',
+    'app/render',
     'bootbox',
     'app/map/util'
-], function($, Init, Util, bootbox, MapUtil) {
+], function($, Init, Util, Render, bootbox, MapUtil) {
 
     'use strict';
 
@@ -19,23 +20,27 @@ define([
         // map info dialog/tabs
         dialogMapInfoSummaryId: 'pf-map-info-dialog-summary',                   // id for map "summary" container
         dialogMapInfoUsersId: 'pf-map-info-dialog-users',                       // id for map "user" container
+        dialogMapInfoLogsId: 'pf-map-info-dialog-logs',                         // id for map "logs" container
         dialogMapInfoRefreshId: 'pf-map-info-dialog-refresh',                   // id for map "refresh" container
 
-        // "summary" container
+        // dialog containers
         mapInfoId: 'pf-map-info',                                               // id for map info
         mapInfoSystemsId: 'pf-map-info-systems',                                // id for map info systems box
         mapInfoConnectionsId: 'pf-map-info-connections',                        // id for map info connections box
         mapInfoUsersId: 'pf-map-info-users',                                    // id for map info users box
+        mapInfoLogsId: 'pf-map-info-logs',                                      // id for map info logs box
 
-        mapInfoTableClass: 'pf-map-info-table',                                 // class for data
         mapInfoLifetimeCounterClass: 'pf-map-info-lifetime-counter',            // class for map lifetime counter
 
         // dataTable
-        tableImageCellClass: 'pf-table-image-cell',                             // class for table "image" cells
-        tableImageSmallCellClass: 'pf-table-image-small-cell',                  // class for table "small image" cells
-        tableActionCellClass: 'pf-table-action-cell',                           // class for table "action" cells
-        tableCounterCellClass: 'pf-table-counter-cell',                         // class for table "counter" cells
-        tableActionCellIconClass: 'pf-table-action-icon-cell',                  // class for table "action" icon (icon is part of cell content)
+        tableToolsClass: 'pf-table-tools',                                      // class for table "tools" section (e.g. Buttons)
+        tableCellImageClass: 'pf-table-image-cell',                             // class for table "image" cells
+        tableCellImageSmallClass: 'pf-table-image-small-cell',                  // class for table "small image" cells
+        tableCellActionClass: 'pf-table-action-cell',                           // class for table "action" cells
+        tableCellLinkClass: 'pf-table-link-cell',                               // class for table "links" cells
+        tableCellCounterClass: 'pf-table-counter-cell',                         // class for table "counter" cells
+        tableCellEllipsisClass: 'pf-table-cell-ellipses-auto',                  // class for table "ellipsis" cells
+        tableCellActionIconClass: 'pf-table-action-icon-cell',                  // class for table "action" icon (icon is part of cell content)
 
         loadingOptions: {                                                       // config for loading overlay
             icon: {
@@ -57,14 +62,34 @@ define([
     };
 
     /**
+     * get icon that marks a table cell as clickable
+     * @returns {string}
+     */
+    let getIconForInformationWindow = () => {
+        return '<i class="fa fa-fw fa-id-card ' + config.tableCellActionIconClass + '" title="open ingame" data-toggle="tooltip"></i>';
+    };
+
+    /**
+     * get icon for socked status
+     * @param type
+     * @returns {string}
+     */
+    let getIconForDockedStatus = (type) => {
+        let icon = type === 'station' ? 'fa-home' : type === 'structure' ? 'fa-industry' : '';
+        return icon.length ? '<i class="fa fa-fw ' + icon + ' ' + config.tableCellActionIconClass + '" title="' + type + '" data-toggle="tooltip"></i>' : '';
+    };
+
+    /**
      * loads the map info data into an element
      * @param mapData
      */
-    $.fn.loadMapInfoData = function(mapData){
-        let mapElement = $(this);
+    $.fn.initMapInfoData = function(mapData){
+        let mapElement = $(this).empty();
 
-        mapElement.empty();
         mapElement.showLoadingAnimation(config.loadingOptions);
+
+        // get some more config values from this map. Which are not part of "mapData"
+        let mapDataOrigin = Util.getCurrentMapData(mapData.config.id);
 
         let countSystems = mapData.data.systems.length;
         let countConnections = mapData.data.connections.length;
@@ -80,11 +105,11 @@ define([
             }
         }
 
-        // check max map limits (e.g. max systems per map) ============================================================
+        // check max map limits (e.g. max systems per map) ------------------------------------------------------------
         let percentageSystems = (100 / mapType.defaultConfig.max_systems) * countSystems;
         let maxSystemsClass = (percentageSystems < 90) ? 'txt-color-success' : (percentageSystems < 100) ? 'txt-color-warning' : 'txt-color-danger';
 
-        // build content ==============================================================================================
+        // build content ----------------------------------------------------------------------------------------------
 
         let dlElementLeft = $('<dl>', {
             class: 'dl-horizontal',
@@ -115,13 +140,6 @@ define([
             class: 'dl-horizontal',
             css: {'float': 'right'}
             }).append(
-                $('<dt>').text( 'Lifetime' )
-            ).append(
-                $('<dd>', {
-                    class: config.mapInfoLifetimeCounterClass,
-                    text: mapData.config.created
-                })
-            ).append(
                 $('<dt>').text( 'Systems' )
             ).append(
                 $('<dd>', {
@@ -131,6 +149,17 @@ define([
                 $('<dt>').text( 'Connections' )
             ).append(
                 $('<dd>').text( countConnections )
+            ).append(
+                $('<dt>').text( 'Lifetime' )
+            ).append(
+                $('<dd>', {
+                    class: config.mapInfoLifetimeCounterClass,
+                    text: mapData.config.created
+                })
+            ).append(
+                $('<dt>').text( 'Created' )
+            ).append(
+                $('<dd>').text(Util.getObjVal(mapDataOrigin, 'config.created.character.name'))
             );
 
         mapElement.append(dlElementRight);
@@ -145,14 +174,11 @@ define([
      * loads system info table into an element
      * @param mapData
      */
-    $.fn.loadSystemInfoTable = function(mapData){
-
-        let systemsElement = $(this);
-
-        systemsElement.empty();
+    $.fn.initSystemInfoTable = function(mapData){
+        let systemsElement = $(this).empty();
 
         let systemTable = $('<table>', {
-            class: ['compact', 'stripe', 'order-column', 'row-border', config.mapInfoTableClass].join(' ')
+            class: ['compact', 'stripe', 'order-column', 'row-border'].join(' ')
         });
         systemsElement.append(systemTable);
 
@@ -292,7 +318,7 @@ define([
             systemsData.push(tempData);
         }
 
-        let systemsDataTable = systemTable.dataTable( {
+        let systemsDataTable = systemTable.DataTable( {
             pageLength: 20,
             paging: true,
             lengthMenu: [[5, 10, 20, 50, -1], [5, 10, 20, 50, 'All']],
@@ -343,7 +369,14 @@ define([
                     }
                 },{
                     title: 'system',
-                    data: 'name'
+                    data: 'name',
+                    className: [config.tableCellLinkClass].join(' '),
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                        // select system
+                        $(cell).on('click', function(e){
+                            Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: rowData.id });
+                        });
+                    }
                 },{
                     title: 'alias',
                     data: 'alias'
@@ -401,7 +434,7 @@ define([
                     title: 'updated',
                     width: '80px',
                     searchable: false,
-                    className: ['text-right', config.tableCounterCellClass, 'min-desktop'].join(' '),
+                    className: ['text-right', config.tableCellCounterClass, 'min-desktop'].join(' '),
                     data: 'updated',
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         $(cell).initTimestampCounter();
@@ -418,7 +451,7 @@ define([
                     orderable: false,
                     searchable: false,
                     width: '10px',
-                    className: ['text-center', config.tableActionCellClass].join(' '),
+                    className: ['text-center', config.tableCellActionClass].join(' '),
                     data: 'clear',
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex) {
                         let tempTableElement = this;
@@ -444,11 +477,11 @@ define([
 
                                             Util.showNotify({title: 'System deleted', text: rowData.name, type: 'success'});
 
-                                            // refresh connection table (connections might have changed) ==================
+                                            // refresh connection table (connections might have changed) --------------
                                             let connectionsElement = $('#' + config.mapInfoConnectionsId);
                                             let mapDataNew = activeMap.getMapDataFromClient({forceData: true});
 
-                                            connectionsElement.loadConnectionInfoTable(mapDataNew);
+                                            connectionsElement.initConnectionInfoTable(mapDataNew);
                                         }else{
                                             // error
                                             Util.showNotify({title: 'Failed to delete system', text: rowData.name, type: 'error'});
@@ -472,13 +505,11 @@ define([
      * loads connection info table into an element
      * @param mapData
      */
-    $.fn.loadConnectionInfoTable = function(mapData){
-        let connectionsElement = $(this);
-
-        connectionsElement.empty();
+    $.fn.initConnectionInfoTable = function(mapData){
+        let connectionsElement = $(this).empty();
 
         let connectionTable = $('<table>', {
-            class: ['compact', 'stripe', 'order-column', 'row-border', config.mapInfoTableClass].join(' ')
+            class: ['compact', 'stripe', 'order-column', 'row-border'].join(' ')
         });
         connectionsElement.append(connectionTable);
 
@@ -489,7 +520,7 @@ define([
             connectionsElement.hideLoadingAnimation();
         });
 
-        // connections table ==========================================================================================
+        // connections table ------------------------------------------------------------------------------------------
 
         // prepare data for dataTables
         let connectionData = [];
@@ -505,8 +536,10 @@ define([
                 scope_sort: tempConnectionData.scope
             };
 
-            // source system name
-            tempConData.source = tempConnectionData.sourceName;
+            tempConData.source = {
+                id: tempConnectionData.source,
+                name: tempConnectionData.sourceName,
+            };
 
             // connection
             let connectionClasses = [];
@@ -519,8 +552,10 @@ define([
 
             tempConData.connection = '<div class="pf-fake-connection ' + connectionClasses + '"></div>';
 
-
-            tempConData.target = tempConnectionData.targetName;
+            tempConData.target = {
+                id: tempConnectionData.target,
+                name: tempConnectionData.targetName,
+            };
 
             tempConData.updated = tempConnectionData.updated;
 
@@ -557,7 +592,14 @@ define([
                     }
                 },{
                     title: 'source system',
-                    data: 'source'
+                    data: 'source.name',
+                    className: [config.tableCellLinkClass].join(' '),
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                        // select system
+                        $(cell).on('click', function(e){
+                            Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: rowData.source.id });
+                        });
+                    }
                 },{
                     title: 'connection',
                     width: '80px',
@@ -567,12 +609,19 @@ define([
                     data: 'connection'
                 }, {
                     title: 'target system',
-                    data: 'target'
+                    data: 'target.name',
+                    className: [config.tableCellLinkClass].join(' '),
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                        // select system
+                        $(cell).on('click', function(e){
+                            Util.getMapModule().getActiveMap().triggerMenuEvent('SelectSystem', {systemId: rowData.target.id });
+                        });
+                    }
                 },{
                     title: 'updated',
                     width: '80px',
                     searchable: false,
-                    className: ['text-right', config.tableCounterCellClass].join(' '),
+                    className: ['text-right', config.tableCellCounterClass].join(' '),
                     data: 'updated',
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         $(cell).initTimestampCounter();
@@ -589,7 +638,7 @@ define([
                     orderable: false,
                     searchable: false,
                     width: '10px',
-                    className: ['text-center', config.tableActionCellClass].join(' '),
+                    className: ['text-center', config.tableCellActionClass].join(' '),
                     data: 'clear',
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex) {
                         let tempTableElement = this;
@@ -621,13 +670,11 @@ define([
      * loads user info table into an element
      * @param mapData
      */
-    $.fn.loadUsersInfoTable = function(mapData){
-        let usersElement = $(this);
-
-        usersElement.empty();
+    $.fn.initUsersInfoTable = function(mapData){
+        let usersElement = $(this).empty();
 
         let userTable = $('<table>', {
-            class: ['compact', 'stripe', 'order-column', 'row-border', config.mapInfoTableClass].join(' ')
+            class: ['compact', 'stripe', 'order-column', 'row-border'].join(' ')
         });
         usersElement.append(userTable);
 
@@ -644,11 +691,7 @@ define([
             });
         });
 
-        let getIconForInformationWindow = () => {
-            return '<i class="fa fa-fw fa-id-card ' + config.tableActionCellIconClass + '" title="open ingame" data-toggle="tooltip"></i>';
-        };
-
-        // users table ================================================================================================
+        // users table ------------------------------------------------------------------------------------------------
         // prepare users data for dataTables
         let currentMapUserData = Util.getCurrentMapUserData( mapData.config.id );
         let usersData = [];
@@ -688,13 +731,13 @@ define([
                     width: '26px',
                     orderable: false,
                     searchable: false,
-                    className: ['pf-help-default', 'text-center', config.tableImageCellClass].join(' '),
+                    className: ['pf-help-default', 'text-center', config.tableCellImageClass].join(' '),
                     data: 'log.ship',
                     render: {
                         _: function(data, type, row, meta){
                             let value = data;
                             if(type === 'display'){
-                                value = '<img src="' + Init.url.ccpImageServer + 'Render/' + value.typeId + '_32.png" title="' + value.typeName + '" data-toggle="tooltip" />';
+                                value = '<img src="' + Init.url.ccpImageServer + '/Render/' + value.typeId + '_32.png" title="' + value.typeName + '" data-toggle="tooltip" />';
                             }
                             return value;
                         }
@@ -721,13 +764,13 @@ define([
                     width: '26px',
                     orderable: false,
                     searchable: false,
-                    className: [config.tableImageCellClass].join(' '),
+                    className: [config.tableCellImageClass].join(' '),
                     data: 'id',
                     render: {
                         _: function(data, type, row, meta){
                             let value = data;
                             if(type === 'display'){
-                                value = '<img src="' + Init.url.ccpImageServer + 'Character/' + value + '_32.jpg" />';
+                                value = '<img src="' + Init.url.ccpImageServer + '/Character/' + value + '_32.jpg" />';
                             }
                             return value;
                         }
@@ -737,7 +780,7 @@ define([
                     title: 'pilot',
                     orderable: true,
                     searchable: true,
-                    className: [config.tableActionCellClass].join(' '),
+                    className: [config.tableCellActionClass].join(' '),
                     data: 'name',
                     render: {
                         _: function(data, type, row, meta){
@@ -761,13 +804,13 @@ define([
                     width: '26px',
                     orderable: false,
                     searchable: false,
-                    className: [config.tableImageCellClass, config.tableImageSmallCellClass].join(' '),
+                    className: [config.tableCellImageClass, config.tableCellImageSmallClass].join(' '),
                     data: 'corporation',
                     render: {
                         _: function(data, type, row, meta){
                             let value = data;
                             if(type === 'display'){
-                                value = '<img src="' + Init.url.ccpImageServer + 'Corporation/' + value.id + '_32.png" />';
+                                value = '<img src="' + Init.url.ccpImageServer + '/Corporation/' + value.id + '_32.png" />';
                             }
                             return value;
                         }
@@ -777,7 +820,7 @@ define([
                     title: 'corporation',
                     orderable: true,
                     searchable: true,
-                    className: [config.tableActionCellClass].join(' '),
+                    className: [config.tableCellActionClass].join(' '),
                     data: 'corporation',
                     render: {
                         _: function (data, type, row, meta) {
@@ -807,18 +850,336 @@ define([
                     }
                 },{
                     targets: 7,
-                    title: 'station',
+                    title: 'docked',
                     orderable: true,
                     searchable: true,
-                    data: 'log.station',
+                    className: [config.tableCellActionClass].join(' '),
+                    data: 'log',
                     render: {
-                        _: 'name',
-                        sort: 'name'
+                        _: function (data, type, row, meta) {
+                            let value = '';
+                            if(data.station && data.station.id > 0){
+                                value = data.station.name + '&nbsp;' + getIconForDockedStatus('station');
+                            }else if(data.structure && data.structure.id > 0){
+                                value = data.structure.name + '&nbsp;' + getIconForDockedStatus('structure');
+                            }
+                            return value;
+                        }
                     }
                 }
             ]
         });
 
+    };
+
+    /**
+     * loads logs table into an element
+     * @param mapData
+     */
+    $.fn.initLogsInfoTable = function(mapData){
+        let logsElement = $(this).empty();
+
+        /**
+         * ajax load function for log fdata
+         * @param requestData
+         * @param context
+         */
+        let getLogsData = (requestData, context) => {
+            context.logsElement.showLoadingAnimation(config.loadingOptions);
+
+            $.ajax({
+                type: 'POST',
+                url: Init.path.getMapLogData,
+                data: requestData,
+                dataType: 'json',
+                context: context
+            }).done(function(data){
+                this.callback(data, context);
+            }).fail(function( jqXHR, status, error) {
+                let reason = status + ' ' + error;
+                Util.showNotify({title: jqXHR.status + ': loadLogs', text: reason, type: 'warning'});
+            }).always(function(){
+                this.logsElement.hideLoadingAnimation();
+            });
+        };
+
+        /**
+         * callback function after ajax response with log data
+         * @param responseData
+         * @param context
+         */
+        let updateTableDataCallback = (responseData, context) => {
+            let newLogCount = responseData.data.length;
+
+            if(newLogCount > 0){
+                let pageInfoOld = context.tableApi.page.info();
+
+                // add new rows
+                context.tableApi.rows.add(responseData.data).draw();
+
+                let newPageIndex = 0;
+                if(pageInfoOld.recordsDisplay === 0){
+                    Util.showNotify({title: 'New logs loaded', text: newLogCount + ' most recent logs added', type: 'success'});
+                }else{
+                    // get new pageInfo (new max page count)
+                    let pageInfoNew = context.tableApi.page.info();
+                    newPageIndex = Math.max(0, pageInfoNew.pages - 1);
+                    Util.showNotify({title: 'More logs loaded', text: newLogCount + ' older logs added', type: 'info'});
+                }
+
+                // get to last page (pageIndex starts at zero) -> check if last page > 0
+                context.tableApi.page(newPageIndex).draw(false);
+            }else{
+                Util.showNotify({title: 'No logs found', text: 'No more entries', type: 'danger'});
+            }
+
+        };
+
+        // init logs table --------------------------------------------------------------------------------------------
+        let logTable = $('<table>', {
+            class: ['compact', 'stripe', 'order-column', 'row-border', 'pf-table-fixed'].join(' ')
+        });
+        logsElement.append(logTable);
+
+        let serverDate = Util.getServerTime();
+        let serverHours = serverDate.setHours(0,0,0,0);
+
+        let logDataTable = logTable.DataTable({
+            pageLength: 25,
+            paging: true,
+            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+            pagingType: 'full_numbers',
+            ordering: false,
+            autoWidth: false,
+            searching: true,
+            hover: false,
+            data: [],
+            language: {
+                emptyTable: 'No logs available',
+                zeroRecords: 'No logs found',
+                lengthMenu: 'Show _MENU_ rows',
+                info: 'Showing _START_ to _END_ of _TOTAL_ rows'
+            },
+            columnDefs: [
+                {
+                    targets: 0,
+                    title: '<span title="action" data-toggle="tooltip">&nbsp;</span>',
+                    width: 12,
+                    data: 'context.tag',
+                    render: {
+                        _: function(data, type, row, meta){
+                            let value = data;
+                            if(type === 'display'){
+                                let className = 'txt-color-' + data;
+                                value = '<i class="fa fa-circle fa-fw txt-color ' + className + '"></i>';
+                            }
+                            return value;
+                        }
+                    }
+                },{
+                    targets: 1,
+                    name: 'timestamp',
+                    title: '<i class="fa fa-lg fa-fw fa-clock-o"></i>',
+                    width: 100,
+                    className: ['text-right'].join(' '),
+                    data: 'datetime.date',
+                    render: {
+                        _: function(data, type, row, meta){
+                            // strip microseconds
+                            let logDateString = data.substring(0, 19) ;
+                            let logDate = new Date(logDateString.replace(/-/g, '/'));
+                            data = Util.convertDateToString(logDate, true);
+
+                            // check whether log is new (today) ->
+                            if(logDate.setHours(0,0,0,0) === serverHours) {
+                                // replace dd/mm/YYYY
+                                data = 'today' + data.substring(10);
+                            }
+                            return data;
+                        }
+                    }
+                },{
+                    targets: 2,
+                    title: 'level',
+                    width: 40,
+                    data: 'level_name'
+                },{
+                    targets: 3,
+                    title: 'channel',
+                    className: [config.tableCellEllipsisClass].join(' '),
+                    width: 40,
+                    data: 'channel'
+                },{
+                    targets: 4,
+                    title: 'message',
+                    width: 115,
+                    data: 'message',
+                    render: {
+                        _: function(data, type, row, meta){
+                            let value = data;
+                            if(type === 'display'){
+                                let className = 'txt-color-';
+                                if(Util.getObjVal(row, 'context.tag')){
+                                    className += row.context.tag;
+                                }
+                                value = '<span class="txt-color ' + className + '">' + value + '</span>';
+                            }
+                            return value;
+                        }
+                    }
+                },{
+                    targets: 5,
+                    title: '',
+                    width: 26,
+                    searchable: false,
+                    className: [config.tableCellImageClass].join(' '),
+                    data: 'context.data.character.id' ,
+                    render: {
+                        _: function(data, type, row, meta){
+                            let value = data;
+                            if(type === 'display'){
+                                value = '<img src="' + Init.url.ccpImageServer + '/Character/' + value + '_32.jpg" />';
+                            }
+                            return value;
+                        }
+                    }
+                },{
+                    targets: 6,
+                    title: 'pilot',
+                    width: 110,
+                    className: [config.tableCellActionClass].join(' '),
+                    data: 'context.data.character.name',
+                    render: {
+                        _: function(data, type, row, meta){
+                            let value = data;
+                            if(type === 'display'){
+                                value += '&nbsp;' + getIconForInformationWindow();
+                            }
+                            return value;
+                        }
+                    },
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                        // open character information window (ingame)
+                        $(cell).on('click', { tableApi: this.DataTable() }, function(e) {
+                            let rowData = e.data.tableApi.row(this).data();
+                            Util.openIngameWindow(rowData.context.data.character.id);
+                        });
+                    }
+                },{
+                    targets: 7,
+                    title: 'context',
+                    className: [config.tableCellEllipsisClass].join(' '),
+                    data: 'context.data.formatted'
+                },{
+                    targets: 8,
+                    title: '<i class="fa fa-lg fa-code text-right"></i>',
+                    width: 12,
+                    className: [config.tableCellActionClass].join(' '),
+                    data: 'context.data',
+                    render: {
+                        _: function(data, type, row, meta){
+                            let value = data;
+                            if(type === 'display'){
+                               // txt-color-redDarker
+                                value = '<i class="fa fa-code ' + config.tableCellActionIconClass + '"></i>';
+                            }
+                            return value;
+                        }
+                    },
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                        // unset formatted string (to much content)
+
+                        if(cellData.formatted){
+                            // clone data before delete() values
+                            cellData = Object.assign({}, cellData);
+                            delete(cellData.formatted);
+                        }
+
+                        let jsonHighlighted = Render.highlightJson(cellData);
+                        let content = '<pre><code>' + jsonHighlighted + '</code></pre>';
+
+                        // open popover with raw log data
+                        $(cell).popover({
+                            placement: 'left',
+                            html: true,
+                            trigger: 'hover',
+                            content: content,
+                            container: 'body',
+                            title: 'Raw data',
+                            delay: {
+                                show: 180,
+                                hide: 0
+                            }
+                        });
+                    }
+                }
+            ],
+            initComplete: function(settings){
+                let tableApi = this.api();
+
+                // empty table is ready -> load logs
+                getLogsData({
+                    mapId: mapData.config.id
+                }, {
+                    tableApi: tableApi,
+                    callback: updateTableDataCallback,
+                    logsElement: logsElement
+                });
+            },
+            drawCallback: function(settings){
+                let tableApi = this.api();
+
+                // en/disable "load more" button ----------------------------------------------------------------------
+                let tableInfo = tableApi.page.info();
+                let isLastPage = (tableInfo.pages === 0 || tableInfo.page === tableInfo.pages - 1);
+                tableApi.button(0).enable(isLastPage);
+
+                // adjust "timestamp" column width --------------------------------------------------------------------
+                let timestampColumn =  tableApi.column('timestamp:name').header();
+                let timestampColumnCells = tableApi.cells(undefined, 'timestamp:name', {page: 'current', order:'current'});
+
+                let hasOldLogs = timestampColumnCells.render( 'display' ).reduce((hasOldLogs, cellValue) => {
+                    return (hasOldLogs === false && !cellValue.startsWith('today')) ? true : hasOldLogs;
+                }, false);
+
+                if(hasOldLogs){
+                    $(timestampColumn).css({width: '100px'});
+                }else{
+                    $(timestampColumn).css({width: '80px'});
+                }
+            }
+        });
+
+        // ------------------------------------------------------------------------------------------------------------
+        // add dataTable buttons (extension)
+        logsElement.append($('<div>', {
+            class: config.tableToolsClass
+        }));
+
+        let buttons = new $.fn.dataTable.Buttons( logDataTable, {
+            buttons: [
+                {
+                    className: 'btn btn-sm btn-default',
+                    text: '<i class="fa fa-fw fa-plus"></i>&nbsp;load more',
+                    enabled: false,
+                    action: function ( e, dt, node, config ) {
+                        let pageInfo = dt.page.info();
+
+                        getLogsData({
+                            mapId: mapData.config.id,
+                            limit: pageInfo.length,
+                            offset: pageInfo.recordsTotal
+                        }, {
+                            tableApi: dt,
+                            callback: updateTableDataCallback,
+                            logsElement: logsElement
+                        });
+                    }
+                }
+            ]
+        } );
+
+        logDataTable.buttons().container().appendTo( $(this).find('.' + config.tableToolsClass));
     };
 
     /**
@@ -830,21 +1191,29 @@ define([
         let mapData = activeMap.getMapDataFromClient({forceData: true});
 
         if(mapData !== false){
-            requirejs(['text!templates/dialog/map_info.html', 'mustache'], function(template, Mustache) {
+            // "log" tab -> get "Origin", not all config options are set in mapData
+            let mapDataOrigin = Util.getCurrentMapData(mapData.config.id);
+
+            requirejs(['text!templates/dialog/map_info.html', 'mustache', 'datatables.loader'], (template, Mustache) => {
 
                 let data = {
                     dialogSummaryContainerId: config.dialogMapInfoSummaryId,
                     dialogUsersContainerId: config.dialogMapInfoUsersId,
+                    dialogLogsContainerId: config.dialogMapInfoLogsId,
                     dialogRefreshContainerId: config.dialogMapInfoRefreshId,
                     dialogNavigationClass: config.dialogNavigationClass,
                     mapInfoId: config.mapInfoId,
                     mapInfoSystemsId: config.mapInfoSystemsId,
                     mapInfoConnectionsId: config.mapInfoConnectionsId,
                     mapInfoUsersId: config.mapInfoUsersId,
+                    mapInfoLogsId: config.mapInfoLogsId,
+
+                    logHistoryEnabled: Boolean(Util.getObjVal(mapDataOrigin, 'config.logging.history')),
 
                     // default open tab ----------
                     openTabInformation: options.tab === 'information',
-                    openTabActivity: options.tab === 'activity'
+                    openTabActivity: options.tab === 'activity',
+                    openTabLog: options.tab === 'log'
                 };
 
                 let content = Mustache.render(template, data);
@@ -865,39 +1234,51 @@ define([
                 });
 
                 mapInfoDialog.on('shown.bs.modal', function(e) {
-                    // modal on open
-
                     let mapElement = $('#' + config.mapInfoId);
                     let systemsElement = $('#' + config.mapInfoSystemsId);
                     let connectionsElement = $('#' + config.mapInfoConnectionsId);
                     let usersElement = $('#' + config.mapInfoUsersId);
 
-
                     // set refresh button observer
-                    $('#' + config.dialogMapInfoRefreshId).on('click', function(){
+                    $('#' + config.dialogMapInfoRefreshId).on('click', function(e){
                         let menuAction = $(this).attr('data-action');
                         if(menuAction === 'refresh'){
                             // get new map data
                             let mapData = activeMap.getMapDataFromClient({forceData: true});
+                            // find active tab
+                            let activeTabLink = $(this).parents('.navbar').find('.navbar-header.pull-left li.active a');
+                            if(activeTabLink.attr('href') === '#' + config.dialogMapInfoLogsId){
+                                $('#' + config.mapInfoLogsId).initLogsInfoTable(mapDataOrigin);
+                            }
 
-                            mapElement.loadMapInfoData(mapData);
-                            systemsElement.loadSystemInfoTable(mapData);
-                            connectionsElement.loadConnectionInfoTable(mapData);
-                            usersElement.loadUsersInfoTable(mapData);
+                            mapElement.initMapInfoData(mapData);
+                            systemsElement.initSystemInfoTable(mapData);
+                            connectionsElement.initConnectionInfoTable(mapData);
+                            usersElement.initUsersInfoTable(mapData);
                         }
                     });
 
                     // load map data
-                    mapElement.loadMapInfoData(mapData);
+                    mapElement.initMapInfoData(mapData);
 
                     // load system table
-                    systemsElement.loadSystemInfoTable(mapData);
+                    systemsElement.initSystemInfoTable(mapData);
 
                     // load connection table
-                    connectionsElement.loadConnectionInfoTable(mapData);
+                    connectionsElement.initConnectionInfoTable(mapData);
 
                     // load users table
-                    usersElement.loadUsersInfoTable(mapData);
+                    usersElement.initUsersInfoTable(mapData);
+
+                });
+
+                // events for tab change
+                mapInfoDialog.find('.navbar a').on('shown.bs.tab', function(e){
+                    if($(e.target).attr('href') === '#' + config.dialogMapInfoLogsId){
+                        // "log" tab
+                        let mapDataOrigin = Util.getCurrentMapData(mapData.config.id);
+                        $('#' + config.mapInfoLogsId).initLogsInfoTable(mapDataOrigin);
+                    }
                 });
 
             });

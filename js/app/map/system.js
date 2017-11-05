@@ -18,7 +18,19 @@ define([
             y: 0
         },
 
-        systemActiveClass: 'pf-system-active'                           // class for an active system in a map
+        systemActiveClass: 'pf-system-active',                                          // class for an active system in a map
+
+        dialogRallyId: 'pf-rally-dialog',                                               // id for "Rally point" dialog
+
+        dialogRallyPokeDesktopId: 'pf-rally-dialog-poke-desktop',                       // id for "desktop" poke checkbox
+        dialogRallyPokeSlackId: 'pf-rally-dialog-poke-slack',                           // id for "Slack" poke checkbox
+        dialogRallyPokeMailId: 'pf-rally-dialog-poke-mail',                             // id for "mail" poke checkbox
+        dialogRallyMessageId: 'pf-rally-dialog-message',                                // id for "message" textarea
+
+        dialogRallyMessageDefault: '' +
+            'I need some help!\n\n' +
+            '- Potential PvP options around\n' +
+            '- DPS and Logistic ships needed'
     };
 
     /**
@@ -26,40 +38,104 @@ define([
      * @param system
      */
     $.fn.showRallyPointDialog = (system) => {
+        let mapData = Util.getCurrentMapData(system.data('mapid'));
+
         requirejs(['text!templates/dialog/system_rally.html', 'mustache'], function(template, Mustache) {
+
+            let setCheckboxObserver = (checkboxes) => {
+                checkboxes.each(function(){
+                    $(this).on('change', function(){
+                        // check all others
+                        let allUnchecked = true;
+                        checkboxes.each(function(){
+                            if(this.checked){
+                                allUnchecked = false;
+                            }
+                        });
+                        let textareaElement = $('#' + config.dialogRallyMessageId);
+                        if(allUnchecked){
+                            textareaElement.prop('disabled', true);
+                        }else{
+                            textareaElement.prop('disabled', false);
+                        }
+                    });
+                });
+            };
+
+            let sendPoke = (requestData, context) => {
+                // lock dialog
+                let dialogContent = context.rallyDialog.find('.modal-content');
+                dialogContent.showLoadingAnimation();
+
+                $.ajax({
+                    type: 'POST',
+                    url: Init.path.pokeRally,
+                    data: requestData,
+                    dataType: 'json',
+                    context: context
+                }).done(function(data){
+
+                }).fail(function( jqXHR, status, error) {
+                    let reason = status + ' ' + error;
+                    Util.showNotify({title: jqXHR.status + ': sendPoke', text: reason, type: 'warning'});
+                }).always(function(){
+                    this.rallyDialog.find('.modal-content').hideLoadingAnimation();
+                });
+            };
+
             let data = {
-                notificationStatus: Init.notificationStatus.rallySet
+                id: config.dialogRallyId,
+
+                dialogRallyPokeDesktopId: config.dialogRallyPokeDesktopId,
+                dialogRallyPokeSlackId: config.dialogRallyPokeSlackId,
+                dialogRallyPokeMailId: config.dialogRallyPokeMailId,
+                dialogRallyMessageId: config.dialogRallyMessageId ,
+
+                desktopRallyEnabled: true,
+                slackRallyEnabled: Boolean(Util.getObjVal(mapData, 'config.logging.slackRally')),
+                mailRallyEnabled: Boolean(Util.getObjVal(mapData, 'config.logging.mailRally')),
+                dialogRallyMessageDefault: config.dialogRallyMessageDefault,
+
+                systemId: system.data('id')
             };
 
             let content = Mustache.render(template, data);
 
             let rallyDialog = bootbox.dialog({
                 message: content,
-                title: 'Set rally point for "' + system.getSystemInfo( ['alias'] ) + '"',
+                title: 'Set rally point in "' + system.getSystemInfo( ['alias'] ) + '"',
                 buttons: {
                     close: {
                         label: 'cancel',
                         className: 'btn-default'
                     },
-                    setRallyPoke: {
-                        label: '<i class="fa fa-fw fa-volume-up"></i> set rally and poke',
-                        className: 'btn-primary',
-                        callback: function() {
-                            system.setSystemRally(1, {
-                                poke: true
-                            });
-                            system.markAsChanged();
-                        }
-                    },
                     success: {
-                        label: '<i class="fa fa-fw fa-users"></i> set rally',
+                        label: '<i class="fa fa-fw fa-volume-up"></i> set rally point',
                         className: 'btn-success',
                         callback: function() {
-                            system.setSystemRally(1);
+                            let form = $('#' + config.dialogRallyId).find('form');
+                            // get form data
+                            let formData = form.getFormValues();
+
+                            // update map
+                            system.setSystemRally(1, {
+                                poke: Boolean(formData.pokeDesktop)
+                            });
                             system.markAsChanged();
+
+                            // send poke data to server
+                            sendPoke(formData, {
+                                rallyDialog: this
+                            });
                         }
                     }
                 }
+            });
+
+            // after modal is shown ==================================================================================
+            rallyDialog.on('shown.bs.modal', function(e){
+                // set event for checkboxes
+                setCheckboxObserver(rallyDialog.find(':checkbox'));
             });
         });
     };

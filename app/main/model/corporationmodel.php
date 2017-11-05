@@ -9,6 +9,7 @@
 namespace Model;
 
 use DB\SQL\Schema;
+use lib\Config;
 
 class CorporationModel extends BasicModel {
 
@@ -131,8 +132,6 @@ class CorporationModel extends BasicModel {
     public function getMaps(){
         $maps = [];
 
-        $f3 = self::getF3();
-
         $this->filter('mapCorporations',
             ['active = ?', 1],
             ['order' => 'created']
@@ -143,7 +142,7 @@ class CorporationModel extends BasicModel {
             foreach($this->mapCorporations as $mapCorporation){
                 if(
                     $mapCorporation->mapId->isActive() &&
-                    $mapCount < $f3->get('PATHFINDER.MAP.CORPORATION.MAX_COUNT')
+                    $mapCount < Config::getMapsDefaultConfig('corporation')['max_count']
                 ){
                     $maps[] = $mapCorporation->mapId;
                     $mapCount++;

@@ -1,4 +1,4 @@
-<div class="pf-splash">
+<div class="pf-splash-error">
     <div class="pf-color-line danger"></div>
     <div class="pf-splash-title">
         <h1>
@@ -17,4 +17,6 @@
             </check>
         </p>
     </div>
+
+    <include if="{{ @DEBUG == 3 }}" href="{{ 'templates/ui/debug.html' }}" />
 </div>

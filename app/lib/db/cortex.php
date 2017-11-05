@@ -18,8 +18,8 @@
  *  https://github.com/ikkez/F3-Sugar/
  *
  *  @package DB
- *  @version 1.5.0-dev
- *  @date 27.02.2017
+ *  @version 1.5.0
+ *  @date 30.06.2017
  *  @since 24.04.2012
  */
 
@@ -312,6 +312,7 @@ class Cortex extends Cursor {
     static public function setup($db=null, $table=null, $fields=null) {
         /** @var Cortex $self */
         $self = get_called_class();
+        $self::$schema_cache=[];
         if (is_null($db) || is_null($table) || is_null($fields))
             $df = $self::resolveConfiguration();
         if (!is_object($db=(is_string($db=($db?:$df['db']))?\Base::instance()->get($db):$db)))
@@ -836,9 +837,14 @@ class Cortex extends Cursor {
                 array_unshift($filter,$crit);
             }
         }
+        if ($options) {
+            $options = $this->queryParser->prepareOptions($options,$this->dbsType);
+            if ($count)
+                unset($options['order']);
+        }
         return ($count)
             ? $this->mapper->count($filter,$options,$ttl)
-            : $this->mapper->find($filter,$this->queryParser->prepareOptions($options,$this->dbsType),$ttl);
+            : $this->mapper->find($filter,$options,$ttl);
     }
 
     /**
@@ -1250,12 +1256,12 @@ class Cortex extends Cursor {
                         $mmTable = $this->mmTable($relConf,$key);
                         $filter = array($mmTable.'.'.$relConf['relField']
                             .' = '.$this->table.'.'.$this->primary);
-                        $from=$mmTable;
+                        $from = $this->db->quotekey($mmTable);
                         if (array_key_exists($key, $this->relFilter) &&
                             !empty($this->relFilter[$key][0])) {
                             $options=array();
-                            $from = $mmTable.' '.$this->_sql_left_join($key,$mmTable,
-                                    $relConf['relPK'],$relConf['relTable']);
+                            $from = $this->db->quotekey($mmTable).' '.
+                                $this->_sql_left_join($key,$mmTable,$relConf['relPK'],$relConf['relTable']);
                             $relFilter = $this->relFilter[$key];
                             $this->_sql_mergeRelCondition($relFilter,$relConf['relTable'],
                                 $filter,$options);
@@ -1266,8 +1272,8 @@ class Cortex extends Cursor {
                         if (count($filter)>0)
                             $this->preBinds=array_merge($this->preBinds,$filter);
                         $this->mapper->set($alias,
-                            '(select count('.$this->db->quotekey($mmTable.'.'.$relConf['relField']).') from '.
-                            $this->db->quotekey($from).' where '.$crit.
+                            '(select count('.$this->db->quotekey($mmTable.'.'.$relConf['relField']).')'.
+                            ' from '.$from.' where '.$crit.
                             ' group by '.$this->db->quotekey($mmTable.'.'.$relConf['relField']).')');
                         if ($this->whitelist && !in_array($alias,$this->whitelist))
                             $this->whitelist[] = $alias;
@@ -2444,6 +2450,8 @@ class CortexQueryParser extends \Prefab {
         $child = array();
         for ($i = 0, $max = count($parts); $i < $max; $i++) {
             $part = $parts[$i];
+            if (is_string($part))
+                $part = trim($part);
             if ($part == '(') {
                 // add sub-bracket to parse array
                 if ($b_offset > 0)
@@ -2460,14 +2468,15 @@ class CortexQueryParser extends \Prefab {
                 else
                     // add sub-bracket to parse array
                     $child[] = $part;
-            } // add to parse array
-            elseif ($b_offset > 0)
-                $child[] = $part;
-            // condition type
-            elseif (!is_array($part)) {
-                if (strtoupper(trim($part)) == 'AND')
+            }
+            elseif ($b_offset > 0) {
+                // add to parse array
+                $child[]=$part;
+                // condition type
+            } elseif (!is_array($part)) {
+                if (strtoupper($part) == 'AND')
                     $add = true;
-                elseif (strtoupper(trim($part)) == 'OR')
+                elseif (strtoupper($part) == 'OR')
                     $or = true;
             } else // skip
                 $ncond[] = $part;
@@ -2589,7 +2598,7 @@ class CortexQueryParser extends \Prefab {
                 if (array_key_exists('group', $options) && is_string($options['group'])) {
                     $keys = explode(',',$options['group']);
                     $options['group']=array('keys'=>array(),'initial'=>array(),
-                        'reduce'=>'function (obj, prev) {}','finalize'=>'');
+                                            'reduce'=>'function (obj, prev) {}','finalize'=>'');
                     $keys = array_combine($keys,array_fill(0,count($keys),1));
                     $options['group']['keys']=$keys;
                     $options['group']['initial']=$keys;

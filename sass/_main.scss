@@ -593,21 +593,21 @@ input[type="email"]{
 	padding: 0 1px;
 	font-size: 11px;
 	line-height: 15px;
-	color: $gray-light;
+	color: lighten($text-color, 10%);
 }
 
 	/*
 	 * WITH ICON
 	 */
 	.input-icon-right {
-		position:relative;
+		//position:relative; why?
 	}
 	.input-icon-right > i, .input-icon-left > i {
 		position:absolute;
 		right:10px;
-		top:30%;
-		font-size:16px;
-		color:$gray-mid-light;
+		top:10px;
+		font-size:12px;
+		color:$gray-light;
 	}
 
 	.input-icon-left > i {
@@ -1220,27 +1220,44 @@ input[type="email"]{
   margin-left: -1px;
 }
 
-.dropdown-submenu:hover>.dropdown-menu {
-  display: block;
+.dropdown-submenu:hover{
+	// show sub menu
+	&>.dropdown-menu{
+		display: block;
+	}
+
+	&>a{
+		// keep "hover" effect on parent item when submenu is open
+		background-color: $gray-light;
+		color: $gray-darkest
+	}
+	a:after{
+		border-left-color: $green;
+	}
 }
 
-.dropdown-submenu>a:after {
-  display: block;
-  content: " ";
-  float: right;
-  width: 0;
-  height: 0;
-  border-color: transparent;
-  border-style: solid;
-  border-width: 5px 0 5px 5px;
-  border-left-color: $gray-darker;
-  margin-top: 5px;
-  margin-right: -10px;
+.dropdown-submenu>a {
+	&:after{
+		display: block;
+		content: " ";
+		float: right;
+		width: 0;
+		height: 0;
+		border-color: transparent;
+		border-style: solid;
+		border-width: 5px 0 5px 5px;
+		border-left-color: $gray-darker;
+		margin-top: 5px;
+		margin-right: -10px;
+	}
+
+	&:hover{
+		&:after{
+			border-left-color: $gray-lighter;
+		}
+	}
 }
 
-.dropdown-submenu:hover>a:after {
-  border-left-color: $gray-lighter;
-}
 
 .dropdown-submenu.pull-left {
   float: none;

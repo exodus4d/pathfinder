@@ -24,6 +24,15 @@ define([
         deleteEolConnectionsId: 'pf-map-dialog-delete-connections-eol',                 // id for "deleteEOLConnections" checkbox
         persistentAliasesId: 'pf-map-dialog-persistent-aliases',                        // id for "persistentAliases" checkbox
 
+        logHistoryId: 'pf-map-dialog-history',                                          // id for "history logging" checkbox
+        logActivityId: 'pf-map-dialog-activity',                                        // id for "activity" checkbox
+
+        slackWebHookURLId: 'pf-map-dialog-slack-url',                                   // id for Slack "webHookUrl"
+        slackUsernameId: 'pf-map-dialog-slack-username',                                // id for Slack "username"
+        slackIconId: 'pf-map-dialog-slack-icon',                                        // id for Slack "icon"
+        slackChannelHistoryId: 'pf-map-dialog-slack-channel-history',                   // id for Slack channel "history"
+        slackChannelRallyId: 'pf-map-dialog-slack-channel-rally',                       // id for Slack channel "rally"
+
         characterSelectId: 'pf-map-dialog-character-select',                            // id for "character" select
         corporationSelectId: 'pf-map-dialog-corporation-select',                        // id for "corporation" select
         allianceSelectId: 'pf-map-dialog-alliance-select',                              // id for "alliance" select
@@ -67,7 +76,7 @@ define([
 
             requirejs([
                 'text!templates/dialog/map.html',
-                'text!templates/form/map_settings.html',
+                'text!templates/form/map.html',
                 'mustache'
             ], function(templateMapDialog, templateMapSettings, Mustache) {
 
@@ -96,10 +105,10 @@ define([
                     formInfoContainerClass: Util.config.formInfoContainerClass
                 };
 
-                // render "new map" tab content -------------------------------------------
+                // render "new map" tab content -----------------------------------------------------------------------
                 let contentNewMap = Mustache.render(templateMapSettings, data);
 
-                // render "edit map" tab content ------------------------------------------
+                // render "edit map" tab content ----------------------------------------------------------------------
                 let contentEditMap = Mustache.render(templateMapSettings, data);
                 contentEditMap = $(contentEditMap);
 
@@ -110,6 +119,19 @@ define([
                 let deleteExpiredConnections = true;
                 let deleteEolConnections = true;
                 let persistentAliases = true;
+
+                let logActivity = true;
+                let logHistory = true;
+
+                let slackWebHookURL = '';
+                let slackUsername = '';
+                let slackIcon = '';
+                let slackChannelHistory = '';
+                let slackChannelRally = '';
+                let slackEnabled = false;
+                let slackHistoryEnabled = false;
+                let slackRallyEnabled = false;
+                let slackSectionShow = false;
 
                 if(mapData !== false){
                     // set current map information
@@ -126,9 +148,26 @@ define([
                     deleteExpiredConnections = mapData.config.deleteExpiredConnections;
                     deleteEolConnections = mapData.config.deleteEolConnections;
                     persistentAliases = mapData.config.persistentAliases;
+
+                    logActivity = mapData.config.logging.activity;
+                    logHistory = mapData.config.logging.history;
+
+                    slackWebHookURL = mapData.config.logging.slackWebHookURL;
+                    slackUsername = mapData.config.logging.slackUsername;
+                    slackIcon = mapData.config.logging.slackIcon;
+                    slackChannelHistory = mapData.config.logging.slackChannelHistory;
+                    slackChannelRally = mapData.config.logging.slackChannelRally;
+                    slackEnabled = Boolean(Util.getObjVal(Init, 'slack.status'));
+                    slackHistoryEnabled = slackEnabled && Boolean(Util.getObjVal(Init.mapTypes, mapData.config.type.name + '.defaultConfig.send_history_slack_enabled'));
+                    slackRallyEnabled = slackEnabled && Boolean(Util.getObjVal(Init.mapTypes, mapData.config.type.name + '.defaultConfig.send_rally_slack_enabled'));
+                    slackSectionShow = (slackEnabled && slackWebHookURL.length > 0);
+
+                    // remove "#" from Slack channels
+                    slackChannelHistory = slackChannelHistory.indexOf('#') === 0 ? slackChannelHistory.substr(1) : slackChannelHistory;
+                    slackChannelRally = slackChannelRally.indexOf('#') === 0 ? slackChannelRally.substr(1) : slackChannelRally;
                 }
 
-                // render main dialog -----------------------------------------------------
+                // render main dialog ---------------------------------------------------------------------------------
                 data = {
                     id: config.newMapDialogId,
                     mapData: mapData,
@@ -161,6 +200,26 @@ define([
                     deleteExpiredConnections: deleteExpiredConnections,
                     deleteEolConnections: deleteEolConnections,
                     persistentAliases: persistentAliases,
+
+                    logHistoryId: config.logHistoryId,
+                    logActivityId: config.logActivityId,
+                    logActivity: logActivity,
+                    logHistory: logHistory,
+
+                    slackWebHookURLId: config.slackWebHookURLId,
+                    slackUsernameId: config.slackUsernameId,
+                    slackIconId: config.slackIconId,
+                    slackChannelHistoryId: config.slackChannelHistoryId,
+                    slackChannelRallyId: config.slackChannelRallyId,
+                    slackWebHookURL: slackWebHookURL,
+                    slackUsername: slackUsername,
+                    slackIcon: slackIcon,
+                    slackChannelHistory: slackChannelHistory,
+                    slackChannelRally: slackChannelRally,
+                    slackEnabled: slackEnabled,
+                    slackHistoryEnabled: slackHistoryEnabled,
+                    slackRallyEnabled: slackRallyEnabled,
+                    slackSectionShow: slackSectionShow,
 
                     characterSelectId: config.characterSelectId,
                     corporationSelectId: config.corporationSelectId,
@@ -244,6 +303,15 @@ define([
                                     // get form data
                                     let formData = form.getFormValues();
 
+                                    // add value prefixes (Slack channels)
+                                    let tmpVal;
+                                    if(typeof (tmpVal = Util.getObjVal(formData, 'slackChannelHistory')) === 'string' && tmpVal.length){
+                                        formData.slackChannelHistory = '#' + tmpVal;
+                                    }
+                                    if(typeof (tmpVal = Util.getObjVal(formData, 'slackChannelRally')) === 'string' && tmpVal.length){
+                                        formData.slackChannelRally = '#' + tmpVal;
+                                    }
+
                                     // checkbox fix -> settings tab
                                     if( form.find('#' + config.deleteExpiredConnectionsId).length ){
                                         formData.deleteExpiredConnections = formData.hasOwnProperty('deleteExpiredConnections') ? parseInt( formData.deleteExpiredConnections ) : 0;
@@ -254,6 +322,15 @@ define([
                                     if( form.find('#' + config.persistentAliasesId).length ){
                                         formData.persistentAliases = formData.hasOwnProperty('persistentAliases') ? parseInt( formData.persistentAliases ) : 0;
                                     }
+                                    if( form.find('#' + config.persistentAliasesId).length ){
+                                        formData.persistentAliases = formData.hasOwnProperty('persistentAliases') ? parseInt( formData.persistentAliases ) : 0;
+                                    }
+                                    if( form.find('#' + config.logHistoryId).length ){
+                                        formData.logHistory = formData.hasOwnProperty('logHistory') ? parseInt( formData.logHistory ) : 0;
+                                    }
+                                    if( form.find('#' + config.logActivityId).length ){
+                                        formData.logActivity = formData.hasOwnProperty('logActivity') ? parseInt( formData.logActivity ) : 0;
+                                    }
 
                                     let requestData = {formData: formData};
 
@@ -263,8 +340,6 @@ define([
                                         data: requestData,
                                         dataType: 'json'
                                     }).done(function(responseData){
-
-                                        dialogContent.hideLoadingAnimation();
 
                                         if(responseData.error.length){
                                             form.showFormMessage(responseData.error);
@@ -287,6 +362,8 @@ define([
                                         Util.showNotify({title: jqXHR.status + ': saveMap', text: reason, type: 'warning'});
                                         $(document).setProgramStatus('problem');
 
+                                    }).always(function() {
+                                        dialogContent.hideLoadingAnimation();
                                     });
                                 }
 
@@ -297,9 +374,12 @@ define([
                 });
 
 
-                // after modal is shown =======================================================================
+                // after modal is shown ===============================================================================
                 mapInfoDialog.on('shown.bs.modal', function(e){
                     mapInfoDialog.initTooltips();
+
+                    // manually trigger the "show" event for the initial active tab (not triggered by default...)
+                    mapInfoDialog.find('.navbar li.active a[data-toggle=tab]').trigger('shown.bs.tab');
 
                     // prevent "disabled" tabs from being clicked... "bootstrap" bugFix...
                     mapInfoDialog.find('.navbar a[data-toggle=tab]').on('click', function(e){
@@ -323,17 +403,12 @@ define([
                         form.showFormMessage([{type: 'warning', message: 'No maps found. Create a new map before you can start'}]);
                     }
 
-                    // init select fields in case "settings" tab is open by default
-                    if(options.tab === 'settings'){
-                        initSettingsSelectFields(mapInfoDialog);
-                    }
-
-                    // init "download tab" ========================================================================
+                    // init "download tab" ============================================================================
                     let downloadTabElement = mapInfoDialog.find('#' + config.dialogMapDownloadContainerId);
                     if(downloadTabElement.length){
                         // tab exists
 
-                        // export map data ------------------------------------------------------------------------
+                        // export map data ----------------------------------------------------------------------------
                         downloadTabElement.find('#' + config.buttonExportId).on('click', { mapData: mapData }, function(e){
 
                             let exportForm = $('#' + config.dialogMapExportFormId);
@@ -364,7 +439,7 @@ define([
                             }
                         });
 
-                        // import map data ------------------------------------------------------------------------
+                        // import map data ----------------------------------------------------------------------------
                         // check if "FileReader" API is supported
                         let importFormElement = downloadTabElement.find('#' + config.dialogMapImportFormId);
                         if(window.File && window.FileReader && window.FileList && window.Blob){
@@ -477,16 +552,22 @@ define([
                     }
                 });
 
-                // events for tab change
+                // events for tab change ------------------------------------------------------------------------------
                 mapInfoDialog.find('.navbar a').on('shown.bs.tab', function(e){
+                    let modalDialog = mapInfoDialog.find('div.modal-dialog');
                     let selectElementCharacter = mapInfoDialog.find('#' + config.characterSelectId);
                     let selectElementCorporation = mapInfoDialog.find('#' + config.corporationSelectId);
                     let selectElementAlliance = mapInfoDialog.find('#' + config.allianceSelectId);
 
+
                     if($(e.target).attr('href') === '#' + config.dialogMapSettingsContainerId){
-                        // "settings" tab
+                        // "settings" tab -> resize modal
+                        modalDialog.toggleClass('modal-lg', true);
                         initSettingsSelectFields(mapInfoDialog);
                     }else{
+                        // resize modal
+                        modalDialog.toggleClass('modal-lg', false);
+
                         if( $(selectElementCharacter).data('select2') !== undefined ){
                             $(selectElementCharacter).select2('destroy');
                         }
@@ -611,29 +692,38 @@ define([
      * @param mapData
      */
     $.fn.showDeleteMapDialog = function(mapData){
-
         let mapName = mapData.config.name;
+        let mapNameStr = '<span class="txt-color txt-color-danger">' + mapName + '</span>';
 
-        let mapDeleteDialog = bootbox.confirm('Delete map "' + mapName + '"?', function(result){
-            if(result){
-                let data = {mapData: mapData.config};
+        let mapDeleteDialog = bootbox.confirm({
+            message: 'Delete map "' + mapNameStr + '"?',
+            buttons: {
+                confirm: {
+                    label: '<i class="fa fa-trash fa-fw"></i>&nbsp;delete map',
+                    className: 'btn-danger'
+                }
+            },
+            callback: function(result){
+                if(result){
+                    let data = {mapData: mapData.config};
 
-                $.ajax({
-                    type: 'POST',
-                    url: Init.path.deleteMap,
-                    data: data,
-                    dataType: 'json'
-                }).done(function(data){
-                    Util.showNotify({title: 'Map deleted', text: 'Map: ' + mapName, type: 'success'});
-                }).fail(function( jqXHR, status, error) {
-                    let reason = status + ' ' + error;
-                    Util.showNotify({title: jqXHR.status + ': deleteMap', text: reason, type: 'warning'});
-                    $(document).setProgramStatus('problem');
-                }).always(function() {
-                    $(mapDeleteDialog).modal('hide');
-                });
+                    $.ajax({
+                        type: 'POST',
+                        url: Init.path.deleteMap,
+                        data: data,
+                        dataType: 'json'
+                    }).done(function(data){
+                        Util.showNotify({title: 'Map deleted', text: 'Map: ' + mapName, type: 'success'});
+                    }).fail(function( jqXHR, status, error) {
+                        let reason = status + ' ' + error;
+                        Util.showNotify({title: jqXHR.status + ': deleteMap', text: reason, type: 'warning'});
+                        $(document).setProgramStatus('problem');
+                    }).always(function() {
+                        $(mapDeleteDialog).modal('hide');
+                    });
 
-                return false;
+                    return false;
+                }
             }
         });
 

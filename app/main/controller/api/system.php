@@ -8,8 +8,8 @@
 
 namespace Controller\Api;
 use Controller;
-use Controller\Ccp\Sso;
 use Data\Mapper as Mapper;
+use lib\Config;
 use Model;
 
 class System extends Controller\AccessController {
@@ -65,16 +65,6 @@ class System extends Controller\AccessController {
 
     private $limitQuery = "";
 
-    /**
-     * @param \Base $f3
-     * @param array $params
-     */
-    function beforeroute(\Base $f3, $params) {
-        parent::beforeroute($f3, $params);
-
-        // set header for all routes
-        header('Content-type: application/json');
-    }
 
     /**
      * build query
@@ -187,8 +177,11 @@ class System extends Controller\AccessController {
      * @param \Base $f3
      */
     public function save(\Base $f3){
-        $newSystemData = [];
         $postData = (array)$f3->get('POST');
+
+        $return = (object) [];
+        $return->error = [];
+        $return->systemData = (object) [];
 
         if(
             isset($postData['systemData']) &&
@@ -229,22 +222,20 @@ class System extends Controller\AccessController {
                  */
                 $map = Model\BasicModel::getNew('MapModel');
                 $map->getById($mapData['id']);
-                if(
-                    !$map->dry() &&
-                    $map->hasAccess($activeCharacter)
-                ){
+                if( $map->hasAccess($activeCharacter) ){
                     // make sure system is not already on map
                     // --> (e.g. multiple simultaneously save() calls for the same system)
                     $systemModel = $map->getSystemByCCPId($systemData['systemId']);
                     if( is_null($systemModel) ){
                         // system not found on map -> get static system data (CCP DB)
                         $systemModel = $map->getNewSystem($systemData['systemId']);
-                        $systemModel->createdCharacterId = $activeCharacter;
-                        $systemModel->statusId = isset($systemData['statusId']) ? $systemData['statusId'] : 1;
+                        $defaultStatusId = 1;
                     }else{
                         // system already exists (e.g. was inactive)
-                        $systemModel->statusId = isset($systemData['statusId']) ? $systemData['statusId'] : $systemModel->statusId;
+                        $defaultStatusId = $systemModel->statusId;
                     }
+
+                    $systemModel->statusId = isset($systemData['statusId']) ? $systemData['statusId'] : $defaultStatusId;
 
                     // map is not changeable for a system! (security)
                     $systemData['mapId'] = $map;
@@ -255,28 +246,32 @@ class System extends Controller\AccessController {
                 // "statusId" was set above
                 unset($systemData['statusId']);
                 unset($systemData['mapId']);
-                unset($systemData['createdCharacterId']);
-                unset($systemData['updatedCharacterId']);
 
                 // set/update system
                 $systemModel->setData($systemData);
                 // activate system (e.g. was inactive))
                 $systemModel->setActive(true);
-                $systemModel->updatedCharacterId = $activeCharacter;
-                $systemModel->save();
 
-                // get data from "fresh" model (e.g. some relational data has changed: "statusId")
-                $newSystemModel = Model\BasicModel::getNew('SystemModel');
-                $newSystemModel->getById( $systemModel->id, 0);
-                $newSystemModel->clearCacheData();
-                $newSystemData = $newSystemModel->getData();
 
-                // broadcast map changes
-                $this->broadcastMapData($newSystemModel->mapId);
+                if($systemModel->save($activeCharacter)){
+                    // get data from "fresh" model (e.g. some relational data has changed: "statusId")
+                    /**
+                     * @var $newSystemModel Model\SystemModel
+                     */
+                    $newSystemModel = Model\BasicModel::getNew('SystemModel');
+                    $newSystemModel->getById( $systemModel->id, 0);
+                    $newSystemModel->clearCacheData();
+                    $return->systemData = $newSystemModel->getData();
+
+                    // broadcast map changes
+                    $this->broadcastMapData($newSystemModel->mapId);
+                }else{
+                    $return->error = $systemModel->getErrors();
+                }
             }
         }
 
-        echo json_encode($newSystemData);
+        echo json_encode($return);
     }
 
     /**
@@ -358,7 +353,7 @@ class System extends Controller\AccessController {
                     $return->systemData[] = $systemModel->getData();
                 }
 
-                $f3->set($cacheKey, $return->systemData, $f3->get('PATHFINDER.CACHE.CONSTELLATION_SYSTEMS') );
+                $f3->set($cacheKey, $return->systemData, Config::getPathfinderData('cache.constellation_systems'));
             }
         }
 
@@ -408,6 +403,37 @@ class System extends Controller\AccessController {
     }
 
     /**
+     * send Rally Point poke
+     * @param \Base $f3
+     */
+    public function pokeRally(\Base $f3){
+        $rallyData = (array)$f3->get('POST');
+        $systemId = (int)$rallyData['systemId'];
+        $return = (object) [];
+
+        if($systemId){
+            $activeCharacter = $this->getCharacter();
+
+            /**
+             * @var Model\SystemModel $system
+             */
+            $system = Model\BasicModel::getNew('SystemModel');
+            $system->getById($systemId);
+
+            if($system->hasAccess($activeCharacter)){
+                $rallyData['pokeDesktop']   = $rallyData['pokeDesktop'] === '1';
+                $rallyData['pokeMail']      = $rallyData['pokeMail'] === '1';
+                $rallyData['pokeSlack']     = $rallyData['pokeSlack'] === '1';
+                $rallyData['message']       = trim($rallyData['message']);
+
+                $system->sendRallyPoke($rallyData, $activeCharacter);
+            }
+        }
+
+        echo json_encode($return);
+    }
+
+    /**
      * delete systems and all its connections from map
      * -> set "active" flag
      * @param \Base $f3
@@ -428,7 +454,7 @@ class System extends Controller\AccessController {
             $map = Model\BasicModel::getNew('MapModel');
             $map->getById($mapId);
 
-            if( $map->hasAccess($activeCharacter) ){
+            if($map->hasAccess($activeCharacter)){
                 foreach($systemIds as $systemId){
                     if( $system = $map->getSystemById($systemId) ){
                         // check whether system should be deleted OR set "inactive"
@@ -437,7 +463,7 @@ class System extends Controller\AccessController {
                         }else{
                             // keep data -> set "inactive"
                             $system->setActive(false);
-                            $system->save();
+                            $system->save($activeCharacter);
                         }
 
                         $system->reset();

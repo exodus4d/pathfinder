@@ -16,7 +16,7 @@ class MapController extends AccessController {
     /**
      * @param \Base $f3
      */
-    public function init($f3) {
+    public function init(\Base $f3) {
         $character = $this->getCharacter();
 
         // page title

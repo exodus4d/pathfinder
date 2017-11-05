@@ -9,9 +9,11 @@
 namespace Model;
 
 use DB\SQL\Schema;
-use Exception;
 use Controller;
 use DB;
+use lib\logging;
+use Exception\ValidationException;
+use Exception\DatabaseException;
 
 abstract class BasicModel extends \DB\Cortex {
 
@@ -19,7 +21,7 @@ abstract class BasicModel extends \DB\Cortex {
      * Hive key with DB object
      * @var string
      */
-    protected $db = 'DB_PF';
+    protected $db                                               = 'DB_PF';
 
     /**
      * caching time of field schema - seconds
@@ -27,26 +29,20 @@ abstract class BasicModel extends \DB\Cortex {
      * -> leave this at a higher value
      * @var int
      */
-    protected $ttl = 120;
+    protected $ttl                                              = 60;
 
     /**
      * caching for relational data
      * @var int
      */
-    protected $rel_ttl = 0;
+    protected $rel_ttl                                          = 0;
 
     /**
      * ass static columns for this table
      * -> can be overwritten in child models
      * @var bool
      */
-    protected $addStaticFields = true;
-
-    /**
-     * field validation array
-     * @var array
-     */
-    protected $validate = [];
+    protected $addStaticFields                                  = true;
 
     /**
      * enables check for $fieldChanges on update/insert
@@ -54,7 +50,7 @@ abstract class BasicModel extends \DB\Cortex {
      * in $fieldConf config
      * @var bool
      */
-    protected $enableActivityLogging = true;
+    protected $enableActivityLogging                            = true;
 
     /**
      * enables change for "active" column
@@ -62,40 +58,53 @@ abstract class BasicModel extends \DB\Cortex {
      * -> $this->active = false; will NOT work (prevent abuse)!
      * @var bool
      */
-    private $allowActiveChange = false;
+    private $allowActiveChange                                  = false;
 
     /**
      * getData() cache key prefix
      * -> do not change, otherwise cached data is lost
      * @var string
      */
-    private $dataCacheKeyPrefix = 'DATACACHE';
+    private $dataCacheKeyPrefix                                 = 'DATACACHE';
 
     /**
      * enables data export for this table
      * -> can be overwritten in child models
      * @var bool
      */
-    public static $enableDataExport = false;
+    public static $enableDataExport                             = false;
 
     /**
      * enables data import for this table
      * -> can be overwritten in child models
      * @var bool
      */
-    public static $enableDataImport = false;
+    public static $enableDataImport                             = false;
 
     /**
      * changed fields (columns) on update/insert
      * -> e.g. for character "activity logging"
      * @var array
      */
-    protected $fieldChanges = [];
+    protected $fieldChanges                                     = [];
 
     /**
-     * default TTL for getData(); cache
+     * collection for validation errors
+     * @var array
      */
-    const DEFAULT_CACHE_TTL = 120;
+    protected $validationError                                  = [];
+
+    /**
+     * default caching time of field schema - seconds
+     */
+    const DEFAULT_TTL                                           = 86400;
+
+    /**
+     * default TTL for getData(); cache - seconds
+     */
+    const DEFAULT_CACHE_TTL                                     = 120;
+
+    const ERROR_INVALID_MODEL_CLASS                             = 'Model class (%s) not found';
 
     public function __construct($db = NULL, $table = NULL, $fluid = NULL, $ttl = 0){
 
@@ -135,8 +144,8 @@ abstract class BasicModel extends \DB\Cortex {
     /**
      * @param string $key
      * @param mixed $val
-     * @return mixed|void
-     * @throws Exception\ValidationException
+     * @return mixed
+     * @throws ValidationException
      */
     public function set($key, $val){
         if(
@@ -167,15 +176,13 @@ abstract class BasicModel extends \DB\Cortex {
             $val = trim($val);
         }
 
-        $valid = $this->validateField($key, $val);
-
-        if(!$valid){
-            $this->throwValidationError($key);
+        if( !$this->validateField($key, $val) ){
+            $this->throwValidationException($key);
         }else{
             $this->checkFieldForActivityLogging($key, $val);
-
-            return parent::set($key, $val);
         }
+
+        return parent::set($key, $val);
     }
 
     /**
@@ -206,15 +213,25 @@ abstract class BasicModel extends \DB\Cortex {
                     $val = (int)$val;
                 }
 
+                if(is_object($val)){
+                    $val = $val->_id;
+                }
+
                 if( $fieldConf['type'] === self::DT_JSON){
                     $currentValue = $this->get($key);
                 }else{
                     $currentValue = $this->get($key, true);
                 }
 
+
                 if($currentValue !== $val){
                     // field has changed
-                    in_array($key, $this->fieldChanges) ?: $this->fieldChanges[] = $key;
+                    if( !array_key_exists($key, $this->fieldChanges) ){
+                        $this->fieldChanges[$key] = [
+                            'old' => $currentValue,
+                            'new' => $val
+                        ];
+                    }
                 }
             }
         }
@@ -239,11 +256,12 @@ abstract class BasicModel extends \DB\Cortex {
     }
 
     /**
-     * extent the fieldConf Array with static fields for each table
+     * get static fields for this model instance
+     * @return array
      */
-    private function addStaticFieldConfig(){
+    protected function getStaticFieldConf(): array {
+        $staticFieldConfig = [];
 
-        // add static fields to this mapper
         // static tables (fixed data) do not require them...
         if($this->addStaticFields){
             $staticFieldConfig = [
@@ -258,61 +276,37 @@ abstract class BasicModel extends \DB\Cortex {
                     'index' => true
                 ]
             ];
-
-
-            $this->fieldConf = array_merge($staticFieldConfig, $this->fieldConf);
         }
+
+        return $staticFieldConfig;
+    }
+
+    /**
+     * extent the fieldConf Array with static fields for each table
+     */
+    private function addStaticFieldConfig(){
+        $this->fieldConf = array_merge($this->getStaticFieldConf(), $this->fieldConf);
     }
 
     /**
      * validates a table column based on validation settings
-     * @param $col
+     * @param string $key
      * @param $val
      * @return bool
      */
-    private function validateField($col, $val){
+    protected function validateField(string $key, $val): bool {
         $valid = true;
-
-        if(array_key_exists($col, $this->validate)){
-
-            $fieldValidationOptions = $this->validate[$col];
-
-            foreach($fieldValidationOptions as $validateKey => $validateOption ){
-                if(is_array($fieldValidationOptions[$validateKey])){
-                    $fieldSubValidationOptions = $fieldValidationOptions[$validateKey];
-
-                    foreach($fieldSubValidationOptions as $validateSubKey => $validateSubOption ){
-                        switch($validateKey){
-                            case 'length':
-                                switch($validateSubKey){
-                                    case 'min';
-                                        if(strlen($val) < $validateSubOption){
-                                            $valid = false;
-                                        }
-                                        break;
-                                    case 'max';
-
-                                        if(strlen($val) > $validateSubOption){
-                                            $valid = false;
-                                        }
-                                        break;
-                                }
-                                break;
-                        }
-                    }
-
+        if($fieldConf = $this->fieldConf[$key]){
+            if($method = $this->fieldConf[$key]['validate']){
+                if( !is_string($method)){
+                    $method = 'validate_' . $key;
+                }
+                if(method_exists($this, $method)){
+                    // validate $key (column) with this method...
+                    $valid = $this->$method($key, $val);
                 }else{
-                    switch($validateKey){
-                        case 'regex':
-                           $valid = (bool)preg_match($fieldValidationOptions[$validateKey], $val);
-                            break;
-                    }
-                }
-
-                // a validation rule failed
-                if(!$valid){
-                    break;
-                }
+                    self::getF3()->error(501, 'Method ' . get_class($this) . '->' . $method . '() is not implemented');
+                };
             }
         }
 
@@ -428,13 +422,22 @@ abstract class BasicModel extends \DB\Cortex {
     }
 
     /**
-     * Throws a validation error for a giben column
-     * @param $col
-     * @throws \Exception\ValidationException
+     * throw validation exception for a model property
+     * @param string $col
+     * @param string $msg
+     * @throws ValidationException
      */
-    protected function throwValidationError($col){
-        throw new Exception\ValidationException('Validation failed: "' . $col . '".', $col);
+    protected function throwValidationException(string $col, string $msg = ''){
+        $msg = empty($msg) ? 'Validation failed: "' . $col . '".' : $msg;
+        throw new ValidationException($msg, $col);
+    }
 
+    /**
+     * @param string $msg
+     * @throws DatabaseException
+     */
+    protected function throwDbException(string $msg){
+        throw new DatabaseException($msg);
     }
 
     /**
@@ -458,11 +461,11 @@ abstract class BasicModel extends \DB\Cortex {
      * get single dataSet by id
      * @param $id
      * @param int $ttl
+     * @param bool $isActive
      * @return \DB\Cortex
      */
-    public function getById($id, $ttl = 3) {
-
-        return $this->getByForeignKey('id', (int)$id, ['limit' => 1], $ttl);
+    public function getById(int $id, int $ttl = 3, bool $isActive = true){
+        return $this->getByForeignKey('id', (int)$id, ['limit' => 1], $ttl, $isActive);
     }
 
     /**
@@ -492,10 +495,10 @@ abstract class BasicModel extends \DB\Cortex {
      * @param $value
      * @param array $options
      * @param int $ttl
+     * @param bool $isActive
      * @return \DB\Cortex
      */
-    public function getByForeignKey($key, $value, $options = [], $ttl = 60){
-
+    public function getByForeignKey($key, $value, $options = [], $ttl = 0, $isActive = true){
         $querySet = [];
         $query = [];
         if($this->exists($key)){
@@ -504,7 +507,7 @@ abstract class BasicModel extends \DB\Cortex {
         }
 
         // check active column
-        if($this->exists('active')){
+        if($isActive && $this->exists('active')){
             $query[] = "active = :active";
             $querySet[':active'] = 1;
         }
@@ -594,7 +597,7 @@ abstract class BasicModel extends \DB\Cortex {
      * function should be overwritten in parent classes
      * @return bool
      */
-    public function isValid(){
+    public function isValid(): bool {
         return true;
     }
 
@@ -678,7 +681,7 @@ abstract class BasicModel extends \DB\Cortex {
                     $status = $this->importStaticData($tableData);
                     $this->getF3()->status(202);
                 }else{
-                    $this->getF3()->error(502, 'File could not be read');
+                    $this->getF3()->error(500, 'File could not be read');
                 }
             }else{
                 $this->getF3()->error(404, 'File not found: ' . $filePath);
@@ -727,15 +730,54 @@ abstract class BasicModel extends \DB\Cortex {
     }
 
     /**
-     * buffer a new activity (action) logging
-     * -> increment buffered counter
-     * -> log character activity create/update/delete events
-     * @param int $characterId
-     * @param int $mapId
+     * get "default" logging object for this kind of model
+     * -> can be overwritten
      * @param string $action
+     * @return Logging\LogInterface
      */
-    protected function bufferActivity($characterId, $mapId, $action){
-        Controller\LogController::instance()->bufferActivity($characterId, $mapId, $action);
+    protected function newLog($action = ''): Logging\LogInterface{
+        return new Logging\DefaultLog($action);
+    }
+
+    /**
+     * get formatter callback function for parsed logs
+     * @return null
+     */
+    protected function getLogFormatter(){
+        return null;
+    }
+
+    /**
+     * add new validation error
+     * @param ValidationException $e
+     */
+    protected function setValidationError(ValidationException $e){
+        $this->validationError[] = $e->getError();
+    }
+
+    /**
+     * get all validation errors
+     * @return array
+     */
+    public function getErrors(): array {
+        return $this->validationError;
+    }
+
+    public function save(){
+        try{
+            return parent::save();
+        }catch(ValidationException $e){
+            $this->setValidationError($e);
+        }catch(DatabaseException $e){
+            self::getF3()->error($e->getCode(), $e->getMessage(), $e->getTrace());
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function __toString(){
+        return $this->getTable();
     }
 
     /**
@@ -755,14 +797,14 @@ abstract class BasicModel extends \DB\Cortex {
      * @return BasicModel
      * @throws \Exception
      */
-    public static function getNew($model, $ttl = 86400){
+    public static function getNew($model, $ttl = self::DEFAULT_TTL){
         $class = null;
 
         $model = '\\' . __NAMESPACE__ . '\\' . $model;
         if(class_exists($model)){
             $class = new $model( null, null, null, $ttl );
         }else{
-            throw new \Exception('No model class found');
+            throw new \Exception(sprintf(self::ERROR_INVALID_MODEL_CLASS, $model));
         }
 
         return $class;

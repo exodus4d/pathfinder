@@ -8,8 +8,20 @@
 
 namespace controller;
 use DB;
+use lib\Config;
+use lib\logging\MapLog;
+use Model\ActivityLogModel;
+use Model\BasicModel;
 
 class LogController extends \Prefab  {
+
+    const CACHE_KEY_ACTIVITY_COLUMNS                = 'CACHED_ACTIVITY_COLUMNS';
+    const CACHE_TTL_ACTIVITY_COLUMNS                = 300;
+
+    /**
+     * @var string[]
+     */
+    protected $activityLogColumns                   = [];
 
     /**
      * buffered activity log data for this singleton LogController() class
@@ -17,33 +29,52 @@ class LogController extends \Prefab  {
      * -> should be cleared afterwards!
      * @var array
      */
-    protected $activityLogBuffer = [];
+    protected $activityLogBuffer                    = [];
 
     /**
-     * reserve a "new" character activity for logging
-     * @param $characterId
-     * @param $mapId
-     * @param $action
+     * get columns from ActivityLogModel that can be uses as counter
+     * @return array
      */
-    public function bufferActivity($characterId, $mapId, $action){
-        $characterId    = (int)$characterId;
-        $mapId          = (int)$mapId;
+    protected function getActivityLogColumns(): array{
+        if(empty($this->activityLogColumns)){
+            $f3 = \Base::instance();
+            if(!$f3->exists(self::CACHE_KEY_ACTIVITY_COLUMNS, $this->activityLogColumns)){
+                /**
+                 * @var $activityLogModel ActivityLogModel
+                 */
+                $activityLogModel = BasicModel::getNew('ActivityLogModel');
+                $this->activityLogColumns = $activityLogModel->getCountableColumnNames();
+                $f3->set(self::CACHE_KEY_ACTIVITY_COLUMNS, self::CACHE_TTL_ACTIVITY_COLUMNS);
+            }
+        }
 
-        if(
-            $characterId > 0 &&
-            $mapId > 0
-        ){
-            $key = $this->getBufferedActivityKey($characterId, $mapId);
+        return $this->activityLogColumns;
+    }
 
-            if( is_null($key) ){
-                $activity = [
-                    'characterId' => $characterId,
-                    'mapId' => $mapId,
-                    $action => 1
-                ];
-                $this->activityLogBuffer[] = $activity;
-            }else{
-                $this->activityLogBuffer[$key][$action]++;
+    /**
+     * buffered activity log data for this singleton LogController() class
+     * -> this buffered data can be stored somewhere (e.g. DB) before HTTP response
+     * -> should be cleared afterwards!
+     * @param MapLog $log
+     */
+    public function push(MapLog $log){
+        $action = $log->getAction();
+
+        // check $action to be valid (table column exists)
+        if($action && in_array($action, $this->getActivityLogColumns())){
+            if($mapId = $log->getChannelId()){
+                $logData = $log->getData();
+                if($characterId = (int)$logData['character']['id']){
+                    if($index = $this->getBufferedActivityIndex($characterId, $mapId)){
+                        $this->activityLogBuffer[$index][$action]++;
+                    }else{
+                        $this->activityLogBuffer[] = [
+                            'characterId' => $characterId,
+                            'mapId' => $mapId,
+                            $action => 1
+                        ];
+                    }
+                }
             }
         }
     }
@@ -51,7 +82,7 @@ class LogController extends \Prefab  {
     /**
      * store all buffered activity log data to DB
      */
-    public function storeActivities(){
+    public function logActivities(){
         if( !empty($this->activityLogBuffer) ){
             $db = DB\Database::instance()->getDB('PF');
 
@@ -104,24 +135,20 @@ class LogController extends \Prefab  {
     }
 
     /**
-     * get array key from "buffered activity log" array
+     * get array key/index from "buffered activity log" array
      * @param int $characterId
      * @param int $mapId
-     * @return int|null
+     * @return int
      */
-    private function getBufferedActivityKey($characterId, $mapId){
-        $activityKey    = null;
-
-        if(
-            $characterId > 0 &&
-            $mapId > 0
-        ){
+    private function getBufferedActivityIndex(int $characterId, int $mapId): int {
+        $activityKey = 0;
+        if($characterId > 0 && $mapId > 0 ){
             foreach($this->activityLogBuffer as $key => $activityData){
                 if(
                     $activityData['characterId'] === $characterId &&
                     $activityData['mapId'] === $mapId
                 ){
-                    $activityKey = $key;
+                    $activityKey = (int)$key;
                     break;
                 }
             }
@@ -136,8 +163,7 @@ class LogController extends \Prefab  {
      * @return \Log|null
      */
     public static function getLogger($type){
-        $f3 = \Base::instance();
-        $logFiles = $f3->get('PATHFINDER.LOGFILES');
+        $logFiles = Config::getPathfinderData('logfiles');
 
         $logFileName = empty($logFiles[$type]) ? 'error' : $logFiles[$type];
         $logFile = $logFileName . '.log';

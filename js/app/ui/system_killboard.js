@@ -30,9 +30,10 @@ define([
     };
 
     /**
-     * get label element with given content
+     *
      * @param text
-     * @returns {*|XMLList}
+     * @param options
+     * @returns {jQuery}
      */
     let getLabel = function(text, options){
         let label = $('<span>', {
@@ -41,7 +42,6 @@ define([
 
         return label;
     };
-
 
     let showKillmails = function(moduleElement, killboardData){
 
@@ -61,7 +61,7 @@ define([
                     break;
                 }
 
-                moduleElement.append( $('<h5>').text(i + 'h ago'));
+                moduleElement.append( $('<h5>').text( i ? i + 'h ago' : 'recent'));
 
                 let killMailData = killboardData.tableData[i].killmails;
 
@@ -77,25 +77,25 @@ define([
 
                     let killData = killMailData[j];
 
-                    let linkUrl = '//zkillboard.com/kill/' + killData.killID + '/';
-                    let victimImageUrl = Init.url.ccpImageServer + 'Type/' + killData.victim.shipTypeID + '_64.png';
-                    let killDate = getDateObjectByTimeString(killData.killTime);
+                    let linkUrl = '//zkillboard.com/kill/' + killData.killmail_id + '/';
+                    let victimImageUrl = Init.url.ccpImageServer + '/Type/' + killData.victim.ship_type_id + '_64.png';
+                    let killDate = Util.convertDateToUTC(new Date(killData.killmail_time));
                     let killDateString = Util.convertDateToString(killDate);
                     let killLossValue = Util.formatPrice( killData.zkb.totalValue );
 
                     // check for ally
                     let victimAllyLogoUrl = '';
                     let displayAlly = 'none';
-                    if(killData.victim.allianceID > 0){
-                        victimAllyLogoUrl = Init.url.ccpImageServer + 'Alliance/' + killData.victim.allianceID + '_32.png';
+                    if(killData.victim.alliance_id > 0){
+                        victimAllyLogoUrl = Init.url.ccpImageServer + '/Alliance/' + killData.victim.alliance_id + '_32.png';
                         displayAlly = 'block';
                     }
 
                     // check for corp
                     let victimCorpLogoUrl = '';
                     let displayCorp = 'none';
-                    if(killData.victim.corporationID > 0){
-                        victimCorpLogoUrl = Init.url.ccpImageServer + 'Corporation/' + killData.victim.corporationID + '_32.png';
+                    if(killData.victim.corporation_id > 0){
+                        victimCorpLogoUrl = Init.url.ccpImageServer + '/Corporation/' + killData.victim.corporation_id + '_32.png';
                         displayCorp = 'inline';
                     }
 
@@ -126,7 +126,7 @@ define([
                                                 text: killData.victim.characterName
                                             }).prepend(
                                                     $('<small>', {
-                                                        text: killDateString + ' - '
+                                                        text: killDateString
                                                     })
                                                 ).prepend(
                                                     $('<img>', {
@@ -324,7 +324,7 @@ define([
                 wSpaceLinkModifier = 'w-space/';
             }
 
-            let url = Init.url.zKillboard;
+            let url = Init.url.zKillboard + '/';
             url += 'no-items/' + wSpaceLinkModifier + 'no-attackers/solarSystemID/' + systemData.systemId + '/pastSeconds/' + timeFrameInSeconds + '/';
 
             killboardGraphElement.showLoadingAnimation();
@@ -338,16 +338,14 @@ define([
                 // the API wont return more than 200KMs ! - remember last bar block with complete KM information
                 let lastCompleteDiffHourData = 0;
 
-
                 // loop kills and count kills by hour
                 for (let i = 0; i < kbData.length; i++) {
                     let killmailData = kbData[i];
-
-                    let killDate = getDateObjectByTimeString(killmailData.killTime);
+                    let killDate = Util.convertDateToUTC(new Date(killmailData.killmail_time));
 
                     // get time diff
                     let timeDiffMin = Math.round(( serverDate - killDate ) / 1000 / 60);
-                    let timeDiffHour = Math.round(timeDiffMin / 60);
+                    let timeDiffHour = Math.floor(timeDiffMin / 60);
 
                     // update chart data
                     if (chartData[timeDiffHour]) {
@@ -421,21 +419,10 @@ define([
     };
 
     /**
-     * transform timestring
-     * @param timeString
-     * @returns {Date}
-     */
-    let getDateObjectByTimeString = function(timeString){
-        let match = timeString.match(/^(\d+)-(\d+)-(\d+) (\d+)\:(\d+)\:(\d+)$/);
-        let date = new Date(match[1], match[2] - 1, match[3], match[4], match[5], match[6]);
-
-        return date;
-    };
-
-    /**
      * get module element
+     * @param parentElement
      * @param systemData
-     * @returns {*|HTMLElement}
+     * @returns {*|jQuery|HTMLElement}
      */
     let getModule = function(parentElement, systemData){
 

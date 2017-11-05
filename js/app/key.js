@@ -63,7 +63,7 @@ define([
     };
 
     /**
-     * enables some console.log() information
+     * enables some debug output in console
      * @type {boolean}
      */
     let debug                                   = false;
@@ -297,20 +297,29 @@ define([
 
             // global dom remove listener -------------------------------------------------------------------
             // -> check whether the removed element had an event listener active and removes them.
-            document.body.addEventListener ('DOMNodeRemoved', function(e){
-                if(typeof e.target.getAttribute === 'function'){
-                    let eventNames = e.target.getAttribute(dataKeyEvents);
-                    if(eventNames){
-                        eventNames.split(',').forEach((event) => {
-                            let index = allEvents[event].elements.indexOf(e.target);
-                            if(index > -1){
-                                // remove element from event list
-                                allEvents[event].elements.splice(index, 1);
+            new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if(mutation.type === 'childList'){
+                        for (let i = 0; i < mutation.removedNodes.length; i++){
+                            let removedNode = mutation.removedNodes[i];
+                            if(typeof removedNode.getAttribute === 'function'){
+                                let eventNames = removedNode.getAttribute(dataKeyEvents);
+                                if(eventNames){
+                                    let events = eventNames.split(',');
+                                    for(let j = 0; i < events.length; j++){
+                                        let event = events[j];
+                                        let index = allEvents[event].elements.indexOf(removedNode);
+                                        if(index > -1){
+                                            // remove element from event list
+                                            allEvents[event].elements.splice(index, 1);
+                                        }
+                                    }
+                                }
                             }
-                        });
+                        }
                     }
-                }
-            }, false);
+                });
+            }).observe(document.body, { childList: true, subtree: true });
 
             isInit = true;
         }

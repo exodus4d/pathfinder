@@ -25,7 +25,7 @@
                 </div>
         </check>
 
-        <h4><i class="fa fa-fw fa-server"></i> Environment</h4>
+        <h4><i class="fa fa-fw fa-home"></i> Server</h4>
 
         <div class="row text-center">
 
@@ -72,95 +72,73 @@
                     </div>
                 </div>
 
-                {* Framework requirements (PHP) *}
-                {* Check if all requirements are fulfilled *}
-                <set requirementsFulfilled="OK" />
-
+                {* Directories *}
                 <div class="panel panel-default pricing-big">
+
                     <div class="panel-heading text-left">
-                        <h3 class="panel-title">Rquirements</h3>
+                        <h3 class="panel-title">Directories</h3>
                     </div>
                     <div class="panel-body no-padding text-align-center">
 
                         <table class="table">
                             <thead>
                             <tr>
-                                <td>Feature</td>
-                                <td class="text-right col-md-3">required</td>
-                                <td class="text-right col-md-3">found</td>
-                                <td class="text-right col-md-1"></td>
+                                <td class="col-md-5">TEMP <i class="fa fa-fw fa-question-circle pf-help-light" title="Temporary folder for cache, filesystem locks, compiled F3 templates, etc."></i></td>
+                                <td class="text-right col-md-7">
+                                    <kbd>{{ @TEMP }}</kbd>
+                                </td>
                             </tr>
                             </thead>
+
                             <tbody>
-                            <repeat group="{{ @checkRequirements }}" key="{{ @dbKey }}" value="{{ @requirement }}">
-
-                                {* if for optional divider *}
-                                <check if="{{ is_numeric( @dbKey ) }}">
-                                    <true>
-                                            </tbody>
-                                        </table>
-
-                                        <div class="panel-footer text-left">
-                                            <h3 class="panel-title">{{@requirement.label}}</h3>
-                                        </div>
-
-                                        <table class="table">
-                                            <tbody>
-                                    </true>
-                                    <false>
-                                        <tr>
-                                            <td>
-                                                {{@requirement.label}}
-                                                <check if="{{ @requirement.tooltip }}">
-                                                    <i class="fa fa-fw fa-question-circle pf-help-light" title="{{ @requirement.tooltip }}"></i>
-                                                </check>
-                                            </td>
-                                            <td class="text-right col-md-3 text-right">
-                                                <check if="{{ @requirement.required }}">
-                                                    <kbd>{{@requirement.required}}</kbd>
-                                                </check>
-                                            </td>
-                                            <td class="text-right col-md-3 text-right">
-                                                <check if="{{ @requirement.check }}">
-                                                    <true>
-                                                        <kbd class="txt-color txt-color-success">{{@requirement.version}}</kbd>
-                                                    </true>
-                                                    <false>
-                                                        <kbd class="txt-color txt-color-warning">{{@requirement.version}}</kbd>
-                                                        {* Check failed *}
-                                                        <set requirementsFulfilled="Warnings" />
-                                                    </false>
-                                                </check>
-                                            </td>
-                                            <td class="text-right col-md-1 text-right">
-                                                <check if="{{ @requirement.check }}">
-                                                    <true>
-                                                        <i class="fa fa-lg fa-fw fa-check txt-color txt-color-success"></i>
-                                                    </true>
-                                                    <false>
-                                                        <i class="fa fa-lg fa-fw fa-warning txt-color txt-color-warning"></i>
-                                                    </false>
-                                                </check>
-                                            </td>
-                                        </tr>
-                                    </false>
-                                </check>
-                            </repeat>
+                            <tr>
+                                <td>CACHE <i class="fa fa-fw fa-question-circle pf-help-light" title="Cache backend. F3 can handle Redis, Memcache, APC, WinCache, XCache and a filesystem-based (default) cache."></i></td>
+                                <td class="text-right">
+                                    <kbd>{{ @CACHE }}</kbd>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>LOGS <i class="fa fa-fw fa-question-circle pf-help-light" title="Folder for pathfinder logs (e.g. cronjob-, error-logs, ..."></i></td>
+                                <td class="text-right">
+                                    <kbd>{{ @LOGS }}</kbd>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td >UI <i class="fa fa-fw fa-question-circle pf-help-light" title="Folder for public accessible resources (templates, js, css, images,..)"></i></td>
+                                <td class="text-right">
+                                    <kbd>{{ @UI }}</kbd>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>AUTOLOAD <i class="fa fa-fw fa-question-circle pf-help-light" title="Autoload folder for PHP files."></i></td>
+                                <td class="text-right">
+                                    <kbd>{{ @AUTOLOAD }}</kbd>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>FAVICON <i class="fa fa-fw fa-question-circle pf-help-light" title="Folder for Favicons."></i></td>
+                                <td class="text-right">
+                                    <kbd>{{ @FAVICON }}</kbd>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>HISTORY [optional] <i class="fa fa-fw fa-question-circle pf-help-light" title="Folder for log history files. (e.g. change logs for maps)"></i></td>
+                                <td class="text-right">
+                                    <kbd>{{ @PATHFINDER.HISTORY.LOG }}</kbd>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>CONFIG PATH [optional] <i class="fa fa-fw fa-question-circle pf-help-light" title="Folder for custom *.ini files. (e.g. when overwriting of default values in app/*.ini)"></i></td>
+                                <td class="text-right">
+                                    <kbd>{{ implode(' ', @CONF ) }}</kbd>
+                                </td>
+                            </tr>
                             </tbody>
                         </table>
 
                     </div>
-                    <div class="panel-footer text-align-center">
-                        <check if="{{ @requirementsFulfilled == 'OK' }}">
-                            <true>
-                                <h3 class="panel-title txt-color txt-color-success">{{ @requirementsFulfilled }}</h3>
-                            </true>
-                            <false>
-                                <h3 class="panel-title txt-color txt-color-warning">{{ @requirementsFulfilled }}</h3>
-                            </false>
-                        </check>
-                    </div>
                 </div>
+
             </div>
 
             <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
@@ -188,68 +166,87 @@
                     </div>
                 </div>
 
-                {* Directories *}
-                <div class="panel panel-default pricing-big">
-
-                    <div class="panel-heading text-left">
-                        <h3 class="panel-title">Directories</h3>
-                    </div>
-                    <div class="panel-body no-padding text-align-center">
-
-                        <table class="table">
-                            <thead>
-                            <tr>
-                                <td class="col-md-3">TEMP <i class="fa fa-fw fa-question-circle pf-help-light" title="Temporary folder for cache, filesystem locks, compiled F3 templates, etc."></i></td>
-                                <td class="text-right col-md-8">
-                                    <kbd>{{ @TEMP }}</kbd>
-                                </td>
-                            </tr>
-                            </thead>
-
-                            <tbody>
-                                <tr>
-                                    <td>CACHE <i class="fa fa-fw fa-question-circle pf-help-light" title="Cache backend. F3 can handle Redis, Memcache, APC, WinCache, XCache and a filesystem-based (default) cache."></i></td>
-                                    <td class="text-right">
-                                        <kbd>{{ @CACHE }}</kbd>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>LOGS</td>
-                                    <td class="text-right">
-                                        <kbd>{{ @LOGS }}</kbd>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>UI</td>
-                                    <td class="text-right">
-                                        <kbd>{{ @UI }}</kbd>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>AUTOLOAD</td>
-                                    <td class="text-right">
-                                        <kbd>{{ @AUTOLOAD }}</kbd>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>FAVICON</td>
-                                    <td class="text-right">
-                                        <kbd>{{ @FAVICON }}</kbd>
-                                    </td>
-                                </tr>
-                                <tr>
-                                <td>CONFIG PATH</td>
-                                    <td class="text-right">
-                                        <kbd>{{ implode(' ', @CONF ) }}</kbd>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-
-                    </div>
-                </div>
             </div>
 
+        </div>
+
+        <h4><i class="fa fa-fw fa-server"></i> Environment</h4>
+
+        <div class="row text-center">
+            <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
+                {* Framework requirements (PHP) *}
+                <set requirementsData="{{@checkRequirements}}" />
+
+                <div class="panel panel-default pricing-big">
+                    <div class="panel-heading text-left">
+                        <h3 class="panel-title">Requirements</h3>
+                    </div>
+                    <div class="panel-body no-padding text-align-center">
+                        <include href="templates/modules/requirements_table.html"/>
+                    </div>
+                    <div class="panel-footer text-align-center">
+                        <check if="{{ !@tplCounter('get') }}">
+                            <true>
+                                <h3 class="panel-title txt-color txt-color-success">OK</h3>
+                            </true>
+                            <false>
+                                <h3 class="panel-title txt-color txt-color-warning">{{ @tplCounter('get') }} Warnings</h3>
+                            </false>
+                        </check>
+                    </div>
+                </div>
+                {{ @tplCounter('reset') }}
+            </div>
+
+            <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
+                {* PHP config php.ini requirements *}
+                <set requirementsData="{{ @checkPHPConfig }}" />
+
+                <div class="panel panel-default pricing-big">
+                    <div class="panel-heading text-left">
+                        <h3 class="panel-title">PHP configuration</h3>
+                    </div>
+                    <div class="panel-body no-padding text-align-center">
+                        <include href="templates/modules/requirements_table.html"/>
+                    </div>
+                    <div class="panel-footer text-align-center">
+                        <check if="{{ !@tplCounter('get') }}">
+                            <true>
+                                <h3 class="panel-title txt-color txt-color-success">OK</h3>
+                            </true>
+                            <false>
+                                <h3 class="panel-title txt-color txt-color-warning">{{ @tplCounter('get') }} Warnings</h3>
+                            </false>
+                        </check>
+                    </div>
+                </div>
+                {{ @tplCounter('reset') }}
+
+                {* System Env requirements *}
+                <check if="{{ @checkSystemConfig }}">
+                    <set requirementsData="{{ @checkSystemConfig }}" />
+
+                    <div class="panel panel-default pricing-big">
+                        <div class="panel-heading text-left">
+                            <h3 class="panel-title">Environment variables [optional]</h3>
+                        </div>
+                        <div class="panel-body no-padding text-align-center">
+                            <include href="templates/modules/requirements_table.html"/>
+                        </div>
+                        <div class="panel-footer text-align-center">
+                            <check if="{{ !@tplCounter('get') }}">
+                                <true>
+                                    <h3 class="panel-title txt-color txt-color-success">OK</h3>
+                                </true>
+                                <false>
+                                    <h3 class="panel-title txt-color txt-color-warning">{{ @tplCounter('get') }} Warnings</h3>
+                                </false>
+                            </check>
+                        </div>
+                    </div>
+                    {{ @tplCounter('reset') }}
+                </check>
+            </div>
         </div>
 
         <h4><i class="fa fa-fw fa-sliders"></i> Settings</h4>
@@ -289,19 +286,18 @@
 
             <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
 
-                {* Settings *}
+                {* Pathfinder Modules *}
                 <div class="panel panel-default pricing-big">
 
                     <div class="panel-heading text-left">
-                        <h3 class="panel-title">Registration</h3>
+                        <h3 class="panel-title">Modules</h3>
                     </div>
 
                     <div class="panel-body no-padding text-align-center">
-
                         <table class="table">
                             <thead>
                             <tr>
-                                <td>Status</td>
+                                <td><i class="fa fa-fw fa-sign-in"></i> Registration/Login</td>
                                 <td class="text-right col-md-2">
                                     <check if="{{ @PATHFINDER.REGISTRATION.STATUS }}">
                                         <true>
@@ -315,89 +311,10 @@
                             </tr>
                             </thead>
                             <tbody>
-
-                            </tbody>
-                        </table>
-
-                        <div class="panel-footer text-left">
-                            <h3 class="panel-title">Map restrictions</h3>
-                        </div>
-
-                        <table class="table">
-                            <thead>
                             <tr>
-                                <td>Max. count of private maps/user</td>
-                                <td class="text-right col-md-2"><kbd>{{ @PATHFINDER.MAP.PRIVATE.MAX_COUNT }}</kbd></td>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td>Max. count of corporation maps/user</td>
-                                <td class="text-right"><kbd>{{ @PATHFINDER.MAP.CORPORATION.MAX_COUNT }}</kbd></td>
-                            </tr>
-                            <tr>
-                                <td>Max. count of alliance maps/user</td>
-                                <td class="text-right"><kbd>{{ @PATHFINDER.MAP.ALLIANCE.MAX_COUNT }}</kbd></td>
-                            </tr>
-                            </tbody>
-                        </table>
-
-                        <div class="panel-footer text-left">
-                            <h3 class="panel-title">Map share limits</h3>
-                        </div>
-
-                        <table class="table">
-                            <thead>
-                            <tr>
-                                <td>Max. shared users (private maps)</td>
-                                <td class="text-right col-md-2"><kbd>{{ @PATHFINDER.MAP.PRIVATE.MAX_SHARED }}</kbd></td>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td>Max. shared users (corporation maps)</td>
-                                <td class="text-right"><kbd>{{ @PATHFINDER.MAP.CORPORATION.MAX_SHARED }}</kbd></td>
-                            </tr>
-                            <tr>
-                                <td>Max. shared users (alliance maps)</td>
-                                <td class="text-right"><kbd>{{ @PATHFINDER.MAP.ALLIANCE.MAX_SHARED }}</kbd></td>
-                            </tr>
-                            </tbody>
-                        </table>
-
-                        <div class="panel-footer text-left">
-                            <h3 class="panel-title">Map lifetime (days)</h3>
-                        </div>
-
-                        <table class="table">
-                            <thead>
-                            <tr>
-                                <td>Private maps</td>
-                                <td class="text-right col-md-2"><kbd>{{ @PATHFINDER.MAP.PRIVATE.LIFETIME }}</kbd></td>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td>Corporation maps</td>
-                                <td class="text-right"><kbd>{{ @PATHFINDER.MAP.CORPORATION.LIFETIME }}</kbd></td>
-                            </tr>
-                            <tr>
-                                <td>Alliance maps</td>
-                                <td class="text-right"><kbd>{{ @PATHFINDER.MAP.ALLIANCE.LIFETIME }}</kbd></td>
-                            </tr>
-                            </tbody>
-                        </table>
-
-                        <div class="panel-footer text-left">
-                            <h3 class="panel-title">User activity logging</h3>
-                        </div>
-
-                        <table class="table">
-                            <thead>
-                            <tr>
-                                <td>Private maps</td>
+                                <td><i class="fa fa-fw fa-slack"></i> Slack</td>
                                 <td class="text-right col-md-2">
-                                    <check if="{{ @PATHFINDER.MAP.PRIVATE.ACTIVITY_LOGGING }}">
+                                    <check if="{{ @PATHFINDER.SLACK.STATUS }}">
                                         <true>
                                             <kbd class="txt-color txt-color-success">enabled</kbd>
                                         </true>
@@ -405,36 +322,57 @@
                                             <kbd class="txt-color txt-color-warning">disabled</kbd>
                                         </false>
                                     </check>
-                                 </td>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+
+                {* Map Settings *}
+                <div class="panel panel-default pricing-big">
+
+                    <div class="panel-heading text-left">
+                        <h3 class="panel-title">Map Settings</h3>
+                    </div>
+
+                    <div class="panel-body no-padding text-align-center">
+
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <td class="col-sm-6"></td>
+                                <repeat group="{{ @mapsDefaultConfig.mapTypes }}" value="{{ @mapType }}">
+                                    <td class="text-right col-sm-2">{{ @mapType }}</td>
+                                </repeat>
                             </tr>
                             </thead>
                             <tbody>
-                            <tr>
-                                <td>Corporation maps</td>
-                                <td class="text-right">
-                                    <check if="{{ @PATHFINDER.MAP.CORPORATION.ACTIVITY_LOGGING }}">
-                                        <true>
-                                            <kbd class="txt-color txt-color-success">enabled</kbd>
-                                        </true>
-                                        <false>
-                                            <kbd class="txt-color txt-color-warning">disabled</kbd>
-                                        </false>
-                                    </check>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Alliance maps</td>
-                                <td class="text-right">
-                                    <check if="{{ @PATHFINDER.MAP.ALLIANCE.ACTIVITY_LOGGING }}">
-                                        <true>
-                                            <kbd class="txt-color txt-color-success">enabled</kbd>
-                                        </true>
-                                        <false>
-                                            <kbd class="txt-color txt-color-warning">disabled</kbd>
-                                        </false>
-                                    </check>
-                                </td>
-                            </tr>
+                                <repeat group="{{ @mapsDefaultConfig.mapConfig }}" key="{{ @mapConfValue }}" value="{{ @mapConf }}">
+                                    <tr>
+                                        <td>{{ @mapConf.label | raw }}
+                                            <check if="{{ @mapConf.tooltip }}">
+                                                <i class="fa fa-fw fa-question-circle pf-help-light" title="{{ @mapConf.tooltip }}"></i>
+                                            </check>
+                                        </td>
+                                        <repeat group="{{ @mapConf.data }}" value="{{ @mapTypeConfValue }}">
+                                            <td class="text-right">
+                                                <switch expr="{{ @mapTypeConfValue }}">
+                                                    <case value="1" break="true">
+                                                        <kbd class="txt-color txt-color-success">enabled</kbd>
+                                                    </case>
+                                                    <case value="0" break="true">
+                                                        <kbd class="txt-color txt-color-warning">disabled</kbd>
+                                                    </case>
+                                                    <default>
+                                                        <kbd>{{ @mapTypeConfValue }}</kbd>
+                                                    </default>
+                                                </switch>
+                                            </td>
+                                        </repeat>
+                                    </tr>
+                                </repeat>
                             </tbody>
                         </table>
 
@@ -455,6 +393,21 @@
                 <set dbStatusCheck="OK" />
 
 
+                <check if="{{ @dbInformation.info.dbCreate }}">
+                    <true>
+                        <set dbConnectionStatus="Database not found" />
+                        <set dbWarnings="{{ @dbWarnings }} + 1" />
+                    </true>
+                    <false>
+                        <check if="{{ !@dbInformation.info.connected }}">
+                            <set dbConnectionStatus="Connection failed" />
+                            <set dbWarnings="{{ @dbWarnings }} + 1" />
+                        </check>
+                    </false>
+                </check>
+
+
+
                 <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
                     <div class="panel panel-default pricing-big">
 
@@ -473,14 +426,39 @@
                                 </thead>
                                 <tbody>
                                 <tr>
-                                    <td>DB name</td>
-                                    <td class="text-right col-sm-3 col-md-3" colspan="2"><kbd>{{ @dbInformation.info.name }}</kbd></td>
+                                    <td>DB host:port</td>
+                                    <td class="text-right col-sm-3 col-md-3" colspan="2"><kbd>{{ @dbInformation.info.host }}:{{ @dbInformation.info.port }}</kbd></td>
                                     <td class="text-right col-sm-1 col-md-1"></td>
+                                </tr>
+                                <tr>
+                                    <td>DB name</td>
+                                    <td class="text-right col-sm-3 col-md-3" colspan="2">
+                                        <kbd class="txt-color {{ (@dbInformation.info.connected) ?'txt-color-success':'txt-color-danger' }}">{{ @dbInformation.info.name }}</kbd>
+                                    </td>
+                                    <td class="text-right col-sm-1 col-md-1">
+                                        <check if="{{ @dbInformation.info.connected }}">
+                                            <true>
+                                                <i class="fa fa-lg fa-fw fa-check txt-color txt-color-success"></i>
+                                            </true>
+                                            <false>
+                                                <i class="fa fa-lg fa-fw fa-warning txt-color txt-color-danger"></i>
+                                            </false>
+                                        </check>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>DB user</td>
                                     <td class="text-right col-sm-3 col-md-3" colspan="2"><kbd>{{ @dbInformation.info.user }}</kbd></td>
                                     <td class="text-right col-sm-1 col-md-1"></td>
+                                </tr>
+                                <tr>
+                                    <td>DB pass</td>
+                                    <td class="text-right col-sm-3 col-md-3" colspan="2"><kbd>{{ @dbInformation.info.pass }}</kbd></td>
+                                    <td class="text-right col-sm-1 col-md-1">
+                                        <check if="{{ strlen(@dbInformation.info.pass) <= 0 }}">
+                                            <i class="fa fa-lg fa-fw fa-warning txt-color txt-color-warning"></i>
+                                        </check>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>DB status</td>
@@ -492,8 +470,6 @@
                                             </true>
                                             <false>
                                                 <kbd class="txt-color txt-color-danger">failed</kbd>
-                                                <set dbConnectionStatus="Connection failed" />
-                                                <set dbWarnings="{{ @dbWarnings }} + 1" />
                                             </false>
                                         </check>
                                     </td>
@@ -508,43 +484,53 @@
                                         </check>
                                     </td>
                                 </tr>
-                                <tr>
-                                    <td></td>
-                                    <td class="text-right">required</td>
-                                    <td class="text-right">installed</td>
-                                    <td class="text-right"></td>
-                                </tr>
-                                <repeat group="{{ @dbInformation.info.dbConfig }}" value="{{ @setting }}">
+                                {* Connection/PDOExceptions *}
+                                <repeat group="{{ @dbInformation.info.errors }}" value="{{ @connectionError }}">
                                     <tr>
-                                        <td>{{ @setting.label }}</td>
-                                        <td class="text-right">
-                                            <check if="{{ @setting.required }}">
-                                                <kbd>{{ @setting.required }}</kbd>
-                                            </check>
-                                        </td>
-                                        <td class="text-right">
-                                            <check if="{{ @setting.check }}">
-                                                <true>
-                                                    <kbd class="txt-color txt-color-success">{{ @setting.version }}</kbd>
-                                                </true>
-                                                <false>
-                                                    <kbd class="txt-color txt-color-warning">{{ @setting.version }}</kbd>
-                                                </false>
-                                            </check>
-                                        </td>
-                                        <td class="text-right">
-                                            <check if="{{ @setting.check }}">
-                                                <true>
-                                                    <i class="fa fa-lg fa-fw fa-check txt-color txt-color-success"></i>
-                                                </true>
-                                                <false>
-                                                    <i class="fa fa-lg fa-fw fa-warning txt-color txt-color-warning"></i>
-                                                    <set dbStatusCheck="DB warning" />
-                                                </false>
-                                            </check>
-                                        </td>
+                                        <td colspan="3" class="text-center txt-color txt-color-danger">{{ @connectionError }}</td>
+                                        <td class="text-right"></td>
                                     </tr>
                                 </repeat>
+
+                                <check if="{{ @dbInformation.info.dbConfig }}">
+                                    <tr>
+                                        <th></th>
+                                        <th class="text-right">required</th>
+                                        <th class="text-right">installed</th>
+                                        <th class="text-right"></th>
+                                    </tr>
+                                    <repeat group="{{ @dbInformation.info.dbConfig }}" value="{{ @setting }}">
+                                        <tr>
+                                            <td>{{ @setting.label }}</td>
+                                            <td class="text-right">
+                                                <check if="{{ @setting.required }}">
+                                                    <kbd>{{ @setting.required }}</kbd>
+                                                </check>
+                                            </td>
+                                            <td class="text-right">
+                                                <check if="{{ @setting.check }}">
+                                                    <true>
+                                                        <kbd class="txt-color txt-color-success">{{ @setting.version }}</kbd>
+                                                    </true>
+                                                    <false>
+                                                        <kbd class="txt-color txt-color-warning">{{ @setting.version }}</kbd>
+                                                    </false>
+                                                </check>
+                                            </td>
+                                            <td class="text-right">
+                                                <check if="{{ @setting.check }}">
+                                                    <true>
+                                                        <i class="fa fa-lg fa-fw fa-check txt-color txt-color-success"></i>
+                                                    </true>
+                                                    <false>
+                                                        <i class="fa fa-lg fa-fw fa-warning txt-color txt-color-warning"></i>
+                                                        <set dbStatusCheck="DB warning" />
+                                                    </false>
+                                                </check>
+                                            </td>
+                                        </tr>
+                                    </repeat>
+                                </check>
 
                                 </tbody>
                             </table>
@@ -567,201 +553,203 @@
                                 </check>
                             </div>
 
-                            <table class="table">
-                                <thead>
-                                <tr>
-                                    <th class="text-center col-sm-1 col-md-1">
-                                        <i class="fa fa-fw fa-hashtag"></i>
-                                    </th>
-                                    <th>Table</th>
-                                    <th class="col-sm-1 col-md-1 text-center">exist</th>
-                                    <th class="col-sm-3 col-md-3">&nbsp;</th>
-                                    <th class="col-sm-1 col-md-1 text-center">
-                                        <i class="fa fa-fw fa-battery-half"></i>
-                                    </th>
-                                    <th class="col-sm-1 col-md-1"></th>
-                                    <th class="col-sm-1 col-md-1">&nbsp;</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-
-                                {* Show Tables *}
-                                <repeat group="{{ @dbInformation.info.tableData }}" key="{{ @tableName }}" value="{{ @tableData }}" counter="{{ @countTable }}">
+                            <check if="{{ @dbInformation.info.tableData }}">
+                                <table class="table">
+                                    <thead>
                                     <tr>
+                                        <th class="text-center col-sm-1 col-md-1">
+                                            <i class="fa fa-fw fa-hashtag"></i>
+                                        </th>
+                                        <th>Table</th>
+                                        <th class="col-sm-1 col-md-1 text-center">exist</th>
+                                        <th class="col-sm-3 col-md-3">&nbsp;</th>
+                                        <th class="col-sm-1 col-md-1 text-center">
+                                            <i class="fa fa-fw fa-battery-half"></i>
+                                        </th>
+                                        <th class="col-sm-1 col-md-1"></th>
+                                        <th class="col-sm-1 col-md-1">&nbsp;</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+
+                                    {* Show Tables *}
+                                    <repeat group="{{ @dbInformation.info.tableData }}" key="{{ @tableName }}" value="{{ @tableData }}" counter="{{ @countTable }}">
+                                        <tr>
+                                            <check if="{{ @tableData.fieldConf }}">
+                                                <true>
+                                                    <td class="text-center" data-target=".{{ @tableName }}_col" data-toggle="collapse" aria-expanded="false" aria-controls="{{ @tableName }}_col">
+                                                        <i class="fa fa-fw fa-chevron-right pf-animate-rotate"></i>
+                                                    </td>
+                                                </true>
+                                                <false>
+                                                    <td class="text-right">{{ @countTable }}.</td>
+                                                </false>
+                                            </check>
+
+                                            <td>{{ @tableName }}</td>
+                                            <td class="text-center">
+                                                <check if="{{ @tableData.exists }}">
+                                                    <true>
+                                                        <i class="fa fa-fw fa-check txt-color txt-color-success"></i>
+                                                    </true>
+                                                    <false>
+                                                        <i class="fa fa-fw fa-ban txt-color txt-color-danger" title="table missing"></i>
+                                                    </false>
+                                                </check>
+                                            </td>
+                                            <td>&nbsp;</td>
+                                            <td class="text-center">
+                                                <check if="{{ @tableData.empty === true }}">
+                                                    <true>
+                                                        <i class="fa fa-fw fa-battery-empty txt-color txt-color-warning" title="table empty"></i>
+                                                    </true>
+                                                    <false>
+                                                        <i class="fa fa-fw fa-battery-full" title="table filled"></i>
+                                                    </false>
+                                                </check>
+                                            </td>
+                                            <td></td>
+                                            <td class="text-center">
+                                                <check if="{{ @tableData.statusCheckCount == 0 && @tableData.exists }}">
+                                                    <true>
+                                                        <i class="fa fa-lg fa-fw fa-check txt-color txt-color-success"></i>
+                                                    </true>
+                                                    <false>
+                                                        <i class="fa fa-lg fa-fw fa-warning txt-color txt-color-warning"></i>
+                                                    </false>
+                                                </check>
+                                            </td>
+                                        </tr>
+
+                                        {* Show Columns *}
                                         <check if="{{ @tableData.fieldConf }}">
-                                            <true>
-                                                <td class="text-center" data-target=".{{ @tableName }}_col" data-toggle="collapse" aria-expanded="false" aria-controls="{{ @tableName }}_col">
-                                                    <i class="fa fa-fw fa-chevron-right pf-animate-rotate"></i>
+                                            <tr class="{{ @tableName }}_col collapse">
+                                                <td class="text-center bg-color bg-color-tealDarkest">
+                                                    <i class="fa fa-fw fa-hashtag"></i>
                                                 </td>
-                                            </true>
-                                            <false>
-                                                <td class="text-right">{{ @countTable }}.</td>
-                                            </false>
+                                                <td class="bg-color bg-color-tealDarkest">column</td>
+                                                <td class="bg-color bg-color-tealDarkest text-center">exist</td>
+                                                <td class="bg-color bg-color-tealDarkest" title="data type">type</td>
+                                                <td class="bg-color bg-color-tealDarkest text-center" title="index">I</td>
+                                                <td class="bg-color bg-color-tealDarkest text-center" title="unique">U</td>
+                                                <td class="bg-color bg-color-tealDarkest text-center"></td>
+                                            </tr>
+                                            <repeat group="{{ @tableData.fieldConf }}" key="{{ @columnName }}" value="{{ @columnData }}" counter="{{ @countCol }}">
+                                                <check if="{{ @columnData.type }}">
+                                                    <tr class="{{ @tableName }}_col collapse">
+                                                        <td class="text-right bg-color bg-color-tealDarker">{{@countCol}}.</td>
+                                                        <td class="bg-color bg-color-tealDarker">{{ @columnName }}</td>
+                                                        <td class="bg-color bg-color-tealDarker text-center">
+                                                            <check if="{{ @columnData.exists }}">
+                                                                <true>
+                                                                    <i class="fa fa-fw fa-check txt-color txt-color-success"></i>
+                                                                </true>
+                                                                <false>
+                                                                    <i class="fa fa-fw fa-ban txt-color txt-color-danger" title="column missing"></i>
+                                                                </false>
+                                                            </check>
+                                                        </td>
+                                                        <td class="bg-color bg-color-tealDarker">
+                                                            <check if="{{ @columnData.exists }}">
+                                                                <true>
+                                                                    <check if="{{ @columnData.changedType }}">
+                                                                        <true>
+                                                                            <kbd class="txt-color txt-color-warning" title="{{ @columnData.requiredType }}">{{ @columnData.currentType }}</kbd>
+                                                                        </true>
+                                                                        <false>
+                                                                            <kbd class="txt-color txt-color-success">{{ @columnData.currentType }}</kbd>
+                                                                        </false>
+                                                                    </check>
+                                                                </true>
+                                                                <false>
+                                                                    <i class="fa fa-fw fa-ellipsis-h txt-color txt-color-danger" title="{{ @columnData.requiredType }}"></i>
+                                                                </false>
+                                                            </check>
+                                                        </td>
+                                                        <td class="bg-color bg-color-tealDarker text-center">
+                                                            <check if="{{ @columnData.exists }}">
+                                                                <true>
+                                                                    <check if="{{ @columnData.changedIndex }}">
+                                                                        <true>
+                                                                            <kbd class="txt-color txt-color-warning" title="{{ @columnData.requiredIndex }}">{{ @columnData.currentIndex }}</kbd>
+                                                                        </true>
+                                                                        <false>
+                                                                            <kbd class="txt-color txt-color-success">{{ @columnData.currentIndex }}</kbd>
+                                                                        </false>
+                                                                    </check>
+                                                                </true>
+                                                                <false>
+                                                                    <i class="fa fa-fw fa-ellipsis-h txt-color txt-color-danger" title="{{ @columnData.requiredIndex }}"></i>
+                                                                </false>
+                                                            </check>
+                                                        </td>
+                                                        <td class="bg-color bg-color-tealDarker text-center">
+                                                            <check if="{{ @columnData.exists }}">
+                                                                <true>
+                                                                    <check if="{{ @columnData.changedUnique }}">
+                                                                        <true>
+                                                                            <kbd class="txt-color txt-color-warning" title="{{ @columnData.requiredUnique }}">{{ @columnData.currentUnique }}</kbd>
+                                                                        </true>
+                                                                        <false>
+                                                                            <kbd class="txt-color txt-color-success">{{ @columnData.currentUnique }}</kbd>
+                                                                        </false>
+                                                                    </check>
+                                                                </true>
+                                                                <false>
+                                                                    <i class="fa fa-fw fa-ellipsis-h txt-color txt-color-danger" title="{{ @columnData.requiredUnique }}"></i>
+                                                                </false>
+                                                            </check>
+                                                        </td>
+                                                        <td class="bg-color bg-color-tealDarker text-center">
+                                                            <check if="{{ @columnData.statusCheck }}">
+                                                                <true>
+                                                                    <i class="fa fa-lg fa-fw fa-check txt-color txt-color-success"></i>
+                                                                </true>
+                                                                <false>
+                                                                    <i class="fa fa-lg fa-fw fa-warning txt-color txt-color-warning"></i>
+                                                                </false>
+                                                            </check>
+                                                        </td>
+                                                    </tr>
+                                                </check>
+                                            </repeat>
                                         </check>
 
-                                        <td>{{ @tableName }}</td>
-                                        <td class="text-center">
-                                            <check if="{{ @tableData.exists }}">
-                                                <true>
-                                                    <i class="fa fa-fw fa-check txt-color txt-color-success"></i>
-                                                </true>
-                                                <false>
-                                                    <i class="fa fa-fw fa-ban txt-color txt-color-danger" title="table missing"></i>
-                                                </false>
-                                            </check>
-                                        </td>
-                                        <td>&nbsp;</td>
-                                        <td class="text-center">
-                                            <check if="{{ @tableData.empty === true }}">
-                                                <true>
-                                                    <i class="fa fa-fw fa-battery-empty txt-color txt-color-warning" title="table empty"></i>
-                                                </true>
-                                                <false>
-                                                    <i class="fa fa-fw fa-battery-full" title="table filled"></i>
-                                                </false>
-                                            </check>
-                                        </td>
-                                        <td></td>
-                                        <td class="text-center">
-                                            <check if="{{ @tableData.statusCheckCount == 0 && @tableData.exists }}">
-                                                <true>
-                                                    <i class="fa fa-lg fa-fw fa-check txt-color txt-color-success"></i>
-                                                </true>
-                                                <false>
-                                                    <i class="fa fa-lg fa-fw fa-warning txt-color txt-color-warning"></i>
-                                                </false>
-                                            </check>
-                                        </td>
-                                    </tr>
-
-                                    {* Show Columns *}
-                                    <check if="{{ @tableData.fieldConf }}">
-                                        <tr class="{{ @tableName }}_col collapse">
-                                            <td class="text-center bg-color bg-color-tealDarkest">
-                                                <i class="fa fa-fw fa-hashtag"></i>
-                                            </td>
-                                            <td class="bg-color bg-color-tealDarkest">column</td>
-                                            <td class="bg-color bg-color-tealDarkest text-center">exist</td>
-                                            <td class="bg-color bg-color-tealDarkest" title="data type">type</td>
-                                            <td class="bg-color bg-color-tealDarkest text-center" title="index">I</td>
-                                            <td class="bg-color bg-color-tealDarkest text-center" title="unique">U</td>
-                                            <td class="bg-color bg-color-tealDarkest text-center"></td>
-                                        </tr>
-                                        <repeat group="{{ @tableData.fieldConf }}" key="{{ @columnName }}" value="{{ @columnData }}" counter="{{ @countCol }}">
-                                            <check if="{{ @columnData.type }}">
+                                        {* Show Foreign Keys *}
+                                        <check if="{{ @tableData.foreignKeys }}">
+                                            <tr class="{{ @tableName }}_col collapse">
+                                                <td class="text-center bg-color bg-color-tealDarkest">
+                                                    <i class="fa fa-fw fa-hashtag"></i>
+                                                </td>
+                                                <td class="bg-color bg-color-tealDarkest">foreign key</td>
+                                                <td class="bg-color bg-color-tealDarkest"></td>
+                                                <td class="bg-color bg-color-tealDarkest"></td>
+                                                <td class="bg-color bg-color-tealDarkest"></td>
+                                                <td class="bg-color bg-color-tealDarkest"></td>
+                                                <td class="bg-color bg-color-tealDarkest"></td>
+                                            </tr>
+                                            <repeat group="{{ @tableData.foreignKeys }}" value="{{ @keyData }}" counter="{{ @countForeignKey }}">
                                                 <tr class="{{ @tableName }}_col collapse">
-                                                    <td class="text-right bg-color bg-color-tealDarker">{{@countCol}}.</td>
-                                                    <td class="bg-color bg-color-tealDarker">{{ @columnName }}</td>
+                                                    <td class="text-center bg-color bg-color-tealDarker">{{@countForeignKey}}.</td>
+                                                    <td class="bg-color bg-color-tealDarker" colspan="5">{{ @keyData.keyName }}</td>
                                                     <td class="bg-color bg-color-tealDarker text-center">
-                                                        <check if="{{ @columnData.exists }}">
-                                                            <true>
-                                                                <i class="fa fa-fw fa-check txt-color txt-color-success"></i>
-                                                            </true>
-                                                            <false>
-                                                                <i class="fa fa-fw fa-ban txt-color txt-color-danger" title="column missing"></i>
-                                                            </false>
-                                                        </check>
-                                                    </td>
-                                                    <td class="bg-color bg-color-tealDarker">
-                                                        <check if="{{ @columnData.exists }}">
-                                                            <true>
-                                                                <check if="{{ @columnData.changedType }}">
-                                                                    <true>
-                                                                        <kbd class="txt-color txt-color-warning" title="{{ @columnData.requiredType }}">{{ @columnData.currentType }}</kbd>
-                                                                    </true>
-                                                                    <false>
-                                                                        <kbd class="txt-color txt-color-success">{{ @columnData.currentType }}</kbd>
-                                                                    </false>
-                                                                </check>
-                                                            </true>
-                                                            <false>
-                                                                <i class="fa fa-fw fa-ellipsis-h txt-color txt-color-danger" title="{{ @columnData.requiredType }}"></i>
-                                                            </false>
-                                                        </check>
-                                                    </td>
-                                                    <td class="bg-color bg-color-tealDarker text-center">
-                                                        <check if="{{ @columnData.exists }}">
-                                                            <true>
-                                                                <check if="{{ @columnData.changedIndex }}">
-                                                                    <true>
-                                                                        <kbd class="txt-color txt-color-warning" title="{{ @columnData.requiredIndex }}">{{ @columnData.currentIndex }}</kbd>
-                                                                    </true>
-                                                                    <false>
-                                                                        <kbd class="txt-color txt-color-success">{{ @columnData.currentIndex }}</kbd>
-                                                                    </false>
-                                                                </check>
-                                                            </true>
-                                                            <false>
-                                                                <i class="fa fa-fw fa-ellipsis-h txt-color txt-color-danger" title="{{ @columnData.requiredIndex }}"></i>
-                                                            </false>
-                                                        </check>
-                                                    </td>
-                                                    <td class="bg-color bg-color-tealDarker text-center">
-                                                        <check if="{{ @columnData.exists }}">
-                                                            <true>
-                                                                <check if="{{ @columnData.changedUnique }}">
-                                                                    <true>
-                                                                        <kbd class="txt-color txt-color-warning" title="{{ @columnData.requiredUnique }}">{{ @columnData.currentUnique }}</kbd>
-                                                                    </true>
-                                                                    <false>
-                                                                        <kbd class="txt-color txt-color-success">{{ @columnData.currentUnique }}</kbd>
-                                                                    </false>
-                                                                </check>
-                                                            </true>
-                                                            <false>
-                                                                <i class="fa fa-fw fa-ellipsis-h txt-color txt-color-danger" title="{{ @columnData.requiredUnique }}"></i>
-                                                            </false>
-                                                        </check>
-                                                    </td>
-                                                    <td class="bg-color bg-color-tealDarker text-center">
-                                                        <check if="{{ @columnData.statusCheck }}">
+                                                        <check if="{{ @keyData.exists }}">
                                                             <true>
                                                                 <i class="fa fa-lg fa-fw fa-check txt-color txt-color-success"></i>
                                                             </true>
                                                             <false>
-                                                                <i class="fa fa-lg fa-fw fa-warning txt-color txt-color-warning"></i>
+                                                                <i class="fa fa-lg fa-fw fa-ban txt-color txt-color-danger" title="key missing"></i>
                                                             </false>
                                                         </check>
                                                     </td>
                                                 </tr>
-                                            </check>
-                                        </repeat>
-                                    </check>
+                                            </repeat>
+                                        </check>
 
-                                    {* Show Foreign Keys *}
-                                    <check if="{{ @tableData.foreignKeys }}">
-                                        <tr class="{{ @tableName }}_col collapse">
-                                            <td class="text-center bg-color bg-color-tealDarkest">
-                                                <i class="fa fa-fw fa-hashtag"></i>
-                                            </td>
-                                            <td class="bg-color bg-color-tealDarkest">foreign key</td>
-                                            <td class="bg-color bg-color-tealDarkest"></td>
-                                            <td class="bg-color bg-color-tealDarkest"></td>
-                                            <td class="bg-color bg-color-tealDarkest"></td>
-                                            <td class="bg-color bg-color-tealDarkest"></td>
-                                            <td class="bg-color bg-color-tealDarkest"></td>
-                                        </tr>
-                                        <repeat group="{{ @tableData.foreignKeys }}" value="{{ @keyData }}" counter="{{ @countForeignKey }}">
-                                            <tr class="{{ @tableName }}_col collapse">
-                                                <td class="text-center bg-color bg-color-tealDarker">{{@countForeignKey}}.</td>
-                                                <td class="bg-color bg-color-tealDarker" colspan="5">{{ @keyData.keyName }}</td>
-                                                <td class="bg-color bg-color-tealDarker text-center">
-                                                    <check if="{{ @keyData.exists }}">
-                                                        <true>
-                                                            <i class="fa fa-lg fa-fw fa-check txt-color txt-color-success"></i>
-                                                        </true>
-                                                        <false>
-                                                            <i class="fa fa-lg fa-fw fa-ban txt-color txt-color-danger" title="key missing"></i>
-                                                        </false>
-                                                    </check>
-                                                </td>
-                                            </tr>
-                                        </repeat>
-                                    </check>
-
-                                </repeat>
-                                </tbody>
-                            </table>
+                                    </repeat>
+                                    </tbody>
+                                </table>
+                            </check>
                         </div>
 
                         <check if="{{ @dbConnectionStatus == 'OK'}}">
@@ -779,7 +767,7 @@
                         </check>
 
                         {* DB queries for manual column fixes *}
-                        <check if="{{ @dbConnectionStatus == 'OK' && @dbInformation.info.columnQueries}}">
+                        <check if="{{ @dbConnectionStatus == 'OK' && @dbInformation.info.columnQueries }}">
                             <div class="panel-body no-padding">
                                 <table class="table">
                                     <thead>
@@ -804,12 +792,21 @@
                         </check>
 
                         <div class="panel-footer btn-group btn-group-justified">
-                            <a href="?db={{ @dbKey }}#pf-setup-database" class="btn btn-primary {{ (@dbInformation.info.setupEnable && @dbConnectionStatus == 'OK') ?'':'disabled' }}">
-                                <i class="fa fa-fw fa-refresh"></i> Setup tables
-                            </a>
-                            <a href="?fixCols=1#pf-setup-database" class="btn btn-default {{ @dbInformation.info.columnQueries ?'':'disabled' }}">
-                                <i class="fa fa-fw fa-magic"></i> Fix columns/keys
-                            </a>
+                            <check if="{{ @dbInformation.info.dbCreate }}">
+                                <true>
+                                    <a href="?action=createDB&db={{ @dbKey }}#pf-setup-database" class="btn btn-success {{ true ?'':'disabled' }}" title="Try to create new '{{ @dbInformation.info.name }}' database.">
+                                        <i class="fa fa-fw fa-plus"></i> Create database
+                                    </a>
+                                </true>
+                                <false>
+                                    <a href="?action=bootstrapDB&db={{ @dbKey }}#pf-setup-database" class="btn btn-primary {{ (@dbInformation.info.setupEnable && @dbConnectionStatus == 'OK') ?'':'disabled' }}">
+                                        <i class="fa fa-fw fa-refresh"></i> Setup tables
+                                    </a>
+                                    <a href="?action=fixCols#pf-setup-database" class="btn btn-default {{ @dbInformation.info.columnQueries ?'':'disabled' }}">
+                                        <i class="fa fa-fw fa-magic"></i> Fix columns/keys
+                                    </a>
+                                </false>
+                            </check>
                         </div>
 
                     </div>
@@ -910,9 +907,9 @@
                                 </div>
                                 <div class="col-xs-5">
                                     <div class="btn-group btn-group-justified">
-                                        <repeat group="{{ @indexData.action }}" key="{{ @actionKey }}" value="{{ @actionData }}">
-                                            <a href="?{{ @actionData.task }}={{ @model }}#pf-setup-administration" class="btn {{ @actionData.btn }} {{ @actionData.btn=='btn-default' && !@indexData.count ?'disabled':'' }} {{ @dbWarnings ?'disabled':'' }}" role="button">
-                                                <i class="fa fa-fw {{ @actionData.icon }}"></i> {{ @actionData.label }}
+                                        <repeat group="{{ @indexData.task }}" key="{{ @taskKey }}" value="{{ @taskData }}">
+                                            <a href="?action={{ @taskData.action }}&model={{ @model }}#pf-setup-administration" class="btn {{ @taskData.btn }} {{ @taskData.btn=='btn-default' && !@indexData.count ?'disabled':'' }} {{ @dbWarnings ?'disabled':'' }}" role="button">
+                                                <i class="fa fa-fw {{ @taskData.icon }}"></i> {{ @taskData.label }}
                                             </a>
                                         </repeat>
                                     </div>
@@ -949,7 +946,7 @@
                                 <span class="btn btn-default disabled btn-fake">
                                     Redis cache
                                 </span>
-                                <a href="?clearCache=1#pf-setup-administration" class="btn btn-warning" role="button">
+                                <a href="?action=clearCache#pf-setup-administration" class="btn btn-warning" role="button">
                                     <i class="fa fa-fw fa-times"></i> Clear all keys
                                 </a>
                             </div>
@@ -969,7 +966,7 @@
                                             </check>
                                         </kbd>
                                     </span>
-                            <a href="?clearCache=1#pf-setup-administration" class="btn btn-warning {{ (@cacheSize.data) ?'':'disabled' }}" role="button">
+                            <a href="?action=clearCache#pf-setup-administration" class="btn btn-warning {{ (@cacheSize.data) ?'':'disabled' }}" role="button">
                                 <i class="fa fa-fw fa-times"></i> Delete files
                             </a>
                         </div>
@@ -1006,7 +1003,7 @@
                     <div class="panel-body no-padding">
                         <div class="btn-group btn-group-justified">
                             <span class="btn btn-default disabled btn-fake">Invalidate all Cookie data</span>
-                            <a href="?invalidateCookies=1#pf-setup-administration" class="btn btn-warning" role="button">
+                            <a href="?action=invalidateCookies#pf-setup-administration" class="btn btn-warning" role="button">
                                 <i class="fa fa-fw fa-times"></i> Clear authentication data
                             </a>
                         </div>

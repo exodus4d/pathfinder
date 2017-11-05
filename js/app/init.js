@@ -31,6 +31,7 @@ define(['jquery'], function($) {
             deleteMap: 'api/map/delete',                                    // ajax URL - delete map
             importMap: 'api/map/import',                                    // ajax URL - import map
             getMapConnectionData: 'api/map/getConnectionData',              // ajax URL - get connection data
+            getMapLogData: 'api/map/getLogData',                            // ajax URL - get logs data
             // system API
             searchSystem: 'api/system/search',                              // ajax URL - search system by name
             saveSystem: 'api/system/save',                                  // ajax URL - saves system to map
@@ -38,6 +39,7 @@ define(['jquery'], function($) {
             getSystemGraphData: 'api/system/graphData',                     // ajax URL - get all system graph data
             getConstellationData: 'api/system/constellationData',           // ajax URL - get system constellation data
             setDestination: 'api/system/setDestination',                    // ajax URL - set destination
+            pokeRally: 'api/system/pokeRally',                              // ajax URL - send rally point pokes
             // connection API
             saveConnection: 'api/connection/save',                          // ajax URL - save new connection to map
             deleteConnection: 'api/connection/delete',                      // ajax URL - delete connection from map
@@ -51,10 +53,6 @@ define(['jquery'], function($) {
             getStatisticsData: 'api/statistic/getData',                     // ajax URL - get statistics data (activity log)
             // GitHub API
             gitHubReleases: 'api/github/releases'                           // ajax URL - get release info from GitHub
-        },
-        url: {
-            ccpImageServer: '//image.eveonline.com/',                       // CCP image Server
-            zKillboard: '//zkillboard.com/api/'                             // killboard api
         },
         breakpoints: [
             { name: 'desktop', width: Infinity },

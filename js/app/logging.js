@@ -80,7 +80,7 @@ define([
     let showDialog = function(){
         // dialog content
 
-        requirejs(['text!templates/dialog/task_manager.html', 'mustache'], function(templateTaskManagerDialog, Mustache) {
+        requirejs(['text!templates/dialog/task_manager.html', 'mustache', 'datatables.loader'], function(templateTaskManagerDialog, Mustache) {
             let data = {
                 id: config.taskDialogId,
                 dialogDynamicAreaClass: config.dialogDynamicAreaClass,

@@ -8,7 +8,7 @@
 
 namespace data\mapper;
 
-use Lib\Util;
+use lib\Util;
 
 class AbstractIterator extends \RecursiveArrayIterator {
 
