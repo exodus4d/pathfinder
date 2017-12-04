@@ -948,6 +948,8 @@ define([
                     data.maxStableTime = tooltipData.maxStableTime + ' h';
                 }
 
+                let title = tooltipData.name +
+                    '<span class="pull-right ' + tooltipData.class +'">' + tooltipData.security + '</span>';
                 let content = Mustache.render(template, data);
 
                 element.popover({
@@ -956,16 +958,16 @@ define([
                     trigger: 'hover',
                     content: '',
                     container: 'body',
-                    title: tooltipData.name +
-                    '<span class="pull-right ' + tooltipData.class +'">' + tooltipData.security + '</span>',
+                    title: title,
                     delay: {
-                        show: 250,
+                        show: 150,
                         hide: 0
                     }
                 });
 
                 // set new popover content
                 let popover = element.data('bs.popover');
+                popover.options.title = title;
                 popover.options.content = content;
             });
         });

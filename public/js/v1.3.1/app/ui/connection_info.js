@@ -14,42 +14,43 @@ define([
         // module info
         modulePosition: 1,
         moduleName: 'connectionInfo',
-        moduleHeadClass: 'pf-module-head',                                          // class for module header
-        moduleHandlerClass: 'pf-module-handler-drag',                               // class for "drag" handler
+        moduleHeadClass: 'pf-module-head',                                                      // class for module header
+        moduleHandlerClass: 'pf-module-handler-drag',                                           // class for "drag" handler
 
-        headUserShipClass: 'pf-head-user-ship',                                     // class for "user settings" link
+        headUserShipClass: 'pf-head-user-ship',                                                 // class for "user settings" link
 
         // connection info module
-        moduleTypeClass: 'pf-connection-info-module',                               // class for this module
+        moduleTypeClass: 'pf-connection-info-module',                                           // class for this module
 
         // headline toolbar
-        moduleHeadlineIconClass: 'pf-module-icon-button',                           // class for toolbar icons in the head
-        moduleHeadlineIconRefreshClass: 'pf-module-icon-button-refresh',            // class for "refresh" icon
-        moduleHeadlineIconCurrentMassClass: 'pf-module-icon-button-mass',           // class for "current ship mass" toggle icon
+        moduleHeadlineIconClass: 'pf-module-icon-button',                                       // class for toolbar icons in the head
+        moduleHeadlineIconRefreshClass: 'pf-module-icon-button-refresh',                        // class for "refresh" icon
+        moduleHeadlineIconCurrentMassClass: 'pf-module-icon-button-mass',                       // class for "current ship mass" toggle icon
 
-        connectionInfoPanelClass: 'pf-connection-info-panel',                       // class for connection info panels
-        connectionInfoPanelId: 'pf-connection-info-panel-',                         // id prefix for connection info panels
+        connectionInfoPanelClass: 'pf-connection-info-panel',                                   // class for connection info panels
+        connectionInfoPanelId: 'pf-connection-info-panel-',                                     // id prefix for connection info panels
 
         // info table
-        moduleTableClass: 'pf-module-table',                                        // class for module tables
-        connectionInfoTableLabelSourceClass: 'pf-connection-info-label-source',     // class for source label
-        connectionInfoTableLabelTargetClass: 'pf-connection-info-label-target',     // class for target label
-        connectionInfoTableRowMassShipClass: 'pf-connection-info-row-mass-ship',    // class for "current ship mass" table row
-        connectionInfoTableCellMassTotalClass: 'pf-connection-info-mass-total',     // class for "mass total" table cell
-        connectionInfoTableCellMassLogClass: 'pf-connection-info-mass-log',         // class for "mass log" table cell
-        connectionInfoTableCellMassShipClass: 'pf-connection-info-mass-ship',       // class for "current ship mass" table cell
-        connectionInfoTableCellMassLeftClass: 'pf-connection-info-mass-left',       // class for "mass left" table cell
+        moduleTableClass: 'pf-module-table',                                                    // class for module tables
+        connectionInfoTableLabelSourceClass: 'pf-connection-info-label-source',                 // class for source label
+        connectionInfoTableLabelTargetClass: 'pf-connection-info-label-target',                 // class for target label
+        connectionInfoTableRowMassShipClass: 'pf-connection-info-row-mass-ship',                // class for "current ship mass" table row
+        connectionInfoTableCellMassTotalTooltipClass: 'pf-connection-info-mass-total-tooltip',  // class for "mass total tooltip" table cell
+        connectionInfoTableCellMassTotalClass: 'pf-connection-info-mass-total',                 // class for "mass total" table cell
+        connectionInfoTableCellMassLogClass: 'pf-connection-info-mass-log',                     // class for "mass log" table cell
+        connectionInfoTableCellMassShipClass: 'pf-connection-info-mass-ship',                   // class for "current ship mass" table cell
+        connectionInfoTableCellMassLeftClass: 'pf-connection-info-mass-left',                   // class for "mass left" table cell
 
-        connectionInfoTableTooltipIconClass: 'pf-connection-info-tooltip-icon',     // class for "tooltip" icon
-        connectionInfoTableWarningIconClass: 'pf-connection-info-warning-icon',     // class for "warning" icon
+        connectionInfoTableTooltipIconClass: 'pf-connection-info-tooltip-icon',                 // class for "tooltip" icon
+        connectionInfoTableWarningIconClass: 'pf-connection-info-warning-icon',                 // class for "warning" icon
 
         // dataTable
-        connectionInfoTableClass: 'pf-connection-info-table',                       // class for connection tables
-        tableCellImageClass: 'pf-table-image-cell',                                 // class for table "image" cells
-        tableCellCounterClass: 'pf-table-counter-cell',                             // class for table "counter" cells
+        connectionInfoTableClass: 'pf-connection-info-table',                                   // class for connection tables
+        tableCellImageClass: 'pf-table-image-cell',                                             // class for table "image" cells
+        tableCellCounterClass: 'pf-table-counter-cell',                                         // class for table "counter" cells
 
         // config
-        showShip: true                                                              // default for "show current ship mass" toggle
+        showShip: true                                                                          // default for "show current ship mass" toggle
     };
 
     /**
@@ -188,7 +189,10 @@ define([
                 ),
                 $('<tbody>').append(
                     $('<tr>').append(
-                        $('<td>'),
+                        $('<td>', {
+                            class: ['text-right', 'pf-help', config.connectionInfoTableCellMassTotalTooltipClass].join(' '),
+                            html: '<i class="fa fa-fw fa-question-circle"></i>'
+                        }),
                         $('<td>', {
                             text: scopeLabel.charAt(0).toUpperCase() + scopeLabel.slice(1)
                         }),
@@ -305,7 +309,12 @@ define([
                             wormholeName &&
                             Init.wormholes.hasOwnProperty(wormholeName)
                         ){
-                            wormholeData = Init.wormholes[wormholeName];
+                            wormholeData = Object.assign({}, Init.wormholes[wormholeName]);
+                            wormholeData.class = Util.getSecurityClassForSystem(wormholeData.security);
+
+                            // init wormhole tooltip ----------------------------------------------
+                            let massTotalTooltipCell = tableElement.find('.' + config.connectionInfoTableCellMassTotalTooltipClass);
+                            massTotalTooltipCell.addWormholeInfoTooltip(wormholeData);
                         }
 
                         // all required data is set -> re-calculate rows
