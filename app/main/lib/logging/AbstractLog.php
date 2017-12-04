@@ -426,6 +426,7 @@ abstract class AbstractLog implements LogInterface {
     /**
      * get __construct() parameters for ZMQHandler() call
      * @return array
+     * @throws \ZMQSocketException
      */
     protected function getHandlerParamsZMQ(): array {
         $params = [];

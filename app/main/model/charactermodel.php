@@ -471,6 +471,7 @@ class CharacterModel extends BasicModel {
     /**
      * get ESI API "access_token" from OAuth
      * @return bool|string
+     * @throws \Exception\PathfinderException
      */
     public function getAccessToken(){
         $accessToken = false;
@@ -541,6 +542,7 @@ class CharacterModel extends BasicModel {
      * checks whether this character is authorized to log in
      * -> check corp/ally whitelist config (pathfinder.ini)
      * @return bool
+     * @throws \Exception\PathfinderException
      */
     public function isAuthorized(){
         $authStatus = 'UNKNOWN';
@@ -596,6 +598,7 @@ class CharacterModel extends BasicModel {
     /**
      * get pathfinder roleId
      * @return int
+     * @throws \Exception\PathfinderException
      */
     public function requestRoleId(){
         $roleId = self::ROLES['MEMBER'];
@@ -614,6 +617,7 @@ class CharacterModel extends BasicModel {
     /**
      * request all corporation roles granted to this character
      * @return array
+     * @throws \Exception\PathfinderException
      */
     protected function requestRoles(){
         $rolesData = [];
@@ -655,6 +659,7 @@ class CharacterModel extends BasicModel {
      * -> API request for character log data
      * @param array $additionalOptions (optional) request options for cURL request
      * @return CharacterModel
+     * @throws \Exception
      */
     public function updateLog($additionalOptions = []){
         $deleteLog = false;
@@ -874,6 +879,7 @@ class CharacterModel extends BasicModel {
     /**
      * update character data from CCPs ESI API
      * @return array (some status messages)
+     * @throws \Exception
      */
     public function updateFromESI(){
         $status = [];
@@ -938,6 +944,7 @@ class CharacterModel extends BasicModel {
      * get mapModel by id and check if user has access
      * @param $mapId
      * @return MapModel|null
+     * @throws \Exception
      */
     public function getMap($mapId){
         /**
@@ -957,6 +964,7 @@ class CharacterModel extends BasicModel {
     /**
      * get all accessible map models for this character
      * @return MapModel[]
+     * @throws \Exception\PathfinderException
      */
     public function getMaps(){
         $this->filter(

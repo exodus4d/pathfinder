@@ -181,6 +181,8 @@ class MapModel extends AbstractMapTrackingModel {
      * get map data
      * -> this includes system and connection data as well!
      * @return \stdClass
+     * @throws PathfinderException
+     * @throws \Exception
      */
     public function getData(){
         // check if there is cached data
@@ -294,6 +296,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @param string $key
      * @param string $val
      * @return bool
+     * @throws \Exception\ValidationException
      */
     protected function validate_name(string $key, string $val): bool {
         $valid = true;
@@ -309,6 +312,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @param string $key
      * @param string $val
      * @return bool
+     * @throws \Exception\ValidationException
      */
     protected function validate_slackWebHookURL(string $key, string $val): bool {
         $valid = true;
@@ -401,6 +405,7 @@ class MapModel extends AbstractMapTrackingModel {
      * -> check for "inactive" systems on this map first!
      * @param int $systemId
      * @return SystemModel
+     * @throws \Exception
      */
     public function getNewSystem($systemId){
         // check for "inactive" system
@@ -510,6 +515,7 @@ class MapModel extends AbstractMapTrackingModel {
     /**
      * get all system data for all systems in this map
      * @return \stdClass[]
+     * @throws \Exception
      */
     public function getSystemData(){
         $systemData = [];
@@ -545,10 +551,11 @@ class MapModel extends AbstractMapTrackingModel {
 
     /**
      * get all connections in this map
+     * @param null $connectionIds
      * @param string $scope
      * @return ConnectionModel[]
      */
-    public function getConnections($scope = ''){
+    public function getConnections($connectionIds = null, $scope = ''){
         $connections = [];
 
         $query = [
@@ -559,6 +566,11 @@ class MapModel extends AbstractMapTrackingModel {
         if(!empty($scope)){
             $query[0] .= ' AND scope = :scope';
             $query[':scope'] = $scope;
+        }
+
+        if(!empty($connectionIds)){
+            $query[0] .= ' AND id IN (?)';
+            $query[] =  $connectionIds;
         }
 
         $this->filter('connections', $query);
@@ -591,6 +603,7 @@ class MapModel extends AbstractMapTrackingModel {
     /**
      * set map access for an object (character, corporation or alliance)
      * @param $obj
+     * @throws \Exception
      */
     public function setAccess($obj){
 
@@ -689,6 +702,7 @@ class MapModel extends AbstractMapTrackingModel {
      * checks whether a character has access to this map or not
      * @param CharacterModel $characterModel
      * @return bool
+     * @throws PathfinderException
      */
     public function hasAccess(CharacterModel $characterModel){
         $hasAccess = false;
@@ -834,6 +848,7 @@ class MapModel extends AbstractMapTrackingModel {
     /**
      * @param string $action
      * @return Logging\LogInterface
+     * @throws PathfinderException
      */
     public function newLog($action = ''): Logging\LogInterface{
         $logChannelData = $this->getLogChannelData();
@@ -901,6 +916,7 @@ class MapModel extends AbstractMapTrackingModel {
     /**
      * check if "activity logging" is enabled for this map type
      * @return bool
+     * @throws PathfinderException
      */
     public function isActivityLogEnabled(): bool {
         return $this->logActivity && (bool) Config::getMapsDefaultConfig($this->typeId->name)['log_activity_enabled'];
@@ -909,6 +925,7 @@ class MapModel extends AbstractMapTrackingModel {
     /**
      * check if "history logging" is enabled for this map type
      * @return bool
+     * @throws PathfinderException
      */
     public function isHistoryLogEnabled(): bool {
         return $this->logHistory && (bool) Config::getMapsDefaultConfig($this->typeId->name)['log_history_enabled'];
@@ -946,6 +963,7 @@ class MapModel extends AbstractMapTrackingModel {
      * check if "E-Mail" Log is enabled for this map
      * @param string $type
      * @return bool
+     * @throws PathfinderException
      */
     public function isMailSendEnabled(string $type): bool{
         $enabled = false;
@@ -1005,6 +1023,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @param string $type
      * @param bool $addJson
      * @return \stdClass
+     * @throws PathfinderException
      */
     public function getSMTPConfig(string $type, bool $addJson = true): \stdClass{
         $config = Config::getSMTPConfig();
@@ -1141,6 +1160,8 @@ class MapModel extends AbstractMapTrackingModel {
      * get all active characters (with active log)
      * grouped by systems
      * @return \stdClass
+     * @throws PathfinderException
+     * @throws \Exception
      */
     public function getUserData(){
 

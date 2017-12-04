@@ -123,6 +123,7 @@ class Statistic extends Controller\AccessController {
      * @param int $yearEnd
      * @param int $weekEnd
      * @return array
+     * @throws \Exception\PathfinderException
      */
     protected function queryStatistic( CharacterModel $character, $typeId, $yearStart, $weekStart, $yearEnd, $weekEnd){
         $data = [];
@@ -231,6 +232,7 @@ class Statistic extends Controller\AccessController {
     /**
      * get statistics data
      * @param \Base $f3
+     * @throws \Exception
      */
     public function getData(\Base $f3){
         $postData = (array)$f3->get('POST');

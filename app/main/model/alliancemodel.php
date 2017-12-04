@@ -57,6 +57,7 @@ class AllianceModel extends BasicModel {
     /**
      * get all maps for this alliance
      * @return array|mixed
+     * @throws \Exception\PathfinderException
      */
     public function getMaps(){
         $maps = [];

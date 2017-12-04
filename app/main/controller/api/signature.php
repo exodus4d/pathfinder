@@ -18,6 +18,7 @@ class Signature extends Controller\AccessController {
      * get signature data for systems
      * -> return value of this is limited to a "SINGLE" system
      * @param \Base $f3
+     * @throws \Exception
      */
     public function getAll(\Base $f3){
         $signatureData = [];
@@ -50,6 +51,7 @@ class Signature extends Controller\AccessController {
      * save or update a full signature data set
      * or save/update just single or multiple signature data
      * @param \Base $f3
+     * @throws \Exception
      */
     public function save(\Base $f3){
         $requestData = $f3->get('POST');
@@ -221,6 +223,7 @@ class Signature extends Controller\AccessController {
     /**
      * delete signatures
      * @param \Base $f3
+     * @throws \Exception
      */
     public function delete(\Base $f3){
         $signatureIds = $f3->get('POST.signatureIds');

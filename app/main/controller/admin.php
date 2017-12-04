@@ -34,6 +34,8 @@ class Admin extends Controller{
      * @param \Base $f3
      * @param $params
      * @return bool
+     * @throws \Exception
+     * @throws \Exception\PathfinderException
      */
     function beforeroute(\Base $f3, $params): bool {
         $return = parent::beforeroute($f3, $params);
@@ -63,6 +65,7 @@ class Admin extends Controller{
     /**
      * event handler after routing
      * @param \Base $f3
+     * @throws \Exception\PathfinderException
      */
     public function afterroute(\Base $f3) {
         // js view (file)
@@ -81,6 +84,7 @@ class Admin extends Controller{
      * returns valid admin $characterModel for current user
      * @param \Base $f3
      * @return CharacterModel|null
+     * @throws \Exception
      */
     protected function getAdminCharacter(\Base $f3){
         $adminCharacter = null;
@@ -148,6 +152,7 @@ class Admin extends Controller{
      * @param \Base $f3
      * @param array $params
      * @param null $character
+     * @throws \Exception\PathfinderException
      */
     public function dispatch(\Base $f3, $params, $character = null){
         if($character instanceof CharacterModel){
@@ -191,6 +196,7 @@ class Admin extends Controller{
      * @param CharacterModel $character
      * @param int $kickCharacterId
      * @param int $minutes
+     * @throws \Exception\PathfinderException
      */
     protected function kickCharacter(CharacterModel $character, $kickCharacterId, $minutes){
         $kickOptions = self::KICK_OPTIONS;
@@ -220,6 +226,7 @@ class Admin extends Controller{
      * @param CharacterModel $character
      * @param int $banCharacterId
      * @param int $value
+     * @throws \Exception\PathfinderException
      */
     protected function banCharacter(CharacterModel $character, $banCharacterId, $value){
         $banCharacters = $this->filterValidCharacters($character, $banCharacterId);
@@ -267,6 +274,7 @@ class Admin extends Controller{
      * get log file for "admin" logs
      * @param string $type
      * @return \Log
+     * @throws \Exception\PathfinderException
      */
     static function getLogger($type = 'ADMIN'){
         return parent::getLogger('ADMIN');

@@ -139,25 +139,25 @@ class CharacterLogModel extends BasicModel {
      */
     public function getData(){
 
-        $logData = (object) [];
-        $logData->system = (object) [];
-        $logData->system->id = (int)$this->systemId;
-        $logData->system->name = $this->systemName;
+        $logData                        = (object) [];
+        $logData->system                = (object) [];
+        $logData->system->id            = (int)$this->systemId;
+        $logData->system->name          = $this->systemName;
 
-        $logData->ship = (object) [];
-        $logData->ship->typeId = (int)$this->shipTypeId;
-        $logData->ship->typeName = $this->shipTypeName;
-        $logData->ship->id = $this->shipId;
-        $logData->ship->name = $this->shipName;
-        $logData->ship->mass = $this->shipMass;
+        $logData->ship                  = (object) [];
+        $logData->ship->typeId          = (int)$this->shipTypeId;
+        $logData->ship->typeName        = $this->shipTypeName;
+        $logData->ship->id              = $this->shipId;
+        $logData->ship->name            = $this->shipName;
+        $logData->ship->mass            = $this->shipMass;
 
-        $logData->station = (object) [];
-        $logData->station->id = (int)$this->stationId;
-        $logData->station->name = $this->stationName;
+        $logData->station               = (object) [];
+        $logData->station->id           = (int)$this->stationId;
+        $logData->station->name         = $this->stationName;
 
-        $logData->structure = (object) [];
-        $logData->structure->id = (int)$this->structureId;
-        $logData->structure->name = $this->structureName;
+        $logData->structure             = (object) [];
+        $logData->structure->id         = (int)$this->structureId;
+        $logData->structure->name       = $this->structureName;
 
         return $logData;
     }
@@ -166,6 +166,7 @@ class CharacterLogModel extends BasicModel {
      *  setter for systemId
      * @param int $systemId
      * @return int
+     * @throws \Exception
      */
     public function set_systemId($systemId){
         if($systemId > 0){
@@ -219,6 +220,7 @@ class CharacterLogModel extends BasicModel {
     /**
      * update session data for active character
      * @param int $systemId
+     * @throws \Exception
      */
     protected function updateCharacterSessionLocation(int $systemId){
         $controller = new Controller();

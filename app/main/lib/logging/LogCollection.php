@@ -60,6 +60,7 @@ class LogCollection extends AbstractLog {
     /**
      * add a new log object to this collection
      * @param AbstractLog $log
+     * @throws \Exception
      */
     public function addLog(AbstractLog $log){
         if(!$this->collection->contains($log)){
@@ -113,6 +114,7 @@ class LogCollection extends AbstractLog {
 
     /**
      * @param string $tag
+     * @throws \Exception
      */
     public function setTag(string $tag){
         $currentTag = parent::getTag();
@@ -147,6 +149,7 @@ class LogCollection extends AbstractLog {
 
     /**
      * @return string
+     * @throws \Exception
      */
     public function getChannelName() : string{
         return $this->getPrimaryLog()->getChannelName();
@@ -154,6 +157,7 @@ class LogCollection extends AbstractLog {
 
     /**
      * @return string
+     * @throws \Exception
      */
     public function getLevel() : string{
         return $this->getPrimaryLog()->getLevel();
@@ -161,6 +165,7 @@ class LogCollection extends AbstractLog {
 
     /**
      * @return bool
+     * @throws \Exception
      */
     public function hasBuffer() : bool{
         return $this->getPrimaryLog()->hasBuffer();
@@ -168,6 +173,7 @@ class LogCollection extends AbstractLog {
 
     /**
      * @return array
+     * @throws \Exception
      */
     public function getTempData() : array{
         return $this->getPrimaryLog()->getTempData();

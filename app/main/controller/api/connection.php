@@ -17,6 +17,7 @@ class Connection extends Controller\AccessController {
      * save a new connection or updates an existing (drag/drop) between two systems
      * if a connection is changed (drag&drop) to another system. -> this function is called for update
      * @param \Base $f3
+     * @throws \Exception
      */
     public function save(\Base $f3){
         $postData = (array)$f3->get('POST');

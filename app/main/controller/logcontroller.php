@@ -34,6 +34,7 @@ class LogController extends \Prefab  {
     /**
      * get columns from ActivityLogModel that can be uses as counter
      * @return array
+     * @throws \Exception
      */
     protected function getActivityLogColumns(): array{
         if(empty($this->activityLogColumns)){
@@ -56,6 +57,7 @@ class LogController extends \Prefab  {
      * -> this buffered data can be stored somewhere (e.g. DB) before HTTP response
      * -> should be cleared afterwards!
      * @param MapLog $log
+     * @throws \Exception
      */
     public function push(MapLog $log){
         $action = $log->getAction();
@@ -161,6 +163,7 @@ class LogController extends \Prefab  {
      * get Logger instance
      * @param string $type
      * @return \Log|null
+     * @throws \Exception\PathfinderException
      */
     public static function getLogger($type){
         $logFiles = Config::getPathfinderData('logfiles');

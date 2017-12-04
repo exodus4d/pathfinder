@@ -49,6 +49,7 @@ class UserModel extends BasicModel {
      * -> ! caution ! this function returns sensitive data! (e.g. email,..)
      * -> user getSimpleData() for faster performance and public user data
      * @return \stdClass
+     * @throws Exception
      */
     public function getData(){
 
@@ -93,6 +94,7 @@ class UserModel extends BasicModel {
      * @param UserModel $self
      * @param $pkeys
      * @return bool
+     * @throws Exception\PathfinderException
      * @throws Exception\RegistrationException
      */
     public function beforeInsertEvent($self, $pkeys){
@@ -135,6 +137,7 @@ class UserModel extends BasicModel {
     /**
      * checks whether user has a valid email address and pathfinder has a valid SMTP config
      * @return bool
+     * @throws Exception\PathfinderException
      */
     protected function isMailSendEnabled() : bool{
         return Config::isValidSMTPConfig($this->getSMTPConfig());
@@ -143,6 +146,7 @@ class UserModel extends BasicModel {
     /**
      * get SMTP config for this user
      * @return \stdClass
+     * @throws Exception\PathfinderException
      */
     protected function getSMTPConfig() : \stdClass{
         $config = Config::getSMTPConfig();
@@ -155,6 +159,7 @@ class UserModel extends BasicModel {
      * @param string $key
      * @param string $val
      * @return bool
+     * @throws Exception\ValidationException
      */
     protected function validate_name(string $key, string $val): bool {
         $valid = true;
@@ -173,6 +178,7 @@ class UserModel extends BasicModel {
      * @param string $key
      * @param string $val
      * @return bool
+     * @throws Exception\ValidationException
      */
     protected function validate_email(string $key, string $val): bool {
         $valid = true;
@@ -207,6 +213,7 @@ class UserModel extends BasicModel {
      * @param int $characterId
      * @param bool $objectCheck
      * @return array
+     * @throws Exception
      */
     public function getSessionCharacterData($characterId = 0, $objectCheck = true){
         $data = [];
@@ -289,6 +296,7 @@ class UserModel extends BasicModel {
      * -> EITHER - the current active one for the current user
      * -> OR - get the first active one
      * @return null|CharacterModel
+     * @throws Exception
      */
     public function getActiveCharacter(){
         $activeCharacter = null;

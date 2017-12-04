@@ -175,6 +175,7 @@ class System extends Controller\AccessController {
     /**
      * save a new system to a a map
      * @param \Base $f3
+     * @throws \Exception
      */
     public function save(\Base $f3){
         $postData = (array)$f3->get('POST');
@@ -278,6 +279,7 @@ class System extends Controller\AccessController {
      * get system log data from CCP API import
      * system Kills, Jumps,....
      * @param \Base $f3
+     * @throws \Exception
      */
     public function graphData(\Base $f3){
         $graphData = [];
@@ -329,6 +331,8 @@ class System extends Controller\AccessController {
      * get system data for all systems within a constellation
      * @param \Base $f3
      * @param array $params
+     * @throws \Exception
+     * @throws \Exception\PathfinderException
      */
     public function constellationData(\Base $f3, $params){
         $return = (object) [];
@@ -363,6 +367,7 @@ class System extends Controller\AccessController {
     /**
      * set destination for specific systemIds
      * @param \Base $f3
+     * @throws \Exception
      */
     public function setDestination(\Base $f3){
         $postData = (array)$f3->get('POST');
@@ -405,6 +410,8 @@ class System extends Controller\AccessController {
     /**
      * send Rally Point poke
      * @param \Base $f3
+     * @throws \Exception
+     * @throws \Exception\PathfinderException
      */
     public function pokeRally(\Base $f3){
         $rallyData = (array)$f3->get('POST');
@@ -437,6 +444,7 @@ class System extends Controller\AccessController {
      * delete systems and all its connections from map
      * -> set "active" flag
      * @param \Base $f3
+     * @throws \Exception
      */
     public function delete(\Base $f3){
         $mapId = (int)$f3->get('POST.mapId');

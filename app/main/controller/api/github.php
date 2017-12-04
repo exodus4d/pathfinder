@@ -21,6 +21,7 @@ class GitHub extends Controller\Controller {
     /**
      * get HTTP request options for API (curl) request
      * @return array
+     * @throws \Exception\PathfinderException
      */
     protected function getRequestOptions(){
         $requestOptions = [
@@ -36,6 +37,7 @@ class GitHub extends Controller\Controller {
     /**
      * get release information from  GitHub
      * @param $f3
+     * @throws \Exception\PathfinderException
      */
     public function releases($f3){
         $cacheKey = 'CACHE_GITHUB_RELEASES';

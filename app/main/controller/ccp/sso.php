@@ -52,6 +52,7 @@ class Sso extends Api\User{
      * redirect user to CCP SSO page and request authorization
      * -> cf. Controller->getCookieCharacters() ( equivalent cookie based login)
      * @param \Base $f3
+     * @throws \Exception\PathfinderException
      */
     public function requestAdminAuthorization($f3){
         // store browser tabId to be "targeted" after login
@@ -66,6 +67,8 @@ class Sso extends Api\User{
      * redirect user to CCP SSO page and request authorization
      * -> cf. Controller->getCookieCharacters() ( equivalent cookie based login)
      * @param \Base $f3
+     * @throws \Exception
+     * @throws \Exception\PathfinderException
      */
     public function requestAuthorization($f3){
         $params = $f3->get('GET');
@@ -135,6 +138,7 @@ class Sso extends Api\User{
      * @param \Base $f3
      * @param array $scopes
      * @param string $rootAlias
+     * @throws \Exception\PathfinderException
      */
     private function rerouteAuthorization(\Base $f3, $scopes = [], $rootAlias = 'login'){
         if( !empty( Controller\Controller::getEnvironmentData('CCP_SSO_CLIENT_ID') ) ){
@@ -166,6 +170,8 @@ class Sso extends Api\User{
      * callback handler for CCP SSO user Auth
      * -> see requestAuthorization()
      * @param \Base $f3
+     * @throws \Exception
+     * @throws \Exception\PathfinderException
      */
     public function callbackAuthorization($f3){
         $getParams = (array)$f3->get('GET');
@@ -305,6 +311,8 @@ class Sso extends Api\User{
     /**
      * login by cookie name
      * @param \Base $f3
+     * @throws \Exception
+     * @throws \Exception\PathfinderException
      */
     public function login(\Base $f3){
         $data = (array)$f3->get('GET');
@@ -343,6 +351,7 @@ class Sso extends Api\User{
      * -> else try to refresh auth and get fresh "access_token"
      * @param bool $authCode
      * @return null|\stdClass
+     * @throws \Exception\PathfinderException
      */
     public function getSsoAccessData($authCode){
         $accessData = null;
@@ -362,6 +371,7 @@ class Sso extends Api\User{
      * verify authorization code, and get an "access_token" data
      * @param $authCode
      * @return \stdClass
+     * @throws \Exception\PathfinderException
      */
     protected function verifyAuthorizationCode($authCode){
         $requestParams = [
@@ -377,6 +387,7 @@ class Sso extends Api\User{
      * -> if "access_token" is expired, this function gets a fresh one
      * @param $refreshToken
      * @return \stdClass
+     * @throws \Exception\PathfinderException
      */
     public function refreshAccessToken($refreshToken){
         $requestParams = [
@@ -393,6 +404,7 @@ class Sso extends Api\User{
      * OR by providing a valid "refresh_token"
      * @param $requestParams
      * @return \stdClass
+     * @throws \Exception\PathfinderException
      */
     protected function requestAccessData($requestParams){
         $verifyAuthCodeUrl = self::getVerifyAuthorizationCodeEndpoint();
@@ -457,6 +469,7 @@ class Sso extends Api\User{
      * -> if more character information is required, use ESI "characters" endpoints request instead
      * @param $accessToken
      * @return mixed|null
+     * @throws \Exception\PathfinderException
      */
     public function verifyCharacterData($accessToken){
         $verifyUserUrl = self::getVerifyUserEndpoint();
@@ -492,6 +505,7 @@ class Sso extends Api\User{
      * get character data
      * @param int $characterId
      * @return object
+     * @throws \Exception
      */
     public function getCharacterData($characterId){
         $characterData = (object) [];
@@ -601,6 +615,7 @@ class Sso extends Api\User{
      * get CCP SSO url from configuration file
      * -> throw error if url is broken/missing
      * @return string
+     * @throws \Exception\PathfinderException
      */
     static function getSsoUrlRoot(){
         $url = '';
@@ -630,6 +645,7 @@ class Sso extends Api\User{
     /**
      * get logger for SSO logging
      * @return \Log
+     * @throws \Exception\PathfinderException
      */
     static function getSSOLogger(){
         return parent::getLogger('SSO');

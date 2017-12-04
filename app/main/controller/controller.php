@@ -63,6 +63,7 @@ class Controller {
      * @param \Base $f3
      * @param $params
      * @return bool
+     * @throws \Exception\PathfinderException
      */
     function beforeroute(\Base $f3, $params): bool {
         // initiate DB connection
@@ -107,6 +108,7 @@ class Controller {
 
     /**
      * init new Session handler
+     * @param \Base $f3
      */
     protected function initSession(\Base $f3){
         $sessionCacheKey = $f3->get('SESSION_CACHE');
@@ -117,6 +119,7 @@ class Controller {
          * @param $session
          * @param $sid
          * @return bool
+         * @throws \Exception\PathfinderException
          */
         $onSuspect = function($session, $sid){
             self::getLogger('SESSION_SUSPECT')->write( sprintf(
@@ -181,6 +184,7 @@ class Controller {
      * set/update logged in cookie by character model
      * -> store validation data in DB
      * @param Model\CharacterModel $character
+     * @throws \Exception\PathfinderException
      */
     protected function setLoginCookie(Model\CharacterModel $character){
         if( $this->getCookieState() ){
@@ -237,6 +241,8 @@ class Controller {
      * @param array $cookieData
      * @param bool $checkAuthorization
      * @return Model\CharacterModel[]
+     * @throws \Exception
+     * @throws \Exception\PathfinderException
      */
     protected function getCookieCharacters($cookieData = [], $checkAuthorization = true){
         $characters = [];
@@ -341,6 +347,7 @@ class Controller {
      * get current character data from session
      * ->
      * @return array
+     * @throws \Exception
      */
     public function getSessionCharacterData(){
         $data = [];
@@ -417,6 +424,7 @@ class Controller {
      * get current user
      * @param int $ttl
      * @return Model\UserModel|null
+     * @throws \Exception
      */
     public function getUser($ttl = 0){
         $user = null;
@@ -463,6 +471,8 @@ class Controller {
      * @param bool $deleteSession
      * @param bool $deleteLog
      * @param bool $deleteCookie
+     * @throws \Exception
+     * @throws \ZMQSocketException
      */
     protected function logoutCharacter(bool $all = false, bool $deleteSession = true, bool $deleteLog = true, bool $deleteCookie = false){
         $sessionCharacterData = (array)$this->getF3()->get(Api\User::SESSION_KEY_CHARACTERS);
@@ -581,6 +591,7 @@ class Controller {
     /**
      * get a custom userAgent string for API calls
      * @return string
+     * @throws \Exception\PathfinderException
      */
     protected function getUserAgent(){
         $userAgent = '';
@@ -598,6 +609,7 @@ class Controller {
      * -> on HTTP request -> render error page
      * @param \Base $f3
      * @return bool
+     * @throws \Exception\PathfinderException
      */
     public function showError(\Base $f3){
 
@@ -817,6 +829,7 @@ class Controller {
      * get the current registration status
      * 0=registration stop |1=new registration allowed
      * @return int
+     * @throws \Exception\PathfinderException
      */
     static function getRegistrationStatus(){
         return (int)Config::getPathfinderData('registration.status');
@@ -827,6 +840,7 @@ class Controller {
      * -> set in pathfinder.ini
      * @param string $type
      * @return \Log|null
+     * @throws \Exception\PathfinderException
      */
     static function getLogger($type){
         return LogController::getLogger($type);
@@ -856,6 +870,7 @@ class Controller {
      * health check for ICP socket -> ping request
      * @param $ttl
      * @param $load
+     * @throws \ZMQSocketException
      */
     static function checkTcpSocket($ttl, $load){
         (new Socket( Config::getSocketUri(), $ttl ))->sendData('healthCheck', $load);

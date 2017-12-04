@@ -85,6 +85,7 @@ class Setup extends Controller {
                 'Model\ConstellationWormholeModel',
 
                 'Model\ConnectionModel',
+                'Model\ConnectionLogModel',
                 'Model\SystemSignatureModel',
 
                 'Model\ActivityLogModel',
@@ -139,6 +140,7 @@ class Setup extends Controller {
      * @param \Base $f3
      * @param array $params
      * @return bool
+     * @throws \Exception\PathfinderException
      */
     function beforeroute(\Base $f3, $params): bool {
         // init dbLib class. Manages all DB connections
@@ -161,6 +163,7 @@ class Setup extends Controller {
 
     /**
      * @param \Base $f3
+     * @throws \Exception\PathfinderException
      */
     public function afterroute(\Base $f3) {
         // js view (file)
@@ -194,6 +197,7 @@ class Setup extends Controller {
      * works as dispatcher for setup functions
      * -> for security reasons all /setup "routes" are dispatched by GET params
      * @param \Base $f3
+     * @throws \Exception
      */
     public function init(\Base $f3){
         $params = $f3->get('GET');
@@ -760,6 +764,7 @@ class Setup extends Controller {
      * get default map config
      * @param \Base $f3
      * @return array
+     * @throws \Exception\PathfinderException
      */
     protected function getMapsDefaultConfig(\Base $f3): array {
         $matrix = \Matrix::instance();
@@ -1245,6 +1250,7 @@ class Setup extends Controller {
     /**
      * get Socket information (TCP (internal)), (WebSocket (clients))
      * @return array
+     * @throws \ZMQSocketException
      */
     protected function getSocketInformation(){
         // $ttl for health check
@@ -1298,6 +1304,7 @@ class Setup extends Controller {
 
     /** get indexed (cache) data information
      * @return array
+     * @throws \Exception
      */
     protected function getIndexData(){
         // active DB and tables are required for obtain index data
@@ -1509,6 +1516,7 @@ class Setup extends Controller {
     /**
      * clear all character authentication (Cookie) data
      * @param \Base $f3
+     * @throws \Exception
      */
     protected function invalidateCookies(\Base $f3){
         $this->getDB('PF');

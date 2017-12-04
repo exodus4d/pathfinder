@@ -509,6 +509,8 @@ class Route extends Controller\AccessController {
     /**
      * search multiple route between two systems
      * @param \Base $f3
+     * @throws \Exception
+     * @throws \Exception\PathfinderException
      */
     public function search($f3){
         $requestData = (array)$f3->get('POST');

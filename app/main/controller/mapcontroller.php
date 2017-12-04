@@ -15,6 +15,8 @@ class MapController extends AccessController {
 
     /**
      * @param \Base $f3
+     * @throws \Exception
+     * @throws \Exception\PathfinderException
      */
     public function init(\Base $f3) {
         $character = $this->getCharacter();

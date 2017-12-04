@@ -128,6 +128,7 @@ class CorporationModel extends BasicModel {
     /**
      * get all maps for this corporation
      * @return MapModel[]
+     * @throws \Exception\PathfinderException
      */
     public function getMaps(){
         $maps = [];

@@ -208,6 +208,7 @@ class Config extends \Prefab {
     /**
      * get SMTP config values
      * @return \stdClass
+     * @throws Exception\PathfinderException
      */
     static function getSMTPConfig(): \stdClass{
         $config             = new \stdClass();
@@ -252,6 +253,7 @@ class Config extends \Prefab {
      * get email for notifications by hive key
      * @param $key
      * @return mixed
+     * @throws Exception\PathfinderException
      */
     static function getNotificationMail($key){
         return self::getPathfinderData('notification' . ($key ? '.' . $key : ''));
@@ -262,6 +264,7 @@ class Config extends \Prefab {
      * -> read from pathfinder.ini
      * @param string $mapType
      * @return mixed
+     * @throws Exception\PathfinderException
      */
     static function getMapsDefaultConfig($mapType = ''){
         if( $mapConfig = self::getPathfinderData('map' . ($mapType ? '.' . $mapType : '')) ){

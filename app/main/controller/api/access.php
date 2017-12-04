@@ -17,6 +17,7 @@ class Access extends Controller\AccessController {
      * search character/corporation or alliance by name
      * @param \Base $f3
      * @param $params
+     * @throws \Exception
      */
     public function search($f3, $params){
 

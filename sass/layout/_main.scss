@@ -14,10 +14,11 @@ body{
 }
 
 
-a{
+a, .pf-link{
   color: $teal;
   will-change: color;
   text-decoration: none;
+  cursor: pointer;
   @include transition( color 0.08s ease-out );
 
   &:hover{
@@ -42,6 +43,10 @@ em{
 
 .pf-font-capitalize{
   text-transform: capitalize;
+}
+
+.pf-font-line-through{
+  text-decoration: line-through;
 }
 
 .no-padding{
@@ -129,7 +134,7 @@ em{
   cursor: pointer;
   @include transition(color 0.15s ease-out);
 
-  &:hover{
+  &:hover, &.active{
     color: $orange !important;
   }
 
@@ -196,13 +201,6 @@ select:active, select:hover {
 
 // global dataTable styles ========================================================================
 .dataTable{
-
-  // required for native .ellipses to work in some columns
-  &.pf-table-fixed{
-    width: 100%;
-    table-layout: fixed;
-  }
-
   th{
     &.pf-table-image-cell,
     &.pf-table-image-small-cell{
@@ -307,12 +305,6 @@ select:active, select:hover {
     .pf-table-cell-100{
       width: 110px;
     }
-
-    &.pf-table-cell-ellipses-auto{
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
   }
 
   // column separator
@@ -331,6 +323,12 @@ select:active, select:hover {
 
 // table styles ===================================================================================
 table{
+  // required for native .ellipses to work in some columns
+  &.pf-table-fixed{
+    width: 100%;
+    table-layout: fixed;
+  }
+
   tr{
     &.collapsing{
       @include transition( height .01s ease );
@@ -340,6 +338,18 @@ table{
       &.in{
         display: table-row !important;
       }
+    }
+  }
+
+  td, th{
+    &.pf-table-cell-20{
+      width: 20px;
+    }
+
+    &.pf-table-cell-ellipses-auto{
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
   }
 }
@@ -531,7 +541,7 @@ table{
   // all modules within a row
   .pf-module{
     font-family: $font-family-bold;
-    background: rgba($gray, 0.3);
+    background: rgba($gray, 0.27);
     padding: 10px;
     width: 100%;
     margin-bottom: 10px;
@@ -560,11 +570,41 @@ table{
       background: rgba($gray-darker, 0.4);
     }
 
-    h5{
-      // icons in headline
-      .pf-module-icon-button{
-        margin-left: 5px;
+    .pf-module-head{
+      margin-bottom: 10px;
+
+      .pf-module-handler-drag{
+        display: inline-block;
+        cursor: -moz-grabbing;
+        cursor: -webkit-grabbing;
+        cursor: grabbing;
+        transition: color 0.15s ease-out;
+
+        &:before{
+          content: '\22EE\22EE\00A0';
+        }
+
+        &:hover{
+          color: $orange-light;
+        }
       }
+
+      h5{
+        display: inline-block;
+        line-height: 16px;
+        margin-bottom: 0;
+
+        // icons in headline
+        .pf-module-icon-button{
+          margin-left: 5px;
+        }
+      }
+    }
+
+    // system info table
+    .pf-module-table{
+      font-size: 11px;
+      white-space: nowrap;
     }
   }
 
@@ -760,7 +800,7 @@ table{
   background-color: $gray-light;
   color: $black;
   will-change: background-color;
-  @include transition( background-color 0.5s ease-out );
+  @include transition( background-color 0.3s ease-out );
 
   &.pf-system-status-friendly{
     background-color: $blue;
@@ -800,11 +840,11 @@ table{
   display: inline-block;
   width: 70px;
   height: 4px;
-  margin-right: 5px;
   border-top: 2px solid $gray-light;
   border-bottom: 2px solid $gray-light;
   background-color: #3c3f41;
   position: relative;
+  font-size: 10px;
   font-family: $font-family-sans-serif;
 
   &.pf-map-connection-stargate{
@@ -861,7 +901,7 @@ table{
       color: $gray-lightest;
       padding: 0px 3px;
       position: absolute;
-      left: 9px;
+      left: 8px;
       top: -6px;
       font-family: $font-family-bold;
       @include border-radius(3px);
@@ -1240,6 +1280,15 @@ code .fa {
   width: 100%;
   height: 32px;
   margin-bottom: 0; // overwrite default "alert" style
+}
+
+// drag&drop (Sortable) ===========================================================================
+.pf-sortable-ghost{
+  opacity: 0.7 !important;
+
+  .pf-module-handler-drag{
+    color: $orange-light;
+  }
 }
 
 /*

@@ -410,6 +410,7 @@ class SystemModel extends AbstractMapTrackingModel {
     /**
      * @param string $action
      * @return Logging\LogInterface
+     * @throws \Exception\PathfinderException
      */
     public function newLog($action = ''): Logging\LogInterface{
         return $this->getMap()->newLog($action)->setTempData($this->getLogObjectData());
@@ -567,6 +568,7 @@ class SystemModel extends AbstractMapTrackingModel {
      * -> send to an Email
      * @param array $rallyData
      * @param CharacterModel $characterModel
+     * @throws \Exception\PathfinderException
      */
     public function sendRallyPoke(array $rallyData, CharacterModel $characterModel){
         // rally log needs at least one handler to be valid

@@ -19,6 +19,9 @@ class AccessController extends Controller {
      * @param \Base $f3
      * @param $params
      * @return bool
+     * @throws \Exception
+     * @throws \Exception\PathfinderException
+     * @throws \ZMQSocketException
      */
     function beforeroute(\Base $f3, $params): bool {
         if($return = parent::beforeroute($f3, $params)){
@@ -47,6 +50,8 @@ class AccessController extends Controller {
      * get current character and check if it is a valid character
      * @param \Base $f3
      * @return bool
+     * @throws \Exception
+     * @throws \Exception\PathfinderException
      */
     protected function isLoggedIn(\Base $f3): bool {
         $loginCheck = false;
@@ -66,6 +71,7 @@ class AccessController extends Controller {
      * @param \Base $f3
      * @param Model\CharacterModel $character
      * @return bool
+     * @throws \Exception\PathfinderException
      */
     private function checkLogTimer(\Base  $f3, Model\CharacterModel $character){
         $loginCheck = false;
@@ -97,6 +103,9 @@ class AccessController extends Controller {
      * -> send over TCP Socket
      * @param Model\MapModel $map
      * @return int (number of active connections for this map)
+     * @throws \Exception
+     * @throws \Exception\PathfinderException
+     * @throws \ZMQSocketException
      */
     protected function broadcastMapData(Model\MapModel $map){
         $mapData = $this->getFormattedMapData($map);
@@ -107,6 +116,8 @@ class AccessController extends Controller {
      * get formatted Map Data
      * @param Model\MapModel $map
      * @return array
+     * @throws \Exception
+     * @throws \Exception\PathfinderException
      */
     protected function getFormattedMapData(Model\MapModel $map){
         $mapData = $map->getData();
