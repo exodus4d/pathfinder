@@ -463,11 +463,20 @@ class System extends Controller\AccessController {
             $map->getById($mapId);
 
             if($map->hasAccess($activeCharacter)){
+                $newSystemModel = Model\BasicModel::getNew('SystemModel');
                 foreach($systemIds as $systemId){
                     if( $system = $map->getSystemById($systemId) ){
                         // check whether system should be deleted OR set "inactive"
                         if( $this->checkDeleteMode($map, $system) ){
-                            $system->erase();
+                            // delete log
+                            // -> first set updatedCharacterId -> required for activity log
+                            $system->updatedCharacterId = $activeCharacter;
+                            $system->update();
+
+                            // ... now get fresh object and delete..
+                            $newSystemModel->getById( $system->id, 0);
+                            $newSystemModel->erase();
+                            $newSystemModel->reset();
                         }else{
                             // keep data -> set "inactive"
                             $system->setActive(false);
