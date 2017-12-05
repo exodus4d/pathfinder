@@ -414,17 +414,15 @@ define([
 
     /**
      * mark a connection as "active"
-     * @param connection
+     * @param connections
      */
-    let setConnectionActive = (map, connection) => {
+    let setConnectionsActive = (map, connections) => {
         // set all inactive
-        for(let tempConnection of getConnectionsByType(map, 'active')){
-            if(tempConnection.getParameter('connectionId') !== connection.getParameter('connectionId')){
-                tempConnection.removeType('active');
-            }
+        for(let connection of getConnectionsByType(map, 'active')){
+            connection.removeType('active');
         }
 
-        if( !connection.hasType('active') ){
+        for(let connection of connections){
             connection.addType('active');
         }
     };
@@ -494,17 +492,17 @@ define([
     /**
      * show connection info panels
      * @param map
-     * @param connection
+     * @param connections
      */
-    let showConnectionInfo = (map, connection) => {
-        setConnectionActive(map, connection);
+    let showConnectionInfo = (map, connections) => {
+        setConnectionsActive(map, connections);
 
         // get parent Tab Content and fire update event
         let mapContainer = $(map.getContainer());
         let tabContentElement = getTabContentElementByMapElement(mapContainer);
 
         $(tabContentElement).trigger('pf:drawConnectionModules', {
-            connections: [connection],
+            connections: connections,
             mapId: parseInt(mapContainer.data('id'))
         });
     };
@@ -528,20 +526,21 @@ define([
 
     /**
      * search connections by systems
-     * @param {Object} map - jsPlumb
-     * @param {JQuery[]} systems - system DOM elements
-     * @returns {Array} connections - found connection, DOM elements
+     * @param map
+     * @param systems
+     * @param scope
+     * @returns {Array}
      */
-    let searchConnectionsBySystems = (map, systems) => {
+    let searchConnectionsBySystems = (map, systems, scope) => {
         let connections = [];
         let withBackConnection = true;
 
         $.each(systems, function(i, system){
             // get connections where system is source
-            connections = connections.concat( map.getConnections({source: system}) );
+            connections = connections.concat( map.getConnections({scope: scope, source: system}) );
             if(withBackConnection === true){
                 // get connections where system is target
-                connections = connections.concat( map.getConnections({target: system}) );
+                connections = connections.concat( map.getConnections({scope: scope, target: system}) );
             }
         });
         return connections;

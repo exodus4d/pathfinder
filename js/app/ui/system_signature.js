@@ -1474,7 +1474,7 @@ define([
     let getSignatureConnectionOptions = (mapId, systemData) => {
         let map = Map.getMapInstance( mapId );
         let systemId = MapUtil.getSystemId(mapId, systemData.id);
-        let systemConnections = MapUtil.searchConnectionsBySystems(map, [systemId]);
+        let systemConnections = MapUtil.searchConnectionsBySystems(map, [systemId], 'wh');
         let connectionOptions = [];
 
         for(let i = 0; i < systemConnections.length; i++){

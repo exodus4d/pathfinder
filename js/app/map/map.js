@@ -725,11 +725,11 @@ define([
                         if(activeConnections.length > 0) {
                             MapUtil.toggleConnectionActive(map, [connection]);
                         }else{
-                            MapUtil.showConnectionInfo(map, connection);
+                            MapUtil.showConnectionInfo(map, [connection]);
                         }
                     }
                 }else{
-                    MapUtil.showConnectionInfo(map, connection);
+                    MapUtil.showConnectionInfo(map, [connection]);
                 }
             }
         }.bind(connection);
@@ -1899,7 +1899,7 @@ define([
 
                 ]},
                 {divider: true, action: 'delete_connection'},
-                {icon: 'fa-trash', action: 'delete_connection', text: 'delete'}
+                {icon: 'fa-chain-broken', action: 'delete_connection', text: 'detach'}
             ]
         };
 
@@ -1934,6 +1934,7 @@ define([
                 {icon: 'fa-plus', action: 'add_system', text: 'add system'},
                 {icon: 'fa-lock', action: 'lock_system', text: 'lock system'},
                 {icon: 'fa-volume-up', action: 'set_rally', text: 'set rally point'},
+                {icon: 'fa-object-group', action: 'select_connections', text: 'select connections'},
                 {icon: 'fa-tags', text: 'set status', subitems: systemStatus},
                 {icon: 'fa-reply fa-rotate-180', text: 'waypoints', subitems: [
                     {subIcon: 'fa-flag-checkered', subAction: 'set_destination', subText: 'set destination'},
@@ -2288,6 +2289,10 @@ define([
                             currentSystem.setSystemRally(0);
                             currentSystem.markAsChanged();
                         }
+                        break;
+                    case 'select_connections':
+                        let connections = MapUtil.searchConnectionsBySystems(map, [currentSystem], '*');
+                        MapUtil.showConnectionInfo(map, connections);
                         break;
                     case 'change_status_unknown':
                     case 'change_status_friendly':
