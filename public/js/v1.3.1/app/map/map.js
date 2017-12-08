@@ -581,7 +581,8 @@ define([
 
             if(alias !== data.alias){
                 // alias changed
-                system.find('.' + config.systemHeadNameClass).editable('setValue', data.alias);
+                alias = data.alias ? data.alias : data.name;
+                system.find('.' + config.systemHeadNameClass).editable('setValue', alias);
             }
         }
 
