@@ -965,11 +965,16 @@ define([
      * @returns {*}
      */
     let updateMap = function(mapConfig){
-        let mapContainer = mapConfig.map.getContainer();
+        let mapContainer = null;
+        if(!mapConfig.map){
+            // jsPlumb needs to be initialized. This is not the case when switching between map tabs right after refresh
+            return mapContainer;
+        }else{
+            mapContainer = $(mapConfig.map.getContainer());
+        }
+
         let mapId = mapConfig.config.id;
         let newSystems = 0;
-
-        mapContainer = $(mapContainer);
 
         // add additional information for this map
         if(mapContainer.data('updated') !== mapConfig.config.updated.updated){
