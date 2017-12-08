@@ -823,6 +823,7 @@ define([
                     visibility : 'hidden',
                     duration: 1000,
                     complete: function(){
+                        element.hide();
                         // callback
                         callback($(this));
                     }
