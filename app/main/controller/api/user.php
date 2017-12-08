@@ -42,11 +42,10 @@ class User extends Controller\Controller{
     /**
      * login a valid character
      * @param Model\CharacterModel $characterModel
-     * @param string $browserTabId
      * @return bool
      * @throws Exception
      */
-    protected function loginByCharacter(Model\CharacterModel &$characterModel, string $browserTabId){
+    protected function loginByCharacter(Model\CharacterModel &$characterModel){
         $login = false;
 
         if($user = $characterModel->getUser()){
@@ -97,7 +96,7 @@ class User extends Controller\Controller{
 
             // set temp character data ------------------------------------------------------------
             // -> pass character data over for next http request (reroute())
-            $this->setTempCharacterData($characterModel->_id, $browserTabId);
+            $this->setTempCharacterData($characterModel->_id);
 
             $login = true;
         }

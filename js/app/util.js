@@ -620,6 +620,17 @@ define([
                         popoverElement = button.data('bs.popover').tip();
                         popoverElement.velocity('transition.' + easeEffect, velocityOptions);
                         popoverElement.initTooltips();
+
+                        // set click events. This is required to pass data to "beforeunload" events
+                        // -> there is no way to identify the target within that event
+                        popoverElement.on('click', '.btn', function(){
+                            // character switch detected
+                            $('body').data('characterSwitch', true);
+                            // ... and remove "characterSwitch" data again! after "unload"
+                            setTimeout(function() {
+                                $('body').removeData('characterSwitch');
+                            }, 500);
+                        });
                     }else{
                         popoverElement = button.data('bs.popover').tip();
                         if(popoverElement.is(':visible')){
@@ -1062,6 +1073,28 @@ define([
     };
 
     /**
+     * get either active characterID or characterId from initial page load
+     * @returns {number}
+     */
+    let getCurrentCharacterId = () => {
+        let userData = getCurrentUserData();
+        let currentCharacterId = 0;
+        if(
+            userData &&
+            userData.character
+        ){
+            currentCharacterId = parseInt( userData.character.id );
+        }
+
+        if(!currentCharacterId){
+            // no active character... -> get default characterId from initial page load
+            currentCharacterId = parseInt(document.body.getAttribute('data-character-id'));
+        }
+
+        return currentCharacterId;
+    };
+
+    /**
      * get a unique ID for each tab
      * -> store ID in session storage
      */
@@ -1084,21 +1117,9 @@ define([
                 // Add custom application headers on "same origin" requests only!
                 // -> Otherwise a "preflight" request is made, which will "probably" fail
                 if(settings.crossDomain === false){
-                    // Add browser tab information
-                    xhr.setRequestHeader('Pf-Tab-Id', getBrowserTabId()) ;
-
                     // add current character data to ANY XHR request (HTTP HEADER)
                     // -> This helps to identify multiple characters on multiple browser tabs
-                    let userData = getCurrentUserData();
-                    let currentCharacterId = 0;
-                    if(
-                        userData &&
-                        userData.character
-                    ){
-                        currentCharacterId = parseInt( userData.character.id );
-                    }
-
-                    xhr.setRequestHeader('Pf-Character', currentCharacterId);
+                    xhr.setRequestHeader('Pf-Character', getCurrentCharacterId());
                 }
             }
         });
@@ -2084,7 +2105,7 @@ define([
      * @param date
      * @returns {Date}
      */
-    let createDateAsUTC = function(date){
+    let createDateAsUTC = (date) => {
         return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()));
     };
 
@@ -2093,7 +2114,7 @@ define([
      * @param date
      * @returns {Date}
      */
-    let convertDateToUTC = function(date){
+    let convertDateToUTC = (date) => {
         return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
     };
 
@@ -2103,7 +2124,7 @@ define([
      * @param showSeconds
      * @returns {string}
      */
-    let convertDateToString = function(date, showSeconds){
+    let convertDateToString = (date, showSeconds) => {
         let dateString = ('0'+ (date.getMonth() + 1 )).slice(-2) + '/' + ('0'+date.getDate()).slice(-2) + '/' + date.getFullYear();
         let timeString = ('0' + date.getHours()).slice(-2) + ':' + ('0'+date.getMinutes()).slice(-2);
         timeString += (showSeconds) ? ':' + ('0'+date.getSeconds()).slice(-2) : '';
@@ -2128,7 +2149,7 @@ define([
      * -> www.pathfinder.com/pathfinder/ -> /pathfinder
      * @returns {string|string}
      */
-    let getDocumentPath = function(){
+    let getDocumentPath = () => {
         let pathname = window.location.pathname;
         // replace file endings
         let r = /[^\/]*$/;
@@ -2141,7 +2162,7 @@ define([
      * @param url
      * @param params
      */
-    let redirect = function(url, params){
+    let redirect = (url, params) => {
         let currentUrl = document.URL;
 
         if(url !== currentUrl){
@@ -2159,7 +2180,7 @@ define([
      * send logout request
      * @param  params
      */
-    let logout = function(params){
+    let logout = (params) => {
         let data = {};
         if(
             params &&
@@ -2181,6 +2202,56 @@ define([
             let reason = status + ' ' + error;
             showNotify({title: jqXHR.status + ': logout', text: reason, type: 'error'});
         });
+    };
+
+    /**
+     * set a cookie
+     * @param name
+     * @param value
+     * @param expire
+     * @param format
+     */
+    let setCookie = (name, value, expire, format) => {
+        let d = new Date();
+        let time = d.getTime();
+        let timeExpire = time * -1;
+
+        if(expire > 0){
+            switch(format){
+                case 'd':   // days
+                    timeExpire = expire * 24 * 60 * 60 * 1000; break;
+                case 's': // seconds
+                    timeExpire = expire * 1000; break;
+
+            }
+        }
+
+        d.setTime(time + timeExpire);
+        let expires = 'expires=' + d.toUTCString();
+        let path = 'path=' + getDocumentPath();
+        document.cookie = name + '=' + value + '; ' + expires + '; ' + path;
+    };
+
+    /**
+     * get cookie value by name
+     * @param cname
+     * @returns {string}
+     */
+    let getCookie = (cname) => {
+        let name = cname + '=';
+        let ca = document.cookie.split(';');
+
+        for(let i = 0; i <ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) === ' ') {
+                c = c.substring(1);
+            }
+
+            if (c.indexOf(name) === 0) {
+                return c.substring(name.length,c.length);
+            }
+        }
+        return '';
     };
 
     return {
@@ -2225,6 +2296,7 @@ define([
         deleteCurrentMapData: deleteCurrentMapData,
         setCurrentUserData: setCurrentUserData,
         getCurrentUserData: getCurrentUserData,
+        getCurrentCharacterId: getCurrentCharacterId,
         setCurrentSystemData: setCurrentSystemData,
         getCurrentSystemData: getCurrentSystemData,
         getCurrentLocationData: getCurrentLocationData,
@@ -2244,8 +2316,9 @@ define([
         clearSessionStorage: clearSessionStorage,
         getBrowserTabId: getBrowserTabId,
         getObjVal: getObjVal,
-        getDocumentPath: getDocumentPath,
         redirect: redirect,
-        logout: logout
+        logout: logout,
+        setCookie: setCookie,
+        getCookie: getCookie
     };
 });

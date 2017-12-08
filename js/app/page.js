@@ -120,8 +120,8 @@ define([
             // load right menu
             $('.' + config.pageSlidebarRightClass).loadRightMenu();
 
-            // set document observer for global events
-            setDocumentObserver();
+            // set page observer for global events
+            setPageObserver();
         });
     };
 
@@ -568,7 +568,7 @@ define([
     /**
      * catch all global document events
      */
-    let setDocumentObserver = function(){
+    let setPageObserver = function(){
 
         // on "full-screen" change event
         $(document).on('fscreenchange', function(e, state, elem){

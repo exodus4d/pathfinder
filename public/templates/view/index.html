@@ -43,17 +43,13 @@
     <meta property="og:description" content="PATHFINDER is an 'open source' mapping tool for EVE ONLINE,
     primarily developed to enrich the gameplay of small scale PvP and PvE.">
 
-    {* Chrome, Firefox OS and Opera *}
-    <meta name="theme-color" content="#2b2b2b">
-    {* Windows Phone *}
-    <meta name="msapplication-navbutton-color" content="#2b2b2b">
-    {* iOS Safari *}
-    <meta name="apple-mobile-web-app-status-bar-style" content="#2b2b2b">
 
-    {* Youtube verification code *}
-    <meta name="google-site-verification" content="sHoh0gfMw3x1wiwLTK5OsKsxt7kRgxi69hRgWEGh9DQ" />
+    <meta name="theme-color" content="#2b2b2b">                                                     {* Chrome, Firefox OS and Opera *}
+    <meta name="msapplication-navbutton-color" content="#2b2b2b">                                   {* Windows Phone *}
+    <meta name="apple-mobile-web-app-status-bar-style" content="#2b2b2b">                           {* iOS Safari *}
 
-    {* Resources *}
+    <meta name="google-site-verification" content="sHoh0gfMw3x1wiwLTK5OsKsxt7kRgxi69hRgWEGh9DQ" />  {* Youtube verification code *}
+
     <set pathCSS="{{ @BASE . '/public/css/pathfinder.css?' . @PATHFINDER.VERSION }}" />
     <set pathJSApp="{{ @BASE . '/' . @tplPathJs . '/app' }}" />
     <set pathJSRequire="{{ @BASE . '/' . @tplPathJs . '/lib/require.js' }}" />
@@ -74,7 +70,7 @@
     </check>
 
 </head>
-<body class="pf-body {{ @tplBodyClass }}" data-js-path="{{ @BASE }}/{{ @tplPathJs }}" data-script="{{ @tplJsView }}" data-version="{{ @PATHFINDER.VERSION }}">
+<body class="pf-body {{ @tplBodyClass }}" data-js-path="{{ @BASE }}/{{ @tplPathJs }}" data-script="{{ @tplJsView }}" <check if="{{ @tplCharacterId }}">data-character-id="{{ @tplCharacterId }}"</check> data-version="{{ @PATHFINDER.VERSION }}">
     <include if="{{ @tplPageContent }}" href="{{ @tplPageContent }}"/>
 
     <!-- Hey dude! Where is all the magic? -->

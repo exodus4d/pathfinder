@@ -21,6 +21,9 @@ class MapController extends AccessController {
     public function init(\Base $f3) {
         $character = $this->getCharacter();
 
+        // characterId
+        $f3->set('tplCharacterId', $character->id);
+
         // page title
         $f3->set('tplPageTitle', $character->name . ' | ' .  Config::getPathfinderData('name'));
 

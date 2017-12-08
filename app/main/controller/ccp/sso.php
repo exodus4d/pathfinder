@@ -34,7 +34,6 @@ class Sso extends Api\User{
     const SESSION_KEY_SSO_ERROR                     = 'SESSION.SSO.ERROR';
     const SESSION_KEY_SSO_STATE                     = 'SESSION.SSO.STATE';
     const SESSION_KEY_SSO_FROM                      = 'SESSION.SSO.FROM';
-    const SESSION_KEY_SSO_TAB_ID                    = 'SESSION.SSO.TABID';
 
     // error messages
     const ERROR_CCP_SSO_URL                         = 'Invalid "ENVIRONMENT.[ENVIRONMENT].CCP_SSO_URL" url. %s';
@@ -56,7 +55,6 @@ class Sso extends Api\User{
      */
     public function requestAdminAuthorization($f3){
         // store browser tabId to be "targeted" after login
-        $f3->set(self::SESSION_KEY_SSO_TAB_ID, '');
         $f3->set(self::SESSION_KEY_SSO_FROM, 'admin');
 
         $scopes = self::getScopesByAuthType('admin');
@@ -72,10 +70,6 @@ class Sso extends Api\User{
      */
     public function requestAuthorization($f3){
         $params = $f3->get('GET');
-        $browserTabId = trim((string)$params['tabId']);
-
-        // store browser tabId to be "targeted" after login
-        $f3->set(self::SESSION_KEY_SSO_TAB_ID, $browserTabId);
 
         if(
             isset($params['characterId']) &&
@@ -111,7 +105,7 @@ class Sso extends Api\User{
                         $character->hasUserCharacter() &&
                         ($character->isAuthorized() === 'OK')
                     ){
-                        $loginCheck = $this->loginByCharacter($character, $browserTabId);
+                        $loginCheck = $this->loginByCharacter($character);
 
                         if($loginCheck){
                             // set "login" cookie
@@ -184,8 +178,6 @@ class Sso extends Api\User{
             $rootAlias = $f3->get(self::SESSION_KEY_SSO_FROM);
         }
 
-        $browserTabId = (string)$f3->get(self::SESSION_KEY_SSO_TAB_ID) ;
-
         if($f3->exists(self::SESSION_KEY_SSO_STATE)){
             // check response and validate 'state'
             if(
@@ -198,7 +190,6 @@ class Sso extends Api\User{
                 // clear 'state' for new next login request
                 $f3->clear(self::SESSION_KEY_SSO_STATE);
                 $f3->clear(self::SESSION_KEY_SSO_FROM);
-                $f3->clear(self::SESSION_KEY_SSO_TAB_ID);
 
                 $accessData = $this->getSsoAccessData($getParams['code']);
 
@@ -265,7 +256,7 @@ class Sso extends Api\User{
                                     $characterModel = $userCharactersModel->getCharacter();
 
                                     // login by character
-                                    $loginCheck = $this->loginByCharacter($characterModel, $browserTabId);
+                                    $loginCheck = $this->loginByCharacter($characterModel);
 
                                     if($loginCheck){
                                         // set "login" cookie
@@ -317,7 +308,6 @@ class Sso extends Api\User{
     public function login(\Base $f3){
         $data = (array)$f3->get('GET');
         $cookieName = empty($data['cookie']) ? '' : $data['cookie'];
-        $browserTabId = empty($data['tabId']) ? '' : $data['tabId'];
         $character = null;
 
         if( !empty($cookieName) ){
@@ -332,7 +322,7 @@ class Sso extends Api\User{
 
         if( is_object($character)){
             // login by character
-            $loginCheck = $this->loginByCharacter($character, $browserTabId);
+            $loginCheck = $this->loginByCharacter($character);
             if($loginCheck){
                 // route to "map"
                 $f3->reroute(['map']);

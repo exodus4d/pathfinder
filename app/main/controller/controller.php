@@ -345,7 +345,6 @@ class Controller {
 
     /**
      * get current character data from session
-     * ->
      * @return array
      * @throws \Exception
      */
@@ -355,35 +354,16 @@ class Controller {
         if($user = $this->getUser()){
             $header                 = self::getRequestHeaders();
             $requestedCharacterId   = (int)$header['Pf-Character'];
-            $browserTabId           = (string)$header['Pf-Tab-Id'];
-            $tempCharacterData       = (array)$this->getF3()->get(Api\User::SESSION_KEY_TEMP_CHARACTER_DATA);
 
-            if($this->getF3()->get('AJAX')){
+            if( !$this->getF3()->get('AJAX') ){
+                $requestedCharacterId = (int)$_COOKIE['old_char_id'];
+                if(!$requestedCharacterId){
+                    $tempCharacterData       = (array)$this->getF3()->get(Api\User::SESSION_KEY_TEMP_CHARACTER_DATA);
+                    if((int)$tempCharacterData['ID'] > 0){
+                        $requestedCharacterId = (int)$tempCharacterData['ID'];
+                    }
 
-                // _blank browser tab don´t have a $browserTabId jet..
-                // first Ajax call from that new tab with empty $requestedCharacterId -> bind to that new tab
-                if(
-                    !empty($browserTabId) &&
-                    $requestedCharacterId <= 0 &&
-                    (int)$tempCharacterData['ID'] > 0 &&
-                    empty($tempCharacterData['TAB_ID'])
-                ){
-                    $tempCharacterData['TAB_ID'] = $browserTabId;
-                    // update tempCharacterData (SESSION)
-                    $this->setTempCharacterData($tempCharacterData['ID'], $tempCharacterData['TAB_ID']);
                 }
-
-                if(
-                    !empty($browserTabId) &&
-                    !empty($tempCharacterData['TAB_ID']) &&
-                    (int)$tempCharacterData['ID'] > 0 &&
-                    $browserTabId === $tempCharacterData['TAB_ID']
-                ){
-                    $requestedCharacterId = (int)$tempCharacterData['ID'];
-                }
-
-            }elseif((int)$tempCharacterData['ID'] > 0){
-                $requestedCharacterId = (int)$tempCharacterData['ID'];
             }
 
             $data = $user->getSessionCharacterData($requestedCharacterId);
@@ -450,14 +430,12 @@ class Controller {
     /**
      * set temp login character data (required during HTTP redirects on login)
      * @param int $characterId
-     * @param string $browserTabId
      * @throws \Exception
      */
-    protected function setTempCharacterData(int $characterId, string $browserTabId){
+    protected function setTempCharacterData(int $characterId){
         if($characterId > 0){
             $tempCharacterData = [
-                'ID'    => $characterId,
-                'TAB_ID'    => trim($browserTabId)
+                'ID'    => $characterId
             ];
             $this->getF3()->set(Api\User::SESSION_KEY_TEMP_CHARACTER_DATA, $tempCharacterData);
         }else{
