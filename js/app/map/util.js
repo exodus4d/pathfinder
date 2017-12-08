@@ -254,7 +254,7 @@ define([
         // normalize connection array
         connectionTypes = $.grep(connectionTypes, function(n){
             // 'default' is added by jsPlumb by default -_-
-            return ( n.length > 0 && n !== 'default');
+            return ( n.length > 0 && n !== 'default' && n !== 'active');
         });
 
         let data = {
