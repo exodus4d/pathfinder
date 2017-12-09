@@ -415,7 +415,7 @@ define([
         });
 
         // toggle height for a module
-        $(document).off('click.toggleModuleHeight').on('click.toggleModuleHeight', '.' + config.moduleClass, function(e){
+        contentStructure.on('click.toggleModuleHeight', '.' + config.moduleClass, function(e){
             let moduleElement = $(this);
             // get click position
             let posX = moduleElement.offset().left;
@@ -441,7 +441,7 @@ define([
                         easing: 'easeOutSine',
                         complete: function(){
                             moduleElement.removeClass( config.moduleClosedClass );
-                            moduleElement.removeData();
+                            moduleElement.removeData('origHeight');
                         }
                     });
                 }else{
