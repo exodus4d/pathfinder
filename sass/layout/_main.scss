@@ -55,6 +55,7 @@ em{
 
 // scroll bar (webkit only) =======================================================================
 ::-webkit-scrollbar {
+  display: none;  // hides the scrollbar but is still scrollable
   width: 16px;
   height: 16px;
 }

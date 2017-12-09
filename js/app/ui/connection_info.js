@@ -55,7 +55,7 @@ define([
 
     /**
      * get module toolbar element
-     * @returns {void|*|jQuery|HTMLElement}
+     * @returns {*|jQuery|HTMLElement|void}
      */
     let getHeadlineToolbar = () => {
         let headlineToolbar  = $('<h5>', {
@@ -549,8 +549,6 @@ define([
                 return (dataTable.cell(rowIdx, colName + ':name' ).data() === value);
             });
         };
-
-
 
         for(let connectionData of connectionsData) {
            // find related dom element for current connection
