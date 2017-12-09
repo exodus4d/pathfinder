@@ -169,7 +169,6 @@ define([
 
         // update graph data ------------------------------------------------------------------------------------------
         for (let [systemId, graphsData] of Object.entries(systemGraphsData)){
-            console.log(systemId);
             for (let [graphKey, graphData] of Object.entries(graphsData)){
                 let graphElement = context.moduleElement.find('[data-graph="' + graphKey + '"]');
                 initGraph(graphElement, graphKey, graphData, eventLine);
