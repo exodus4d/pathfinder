@@ -1284,6 +1284,8 @@ code .fa {
 
 // drag&drop (Sortable) ===========================================================================
 .pf-sortable-ghost{
+  will-change: opacity;
+  transition: opacity 0.2s ease-out;
   opacity: 0.7 !important;
 
   .pf-module-handler-drag{
