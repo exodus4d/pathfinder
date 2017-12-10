@@ -949,7 +949,7 @@ define([
         mapWrapper.append(mapContainer);
 
         // append mapWrapper to parent element (at the top)
-        $(parentElement).prepend(mapWrapper);
+        parentElement.prepend(mapWrapper);
 
         // set main Container for current map -> the container exists now in DOM !! very important
         mapConfig.map.setContainer( config.mapIdPrefix + mapId );
@@ -3328,10 +3328,14 @@ define([
         let mapElement = mapTabContentElement.find('.' + config.mapClass);
         let mapId = mapElement.data('id');
 
-
         scrollableElement.initCustomScrollbar({
             callbacks: {
                 onScroll: function(){
+                    // scroll complete
+                    // update scroll position for drag-frame-selection
+                    mapElement.attr('data-scroll-left', this.mcs.left);
+                    mapElement.attr('data-scroll-top', this.mcs.top);
+
                     // store new map scrollOffset -> localDB
                     MapUtil.storeLocalData('map', mapId, 'offsetX', Math.abs(this.mcs.left) );
                 },
@@ -3341,11 +3345,6 @@ define([
 
                     // hide all system head tooltips
                     $(this).find('.' + config.systemHeadClass + ' .fa').tooltip('hide');
-                },
-                whileScrolling:function(){
-                    // update scroll position for drag-frame-selection
-                    mapElement.data('scrollLeft', this.mcs.left);
-                    mapElement.data('scrollTop', this.mcs.top);
                 }
             }
         });

@@ -208,6 +208,7 @@ select:active, select:hover {
       // no padding for image content
       padding-left: 0 !important;
       padding-right: 0 !important;
+      image-rendering: -webkit-optimize-contrast;
     }
     &.sorting,
     &.sorting_asc,
@@ -250,6 +251,7 @@ select:active, select:hover {
     &.pf-table-image-cell{
       // no padding for image content
       padding: 0 !important;
+      image-rendering: -webkit-optimize-contrast;
 
       img{
         width: 26px; // smaller image (default 32)
@@ -1198,6 +1200,7 @@ code .fa {
     width: 27px;
     border: 1px solid $gray;
     margin-right: 3px;
+    image-rendering: -webkit-optimize-contrast;
     @include transition( border-color 0.15s ease-out );
     will-change: border-color;
   }

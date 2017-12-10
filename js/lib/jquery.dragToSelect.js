@@ -46,11 +46,11 @@ $('#jquery-drag-to-select-example').dragToSelect({
 	}
 });
 */
-jQuery.fn.dragToSelect = function (conf) {
+$.fn.dragToSelect = function (conf) {
 	var c = typeof(conf) == 'object' ? conf : {};
 
 	// Config
-	var config = jQuery.extend({
+	var config = $.extend({
 		className:		'pf-map-drag-to-select',
 		activeClass:	'active',
 		disabledClass:	'disabled', 
@@ -66,7 +66,7 @@ jQuery.fn.dragToSelect = function (conf) {
 		onRefresh:		function () {return true;}
 	}, c);
 
-	var realParent	= jQuery(this);
+	var realParent	= $(this);
 	var parent		= realParent;
 
 	var animationFrameId;
@@ -156,14 +156,14 @@ jQuery.fn.dragToSelect = function (conf) {
 
         // get scroll position
         var leftScroll  = 0;
-        var rightScroll = 0;
+        var topScroll = 0;
 
-        if(realParent.data('scrollLeft')){
-            leftScroll  = realParent.data('scrollLeft');
+        if(realParent.attr('data-scroll-left')){
+            leftScroll  = parseInt(realParent.attr('data-scroll-left'));
         }
 
-        if(realParent.data('scrollRight')){
-            rightScroll  = realParent.data('scrollRight');
+        if(realParent.attr('data-scroll-top')){
+            topScroll  = parseInt(realParent.attr('data-scroll-top'));
         }
 
 		var left		= lastMousePosition.x - parentDim.left + parent[0].scrollLeft;
@@ -175,12 +175,10 @@ jQuery.fn.dragToSelect = function (conf) {
         newLeft         = selectBoxOrigin.left - leftScroll;
         var newWidth	= left - selectBoxOrigin.left;
 
-
         if(newWidth < 0){
             newLeft = newLeft - tempWidth ;
             newWidth = newWidth * -1;
         }
-
 
 		if (top > selectBoxOrigin.top) {
 			newTop		= selectBoxOrigin.top;
@@ -368,7 +366,7 @@ jQuery.fn.dragToSelect = function (conf) {
 			e.target === realParent[0] // prevent while dragging a system :)
 		) {
 			// Make sure user isn't clicking scrollbar (or disallow clicks far to the right actually)
-			if ((e.pageX + 20) > jQuery(document.body).width()) {
+			if ((e.pageX + 20) > $(document.body).width()) {
 				return;
 			}
 
