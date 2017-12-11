@@ -1095,14 +1095,9 @@ define([
             width: 110
         });
 
-        //let lazyToggleButton = lazyToggleCheckbox.parent();
         let lazyToggleButton = lazyToggleCheckbox.parent();
         lazyToggleButton.find('.toggle-on').attr('title', 'lazy \'update\' and \'delete\' old<br>from clipboard |ctrl&nbsp;+&nbsp;v|');
         lazyToggleButton.find('.toggle-off').attr('title', 'lazy \'update\' signatures<br>from clipboard |ctrl&nbsp;+&nbsp;v|');
-
-        //lazyToggleButton.attr('title', 'lazy \'update\' or \'sync,delete\' from clipboard: ctrl + v') ;
-
-
         lazyToggleButton.initTooltips({
             container: 'body',
             html: true
