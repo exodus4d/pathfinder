@@ -67,6 +67,7 @@ class Monolog extends \Prefab {
      * -> this buffered data can be stored/logged somewhere (e.g. DB/file) at any time
      * -> should be cleared afterwards!
      * @param Logging\AbstractLog $log
+     * @throws \Exception
      */
     public function push(Logging\AbstractLog $log){
         // check whether $log should be "grouped" by common handlers

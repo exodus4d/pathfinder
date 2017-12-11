@@ -15,10 +15,15 @@ define([
 
     let config = {
         // module info
+        modulePosition: 4,
+        moduleName: 'systemSignature',
+        moduleHeadClass: 'pf-module-head',                                      // class for module header
+        moduleHandlerClass: 'pf-module-handler-drag',                           // class for "drag" handler
+
         moduleClass: 'pf-module',                                               // class for each module
 
         // system signature module
-        systemSigModuleClass: 'pf-sig-table-module',                            // module wrapper
+        moduleTypeClass: 'pf-sig-table-module',                                 // module wrapper
 
         // tables
         tableToolsClass: 'pf-table-tools',                                      // class for table toolbar
@@ -31,6 +36,7 @@ define([
         signatureScannedProgressBarClass: 'pf-system-progress-scanned',         // class for signature progress bar
 
         // toolbar
+        sigTableLazyToggleButtonClass: 'pf-sig-table-lazy-button',              // class for "lazy update" toggle button
         sigTableClearButtonClass: 'pf-sig-table-clear-button',                  // class for "clear" signatures button
 
         // signature table
@@ -965,19 +971,19 @@ define([
 
             if( clearButton.is(':hidden') ){
                 // show button
-                clearButton.velocity('transition.bounceIn', {
-                    duration: 180
+                clearButton.velocity('transition.expandIn', {
+                    duration: 100
                 });
             }else{
                 // highlight button
                 clearButton.velocity('callout.pulse', {
-                    duration: 240
+                    duration: 200
                 });
             }
         }else{
             // hide button
-            clearButton.velocity('transition.bounceOut', {
-                duration: 180
+            clearButton.velocity('transition.expandOut', {
+                duration: 100
             });
         }
     };
@@ -1049,6 +1055,12 @@ define([
                 }
             })
         ).append(
+            $('<input>', {
+                type: 'checkbox',
+                class: [config.sigTableLazyToggleButtonClass, 'btn-labeled'].join(' '),
+                value: 1,
+            }).attr('data-toggle', 'toggle')
+        ).append(
             getLabledButton({
                 type: 'danger',
                 classes: [config.sigTableClearButtonClass, 'pull-right'],
@@ -1072,6 +1084,24 @@ define([
         );
 
         moduleElement.append(tableToolbar);
+
+        // "lazy update" toggle button --------------------------------------------------------------------------------
+        let lazyToggleCheckbox = moduleElement.find('.' + config.sigTableLazyToggleButtonClass).bootstrapToggle({
+            size: 'small' ,
+            on: '<i class="fa fa-fw fa-exchange"></i>&nbsp;&nbsp;lazy&nbsp;delete',
+            off: '<i class="fa fa-fw fa-clipboard"></i>&nbsp;&nbsp;lazy&nbsp;update',
+            onstyle: 'warning' ,
+            offstyle: 'default' ,
+            width: 110
+        });
+
+        let lazyToggleButton = lazyToggleCheckbox.parent();
+        lazyToggleButton.find('.toggle-on').attr('title', 'lazy \'update\' and \'delete\' old<br>from clipboard |ctrl&nbsp;+&nbsp;v|');
+        lazyToggleButton.find('.toggle-off').attr('title', 'lazy \'update\' signatures<br>from clipboard |ctrl&nbsp;+&nbsp;v|');
+        lazyToggleButton.initTooltips({
+            container: 'body',
+            html: true
+        });
 
         // add toolbar action for table -------------------------------------------------------------------------------
         let tableToolbarAction = $('<div>', {
@@ -1469,11 +1499,11 @@ define([
     let getSignatureConnectionOptions = (mapId, systemData) => {
         let map = Map.getMapInstance( mapId );
         let systemId = MapUtil.getSystemId(mapId, systemData.id);
-        let systemConnections = MapUtil.searchConnectionsBySystems(map, [systemId]);
+        let systemConnections = MapUtil.searchConnectionsBySystems(map, [systemId], 'wh');
         let connectionOptions = [];
 
         for(let i = 0; i < systemConnections.length; i++){
-            let connectionData = Map.getDataByConnection(systemConnections[i]);
+            let connectionData = MapUtil.getDataByConnection(systemConnections[i]);
 
             // connectionId is required (must be stored)
             if(connectionData.id){
@@ -1739,7 +1769,7 @@ define([
     let deleteSignatures = function(tableApi, rows){
         let deletedSignatures = 0;
 
-        let moduleElement = $('.' + config.systemSigModuleClass);
+        let moduleElement = $('.' + config.moduleTypeClass);
         let data = rows.data();
         let rowElements = rows.nodes().to$();
         let signatureCount = data.length;
@@ -2312,10 +2342,33 @@ define([
             checkDeleteSignaturesButton(e.data.moduleElement);
         });
 
+        // destroy dataTables event -----------------------------------------------------------------------------------
+        tablePrimaryElement.on('destroy.dt', function(){
+            $(this).destroyTimestampCounter();
+        });
+        signatureTableApi.on('destroy.dt', function(){
+            $(this).destroyTimestampCounter();
+        });
+
         // event listener for global "paste" signatures into the page -------------------------------------------------
         moduleElement.on('pf:updateSystemSignatureModuleByClipboard', function(e, clipboard){
-            $(this).updateSignatureTableByClipboard(systemData, clipboard, {});
+            // check "lazy update" toggle button
+            let signatureOptions = {
+                deleteOld: moduleElement.find('.' + config.sigTableLazyToggleButtonClass).is(':checked') ? 1 : 0
+            };
+
+            $(this).updateSignatureTableByClipboard(systemData, clipboard, signatureOptions);
         });
+    };
+
+    /**
+     * init callback
+     * @param moduleElement
+     * @param mapId
+     * @param connectionData
+     */
+    let initModule = (moduleElement, mapId, systemData) => {
+        unlockSignatureTable(true);
     };
 
     /**
@@ -2326,24 +2379,22 @@ define([
      * @returns {*|jQuery|HTMLElement}
      */
     let getModule = function(parentElement, mapId, systemData){
-
         // create new module container
-        let moduleElement = $('<div>', {
-            class: [config.moduleClass, config.systemSigModuleClass].join(' '),
-            css: {opacity: 0}
-        });
+        let moduleElement = $('<div>').append(
+            $('<div>', {
+                class: config.moduleHeadClass
+            }).append(
+                $('<h5>', {
+                    class: config.moduleHandlerClass
+                }),
+                $('<h5>', {
+                    text: 'Signatures'
+                })
+            )
+        );
 
         moduleElement.data('mapId', mapId);
         moduleElement.data('systemId', systemData.id);
-
-        // headline
-        let headline = $('<h5>', {
-            text: 'Signatures'
-        });
-
-        moduleElement.append(headline);
-
-        $(parentElement).append(moduleElement);
 
         // init dataTables
         initSignatureDataTable(systemData);
@@ -2385,76 +2436,31 @@ define([
     };
 
     /**
-     * main module load function
-     * @param mapId
-     * @param systemData
+     * before module reDraw callback
      */
-    $.fn.drawSignatureTableModule = function(mapId, systemData){
-        let parentElement = $(this);
+    let beforeReDraw = () => {
+        // disable update
+        lockSignatureTable();
+    };
 
-        // show module
-        let showModule = function(moduleElement){
-            if(moduleElement){
-                moduleElement.velocity('transition.slideDownIn', {
-                    duration: Init.animationSpeed.mapModule,
-                    delay: Init.animationSpeed.mapModule,
-                    complete: function(){
-                        unlockSignatureTable(true);
-                    }
-                });
-            }
-        };
-
-        // some custom array functions
-        let initArrayFunctions = function(){
-            /**
-             * sort array of objects by property name
-             * @param p
-             * @returns {Array.<T>}
-             */
-            Array.prototype.sortBy = function(p) {
-                return this.slice(0).sort(function(a,b) {
-                    return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0;
-                });
-            };
-        };
-
-        // check if module already exists
-        let moduleElement = parentElement.find('.' + config.systemSigModuleClass);
-
-        if(moduleElement.length > 0){
-            // disable update
-            lockSignatureTable();
-
-            moduleElement.velocity('transition.slideDownOut', {
-                duration: Init.animationSpeed.mapModule,
-                complete: function(tempElement){
-                    tempElement = $(tempElement);
-                    // Destroying the data tables throws
-                    // save remove of all dataTables
-                    let mapId = tempElement.data('mapId');
-                    let systemId = tempElement.data('systemId');
-                    deleteDataTableInstance(mapId, systemId, 'primary');
-                    deleteDataTableInstance(mapId, systemId, 'secondary');
-
-                    tempElement.remove();
-
-                    moduleElement = getModule(parentElement, mapId,  systemData);
-                    // make modules appear "nice"
-                    moduleElement.delay(150);
-                    showModule(moduleElement);
-                }
-            });
-        }else{
-            // init array prototype functions
-            initArrayFunctions();
-
-            moduleElement = getModule(parentElement, mapId, systemData);
-            showModule(moduleElement);
-        }
+    /**
+     * before module destroy callback
+     */
+    let beforeDestroy = (moduleElement) => {
+        // Destroying the data tables throws
+        // -> safety remove  all dataTables
+        let mapId = moduleElement.data('mapId');
+        let systemId = moduleElement.data('systemId');
+        deleteDataTableInstance(mapId, systemId, 'primary');
+        deleteDataTableInstance(mapId, systemId, 'secondary');
     };
 
     return {
+        config: config,
+        getModule: getModule,
+        initModule: initModule,
+        beforeReDraw: beforeReDraw,
+        beforeDestroy: beforeDestroy,
         getAllSignatureNamesBySystem: getAllSignatureNamesBySystem
     };
 

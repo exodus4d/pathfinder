@@ -68,6 +68,7 @@ abstract class AbstractCharacterLog extends AbstractChannelLog{
     /**
      * get character thumbnailUrl
      * @return string
+     * @throws \Exception\PathfinderException
      */
     protected function getThumbUrl(): string {
         $url = '';

@@ -34,7 +34,6 @@ class Sso extends Api\User{
     const SESSION_KEY_SSO_ERROR                     = 'SESSION.SSO.ERROR';
     const SESSION_KEY_SSO_STATE                     = 'SESSION.SSO.STATE';
     const SESSION_KEY_SSO_FROM                      = 'SESSION.SSO.FROM';
-    const SESSION_KEY_SSO_TAB_ID                    = 'SESSION.SSO.TABID';
 
     // error messages
     const ERROR_CCP_SSO_URL                         = 'Invalid "ENVIRONMENT.[ENVIRONMENT].CCP_SSO_URL" url. %s';
@@ -52,10 +51,10 @@ class Sso extends Api\User{
      * redirect user to CCP SSO page and request authorization
      * -> cf. Controller->getCookieCharacters() ( equivalent cookie based login)
      * @param \Base $f3
+     * @throws \Exception\PathfinderException
      */
     public function requestAdminAuthorization($f3){
         // store browser tabId to be "targeted" after login
-        $f3->set(self::SESSION_KEY_SSO_TAB_ID, '');
         $f3->set(self::SESSION_KEY_SSO_FROM, 'admin');
 
         $scopes = self::getScopesByAuthType('admin');
@@ -66,13 +65,11 @@ class Sso extends Api\User{
      * redirect user to CCP SSO page and request authorization
      * -> cf. Controller->getCookieCharacters() ( equivalent cookie based login)
      * @param \Base $f3
+     * @throws \Exception
+     * @throws \Exception\PathfinderException
      */
     public function requestAuthorization($f3){
         $params = $f3->get('GET');
-        $browserTabId = trim((string)$params['tabId']);
-
-        // store browser tabId to be "targeted" after login
-        $f3->set(self::SESSION_KEY_SSO_TAB_ID, $browserTabId);
 
         if(
             isset($params['characterId']) &&
@@ -108,7 +105,7 @@ class Sso extends Api\User{
                         $character->hasUserCharacter() &&
                         ($character->isAuthorized() === 'OK')
                     ){
-                        $loginCheck = $this->loginByCharacter($character, $browserTabId);
+                        $loginCheck = $this->loginByCharacter($character);
 
                         if($loginCheck){
                             // set "login" cookie
@@ -135,6 +132,7 @@ class Sso extends Api\User{
      * @param \Base $f3
      * @param array $scopes
      * @param string $rootAlias
+     * @throws \Exception\PathfinderException
      */
     private function rerouteAuthorization(\Base $f3, $scopes = [], $rootAlias = 'login'){
         if( !empty( Controller\Controller::getEnvironmentData('CCP_SSO_CLIENT_ID') ) ){
@@ -166,6 +164,8 @@ class Sso extends Api\User{
      * callback handler for CCP SSO user Auth
      * -> see requestAuthorization()
      * @param \Base $f3
+     * @throws \Exception
+     * @throws \Exception\PathfinderException
      */
     public function callbackAuthorization($f3){
         $getParams = (array)$f3->get('GET');
@@ -177,8 +177,6 @@ class Sso extends Api\User{
         if( !empty($f3->get(self::SESSION_KEY_SSO_FROM)) ){
             $rootAlias = $f3->get(self::SESSION_KEY_SSO_FROM);
         }
-
-        $browserTabId = (string)$f3->get(self::SESSION_KEY_SSO_TAB_ID) ;
 
         if($f3->exists(self::SESSION_KEY_SSO_STATE)){
             // check response and validate 'state'
@@ -192,7 +190,6 @@ class Sso extends Api\User{
                 // clear 'state' for new next login request
                 $f3->clear(self::SESSION_KEY_SSO_STATE);
                 $f3->clear(self::SESSION_KEY_SSO_FROM);
-                $f3->clear(self::SESSION_KEY_SSO_TAB_ID);
 
                 $accessData = $this->getSsoAccessData($getParams['code']);
 
@@ -259,7 +256,7 @@ class Sso extends Api\User{
                                     $characterModel = $userCharactersModel->getCharacter();
 
                                     // login by character
-                                    $loginCheck = $this->loginByCharacter($characterModel, $browserTabId);
+                                    $loginCheck = $this->loginByCharacter($characterModel);
 
                                     if($loginCheck){
                                         // set "login" cookie
@@ -305,11 +302,12 @@ class Sso extends Api\User{
     /**
      * login by cookie name
      * @param \Base $f3
+     * @throws \Exception
+     * @throws \Exception\PathfinderException
      */
     public function login(\Base $f3){
         $data = (array)$f3->get('GET');
         $cookieName = empty($data['cookie']) ? '' : $data['cookie'];
-        $browserTabId = empty($data['tabId']) ? '' : $data['tabId'];
         $character = null;
 
         if( !empty($cookieName) ){
@@ -324,7 +322,7 @@ class Sso extends Api\User{
 
         if( is_object($character)){
             // login by character
-            $loginCheck = $this->loginByCharacter($character, $browserTabId);
+            $loginCheck = $this->loginByCharacter($character);
             if($loginCheck){
                 // route to "map"
                 $f3->reroute(['map']);
@@ -343,6 +341,7 @@ class Sso extends Api\User{
      * -> else try to refresh auth and get fresh "access_token"
      * @param bool $authCode
      * @return null|\stdClass
+     * @throws \Exception\PathfinderException
      */
     public function getSsoAccessData($authCode){
         $accessData = null;
@@ -362,6 +361,7 @@ class Sso extends Api\User{
      * verify authorization code, and get an "access_token" data
      * @param $authCode
      * @return \stdClass
+     * @throws \Exception\PathfinderException
      */
     protected function verifyAuthorizationCode($authCode){
         $requestParams = [
@@ -377,6 +377,7 @@ class Sso extends Api\User{
      * -> if "access_token" is expired, this function gets a fresh one
      * @param $refreshToken
      * @return \stdClass
+     * @throws \Exception\PathfinderException
      */
     public function refreshAccessToken($refreshToken){
         $requestParams = [
@@ -393,6 +394,7 @@ class Sso extends Api\User{
      * OR by providing a valid "refresh_token"
      * @param $requestParams
      * @return \stdClass
+     * @throws \Exception\PathfinderException
      */
     protected function requestAccessData($requestParams){
         $verifyAuthCodeUrl = self::getVerifyAuthorizationCodeEndpoint();
@@ -457,6 +459,7 @@ class Sso extends Api\User{
      * -> if more character information is required, use ESI "characters" endpoints request instead
      * @param $accessToken
      * @return mixed|null
+     * @throws \Exception\PathfinderException
      */
     public function verifyCharacterData($accessToken){
         $verifyUserUrl = self::getVerifyUserEndpoint();
@@ -492,6 +495,7 @@ class Sso extends Api\User{
      * get character data
      * @param int $characterId
      * @return object
+     * @throws \Exception
      */
     public function getCharacterData($characterId){
         $characterData = (object) [];
@@ -601,6 +605,7 @@ class Sso extends Api\User{
      * get CCP SSO url from configuration file
      * -> throw error if url is broken/missing
      * @return string
+     * @throws \Exception\PathfinderException
      */
     static function getSsoUrlRoot(){
         $url = '';
@@ -630,6 +635,7 @@ class Sso extends Api\User{
     /**
      * get logger for SSO logging
      * @return \Log
+     * @throws \Exception\PathfinderException
      */
     static function getSSOLogger(){
         return parent::getLogger('SSO');

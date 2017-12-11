@@ -52,6 +52,7 @@ abstract class AbstractMapTrackingModel extends BasicModel implements LogModelIn
      * @param $key
      * @param $val
      * @return bool
+     * @throws \Exception\ValidationException
      */
     protected function validate_notDry($key, $val): bool {
         $valid = true;
@@ -92,7 +93,7 @@ abstract class AbstractMapTrackingModel extends BasicModel implements LogModelIn
     /**
      * validates all required columns of this class
      * @return bool
-     * @throws \Exception\ValidationException
+     * @throws \Exception\DatabaseException
      */
     public function isValid(): bool {
         if($valid = parent::isValid()){

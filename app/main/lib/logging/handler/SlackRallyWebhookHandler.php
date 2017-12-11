@@ -15,6 +15,7 @@ class SlackRallyWebhookHandler extends AbstractSlackWebhookHandler {
     /**
      * @param array $record
      * @return array
+     * @throws \Exception\PathfinderException
      */
     protected function getSlackData(array $record) : array{
         $postData = parent::getSlackData($record);

@@ -11,7 +11,7 @@ define([
 ], function($, Init, Util, Render, bootbox) {
     'use strict';
 
-    var config = {
+    let config = {
         releasesDialogClass: 'pf-releases-dialog'                             // class for "Releases" dialog
     };
 
@@ -19,10 +19,10 @@ define([
      * load release information in dialog
      * @param releasesDialog
      */
-    var loadDialogData = function(releasesDialog){
+    let loadDialogData = function(releasesDialog){
 
         // lock dialog
-        var dialogContent = releasesDialog.find('.modal-content');
+        let dialogContent = releasesDialog.find('.modal-content');
         dialogContent.showLoadingAnimation();
 
         $.ajax({
@@ -32,18 +32,18 @@ define([
             dataType: 'json'
         }).done(function(releasesData){
             requirejs(['text!templates/ui/timeline_element.html', 'mustache'], function(template, Mustache) {
-                for(var i = 0; i < releasesData.length; i++){
-                    var releaseData = releasesData[i];
+                for(let i = 0; i < releasesData.length; i++){
+                    let releaseData = releasesData[i];
 
                     // template vars
-                    var data = {
+                    let data = {
                         isFirst: (i === 0),
                         isOdd: (i % 2 !== 0),
                         releaseDate: releaseData.published_at.substr(0, 10),
                         releaseData: releaseData
                     };
 
-                    var content = Mustache.render(template, data);
+                    let content = Mustache.render(template, data);
                     releasesDialog.find('ul.timeline').append(content);
                 }
 
@@ -55,7 +55,7 @@ define([
                 });
             });
         }).fail(function( jqXHR, status, error) {
-            var reason = status + ' ' + jqXHR.status + ': ' + error;
+            let reason = status + ' ' + jqXHR.status + ': ' + error;
             Util.showNotify({title: jqXHR.status + ': login', text: reason, type: 'error'});
         }).always(function() {
             dialogContent.hideLoadingAnimation();
@@ -66,9 +66,9 @@ define([
      * show releases dialog
      */
     $.fn.releasesDialog = function(){
-        var content = '<ul class="timeline"></ul>';
+        let content = '<ul class="timeline"></ul>';
 
-        var releasesDialog = bootbox.dialog({
+        let releasesDialog = bootbox.dialog({
             className: config.releasesDialogClass,
             title: 'Releases',
             size: 'large',

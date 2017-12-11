@@ -15,9 +15,14 @@ class MapController extends AccessController {
 
     /**
      * @param \Base $f3
+     * @throws \Exception
+     * @throws \Exception\PathfinderException
      */
     public function init(\Base $f3) {
         $character = $this->getCharacter();
+
+        // characterId
+        $f3->set('tplCharacterId', $character->id);
 
         // page title
         $f3->set('tplPageTitle', $character->name . ' | ' .  Config::getPathfinderData('name'));

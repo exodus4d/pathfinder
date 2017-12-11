@@ -64,6 +64,7 @@ define([
             Init.connectionScopes   = initData.connectionScopes;
             Init.systemStatus       = initData.systemStatus;
             Init.systemType         = initData.systemType;
+            Init.wormholes          = initData.wormholes;
             Init.characterStatus    = initData.characterStatus;
             Init.routes             = initData.routes;
             Init.url                = initData.url;
@@ -382,7 +383,18 @@ define([
             // Send map update request on tab close/reload, in order to save map changes that
             // haven´t been saved through default update trigger
             window.addEventListener('beforeunload', function(e) {
+                // save unsaved map changes ...
                 triggerMapUpdatePing();
+
+                // check if character should be switched on reload or current character should be loaded afterwards
+                let characterSwitch = Boolean( $('body').data('characterSwitch') );
+                if(!characterSwitch){
+                    let characterId = Util.getCurrentCharacterId();
+                    if(characterId){
+                        Util.setCookie('old_char_id', characterId, 3, 's');
+                    }
+                }
+
                 // IMPORTANT, return false in order to not "abort" ajax request in background!
                 return false;
             });

@@ -71,6 +71,8 @@ class Map extends Controller\AccessController {
     /**
      * Get all required static config data for program initialization
      * @param \Base $f3
+     * @throws Exception
+     * @throws Exception\PathfinderException
      */
     public function init(\Base $f3){
         // expire time in seconds
@@ -159,6 +161,15 @@ class Map extends Controller\AccessController {
             }
             $return->connectionScopes = $connectionScopeData;
 
+            // get available wormhole types ---------------------------------------------------------------------------
+            $wormholes = Model\BasicModel::getNew('WormholeModel');
+            $rows = $wormholes->find('id > 0', null, $expireTimeSQL);
+            $wormholesData = [];
+            foreach((array)$rows as $rowData){
+                $wormholesData[$rowData->name] = $rowData->getData();
+            }
+            $return->wormholes = $wormholesData;
+
             // get available character status -------------------------------------------------------------------------
             $characterStatus = Model\BasicModel::getNew('CharacterStatusModel');
             $rows = $characterStatus->find('active = 1', null, $expireTimeSQL);
@@ -223,6 +234,7 @@ class Map extends Controller\AccessController {
     /**
      * import new map data
      * @param \Base $f3
+     * @throws Exception
      */
     public function import(\Base $f3){
         $importData = (array)$f3->get('POST');
@@ -367,6 +379,7 @@ class Map extends Controller\AccessController {
     /**
      * save a new map or update an existing map
      * @param \Base $f3
+     * @throws Exception
      */
     public function save(\Base $f3){
         $formData = (array)$f3->get('POST.formData');
@@ -563,6 +576,7 @@ class Map extends Controller\AccessController {
     /**
      * delete a map and all dependencies
      * @param \Base $f3
+     * @throws Exception
      */
     public function delete(\Base $f3){
         $mapData = (array)$f3->get('POST.mapData');
@@ -597,6 +611,9 @@ class Map extends Controller\AccessController {
      * -> if characters with map access found -> broadcast mapData to them
      * @param Model\MapModel $map
      * @param array $characterIds
+     * @throws Exception
+     * @throws Exception\PathfinderException
+     * @throws \ZMQSocketException
      */
     protected function broadcastMapAccess($map, $characterIds){
         $mapAccess =  [
@@ -614,6 +631,7 @@ class Map extends Controller\AccessController {
      * broadcast map delete information to clients
      * @param int $mapId
      * @return bool|string
+     * @throws \ZMQSocketException
      */
     protected function broadcastMapDeleted($mapId){
         return (new Socket( Config::getSocketUri() ))->sendData('mapDeleted', $mapId);
@@ -623,6 +641,7 @@ class Map extends Controller\AccessController {
      * get map access tokens for current character
      * -> send access tokens via TCP Socket for WebSocket auth
      * @param \Base $f3
+     * @throws Exception
      */
     public function getAccessData(\Base $f3){
         $return = (object) [];
@@ -656,6 +675,8 @@ class Map extends Controller\AccessController {
      * update map data
      * -> function is called continuously (trigger) by any active client
      * @param \Base $f3
+     * @throws Exception
+     * @throws Exception\PathfinderException
      */
     public function updateData(\Base $f3){
         $mapData = (array)$f3->get('POST.mapData');
@@ -805,6 +826,8 @@ class Map extends Controller\AccessController {
      * get formatted map data
      * @param Model\MapModel[] $mapModels
      * @return array
+     * @throws Exception
+     * @throws Exception\PathfinderException
      */
     protected function getFormattedMapsData($mapModels){
         $mapData = [];
@@ -819,6 +842,8 @@ class Map extends Controller\AccessController {
      * update map data api
      * -> function is called continuously by any active client
      * @param \Base $f3
+     * @throws Exception
+     * @throws Exception\PathfinderException
      */
     public function updateUserData(\Base $f3){
         $return = (object) [];
@@ -896,6 +921,7 @@ class Map extends Controller\AccessController {
      * @param Model\CharacterModel $character
      * @param Model\MapModel $map
      * @return Model\MapModel
+     * @throws Exception
      */
     protected function updateMapData(Model\CharacterModel $character, Model\MapModel $map){
 
@@ -1056,21 +1082,34 @@ class Map extends Controller\AccessController {
                     }
                 }
 
-                // save connection ------------------------------------------------------------------------------------
                 if(
-                    $addConnection &&
                     $sourceExists &&
                     $targetExists &&
                     $sourceSystem &&
-                    $targetSystem &&
-                    !$map->searchConnection( $sourceSystem, $targetSystem )
+                    $targetSystem
                 ){
-                    $connection = $map->getNewConnection($sourceSystem, $targetSystem);
-                    $connection = $map->saveConnection($connection, $character);
-                    // get updated maps object
-                    if($connection){
-                        $map = $connection->mapId;
-                        $mapDataChanged = true;
+                    $connection = $map->searchConnection( $sourceSystem, $targetSystem);
+
+                    // save connection --------------------------------------------------------------------------------
+                    if(
+                        $addConnection &&
+                        !$connection
+                    ){
+                        $connection = $map->getNewConnection($sourceSystem, $targetSystem);
+                        $connection = $map->saveConnection($connection, $character);
+                        // get updated maps object
+                        if($connection){
+                            $map = $connection->mapId;
+                            $mapDataChanged = true;
+                        }
+                    }
+
+                    // log jump mass ----------------------------------------------------------------------------------
+                    if(
+                        $connection &&
+                        $connection->isWormhole()
+                    ){
+                        $connection->logMass($log);
                     }
                 }
             }
@@ -1087,9 +1126,13 @@ class Map extends Controller\AccessController {
     /**
      * get connectionData
      * @param \Base $f3
+     * @throws Exception
      */
     public function getConnectionData (\Base $f3){
         $postData = (array)$f3->get('POST');
+
+        $addData = (array)$postData['addData'];
+        $filterData = (array)$postData['filterData'];
         $connectionData = [];
 
         if($mapId = (int)$postData['mapId']){
@@ -1102,13 +1145,27 @@ class Map extends Controller\AccessController {
             $map->getById($mapId);
 
             if($map->hasAccess($activeCharacter)){
-                $connections = $map->getConnections('wh');
-                foreach($connections as $connection){
-                    $data =  $connection->getData(true);
-                    // skip connections whiteout signature data
-                    if($data->signatures){
-                        $connectionData[] = $data;
+                // get specific connections by id
+                $connectionIds = null;
+                if(is_array($postData['connectionIds'])){
+                    $connectionIds = $postData['connectionIds'];
+                }
 
+                $connections = $map->getConnections($connectionIds, 'wh');
+                foreach($connections as $connection){
+                    $check = true;
+                    $data =  $connection->getData(in_array('signatures', $addData), in_array('logs', $addData));
+                    // filter result
+                    if(in_array('signatures', $filterData) && !$data->signatures){
+                        $check = false;
+                    }
+
+                    if(in_array('logs', $filterData) && !$data->logs){
+                        $check = false;
+                    }
+
+                    if($check){
+                        $connectionData[] = $data;
                     }
                 }
             }
@@ -1120,6 +1177,8 @@ class Map extends Controller\AccessController {
     /**
      * get map log data
      * @param \Base $f3
+     * @throws Exception
+     * @throws Exception\PathfinderException
      */
     public function getLogData(\Base $f3){
         $postData = (array)$f3->get('POST');

@@ -9,7 +9,7 @@ define([
 
     'use strict';
 
-    var config = {
+    let config = {
         headerSystemsContainerId: 'pf-header-systems',                              // id for systems layer
         headerSystemConnectorsId: 'pf-header-connectors',                           // id for connectors layer
         headerConnectionsContainerId: 'pf-header-connections',                      // id for connections layer
@@ -26,9 +26,9 @@ define([
      * draw systems layer
      * @param callback
      */
-    var drawSystems = function(callback){
+    let drawSystems = function(callback){
 
-        var pathObj = {
+        let pathObj = {
             systems: {
                 strokepath: [
                     // systems =======================================================================
@@ -98,11 +98,11 @@ define([
      * draw connectors layer
      * @param callback
      */
-    var drawConnectors = function(callback){
+    let drawConnectors = function(callback){
 
-        var connectorDuration = 150;
+        let connectorDuration = 150;
 
-        var pathObj = {
+        let pathObj = {
             connectors: {
                 strokepath: [
                     // connectors ====================================================================
@@ -184,14 +184,14 @@ define([
      * draw connections layer
      * @param callback
      */
-    var drawConnections = function(callback){
+    let drawConnections = function(callback){
 
-        var connectionDuration = 250;
-        var connectionWidth = 8;
-        var connectionInnerWidth = 4;
-        var connectionBorderColor = '#63676A'; //gray
+        let connectionDuration = 250;
+        let connectionWidth = 8;
+        let connectionInnerWidth = 4;
+        let connectionBorderColor = '#63676A'; //gray
 
-        var pathObj = {
+        let pathObj = {
             connections: {
                 strokepath: [
                     // connections ====================================================================
@@ -288,7 +288,7 @@ define([
      * draw background layer
      * @param callback
      */
-    var drawBackground = function(callback){
+    let drawBackground = function(callback){
         $('#' + config.headerBackgroundContainerId + ' .' + config.headerSystemClass).velocity('transition.bounceUpIn', {
             stagger: 150,
             complete: function(){
@@ -304,7 +304,7 @@ define([
      * @param callback
      */
     $.fn.drawDemoMap = function(callback){
-        var canvasElement = $(this);
+        let canvasElement = $(this);
 
 
         // draw systems

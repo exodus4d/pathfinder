@@ -13,10 +13,11 @@ define([
 
     let config = {
         // module info
-        moduleClass: 'pf-module',                                               // class for each module
+        modulePosition: 2,
+        moduleName: 'systemInfo',
 
         // system info module
-        systemInfoModuleClass: 'pf-system-info-module',                         // module wrapper
+        moduleTypeClass: 'pf-system-info-module',                               // class for this module
 
         // breadcrumb
         constellationLinkClass: 'pf-system-info-constellation',                 // class for "constellation" name
@@ -24,7 +25,7 @@ define([
         typeLinkClass: 'pf-system-info-type',                                   // class for "type" name
 
         // info table
-        systemInfoTableClass: 'pf-system-info-table',                           // class for system info table
+        systemInfoTableClass: 'pf-module-table',                                // class for system info table
         systemInfoNameInfoClass: 'pf-system-info-name',                         // class for "name" information element
         systemInfoEffectInfoClass: 'pf-system-info-effect',                     // class for "effect" information element
         systemInfoStatusLabelClass: 'pf-system-info-status-label',              // class for "status" information element
@@ -54,7 +55,6 @@ define([
      * set module observer and look for relevant system data to update
      */
     let setModuleObserver = function(moduleElement){
-
         $(document).off('pf:updateSystemInfoModule').on('pf:updateSystemInfoModule', function(e, data){
             if(data){
                 moduleElement.updateSystemInfoModule(data);
@@ -197,23 +197,18 @@ define([
     };
 
     /**
-     *
+     * get module element
      * @param parentElement
      * @param mapId
      * @param systemData
      */
-    let drawModule = function(parentElement, mapId, systemData){
+    let getModule = function(parentElement, mapId, systemData){
 
         // create new module container
-        let moduleElement = $('<div>', {
-            class: [config.moduleClass, config.systemInfoModuleClass].join(' '),
-            css: {opacity: 0}
-        });
+        let moduleElement = $('<div>');
 
         // store systemId -> module can be updated with the correct data
         moduleElement.data('id', systemData.id);
-
-        parentElement.prepend(moduleElement);
 
         // shattered wormhole info data
         let shatteredWormholeInfo = false;
@@ -240,8 +235,8 @@ define([
             position: moduleElement,
             link: 'append',
             functions: {
-                after: function(){
-                    let tempModuleElement = parentElement.find('.' + config.systemInfoModuleClass);
+                after: function(conf){
+                    let tempModuleElement = conf.position;
 
                     // lock "description" field until first update
                     tempModuleElement.find('.' + config.descriptionArea).showLoadingAnimation();
@@ -426,7 +421,6 @@ define([
                         return 'Loading...';
                     }
 
-                    showModule(moduleElement);
                 }
             }
         };
@@ -464,52 +458,40 @@ define([
         };
 
         Render.showModule(moduleConfig, moduleData);
+
+        return moduleElement;
     };
 
     /**
-     * show system info module with animation
+     * init callback
      * @param moduleElement
-     */
-    let showModule = function(moduleElement){
-        moduleElement.velocity('transition.slideDownIn', {
-            duration: Init.animationSpeed.mapModule,
-            delay: Init.animationSpeed.mapModule,
-            complete: function(){
-                // set module observer
-                setModuleObserver(moduleElement);
-
-                // enable auto update
-                disableModuleUpdate = false;
-            }
-        });
-    };
-
-    /**
-     * update system info module
      * @param mapId
      * @param systemData
      */
-    $.fn.drawSystemInfoModule = function(mapId, systemData){
+    let initModule = function(moduleElement, mapId, systemData){
+        // set module observer
+        setModuleObserver(moduleElement);
 
-        let parentElement = $(this);
-
-        // check if module already exists
-        let moduleElement = parentElement.find('.' + config.systemInfoModuleClass);
-
-        if(moduleElement.length > 0){
-            moduleElement.velocity('transition.slideDownOut', {
-                duration: Init.animationSpeed.mapModule,
-                complete: function(tempElement){
-                    $(tempElement).remove();
-
-                    drawModule(parentElement, mapId, systemData);
-                }
-            });
-        }else{
-            drawModule(parentElement, mapId, systemData);
-        }
+        // enable auto update
+        disableModuleUpdate = false;
     };
 
+    /**
+     * efore module destroy callback
+     * @param moduleElement
+     */
+    let beforeDestroy = (moduleElement) => {
+        // remove xEditable description textarea
+        let descriptionTextareaElement = moduleElement.find('.' + config.descriptionTextareaElementClass);
+        descriptionTextareaElement.editable('destroy');
+    };
+
+    return {
+        config: config,
+        getModule: getModule,
+        initModule: initModule,
+        beforeDestroy: beforeDestroy
+    };
 });
 
 

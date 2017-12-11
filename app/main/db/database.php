@@ -116,6 +116,7 @@ class Database extends \Prefab {
      * @param string $password
      * @param string $alias
      * @return SQL|null
+     * @throws \Exception\PathfinderException
      */
     protected function connect($dns, $name, $user, $password, $alias){
         $db = null;
@@ -285,6 +286,7 @@ class Database extends \Prefab {
     /**
      * get logger for DB logging
      * @return \Log
+     * @throws \Exception\PathfinderException
      */
     static function getLogger(){
         return LogController::getLogger('ERROR');

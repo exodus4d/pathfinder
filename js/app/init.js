@@ -327,6 +327,9 @@ define(['jquery'], function($) {
                             location: 0.6
                         }]
                 ]
+            },
+            active: {
+                cssClass: 'pf-map-connection-active'
             }
         },
         // signature groups

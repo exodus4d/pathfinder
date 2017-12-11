@@ -42,10 +42,10 @@ class User extends Controller\Controller{
     /**
      * login a valid character
      * @param Model\CharacterModel $characterModel
-     * @param string $browserTabId
      * @return bool
+     * @throws Exception
      */
-    protected function loginByCharacter(Model\CharacterModel &$characterModel, string $browserTabId){
+    protected function loginByCharacter(Model\CharacterModel &$characterModel){
         $login = false;
 
         if($user = $characterModel->getUser()){
@@ -96,7 +96,7 @@ class User extends Controller\Controller{
 
             // set temp character data ------------------------------------------------------------
             // -> pass character data over for next http request (reroute())
-            $this->setTempCharacterData($characterModel->_id, $browserTabId);
+            $this->setTempCharacterData($characterModel->_id);
 
             $login = true;
         }
@@ -108,6 +108,8 @@ class User extends Controller\Controller{
      * validate cookie character information
      * -> return character data (if valid)
      * @param \Base $f3
+     * @throws Exception
+     * @throws Exception\PathfinderException
      */
     public function getCookieCharacter(\Base $f3){
         $data = $f3->get('POST');
@@ -188,6 +190,7 @@ class User extends Controller\Controller{
     /**
      * delete the character log entry for the current active (main) character
      * @param \Base $f3
+     * @throws Exception
      */
     public function deleteLog(\Base $f3){
         if($activeCharacter = $this->getCharacter()){
@@ -198,6 +201,8 @@ class User extends Controller\Controller{
     /**
      * log the current user out + clear character system log data
      * @param \Base $f3
+     * @throws Exception
+     * @throws \ZMQSocketException
      */
     public function logout(\Base $f3){
         $this->logoutCharacter(false, true, true, true);
@@ -211,6 +216,7 @@ class User extends Controller\Controller{
      * remote open ingame information window (character, corporation or alliance) Id
      * -> the type is auto-recognized by CCP
      * @param \Base $f3
+     * @throws Exception
      */
     public function openIngameWindow(\Base $f3){
         $data = $f3->get('POST');
@@ -241,6 +247,7 @@ class User extends Controller\Controller{
      * -> a fresh user automatically generated on first login with a new character
      * -> see SSO login
      * @param \Base $f3
+     * @throws Exception
      */
     public function saveAccount(\Base $f3){
         $data = $f3->get('POST');
@@ -361,6 +368,8 @@ class User extends Controller\Controller{
     /**
      * delete current user account from DB
      * @param \Base $f3
+     * @throws Exception
+     * @throws \ZMQSocketException
      */
     public function deleteAccount(\Base $f3){
         $data = $f3->get('POST.formData');

@@ -23,6 +23,7 @@ define([
 
     let config = {
         zIndexCounter: 110,
+        maxActiveConnections: 8,
 
         mapSnapToGrid: false,                                           // "Snap to Grid" feature for drag&drop systems on map (optional)
         mapWrapperClass: 'pf-map-wrapper',                              // wrapper div (scrollable)
@@ -30,9 +31,9 @@ define([
         mapClass: 'pf-map',                                             // class for all maps
         mapIdPrefix: 'pf-map-',                                         // id prefix for all maps
         systemClass: 'pf-system',                                       // class for all systems
-        systemActiveClass: 'pf-system-active',                          // class for an active system in a map
-        systemSelectedClass: 'pf-system-selected',                      // class for selected systems in a map
-        systemLockedClass: 'pf-system-locked',                          // class for locked systems in a map
+        systemActiveClass: 'pf-system-active',                          // class for an active system on a map
+        systemSelectedClass: 'pf-system-selected',                      // class for selected systems on a map
+        systemLockedClass: 'pf-system-locked',                          // class for locked systems on a map
         systemHeadClass: 'pf-system-head',                              // class for system head
         systemHeadNameClass: 'pf-system-head-name',                     // class for system name
         systemHeadExpandClass: 'pf-system-head-expand',                 // class for system head expand arrow
@@ -85,7 +86,7 @@ define([
             dragOptions:{
             },
             connectionsDetachable: true,            // dragOptions are set -> allow detaching them
-            maxConnections: 10,                      // due to isTarget is true, this is the max count of !out!-going connections
+            maxConnections: 10,                     // due to isTarget is true, this is the max count of !out!-going connections
             // isSource:true,
             anchor: 'Continuous'
         },
@@ -93,7 +94,7 @@ define([
             filter: '.' + config.systemHeadNameClass,
             isSource:true,
             //isTarget:true,
-            //allowLoopback: false,                   // loopback connections are not allowed
+            //allowLoopBack: false,                 // loopBack connections are not allowed
             cssClass: config.endpointTargetClass,
             dropOptions: {
                 hoverClass: config.systemActiveClass,
@@ -580,7 +581,8 @@ define([
 
             if(alias !== data.alias){
                 // alias changed
-                system.find('.' + config.systemHeadNameClass).editable('setValue', data.alias);
+                alias = data.alias ? data.alias : data.name;
+                system.find('.' + config.systemHeadNameClass).editable('setValue', alias);
             }
         }
 
@@ -626,6 +628,7 @@ define([
 
         // get map container
         let mapElement = $( map.getContainer() );
+        let connectionCanvas = $(connection.canvas);
 
         // if the connection already exists -> do not set it twice
         connection.unbind('contextmenu').bind('contextmenu', function(component, e) {
@@ -646,7 +649,7 @@ define([
          *  init context menu for all connections
          *  must be triggered manually on demand
          */
-        $(connection.canvas).contextMenu({
+        connectionCanvas.contextMenu({
             menuSelector: '#' + config.connectionContextMenuId,
             menuSelected: function (params){
 
@@ -708,6 +711,31 @@ define([
             }
         });
 
+        // connection click events ==========================================================================
+
+        let single = function(e){
+            let connection = this;
+            // left mouse button
+            if(e.which === 1){
+                if(e.ctrlKey === true){
+                    // an "active" connection is required before adding more "selected" connections
+                    let activeConnections = MapUtil.getConnectionsByType(map, 'active');
+                    if(activeConnections.length >= config.maxActiveConnections && !connection.hasType('active')){
+                        Util.showNotify({title: 'Connection select limit', text: 'You can´t select more connections', type: 'warning'});
+                    }else {
+                        if(activeConnections.length > 0) {
+                            MapUtil.toggleConnectionActive(map, [connection]);
+                        }else{
+                            MapUtil.showConnectionInfo(map, [connection]);
+                        }
+                    }
+                }else{
+                    MapUtil.showConnectionInfo(map, [connection]);
+                }
+            }
+        }.bind(connection);
+
+        connectionCanvas.singleDoubleClick(single, () => {});
     };
 
     /**
@@ -921,7 +949,7 @@ define([
         mapWrapper.append(mapContainer);
 
         // append mapWrapper to parent element (at the top)
-        $(parentElement).prepend(mapWrapper);
+        parentElement.prepend(mapWrapper);
 
         // set main Container for current map -> the container exists now in DOM !! very important
         mapConfig.map.setContainer( config.mapIdPrefix + mapId );
@@ -938,11 +966,16 @@ define([
      * @returns {*}
      */
     let updateMap = function(mapConfig){
-        let mapContainer = mapConfig.map.getContainer();
+        let mapContainer = null;
+        if(!mapConfig.map){
+            // jsPlumb needs to be initialized. This is not the case when switching between map tabs right after refresh
+            return mapContainer;
+        }else{
+            mapContainer = $(mapConfig.map.getContainer());
+        }
+
         let mapId = mapConfig.config.id;
         let newSystems = 0;
-
-        mapContainer = $(mapContainer);
 
         // add additional information for this map
         if(mapContainer.data('updated') !== mapConfig.config.updated.updated){
@@ -1651,42 +1684,6 @@ define([
     };
 
     /**
-     * get all relevant data for a connection object
-     * @param connection
-     * @returns {{id: Number, source: Number, sourceName: (*|T|JQuery|{}), target: Number, targetName: (*|T|JQuery), scope: *, type: *, updated: Number}}
-     */
-    let getDataByConnection = function(connection){
-        let source = $(connection.source);
-        let target = $(connection.target);
-
-        let id = connection.getParameter('connectionId');
-        let updated = connection.getParameter('updated');
-
-        let connectionTypes = connection.getType();
-
-        // normalize connection array
-        connectionTypes = $.grep(connectionTypes, function(n){
-            // 'default' is added by jsPlumb by default -_-
-            return ( n.length > 0 && n !== 'default');
-        });
-
-        let data = {
-            id: id ? id : 0,
-            source: parseInt( source.data('id') ),
-            sourceName: source.data('name'),
-            sourceAlias: source.getSystemInfo(['alias']) || source.data('name'),
-            target: parseInt( target.data('id') ),
-            targetName: target.data('name'),
-            targetAlias: target.getSystemInfo(['alias']) || target.data('name'),
-            scope: connection.scope,
-            type: connectionTypes,
-            updated: updated ? updated : 0
-        };
-
-        return data;
-    };
-
-    /**
      * stores a connection in database
      * @param connection
      */
@@ -1697,7 +1694,7 @@ define([
             let mapContainer = $( map.getContainer() );
 
             let mapId = mapContainer.data('id');
-            let connectionData = getDataByConnection(connection);
+            let connectionData = MapUtil.getDataByConnection(connection);
 
             let requestData = {
                 mapData: {
@@ -1908,7 +1905,7 @@ define([
 
                 ]},
                 {divider: true, action: 'delete_connection'},
-                {icon: 'fa-trash', action: 'delete_connection', text: 'delete'}
+                {icon: 'fa-chain-broken', action: 'delete_connection', text: 'detach'}
             ]
         };
 
@@ -1943,6 +1940,7 @@ define([
                 {icon: 'fa-plus', action: 'add_system', text: 'add system'},
                 {icon: 'fa-lock', action: 'lock_system', text: 'lock system'},
                 {icon: 'fa-volume-up', action: 'set_rally', text: 'set rally point'},
+                {icon: 'fa-object-group', action: 'select_connections', text: 'select connections'},
                 {icon: 'fa-tags', text: 'set status', subitems: systemStatus},
                 {icon: 'fa-reply fa-rotate-180', text: 'waypoints', subitems: [
                     {subIcon: 'fa-flag-checkered', subAction: 'set_destination', subText: 'set destination'},
@@ -2298,6 +2296,10 @@ define([
                             currentSystem.markAsChanged();
                         }
                         break;
+                    case 'select_connections':
+                        let connections = MapUtil.searchConnectionsBySystems(map, [currentSystem], '*');
+                        MapUtil.showConnectionInfo(map, connections);
+                        break;
                     case 'change_status_unknown':
                     case 'change_status_friendly':
                     case 'change_status_occupied':
@@ -2362,9 +2364,9 @@ define([
                         if(! system.hasClass('no-click')){
                             if(e.ctrlKey === true){
                                 // select system
-                                system.toggleSelectSystem(map);
+                                MapUtil.toggleSelectSystem(map, [system]);
                             }else{
-                                system.showSystemInfo(map);
+                                MapUtil.showSystemInfo(map, system);
                             }
                         }
                     }
@@ -2413,31 +2415,6 @@ define([
     };
 
     /**
-     * triggers the "showSystemInfo" event, that is responsible for initializing the "map info" panel
-     * @param map
-     */
-    $.fn.showSystemInfo = function(map){
-        let system = $(this);
-
-        // activate system
-        markSystemActive(map, system);
-
-        // get parent Tab Content and fire update event
-        let tabContentElement = MapUtil.getTabContentElementByMapElement( system );
-
-        // collect all required data from map module to update the info element
-        // store them global and assessable for each module
-        let currentSystemData = {
-            systemData: system.getSystemData(),
-            mapId: parseInt( system.attr('data-mapid') )
-        };
-
-        Util.setCurrentSystemData(currentSystemData);
-
-        $(tabContentElement).trigger('pf:drawSystemModules');
-    };
-
-    /**
      * select all (selectable) systems on a mapElement
      */
     $.fn.selectAllSystems = function(){
@@ -2452,32 +2429,10 @@ define([
                 return ( $(el).data('locked') !== true );
             });
 
-            allSystems.toggleSelectSystem(map);
+            MapUtil.toggleSelectSystem(map, allSystems);
 
             Util.showNotify({title: allSystems.length + ' systems selected', type: 'success'});
 
-        });
-    };
-
-    /**
-     * toggle selectable status of a system
-     */
-    $.fn.toggleSelectSystem = function(map){
-
-        return this.each(function(){
-            let system = $(this);
-
-            if( system.data('locked') !== true ){
-
-                if( system.hasClass( config.systemSelectedClass ) ){
-                    system.removeClass( config.systemSelectedClass );
-
-                    map.removeFromDragSelection(system);
-                }else{
-                    system.addClass( config.systemSelectedClass );
-                    map.addToDragSelection(system);
-                }
-            }
         });
     };
 
@@ -2904,7 +2859,7 @@ define([
                 tempMapWrapper.mCustomScrollbar('scrollTo', system);
 
                 // select system
-                system.showSystemInfo(map);
+                MapUtil.showSystemInfo(map, system);
             }
         });
 
@@ -2967,22 +2922,6 @@ define([
                 }
             }
         });
-    };
-
-    /**
-     * mark a system as active
-     * @param map
-     * @param system
-     */
-    let markSystemActive = function(map, system){
-
-        // deactivate all systems in map
-        let mapContainer = $( map.getContainer() );
-
-        mapContainer.find('.' + config.systemClass).removeClass(config.systemActiveClass);
-
-        // set current system active
-        system.addClass(config.systemActiveClass);
     };
 
     /**
@@ -3051,7 +2990,7 @@ define([
             // data for header update
             let headerUpdateData = {
                 mapId: userData.config.id,
-                userCount: 0                        // active user in a map
+                userCount: 0                        // active user on a map
             };
 
             if(
@@ -3191,7 +3130,7 @@ define([
             // format connections
             for(let j = 0; j < connections.length; j++){
                 let tempConnection = connections[j];
-                let connectionData = getDataByConnection(tempConnection);
+                let connectionData = MapUtil.getDataByConnection(tempConnection);
 
                 // only add valid connections (id is required, this is not the case if connection is new)
                 if(connectionData.id > 0){
@@ -3389,10 +3328,14 @@ define([
         let mapElement = mapTabContentElement.find('.' + config.mapClass);
         let mapId = mapElement.data('id');
 
-
         scrollableElement.initCustomScrollbar({
             callbacks: {
                 onScroll: function(){
+                    // scroll complete
+                    // update scroll position for drag-frame-selection
+                    mapElement.attr('data-scroll-left', this.mcs.left);
+                    mapElement.attr('data-scroll-top', this.mcs.top);
+
                     // store new map scrollOffset -> localDB
                     MapUtil.storeLocalData('map', mapId, 'offsetX', Math.abs(this.mcs.left) );
                 },
@@ -3402,11 +3345,6 @@ define([
 
                     // hide all system head tooltips
                     $(this).find('.' + config.systemHeadClass + ' .fa').tooltip('hide');
-                },
-                whileScrolling:function(){
-                    // update scroll position for drag-frame-selection
-                    mapElement.data('scrollLeft', this.mcs.left);
-                    mapElement.data('scrollTop', this.mcs.top);
                 }
             }
         });
@@ -3422,7 +3360,6 @@ define([
     return {
         getMapInstance: getMapInstance,
         clearMapInstance: clearMapInstance,
-        getDataByConnection: getDataByConnection,
         showNewSystemDialog: showNewSystemDialog
     };
 

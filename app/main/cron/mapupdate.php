@@ -22,6 +22,7 @@ class MapUpdate {
      * deactivate all "private" maps whose lifetime is over
      * >> php index.php "/cron/deactivateMapData"
      * @param \Base $f3
+     * @throws \Exception\PathfinderException
      */
     function deactivateMapData(\Base $f3){
         $privateMapLifetime = (int)Config::getMapsDefaultConfig('private.lifetime');
@@ -45,6 +46,7 @@ class MapUpdate {
      * delete all deactivated maps
      * >> php index.php "/cron/deleteMapData"
      * @param \Base $f3
+     * @throws \Exception
      */
     function deleteMapData(\Base $f3){
         $pfDB = DB\Database::instance()->getDB('PF');
@@ -82,6 +84,7 @@ class MapUpdate {
      * delete expired EOL connections
      * >> php index.php "/cron/deleteEolConnections"
      * @param \Base $f3
+     * @throws \Exception
      */
     function deleteEolConnections(\Base $f3){
         $eolExpire = (int)$f3->get('PATHFINDER.CACHE.EXPIRE_CONNECTIONS_EOL');
@@ -125,6 +128,7 @@ class MapUpdate {
      * delete expired WH connections after max lifetime for wormholes is reached
      * >> php index.php "/cron/deleteExpiredConnections"
      * @param \Base $f3
+     * @throws \Exception
      */
     function deleteExpiredConnections(\Base $f3){
         $whExpire = (int)$f3->get('PATHFINDER.CACHE.EXPIRE_CONNECTIONS_WH');

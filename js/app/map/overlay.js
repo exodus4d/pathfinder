@@ -5,8 +5,9 @@
 define([
     'jquery',
     'app/init',
-    'app/util'
-], function($, Init, Util) {
+    'app/util',
+    'app/map/util'
+], function($, Init, Util, MapUtil) {
     'use strict';
 
     let config = {
@@ -72,34 +73,15 @@ define([
          * @param label
          */
         let addEndpointOverlay = (endpoint, label) => {
-            let newLabel = '';
-            let colorClass = 'txt-color-grayLighter';
-
-            if(label.length > 0){
-                newLabel = label;
-
-                // check if multiple labels found => conflict
-                if( label.includes(', ') ){
-                    colorClass = 'txt-color-orangeLight';
-                }else if( !label.includes('K162') ){
-                    colorClass = 'txt-color-yellow';
-                }
-            }else{
-                // endpoint not connected with a signature
-                newLabel = '<i class="fa fa-question-circle"></i>';
-                colorClass = 'txt-color-red';
-            }
-
             endpoint.addOverlay([
                 'Label',
                 {
-                    label: '<span class="txt-color ' + colorClass + '">' + newLabel + '</span>',
+                    label: MapUtil.getEndpointOverlayContent(label),
                     id: config.connectionOverlaySmallId,
                     cssClass: config.connectionOverlaySmallClass,
-                    location: [ 0.5, 0.5 ]
+                    location: [ 0.9, 0.9 ]
                 }
             ]);
-
         };
 
         // loop through all map connections (get from DOM)
@@ -119,53 +101,15 @@ define([
 
             // ... find matching connectionData (from Ajax)
             for(let connectionData of connectionsData){
-                if(
-                    connectionData.id === connectionId &&
-                    connectionData.signatures               // signature data is required...
-                ){
-
-                    // ... collect overlay/label data from signatures
-                    for(let signatureData of connectionData.signatures){
-                        // ... typeId is required to get a valid name
-                        if(signatureData.typeId > 0){
-
-                            // whether "source" or "target" system is relevant for current connection and current signature...
-                            let tmpSystem = null;
-                            let tmpSystemType = null;
-
-                            if(signatureData.system.id === sourceId){
-                                // relates to "source" endpoint
-                                tmpSystemType = 'sourceLabels';
-                                tmpSystem = sourceSystem;
-                            }else if(signatureData.system.id === targetId){
-                                // relates to "target" endpoint
-                                tmpSystemType = 'targetLabels';
-                                tmpSystem = targetSystem;
-                            }
-
-                            // ... get endpoint label for source || target system
-                            if(tmpSystem && tmpSystem){
-                                // ... get all  available signature type (wormholes) names
-                                let availableSigTypeNames = SystemSignatures.getAllSignatureNamesBySystem(tmpSystem, 5);
-                                let flattenSigTypeNames = Util.flattenXEditableSelectArray(availableSigTypeNames);
-
-                                if( flattenSigTypeNames.hasOwnProperty(signatureData.typeId) ){
-                                    let label = flattenSigTypeNames[signatureData.typeId];
-                                    // shorten label, just take the in game name
-                                    label = label.substr(0, label.indexOf(' '));
-                                    signatureTypeNames[tmpSystemType].push(label);
-                                }
-                            }
-                        }
-                    }
-
+                if(connectionData.id === connectionId){
+                    signatureTypeNames = MapUtil.getConnectionDataFromSignatures(connection, connectionData);
                     // ... connection matched -> continue with next one
                     break;
                 }
             }
 
-            let sourceLabel =  signatureTypeNames.sourceLabels.join(', ');
-            let targetLabel =  signatureTypeNames.targetLabels.join(', ');
+            let sourceLabel =  signatureTypeNames.sourceLabels;
+            let targetLabel =  signatureTypeNames.targetLabels;
 
             // add endpoint overlays ------------------------------------------------------
             addEndpointOverlay(sourceEndpoint, sourceLabel);
@@ -176,19 +120,19 @@ define([
             let arrowDirection = 1;
 
             if(
-                (sourceLabel.includes('K162') && targetLabel.includes('K162')) ||
+                (sourceLabel.indexOf('K162') !== -1 && targetLabel.indexOf('K162') !== -1) ||
                 (sourceLabel.length === 0 && targetLabel.length === 0) ||
                 (
                     sourceLabel.length > 0 && targetLabel.length > 0 &&
-                    !sourceLabel.includes('K162') && !targetLabel.includes('K162')
+                    sourceLabel.indexOf('K162') === -1 && targetLabel.indexOf('K162') === -1
                 )
             ){
                 // unknown direction
                 overlayType = 'Diamond'; // not specified
                 arrowDirection = 1;
             }else if(
-                (sourceLabel.includes('K162')) ||
-                (sourceLabel.length === 0 && !targetLabel.includes('K162'))
+                (sourceLabel.indexOf('K162') !== -1) ||
+                (sourceLabel.length === 0 && targetLabel.indexOf('K162') === -1)
             ){
                 // convert default arrow direction
                 overlayType = 'Arrow';
@@ -283,7 +227,9 @@ define([
         showLoading(overlayConnectionIcon);
 
         let requestData = {
-            mapId: mapElement.data('id')
+            mapId: mapElement.data('id'),
+            addData : ['signatures'],
+            filterData : ['signatures']
         };
 
         $.ajax({

@@ -13,18 +13,21 @@ define([
 
     let config = {
         // module info
-        moduleClass: 'pf-module',                                               // class for each module
+        modulePosition: 1,
+        moduleName: 'systemRoute',
+        moduleHeadClass: 'pf-module-head',                                      // class for module header
+        moduleHandlerClass: 'pf-module-handler-drag',                           // class for "drag" handler
 
         routeCacheTTL: 10,                                                      // route cache timer (client) in seconds
 
         // system route module
-        systemRouteModuleClass: 'pf-system-route-module',                       // class  for this module
+        moduleTypeClass: 'pf-system-route-module',                              // class for this module
 
         // headline toolbar
-        systemModuleHeadlineIcon: 'pf-module-icon-button',                      // class for toolbar icons in the head
-        systemModuleHeadlineIconSearch: 'pf-module-icon-button-search',         // class for "search" icon
-        systemModuleHeadlineIconSettings: 'pf-module-icon-button-settings',     // class for "settings" icon
-        systemModuleHeadlineIconRefresh: 'pf-module-icon-button-refresh',       // class for "refresh" icon
+        moduleHeadlineIconClass: 'pf-module-icon-button',                       // class for toolbar icons in the head
+        moduleHeadlineIconSearchClass: 'pf-module-icon-button-search',          // class for "search" icon
+        moduleHeadlineIconSettingsClass: 'pf-module-icon-button-settings',      // class for "settings" icon
+        moduleHeadlineIconRefreshClass: 'pf-module-icon-button-refresh',        // class for "refresh" icon
 
         systemSecurityClassPrefix: 'pf-system-security-',                       // prefix class for system security level (color)
 
@@ -35,7 +38,7 @@ define([
         systemInfoRoutesTableClass: 'pf-system-route-table',                    // class for route tables
         mapSelectId: 'pf-route-dialog-map-select',                              // id for "map" select
 
-        dataTableActionCellClass: 'pf-table-action-cell'                       // class for "action" cells
+        dataTableActionCellClass: 'pf-table-action-cell'                        // class for "action" cells
     };
 
     // cache for system routes
@@ -48,7 +51,7 @@ define([
      * @param context
      * @param routesData
      */
-    let callbackAddRouteRow = function(context, routesData){
+    let callbackAddRouteRow = (context, routesData) => {
 
         if(routesData.length > 0){
             for(let i = 0; i < routesData.length; i++){
@@ -86,7 +89,7 @@ define([
      * @param rowData
      * @returns {*}
      */
-    let addRow = function(context, rowData){
+    let addRow = (context, rowData) => {
         let dataTable = context.dataTable;
         let rowElement = null;
         let row = null;
@@ -94,7 +97,7 @@ define([
 
         // search for an existing row (e.g. on mass "table refresh" [all routes])
         // get rowIndex where column 1 (equals to "systemToData.name") matches rowData.systemToData.name
-        let indexes = dataTable.rows().eq(0).filter( function (rowIdx) {
+        let indexes = dataTable.rows().eq(0).filter((rowIdx) => {
             return (dataTable.cell(rowIdx, 1 ).data().name === rowData.systemToData.name);
         });
 
@@ -129,8 +132,7 @@ define([
      * @param context
      * @param callback
      */
-    let getRouteData = function(requestData, context, callback){
-
+    let getRouteData = (requestData, context, callback) => {
         context.moduleElement.showLoadingAnimation();
 
         $.ajax({
@@ -145,7 +147,6 @@ define([
             // execute callback
             callback(this, routesData.routesData);
         });
-
     };
 
     /**
@@ -153,7 +154,7 @@ define([
      * @param moduleElement
      * @param dataTable
      */
-    let updateRoutesTable = function(moduleElement, dataTable){
+    let updateRoutesTable = (moduleElement, dataTable) => {
         let context = {
             moduleElement: moduleElement,
             dataTable: dataTable
@@ -172,7 +173,7 @@ define([
      * @param {Object} rowData
      * @returns {Object}
      */
-    let getRouteRequestDataFromRowData = function(rowData){
+    let getRouteRequestDataFromRowData = (rowData) => {
         return {
             mapIds: (rowData.hasOwnProperty('mapIds')) ? rowData.mapIds : [],
             systemFromData: (rowData.hasOwnProperty('systemFromData')) ? rowData.systemFromData : {},
@@ -193,7 +194,7 @@ define([
      * show route dialog. User can search for systems and jump-info for each system is added to a data table
      * @param dialogData
      */
-    let showFindRouteDialog = function(dialogData){
+    let showFindRouteDialog = (dialogData) => {
 
         let mapSelectOptions = [];
         let currentMapData = Util.getCurrentMapData();
@@ -678,50 +679,45 @@ define([
     };
 
     /**
-     * get the route finder moduleElement
+     * get module element
      * @returns {*}
      */
     let getModule = function(){
-
         // create new module container
-        let moduleElement = $('<div>', {
-            class: [config.moduleClass, config.systemRouteModuleClass].join(' ')
-        });
-
-        // headline toolbar icons
-        let headlineToolbar  = $('<h5>', {
-            class: 'pull-right'
-        }).append(
-            $('<i>', {
-                class: ['fa', 'fa-fw', 'fa-search', config.systemModuleHeadlineIcon, config.systemModuleHeadlineIconSearch].join(' '),
-                title: 'find&nbsp;route'
-            }).attr('data-html', 'true').attr('data-toggle', 'tooltip'),
-            $('<i>', {
-                class: ['fa', 'fa-fw', 'fa-sliders', config.systemModuleHeadlineIcon, config.systemModuleHeadlineIconSettings].join(' '),
-                title: 'settings'
-            }).attr('data-html', 'true').attr('data-toggle', 'tooltip'),
-            $('<i>', {
-                class: ['fa', 'fa-fw', 'fa-refresh', config.systemModuleHeadlineIcon, config.systemModuleHeadlineIconRefresh].join(' '),
-                title: 'refresh&nbsp;all'
-            }).attr('data-html', 'true').attr('data-toggle', 'tooltip')
+        let moduleElement = $('<div>').append(
+            $('<div>', {
+                class: config.moduleHeadClass
+            }).append(
+                $('<h5>', {
+                    class: config.moduleHandlerClass
+                }),
+                $('<h5>', {
+                    class: 'pull-right'
+                }).append(
+                    $('<i>', {
+                        class: ['fa', 'fa-fw', 'fa-search', config.moduleHeadlineIconClass, config.moduleHeadlineIconSearchClass].join(' '),
+                        title: 'find&nbsp;route'
+                    }).attr('data-html', 'true').attr('data-toggle', 'tooltip'),
+                    $('<i>', {
+                        class: ['fa', 'fa-fw', 'fa-sliders', config.moduleHeadlineIconClass, config.moduleHeadlineIconSettingsClass].join(' '),
+                        title: 'settings'
+                    }).attr('data-html', 'true').attr('data-toggle', 'tooltip'),
+                    $('<i>', {
+                        class: ['fa', 'fa-fw', 'fa-refresh', config.moduleHeadlineIconClass, config.moduleHeadlineIconRefreshClass].join(' '),
+                        title: 'refresh&nbsp;all'
+                    }).attr('data-html', 'true').attr('data-toggle', 'tooltip')
+                ),
+                $('<h5>', {
+                    text: 'Routes'
+                })
+            )
         );
-
-        moduleElement.append(headlineToolbar);
-
-        // headline
-        let headline = $('<h5>', {
-            class: 'pull-left',
-            text: 'Routes'
-        });
-
-        moduleElement.append(headline);
 
         // crate new route table
         let table = $('<table>', {
             class: ['compact', 'stripe', 'order-column', 'row-border', config.systemInfoRoutesTableClass].join(' ')
         });
-
-        moduleElement.append( $(table) );
+        moduleElement.append(table);
 
         // init empty table
         let routesTable = table.DataTable( {
@@ -1006,12 +1002,12 @@ define([
         let routesTable = routesTableElement.DataTable();
 
         // init refresh routes --------------------------------------------------------------------
-        moduleElement.find('.' + config.systemModuleHeadlineIconRefresh).on('click', function(e){
+        moduleElement.find('.' + config.moduleHeadlineIconRefreshClass).on('click', function(e){
             updateRoutesTable(moduleElement, routesTable);
         });
 
         // init search routes dialog --------------------------------------------------------------
-        moduleElement.find('.' + config.systemModuleHeadlineIconSearch).on('click', function(e){
+        moduleElement.find('.' + config.moduleHeadlineIconSearchClass).on('click', function(e){
             let maxRouteSearchLimit = this.Init.routeSearch.limit;
 
             if(routesTable.rows().count() >= maxRouteSearchLimit){
@@ -1032,7 +1028,7 @@ define([
         }));
 
         // init settings dialog -------------------------------------------------------------------
-        moduleElement.find('.' + config.systemModuleHeadlineIconSettings).on('click', function(e){
+        moduleElement.find('.' + config.moduleHeadlineIconSettingsClass).on('click', function(e){
             let dialogData = {
                 mapId: mapId
             };
@@ -1061,49 +1057,10 @@ define([
 
     };
 
-    /**
-     * updates an dom element with the system route module
-     * @param mapId
-     * @param systemData
-     */
-    $.fn.drawSystemRouteModule = function(mapId, systemData){
-
-        let parentElement = $(this);
-
-        // show route module
-        let showModule = function(moduleElement){
-            if(moduleElement){
-                moduleElement.css({ opacity: 0 });
-                parentElement.append(moduleElement);
-
-                moduleElement.velocity('transition.slideDownIn', {
-                    duration: Init.animationSpeed.mapModule,
-                    delay: Init.animationSpeed.mapModule,
-                    complete: function(){
-                        initModule(moduleElement, mapId, systemData);
-                    }
-                });
-            }
-        };
-
-        // check if module already exists
-        let moduleElement = parentElement.find('.' + config.systemRouteModuleClass);
-
-        if(moduleElement.length > 0){
-            moduleElement.velocity('transition.slideDownOut', {
-                duration: Init.animationSpeed.mapModule,
-                complete: function(tempElement){
-                    $(tempElement).remove();
-
-                    moduleElement = getModule();
-                    showModule(moduleElement);
-                }
-            });
-        }else{
-            moduleElement = getModule();
-            showModule(moduleElement);
-        }
-
+    return {
+        config: config,
+        getModule: getModule,
+        initModule: initModule
     };
 
 });

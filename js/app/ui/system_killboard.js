@@ -8,13 +8,16 @@ define([
 
     let config = {
         // module info
-        moduleClass: 'pf-module',                                               // class for each module
+        modulePosition: 2,
+        moduleName: 'systemKillboard',
+        moduleHeadClass: 'pf-module-head',                                      // class for module header
+        moduleHandlerClass: 'pf-module-handler-drag',                           // class for "drag" handler
 
         // headline toolbar
-        systemModuleHeadlineIcon: 'pf-module-icon-button',                      // class for toolbar icons in the head
+        moduleHeadlineIconClass: 'pf-module-icon-button',                       // class for toolbar icons in the head
 
         // system killboard module
-        systemKillboardModuleClass: 'pf-system-killboard-module',               // module wrapper
+        moduleTypeClass: 'pf-system-killboard-module',                          // class for this module
         systemKillboardGraphKillsClass: 'pf-system-killboard-graph-kills',      // class for system kill graph
 
         // system killboard list
@@ -178,33 +181,7 @@ define([
      * @param systemData
      */
     $.fn.updateSystemInfoGraphs = function(systemData){
-
         let moduleElement = $(this);
-
-
-        // headline toolbar icons
-        let headlineToolbar  = $('<h5>', {
-            class: 'pull-right'
-        }).append(
-                $('<i>', {
-                    class: ['fa', 'fa-fw', 'fa-external-link ', config.systemModuleHeadlineIcon].join(' '),
-                    title: 'zkillboard.com'
-                }).on('click', function(e){
-                    window.open(
-                        '//zkillboard.com/system/' + systemData.systemId,
-                        '_blank'
-                    );
-                }).attr('data-toggle', 'tooltip')
-            );
-
-        moduleElement.append(headlineToolbar);
-
-        // headline
-        let headline = $('<h5>', {
-            text: 'Killboard'
-        });
-
-        moduleElement.append(headline);
 
         let killboardGraphElement = $('<div>', {
             class: config.systemKillboardGraphKillsClass
@@ -222,13 +199,10 @@ define([
 
         // private function draws a "system kills" graph
         let drawGraph = function(data){
-
             let tableData = data.tableData;
 
             // change order (show right to left)
             tableData.reverse();
-
-
 
              if(data.count === 0){
                  labelOptions.type = 'label-success';
@@ -247,6 +221,7 @@ define([
             Morris.Bar({
                 element: killboardGraphElement,
                 resize: true,
+                redraw: true,
                 grid: true,
                 gridStrokeWidth: 0.3,
                 gridTextSize: 9,
@@ -419,63 +394,70 @@ define([
     };
 
     /**
+     * get module toolbar element
+     * @param systemData
+     * @returns {*|jQuery|HTMLElement|void}
+     */
+    let getHeadlineToolbar = (systemData) => {
+        let headlineToolbar  = $('<h5>', {
+            class: 'pull-right'
+        }).append(
+            $('<i>', {
+                class: ['fa', 'fa-fw', 'fa-external-link ', config.moduleHeadlineIconClass].join(' '),
+                title: 'zkillboard.com'
+            }).on('click', function(e){
+                window.open(
+                    '//zkillboard.com/system/' + systemData.systemId,
+                    '_blank'
+                );
+            }).attr('data-toggle', 'tooltip')
+        );
+
+        headlineToolbar.find('[data-toggle="tooltip"]').tooltip({
+            container: 'body'
+        });
+
+        return headlineToolbar;
+    };
+
+    /**
+     * before module "show" callback
+     * @param moduleElement
+     * @param systemData
+     */
+    let beforeShow = (moduleElement, systemData) => {
+        // update graph
+        moduleElement.updateSystemInfoGraphs(systemData);
+    };
+
+    /**
      * get module element
      * @param parentElement
      * @param systemData
      * @returns {*|jQuery|HTMLElement}
      */
-    let getModule = function(parentElement, systemData){
-
+    let getModule = (parentElement, mapId, systemData) => {
         // create new module container
-        let moduleElement = $('<div>', {
-            class: [config.moduleClass, config.systemKillboardModuleClass].join(' '),
-            css: {opacity: 0}
-        });
-
-        parentElement.append(moduleElement);
-
-        // update graph
-        moduleElement.updateSystemInfoGraphs(systemData);
+        let moduleElement = $('<div>').append(
+            $('<div>', {
+                class: config.moduleHeadClass
+            }).append(
+                $('<h5>', {
+                    class: config.moduleHandlerClass
+                }),
+                $('<h5>', {
+                    text: 'Killboard'
+                }),
+                getHeadlineToolbar(systemData)
+            )
+        );
 
         return moduleElement;
     };
 
-
-    /**
-     * main module load function
-     * @param systemData
-     */
-    $.fn.drawSystemKillboardModule = function(systemData){
-
-        let parentElement = $(this);
-
-        // show route module
-        let showModule = function(moduleElement){
-            if(moduleElement){
-                moduleElement.velocity('transition.slideDownIn', {
-                    duration: Init.animationSpeed.mapModule,
-                    delay: Init.animationSpeed.mapModule
-                });
-            }
-        };
-
-        // check if module already exists
-        let moduleElement = parentElement.find('.' + config.systemKillboardModuleClass);
-
-        if(moduleElement.length > 0){
-            moduleElement.velocity('transition.slideDownOut', {
-                duration: Init.animationSpeed.mapModule,
-                complete: function(tempElement){
-                    $(tempElement).remove();
-
-                    moduleElement = getModule(parentElement, systemData);
-                    showModule(moduleElement);
-                }
-            });
-        }else{
-            moduleElement = getModule(parentElement, systemData);
-            showModule(moduleElement);
-        }
-
+    return {
+        config: config,
+        getModule: getModule,
+        beforeShow: beforeShow
     };
 });

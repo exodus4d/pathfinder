@@ -169,6 +169,7 @@ class SystemSignatureModel extends AbstractMapTrackingModel {
      * @param string $key
      * @param string $val
      * @return bool
+     * @throws \Exception\ValidationException
      */
     protected function validate_name(string $key, string $val): bool {
         $valid = true;
@@ -182,6 +183,7 @@ class SystemSignatureModel extends AbstractMapTrackingModel {
     /**
      * @param string $action
      * @return Logging\LogInterface
+     * @throws \Exception\PathfinderException
      */
     public function newLog($action = ''): Logging\LogInterface{
         return $this->getMap()->newLog($action)->setTempData($this->getLogObjectData());

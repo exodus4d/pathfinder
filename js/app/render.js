@@ -17,7 +17,7 @@ define(['jquery', 'mustache'], function($, Mustache) {
             typeof config.functions === 'object' &&
             typeof config.functions[functionName] === 'function'
         ){
-            config.functions[functionName]();
+            config.functions[functionName](config);
         }
     };
 
@@ -27,16 +27,13 @@ define(['jquery', 'mustache'], function($, Mustache) {
      * @param data
      */
     let showModule = function(config, data){
-
         // require module template
         requirejs(['text!templates/' + config.name + '.html'], function(template) {
-
             // check for an id, if module already exists, do not insert again
             if(
                 data.id === 'undefined' ||
                  $('#' + data.id).length === 0
             ){
-
                 let content = Mustache.render(template, data);
 
                 // display module
@@ -57,8 +54,6 @@ define(['jquery', 'mustache'], function($, Mustache) {
 
             // init module function after render
             initModule('after', config);
-
-
         });
     };
 

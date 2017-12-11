@@ -822,6 +822,7 @@ abstract class BasicModel extends \DB\Cortex {
      * debug log function
      * @param string $text
      * @param string $type
+     * @throws \Exception\PathfinderException
      */
     public static function log($text, $type = 'DEBUG'){
         Controller\LogController::getLogger($type)->write($text);

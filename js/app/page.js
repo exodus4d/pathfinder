@@ -120,8 +120,8 @@ define([
             // load right menu
             $('.' + config.pageSlidebarRightClass).loadRightMenu();
 
-            // set document observer for global events
-            setDocumentObserver();
+            // set page observer for global events
+            setPageObserver();
         });
     };
 
@@ -568,7 +568,7 @@ define([
     /**
      * catch all global document events
      */
-    let setDocumentObserver = function(){
+    let setPageObserver = function(){
 
         // on "full-screen" change event
         $(document).on('fscreenchange', function(e, state, elem){
@@ -696,6 +696,10 @@ define([
 
         // END menu events =============================================================================
 
+        // global "modal" callback (for all modals)
+        $('body').on('hide.bs.modal', '> .modal', function(a,b) {
+            $(this).destroyTimestampCounter();
+        });
 
         // update header links with current map data
         $(document).on('pf:updateHeaderMapData', function(e, data){
@@ -783,45 +787,70 @@ define([
     $.fn.updateHeaderUserData = function(){
         let userData = Util.getCurrentUserData();
 
-        let userInfoElement = $('.' + config.headUserCharacterClass);
-        let currentCharacterId = userInfoElement.data('characterId');
-        let currentCharactersOptionIds = userInfoElement.data('characterOptionIds') ? userInfoElement.data('characterOptionIds') : [];
-        let newCharacterId = 0;
-        let newCharacterName = '';
+        let userInfoElement             = $('.' + config.headUserCharacterClass);
+        let currentCharacterId          = userInfoElement.data('characterId');
+        let currentCharactersOptionIds  = userInfoElement.data('characterOptionIds') ? userInfoElement.data('characterOptionIds') : [];
+        let newCharacterId              = 0;
+        let newCharacterName            = '';
 
-        let userShipElement = $('.' + config.headUserShipClass);
-        let currentShipId = userShipElement.data('shipId');
-        let newShipId = 0;
-        let newShipName = '';
+        let userShipElement             = $('.' + config.headUserShipClass);
+        let currentShipData             = userShipElement.data('shipData');
+        let currentShipId               = Util.getObjVal(currentShipData, 'typeId') || 0;
+        let newShipData                 = {
+            typeId: 0,
+            typeName: ''
+        };
 
         // function for header element toggle animation
-        let animateHeaderElement = function(element, callback, triggerShow){
+        let animateHeaderElement = (element, callback, triggerShow) => {
+            let currentOpacity = parseInt(element.css('opacity'));
 
-            element.show().velocity('stop').velocity({
-                opacity: 0
-            },{
-                visibility : 'hidden',
-                duration: 500,
-                complete: function(){
-                    // callback
-                    callback();
+            let showHeaderElement = (element) => {
+                element.show().velocity({
+                    opacity: [ 1, 0 ]
+                },{
+                   // display: 'block',
+                    visibility : 'visible',
+                    duration: 1000
+                });
+            };
 
-                    // show element
-                    if(triggerShow === true){
-                        element.velocity({
-                            opacity: 1
-                        }, {
-                            visibility : 'visible',
-                            duration: 500
-                        });
-                    }else{
-                        // hide element
+            let hideHeaderElement = (element, callback) => {
+                element.velocity('stop').velocity({
+                    opacity: [ 0, 1 ]
+                },{
+                   // display: 'none',
+                    visibility : 'hidden',
+                    duration: 1000,
+                    complete: function(){
                         element.hide();
+                        // callback
+                        callback($(this));
                     }
+                });
+            };
 
-                }
-            });
-
+            // run show/hide toggle in the correct order
+            if(currentOpacity > 0 && triggerShow){
+                // hide then show animation
+                hideHeaderElement(element, (element) => {
+                    callback(element);
+                    showHeaderElement(element);
+                });
+            }else if(currentOpacity > 0 && !triggerShow){
+                // hide animation
+                hideHeaderElement(element, (element) => {
+                    element.hide();
+                    callback(element);
+                });
+            }else if(currentOpacity === 0 && triggerShow){
+                // show animation
+                callback(element);
+                showHeaderElement(element);
+            }else{
+                // no animation
+                callback(element);
+            }
         };
 
         // check for character/ship changes ---------------------------------------------
@@ -833,8 +862,7 @@ define([
             newCharacterName = userData.character.name;
 
             if(userData.character.log){
-                newShipId = userData.character.log.ship.typeId;
-                newShipName = userData.character.log.ship.typeName;
+                newShipData = userData.character.log.ship;
             }
 
             // en/disable "map tracking" toggle
@@ -854,7 +882,7 @@ define([
             }
 
             // toggle element
-            animateHeaderElement(userInfoElement, function(){
+            animateHeaderElement(userInfoElement, (userInfoElement) => {
                 if(currentCharacterChanged){
                     userInfoElement.find('span').text( newCharacterName );
                     userInfoElement.find('img').attr('src', Init.url.ccpImageServer + '/Character/' + newCharacterId + '_32.jpg' );
@@ -869,21 +897,21 @@ define([
         }
 
         // update user ship data --------------------------------------------------------
-        if(currentShipId !== newShipId){
+        if(currentShipId !== newShipData.typeId){
+            // set new data for next check
+            userShipElement.data('shipData', newShipData);
 
-            let showShipElement = true;
-            if(newShipId === 0){
-                showShipElement = false;
-            }
+            let showShipElement = newShipData.typeId > 0;
 
             // toggle element
-            animateHeaderElement(userShipElement, function(){
-                userShipElement.find('span').text( newShipName );
-                userShipElement.find('img').attr('src', Init.url.ccpImageServer + '/Render/' + newShipId + '_32.png' );
+            animateHeaderElement(userShipElement, (userShipElement) => {
+                userShipElement.find('span').text( newShipData.typeName );
+                userShipElement.find('img').attr('src', Init.url.ccpImageServer + '/Render/' + newShipData.typeId + '_32.png' );
+                // trigger ship change event
+                $(document).trigger('pf:activeShip', {
+                    shipData: newShipData
+                });
             }, showShipElement);
-
-            // set new id for next check
-            userShipElement.data('shipId', newShipId);
         }
     };
 

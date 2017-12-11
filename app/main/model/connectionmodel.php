@@ -74,6 +74,9 @@ class ConnectionModel extends AbstractMapTrackingModel {
         ],
         'signatures' => [
             'has-many' => ['Model\SystemSignatureModel', 'connectionId']
+        ],
+        'connectionLog' => [
+            'has-many' => ['Model\ConnectionLogModel', 'connectionId']
         ]
     ];
 
@@ -101,24 +104,31 @@ class ConnectionModel extends AbstractMapTrackingModel {
     }
 
     /**
-     * get connection data as array
+     * get connection data
      * @param bool $addSignatureData
+     * @param bool $addLogData
      * @return \stdClass
      */
-    public function getData($addSignatureData = false){
+    public function getData($addSignatureData = false, $addLogData = false){
         $connectionData = (object) [];
-        $connectionData->id            = $this->id;
-        $connectionData->source        = $this->source->id;
-        $connectionData->target        = $this->target->id;
-        $connectionData->scope         = $this->scope;
-        $connectionData->type          = $this->type;
-        $connectionData->updated       = strtotime($this->updated);
-        $connectionData->created       = strtotime($this->created);
-        $connectionData->eolUpdated    = strtotime($this->eolUpdated);
+        $connectionData->id             = $this->id;
+        $connectionData->source         = $this->source->id;
+        $connectionData->target         = $this->target->id;
+        $connectionData->scope          = $this->scope;
+        $connectionData->type           = $this->type;
+        $connectionData->updated        = strtotime($this->updated);
+        $connectionData->created        = strtotime($this->created);
+        $connectionData->eolUpdated     = strtotime($this->eolUpdated);
 
         if($addSignatureData){
             if( !empty($signaturesData = $this->getSignaturesData()) ){
                 $connectionData->signatures = $signaturesData;
+            }
+        }
+
+        if($addLogData){
+            if( !empty($logsData = $this->getLogsData()) ){
+                $connectionData->logs = $logsData;
             }
         }
 
@@ -193,6 +203,7 @@ class ConnectionModel extends AbstractMapTrackingModel {
     /**
      * check whether this model is valid or not
      * @return bool
+     * @throws \Exception\DatabaseException
      */
     public function isValid(): bool {
         if($valid = parent::isValid()){
@@ -218,6 +229,7 @@ class ConnectionModel extends AbstractMapTrackingModel {
      * @param ConnectionModel $self
      * @param $pkeys
      * @return bool
+     * @throws \Exception\DatabaseException
      */
     public function beforeInsertEvent($self, $pkeys){
         // check for "default" connection type and add them if missing
@@ -269,6 +281,7 @@ class ConnectionModel extends AbstractMapTrackingModel {
     /**
      * @param string $action
      * @return Logging\LogInterface
+     * @throws \Exception\PathfinderException
      */
     public function newLog($action = ''): Logging\LogInterface{
         return $this->getMap()->newLog($action)->setTempData($this->getLogObjectData());
@@ -331,10 +344,28 @@ class ConnectionModel extends AbstractMapTrackingModel {
     }
 
     /**
+     * get all jump logs that are connected with this connection
+     * @return array|mixed
+     */
+    public function getLogs(){
+        $logs = [];
+        $this->filter('connectionLog', [
+            'active = :active',
+            ':active' => 1
+        ]);
+
+        if($this->connectionLog){
+            $logs = $this->connectionLog;
+        }
+
+        return $logs;
+    }
+
+    /**
      * get all signature data linked to this connection
      * @return array
      */
-    public function getSignaturesData(){
+    public function getSignaturesData() : array {
         $signaturesData = [];
         $signatures = $this->getSignatures();
 
@@ -343,6 +374,36 @@ class ConnectionModel extends AbstractMapTrackingModel {
         }
 
         return $signaturesData;
+    }
+
+    /**
+     * get all connection log data linked to this connection
+     * @return array
+     */
+    public function getLogsData() : array{
+        $logsData = [];
+        $logs = $this->getLogs();
+
+        foreach($logs as $log){
+            $logsData[] = $log->getData();
+        }
+
+        return $logsData;
+    }
+
+    public function logMass(CharacterLogModel $characterLog){
+        if( !$characterLog->dry() ){
+            $log = $this->rel('connectionLog');
+            $log->shipTypeId = $characterLog->shipTypeId;
+            $log->shipTypeName = $characterLog->shipTypeName;
+            $log->shipMass = $characterLog->shipMass;
+            $log->characterId = $characterLog->characterId->_id;
+            $log->characterName = $characterLog->characterId->name;
+            $log->connectionId = $this;
+            $log->save();
+        }
+
+        return $this;
     }
 
     /**

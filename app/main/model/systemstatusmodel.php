@@ -83,6 +83,7 @@ class SystemStatusModel extends BasicModel {
      * @param null $table
      * @param null $fields
      * @return bool
+     * @throws \Exception
      */
     public static function setup($db=null, $table=null, $fields=null){
         $status = parent::setup($db,$table,$fields);

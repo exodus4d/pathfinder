@@ -87,9 +87,10 @@ class Socket {
     }
 
     /**
-     * @param $task
+     * @param string $task
      * @param string $load
      * @return bool|string
+     * @throws \ZMQSocketException
      */
     public function sendData(string $task, $load = ''){
         $response = false;

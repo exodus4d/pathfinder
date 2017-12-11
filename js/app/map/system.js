@@ -18,7 +18,7 @@ define([
             y: 0
         },
 
-        systemActiveClass: 'pf-system-active',                                          // class for an active system in a map
+        systemActiveClass: 'pf-system-active',                                          // class for an active system on a map
 
         dialogRallyId: 'pf-rally-dialog',                                               // id for "Rally point" dialog
 

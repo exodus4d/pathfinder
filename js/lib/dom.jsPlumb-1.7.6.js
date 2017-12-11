@@ -10388,12 +10388,13 @@
 
                 // in IE the top left corner is what it placed at the desired location.  This will not
                 // be fixed. IE8 is not going to be supported for much longer.
-                var ts = "translate(-50%, -50%)";
+                var ts = "translate(-50%, calc(-50% - .5px))";
                 div.style.webkitTransform = ts;
                 div.style.mozTransform = ts;
                 div.style.msTransform = ts;
                 div.style.oTransform = ts;
                 div.style.transform = ts;
+                div.style.WebkitFontSmoothing = 'antialiased';
 
                 // write the related component into the created element
                 div._jsPlumb = this;

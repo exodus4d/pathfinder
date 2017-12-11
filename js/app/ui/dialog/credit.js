@@ -12,7 +12,7 @@ define([
 ], function($, Init, Util, Render, bootbox) {
     'use strict';
 
-    var config = {
+    let config = {
         // jump info dialog
         creditsDialogClass: 'pf-credits-dialog',                                // class for credits dialog
         creditsDialogLogoContainerId: 'pf-logo-container'                       // id for logo element
@@ -25,14 +25,14 @@ define([
 
         requirejs(['text!templates/dialog/credit.html', 'mustache'], function(template, Mustache) {
 
-            var data = {
+            let data = {
                 logoContainerId: config.creditsDialogLogoContainerId,
                 version: Util.getVersion()
             };
 
-            var content = Mustache.render(template, data);
+            let content = Mustache.render(template, data);
 
-            var creditDialog = bootbox.dialog({
+            let creditDialog = bootbox.dialog({
                 className: config.creditsDialogClass,
                 title: 'Licence',
                 message: content

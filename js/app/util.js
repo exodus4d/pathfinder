@@ -546,6 +546,8 @@ define([
 
             }
         }
+
+        return element;
     };
 
     /**
@@ -618,6 +620,17 @@ define([
                         popoverElement = button.data('bs.popover').tip();
                         popoverElement.velocity('transition.' + easeEffect, velocityOptions);
                         popoverElement.initTooltips();
+
+                        // set click events. This is required to pass data to "beforeunload" events
+                        // -> there is no way to identify the target within that event
+                        popoverElement.on('click', '.btn', function(){
+                            // character switch detected
+                            $('body').data('characterSwitch', true);
+                            // ... and remove "characterSwitch" data again! after "unload"
+                            setTimeout(function() {
+                                $('body').removeData('characterSwitch');
+                            }, 500);
+                        });
                     }else{
                         popoverElement = button.data('bs.popover').tip();
                         if(popoverElement.is(':visible')){
@@ -664,39 +677,6 @@ define([
                         }
                     }
                 });
-            });
-        });
-    };
-
-    /**
-     * add a wormhole tooltip with wh specific data to elements
-     * @param tooltipData
-     * @returns {*}
-     */
-    $.fn.addWormholeInfoTooltip = function(tooltipData){
-        return this.each(function() {
-            let element = $(this);
-
-            requirejs(['text!templates/tooltip/wormhole_info.html', 'mustache'], function (template, Mustache) {
-                let content = Mustache.render(template, tooltipData);
-
-                element.popover({
-                    placement: 'top',
-                    html: true,
-                    trigger: 'hover',
-                    content: '',
-                    container: 'body',
-                    title: tooltipData.name +
-                    '<span class="pull-right ' + tooltipData.class +'">' + tooltipData.security + '</span>',
-                    delay: {
-                        show: 250,
-                        hide: 0
-                    }
-                });
-
-                // set new popover content
-                let popover = element.data('bs.popover');
-                popover.options.content = content;
             });
         });
     };
@@ -862,6 +842,17 @@ define([
         Array.prototype.diff = function(a) {
             return this.filter(function(i) {return a.indexOf(i) < 0;});
         };
+
+        /**
+         * sort array of objects by property name
+         * @param p
+         * @returns {Array.<T>}
+         */
+        Array.prototype.sortBy = function(p) {
+            return this.slice(0).sort((a,b) => {
+                return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0;
+            });
+        };
     };
 
     /**
@@ -883,7 +874,7 @@ define([
         }
 
         return flatten;
-    } ;
+    };
 
     /**
      * set default configuration  for "Bootbox" dialogs
@@ -1082,6 +1073,28 @@ define([
     };
 
     /**
+     * get either active characterID or characterId from initial page load
+     * @returns {number}
+     */
+    let getCurrentCharacterId = () => {
+        let userData = getCurrentUserData();
+        let currentCharacterId = 0;
+        if(
+            userData &&
+            userData.character
+        ){
+            currentCharacterId = parseInt( userData.character.id );
+        }
+
+        if(!currentCharacterId){
+            // no active character... -> get default characterId from initial page load
+            currentCharacterId = parseInt(document.body.getAttribute('data-character-id'));
+        }
+
+        return currentCharacterId;
+    };
+
+    /**
      * get a unique ID for each tab
      * -> store ID in session storage
      */
@@ -1104,21 +1117,9 @@ define([
                 // Add custom application headers on "same origin" requests only!
                 // -> Otherwise a "preflight" request is made, which will "probably" fail
                 if(settings.crossDomain === false){
-                    // Add browser tab information
-                    xhr.setRequestHeader('Pf-Tab-Id', getBrowserTabId()) ;
-
                     // add current character data to ANY XHR request (HTTP HEADER)
                     // -> This helps to identify multiple characters on multiple browser tabs
-                    let userData = getCurrentUserData();
-                    let currentCharacterId = 0;
-                    if(
-                        userData &&
-                        userData.character
-                    ){
-                        currentCharacterId = parseInt( userData.character.id );
-                    }
-
-                    xhr.setRequestHeader('Pf-Character', currentCharacterId);
+                    xhr.setRequestHeader('Pf-Character', getCurrentCharacterId());
                 }
             }
         });
@@ -1278,7 +1279,6 @@ define([
      * @returns {*|HTMLElement}
      */
     let getMapModule = function(){
-
         let mapModule = $('#' + config.mapModuleId);
         if(mapModule.length === 0){
             mapModule = $('<div>', {
@@ -1470,13 +1470,11 @@ define([
      * @param sec
      * @returns {string}
      */
-    let getSecurityClassForSystem = function(sec){
+    let getSecurityClassForSystem = (sec) => {
         let secClass = '';
-
         if( Init.classes.systemSecurity.hasOwnProperty(sec) ){
             secClass = Init.classes.systemSecurity[sec]['class'];
         }
-
         return secClass;
     };
 
@@ -1994,7 +1992,7 @@ define([
      * set currentSystemData as "global" variable
      * @param systemData
      */
-    let setCurrentSystemData = function(systemData){
+    let setCurrentSystemData = (systemData) => {
         Init.currentSystemData = systemData;
     };
 
@@ -2002,7 +2000,7 @@ define([
      * get currentSystemData from "global" variables
      * @returns {*}
      */
-    let getCurrentSystemData = function(){
+    let getCurrentSystemData = () => {
         return Init.currentSystemData;
     };
 
@@ -2060,13 +2058,22 @@ define([
      * @param price
      * @returns {string}
      */
-    let formatPrice = function(price){
+    let formatPrice = (price) => {
         price = Number( price ).toFixed(2);
 
         let parts = price.toString().split('.');
         price = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (parts[1] ? '.' + parts[1] : '');
 
         return price + ' ISK';
+    };
+
+    /**
+     * format mass value
+     * @param value
+     * @returns {string}
+     */
+    let formatMassValue = (value) => {
+        return (parseInt(value) / 1000).toLocaleString() + ' t';
     };
 
     /**
@@ -2098,7 +2105,7 @@ define([
      * @param date
      * @returns {Date}
      */
-    let createDateAsUTC = function(date){
+    let createDateAsUTC = (date) => {
         return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()));
     };
 
@@ -2107,7 +2114,7 @@ define([
      * @param date
      * @returns {Date}
      */
-    let convertDateToUTC = function(date){
+    let convertDateToUTC = (date) => {
         return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
     };
 
@@ -2117,7 +2124,7 @@ define([
      * @param showSeconds
      * @returns {string}
      */
-    let convertDateToString = function(date, showSeconds){
+    let convertDateToString = (date, showSeconds) => {
         let dateString = ('0'+ (date.getMonth() + 1 )).slice(-2) + '/' + ('0'+date.getDate()).slice(-2) + '/' + date.getFullYear();
         let timeString = ('0' + date.getHours()).slice(-2) + ':' + ('0'+date.getMinutes()).slice(-2);
         timeString += (showSeconds) ? ':' + ('0'+date.getSeconds()).slice(-2) : '';
@@ -2142,7 +2149,7 @@ define([
      * -> www.pathfinder.com/pathfinder/ -> /pathfinder
      * @returns {string|string}
      */
-    let getDocumentPath = function(){
+    let getDocumentPath = () => {
         let pathname = window.location.pathname;
         // replace file endings
         let r = /[^\/]*$/;
@@ -2155,7 +2162,7 @@ define([
      * @param url
      * @param params
      */
-    let redirect = function(url, params){
+    let redirect = (url, params) => {
         let currentUrl = document.URL;
 
         if(url !== currentUrl){
@@ -2173,7 +2180,7 @@ define([
      * send logout request
      * @param  params
      */
-    let logout = function(params){
+    let logout = (params) => {
         let data = {};
         if(
             params &&
@@ -2195,6 +2202,56 @@ define([
             let reason = status + ' ' + error;
             showNotify({title: jqXHR.status + ': logout', text: reason, type: 'error'});
         });
+    };
+
+    /**
+     * set a cookie
+     * @param name
+     * @param value
+     * @param expire
+     * @param format
+     */
+    let setCookie = (name, value, expire, format) => {
+        let d = new Date();
+        let time = d.getTime();
+        let timeExpire = time * -1;
+
+        if(expire > 0){
+            switch(format){
+                case 'd':   // days
+                    timeExpire = expire * 24 * 60 * 60 * 1000; break;
+                case 's': // seconds
+                    timeExpire = expire * 1000; break;
+
+            }
+        }
+
+        d.setTime(time + timeExpire);
+        let expires = 'expires=' + d.toUTCString();
+        let path = 'path=' + getDocumentPath();
+        document.cookie = name + '=' + value + '; ' + expires + '; ' + path;
+    };
+
+    /**
+     * get cookie value by name
+     * @param cname
+     * @returns {string}
+     */
+    let getCookie = (cname) => {
+        let name = cname + '=';
+        let ca = document.cookie.split(';');
+
+        for(let i = 0; i <ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) === ' ') {
+                c = c.substring(1);
+            }
+
+            if (c.indexOf(name) === 0) {
+                return c.substring(name.length,c.length);
+            }
+        }
+        return '';
     };
 
     return {
@@ -2239,6 +2296,7 @@ define([
         deleteCurrentMapData: deleteCurrentMapData,
         setCurrentUserData: setCurrentUserData,
         getCurrentUserData: getCurrentUserData,
+        getCurrentCharacterId: getCurrentCharacterId,
         setCurrentSystemData: setCurrentSystemData,
         getCurrentSystemData: getCurrentSystemData,
         getCurrentLocationData: getCurrentLocationData,
@@ -2253,12 +2311,14 @@ define([
         getOpenDialogs: getOpenDialogs,
         openIngameWindow: openIngameWindow,
         formatPrice: formatPrice,
+        formatMassValue: formatMassValue,
         getLocalStorage: getLocalStorage,
         clearSessionStorage: clearSessionStorage,
         getBrowserTabId: getBrowserTabId,
         getObjVal: getObjVal,
-        getDocumentPath: getDocumentPath,
         redirect: redirect,
-        logout: logout
+        logout: logout,
+        setCookie: setCookie,
+        getCookie: getCookie
     };
 });

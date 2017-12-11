@@ -1290,7 +1290,7 @@ input[type="email"]{
   will-change: background-color, border-color;
   @include border-radius(2px);
   //@include transition( all 0.06s linear );
-  @include transition( all 0.18s ease-in-out );
+  @include transition( color 0.18s ease-in-out, background-color 0.18s ease-in-out, border-color 0.18s ease-in-out, box-shadow 0.18s ease-in-out );
   //@include box-shadow(0 1px 3px 0 rgba(red($black), green($black), blue($black), 0.12), 0 1px 2px 0 rgba(red($black), green($black), blue($black), 0.24));
 }
 .btn:active {
@@ -1549,7 +1549,7 @@ input[type="email"]{
   display: inline-block;
   padding: 5px 8px;
   background: rgba(red($black), green($black), blue($black), 0.15);
-  border-radius: 3px 0 0 3px;
+  border-radius: 2px 0 0 2px;
 }
 
 .btn-labeled {

@@ -177,12 +177,14 @@ let CONF = {
     JS: {
         UGLIFY: options.hasOwnProperty('jsUglify') ? options.jsUglify === 'true': undefined,
         SOURCEMAPS: options.hasOwnProperty('jsSourcemaps') ? options.jsSourcemaps === 'true': undefined,
+        GZIP: options.hasOwnProperty('jsGzip') ? options.jsGzip === 'true': undefined,
+        BROTLI: options.hasOwnProperty('jsBrotli') ? options.jsBrotli === 'true': undefined
     },
     CSS: {
         SOURCEMAPS: options.hasOwnProperty('cssSourcemaps') ? options.cssSourcemaps === 'true': undefined,
+        GZIP: options.hasOwnProperty('cssGzip') ? options.cssGzip === 'true': undefined,
+        BROTLI: options.hasOwnProperty('cssBrotli') ? options.cssBrotli === 'true': undefined
     },
-    GZIP: options.hasOwnProperty('gzip') ? options.gzip === 'true': undefined,
-    BROTLI: options.hasOwnProperty('brotli') ? options.brotli === 'true': undefined,
     DEBUG: false
 };
 
@@ -271,18 +273,21 @@ let printHelp = () => {
              ${chalk.cyan('tasks:')}
                 ${chalk.gray('help')}               This view
                 ${chalk.gray('default')}            Development environment. Working with row src files and file watcher, default:
-                ${chalk.gray('')}                       ${chalk.gray('--jsUglify=false --jsSourcemaps=false --cssSourcemaps=false --gzip=false --brotli=false')}
+                ${chalk.gray('')}                       ${chalk.gray('--jsUglify=false --jsSourcemaps=false --cssSourcemaps=false --jsGzip=false --cssGzip=false --jsBrotli=false --cssBrotli=false')}
                 ${chalk.gray('production')}         Production build. Concat and uglify static resources, default:
-                ${chalk.gray('')}                       ${chalk.gray('--jsUglify=true --jsSourcemaps=true --cssSourcemaps=true --gzip=true --brotli=true')}
+                ${chalk.gray('')}                       ${chalk.gray('--jsUglify=true --jsSourcemaps=true --cssSourcemaps=true --jsGzip=true --cssGzip=true --jsBrotli=true --cssBrotli=true')}
              
              ${chalk.cyan('options:')}
-                 ${chalk.gray('--tag')}             Set build version.              ${chalk.gray('default: --tag="v1.2.4" -> dest path: public/js/v1.2.4')}
-                 ${chalk.gray('--jsUglify')}        Set js uglification.            ${chalk.gray('(true || false)')}
-                 ${chalk.gray('--jsSourcemaps')}    Set js sourcemaps generation.   ${chalk.gray('(true || false)')}
-                 ${chalk.gray('--cssSourcemaps')}   Set CSS sourcemaps generation.  ${chalk.gray('(true || false)')}
-                 ${chalk.gray('--gzip')}            Set "gzip" compression mode.    ${chalk.gray('(true || false)')}
-                 ${chalk.gray('--brotli')}          Set "brotli" compression mode.  ${chalk.gray('(true || false)')}
-                 ${chalk.gray('--debug')}           Set debug mode (more output).   ${chalk.gray('(true || false)')}
+                 ${chalk.gray('--tag')}             Set build version.                  ${chalk.gray('default: --tag="v1.2.4" -> dest path: public/js/v1.2.4')}
+                 ${chalk.gray('--jsUglify')}        Set js uglification.                ${chalk.gray('(true || false)')}
+                 ${chalk.gray('--jsSourcemaps')}    Set js sourcemaps generation.       ${chalk.gray('(true || false)')}
+                 ${chalk.gray('--jsGzip')}          Set js "gzip" compression mode.     ${chalk.gray('(true || false)')}
+                 ${chalk.gray('--jsBrotli')}        Set js "brotli" compression mode.   ${chalk.gray('(true || false)')}
+                 
+                 ${chalk.gray('--cssSourcemaps')}   Set CSS sourcemaps generation.      ${chalk.gray('(true || false)')}
+                 ${chalk.gray('--cssGzip')}         Set CSS "gzip" compression mode.    ${chalk.gray('(true || false)')}
+                 ${chalk.gray('--cssBrotli')}       Set CSS "brotli" compression mode.  ${chalk.gray('(true || false)')}
+                 ${chalk.gray('--debug')}           Set debug mode (more output).       ${chalk.gray('(true || false)')}
         `)
         .log(chalk.cyan('='.repeat(cliBoxLength)))
         .log('');
@@ -295,8 +300,8 @@ let printJsSummary = () => {
     let tableHead = trackTable.cols;
     let byteCols = [1,3,6,9,12];
     let percentCols = [2, 5, 8, 10];
-    let sortCol = (CONF.BROTLI || CONF.GZIP || CONF.JS.UGLIFY) ? 10 : CONF.JS.SOURCEMAPS ? 3 : 1;
-    let refAllCol = CONF.BROTLI ? 9 : CONF.GZIP ? 6 : CONF.JS.UGLIFY ? 3 : CONF.JS.SOURCEMAPS ? 3 : 1;
+    let sortCol = (CONF.JS.BROTLI || CONF.CSS.BROTLI || CONF.JS.GZIP || CONF.CSS.GZIP || CONF.JS.UGLIFY) ? 10 : CONF.JS.SOURCEMAPS ? 3 : 1;
+    let refAllCol = (CONF.JS.BROTLI || CONF.CSS.BROTLI) ? 9 : (CONF.JS.GZIP || CONF.CSS.GZIP) ? 6 : CONF.JS.UGLIFY ? 3 : CONF.JS.SOURCEMAPS ? 3 : 1;
     let highLightSections = {src_percent: [], gzip_percent: [], brotli_percent: [], all_percent: []};
     let highLightRow = {
         success: JSON.parse(JSON.stringify(highLightSections)),
@@ -446,7 +451,7 @@ let printJsSummary = () => {
         table.removeColumn(12);
         table.removeColumn(11);
 
-        if(!CONF.BROTLI && !CONF.GZIP){
+        if(!CONF.JS.BROTLI && !CONF.CSS.BROTLI && !CONF.JS.GZIP && !CONF.CSS.GZIP){
             table.removeColumn(10);
 
             table.removeColumn(9);
@@ -559,16 +564,31 @@ gulp.task('task:diffJS', () => {
         .pipe(gulp.dest(PATH.JS.DIST_BUILD, {overwrite: false}));
 });
 
-gulp.task('task:gzipAssets', () => {
-    let filterGzip = filter(file => CONF.GZIP);
-    let fileExt = ['js', 'css'];
-    let srcModules = [
-        PATH.ASSETS.DIST +'/**/*.{' + fileExt.join(',') + '}',
-        '!' + PATH.ASSETS.DIST + '/js/' + CONF.TAG + '{,/**/*}'
-    ];
+/**
+ * get assets filter options e.g. for gZip or Brotli assets
+ * @param compression
+ * @param fileExt
+ * @returns {{srcModules: *[], fileFilter}}
+ */
+let getAssetFilterOptions = (compression, fileExt) => {
+    return {
+        srcModules: [
+            PATH.ASSETS.DIST +'/**/*.' + fileExt,
+            '!' + PATH.ASSETS.DIST + '/js/' + CONF.TAG + '{,/**/*}'
+        ],
+        fileFilter: filter(file => CONF[fileExt.toUpperCase()][compression.toUpperCase()])
+    };
+};
 
-    return gulp.src(srcModules, {base: 'public', since: gulp.lastRun('task:gzipAssets')})
-        .pipe(filterGzip)
+/**
+ * build gZip or Brotli assets
+ * @param config
+ * @param taskName
+ * @returns {JQuery.PromiseBase<never, never, never, never, never, never, never, never, never, never, never, never>}
+ */
+let gzipAssets = (config, taskName) => {
+    return gulp.src(config.srcModules, {base: 'public', since: gulp.lastRun(taskName)})
+        .pipe(config.fileFilter)
         .pipe(debug({title: 'Gzip asses dest: ', showFiles: false}))
         .pipe(bytediff.start())
         .pipe(gzip(gZipOptions))
@@ -581,18 +601,17 @@ gulp.task('task:gzipAssets', () => {
             }
         }))
         .pipe(gulp.dest(PATH.ASSETS.DIST));
-});
+};
 
-gulp.task('task:brotliAssets', () => {
-    let filterBrotli = filter(file => CONF.BROTLI);
-    let fileExt = ['js', 'css'];
-    let srcModules = [
-        PATH.ASSETS.DIST +'/**/*.{' + fileExt.join(',') + '}',
-        '!' + PATH.ASSETS.DIST + '/js/' + CONF.TAG + '{,/**/*}'
-    ];
-
-    return gulp.src(srcModules, {base: 'public', since: gulp.lastRun('task:brotliAssets')})
-        .pipe(filterBrotli)
+/**
+ * build Brotli or Brotli assets
+ * @param config
+ * @param taskName
+ * @returns {JQuery.PromiseBase<never, never, never, never, never, never, never, never, never, never, never, never>}
+ */
+let brotliAssets = (config, taskName) => {
+    return gulp.src(config.srcModules, {base: 'public', since: gulp.lastRun(taskName)})
+        .pipe(config.fileFilter)
         .pipe(debug({title: 'Brotli asses dest: ', showFiles: false}))
         .pipe(bytediff.start())
         .pipe(brotli.compress(brotliOptions))
@@ -605,6 +624,22 @@ gulp.task('task:brotliAssets', () => {
             }
         }))
         .pipe(gulp.dest(PATH.ASSETS.DIST));
+};
+
+gulp.task('task:gzipJsAssets', () => {
+    return gzipAssets(getAssetFilterOptions('gzip', 'js'), 'task:gzipJsAssets');
+});
+
+gulp.task('task:gzipCssAssets', () => {
+    return gzipAssets(getAssetFilterOptions('gzip', 'css'), 'task:gzipCssAssets');
+});
+
+gulp.task('task:brotliJsAssets', () => {
+    return brotliAssets(getAssetFilterOptions('brotli', 'js'), 'task:brotliJsAssets');
+});
+
+gulp.task('task:brotliCssAssets', () => {
+    return brotliAssets(getAssetFilterOptions('brotli', 'css'), 'task:brotliCssAssets');
 });
 
 /**
@@ -714,13 +749,15 @@ gulp.task('task:configDevelop',
             let CONF_DEVELOP = {
                 JS: {
                     UGLIFY: false,
-                    SOURCEMAPS: false
+                    SOURCEMAPS: false,
+                    GZIP: false,
+                    BROTLI: false
                 },
                 CSS: {
-                    SOURCEMAPS: false
-                },
-                GZIP: false,
-                BROTLI: false
+                    SOURCEMAPS: false,
+                    GZIP: false,
+                    BROTLI: false
+                }
             };
 
             CONF = mergeConf(CONF, CONF_DEVELOP);
@@ -739,13 +776,15 @@ gulp.task('task:configProduction',
             let CONF_PRODUCTION = {
                 JS: {
                     UGLIFY: true,
-                    SOURCEMAPS: true
+                    SOURCEMAPS: true,
+                    GZIP: true,
+                    BROTLI: true
                 },
                 CSS: {
-                    SOURCEMAPS: true
-                },
-                GZIP: true,
-                BROTLI: true
+                    SOURCEMAPS: true,
+                    GZIP: true,
+                    BROTLI: true
+                }
             };
 
             CONF = mergeConf(CONF, CONF_PRODUCTION);
@@ -760,8 +799,8 @@ gulp.task('task:configProduction',
  * updates JS destination move to (final) dir
  */
 gulp.task('task:updateJsDest', gulp.series(
-    'task:gzipAssets',
-    'task:brotliAssets',
+    'task:gzipJsAssets',
+    'task:brotliJsAssets',
     'task:renameJsDest',
     'task:printJsSummary',
     'task:cleanJsBuild'
@@ -809,8 +848,8 @@ gulp.task(
     gulp.series(
         'task:buildCss',
        // 'task:cleanCss',
-        'task:gzipAssets',
-        'task:brotliAssets',
+        'task:gzipCssAssets',
+        'task:brotliCssAssets',
         'task:printJsSummary'
     )
 );

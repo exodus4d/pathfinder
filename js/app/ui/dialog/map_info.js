@@ -184,13 +184,16 @@ define([
 
         systemsElement.showLoadingAnimation(config.loadingOptions);
 
-        // table init complete
         systemTable.on( 'init.dt', function () {
             systemsElement.hideLoadingAnimation();
 
             // init table tooltips
             let tooltipElements = systemsElement.find('[data-toggle="tooltip"]');
             tooltipElements.tooltip();
+        });
+
+        systemTable.on('destroy.dt', function(){
+            $(this).destroyTimestampCounter();
         });
 
         // prepare data for dataTables
@@ -438,13 +441,6 @@ define([
                     data: 'updated',
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         $(cell).initTimestampCounter();
-
-                        // highlight cell
-                        let diff = new Date().getTime() - cellData * 1000;
-                        let dateDiff = new Date(diff);
-                        if(dateDiff.getUTCDate() > 1){
-                            $(cell).addClass('txt-color txt-color-warning');
-                        }
                     }
                 },{
                     title: '',
@@ -545,7 +541,6 @@ define([
             let connectionClasses = [];
             for(let k = 0; k < tempConnectionData.type.length; k++){
                 connectionClasses.push( MapUtil.getConnectionInfo( tempConnectionData.type[k], 'cssClass') );
-
             }
 
             connectionClasses = connectionClasses.join(' ');
@@ -626,11 +621,13 @@ define([
                     createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
                         $(cell).initTimestampCounter();
 
-                        // highlight cell
-                        let diff = new Date().getTime() - cellData * 1000;
-                        let dateDiff = new Date(diff);
-                        if(dateDiff.getUTCDate() > 1){
-                            $(cell).addClass('txt-color txt-color-warning');
+                        if(rowData.scope.scope_sort === 'wh'){
+                            // highlight cell
+                            let diff = new Date().getTime() - cellData * 1000;
+                            let dateDiff = new Date(diff);
+                            if(dateDiff.getUTCDate() > 1){
+                                $(cell).addClass('txt-color txt-color-warning');
+                            }
                         }
                     }
                 },{
@@ -1269,7 +1266,6 @@ define([
 
                     // load users table
                     usersElement.initUsersInfoTable(mapData);
-
                 });
 
                 // events for tab change

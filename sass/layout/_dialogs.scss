@@ -196,11 +196,11 @@
 // task-manager dialog ========================================================
 #pf-task-dialog{
   .pf-task-dialog-status{
-    min-height: auto;
+    min-height: inherit;
   }
 }
 
-// map info dialog ==========================================================
+// map info dialog ============================================================
 #pf-map-info-logs {
   margin-bottom: 10px;
 }
@@ -209,6 +209,14 @@
 #pf-stats-dialog{
   .pf-dynamic-area{
     margin-bottom: 10px;
+  }
+}
+
+// jump info dialog ===========================================================
+.pf-jump-info-dialog{
+  blockquote{
+    margin-top: 15px;
+    margin-bottom: 5px;
   }
 }
 

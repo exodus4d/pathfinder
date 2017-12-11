@@ -10,7 +10,7 @@ define([
 ], function($, Init, Util, bootbox) {
     'use strict';
 
-    var config = {
+    let config = {
         // global dialog
         deleteAccountId: 'pf-dialog-delete-account',                            // dialog id
 
@@ -27,16 +27,16 @@ define([
 
         requirejs(['text!templates/dialog/delete_account.html', 'mustache'], function(template, Mustache) {
 
-            var data = {
+            let data = {
                 deleteAccountId: config.deleteAccountId,
                 userData: Util.getCurrentUserData(),
                 captchaImageWrapperId: config.captchaImageWrapperId,
                 formErrorContainerClass: Util.config.formErrorContainerClass
             };
 
-            var content = Mustache.render(template, data);
+            let content = Mustache.render(template, data);
 
-            var deleteAccountDialog = bootbox.dialog({
+            let deleteAccountDialog = bootbox.dialog({
                 title: 'Delete account',
                 message: content,
                 buttons: {
@@ -48,20 +48,20 @@ define([
                         label: '<i class="fa fa-user-times fa-fw"></i>&nbsp;delete account',
                         className: 'btn-danger',
                         callback: function() {
-                            var dialogElement = $(this);
-                            var form = dialogElement.find('form');
+                            let dialogElement = $(this);
+                            let form = dialogElement.find('form');
 
                             // validate form
                             form.validator('validate');
-                            var formValid = form.isValidForm();
+                            let formValid = form.isValidForm();
 
                             if(formValid){
 
-                                var formValues = form.getFormValues();
+                                let formValues = form.getFormValues();
 
                                 if(! $.isEmptyObject(formValues) ){
                                     // send Tab data and store values
-                                    var requestData = {
+                                    let requestData = {
                                         formData: formValues
                                     };
 
@@ -91,7 +91,7 @@ define([
                                     }).fail(function( jqXHR, status, error) {
                                         dialogElement.find('.modal-content').hideLoadingAnimation();
 
-                                        var reason = status + ' ' + error;
+                                        let reason = status + ' ' + error;
                                         Util.showNotify({title: jqXHR.status + ': deleteAccount', text: reason, type: 'error'});
 
                                     });

@@ -38,6 +38,7 @@ class CharacterUpdate {
      * -> see deactivateLogData()
      * >> php index.php "/cron/deleteLogData"
      * @param \Base $f3
+     * @throws \Exception
      */
     function deleteLogData(\Base $f3){
         DB\Database::instance()->getDB('PF');
@@ -80,6 +81,7 @@ class CharacterUpdate {
      * clean up outdated character data e.g. kicked until status
      * >> php index.php "/cron/cleanUpCharacterData"
      * @param \Base $f3
+     * @throws \Exception
      */
     function cleanUpCharacterData(\Base $f3){
         DB\Database::instance()->getDB('PF');
@@ -111,6 +113,7 @@ class CharacterUpdate {
      * authentication data is used for cookie based login
      * >> php index.php "/cron/deleteAuthenticationData"
      * @param \Base $f3
+     * @throws \Exception
      */
     function deleteAuthenticationData($f3){
         DB\Database::instance()->getDB('PF');

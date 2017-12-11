@@ -205,7 +205,6 @@ define([
                             class: config.dialogDynamicAreaClass
                         }).append(  graphElement );
 
-                        // headline
                         let headline = $('<h4>', {
                             text: key
                         }).prepend(

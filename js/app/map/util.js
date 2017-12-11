@@ -24,7 +24,8 @@ define([
 
         systemIdPrefix: 'pf-system-',                                   // id prefix for a system
         systemClass: 'pf-system',                                       // class for all systems
-        systemSelectedClass: 'pf-system-selected',                      // class for selected systems in a map
+        systemActiveClass: 'pf-system-active',                          // class for an active system on a map
+        systemSelectedClass: 'pf-system-selected',                      // class for selected systems on on map
 
         // dataTable
         tableCellEllipsisClass: 'pf-table-cell-ellipsis',
@@ -60,7 +61,7 @@ define([
      * @param {bool} filterByUser
      * @returns {Array}
      */
-    let getMapTypes = function(filterByUser){
+    let getMapTypes = (filterByUser) => {
         let mapTypes = [];
 
         $.each(Init.mapTypes, function(prop, data){
@@ -109,7 +110,7 @@ define([
      * get all available scopes for a map
      * @returns {Array}
      */
-    let getMapScopes = function(){
+    let getMapScopes = () => {
         let scopes = [];
         $.each(Init.mapScopes, function(prop, data){
             let tempData = data;
@@ -126,7 +127,7 @@ define([
      * @param {string} option
      * @returns {string}
      */
-    let getScopeInfoForMap = function(info, option){
+    let getScopeInfoForMap = (info, option) => {
         let scopeInfo = '';
         if(Init.mapScopes.hasOwnProperty(info)){
             scopeInfo = Init.mapScopes[info][option];
@@ -138,7 +139,7 @@ define([
      * get all available map icons
      * @returns {Object[]}
      */
-    let getMapIcons = function(){
+    let getMapIcons = () => {
         return Init.mapIcons;
     };
 
@@ -148,7 +149,7 @@ define([
      * @param {string} option
      * @returns {string}
      */
-    let getInfoForMap = function(mapType, option){
+    let getInfoForMap = (mapType, option) => {
         let mapInfo = '';
         if(Init.mapTypes.hasOwnProperty(mapType)){
             mapInfo = Init.mapTypes[mapType][option];
@@ -162,7 +163,7 @@ define([
      * @param {string} option
      * @returns {string}
      */
-    let getInfoForSystem = function(info, option){
+    let getInfoForSystem = (info, option) => {
         let systemInfo = '';
         if(Init.classes.systemInfo.hasOwnProperty(info)){
             systemInfo = Init.classes.systemInfo[info][option];
@@ -176,7 +177,7 @@ define([
      * @param {string} option
      * @returns {string}
      */
-    let getSystemTypeInfo = function(systemTypeId, option){
+    let getSystemTypeInfo = (systemTypeId, option) => {
         let systemTypeInfo = '';
         $.each(Init.systemType, function(prop, data){
             if(systemTypeId === data.id){
@@ -193,7 +194,7 @@ define([
      * @param option
      * @returns {string}
      */
-    let getEffectInfoForSystem = function(effect, option){
+    let getEffectInfoForSystem = (effect, option) => {
         let effectInfo = '';
         if( Init.classes.systemEffects.hasOwnProperty(effect) ){
             effectInfo = Init.classes.systemEffects[effect][option];
@@ -210,7 +211,7 @@ define([
     };
 
     /**
-     * get all selected (NOT active) systems in a map
+     * get all selected (NOT active) systems on a map
      * @returns {*}
      */
     $.fn.getSelectedSystems = function(){
@@ -219,21 +220,327 @@ define([
     };
 
     /**
-     * search connections by systems
-     * @param {Object} map - jsPlumb
-     * @param {JQuery[]} systems - system DOM elements
-     * @returns {Array} connections - found connection, DOM elements
+     * filter connections by type
+     * @param map
+     * @param type
+     * @returns {Array}
      */
-    let searchConnectionsBySystems = function(map, systems){
+    let getConnectionsByType = (map, type) => {
+        let connections = [];
+        // iterate through ALL connections and filter...
+        // -> there is no "filterByScope()" method in jsPlumb
+        for(let connection of map.getAllConnections()){
+            if(connection.getType().indexOf(type) !== -1){
+                connections.push(connection);
+            }
+        }
+        return connections;
+    };
+
+    /**
+     * get all relevant data for a connection object
+     * @param connection
+     * @returns {{id: Number, source: Number, sourceName: (*|T|JQuery|{}), target: Number, targetName: (*|T|JQuery), scope: *, type: *, updated: Number}}
+     */
+    let getDataByConnection = (connection) => {
+        let source = $(connection.source);
+        let target = $(connection.target);
+
+        let id = connection.getParameter('connectionId');
+        let updated = connection.getParameter('updated');
+
+        let connectionTypes = connection.getType();
+
+        // normalize connection array
+        connectionTypes = $.grep(connectionTypes, function(n){
+            // 'default' is added by jsPlumb by default -_-
+            return ( n.length > 0 && n !== 'default' && n !== 'active');
+        });
+
+        let data = {
+            id: id ? id : 0,
+            source: parseInt( source.data('id') ),
+            sourceName: source.data('name'),
+            sourceAlias: source.getSystemInfo(['alias']) || source.data('name'),
+            target: parseInt( target.data('id') ),
+            targetName: target.data('name'),
+            targetAlias: target.getSystemInfo(['alias']) || target.data('name'),
+            scope: connection.scope,
+            type: connectionTypes,
+            updated: updated ? updated : 0
+        };
+
+        return data;
+    };
+
+    /**
+     * @see getDataByConnection
+     * @param connections
+     * @returns {Array}
+     */
+    let getDataByConnections = (connections) => {
+        let data = [];
+        for(let connection of connections){
+            data.push(getDataByConnection(connection));
+        }
+        return data;
+    };
+
+    /**
+     * get connection related data from a connection
+     * -> data requires a signature bind to that connection
+     * @param connection
+     * @param connectionData
+     * @returns {{sourceLabels: Array, targetLabels: Array}}
+     */
+    let getConnectionDataFromSignatures = (connection, connectionData) => {
+        let signatureTypeNames = {
+            sourceLabels: [],
+            targetLabels: []
+        };
+
+        if(
+            connection &&
+            connectionData.signatures   // signature data is required...
+        ){
+            let SystemSignatures = require('app/ui/system_signature');
+
+            let connectionId        = connection.getParameter('connectionId');
+            let sourceEndpoint      = connection.endpoints[0];
+            let targetEndpoint      = connection.endpoints[1];
+            let sourceSystem        = $(sourceEndpoint.element);
+            let targetSystem        = $(targetEndpoint.element);
+            let sourceId            = sourceSystem.data('id');
+            let targetId            = targetSystem.data('id');
+
+            // ... collect overlay/label data from signatures
+            for(let signatureData of connectionData.signatures){
+                // ... typeId is required to get a valid name
+                if(signatureData.typeId > 0){
+
+                    // whether "source" or "target" system is relevant for current connection and current signature...
+                    let tmpSystem = null;
+                    let tmpSystemType = null;
+
+                    if(signatureData.system.id === sourceId){
+                        // relates to "source" endpoint
+                        tmpSystemType = 'sourceLabels';
+                        tmpSystem = sourceSystem;
+                    }else if(signatureData.system.id === targetId){
+                        // relates to "target" endpoint
+                        tmpSystemType = 'targetLabels';
+                        tmpSystem = targetSystem;
+                    }
+
+                    // ... get endpoint label for source || target system
+                    if(tmpSystem && tmpSystem){
+                        // ... get all  available signature type (wormholes) names
+                        let availableSigTypeNames = SystemSignatures.getAllSignatureNamesBySystem(tmpSystem, 5);
+                        let flattenSigTypeNames = Util.flattenXEditableSelectArray(availableSigTypeNames);
+
+                        if( flattenSigTypeNames.hasOwnProperty(signatureData.typeId) ){
+                            let label = flattenSigTypeNames[signatureData.typeId];
+                            // shorten label, just take the in game name
+                            label = label.substr(0, label.indexOf(' '));
+                            signatureTypeNames[tmpSystemType].push(label);
+                        }
+                    }
+                }
+            }
+        }
+
+        return signatureTypeNames;
+    };
+
+    /**
+     * get overlay HTML for connection endpoints by Label array
+     * @param label
+     * @returns {string}
+     */
+    let getEndpointOverlayContent = (label) => {
+        let newLabel = '';
+        let colorClass = 'txt-color-grayLighter';
+
+        if(label.length > 0){
+            newLabel = label.join(', ');
+
+            // check if multiple labels found => conflict
+            if( newLabel.includes(', ') ){
+                colorClass = 'txt-color-orangeLight';
+            }else if( !newLabel.includes('K162') ){
+                colorClass = 'txt-color-yellow';
+            }
+        }else{
+            // endpoint not connected with a signature
+            newLabel = '<i class="fa fa-question-circle"></i>';
+            colorClass = 'txt-color-red';
+        }
+        return '<span class="txt-color ' + colorClass + '">' + newLabel + '</span>';
+    };
+
+    /**
+     * get TabContentElement by any element on a map e.g. system
+     * @param element
+     * @returns {*}
+     */
+    let getTabContentElementByMapElement = (element) => {
+        let tabContentElement = $(element).parents('.' + config.mapTabContentClass);
+        return tabContentElement;
+    };
+
+    /**
+     * checks if there is an "active" connection on a map
+     * @param map
+     * @returns {boolean}
+     */
+    let hasActiveConnection = (map) => {
+        let activeConnections = getConnectionsByType(map, 'active');
+        return activeConnections.length > 0;
+    };
+
+    /**
+     * mark a system as "active"
+     * @param map
+     * @param system
+     */
+    let setSystemActive = (map, system) => {
+        // deselect all selected systems on map
+        let mapContainer = $( map.getContainer() );
+        mapContainer.find('.' + config.systemClass).removeClass(config.systemActiveClass);
+
+        // set current system active
+        system.addClass(config.systemActiveClass);
+    };
+
+    /**
+     * mark a connection as "active"
+     * @param connections
+     */
+    let setConnectionsActive = (map, connections) => {
+        // set all inactive
+        for(let connection of getConnectionsByType(map, 'active')){
+            connection.removeType('active');
+        }
+
+        for(let connection of connections){
+            connection.addType('active');
+        }
+    };
+
+    /**
+     * toggle "selected" status of system
+     * @param map
+     * @param systems
+     */
+    let toggleSelectSystem = (map, systems) => {
+        for(let system of systems){
+            system = $(system);
+            if( system.data('locked') !== true ){
+                if( system.hasClass( config.systemSelectedClass ) ){
+                    system.removeClass( config.systemSelectedClass );
+
+                    map.removeFromDragSelection(system);
+                }else{
+                    system.addClass( config.systemSelectedClass );
+                    map.addToDragSelection(system);
+                }
+            }
+        }
+    };
+
+    /**
+     * toggle "selected" status of connections
+     * @param map
+     * @param connections
+     */
+    let toggleConnectionActive = (map, connections) => {
+        let selectedConnections = [];
+        let deselectedConnections = [];
+        for(let connection of connections){
+            if(connection.hasType('active')){
+                connection.removeType('active');
+                deselectedConnections.push(connection);
+            }else{
+                connection.addType('active');
+                selectedConnections.push(connection);
+            }
+        }
+        updateConnectionInfo(map, selectedConnections, deselectedConnections);
+    };
+
+    /**
+     * show system info panels
+     * @param map
+     * @param system
+     */
+    let showSystemInfo = (map, system) => {
+        setSystemActive(map, system);
+
+        // get parent Tab Content and fire update event
+        let tabContentElement = getTabContentElementByMapElement( system );
+
+        // collect all required data from map module to update the info element
+        // store them global and assessable for each module
+        Util.setCurrentSystemData({
+            systemData: system.getSystemData(),
+            mapId: parseInt( system.attr('data-mapid') )
+        });
+
+        $(tabContentElement).trigger('pf:drawSystemModules');
+    };
+
+    /**
+     * show connection info panels
+     * @param map
+     * @param connections
+     */
+    let showConnectionInfo = (map, connections) => {
+        setConnectionsActive(map, connections);
+
+        // get parent Tab Content and fire update event
+        let mapContainer = $(map.getContainer());
+        let tabContentElement = getTabContentElementByMapElement(mapContainer);
+
+        $(tabContentElement).trigger('pf:drawConnectionModules', {
+            connections: connections,
+            mapId: parseInt(mapContainer.data('id'))
+        });
+    };
+
+    /**
+     * update connection info panels
+     * @param map
+     * @param selectedConnections
+     * @param deselectedConnections
+     */
+    let updateConnectionInfo = (map, selectedConnections, deselectedConnections) => {
+        // get parent Tab Content and fire update event
+        let mapContainer = $(map.getContainer());
+
+        $(document).trigger('pf:updateConnectionInfoModule', {
+            connectionsUpdate: selectedConnections,
+            connectionsRemove: deselectedConnections,
+            mapId: parseInt(mapContainer.data('id'))
+        });
+    };
+
+    /**
+     * search connections by systems
+     * @param map
+     * @param systems
+     * @param scope
+     * @returns {Array}
+     */
+    let searchConnectionsBySystems = (map, systems, scope) => {
         let connections = [];
         let withBackConnection = true;
 
         $.each(systems, function(i, system){
             // get connections where system is source
-            connections = connections.concat( map.getConnections({source: system}) );
+            connections = connections.concat( map.getConnections({scope: scope, source: system}) );
             if(withBackConnection === true){
                 // get connections where system is target
-                connections = connections.concat( map.getConnections({target: system}) );
+                connections = connections.concat( map.getConnections({scope: scope, target: system}) );
             }
         });
         return connections;
@@ -247,7 +554,7 @@ define([
      * @param {string|string[]} type
      * @returns {Array}
      */
-    let searchConnectionsByScopeAndType = function(map, scope, type){
+    let searchConnectionsByScopeAndType = (map, scope, type) => {
         let connections = [];
         let scopeArray = (scope === undefined) ? ['*'] : ((Array.isArray(scope)) ? scope : [scope]);
         let typeArray = (type === undefined) ? [] : ((Array.isArray(type)) ? type : [type]);
@@ -276,7 +583,7 @@ define([
      * @param {string} option
      * @returns {string}
      */
-    let getConnectionInfo = function(connectionTyp, option){
+    let getConnectionInfo = (connectionTyp, option) => {
         let connectionInfo = '';
         if(Init.connectionTypes.hasOwnProperty(connectionTyp)){
             connectionInfo = Init.connectionTypes[connectionTyp][option];
@@ -291,7 +598,7 @@ define([
      * @param {JQuery} systemB
      * @returns {Array}
      */
-    let checkForConnection = function(map, systemA, systemB){
+    let checkForConnection = (map, systemA, systemB) => {
         let connections = [];
         connections = connections.concat( map.getConnections({scope: '*', source: systemA, target: systemB}) );
         // get connections where system is target
@@ -305,7 +612,7 @@ define([
      * @param {string} scope
      * @returns {string}
      */
-    let getDefaultConnectionTypeByScope = function(scope){
+    let getDefaultConnectionTypeByScope = (scope) => {
         let type = '';
         switch(scope){
             case 'wh':
@@ -329,7 +636,7 @@ define([
      * @param {Object} connection - jsPlumb object
      * @param {string} status
      */
-    let setConnectionWHStatus = function(connection, status){
+    let setConnectionWHStatus = (connection, status) => {
         if(
             status === 'wh_fresh' &&
             connection.hasType('wh_fresh') !== true
@@ -370,7 +677,7 @@ define([
      * @param {string} option
      * @returns {string}
      */
-    let getScopeInfoForConnection = function(info, option){
+    let getScopeInfoForConnection = (info, option) => {
         let scopeInfo = '';
         if(Init.connectionScopes.hasOwnProperty(info)){
             switch(option){
@@ -389,20 +696,10 @@ define([
     };
 
     /**
-     * get TabContentElement by any element on a map e.g. system
-     * @param element
-     * @returns {*}
-     */
-    let getTabContentElementByMapElement = function(element){
-        let tabContentElement = $(element).parents('.' + config.mapTabContentClass);
-        return tabContentElement;
-    };
-
-    /**
      * store mapId for current user (IndexedDB)
      * @param mapId
      */
-    let storeDefaultMapId = function(mapId){
+    let storeDefaultMapId = (mapId) => {
         if(mapId > 0){
             let userData = Util.getCurrentUserData();
             if(
@@ -419,7 +716,7 @@ define([
      * @param type
      * @returns {boolean}
      */
-    let getLocalStoragePrefixByType = function(type){
+    let getLocalStoragePrefixByType = (type) => {
         let prefix = false;
         switch(type){
             case 'character':   prefix = config.characterLocalStoragePrefix; break;
@@ -435,7 +732,7 @@ define([
      * @param objectId
      * @returns {*}
      */
-    let getLocaleData = function(type, objectId){
+    let getLocaleData = (type, objectId) => {
         if(objectId > 0){
             let storageKey = getLocalStoragePrefixByType(type) + objectId;
             return Util.getLocalStorage().getItem(storageKey);
@@ -451,7 +748,7 @@ define([
      * @param key
      * @param value
      */
-    let storeLocalData = function(type, objectId, key, value){
+    let storeLocalData = (type, objectId, key, value) => {
         if(objectId > 0){
             // get current map config
             let storageKey = getLocalStoragePrefixByType(type) + objectId;
@@ -481,7 +778,7 @@ define([
      * @param objectId
      * @param key
      */
-    let deleteLocalData = function(type, objectId, key){
+    let deleteLocalData = (type, objectId, key) => {
         if(objectId > 0){
             // get current map config
             let storageKey = getLocalStoragePrefixByType(type) + objectId;
@@ -625,6 +922,56 @@ define([
         });
     };
 
+    /**
+     * add a wormhole tooltip with wh specific data to elements
+     * @param tooltipData
+     * @returns {*}
+     */
+    $.fn.addWormholeInfoTooltip = function(tooltipData){
+        return this.each(function() {
+            let element = $(this);
+
+            requirejs(['text!templates/tooltip/wormhole_info.html', 'mustache'], function (template, Mustache) {
+                // format tooltip data
+                let data = {};
+                if(tooltipData.massTotal){
+                    data.massTotal = Util.formatMassValue(tooltipData.massTotal);
+                }
+                if(tooltipData.massIndividual){
+                    data.massIndividual = Util.formatMassValue(tooltipData.massIndividual);
+                }
+                if(tooltipData.massRegeneration){
+                    data.massRegeneration = Util.formatMassValue(tooltipData.massRegeneration);
+                }
+                if(tooltipData.maxStableTime){
+                    data.maxStableTime = tooltipData.maxStableTime + ' h';
+                }
+
+                let title = tooltipData.name +
+                    '<span class="pull-right ' + tooltipData.class +'">' + tooltipData.security + '</span>';
+                let content = Mustache.render(template, data);
+
+                element.popover({
+                    placement: 'top',
+                    html: true,
+                    trigger: 'hover',
+                    content: '',
+                    container: 'body',
+                    title: title,
+                    delay: {
+                        show: 150,
+                        hide: 0
+                    }
+                });
+
+                // set new popover content
+                let popover = element.data('bs.popover');
+                popover.options.title = title;
+                popover.options.content = content;
+            });
+        });
+    };
+
     $.fn.findMapElement = function(){
         return $(this).find('.' + config.mapClass);
     };
@@ -650,6 +997,12 @@ define([
         getInfoForSystem: getInfoForSystem,
         getSystemTypeInfo: getSystemTypeInfo,
         getEffectInfoForSystem: getEffectInfoForSystem,
+        toggleSelectSystem: toggleSelectSystem,
+        toggleConnectionActive: toggleConnectionActive,
+        showSystemInfo: showSystemInfo,
+        showConnectionInfo: showConnectionInfo,
+        getConnectionsByType: getConnectionsByType,
+        getDataByConnection: getDataByConnection,
         searchConnectionsBySystems: searchConnectionsBySystems,
         searchConnectionsByScopeAndType: searchConnectionsByScopeAndType,
         getConnectionInfo: getConnectionInfo,
@@ -657,7 +1010,11 @@ define([
         getDefaultConnectionTypeByScope: getDefaultConnectionTypeByScope,
         setConnectionWHStatus: setConnectionWHStatus,
         getScopeInfoForConnection: getScopeInfoForConnection,
+        getDataByConnections: getDataByConnections,
+        getConnectionDataFromSignatures: getConnectionDataFromSignatures,
+        getEndpointOverlayContent: getEndpointOverlayContent,
         getTabContentElementByMapElement: getTabContentElementByMapElement,
+        hasActiveConnection: hasActiveConnection,
         storeDefaultMapId: storeDefaultMapId,
         getLocaleData: getLocaleData,
         storeLocalData: storeLocalData,

@@ -4,14 +4,28 @@ define([
     'app/util',
     'app/map/map',
     'app/map/util',
-    'app/counter',
+    'sortable',
     'app/ui/system_info',
     'app/ui/system_graph',
     'app/ui/system_signature',
     'app/ui/system_route',
-    'app/ui/system_killboard'
-], function($, Init, Util, Map, MapUtil) {
-
+    'app/ui/system_killboard',
+    'app/ui/connection_info',
+    'app/counter'
+], function(
+    $,
+    Init,
+    Util,
+    Map,
+    MapUtil,
+    Sortable,
+    SystemInfoModule,
+    SystemGraphModule,
+    SystemSignatureModule,
+    SystemRouteModule,
+    SystemKillboardModule,
+    ConnectionInfoModule
+){
     'use strict';
 
     let config = {
@@ -67,117 +81,244 @@ define([
      */
     $.fn.setTabContentObserver = function(){
         return this.each(function(){
+            let tabContentElement = $(this);
             // update Tab Content with system data information
-            $(this).on('pf:drawSystemModules', function(e){
-                drawSystemModules($( e.target ));
+            tabContentElement.on('pf:drawSystemModules', function(e){
+                drawSystemModules($(e.target));
             });
 
-            $(this).on('pf:removeSystemModules', function(e){
-                removeSystemModules($( e.target ));
+            tabContentElement.on('pf:removeSystemModules', function(e){
+                removeSystemModules($(e.target));
+            });
+
+            tabContentElement.on('pf:drawConnectionModules', function(e, data){
+                drawConnectionModules($(e.target), data);
+            });
+
+            tabContentElement.on('pf:removeConnectionModules', function(e){
+                removeConnectionModules($(e.target));
             });
         });
     };
 
     /**
-     * clear all system info modules and remove them
+     * remove multiple modules
      * @param tabContentElement
+     * @param modules
+     */
+    let removeModules = (tabContentElement, modules) => {
+        for(let Module of modules){
+            let moduleElement = tabContentElement.find('.' + Module.config.moduleTypeClass);
+            removeModule(moduleElement, Module);
+        }
+    };
+
+    /**
+     * clear all system modules and remove them
+     * @param tabContentElement
+     */
+    let removeSystemModules = (tabContentElement) => {
+        let systemModules = [SystemInfoModule, SystemGraphModule, SystemSignatureModule, SystemRouteModule, SystemKillboardModule];
+        removeModules(tabContentElement, systemModules);
+    };
+
+    /**
+     * clear all connection modules and remove them
+     * @param tabContentElement
+     */
+    let removeConnectionModules = (tabContentElement) => {
+        let connectionModules = [ConnectionInfoModule];
+        removeModules(tabContentElement, connectionModules);
+    };
+
+    /**
+     * remove a single module
+     * @param moduleElement
+     * @param Module
      * @param callback
      */
-    let removeSystemModules = function(tabContentElement, callback){
-        tabContentElement.find('.' + config.moduleClass).velocity('transition.slideDownOut', {
-            duration: Init.animationSpeed.mapModule,
-            complete: function(tempElement){
-                $(tempElement).remove();
-
-                if(callback){
-                    callback();
-                }
+    let removeModule = (moduleElement, Module, callback) => {
+        if(moduleElement.length > 0){
+            if(typeof Module.beforeReDraw === 'function'){
+                Module.beforeReDraw();
             }
-        });
+
+            moduleElement.velocity('reverse',{
+                complete: function(moduleElement){
+                    moduleElement = $(moduleElement);
+                    if(typeof Module.beforeDestroy === 'function'){
+                        Module.beforeDestroy(moduleElement);
+                    }
+                    moduleElement.remove();
+
+                    if(typeof callback === 'function'){
+                        callback();
+                    }
+                }
+            });
+        }
+    };
+
+    /**
+     * generic function that draws a modulePanel for a given Module object
+     * @param parentElement
+     * @param Module
+     * @param mapId
+     * @param data
+     */
+    let drawModule = (parentElement, Module, mapId, data) => {
+        /**
+         * get module position within its parentElement
+         * @param parentElement
+         * @param Module
+         * @param defaultPosition
+         * @returns {number}
+         */
+        let getModulePosition = (parentElement, Module, defaultPosition) => {
+            let position = 0;
+            if(defaultPosition > 0){
+                parentElement.children().each((i, moduleElement) => {
+                    position = i + 1;
+                    let tempPosition = parseInt(moduleElement.getAttribute('data-position')) || 0;
+                    if(tempPosition >= defaultPosition){
+                        position--;
+                        return false;
+                    }
+                });
+            }
+            return position;
+        };
+
+        /**
+         * show/render a Module
+         * @param parentElement
+         * @param Module
+         * @param mapId
+         * @param data
+         */
+        let showPanel = (parentElement, Module, mapId, data) => {
+            let moduleElement = Module.getModule(parentElement, mapId, data);
+            if (moduleElement) {
+                // store Module object to DOM element for further access
+                moduleElement.data('module', Module);
+                moduleElement.data('data', data);
+                moduleElement.addClass([config.moduleClass, Module.config.moduleTypeClass].join(' '));
+                moduleElement.css({opacity: 0}); // will be animated
+
+                // check module position from local storage
+                let promiseStore = MapUtil.getLocaleData('map', mapId);
+                promiseStore.then(function (dataStore) {
+                    let Module = this.moduleElement.data('module');
+                    let defaultPosition = Module.config.modulePosition || 0;
+
+                    // check for stored module order in indexDB (client) ----------------------------------------------
+                    let key = 'modules_cell_' + this.parentElement.attr('data-position');
+                    if (
+                        dataStore &&
+                        dataStore[key]
+                    ) {
+                        let positionIndex = dataStore[key].indexOf(Module.config.moduleName);
+                        if (positionIndex !== -1) {
+                            // first index (0) => is position 1
+                            defaultPosition = positionIndex + 1;
+                        }
+                    }
+
+                    // find correct position for new moduleElement ----------------------------------------------------
+                    let position = getModulePosition(this.parentElement, Module, defaultPosition);
+
+                    this.moduleElement.attr('data-position', defaultPosition);
+                    this.moduleElement.attr('data-module', Module.config.moduleName);
+
+                    // insert at correct position ---------------------------------------------------------------------
+                    let prevModuleElement = this.parentElement.find('.' + config.moduleClass + ':nth-child(' + position + ')');
+                    if (prevModuleElement.length) {
+                        this.moduleElement.insertAfter(prevModuleElement);
+                    } else {
+                        this.parentElement.prepend(this.moduleElement);
+                    }
+
+                    if(typeof Module.beforeShow === 'function'){
+                        Module.beforeShow(this.moduleElement, moduleElement.data('data'));
+                    }
+
+                    // show animation ---------------------------------------------------------------------------------
+                    this.moduleElement.velocity({
+                        opacity: [1, 0],
+                        translateY: [0, +20]
+                    }, {
+                        duration: Init.animationSpeed.mapModule,
+                        easing: 'easeOutSine',
+                        complete: function (moduleElement) {
+                            moduleElement = $(moduleElement);
+                            let Module = $(moduleElement).data('module');
+                            if (typeof Module.initModule === 'function') {
+                                Module.initModule(moduleElement, mapId, moduleElement.data('data'));
+                            }
+                        }
+                    });
+                }.bind({
+                    parentElement: parentElement,
+                    moduleElement: moduleElement
+                }));
+            }
+        };
+
+        // check if module already exists
+        let moduleElement = parentElement.find('.' + Module.config.moduleTypeClass);
+        if(moduleElement.length > 0){
+            removeModule(moduleElement, Module, () => {
+                showPanel(parentElement, Module, mapId, data);
+            });
+        }else{
+            showPanel(parentElement, Module, mapId, data);
+        }
     };
 
     /**
      * clears and updates the system info element (signature table, system info,...)
      * @param tabContentElement
      */
-    let drawSystemModules = function(tabContentElement){
-        require(['datatables.loader'], () => {
+    let drawSystemModules = (tabContentElement) => {
+        require(['datatables.loader'], function(){
             let currentSystemData = Util.getCurrentSystemData();
 
-            // get Table cell for system Info
-            let firstCell = $(tabContentElement).find('.' + config.mapTabContentCellFirst);
-            let secondCell = $(tabContentElement).find('.' + config.mapTabContentCellSecond);
+            // get grid cells
+            let firstCell = tabContentElement.find('.' + config.mapTabContentCellFirst);
+            let secondCell = tabContentElement.find('.' + config.mapTabContentCellSecond);
 
             // draw system info module
-            firstCell.drawSystemInfoModule(currentSystemData.mapId, currentSystemData.systemData);
+            drawModule(firstCell, SystemInfoModule, currentSystemData.mapId, currentSystemData.systemData);
 
             // draw system graph module
-            firstCell.drawSystemGraphModule(currentSystemData.systemData);
+            drawModule(firstCell, SystemGraphModule, currentSystemData.mapId, currentSystemData.systemData);
 
             // draw signature table module
-            firstCell.drawSignatureTableModule(currentSystemData.mapId, currentSystemData.systemData);
+            drawModule(firstCell, SystemSignatureModule, currentSystemData.mapId, currentSystemData.systemData);
 
             // draw system routes module
-            secondCell.drawSystemRouteModule(currentSystemData.mapId, currentSystemData.systemData);
+            drawModule(secondCell, SystemRouteModule, currentSystemData.mapId, currentSystemData.systemData);
 
             // draw system killboard module
-            secondCell.drawSystemKillboardModule(currentSystemData.systemData);
-
-            // set Module Observer
-            setModuleObserver();
+            drawModule(secondCell, SystemKillboardModule, currentSystemData.mapId, currentSystemData.systemData);
         });
     };
 
     /**
-     * set observer for each module
+     * clears and updates the connection info element (mass log)
+     * @param tabContentElement
+     * @param data
      */
-    let setModuleObserver = function(){
+    let drawConnectionModules = (tabContentElement, data) => {
+        require(['datatables.loader'], function(){
 
-        // toggle height for a module
-        $(document).off('click.toggleModuleHeight').on('click.toggleModuleHeight', '.' + config.moduleClass, function(e){
-            let moduleElement = $(this);
-            // get click position
-            let posX = moduleElement.offset().left;
-            let posY = moduleElement.offset().top;
-            let clickX = e.pageX - posX;
-            let clickY = e.pageY - posY;
+            // get grid cells
+            let firstCell = $(tabContentElement).find('.' + config.mapTabContentCellFirst);
 
-            // check for top-left click
-            if(clickX <= 8 && clickY <= 8){
-
-                // remember height
-                if(! moduleElement.data('origHeight')){
-
-                    moduleElement.data('origHeight', moduleElement.outerHeight());
-                }
-
-                if(moduleElement.hasClass( config.moduleClosedClass )){
-                    let moduleHeight = moduleElement.data('origHeight');
-                    moduleElement.velocity('finish').velocity({
-                        height: [ moduleHeight + 'px', [ 400, 15 ] ]
-                    },{
-                        duration: 400,
-                        easing: 'easeOutSine',
-                        complete: function(){
-                            moduleElement.removeClass( config.moduleClosedClass );
-                            moduleElement.removeData();
-                        }
-                    });
-                }else{
-                    moduleElement.velocity('finish').velocity({
-                        height: [ '35px', [ 400, 15 ] ]
-                    },{
-                        duration: 400,
-                        easing: 'easeOutSine',
-                        complete: function(){
-                            moduleElement.addClass( config.moduleClosedClass );
-                        }
-                    });
-                }
-            }
-        });
+            // draw connection info module
+            drawModule(firstCell, ConnectionInfoModule, this.mapId, this.connections);
+        }.bind(data));
     };
-
 
     /**
      * updates only visible/active map module
@@ -237,25 +378,114 @@ define([
     };
 
     /**
+     * set observer for tab content (area where modules will be shown)
+     * @param contentStructure
+     * @param mapId
+     */
+    let setContentStructureObserver = (contentStructure, mapId) => {
+        contentStructure.find('.' + config.mapTabContentCell).each((index, cellElement) => {
+            let sortable = Sortable.create(cellElement, {
+                group: {
+                    name: 'cell_' + cellElement.getAttribute('data-position')
+                },
+                animation: Init.animationSpeed.mapModule,
+                handle: '.pf-module-handler-drag',
+                draggable: '.' + config.moduleClass,
+                ghostClass: 'pf-sortable-ghost',
+                scroll: true,
+                scrollSensitivity: 50,
+                scrollSpeed: 20,
+                dataIdAttr: 'data-module',
+                sort: true,
+                store: {
+                    get: function (sortable) {
+                        return [];
+                    },
+                    set: function (sortable) {
+                        let key = 'modules_' + sortable.options.group.name;
+                        MapUtil.storeLocalData('map', mapId, key, sortable.toArray());
+                    }
+                },
+                onStart: function (e) {
+                    // Element dragging started
+                    // -> save initial sort state -> see store.set()
+                    this.save();
+                }
+            });
+        });
+
+        // toggle height for a module
+        contentStructure.on('click.toggleModuleHeight', '.' + config.moduleClass, function(e){
+            let moduleElement = $(this);
+            // get click position
+            let posX = moduleElement.offset().left;
+            let posY = moduleElement.offset().top;
+            let clickX = e.pageX - posX;
+            let clickY = e.pageY - posY;
+
+            // check for top-left click
+            if(clickX <= 8 && clickY <= 8){
+
+                // remember height
+                if(! moduleElement.data('origHeight')){
+
+                    moduleElement.data('origHeight', moduleElement.outerHeight());
+                }
+
+                if(moduleElement.hasClass( config.moduleClosedClass )){
+                    let moduleHeight = moduleElement.data('origHeight');
+                    moduleElement.velocity('finish').velocity({
+                        height: [ moduleHeight + 'px', [ 400, 15 ] ]
+                    },{
+                        duration: 400,
+                        easing: 'easeOutSine',
+                        complete: function(){
+                            moduleElement.removeClass( config.moduleClosedClass );
+                            moduleElement.removeData('origHeight');
+                        }
+                    });
+                }else{
+                    moduleElement.velocity('finish').velocity({
+                        height: [ '35px', [ 400, 15 ] ]
+                    },{
+                        duration: 400,
+                        easing: 'easeOutSine',
+                        complete: function(){
+                            moduleElement.addClass( config.moduleClosedClass );
+                        }
+                    });
+                }
+            }
+        });
+    };
+
+    /**
      * load all structure elements into a TabsContent div (tab body)
      */
-    $.fn.initContentStructure = function(){
-        return this.each(function(){
-            // init bootstrap Grid
-            let contentStructure = $('<div>', {
-                class: ['row', config.mapTabContentRow].join(' ')
-            }).append(
+    let initContentStructure = (tabContentElements) => {
+        tabContentElements.each(function(){
+            let tabContentElement = $(this);
+            let mapId = parseInt( tabContentElement.attr('data-mapid') );
+
+            // "add" tab does not need a structure and obervers...
+            if(mapId > 0){
+                let contentStructure = $('<div>', {
+                    class: ['row', config.mapTabContentRow].join(' ')
+                }).append(
                     $('<div>', {
                         class: ['col-xs-12', 'col-md-8', config.mapTabContentCellFirst, config.mapTabContentCell].join(' ')
-                    })
+                    }).attr('data-position', 1)
                 ).append(
                     $('<div>', {
                         class: ['col-xs-12', 'col-md-4', config.mapTabContentCellSecond, config.mapTabContentCell].join(' ')
-                    })
+                    }).attr('data-position', 2)
                 );
 
-            // append grid structure
-            $(this).append(contentStructure);
+                // append grid structure
+                tabContentElement.append(contentStructure);
+
+                setContentStructureObserver(contentStructure, mapId);
+            }
         });
     };
 
@@ -264,7 +494,7 @@ define([
      * @param options
      * @returns {*|jQuery|HTMLElement}
      */
-    let getTabElement = function(options){
+    let getTabElement = (options) => {
         let tabElement = $('<div>', {
             id: config.mapTabElementId
         });
@@ -401,17 +631,17 @@ define([
         // update Tab element -> set data
         linkElement.updateTabData(options);
 
-        // tabs content =======================================================
+        // tabs content -----------------------------------------------------------------------------------------------
         let contentElement = $('<div>', {
             id: config.mapTabIdPrefix + parseInt( options.id ),
             class: [config.mapTabContentClass].join(' ')
-        });
+        }).attr('data-mapid', parseInt( options.id ));
 
         contentElement.addClass('tab-pane');
 
         tabContent.append(contentElement);
 
-        // init tab ===========================================================
+        // init tab ---------------------------------------------------------------------------------------------------
         linkElement.on('click', function(e){
             e.preventDefault();
 
@@ -603,7 +833,7 @@ define([
                     newTabElements.contentElement.setTabContentObserver();
 
                     // load all the structure elements for the new tab
-                    newTabElements.contentElement.initContentStructure();
+                    initContentStructure(newTabElements.contentElement);
 
                     tabsChanged = true;
 
@@ -671,7 +901,7 @@ define([
                     mapKeyTabSelector = 'nth-child(' + ( mapDataIndex + 1 ) + ')';
                 }
 
-                // ==============================================================
+                // ----------------------------------------------------------------------------------------------------
 
                 // this new created module
                 let tabContentElements = tabMapElement.find('.' + config.mapTabContentClass);
@@ -680,7 +910,7 @@ define([
                 tabContentElements.setTabContentObserver();
 
                 // load all the structure elements for ALL Tab Content Body
-                tabContentElements.initContentStructure();
+                initContentStructure(tabContentElements);
 
                 // set first Tab active
                 tabMapElement.find('.' + config.mapTabClass + ':' + mapKeyTabSelector + ' a').tab('show');

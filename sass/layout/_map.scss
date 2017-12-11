@@ -266,7 +266,7 @@ $mapWidth: 2500px ;
     @include border-radius(5px);
 
     // change border color with transition
-    @include transition( border-color 0.5s ease-out, box-shadow 0.2s ease-out );
+    @include transition( border-color 0.3s ease-out, box-shadow 0.12s ease-out );
     @include transform( translate3d(0, 0, 0) );
 
     &:hover{
@@ -570,10 +570,14 @@ $mapWidth: 2500px ;
     }
   }
 
+  svg.pf-map-connection-active{
+    filter: drop-shadow( 0px 0px 3px $yellow-lighter);
+  }
+
   // Connection overlays ======================================================
   .pf-map-connection-overlay{
     padding: 1px 4px;
-    font-size: 11px;
+    font-size: 10px;
     z-index: 1020;
     background-color: $gray;
     color: $gray-lighter;
@@ -613,6 +617,8 @@ $mapWidth: 2500px ;
 
   // Endpoint overlays ========================================================
   .pf-map-connection-small-overlay{
+    filter: blur(0.000001px);
+    -webkit-font-smoothing: antialiased;
     font-family: Arial, sans-serif;         // fix for element width on custom font family
     padding: 0 2px;
     font-size: 10px;

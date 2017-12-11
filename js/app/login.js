@@ -77,42 +77,6 @@ define([
     };
 
     /**
-     * set a cookie
-     * @param cname
-     * @param cvalue
-     * @param exdays
-     */
-    let setCookie = function(cname, cvalue, exdays) {
-        let d = new Date();
-        d.setTime(d.getTime() + (exdays*24*60*60*1000));
-        let expires = 'expires=' + d.toUTCString();
-        let path = 'path=' + Util.getDocumentPath();
-        document.cookie = cname + '=' + cvalue + '; ' + expires + '; ' + path;
-    };
-
-    /**
-     * get cookie value by name
-     * @param cname
-     * @returns {*}
-     */
-    let getCookie = function(cname) {
-        let name = cname + '=';
-        let ca = document.cookie.split(';');
-
-        for(let i = 0; i <ca.length; i++) {
-            let c = ca[i];
-            while (c.charAt(0) === ' ') {
-                c = c.substring(1);
-            }
-
-            if (c.indexOf(name) === 0) {
-                return c.substring(name.length,c.length);
-            }
-        }
-        return '';
-    };
-
-    /**
      * set link observer for "version info" dialog
      */
     let setVersionLinkObserver = function(){
@@ -146,7 +110,7 @@ define([
             moveAdminPanel('down');
         });
 
-        if(getCookie('cookie') !== '1'){
+        if(Util.getCookie('cookie') !== '1'){
             // hint not excepted
             cookieHintElement.collapse('show');
 
@@ -163,7 +127,7 @@ define([
                 btnCancelIcon: 'fa fa-fw fa-check',
                 onCancel: function(e, target){
                     // "Accept cookies"
-                    setCookie('cookie', 1, config.defaultAcceptCookieExpire);
+                    Util.setCookie('cookie', 1, config.defaultAcceptCookieExpire, 'd');
 
                     // set "default" href
                     let href = $(target).data('bs.confirmation').getHref();
@@ -181,7 +145,7 @@ define([
         }
 
         cookieHintElement.find('.btn-success').on('click', function(){
-            setCookie('cookie', 1, config.defaultAcceptCookieExpire);
+            Util.setCookie('cookie', 1, config.defaultAcceptCookieExpire, 'd');
         });
 
         // manual -------------------------------------------------------------

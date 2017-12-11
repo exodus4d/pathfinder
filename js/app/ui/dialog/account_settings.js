@@ -11,7 +11,7 @@ define([
 ], function($, Init, Util, Render, bootbox) {
     'use strict';
 
-    var config = {
+    let config = {
         // select character dialog
         settingsDialogId: 'pf-settings-dialog',                                 // id for "settings" dialog
         settingsAccountContainerId: 'pf-settings-dialog-account',               // id for the "account" container
@@ -37,14 +37,14 @@ define([
     $.fn.showSettingsDialog = function(){
 
         // check if there are other dialogs open
-        var openDialogs = Util.getOpenDialogs();
+        let openDialogs = Util.getOpenDialogs();
         if(openDialogs.length > 0){
             return false;
         }
 
         requirejs(['text!templates/dialog/settings.html', 'mustache'], function(template, Mustache) {
 
-            var data = {
+            let data = {
                 id: config.settingsDialogId,
                 settingsAccountContainerId: config.settingsAccountContainerId,
                 settingsShareContainerId: config.settingsShareContainerId,
@@ -56,9 +56,9 @@ define([
                 ccpImageServer: Init.url.ccpImageServer
             };
 
-            var content = Mustache.render(template, data);
+            let content = Mustache.render(template, data);
 
-            var accountSettingsDialog = bootbox.dialog({
+            let accountSettingsDialog = bootbox.dialog({
                 title: 'Account settings',
                 message: content,
                 buttons: {
@@ -72,19 +72,19 @@ define([
                         callback: function() {
 
                             // get the current active form
-                            var form = $('#' + config.settingsDialogId).find('form').filter(':visible');
+                            let form = $('#' + config.settingsDialogId).find('form').filter(':visible');
 
                             // validate form
                             form.validator('validate');
 
                             // check whether the form is valid
-                            var formValid = form.isValidForm();
+                            let formValid = form.isValidForm();
 
                             if(formValid === true){
-                                var tabFormValues = form.getFormValues();
+                                let tabFormValues = form.getFormValues();
 
                                 // send Tab data and store values
-                                var requestData = {
+                                let requestData = {
                                     formData: tabFormValues
                                 };
 
@@ -134,7 +134,7 @@ define([
                                 }).fail(function( jqXHR, status, error) {
                                     accountSettingsDialog.find('.modal-content').hideLoadingAnimation();
 
-                                    var reason = status + ' ' + error;
+                                    let reason = status + ' ' + error;
                                     Util.showNotify({title: jqXHR.status + ': saveAccountSettings', text: reason, type: 'error'});
 
                                     // set new captcha for any request
@@ -147,7 +147,7 @@ define([
                                     if(jqXHR.status === 500){
 
                                         if(jqXHR.responseText){
-                                            var errorObj = $.parseJSON(jqXHR.responseText);
+                                            let errorObj = $.parseJSON(jqXHR.responseText);
 
                                             if(
                                                 errorObj.error &&
@@ -172,11 +172,11 @@ define([
             // after modal is shown =======================================================================
             accountSettingsDialog.on('shown.bs.modal', function(e) {
 
-                var dialogElement = $(this);
-                var form = dialogElement.find('form');
+                let dialogElement = $(this);
+                let form = dialogElement.find('form');
 
                 // request captcha image and show
-                var captchaImageWrapperContainer = $('#' + config.captchaImageWrapperId);
+                let captchaImageWrapperContainer = $('#' + config.captchaImageWrapperId);
                 captchaImageWrapperContainer.showCaptchaImage(config.captchaKeyUpdateAccount);
 
                 // init captcha refresh button
@@ -200,7 +200,7 @@ define([
                     off: 'Disable&nbsp;<i class="fa fa-fw fa-ban"></i>',
                     onstyle: 'success',
                     offstyle: 'warning',
-                    width: 90,
+                    width: 100,
                     height: 30
                 });
 

@@ -17,6 +17,7 @@ class Universe extends Controller {
     /**
      * Set up "Universe" Database
      * @param \Base $f3
+     * @throws \Exception
      */
     public function setupDB(\Base $f3){
         $this->setupRegions($f3);
@@ -26,6 +27,7 @@ class Universe extends Controller {
     /**
      * get all regions from CCP and store region data
      * @param \Base $f3
+     * @throws \Exception
      */
     private function setupRegions(\Base $f3){
         $this->getDB('UNIVERSE');
@@ -50,6 +52,7 @@ class Universe extends Controller {
     /**
      * get all constellations from CCP and store constellation data
      * @param \Base $f3
+     * @throws \Exception
      */
     private function setupConstellations(\Base $f3){
         $this->getDB('UNIVERSE');

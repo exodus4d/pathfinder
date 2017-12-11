@@ -348,6 +348,8 @@ table.dataTable td {
   border: 1px solid transparent;
   background: transparent;
   box-shadow: none;
+  pointer-events: all;
+  cursor: not-allowed;
 }
 .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
   color: $gray-dark !important;
