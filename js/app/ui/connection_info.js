@@ -142,8 +142,7 @@ define([
                 $('<thead>').append(
                     $('<tr>').append(
                         $('<th>', {
-                            class: ['pf-table-cell-20', 'text-right', 'pf-help', 'pf-pie-chart'].join(' '),
-                            title: 'test'
+                            class: ['pf-table-cell-20', 'text-right', 'pf-help', 'pf-pie-chart'].join(' ')
                         }).attr('data-toggle', 'tooltip').attr('data-percent', '-100').easyPieChart({
                             barColor: (percent) => {
                                 let color = '#e28a0d';
@@ -915,7 +914,6 @@ define([
         getConnectionElements(moduleElement).each((i, connectionElement) => {
             removeConnectionPanel(connectionElement);
         });
-        let test;
     };
 
     /**
