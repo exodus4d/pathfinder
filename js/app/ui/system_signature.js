@@ -36,6 +36,7 @@ define([
         signatureScannedProgressBarClass: 'pf-system-progress-scanned',         // class for signature progress bar
 
         // toolbar
+        sigTableLazyToggleButtonClass: 'pf-sig-table-lazy-button',              // class for "lazy update" toggle button
         sigTableClearButtonClass: 'pf-sig-table-clear-button',                  // class for "clear" signatures button
 
         // signature table
@@ -970,19 +971,19 @@ define([
 
             if( clearButton.is(':hidden') ){
                 // show button
-                clearButton.velocity('transition.bounceIn', {
-                    duration: 180
+                clearButton.velocity('transition.expandIn', {
+                    duration: 100
                 });
             }else{
                 // highlight button
                 clearButton.velocity('callout.pulse', {
-                    duration: 240
+                    duration: 200
                 });
             }
         }else{
             // hide button
-            clearButton.velocity('transition.bounceOut', {
-                duration: 180
+            clearButton.velocity('transition.expandOut', {
+                duration: 100
             });
         }
     };
@@ -1054,6 +1055,12 @@ define([
                 }
             })
         ).append(
+            $('<input>', {
+                type: 'checkbox',
+                class: [config.sigTableLazyToggleButtonClass, 'btn-labeled'].join(' '),
+                value: 1,
+            }).attr('data-toggle', 'toggle')
+        ).append(
             getLabledButton({
                 type: 'danger',
                 classes: [config.sigTableClearButtonClass, 'pull-right'],
@@ -1077,6 +1084,24 @@ define([
         );
 
         moduleElement.append(tableToolbar);
+
+        // "lazy update" toggle button --------------------------------------------------------------------------------
+        let lazyToggleCheckbox = moduleElement.find('.' + config.sigTableLazyToggleButtonClass).bootstrapToggle({
+            size: 'small' ,
+            on: '<i class="fa fa-fw fa-exchange"></i>&nbsp;&nbsp;lazy&nbsp;delete',
+            off: '<i class="fa fa-fw fa-clipboard"></i>&nbsp;&nbsp;lazy&nbsp;update',
+            onstyle: 'warning' ,
+            offstyle: 'default' ,
+            width: 110
+        });
+
+        let lazyToggleButton = lazyToggleCheckbox.parent();
+        lazyToggleButton.find('.toggle-on').attr('title', 'lazy \'update\' and \'delete\' old<br>from clipboard |ctrl&nbsp;+&nbsp;v|');
+        lazyToggleButton.find('.toggle-off').attr('title', 'lazy \'update\' signatures<br>from clipboard |ctrl&nbsp;+&nbsp;v|');
+        lazyToggleButton.initTooltips({
+            container: 'body',
+            html: true
+        });
 
         // add toolbar action for table -------------------------------------------------------------------------------
         let tableToolbarAction = $('<div>', {
@@ -2327,7 +2352,12 @@ define([
 
         // event listener for global "paste" signatures into the page -------------------------------------------------
         moduleElement.on('pf:updateSystemSignatureModuleByClipboard', function(e, clipboard){
-            $(this).updateSignatureTableByClipboard(systemData, clipboard, {});
+            // check "lazy update" toggle button
+            let signatureOptions = {
+                deleteOld: moduleElement.find('.' + config.sigTableLazyToggleButtonClass).is(':checked') ? 1 : 0
+            };
+
+            $(this).updateSignatureTableByClipboard(systemData, clipboard, signatureOptions);
         });
     };
 

@@ -362,7 +362,7 @@ table{
 .pf-table-tools{
   height: 45px;
 
-  .btn:not(:last-child){
+  & > .btn-labeled:not(:last-child){
     margin-right: 10px;
   }
 }

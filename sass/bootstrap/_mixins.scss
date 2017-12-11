@@ -506,7 +506,7 @@
   &:hover,
   &:focus,
   &:active,
-  &.active {
+  &.active:not(.toggle-on):not(.toggle-off) {
     color: $color;
     background-color: lighten($background, 8%);
         border-color: lighten($border, 12%);

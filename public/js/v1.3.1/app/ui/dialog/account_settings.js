@@ -200,7 +200,7 @@ define([
                     off: 'Disable&nbsp;<i class="fa fa-fw fa-ban"></i>',
                     onstyle: 'success',
                     offstyle: 'warning',
-                    width: 90,
+                    width: 100,
                     height: 30
                 });
 
