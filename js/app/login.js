@@ -16,7 +16,7 @@ define([
     'dialog/account_settings',
     'dialog/notification',
     'dialog/manual',
-    'dialog/releases',
+    'dialog/changelog',
     'dialog/credit'
 ], function($, Init, Util, Render, Gallery, bootbox) {
 
@@ -81,7 +81,7 @@ define([
      */
     let setVersionLinkObserver = function(){
         $('.' + config.navigationVersionLinkClass).off('click').on('click', function(e){
-            $.fn.releasesDialog();
+            $.fn.changelogsDialog();
         });
     };
 
