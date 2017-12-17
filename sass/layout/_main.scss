@@ -578,9 +578,9 @@ table{
 
       .pf-module-handler-drag{
         display: inline-block;
-        cursor: -moz-grabbing;
-        cursor: -webkit-grabbing;
-        cursor: grabbing;
+        cursor: -moz-grab !important;
+        cursor: -webkit-grab !important;
+        cursor: grab !important;
         transition: color 0.15s ease-out;
 
         &:before{
@@ -741,6 +741,7 @@ table{
   margin-right: 5px;
   cursor: -moz-grab;
   cursor: -webkit-grab;
+  cursor: grab;
 }
 
 .pf-system-sec-highSec{
@@ -1294,6 +1295,9 @@ code .fa {
 
   .pf-module-handler-drag{
     color: $orange-light;
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
+    cursor: grabbing;
   }
 }
 

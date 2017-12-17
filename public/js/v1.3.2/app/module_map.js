@@ -428,7 +428,6 @@ define([
 
                 // remember height
                 if(! moduleElement.data('origHeight')){
-
                     moduleElement.data('origHeight', moduleElement.outerHeight());
                 }
 

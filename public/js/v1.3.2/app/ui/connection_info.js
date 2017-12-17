@@ -34,15 +34,14 @@ define([
         moduleTableClass: 'pf-module-table',                                                    // class for module tables
         connectionInfoTableLabelSourceClass: 'pf-connection-info-label-source',                 // class for source label
         connectionInfoTableLabelTargetClass: 'pf-connection-info-label-target',                 // class for target label
+        connectionInfoTableRowMassLogClass: 'pf-connection-info-row-mass-log',                  // class for "logged mass" table row
         connectionInfoTableRowMassShipClass: 'pf-connection-info-row-mass-ship',                // class for "current ship mass" table row
+        connectionInfoTableCellConnectionClass: 'pf-connection-info-connection',                // class for connection "fake" table cell
         connectionInfoTableCellMassTotalTooltipClass: 'pf-connection-info-mass-total-tooltip',  // class for "mass total tooltip" table cell
         connectionInfoTableCellMassTotalClass: 'pf-connection-info-mass-total',                 // class for "mass total" table cell
-        connectionInfoTableCellMassLogClass: 'pf-connection-info-mass-log',                     // class for "mass log" table cell
+        connectionInfoTableCellMassLogClass: 'pf-connection-info-mass-log',                     // class for "mass logged" table cell
         connectionInfoTableCellMassShipClass: 'pf-connection-info-mass-ship',                   // class for "current ship mass" table cell
         connectionInfoTableCellMassLeftClass: 'pf-connection-info-mass-left',                   // class for "mass left" table cell
-
-        connectionInfoTableTooltipIconClass: 'pf-connection-info-tooltip-icon',                 // class for "tooltip" icon
-        connectionInfoTableWarningIconClass: 'pf-connection-info-warning-icon',                 // class for "warning" icon
 
         // dataTable
         connectionInfoTableClass: 'pf-connection-info-table',                                   // class for connection tables
@@ -126,12 +125,13 @@ define([
         let scopeLabel = MapUtil.getScopeInfoForConnection(connectionData.scope, 'label');
 
         // connection type (dummy) classes --------------------------------------------------------
-        let connectionClasses = ['pf-fake-connection'];
-        for(let i = 0; i < connectionData.type.length; i++){
-            connectionClasses.push( MapUtil.getConnectionInfo( connectionData.type[i], 'cssClass') );
-        }
-
-        let massLog = 0;
+        let getConnectionClasses = (types) => {
+            let connectionClasses = ['pf-fake-connection'];
+            for(let i = 0; i < types.length; i++){
+                connectionClasses.push( MapUtil.getConnectionInfo( types[i], 'cssClass') );
+            }
+            return connectionClasses;
+        };
 
         let element = $('<div>', {
             class: 'pf-dynamic-area'
@@ -196,10 +196,10 @@ define([
                             text: scopeLabel.charAt(0).toUpperCase() + scopeLabel.slice(1)
                         }),
                         $('<td>', {
-                            class: ['text-right'].join(' ')
+                            class: ['text-right', config.connectionInfoTableCellConnectionClass].join(' ')
                         }).append(
                             $('<div>', {
-                                class: connectionClasses.join(' ')
+                                class: getConnectionClasses(connectionData.type).join(' ')
                             })
                         )
                     ),
@@ -216,12 +216,33 @@ define([
                             class: ['text-right', 'txt-color', config.connectionInfoTableCellMassTotalClass].join(' ')
                         })
                     ),
-                    $('<tr>').append(
+                    $('<tr>', {
+                        class: config.connectionInfoTableRowMassLogClass
+                    }).append(
                         $('<td>', {
                             class: ['text-right', 'pf-help'].join(' '),
-                            html: '<i class="fa fa-fw fa-question-circle"></i>',
                             title: 'recorded total jump mass'
-                        }).attr('data-toggle', 'tooltip'),
+                        }).attr('data-toggle', 'tooltip').append(
+                            $('<i>', {
+                                class: [
+                                    'fa', 'fa-fw', 'fa-question-circle'
+                                ].join(' ')
+                            }),
+                            $('<i>', {
+                                class: [
+                                    'fa', 'fa-fw', 'fa-adjust',
+                                    'txt-color', 'txt-color-warning',
+                                    'hidden'
+                                ].join(' ')
+                            }),
+                            $('<i>', {
+                                class: [
+                                    'fa', 'fa-fw', 'fa-circle-o',
+                                    'txt-color', 'txt-color-danger',
+                                    'hidden'
+                                ].join(' ')
+                            })
+                        ),
                         $('<td>', {
                             text: 'Logged mass'
                         }),
@@ -237,16 +258,13 @@ define([
                             title: 'current ship mass'
                         }).attr('data-toggle', 'tooltip').append(
                             $('<i>', {
-                                class: [
-                                    'fa', 'fa-fw', 'fa-question-circle',
-                                    config.connectionInfoTableTooltipIconClass
-                                ].join(' ')
+                                class: ['fa', 'fa-fw', 'fa-question-circle'].join(' ')
                             }),
                             $('<i>', {
                                 class: [
                                     'fa', 'fa-fw', 'fa-exclamation-triangle',
                                     'txt-color', 'txt-color-danger',
-                                    'hidden',  config.connectionInfoTableWarningIconClass
+                                    'hidden'
                                 ].join(' ')
                             })
                         ),
@@ -292,8 +310,8 @@ define([
                         targetLabelElement.html(MapUtil.getEndpointOverlayContent(targetLabel));
 
                         // remove K162
-                        sourceLabel.diff(['K162']);
-                        targetLabel.diff(['K162']);
+                        sourceLabel = sourceLabel.diff(['K162']);
+                        targetLabel = targetLabel.diff(['K162']);
 
                         // get static wormhole data by endpoint Labels
                         let wormholeName = '';
@@ -325,25 +343,33 @@ define([
             }).on('pf:calcInfoTable', function(e){
                 // re-calculate information table from .data() cell values ------------------------
                 let tableElement        = $(this);
+                let connectionData      = tableElement.data('connectionData');
                 let massChartCell       = tableElement.find('[data-percent]');
 
                 let wormholeData        = tableElement.data('wormholeData');
                 let shipData            = null;
                 let shipName            = '';
                 let showShip            = Boolean(tableElement.data('showShip'));
+                let massLogRow          = tableElement.find('.' + config.connectionInfoTableRowMassLogClass);
                 let massShipRow         = tableElement.find('.' + config.connectionInfoTableRowMassShipClass);
 
                 // icons
-                let massShipTooltipIcon = massShipRow.find('.' + config.connectionInfoTableTooltipIconClass);
-                let massShipWarningIcon = massShipRow.find('.' + config.connectionInfoTableWarningIconClass);
+                let massLogTooltipIcon  = massLogRow.find('i.fa-question-circle');
+                let massLogStage2Icon   = massLogRow.find('i.fa-adjust');
+                let massLogStage3Icon   = massLogRow.find('i.fa-circle-o');
+
+                let massShipTooltipIcon = massShipRow.find('i.fa-question-circle');
+                let massShipWarningIcon = massShipRow.find('i.fa-exclamation-triangle');
 
                 // table cells
+                let connectionCell      = tableElement.find('.' + config.connectionInfoTableCellConnectionClass);
                 let massTotalCell       = tableElement.find('.' + config.connectionInfoTableCellMassTotalClass);
                 let massLogCell         = tableElement.find('.' + config.connectionInfoTableCellMassLogClass);
                 let massShipCell        = tableElement.find('.' + config.connectionInfoTableCellMassShipClass);
                 let massLeftCell        = tableElement.find('.' + config.connectionInfoTableCellMassLeftClass);
                 let massTotal           = null;                             // initial connection mass
-                let massLog             = massLogCell.data('mass');      // recorded mass
+                let massReduction       = 0;                                // default reduction (e.g. reduced, crit) in percent
+                let massLog             = massLogCell.data('mass');         // recorded mass
                 let massLogTotal        = massLog;                          // recorded mass + current ship
                 let massIndividual      = null;                             // mass mass per jump
                 let massShip            = 0;                                // current ship
@@ -353,6 +379,36 @@ define([
                 if(wormholeData){
                     massTotal           = parseInt(wormholeData.massTotal);
                     massIndividual      = parseInt(wormholeData.massIndividual);
+                }
+
+                // get connection type (show fake connection div) ---------------------------------
+                connectionCell.find('div').removeClass().addClass(getConnectionClasses(connectionData.type).join(' '));
+
+                // get wormhole status ------------------------------------------------------------
+                if(connectionData.type.indexOf('wh_critical') !== -1){
+                    massReduction = 90;
+                    massLogTooltipIcon.toggleClass('hidden', true);
+                    massLogStage2Icon.toggleClass('hidden', true);
+                    massLogStage3Icon.toggleClass('hidden', false);
+                    massLogStage3Icon.parent().attr('title', 'stage 3 (critical)').tooltip('fixTitle');
+                }else if(connectionData.type.indexOf('wh_reduced') !== -1){
+                    massReduction = 50;
+                    massLogTooltipIcon.toggleClass('hidden', true);
+                    massLogStage2Icon.toggleClass('hidden', false);
+                    massLogStage3Icon.toggleClass('hidden', true);
+                    massLogStage3Icon.parent().attr('title', 'stage 2 (reduced)').tooltip('fixTitle');
+                }else{
+                    massLogTooltipIcon.toggleClass('hidden', false);
+                    massLogStage2Icon.toggleClass('hidden', true);
+                    massLogStage3Icon.toggleClass('hidden', true);
+                    massLogStage3Icon.parent().attr('title', 'recorded total jump mass').tooltip('fixTitle');
+                }
+
+                if(massReduction){
+                    let massLogReduction = massTotal / 100 * massReduction;
+                    if(massLogReduction > massLog){
+                        massLog = massLogTotal = massLogReduction;
+                    }
                 }
 
                 // get current ship data ----------------------------------------------------------
