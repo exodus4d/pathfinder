@@ -207,6 +207,11 @@ class Map extends Controller\AccessController {
                 'status' => (bool)Config::getPathfinderData('slack.status')
             ];
 
+            // Slack integration status -------------------------------------------------------------------------------
+            $return->discord = [
+                'status' => (bool)Config::getPathfinderData('discord.status')
+            ];
+
             $f3->set(self::CACHE_KEY_INIT, $return, $expireTimeCache );
         }
 

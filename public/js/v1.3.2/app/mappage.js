@@ -69,6 +69,7 @@ define([
             Init.routes             = initData.routes;
             Init.url                = initData.url;
             Init.slack              = initData.slack;
+            Init.discord            = initData.discord;
             Init.routeSearch        = initData.routeSearch;
             Init.programMode        = initData.programMode;
 

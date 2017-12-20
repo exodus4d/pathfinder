@@ -24,6 +24,7 @@ define([
 
         dialogRallyPokeDesktopId: 'pf-rally-dialog-poke-desktop',                       // id for "desktop" poke checkbox
         dialogRallyPokeSlackId: 'pf-rally-dialog-poke-slack',                           // id for "Slack" poke checkbox
+        dialogRallyPokeDiscordId: 'pf-rally-dialog-poke-discord',                       // id for "Discord" poke checkbox
         dialogRallyPokeMailId: 'pf-rally-dialog-poke-mail',                             // id for "mail" poke checkbox
         dialogRallyMessageId: 'pf-rally-dialog-message',                                // id for "message" textarea
 
@@ -88,11 +89,13 @@ define([
 
                 dialogRallyPokeDesktopId: config.dialogRallyPokeDesktopId,
                 dialogRallyPokeSlackId: config.dialogRallyPokeSlackId,
+                dialogRallyPokeDiscordId: config.dialogRallyPokeDiscordId,
                 dialogRallyPokeMailId: config.dialogRallyPokeMailId,
                 dialogRallyMessageId: config.dialogRallyMessageId ,
 
                 desktopRallyEnabled: true,
                 slackRallyEnabled: Boolean(Util.getObjVal(mapData, 'config.logging.slackRally')),
+                discordRallyEnabled: Boolean(Util.getObjVal(mapData, 'config.logging.discordRally')),
                 mailRallyEnabled: Boolean(Util.getObjVal(mapData, 'config.logging.mailRally')),
                 dialogRallyMessageDefault: config.dialogRallyMessageDefault,
 
@@ -131,6 +134,8 @@ define([
                     }
                 }
             });
+
+            rallyDialog.initTooltips();
 
             // after modal is shown ==================================================================================
             rallyDialog.on('shown.bs.modal', function(e){

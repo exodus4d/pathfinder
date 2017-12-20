@@ -16,6 +16,13 @@
                 </label>
             </div>
 
+            <div class="checkbox {{#discordRallyEnabled}}checkbox-primary{{/discordRallyEnabled}}">
+                <input id="{{dialogRallyPokeDiscordId}}" name="pokeDiscord" value="1" type="checkbox" {{#discordRallyEnabled}}checked=""{{/discordRallyEnabled}}{{^discordRallyEnabled}}disabled{{/discordRallyEnabled}}>
+                <label for="{{dialogRallyPokeDiscordId}}">Discord poke
+                    <i class="fa fa-fw fa-question-circle pf-help-light" title="Send Discord message to a public channel"></i>
+                </label>
+            </div>
+
             <div class="checkbox {{#mailRallyEnabled}}checkbox-primary{{/mailRallyEnabled}}">
                 <input id="{{dialogRallyPokeMailId}}" name="pokeMail" value="1" type="checkbox" {{#mailRallyEnabled}}checked=""{{/mailRallyEnabled}}{{^mailRallyEnabled}}disabled{{/mailRallyEnabled}}>
                 <label for="{{dialogRallyPokeMailId}}">Mail poke
@@ -43,9 +50,9 @@
         <div class="col-xs-12">
             <div class="well well-sm">
                 <div class="row">
-                    <div class="col-xs-6 col-sm-2">Map settings:</div>
-                    <div class="col-xs-6 col-sm-4 text-right">
-                        <i class="fa fa-fw fa-volume-up"></i> Desktop poke&nbsp;
+                    <div class="col-xs-6 col-sm-4">Map config:</div>
+                    <div class="col-xs-6 col-sm-2 text-right" title="Desktop poke">
+                        <i class="fa fa-fw fa-volume-up"></i>&nbsp;
                         {{#desktopRallyEnabled}}
                         <kbd class="txt-color txt-color-success">enabled</kbd>
                         {{/desktopRallyEnabled}}
@@ -53,8 +60,8 @@
                         <kbd>disabled</kbd>
                         {{/desktopRallyEnabled}}
                     </div>
-                    <div class="col-xs-6 col-sm-3 text-right">
-                        </i> Slack poke&nbsp;
+                    <div class="col-xs-6 col-sm-2 text-right" title="Slack poke">
+                        <i class="fa fa-fw fa-slack"></i>
                         {{#slackRallyEnabled}}
                         <kbd class="txt-color txt-color-success">enabled</kbd>
                         {{/slackRallyEnabled}}
@@ -62,8 +69,17 @@
                         <kbd>disabled</kbd>
                         {{/slackRallyEnabled}}
                     </div>
-                    <div class="col-xs-6 col-sm-3 text-right">
-                        <i class="fa fa-fw fa-envelope"></i> Mail poke&nbsp;
+                    <div class="col-xs-6 col-sm-2 text-right" title="Discord poke">
+                        <i class="fa fa-fw fa-microphone"></i>&nbsp;
+                        {{#discordRallyEnabled}}
+                        <kbd class="txt-color txt-color-success">enabled</kbd>
+                        {{/discordRallyEnabled}}
+                        {{^discordRallyEnabled}}
+                        <kbd>disabled</kbd>
+                        {{/discordRallyEnabled}}
+                    </div>
+                    <div class="col-xs-6 col-sm-2 text-right" title="Mail poke">
+                        <i class="fa fa-fw fa-envelope"></i>&nbsp;
                         {{#mailRallyEnabled}}
                         <kbd class="txt-color txt-color-success">enabled</kbd>
                         {{/mailRallyEnabled}}

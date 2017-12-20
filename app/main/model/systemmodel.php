@@ -565,6 +565,7 @@ class SystemModel extends AbstractMapTrackingModel {
     /**
      * send rally point poke to various "APIs"
      * -> send to a Slack channel
+     * -> send to a Discord channel
      * -> send to an Email
      * @param array $rallyData
      * @param CharacterModel $characterModel
@@ -583,6 +584,17 @@ class SystemModel extends AbstractMapTrackingModel {
         ){
             $isValidLog = true;
             $log->addHandler('slackRally', null, $this->getMap()->getSlackWebHookConfig($slackChannelKey));
+        }
+
+        // Discord poke ---------------------------------------------------------------------------
+        $discordChannelKey = 'discordWebHookURLRally';
+        if(
+            $rallyData['pokeDiscord'] === true &&
+            $this->getMap()->isDiscordChannelEnabled($discordChannelKey)
+        ){
+            $isValidLog = true;
+
+            $log->addHandler('discordRally', null, $this->getMap()->getDiscordWebHookConfig($discordChannelKey));
         }
 
         // Mail poke ------------------------------------------------------------------------------

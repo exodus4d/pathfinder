@@ -33,6 +33,10 @@ define([
         slackChannelHistoryId: 'pf-map-dialog-slack-channel-history',                   // id for Slack channel "history"
         slackChannelRallyId: 'pf-map-dialog-slack-channel-rally',                       // id for Slack channel "rally"
 
+        discordUsernameId: 'pf-map-dialog-discord-username',                            // id for Discord "username"
+        discordWebHookURLRallyId: 'pf-map-dialog-discord-url-rally',                    // id for Discord "rally" webHookUrl
+        discordWebHookURLHistoryId: 'pf-map-dialog-discord-url-history',                // id for Discord "history" webHookUrl
+
         characterSelectId: 'pf-map-dialog-character-select',                            // id for "character" select
         corporationSelectId: 'pf-map-dialog-corporation-select',                        // id for "corporation" select
         allianceSelectId: 'pf-map-dialog-alliance-select',                              // id for "alliance" select
@@ -133,6 +137,14 @@ define([
                 let slackRallyEnabled = false;
                 let slackSectionShow = false;
 
+                let discordUsername = '';
+                let discordWebHookURLRally = '';
+                let discordWebHookURLHistory = '';
+                let discordEnabled = false;
+                let discordRallyEnabled = false;
+                let discordHistoryEnabled = false;
+                let discordSectionShow = false;
+
                 if(mapData !== false){
                     // set current map information
                     contentEditMap.find('input[name="id"]').val( mapData.config.id );
@@ -161,6 +173,14 @@ define([
                     slackHistoryEnabled = slackEnabled && Boolean(Util.getObjVal(Init.mapTypes, mapData.config.type.name + '.defaultConfig.send_history_slack_enabled'));
                     slackRallyEnabled = slackEnabled && Boolean(Util.getObjVal(Init.mapTypes, mapData.config.type.name + '.defaultConfig.send_rally_slack_enabled'));
                     slackSectionShow = (slackEnabled && slackWebHookURL.length > 0);
+
+                    discordUsername = Util.getObjVal(mapData, 'config.logging.discordUsername');
+                    discordWebHookURLRally = Util.getObjVal(mapData, 'config.logging.discordWebHookURLRally');
+                    discordWebHookURLHistory = Util.getObjVal(mapData, 'config.logging.discordWebHookURLHistory');
+                    discordEnabled = Boolean(Util.getObjVal(Init, 'discord.status'));
+                    discordRallyEnabled = discordEnabled && Boolean(Util.getObjVal(Init.mapTypes, mapData.config.type.name + '.defaultConfig.send_rally_discord_enabled'));
+                    discordHistoryEnabled = discordEnabled && Boolean(Util.getObjVal(Init.mapTypes, mapData.config.type.name + '.defaultConfig.send_history_discord_enabled'));
+                    discordSectionShow = (discordEnabled && (discordWebHookURLRally.length > 0 || discordWebHookURLHistory.length > 0));
 
                     // remove "#" from Slack channels
                     slackChannelHistory = slackChannelHistory.indexOf('#') === 0 ? slackChannelHistory.substr(1) : slackChannelHistory;
@@ -220,6 +240,17 @@ define([
                     slackHistoryEnabled: slackHistoryEnabled,
                     slackRallyEnabled: slackRallyEnabled,
                     slackSectionShow: slackSectionShow,
+
+                    discordUsernameId: config.discordUsernameId,
+                    discordWebHookURLRallyId: config.discordWebHookURLRallyId,
+                    discordWebHookURLHistoryId: config.discordWebHookURLHistoryId,
+                    discordUsername: discordUsername,
+                    discordWebHookURLRally: discordWebHookURLRally,
+                    discordWebHookURLHistory: discordWebHookURLHistory,
+                    discordEnabled: discordEnabled,
+                    discordRallyEnabled: discordRallyEnabled,
+                    discordHistoryEnabled: discordHistoryEnabled,
+                    discordSectionShow: discordSectionShow,
 
                     characterSelectId: config.characterSelectId,
                     corporationSelectId: config.corporationSelectId,
