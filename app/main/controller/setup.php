@@ -1167,8 +1167,8 @@ class Setup extends Controller {
         $dbVersion = 'unknown';
         foreach($dbVersionParts as $dbVersionPart){
             // check if this is a valid version number
-            // hint: MariaDB´s version is always the last valid version number...
-            if( version_compare( $dbVersionPart, '0.0.1', '>=' ) > 0 ){
+            // hint: MariaDB´s version is NOT always the last valid version number
+            if( version_compare( $dbVersionPart, '1', '>' ) > 0 ){
                 $dbVersion = $dbVersionPart;
             }
         }
