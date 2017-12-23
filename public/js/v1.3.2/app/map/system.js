@@ -8,8 +8,9 @@ define([
     'app/init',
     'app/util',
     'bootbox',
-    'app/map/util'
-], ($, Init, Util, bootbox, MapUtil) => {
+    'app/map/util',
+    'app/map/layout'
+], ($, Init, Util, bootbox, MapUtil, Layout) => {
     'use strict';
 
     let config = {
@@ -298,21 +299,45 @@ define([
     /**
      * calculate the x/y coordinates for a new system - relativ to a source system
      * @param sourceSystem
+     * @param grid
      * @returns {{x: *, y: *}}
      */
     let calculateNewSystemPosition = function(sourceSystem){
+        let mapContainer = sourceSystem.parent();
+        let grid = [MapUtil.config.mapSnapToGridDimension, MapUtil.config.mapSnapToGridDimension];
 
-        // related system is available
-        let currentX = sourceSystem.css('left');
-        let currentY = sourceSystem.css('top');
+        let x = 0;
+        let y = 0;
 
-        // remove "px"
-        currentX = parseInt( currentX.substring(0, currentX.length - 2) );
-        currentY = parseInt( currentY.substring(0, currentY.length - 2) );
+        let position = new Layout.Position({
+            container: mapContainer[0],
+            center: sourceSystem[0],
+            loops: 4,
+            grid: mapContainer.hasClass(MapUtil.config.mapGridClass) ? grid : false,
+            debug: false
+        });
+
+        let dimensions = position.findNonOverlappingDimensions(1, 16);
+        if(dimensions.length){
+            //... empty map space found
+            x = dimensions[0].left;
+            y = dimensions[0].top;
+        }else{
+            //... fallback
+            // related system is available
+            let currentX = sourceSystem.css('left');
+            let currentY = sourceSystem.css('top');
+
+            // remove "px"
+            currentX = parseInt( currentX.substring(0, currentX.length - 2) );
+            currentY = parseInt( currentY.substring(0, currentY.length - 2) );
+            x = currentX + config.newSystemOffset.x;
+            y = currentY + config.newSystemOffset.y;
+        }
 
         let newPosition = {
-            x: currentX + config.newSystemOffset.x,
-            y: currentY + config.newSystemOffset.y
+            x: x,
+            y: y
         };
 
         return newPosition;

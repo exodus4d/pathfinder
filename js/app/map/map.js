@@ -25,7 +25,6 @@ define([
         zIndexCounter: 110,
         maxActiveConnections: 8,
 
-        mapSnapToGrid: false,                                           // "Snap to Grid" feature for drag&drop systems on map (optional)
         mapWrapperClass: 'pf-map-wrapper',                              // wrapper div (scrollable)
 
         mapClass: 'pf-map',                                             // class for all maps
@@ -1569,6 +1568,7 @@ define([
 
                                 // get new position
                                 newPosition = System.calculateNewSystemPosition(sourceSystem);
+
                             }else{
                                 // check mouse cursor position (add system to map)
                                 newPosition = {
@@ -2062,7 +2062,7 @@ define([
         let mapContainer = $( map.getContainer() );
         let systemHeadExpand = $( system.find('.' + config.systemHeadExpandClass) );
         let systemBody = $( system.find('.' + config.systemBodyClass) );
-
+        let grid = [MapUtil.config.mapSnapToGridDimension, MapUtil.config.mapSnapToGridDimension];
         // map overlay will be set on "drag" start
         let mapOverlayTimer = null;
 
@@ -2083,7 +2083,7 @@ define([
 
                 // check if grid-snap is enable -> this enables napping for !CURRENT! Element
                 if( mapContainer.hasClass(MapUtil.config.mapGridClass) ){
-                    params.drag.params.grid = [MapUtil.config.mapSnapToGridDimension, MapUtil.config.mapSnapToGridDimension];
+                    params.drag.params.grid = grid;
                 }else{
                     delete( params.drag.params.grid );
                 }

@@ -269,7 +269,6 @@ $.fn.dragToSelect = function (conf) {
 				// remove element from "deselected" elements (e.g on add -> remove -> add scenario)
 				deselectedItems = deselectedItems.not(el);
 			}else {
-
                 if(el.hasClass(config.selectedClass)){
                     el.removeClass(config.selectedClass);
 					deselectedItems = deselectedItems.add(el);
