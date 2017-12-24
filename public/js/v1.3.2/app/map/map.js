@@ -10,6 +10,7 @@ define([
     'bootbox',
     'app/map/util',
     'app/map/system',
+    'app/map/layout',
     'app/map/magnetizing',
     'app/map/scrollbar',
     'dragToSelect',
@@ -17,7 +18,7 @@ define([
     'app/map/contextmenu',
     'app/map/overlay',
     'app/map/local'
-], function($, Init, Util, Render, bootbox, MapUtil, System, MagnetizerWrapper) {
+], function($, Init, Util, Render, bootbox, MapUtil, System, Layout, MagnetizerWrapper) {
 
     'use strict';
 
@@ -2661,6 +2662,24 @@ define([
                 switch(action){
                     case 'add_system':
                         // add new system dialog
+                        let grid = [MapUtil.config.mapSnapToGridDimension, MapUtil.config.mapSnapToGridDimension];
+                        let positionFinder = new Layout.Position({
+                            container: currentMapElement[0],
+                            center: [position.x, position.y],
+                            loops: 5,
+                            defaultGapX: 10,
+                            defaultGapY: 10,
+                            grid: currentMapElement.hasClass(MapUtil.config.mapGridClass) ? grid : false,
+                            debug: false
+                        });
+
+                        let dimensions = positionFinder.findNonOverlappingDimensions(1, 8);
+
+                        if(dimensions.length){
+                            position.x = dimensions[0].left;
+                            position.y = dimensions[0].top;
+                        }
+
                         showNewSystemDialog(currentMap, {position: position});
                         break;
                     case 'select_all':

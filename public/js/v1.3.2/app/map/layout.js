@@ -40,18 +40,48 @@ define(() => {
              */
             this._getElementDimension = (element) => {
                 let dim = null;
-                if(element){
-                    // add "gap" to a and b in order to have some space around elements
-                    dim = {
-                        left: element.style.left ? parseInt(element.style.left, 10) : 0,
-                        top: element.style.top ? parseInt(element.style.top, 10) : 0,
-                        a: parseInt((element.offsetWidth / 2).toString(), 10) + this._config.gapX,
-                        b: parseInt((element.offsetHeight / 2).toString(), 10) + this._config.gapY,
-                        width: element.offsetWidth,
-                        height: element.offsetHeight
-                    };
+
+                let left = 0;
+                let top = 0;
+                let a = 0;
+                let b = 0;
+                let width = this._config.newElementWidth;
+                let height = this._config.newElementHeight;
+
+                if(Array.isArray(element)){
+                    // xy coordinates
+                    let point = [
+                        element[0] ? parseInt(element[0], 10) : 0,
+                        element[1] ? parseInt(element[1], 10) : 0
+                    ];
+
+                    if(this._config.grid){
+                        point = this._transformPointToGrid(point);
+                    }
+
+                    left = point[0];
+                    top = point[1];
+                    a = this._config.gapX ;
+                    b = this._config.gapY ;
+                }else if(element){
+                    // DOM element
+                    left = element.style.left ? parseInt(element.style.left, 10) : 0;
+                    top = element.style.top ? parseInt(element.style.top, 10) : 0;
+                    a = parseInt((element.offsetWidth / 2).toString(), 10) + this._config.gapX;
+                    b = parseInt((element.offsetHeight / 2).toString(), 10) + this._config.gapY;
+                    width = element.offsetWidth;
+                    height = element.offsetHeight;
                 }
-                return dim;
+
+                // add "gap" to a and b in order to have some space around elements
+                return {
+                    left: left,
+                    top: top,
+                    a: a,
+                    b: b,
+                    width: width,
+                    height: height
+                };
             };
 
             /**
@@ -97,6 +127,18 @@ define(() => {
             };
 
             /**
+             * transform a x/y point into a x/y point that snaps to grid
+             * @param point
+             * @returns {*}
+             * @private
+             */
+            this._transformPointToGrid = (point) => {
+                point[0] = Math.floor(point[0] / this._config.grid[0]) * this._config.grid[0];
+                point[1] = Math.floor(point[1] / this._config.grid[1]) * this._config.grid[1];
+                return point;
+            };
+
+            /**
              * Transform a x/y coordinate into a 2D element with width/height
              * @param centerDimension
              * @param coordinate
@@ -136,8 +178,9 @@ define(() => {
 
                     // transform to grid coordinates (if grid snapping is enabled) ------------------------------------
                     if(this._config.grid){
-                        left = Math.floor(left / this._config.grid[0]) * this._config.grid[0];
-                        top = Math.floor(top / this._config.grid[1]) * this._config.grid[1];
+                        let point = this._transformPointToGrid([left, top]);
+                        left = point[0];
+                        top = point[1];
                     }
 
                     dim = {
@@ -239,14 +282,30 @@ define(() => {
                 steps = steps || 1;
                 loops = loops || 1;
 
+                if(loops === 1){
+                    // check center element
+                    let centerDimension = this._getElementDimension(this._config.center);
+                    if (!this._isOverlapping(centerDimension, dimensionContainer, allDimensions)) {
+                        dimensions.push({
+                            left: centerDimension.left,
+                            top: centerDimension.top,
+                            width: centerDimension.width,
+                            height: centerDimension.height
+                        });
+                        // render debug element
+                        this._showDebugElement(centerDimension, 0);
+
+                        maxResults--;
+                    }
+                }
+
                 // increase the "gab" between center element and potential found dimensions...
                 // ... for each recursive loop call, to get an elliptical cycle beyond
-                // -> defaultGab for 1. loop, ...,  defaultGab + 3 * defaultGab/ 2 for 3. loop
-                this._config.gapX = this._config.defaultGapX + loops * Math.round(this._config.defaultGapX / 2);
-                this._config.gapY = this._config.defaultGapY + loops * Math.round(this._config.defaultGapY / 2);
+                this._config.gapX = this._config.defaultGapX + (loops - 1) * 20;
+                this._config.gapY = this._config.defaultGapY + (loops - 1) * 20;
                 let centerDimension = this._getElementDimension(this._config.center);
 
-                do {
+                while(maxResults > 0 && start < end){
                     // get all potential coordinates on an eclipse around a given "centerElementDimension"
                     let coordinate = this._getEllipseCoordinates(centerDimension, end);
                     // transform relative x/y coordinate into a absolute 2D area
@@ -264,7 +323,7 @@ define(() => {
                         maxResults--;
                     }
                     end -= angle;
-                } while (maxResults > 0 && start < end);
+                }
 
                 if(maxResults > 0 && loops < this._config.loops){
                     loops++;

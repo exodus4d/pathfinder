@@ -309,7 +309,7 @@ define([
         let x = 0;
         let y = 0;
 
-        let position = new Layout.Position({
+        let positionFinder = new Layout.Position({
             container: mapContainer[0],
             center: sourceSystem[0],
             loops: 4,
@@ -317,7 +317,7 @@ define([
             debug: false
         });
 
-        let dimensions = position.findNonOverlappingDimensions(1, 16);
+        let dimensions = positionFinder.findNonOverlappingDimensions(1, 16);
         if(dimensions.length){
             //... empty map space found
             x = dimensions[0].left;
