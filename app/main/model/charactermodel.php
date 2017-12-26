@@ -1081,6 +1081,11 @@ class CharacterModel extends BasicModel {
         return array_merge($characterDataBase, $addData);
     }
 
+    /**
+     * get all characters
+     * @param array $characterIds
+     * @return \DB\CortexCollection
+     */
     public static function getAll($characterIds = []){
         $query = [
             'active = :active AND id IN :characterIds',

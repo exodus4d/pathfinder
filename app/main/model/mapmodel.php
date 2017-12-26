@@ -450,7 +450,6 @@ class MapModel extends AbstractMapTrackingModel {
      */
     public function afterEraseEvent($self, $pkeys){
         $self->clearCacheData();
-        $self->logActivity('mapDelete');
         $self->deleteLogFile();
     }
 
@@ -1335,9 +1334,12 @@ class MapModel extends AbstractMapTrackingModel {
 
     /**
      * @param CharacterModel|null $characterModel
-     * @return false|ConnectionModel
+     * @return false|MapModel
      */
     public function save(CharacterModel $characterModel = null){
+        /**
+         * @var $mapModel MapModel
+         */
         $mapModel = parent::save($characterModel);
 
         // check if map type has changed and clear access objects
@@ -1354,4 +1356,18 @@ class MapModel extends AbstractMapTrackingModel {
         return $mapModel;
     }
 
+    /**
+     * get all maps
+     * @param array $mapIds
+     * @return \DB\CortexCollection
+     */
+    public static function getAll($mapIds = []){
+        $query = [
+            'active = :active AND id IN :mapIds',
+            ':active' => 1,
+            ':mapIds' => $mapIds
+        ];
+
+        return (new self())->find($query);
+    }
 }

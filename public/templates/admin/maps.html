@@ -1,0 +1,72 @@
+<section>
+    <div class="container col-xs-12">
+        <div class="row"></div>
+
+        <h4><i class="fa fa-fw fa-sitemap"></i>&nbsp;{{ ucfirst(@tplPage) }}</h4>
+
+        <repeat group="{{ @tplMaps->corpMaps }}" value="{{ @corpMap }}" key="{{@corpName}}" counter="{{ @corpCount }}">
+            <div class="row text-center">
+                <div class="col-xs-12 pf-landing-pricing-panel">
+                    <div class="panel panel-default pricing-big">
+                        <div class="panel-heading text-left">
+                            <h3 class="panel-title">{{ @corpCount }}. {{@corpName}}</h3>
+                        </div>
+                        <div class="panel-body">
+
+                            <table id="table_id" class="stripe order-column row-border dataTable" data-order="[1, &quot;asc&quot;]" data-length-change="0" data-paging-type="full_numbers">
+                                <thead>
+                                <tr>
+                                    <th data-width="50">id</th>
+                                    <th>name</th>
+                                    <th data-width="50">scope</th>
+                                    <th data-width="50">type</th>
+                                    <th data-width="80">created</th>
+                                    <th data-width="150">created by</th>
+                                    <th data-width="80">updated</th>
+                                    <th data-width="150">updated by</th>
+                                    <th data-width="50">active</th>
+                                    <th data-width="40">delete</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+
+                                <repeat group="{{ @corpMap }}" value="{{ @map }}" counter="{{ @mapCount }}">
+
+
+                                    <tr>
+                                        <td class="text-right">{{ @map->_id }}</td>
+                                        <td data-order="{{ @map->name }}" data-search="{{ @map->name }}">{{ @map->name }}</td>
+                                        <td>{{ @map->scopeId->label }}</td>
+                                        <td>{{ @map->typeId->name }}</td>
+                                        <td class="text-right">{{ @map->getFormattedColumn('created') }}</td>
+                                        <td class="pf-table-button-sm-cell">
+                                            <img src="//image.eveonline.com/Character/{{ @map->createdCharacterId->_id }}_32.jpg" >&nbsp;{{ @map->createdCharacterId->name  }}
+                                        </td>
+                                        <td class="text-right">{{ @map->getFormattedColumn('updated') }}</td>
+                                        <td class="pf-table-button-sm-cell">
+                                            <img src="//image.eveonline.com/Character/{{ @map->updatedCharacterId->_id }}_32.jpg" >&nbsp;{{ @map->updatedCharacterId->name  }}
+                                        </td>
+                                        <td class="text-right pf-table-button-sm-cell">
+                                            <check if="{{ @map->active }}">
+                                                <true>
+                                                    <a class="btn btn-sm btn-warning" href="/admin/{{ @tplPage}}/active/{{ @map->_id }}/0">deactivate</a>
+                                                </true>
+                                                <false>
+                                                    <a class="btn btn-sm btn-success" href="/admin/{{ @tplPage}}/active/{{ @map->_id }}/1">activate</a>
+                                                </false>
+                                            </check>
+                                        </td>
+                                        <td class="text-right pf-table-button-sm-cell">
+                                            <a class="btn btn-sm btn-danger {{ @map->active ? 'disabled' : '' }}" href="/admin/{{ @tplPage}}/delete/{{ @map->_id }}">delete</a>
+                                        </td>
+                                    </tr>
+                                </repeat>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </repeat>
+    </div>
+</section>

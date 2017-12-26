@@ -62,48 +62,39 @@ define([
      * @returns {Array}
      */
     let getMapTypes = (filterByUser) => {
-        let mapTypes = [];
-
-        $.each(Init.mapTypes, function(prop, data){
-            // skip "default" type -> just for 'add' icon
-            if(data.label.length > 0){
-                let tempData = data;
-                tempData.name = prop;
-                mapTypes.push(tempData);
-            }
-        });
+        let mapTypes = Object.assign({}, Init.mapTypes);
 
         if(filterByUser === true){
-            let corporationId = Util.getCurrentUserInfo('corporationId');
-            let allianceId = Util.getCurrentUserInfo('allianceId');
-
             let authorizedMapTypes = [];
-            // check if character data exists
-            if(corporationId > 0) {
-                authorizedMapTypes.push('corporation');
-            }
-            if(allianceId > 0){
-                authorizedMapTypes.push('alliance');
-            }
+            let checkMapTypes = ['private', 'corporation', 'alliance'];
 
-            // private maps are always allowed
-            authorizedMapTypes.push('private');
-
-            // compare "all" map types with "authorized" types
-            let tempMapTypes = [];
-            for(let i = 0; i < mapTypes.length; i++){
-                for(let j = 0; j < authorizedMapTypes.length; j++){
-                    if(mapTypes[i].name === authorizedMapTypes[j]){
-                        tempMapTypes.push(mapTypes[i]);
-                        break;
+            for(let i = 0; i < checkMapTypes.length; i++){
+                let objectId = Util.getCurrentUserInfo(checkMapTypes[i] + 'Id');
+                if(objectId > 0) {
+                    // check if User could add new map with a mapType
+                    let currentObjectMapData = Util.filterCurrentMapData('config.type.id', Util.getObjVal(mapTypes, checkMapTypes[i] + '.id'));
+                    let maxCountObject = Util.getObjVal(mapTypes, checkMapTypes[i] + '.defaultConfig.max_count');
+                    if(currentObjectMapData.length < maxCountObject){
+                        authorizedMapTypes.push(checkMapTypes[i]);
                     }
-
                 }
             }
-            mapTypes = tempMapTypes;
+
+            for(let mapType in mapTypes) {
+                if(authorizedMapTypes.indexOf(mapType) < 0){
+                    delete( mapTypes[mapType] );
+                }
+            }
         }
 
-        return mapTypes;
+        // convert to array
+        let mapTypesFlat = [];
+        for(let mapType in mapTypes){
+            mapTypes[mapType].name = mapType;
+            mapTypesFlat.push(mapTypes[mapType]);
+        }
+
+        return mapTypesFlat;
     };
 
     /**

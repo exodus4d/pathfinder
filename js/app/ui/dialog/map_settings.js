@@ -315,7 +315,7 @@ define([
                                     let selectField = $(this);
                                     let selectValues = selectField.val();
 
-                                    if(selectValues.length > 0){
+                                    if(selectValues && selectValues.length > 0){
                                         selectField.parents('.form-group').removeClass('has-error');
                                     }else{
                                         selectField.parents('.form-group').addClass('has-error');

@@ -127,24 +127,29 @@ class CorporationModel extends BasicModel {
 
     /**
      * get all maps for this corporation
-     * @return MapModel[]
+     * @param array $mapIds
+     * @param array $options
+     * @return array
      * @throws \Exception\PathfinderException
      */
-    public function getMaps(){
+    public function getMaps($mapIds = [], $options = []){
         $maps = [];
+        $filter = ['active = ?', 1];
 
-        $this->filter('mapCorporations',
-            ['active = ?', 1],
-            ['order' => 'created']
-        );
+        if( !empty($mapIds) ){
+            $filter[0] .= ' AND mapId IN (?)';
+            $filter[] =  $mapIds;
+        }
+
+        $this->filter('mapCorporations', $filter, ['order' => 'created']);
 
         if($this->mapCorporations){
             $mapCount = 0;
             foreach($this->mapCorporations as $mapCorporation){
-                if(
-                    $mapCorporation->mapId->isActive() &&
-                    $mapCount < Config::getMapsDefaultConfig('corporation')['max_count']
-                ){
+                $validActive = !$options['addInactive'] ? $mapCorporation->mapId->isActive() : true;
+                $validMapCount = !$options['ignoreMapCount'] ? $mapCount < Config::getMapsDefaultConfig('corporation')['max_count'] : true;
+
+                if($validActive && $validMapCount){
                     $maps[] = $mapCorporation->mapId;
                     $mapCount++;
                 }

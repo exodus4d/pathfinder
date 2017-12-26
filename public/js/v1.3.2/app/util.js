@@ -1295,9 +1295,7 @@ define([
      * @returns {number}
      */
     let getAreaIdBySecurity = function(security){
-
         let areaId = 0;
-
         switch(security){
             case 'H':
                 areaId = 10;
@@ -1724,6 +1722,21 @@ define([
     };
 
     /**
+     * @param path
+     * @param value
+     * @returns {boolean}
+     */
+    let filterCurrentMapData = (path, value) => {
+        let currentMapData = getCurrentMapData();
+        if(currentMapData){
+            currentMapData = currentMapData.filter((mapData) => {
+                return (getObjVal(mapData, path) === value);
+            });
+        }
+        return currentMapData;
+    };
+
+    /**
      * delete map data by mapId from currentMapData
      * @param mapId
      */
@@ -1775,26 +1788,23 @@ define([
      * @param option
      * @returns {boolean}
      */
-    let getCurrentUserInfo = function(option){
+    let getCurrentUserInfo = (option) => {
         let currentUserData = getCurrentUserData();
         let userInfo = false;
 
         if(currentUserData){
             // user data is set -> user data will be set AFTER the main init request!
             let characterData = currentUserData.character;
-
             if(characterData){
-                if(
-                    option === 'allianceId' &&
-                    characterData.alliance
-                ){
+                if(option === 'privateId'){
+                    userInfo = characterData.id;
+                }
+
+                if(option === 'allianceId' && characterData.alliance){
                     userInfo = characterData.alliance.id;
                 }
 
-                if(
-                    option === 'corporationId' &&
-                    characterData.corporation
-                ){
+                if(option === 'corporationId' && characterData.corporation){
                     userInfo = characterData.corporation.id;
                 }
             }
@@ -2291,6 +2301,7 @@ define([
         getCurrentMapUserData: getCurrentMapUserData,
         setCurrentMapData: setCurrentMapData,
         getCurrentMapData: getCurrentMapData,
+        filterCurrentMapData: filterCurrentMapData,
         getCurrentMapDataIndex: getCurrentMapDataIndex,
         updateCurrentMapData: updateCurrentMapData,
         deleteCurrentMapData: deleteCurrentMapData,

@@ -13,6 +13,7 @@ use Controller\Ccp\Sso;
 use Model\CharacterModel;
 use Model\CorporationModel;
 use lib\Config;
+use Model\MapModel;
 
 class Admin extends Controller{
 
@@ -183,6 +184,23 @@ class Admin extends Controller{
 
                     $this->initMembers($f3, $character);
                     break;
+                case 'maps':
+                    switch($parts[1]){
+                        case 'active':
+                            $objectId = (int)$parts[2];
+                            $value  = (int)$parts[3];
+                            $this->activateMap($character, $objectId, $value);
+
+                            $f3->reroute('@admin(@*=/' . $parts[0] . ')');
+                            break;
+                        case 'delete':
+                            $objectId = (int)$parts[2];
+                            $this->deleteMap($character, $objectId);
+                            $f3->reroute('@admin(@*=/' . $parts[0] . ')');
+                            break;
+                    }
+                    $this->initMaps($f3, $character);
+                    break;
                 case 'login':
                 default:
                     $f3->set('tplPage', 'login');
@@ -230,7 +248,6 @@ class Admin extends Controller{
      */
     protected function banCharacter(CharacterModel $character, $banCharacterId, $value){
         $banCharacters = $this->filterValidCharacters($character, $banCharacterId);
-
         foreach($banCharacters as $banCharacter){
             $banCharacter->ban($value);
             $banCharacter->save();
@@ -248,7 +265,7 @@ class Admin extends Controller{
     }
 
     /**
-     * checks whether a $character has admin access rights for $charcterId
+     * checks whether a $character has admin access rights for $characterId
      * -> must be in same corporation
      * @param CharacterModel $character
      * @param int $characterId
@@ -271,6 +288,52 @@ class Admin extends Controller{
     }
 
     /**
+     * @param CharacterModel $character
+     * @param int $mapId
+     * @param int $value
+     * @throws \Exception\PathfinderException
+     */
+    protected function activateMap(CharacterModel $character, int $mapId, int $value){
+        $maps = $this->filterValidMaps($character, $mapId);
+        foreach($maps as $map){
+            $map->setActive((bool)$value);
+            $map->save($character);
+        }
+    }
+
+    /**
+     * @param CharacterModel $character
+     * @param int $mapId
+     * @throws \Exception\PathfinderException
+     */
+    protected function deleteMap(CharacterModel $character, int $mapId){
+        $maps = $this->filterValidMaps($character, $mapId);
+        foreach($maps as $map){
+            $map->erase();
+        }
+    }
+
+    /**
+     * checks whether a $character has admin access rights for $mapId
+     * @param CharacterModel $character
+     * @param int $mapId
+     * @return array
+     * @throws \Exception\PathfinderException
+     */
+    protected function filterValidMaps(CharacterModel $character, int $mapId) : array {
+        $maps = [];
+        if($character->role === 'SUPERADMIN'){
+            if($filterMaps = MapModel::getAll([$mapId])){
+                $maps = $filterMaps;
+            }
+        }else{
+            $maps = $character->getCorporation()->getMaps([$mapId], ['addInactive' => true, 'ignoreMapCount' => true]);
+        }
+
+        return $maps;
+    }
+
+    /**
      * get log file for "admin" logs
      * @param string $type
      * @return \Log
@@ -287,10 +350,8 @@ class Admin extends Controller{
      */
     protected function initMembers(\Base $f3, CharacterModel $character){
         $data = (object) [];
-
         if($characterCorporation = $character->getCorporation()){
             $corporations = [];
-
             switch($character->role){
                 case 'SUPERADMIN':
                     if($accessCorporations =  CorporationModel::getAll(['addNPC' => true])){
@@ -304,7 +365,7 @@ class Admin extends Controller{
 
             foreach($corporations as $corporation){
                 if($characters = $corporation->getCharacters()){
-                    $data->corpMembers[$corporation->name] = $corporation->getCharacters();
+                    $data->corpMembers[$corporation->name] = $characters;
                 }
             }
 
@@ -315,6 +376,36 @@ class Admin extends Controller{
         }
 
         $f3->set('tplMembers', $data);
+    }
+
+    /**
+     * init /maps page data
+     * @param \Base $f3
+     * @param CharacterModel $character
+     */
+    protected function initMaps(\Base $f3, CharacterModel $character){
+        $data = (object) [];
+        if($characterCorporation = $character->getCorporation()){
+            $corporations = [];
+            switch($character->role){
+                case 'SUPERADMIN':
+                    if($accessCorporations =  CorporationModel::getAll(['addNPC' => true])){
+                        $corporations = $accessCorporations;
+                    }
+                    break;
+                case 'CORPORATION':
+                    $corporations[] = $characterCorporation;
+                    break;
+            }
+
+            foreach($corporations as $corporation){
+                if($maps = $corporation->getMaps([], ['addInactive' => true, 'ignoreMapCount' => true])){
+                    $data->corpMaps[$corporation->name] = $maps;
+                }
+            }
+        }
+
+        $f3->set('tplMaps', $data);
     }
 
 }

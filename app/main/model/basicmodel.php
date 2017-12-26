@@ -19,7 +19,7 @@ abstract class BasicModel extends \DB\Cortex {
 
     /**
      * Hive key with DB object
-     * @var string
+     * @var string|DB\SQL
      */
     protected $db                                               = 'DB_PF';
 
