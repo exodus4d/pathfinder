@@ -8,8 +8,9 @@ define([
     'app/util',
     'app/render',
     'bootbox',
-    'app/map/util'
-], function($, Init, Util, Render, bootbox, MapUtil) {
+    'app/map/util',
+    'app/module_map'
+], function($, Init, Util, Render, bootbox, MapUtil, ModuleMap) {
     'use strict';
 
     let config = {
@@ -382,7 +383,7 @@ define([
                                             let tabLinkElement = Util.getMapModule().getMapTabElements(responseData.mapData.mapData.id);
 
                                             if(tabLinkElement.length === 1){
-                                                tabLinkElement.updateTabData(responseData.mapData.mapData);
+                                                ModuleMap.updateTabData(tabLinkElement, responseData.mapData.mapData);
                                             }
 
                                             $(mapInfoDialog).modal('hide');

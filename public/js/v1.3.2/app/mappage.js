@@ -10,10 +10,10 @@ define([
     'app/logging',
     'app/page',
     'app/map/worker',
+    'app/module_map',
     'app/key',
-    'app/ui/form_element',
-    'app/module_map'
-], ($, Init, Util, Render, Logging, Page, MapWorker) => {
+    'app/ui/form_element'
+], ($, Init, Util, Render, Logging, Page, MapWorker, ModuleMap) => {
 
     'use strict';
 
@@ -112,12 +112,12 @@ define([
                                 switch(MsgWorkerMessage.task()){
                                     case 'mapUpdate':
                                         Util.updateCurrentMapData( MsgWorkerMessage.data() );
-                                        mapModule.updateMapModule();
+                                        ModuleMap.updateMapModule(mapModule);
                                         break;
                                     case 'mapAccess':
                                     case 'mapDeleted':
                                         Util.deleteCurrentMapData( MsgWorkerMessage.data() );
-                                        mapModule.updateMapModule();
+                                        ModuleMap.updateMapModule(mapModule);
                                         break;
                                 }
 
@@ -266,22 +266,24 @@ define([
                             Util.setCurrentMapData(data.mapData);
 
                             // load/update main map module
-                            mapModule.updateMapModule();
+                            ModuleMap.updateMapModule(mapModule).then(() => {
+                               // map update done, init new trigger
 
-                            // get the current update delay (this can change if a user is inactive)
-                            let mapUpdateDelay = Util.getCurrentTriggerDelay( logKeyServerMapData, 0 );
+                                // get the current update delay (this can change if a user is inactive)
+                                let mapUpdateDelay = Util.getCurrentTriggerDelay( logKeyServerMapData, 0 );
 
-                            // init new trigger
-                            initMapUpdatePing(false);
+                                // init new trigger
+                                initMapUpdatePing(false);
 
-                            // initial start for the userUpdate trigger
-                            // this should only be called at the first time!
-                            if(updateTimeouts.userUpdate === 0){
-                                // start user update trigger after map loaded
-                                updateTimeouts.userUpdate = setTimeout(() => {
-                                    triggerUserUpdatePing();
-                                }, 1000);
-                            }
+                                // initial start for the userUpdate trigger
+                                // this should only be called at the first time!
+                                if(updateTimeouts.userUpdate === 0){
+                                    // start user update trigger after map loaded
+                                    updateTimeouts.userUpdate = setTimeout(() => {
+                                        triggerUserUpdatePing();
+                                    }, 1000);
+                                }
+                            });
                         }
 
                     }).fail(handleAjaxErrorResponse);
@@ -289,7 +291,6 @@ define([
                     // skip this mapUpdate trigger and init next one
                     initMapUpdatePing(false);
                 }
-
             };
 
             // ping for user data update =======================================================

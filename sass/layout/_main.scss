@@ -19,7 +19,7 @@ a, .pf-link{
   will-change: color;
   text-decoration: none;
   cursor: pointer;
-  @include transition( color 0.08s ease-out );
+  @include transition( color 0.08s ease-out, background-color 0.08s ease-out );
 
   &:hover{
     color: $teal-lightest;
@@ -506,6 +506,26 @@ table{
   // Tabs (colored)
   #pf-map-tabs {
 
+    a[role="tab"]:hover{
+      .pf-map-tab-handler:before{
+        color: $orange
+      }
+    }
+
+    .pf-map-tab-handler{
+      &:before{
+        content: '\22EE\22EE\00A0';
+        display: inline-block;
+        cursor: -moz-grab !important;
+        cursor: -webkit-grab !important;
+        cursor: grab !important;
+        color: $gray-light;
+        width: 12px;
+        transition: color 0.15s ease-out, background-color 0.15s ease-out;
+        pointer-events: all;
+      }
+    }
+
     .pf-map-type-tab-default{
       border-top: 2px solid transparent;
     }
@@ -527,11 +547,11 @@ table{
     }
 
     .pf-map-tab-icon{
-      margin-right: 5px;
+      margin-right: 3px;
     }
 
     .pf-map-tab-shared-icon{
-      margin-left: 5px;
+      margin-left: 3px;
     }
   }
 }

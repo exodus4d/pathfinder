@@ -1008,12 +1008,13 @@ input[type="email"]{
 }
 
 .nav-tabs>li>a {
-  color: $gray-lighter;
+	  color: $gray-light;
+  //color: $gray-lighter;
   font-family: $font-family-bold;
 
   &:hover{
-    color: $gray-darkest;
-    border-color: transparent transparent $gray-lighter transparent;
+    color: $gray-lighter;
+    border-color: transparent transparent $gray-light transparent;
     margin-top: 1px;
     border-top-width: 0;
   }
@@ -1021,7 +1022,7 @@ input[type="email"]{
 .nav-tabs > li.active > a {
 
     background-color: $gray-lighter;
-    color: $gray-darker;
+    color: $gray-darkest;
 	border-top-width: 0px !important;
 	margin-top: 1px !important;
 	font-weight:bold;

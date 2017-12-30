@@ -34,8 +34,9 @@ define([
         mapTabBarId: 'pf-map-tabs',                                             // id for map tab bar
         mapTabIdPrefix: 'pf-map-tab-',                                          // id prefix for a map tab
         mapTabClass: 'pf-map-tab',                                              // class for a map tab
-        mapTabLinkTextClass: 'nav-tabs-link',                                   // class for span elements in a tab
+        mapTabDragHandlerClass: 'pf-map-tab-handler',                           // class for drag handler
         mapTabIconClass: 'pf-map-tab-icon',                                     // class for map icon
+        mapTabLinkTextClass: 'nav-tabs-link',                                   // class for span elements in a tab
         mapTabSharedIconClass: 'pf-map-tab-shared-icon',                        // class for map shared icon
         mapTabContentClass: 'pf-map-tab-content',                               // class for tab content container
         mapTabContentSystemInfoClass: 'pf-map-tab-content-system',
@@ -77,28 +78,25 @@ define([
     };
 
     /**
-     * set Tab Observer, events are triggered within map.js
+     * set mapContent Observer, events are triggered within map.js
+     * @param tabElement
      */
-    $.fn.setTabContentObserver = function(){
-        return this.each(function(){
-            let tabContentElement = $(this);
-            // update Tab Content with system data information
-            tabContentElement.on('pf:drawSystemModules', function(e){
-                drawSystemModules($(e.target));
-            });
-
-            tabContentElement.on('pf:removeSystemModules', function(e){
-                removeSystemModules($(e.target));
-            });
-
-            tabContentElement.on('pf:drawConnectionModules', function(e, data){
-                drawConnectionModules($(e.target), data);
-            });
-
-            tabContentElement.on('pf:removeConnectionModules', function(e){
-                removeConnectionModules($(e.target));
-            });
+    let setMapContentObserver = (tabElement) => {
+        tabElement.on('pf:drawSystemModules', '.' + config.mapTabContentClass, function(e){
+            drawSystemModules($(e.target));
         });
+
+        tabElement.on('pf:removeSystemModules', '.' + config.mapTabContentClass, function(e){
+            removeSystemModules($(e.target));
+        });
+
+        tabElement.on('pf:drawConnectionModules', '.' + config.mapTabContentClass, function(e, data){
+            drawConnectionModules($(e.target), data);
+        });
+
+        tabElement.on('pf:removeConnectionModules', '.' + config.mapTabContentClass, function(e){
+            removeConnectionModules($(e.target));
+        }) ;
     };
 
     /**
@@ -167,27 +165,6 @@ define([
      * @param data
      */
     let drawModule = (parentElement, Module, mapId, data) => {
-        /**
-         * get module position within its parentElement
-         * @param parentElement
-         * @param Module
-         * @param defaultPosition
-         * @returns {number}
-         */
-        let getModulePosition = (parentElement, Module, defaultPosition) => {
-            let position = 0;
-            if(defaultPosition > 0){
-                parentElement.children().each((i, moduleElement) => {
-                    position = i + 1;
-                    let tempPosition = parseInt(moduleElement.getAttribute('data-position')) || 0;
-                    if(tempPosition >= defaultPosition){
-                        position--;
-                        return false;
-                    }
-                });
-            }
-            return position;
-        };
 
         /**
          * show/render a Module
@@ -225,7 +202,7 @@ define([
                     }
 
                     // find correct position for new moduleElement ----------------------------------------------------
-                    let position = getModulePosition(this.parentElement, Module, defaultPosition);
+                    let position = getModulePosition(this.parentElement, defaultPosition);
 
                     this.moduleElement.attr('data-position', defaultPosition);
                     this.moduleElement.attr('data-module', Module.config.moduleName);
@@ -238,7 +215,7 @@ define([
                         this.parentElement.prepend(this.moduleElement);
                     }
 
-                    if(typeof Module.beforeShow === 'function'){
+                    if (typeof Module.beforeShow === 'function') {
                         Module.beforeShow(this.moduleElement, moduleElement.data('data'));
                     }
 
@@ -266,11 +243,11 @@ define([
 
         // check if module already exists
         let moduleElement = parentElement.find('.' + Module.config.moduleTypeClass);
-        if(moduleElement.length > 0){
+        if (moduleElement.length > 0) {
             removeModule(moduleElement, Module, () => {
                 showPanel(parentElement, Module, mapId, data);
             });
-        }else{
+        } else {
             showPanel(parentElement, Module, mapId, data);
         }
     };
@@ -460,13 +437,14 @@ define([
 
     /**
      * load all structure elements into a TabsContent div (tab body)
+     * @param tabContentElements
      */
     let initContentStructure = (tabContentElements) => {
         tabContentElements.each(function(){
             let tabContentElement = $(this);
             let mapId = parseInt( tabContentElement.attr('data-mapid') );
 
-            // "add" tab does not need a structure and obervers...
+            // "add" tab does not need a structure and observer...
             if(mapId > 0){
                 let contentStructure = $('<div>', {
                     class: ['row', config.mapTabContentRow].join(' ')
@@ -483,6 +461,7 @@ define([
                 // append grid structure
                 tabContentElement.append(contentStructure);
 
+                // set content structure observer
                 setContentStructureObserver(contentStructure, mapId);
             }
         });
@@ -491,9 +470,10 @@ define([
     /**
      * get a fresh tab element
      * @param options
+     * @param currentUserData
      * @returns {*|jQuery|HTMLElement}
      */
-    let getTabElement = (options) => {
+    let getMapTabElement = (options, currentUserData) => {
         let tabElement = $('<div>', {
             id: config.mapTabElementId
         });
@@ -501,7 +481,7 @@ define([
         let tabBar = $('<ul>', {
             class: ['nav', 'nav-tabs'].join(' '),
             id: options.barId
-        }).attr('role', 'tablist');
+        }).attr('role', 'tablist').attr('data-position', options.position);
 
         let tabContent = $('<div>', {
             class: 'tab-content'
@@ -510,457 +490,147 @@ define([
         tabElement.append(tabBar);
         tabElement.append(tabContent);
 
+        setMapTabObserver(tabElement, currentUserData.character.id);
+        setMapContentObserver(tabElement);
+
         return tabElement;
     };
 
     /**
-     * set data for a map tab, or update an existing map tab with new data
-     * @param options
+     * get module position
+     * @param parentElement
+     * @param defaultPosition
+     * @returns {number}
      */
-    $.fn.updateTabData = function(options){
-        let tabElement = $(this);
-
-        // set "main" data
-        tabElement.data('map-id', options.id);
-
-        // add updated timestamp (not available for "add" tab
-        if(Util.getObjVal(options, 'updated.updated')){
-            tabElement.data('updated', options.updated.updated);
+    let getModulePosition = (parentElement, defaultPosition) => {
+        let position = 0;
+        if(defaultPosition > 0){
+            parentElement.children().each((i, moduleElement) => {
+                position = i + 1;
+                let tempPosition = parseInt(moduleElement.getAttribute('data-position')) || 0;
+                if(tempPosition >= defaultPosition){
+                    position--;
+                    return false;
+                }
+            });
         }
-
-        // change "tab" link
-        tabElement.attr('href', '#' + config.mapTabIdPrefix + options.id);
-
-        // change "map" icon
-        let mapIconElement = tabElement.find('.' + config.mapTabIconClass);
-        mapIconElement.removeClass().addClass([config.mapTabIconClass, 'fa', 'fa-fw', options.icon].join(' '));
-
-        // change "shared" icon
-        let mapSharedIconElement = tabElement.find('.' + config.mapTabSharedIconClass);
-        mapSharedIconElement.hide();
-
-        // check if the map is a "shared" map
-        if(options.access){
-            if(
-                options.access.character.length > 1 ||
-                options.access.corporation.length > 1 ||
-                options.access.alliance.length > 1
-            ){
-                mapSharedIconElement.show();
-            }
-        }
-
-        // change map name label
-        let tabLinkTextElement = tabElement.find('.' + config.mapTabLinkTextClass);
-        tabLinkTextElement.text(options.name);
-
-        // change tabClass
-        let listElement = tabElement.parent();
-
-        // new tab classes
-        let tabClasses = [config.mapTabClass, options.type.classTab ];
-
-        // check if tab was "active" before
-        if( listElement.hasClass('active') ){
-            tabClasses.push('active');
-        }
-        listElement.removeClass().addClass( tabClasses.join(' ') );
-
-        // set title for tooltip
-        if(options.type.name !== undefined){
-            tabLinkTextElement.attr('title', options.type.name + ' map');
-        }
-
-        let mapTooltipOptions = {
-            placement: 'bottom',
-            container: 'body',
-            trigger: 'hover',
-            delay: 150
-        };
-
-        listElement.find('[title]').tooltip(mapTooltipOptions).tooltip('fixTitle');
-
-        if(options.right === true){
-            listElement.addClass('pull-right');
-        }
+        return position;
     };
 
-
     /**
-     * add a new tab to tab-map-module end returns the new objects
-     * @param options
-     * @returns {{listElement: (*|void), contentElement: (*|HTMLElement)}}
+     * set map tab observer
+     * @param tabElement
+     * @param characterId
      */
-    $.fn.addTab = function(options){
-        let tabElement = $(this);
-        let tabBar = tabElement.find('ul.nav-tabs');
-        let tabContent = tabElement.find('div.tab-content');
+    let setMapTabObserver = (tabElement, characterId) => {
 
-        let listElement = $('<li>').attr('role', 'presentation');
-
-        if(options.right === true){
-            listElement.addClass('pull-right');
-        }
-
-        // link element
-        let linkElement = $('<a>').attr('role', 'tab');
-
-        // map icon element
-        let mapIconElement = $('<i>', {
-            class: config.mapTabIconClass
-        });
-
-        // map shared icon element
-        let mapSharedIconElement = $('<i>', {
-            class: [config.mapTabSharedIconClass, 'fa', 'fa-fw', 'fa-share-alt'].join(' '),
-            title: 'shared map'
-        });
-
-        // text element
-        let textElement = $('<span>', {
-            class: config.mapTabLinkTextClass
-        });
-
-        let newListElement = listElement.append(
-            linkElement.append(mapIconElement).append(textElement).append(mapSharedIconElement)
-        );
-
-        tabBar.append( newListElement );
-
-        // update Tab element -> set data
-        linkElement.updateTabData(options);
-
-        // tabs content -----------------------------------------------------------------------------------------------
-        let contentElement = $('<div>', {
-            id: config.mapTabIdPrefix + parseInt( options.id ),
-            class: [config.mapTabContentClass].join(' ')
-        }).attr('data-mapid', parseInt( options.id ));
-
-        contentElement.addClass('tab-pane');
-
-        tabContent.append(contentElement);
-
-        // init tab ---------------------------------------------------------------------------------------------------
-        linkElement.on('click', function(e){
-            e.preventDefault();
-
-            // callback function after tab switch
-            function switchTabCallback(mapElement, tabLinkElement){
-                tabLinkElement.tab('show');
-                // unfreeze map
-                mapElement.data('frozen', false);
-                return false;
-            }
-
-            if(mapTabChangeBlocked === false){
-                let tabLinkElement = $(this);
-                let mapId = tabLinkElement.data('map-id');
-
-                // ignore "add" tab. no need for map change
-                if(mapId > 0){
-                    let mapElement = $('#' + config.mapTabElementId).getActiveMap();
-
-                    if(mapId !== mapElement.data('id')){
-                        // block tabs until switch is done
-                        mapTabChangeBlocked = true;
-
-                        // freeze active map -> no user data update while map switch
-                        mapElement.data('frozen', true);
-
-                        // hide current map with animation
-                        mapElement.visualizeMap('hide', function(){
-                            // un-block map tabs
-                            mapTabChangeBlocked = switchTabCallback(mapElement, tabLinkElement);
-                        });
+        tabElement.find('.nav.nav-tabs').each((index, tabListElement) => {
+            // set tab sortable ---------------------------------------------------------------------------------------
+            let sortable = Sortable.create(tabListElement, {
+                group: {
+                     name: 'list_' + tabListElement.getAttribute('data-position')
+                },
+                animation: Init.animationSpeed.mapModule,
+                handle: '.' + config.mapTabDragHandlerClass,
+                draggable: '.' + config.mapTabClass,
+                ghostClass: 'pf-sortable-ghost',
+                scroll: false,
+                dataIdAttr: 'data-mapId',
+                sort: true,
+                filter: function(e, listElement){
+                    listElement = $(listElement);
+                    let mapId = parseInt(listElement.attr('data-mapid')) || 0;
+                    return !Boolean(mapId);
+                },
+                store: {
+                    get: function (sortable) {
+                        return [];
+                    },
+                    set: function (sortable) {
+                        let key = 'maps_' + sortable.options.group.name;
+                        // convert string array to int array
+                        let order = sortable.toArray().map((x) => parseInt(x, 10));
+                        MapUtil.storeLocalData('character', characterId, key, order);
                     }
-                }else{
+                },
+                onStart: function (e) {
+                    // Element dragging started
+                    // -> save initial sort state -> see store.set()
+                    this.save();
+                }
+            });
+
+            // set tab click ------------------------------------------------------------------------------------------
+            $(tabListElement).on('click', 'a', function(e){
+                e.preventDefault();
+
+                // callback function after tab switch
+                function switchTabCallback(mapElement, tabLinkElement){
                     tabLinkElement.tab('show');
+                    // unfreeze map
+                    mapElement.data('frozen', false);
+                    return false;
                 }
-            }
-        });
 
-        return {
-            listElement: newListElement,
-            contentElement: contentElement
-        };
-    };
+                if(mapTabChangeBlocked === false){
+                    let tabLinkElement = $(this);
+                    let mapId = tabLinkElement.data('map-id');
 
-    /**
-     * deletes a map tab for a given map id
-     * @param mapId
-     */
-    $.fn.deleteTab = function(mapId){
-        let tabElement = $(this);
-        let linkElement = tabElement.find('a[href="#' + config.mapTabIdPrefix + mapId + '"]');
-        let deletedTabName = '';
+                    // ignore "add" tab. no need for map change
+                    if(mapId > 0){
+                        let mapElement = $('#' + config.mapTabElementId).getActiveMap();
 
-        if(linkElement.length > 0){
-            deletedTabName = linkElement.find('.' + config.mapTabLinkTextClass).text();
+                        if(mapId !== mapElement.data('id')){
+                            // block tabs until switch is done
+                            mapTabChangeBlocked = true;
 
-            let liElement = linkElement.parent();
-            let contentElement = tabElement.find('div[id="' + config.mapTabIdPrefix + mapId + '"]');
+                            // freeze active map -> no user data update while map switch
+                            mapElement.data('frozen', true);
 
-            let findNewActiveTab = false;
-            // check if liElement was active
-            if(liElement.hasClass('active')){
-                // search any remaining li element and set active
-                findNewActiveTab = true;
-            }
-
-            liElement.remove();
-            contentElement.remove();
-
-            // remove map instance from local cache
-            Map.clearMapInstance(mapId);
-
-            if(findNewActiveTab === true){
-                tabElement.find('.' + config.mapTabClass + ':not(.pull-right):first a').tab('show');
-            }
-        }
-
-        return deletedTabName;
-    };
-
-    /**
-     * clear all active maps
-     */
-    $.fn.clearMapModule = function(){
-        let mapModuleElement = $(this);
-        let tabMapElement = $('#' + config.mapTabElementId);
-
-        if(tabMapElement.length > 0){
-            let tabElements = mapModuleElement.getMapTabElements();
-
-            for(let i = 0; i < tabElements.length; i++){
-                let tabElement = $(tabElements[i]);
-                let mapId = tabElement.data('map-id');
-
-                if(mapId > 0){
-                    tabMapElement.deleteTab(mapId);
-                }
-            }
-        }
-    };
-
-    /**
-     * load/update map module into element (all maps)
-     * @returns {boolean}
-     */
-    $.fn.updateMapModule = function(){
-        let mapModuleElement = $(this);
-
-        // store current map data global (cache)
-        // temp store current map data to prevent data-change while function execution!
-        let tempMapData = Util.getCurrentMapData();
-
-        if(tempMapData.length === 0){
-            // clear all existing maps
-            mapModuleElement.clearMapModule();
-
-            // no map data available -> show "new map" dialog
-            $(document).trigger('pf:menuShowMapSettings', {tab: 'new'});
-
-            return true;
-        }
-
-        // performance logging (time measurement)
-        let logKeyClientMapData = Init.performanceLogging.keyClientMapData;
-        Util.timeStart(logKeyClientMapData);
-
-        // check if tabs module is already loaded
-        let tabMapElement = $('#' + config.mapTabElementId);
-
-        // check if tabs have changed
-        let tabsChanged = false;
-
-        if(tabMapElement.length > 0){
-            // tab element already exists
-            let tabElements = mapModuleElement.getMapTabElements();
-
-            // map ID that is currently active
-            let activeMapId = 0;
-
-            // mapIds that are currently active
-            let activeMapIds = [];
-
-            // check whether a tab/map is still active
-            for(let i = 0; i < tabElements.length; i++){
-                let tabElement = $(tabElements[i]);
-                let mapId = tabElement.data('map-id');
-
-                if(mapId > 0){
-                    let tabMapData = Util.getCurrentMapData(mapId);
-
-                    if(tabMapData !== false){
-                        // map data available ->
-                        activeMapIds.push(mapId);
-
-                        // check for map data change and update tab
-                        if(tabMapData.config.updated.updated > tabElement.data('updated')){
-                            tabElement.updateTabData(tabMapData.config);
+                            // hide current map with animation
+                            mapElement.visualizeMap('hide', function(){
+                                // un-block map tabs
+                                mapTabChangeBlocked = switchTabCallback(mapElement, tabLinkElement);
+                            });
                         }
                     }else{
-                        // map data not available -> remove tab
-                        let deletedTabName = tabMapElement.deleteTab(mapId);
-
-                        tabsChanged = true;
-
-                        if(deletedTabName.length > 0){
-                            Util.showNotify({title: 'Map removed', text: deletedTabName + ' deleted', type: 'warning'});
-                        }
+                        tabLinkElement.tab('show');
                     }
-                }
-            }
-
-            // add new tabs for new maps
-            $.each(tempMapData, function(i, data){
-                if( activeMapIds.indexOf( data.config.id ) === -1 ){
-                    // add new map tab
-
-                    let newTabElements = tabMapElement.addTab(data.config);
-
-                    // check if there is any active map yet (this is not the case
-                    // when ALL maps are removed AND new maps are added in one call
-                    // e.g. character switch)
-                    if(tabMapElement.find('.' + config.mapTabClass + '.active:not(.pull-right)').length === 0){
-                        tabMapElement.find('.' + config.mapTabClass + ':not(.pull-right):first a').tab('show');
-
-                        activeMapId = data.config.id;
-                    }
-
-                    // set observer for manually triggered map events
-                    newTabElements.contentElement.setTabContentObserver();
-
-                    // load all the structure elements for the new tab
-                    initContentStructure(newTabElements.contentElement);
-
-                    tabsChanged = true;
-
-                    Util.showNotify({title: 'Map added', text: data.config.name + ' added', type: 'success'});
                 }
             });
 
-            // get current active map
-            if(activeMapId === 0){
-                activeMapId = Util.getMapModule().getActiveMap().data('id');
-            }
-            let activeMapData = Util.getCurrentMapData(activeMapId);
-
-            if(activeMapData !== false){
-                // update active map with new mapData
-                let currentTabContentElement = $('#' + config.mapTabIdPrefix + activeMapId);
-
-                $( currentTabContentElement).loadMap( activeMapData, {} );
-            }
-        }else{
-            // create Tab Element
-            tabsChanged = true;
-
-            let options = {
-                barId: config.mapTabBarId
-            };
-
-            tabMapElement = getTabElement(options);
-
-            // add new tab for each map
-            for(let j = 0; j < tempMapData.length; j++){
-                let data = tempMapData[j];
-                tabMapElement.addTab(data.config);
-            }
-
-            // add "add" button
-            let tabAddOptions = {
-                id: 0,
-                type: {
-                    classTab: MapUtil.getInfoForMap( 'standard', 'classTab')
-                },
-                icon: 'fa-plus',
-                name: 'add',
-                right: true
-            };
-
-            tabMapElement.addTab(tabAddOptions);
-
-            mapModuleElement.prepend(tabMapElement);
-
-            let currentUserData = Util.getCurrentUserData();
-            let promiseStore = MapUtil.getLocaleData('character', currentUserData.character.id);
-
-            promiseStore.then(function(data) {
-                // array key where map data is available (0 == first map found)
-                let mapDataIndex = 0;
-                // tab dom selector
-                let mapKeyTabSelector = 'first';
-
-                if(
-                    data &&
-                    data.defaultMapId
-                ){
-                    mapDataIndex = Util.getCurrentMapDataIndex(data.defaultMapId);
-                    mapKeyTabSelector = 'nth-child(' + ( mapDataIndex + 1 ) + ')';
-                }
-
-                // ----------------------------------------------------------------------------------------------------
-
-                // this new created module
-                let tabContentElements = tabMapElement.find('.' + config.mapTabContentClass);
-
-                // set observer for manually triggered map events
-                tabContentElements.setTabContentObserver();
-
-                // load all the structure elements for ALL Tab Content Body
-                initContentStructure(tabContentElements);
-
-                // set first Tab active
-                tabMapElement.find('.' + config.mapTabClass + ':' + mapKeyTabSelector + ' a').tab('show');
-            });
-
-        }
-
-        if(tabsChanged === true){
-
-            // remove previous event handlers
-            let allTabElements = mapModuleElement.getMapTabElements();
-            allTabElements.off('show.bs.tab');
-            allTabElements.off('shown.bs.tab');
-            allTabElements.off('hide.bs.tab');
-
-
-            // check for "new map" action before tap-change
-            allTabElements.on('show.bs.tab', function (e) {
+             // tab switch --------------------------------------------------------------------------------------------
+            $(tabListElement).on('show.bs.tab', 'a', function(e){
                 let mapId = $(e.target).data('map-id');
 
                 if(mapId > 0){
                     // save mapId as new "default" (local storage)
-                    let userData = MapUtil.storeDefaultMapId(mapId);
+                    MapUtil.storeDefaultMapId(mapId);
                 }else{
                     // add new Tab selected
                     $(document).trigger('pf:menuShowMapSettings', {tab: 'new'});
                     e.preventDefault();
                 }
+
             });
 
-            // load new map right after tab-change
-            allTabElements.on('shown.bs.tab', function (e) {
+            $(tabListElement).on('shown.bs.tab', 'a', function(e){
+                // load new map right after tab-change
                 let mapId = $(e.target).data('map-id');
                 let tabMapData = Util.getCurrentMapData(mapId);
 
                 if(tabMapData !== false){
                     // load map
                     let currentTabContentElement = $('#' + config.mapTabIdPrefix + mapId);
-
-                    $( currentTabContentElement).loadMap( tabMapData, {showAnimation: true} );
+                    currentTabContentElement.loadMap( tabMapData, {showAnimation: true} );
 
                     // "wake up" scrollbar for map and get previous state back
                     let scrollableElement = currentTabContentElement.find('.' + config.mapWrapperClass);
-                    $(scrollableElement).mCustomScrollbar( 'update');
-                }else{
-                    // no map data found -> remove tab
-                    tabMapElement.deleteTab(mapId);
+                    $(scrollableElement).mCustomScrollbar('update');
                 }
             });
 
-            allTabElements.on('hide.bs.tab', function (e) {
+            $(tabListElement).on('hide.bs.tab', 'a', function(e){
                 let newMapId = $(e.relatedTarget).data('map-id');
                 let oldMapId = $(e.target).data('map-id');
 
@@ -972,14 +642,483 @@ define([
                     let scrollableElement = currentTabContentElement.find('.' + config.mapWrapperClass);
                     $(scrollableElement).mCustomScrollbar( 'disable' );
                 }
+
             });
+
+        });
+    };
+
+    /**
+     * set data for a map tab, or update an existing map tab with new data return promise
+     * @param tabElement
+     * @param options
+     * @returns {Promise<any>}
+     */
+    let updateTabData = (tabElement, options) => {
+
+        /**
+         * update tab promise
+         * @param resolve
+         * @param reject
+         */
+        let updateTabExecutor = (resolve, reject) => {
+            // set "main" data
+            tabElement.data('map-id', options.id);
+
+            // add updated timestamp (not available for "add" tab
+            if(Util.getObjVal(options, 'updated.updated')){
+                tabElement.data('updated', options.updated.updated);
+            }
+
+            // change "tab" link
+            tabElement.attr('href', '#' + config.mapTabIdPrefix + options.id);
+
+            // change "map" icon
+            let mapIconElement = tabElement.find('.' + config.mapTabIconClass);
+            mapIconElement.removeClass().addClass([config.mapTabIconClass, 'fa', 'fa-fw', options.icon].join(' '));
+
+            // change "shared" icon
+            let mapSharedIconElement = tabElement.find('.' + config.mapTabSharedIconClass);
+            mapSharedIconElement.hide();
+
+            // check if the map is a "shared" map
+            if(options.access){
+                if(
+                    options.access.character.length > 1 ||
+                    options.access.corporation.length > 1 ||
+                    options.access.alliance.length > 1
+                ){
+                    mapSharedIconElement.show();
+                }
+            }
+
+            // change map name label
+            let tabLinkTextElement = tabElement.find('.' + config.mapTabLinkTextClass);
+            tabLinkTextElement.text(options.name);
+
+            // change tabClass
+            let listElement = tabElement.parent();
+
+            // new tab classes
+            let tabClasses = [config.mapTabClass, options.type.classTab ];
+
+            // check if tab was "active" before
+            if( listElement.hasClass('active') ){
+                tabClasses.push('active');
+            }
+            listElement.removeClass().addClass( tabClasses.join(' ') );
+
+            // set title for tooltip
+            if(options.type.name !== undefined){
+                tabLinkTextElement.attr('title', options.type.name + ' map');
+            }
+
+            let mapTooltipOptions = {
+                placement: 'bottom',
+                container: 'body',
+                trigger: 'hover',
+                delay: 150
+            };
+
+            listElement.find('[title]').tooltip(mapTooltipOptions).tooltip('fixTitle');
+
+            if(options.right === true){
+                listElement.addClass('pull-right');
+            }
+
+            resolve({
+                action: 'update',
+                data: {
+                    mapId: options.id,
+                    mapName: options.name
+                }
+            });
+        };
+
+        return new Promise(updateTabExecutor);
+    };
+
+    /**
+     * add a new tab to tab-map-module end return promise
+     * @param tabElement
+     * @param options
+     * @param currentUserData
+     * @returns {Promise<any>}
+     */
+    let addTab = (tabElement, options, currentUserData) => {
+
+        /**
+         * get new <li> element used as map tab
+         * @param options
+         * @returns {jQuery|*|void}
+         */
+        let getTabListElement = (options) => {
+            let listElement = $('<li>')
+                .attr('role', 'presentation')
+                .attr('data-mapId', options.id);
+
+            if(options.right === true){
+                listElement.addClass('pull-right');
+            }
+
+            // link element
+            let linkElement = $('<a>').attr('role', 'tab');
+
+            // map drag handler element
+            let linkDragElement = null;
+            if(options.id > 0){
+                linkDragElement = $('<i>', {
+                    class: config.mapTabDragHandlerClass
+                });
+            }
+
+            // map icon element
+            let mapIconElement = $('<i>', {
+                class: config.mapTabIconClass
+            });
+
+            // map shared icon element
+            let mapSharedIconElement = $('<i>', {
+                class: [config.mapTabSharedIconClass, 'fa', 'fa-fw', 'fa-share-alt'].join(' '),
+                title: 'shared map'
+            });
+
+            // text element
+            let textElement = $('<span>', {
+                class: config.mapTabLinkTextClass
+            });
+
+            let newListElement = listElement.append(
+                linkElement.append(linkDragElement).append(mapIconElement)
+                    .append(textElement).append(mapSharedIconElement)
+            );
+
+            return newListElement;
+        };
+
+        /**
+         * get tab content element
+         * @param options
+         * @returns {jQuery}
+         */
+        let getTabContentElement = (options) => {
+            let contentElement = $('<div>', {
+                id: config.mapTabIdPrefix + parseInt( options.id ),
+                class: [config.mapTabContentClass, 'tab-pane'].join(' ')
+            }).attr('data-mapid', parseInt( options.id ));
+
+            return contentElement;
+        };
+
+        /**
+         * add tab promise
+         * @param resolve
+         * @param reject
+         */
+        let addTabExecutor = (resolve, reject) => {
+            let promiseStore = MapUtil.getLocaleData('character', currentUserData.character.id);
+            promiseStore.then( function(dataStore){
+                let tabBar = this.tabElement.find('> ul.nav-tabs');
+                let tabContent = this.tabElement.find('> div.tab-content');
+                let tabListElement = getTabListElement(options);
+                let tabContentElement = getTabContentElement(options);
+                let defaultPosition = 0;
+
+                // check for stored map tab order in indexDB (client) -------------------------------------------------
+                let key = 'maps_list_' + tabBar.attr('data-position');
+                if(dataStore && dataStore[key]){
+                    let positionIndex = dataStore[key].indexOf(this.options.id);
+                    if (positionIndex !== -1) {
+                        // first index (0) => is position 1
+                        defaultPosition = positionIndex + 1;
+                    }
+                }
+
+                // find correct position for new tabs -----------------------------------------------------------------
+                let position = getModulePosition(tabBar, defaultPosition);
+                tabListElement.attr('data-position', defaultPosition);
+
+                console.log('mapId: '+ this.options.id, 'defaultPosition: ' + defaultPosition, 'position: ' + position);
+
+                // insert at correct position -------------------------------------------------------------------------
+                let prevListElement = tabBar.find('li' + '' + ':nth-child(' + position + ')');
+                if (prevListElement.length) {
+                    tabListElement.insertAfter(prevListElement);
+                } else {
+                    tabBar.prepend(tabListElement);
+                }
+
+                // update Tab element -> set data
+                updateTabData(tabListElement.find('a'), options);
+
+                tabContent.append(tabContentElement);
+
+                // load all the structure elements for the new tab
+                initContentStructure(tabContentElement);
+
+                resolve({
+                    action: 'add',
+                    data: {
+                        mapId: options.id,
+                        mapName: options.name
+                    }
+                });
+            }.bind({
+                tabElement: tabElement,
+                options: options
+            }));
+        };
+
+        return new Promise(addTabExecutor);
+    };
+
+    /**
+     * deletes tab from tab-map-module end return promise
+     * @param tabElement
+     * @param mapId
+     * @returns {Promise<any>}
+     */
+    let deleteTab = (tabElement, mapId) => {
+
+        /**
+         * delete tab promise
+         * @param resolve
+         * @param reject
+         */
+        let deleteTabExecutor = (resolve, reject) => {
+            let linkElement = tabElement.find('a[href="#' + config.mapTabIdPrefix + mapId + '"]');
+            let deletedTabName = '';
+
+            if(linkElement.length > 0){
+                deletedTabName = linkElement.find('.' + config.mapTabLinkTextClass).text();
+
+                let liElement = linkElement.parent();
+                let contentElement = tabElement.find('div[id="' + config.mapTabIdPrefix + mapId + '"]');
+
+                liElement.remove();
+                contentElement.remove();
+
+                // remove map instance from local cache
+                Map.clearMapInstance(mapId);
+            }
+
+            resolve({
+                action: 'delete',
+                data: {
+                    mapId: mapId,
+                    mapName: deletedTabName
+                }
+            });
+        };
+
+        return new Promise(deleteTabExecutor);
+    };
+
+    /**
+     * clear all active maps
+     * @param mapModuleElement
+     * @returns {Promise<any>}
+     */
+    let clearMapModule = (mapModuleElement) => {
+        let promiseDeleteTab = [];
+        let tabMapElement = $('#' + config.mapTabElementId);
+
+        if(tabMapElement.length > 0){
+            let tabElements = mapModuleElement.getMapTabElements();
+            for(let i = 0; i < tabElements.length; i++){
+                let tabElement = $(tabElements[i]);
+                let mapId = tabElement.data('map-id');
+                if(mapId > 0){
+                    promiseDeleteTab.push(deleteTab(tabMapElement, mapId));
+                }
+            }
         }
 
-        // log client map update time
-        let duration = Util.timeStop(logKeyClientMapData);
-        Util.log(logKeyClientMapData, {duration: duration, type: 'client', description: 'update map'});
+        return Promise.all(promiseDeleteTab);
+    };
 
-        return true;
+    /**
+     * set "default" map tab
+     * -> default mapId might be available in local storage
+     * @param tabMapElement
+     * @param currentUserData
+     * @returns {Promise<any>}
+     */
+    let showDefaultTab = (tabMapElement, currentUserData) => {
+
+        /**
+         * show default tab promise
+         * @param resolve
+         * @param reject
+         */
+        let showDefaultTabExecutor = (resolve, reject) => {
+            let promiseStore = MapUtil.getLocaleData('character', currentUserData.character.id);
+            promiseStore.then((data) => {
+                let activeTabLinkElement = false;
+
+                if(data && data.defaultMapId){
+                    // make specific map tab active
+                    activeTabLinkElement = tabMapElement.find('.' + config.mapTabClass + '[data-mapid="' + data.defaultMapId + '"] > a');
+                }
+
+                if(!activeTabLinkElement || !activeTabLinkElement.length){
+                    // make first map tab active (default)
+                    activeTabLinkElement = tabMapElement.find('.' + config.mapTabClass + ':not(.pull-right):first > a');
+                }
+
+                if(activeTabLinkElement.length){
+                    activeTabLinkElement.tab('show');
+                }
+
+                resolve();
+            });
+        };
+
+        return new Promise(showDefaultTabExecutor);
+    };
+
+    /**
+     * load/update map module into element (all maps)
+     * @param mapModuleElement
+     * @returns {Promise<any>}
+     */
+    let updateMapModule = (mapModuleElement) => {
+        // performance logging (time measurement)
+        let logKeyClientMapData = Init.performanceLogging.keyClientMapData;
+        Util.timeStart(logKeyClientMapData);
+
+        let updateMapModuleExecutor = (resolve, reject) => {
+            // check if tabs module is already loaded
+            let tabMapElement = $('#' + config.mapTabElementId);
+
+            let currentUserData = Util.getCurrentUserData();
+
+            // store current map data global (cache)
+            // temp store current map data to prevent data-change while function execution!
+            let tempMapData = Util.getCurrentMapData();
+
+            if(tempMapData.length === 0){
+                // clear all existing maps ----------------------------------------------------------------------------
+                clearMapModule(mapModuleElement)
+                    .then((payload) => {
+                        // no map data available -> show "new map" dialog
+                        $(document).trigger('pf:menuShowMapSettings', {tab: 'new'});
+                    })
+                    .then((payload) => resolve());
+            }else{
+                if(tabMapElement.length > 0){
+                    // tab element exists -> update -------------------------------------------------------------------
+                    let promisesAddTab = [];
+                    let promiseDeleteTab = [];
+                    let promiseUpdateTab = [];
+
+                    let tabDeletedCallback = (payload) => {
+                        Util.showNotify({title: 'Map removed', text: payload.data.mapName + ' deleted', type: 'warning'});
+                    };
+
+                    let tabAddCallback = (payload) => {
+                        Util.showNotify({title: 'Map added', text: payload.data.mapName + ' added', type: 'success'});
+                    };
+
+                    // tab element already exists
+                    let tabElements = mapModuleElement.getMapTabElements();
+
+                    // mapIds that are currently active
+                    let activeMapIds = [];
+
+                    // check whether a tab/map is still active
+                    for(let i = 0; i < tabElements.length; i++){
+                        let tabElement = $(tabElements[i]);
+                        let mapId = tabElement.data('map-id');
+
+                        if(mapId > 0){
+                            let tabMapData = Util.getCurrentMapData(mapId);
+                            if(tabMapData !== false){
+                                // map data available ->
+                                activeMapIds.push(mapId);
+
+                                // check for map data change and update tab
+                                if(tabMapData.config.updated.updated > tabElement.data('updated')){
+                                    promiseUpdateTab.push(updateTabData(tabElement, tabMapData.config));
+                                }
+                            }else{
+                                // map data not available -> remove tab
+                                promiseDeleteTab.push(deleteTab(tabMapElement, mapId).then(tabDeletedCallback));
+                            }
+                        }
+                    }
+
+                    // add new tabs for new maps
+                    for(let data of tempMapData) {
+                        if( activeMapIds.indexOf( data.config.id ) === -1 ){
+                            // add new map tab
+                            promisesAddTab.push(addTab(tabMapElement, data.config, currentUserData).then(tabAddCallback));
+                        }
+                    }
+
+                    // wait until ALL "add", "delete", "update" promises are fulfilled
+                    let promisesAll = promisesAddTab.concat(promiseDeleteTab, promiseUpdateTab);
+
+                    Promise.all(promisesAll).then((payload) => {
+                        // if there is an active map ...
+                        let activeMap = Util.getMapModule().getActiveMap();
+                        if(activeMap){
+                            let activeMapId = activeMap.data('id');
+                            let activeMapData = Util.getCurrentMapData(activeMapId);
+                            if(activeMapData !== false){
+                                // .. active map found, just update no tab switch
+                                $('#' + config.mapTabIdPrefix + activeMapId).loadMap( activeMapData, {} );
+                            }
+                            return new Promise(resolve => resolve()); // fake promise returned
+                        }else{
+                            // .. no map active, make one active
+                            return showDefaultTab(tabMapElement, currentUserData);
+                        }
+                    }).then((payload) => resolve());
+
+                }else{
+                    // tab Element does not exists -> create ----------------------------------------------------------
+                    let promisesAddTab = [];
+
+                    let options = {
+                        barId: config.mapTabBarId,
+                        position: 1                 // for "sortable tabs"
+                    };
+
+                    tabMapElement = getMapTabElement(options, currentUserData);
+                    mapModuleElement.prepend(tabMapElement);
+
+                    // add new tab for each map
+                    for(let j = 0; j < tempMapData.length; j++){
+                        let data = tempMapData[j];
+                        promisesAddTab.push(addTab(tabMapElement, data.config, currentUserData)) ;
+                    }
+
+                    // add "add" button
+                    let tabAddOptions = {
+                        id: 0,
+                        type: {
+                            classTab: MapUtil.getInfoForMap( 'standard', 'classTab')
+                        },
+                        icon: 'fa-plus',
+                        name: 'add',
+                        right: true
+                    };
+
+                    promisesAddTab.push(addTab(tabMapElement, tabAddOptions, currentUserData));
+
+                    Promise.all(promisesAddTab)
+                        .then((payload) => showDefaultTab(tabMapElement, currentUserData))
+                        .then((payload) => resolve());
+                }
+            }
+        };
+
+        return new Promise(updateMapModuleExecutor).then((payload) => {
+            // log client map update time
+            let duration = Util.timeStop(logKeyClientMapData);
+            Util.log(logKeyClientMapData, {duration: duration, type: 'client', description: 'update map'});
+        });
     };
 
     /**
@@ -1010,4 +1149,8 @@ define([
         return data;
     };
 
+    return {
+        updateTabData: updateTabData,
+        updateMapModule: updateMapModule
+    };
 });
