@@ -413,7 +413,7 @@ table{
   }
 }
 .navbar-nav {
-  li:not(.disabled){
+  li:not(.disabled):not(.hide-before){
     &:hover, &.active{
 
       &:before{
