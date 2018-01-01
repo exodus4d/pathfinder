@@ -406,6 +406,17 @@ $mapWidth: 2500px ;
     }
   }
 
+  // debug system class
+  .pf-system-debug{
+    position: absolute;
+    color: $white;
+    font-size: 10px;
+    line-height: 22px;
+    text-align: center;
+    pointer-events: none;
+    z-index: 500;
+  }
+
   // Endpoints ================================================================
   .pf-map-endpoint-source, .pf-map-endpoint-target{
     z-index: 90;

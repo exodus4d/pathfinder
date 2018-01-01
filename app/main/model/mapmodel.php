@@ -25,6 +25,7 @@ class MapModel extends AbstractMapTrackingModel {
     const DATA_CACHE_KEY_CHARACTER                  = 'CHARACTERS';
 
     const ERROR_SLACK_CHANNEL                       = 'Invalid #Slack channel column [%s]';
+    const ERROR_DISCORD_CHANNEL                     = 'Invalid #Discord channel column [%s]';
 
     protected $fieldConf = [
         'active' => [
@@ -133,6 +134,24 @@ class MapModel extends AbstractMapTrackingModel {
             'default' => '',
             'activity-log' => true
         ],
+        'discordUsername' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => '',
+            'activity-log' => true
+        ],
+        'discordWebHookURLRally' => [
+            'type' => Schema::DT_VARCHAR256,
+            'nullable' => false,
+            'default' => '',
+            'validate' => true
+        ],
+        'discordWebHookURLHistory' => [
+            'type' => Schema::DT_VARCHAR256,
+            'nullable' => false,
+            'default' => '',
+            'validate' => true
+        ],
         'systems' => [
             'has-many' => ['Model\SystemModel', 'mapId']
         ],
@@ -191,59 +210,65 @@ class MapModel extends AbstractMapTrackingModel {
         if(is_null($mapDataAll)){
             // no cached map data found
 
-            $mapData                                = (object) [];
-            $mapData->id                            = $this->id;
-            $mapData->name                          = $this->name;
-            $mapData->icon                          = $this->icon;
-            $mapData->deleteExpiredConnections      = $this->deleteExpiredConnections;
-            $mapData->deleteEolConnections          = $this->deleteEolConnections;
-            $mapData->persistentAliases             = $this->persistentAliases;
+            $mapData                                        = (object) [];
+            $mapData->id                                    = $this->id;
+            $mapData->name                                  = $this->name;
+            $mapData->icon                                  = $this->icon;
+            $mapData->deleteExpiredConnections              = $this->deleteExpiredConnections;
+            $mapData->deleteEolConnections                  = $this->deleteEolConnections;
+            $mapData->persistentAliases                     = $this->persistentAliases;
 
             // map scope
-            $mapData->scope                         = (object) [];
-            $mapData->scope->id                     = $this->scopeId->id;
-            $mapData->scope->name                   = $this->scopeId->name;
-            $mapData->scope->label                  = $this->scopeId->label;
+            $mapData->scope                                 = (object) [];
+            $mapData->scope->id                             = $this->scopeId->id;
+            $mapData->scope->name                           = $this->scopeId->name;
+            $mapData->scope->label                          = $this->scopeId->label;
 
             // map type
-            $mapData->type                          = (object) [];
-            $mapData->type->id                      = $this->typeId->id;
-            $mapData->type->name                    = $this->typeId->name;
-            $mapData->type->classTab                = $this->typeId->classTab;
+            $mapData->type                                  = (object) [];
+            $mapData->type->id                              = $this->typeId->id;
+            $mapData->type->name                            = $this->typeId->name;
+            $mapData->type->classTab                        = $this->typeId->classTab;
 
             // map logging
-            $mapData->logging                       = (object) [];
-            $mapData->logging->activity             = $this->isActivityLogEnabled();
-            $mapData->logging->history              = $this->isHistoryLogEnabled();
+            $mapData->logging                               = (object) [];
+            $mapData->logging->activity                     = $this->isActivityLogEnabled();
+            $mapData->logging->history                      = $this->isHistoryLogEnabled();
 
             // map Slack logging
-            $mapData->logging->slackHistory         = $this->isSlackChannelEnabled('slackChannelHistory');
-            $mapData->logging->slackRally           = $this->isSlackChannelEnabled('slackChannelRally');
-            $mapData->logging->slackWebHookURL      = $this->slackWebHookURL;
-            $mapData->logging->slackUsername        = $this->slackUsername;
-            $mapData->logging->slackIcon            = $this->slackIcon;
-            $mapData->logging->slackChannelHistory  = $this->slackChannelHistory;
-            $mapData->logging->slackChannelRally    = $this->slackChannelRally;
+            $mapData->logging->slackHistory                 = $this->isSlackChannelEnabled('slackChannelHistory');
+            $mapData->logging->slackRally                   = $this->isSlackChannelEnabled('slackChannelRally');
+            $mapData->logging->slackWebHookURL              = $this->slackWebHookURL;
+            $mapData->logging->slackUsername                = $this->slackUsername;
+            $mapData->logging->slackIcon                    = $this->slackIcon;
+            $mapData->logging->slackChannelHistory          = $this->slackChannelHistory;
+            $mapData->logging->slackChannelRally            = $this->slackChannelRally;
+
+            // map Discord logging
+            $mapData->logging->discordRally                 = $this->isDiscordChannelEnabled('discordWebHookURLRally');
+            $mapData->logging->discordUsername              = $this->discordUsername;
+            $mapData->logging->discordWebHookURLRally       = $this->discordWebHookURLRally;
+            $mapData->logging->discordWebHookURLHistory     = $this->discordWebHookURLHistory;
 
             // map mail logging
-            $mapData->logging->mailRally            = $this->isMailSendEnabled('RALLY_SET');
+            $mapData->logging->mailRally                    = $this->isMailSendEnabled('RALLY_SET');
 
             // map access
-            $mapData->access                        = (object) [];
-            $mapData->access->character             = [];
-            $mapData->access->corporation           = [];
-            $mapData->access->alliance              = [];
+            $mapData->access                                = (object) [];
+            $mapData->access->character                     = [];
+            $mapData->access->corporation                   = [];
+            $mapData->access->alliance                      = [];
 
-            $mapData->created                       = (object) [];
-            $mapData->created->created              = strtotime($this->created);
+            $mapData->created                               = (object) [];
+            $mapData->created->created                      = strtotime($this->created);
             if(is_object($this->createdCharacterId)){
-                $mapData->created->character        = $this->createdCharacterId->getData();
+                $mapData->created->character                = $this->createdCharacterId->getData();
             }
 
-            $mapData->updated                       = (object) [];
-            $mapData->updated->updated              = strtotime($this->updated);
+            $mapData->updated                               = (object) [];
+            $mapData->updated->updated                      = strtotime($this->updated);
             if(is_object($this->updatedCharacterId)){
-                $mapData->updated->character        = $this->updatedCharacterId->getData();
+                $mapData->updated->character                = $this->updatedCharacterId->getData();
             }
 
             // get access object data ---------------------------------------------------------------------------------
@@ -315,11 +340,50 @@ class MapModel extends AbstractMapTrackingModel {
      * @throws \Exception\ValidationException
      */
     protected function validate_slackWebHookURL(string $key, string $val): bool {
+        return $this->validate_WebHookURL($key, $val, 'slack');
+    }
+
+    /**
+     * validate Discord History WebHook URL
+     * @param string $key
+     * @param string $val
+     * @return bool
+     * @throws \Exception\ValidationException
+     */
+    protected function validate_discordWebHookURLHistory(string $key, string $val): bool {
+        return $this->validate_WebHookURL($key, $val, 'discord');
+    }
+
+    /**
+     * validate Discord Rally WebHook URL
+     * @param string $key
+     * @param string $val
+     * @return bool
+     * @throws \Exception\ValidationException
+     */
+    protected function validate_discordWebHookURLRally(string $key, string $val): bool {
+        return $this->validate_WebHookURL($key, $val, 'discord');
+    }
+
+    /**
+     * validate Slack/Discord WebHook URL
+     * @param string $key
+     * @param string $val
+     * @param string $type
+     * @return bool
+     * @throws \Exception\ValidationException
+     */
+    protected function validate_WebHookURL(string $key, string $val, string $type): bool {
         $valid = true;
         if( !empty($val) ){
+            $hosts = [
+                'slack' => 'hooks.slack.com',
+                'discord' => 'discordapp.com'
+            ];
+
             if(
                 !\Audit::instance()->url($val) ||
-                parse_url($val, PHP_URL_HOST) !== 'hooks.slack.com'
+                parse_url($val, PHP_URL_HOST) !== $hosts[$type]
             ){
                 $valid = false;
                 $this->throwValidationException($key);
@@ -386,7 +450,6 @@ class MapModel extends AbstractMapTrackingModel {
      */
     public function afterEraseEvent($self, $pkeys){
         $self->clearCacheData();
-        $self->logActivity('mapDelete');
         $self->deleteLogFile();
     }
 
@@ -873,6 +936,13 @@ class MapModel extends AbstractMapTrackingModel {
             $log->addHandlerGroup('slackMap');
         }
 
+        // send map history to Discord channel ------------------------------------------------------------------------
+        $discordChannelKey = 'discordWebHookURLHistory';
+        if($this->isDiscordChannelEnabled($discordChannelKey)){
+            $log->addHandler('discordMap', null, $this->getDiscordWebHookConfig($discordChannelKey));
+            $log->addHandlerGroup('discordMap');
+        }
+
         // update map activity ----------------------------------------------------------------------------------------
         $log->logActivity($this->isActivityLogEnabled());
 
@@ -960,6 +1030,34 @@ class MapModel extends AbstractMapTrackingModel {
     }
 
     /**
+     * check if "Discord WebHook" is enabled for this map type
+     * @param string $channel
+     * @return bool
+     * @throws PathfinderException
+     */
+    public function isDiscordChannelEnabled(string $channel): bool {
+        $enabled = false;
+        // check global Slack status
+        if((bool)Config::getPathfinderData('discord.status')){
+            // check global map default config for this channel
+            switch($channel){
+                case 'discordWebHookURLHistory': $defaultMapConfigKey = 'send_history_discord_enabled'; break;
+                case 'discordWebHookURLRally': $defaultMapConfigKey = 'send_rally_discord_enabled'; break;
+                default: throw new PathfinderException(sprintf(self::ERROR_DISCORD_CHANNEL, $channel));
+            }
+
+            if((bool) Config::getMapsDefaultConfig($this->typeId->name)[$defaultMapConfigKey]){
+                $config = $this->getDiscordWebHookConfig($channel);
+                if($config->slackWebHookURL){
+                    $enabled = true;
+                }
+            }
+        }
+
+        return $enabled;
+    }
+
+    /**
      * check if "E-Mail" Log is enabled for this map
      * @param string $type
      * @return bool
@@ -1014,6 +1112,20 @@ class MapModel extends AbstractMapTrackingModel {
         $config->slackIcon = $this->slackIcon;
         if($channel && $this->exists($channel)){
             $config->slackChannel = $this->$channel;
+        }
+        return $config;
+    }
+
+    /**
+     * get Config for Discord WebHook cURL calls
+     * @param string $channel
+     * @return \stdClass
+     */
+    public function getDiscordWebHookConfig(string $channel = ''): \stdClass {
+        $config = (object) [];
+        $config->slackUsername = $this->discordUsername;
+        if($channel && $this->exists($channel)){
+            $config->slackWebHookURL = $this->$channel . '/slack';
         }
         return $config;
     }
@@ -1222,9 +1334,12 @@ class MapModel extends AbstractMapTrackingModel {
 
     /**
      * @param CharacterModel|null $characterModel
-     * @return false|ConnectionModel
+     * @return false|MapModel
      */
     public function save(CharacterModel $characterModel = null){
+        /**
+         * @var $mapModel MapModel
+         */
         $mapModel = parent::save($characterModel);
 
         // check if map type has changed and clear access objects
@@ -1241,4 +1356,18 @@ class MapModel extends AbstractMapTrackingModel {
         return $mapModel;
     }
 
+    /**
+     * get all maps
+     * @param array $mapIds
+     * @return \DB\CortexCollection
+     */
+    public static function getAll($mapIds = []){
+        $query = [
+            'active = :active AND id IN :mapIds',
+            ':active' => 1,
+            ':mapIds' => $mapIds
+        ];
+
+        return (new self())->find($query);
+    }
 }

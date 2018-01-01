@@ -52,6 +52,14 @@ class GitHub extends Controller\Controller {
             $apiResponse = \Web::instance()->request($apiPath, $options );
 
             if($apiResponse['body']){
+                $return = (object) [];
+                $return->releasesData = [];
+                $return->version = (object) [];
+                $return->version->current =  Config::getPathfinderData('version');
+                $return->version->last =  '';
+                $return->version->delta = null;
+                $return->version->dev = false;
+
                 // request succeeded -> format "Markdown" to "HTML"
                 // result is JSON formed
                 $releasesData = (array)json_decode($apiResponse['body']);
@@ -62,7 +70,24 @@ class GitHub extends Controller\Controller {
                 }
 
                 $md = \Markdown::instance();
-                foreach($releasesData as &$releaseData){
+                foreach($releasesData as $key => &$releaseData){
+                    // check version ----------------------------------------------------------------------------------
+                    if($key === 0){
+                        $return->version->last = $releaseData->tag_name;
+
+                        if(version_compare( $return->version->current, $return->version->last, '>')){
+                            $return->version->dev = true;
+                        }
+                    }
+
+                    if(
+                        !$return->version->dev &&
+                        version_compare( $releaseData->tag_name, $return->version->current, '>=')
+                    ){
+                        $return->version->delta = ($key === count($releasesData) - 1) ? '>= ' . $key : $key;
+                    }
+
+                    // format body ------------------------------------------------------------------------------------
                     if(isset($releaseData->body)){
                         $body = $releaseData->body;
 
@@ -78,7 +103,10 @@ class GitHub extends Controller\Controller {
                         $releaseData->body = $md->convert( trim($body) );
                     }
                 }
-                $f3->set($cacheKey, $releasesData, $ttl);
+
+                $return->releasesData = $releasesData;
+
+                $f3->set($cacheKey, $return, $ttl);
             }else{
                 // request failed -> cache failed result (respect API request limit)
                 $f3->set($cacheKey, false, 60 * 5);

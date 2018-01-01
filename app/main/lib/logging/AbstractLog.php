@@ -250,6 +250,8 @@ abstract class AbstractLog implements LogInterface {
                     break;
                 case 'slackMap':
                 case 'slackRally':
+                case 'discordMap':
+                case 'discordRally':
                     $params = $this->getHandlerParamsSlack($handlerKey);
                     break;
                 default:

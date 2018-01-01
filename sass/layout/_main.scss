@@ -19,7 +19,7 @@ a, .pf-link{
   will-change: color;
   text-decoration: none;
   cursor: pointer;
-  @include transition( color 0.08s ease-out );
+  @include transition( color 0.08s ease-out, background-color 0.08s ease-out );
 
   &:hover{
     color: $teal-lightest;
@@ -271,7 +271,7 @@ select:active, select:hover {
     }
 
     &.pf-table-button-sm-cell{
-      padding: 0;
+      padding: 0 5px;
     }
 
     &.pf-table-counter-cell{
@@ -413,7 +413,7 @@ table{
   }
 }
 .navbar-nav {
-  li:not(.disabled){
+  li:not(.disabled):not(.hide-before){
     &:hover, &.active{
 
       &:before{
@@ -506,6 +506,26 @@ table{
   // Tabs (colored)
   #pf-map-tabs {
 
+    a[role="tab"]:hover{
+      .pf-map-tab-handler:before{
+        color: $orange
+      }
+    }
+
+    .pf-map-tab-handler{
+      &:before{
+        content: '\22EE\22EE\00A0';
+        display: inline-block;
+        cursor: -moz-grab !important;
+        cursor: -webkit-grab !important;
+        cursor: grab !important;
+        color: $gray-light;
+        width: 12px;
+        transition: color 0.15s ease-out, background-color 0.15s ease-out;
+        pointer-events: all;
+      }
+    }
+
     .pf-map-type-tab-default{
       border-top: 2px solid transparent;
     }
@@ -527,11 +547,11 @@ table{
     }
 
     .pf-map-tab-icon{
-      margin-right: 5px;
+      margin-right: 3px;
     }
 
     .pf-map-tab-shared-icon{
-      margin-left: 5px;
+      margin-left: 3px;
     }
   }
 }
@@ -578,9 +598,9 @@ table{
 
       .pf-module-handler-drag{
         display: inline-block;
-        cursor: -moz-grabbing;
-        cursor: -webkit-grabbing;
-        cursor: grabbing;
+        cursor: -moz-grab !important;
+        cursor: -webkit-grab !important;
+        cursor: grab !important;
         transition: color 0.15s ease-out;
 
         &:before{
@@ -741,6 +761,7 @@ table{
   margin-right: 5px;
   cursor: -moz-grab;
   cursor: -webkit-grab;
+  cursor: grab;
 }
 
 .pf-system-sec-highSec{
@@ -1294,6 +1315,9 @@ code .fa {
 
   .pf-module-handler-drag{
     color: $orange-light;
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
+    cursor: grabbing;
   }
 }
 

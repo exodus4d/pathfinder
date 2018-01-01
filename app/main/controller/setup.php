@@ -806,6 +806,14 @@ class Setup extends Controller {
                     $label = '<i class="fa fa-fw fa-slack"></i> Rally point poke Slack';
                     $tooltip = 'If "enabled", map admins can set a Slack channel for rally point pokes.';
                     break;
+                case 'send_history_discord_enabled':
+                    $label = '<i class="fa fa-fw fa-microphone"></i> History log Discord';
+                    $tooltip = 'If "enabled", map admins can set a Discord channel were map logs get piped to.';
+                    break;
+                case 'send_rally_discord_enabled':
+                    $label = '<i class="fa fa-fw fa-microphone"></i> Rally point poke Discord';
+                    $tooltip = 'If "enabled", map admins can set a Discord channel for rally point pokes.';
+                    break;
                 case 'send_rally_mail_enabled':
                     $label = '<i class="fa fa-fw fa-envelope"></i> Rally point poke Email';
                     $tooltip = 'If "enabled", rally point pokes can be send by Email (SMTP config + recipient address required).';
@@ -1159,8 +1167,8 @@ class Setup extends Controller {
         $dbVersion = 'unknown';
         foreach($dbVersionParts as $dbVersionPart){
             // check if this is a valid version number
-            // hint: MariaDB´s version is always the last valid version number...
-            if( version_compare( $dbVersionPart, '0.0.1', '>=' ) > 0 ){
+            // hint: MariaDB´s version is NOT always the last valid version number
+            if( version_compare( $dbVersionPart, '1', '>' ) > 0 ){
                 $dbVersion = $dbVersionPart;
             }
         }

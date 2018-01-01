@@ -73,7 +73,7 @@
                                     <div class="col-sm-12 col-xs-6 checkbox">
                                         <input id="{{persistentAliasesId}}" name="persistentAliases" value="1" type="checkbox" {{#persistentAliases}}checked{{/persistentAliases}}>
                                         <label for="{{persistentAliasesId}}">Persistent system aliases
-                                            <i class="fa fa-fw fa-question-circle pf-help-light" title="Keep custom aliases after delete)"></i>
+                                            <i class="fa fa-fw fa-question-circle pf-help-light" title="Keep custom aliases after delete"></i>
                                         </label>
                                     </div>
                                 </div>
@@ -111,15 +111,15 @@
 
 
                     {{! Slack notification --------------------------------------------- }}
-                    <h4 class="pf-dynamic-area {{^slackSectionShow}}collapsed{{/slackSectionShow}}" data-toggle="collapse" data-target="#pf-map-dialog-slack-section"><i class="fa fa-slack"></i> Slack notifications <small class="txt-color txt-color-warning">[BETA]</small></h4>
+                    <h4 class="pf-dynamic-area {{^slackSectionShow}}collapsed{{/slackSectionShow}}" data-toggle="collapse" data-target="#pf-map-dialog-slack-section"><i class="fa fa-slack"></i>&nbsp;&nbsp;Slack notifications</h4>
 
                     <div id="pf-map-dialog-slack-section" class="collapse {{#slackSectionShow}}in{{/slackSectionShow}}">
                         <fieldset {{^slackEnabled}}disabled{{/slackEnabled}}>
                             <div class="row ">
                                 <div class="col-xs-12 col-sm-12 col-md-6">
                                     <div class="form-group">
-                                        <label for="{{slackWebHookURLId}}" class="col-sm-3 col-md-4 control-label">WebHookURL
-                                            <i class="fa fa-fw fa-question-circle pf-help-light" title="Insert your WebHook URL from the configuration page for 'Incoming WebHooks'"></i>
+                                        <label for="{{slackWebHookURLId}}" class="col-sm-3 col-md-4 control-label">WebHook
+                                            <i class="fa fa-fw fa-question-circle pf-help-light" title="Copy a WebHook URL from Slack configuration page for 'Incoming WebHooks'"></i>
                                         </label>
                                         <div class="col-sm-9 col-md-8">
                                             <div class="input-group">
@@ -176,7 +176,7 @@
                                 <div class="col-xs-6 col-sm-6 col-md-6">
                                     <div class="form-group">
                                         <label for="{{slackChannelRallyId}}" class="col-sm-6 col-md-4 control-label">Channel 'rally point'
-                                            <i class="fa fa-fw fa-question-circle pf-help-light" title="Send new 'Rally point' notifications to a Slack channel."></i>
+                                            <i class="fa fa-fw fa-question-circle pf-help-light" title="Send new 'Rally point' notifications to a Slack channel"></i>
                                         </label>
                                         <div class="col-sm-6 col-md-8">
                                             <div class="input-icon-left" {{^slackRallyEnabled}}title="Globally disabled for this map type"{{/slackRallyEnabled}}>
@@ -209,9 +209,80 @@
                         {{^slackEnabled}}
                         <div class="pf-dialog-info-container alert alert-info" style="display: block; opacity: 1; transform: translateY(0px);">
                             <span class="txt-color txt-color-information">Info</span>
-                            <small>Slack API is disabled for your map type '{{ mapData.config.type.name }}'</small>
+                            <small>Slack WebHooks are disabled for your map type '{{ mapData.config.type.name }}'</small>
                         </div>
                         {{/slackEnabled}}
+
+                    </div>
+
+                    {{! Discord notification --------------------------------------------- }}
+                    <h4 class="pf-dynamic-area {{^discordSectionShow}}collapsed{{/discordSectionShow}}" data-toggle="collapse" data-target="#pf-map-dialog-discord-section"><i class="fa fa-microphone"></i>&nbsp;&nbsp;Discord notifications <small class="txt-color txt-color-warning">[BETA]</small></h4>
+
+                    <div id="pf-map-dialog-discord-section" class="collapse {{#discordSectionShow}}in{{/discordSectionShow}}">
+                        <fieldset {{^discordEnabled}}disabled{{/discordEnabled}}>
+                            <div class="row ">
+                                <div class="col-xs-12 col-sm-12 col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{discordWebHookURLRallyId}}" class="col-sm-3 col-md-4 control-label">WebHook 'rally point'
+                                            <i class="fa fa-fw fa-question-circle pf-help-light" title="Copy a WebHook URL from Discord channel configuration page"></i>
+                                        </label>
+                                        <div class="col-sm-9 col-md-8">
+                                            <div class="input-group" {{^discordRallyEnabled}}title="Globally disabled for this map type"{{/discordRallyEnabled}}>
+                                                <input name="discordWebHookURLRally" type="url" class="form-control" id="{{discordWebHookURLRallyId}}" value="{{discordWebHookURLRally}}" placeholder="https://discordapp.com/api/webhooks/XXXYYYZZZ" data-type-error="No valid URL" pattern="^https://discordapp.com/.*" data-pattern-error="Wrong domain. https://discordapp.com/)" {{^discordRallyEnabled}}disabled{{/discordRallyEnabled}}>
+                                                <div class="input-group-btn">
+                                                    <a class="btn btn-default" href="//support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks" target="_blank">
+                                                        add… <i class="fa fa-fw fa-external-link "></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <div class="note help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-xs-6 col-sm-6 col-md-3">
+                                    <div class="form-group">
+                                        <label for="{{discordUsernameId}}" class="col-sm-6 col-md-4 control-label">Name
+                                            <i class="fa fa-fw fa-question-circle pf-help-light" title="Set a 'username' for your Discord bot"></i>
+                                        </label>
+                                        <div class="col-sm-6 col-md-8">
+                                            <input name="discordUsername" type="text" class="form-control" id="{{discordUsernameId}}" value="{{discordUsername}}" placeholder="Pathfinder bot"  data-error="Please set a bot name">
+                                            <div class="note help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{! group some columns -> Otherwise error msg would break the layout }}
+                                <div class="clearfix"></div>
+
+                                <div class="col-xs-12 col-sm-12 col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{discordWebHookURLHistoryId}}" class="col-sm-3 col-md-4 control-label">WebHook 'map changes'
+                                            <i class="fa fa-fw fa-question-circle pf-help-light" title="Copy a WebHook URL from Discord channel configuration page"></i>
+                                        </label>
+                                        <div class="col-sm-9 col-md-8">
+                                            <div class="input-group" {{^discordHistoryEnabled}}title="Globally disabled for this map type"{{/discordHistoryEnabled}}>
+                                                <input name="discordWebHookURLHistory" type="url" class="form-control" id="{{discordWebHookURLHistoryId}}" value="{{discordWebHookURLHistory}}" placeholder="https://discordapp.com/api/webhooks/XXXYYYZZZ" data-type-error="No valid URL" pattern="^https://discordapp.com/.*" data-pattern-error="Wrong domain. https://discordapp.com/)" {{^discordHistoryEnabled}}disabled{{/discordHistoryEnabled}}>
+                                                <div class="input-group-btn">
+                                                    <a class="btn btn-default" href="//support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks" target="_blank">
+                                                        add… <i class="fa fa-fw fa-external-link "></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <div class="note help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </fieldset>
+
+                        {{^discordEnabled}}
+                        <div class="pf-dialog-info-container alert alert-info" style="display: block; opacity: 1; transform: translateY(0px);">
+                            <span class="txt-color txt-color-information">Info</span>
+                            <small>Discord WebHooks are disabled for your map type '{{ mapData.config.type.name }}'</small>
+                        </div>
+                        {{/discordEnabled}}
 
                     </div>
 
