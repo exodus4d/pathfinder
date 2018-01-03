@@ -1379,7 +1379,7 @@ final class Base extends Prefab implements ArrayAccess {
 			$port=$this->hive['PORT'];
 			$port=in_array($port,[80,443])?'':':'.$port;
 			$url=$this->hive['SCHEME'].'://'.
-				$this->hive['HOST'].$port.$this->hive['BASE'].$url;
+				$this->hive['HOST'].$port.$url;
 		}
 		if (!$this->hive['CLI']) {
 			header('Location: '.$url);
