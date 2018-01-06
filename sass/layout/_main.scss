@@ -1137,9 +1137,11 @@ td.pf-popover-trigger{
   font-weight: bold;
 }
 
-code .fa {
-  color: $gray;
-  cursor: pointer;
+code {
+  .fas, .far, .fab {
+    color: $gray;
+    cursor: pointer;
+  }
 }
 
 // svg logo =======================================================================================

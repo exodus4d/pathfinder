@@ -110,23 +110,23 @@ define([
 
         switch(customConfig.type){
             case 'info':
-                customConfig.icon = 'fa fa-info fa-fw fa-lg';
+                customConfig.icon = 'fas fa-info fa-fw fa-lg';
                 break;
             case 'success':
-                customConfig.icon = 'fa fa-check fa-fw fa-lg';
+                customConfig.icon = 'fas fa-check fa-fw fa-lg';
                 break;
             case 'warning':
-                customConfig.icon = 'fa fa-exclamation-triangle fa-fw fa-lg';
+                customConfig.icon = 'fas fa-exclamation-triangle fa-fw fa-lg';
                 break;
             case 'error':
-                customConfig.icon = 'fa fa-close fa-fw fa-lg';
+                customConfig.icon = 'fas fa-times fa-fw fa-lg';
                 break;
             case 'lock':
-                customConfig.icon = 'fa fa-lock fa-fw fa-lg';
+                customConfig.icon = 'fas fa-lock fa-fw fa-lg';
                 customConfig.type = 'success';
                 break;
             case 'unlock':
-                customConfig.icon = 'fa fa-unlock fa-fw fa-lg';
+                customConfig.icon = 'fas fa-unlock fa-fw fa-lg';
                 customConfig.type = 'info';
                 break;
             default:

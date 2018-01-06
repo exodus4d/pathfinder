@@ -1,2 +1,87 @@
-!function(t){"use strict";"function"==typeof define&&define.amd?define(["jquery","blueImpGallery"],t):t(window.jQuery,window.blueimp.Gallery)}(function(t,o){"use strict";t.extend(o.prototype.options,{useBootstrapModal:!0});var e=o.prototype.close,n=o.prototype.imageFactory,i=o.prototype.videoFactory,r=o.prototype.textFactory;t.extend(o.prototype,{modalFactory:function(o,e,n,i){if(!this.options.useBootstrapModal||n)return i.call(this,o,e,n);var r=this,a=t(this.container).children(".modal").clone().css("display","block").on("click",function(t){t.target!==a[0]&&t.target!==a.children()[0]||(t.preventDefault(),t.stopPropagation(),r.close())}),c=i.call(this,o,function(t){e({type:t.type,target:a[0]}),a.addClass("in")},n);return a.find(".modal-title").text(c.title||String.fromCharCode(160)),a.find(".modal-body").append(c),a[0]},imageFactory:function(t,o,e){return this.modalFactory(t,o,e,n)},videoFactory:function(t,o,e){return this.modalFactory(t,o,e,i)},textFactory:function(t,o,e){return this.modalFactory(t,o,e,r)},close:function(){this.container.find(".modal").removeClass("in"),e.call(this)}})});
-//# sourceMappingURL=bootstrap-image-gallery.js.map
+/*
+ * Bootstrap Image Gallery
+ * https://github.com/blueimp/Bootstrap-Image-Gallery
+ *
+ * Copyright 2013, Sebastian Tschan
+ * https://blueimp.net
+ *
+ * Licensed under the MIT license:
+ * http://www.opensource.org/licenses/MIT
+ */
+
+/*global define, window */
+
+;(function (factory) {
+    'use strict'
+    if (typeof define === 'function' && define.amd) {
+        define([
+            'jquery',
+            'blueImpGallery'
+        ], factory)
+    } else {
+        factory(
+            window.jQuery,
+            window.blueimp.Gallery
+        )
+    }
+}(function ($, Gallery) {
+    'use strict'
+
+    $.extend(Gallery.prototype.options, {
+        useBootstrapModal: true
+    })
+
+    var close = Gallery.prototype.close
+    var imageFactory = Gallery.prototype.imageFactory
+    var videoFactory = Gallery.prototype.videoFactory
+    var textFactory = Gallery.prototype.textFactory
+
+    $.extend(Gallery.prototype, {
+        modalFactory: function (obj, callback, factoryInterface, factory) {
+            if (!this.options.useBootstrapModal || factoryInterface) {
+                return factory.call(this, obj, callback, factoryInterface)
+            }
+            var that = this
+            var modalTemplate = $(this.container).children('.modal')
+            var modal = modalTemplate.clone().css('display', 'block').on('click', function (event) {
+            //var modal = modalTemplate.clone().show().on('click', function (event) {
+                // Close modal if click is outside of modal-content:
+                if (event.target === modal[0] ||
+                    event.target === modal.children()[0]) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    that.close()
+                }
+            })
+            var element = factory.call(this, obj, function (event) {
+                callback({
+                    type: event.type,
+                    target: modal[0]
+                })
+                modal.addClass('in')
+            }, factoryInterface)
+            modal.find('.modal-title').text(element.title || String.fromCharCode(160))
+            modal.find('.modal-body').append(element)
+
+            return modal[0]
+        },
+
+        imageFactory: function (obj, callback, factoryInterface) {
+            return this.modalFactory(obj, callback, factoryInterface, imageFactory)
+        },
+
+        videoFactory: function (obj, callback, factoryInterface) {
+            return this.modalFactory(obj, callback, factoryInterface, videoFactory)
+        },
+
+        textFactory: function (obj, callback, factoryInterface) {
+            return this.modalFactory(obj, callback, factoryInterface, textFactory)
+        },
+
+        close: function () {
+            this.container.find('.modal').removeClass('in')
+            close.call(this)
+        }
+
+    })
+}))

@@ -791,31 +791,31 @@ class Setup extends Controller {
                     $label = 'Max. systems count/map';
                     break;
                 case 'log_activity_enabled':
-                    $label = '<i class="fa fa-fw fa-bar-chart"></i> Activity statistics';
+                    $label = '<i class="fas fa-fw fa-chart-bar"></i> Activity statistics';
                     $tooltip = 'If "enabled", map admins can enable user statistics for a map.';
                     break;
                 case 'log_history_enabled':
-                    $label = '<i class="fa fa-fw fa-file-text"></i> History log files';
+                    $label = '<i class="fas fa-fw fa-file-alt"></i> History log files';
                     $tooltip = 'If "enabled", map admins can pipe map logs to file. (one file per map)';
                     break;
                 case 'send_history_slack_enabled':
-                    $label = '<i class="fa fa-fw fa-slack"></i> History log Slack';
+                    $label = '<i class="fab fa-fw fa-slack-hash"></i> History log Slack';
                     $tooltip = 'If "enabled", map admins can set a Slack channel were map logs get piped to.';
                     break;
                 case 'send_rally_slack_enabled':
-                    $label = '<i class="fa fa-fw fa-slack"></i> Rally point poke Slack';
+                    $label = '<i class="fab fa-fw fa-slack-hash"></i> Rally point poke Slack';
                     $tooltip = 'If "enabled", map admins can set a Slack channel for rally point pokes.';
                     break;
                 case 'send_history_discord_enabled':
-                    $label = '<i class="fa fa-fw fa-microphone"></i> History log Discord';
+                    $label = '<i class="fab fa-fw fa-discord"></i> History log Discord';
                     $tooltip = 'If "enabled", map admins can set a Discord channel were map logs get piped to.';
                     break;
                 case 'send_rally_discord_enabled':
-                    $label = '<i class="fa fa-fw fa-microphone"></i> Rally point poke Discord';
+                    $label = '<i class="fab fa-fw fa-discord"></i> Rally point poke Discord';
                     $tooltip = 'If "enabled", map admins can set a Discord channel for rally point pokes.';
                     break;
                 case 'send_rally_mail_enabled':
-                    $label = '<i class="fa fa-fw fa-envelope"></i> Rally point poke Email';
+                    $label = '<i class="fas fa-fw fa-envelope"></i> Rally point poke Email';
                     $tooltip = 'If "enabled", rally point pokes can be send by Email (SMTP config + recipient address required).';
                     break;
                 default:
@@ -1323,7 +1323,7 @@ class Setup extends Controller {
                         [
                             'action' => 'buildIndex',
                             'label' => 'build',
-                            'icon' => 'fa-refresh',
+                            'icon' => 'fa-sync',
                             'btn' => 'btn-primary'
                         ]
                     ],

@@ -120,11 +120,11 @@ define([
                 placement: 'bottom',
                 btnOkClass: 'btn btn-sm btn-default',
                 btnOkLabel: 'dismiss',
-                btnOkIcon: 'fa fa-fw fa-sign-in',
+                btnOkIcon: 'fas fa-fw fa-sign-in-alt',
                 title: 'Accept cookies',
                 btnCancelClass: 'btn btn-sm btn-success',
                 btnCancelLabel: 'accept',
-                btnCancelIcon: 'fa fa-fw fa-check',
+                btnCancelIcon: 'fas fa-fw fa-check',
                 onCancel: function(e, target){
                     // "Accept cookies"
                     Util.setCookie('cookie', 1, config.defaultAcceptCookieExpire, 'd');
@@ -758,7 +758,7 @@ define([
                     }
                 },
                 content: {
-                    icon: 'fa-sign-out',
+                    icon: 'fa-sign-out-alt',
                     class: 'txt-color-warning',
                     title: 'Logout',
                     headline: 'Logout',

@@ -3,17 +3,17 @@
         <ul class="nav navbar-nav {{dialogNavigationClass}}" role="tablist">
             <li class="{{#openTabInformation}}active{{/openTabInformation}}">
                 <a role="tab" data-toggle="tab" data-name="infoSummary" href="#{{dialogSummaryContainerId}}">
-                    <i class="fa fa-street-view fa-fw"></i>&nbsp;Information
+                    <i class="fas fa-street-view fa-fw"></i>&nbsp;Information
                 </a>
             </li>
             <li class="{{#openTabActivity}}active{{/openTabActivity}}">
                 <a role="tab" data-toggle="tab" data-name="infoUsers" href="#{{dialogUsersContainerId}}">
-                    <i class="fa fa-fighter-jet fa-fw"></i>&nbsp;Activity
+                    <i class="fas fa-fighter-jet fa-fw"></i>&nbsp;Activity
                 </a>
             </li>
             <li class="{{#openTabLog}}active{{/openTabLog}}">
                 <a role="tab" data-toggle="tab" data-name="infoLog" href="#{{dialogLogsContainerId}}">
-                    <i class="fa fa-binoculars fa-fw"></i>&nbsp;Log&nbsp;&nbsp;<small class="txt-color txt-color-warning">[BETA]</small>
+                    <i class="fas fa-binoculars fa-fw"></i>&nbsp;Log&nbsp;&nbsp;<small class="txt-color txt-color-warning">[BETA]</small>
                 </a>
             </li>
         </ul>
@@ -23,7 +23,7 @@
         <ul class="nav navbar-nav {{dialogNavigationClass}}">
             <li class="">
                 <a id="{{dialogRefreshContainerId}}" href="javascript:void(0);" data-action="refresh">
-                    <i class="fa fa-refresh fa-fw"></i>&nbsp;Refresh
+                    <i class="fas fa-sync fa-fw"></i>&nbsp;Refresh
                 </a>
             </li>
         </ul>
@@ -35,36 +35,36 @@
     {{! "summary" tab ------------------------------------------------------ }}
     <div role="tabpanel" class="tab-pane fade {{#openTabInformation}}in active{{/openTabInformation}}" id="{{dialogSummaryContainerId}}">
         <div class="alert alert-info fade in hidden-md hidden-lg">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><i class="fa fa-close"></i></button>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><i class="fas fa-times"></i></button>
             <span class="txt-color txt-color-information">Info</span>
             <small> Your browser window is to small. Resize it to obtain more columns.</small>
         </div>
 
-        <h4><i class="fa fa-sitemap fa-lg fa-fw"></i> Map</h4>
+        <h4><i class="fas fa-sitemap fa-lg fa-fw"></i> Map</h4>
 
         <div id="{{mapInfoId}}" class="pf-dynamic-area">
         </div>
 
-        <h4><i class="fa fa-sun-o fa-lg fa-fw"></i> Systems</h4>
+        <h4><i class="fas fa-sun fa-lg fa-fw"></i> Systems</h4>
 
         <div id="{{mapInfoSystemsId}}" class="pf-dynamic-area">
         </div>
 
-        <h4><i class="fa fa-chain fa-lg fa-fw"></i> Connections</h4>
+        <h4><i class="fas fa-link fa-lg fa-fw"></i> Connections</h4>
 
         <div id="{{mapInfoConnectionsId}}" class="pf-dynamic-area"></div>
     </div>
 
     {{! "users" tab -------------------------------------------------------- }}
     <div role="tabpanel" class="tab-pane fade {{#openTabActivity}}in active{{/openTabActivity}}" id="{{dialogUsersContainerId}}">
-        <h4><i class="fa fa-male fa-lg fa-fw"></i> Active pilots</h4>
+        <h4><i class="fas fa-male fa-lg fa-fw"></i> Active pilots</h4>
 
         <div id="{{mapInfoUsersId}}" class="pf-dynamic-area"></div>
     </div>
 
     {{! "log" tab ---------------------------------------------------------- }}
     <div role="tabpanel" class="tab-pane fade {{#openTabLog}}in active{{/openTabLog}}" id="{{dialogLogsContainerId}}">
-        <h4><i class="fa fa-history fa-lg fa-fw"></i> Log viewer</h4>
+        <h4><i class="fas fa-history fa-lg fa-fw"></i> Log viewer</h4>
 
         <div id="{{mapInfoLogsId}}" class="pf-dynamic-area"></div>
 

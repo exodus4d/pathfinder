@@ -19,13 +19,13 @@
         {* Errors *}
         <check if="{{ @errorData }}">
                 <div class="alert alert-danger">
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><i class="fa fa-close"></i></button>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><i class="fas fa-times"></i></button>
                     <span class="txt-color txt-color-danger">({{ @errorData->code }}) {{ @errorData->status }}</span>
                     <small> {{ @errorData->message }}</small>
                 </div>
         </check>
 
-        <h4><i class="fa fa-fw fa-home"></i> Server</h4>
+        <h4><i class="fas fa-fw fa-home"></i> Server</h4>
 
         <div class="row text-center">
 
@@ -83,7 +83,7 @@
                         <table class="table">
                             <thead>
                             <tr>
-                                <td class="col-md-5">TEMP <i class="fa fa-fw fa-question-circle pf-help-light" title="Temporary folder for cache, filesystem locks, compiled F3 templates, etc."></i></td>
+                                <td class="col-md-5">TEMP <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="Temporary folder for cache, filesystem locks, compiled F3 templates, etc."></i></td>
                                 <td class="text-right col-md-7">
                                     <kbd>{{ @TEMP }}</kbd>
                                 </td>
@@ -92,43 +92,43 @@
 
                             <tbody>
                             <tr>
-                                <td>CACHE <i class="fa fa-fw fa-question-circle pf-help-light" title="Cache backend. F3 can handle Redis, Memcache, APC, WinCache, XCache and a filesystem-based (default) cache."></i></td>
+                                <td>CACHE <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="Cache backend. F3 can handle Redis, Memcache, APC, WinCache, XCache and a filesystem-based (default) cache."></i></td>
                                 <td class="text-right">
                                     <kbd>{{ @CACHE }}</kbd>
                                 </td>
                             </tr>
                             <tr>
-                                <td>LOGS <i class="fa fa-fw fa-question-circle pf-help-light" title="Folder for pathfinder logs (e.g. cronjob-, error-logs, ..."></i></td>
+                                <td>LOGS <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="Folder for pathfinder logs (e.g. cronjob-, error-logs, ..."></i></td>
                                 <td class="text-right">
                                     <kbd>{{ @LOGS }}</kbd>
                                 </td>
                             </tr>
                             <tr>
-                                <td >UI <i class="fa fa-fw fa-question-circle pf-help-light" title="Folder for public accessible resources (templates, js, css, images,..)"></i></td>
+                                <td >UI <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="Folder for public accessible resources (templates, js, css, images,..)"></i></td>
                                 <td class="text-right">
                                     <kbd>{{ @UI }}</kbd>
                                 </td>
                             </tr>
                             <tr>
-                                <td>AUTOLOAD <i class="fa fa-fw fa-question-circle pf-help-light" title="Autoload folder for PHP files."></i></td>
+                                <td>AUTOLOAD <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="Autoload folder for PHP files."></i></td>
                                 <td class="text-right">
                                     <kbd>{{ @AUTOLOAD }}</kbd>
                                 </td>
                             </tr>
                             <tr>
-                                <td>FAVICON <i class="fa fa-fw fa-question-circle pf-help-light" title="Folder for Favicons."></i></td>
+                                <td>FAVICON <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="Folder for Favicons."></i></td>
                                 <td class="text-right">
                                     <kbd>{{ @FAVICON }}</kbd>
                                 </td>
                             </tr>
                             <tr>
-                                <td>HISTORY [optional] <i class="fa fa-fw fa-question-circle pf-help-light" title="Folder for log history files. (e.g. change logs for maps)"></i></td>
+                                <td>HISTORY [optional] <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="Folder for log history files. (e.g. change logs for maps)"></i></td>
                                 <td class="text-right">
                                     <kbd>{{ @PATHFINDER.HISTORY.LOG }}</kbd>
                                 </td>
                             </tr>
                             <tr>
-                                <td>CONFIG PATH [optional] <i class="fa fa-fw fa-question-circle pf-help-light" title="Folder for custom *.ini files. (e.g. when overwriting of default values in app/*.ini)"></i></td>
+                                <td>CONFIG PATH [optional] <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="Folder for custom *.ini files. (e.g. when overwriting of default values in app/*.ini)"></i></td>
                                 <td class="text-right">
                                     <kbd>{{ implode(' ', @CONF ) }}</kbd>
                                 </td>
@@ -170,7 +170,7 @@
 
         </div>
 
-        <h4><i class="fa fa-fw fa-server"></i> Environment</h4>
+        <h4><i class="fas fa-fw fa-server"></i> Environment</h4>
 
         <div class="row text-center">
             <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
@@ -249,7 +249,7 @@
             </div>
         </div>
 
-        <h4><i class="fa fa-fw fa-sliders"></i> Settings</h4>
+        <h4><i class="fas fa-fw fa-sliders-h"></i> Settings</h4>
 
         <div class="row text-center">
             <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
@@ -297,7 +297,7 @@
                         <table class="table">
                             <thead>
                             <tr>
-                                <td><i class="fa fa-fw fa-sign-in"></i> Registration/Login</td>
+                                <td><i class="fas fa-fw fa-sign-in-alt"></i> Registration/Login</td>
                                 <td class="text-right col-md-2">
                                     <check if="{{ @PATHFINDER.REGISTRATION.STATUS }}">
                                         <true>
@@ -312,7 +312,7 @@
                             </thead>
                             <tbody>
                             <tr>
-                                <td><i class="fa fa-fw fa-slack"></i> Slack</td>
+                                <td><i class="fab fa-fw fa-slack-hash"></i> Slack</td>
                                 <td class="text-right col-md-2">
                                     <check if="{{ @PATHFINDER.SLACK.STATUS }}">
                                         <true>
@@ -325,7 +325,7 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td><i class="fa fa-fw fa-microphone"></i> Discord</td>
+                                <td><i class="fab fa-fw fa-discord"></i> Discord</td>
                                 <td class="text-right col-md-2">
                                     <check if="{{ @PATHFINDER.DISCORD.STATUS }}">
                                         <true>
@@ -366,7 +366,7 @@
                                     <tr>
                                         <td>{{ @mapConf.label | raw }}
                                             <check if="{{ @mapConf.tooltip }}">
-                                                <i class="fa fa-fw fa-question-circle pf-help-light" title="{{ @mapConf.tooltip }}"></i>
+                                                <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="{{ @mapConf.tooltip }}"></i>
                                             </check>
                                         </td>
                                         <repeat group="{{ @mapConf.data }}" value="{{ @mapTypeConfValue }}">
@@ -396,7 +396,7 @@
 
         </div>
 
-        <h4 id="pf-setup-database"><i class="fa fa-fw fa-database"></i> Database</h4>
+        <h4 id="pf-setup-database"><i class="fas fa-fw fa-database"></i> Database</h4>
 
         <div class="row text-center">
 
@@ -451,10 +451,10 @@
                                     <td class="text-right col-sm-1 col-md-1">
                                         <check if="{{ @dbInformation.info.connected }}">
                                             <true>
-                                                <i class="fa fa-lg fa-fw fa-check txt-color txt-color-success"></i>
+                                                <i class="fas fa-fw fa-check txt-color txt-color-success"></i>
                                             </true>
                                             <false>
-                                                <i class="fa fa-lg fa-fw fa-warning txt-color txt-color-danger"></i>
+                                                <i class="fas fa-fw fa-exclamation-triangle txt-color txt-color-danger"></i>
                                             </false>
                                         </check>
                                     </td>
@@ -469,7 +469,7 @@
                                     <td class="text-right col-sm-3 col-md-3" colspan="2"><kbd>{{ @dbInformation.info.pass }}</kbd></td>
                                     <td class="text-right col-sm-1 col-md-1">
                                         <check if="{{ strlen(@dbInformation.info.pass) <= 0 }}">
-                                            <i class="fa fa-lg fa-fw fa-warning txt-color txt-color-warning"></i>
+                                            <i class="fas fa-fw fa-exclamation-triangle txt-color txt-color-warning"></i>
                                         </check>
                                     </td>
                                 </tr>
@@ -489,10 +489,10 @@
                                     <td class="text-right">
                                         <check if="{{ @dbInformation.info.connected }}">
                                             <true>
-                                                <i class="fa fa-lg fa-fw fa-check txt-color txt-color-success"></i>
+                                                <i class="fas fa-fw fa-check txt-color txt-color-success"></i>
                                             </true>
                                             <false>
-                                                <i class="fa fa-lg fa-fw fa-warning txt-color txt-color-danger"></i>
+                                                <i class="fas fa-fw fa-exclamation-triangle txt-color txt-color-danger"></i>
                                             </false>
                                         </check>
                                     </td>
@@ -533,10 +533,10 @@
                                             <td class="text-right">
                                                 <check if="{{ @setting.check }}">
                                                     <true>
-                                                        <i class="fa fa-lg fa-fw fa-check txt-color txt-color-success"></i>
+                                                        <i class="fas fa-fw fa-check txt-color txt-color-success"></i>
                                                     </true>
                                                     <false>
-                                                        <i class="fa fa-lg fa-fw fa-warning txt-color txt-color-warning"></i>
+                                                        <i class="fas fa-fw fa-exclamation-triangle txt-color txt-color-warning"></i>
                                                         <set dbStatusCheck="DB warning" />
                                                     </false>
                                                 </check>
@@ -571,13 +571,13 @@
                                     <thead>
                                     <tr>
                                         <th class="text-center col-sm-1 col-md-1">
-                                            <i class="fa fa-fw fa-hashtag"></i>
+                                            <i class="fas fa-fw fa-hashtag"></i>
                                         </th>
                                         <th>Table</th>
                                         <th class="col-sm-1 col-md-1 text-center">exist</th>
                                         <th class="col-sm-3 col-md-3">&nbsp;</th>
                                         <th class="col-sm-1 col-md-1 text-center">
-                                            <i class="fa fa-fw fa-battery-half"></i>
+                                            <i class="fas fa-fw fa-battery-half"></i>
                                         </th>
                                         <th class="col-sm-1 col-md-1"></th>
                                         <th class="col-sm-1 col-md-1">&nbsp;</th>
@@ -591,7 +591,7 @@
                                             <check if="{{ @tableData.fieldConf }}">
                                                 <true>
                                                     <td class="text-center" data-target=".{{ @tableName }}_col" data-toggle="collapse" aria-expanded="false" aria-controls="{{ @tableName }}_col">
-                                                        <i class="fa fa-fw fa-chevron-right pf-animate-rotate"></i>
+                                                        <i class="fas fa-fw fa-chevron-right pf-animate-rotate"></i>
                                                     </td>
                                                 </true>
                                                 <false>
@@ -603,10 +603,10 @@
                                             <td class="text-center">
                                                 <check if="{{ @tableData.exists }}">
                                                     <true>
-                                                        <i class="fa fa-fw fa-check txt-color txt-color-success"></i>
+                                                        <i class="fas fa-fw fa-check txt-color txt-color-success"></i>
                                                     </true>
                                                     <false>
-                                                        <i class="fa fa-fw fa-ban txt-color txt-color-danger" title="table missing"></i>
+                                                        <i class="fas fa-fw fa-ban txt-color txt-color-danger" title="table missing"></i>
                                                     </false>
                                                 </check>
                                             </td>
@@ -614,10 +614,10 @@
                                             <td class="text-center">
                                                 <check if="{{ @tableData.empty === true }}">
                                                     <true>
-                                                        <i class="fa fa-fw fa-battery-empty txt-color txt-color-warning" title="table empty"></i>
+                                                        <i class="fas fa-fw fa-battery-empty txt-color txt-color-warning" title="table empty"></i>
                                                     </true>
                                                     <false>
-                                                        <i class="fa fa-fw fa-battery-full" title="table filled"></i>
+                                                        <i class="fas fa-fw fa-battery-full" title="table filled"></i>
                                                     </false>
                                                 </check>
                                             </td>
@@ -625,10 +625,10 @@
                                             <td class="text-center">
                                                 <check if="{{ @tableData.statusCheckCount == 0 && @tableData.exists }}">
                                                     <true>
-                                                        <i class="fa fa-lg fa-fw fa-check txt-color txt-color-success"></i>
+                                                        <i class="fas fa-fw fa-check txt-color txt-color-success"></i>
                                                     </true>
                                                     <false>
-                                                        <i class="fa fa-lg fa-fw fa-warning txt-color txt-color-warning"></i>
+                                                        <i class="fas fa-fw fa-exclamation-triangle txt-color txt-color-warning"></i>
                                                     </false>
                                                 </check>
                                             </td>
@@ -638,7 +638,7 @@
                                         <check if="{{ @tableData.fieldConf }}">
                                             <tr class="{{ @tableName }}_col collapse">
                                                 <td class="text-center bg-color bg-color-tealDarkest">
-                                                    <i class="fa fa-fw fa-hashtag"></i>
+                                                    <i class="fas fa-fw fa-hashtag"></i>
                                                 </td>
                                                 <td class="bg-color bg-color-tealDarkest">column</td>
                                                 <td class="bg-color bg-color-tealDarkest text-center">exist</td>
@@ -655,10 +655,10 @@
                                                         <td class="bg-color bg-color-tealDarker text-center">
                                                             <check if="{{ @columnData.exists }}">
                                                                 <true>
-                                                                    <i class="fa fa-fw fa-check txt-color txt-color-success"></i>
+                                                                    <i class="fas fa-fw fa-check txt-color txt-color-success"></i>
                                                                 </true>
                                                                 <false>
-                                                                    <i class="fa fa-fw fa-ban txt-color txt-color-danger" title="column missing"></i>
+                                                                    <i class="fas fa-fw fa-ban txt-color txt-color-danger" title="column missing"></i>
                                                                 </false>
                                                             </check>
                                                         </td>
@@ -675,7 +675,7 @@
                                                                     </check>
                                                                 </true>
                                                                 <false>
-                                                                    <i class="fa fa-fw fa-ellipsis-h txt-color txt-color-danger" title="{{ @columnData.requiredType }}"></i>
+                                                                    <i class="fas fa-fw fa-ellipsis-h txt-color txt-color-danger" title="{{ @columnData.requiredType }}"></i>
                                                                 </false>
                                                             </check>
                                                         </td>
@@ -692,7 +692,7 @@
                                                                     </check>
                                                                 </true>
                                                                 <false>
-                                                                    <i class="fa fa-fw fa-ellipsis-h txt-color txt-color-danger" title="{{ @columnData.requiredIndex }}"></i>
+                                                                    <i class="fas fa-fw fa-ellipsis-h txt-color txt-color-danger" title="{{ @columnData.requiredIndex }}"></i>
                                                                 </false>
                                                             </check>
                                                         </td>
@@ -709,17 +709,17 @@
                                                                     </check>
                                                                 </true>
                                                                 <false>
-                                                                    <i class="fa fa-fw fa-ellipsis-h txt-color txt-color-danger" title="{{ @columnData.requiredUnique }}"></i>
+                                                                    <i class="fas fa-fw fa-ellipsis-h txt-color txt-color-danger" title="{{ @columnData.requiredUnique }}"></i>
                                                                 </false>
                                                             </check>
                                                         </td>
                                                         <td class="bg-color bg-color-tealDarker text-center">
                                                             <check if="{{ @columnData.statusCheck }}">
                                                                 <true>
-                                                                    <i class="fa fa-lg fa-fw fa-check txt-color txt-color-success"></i>
+                                                                    <i class="fas fa-fw fa-check txt-color txt-color-success"></i>
                                                                 </true>
                                                                 <false>
-                                                                    <i class="fa fa-lg fa-fw fa-warning txt-color txt-color-warning"></i>
+                                                                    <i class="fas fa-fw fa-exclamation-triangle txt-color txt-color-warning"></i>
                                                                 </false>
                                                             </check>
                                                         </td>
@@ -732,7 +732,7 @@
                                         <check if="{{ @tableData.foreignKeys }}">
                                             <tr class="{{ @tableName }}_col collapse">
                                                 <td class="text-center bg-color bg-color-tealDarkest">
-                                                    <i class="fa fa-fw fa-hashtag"></i>
+                                                    <i class="fas fa-fw fa-hashtag"></i>
                                                 </td>
                                                 <td class="bg-color bg-color-tealDarkest">foreign key</td>
                                                 <td class="bg-color bg-color-tealDarkest"></td>
@@ -748,10 +748,10 @@
                                                     <td class="bg-color bg-color-tealDarker text-center">
                                                         <check if="{{ @keyData.exists }}">
                                                             <true>
-                                                                <i class="fa fa-lg fa-fw fa-check txt-color txt-color-success"></i>
+                                                                <i class="fas fa-fw fa-check txt-color txt-color-success"></i>
                                                             </true>
                                                             <false>
-                                                                <i class="fa fa-lg fa-fw fa-ban txt-color txt-color-danger" title="key missing"></i>
+                                                                <i class="fas fa-fw fa-ban txt-color txt-color-danger" title="key missing"></i>
                                                             </false>
                                                         </check>
                                                     </td>
@@ -786,7 +786,7 @@
                                     <thead>
                                     <tr>
                                         <th class="text-center col-sm-1 col-md-1">
-                                            <i class="fa fa-fw fa-hashtag"></i>
+                                            <i class="fas fa-fw fa-hashtag"></i>
                                         </th>
                                         <th>query</th>
                                     </tr>
@@ -808,15 +808,15 @@
                             <check if="{{ @dbInformation.info.dbCreate }}">
                                 <true>
                                     <a href="?action=createDB&db={{ @dbKey }}#pf-setup-database" class="btn btn-success {{ true ?'':'disabled' }}" title="Try to create new '{{ @dbInformation.info.name }}' database.">
-                                        <i class="fa fa-fw fa-plus"></i> Create database
+                                        <i class="fas fa-fw fa-plus"></i> Create database
                                     </a>
                                 </true>
                                 <false>
                                     <a href="?action=bootstrapDB&db={{ @dbKey }}#pf-setup-database" class="btn btn-primary {{ (@dbInformation.info.setupEnable && @dbConnectionStatus == 'OK') ?'':'disabled' }}">
-                                        <i class="fa fa-fw fa-refresh"></i> Setup tables
+                                        <i class="fas fa-fw fa-sync"></i> Setup tables
                                     </a>
                                     <a href="?action=fixCols#pf-setup-database" class="btn btn-default {{ @dbInformation.info.columnQueries ?'':'disabled' }}">
-                                        <i class="fa fa-fw fa-magic"></i> Fix columns/keys
+                                        <i class="fas fa-fw fa-magic"></i> Fix columns/keys
                                     </a>
                                 </false>
                             </check>
@@ -829,7 +829,7 @@
 
         </div>
 
-        <h4><i class="fa fa-fw fa-exchange"></i> Socket configuration <span class="txt-color txt-color-gray">[advanced]</span></h4>
+        <h4><i class="fas fa-fw fa-exchange-alt"></i> Socket configuration <span class="txt-color txt-color-gray">[advanced]</span></h4>
 
         <div class="row text-center">
 
@@ -852,10 +852,10 @@
                                             <td class="text-right col-md-1">
                                                 <check if="{{ @entry.check }}">
                                                     <true>
-                                                        <i class="fa fa-lg fa-fw fa-check txt-color txt-color-success"></i>
+                                                        <i class="fas fa-fw fa-check txt-color txt-color-success"></i>
                                                     </true>
                                                     <false>
-                                                        <i class="fa fa-lg fa-fw fa-warning txt-color txt-color-warning"></i>
+                                                        <i class="fas fa-fw fa-exclamation-triangle txt-color txt-color-warning"></i>
                                                     </false>
                                                 </check>
                                             </td>
@@ -882,7 +882,7 @@
 
         </div>
 
-        <h4 id="pf-setup-administration"><i class="fa fa-fw fa-wrench"></i> Administration</h4>
+        <h4 id="pf-setup-administration"><i class="fas fa-fw fa-wrench"></i> Administration</h4>
 
         <div class="row text-center">
             <div class="col-xs-12 col-md-6 pf-landing-pricing-panel">
@@ -893,7 +893,7 @@
                     <div class="panel-heading text-left">
                         <h3 class="panel-title">
                             Index data
-                            <i class="fa fa-fw fa-question-circle pf-help-light" title="
+                            <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="
                             Indexed data is required for some queries (e.g. route finder module, static wormholes,... ).
                             Building/Importing data may take a while (~20s). Increase 'max_execution_time' if you run into PHP timeouts."></i>
                         </h3>
@@ -922,7 +922,7 @@
                                     <div class="btn-group btn-group-justified">
                                         <repeat group="{{ @indexData.task }}" key="{{ @taskKey }}" value="{{ @taskData }}">
                                             <a href="?action={{ @taskData.action }}&model={{ @model }}#pf-setup-administration" class="btn {{ @taskData.btn }} {{ @taskData.btn=='btn-default' && !@indexData.count ?'disabled':'' }} {{ @dbWarnings ?'disabled':'' }}" role="button">
-                                                <i class="fa fa-fw {{ @taskData.icon }}"></i> {{ @taskData.label }}
+                                                <i class="fas fa-fw {{ @taskData.icon }}"></i> {{ @taskData.label }}
                                             </a>
                                         </repeat>
                                     </div>
@@ -960,27 +960,27 @@
                                     Redis cache
                                 </span>
                                 <a href="?action=clearCache#pf-setup-administration" class="btn btn-warning" role="button">
-                                    <i class="fa fa-fw fa-times"></i> Clear all keys
+                                    <i class="fas fa-fw fa-times"></i> Clear all keys
                                 </a>
                             </div>
                         </check>
 
                         <div class="btn-group btn-group-justified">
-                                    <span class="btn btn-default disabled btn-fake">
-                                        Data
-                                        <kbd class="pull-right">
-                                            <check if="{{ @cacheSize.data }}">
-                                                <true>
-                                                    {{ @cacheSize.data }}
-                                                </true>
-                                                <false>
-                                                    0 KB
-                                                </false>
-                                            </check>
-                                        </kbd>
-                                    </span>
+                            <span class="btn btn-default disabled btn-fake">
+                                Data
+                                <kbd class="pull-right">
+                                    <check if="{{ @cacheSize.data }}">
+                                        <true>
+                                            {{ @cacheSize.data }}
+                                        </true>
+                                        <false>
+                                            0 KB
+                                        </false>
+                                    </check>
+                                </kbd>
+                            </span>
                             <a href="?action=clearCache#pf-setup-administration" class="btn btn-warning {{ (@cacheSize.data) ?'':'disabled' }}" role="button">
-                                <i class="fa fa-fw fa-times"></i> Delete files
+                                <i class="fas fa-fw fa-times"></i> Delete files
                             </a>
                         </div>
 
@@ -1009,7 +1009,7 @@
                 <div class="panel panel-default pricing-big">
                     <div class="panel-heading text-left">
                         <h3 class="panel-title">Cookies
-                            <i class="fa fa-fw fa-question-circle pf-help-light" title="Force all users to re-login through SSO. "></i>
+                            <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="Force all users to re-login through SSO. "></i>
                         </h3>
                     </div>
 
@@ -1017,7 +1017,7 @@
                         <div class="btn-group btn-group-justified">
                             <span class="btn btn-default disabled btn-fake">Invalidate all Cookie data</span>
                             <a href="?action=invalidateCookies#pf-setup-administration" class="btn btn-warning" role="button">
-                                <i class="fa fa-fw fa-times"></i> Clear authentication data
+                                <i class="fas fa-fw fa-times"></i> Clear authentication data
                             </a>
                         </div>
                     </div>
