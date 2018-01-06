@@ -143,24 +143,26 @@ abstract class Cursor extends \Magic implements \IteratorAggregate {
 	*	@param $filter string|array
 	*	@param $options array
 	*	@param $ttl int
+	*	@param $bounce bool
 	**/
 	function paginate(
-		$pos=0,$size=10,$filter=NULL,array $options=NULL,$ttl=0) {
+		$pos=0,$size=10,$filter=NULL,array $options=NULL,$ttl=0,$bounce=TRUE) {
 		$total=$this->count($filter,$options,$ttl);
 		$count=ceil($total/$size);
-		$pos=max(0,min($pos,$count-1));
+		if ($bounce)
+			$pos=max(0,min($pos,$count-1));
 		return [
-			'subset'=>$this->find($filter,
+			'subset'=>($bounce || $pos<$count)?$this->find($filter,
 				array_merge(
 					$options?:[],
 					['limit'=>$size,'offset'=>$pos*$size]
 				),
 				$ttl
-			),
+			):[],
 			'total'=>$total,
 			'limit'=>$size,
 			'count'=>$count,
-			'pos'=>$pos<$count?$pos:0
+			'pos'=>$bounce?($pos<$count?$pos:0):$pos
 		];
 	}
 

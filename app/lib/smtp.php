@@ -171,7 +171,7 @@ class SMTP extends Magic {
 		if (!is_file($file))
 			user_error(sprintf(self::E_Attach,$file),E_USER_ERROR);
 		if ($alias)
-			$file=[$alias=>$file];
+			$file=[$alias,$file];
 		$this->attachments[]=['filename'=>$file,'cid'=>$cid];
 	}
 
@@ -206,14 +206,15 @@ class SMTP extends Magic {
 		// Get server's initial response
 		$this->dialog(NULL,TRUE,$mock);
 		// Announce presence
-		$reply=$this->dialog('EHLO '.$fw->get('HOST'),$log,$mock);
+		$reply=$this->dialog('EHLO '.$fw->HOST,$log,$mock);
 		if (strtolower($this->scheme)=='tls') {
 			$this->dialog('STARTTLS',$log,$mock);
 			if (!$mock)
 				stream_socket_enable_crypto(
 					$socket,TRUE,STREAM_CRYPTO_METHOD_TLS_CLIENT);
-			$reply=$this->dialog('EHLO '.$fw->get('HOST'),$log,$mock);
+			$reply=$this->dialog('EHLO '.$fw->HOST,$log,$mock);
 		}
+		$message=wordwrap($message,998);
 		if (preg_match('/8BITMIME/',$reply))
 			$headers['Content-Transfer-Encoding']='8bit';
 		else {
@@ -243,14 +244,8 @@ class SMTP extends Magic {
 			if (empty($headers[$id]))
 				user_error(sprintf(self::E_Header,$id),E_USER_ERROR);
 		$eol="\r\n";
-		$str='';
 		// Stringify headers
 		foreach ($headers as $key=>&$val) {
-			if (!in_array($key,$reqd) &&
-				(!$this->attachments ||
-				$key!='Content-Type' &&
-				$key!='Content-Transfer-Encoding'))
-				$str.=$key.': '.$val.$eol;
 			if (in_array($key,['From','To','Cc','Bcc'])) {
 				$email='';
 				preg_match_all('/(?:".+?" )?(?:<.+?>|[^ ,]+)/',
@@ -290,11 +285,11 @@ class SMTP extends Magic {
 			$out.='--'.$hash.$eol;
 			$out.='Content-Type: '.$type.$eol;
 			$out.='Content-Transfer-Encoding: '.$enc.$eol;
-			$out.=$str.$eol;
+			$out.=$eol;
 			$out.=$message.$eol;
 			foreach ($this->attachments as $attachment) {
 				if (is_array($attachment['filename']))
-					list($alias,$file)=each($attachment['filename']);
+					list($alias,$file)=$attachment['filename'];
 				else
 					$alias=basename($file=$attachment['filename']);
 				$out.='--'.$hash.$eol;
@@ -338,20 +333,21 @@ class SMTP extends Magic {
 	*	@param $scheme string
 	*	@param $user string
 	*	@param $pw string
+	*	@param $ctx resource
 	**/
 	function __construct(
 		$host='localhost',$port=25,$scheme=NULL,$user=NULL,$pw=NULL,$ctx=NULL) {
 		$this->headers=[
 			'MIME-Version'=>'1.0',
 			'Content-Type'=>'text/plain; '.
-				'charset='.Base::instance()->get('ENCODING')
+				'charset='.Base::instance()->ENCODING
 		];
-		$this->host=(strtolower($this->scheme=strtolower($scheme))=='ssl'?
-			'ssl':'tcp').'://'.$host;
+		$this->host=strtolower((($this->scheme=strtolower($scheme))=='ssl'?
+			'ssl':'tcp').'://'.$host);
 		$this->port=$port;
 		$this->user=$user;
 		$this->pw=$pw;
-		$this->context=$ctx;
+		$this->context=stream_context_create($ctx);
 	}
 
 }

@@ -191,7 +191,7 @@ class UTF extends Prefab {
 			':,'=>'\u1f60f', // think
 			':/'=>'\u1f623', // skeptic
 			'8O'=>'\u1f632', // oops
-		]+Base::instance()->get('EMOJI');
+		]+Base::instance()->EMOJI;
 		return $this->translate(str_replace(array_keys($map),
 			array_values($map),$str));
 	}
