@@ -628,8 +628,9 @@ define([
                     iconElement.velocity({
                         opacity: [0.8, 0],
                         scale: [1, 0],
-                        width: ['30px', 0],
-                        marginLeft: ['3px', 0]
+                        width: ['20px', 0],
+                        height: ['20px', 0],
+                        marginRight: ['10px', 0]
                     },{
                         duration: 240,
                         easing: 'easeInOutQuad'

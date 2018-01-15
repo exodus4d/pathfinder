@@ -573,14 +573,14 @@ table{
     @include border-radius(5px);
 
     &:before{
-      content:'';
+      content: '';
       position: absolute;
       top: 0;
       left: 0;
       border-style: solid;
       border-width: 0 0 8px 8px;
       border-color: transparent transparent transparent $gray;
-      cursor: pointer;
+      cursor: ns-resize;
     }
 
     // all labels in a module

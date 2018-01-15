@@ -99,15 +99,14 @@ define([
             // init scrollbar
             scrollspyElement.mCustomScrollbar({
                 axis: 'y',
-                theme: 'light-thick',
+                theme: 'light-3',
                 scrollInertia: 200,
                 autoExpandScrollbar: false,
                 scrollButtons:{
-                    scrollAmount: 30,
-                    enable: true
+                    enable: true,
+                    scrollAmount: 30
                 },
                 advanced: {
-                    updateOnBrowserResize: true,
                     updateOnContentResize: true
                 },
                 callbacks:{

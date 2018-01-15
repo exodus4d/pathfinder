@@ -1,11 +1,15 @@
 
-$mapHeight: 520px;
-$mapWidth: 2500px ;
+
+$mapHeight:             1500px;
+$mapWidth:              2500px;
+
+$mapWrapperHeight:       520px + 35px;
+$mapWrapperMinHeight:    250px;
+$mapWrapperMaxHeight:    1000px;              // no vertical scrollbar: $mapHeight + 35px;
+$mapWrapperMaxWidth:     $mapWidth + 35px;
 
 // start bounce mixin =========================================================
-
 @mixin bounce-up-down{
-
   @include animation-duration( 1s);
   @include animation-delay(0.5s);
   -webkit-animation-fill-mode: both;
@@ -32,24 +36,26 @@ $mapWidth: 2500px ;
 }
 
 // end bounce mixin ===========================================================
-
 #pf-map-tab-element{
-  max-width: 2515px;
+  max-width: $mapWrapperMaxWidth;
   margin: 0 auto;
 }
-
 
 .pf-map-tab-content{
 
   .pf-map-wrapper{
     position: relative;
+    resize: vertical;
     width: 100%;
-    max-width: $mapWidth + 15px;
-    height: $mapHeight + 30px;
+    height: $mapWrapperHeight;
+    max-width: $mapWrapperMaxWidth;
+    max-height: $mapWrapperMaxHeight;
+    min-height: $mapWrapperMinHeight;
     overflow: auto;
     padding: 5px;
     background: rgba($gray-darker, 0.93);
     box-shadow:inset -3px 3px 10px 0 rgba($black, 0.3);
+    will-change: width, height;
     @include border-bottom-radius(5px);
     border: {
       width: 1px;
@@ -57,10 +63,28 @@ $mapWidth: 2500px ;
       color: $gray-dark;
     }
 
-    &:focus{
-      border: 1px solid $gray;
+    &:before{
+      content: '';
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      border-style: solid;
+      border-width: 12px 12px 0 0 ;
+      border-color:  transparent $gray-dark transparent transparent;
+      cursor: nwse-resize;
+
+      &:hover{
+        border-color: blue;
+      }
     }
 
+    &:focus, &:hover{
+      border: 1px solid $gray;
+
+      &:before{
+        border-color:  transparent $gray transparent transparent;
+      }
+    }
   }
 }
 
@@ -69,7 +93,7 @@ $mapWidth: 2500px ;
   position: absolute;
   display: none; // triggered by js
   z-index: 10000;
-  right: 10px;
+  right: 26px;
   background: rgba($black, 0.25);
   @include border-radius(5px);
 
@@ -84,8 +108,7 @@ $mapWidth: 2500px ;
     height: 36px;
     min-height: 36px;
     min-width: 36px;
-    color: $gray-darker;
-    padding: 3px;
+    padding: 3px 3px 3px 8px;
     line-height: 26px;
 
     i{
@@ -280,6 +303,7 @@ $mapWidth: 2500px ;
       cursor: pointer;
       font-family: Arial, sans-serif; // fix for element width on custom font family
       font-weight: bold;
+      white-space: nowrap;
 
       .pf-system-head-name{
         border: none;

@@ -13,8 +13,8 @@ use lib\logging;
 
 class SystemModel extends AbstractMapTrackingModel {
 
-    const MAX_POS_X = 2300;
-    const MAX_POS_Y = 498;
+    const MAX_POS_X = 2440;
+    const MAX_POS_Y = 1480;
 
     protected $table = 'system';
 

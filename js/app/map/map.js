@@ -188,7 +188,7 @@ define([
                 }
 
 
-                // =================================================================
+                // ====================================================================================================
 
                 // user count changed -> change tooltip content
 
@@ -711,7 +711,7 @@ define([
             }
         });
 
-        // connection click events ==========================================================================
+        // connection click events ====================================================================================
 
         let single = function(e){
             let connection = this;
@@ -819,14 +819,14 @@ define([
                     eolUpdated: connectionData.eolUpdated
                 });
 
-                // add connection types -------------------------------------------------------------------------
+                // add connection types -------------------------------------------------------------------------------
                 if(connectionData.type){
                     for(let i = 0; i < connectionData.type.length; i++){
                         connection.addType(connectionData.type[i]);
                     }
                 }
 
-                // add connection scope -------------------------------------------------------------------------
+                // add connection scope -------------------------------------------------------------------------------
                 // connection have the default map Scope scope
                 let scope = map.Defaults.Scope;
                 if(connectionData.scope){
@@ -924,209 +924,292 @@ define([
     };
 
     /**
+     * set map wrapper observer
+     * @param mapWrapper
+     * @param mapConfig
+     */
+    let setMapWrapperObserver = (mapWrapper, mapConfig) => {
+
+        // map resize observer ----------------------------------------------------------------------------------------
+        let resizeTimer;
+        let wrapperResize = new ResizeObserver(entries => { // jshint ignore:line
+            /**
+             * save current map dimension to local storage
+             * @param entry
+             */
+            let saveMapSize = (entry) => {
+                return setTimeout(() => {
+                    let width = entry.target.style.width;
+                    let height = entry.target.style.height;
+                    width = parseInt( width.substring(0, width.length - 2) ) || 0;
+                    height = parseInt( height.substring(0, height.length - 2) ) || 0;
+
+                    MapUtil.storeLocalData('map', mapConfig.config.id, 'style', {
+                        width: width,
+                        height: height
+                    });
+                }, 100);
+            };
+            for (let entry of entries){
+                // use timeout to "throttle" save actions
+                clearTimeout(resizeTimer);
+                resizeTimer = saveMapSize(entry);
+            }
+        });
+
+        wrapperResize.observe(mapWrapper[0]);
+    };
+
+    /**
      * get a mapMapElement
      * @param parentElement
      * @param mapConfig
-     * @returns {*}
+     * @returns {Promise<any>}
      */
     let newMapElement = (parentElement, mapConfig) => {
-        let mapId = mapConfig.config.id;
 
-        // create map wrapper
-        let mapWrapper = $('<div>', {
-            class: config.mapWrapperClass
-        });
+        /**
+         * new map element promise
+         * @param resolve
+         * @param reject
+         */
+        let newMapElementExecutor = (resolve, reject) => {
+            // get map dimension from local storage
+            let promiseStore = MapUtil.getLocaleData('map', mapConfig.config.id );
+            promiseStore.then((data) => {
+                let height = 0;
+                if(data && data.style){
+                     height = data.style.height;
+                }
 
-        // create new map container
-        let mapContainer = $('<div>', {
-            id: config.mapIdPrefix + mapId,
-            class: [config.mapClass].join(' ')
-        });
+                // create map wrapper
+                let mapWrapper = $('<div>', {
+                    class: config.mapWrapperClass,
+                    height: height
+                });
 
-        // add additional information
-        mapContainer.data('id', mapId);
+                setMapWrapperObserver(mapWrapper, mapConfig);
 
-        mapWrapper.append(mapContainer);
+                let mapId = mapConfig.config.id;
 
-        // append mapWrapper to parent element (at the top)
-        parentElement.prepend(mapWrapper);
+                // create new map container
+                let mapContainer = $('<div>', {
+                    id: config.mapIdPrefix + mapId,
+                    class: config.mapClass
+                }).data('id', mapId);
 
-        // set main Container for current map -> the container exists now in DOM !! very important
-        mapConfig.map.setContainer( config.mapIdPrefix + mapId );
+                mapWrapper.append(mapContainer);
 
-        // set map observer
-        setMapObserver(mapConfig.map);
+                // append mapWrapper to parent element (at the top)
+                parentElement.prepend(mapWrapper);
 
-        return mapConfig;
+                // set main Container for current map -> the container exists now in DOM !! very important
+               // mapConfig.map.setContainer( config.mapIdPrefix + mapId );
+                mapConfig.map.setContainer( mapContainer );
+
+                // init custom scrollbars and add overlay
+                parentElement.initMapScrollbar();
+
+                // set map observer
+                setMapObserver(mapConfig.map);
+
+                // set shortcuts
+                mapWrapper.setMapShortcuts();
+
+                // show static overlay actions
+                let mapOverlay = mapContainer.getMapOverlay('info');
+                mapOverlay.updateOverlayIcon('systemRegion', 'show');
+                mapOverlay.updateOverlayIcon('connection', 'show');
+                mapOverlay.updateOverlayIcon('connectionEol', 'show');
+
+                resolve({
+                    action: 'newMapElement',
+                    data: {
+                        mapConfig: mapConfig
+                    }
+                });
+            });
+        };
+
+        return new Promise(newMapElementExecutor);
     };
 
     /**
      * draw a new map or update an existing map with all its systems and connections
      * @param mapConfig
-     * @returns {*}
+     * @returns {Promise<any>}
      */
-    let updateMap = function(mapConfig){
-        let mapContainer = null;
-        if(!mapConfig.map){
+    let updateMap = (mapConfig) => {
+
+        /**
+         * update map promise
+         * @param resolve
+         * @param reject
+         */
+        let updateMapExecutor = (resolve, reject) => {
             // jsPlumb needs to be initialized. This is not the case when switching between map tabs right after refresh
-            return mapContainer;
-        }else{
-            mapContainer = $(mapConfig.map.getContainer());
-        }
+            let mapContainer = mapConfig.map ? $(mapConfig.map.getContainer()) : null;
+            if(mapContainer){
+                let mapId = mapConfig.config.id;
+                let newSystems = 0;
 
-        let mapId = mapConfig.config.id;
-        let newSystems = 0;
-
-        // add additional information for this map
-        if(mapContainer.data('updated') !== mapConfig.config.updated.updated){
-            mapContainer.data('name', mapConfig.config.name);
-            mapContainer.data('scopeId', mapConfig.config.scope.id);
-            mapContainer.data('typeId', mapConfig.config.type.id);
-            mapContainer.data('typeName', mapConfig.config.type.name);
-            mapContainer.data('icon', mapConfig.config.icon);
-            mapContainer.data('created', mapConfig.config.created.created);
-            mapContainer.data('updated', mapConfig.config.updated.updated);
-        }
-
-        // get map data
-        let mapData = mapContainer.getMapDataFromClient({forceData: false});
-
-        if(mapData !== false){
-            // map data available -> map not locked by update counter :)
-
-            let currentSystemData = mapData.data.systems;
-            let currentConnectionData = mapData.data.connections;
-
-            // update systems ===========================================================
-            for(let i = 0; i < mapConfig.data.systems.length; i++){
-                let systemData = mapConfig.data.systems[i];
-
-                // add system
-                let addNewSystem = true;
-
-                for(let k = 0; k < currentSystemData.length; k++){
-                    if(currentSystemData[k].id === systemData.id){
-                        if( currentSystemData[k].updated.updated < systemData.updated.updated ){
-                            // system changed -> update
-                            mapContainer.getSystem(mapConfig.map, systemData);
-                        }
-
-                        addNewSystem = false;
-                        break;
-                    }
+                // add additional information for this map
+                if(mapContainer.data('updated') !== mapConfig.config.updated.updated){
+                    mapContainer.data('name', mapConfig.config.name);
+                    mapContainer.data('scopeId', mapConfig.config.scope.id);
+                    mapContainer.data('typeId', mapConfig.config.type.id);
+                    mapContainer.data('typeName', mapConfig.config.type.name);
+                    mapContainer.data('icon', mapConfig.config.icon);
+                    mapContainer.data('created', mapConfig.config.created.created);
+                    mapContainer.data('updated', mapConfig.config.updated.updated);
                 }
 
-                if( addNewSystem === true){
-                    drawSystem(mapConfig.map, systemData);
-                    newSystems++;
+                // get map data
+                let mapData = mapContainer.getMapDataFromClient({forceData: false});
+
+                if(mapData !== false){
+                    // map data available -> map not locked by update counter :)
+                    let currentSystemData = mapData.data.systems;
+                    let currentConnectionData = mapData.data.connections;
+
+                    // update systems =================================================================================
+                    for(let i = 0; i < mapConfig.data.systems.length; i++){
+                        let systemData = mapConfig.data.systems[i];
+
+                        // add system
+                        let addNewSystem = true;
+
+                        for(let k = 0; k < currentSystemData.length; k++){
+                            if(currentSystemData[k].id === systemData.id){
+                                if( currentSystemData[k].updated.updated < systemData.updated.updated ){
+                                    // system changed -> update
+                                    mapContainer.getSystem(mapConfig.map, systemData);
+                                }
+
+                                addNewSystem = false;
+                                break;
+                            }
+                        }
+
+                        if( addNewSystem === true){
+                            drawSystem(mapConfig.map, systemData);
+                            newSystems++;
+                        }
+                    }
+
+                    // check for systems that are gone -> delete system
+                    for(let a = 0; a < currentSystemData.length; a++){
+
+                        let deleteThisSystem = true;
+
+                        for(let b = 0; b < mapConfig.data.systems.length; b++){
+                            let deleteSystemData = mapConfig.data.systems[b];
+
+                            if(deleteSystemData.id === currentSystemData[a].id){
+                                deleteThisSystem = false;
+                                break;
+                            }
+                        }
+
+                        if(deleteThisSystem === true){
+                            let deleteSystem = $('#' + MapUtil.getSystemId(mapContainer.data('id'), currentSystemData[a].id) );
+
+                            // system not found -> delete system
+                            System.removeSystems(mapConfig.map, deleteSystem);
+                        }
+                    }
+
+                    // update connections =============================================================================
+
+                    // jsPlumb batch() is used, otherwise there are some "strange" visual bugs
+                    // when switching maps (Endpoints are not displayed correctly)
+                    mapConfig.map.batch(function() {
+
+                        for(let j = 0; j < mapConfig.data.connections.length; j++){
+                            let connectionData = mapConfig.data.connections[j];
+
+                            // add connection
+                            let addNewConnection= true;
+
+                            for(let c = 0; c < currentConnectionData.length; c++){
+                                if(
+                                    currentConnectionData[c].id === connectionData.id
+                                ){
+                                    // connection already exists -> check for updates
+                                    if(
+                                        currentConnectionData[c].updated < connectionData.updated
+                                    ){
+                                        // connection changed -> update
+                                        let tempConnection = $().getConnectionById(mapData.config.id, connectionData.id);
+                                        updateConnection(tempConnection, currentConnectionData[c], connectionData);
+                                    }
+
+                                    addNewConnection = false;
+                                    break;
+                                }
+                            }
+
+                            if(addNewConnection === true){
+                                drawConnection(mapConfig.map, connectionData);
+                            }
+                        }
+
+                        // check for connections that are gone -> delete connection
+                        for(let d = 0; d < currentConnectionData.length; d++){
+
+                            let deleteThisConnection = true;
+
+                            for(let e = 0; e < mapConfig.data.connections.length;e++){
+                                let deleteConnectionData = mapConfig.data.connections[e];
+
+                                if(deleteConnectionData.id === currentConnectionData[d].id){
+                                    deleteThisConnection = false;
+                                    break;
+                                }
+                            }
+
+                            if(deleteThisConnection === true){
+                                // get connection from cache -> delete connection
+                                let deleteConnection = $().getConnectionById(mapData.config.id, currentConnectionData[d].id);
+
+                                if(deleteConnection){
+                                    // check if "source" and "target" still exist before remove
+                                    // this is NOT the case if the system was removed previous
+                                    if(
+                                        deleteConnection.source &&
+                                        deleteConnection.target
+                                    ){
+                                        mapConfig.map.detach(deleteConnection, {fireEvent: false});
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    // update local connection cache
+                    updateConnectionsCache(mapConfig.map);
+
+                    // update map "magnetization" when new systems where added
+                    if(newSystems > 0){
+                        MagnetizerWrapper.setElements(mapConfig.map);
+                    }
+                }else{
+                    // map is currently logged -> queue update for this map until unlock
+                    if( mapUpdateQueue.indexOf(mapId) === -1 ){
+                        mapUpdateQueue.push(mapId);
+                    }
                 }
             }
 
-            // check for systems that are gone -> delete system
-            for(let a = 0; a < currentSystemData.length; a++){
-
-                let deleteThisSystem = true;
-
-                for(let b = 0; b < mapConfig.data.systems.length; b++){
-                    let deleteSystemData = mapConfig.data.systems[b];
-
-                    if(deleteSystemData.id === currentSystemData[a].id){
-                        deleteThisSystem = false;
-                        break;
-                    }
+            resolve({
+                action: 'updateMap',
+                data: {
+                    mapConfig: mapConfig
                 }
-
-                if(deleteThisSystem === true){
-                    let deleteSystem = $('#' + MapUtil.getSystemId(mapContainer.data('id'), currentSystemData[a].id) );
-
-                    // system not found -> delete system
-                    System.removeSystems(mapConfig.map, deleteSystem);
-                }
-            }
-
-            // update connections =========================================================
-
-            // jsPlumb batch() is used, otherwise there are some "strange" visual bugs
-            // when switching maps (Endpoints are not displayed correctly)
-            mapConfig.map.batch(function() {
-
-                for(let j = 0; j < mapConfig.data.connections.length; j++){
-                    let connectionData = mapConfig.data.connections[j];
-
-                    // add connection
-                    let addNewConnection= true;
-
-                    for(let c = 0; c < currentConnectionData.length; c++){
-                        if(
-                            currentConnectionData[c].id === connectionData.id
-                        ){
-                            // connection already exists -> check for updates
-                            if(
-                                currentConnectionData[c].updated < connectionData.updated
-                            ){
-                                // connection changed -> update
-                                let tempConnection = $().getConnectionById(mapData.config.id, connectionData.id);
-                                updateConnection(tempConnection, currentConnectionData[c], connectionData);
-                            }
-
-                            addNewConnection = false;
-                            break;
-                        }
-                    }
-
-                    if(addNewConnection === true){
-                        drawConnection(mapConfig.map, connectionData);
-                    }
-                }
-
-                // check for connections that are gone -> delete connection
-                for(let d = 0; d < currentConnectionData.length; d++){
-
-                    let deleteThisConnection = true;
-
-                    for(let e = 0; e < mapConfig.data.connections.length;e++){
-                        let deleteConnectionData = mapConfig.data.connections[e];
-
-                        if(deleteConnectionData.id === currentConnectionData[d].id){
-                            deleteThisConnection = false;
-                            break;
-                        }
-                    }
-
-                    if(deleteThisConnection === true){
-                        // get connection from cache -> delete connection
-                        let deleteConnection = $().getConnectionById(mapData.config.id, currentConnectionData[d].id);
-
-                        if(deleteConnection){
-                            // check if "source" and "target" still exist before remove
-                            // this is NOT the case if the system was removed previous
-                            if(
-                                deleteConnection.source &&
-                                deleteConnection.target
-                            ){
-                                mapConfig.map.detach(deleteConnection, {fireEvent: false});
-                            }
-                        }
-                    }
-                }
-
             });
+        };
 
-            // update local connection cache
-            updateConnectionsCache(mapConfig.map);
-
-            // update map "magnetization" when new systems where added
-            if(newSystems > 0){
-                MagnetizerWrapper.setElements(mapConfig.map);
-            }
-        }else{
-            // map is currently logged -> queue update for this map until unlock
-            if( mapUpdateQueue.indexOf(mapId) === -1 ){
-                mapUpdateQueue.push(mapId);
-            }
-        }
-
-        return mapContainer;
+        return new Promise(updateMapExecutor);
     };
 
     /**
@@ -1472,7 +1555,7 @@ define([
     let showNewSystemDialog = function(map, options){
         let mapContainer = $(map.getContainer());
 
-        // format system status for form select -------------------------------------------------------------
+        // format system status for form select -----------------------------------------------------------------------
         let systemStatus = {};
         // "default" selection (id = 0) prevents status from being overwritten
         // -> e.g. keep status information if system was just inactive (active = 0)
@@ -1485,32 +1568,32 @@ define([
         // default system status -> first status entry
         let defaultSystemStatus = 0;
 
-        // get current map data -----------------------------------------------------------------------------
+        // get current map data ---------------------------------------------------------------------------------------
         let mapData = mapContainer.getMapDataFromClient({forceData: true});
         let mapSystems = mapData.data.systems;
         let mapSystemCount = mapSystems.length;
         let mapTypeName = mapContainer.data('typeName');
         let maxAllowedSystems = Init.mapTypes[mapTypeName].defaultConfig.max_systems;
 
-        // show error if system max count reached -----------------------------------------------------------
+        // show error if system max count reached ---------------------------------------------------------------------
         if(mapSystemCount >= maxAllowedSystems){
             Util.showNotify({title: 'Max system count exceeded', text: 'Limit of ' + maxAllowedSystems + ' systems reached', type: 'warning'});
             return;
         }
 
-        // disable systems that are already on it -----------------------------------------------------------
+        // disable systems that are already on it ---------------------------------------------------------------------
         let mapSystemIds = [];
         for(let i = 0; i < mapSystems.length; i++ ){
             mapSystemIds.push( mapSystems[i].systemId );
         }
 
-        // dialog data --------------------------------------------------------------------------------------
+        // dialog data ------------------------------------------------------------------------------------------------
         let data = {
             id: config.systemDialogId,
             selectClass: config.systemDialogSelectClass
         };
 
-        // set current position as "default" system to add --------------------------------------------------
+        // set current position as "default" system to add ------------------------------------------------------------
         let currentCharacterLog = Util.getCurrentCharacterLog();
 
         if(
@@ -1554,7 +1637,7 @@ define([
                                 return false;
                             }
 
-                            // calculate new system position ------------------------------------------------
+                            // calculate new system position ----------------------------------------------------------
                             let newPosition = {
                                 x: 0,
                                 y: 0
@@ -1580,7 +1663,7 @@ define([
 
                             systemDialogData.position = newPosition;
 
-                            // ------------------------------------------------------------------------------
+                            // ----------------------------------------------------------------------------------------
 
                             let requestData = {
                                 systemData: systemDialogData,
@@ -2156,7 +2239,7 @@ define([
             map.setDraggable(system, false);
         }
 
-        // init system tooltips =============================================================================
+        // init system tooltips =======================================================================================
         let systemTooltipOptions = {
             toggle: 'tooltip',
             placement: 'right',
@@ -2166,7 +2249,7 @@ define([
 
         system.find('.fas').tooltip(systemTooltipOptions);
 
-        // init system body expand ==========================================================================
+        // init system body expand ====================================================================================
         systemHeadExpand.hoverIntent(function(e){
             // hover in
             let hoverSystem = $(this).parents('.' + config.systemClass);
@@ -2238,7 +2321,7 @@ define([
 
         });
 
-        // context menu =====================================================================================
+        // context menu ===============================================================================================
 
         // trigger context menu
         system.off('contextmenu').on('contextmenu', function(e){
@@ -2333,7 +2416,7 @@ define([
             }
         });
 
-        // system click events ==============================================================================
+        // system click events ========================================================================================
         let double = function(e){
             let system = $(this);
             let headElement = $(system).find('.' + config.systemHeadNameClass);
@@ -2519,7 +2602,7 @@ define([
                 LogEnabled: true
             });
 
-            // register all available connection types ------------------------------------------------------
+            // register all available connection types ----------------------------------------------------------------
             newJsPlumbInstance.registerConnectionTypes(globalMapConfig.connectionTypes);
 
             // event after a new connection is established --------------------------
@@ -2528,12 +2611,12 @@ define([
                 setConnectionObserver(newJsPlumbInstance, info.connection);
             });
 
-            // event after connection moved -----------------------------------------------------------------
+            // event after connection moved ---------------------------------------------------------------------------
             newJsPlumbInstance.bind('connectionMoved', function(info, e) {
 
             });
 
-            // event after DragStop a connection or new connection ------------------------------------------
+            // event after DragStop a connection or new connection ----------------------------------------------------
             newJsPlumbInstance.bind('beforeDrop', function(info) {
                 let connection = info.connection;
                 let dropEndpoint = info.dropEndpoint;
@@ -2584,12 +2667,12 @@ define([
                 return true;
             });
 
-            // event before detach (existing connection) ----------------------------------------------------
+            // event before detach (existing connection) --------------------------------------------------------------
             newJsPlumbInstance.bind('beforeStartDetach', function(info) {
                 return true;
             });
 
-            // event before detach connection ---------------------------------------------------------------
+            // event before detach connection -------------------------------------------------------------------------
             newJsPlumbInstance.bind('beforeDetach', function(info) {
                 return true;
             });
@@ -2784,7 +2867,7 @@ define([
             }
         });
 
-        // catch events =====================================================================================
+        // catch events ===============================================================================================
 
         // toggle global map option (e.g. "grid snap", "magnetization")
         mapContainer.on('pf:menuMapOption', function(e, mapOption){
@@ -3056,7 +3139,7 @@ define([
                     }
                 }
 
-                // the current user can only be in a single system ------------------------------------------
+                // the current user can only be in a single system ----------------------------------------------------
                 if(
                     characterLogExists &&
                     currentCharacterLog.system.id === systemId
@@ -3100,7 +3183,7 @@ define([
             options.forceData === true
         ){
 
-            // map config -----------------------------------------------------------------------------------
+            // map config ---------------------------------------------------------------------------------------------
             mapData.config = {
                 id: parseInt( mapElement.data('id') ),
                 name: mapElement.data('name'),
@@ -3115,10 +3198,10 @@ define([
                 updated: parseInt( mapElement.data('updated') ),
             };
 
-            // map data -------------------------------------------------------------------------------------
+            // map data -----------------------------------------------------------------------------------------------
             let data = {};
 
-            // systems data ---------------------------------------------------------------------------------
+            // systems data -------------------------------------------------------------------------------------------
             let systemsData = [];
             let systems = mapElement.getSystems();
 
@@ -3142,7 +3225,7 @@ define([
 
             data.systems = systemsData;
 
-            // connections ----------------------------------------------------------------------------------
+            // connections --------------------------------------------------------------------------------------------
             let connections = map.getAllConnections();
             let connectionsFormatted = [];
 
@@ -3222,7 +3305,7 @@ define([
         };
         systemData.userCount = (system.data('userCount') ? parseInt( system.data('userCount') ) : 0);
 
-        // position -----------------------------------------------------------------------------------------
+        // position ---------------------------------------------------------------------------------------------------
         let positionData = {};
         let currentX = system.css('left');
         let currentY = system.css('top');
@@ -3247,94 +3330,118 @@ define([
     };
 
     /**
-     * load OR updates system map
+     * init map options
      * @param mapConfig
      * @param options
+     * @returns {Promise<any>}
      */
-    $.fn.loadMap = function(mapConfig, options){
-        // parent element where the map will be loaded
-        let parentElement = $(this);
+    let initMapOptions = (mapConfig, options) => {
 
-        // add context menus to dom (if not already
-        initMapContextMenu();
-        initConnectionContextMenu();
-        initSystemContextMenu();
-
-        // init jsPlumb
-        jsPlumb.ready(function() {
-            // get new map instance or load existing
-            mapConfig.map = getMapInstance(mapConfig.config.id);
-
-            // check for map Container -> first time initialization
-            if(mapConfig.map.getContainer() === undefined){
-                // new map instance
-                mapConfig = newMapElement(parentElement, mapConfig);
-
-                // init custom scrollbars and add overlay
-                parentElement.initMapScrollbar();
-
-                let mapElement = $(mapConfig.map.getContainer());
-
-                // set shortcuts
-                parentElement.find('.' + config.mapWrapperClass).setMapShortcuts();
-
-                // show static overlay actions
-                let mapOverlay = mapElement.getMapOverlay('info');
-                mapOverlay.updateOverlayIcon('systemRegion', 'show');
-                mapOverlay.updateOverlayIcon('connection', 'show');
-                mapOverlay.updateOverlayIcon('connectionEol', 'show');
-            }
-
-            //  draw/update map initial map and set container
-            let mapContainer = updateMap(mapConfig);
-
-            // callback function after tab switch
-            function switchTabCallback( mapName, mapContainer ){
-                Util.showNotify({title: 'Map initialized', text: mapName  + ' - loaded', type: 'success'});
-
-                let mapWrapper = mapContainer.parents('.' + config.mapWrapperClass);
-
-                // auto scroll map to previous position -----------------------------------------------------
-                let promiseStore = MapUtil.getLocaleData('map', mapContainer.data('id') );
-                promiseStore.then(function(data) {
-                    // This code runs once the value has been loaded
-                    // from the offline store.
-                    if(
-                        data &&
-                        data.offsetX
-                    ){
-                        mapWrapper.scrollToX(data.offsetX);
-                    }
-                });
-
-                // init magnetizer --------------------------------------------------------------------------
-                mapContainer.triggerMenuEvent('MapOption', {
-                    option: 'mapMagnetizer',
-                    toggle: false
-                });
-
-                // init grid snap ---------------------------------------------------------------------------
-                mapContainer.triggerMenuEvent('MapOption', {
-                    option: 'mapSnapToGrid',
-                    toggle: false
-                });
-
-                // init endpoint overlay --------------------------------------------------------------------
-                mapContainer.triggerMenuEvent('MapOption', {
-                    option: 'mapEndpoint',
-                    toggle: false
-                });
-
-                return false;
-            }
+        /**
+         * init map options promise
+         * @param resolve
+         * @param reject
+         */
+        let initMapOptionsExecutor = (resolve, reject) => {
+            let payload = {
+                action: 'initMapOptions',
+                data: {
+                    mapConfig: mapConfig
+                }
+            };
 
             if(options.showAnimation){
-                // show nice visualization effect
+                /**
+                 * callback after visualizeMap is done
+                 * @param mapName
+                 * @param mapContainer
+                 */
+                let switchTabCallback = (mapName, mapContainer) => {
+                    Util.showNotify({title: 'Map initialized', text: mapName  + ' - loaded', type: 'success'});
+
+                    let mapWrapper = mapContainer.parents('.' + config.mapWrapperClass);
+
+                    // auto scroll map to previous position -----------------------------------------------------------
+                    let promiseStore = MapUtil.getLocaleData('map', mapContainer.data('id') );
+                    promiseStore.then(data => {
+                        // This code runs once the value has been loaded from  offline storage
+                        if(data && data.scrollOffset){
+                            mapWrapper.scrollToPosition([data.scrollOffset.y, data.scrollOffset.x]);
+                        }
+                    });
+
+                    // init magnetizer --------------------------------------------------------------------------------
+                    mapContainer.triggerMenuEvent('MapOption', {
+                        option: 'mapMagnetizer',
+                        toggle: false
+                    });
+
+                    // init grid snap ---------------------------------------------------------------------------------
+                    mapContainer.triggerMenuEvent('MapOption', {
+                        option: 'mapSnapToGrid',
+                        toggle: false
+                    });
+
+                    // init endpoint overlay --------------------------------------------------------------------------
+                    mapContainer.triggerMenuEvent('MapOption', {
+                        option: 'mapEndpoint',
+                        toggle: false
+                    });
+                };
+
+                // show nice visualization effect ---------------------------------------------------------------------
+                let mapContainer = $(mapConfig.map.getContainer());
                 mapContainer.visualizeMap('show', function(){
                     switchTabCallback( mapConfig.config.name, mapContainer );
                 });
             }
-        });
+
+            resolve(payload);
+        };
+
+        return new Promise(initMapOptionsExecutor);
+    };
+
+    /**
+     * load OR updates system map
+     * @param tabContentElement  parent element where the map will be loaded
+     * @param mapConfig
+     * @param options
+     * @returns {Promise<any>}
+     */
+    let loadMap = (tabContentElement, mapConfig, options) => {
+
+        /**
+         * load map promise
+         * @param resolve
+         * @param reject
+         */
+        let loadMapExecutor = (resolve, reject) => {
+            // add context menus to dom (if not already
+            initMapContextMenu();
+            initConnectionContextMenu();
+            initSystemContextMenu();
+
+            // init jsPlumb
+            jsPlumb.ready(function(){
+                // get new map instance or load existing
+                mapConfig.map = getMapInstance(mapConfig.config.id);
+
+                if(mapConfig.map.getContainer() === undefined){
+                    // map not loaded -> create & update
+                    newMapElement(tabContentElement, mapConfig)
+                        .then(payload => updateMap(payload.data.mapConfig))
+                        .then(payload => resolve(payload));
+                }else{
+                    // map exists -> update
+                    updateMap(mapConfig)
+                        .then(payload => resolve(payload));
+                }
+            });
+        };
+
+        return new Promise(loadMapExecutor)
+            .then(payload => initMapOptions(payload.data.mapConfig, options));
     };
 
     /**
@@ -3343,11 +3450,11 @@ define([
     $.fn.initMapScrollbar = function(){
         // get Map Scrollbar
         let mapTabContentElement = $(this);
-        let scrollableElement = mapTabContentElement.find('.' + config.mapWrapperClass);
+        let mapWrapperElement = mapTabContentElement.find('.' + config.mapWrapperClass);
         let mapElement = mapTabContentElement.find('.' + config.mapClass);
         let mapId = mapElement.data('id');
 
-        scrollableElement.initCustomScrollbar({
+        mapWrapperElement.initCustomScrollbar({
             callbacks: {
                 onScroll: function(){
                     // scroll complete
@@ -3356,7 +3463,10 @@ define([
                     mapElement.attr('data-scroll-top', this.mcs.top);
 
                     // store new map scrollOffset -> localDB
-                    MapUtil.storeLocalData('map', mapId, 'offsetX', Math.abs(this.mcs.left) );
+                    MapUtil.storeLocalData('map', mapId, 'scrollOffset', {
+                        x: Math.abs(this.mcs.left),
+                        y: Math.abs(this.mcs.top)
+                    });
                 },
                 onScrollStart: function(){
                     // hide all open xEditable fields
@@ -3368,17 +3478,18 @@ define([
             }
         });
 
-        // --------------------------------------------------------------------------------------------------
+        // ------------------------------------------------------------------------------------------------------------
         // add map overlays after scrollbar is initialized
         // because of its absolute position
-        scrollableElement.initMapOverlays();
+        mapWrapperElement.initMapOverlays();
 
-        scrollableElement.initLocalOverlay(mapId);
+        mapWrapperElement.initLocalOverlay(mapId);
     };
 
     return {
         getMapInstance: getMapInstance,
         clearMapInstance: clearMapInstance,
+        loadMap: loadMap,
         showNewSystemDialog: showNewSystemDialog
     };
 

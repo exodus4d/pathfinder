@@ -621,12 +621,15 @@ define([
 
                 if(tabMapData !== false){
                     // load map
-                    let currentTabContentElement = $('#' + config.mapTabIdPrefix + mapId);
-                    currentTabContentElement.loadMap( tabMapData, {showAnimation: true} );
-
-                    // "wake up" scrollbar for map and get previous state back
-                    let scrollableElement = currentTabContentElement.find('.' + config.mapWrapperClass);
-                    $(scrollableElement).mCustomScrollbar('update');
+                    let tabContentElement = $('#' + config.mapTabIdPrefix + mapId);
+                    Map.loadMap(tabContentElement, tabMapData, {showAnimation: true})
+                        .then(payload => {
+                            // "wake up" scrollbar for map and get previous state back
+                            let mapConfig = payload.data.mapConfig;
+                            let mapElement = $(mapConfig.map.getContainer());
+                            let mapWrapperElement = mapElement.closest('.mCustomScrollbar');
+                            mapWrapperElement.mCustomScrollbar('update');
+                        });
                 }
             });
 
@@ -639,8 +642,8 @@ define([
                     let currentTabContentElement = $('#' + config.mapTabIdPrefix + oldMapId);
 
                     // disable scrollbar for map that will be hidden. "freeze" current state
-                    let scrollableElement = currentTabContentElement.find('.' + config.mapWrapperClass);
-                    $(scrollableElement).mCustomScrollbar( 'disable' );
+                    let mapWrapperElement = currentTabContentElement.find('.' + config.mapWrapperClass);
+                    $(mapWrapperElement).mCustomScrollbar('disable', false);
                 }
 
             });
@@ -838,8 +841,6 @@ define([
                 let position = getModulePosition(tabBar, defaultPosition);
                 tabListElement.attr('data-position', defaultPosition);
 
-                console.log('mapId: '+ this.options.id, 'defaultPosition: ' + defaultPosition, 'position: ' + position);
-
                 // insert at correct position -------------------------------------------------------------------------
                 let prevListElement = tabBar.find('li' + '' + ':nth-child(' + position + ')');
                 if (prevListElement.length) {
@@ -1000,11 +1001,11 @@ define([
             if(tempMapData.length === 0){
                 // clear all existing maps ----------------------------------------------------------------------------
                 clearMapModule(mapModuleElement)
-                    .then((payload) => {
+                    .then(payload => {
                         // no map data available -> show "new map" dialog
                         $(document).trigger('pf:menuShowMapSettings', {tab: 'new'});
                     })
-                    .then((payload) => resolve());
+                    .then(payload => resolve());
             }else{
                 if(tabMapElement.length > 0){
                     // tab element exists -> update -------------------------------------------------------------------
@@ -1012,11 +1013,11 @@ define([
                     let promiseDeleteTab = [];
                     let promiseUpdateTab = [];
 
-                    let tabDeletedCallback = (payload) => {
+                    let tabDeletedCallback = payload => {
                         Util.showNotify({title: 'Map removed', text: payload.data.mapName + ' deleted', type: 'warning'});
                     };
 
-                    let tabAddCallback = (payload) => {
+                    let tabAddCallback = payload => {
                         Util.showNotify({title: 'Map added', text: payload.data.mapName + ' added', type: 'success'});
                     };
 
@@ -1059,7 +1060,7 @@ define([
                     // wait until ALL "add", "delete", "update" promises are fulfilled
                     let promisesAll = promisesAddTab.concat(promiseDeleteTab, promiseUpdateTab);
 
-                    Promise.all(promisesAll).then((payload) => {
+                    Promise.all(promisesAll).then(payload => {
                         // if there is an active map ...
                         let activeMap = Util.getMapModule().getActiveMap();
                         if(activeMap){
@@ -1067,14 +1068,15 @@ define([
                             let activeMapData = Util.getCurrentMapData(activeMapId);
                             if(activeMapData !== false){
                                 // .. active map found, just update no tab switch
-                                $('#' + config.mapTabIdPrefix + activeMapId).loadMap( activeMapData, {} );
+                                return Map.loadMap($('#' + config.mapTabIdPrefix + activeMapId), activeMapData, {});
+                            }else{
+                                console.error('No active map found!');
                             }
-                            return new Promise(resolve => resolve()); // fake promise returned
                         }else{
                             // .. no map active, make one active
                             return showDefaultTab(tabMapElement, currentUserData);
                         }
-                    }).then((payload) => resolve());
+                    }).then(payload => resolve());
 
                 }else{
                     // tab Element does not exists -> create ----------------------------------------------------------
@@ -1108,13 +1110,13 @@ define([
                     promisesAddTab.push(addTab(tabMapElement, tabAddOptions, currentUserData));
 
                     Promise.all(promisesAddTab)
-                        .then((payload) => showDefaultTab(tabMapElement, currentUserData))
-                        .then((payload) => resolve());
+                        .then(payload => showDefaultTab(tabMapElement, currentUserData))
+                        .then(payload => resolve());
                 }
             }
         };
 
-        return new Promise(updateMapModuleExecutor).then((payload) => {
+        return new Promise(updateMapModuleExecutor).then(payload => {
             // log client map update time
             let duration = Util.timeStop(logKeyClientMapData);
             Util.log(logKeyClientMapData, {duration: duration, type: 'client', description: 'update map'});

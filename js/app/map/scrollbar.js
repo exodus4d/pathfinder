@@ -11,63 +11,68 @@ define([
     /**
      * init map scrollbar
      * @param config
-     * @returns {*}
      */
     $.fn.initCustomScrollbar = function(config){
 
         // default config -------------------------------------------------------------------------
         let defaultConfig = {
-            axis: 'x',
-            theme: 'light-thick',
+            axis: 'yx',
+            theme: 'light-3' ,
             scrollInertia: 300,
             autoExpandScrollbar: false,
             scrollButtons:{
+                enable: true,
                 scrollAmount: 30,
-                enable: true
+                scrollType: 'stepless'
             },
-            callbacks:{
+            callbacks: {
                 onTotalScrollOffset: 0,
                 onTotalScrollBackOffset: 0,
                 alwaysTriggerOffsets: true
             },
 
             advanced: {
-                updateOnBrowserResize: true,
                 updateOnContentResize: true,
                 autoExpandHorizontalScroll: true,
-                autoScrollOnFocus: 'div'
+                //autoExpandHorizontalScroll: 2,
+                autoScrollOnFocus: 'div',
             },
-            mouseWheel:{
-                enable: false, // scroll weel currently disabled
+            mouseWheel: {
+                enable: false, // scroll wheel currently disabled
                 scrollAmount: 'auto',
                 axis: 'x',
                 preventDefault: true
             },
+            keyboard: {
+                enable: false,  // not working with pathfinder "shortcuts"
+                scrollType: 'stepless',
+                scrollAmount: 'auto'
+            },
             scrollbarPosition: 'inside',
-            autoDraggerLength: true
-            //autoHideScrollbar: false
+            autoDraggerLength: true,
+            autoHideScrollbar: false
         };
 
         // init -----------------------------------------------------------------------------------
         config = $.extend(true, {}, defaultConfig, config);
 
         return this.each(function(){
-            let scrollableElement = $(this);
+            let mapWrapperElement = $(this);
 
             // prevent multiple initialization
-            scrollableElement.mCustomScrollbar('destroy');
+            mapWrapperElement.mCustomScrollbar('destroy');
 
             // init custom scrollbars
-            scrollableElement.mCustomScrollbar(config);
+            mapWrapperElement.mCustomScrollbar(config);
         });
     };
 
     /**
      * scroll to a specific position in the map
      * demo: http://manos.malihu.gr/repository/custom-scrollbar/demo/examples/scrollTo_demo.html
-     * @returns {*} // string or id
+     * @param position
      */
-    $.fn.scrollToX = function(position){
+    $.fn.scrollToPosition = function(position){
         return this.each(function(){
             $(this).mCustomScrollbar('scrollTo', position);
         });
