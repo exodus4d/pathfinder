@@ -28,11 +28,15 @@
         <div  class="navbar-collapse collapse">
             <ul class="nav navbar-nav navbar-right" role="tablist">
                 <li class="hide-before"><a class="page-scroll" data-anchor="#pf-landing-top" href="#">Login</a></li>
-                <li class="hide-before"> <a class="page-scroll" data-anchor="#pf-landing-gallery" href="#">Features</a></li>
+                <check if="{{ @PATHFINDER.SHOW_COMPLETE_LOGIN_PAGE}}">
+                    <li class="hide-before"> <a class="page-scroll" data-anchor="#pf-landing-gallery" href="#">Features</a></li>
+                </check>
                 <li class="hide-before"> <a class="page-scroll" data-anchor="#pf-landing-maps" href="#">Maps</a></li>
-                <li class="hide-before"> <a class="page-scroll" data-anchor="#pf-landing-admin" href="#">Admin</a></li>
-                <li class="hide-before"> <a class="page-scroll" data-anchor="#pf-landing-install" href="#">Install</a></li>
-                <li class="hide-before"> <a class="page-scroll" data-anchor="#pf-landing-about" href="#">About</a></li>
+                <check if="{{ @PATHFINDER.SHOW_COMPLETE_LOGIN_PAGE}}">
+                    <li class="hide-before"> <a class="page-scroll" data-anchor="#pf-landing-admin" href="#">Admin</a></li>
+                    <li class="hide-before"> <a class="page-scroll" data-anchor="#pf-landing-install" href="#">Install</a></li>
+                    <li class="hide-before"> <a class="page-scroll" data-anchor="#pf-landing-about" href="#">About</a></li>
+                </check>
                 <li class="hide-before"> <a class="page-scroll" data-anchor="#pf-landing-faq" href="#">FAQ</a></li>
                 <li class="hide-before"> <a class="pf-navbar-license" href="#">License</a></li>
             </ul>
@@ -127,476 +131,477 @@
 </section>
 
 {* features/ gallery *}
-<section id="pf-landing-gallery">
+<check if="{{ @PATHFINDER.SHOW_COMPLETE_LOGIN_PAGE}}">
+    <section id="pf-landing-gallery">
 
-    {* carousel *}
-    <div class="container">
-        <div class="row text-center">
-            <div id="pf-landing-gallery-carousel" class="blueimp-gallery blueimp-gallery-carousel">
-                <div class="slides"></div>
-                <h3 class="title"></h3>
-                <a class="prev"><i class="fas fa-fw fa-arrow-left"></i></a>
-                <a class="next"><i class="fas fa-fw fa-arrow-right"></i></a>
-                <a class="play-pause"><i class="fas fa-fw fa-pause"></i></a>
-                <ol class="indicator"></ol>
-            </div>
-        </div>
-    </div>
-
-    <div id="pf-landing-gallery-thumb-container" class="container">
-
-        <div class="row text-center">
-            <div class="col-md-6 col-md-offset-3">
-                <h2><span class="text-primary">Features</span> and Impressions</h2>
-                <p class="lead">
-                    <em>PATHFINDER</em> is an <em>open source</em> mapping tool for <em>EVE Online</em>, primarily developed to enrich the gameplay of small scale PvP and PvE.
-                </p>
+        {* carousel *}
+        <div class="container">
+            <div class="row text-center">
+                <div id="pf-landing-gallery-carousel" class="blueimp-gallery blueimp-gallery-carousel">
+                    <div class="slides"></div>
+                    <h3 class="title"></h3>
+                    <a class="prev"><i class="fas fa-fw fa-arrow-left"></i></a>
+                    <a class="next"><i class="fas fa-fw fa-arrow-right"></i></a>
+                    <a class="play-pause"><i class="fas fa-fw fa-pause"></i></a>
+                    <ol class="indicator"></ol>
+                </div>
             </div>
         </div>
 
+        <div id="pf-landing-gallery-thumb-container" class="container">
 
-        <div class="row">
-            <div class="col-xs-12 col-sm-3 col-lg-2">
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/login_1.jpg" data-description="Character login" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/login_1.jpg" width="160" height="160" alt="Account settings">
-                </a>
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/settings_1.jpg" data-description="Map access" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/settings_1.jpg" width="160" height="160" alt="Map access">
-                </a>
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/taskmanager_1.jpg" data-description="Task-Manager" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/taskmanager_1.jpg" width="160" height="160" alt="Task-Manager">
-                </a>
-            </div>
-            <div class="col-xs-12 col-sm-9 col-lg-4">
-                <h4>Pathfinder</h4>
-                <ul class="fa-ul pf-landing-list">
-                    <li><i></i><span class="txt-color txt-color-greenDark"><e class="fas fa-fw fa-lock"></e>SSL</span> encrypted connection</li>
-                    <li><i></i>User friendly <a class="pf-navbar-manual" href="#">manual</a></li>
-                    <li><i></i>Open Source Project <a target="_blank" href="{{ @PATHFINDER.REPO }}" alt="GitHub"><i class="fab fa-github fa-fw"></i><em>Github</em></a></li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>Developer/install <a target="_blank" href="{{ @PATHFINDER.REPO }}/wiki">wiki</a></li>
-                        </ul>
-                    </li>
-                    <li><i></i><em>CCP</em> s <em>SSO</em> login</li>
-                    <li><i></i>Cookie based <a target="_blank" href="https://github.com/exodus4d/pathfinder/issues/138#issuecomment-216036606">login system</a></li>
-                    <li><i></i><em>ESI</em> API support</a></li>
-                    <li><i></i>HTML5 features</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>Full screen support</li>
-                            <li><i></i>Browser notification system</li>
-                            <li><i></i>Advanced client-side caching - 'local storage'</li>
-                        </ul>
-                    </li>
-                    <li><i></i>Advanced user access config</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>Access can be limited to specific corps/allys</li>
-                        </ul>
-                    </li>
-                    <li><i></i>Integrated Task Manager</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>Live performance graphs</li>
-                            <li><i></i>Print/export client site log files for debugging</li>
-                        </ul>
-                    </li>
-                    <li><i></i><em>SMTP</em> support</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i><a target="_blank" href="https://slack.com"><i class="fab fa-fw fa-slack-hash"></i><em>Slack</em></a> email notifications</li>
-                        </ul>
-                    </li>
-                    <li><i></i>Responsive layout</li>
-                </ul>
+            <div class="row text-center">
+                <div class="col-md-6 col-md-offset-3">
+                    <h2><span class="text-primary">Features</span> and Impressions</h2>
+                    <p class="lead">
+                        <em>PATHFINDER</em> is an <em>open source</em> mapping tool for <em>EVE Online</em>, primarily developed to enrich the gameplay of small scale PvP and PvE.
+                    </p>
+                </div>
             </div>
 
-            <div class="clearfix visible-xs visible-sm visible-md"></div>
 
-            <div class="col-xs-12 col-sm-3 col-lg-2">
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/map_2.jpg" data-description="Map selection" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/map_2.jpg" width="160" height="160" alt="Map selection">
-                </a>
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/map_3.jpg" data-description="Context menu" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/map_3.jpg" width="160" height="160" alt="Context menu">
-                </a>
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/map_1.jpg" data-description="Map information dialog" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/map_1.jpg" width="160" height="160" alt="Map information dialog">
-                </a>
+            <div class="row">
+                <div class="col-xs-12 col-sm-3 col-lg-2">
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/login_1.jpg" data-description="Character login" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/login_1.jpg" width="160" height="160" alt="Account settings">
+                    </a>
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/settings_1.jpg" data-description="Map access" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/settings_1.jpg" width="160" height="160" alt="Map access">
+                    </a>
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/taskmanager_1.jpg" data-description="Task-Manager" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/taskmanager_1.jpg" width="160" height="160" alt="Task-Manager">
+                    </a>
+                </div>
+                <div class="col-xs-12 col-sm-9 col-lg-4">
+                    <h4>Pathfinder</h4>
+                    <ul class="fa-ul pf-landing-list">
+                        <li><i></i><span class="txt-color txt-color-greenDark"><e class="fas fa-fw fa-lock"></e>SSL</span> encrypted connection</li>
+                        <li><i></i>User friendly <a class="pf-navbar-manual" href="#">manual</a></li>
+                        <li><i></i>Open Source Project <a target="_blank" href="{{ @PATHFINDER.REPO }}" alt="GitHub"><i class="fab fa-github fa-fw"></i><em>Github</em></a></li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>Developer/install <a target="_blank" href="{{ @PATHFINDER.REPO }}/wiki">wiki</a></li>
+                            </ul>
+                        </li>
+                        <li><i></i><em>CCP</em> s <em>SSO</em> login</li>
+                        <li><i></i>Cookie based <a target="_blank" href="https://github.com/exodus4d/pathfinder/issues/138#issuecomment-216036606">login system</a></li>
+                        <li><i></i><em>ESI</em> API support</a></li>
+                        <li><i></i>HTML5 features</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>Full screen support</li>
+                                <li><i></i>Browser notification system</li>
+                                <li><i></i>Advanced client-side caching - 'local storage'</li>
+                            </ul>
+                        </li>
+                        <li><i></i>Advanced user access config</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>Access can be limited to specific corps/allys</li>
+                            </ul>
+                        </li>
+                        <li><i></i>Integrated Task Manager</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>Live performance graphs</li>
+                                <li><i></i>Print/export client site log files for debugging</li>
+                            </ul>
+                        </li>
+                        <li><i></i><em>SMTP</em> support</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i><a target="_blank" href="https://slack.com"><i class="fab fa-fw fa-slack-hash"></i><em>Slack</em></a> email notifications</li>
+                            </ul>
+                        </li>
+                        <li><i></i>Responsive layout</li>
+                    </ul>
+                </div>
+
+                <div class="clearfix visible-xs visible-sm visible-md"></div>
+
+                <div class="col-xs-12 col-sm-3 col-lg-2">
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/map_2.jpg" data-description="Map selection" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/map_2.jpg" width="160" height="160" alt="Map selection">
+                    </a>
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/map_3.jpg" data-description="Context menu" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/map_3.jpg" width="160" height="160" alt="Context menu">
+                    </a>
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/map_1.jpg" data-description="Map information dialog" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/map_1.jpg" width="160" height="160" alt="Map information dialog">
+                    </a>
+                </div>
+
+                <div class="col-xs-12 col-sm-9 col-lg-4">
+                    <h4>Map module</h4>
+                    <ul class="fa-ul  pf-landing-list">
+                        <li><i></i>Live synchronisation between clients</li>
+                        <li><i></i>Multiple map support</li>
+                        <li><i></i>Share maps with other players or groups</li>
+                        <li><i></i>Invite other players to maps</li>
+                        <li><i></i>Advanced drag &amp; drop support</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>Select multiple systems by <kbd>ctrl</kbd> + <kbd>click</kbd></li>
+                                <li><i></i>Select and move multiple systems at once</li>
+                                <li><i></i>Establish new connections by drag one system to another</li>
+                                <li><i></i>Grid snapping</li>
+                                <li><i></i>Prevent systems from overlapping (magnetization)</li>
+                            </ul>
+                        </li>
+                        <li><i></i>Track fleet movements</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>Pilot/Ship names</li>
+                                <li><i></i>In-/decreasing pilot count per system</li>
+                                <li><i></i>Location tracking (<em>ESI</em>)</li>
+                            </ul>
+                        </li>
+                        <li><i></i>System status</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>'Locked', 'Rally point', 'Rally point', 'Friendly', 'Occupied', 'Hostile', 'Empty', 'Unscanned'</li>
+                            </ul>
+                        </li>
+                        <li><i></i>Connection scopes</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>'Stargate', 'Wormhole', 'Jumpbridge'</li>
+                            </ul>
+                        </li>
+                        <li><i></i>In game actions (<em>ESI</em>)</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>'Set destination', 'add waypoint'</li>
+                            </ul>
+                        </li>
+                        <li><i></i>Keyboard shortcuts</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>Easy system selection by holding <kbd>ctrl</kbd> + <kbd>drag</kbd></li>
+                            </ul>
+                        </li>
+                        <li><i></i>Integrated live search for systems</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>TrueSec, Region, Constallation information</li>
+                            </ul>
+                        </li>
+                        <li><i></i>Filter maps by connection scopes</li>
+                        <li><i></i>Map information dialog</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>Easy access to all map information</li>
+                                <li><i></i>Edit systems and connections</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
             </div>
 
-            <div class="col-xs-12 col-sm-9 col-lg-4">
-                <h4>Map module</h4>
-                <ul class="fa-ul  pf-landing-list">
-                    <li><i></i>Live synchronisation between clients</li>
-                    <li><i></i>Multiple map support</li>
-                    <li><i></i>Share maps with other players or groups</li>
-                    <li><i></i>Invite other players to maps</li>
-                    <li><i></i>Advanced drag &amp; drop support</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>Select multiple systems by <kbd>ctrl</kbd> + <kbd>click</kbd></li>
-                            <li><i></i>Select and move multiple systems at once</li>
-                            <li><i></i>Establish new connections by drag one system to another</li>
-                            <li><i></i>Grid snapping</li>
-                            <li><i></i>Prevent systems from overlapping (magnetization)</li>
-                        </ul>
-                    </li>
-                    <li><i></i>Track fleet movements</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>Pilot/Ship names</li>
-                            <li><i></i>In-/decreasing pilot count per system</li>
-                            <li><i></i>Location tracking (<em>ESI</em>)</li>
-                        </ul>
-                    </li>
-                    <li><i></i>System status</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>'Locked', 'Rally point', 'Rally point', 'Friendly', 'Occupied', 'Hostile', 'Empty', 'Unscanned'</li>
-                        </ul>
-                    </li>
-                    <li><i></i>Connection scopes</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>'Stargate', 'Wormhole', 'Jumpbridge'</li>
-                        </ul>
-                    </li>
-                    <li><i></i>In game actions (<em>ESI</em>)</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>'Set destination', 'add waypoint'</li>
-                        </ul>
-                    </li>
-                    <li><i></i>Keyboard shortcuts</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>Easy system selection by holding <kbd>ctrl</kbd> + <kbd>drag</kbd></li>
-                        </ul>
-                    </li>
-                    <li><i></i>Integrated live search for systems</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>TrueSec, Region, Constallation information</li>
-                        </ul>
-                    </li>
-                    <li><i></i>Filter maps by connection scopes</li>
-                    <li><i></i>Map information dialog</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>Easy access to all map information</li>
-                            <li><i></i>Edit systems and connections</li>
-                        </ul>
-                    </li>
-                </ul>
+
+            <div class="row">
+                <div class="col-xs-12 col-sm-3 col-lg-2">
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/system_1.jpg" data-description="System description" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/system_1.jpg" width="160" height="160" alt="System description">
+                    </a>
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/system_2.jpg" data-description="System information" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/system_2.jpg" width="160" height="160" alt="System information">
+                    </a>
+                </div>
+
+                <div class="col-xs-12 col-sm-9 col-lg-4">
+                    <h4>System module</h4>
+                    <ul class="fa-ul pf-landing-list">
+                        <li><i></i>Quick access to all relevant information</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>Name/Alias</li>
+                                <li><i></i>Wormhole class</li>
+                                <li><i></i>Wormhole type</li>
+                                <li><i></i>True Sec</li>
+                                <li><i></i>Constellation</li>
+                                <li><i></i>Region</li>
+                                <li><i></i>Wormhole static information</li>
+                            </ul>
+                        </li>
+                        <li><i></i>Optional renaming of Systems</li>
+                        <li><i></i>Individual system description</li>
+                        <li><i></i>Receive system warnings from other players</li>
+                        <li><i></i>Quick information links to 3rd party pages</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i><em>Dotlan</em></li>
+                                <li><i></i><em>Wormhol.es</em></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="clearfix visible-xs visible-sm visible-md"></div>
+
+                <div class="col-xs-12 col-sm-3 col-lg-2">
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/signatures_1.jpg" data-description="Signature table" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/signatures_1.jpg" width="160" height="160" alt="Signature table">
+                    </a>
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/signatures_2.jpg" data-description="Signature reader dialog" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/signatures_2.jpg" width="160" height="160" alt="Signature reader dialog">
+                    </a>
+                </div>
+
+                <div class="col-xs-12 col-sm-9 col-lg-4">
+                    <h4>Signature module</h4>
+                    <ul class="fa-ul pf-landing-list">
+                        <li><i></i>Share system signature information</li>
+                        <li><i></i>Add/Update multiple signatures at once <kbd>ctrl</kbd> + <kbd>c</kbd></li>
+                        <li><i></i>Check for new signatures within a second</li>
+                        <li><i></i>Get notified about new signatures in your current system</li>
+                        <li><i></i>Receive warnings for not fully scanned systems</li>
+                        <li><i></i>Speed up scanning and work with multiple pilots on the same scanning table</li>
+                        <li><i></i>Label signatures for following operations</li>
+                        <li><i></i>Updated signature type information</li>
+                        <li><i></i>Shown meta information for each signature</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>Creation data/time</li>
+                                <li><i></i>Creation pilot/name</li>
+                                <li><i></i>Pilot status</li>
+                                <li>
+                                    <ul class="fa-ul">
+                                        <li><i></i>'Corporation', 'Alliance', 'Friendly'</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <div class="row">
+                <div class="col-xs-12 col-sm-3 col-lg-2">
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/kb_1.jpg" data-description="Killboard diagram" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/kb_1.jpg" width="160" height="160" alt="Killboard diagram">
+                    </a>
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/kb_2.jpg" data-description="Killboard" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/kb_2.jpg" width="160" height="160" alt="Killboard">
+                    </a>
+                </div>
+
+                <div class="col-xs-12 col-sm-9 col-lg-4">
+                    <h4>Killboard module</h4>
+                    <ul class="fa-ul pf-landing-list">
+                        <li><i></i><em><a target="_blank" href="https://github.com/zKillboard/zKillboard/wiki">zkillboard.com</a></em> API integration</li>
+                        <li><i></i>Detailed information about all recent activities in a system</li>
+                        <li><i></i>Visual graph with recent kills and timestamp</li>
+                        <li><i></i>Killmail deep links</li>
+                        <li><i></i>This even works for wormholes where <em>CCP</em> does not provide any official API data</li>
+                        <li><i></i>Live warnings for recent kills in a system</li>
+                        <li><i></i>Killmail information</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>Ship type</li>
+                                <li><i></i>Pilot name</li>
+                                <li><i></i>KM timestamp</li>
+                                <li><i></i>Corporation name</li>
+                                <li><i></i>Alliance name</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="clearfix visible-xs visible-sm visible-md"></div>
+
+                <div class="col-xs-12 col-sm-3 col-lg-2">
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/route_1.jpg" data-description="Routes table" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/route_1.jpg" width="160" height="160" alt="Routes">
+                    </a>
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/route_2.jpg" data-description="Add/filter routes dialog" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/route_2.jpg" width="160" height="160" alt="Add Route">
+                    </a>
+                </div>
+
+                <div class="col-xs-12 col-sm-9 col-lg-4">
+                    <h4>Route module</h4>
+                    <ul class="fa-ul pf-landing-list">
+                        <li><i></i>Search for routes between systems</li>
+                        <li><i></i>Predefined trade hub routes</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>'Jita', 'Amarr', 'Rens', 'Dodixie'</li>
+                            </ul>
+                        </li>
+                        <li><i></i>Add/Search custom routes</li>
+                        <li><i></i>Advanced search</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>Search on multiple maps</li>
+                                <li><i></i>Filter routes by:</li>
+                                <li>
+                                    <ul class="fa-ul">
+                                        <li><i></i>'Connection types' (e.g. 'Wormholes', &hellip; )</li>
+                                        <li><i></i>'Connection scopes' (e.g 'Critical Wormholes', &hellip; )</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li><i></i>Average sec status for a routes</li>
+                        <li><i></i>Sort/Order routes by:</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>System jumps</li>
+                                <li><i></i>Average sec status</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <div class="row">
+
+                <div class="col-xs-12 col-sm-3 col-lg-2">
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/statistics_1.jpg" data-description="System statistics" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/statistics_1.jpg" width="160" height="160" alt="System statistics">
+                    </a>
+                </div>
+
+                <div class="col-xs-12 col-sm-9 col-lg-4">
+                    <h4>System statistics module</h4>
+                    <ul class="fa-ul pf-landing-list">
+                        <li><i></i>Live in-game system data</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>System jump data</li>
+                                <li><i></i>Ship/POD kills</li>
+                                <li><i></i>NPC kills</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="clearfix visible-xs visible-sm visible-md"></div>
+
+                <div class="col-xs-12 col-sm-3 col-lg-2" id="pf-landing-feature-user-statistics">
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/statistics_2.jpg" data-description="User statistics" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/statistics_2.jpg" width="160" height="160" alt="User statistics">
+                    </a>
+                </div>
+
+                <div class="col-xs-12 col-sm-9 col-lg-4">
+                    <h4>User statistics</h4>
+                    <ul class="fa-ul pf-landing-list">
+                        <li><i></i>User activity logging</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>Private statistics</li>
+                                <li><i></i>Corporation statistics</li>
+                                <li><i></i>Alliance statistics</li>
+                            </ul>
+                        </li>
+                        <li><i></i>Log history</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>'week', 'month', 'year'</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <div class="row">
+
+                <div class="col-xs-12 col-sm-3 col-lg-2">
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/connection_1.jpg" data-description="Jump mass log" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/connection_1.jpg" width="160" height="160" alt="Jump mass log">
+                    </a>
+                </div>
+
+                <div class="col-xs-12 col-sm-9 col-lg-4">
+                    <h4>Mass Log&nbsp&nbsp;&nbsp;<span class="label label-success">new</span></h4>
+                    <ul class="fa-ul pf-landing-list">
+                        <li><i></i>Track ship jump mass for wormholes</li>
+                        <li><i></i>Compare multiple connections by mass left</li>
+                        <li><i></i>Pre-calculate your current ship mass before jumping</li>
+                    </ul>
+                </div>
+
+                <div class="clearfix visible-xs visible-sm visible-md"></div>
+
+                <div class="col-xs-12 col-sm-3 col-lg-2">
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/log_1.jpg" data-description="Log file viewer" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/log_1.jpg" width="160" height="160" alt="Log file viewer">
+                    </a>
+                </div>
+
+                <div class="col-xs-12 col-sm-9 col-lg-4">
+                    <h4>Logging</h4>
+                    <ul class="fa-ul pf-landing-list">
+                        <li><i></i>Separate *.log files per map</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>Logfile viewer (UI)</li>
+                                <li><i></i>Logfile filter/analyzer</li>
+                                <li><i></i>Download log files (JSON format)</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <div class="row">
+
+                <div class="col-xs-12 col-sm-3 col-lg-2">
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/discord_1.jpg" data-description="Discord/Slack Notification" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/discord_1.jpg" width="160" height="160" alt="DiscordSlack Notification">
+                    </a>
+                </div>
+
+                <div class="col-xs-12 col-sm-9 col-lg-4">
+                    <h4>Discord/Slack integration&nbsp;&nbsp;<span class="label label-success">new</span></h4>
+                    <ul class="fa-ul pf-landing-list">
+                        <li><i></i>Send "rally point" push notifications</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>Discord, Slack, Desktop, Email</li>
+                            </ul>
+                        </li>
+                        <li><i></i>Send map logs to a custom  <em>Discord</em> or <em>Slack</em> channel</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>Discord/Slack WebHook API build in</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="clearfix visible-xs visible-sm visible-md"></div>
+
+
+
+            </div>
+
+            <div class="row text-center hidden-xs">
+                <div class="col-md-6 col-md-offset-3">
+                    <p class="lead">
+                        This video, will guide you through the basic functions in <em>PATHFINDER</em>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="row text-center hidden-xs">
+                <div class="pricing-big youtube"
+                     id="Cc3jcN_jx04"
+                     data-params="modestbranding=1&showinfo=0&controls=0&vq=hd720"
+                     style="width: 640px; height: 360px;">
+                </div>
             </div>
 
         </div>
-
-
-        <div class="row">
-            <div class="col-xs-12 col-sm-3 col-lg-2">
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/system_1.jpg" data-description="System description" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/system_1.jpg" width="160" height="160" alt="System description">
-                </a>
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/system_2.jpg" data-description="System information" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/system_2.jpg" width="160" height="160" alt="System information">
-                </a>
-            </div>
-
-            <div class="col-xs-12 col-sm-9 col-lg-4">
-                <h4>System module</h4>
-                <ul class="fa-ul pf-landing-list">
-                    <li><i></i>Quick access to all relevant information</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>Name/Alias</li>
-                            <li><i></i>Wormhole class</li>
-                            <li><i></i>Wormhole type</li>
-                            <li><i></i>True Sec</li>
-                            <li><i></i>Constellation</li>
-                            <li><i></i>Region</li>
-                            <li><i></i>Wormhole static information</li>
-                        </ul>
-                    </li>
-                    <li><i></i>Optional renaming of Systems</li>
-                    <li><i></i>Individual system description</li>
-                    <li><i></i>Receive system warnings from other players</li>
-                    <li><i></i>Quick information links to 3rd party pages</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i><em>Dotlan</em></li>
-                            <li><i></i><em>Wormhol.es</em></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="clearfix visible-xs visible-sm visible-md"></div>
-
-            <div class="col-xs-12 col-sm-3 col-lg-2">
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/signatures_1.jpg" data-description="Signature table" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/signatures_1.jpg" width="160" height="160" alt="Signature table">
-                </a>
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/signatures_2.jpg" data-description="Signature reader dialog" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/signatures_2.jpg" width="160" height="160" alt="Signature reader dialog">
-                </a>
-            </div>
-
-            <div class="col-xs-12 col-sm-9 col-lg-4">
-                <h4>Signature module</h4>
-                <ul class="fa-ul pf-landing-list">
-                    <li><i></i>Share system signature information</li>
-                    <li><i></i>Add/Update multiple signatures at once <kbd>ctrl</kbd> + <kbd>c</kbd></li>
-                    <li><i></i>Check for new signatures within a second</li>
-                    <li><i></i>Get notified about new signatures in your current system</li>
-                    <li><i></i>Receive warnings for not fully scanned systems</li>
-                    <li><i></i>Speed up scanning and work with multiple pilots on the same scanning table</li>
-                    <li><i></i>Label signatures for following operations</li>
-                    <li><i></i>Updated signature type information</li>
-                    <li><i></i>Shown meta information for each signature</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>Creation data/time</li>
-                            <li><i></i>Creation pilot/name</li>
-                            <li><i></i>Pilot status</li>
-                            <li>
-                                <ul class="fa-ul">
-                                    <li><i></i>'Corporation', 'Alliance', 'Friendly'</li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-
-        </div>
-
-        <div class="row">
-            <div class="col-xs-12 col-sm-3 col-lg-2">
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/kb_1.jpg" data-description="Killboard diagram" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/kb_1.jpg" width="160" height="160" alt="Killboard diagram">
-                </a>
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/kb_2.jpg" data-description="Killboard" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/kb_2.jpg" width="160" height="160" alt="Killboard">
-                </a>
-            </div>
-
-            <div class="col-xs-12 col-sm-9 col-lg-4">
-                <h4>Killboard module</h4>
-                <ul class="fa-ul pf-landing-list">
-                    <li><i></i><em><a target="_blank" href="https://github.com/zKillboard/zKillboard/wiki">zkillboard.com</a></em> API integration</li>
-                    <li><i></i>Detailed information about all recent activities in a system</li>
-                    <li><i></i>Visual graph with recent kills and timestamp</li>
-                    <li><i></i>Killmail deep links</li>
-                    <li><i></i>This even works for wormholes where <em>CCP</em> does not provide any official API data</li>
-                    <li><i></i>Live warnings for recent kills in a system</li>
-                    <li><i></i>Killmail information</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>Ship type</li>
-                            <li><i></i>Pilot name</li>
-                            <li><i></i>KM timestamp</li>
-                            <li><i></i>Corporation name</li>
-                            <li><i></i>Alliance name</li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="clearfix visible-xs visible-sm visible-md"></div>
-
-            <div class="col-xs-12 col-sm-3 col-lg-2">
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/route_1.jpg" data-description="Routes table" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/route_1.jpg" width="160" height="160" alt="Routes">
-                </a>
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/route_2.jpg" data-description="Add/filter routes dialog" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/route_2.jpg" width="160" height="160" alt="Add Route">
-                </a>
-            </div>
-
-            <div class="col-xs-12 col-sm-9 col-lg-4">
-                <h4>Route module</h4>
-                <ul class="fa-ul pf-landing-list">
-                    <li><i></i>Search for routes between systems</li>
-                    <li><i></i>Predefined trade hub routes</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>'Jita', 'Amarr', 'Rens', 'Dodixie'</li>
-                        </ul>
-                    </li>
-                    <li><i></i>Add/Search custom routes</li>
-                    <li><i></i>Advanced search</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>Search on multiple maps</li>
-                            <li><i></i>Filter routes by:</li>
-                            <li>
-                                <ul class="fa-ul">
-                                    <li><i></i>'Connection types' (e.g. 'Wormholes', &hellip; )</li>
-                                    <li><i></i>'Connection scopes' (e.g 'Critical Wormholes', &hellip; )</li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </li>
-                    <li><i></i>Average sec status for a routes</li>
-                    <li><i></i>Sort/Order routes by:</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>System jumps</li>
-                            <li><i></i>Average sec status</li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-
-        </div>
-
-        <div class="row">
-
-            <div class="col-xs-12 col-sm-3 col-lg-2">
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/statistics_1.jpg" data-description="System statistics" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/statistics_1.jpg" width="160" height="160" alt="System statistics">
-                </a>
-            </div>
-
-            <div class="col-xs-12 col-sm-9 col-lg-4">
-                <h4>System statistics module</h4>
-                <ul class="fa-ul pf-landing-list">
-                    <li><i></i>Live in-game system data</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>System jump data</li>
-                            <li><i></i>Ship/POD kills</li>
-                            <li><i></i>NPC kills</li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="clearfix visible-xs visible-sm visible-md"></div>
-
-            <div class="col-xs-12 col-sm-3 col-lg-2" id="pf-landing-feature-user-statistics">
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/statistics_2.jpg" data-description="User statistics" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/statistics_2.jpg" width="160" height="160" alt="User statistics">
-                </a>
-            </div>
-
-            <div class="col-xs-12 col-sm-9 col-lg-4">
-                <h4>User statistics</h4>
-                <ul class="fa-ul pf-landing-list">
-                    <li><i></i>User activity logging</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>Private statistics</li>
-                            <li><i></i>Corporation statistics</li>
-                            <li><i></i>Alliance statistics</li>
-                        </ul>
-                    </li>
-                    <li><i></i>Log history</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>'week', 'month', 'year'</li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-
-        </div>
-
-        <div class="row">
-
-            <div class="col-xs-12 col-sm-3 col-lg-2">
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/connection_1.jpg" data-description="Jump mass log" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/connection_1.jpg" width="160" height="160" alt="Jump mass log">
-                </a>
-            </div>
-
-            <div class="col-xs-12 col-sm-9 col-lg-4">
-                <h4>Mass Log&nbsp&nbsp;&nbsp;<span class="label label-success">new</span></h4>
-                <ul class="fa-ul pf-landing-list">
-                    <li><i></i>Track ship jump mass for wormholes</li>
-                    <li><i></i>Compare multiple connections by mass left</li>
-                    <li><i></i>Pre-calculate your current ship mass before jumping</li>
-                </ul>
-            </div>
-
-            <div class="clearfix visible-xs visible-sm visible-md"></div>
-
-            <div class="col-xs-12 col-sm-3 col-lg-2">
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/log_1.jpg" data-description="Log file viewer" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/log_1.jpg" width="160" height="160" alt="Log file viewer">
-                </a>
-            </div>
-
-            <div class="col-xs-12 col-sm-9 col-lg-4">
-                <h4>Logging</h4>
-                <ul class="fa-ul pf-landing-list">
-                    <li><i></i>Separate *.log files per map</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>Logfile viewer (UI)</li>
-                            <li><i></i>Logfile filter/analyzer</li>
-                            <li><i></i>Download log files (JSON format)</li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-
-        </div>
-
-        <div class="row">
-
-            <div class="col-xs-12 col-sm-3 col-lg-2">
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/discord_1.jpg" data-description="Discord/Slack Notification" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/discord_1.jpg" width="160" height="160" alt="DiscordSlack Notification">
-                </a>
-            </div>
-
-            <div class="col-xs-12 col-sm-9 col-lg-4">
-                <h4>Discord/Slack integration&nbsp;&nbsp;<span class="label label-success">new</span></h4>
-                <ul class="fa-ul pf-landing-list">
-                    <li><i></i>Send "rally point" push notifications</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>Discord, Slack, Desktop, Email</li>
-                        </ul>
-                    </li>
-                    <li><i></i>Send map logs to a custom  <em>Discord</em> or <em>Slack</em> channel</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>Discord/Slack WebHook API build in</li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="clearfix visible-xs visible-sm visible-md"></div>
-
-
-
-        </div>
-
-        <div class="row text-center hidden-xs">
-            <div class="col-md-6 col-md-offset-3">
-                <p class="lead">
-                    This video, will guide you through the basic functions in <em>PATHFINDER</em>.
-                </p>
-            </div>
-        </div>
-
-        <div class="row text-center hidden-xs">
-            <div class="pricing-big youtube"
-                 id="Cc3jcN_jx04"
-                 data-params="modestbranding=1&showinfo=0&controls=0&vq=hd720"
-                 style="width: 640px; height: 360px;">
-            </div>
-        </div>
-
-    </div>
-</section>
-
+    </section>
+</check>
 
 {* map types *}
 <section id="pf-landing-maps">
@@ -690,237 +695,244 @@
 </section>
 
 {* admin *}
-<section id="pf-landing-admin">
-    <div class="container">
-        <div class="row text-center">
-            <div class="col-md-6 col-md-offset-3">
-                <h2><span class="text-primary">Admin</span> interface</h2>
-                <p class="lead">
-                    Characters with in-game corporation roles can grant acces to <em>PATHFINDER</em> corporation admin interface.
-                </p>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-xs-12 col-sm-3 col-lg-2">
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/admin_1.jpg" data-description="Member administration" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/admin_1.jpg" width="160" height="160" alt="Member administration">
-                </a>
+<check if="{{ @PATHFINDER.SHOW_COMPLETE_LOGIN_PAGE}}">
+    <section id="pf-landing-admin">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-md-6 col-md-offset-3">
+                    <h2><span class="text-primary">Admin</span> interface</h2>
+                    <p class="lead">
+                        Characters with in-game corporation roles can grant acces to <em>PATHFINDER</em> corporation admin interface.
+                    </p>
+                </div>
             </div>
 
-            <div class="col-xs-12 col-sm-9 col-lg-4">
-                <h4><i class="fas fa-fw fa-users"></i> Member administration</h4>
-                <ul class="fa-ul pf-landing-list">
-                    <li><i></i>Manage your corporation members</li>
-                    <li><i></i>View member information</li>
-                    <li><i></i>Kick members temporary or forever</li>
-                    <li><i></i>Ban members from installation</li>
-                </ul>
+            <div class="row">
+                <div class="col-xs-12 col-sm-3 col-lg-2">
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/admin_1.jpg" data-description="Member administration" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/admin_1.jpg" width="160" height="160" alt="Member administration">
+                    </a>
+                </div>
+
+                <div class="col-xs-12 col-sm-9 col-lg-4">
+                    <h4><i class="fas fa-fw fa-users"></i> Member administration</h4>
+                    <ul class="fa-ul pf-landing-list">
+                        <li><i></i>Manage your corporation members</li>
+                        <li><i></i>View member information</li>
+                        <li><i></i>Kick members temporary or forever</li>
+                        <li><i></i>Ban members from installation</li>
+                    </ul>
+                </div>
+
+                <div class="clearfix visible-xs visible-sm visible-md"></div>
+
+                <div class="col-xs-12 col-sm-3 col-lg-2">
+                    <a class="pf-animate-on-visible pf-animate disabled" href="javascript:void(0);" data-description="Database settings" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/wip.jpg" width="160" height="160" alt="WIP">
+                    </a>
+                </div>
+
+                <div class="col-xs-12 col-sm-9 col-lg-4">
+                    <h4><i class="fas fa-fw fa-sitemap"></i> Map settings</h4>
+                    <ul class="fa-ul pf-landing-list">
+                        <li><i></i>Manage global corporation map settings</li>
+                        <li><i></i>Set default map settings</li>
+                        <li><i></i>Disable some sensitive map settings (e.g. im/export maps)</li>
+                    </ul>
+                </div>
+
             </div>
 
-            <div class="clearfix visible-xs visible-sm visible-md"></div>
-
-            <div class="col-xs-12 col-sm-3 col-lg-2">
-                <a class="pf-animate-on-visible pf-animate disabled" href="javascript:void(0);" data-description="Database settings" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/wip.jpg" width="160" height="160" alt="WIP">
-                </a>
-            </div>
-
-            <div class="col-xs-12 col-sm-9 col-lg-4">
-                <h4><i class="fas fa-fw fa-sitemap"></i> Map settings</h4>
-                <ul class="fa-ul pf-landing-list">
-                    <li><i></i>Manage global corporation map settings</li>
-                    <li><i></i>Set default map settings</li>
-                    <li><i></i>Disable some sensitive map settings (e.g. im/export maps)</li>
-                </ul>
-            </div>
-
-        </div>
-
-        <div class="row text-center pf-landing-admin-login">
-            <i class="fas fa-fw fa-chevron-right"></i>
-            <a class="btn btn-labeled btn-primary" href="{{ 'admin', ['*' => ''] | alias }}">
+            <div class="row text-center pf-landing-admin-login">
+                <i class="fas fa-fw fa-chevron-right"></i>
+                <a class="btn btn-labeled btn-primary" href="{{ 'admin', ['*' => ''] | alias }}">
                 <span class="btn-label">
                     <i class="fas fa-sign-in-alt fa-fw"></i>
                 </span>&nbsp;admin&nbsp;SSO&nbsp;login
-            </a>
-            <i class="fas fa-fw fa-chevron-left"></i>
-        </div>
+                </a>
+                <i class="fas fa-fw fa-chevron-left"></i>
+            </div>
 
-    </div>
-</section>
+        </div>
+    </section>
+</check>
+
 
 {* install *}
-<section id="pf-landing-install">
-    <div class="container">
-        <div class="row text-center">
-            <div class="col-md-6 col-md-offset-3">
-                <h2><span class="text-primary">Install</span> and hosting</h2>
-                <p class="lead">
-                    If your are planning to install or self hosting <em>PATHFINDER</em>, all required information can be found on the project <a target="_blank" href="{{ @PATHFINDER.REPO }}/wiki">wiki</a>.
-                    Updating or bootstrapping the DB gets very simple with the new "Setup UI" and can be done by on-click.
-                </p>
+<check if="{{ @PATHFINDER.SHOW_COMPLETE_LOGIN_PAGE}}">
+    <section id="pf-landing-install">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-md-6 col-md-offset-3">
+                    <h2><span class="text-primary">Install</span> and hosting</h2>
+                    <p class="lead">
+                        If your are planning to install or self hosting <em>PATHFINDER</em>, all required information can be found on the project <a target="_blank" href="{{ @PATHFINDER.REPO }}/wiki">wiki</a>.
+                        Updating or bootstrapping the DB gets very simple with the new "Setup UI" and can be done by on-click.
+                    </p>
+                </div>
             </div>
+
+            <div class="row">
+                <div class="col-xs-12 col-sm-3 col-lg-2">
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/install_settings.jpg" data-description="Server settings" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/install_settings.jpg" width="160" height="160" alt="Statistics">
+                    </a>
+                </div>
+
+                <div class="col-xs-12 col-sm-9 col-lg-4">
+                    <h4><i class="fas fa-fw fa-server"></i> Requirements check</h4>
+                    <ul class="fa-ul pf-landing-list">
+                        <li><i></i>Checks your server type/status</li>
+                        <li><i></i>Checks your installed PHP version</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>Checks for required PHP extensions</li>
+                            </ul>
+                        </li>
+                        <li><i></i>Checks your program settings</li>
+                    </ul>
+                </div>
+
+                <div class="clearfix visible-xs visible-sm visible-md"></div>
+
+                <div class="col-xs-12 col-sm-3 col-lg-2">
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/install_db.jpg" data-description="Database settings" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/install_db.jpg" width="160" height="160" alt="Signature table">
+                    </a>
+                </div>
+
+                <div class="col-xs-12 col-sm-9 col-lg-4">
+                    <h4><i class="fas fa-fw fa-database"></i> Database setup</h4>
+                    <ul class="fa-ul pf-landing-list">
+                        <li><i></i>Check DB connections</li>
+                        <li><i></i>Check DB version</li>
+                        <li><i></i>Check DB settings</li>
+                        <li><i></i>Bootstrap or update your current Database with one click</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>Check tables/columns for updates</li>
+                                <li><i></i>Check column indexes/unique keys</li>
+                                <li><i></i>Check foreign key constraints</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
         </div>
-
-        <div class="row">
-            <div class="col-xs-12 col-sm-3 col-lg-2">
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/install_settings.jpg" data-description="Server settings" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/install_settings.jpg" width="160" height="160" alt="Statistics">
-                </a>
-            </div>
-
-            <div class="col-xs-12 col-sm-9 col-lg-4">
-                <h4><i class="fas fa-fw fa-server"></i> Requirements check</h4>
-                <ul class="fa-ul pf-landing-list">
-                    <li><i></i>Checks your server type/status</li>
-                    <li><i></i>Checks your installed PHP version</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>Checks for required PHP extensions</li>
-                        </ul>
-                    </li>
-                    <li><i></i>Checks your program settings</li>
-                </ul>
-            </div>
-
-            <div class="clearfix visible-xs visible-sm visible-md"></div>
-
-            <div class="col-xs-12 col-sm-3 col-lg-2">
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/install_db.jpg" data-description="Database settings" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-small" data-original="public/img/landing/thumbs/install_db.jpg" width="160" height="160" alt="Signature table">
-                </a>
-            </div>
-
-            <div class="col-xs-12 col-sm-9 col-lg-4">
-                <h4><i class="fas fa-fw fa-database"></i> Database setup</h4>
-                <ul class="fa-ul pf-landing-list">
-                    <li><i></i>Check DB connections</li>
-                    <li><i></i>Check DB version</li>
-                    <li><i></i>Check DB settings</li>
-                    <li><i></i>Bootstrap or update your current Database with one click</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>Check tables/columns for updates</li>
-                            <li><i></i>Check column indexes/unique keys</li>
-                            <li><i></i>Check foreign key constraints</li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-    </div>
-</section>
+    </section>
+</check>
 
 {* about *}
-<section id="pf-landing-about">
-    <div class="container">
-        <div class="row text-center">
-            <div class="col-md-6 col-md-offset-3">
-                <h2><span class="text-primary">About</span> this Application</h2>
-                <p class="lead">
-                    <em>PATHFINDER</em> is a one-man spare time project with the aim of combining the latest web technology with clean and attractive interfaces.
-                </p>
+<check if="{{ @PATHFINDER.SHOW_COMPLETE_LOGIN_PAGE}}">
+    <section id="pf-landing-about">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-md-6 col-md-offset-3">
+                    <h2><span class="text-primary">About</span> this Application</h2>
+                    <p class="lead">
+                        <em>PATHFINDER</em> is a one-man spare time project with the aim of combining the latest web technology with clean and attractive interfaces.
+                    </p>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
+                    <h4>About Me</h4>
+                    <p>
+                        I am playing <em><a  target="_blank" href="https://www.eveonline.com/">EVE Online</a></em> since almost 4 years.
+                        The majority of time (3+ years), my characters were a part of the <em><a target="_blank" href="https://www.themittani.com/news/j150020-three-alliances-enter-none-leave">"No Holes Barred"</a></em> alliance.
+                        ,one of the oldest and best known wormhole entities that existed in <em>"New Eden"</em> (R.I.P).
+                        The <em>Pathfinder</em> project was started just a few weeks before the failed invasion of <em>"Polaris"</em> took place.
+                        The intention behind this project was not to create another mapping tool that already exist.
+                        I wanted to make the easiest to use and most powerful 3rd party system mapper, build with the newest web technology available.
+                    </p>
+                    <p>
+                        I am currently working as a professional software developer for one of the largest German web pages.
+                        The main focus of my daily work is based on large scale frontend applications.
+                    </p>
+                    <p>
+                        I decided to make this project <a target="_blank" href="{{ @PATHFINDER.REPO }}">"Open Source"</a>, once the beta testing is finished.
+                        It would be a great pleasure to me if you would help me to improve this project by submitting <a target="_blank" href="https://github.com/exodus4d/pathfinder/issues">bug reports</a>
+                        or any kind of security issues.
+                    </p>
+                </div>
+
+                <div class="col-xs-12 col-sm-5 col-md-4 col-lg-4 text-center pf-animate-on-visible pf-animate">
+                    <img class="pf-landing-image-preview pf-landing-image-preview-medium pf-landing-about-me" data-original="https://image.eveonline.com/Character/1946320202_256.jpg" width="256" height="256" alt="Exodus 4D">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-xs-12 col-sm-5 col-md-4 col-lg-4 text-center col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/development_1.jpg" data-description="PhpStorm on 4k resolution" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-medium" data-original="public/img/landing/thumbs/development_1.jpg" width="256" height="256" alt="PhpStorm on 4k resolution">
+                    </a>
+                    <a class="pf-animate-on-visible pf-animate" href="public/img/landing/development_2.jpg" data-description="Database diagram on 4k resolution" data-gallery="#pf-gallery">
+                        <img class="pf-landing-image-preview pf-landing-image-preview-medium" data-original="public/img/landing/thumbs/development_2.jpg" width="256" height="256" alt="Database diagram on 4k resolution">
+                    </a>
+                </div>
+
+                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                    <h4>Technology stack</h4>
+                    <p>
+                        If you are planning to get deeper into the project or even think about hosting it on your own webserver, you should  be aware of some important key points.
+                        <em>Pathfinder</em> is not comparable with any "out of the box" web applications or common CMS systems that come along with an auto-install feature.
+                        If you don´t have any experience with the following technologies, stop thinking about your own hosted <em>Pathfinder</em> app.
+                    </p>
+                    <h3>Frontend</h3>
+                    <ul class="fa-ul pf-landing-list">
+                        <li><i></i>'<em>Bootstrap</em>' as a HTML, CSS framework</li>
+                        <li><i></i>'<em>SASS</em>' and '<em>Compass</em>' as a CSS preprocessor</li>
+                        <li><i></i>'<em>RequireJs</em>' as an AMD loader and builder for Javascript</li>
+                        <li><i></i>'<em>jQuery</em>' as the main Javascript library</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>≈ 50 self written jQuery plugins</li>
+                                <li><i></i>≈ 40 open source plugins</li>
+                            </ul>
+                        </li>
+                        <li><i></i>'<em>Node.js</em>' and '<em>Gulp</em>' as js task runner and CI-build environment</li>
+
+                        <li><i></i>Code quality and automated testing</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>'<em>JSHint</em>'</li>
+                                <li><i></i>'<em>Jasmine</em>'</li>
+                            </ul>
+                        </li>
+                        <li><i></i>You should know about some HTML5 APIs</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>'<em>Local Storage</em>'</li>
+                                <li><i></i>'<em>Page Visibility</em>'</li>
+                                <li><i></i>'<em>Web Notifications</em>'</li>
+                                <li><i></i>'<em>Fullscreen</em>'</li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <h3>Backend</h3>
+                    <ul class="fa-ul pf-landing-list">
+                        <li><i></i>'<em>Fat-Free Framework</em>' as a lightweight PHP framework and ORM mapper</li>
+                        <li><i></i>'<em>MySQL</em>' (or '<em>MariaDB</em>') as databases (configurable)</li>
+                        <li><i></i>'<em>Memcache, APC or XCache</em>' as a 2nd level cache engine (configurable)</li>
+                        <li><i></i>Code quality and automated testing</li>
+                        <li>
+                            <ul class="fa-ul">
+                                <li><i></i>'<em>PHPUnit</em>'</li>
+                            </ul>
+                        </li>
+                        <li><i></i>You should know about relational databases, MVC pattern and ORM strategies</li>
+                        <li><i></i>If you have experiences in developing a Single-Page-Application, that would not hurt :)</li>
+                    </ul>
+                </div>
             </div>
         </div>
+    </section>
+</check>
 
-        <div class="row">
-            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
-                <h4>About Me</h4>
-                <p>
-                    I am playing <em><a  target="_blank" href="https://www.eveonline.com/">EVE Online</a></em> since almost 4 years.
-                    The majority of time (3+ years), my characters were a part of the <em><a target="_blank" href="https://www.themittani.com/news/j150020-three-alliances-enter-none-leave">"No Holes Barred"</a></em> alliance.
-                    ,one of the oldest and best known wormhole entities that existed in <em>"New Eden"</em> (R.I.P).
-                    The <em>Pathfinder</em> project was started just a few weeks before the failed invasion of <em>"Polaris"</em> took place.
-                    The intention behind this project was not to create another mapping tool that already exist.
-                    I wanted to make the easiest to use and most powerful 3rd party system mapper, build with the newest web technology available.
-                </p>
-                <p>
-                    I am currently working as a professional software developer for one of the largest German web pages.
-                    The main focus of my daily work is based on large scale frontend applications.
-                </p>
-                <p>
-                    I decided to make this project <a target="_blank" href="{{ @PATHFINDER.REPO }}">"Open Source"</a>, once the beta testing is finished.
-                    It would be a great pleasure to me if you would help me to improve this project by submitting <a target="_blank" href="https://github.com/exodus4d/pathfinder/issues">bug reports</a>
-                    or any kind of security issues.
-                </p>
-            </div>
-
-            <div class="col-xs-12 col-sm-5 col-md-4 col-lg-4 text-center pf-animate-on-visible pf-animate">
-                <img class="pf-landing-image-preview pf-landing-image-preview-medium pf-landing-about-me" data-original="https://image.eveonline.com/Character/1946320202_256.jpg" width="256" height="256" alt="Exodus 4D">
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-xs-12 col-sm-5 col-md-4 col-lg-4 text-center col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/development_1.jpg" data-description="PhpStorm on 4k resolution" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-medium" data-original="public/img/landing/thumbs/development_1.jpg" width="256" height="256" alt="PhpStorm on 4k resolution">
-                </a>
-                <a class="pf-animate-on-visible pf-animate" href="public/img/landing/development_2.jpg" data-description="Database diagram on 4k resolution" data-gallery="#pf-gallery">
-                    <img class="pf-landing-image-preview pf-landing-image-preview-medium" data-original="public/img/landing/thumbs/development_2.jpg" width="256" height="256" alt="Database diagram on 4k resolution">
-                </a>
-            </div>
-
-            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                <h4>Technology stack</h4>
-                <p>
-                    If you are planning to get deeper into the project or even think about hosting it on your own webserver, you should  be aware of some important key points.
-                    <em>Pathfinder</em> is not comparable with any "out of the box" web applications or common CMS systems that come along with an auto-install feature.
-                    If you don´t have any experience with the following technologies, stop thinking about your own hosted <em>Pathfinder</em> app.
-                </p>
-                <h3>Frontend</h3>
-                <ul class="fa-ul pf-landing-list">
-                    <li><i></i>'<em>Bootstrap</em>' as a HTML, CSS framework</li>
-                    <li><i></i>'<em>SASS</em>' and '<em>Compass</em>' as a CSS preprocessor</li>
-                    <li><i></i>'<em>RequireJs</em>' as an AMD loader and builder for Javascript</li>
-                    <li><i></i>'<em>jQuery</em>' as the main Javascript library</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>≈ 50 self written jQuery plugins</li>
-                            <li><i></i>≈ 40 open source plugins</li>
-                        </ul>
-                    </li>
-                    <li><i></i>'<em>Node.js</em>' and '<em>Gulp</em>' as js task runner and CI-build environment</li>
-
-                    <li><i></i>Code quality and automated testing</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>'<em>JSHint</em>'</li>
-                            <li><i></i>'<em>Jasmine</em>'</li>
-                        </ul>
-                    </li>
-                    <li><i></i>You should know about some HTML5 APIs</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>'<em>Local Storage</em>'</li>
-                            <li><i></i>'<em>Page Visibility</em>'</li>
-                            <li><i></i>'<em>Web Notifications</em>'</li>
-                            <li><i></i>'<em>Fullscreen</em>'</li>
-                        </ul>
-                    </li>
-                </ul>
-
-                <h3>Backend</h3>
-                <ul class="fa-ul pf-landing-list">
-                    <li><i></i>'<em>Fat-Free Framework</em>' as a lightweight PHP framework and ORM mapper</li>
-                    <li><i></i>'<em>MySQL</em>' (or '<em>MariaDB</em>') as databases (configurable)</li>
-                    <li><i></i>'<em>Memcache, APC or XCache</em>' as a 2nd level cache engine (configurable)</li>
-                    <li><i></i>Code quality and automated testing</li>
-                    <li>
-                        <ul class="fa-ul">
-                            <li><i></i>'<em>PHPUnit</em>'</li>
-                        </ul>
-                    </li>
-                    <li><i></i>You should know about relational databases, MVC pattern and ORM strategies</li>
-                    <li><i></i>If you have experiences in developing a Single-Page-Application, that would not hurt :)</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</section>
-
-{* documentation *}
+{* faq *}
 <section id="pf-landing-faq">
     <div class="container">
         <div class="row text-center">
@@ -976,7 +988,7 @@
                     Server requirements:
                 </p>
                 <ul class="fa-ul pf-landing-list">
-                    <li><i></i> A webserver with a <em><a target="_blank" href="https://en.wikipedia.org/wiki/LAMP_(software_bundle)">LAMP</a></em> environment</li>
+                    <li><i></i> A webserver with a <em><a target="_blank" href="https://en.wikipedia.org/wiki/LAMP_(software_bundle)">LEMP</a></em> environment</li>
                     <li><i></i> PHP 7.0+</li>
                     <li><i></i> PHP framework <a target="_blank" href="http://fatfreeframework.com/system-requirements">requirements</a></li>
                     <li><i></i> MySQL 5.7+ </li>
