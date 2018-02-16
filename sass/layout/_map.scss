@@ -205,6 +205,10 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
 
       .pf-map-overlay-local-trigger{
         margin-bottom: 10px;
+
+        &:hover, &.right{
+          color: $orange-dark; // overlay open
+        }
       }
 
       i{
@@ -313,7 +317,12 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
         margin-right: 2px;
       }
 
+      .pf-system-effect{
+        font-size: 11px;
+      }
+
       .fa-lock{
+        font-size: 11px;
         display: none; // triggered by system-lock class
       }
 
@@ -655,13 +664,14 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     filter: blur(0.000001px);
     -webkit-font-smoothing: antialiased;
     font-family: Arial, sans-serif;         // fix for element width on custom font family
-    padding: 0 2px;
-    font-size: 10px;
+    padding: 2px;
+    font-size: 9.5px;
+    line-height: 100%;
     z-index: 1020;
     background-color: $gray;
     color: $gray-lighter;
-    @include border-radius(4px);
-    @include box-shadow(0 6px 12px rgba(0,0,0,.4));
+    @include border-radius(50%);
+    @include box-shadow(0 3px 6px rgba(0,0,0,.3));
   }
 }
 

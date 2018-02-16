@@ -7,7 +7,7 @@ define([
     'app/init',
     'app/util',
     'bootbox'
-], function($, Init, Util, bootbox) {
+], ($, Init, Util, bootbox) => {
     'use strict';
 
     let config = {
@@ -891,7 +891,7 @@ define([
     $.fn.setMapShortcuts = function(){
         return this.each((i, mapWrapper) => {
             mapWrapper = $(mapWrapper);
-            let mapElement = mapWrapper.findMapElement();
+            let mapElement = mapWrapper.find('.' + config.mapClass);
 
             // dynamic require Map module -> otherwise there is a require(), loop
             let Map = require('app/map/map');
@@ -963,10 +963,6 @@ define([
         });
     };
 
-    $.fn.findMapElement = function(){
-        return $(this).find('.' + config.mapClass);
-    };
-
     /**
      * get systemId string (selector
      * @param mapId
@@ -975,6 +971,72 @@ define([
      */
     let getSystemId = (mapId, systemId) => {
         return config.systemIdPrefix + mapId + '-' + systemId;
+    };
+
+    /**
+     * check whether the current User has access for a given right
+     * based on a given mapConfig
+     * @param right
+     * @param mapConfig
+     * @returns {boolean}
+     */
+    let checkRight = (right, mapConfig) => {
+        let hasAccess = false;
+        let currentUserData = Util.getCurrentUserData();
+        if(currentUserData){
+            // ...there is an active user
+            let currentCharacterData = Util.getObjVal(currentUserData, 'character');
+            if(currentCharacterData){
+                // ... there is an active character
+                let currentCharacterRole = Util.getObjVal(currentCharacterData, 'role');
+                if(currentCharacterRole){
+                    // ... active character has a role assigned
+
+                    let mapType = Util.getObjVal(mapConfig, 'type.name');
+                    let mapAccess = Util.getObjVal(mapConfig, 'access.' + (mapType === 'private' ? 'character' : mapType)) || [];
+
+                    // this is either Ally/Corp or Character Id
+                    let accessObjectId = Util.getCurrentUserInfo(mapType + 'Id');
+
+                    // check whether character has map access
+                    let hasMapAccess = mapAccess.some((accessObj) => {
+                        return (accessObj.id === accessObjectId);
+                    });
+
+                    if(hasMapAccess){
+                        // ... this should ALWAYS be be true!
+                        switch(mapType){
+                            case 'private':
+                                hasAccess = true;
+                                break;
+                            case 'corporation':
+                                let objectRights = Util.getObjVal(currentCharacterData, mapType + '.rights') || [];
+
+                                let objectRight = objectRights.find((objectRight) => {
+                                    return objectRight.right.name === right;
+                                });
+
+                                if(objectRight){
+                                    // ... Ally/Corp has the right we are looking for assigned with a required role
+                                    if(
+                                        currentCharacterRole.name === 'SUPER' ||
+                                        objectRight.role.name === 'MEMBER' ||
+                                        objectRight.role.name === currentCharacterRole.name
+                                    ){
+                                        hasAccess = true;
+                                    }
+                                }
+                                break;
+                            case 'alliance':
+                                hasAccess = true;
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return hasAccess;
     };
 
     return {
@@ -1010,6 +1072,7 @@ define([
         getLocaleData: getLocaleData,
         storeLocalData: storeLocalData,
         deleteLocalData: deleteLocalData,
-        getSystemId: getSystemId
+        getSystemId: getSystemId,
+        checkRight: checkRight
     };
 });

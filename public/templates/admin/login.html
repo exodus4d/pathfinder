@@ -6,7 +6,12 @@
                 <check if="{{ @tplLogged }}">
                     <true>
                         {* Logged IN *}
-                        <h2>Admin <span class="txt-color txt-color-warning">{{ @character->name }}</span></h2>
+                        <h2>
+                            <span class="pf-font-capitalize">{{ strtolower(@character->roleId->name) }}</span>
+                            <span class="txt-color txt-color-{{ @character->roleId->style }}">{{ @character->roleId->label }}</span>
+                            <span>{{ @character->name }}</span>
+                        </h2>
+
                         <p class="lead">
                             You have already admin privileges. Switch character?
                         </p>

@@ -18,7 +18,7 @@ define([
     'app/map/contextmenu',
     'app/map/overlay',
     'app/map/local'
-], function($, Init, Util, Render, bootbox, MapUtil, System, Layout, MagnetizerWrapper) {
+], ($, Init, Util, Render, bootbox, MapUtil, System, Layout, MagnetizerWrapper) => {
 
     'use strict';
 
@@ -74,10 +74,26 @@ define([
     // -> those maps queue their updates until "pf:unlocked" event
     let mapUpdateQueue = [];
 
+    /**
+     * checks mouse events on system head elements
+     * -> prevents drag/drop system AND drag/drop connections on some child elements
+     * @param e
+     * @param system
+     * @returns {boolean | *}
+     */
+    let filterSystemHeadEvent = (e, system) => {
+        let target = $(e.target);
+        let effectClass = MapUtil.getEffectInfoForSystem('effect', 'class');
+        return (
+            target.hasClass(config.systemHeadNameClass) ||
+            target.hasClass(effectClass)
+        );
+    };
+
     // jsPlumb config
     let globalMapConfig =  {
         source: {
-            filter: '.' + config.systemHeadNameClass,
+            filter:  filterSystemHeadEvent,
             //isSource:true,
             isTarget:true,                          // add target Endpoint to each system (e.g. for drag&drop)
             allowLoopback: false,                   // loopBack connections are not allowed
@@ -91,7 +107,7 @@ define([
             anchor: 'Continuous'
         },
         target: {
-            filter: '.' + config.systemHeadNameClass,
+            filter:  filterSystemHeadEvent,
             isSource:true,
             //isTarget:true,
             //allowLoopBack: false,                 // loopBack connections are not allowed
@@ -106,6 +122,8 @@ define([
         },
         connectionTypes: Init.connectionTypes
     };
+
+
 
     /**
      * updates a system with current information
@@ -499,8 +517,7 @@ define([
                     class: config.systemHeadClass
                 }).append(
                     // System name is editable
-                    $('<a>', {
-                        href: '#',
+                    $('<span>', {
                         class: config.systemHeadNameClass
                     }).attr('data-value', systemName)
                 ).append(
@@ -931,33 +948,36 @@ define([
     let setMapWrapperObserver = (mapWrapper, mapConfig) => {
 
         // map resize observer ----------------------------------------------------------------------------------------
-        let resizeTimer;
-        let wrapperResize = new ResizeObserver(entries => { // jshint ignore:line
-            /**
-             * save current map dimension to local storage
-             * @param entry
-             */
-            let saveMapSize = (entry) => {
-                return setTimeout(() => {
-                    let width = entry.target.style.width;
-                    let height = entry.target.style.height;
-                    width = parseInt( width.substring(0, width.length - 2) ) || 0;
-                    height = parseInt( height.substring(0, height.length - 2) ) || 0;
+        if(window.ResizeObserver) {
+            let resizeTimer;
+            let wrapperResize = new ResizeObserver(entries => { // jshint ignore:line
+                /**
+                 * save current map dimension to local storage
+                 * @param entry
+                 */
+                let saveMapSize = (entry) => {
+                    return setTimeout(() => {
+                        let width = entry.target.style.width;
+                        let height = entry.target.style.height;
+                        width = parseInt( width.substring(0, width.length - 2) ) || 0;
+                        height = parseInt( height.substring(0, height.length - 2) ) || 0;
 
-                    MapUtil.storeLocalData('map', mapConfig.config.id, 'style', {
-                        width: width,
-                        height: height
-                    });
-                }, 100);
-            };
-            for (let entry of entries){
-                // use timeout to "throttle" save actions
-                clearTimeout(resizeTimer);
-                resizeTimer = saveMapSize(entry);
-            }
-        });
+                        MapUtil.storeLocalData('map', mapConfig.config.id, 'style', {
+                            width: width,
+                            height: height
+                        });
+                    }, 100);
+                };
+                for (let entry of entries){
+                    // use timeout to "throttle" save actions
+                    clearTimeout(resizeTimer);
+                    resizeTimer = saveMapSize(entry);
+                }
+            });
 
-        wrapperResize.observe(mapWrapper[0]);
+            wrapperResize.observe(mapWrapper[0]);
+        }
+
     };
 
     /**
@@ -2155,7 +2175,7 @@ define([
             containment: 'parent',
             constrain: true,
             //scroll: true,                                             // not working because of customized scrollbar
-            filter: '.' + config.systemHeadNameClass,                   // disable drag on "system name"
+            filter: filterSystemHeadEvent,
             snapThreshold: MapUtil.config.mapSnapToGridDimension,       // distance for grid snapping "magnet" effect (optional)
             start: function(params){
                 let dragSystem = $(params.el);
@@ -3323,7 +3343,7 @@ define([
      * removes a map instance from local cache
      * @param mapId
      */
-    let clearMapInstance = function(mapId){
+    let clearMapInstance = (mapId) => {
         if(typeof activeInstances[mapId] === 'object'){
             delete activeInstances[mapId];
         }
@@ -3356,8 +3376,8 @@ define([
                  * @param mapName
                  * @param mapContainer
                  */
-                let switchTabCallback = (mapName, mapContainer) => {
-                    Util.showNotify({title: 'Map initialized', text: mapName  + ' - loaded', type: 'success'});
+                let switchTabCallback = (mapContainer, mapConfig) => {
+                    Util.showNotify({title: 'Map initialized', text: mapConfig.name  + ' - loaded', type: 'success'});
 
                     let mapWrapper = mapContainer.parents('.' + config.mapWrapperClass);
 
@@ -3368,6 +3388,11 @@ define([
                         if(data && data.scrollOffset){
                             mapWrapper.scrollToPosition([data.scrollOffset.y, data.scrollOffset.x]);
                         }
+                    });
+
+                    // update main menu options based on the active map -----------------------------------------------
+                    $(document).trigger('pf:updateMenuOptions', {
+                        mapConfig: mapConfig
                     });
 
                     // init magnetizer --------------------------------------------------------------------------------
@@ -3392,7 +3417,7 @@ define([
                 // show nice visualization effect ---------------------------------------------------------------------
                 let mapContainer = $(mapConfig.map.getContainer());
                 mapContainer.visualizeMap('show', function(){
-                    switchTabCallback( mapConfig.config.name, mapContainer );
+                    switchTabCallback(mapContainer, mapConfig.config);
                 });
             }
 

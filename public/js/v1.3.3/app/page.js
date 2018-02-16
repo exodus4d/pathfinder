@@ -26,7 +26,7 @@ define([
     'xEditable',
     'slidebars',
     'app/module_map'
-], function($, Init, Util, Logging, Mustache, MapUtil, TplLogo, TplHead, TplFooter) {
+], ($, Init, Util, Logging, Mustache, MapUtil, TplLogo, TplHead, TplFooter) => {
 
     'use strict';
 
@@ -166,7 +166,7 @@ define([
      * @param title
      * @returns {JQuery|*|jQuery}
      */
-    let getMenuHeadline = function(title){
+    let getMenuHeadline = (title) => {
         return $('<div>', {
             class: 'panel-heading'
         }).prepend(
@@ -388,7 +388,7 @@ define([
                     class: 'list-group-item list-group-item-info'
                 }).html('&nbsp;&nbsp;Shortcuts').prepend(
                     $('<i>',{
-                        class: 'far fa-keyboard fa-fw'
+                        class: 'fas fa-keyboard fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('Shortcuts');
@@ -407,7 +407,8 @@ define([
                 getMenuHeadline('Danger zone')
             ).append(
                 $('<a>', {
-                    class: 'list-group-item list-group-item-danger'
+                    class: 'list-group-item list-group-item-danger',
+                    id: Util.config.menuButtonMapDeleteId
                 }).html('&nbsp;&nbsp;Delete map').prepend(
                     $('<i>',{
                         class: 'fas fa-trash fa-fw'
@@ -569,9 +570,10 @@ define([
      * catch all global document events
      */
     let setPageObserver = function(){
+        let documentElement = $(document);
 
         // on "full-screen" change event
-        $(document).on('fscreenchange', function(e, state, elem){
+        documentElement.on('fscreenchange', function(e, state, elem){
 
             let menuButton = $('#' + Util.config.menuButtonFullScreenId);
 
@@ -587,67 +589,67 @@ define([
             }
         });
 
-        $(document).on('pf:menuShowStatsDialog', function(e){
+        documentElement.on('pf:menuShowStatsDialog', function(e){
             // show user activity stats dialog
             $.fn.showStatsDialog();
             return false;
         });
 
-        $(document).on('pf:menuShowSystemEffectInfo', function(e){
+        documentElement.on('pf:menuShowSystemEffectInfo', function(e){
             // show system effects dialog
             $.fn.showSystemEffectInfoDialog();
             return false;
         });
 
-        $(document).on('pf:menuShowJumpInfo', function(e){
+        documentElement.on('pf:menuShowJumpInfo', function(e){
             // show system effects info box
             $.fn.showJumpInfoDialog();
             return false;
         });
 
-        $(document).on('pf:menuNotificationTest', function(e){
+        documentElement.on('pf:menuNotificationTest', function(e){
             // show system effects info box
             notificationTest();
             return false;
         });
 
-        $(document).on('pf:menuDeleteAccount', function(e){
+        documentElement.on('pf:menuDeleteAccount', function(e){
             // show "delete account" dialog
             $.fn.showDeleteAccountDialog();
             return false;
         });
 
-        $(document).on('pf:menuManual', function(e){
+        documentElement.on('pf:menuManual', function(e){
             // show map manual
             $.fn.showMapManual();
             return false;
         });
 
-        $(document).on('pf:menuShowTaskManager', function(e, data){
+        documentElement.on('pf:menuShowTaskManager', function(e, data){
             // show log dialog
             Logging.showDialog();
             return false;
         });
 
-        $(document).on('pf:menuShortcuts', function(e, data){
+        documentElement.on('pf:menuShortcuts', function(e, data){
             // show shortcuts dialog
             $.fn.showShortcutsDialog();
             return false;
         });
 
-        $(document).on('pf:menuShowSettingsDialog', function(e){
+        documentElement.on('pf:menuShowSettingsDialog', function(e){
             // show character select dialog
             $.fn.showSettingsDialog();
             return false;
         });
 
-        $(document).on('pf:menuShowMapInfo', function(e, data){
+        documentElement.on('pf:menuShowMapInfo', function(e, data){
             // show map information dialog
             $.fn.showMapInfoDialog(data);
             return false;
         });
 
-        $(document).on('pf:menuShowMapSettings', function(e, data){
+        documentElement.on('pf:menuShowMapSettings', function(e, data){
             // show map edit dialog or edit map
             let mapData = false;
 
@@ -661,7 +663,7 @@ define([
             return false;
         });
 
-        $(document).on('pf:menuDeleteMap', function(e){
+        documentElement.on('pf:menuDeleteMap', function(e){
             // delete current active map
             let mapData = false;
 
@@ -675,7 +677,7 @@ define([
             return false;
         });
 
-        $(document).on('pf:menuLogout', function(e, data){
+        documentElement.on('pf:menuLogout', function(e, data){
 
             let clearCookies = false;
             if(
@@ -701,8 +703,14 @@ define([
             $(this).destroyTimestampCounter();
         });
 
+        // disable memue links based on current map config
+        documentElement.on('pf:updateMenuOptions', function(e, data){
+            let hasRightMapDelete = MapUtil.checkRight('map_delete', data.mapConfig);
+            $('#' + Util.config.menuButtonMapDeleteId).toggleClass('disabled', !hasRightMapDelete);
+        });
+
         // update header links with current map data
-        $(document).on('pf:updateHeaderMapData', function(e, data){
+        documentElement.on('pf:updateHeaderMapData', function(e, data){
             let activeMap = Util.getMapModule().getActiveMap();
 
             let userCount = 0;
@@ -721,7 +729,7 @@ define([
         });
 
         // shutdown the program -> show dialog
-        $(document).on('pf:shutdown', function(e, data){
+        documentElement.on('pf:shutdown', function(e, data){
             // show shutdown dialog
             let options = {
                 buttons: {
@@ -735,7 +743,7 @@ define([
                                 // redirect to login
                                 window.location = '../';
                             }else{
-                                $(document).trigger('pf:menuLogout');
+                                documentElement.trigger('pf:menuLogout');
                             }
                         }
                     }
@@ -764,7 +772,7 @@ define([
 
             $.fn.showNotificationDialog(options);
 
-            $(document).setProgramStatus('offline');
+            documentElement.setProgramStatus('offline');
 
             Util.showNotify({title: 'Logged out', text: data.reason, type: 'error'}, false);
 

@@ -12,7 +12,7 @@ define([
     'app/ui/system_killboard',
     'app/ui/connection_info',
     'app/counter'
-], function(
+], (
     $,
     Init,
     Util,
@@ -25,7 +25,7 @@ define([
     SystemRouteModule,
     SystemKillboardModule,
     ConnectionInfoModule
-){
+) => {
     'use strict';
 
     let config = {
@@ -565,12 +565,12 @@ define([
                 e.preventDefault();
 
                 // callback function after tab switch
-                function switchTabCallback(mapElement, tabLinkElement){
+                let switchTabCallback = (mapElement, tabLinkElement) => {
                     tabLinkElement.tab('show');
                     // unfreeze map
                     mapElement.data('frozen', false);
                     return false;
-                }
+                };
 
                 if(mapTabChangeBlocked === false){
                     let tabLinkElement = $(this);
@@ -611,7 +611,6 @@ define([
                     $(document).trigger('pf:menuShowMapSettings', {tab: 'new'});
                     e.preventDefault();
                 }
-
             });
 
             $(tabListElement).on('shown.bs.tab', 'a', function(e){

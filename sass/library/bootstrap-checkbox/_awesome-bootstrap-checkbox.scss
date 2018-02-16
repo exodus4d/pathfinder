@@ -54,7 +54,7 @@ $check-icon: fa-content($fa-var-check) !default;
       border: 1px solid $input-border;
       border-radius: 3px;
       background-color: $gray-dark;
-      @include transition(border 0.15s ease-in-out, color 0.15s ease-in-out);
+      @include transition(border 0.18s ease, color 0.18s ease, background-color 0.18s ease);
     }
 
     &::after {
@@ -74,7 +74,7 @@ $check-icon: fa-content($fa-var-check) !default;
       margin-left: -20px;
       padding-left: 3px;
       padding-top: 1px;
-      font-size: 11px;
+      font-size: calc(100% - 1px);
       color: $input-color;
     }
   }
@@ -185,7 +185,7 @@ $check-icon: fa-content($fa-var-check) !default;
       border: 1px solid $input-border;
       border-radius: 50%;
       background-color: $gray-dark;
-      @include transition(border 0.15s ease-in-out);
+      @include transition(border 0.18s ease, color 0.18s ease);
     }
 
     &::after{
@@ -196,12 +196,16 @@ $check-icon: fa-content($fa-var-check) !default;
       height: 11px;
       left: 3px;
       top: 3px;
+      opacity: 0;
+      transform: scale(2) rotateZ(-20deg);
+      transition: all .18s ease;
+      will-change: transform, opacity;
       margin-left: -20px;
       border-radius: 50%;
       background-color: $input-color;
       @include scale(0, 0);
 
-      @include transition-transform(.1s cubic-bezier(.8,-0.33,.2,1.33));
+      @include transition-transform(.18s cubic-bezier(.8,-0.33,.2,1.33));
       //curve - http://cubic-bezier.com/#.8,-0.33,.2,1.33
     }
   }
@@ -209,13 +213,15 @@ $check-icon: fa-content($fa-var-check) !default;
   input[type="radio"]{
     opacity: 0;
     z-index: 1;
+    cursor: pointer;
 
     &:focus + label::before{
-      @include tab-focus();
+      // @include tab-focus(); // no outline frame for Pathfinder
     }
 
     &:checked + label::after{
       @include scale(1, 1);
+      opacity: 1;
     }
 
     &:disabled + label{

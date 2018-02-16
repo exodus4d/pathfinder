@@ -40,146 +40,147 @@
 
         {{^hideSettingsTab}}
             <div role="tabpanel" class="tab-pane fade {{#openTabSettings}}in active{{/openTabSettings}}" id="{{dialogMapSettingsContainerId}}">
-                <form role="form" class="form-horizontal">
+                {{#hasRightMapUpdate}}
+                    <form role="form" class="form-horizontal">
 
-                    <div class="row ">
-                        <div class="col-sm-6">
-                            <h4 class="pf-dynamic-area">Map options</h4>
+                        <div class="row ">
+                            <div class="col-sm-6">
+                                <h4 class="pf-dynamic-area">Map options</h4>
 
-                            <div class="col-sm-12 col-md-6">
-                                <div class="form-group">
-                                    <div class="col-sm-12 col-xs-6 checkbox">
-                                        <input id="{{deleteExpiredConnectionsId}}" name="deleteExpiredConnections" value="1" type="checkbox" {{#deleteExpiredConnections}}checked{{/deleteExpiredConnections}}>
-                                        <label for="{{deleteExpiredConnectionsId}}">Auto delete outdated wormholes
-                                            <i class="fas fa-fw fa-question-circle pf-help-light" title="outdated WHs (~2 days)"></i>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-sm-12 col-md-6">
-                                <div class="form-group">
-                                    <div class="col-sm-12 col-xs-6 checkbox" >
-                                        <input id="{{deleteEolConnectionsId}}" name="deleteEolConnections" value="1" type="checkbox" {{#deleteEolConnections}}checked{{/deleteEolConnections}}>
-                                        <label for="{{deleteEolConnectionsId}}">Auto delete expired wormholes
-                                            <i class="fas fa-fw fa-question-circle pf-help-light" title="expired EOL WHs (~4h 15min)"></i>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-sm-12 col-md-6">
-                                <div class="form-group">
-                                    <div class="col-sm-12 col-xs-6 checkbox">
-                                        <input id="{{persistentAliasesId}}" name="persistentAliases" value="1" type="checkbox" {{#persistentAliases}}checked{{/persistentAliases}}>
-                                        <label for="{{persistentAliasesId}}">Persistent system aliases
-                                            <i class="fas fa-fw fa-question-circle pf-help-light" title="Keep custom aliases after delete"></i>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-
-
-                        <div class="col-sm-6">
-                            <h4 class="pf-dynamic-area">Map logging</h4>
-
-                            <div class="col-sm-12 col-md-6">
-                                <div class="form-group">
-                                    <div class="col-sm-12 col-xs-6 checkbox">
-                                        <input id="{{logHistoryId}}" name="logHistory" value="1" type="checkbox" {{#logHistory}}checked{{/logHistory}}>
-                                        <label for="{{logHistoryId}}">Save map changes to logfile
-                                            <i class="fas fa-fw fa-question-circle pf-help-light" title="Map changes will be stored in a log file"></i>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-sm-12 col-md-6">
-                                <div class="form-group">
-                                    <div class="col-sm-12 col-xs-6 checkbox">
-                                        <input id="{{logActivityId}}" name="logActivity" value="1" type="checkbox" {{#logActivity}}checked{{/logActivity}}>
-                                        <label for="{{logActivityId}}">Store user statistics
-                                            <i class="fas fa-fw fa-question-circle pf-help-light" title="Map changes will be tracked in order to generate user statistics"></i>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-
-                    {{! Slack notification --------------------------------------------- }}
-                    <h4 class="pf-dynamic-area {{^slackSectionShow}}collapsed{{/slackSectionShow}}" data-toggle="collapse" data-target="#pf-map-dialog-slack-section"><i class="fab fa-slack-hash"></i>&nbsp;&nbsp;Slack notifications</h4>
-
-                    <div id="pf-map-dialog-slack-section" class="collapse {{#slackSectionShow}}in{{/slackSectionShow}}">
-                        <fieldset {{^slackEnabled}}disabled{{/slackEnabled}}>
-                            <div class="row ">
-                                <div class="col-xs-12 col-sm-12 col-md-6">
+                                <div class="col-sm-12 col-md-6">
                                     <div class="form-group">
-                                        <label for="{{slackWebHookURLId}}" class="col-sm-3 col-md-4 control-label">WebHook
-                                            <i class="fas fa-fw fa-question-circle pf-help-light" title="Copy a WebHook URL from Slack configuration page for 'Incoming WebHooks'"></i>
-                                        </label>
-                                        <div class="col-sm-9 col-md-8">
-                                            <div class="input-group">
-                                                <input name="slackWebHookURL" type="url" class="form-control" id="{{slackWebHookURLId}}" value="{{slackWebHookURL}}" placeholder="https://hooks.slack.com/services/XXX/YYY/ZZZ" data-type-error="No valid URL" pattern="^https://hooks.slack.com/.*" data-pattern-error="Wrong domain. https://hooks.slack.com/)">
-                                                <div class="input-group-btn">
-                                                    <a class="btn btn-default" href="//slack.com/apps/A0F7XDUAZ-incoming-webhooks" target="_blank">
-                                                        add… <i class="fas fa-fw fa-external-link-alt"></i>
-                                                    </a>
+                                        <div class="col-sm-12 col-xs-6 checkbox">
+                                            <input id="{{deleteExpiredConnectionsId}}" name="deleteExpiredConnections" value="1" type="checkbox" {{#deleteExpiredConnections}}checked{{/deleteExpiredConnections}}>
+                                            <label for="{{deleteExpiredConnectionsId}}">Auto delete outdated wormholes
+                                                <i class="fas fa-fw fa-question-circle pf-help-light" title="outdated WHs (~2 days)"></i>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-12 col-md-6">
+                                    <div class="form-group">
+                                        <div class="col-sm-12 col-xs-6 checkbox" >
+                                            <input id="{{deleteEolConnectionsId}}" name="deleteEolConnections" value="1" type="checkbox" {{#deleteEolConnections}}checked{{/deleteEolConnections}}>
+                                            <label for="{{deleteEolConnectionsId}}">Auto delete expired wormholes
+                                                <i class="fas fa-fw fa-question-circle pf-help-light" title="expired EOL WHs (~4h 15min)"></i>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-12 col-md-6">
+                                    <div class="form-group">
+                                        <div class="col-sm-12 col-xs-6 checkbox">
+                                            <input id="{{persistentAliasesId}}" name="persistentAliases" value="1" type="checkbox" {{#persistentAliases}}checked{{/persistentAliases}}>
+                                            <label for="{{persistentAliasesId}}">Persistent system aliases
+                                                <i class="fas fa-fw fa-question-circle pf-help-light" title="Keep custom aliases after delete"></i>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+                            <div class="col-sm-6">
+                                <h4 class="pf-dynamic-area">Map logging</h4>
+
+                                <div class="col-sm-12 col-md-6">
+                                    <div class="form-group">
+                                        <div class="col-sm-12 col-xs-6 checkbox">
+                                            <input id="{{logHistoryId}}" name="logHistory" value="1" type="checkbox" {{#logHistory}}checked{{/logHistory}}>
+                                            <label for="{{logHistoryId}}">Save map changes to logfile
+                                                <i class="fas fa-fw fa-question-circle pf-help-light" title="Map changes will be stored in a log file"></i>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-12 col-md-6">
+                                    <div class="form-group">
+                                        <div class="col-sm-12 col-xs-6 checkbox">
+                                            <input id="{{logActivityId}}" name="logActivity" value="1" type="checkbox" {{#logActivity}}checked{{/logActivity}}>
+                                            <label for="{{logActivityId}}">Store user statistics
+                                                <i class="fas fa-fw fa-question-circle pf-help-light" title="Map changes will be tracked in order to generate user statistics"></i>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        {{! Slack notification --------------------------------------------- }}
+                        <h4 class="pf-dynamic-area {{^slackSectionShow}}collapsed{{/slackSectionShow}}" data-toggle="collapse" data-target="#pf-map-dialog-slack-section"><i class="fab fa-slack-hash"></i>&nbsp;&nbsp;Slack notifications</h4>
+
+                        <div id="pf-map-dialog-slack-section" class="collapse {{#slackSectionShow}}in{{/slackSectionShow}}">
+                            <fieldset {{^slackEnabled}}disabled{{/slackEnabled}}>
+                                <div class="row ">
+                                    <div class="col-xs-12 col-sm-12 col-md-6">
+                                        <div class="form-group">
+                                            <label for="{{slackWebHookURLId}}" class="col-sm-3 col-md-4 control-label">WebHook
+                                                <i class="fas fa-fw fa-question-circle pf-help-light" title="Copy a WebHook URL from Slack configuration page for 'Incoming WebHooks'"></i>
+                                            </label>
+                                            <div class="col-sm-9 col-md-8">
+                                                <div class="input-group">
+                                                    <input name="slackWebHookURL" type="url" class="form-control" id="{{slackWebHookURLId}}" value="{{slackWebHookURL}}" placeholder="https://hooks.slack.com/services/XXX/YYY/ZZZ" data-type-error="No valid URL" pattern="^https://hooks.slack.com/.*" data-pattern-error="Wrong domain. https://hooks.slack.com/)">
+                                                    <div class="input-group-btn">
+                                                        <a class="btn btn-default" href="//slack.com/apps/A0F7XDUAZ-incoming-webhooks" target="_blank">
+                                                            add… <i class="fas fa-fw fa-external-link-alt"></i>
+                                                        </a>
+                                                    </div>
                                                 </div>
+                                                <div class="note help-block with-errors"></div>
                                             </div>
-                                            <div class="note help-block with-errors"></div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="col-xs-6 col-sm-6 col-md-3">
-                                    <div class="form-group">
-                                        <label for="{{slackUsernameId}}" class="col-sm-6 col-md-4 control-label">Name
-                                            <i class="fas fa-fw fa-question-circle pf-help-light" title="Set a 'username' for your Slack bot"></i>
-                                        </label>
-                                        <div class="col-sm-6 col-md-8">
-                                            <input name="slackUsername" type="text" class="form-control" id="{{slackUsernameId}}" value="{{slackUsername}}" placeholder="Pathfinder bot"  data-error="Please set a bot name">
-                                            <div class="note help-block with-errors"></div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-xs-6 col-sm-6 col-md-3">
-                                    <div class="form-group">
-                                        <label for="{{slackIconId}}" class="col-sm-6 col-md-4 control-label">Bot icon
-                                            <i class="fas fa-fw fa-question-circle pf-help-light" title="Set a 'icon' for your Slack bot (e.g. :boom:)"></i>
-                                        </label>
-                                        <div class="col-sm-6 col-md-8">
-                                            <div class="input-icon-left input-icon-right">
-                                                <span class="fa-stack">
-                                                    <i class="fas fa-fw fa-lg fa-ellipsis-v fa-stack-1x"></i>
-                                                    <i class="fas fa-fw fa-lg fa-minus fa-stack-1x"></i>
-                                                </span>
-                                                <span class="fa-stack">
-                                                    <i class="fas fa-fw fa-lg fa-ellipsis-v fa-stack-1x"></i>
-                                                    <i class="fas fa-fw fa-lg fa-minus fa-stack-1x"></i>
-                                                </span>
-
-                                                <input name="slackIcon" type="text" class="form-control text-center" id="{{slackIconId}}" value="{{slackIcon}}" placeholder="slack" pattern="^[_\-A-z0-9]{1,}$" data-error="Allowed chars (A-z, 0-9, _, -)">
+                                    <div class="col-xs-6 col-sm-6 col-md-3">
+                                        <div class="form-group">
+                                            <label for="{{slackUsernameId}}" class="col-sm-6 col-md-4 control-label">Name
+                                                <i class="fas fa-fw fa-question-circle pf-help-light" title="Set a 'username' for your Slack bot"></i>
+                                            </label>
+                                            <div class="col-sm-6 col-md-8">
+                                                <input name="slackUsername" type="text" class="form-control" id="{{slackUsernameId}}" value="{{slackUsername}}" placeholder="Pathfinder bot"  data-error="Please set a bot name">
+                                                <div class="note help-block with-errors"></div>
                                             </div>
-                                            <div class="note help-block with-errors"></div>
                                         </div>
                                     </div>
-                                </div>
 
-                                {{! group some columns -> Otherwise error msg would break the layout }}
-                                <div class="clearfix"></div>
+                                    <div class="col-xs-6 col-sm-6 col-md-3">
+                                        <div class="form-group">
+                                            <label for="{{slackIconId}}" class="col-sm-6 col-md-4 control-label">Bot icon
+                                                <i class="fas fa-fw fa-question-circle pf-help-light" title="Set a 'icon' for your Slack bot (e.g. :boom:)"></i>
+                                            </label>
+                                            <div class="col-sm-6 col-md-8">
+                                                <div class="input-icon-left input-icon-right">
+                                                        <span class="fa-stack">
+                                                            <i class="fas fa-fw fa-lg fa-ellipsis-v fa-stack-1x"></i>
+                                                            <i class="fas fa-fw fa-lg fa-minus fa-stack-1x"></i>
+                                                        </span>
+                                                    <span class="fa-stack">
+                                                            <i class="fas fa-fw fa-lg fa-ellipsis-v fa-stack-1x"></i>
+                                                            <i class="fas fa-fw fa-lg fa-minus fa-stack-1x"></i>
+                                                        </span>
 
-                                <div class="col-xs-6 col-sm-6 col-md-6">
-                                    <div class="form-group">
-                                        <label for="{{slackChannelRallyId}}" class="col-sm-6 col-md-4 control-label">Channel 'rally point'
-                                            <i class="fas fa-fw fa-question-circle pf-help-light" title="Send new 'Rally point' notifications to a Slack channel"></i>
-                                        </label>
-                                        <div class="col-sm-6 col-md-8">
-                                            <div class="input-icon-left" {{^slackRallyEnabled}}title="Globally disabled for this map type"{{/slackRallyEnabled}}>
+                                                    <input name="slackIcon" type="text" class="form-control text-center" id="{{slackIconId}}" value="{{slackIcon}}" placeholder="slack" pattern="^[_\-A-z0-9]{1,}$" data-error="Allowed chars (A-z, 0-9, _, -)">
+                                                </div>
+                                                <div class="note help-block with-errors"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{! group some columns -> Otherwise error msg would break the layout }}
+                                    <div class="clearfix"></div>
+
+                                    <div class="col-xs-6 col-sm-6 col-md-6">
+                                        <div class="form-group">
+                                            <label for="{{slackChannelRallyId}}" class="col-sm-6 col-md-4 control-label">Channel 'rally point'
+                                                <i class="fas fa-fw fa-question-circle pf-help-light" title="Send new 'Rally point' notifications to a Slack channel"></i>
+                                            </label>
+                                            <div class="col-sm-6 col-md-8">
+                                                <div class="input-icon-left" {{^slackRallyEnabled}}title="Globally disabled for this map type"{{/slackRallyEnabled}}>
                                                 <i class="fas fa-hashtag"></i>
                                                 <input name="slackChannelRally" type="text" class="form-control" id="{{slackChannelRallyId}}" value="{{slackChannelRally}}" placeholder="map_rally" pattern="^[_\-A-z0-9]{1,}$" data-error="Allowed chars (A-z, 0-9, _, -)" {{^slackRallyEnabled}}disabled{{/slackRallyEnabled}}>
                                             </div>
@@ -195,39 +196,37 @@
                                         </label>
                                         <div class="col-sm-6 col-md-8">
                                             <div class="input-icon-left" {{^slackHistoryEnabled}}title="Globally disabled for this map type"{{/slackHistoryEnabled}}>
-                                                <i class="fas fa-hashtag"></i>
-                                                <input name="slackChannelHistory" type="text" class="form-control" id="{{slackChannelHistoryId}}" value="{{slackChannelHistory}}" placeholder="map_logging" pattern="^[_\-A-z0-9]{1,}$" data-error="Allowed chars (A-z, 0-9, _, -)" {{^slackHistoryEnabled}}disabled{{/slackHistoryEnabled}}>
-                                            </div>
-                                            <div class="help-block with-errors"></div>
+                                            <i class="fas fa-hashtag"></i>
+                                            <input name="slackChannelHistory" type="text" class="form-control" id="{{slackChannelHistoryId}}" value="{{slackChannelHistory}}" placeholder="map_logging" pattern="^[_\-A-z0-9]{1,}$" data-error="Allowed chars (A-z, 0-9, _, -)" {{^slackHistoryEnabled}}disabled{{/slackHistoryEnabled}}>
                                         </div>
+                                        <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
 
+                            </fieldset>
+
+                            {{^slackEnabled}}
+                            <div class="pf-dialog-info-container alert alert-info" style="display: block; opacity: 1; transform: translateY(0px);">
+                                <span class="txt-color txt-color-information">Info</span>
+                                <small>Slack WebHooks are disabled for your map type '{{ mapData.config.type.name }}'</small>
                             </div>
-                        </fieldset>
-
-                        {{^slackEnabled}}
-                        <div class="pf-dialog-info-container alert alert-info" style="display: block; opacity: 1; transform: translateY(0px);">
-                            <span class="txt-color txt-color-information">Info</span>
-                            <small>Slack WebHooks are disabled for your map type '{{ mapData.config.type.name }}'</small>
+                            {{/slackEnabled}}
                         </div>
-                        {{/slackEnabled}}
 
-                    </div>
 
-                    {{! Discord notification --------------------------------------------- }}
-                    <h4 class="pf-dynamic-area {{^discordSectionShow}}collapsed{{/discordSectionShow}}" data-toggle="collapse" data-target="#pf-map-dialog-discord-section"><i class="fab fa-discord"></i>&nbsp;&nbsp;Discord notifications <small class="txt-color txt-color-warning">[BETA]</small></h4>
+                        {{! Discord notification --------------------------------------------- }}
+                        <h4 class="pf-dynamic-area {{^discordSectionShow}}collapsed{{/discordSectionShow}}" data-toggle="collapse" data-target="#pf-map-dialog-discord-section"><i class="fab fa-discord"></i>&nbsp;&nbsp;Discord notifications <small class="txt-color txt-color-warning">[BETA]</small></h4>
 
-                    <div id="pf-map-dialog-discord-section" class="collapse {{#discordSectionShow}}in{{/discordSectionShow}}">
-                        <fieldset {{^discordEnabled}}disabled{{/discordEnabled}}>
-                            <div class="row ">
-                                <div class="col-xs-12 col-sm-12 col-md-6">
-                                    <div class="form-group">
-                                        <label for="{{discordWebHookURLRallyId}}" class="col-sm-3 col-md-4 control-label">WebHook 'rally point'
-                                            <i class="fas fa-fw fa-question-circle pf-help-light" title="Copy a WebHook URL from Discord channel configuration page"></i>
-                                        </label>
-                                        <div class="col-sm-9 col-md-8">
-                                            <div class="input-group" {{^discordRallyEnabled}}title="Globally disabled for this map type"{{/discordRallyEnabled}}>
+                        <div id="pf-map-dialog-discord-section" class="collapse {{#discordSectionShow}}in{{/discordSectionShow}}">
+                            <fieldset {{^discordEnabled}}disabled{{/discordEnabled}}>
+                                <div class="row ">
+                                    <div class="col-xs-12 col-sm-12 col-md-6">
+                                        <div class="form-group">
+                                            <label for="{{discordWebHookURLRallyId}}" class="col-sm-3 col-md-4 control-label">WebHook 'rally point'
+                                                <i class="fas fa-fw fa-question-circle pf-help-light" title="Copy a WebHook URL from Discord channel configuration page"></i>
+                                            </label>
+                                            <div class="col-sm-9 col-md-8">
+                                                <div class="input-group" {{^discordRallyEnabled}}title="Globally disabled for this map type"{{/discordRallyEnabled}}>
                                                 <input name="discordWebHookURLRally" type="url" class="form-control" id="{{discordWebHookURLRallyId}}" value="{{discordWebHookURLRally}}" placeholder="https://discordapp.com/api/webhooks/XXXYYYZZZ" data-type-error="No valid URL" pattern="^https://discordapp.com/.*" data-pattern-error="Wrong domain. https://discordapp.com/)" {{^discordRallyEnabled}}disabled{{/discordRallyEnabled}}>
                                                 <div class="input-group-btn">
                                                     <a class="btn btn-default" href="//support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks" target="_blank">
@@ -262,114 +261,117 @@
                                         </label>
                                         <div class="col-sm-9 col-md-8">
                                             <div class="input-group" {{^discordHistoryEnabled}}title="Globally disabled for this map type"{{/discordHistoryEnabled}}>
-                                                <input name="discordWebHookURLHistory" type="url" class="form-control" id="{{discordWebHookURLHistoryId}}" value="{{discordWebHookURLHistory}}" placeholder="https://discordapp.com/api/webhooks/XXXYYYZZZ" data-type-error="No valid URL" pattern="^https://discordapp.com/.*" data-pattern-error="Wrong domain. https://discordapp.com/)" {{^discordHistoryEnabled}}disabled{{/discordHistoryEnabled}}>
-                                                <div class="input-group-btn">
-                                                    <a class="btn btn-default" href="//support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks" target="_blank">
-                                                        add… <i class="fas fa-fw fa-external-link-alt"></i>
-                                                    </a>
-                                                </div>
+                                            <input name="discordWebHookURLHistory" type="url" class="form-control" id="{{discordWebHookURLHistoryId}}" value="{{discordWebHookURLHistory}}" placeholder="https://discordapp.com/api/webhooks/XXXYYYZZZ" data-type-error="No valid URL" pattern="^https://discordapp.com/.*" data-pattern-error="Wrong domain. https://discordapp.com/)" {{^discordHistoryEnabled}}disabled{{/discordHistoryEnabled}}>
+                                            <div class="input-group-btn">
+                                                <a class="btn btn-default" href="//support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks" target="_blank">
+                                                    add… <i class="fas fa-fw fa-external-link-alt"></i>
+                                                </a>
                                             </div>
-                                            <div class="note help-block with-errors"></div>
+                                        </div>
+                                        <div class="note help-block with-errors"></div>
+                                    </div>
+                                </div>
+                            </fieldset>
+
+                            {{^discordEnabled}}
+                            <div class="pf-dialog-info-container alert alert-info" style="display: block; opacity: 1; transform: translateY(0px);">
+                                <span class="txt-color txt-color-information">Info</span>
+                                <small>Discord WebHooks are disabled for your map type '{{ mapData.config.type.name }}'</small>
+                            </div>
+                            {{/discordEnabled}}
+
+                        </div>
+
+                        <h4 class="pf-dynamic-area">Share settings</h4>
+
+                        <div class="row">
+                            <div class="col-sm-11">
+                                <blockquote>
+                                    <p>
+                                        Use this feature with caution! - Shared map entities have full map access.
+                                        They even can take over control by removing other entities from this list.
+                                    </p>
+                                    <small>Reduce this risk by creating a new map for joined OPs.
+                                    </small>
+                                </blockquote>
+                            </div>
+                        </div>
+
+                        {{! character search ------------------------------------------------ }}
+                        {{#accessCharacter.length}}
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label" for="{{characterSelectId}}">Character</label>
+                                    <div class="col-sm-10">
+                                        <div class="input-group" title="add/remove character">
+                                            <label for="{{characterSelectId}}"></label>
+                                            <select id="{{characterSelectId}}"  name="mapCharacters[]" multiple="multiple">
+                                                {{#accessCharacter}}
+                                                <option value="{{id}}" selected>{{name}}</option>
+                                                {{/accessCharacter}}
+                                            </select>
+                                            <span class="note help-block with-errors">Search character name (max {{maxCharacter}})</span>
                                         </div>
                                     </div>
                                 </div>
-
                             </div>
-                        </fieldset>
-
-                        {{^discordEnabled}}
-                        <div class="pf-dialog-info-container alert alert-info" style="display: block; opacity: 1; transform: translateY(0px);">
-                            <span class="txt-color txt-color-information">Info</span>
-                            <small>Discord WebHooks are disabled for your map type '{{ mapData.config.type.name }}'</small>
                         </div>
-                        {{/discordEnabled}}
+                        {{/accessCharacter.length}}
 
-                    </div>
-
-                    <h4 class="pf-dynamic-area">Share settings</h4>
-
-                    <div class="row">
-                        <div class="col-sm-11">
-                            <blockquote>
-                                <p>
-                                    Use this feature with caution! - Shared map entities have full map access.
-                                    They even can take over control by removing other entities from this list.
-                                </p>
-                                <small>Reduce this risk by creating a new map for joined OPs.
-                                </small>
-                            </blockquote>
-                        </div>
-                    </div>
-
-                    {{! character search ------------------------------------------------ }}
-                    {{#accessCharacter.length}}
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <div class="form-group">
-                                <label class="col-sm-2 control-label" for="{{characterSelectId}}">Character</label>
-                                <div class="col-sm-10">
-                                    <div class="input-group" title="add/remove character">
-                                        <label for="{{characterSelectId}}"></label>
-                                        <select id="{{characterSelectId}}"  name="mapCharacters[]" multiple="multiple">
-                                            {{#accessCharacter}}
-                                            <option value="{{id}}" selected>{{name}}</option>
-                                            {{/accessCharacter}}
-                                        </select>
-                                        <span class="note help-block with-errors">Search character name (max {{maxCharacter}})</span>
+                        {{! corporation search ---------------------------------------------- }}
+                        {{#accessCorporation.length}}
+                        <div class="row">
+                            <div class="col-sm-9">
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label" for="{{corporationSelectId}}">Corporations</label>
+                                    <div class="col-sm-9">
+                                        <div class="input-group" title="add/remove corporations">
+                                            <label for="{{corporationSelectId}}"></label>
+                                            <select id="{{corporationSelectId}}" name="mapCorporations[]" multiple="multiple">
+                                                {{#accessCorporation}}
+                                                <option value="{{id}}" selected="selected" >{{name}}</option>
+                                                {{/accessCorporation}}
+                                            </select>
+                                            <span class="note help-block with-errors">Search corporation name (max {{maxCorporation}})</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    {{/accessCharacter.length}}
+                        {{/accessCorporation.length}}
 
-                    {{! corporation search ---------------------------------------------- }}
-                    {{#accessCorporation.length}}
-                    <div class="row">
-                        <div class="col-sm-9">
-                            <div class="form-group">
-                                <label class="col-sm-3 control-label" for="{{corporationSelectId}}">Corporations</label>
-                                <div class="col-sm-9">
-                                    <div class="input-group" title="add/remove corporations">
-                                        <label for="{{corporationSelectId}}"></label>
-                                        <select id="{{corporationSelectId}}" name="mapCorporations[]" multiple="multiple">
-                                            {{#accessCorporation}}
-                                            <option value="{{id}}" selected="selected" >{{name}}</option>
-                                            {{/accessCorporation}}
-                                        </select>
-                                        <span class="note help-block with-errors">Search corporation name (max {{maxCorporation}})</span>
+                        {{! alliance search ------------------------------------------------- }}
+                        {{#accessAlliance.length}}
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label" for="{{allianceSelectId}}">Alliances</label>
+                                    <div class="col-sm-10">
+                                        <div class="input-group" title="add/remove alliances">
+                                            <label for="{{allianceSelectId}}"></label>
+                                            <select id="{{allianceSelectId}}" name="mapAlliances[]" multiple="multiple" >
+                                                {{#accessAlliance}}
+                                                <option value="{{id}}" selected="selected" >{{name}}</option>
+                                                {{/accessAlliance}}
+                                            </select>
+                                            <span class="note help-block with-errors">Search alliance name (max {{maxAlliance}})</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                        {{/accessAlliance.length}}
+
+                        <input type="hidden" name="id" value="{{ mapData.config.id }}" />
+                    </form>
+                {{/hasRightMapUpdate}}
+                {{^hasRightMapUpdate}}
+                    <div class="alert alert-info">
+                        <span class="txt-color txt-color-info">Restricted</span>
+                        <small>You don´t have the required roles.</small>
                     </div>
-                    {{/accessCorporation.length}}
-
-                    {{! alliance search ------------------------------------------------- }}
-                    {{#accessAlliance.length}}
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <div class="form-group">
-                                <label class="col-sm-2 control-label" for="{{allianceSelectId}}">Alliances</label>
-                                <div class="col-sm-10">
-                                    <div class="input-group" title="add/remove alliances">
-                                        <label for="{{allianceSelectId}}"></label>
-                                        <select id="{{allianceSelectId}}" name="mapAlliances[]" multiple="multiple" >
-                                            {{#accessAlliance}}
-                                            <option value="{{id}}" selected="selected" >{{name}}</option>
-                                            {{/accessAlliance}}
-                                        </select>
-                                        <span class="note help-block with-errors">Search alliance name (max {{maxAlliance}})</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {{/accessAlliance.length}}
-
-                    <input type="hidden" name="id" value="{{ mapData.config.id }}" />
-
-                </form>
+                {{/hasRightMapUpdate}}
             </div>
         {{/hideSettingsTab}}
 
@@ -378,90 +380,104 @@
             <div role="tabpanel" class="tab-pane fade {{#openTabDownload}}in active{{/openTabDownload}}" id="{{dialogMapDownloadContainerId}}">
 
                 <h4 class="pf-dynamic-area">Map export</h4>
-                <form role="form" class="form-horizontal" id="{{dialogMapExportFormId}}">
+                {{#hasRightMapExport}}
+                    <form role="form" class="form-horizontal" id="{{dialogMapExportFormId}}">
 
-                    <div class="form-group">
-                        <label class="control-label col-sm-2" for="{{fieldExportId}}">Export name</label>
-                        <div class="col-sm-10">
-                            <div class="input-group">
-                                <input class="form-control" id="{{fieldExportId}}" type="text" name="{{fieldExportId}}" value="{{#formatFilename}}{{mapData.config.name}}{{/formatFilename}}" pattern="^[_a-zA-Z0-9]{1,}$" data-minlength="3" data-minlength-error="Min. of 3 characters" data-error="Invalid format: _ a-z A-Z 0-9" required>
-                                <div class="input-group-btn">
-                                    <a type="button" id="{{buttonExportId}}" class="btn btn-default" href="" download="data.json">
-                                        <i class="fas fa-fw fa-upload"></i> Export
-                                    </a>
+                        <div class="form-group">
+                            <label class="control-label col-sm-2" for="{{fieldExportId}}">Export name</label>
+                            <div class="col-sm-10">
+                                <div class="input-group">
+                                    <input class="form-control" id="{{fieldExportId}}" type="text" name="{{fieldExportId}}" value="{{#formatFilename}}{{mapData.config.name}}{{/formatFilename}}" pattern="^[_a-zA-Z0-9]{1,}$" data-minlength="3" data-minlength-error="Min. of 3 characters" data-error="Invalid format: _ a-z A-Z 0-9" required>
+                                    <div class="input-group-btn">
+                                        <a type="button" id="{{buttonExportId}}" class="btn btn-default" href="" download="data.json">
+                                            <i class="fas fa-fw fa-upload"></i> Export
+                                        </a>
+                                    </div>
                                 </div>
+                                <div class="note help-block with-errors"></div>
                             </div>
-                            <div class="note help-block with-errors"></div>
                         </div>
-                    </div>
-
-                </form>
+                    </form>
+                {{/hasRightMapExport}}
+                {{^hasRightMapExport}}
+                <div class="alert alert-info">
+                    <span class="txt-color txt-color-info">Restricted</span>
+                    <small>You don´t have the required roles.</small>
+                </div>
+                {{/hasRightMapExport}}
 
                 <h4 class="pf-dynamic-area">Map Import</h4>
-                <form role="form" class="form-horizontal" id="{{dialogMapImportFormId}}">
-
-
-                    <div class="form-group">
-                        <label for="type" class="col-sm-2 control-label">Type</label>
-                        <div class="col-sm-3">
-                            <select name="typeId" id="type" class="form-control" title="Alliance/Corporation maps require character authentication" data-placement="top">
-                                {{#type}}
-                                <option value="{{id}}">{{label}}</option>
-                                {{/type}}
-                            </select>
+                {{#hasRightMapImport}}
+                    <form role="form" class="form-horizontal" id="{{dialogMapImportFormId}}">
+                        <div class="form-group">
+                            <label for="type" class="col-sm-2 control-label">Type</label>
+                            <div class="col-sm-3">
+                                <select name="typeId" id="type" class="form-control" title="Alliance/Corporation maps require character authentication" data-placement="top">
+                                    {{#type}}
+                                    <option value="{{id}}">{{label}}</option>
+                                    {{/type}}
+                                </select>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="form-group">
-                        <label class="control-label col-sm-2" for="{{fieldImportId}}">Import file</label>
-                        <div class="col-sm-10">
-                            <div class="row">
-                                <div class="col-sm-12">
-                                    <div class="input-group">
-                                        <input class="form-control" id="{{fieldImportId}}" type="file" name="{{fieldImportId}}" accept=".json" data-error="Select a valid file" required>
-                                        <div class="input-group-btn">
-                                            <button type="button" id="{{buttonImportId}}" class="btn btn-default">
-                                                <i class="fas fa-fw fa-download"></i> Import
-                                            </button>
+                        <div class="form-group">
+                            <label class="control-label col-sm-2" for="{{fieldImportId}}">Import file</label>
+                            <div class="col-sm-10">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="input-group">
+                                            <input class="form-control" id="{{fieldImportId}}" type="file" name="{{fieldImportId}}" accept=".json" data-error="Select a valid file" required>
+                                            <div class="input-group-btn">
+                                                <button type="button" id="{{buttonImportId}}" class="btn btn-default">
+                                                    <i class="fas fa-fw fa-download"></i> Import
+                                                </button>
+                                            </div>
                                         </div>
+                                        <div class="note help-block with-errors"></div>
                                     </div>
-                                    <div class="note help-block with-errors"></div>
                                 </div>
                             </div>
                         </div>
+
+                        <div class="pf-form-dropzone">Drop file here</div>
+
+                        <h4 id="{{dialogMapImportInfoId}}" class="pf-dynamic-area" style="display: none;"></h4>
+
+                        <div class="{{formErrorContainerClass}} alert alert-danger" style="display: none;">
+                            <span class="txt-color txt-color-danger">Error</span>
+                            <small>(important non-critical information)</small>
+                        </div>
+
+                        <div class="{{formWarningContainerClass}} alert alert-warning" style="display: none;">
+                            <span class="txt-color txt-color-warning">Warning</span>
+                            <small>(important non-critical information)</small>
+                        </div>
+                    </form>
+                {{/hasRightMapImport}}
+                {{^hasRightMapImport}}
+                    <div class="alert alert-info">
+                        <span class="txt-color txt-color-info">Restricted</span>
+                        <small>You don´t have the required roles.</small>
                     </div>
+                {{/hasRightMapImport}}
 
-                    <div class="pf-form-dropzone">Drop file here</div>
-
-                    <h4 id="{{dialogMapImportInfoId}}" class="pf-dynamic-area" style="display: none;"></h4>
-
-                    <div class="{{formErrorContainerClass}} alert alert-danger" style="display: none;">
-                        <span class="txt-color txt-color-danger">Error</span>
-                        <small> (important non-critical information)</small>
-                    </div>
-
-                    <div class="{{formWarningContainerClass}} alert alert-warning" style="display: none;">
-                        <span class="txt-color txt-color-warning">Warning</span>
-                        <small> (important non-critical information)</small>
-                    </div>
-                </form>
             </div>
         {{/hideDownloadTab}}
 
 
         <div class="{{formInfoContainerClass}} alert alert-info" style="display: none;">
             <span class="txt-color txt-color-information">Info</span>
-            <small> (important non-critical information)</small>
+            <small>(important non-critical information)</small>
         </div>
 
         <div class="{{formWarningContainerClass}} alert alert-warning" style="display: none;">
             <span class="txt-color txt-color-warning">Warning</span>
-            <small> (important non-critical information)</small>
+            <small>(important non-critical information)</small>
         </div>
 
         <div class="{{formErrorContainerClass}} alert alert-danger" style="display: none;">
             <span class="txt-color txt-color-danger">Error</span>
-            <small> (important non-critical information)</small>
+            <small>(important non-critical information)</small>
         </div>
     </div>
 </div>

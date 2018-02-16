@@ -23,7 +23,7 @@
   }
 }
 
-.pf-splash, .pf-splash-warning, .pf-splash-error {
+.pf-splash{
   position: absolute;
   z-index: 2000;
   background-color: $gray-darkest;
@@ -33,6 +33,10 @@
   left: 0;
   right: 0;
   will-change: opacity;
+
+  &:not(.pf-splash-warning):not(.pf-splash-error){
+    cursor: wait;
+  }
 
   .pf-splash-title{
     position: fixed;
@@ -81,12 +85,16 @@
 
 // content
 .pf-landing{
+
+  section:not(:last-of-type){
+    border-bottom: 1px solid $gray-darker;
+  }
+
   section{
     min-height: 200px;
     padding: 20px 0 40px 0;
-    border-bottom: 1px solid $gray-darker;
 
-    h4{
+    h4:not(.pf-dynamic-area){
       font-size: 18px;
       font-family: $font-family-sans-serif;
       margin: 5px 0 10px 0;
@@ -646,6 +654,30 @@
     }
   }
 }
+
+// admin page -----------------------------------------------------------------
+.pf-body[data-script='admin']{
+  .navbar-brand:hover{
+      color: #777; // overwrite default
+  }
+
+  .panel{
+    text-align: initial;
+
+    h3 img{
+      position: absolute;
+      right: 0;
+      top: 0;
+      margin: 4px 14px 0 0;
+      border-radius: 30%;
+    }
+
+  }
+  .form-horizontal .panel{
+    color: $gray-lighter;
+  }
+}
+
 
 // TEST ---
 /*

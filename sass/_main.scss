@@ -231,30 +231,6 @@ h6 {
 	position:relative;
 }
 
-.form-actions {
-	display: block;
-	padding: 13px 14px 15px;
-	border-top: 1px solid rgba(red($black), green($black), blue($black), 0.1);
-	background: rgba(red(lighten($gray-lightest, 2%)), green(lighten($gray-lightest, 2%)), blue(lighten($gray-lightest, 2%)), 0.9);
-	margin-top:25px;
-	margin-left: -13px;
-	margin-right: -13px;
-	margin-bottom: -13px;
-	text-align:right;
-	
-}.well .form-actions {
-	margin-left: -19px;
-	margin-right: -19px;
-	margin-bottom: -19px;
-}.well.well-lg .form-actions {
-	margin-left: -24px;
-	margin-right: -24px;
-	margin-bottom: -24px;
-}.well.well-sm .form-actions {
-	margin-left: -9px;
-	margin-right: -9px;
-	margin-bottom: -9px;
-}
 
 .popover-content .form-actions {
 	margin:0 -14px -9px;

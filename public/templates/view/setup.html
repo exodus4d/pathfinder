@@ -580,7 +580,8 @@
                                             <i class="fas fa-fw fa-battery-half"></i>
                                         </th>
                                         <th class="col-sm-1 col-md-1"></th>
-                                        <th class="col-sm-1 col-md-1">&nbsp;</th>
+                                        <th class="col-sm-1 col-md-1"></th>
+                                        <th class="col-sm-1 col-md-1"></th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -610,7 +611,7 @@
                                                     </false>
                                                 </check>
                                             </td>
-                                            <td>&nbsp;</td>
+                                            <td></td>
                                             <td class="text-center">
                                                 <check if="{{ @tableData.empty === true }}">
                                                     <true>
@@ -621,6 +622,7 @@
                                                     </false>
                                                 </check>
                                             </td>
+                                            <td></td>
                                             <td></td>
                                             <td class="text-center">
                                                 <check if="{{ @tableData.statusCheckCount == 0 && @tableData.exists }}">
@@ -643,6 +645,7 @@
                                                 <td class="bg-color bg-color-tealDarkest">column</td>
                                                 <td class="bg-color bg-color-tealDarkest text-center">exist</td>
                                                 <td class="bg-color bg-color-tealDarkest" title="data type">type</td>
+                                                <td class="bg-color bg-color-tealDarkest text-center" title="nullable">null</td>
                                                 <td class="bg-color bg-color-tealDarkest text-center" title="index">I</td>
                                                 <td class="bg-color bg-color-tealDarkest text-center" title="unique">U</td>
                                                 <td class="bg-color bg-color-tealDarkest text-center"></td>
@@ -676,6 +679,23 @@
                                                                 </true>
                                                                 <false>
                                                                     <i class="fas fa-fw fa-ellipsis-h txt-color txt-color-danger" title="{{ @columnData.requiredType }}"></i>
+                                                                </false>
+                                                            </check>
+                                                        </td>
+                                                        <td class="bg-color bg-color-tealDarker text-center">
+                                                            <check if="{{ @columnData.exists }}">
+                                                                <true>
+                                                                    <check if="{{ @columnData.changedNullable }}">
+                                                                        <true>
+                                                                            <kbd class="txt-color txt-color-warning" title="{{ @columnData.requiredNullable }}">{{ @columnData.currentNullable }}</kbd>
+                                                                        </true>
+                                                                        <false>
+                                                                            <kbd class="txt-color txt-color-success">{{ @columnData.currentNullable }}</kbd>
+                                                                        </false>
+                                                                    </check>
+                                                                </true>
+                                                                <false>
+                                                                    <i class="fas fa-fw fa-ellipsis-h txt-color txt-color-danger" title="{{ @columnData.requiredNullable }}"></i>
                                                                 </false>
                                                             </check>
                                                         </td>
@@ -740,11 +760,12 @@
                                                 <td class="bg-color bg-color-tealDarkest"></td>
                                                 <td class="bg-color bg-color-tealDarkest"></td>
                                                 <td class="bg-color bg-color-tealDarkest"></td>
+                                                <td class="bg-color bg-color-tealDarkest"></td>
                                             </tr>
                                             <repeat group="{{ @tableData.foreignKeys }}" value="{{ @keyData }}" counter="{{ @countForeignKey }}">
                                                 <tr class="{{ @tableName }}_col collapse">
                                                     <td class="text-center bg-color bg-color-tealDarker">{{@countForeignKey}}.</td>
-                                                    <td class="bg-color bg-color-tealDarker" colspan="5">{{ @keyData.keyName }}</td>
+                                                    <td class="bg-color bg-color-tealDarker" colspan="6">{{ @keyData.keyName }}</td>
                                                     <td class="bg-color bg-color-tealDarker text-center">
                                                         <check if="{{ @keyData.exists }}">
                                                             <true>
