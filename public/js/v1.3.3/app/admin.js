@@ -24,6 +24,39 @@ define([
         $('.' + config.triggerOverlayClass).on('click', function(){
             $('.' + config.splashOverlayClass).showSplashOverlay();
         });
+
+        // set fieldset toggled by checkbox ---------------------------------------------------------------------------
+        $('input[type="checkbox"][data-target]').on('change', function(){
+            let targetId = $(this).attr('data-target');
+            if(targetId){
+                let targetElement = $('[data-id="' + targetId + '"]');
+                let targetFormFields = targetElement.find('input[type="radio"]');
+                let checkFormFields = [];
+                for(let formField of targetFormFields) {
+                    if(this.checked){
+                        if(formField.hasAttribute('data-default') || formField.getAttribute('data-default-value')){
+                            checkFormFields.push(formField);
+                        }
+                    }else{
+                        formField.setAttribute('data-default-value', formField.checked ? 'checked' : '');
+                        if(formField.hasAttribute('data-default')){
+                            checkFormFields.push(formField);
+                        }
+                    }
+                }
+
+                for(let checkFormField of checkFormFields) {
+                    checkFormField.checked = true;
+                }
+            }
+        });
+
+        $('input[type="radio"]').on('change', function(){
+            if(this.checked){
+                let targetId = $(this).parents('fieldset').attr('data-id');
+                $('input[type="checkbox"][data-target="' + targetId + '"]').prop('checked', true);
+            }
+        });
     };
 
     /**

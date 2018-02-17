@@ -6,6 +6,9 @@
 
         <div class="row text-center">
             <repeat group="{{ @tplSettings->corporations }}" value="{{ @corporation }}" key="{{@corpName}}" counter="{{ @corpCount }}">
+
+                <set fieldsetId = "{{ 'settings-map-' . @corporation->_id }}" />
+
                 <form role="form" class="form-horizontal" action="/admin/{{ @tplPage}}/save/{{ @corporation->_id }}">
                     <div class="col-sm-12 col-md-6 col-lg-4 pf-landing-pricing-panel">
                         <div class="panel panel-default pricing-big">
@@ -19,7 +22,7 @@
 
                                 <set isManaged = "" />
 
-                                <fieldset class="reverse-order-footer">
+                                <fieldset class="reverse-order-footer" data-id="{{ @fieldsetId}}">
                                     <h4 class="pf-dynamic-area">Map roles</h4>
 
                                     <repeat group="{{ @corporation->getRights() }}" value="{{ @corporationRight }}" >
@@ -37,8 +40,8 @@
                                             <div class="col-sm-12 col-md-6">
                                                 <div class="form-group">
                                                     <div class="col-xs-6 col-sm-12  checkbox checkbox-warning">
-                                                        <input id="form_managed" name="managed" value="1" type="checkbox" {{ @isManaged }}>
-                                                        <label for="form_managed">Managed mode
+                                                        <input id="{{ @fieldsetId}}" name="managed" value="1" type="checkbox" data-target="{{ @fieldsetId}}" {{ @isManaged }}>
+                                                        <label for="{{ @fieldsetId}}">Managed mode
                                                             <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="If active only corporation admins can add/update/delete corporation map settings"></i>
                                                         </label>
                                                     </div>

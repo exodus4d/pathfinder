@@ -12,6 +12,10 @@
 
     <repeat group="{{ @roles }}" value="{{ @role }}" >
         <set roleType="" />
+        <set default="" />
+        <check if="{{ @role->_id==1 }}">
+            <set default="true" />
+        </check>
         <check if="{{ @role->_id==2 }}">
             <set roleType="radio-danger" />
         </check>
@@ -28,7 +32,7 @@
             <div class="form-group">
                 <div class="col-xs-12">
                     <div class="radio {{ @roleType }}">
-                        <input id="form_role_{{ (int)@@id }}_{{ (int)@right->rightId->_id }}_{{ (int)@role->_id }}" name="rights[{{(int)@right->rightId->_id}}][roleId]" value="{{ (int)@role->_id }}" type="radio" {{ @checked }}>
+                        <input id="form_role_{{ (int)@@id }}_{{ (int)@right->rightId->_id }}_{{ (int)@role->_id }}" name="rights[{{(int)@right->rightId->_id}}][roleId]" value="{{ (int)@role->_id }}" type="radio" <check if="{{ @default }}">data-default</check> {{ @checked }}>
                         <label for="form_role_{{ (int)@@id }}_{{ (int)@right->rightId->_id }}_{{ (int)@role->_id }}">{{ @role->label }}</label >
                     </div>
                 </div>
