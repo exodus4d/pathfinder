@@ -37,7 +37,8 @@ class CharacterLogModel extends BasicModel {
         ],
         'systemId' => [
             'type' => Schema::DT_INT,
-            'index' => true
+            'index' => true,
+            'activity-log' =>  true
         ],
         'systemName' => [
             'type' => Schema::DT_VARCHAR128,
@@ -46,7 +47,8 @@ class CharacterLogModel extends BasicModel {
         ],
         'shipTypeId' => [
             'type' => Schema::DT_INT,
-            'index' => true
+            'index' => true,
+            'activity-log' =>  true
         ],
         'shipTypeName' => [
             'type' => Schema::DT_VARCHAR128,
@@ -55,7 +57,8 @@ class CharacterLogModel extends BasicModel {
         ],
         'shipId' => [
             'type' => Schema::DT_BIGINT,
-            'index' => true
+            'index' => true,
+            'activity-log' =>  true
         ],
         'shipMass' => [
             'type' => Schema::DT_FLOAT,
@@ -69,7 +72,8 @@ class CharacterLogModel extends BasicModel {
         ],
         'stationId' => [
             'type' => Schema::DT_INT,
-            'index' => true
+            'index' => true,
+            'activity-log' =>  true
         ],
         'stationName' => [
             'type' => Schema::DT_VARCHAR128,
@@ -78,7 +82,8 @@ class CharacterLogModel extends BasicModel {
         ],
         'structureId' => [
             'type' => Schema::DT_BIGINT,
-            'index' => true
+            'index' => true,
+            'activity-log' =>  true
         ],
         'structureName' => [
             'type' => Schema::DT_VARCHAR128,
@@ -192,7 +197,10 @@ class CharacterLogModel extends BasicModel {
      * @param $pkeys
      */
     public function afterUpdateEvent($self, $pkeys){
-        $self->clearCacheData();
+        // check if any "relevant" column has changed
+        if( !empty($this->fieldChanges) ){
+            $self->clearCacheData();
+        }
     }
 
     /**

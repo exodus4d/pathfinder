@@ -665,6 +665,8 @@ define([
                             cookieName: this.cookieName,
                             browserTabId: this.browserTabId,
                             character: responseData.character,
+                            isManager: Util.getObjVal(responseData, 'character.role.name') === 'CORPORATION',
+                            isAdmin: Util.getObjVal(responseData, 'character.role.name') === 'SUPER',
                             authLabel: getCharacterAuthLabel(responseData.character.authStatus),
                             authOK: responseData.character.authStatus === 'OK',
                             hasActiveSession: responseData.character.hasActiveSession === true
