@@ -377,13 +377,13 @@ class MapModel extends AbstractMapTrackingModel {
         $valid = true;
         if( !empty($val) ){
             $hosts = [
-                'slack' => 'hooks.slack.com',
-                'discord' => 'discordapp.com'
+                'slack' => ['hooks.slack.com'],
+                'discord' => ['discordapp.com', 'ptb.discordapp.com']
             ];
 
             if(
                 !\Audit::instance()->url($val) ||
-                parse_url($val, PHP_URL_HOST) !== $hosts[$type]
+                !in_array(parse_url($val, PHP_URL_HOST), $hosts[$type])
             ){
                 $valid = false;
                 $this->throwValidationException($key);
