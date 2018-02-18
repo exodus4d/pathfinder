@@ -42,7 +42,7 @@
                                                     <div class="col-xs-6 col-sm-12  checkbox checkbox-warning">
                                                         <input id="{{ @fieldsetId}}" name="managed" value="1" type="checkbox" data-target="{{ @fieldsetId}}" {{ @isManaged }}>
                                                         <label for="{{ @fieldsetId}}">Managed mode
-                                                            <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="If active only corporation admins can add/update/delete corporation map settings"></i>
+                                                            <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="If active, admin roles can be set for some actions"></i>
                                                         </label>
                                                     </div>
                                                 </div>
@@ -51,12 +51,11 @@
                                     </div>
                                 </div>
 
-                                <exclude>
-                                    <div class="pf-dialog-warning-container alert alert-warning">
-                                        <span class="txt-color txt-color-warning">Warning</span>
-                                        <small> (important non-critical information)</small>
-                                    </div>
-                                </exclude>
+
+                                <div class="pf-dialog-warning-container alert alert-info">
+                                    <span class="txt-color txt-color-info">Cache expire</span>
+                                    <small> Roles are cached for 2min</small>
+                                </div>
 
                             </div>
                             <div class="panel-footer text-right">

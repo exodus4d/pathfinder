@@ -1325,8 +1325,20 @@ define([
      * @param jqXHR XMLHttpRequest instance
      * @returns {boolean}
      */
-    let isXHRAborted = function(jqXHR){
+    let isXHRAborted = (jqXHR) => {
         return !jqXHR.getAllResponseHeaders();
+    };
+
+    /**
+     * get label element for role data
+     * @param role
+     * @returns {*|jQuery|HTMLElement}
+     */
+    let getLabelByRole = (role) => {
+        return $('<span>', {
+            class: ['label', 'label-' + role.style].join(' '),
+            text: role.label
+        });
     };
 
     /**
@@ -1363,7 +1375,7 @@ define([
      * get the map module object or create a new module
      * @returns {*|HTMLElement}
      */
-    let getMapModule = function(){
+    let getMapModule = () => {
         let mapModule = $('#' + config.mapModuleId);
         if(mapModule.length === 0){
             mapModule = $('<div>', {
@@ -1379,7 +1391,7 @@ define([
      * @param security
      * @returns {number}
      */
-    let getAreaIdBySecurity = function(security){
+    let getAreaIdBySecurity = (security) => {
         let areaId = 0;
         switch(security){
             case 'H':
@@ -1415,7 +1427,7 @@ define([
      * @param effect
      * @returns {boolean}
      */
-    let getSystemEffectData = function(security, effect){
+    let getSystemEffectData = (security, effect) => {
         let data =  SystemEffect;
         if(security){
             // look for specific data
@@ -1440,7 +1452,7 @@ define([
      * @param option
      * @returns {string}
      */
-    let getStatusInfoForCharacter = function(characterData, option){
+    let getStatusInfoForCharacter = (characterData, option) => {
 
         let statusInfo = '';
 
@@ -1891,10 +1903,6 @@ define([
 
                 if(option === 'corporationId' && characterData.corporation){
                     userInfo = characterData.corporation.id;
-                }
-
-                if(option === 'roleName' && characterData.role){
-                    userInfo = characterData.role.name;
                 }
             }
         }
@@ -2373,6 +2381,7 @@ define([
         setSyncStatus: setSyncStatus,
         getSyncType: getSyncType,
         isXHRAborted: isXHRAborted,
+        getLabelByRole: getLabelByRole,
         getMapElementFromOverlay: getMapElementFromOverlay,
         getMapModule: getMapModule,
         getSystemEffectData: getSystemEffectData,

@@ -13,7 +13,7 @@
             </li>
             <li class="{{#openTabLog}}active{{/openTabLog}}">
                 <a role="tab" data-toggle="tab" data-name="infoLog" href="#{{dialogLogsContainerId}}">
-                    <i class="fas fa-binoculars fa-fw"></i>&nbsp;Log&nbsp;&nbsp;<small class="txt-color txt-color-warning">[BETA]</small>
+                    <i class="fas fa-binoculars fa-fw"></i>&nbsp;Log&nbsp;&nbsp;<small class="txt-color txt-color-warning"></small>
                 </a>
             </li>
         </ul>
@@ -35,7 +35,6 @@
     {{! "summary" tab ------------------------------------------------------ }}
     <div role="tabpanel" class="tab-pane fade {{#openTabInformation}}in active{{/openTabInformation}}" id="{{dialogSummaryContainerId}}">
         <div class="alert alert-info fade in hidden-md hidden-lg">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><i class="fas fa-times"></i></button>
             <span class="txt-color txt-color-information">Info</span>
             <small> Your browser window is to small. Resize it to obtain more columns.</small>
         </div>
@@ -57,6 +56,11 @@
 
     {{! "users" tab -------------------------------------------------------- }}
     <div role="tabpanel" class="tab-pane fade {{#openTabActivity}}in active{{/openTabActivity}}" id="{{dialogUsersContainerId}}">
+        <div class="alert alert-info fade in hidden-md hidden-lg">
+            <span class="txt-color txt-color-information">Info</span>
+            <small> Your browser window is to small. Resize it to obtain more columns.</small>
+        </div>
+
         <h4><i class="fas fa-male fa-lg fa-fw"></i> Active pilots</h4>
 
         <div id="{{mapInfoUsersId}}" class="pf-dynamic-area"></div>

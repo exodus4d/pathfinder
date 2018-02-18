@@ -713,6 +713,10 @@ define([
             ordering: true,
             order: [[ 3, 'asc' ]],
             autoWidth: false,
+            responsive: {
+                breakpoints: Init.breakpoints,
+                details: false
+            },
             hover: false,
             data: usersData,
             language: {
@@ -725,7 +729,7 @@ define([
                 {
                     targets: 0,
                     title: '',
-                    width: '26px',
+                    width: 26,
                     orderable: false,
                     searchable: false,
                     className: ['pf-help-default', 'text-center', config.tableCellImageClass].join(' '),
@@ -742,7 +746,7 @@ define([
                 },{
                     targets: 1,
                     title: 'ship name',
-                    width: '100px',
+                    width: 100,
                     orderable: true,
                     searchable: true,
                     data: 'log.ship',
@@ -758,7 +762,7 @@ define([
                 },{
                     targets: 2,
                     title: '',
-                    width: '26px',
+                    width: 26,
                     orderable: false,
                     searchable: false,
                     className: [config.tableCellImageClass].join(' '),
@@ -798,10 +802,10 @@ define([
                 },{
                     targets: 4,
                     title: '',
-                    width: '26px',
+                    width: 26,
                     orderable: false,
                     searchable: false,
-                    className: [config.tableCellImageClass, config.tableCellImageSmallClass].join(' '),
+                    className: [config.tableCellImageClass, config.tableCellImageSmallClass, 'min-desktop'].join(' '),
                     data: 'corporation',
                     render: {
                         _: function(data, type, row, meta){
@@ -817,7 +821,7 @@ define([
                     title: 'corporation',
                     orderable: true,
                     searchable: true,
-                    className: [config.tableCellActionClass].join(' '),
+                    className: [config.tableCellActionClass, 'min-desktop'].join(' '),
                     data: 'corporation',
                     render: {
                         _: function (data, type, row, meta) {
@@ -859,6 +863,23 @@ define([
                                 value = data.station.name + '&nbsp;' + getIconForDockedStatus('station');
                             }else if(data.structure && data.structure.id > 0){
                                 value = data.structure.name + '&nbsp;' + getIconForDockedStatus('structure');
+                            }
+                            return value;
+                        }
+                    }
+                },{
+                    targets: 8,
+                    title: 'role',
+                    width: 30,
+                    orderable: true,
+                    searchable: true,
+                    className: ['text-right', 'min-desktop'].join(' '),
+                    data: 'role',
+                    render: {
+                        _: function (data, type, row, meta) {
+                            let value = data.label;
+                            if(type === 'display'){
+                                value = Util.getLabelByRole(data).prop('outerHTML');
                             }
                             return value;
                         }

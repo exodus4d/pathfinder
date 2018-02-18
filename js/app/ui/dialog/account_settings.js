@@ -44,8 +44,6 @@ define([
 
         requirejs(['text!templates/dialog/settings.html', 'mustache'], function(template, Mustache) {
 
-            let characterRoleName = Util.getCurrentUserInfo('roleName');
-
             let data = {
                 id: config.settingsDialogId,
                 settingsAccountContainerId: config.settingsAccountContainerId,
@@ -56,14 +54,7 @@ define([
                 captchaImageId: config.captchaImageId,
                 formErrorContainerClass: Util.config.formErrorContainerClass,
                 ccpImageServer: Init.url.ccpImageServer,
-                roleLabelClass: () => {
-                    let label = 'label-default';
-                    switch(characterRoleName){
-                        case 'SUPER': label = 'label-danger'; break;
-                        case 'CORPORATION': label = 'label-info'; break;
-                    }
-                    return label;
-                }
+                roleLabel: Util.getLabelByRole(Util.getObjVal(Util.getCurrentUserData(), 'character.role')).prop('outerHTML'),
             };
 
             let content = Mustache.render(template, data);

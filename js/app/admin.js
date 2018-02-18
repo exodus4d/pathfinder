@@ -21,9 +21,11 @@ define([
      * set page observer
      */
     let setPageObserver = () => {
-        $('.' + config.triggerOverlayClass).on('click', function(){
+        $('.' + config.triggerOverlayClass).on('click', function(e){
             $('.' + config.splashOverlayClass).showSplashOverlay();
         });
+
+        $('body').initTooltips();
 
         // set fieldset toggled by checkbox ---------------------------------------------------------------------------
         $('input[type="checkbox"][data-target]').on('change', function(){

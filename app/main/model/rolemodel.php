@@ -31,6 +31,10 @@ class RoleModel extends BasicModel {
             'nullable' => false,
             'default' => ''
         ],
+        'level' => [
+            'type' => Schema::DT_INT,
+            'index' => true
+        ],
         'style' => [
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
@@ -46,18 +50,21 @@ class RoleModel extends BasicModel {
             'id' => 1,
             'name' => 'MEMBER',
             'label' => 'member',
+            'level' => 2,
             'style' => 'default'
         ],
         [
             'id' => 2,
             'name' => 'SUPER',
             'label' => 'admin',
+            'level' => 10,
             'style' => 'danger'
         ],
         [
             'id' => 3,
             'name' => 'CORPORATION',
             'label' => 'manager',
+            'level' => 4,
             'style' => 'info'
         ]
     ];
@@ -71,6 +78,7 @@ class RoleModel extends BasicModel {
 
         $roleData->name = $this->name;
         $roleData->label = $this->label;
+        $roleData->style = $this->style;
 
         return $roleData;
     }
@@ -119,7 +127,11 @@ class RoleModel extends BasicModel {
             ':active' => 1
         ];
 
-        return (new self())->find($query);
+        $options = [
+            'order' => 'level'
+        ];
+
+        return (new self())->find($query, $options);
     }
 
 }
