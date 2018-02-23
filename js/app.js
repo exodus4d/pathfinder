@@ -35,7 +35,7 @@ requirejs.config({
         slidebars: 'lib/slidebars',                                     // v0.10 Slidebars - side menu plugin http://plugins.adchsm.me/slidebars
         jsPlumb: 'lib/dom.jsPlumb-1.7.6',                               // v1.7.6 jsPlumb (Vanilla)- main map draw plugin https://jsplumbtoolkit.com
         farahey: 'lib/farahey-0.5',                                     // v0.5 jsPlumb "magnetizing" extension - https://github.com/jsplumb/farahey
-        customScrollbar: 'lib/jquery.mCustomScrollbar.min',             // v3.1.3 Custom scroll bars - http://manos.malihu.gr
+        customScrollbar: 'lib/jquery.mCustomScrollbar.min',             // v3.1.5 Custom scroll bars - http://manos.malihu.gr
         mousewheel: 'lib/jquery.mousewheel.min',                        // v3.1.13 Mousewheel - https://github.com/jquery/jquery-mousewheel
         xEditable: 'lib/bootstrap-editable.min',                        // v1.5.1 X-editable - in placed editing
         morris: 'lib/morris.min',                                       // v0.5.1 Morris.js - graphs and charts

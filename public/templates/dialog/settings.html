@@ -5,18 +5,18 @@
             <ul class="nav navbar-nav" role="tablist">
                 <li class="active">
                     <a role="tab" data-toggle="tab" data-name="account" href="#{{settingsAccountContainerId}}">
-                        <i class="fa fa-user fa-fw"></i>&nbsp;Account
+                        <i class="fas fa-user fa-fw"></i>&nbsp;Account
                     </a>
                 </li>
                 {{#userData.character}}
                     <li>
                         <a role="tab" data-toggle="tab" data-name="share" href="#{{settingsShareContainerId}}">
-                            <i class="fa fa-share-alt fa-fw"></i>&nbsp;Share
+                            <i class="fas fa-share-alt fa-fw"></i>&nbsp;Share
                         </a>
                     </li>
                     <li>
                         <a role="tab" data-toggle="tab" data-name="share" href="#{{settingsCharacterContainerId}}">
-                            <i class="fa fa-male fa-fw"></i>&nbsp;Character
+                            <i class="fas fa-male fa-fw"></i>&nbsp;Character
                         </a>
                     </li>
                 {{/userData.character}}
@@ -36,7 +36,7 @@
                             <label class="col-sm-3 control-label">Username</label>
                             <div class="col-sm-9">
                                 <p class="form-control-static">
-                                    <i class="fa fa-fw fa-lg fa-pencil pull-right pf-dialog-icon-button collapsed" data-toggle="collapse" data-target="#collapseUsername" aria-expanded="false" aria-controls="collapseUsername"></i>
+                                    <i class="fas fa-fw fa-lg fa-pencil-alt pull-right pf-dialog-icon-button collapsed" data-toggle="collapse" data-target="#collapseUsername" aria-expanded="false" aria-controls="collapseUsername"></i>
                                     {{userData.name}}
                                 </p>
                             </div>
@@ -52,7 +52,7 @@
                                 <div class="col-sm-6">
                                     <div class="input-group" title="Choose your unique username" data-placement="right">
                                         <input name="name" type="text" class="form-control" id="name" value="" placeholder="Your username" data-error="Username required" data-minlength="5" data-minlength-error="Min. of 5 characters" data-username="true" autocomplete="nickname">
-                                        <span class="input-group-addon"><i class="fa fa-fw fa-user"></i></span>
+                                        <span class="input-group-addon"><i class="fas fa-fw fa-user"></i></span>
                                     </div>
                                     <div class="note help-block with-errors"></div>
                                 </div>
@@ -68,7 +68,7 @@
                             <label class="col-sm-3 control-label">Email</label>
                             <div class="col-sm-9">
                                 <p class="form-control-static">
-                                    <i class="fa fa-fw fa-lg fa-pencil pull-right pf-dialog-icon-button collapsed" data-toggle="collapse" data-target="#collapseEmail" aria-expanded="false" aria-controls="collapseEmail"></i>
+                                    <i class="fas fa-fw fa-lg fa-pencil-alt pull-right pf-dialog-icon-button collapsed" data-toggle="collapse" data-target="#collapseEmail" aria-expanded="false" aria-controls="collapseEmail"></i>
                                     {{#userData.email}}
                                     {{userData.email}}
                                     {{/userData.email}}
@@ -89,7 +89,7 @@
                                 <div class="col-sm-6">
                                     <div class="input-group" title="Enter your email. It will be kept private!" data-placement="right">
                                         <input name="email" type="email" class="form-control" id="email" value="" placeholder="your@email.com" data-error="Email required" autocomplete="email" required>
-                                        <span class="input-group-addon"><i class="fa fa-fw fa-envelope"></i></span>
+                                        <span class="input-group-addon"><i class="fas fa-fw fa-envelope"></i></span>
                                     </div>
                                     <div class="note help-block with-errors"></div>
                                 </div>
@@ -104,7 +104,7 @@
                                 <div class="col-sm-6">
                                     <div class="input-group" title="Confirm your email" data-placement="right">
                                         <input name="email_confirm" type="email" class="form-control" id="email_confirm" value="" placeholder="your@email.com" data-error="Email required" data-match="#email" data-match-error="Email fields do not match" autocomplete="email" required>
-                                        <span class="input-group-addon"><i class="fa fa-fw fa-envelope"></i></span>
+                                        <span class="input-group-addon"><i class="fas fa-fw fa-envelope"></i></span>
                                     </div>
                                     <div class="note help-block with-errors"></div>
                                 </div>
@@ -120,7 +120,7 @@
                             <label class="col-sm-3 control-label"></label>
                             <div class="col-sm-9">
                                 <p id="{{captchaImageWrapperId}}" class="form-control-static">
-                                    <i class="fa fa-fw fa-lg fa-refresh pull-right pf-dialog-icon-button collapsed"></i>
+                                    <i class="fas fa-fw fa-lg fa-sync pull-right pf-dialog-icon-button collapsed"></i>
                                     <img id="{{captchaImageId}}" src="">
                                 </p>
                             </div>
@@ -137,7 +137,7 @@
                                 <div class="col-sm-6">
                                     <div class="input-group" title="Enter Captcha" data-placement="right">
                                         <input name="captcha" type="text" class="form-control" id="captcha" placeholder="" data-error="Captcha required" data-minlength="6" maxlength="6" autocomplete="off"  required>
-                                        <span class="input-group-addon"><i class="fa fa-fw fa-picture-o"></i></span>
+                                        <span class="input-group-addon"><i class="far fa-fw fa-image"></i></span>
                                     </div>
                                     <div class="note help-block with-errors"></div>
                                 </div>
@@ -224,7 +224,7 @@
             <form role="form" class="form-horizontal">
 
                 {{#userData.character}}
-                    <h4 class="pf-dynamic-area"><img src="{{ccpImageServer}}/Character/{{id}}_64.jpg">&nbsp;&nbsp;{{name}}</h4>
+                    <h4 class="pf-dynamic-area"><img src="{{ccpImageServer}}/Character/{{id}}_64.jpg">&nbsp;&nbsp;{{name}}&nbsp;&nbsp;{{{roleLabel}}}</h4>
 
                     <div class="row">
                         <div class="col-xs-8 col-sm-6">

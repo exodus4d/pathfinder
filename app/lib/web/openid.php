@@ -143,9 +143,9 @@ class OpenID extends \Magic {
 	**/
 	function auth($proxy=NULL,$attr=[],array $reqd=NULL) {
 		$fw=\Base::instance();
-		$root=$fw->get('SCHEME').'://'.$fw->get('HOST');
+		$root=$fw->SCHEME.'://'.$fw->HOST;
 		if (empty($this->args['trust_root']))
-			$this->args['trust_root']=$root.$fw->get('BASE').'/';
+			$this->args['trust_root']=$root.$fw->BASE.'/';
 		if (empty($this->args['return_to']))
 			$this->args['return_to']=$root.$_SERVER['REQUEST_URI'];
 		$this->args['mode']='checkid_setup';

@@ -754,7 +754,7 @@ gulp.task('task:configDevelop',
                     BROTLI: false
                 },
                 CSS: {
-                    SOURCEMAPS: false,
+                    SOURCEMAPS: true,
                     GZIP: false,
                     BROTLI: false
                 }

@@ -90,7 +90,7 @@ define([
 
     let fullSignatureOptions = {
         action: 'delete',
-        actionClass: ['fa-close', 'txt-color', 'txt-color-redDarker'].join(' ')
+        actionClass: ['fa-times', 'txt-color', 'txt-color-redDarker'].join(' ')
     };
 
     // empty signatureData row Options
@@ -529,7 +529,7 @@ define([
                         }
                     },
                     success: {
-                        label: '<i class="fa fa-clipboard fa-fw"></i>&nbsp;update signatures',
+                        label: '<i class="fas fa-paste fa-fw"></i>&nbsp;update signatures',
                         className: 'btn-success',
                         callback: function () {
                             // get form Values
@@ -754,7 +754,7 @@ define([
                 if(data.updated.character !== undefined){
                     statusClass = Util.getStatusInfoForCharacter(data.updated.character, 'class');
                 }
-                let status = '<i class="fa fa-fw fa-circle pf-user-status ' + statusClass + '"></i>';
+                let status = '<i class="fas fa-fw fa-circle pf-user-status ' + statusClass + '"></i>';
 
                 tempData.status = {
                     status: status,
@@ -847,13 +847,13 @@ define([
                 // info icon ------------------------------------------------------------------------------------------
                 let infoButton = '';
                 if(data.id > 0){
-                    infoButton = '<i class="fa fa-fw fa-question-circle"></i>';
+                    infoButton = '<i class="fas fa-fw fa-question-circle"></i>';
                 }
                 tempData.info = infoButton;
 
                 // action icon ----------------------------------------------------------------------------------------
 
-                let actionButton = '<i class="fa ' + options.actionClass + '"></i>';
+                let actionButton = '<i class="fas ' + options.actionClass + '"></i>';
                 tempData.action = {
                     action: options.action,
                     button: actionButton
@@ -906,7 +906,7 @@ define([
                 class: 'btn-label'
             }).prepend(
                 $('<i>', {
-                    class: ['fa', options.icon, 'fa-fw'].join(' ')
+                    class: ['fas', options.icon, 'fa-fw'].join(' ')
                 })
             )
         );
@@ -1027,7 +1027,7 @@ define([
             getLabledButton({
                 type: 'primary',
                 label: 'signature reader',
-                icon: 'fa-clipboard',
+                icon: 'fa-paste',
                 onClick: function(){
                     moduleElement.showSignatureReaderDialog(systemData);
                 }
@@ -1065,7 +1065,7 @@ define([
                 type: 'danger',
                 classes: [config.sigTableClearButtonClass, 'pull-right'],
                 label: 'delete',
-                icon: 'fa-close',
+                icon: 'fa-times',
                 badge: {
                     label: '0'
                 },
@@ -1088,8 +1088,8 @@ define([
         // "lazy update" toggle button --------------------------------------------------------------------------------
         let lazyToggleCheckbox = moduleElement.find('.' + config.sigTableLazyToggleButtonClass).bootstrapToggle({
             size: 'small' ,
-            on: '<i class="fa fa-fw fa-exchange"></i>&nbsp;&nbsp;lazy&nbsp;delete',
-            off: '<i class="fa fa-fw fa-clipboard"></i>&nbsp;&nbsp;lazy&nbsp;update',
+            on: '<i class="fas fa-fw fa-exchange-alt"></i>&nbsp;&nbsp;lazy&nbsp;delete',
+            off: '<i class="fas fa-fw fa-paste"></i>&nbsp;&nbsp;lazy&nbsp;update',
             onstyle: 'warning' ,
             offstyle: 'default' ,
             width: 110
@@ -1395,7 +1395,7 @@ define([
             type: 'textarea',
             title: 'description',
             name: 'description',
-            emptytext: '<i class="fa fa-fw fa-lg fa-pencil"></i>',
+            emptytext: '<i class="fas fa-fw fa-lg fa-pencil-alt"></i>',
             onblur: 'submit',
             mode: 'inline',
             showbuttons: false,
@@ -1439,7 +1439,7 @@ define([
                         selected.length &&
                         selected[0].text !== ''
                     ){
-                        newValue += '<i class="fa fa-exclamation-triangle txt-color txt-color-danger hide"></i>';
+                        newValue += '<i class="fas fa-exclamation-triangle txt-color txt-color-danger hide"></i>';
                         newValue += ' ' + selected[0].text;
                     }else{
                         newValue = '<span class="editable-empty">unknown</span>';
@@ -1996,7 +1996,7 @@ define([
                     selectField.appendTo( $(column.footer()).empty() );
 
                     selectField.editable({
-                        emptytext: '<i class="fa fa-filter fa-fw"></i>',
+                        emptytext: '<i class="fas fa-filter fa-fw"></i>',
                         onblur: 'submit',
                         title: 'filter',
                         showbuttons: false,
@@ -2282,11 +2282,11 @@ define([
                                     placement: 'left',
                                     btnCancelClass: 'btn btn-sm btn-default',
                                     btnCancelLabel: 'cancel',
-                                    btnCancelIcon: 'fa fa-fw fa-ban',
+                                    btnCancelIcon: 'fas fa-fw fa-ban',
                                     title: 'delete signature',
                                     btnOkClass: 'btn btn-sm btn-danger',
                                     btnOkLabel: 'delete',
-                                    btnOkIcon: 'fa fa-fw fa-close',
+                                    btnOkIcon: 'fas fa-fw fa-times',
                                     onConfirm: function(e, target){
                                         // top scroll to top
                                         e.preventDefault();

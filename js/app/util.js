@@ -16,7 +16,7 @@ define([
     'hoverIntent',
     'bootstrapConfirmation',
     'bootstrapToggle'
-], function($, Init, SystemEffect, SignatureType, bootbox, localforage) {
+], ($, Init, SystemEffect, SignatureType, bootbox, localforage) => {
 
     'use strict';
 
@@ -36,11 +36,11 @@ define([
         headCurrentLocationId: 'pf-head-current-location',                      // id for "show current location" element
 
         // menu
-        menuButtonFullScreenId: 'pf-menu-button-fullscreen',                    // id for menu button "fullscreen"
+        menuButtonFullScreenId: 'pf-menu-button-fullscreen',                    // id for menu button "fullScreen"
         menuButtonMagnetizerId: 'pf-menu-button-magnetizer',                    // id for menu button "magnetizer"
         menuButtonGridId: 'pf-menu-button-grid',                                // id for menu button "grid snap"
         menuButtonEndpointId: 'pf-menu-button-endpoint',                        // id for menu button "endpoint" overlays
-
+        menuButtonMapDeleteId: 'pf-menu-button-map-delete',                     // id for menu button "delete map"
 
         settingsMessageVelocityOptions: {
             duration: 180
@@ -103,7 +103,7 @@ define([
                     class: [config.ajaxOverlayWrapperClass].join(' ')
                 }).append(
                     $('<i>', {
-                        class: ['fa', 'fa-fw', iconSize, 'fa-refresh', 'fa-spin'].join(' ')
+                        class: ['fas', 'fa-fw', iconSize, 'fa-sync', 'fa-spin'].join(' ')
                     })
                 )
             );
@@ -565,10 +565,18 @@ define([
                 browserTabId: getBrowserTabId(),
                 routes:  Init.routes,
                 userData: userData,
-                otherCharacters: $.grep( userData.characters, function( character ) {
-                    // exclude current active character
-                    return character.id !== userData.character.id;
-                })
+                otherCharacters: () => {
+                    return userData.characters.filter((character, i) => {
+                        let characterImage = Init.url.ccpImageServer + '/Character/' + character.id + '_32.jpg';
+                        // preload image (prevent UI flicker
+                        let img= new Image();
+                        img.src = characterImage;
+
+                        userData.characters[i].image = characterImage;
+
+                        return character.id !== userData.character.id;
+                    });
+                }
             };
 
             let content = Mustache.render(template, data);
@@ -833,9 +841,84 @@ define([
     };
 
     /**
+     * polyfill for "passive" events
+     * -> see https://github.com/zzarcon/default-passive-events
+     */
+    let initPassiveEvents = () => {
+
+        const defaultOptions = {
+            passive: true,
+            capture: false
+        };
+        const supportedPassiveTypes = [
+            'scroll', 'wheel',
+            'touchstart', 'touchmove', 'touchenter', 'touchend', 'touchleave',
+            'mouseout', 'mouseleave', 'mouseup', 'mousedown', 'mousemove', 'mouseenter', 'mousewheel', 'mouseover'
+        ];
+        const getDefaultPassiveOption = (passive, eventName) => {
+            if (passive !== undefined) return passive;
+
+            return supportedPassiveTypes.indexOf(eventName) === -1 ? false : defaultOptions.passive;
+        };
+
+        const getWritableOptions = (options) => {
+            const passiveDescriptor = Object.getOwnPropertyDescriptor(options, 'passive');
+
+            return passiveDescriptor &&
+            passiveDescriptor.writable !== true &&
+            passiveDescriptor.set === undefined ? Object.assign({}, options) : options;
+        };
+
+        const prepareSafeListener = (listener, passive) => {
+            if (!passive) return listener;
+            return function (e) {
+                e.preventDefault = () => {};
+                return listener.call(this, e);
+            };
+        };
+
+        const overwriteAddEvent = (superMethod) => {
+            EventTarget.prototype.addEventListener = function (type, listener, options) { // jshint ignore:line
+                const usesListenerOptions = typeof options === 'object';
+                const useCapture          = usesListenerOptions ? options.capture : options;
+
+                options         = usesListenerOptions ? getWritableOptions(options) : {};
+                options.passive = getDefaultPassiveOption(options.passive, type);
+                options.capture = useCapture === undefined ? defaultOptions.capture : useCapture;
+                listener        = prepareSafeListener(listener, options.passive);
+
+                superMethod.call(this, type, listener, options);
+            };
+        };
+
+        let eventListenerOptionsSupported = () => {
+            let supported = false;
+
+            try {
+                const opts = Object.defineProperty({}, 'passive', {
+                    get() {
+                        supported = true;
+                    }
+                });
+
+                window.addEventListener('test', null, opts);
+                window.removeEventListener('test', null, opts);
+            } catch (e) {}
+
+            return supported;
+        };
+
+        let supportsPassive = eventListenerOptionsSupported ();
+        if (supportsPassive) {
+            const addEvent = EventTarget.prototype.addEventListener; // jshint ignore:line
+            overwriteAddEvent(addEvent);
+        }
+    };
+
+    /**
      * init utility prototype functions
      */
-    let initPrototypes = function(){
+    let initPrototypes = () => {
         // Array diff
         // [1,2,3,4,5,6].diff( [3,4,5] );
         // => [1, 2, 6]
@@ -853,6 +936,8 @@ define([
                 return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0;
             });
         };
+
+        initPassiveEvents();
     };
 
     /**
@@ -1240,8 +1325,20 @@ define([
      * @param jqXHR XMLHttpRequest instance
      * @returns {boolean}
      */
-    let isXHRAborted = function(jqXHR){
+    let isXHRAborted = (jqXHR) => {
         return !jqXHR.getAllResponseHeaders();
+    };
+
+    /**
+     * get label element for role data
+     * @param role
+     * @returns {*|jQuery|HTMLElement}
+     */
+    let getLabelByRole = (role) => {
+        return $('<span>', {
+            class: ['label', 'label-' + role.style].join(' '),
+            text: role.label
+        });
     };
 
     /**
@@ -1278,7 +1375,7 @@ define([
      * get the map module object or create a new module
      * @returns {*|HTMLElement}
      */
-    let getMapModule = function(){
+    let getMapModule = () => {
         let mapModule = $('#' + config.mapModuleId);
         if(mapModule.length === 0){
             mapModule = $('<div>', {
@@ -1294,7 +1391,7 @@ define([
      * @param security
      * @returns {number}
      */
-    let getAreaIdBySecurity = function(security){
+    let getAreaIdBySecurity = (security) => {
         let areaId = 0;
         switch(security){
             case 'H':
@@ -1330,7 +1427,7 @@ define([
      * @param effect
      * @returns {boolean}
      */
-    let getSystemEffectData = function(security, effect){
+    let getSystemEffectData = (security, effect) => {
         let data =  SystemEffect;
         if(security){
             // look for specific data
@@ -1355,7 +1452,7 @@ define([
      * @param option
      * @returns {string}
      */
-    let getStatusInfoForCharacter = function(characterData, option){
+    let getStatusInfoForCharacter = (characterData, option) => {
 
         let statusInfo = '';
 
@@ -2284,6 +2381,7 @@ define([
         setSyncStatus: setSyncStatus,
         getSyncType: getSyncType,
         isXHRAborted: isXHRAborted,
+        getLabelByRole: getLabelByRole,
         getMapElementFromOverlay: getMapElementFromOverlay,
         getMapModule: getMapModule,
         getSystemEffectData: getSystemEffectData,

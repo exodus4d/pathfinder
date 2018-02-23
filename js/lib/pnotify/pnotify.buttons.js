@@ -169,8 +169,8 @@
         pin_down: "glyphicon glyphicon-play"
     });
     $.extend(PNotify.styling.fontawesome, {
-        closer: "fa fa-times",
-        pin_up: "fa fa-pause",
-        pin_down: "fa fa-play"
+        closer: "fas fa-times",
+        pin_up: "fas fa-pause",
+        pin_down: "fas fa-play"
     });
 }));

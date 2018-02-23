@@ -61,14 +61,14 @@ define([
             class: 'pull-right'
         }).append(
             $('<i>', {
-                class: ['fa', 'fa-fw', 'fa-male',
+                class: ['fas', 'fa-fw', 'fa-male',
                     config.showShip ? 'active' : '' ,
                     config.moduleHeadlineIconClass,
                     config.moduleHeadlineIconCurrentMassClass].join(' '),
                 title: 'toggle&nbsp;current&nbsp;ship&nbsp;mass'
             }).attr('data-html', 'true').attr('data-toggle', 'tooltip'),
             $('<i>', {
-                class: ['fa', 'fa-fw', 'fa-refresh',
+                class: ['fas', 'fa-fw', 'fa-sync',
                     config.moduleHeadlineIconClass,
                     config.moduleHeadlineIconRefreshClass].join(' '),
                 title: 'refresh&nbsp;all'
@@ -108,7 +108,7 @@ define([
     let getInfoPanelControl = (mapId) => {
         let connectionElement = getConnectionElement(mapId, 0).append($('<div>', {
             class: 'pf-dynamic-area',
-            html: '<i class="fa fa-fw fa-plus"></i>&nbsp;add connection&nbsp;&nbsp;<kbd>ctrl</kbd>&nbsp;+&nbsp;<kbd>click</kbd>'
+            html: '<i class="fas fa-fw fa-plus"></i>&nbsp;add connection&nbsp;&nbsp;<kbd>ctrl</kbd>&nbsp;+&nbsp;<kbd>click</kbd>'
         }));
 
         return connectionElement;
@@ -172,7 +172,7 @@ define([
                                 class: [config.connectionInfoTableLabelSourceClass].join(' ')
                             }),
                             $('<i>', {
-                                class: 'fa fa-fw fa-angle-double-right'
+                                class: 'fas fa-fw fa-angle-double-right'
                             }),
                             $('<span>', {
                                 class: [config.connectionInfoTableLabelTargetClass].join(' ')
@@ -190,7 +190,7 @@ define([
                     $('<tr>').append(
                         $('<td>', {
                             class: ['text-right', 'pf-help', config.connectionInfoTableCellMassTotalTooltipClass].join(' '),
-                            html: '<i class="fa fa-fw fa-question-circle"></i>'
+                            html: '<i class="fas fa-fw fa-question-circle"></i>'
                         }),
                         $('<td>', {
                             text: scopeLabel.charAt(0).toUpperCase() + scopeLabel.slice(1)
@@ -206,7 +206,7 @@ define([
                     $('<tr>').append(
                         $('<td>', {
                             class: ['text-right', 'pf-help'].join(' '),
-                            html: '<i class="fa fa-fw fa-question-circle"></i>',
+                            html: '<i class="fas fa-fw fa-question-circle"></i>',
                             title: 'initial mass. From signature table'
                         }).attr('data-toggle', 'tooltip'),
                         $('<td>', {
@@ -225,19 +225,19 @@ define([
                         }).attr('data-toggle', 'tooltip').append(
                             $('<i>', {
                                 class: [
-                                    'fa', 'fa-fw', 'fa-question-circle'
+                                    'fas', 'fa-fw', 'fa-question-circle'
                                 ].join(' ')
                             }),
                             $('<i>', {
                                 class: [
-                                    'fa', 'fa-fw', 'fa-adjust',
+                                    'fas', 'fa-fw', 'fa-adjust',
                                     'txt-color', 'txt-color-warning',
                                     'hidden'
                                 ].join(' ')
                             }),
                             $('<i>', {
                                 class: [
-                                    'fa', 'fa-fw', 'fa-circle-o',
+                                    'far', 'fa-fw', 'fa-circle',
                                     'txt-color', 'txt-color-danger',
                                     'hidden'
                                 ].join(' ')
@@ -258,11 +258,11 @@ define([
                             title: 'current ship mass'
                         }).attr('data-toggle', 'tooltip').append(
                             $('<i>', {
-                                class: ['fa', 'fa-fw', 'fa-question-circle'].join(' ')
+                                class: ['fas', 'fa-fw', 'fa-question-circle'].join(' ')
                             }),
                             $('<i>', {
                                 class: [
-                                    'fa', 'fa-fw', 'fa-exclamation-triangle',
+                                    'fas', 'fa-fw', 'fa-exclamation-triangle',
                                     'txt-color', 'txt-color-danger',
                                     'hidden'
                                 ].join(' ')
@@ -279,7 +279,7 @@ define([
                     $('<tr>').append(
                         $('<td>', {
                             class: ['text-right', 'pf-help'].join(' '),
-                            html: '<i class="fa fa-fw fa-question-circle"></i>',
+                            html: '<i class="fas fa-fw fa-question-circle"></i>',
                             title: 'max. mass left'
                         }).attr('data-toggle', 'tooltip'),
                         $('<td>', {
@@ -356,7 +356,7 @@ define([
                 // icons
                 let massLogTooltipIcon  = massLogRow.find('i.fa-question-circle');
                 let massLogStage2Icon   = massLogRow.find('i.fa-adjust');
-                let massLogStage3Icon   = massLogRow.find('i.fa-circle-o');
+                let massLogStage3Icon   = massLogRow.find('i.fa-circle');
 
                 let massShipTooltipIcon = massShipRow.find('i.fa-question-circle');
                 let massShipWarningIcon = massShipRow.find('i.fa-exclamation-triangle');
@@ -695,7 +695,7 @@ define([
                     {
                         targets: 0,
                         name: 'index',
-                        title: '<i class="fa fa-hashtag"></i>',
+                        title: '<i class="fas fa-hashtag"></i>',
                         orderable: false,
                         searchable: false,
                         width: 20,

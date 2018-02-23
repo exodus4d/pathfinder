@@ -229,7 +229,7 @@ define([
                         className: 'btn-default'
                     },
                     success: {
-                        label: '<i class="fa fa-fw fa-search"></i>&nbsp;search route',
+                        label: '<i class="fas fa-fw fa-search"></i>&nbsp;search route',
                         className: 'btn-primary',
                         callback: function () {
                             // add new route to route table
@@ -418,7 +418,7 @@ define([
                             className: 'btn-default'
                         },
                         success: {
-                            label: '<i class="fa fa-fw fa-check"></i>&nbsp;save',
+                            label: '<i class="fas fa-fw fa-check"></i>&nbsp;save',
                             className: 'btn-success',
                             callback: function () {
                                 let form = this.find('form');
@@ -554,7 +554,7 @@ define([
                     break;
             }
 
-            return '<i class="fa fa-fw fa-circle txt-color ' + color + '" title="' + title + '"></i>';
+            return '<i class="fas fa-fw fa-circle txt-color ' + color + '" title="' + title + '"></i>';
         };
 
         // route status:
@@ -566,10 +566,10 @@ define([
         // button class for "safer" routes
         let saferButtonClass = routeData.safer ? 'txt-color-success' : '';
 
-        let saferButton = '<i class="fa ' + ['fa-shield', 'txt-color', saferButtonClass].join(' ') + '"></i>';
-        let reloadButton = '<i class="fa ' + ['fa-refresh'].join(' ') + '"></i>';
-        let searchButton = '<i class="fa ' + ['fa-search-plus '].join(' ') + '"></i>';
-        let deleteButton = '<i class="fa ' + ['fa-close', 'txt-color', 'txt-color-redDarker'].join(' ') + '"></i>';
+        let saferButton = '<i class="fas ' + ['fa-shield-alt', 'txt-color', saferButtonClass].join(' ') + '"></i>';
+        let reloadButton = '<i class="fas ' + ['fa-sync'].join(' ') + '"></i>';
+        let searchButton = '<i class="fas ' + ['fa-search-plus '].join(' ') + '"></i>';
+        let deleteButton = '<i class="fas ' + ['fa-times', 'txt-color', 'txt-color-redDarker'].join(' ') + '"></i>';
 
         // default row data (e.g. no route found)
         let tableRowData = {
@@ -632,12 +632,12 @@ define([
                 let systemSecClass = config.systemSecurityClassPrefix + tempSystemSec.replace('.', '-');
 
                 // check for wormhole
-                let icon = 'fa-square';
+                let icon = 'fas fa-square';
                 if( /^J\d+$/.test(systemName) ){
-                    icon = 'fa-dot-circle-o';
+                    icon = 'far fa-dot-circle';
                 }
 
-                let system = '<i class="fa ' + icon + ' ' + systemSecClass + '" ';
+                let system = '<i class="' + icon + ' ' + systemSecClass + '" ';
                 system += 'data-toggle="tooltip" data-placement="bottom" data-container="body" ';
                 system += 'title="' + systemName + ' [' + systemSec + '] "></i>';
                 jumpData.push( system );
@@ -695,15 +695,15 @@ define([
                     class: 'pull-right'
                 }).append(
                     $('<i>', {
-                        class: ['fa', 'fa-fw', 'fa-search', config.moduleHeadlineIconClass, config.moduleHeadlineIconSearchClass].join(' '),
+                        class: ['fas', 'fa-fw', 'fa-search', config.moduleHeadlineIconClass, config.moduleHeadlineIconSearchClass].join(' '),
                         title: 'find&nbsp;route'
                     }).attr('data-html', 'true').attr('data-toggle', 'tooltip'),
                     $('<i>', {
-                        class: ['fa', 'fa-fw', 'fa-sliders', config.moduleHeadlineIconClass, config.moduleHeadlineIconSettingsClass].join(' '),
+                        class: ['fas', 'fa-fw', 'fa-sliders-h', config.moduleHeadlineIconClass, config.moduleHeadlineIconSettingsClass].join(' '),
                         title: 'settings'
                     }).attr('data-html', 'true').attr('data-toggle', 'tooltip'),
                     $('<i>', {
-                        class: ['fa', 'fa-fw', 'fa-refresh', config.moduleHeadlineIconClass, config.moduleHeadlineIconRefreshClass].join(' '),
+                        class: ['fas', 'fa-fw', 'fa-sync', config.moduleHeadlineIconClass, config.moduleHeadlineIconRefreshClass].join(' '),
                         title: 'refresh&nbsp;all'
                     }).attr('data-html', 'true').attr('data-toggle', 'tooltip')
                 ),
@@ -763,7 +763,7 @@ define([
                 },{
                     targets: 2,
                     orderable: true,
-                    title: '<span title="jumps" data-toggle="tooltip"><i class="fa fa-arrows-h"></i>&nbsp;&nbsp;</span>',
+                    title: '<span title="jumps" data-toggle="tooltip"><i class="fas fa-arrows-alt-h"></i>&nbsp;&nbsp;</span>',
                     width: '18px',
                     class: 'text-right',
                     data: 'jumps',
@@ -789,7 +789,7 @@ define([
                     data: 'route'
                 },{
                     targets: 5,
-                    title: '<i title="search safer route (HS)" data-toggle="tooltip" class="fa fa-shield text-right"></i>',
+                    title: '<i title="search safer route (HS)" data-toggle="tooltip" class="fas fa-shield-alt text-right"></i>',
                     orderable: false,
                     searchable: false,
                     width: '10px',
@@ -877,11 +877,11 @@ define([
                             placement: 'left',
                             btnCancelClass: 'btn btn-sm btn-default',
                             btnCancelLabel: 'cancel',
-                            btnCancelIcon: 'fa fa-fw fa-ban',
+                            btnCancelIcon: 'fas fa-fw fa-ban',
                             title: 'delete route',
                             btnOkClass: 'btn btn-sm btn-danger',
                             btnOkLabel: 'delete',
-                            btnOkIcon: 'fa fa-fw fa-close',
+                            btnOkIcon: 'fas fa-fw fa-times',
                             onConfirm : function(e, target){
                                 let deleteRowElement = $(cell).parents('tr');
                                 tempTableElement.api().rows(deleteRowElement).remove().draw();

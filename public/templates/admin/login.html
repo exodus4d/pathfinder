@@ -6,7 +6,12 @@
                 <check if="{{ @tplLogged }}">
                     <true>
                         {* Logged IN *}
-                        <h2>Admin <span class="txt-color txt-color-warning">{{ @character->name }}</span></h2>
+                        <h2>
+                            <span class="pf-font-capitalize">{{ strtolower(@character->roleId->name) }}</span>
+                            <span class="txt-color txt-color-{{ @character->roleId->style }}">{{ @character->roleId->label }}</span>
+                            <span>{{ @character->name }}</span>
+                        </h2>
+
                         <p class="lead">
                             You have already admin privileges. Switch character?
                         </p>
@@ -28,14 +33,14 @@
                     <div class="panel-body no-padding">
                         <div class="price-features price-features-fluid">
                             <ul class="list-unstyled text-left">
-                                <li><i class="fa fa-fw fa-caret-right"></i> Click the SSO button below for <em>PATHFINDER</em> access with admin roles</li>
-                                <li><i class="fa fa-fw fa-caret-right"></i> Admin roles require at least one of these in-game corporation roles granted to your character</li>
+                                <li><i class="fas fa-fw fa-caret-right"></i> Click the SSO button below for <em>PATHFINDER</em> access with admin roles</li>
+                                <li><i class="fas fa-fw fa-caret-right"></i> Admin roles require at least one of these in-game corporation roles granted to your character</li>
                                 <li>
                                     <ul>
-                                        <li><i class="fa fa-fw fa-angle-right"></i> <kbd>director</kbd>, <kbd>personnel_manager</kbd> or <kbd>security_officer</kbd></li>
+                                        <li><i class="fas fa-fw fa-angle-right"></i> <kbd>director</kbd>, <kbd>personnel_manager</kbd> or <kbd>security_officer</kbd></li>
                                     </ul>
                                 </li>
-                                <li><i class="fa fa-fw fa-caret-right"></i> The admin SSO requires additional <em>ESI</em> scopes to be accepted, in order to get in-game roles from <em>EVE</em></li>
+                                <li><i class="fas fa-fw fa-caret-right"></i> The admin SSO requires additional <em>ESI</em> scopes to be accepted, in order to get in-game roles from <em>EVE</em></li>
                             </ul>
                         </div>
                     </div>

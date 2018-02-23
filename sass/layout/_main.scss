@@ -460,6 +460,19 @@ table{
   }
 }
 
+.list-group-item{
+  &.disabled{
+    &:after{
+      content: '\f023';
+      font-family: 'Font Awesome 5 Free';
+      font-weight: bold;
+      color: $gray-darker;
+      position: absolute;
+      right: 8px;
+    }
+  }
+}
+
 // custom scrollbars ==============================================================================
 .mCSB_container, .mCSB_dragger{
   will-change: top, left;
@@ -573,14 +586,14 @@ table{
     @include border-radius(5px);
 
     &:before{
-      content:'';
+      content: '';
       position: absolute;
       top: 0;
       left: 0;
       border-style: solid;
       border-width: 0 0 8px 8px;
       border-color: transparent transparent transparent $gray;
-      cursor: pointer;
+      cursor: ns-resize;
     }
 
     // all labels in a module
@@ -653,7 +666,6 @@ table{
 // WH effects =====================================================================================
 .pf-system-effect{
   display: none;      // if effect is active it will be overwritten
-  cursor: default;
   color: $gray-lighter;
 }
 
@@ -1137,9 +1149,11 @@ td.pf-popover-trigger{
   font-weight: bold;
 }
 
-code .fa {
-  color: $gray;
-  cursor: pointer;
+code {
+  .fas, .far, .fab {
+    color: $gray;
+    cursor: pointer;
+  }
 }
 
 // svg logo =======================================================================================
@@ -1305,6 +1319,20 @@ code .fa {
   width: 100%;
   height: 32px;
   margin-bottom: 0; // overwrite default "alert" style
+}
+
+// reverse order (reverse render order)
+.panel-reverse-order{
+  display: table;
+  width: 100%;
+
+  .reverse-order-header{
+    display: table-header-group;
+  }
+
+  .reverse-order-footer{
+    display: table-footer-group;
+  }
 }
 
 // drag&drop (Sortable) ===========================================================================

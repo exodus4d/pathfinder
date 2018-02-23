@@ -2,7 +2,7 @@
     <div class="container col-xs-12">
         <div class="row"></div>
 
-        <h4><i class="fa fa-fw fa-users"></i>&nbsp;{{ ucfirst(@tplPage) }}</h4>
+        <h4><i class="fas fa-fw fa-users"></i>&nbsp;{{ ucfirst(@tplPage) }}</h4>
 
         <repeat group="{{ @tplMembers->corpMembers }}" value="{{ @corpMember }}" key="{{@corpName}}" counter="{{ @corpCount }}">
             <div class="row text-center">
@@ -33,15 +33,21 @@
                                 <repeat group="{{ @corpMember }}" value="{{ @member }}" counter="{{ @memberCount }}">
                                     <set disableRow = "{{@member->_id}} == {{@character->_id}}"  />
 
+                                    <set roleType="label-default" />
+                                    <check if="{{ @member->roleId->_id==2 }}">
+                                        <set roleType="label-danger" />
+                                    </check>
+                                    <check if="{{ @member->roleId->_id==3 }}">
+                                        <set roleType="label-info" />
+                                    </check>
+
                                     <tr>
                                         <td class="text-right">{{ @member->_id }}</td>
                                         <td class="pf-table-button-sm-cell" data-order="{{ @member->name }}" data-search="{{ @member->name }}">
                                             <img src="//image.eveonline.com/Character/{{ @member->_id }}_32.jpg" >&nbsp;{{ @member->name }}
                                         </td>
                                         <td class="text-right">
-                                            <check if="{{ @member->roleId }}">
-                                                <span class="label label-success">admin</span>
-                                            </check>
+                                            <span class="label {{@roleType}}">{{ @member->roleId->label }}</span>
                                         </td>
                                         <td class="text-right">
                                             <check if="{{ @member->shared }}">
@@ -70,11 +76,11 @@
                                             <div class="btn-group btn-group-sm" role="group">
                                                 <check if="{{ @member->kicked }}">
                                                     <true>
-                                                        <a class="btn btn-primary {{ @disableRow ? 'disabled' : '' }}" href="/admin/{{ @tplPage}}/kick/{{ @member->_id }}">revoke</a>
+                                                        <a class="btn btn-primary pf-overlay-trigger {{ @disableRow ? 'disabled' : '' }}" href="/admin/{{ @tplPage}}/kick/{{ @member->_id }}">revoke</a>
                                                     </true>
                                                     <false>
                                                         <repeat group="{{ @tplKickOptions }}" key="{{ @key }}" value="{{ @label }}">
-                                                            <a class="btn btn-default {{ @disableRow ? 'disabled' : '' }}" href="/admin/{{ @tplPage}}/kick/{{ @member->_id }}/{{ @key }}">{{ @label }}</a>
+                                                            <a class="btn btn-default pf-overlay-trigger {{ @disableRow ? 'disabled' : '' }}" href="/admin/{{ @tplPage}}/kick/{{ @member->_id }}/{{ @key }}">{{ @label }}</a>
                                                         </repeat>
                                                     </false>
                                                 </check>
@@ -84,10 +90,10 @@
                                         <td class="text-right pf-table-button-sm-cell">
                                             <check if="{{ @member->banned }}">
                                                 <true>
-                                                    <a class="btn btn-sm btn-primary {{ @disableRow ? 'disabled' : '' }}" href="/admin/{{ @tplPage}}/ban/{{ @member->_id }}">revoke</a>
+                                                    <a class="btn btn-sm btn-primary pf-overlay-trigger {{ @disableRow ? 'disabled' : '' }}" href="/admin/{{ @tplPage}}/ban/{{ @member->_id }}">revoke</a>
                                                 </true>
                                                 <false>
-                                                    <a class="btn btn-sm btn-danger {{ @disableRow ? 'disabled' : '' }}" href="/admin/{{ @tplPage}}/ban/{{ @member->_id }}/1">ban</a>
+                                                    <a class="btn btn-sm btn-danger pf-overlay-trigger {{ @disableRow ? 'disabled' : '' }}" href="/admin/{{ @tplPage}}/ban/{{ @member->_id }}/1">ban</a>
                                                 </false>
                                             </check>
                                         </td>

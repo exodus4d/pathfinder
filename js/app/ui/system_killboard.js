@@ -403,7 +403,7 @@ define([
             class: 'pull-right'
         }).append(
             $('<i>', {
-                class: ['fa', 'fa-fw', 'fa-external-link ', config.moduleHeadlineIconClass].join(' '),
+                class: ['fas', 'fa-fw', 'fa-external-link-alt ', config.moduleHeadlineIconClass].join(' '),
                 title: 'zkillboard.com'
             }).on('click', function(e){
                 window.open(

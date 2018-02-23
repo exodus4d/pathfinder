@@ -10,7 +10,7 @@ define([
     'bootbox',
     'app/map/util',
     'app/module_map'
-], function($, Init, Util, Render, bootbox, MapUtil, ModuleMap) {
+], ($, Init, Util, Render, bootbox, MapUtil, ModuleMap) => {
     'use strict';
 
     let config = {
@@ -83,7 +83,7 @@ define([
                 'text!templates/dialog/map.html',
                 'text!templates/form/map.html',
                 'mustache'
-            ], function(templateMapDialog, templateMapSettings, Mustache) {
+            ], (templateMapDialog, templateMapForm, Mustache) => {
 
                 let dialogTitle = 'Map settings';
 
@@ -92,16 +92,25 @@ define([
                 let hideEditTab = false;
                 let hideDownloadTab = false;
 
+                let hasRightMapCreate = true;
+                let hasRightMapUpdate = true;
+                let hasRightMapExport = true;
+                let hasRightMapImport = true;
+
                 if(mapData === false){
                     hideSettingsTab = true;
                     hideEditTab = true;
                     hideDownloadTab = true;
+                }else{
+                    hasRightMapUpdate = MapUtil.checkRight('map_update', mapData.config);
+                    hasRightMapExport = MapUtil.checkRight('map_export', mapData.config);
+                    hasRightMapImport = MapUtil.checkRight('map_import', mapData.config);
                 }
 
                 // available map "types" for a new or existing map
                 let mapTypes = MapUtil.getMapTypes(true);
 
-                let data = {
+                let mapFormData = {
                     scope: MapUtil.getMapScopes(),
                     type: mapTypes,
                     icon: MapUtil.getMapIcons(),
@@ -111,10 +120,16 @@ define([
                 };
 
                 // render "new map" tab content -----------------------------------------------------------------------
-                let contentNewMap = Mustache.render(templateMapSettings, data);
+                let mapFormDataNew = $.extend({}, mapFormData, {
+                    hasRightMapForm: hasRightMapCreate
+                });
+                let contentNewMap = Mustache.render(templateMapForm, mapFormDataNew);
 
                 // render "edit map" tab content ----------------------------------------------------------------------
-                let contentEditMap = Mustache.render(templateMapSettings, data);
+                let mapFormDataEdit = $.extend({}, mapFormData, {
+                    hasRightMapForm: hasRightMapUpdate
+                });
+                let contentEditMap = Mustache.render(templateMapForm, mapFormDataEdit);
                 contentEditMap = $(contentEditMap);
 
                 // current map access info
@@ -189,7 +204,7 @@ define([
                 }
 
                 // render main dialog ---------------------------------------------------------------------------------
-                data = {
+                let mapDialogData = {
                     id: config.newMapDialogId,
                     mapData: mapData,
                     type: mapTypes,
@@ -276,6 +291,10 @@ define([
                     fieldImportId: config.fieldImportId,
                     dialogMapImportInfoId: config.dialogMapImportInfoId,
 
+                    hasRightMapUpdate: hasRightMapUpdate,
+                    hasRightMapExport: hasRightMapExport,
+                    hasRightMapImport: hasRightMapImport,
+
                     formatFilename: function(){
                         // format filename from "map name" (initial)
                         return function (mapName, render) {
@@ -285,7 +304,7 @@ define([
                     }
                 };
 
-                let contentDialog = Mustache.render(templateMapDialog, data);
+                let contentDialog = Mustache.render(templateMapDialog, mapDialogData);
                 contentDialog = $(contentDialog);
 
                 // set tab content
@@ -301,7 +320,7 @@ define([
                             className: 'btn-default'
                         },
                         success: {
-                            label: '<i class="fa fa-check fa-fw"></i>&nbsp;save',
+                            label: '<i class="fas fa-check fa-fw"></i>&nbsp;save',
                             className: 'btn-success',
                             callback: function() {
 
@@ -553,8 +572,10 @@ define([
                             };
 
                             let dropZone = downloadTabElement.find('.' + config.dragDropElementClass);
-                            dropZone[0].addEventListener('dragover', handleDragOver, false);
-                            dropZone[0].addEventListener('drop', handleFileSelect, false);
+                            if(dropZone.length){
+                                dropZone[0].addEventListener('dragover', handleDragOver, false);
+                                dropZone[0].addEventListener('drop', handleFileSelect, false);
+                            }
 
                             // import "button"
                             downloadTabElement.find('#' + config.buttonImportId).on('click', function(e) {
@@ -587,12 +608,13 @@ define([
                 // events for tab change ------------------------------------------------------------------------------
                 mapInfoDialog.find('.navbar a').on('shown.bs.tab', function(e){
                     let modalDialog = mapInfoDialog.find('div.modal-dialog');
+                    let tabContentId = $(e.target).attr('href');
+                    let tabContentForms = $(tabContentId).find('form.form-horizontal');
                     let selectElementCharacter = mapInfoDialog.find('#' + config.characterSelectId);
                     let selectElementCorporation = mapInfoDialog.find('#' + config.corporationSelectId);
                     let selectElementAlliance = mapInfoDialog.find('#' + config.allianceSelectId);
 
-
-                    if($(e.target).attr('href') === '#' + config.dialogMapSettingsContainerId){
+                    if(tabContentId === '#' + config.dialogMapSettingsContainerId){
                         // "settings" tab -> resize modal
                         modalDialog.toggleClass('modal-lg', true);
                         initSettingsSelectFields(mapInfoDialog);
@@ -614,7 +636,10 @@ define([
                     }
 
                     // no "save" dialog  button on "in/export" tab
-                    if($(e.target).attr('href') === '#' + config.dialogMapDownloadContainerId){
+                    if(
+                        tabContentId === '#' + config.dialogMapDownloadContainerId || // no "save" dialog  button on "in/export" tab
+                        !tabContentForms.length // no <form> in tab (e.g. restricted by missing right)
+                    ){
                         mapInfoDialog.find('button.btn-success').hide();
                     }else{
                         mapInfoDialog.find('button.btn-success').show();
@@ -731,7 +756,7 @@ define([
             message: 'Delete map "' + mapNameStr + '"?',
             buttons: {
                 confirm: {
-                    label: '<i class="fa fa-trash fa-fw"></i>&nbsp;delete map',
+                    label: '<i class="fas fa-trash fa-fw"></i>&nbsp;delete map',
                     className: 'btn-danger'
                 }
             },

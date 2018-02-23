@@ -53,6 +53,15 @@ fieldset[disabled]{
   }
 }
 
+.pf-form-icon-field {
+  font-family: "Font Awesome 5 Free";
+  font-weight: bold;
+  option {
+    font-family: inherit;
+    font-weight: inherit;
+  }
+}
+
 
 // form fields with icons groups (stacked icons) ==================================================
 .input-icon-left:not(.input-icon-right){

@@ -2,7 +2,7 @@
  *  Init
  */
 
-define(['jquery'], function($) {
+define(['jquery'], ($) => {
 
     'use strict';
 
@@ -100,6 +100,14 @@ define(['jquery'], function($) {
                 label: 'desktop',
                 unicode: '&#xf108;'
             },{
+                class: 'fa-space-shuttle',
+                label: 'space shuttle',
+                unicode: '&#xf197;'
+            },{
+                class: 'fa-anchor',
+                label: 'anchor',
+                unicode: '&#xf13d;'
+            },{
                 class: 'fa-bookmark',
                 label: 'bookmark',
                 unicode: '&#xf02e;'
@@ -107,6 +115,10 @@ define(['jquery'], function($) {
                 class: 'fa-cube',
                 label: 'cube',
                 unicode: '&#xf1b2;'
+            },{
+                class: 'fa-star',
+                label: 'star',
+                unicode: '&#xf005;'
             },{
                 class: 'fa-plane',
                 label: 'plane',
@@ -148,7 +160,6 @@ define(['jquery'], function($) {
             },
             // system effects
             systemEffects: {
-
                 effect: {
                     class: 'pf-system-effect',
                     name: 'no effect'
@@ -322,7 +333,7 @@ define(['jquery'], function($) {
                 overlays:[
                     ['Label',
                         {
-                            label: '<i class="fa fa-fw fa-warning"></i>&nbsp;save mass',
+                            label: '<i class="fas fa-fw fa-exclamation-triangle"></i>&nbsp;save mass',
                             cssClass: ['pf-map-connection-overlay', 'mass'].join(' '),
                             location: 0.6
                         }]

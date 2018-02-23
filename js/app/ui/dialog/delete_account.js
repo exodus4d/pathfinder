@@ -45,7 +45,7 @@ define([
                         className: 'btn-default'
                     },
                     success: {
-                        label: '<i class="fa fa-user-times fa-fw"></i>&nbsp;delete account',
+                        label: '<i class="fas fa-user-times fa-fw"></i>&nbsp;delete account',
                         className: 'btn-danger',
                         callback: function() {
                             let dialogElement = $(this);

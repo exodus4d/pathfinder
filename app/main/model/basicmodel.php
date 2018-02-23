@@ -881,4 +881,24 @@ abstract class BasicModel extends \DB\Cortex {
         return $status;
     }
 
+    /**
+     * overwrites parent
+     * @param null $db
+     * @param null $table
+     * @param null $fields
+     * @return bool
+     * @throws \Exception
+     */
+    public static function setup($db=null, $table=null, $fields=null){
+        $status = parent::setup($db,$table,$fields);
+
+        // set static default data
+        if($status === true && property_exists(static::class, 'tableData')){
+            $model = self::getNew(self::getClassName(), 0);
+            $model->importStaticData(static::$tableData);
+        }
+
+        return $status;
+    }
+
 } 

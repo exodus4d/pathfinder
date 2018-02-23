@@ -1,11 +1,15 @@
 
-$mapHeight: 520px;
-$mapWidth: 2500px ;
+
+$mapHeight:             1500px;
+$mapWidth:              2500px;
+
+$mapWrapperHeight:       520px + 35px;
+$mapWrapperMinHeight:    250px;
+$mapWrapperMaxHeight:    1000px;              // no vertical scrollbar: $mapHeight + 35px;
+$mapWrapperMaxWidth:     $mapWidth + 35px;
 
 // start bounce mixin =========================================================
-
 @mixin bounce-up-down{
-
   @include animation-duration( 1s);
   @include animation-delay(0.5s);
   -webkit-animation-fill-mode: both;
@@ -32,24 +36,26 @@ $mapWidth: 2500px ;
 }
 
 // end bounce mixin ===========================================================
-
 #pf-map-tab-element{
-  max-width: 2515px;
+  max-width: $mapWrapperMaxWidth;
   margin: 0 auto;
 }
-
 
 .pf-map-tab-content{
 
   .pf-map-wrapper{
     position: relative;
+    resize: vertical;
     width: 100%;
-    max-width: $mapWidth + 15px;
-    height: $mapHeight + 30px;
+    height: $mapWrapperHeight;
+    max-width: $mapWrapperMaxWidth;
+    max-height: $mapWrapperMaxHeight;
+    min-height: $mapWrapperMinHeight;
     overflow: auto;
     padding: 5px;
     background: rgba($gray-darker, 0.93);
     box-shadow:inset -3px 3px 10px 0 rgba($black, 0.3);
+    will-change: width, height;
     @include border-bottom-radius(5px);
     border: {
       width: 1px;
@@ -57,10 +63,28 @@ $mapWidth: 2500px ;
       color: $gray-dark;
     }
 
-    &:focus{
-      border: 1px solid $gray;
+    &:before{
+      content: '';
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      border-style: solid;
+      border-width: 12px 12px 0 0 ;
+      border-color:  transparent $gray-dark transparent transparent;
+      cursor: nwse-resize;
+
+      &:hover{
+        border-color: blue;
+      }
     }
 
+    &:focus, &:hover{
+      border: 1px solid $gray;
+
+      &:before{
+        border-color:  transparent $gray transparent transparent;
+      }
+    }
   }
 }
 
@@ -69,7 +93,7 @@ $mapWidth: 2500px ;
   position: absolute;
   display: none; // triggered by js
   z-index: 10000;
-  right: 10px;
+  right: 26px;
   background: rgba($black, 0.25);
   @include border-radius(5px);
 
@@ -84,13 +108,12 @@ $mapWidth: 2500px ;
     height: 36px;
     min-height: 36px;
     min-width: 36px;
-    color: $gray-darker;
-    padding: 3px;
+    padding: 3px 3px 3px 8px;
     line-height: 26px;
 
     i{
       margin: 0; // overwrite default
-      margin-top: 3px;
+      margin-top: 5px;
       width: 0; // is animated
       height: 26px;
       opacity: 0; // is animated
@@ -101,13 +124,13 @@ $mapWidth: 2500px ;
       cursor: help;
       will-change: all;
 
-      &.fa{
-        font-size: 26px;
+      &.fas, &.far{
+        font-size: 20px;
       }
 
       &.glyphicon{
         margin-top: 1px;
-        font-size: 24px;
+        font-size: 22px;
         padding-left: 3px;
       }
 
@@ -182,6 +205,10 @@ $mapWidth: 2500px ;
 
       .pf-map-overlay-local-trigger{
         margin-bottom: 10px;
+
+        &:hover, &.right{
+          color: $orange-dark; // overlay open
+        }
       }
 
       i{
@@ -280,6 +307,7 @@ $mapWidth: 2500px ;
       cursor: pointer;
       font-family: Arial, sans-serif; // fix for element width on custom font family
       font-weight: bold;
+      white-space: nowrap;
 
       .pf-system-head-name{
         border: none;
@@ -289,7 +317,12 @@ $mapWidth: 2500px ;
         margin-right: 2px;
       }
 
+      .pf-system-effect{
+        font-size: 11px;
+      }
+
       .fa-lock{
+        font-size: 11px;
         display: none; // triggered by system-lock class
       }
 
@@ -631,13 +664,14 @@ $mapWidth: 2500px ;
     filter: blur(0.000001px);
     -webkit-font-smoothing: antialiased;
     font-family: Arial, sans-serif;         // fix for element width on custom font family
-    padding: 0 2px;
-    font-size: 10px;
+    padding: 2px;
+    font-size: 9.5px;
+    line-height: 100%;
     z-index: 1020;
     background-color: $gray;
     color: $gray-lighter;
-    @include border-radius(4px);
-    @include box-shadow(0 6px 12px rgba(0,0,0,.4));
+    @include border-radius(50%);
+    @include box-shadow(0 3px 6px rgba(0,0,0,.3));
   }
 }
 

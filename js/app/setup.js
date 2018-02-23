@@ -48,8 +48,8 @@ define([
         let webSocketPanel = $('#pf-setup-webSocket');
         let webSocketURI = MapWorker.getWebSocketURL();
         let sslIcon = webSocketURI.startsWith('wss:') ?
-            '<i class="fa fa-fw fa-lock txt-color txt-color-success"></i>' :
-            '<i class="fa fa-fw fa-unlock txt-color txt-color-warning"></i>';
+            '<i class="fas fa-fw fa-lock txt-color txt-color-success"></i>' :
+            '<i class="fas fa-fw fa-unlock txt-color txt-color-warning"></i>';
 
         webSocketPanel.showLoadingAnimation();
 
@@ -71,7 +71,7 @@ define([
                     let statusIcon = uriRow.find('td:nth-child(3) i');
                     removeColorClasses(statusIcon);
 
-                    statusIcon.toggleClass('fa-warning', false).toggleClass('fa-check', true).addClass('txt-color-success');
+                    statusIcon.toggleClass('fa-exclamation-triangle', false).toggleClass('fa-check', true).addClass('txt-color-success');
                 }
             }
 

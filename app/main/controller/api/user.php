@@ -80,7 +80,7 @@ class User extends Controller\Controller{
             $this->getF3()->set(self::SESSION_KEY_CHARACTERS, $sessionCharacters);
 
             // save user login information --------------------------------------------------------
-            $characterModel->roleId = $characterModel->requestRoleId();
+            $characterModel->roleId = $characterModel->requestRole();
             $characterModel->touch('lastLogin');
             $characterModel->save();
 

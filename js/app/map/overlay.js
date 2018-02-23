@@ -199,7 +199,7 @@ define([
             iconElement.data(dataName, defaultIconClass);
         }
 
-        iconElement.toggleClass( defaultIconClass + ' fa-refresh fa-spin' );
+        iconElement.toggleClass( defaultIconClass + ' fa-sync fa-spin' );
     };
 
     /**
@@ -211,7 +211,7 @@ define([
         let dataName = 'default-icon';
         let defaultIconClass = iconElement.data(dataName);
 
-        iconElement.toggleClass( defaultIconClass + ' fa-refresh fa-spin' );
+        iconElement.toggleClass( defaultIconClass + ' fa-sync fa-spin' );
     };
 
     /**
@@ -293,7 +293,7 @@ define([
             title: 'active filter',
             trigger: 'active',
             class: 'pf-map-overlay-filter',
-            iconClass: ['fa', 'fa-fw', 'fa-filter']
+            iconClass: ['fas', 'fa-fw', 'fa-filter']
         },
         mapSnapToGrid: {
             title: 'active grid',
@@ -305,13 +305,13 @@ define([
             title: 'active magnetizer',
             trigger: 'active',
             class: 'pf-map-overlay-magnetizer',
-            iconClass: ['fa', 'fa-fw', 'fa-magnet']
+            iconClass: ['fas', 'fa-fw', 'fa-magnet']
         },
         systemRegion: {
             title: 'show regions',
             trigger: 'hover',
             class: 'pf-map-overlay-region',
-            iconClass: ['fa', 'fa-fw', 'fa-tags'],
+            iconClass: ['fas', 'fa-fw', 'fa-tags'],
             hoverIntent: {
                 over: function(e){
                     let mapElement = Util.getMapElementFromOverlay(this);
@@ -341,7 +341,7 @@ define([
             title: 'refresh signature overlays',
             trigger: 'refresh',
             class: 'pf-map-overlay-endpoint',
-            iconClass: ['fa', 'fa-fw', 'fa-link'],
+            iconClass: ['fas', 'fa-fw', 'fa-link'],
             hoverIntent: {
                 over: function(e){
                     let mapElement = Util.getMapElementFromOverlay(this);
@@ -356,7 +356,7 @@ define([
             title: 'WH data',
             trigger: 'hover',
             class: 'pf-map-overlay-connection',
-            iconClass: ['fa', 'fa-fw', 'fa-fighter-jet'],
+            iconClass: ['fas', 'fa-fw', 'fa-fighter-jet'],
             hoverIntent: {
                 over: function(e){
                     let map = getMapObjectFromOverlayIcon(this);
@@ -377,8 +377,8 @@ define([
 
                         // format overlay label
                         let labels = [
-                            '<i class="fa fa-fw fa-plus-square"></i>&nbsp;' + formatTimeParts(createdDiff),
-                            '<i class="fa fa-fw fa-pencil-square"></i>&nbsp;' + formatTimeParts(updatedDiff)
+                            '<i class="fas fa-fw fa-plus-square"></i>&nbsp;' + formatTimeParts(createdDiff),
+                            '<i class="fas fa-fw fa-pen-square"></i>&nbsp;' + formatTimeParts(updatedDiff)
                         ];
 
                         // add label overlay ------------------------------------------------------
@@ -408,7 +408,7 @@ define([
             title: 'EOL timer',
             trigger: 'hover',
             class: 'pf-map-overlay-connection-eol',
-            iconClass: ['fa', 'fa-fw', 'fa-clock-o'],
+            iconClass: ['far', 'fa-fw', 'fa-clock'],
             hoverIntent: {
                 over: function(e){
                     let map = getMapObjectFromOverlayIcon(this);
@@ -424,7 +424,7 @@ define([
                         connection.addOverlay([
                             'Label',
                             {
-                                label: '<i class="fa fa-fw fa-clock-o"></i>&nbsp;' + formatTimeParts(diff),
+                                label: '<i class="far fa-fw fa-clock"></i>&nbsp;' + formatTimeParts(diff),
                                 id: config.connectionOverlayEolId,
                                 cssClass: [config.connectionOverlayClass, 'eol'].join(' '),
                                 location: 0.25
@@ -628,8 +628,9 @@ define([
                     iconElement.velocity({
                         opacity: [0.8, 0],
                         scale: [1, 0],
-                        width: ['30px', 0],
-                        marginLeft: ['3px', 0]
+                        width: ['20px', 0],
+                        height: ['20px', 0],
+                        marginRight: ['10px', 0]
                     },{
                         duration: 240,
                         easing: 'easeInOutQuad'

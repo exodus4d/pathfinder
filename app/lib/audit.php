@@ -108,7 +108,7 @@ class Audit extends Prefab {
 	**/
 	function isdesktop($agent=NULL) {
 		if (!isset($agent))
-			$agent=Base::instance()->get('AGENT');
+			$agent=Base::instance()->AGENT;
 		return (bool)preg_match('/('.self::UA_Desktop.')/i',$agent) &&
 			!$this->ismobile($agent);
 	}
@@ -120,7 +120,7 @@ class Audit extends Prefab {
 	**/
 	function ismobile($agent=NULL) {
 		if (!isset($agent))
-			$agent=Base::instance()->get('AGENT');
+			$agent=Base::instance()->AGENT;
 		return (bool)preg_match('/('.self::UA_Mobile.')/i',$agent);
 	}
 
@@ -131,7 +131,7 @@ class Audit extends Prefab {
 	**/
 	function isbot($agent=NULL) {
 		if (!isset($agent))
-			$agent=Base::instance()->get('AGENT');
+			$agent=Base::instance()->AGENT;
 		return (bool)preg_match('/('.self::UA_Bot.')/i',$agent);
 	}
 

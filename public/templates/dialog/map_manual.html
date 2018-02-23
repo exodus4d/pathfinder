@@ -1,32 +1,32 @@
 <nav class="navbar navbar-default" role="navigation">
     <div class="navbar-header pull-left">
         <ul class="nav navbar-nav {{dialogNavigationClass}}">
-            <li class="{{dialogNavLiClass}} active"><a data-target="#pf-manual-map" href="#"><i class="fa fa-sitemap fa-fw"></i>&nbsp;Map</a></li>
-            <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-system" href="#"><i class="fa fa-sun-o fa-fw"></i>&nbsp;System</a></li>
-            <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-connection" href="#"><i class="fa fa-chain fa-fw"></i>&nbsp;Connection</a></li>
-            <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-signature" href="#"><i class="fa fa-table fa-fw"></i>&nbsp;Signature</a></li>
-            <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-share" href="#"><i class="fa fa-share-alt fa-fw"></i>&nbsp;Share</a></li>
-            <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-chart" href="#"><i class="fa fa-bar-chart fa-fw"></i>&nbsp;Chart</a></li>
-            <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-notification" href="#"><i class="fa fa-volume-up fa-fw"></i>&nbsp;Notification</a></li>
-            <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-statistics" href="#"><i class="fa fa-line-chart fa-fw"></i> Statistics</a></li>
-            <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-logging" href="#"><i class="fa fa-binoculars fa-fw"></i> Logging</a></li>
+            <li class="{{dialogNavLiClass}} active"><a data-target="#pf-manual-map" href="#"><i class="fas fa-sitemap fa-fw"></i>&nbsp;Map</a></li>
+            <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-system" href="#"><i class="fas fa-sun fa-fw"></i>&nbsp;System</a></li>
+            <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-connection" href="#"><i class="fas fa-link fa-fw"></i>&nbsp;Connection</a></li>
+            <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-signature" href="#"><i class="fas fa-table fa-fw"></i>&nbsp;Signature</a></li>
+            <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-share" href="#"><i class="fas fa-share-alt fa-fw"></i>&nbsp;Share</a></li>
+            <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-chart" href="#"><i class="fas fa-chart-bar fa-fw"></i>&nbsp;Chart</a></li>
+            <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-notification" href="#"><i class="fas fa-volume-up fa-fw"></i>&nbsp;Notification</a></li>
+            <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-statistics" href="#"><i class="fas fa-chart-line fa-fw"></i> Statistics</a></li>
+            <li class="{{dialogNavLiClass}}"><a data-target="#pf-manual-logging" href="#"><i class="fas fa-binoculars fa-fw"></i> Logging</a></li>
         </ul>
     </div>
 </nav>
 
 <div id="{{scrollspyId}}">
-    <h2 id="pf-manual-map"><i class="fa fa-sitemap fa-lg fa-fw"></i>&nbsp;&nbsp;Map</h2>
+    <h2 id="pf-manual-map"><i class="fas fa-sitemap fa-fw"></i>&nbsp;&nbsp;Map</h2>
 
     <h4>Map types</h4>
     <p>
-        <em class="pf-brand">pathfinder</em>&nbsp;&nbsp;supports 3 different types of maps. Systems <small>(<i class="fa fa-sun-o fa-fw"></i><a href="#" data-target="#pf-manual-system">more</a>)</small>
-        and connections <small>(<i class="fa fa-chain fa-fw"></i><a href="#" data-target="#pf-manual-connection">more</a>)</small> can be added to them. Maps are also referred to as <em>"Chain Map"</em> or <em>"Chain"</em>:
+        <em class="pf-brand">pathfinder</em>&nbsp;&nbsp;supports 3 different types of maps. Systems <small>(<i class="fas fa-sun fa-fw"></i><a href="#" data-target="#pf-manual-system">more</a>)</small>
+        and connections <small>(<i class="fas fa-link fa-fw"></i><a href="#" data-target="#pf-manual-connection">more</a>)</small> can be added to them. Maps are also referred to as <em>"Chain Map"</em> or <em>"Chain"</em>:
     </p>
     <ul class="fa-ul">
-        <li><i class="fa-li fa fa-circle fa-fw pf-map-type-private"></i>private map<small> (is not visible for other pilots, unless you invite them)</small></li>
-        <li><i class="fa-li fa fa-circle fa-fw pf-map-type-corporation"></i>corporation map<small> (can be used by any corporation member)</small></li>
-        <li><i class="fa-li fa fa-circle fa-fw pf-map-type-alliance"></i>alliance map<small> (can be used by any alliance member)</small></li>
-        <li><i class="fa-li fa fa-circle fa-fw pf-map-type-global"></i>global map<small> (this maps are static and can´t be created by users)</small></li>
+        <li><i class="fa-li fas fa-circle fa-fw pf-map-type-private"></i>private map<small> (is not visible for other pilots, unless you invite them)</small></li>
+        <li><i class="fa-li fas fa-circle fa-fw pf-map-type-corporation"></i>corporation map<small> (can be used by any corporation member)</small></li>
+        <li><i class="fa-li fas fa-circle fa-fw pf-map-type-alliance"></i>alliance map<small> (can be used by any alliance member)</small></li>
+        <li><i class="fa-li fas fa-circle fa-fw pf-map-type-global"></i>global map<small> (this maps are static and can´t be created by users)</small></li>
     </ul>
     <p>
         Up to 5 different maps can be used simultaneously. <span class="txt-color txt-color-blue">Alliance maps</span> require appropriate rules to be created.
@@ -41,14 +41,14 @@
         <li>all -<small> (any system will be tracked)</small></li>
         <li>none -<small> (system tracking is disabled)</small></li>
     </ul>
-    <h4><i class="fa fa-location-arrow fa-fw"></i> Map tracking</h4>
+    <h4><i class="fas fa-location-arrow fa-fw"></i> Map tracking</h4>
     <p>
-        If "map tracking" is <span class="txt-color txt-color-greenLight">on</span>, new systems <small>(<i class="fa fa-sun-o fa-fw"></i><a href="#" data-target="#pf-manual-system">more</a>)</small>
-        and connections <small>(<i class="fa fa-chain fa-fw"></i><a href="#" data-target="#pf-manual-connection">more</a>)</small>
-        will be automatically added to the current map <small>(<i class="fa fa-sitemap fa-fw"></i><a href="#" data-target="#pf-manual-map">more</a>)</small>.
+        If "map tracking" is <span class="txt-color txt-color-greenLight">on</span>, new systems <small>(<i class="fas fa-sun fa-fw"></i><a href="#" data-target="#pf-manual-system">more</a>)</small>
+        and connections <small>(<i class="fas fa-link fa-fw"></i><a href="#" data-target="#pf-manual-connection">more</a>)</small>
+        will be automatically added to the current map <small>(<i class="fas fa-sitemap fa-fw"></i><a href="#" data-target="#pf-manual-map">more</a>)</small>.
         This can only work if your current position is known by <em class="pf-brand">pathfinder</em>.<br>
-        The map scope <small>(<i class="fa fa-crosshairs fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-map-scope">more</a>)</small> defines which systems are affected.<br>
-        The connection scope <small>(<i class="fa fa-crosshairs fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-scope">more</a>)</small> will be auto-detected (e.g. wormhole connection).
+        The map scope <small>(<i class="fas fa-crosshairs fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-map-scope">more</a>)</small> defines which systems are affected.<br>
+        The connection scope <small>(<i class="fas fa-crosshairs fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-scope">more</a>)</small> will be auto-detected (e.g. wormhole connection).
         This is achieved by calculating the jump distance between your current system and system you came from.
     </p>
     <h4 id="pf-manual-scrollspy-anchor-map-contextmenu">Context menu</h4>
@@ -56,31 +56,31 @@
         <kbd>right click</kbd> somewhere on the map to open the context menu.
     </p>
     <ul class="list-unstyled well" style=" margin-left: 10px;">
-        <li><i class="fa fa-plus fa-fw"></i> Add a new system at the position, you clicked at</li>
-        <li><i class="fa fa-object-ungroup fa-fw"></i> Select all (unlocked) systems on the map</li>
-        <li><i class="fa fa-filter fa-fw"></i> Filter map connections by a scope <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-scope">more</a></small></li>
-        <li><i class="fa fa-sitemap fa-fw"></i> Map related options (edit map, information)</li>
-        <li><i class="fa fa-trash fa-fw"></i> Delete selected systems <small><a href="#" data-target="#pf-manual-scrollspy-anchor-system-delete">more</a></small></li>
+        <li><i class="fas fa-plus fa-fw"></i> Add a new system at the position, you clicked at</li>
+        <li><i class="fas fa-object-ungroup fa-fw"></i> Select all (unlocked) systems on the map</li>
+        <li><i class="fas fa-filter fa-fw"></i> Filter map connections by a scope <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-scope">more</a></small></li>
+        <li><i class="fas fa-sitemap fa-fw"></i> Map related options (edit map, information)</li>
+        <li><i class="fas fa-trash fa-fw"></i> Delete selected systems <small><a href="#" data-target="#pf-manual-scrollspy-anchor-system-delete">more</a></small></li>
     </ul>
-    <h4 id="pf-manual-scrollspy-anchor-map-select"><i class="fa fa-object-ungroup fa-fw"></i> Select methods</h4>
+    <h4 id="pf-manual-scrollspy-anchor-map-select"><i class="fas fa-object-ungroup fa-fw"></i> Select methods</h4>
     <ul class="list-unstyled" style=" margin-left: 10px;">
         <li>Frame Select:<small> Multiple systems can be selected by </small><kbd>click</kbd> + <kbd>drag</kbd></li>
         <li>Click Select:<small> Individual systems can be selected by holding </small><kbd>ctrl</kbd> + <kbd>click</kbd> <small> at a system</small></li>
     </ul>
     <p>
-        Locked systems <small>(<i class="fa fa-lock fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-system-locked">more</a>)</small> can´t be selected.
+        Locked systems <small>(<i class="fas fa-lock fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-system-locked">more</a>)</small> can´t be selected.
     </p>
     <h4><i class="glyphicon glyphicon-th"></i> Grid snapping</h4>
     <p>
-        The <em>"Grid snapping"</em> option can be activated on the "Map Menu" <small>(<i class="fa fa-sitemap fa-fw"></i>)</small>. Systems will snap to a <samp>20x20px</samp> grid.
+        The <em>"Grid snapping"</em> option can be activated on the "Map Menu" <small>(<i class="fas fa-sitemap fa-fw"></i>)</small>. Systems will snap to a <samp>20x20px</samp> grid.
         A grid overlay appears on the map.
     </p>
-    <h4><i class="fa fa-magnet fa-fw"></i> Magnetizing</h4>
+    <h4><i class="fas fa-magnet fa-fw"></i> Magnetizing</h4>
     <p>
-        The <em>"Magnetizing"</em> option can be activated on the "Map Menu" <small>(<i class="fa fa-sitemap fa-fw"></i>)</small>.
+        The <em>"Magnetizing"</em> option can be activated on the "Map Menu" <small>(<i class="fas fa-sitemap fa-fw"></i>)</small>.
         If active, systems effect each other while <kbd>move</kbd>/<kbd>drag&amp;drop</kbd> and will rearrange themselves automatically on the map. This prevents system "overlapping"
     </p>
-    <h4><i class="fa fa-history fa-fw"></i> Update counter</h4>
+    <h4><i class="fas fa-history fa-fw"></i> Update counter</h4>
     <div class="pf-map-overlay" style="position: initial; display: block; padding-top: 1px; float: left; margin: 0 10px 10px 0;">
         <div class="{{pieChartClass}} {{mapCounterClass}}" data-percent="40">
             <span style="position: absolute; line-height: 30px; margin-left: 10px;">4</span>
@@ -96,12 +96,12 @@
     <hr class="pf-manual-scroll-break">
     {{! ================================================================================================================================================  }}
 
-    <h2 id="pf-manual-system"><i class="fa fa-sun-o fa-lg fa-fw"></i>&nbsp;&nbsp;Solar system / Wormhole system</h2>
+    <h2 id="pf-manual-system"><i class="fas fa-sun fa-fw"></i>&nbsp;&nbsp;Solar system / Wormhole system</h2>
 
     <p>
-        Systems are represented by rectangle boxes on a map <small>(<i class="fa fa-sitemap fa-fw"></i><a href="#" data-target="#pf-manual-map">more</a>)</small>.
-        Pilots can interact with systems like "delete systems" <small>(<i class="fa fa-trash fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-system-delete">more</a>)</small> or
-        "move systems" <small>(<i class="fa fa-arrows-alt fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-system-move">more</a>)</small>.
+        Systems are represented by rectangle boxes on a map <small>(<i class="fas fa-sitemap fa-fw"></i><a href="#" data-target="#pf-manual-map">more</a>)</small>.
+        Pilots can interact with systems like "delete systems" <small>(<i class="fas fa-trash fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-system-delete">more</a>)</small> or
+        "move systems" <small>(<i class="fas fa-expand-arrows-alt fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-system-move">more</a>)</small>.
     </p>
     <h4 id="pf-manual-scrollspy-anchor-system-active">Active system</h4>
     <p>
@@ -135,35 +135,35 @@
         The status can be changed by using the context menu <small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-system-contextmenu">more</a>)</small>.
     </p>
     <ul class="fa-ul">
-        <li><i class="fa-li fa fa-square-o fa-lg fa-fw pf-system-status-unknown"></i> no status set <small>(unknown)</small></li>
-        <li><i class="fa-li fa fa-square-o fa-lg fa-fw pf-system-status-friendly"></i> friendly <small>(in the possession of your corp/ally or allied entities)</small></li>
-        <li><i class="fa-li fa fa-square-o fa-lg fa-fw pf-system-status-occupied"></i> occupied <small>(hostiles structures found but not active)</small></li>
-        <li><i class="fa-li fa fa-square-o fa-lg fa-fw pf-system-status-hostile"></i> hostile <small>(hostile activity noticed recently)</small></li>
-        <li><i class="fa-li fa fa-square-o fa-lg fa-fw pf-system-status-empty"></i> empty <small>(system is not occupied or active)</small></li>
-        <li><i class="fa-li fa fa-square-o fa-lg fa-fw pf-system-status-unscanned"></i> unscanned <small>(system has unscanned signatures)</small></li>
+        <li><i class="fa-li far fa-square fa-lg fa-fw pf-system-status-unknown"></i> no status set <small>(unknown)</small></li>
+        <li><i class="fa-li far fa-square fa-lg fa-fw pf-system-status-friendly"></i> friendly <small>(in the possession of your corp/ally or allied entities)</small></li>
+        <li><i class="fa-li far fa-square fa-lg fa-fw pf-system-status-occupied"></i> occupied <small>(hostiles structures found but not active)</small></li>
+        <li><i class="fa-li far fa-square fa-lg fa-fw pf-system-status-hostile"></i> hostile <small>(hostile activity noticed recently)</small></li>
+        <li><i class="fa-li far fa-square fa-lg fa-fw pf-system-status-empty"></i> empty <small>(system is not occupied or active)</small></li>
+        <li><i class="fa-li far fa-square fa-lg fa-fw pf-system-status-unscanned"></i> unscanned <small>(system has unscanned signatures)</small></li>
     </ul>
     <h4>System effect</h4>
     <p>
-        Effects of wormhole systems are shown by a <i class="fa fa-square fa-fw"></i> at the top right of a system.
+        Effects of wormhole systems are shown by a <i class="fas fa-square fa-fw"></i> at the top right of a system.
     </p>
     <ul class="fa-ul">
-        <li><i class="fa-li fa fa-square fa-fw pf-system-effect"></i> No effect</li>
-        <li><i class="fa-li fa fa-square fa-fw pf-system-effect-magnetar"></i> Magnetar</li>
-        <li><i class="fa-li fa fa-square fa-fw pf-system-effect-redgiant"></i> Red Giant</li>
-        <li><i class="fa-li fa fa-square fa-fw pf-system-effect-pulsar"></i> Pulsar</li>
-        <li><i class="fa-li fa fa-square fa-fw pf-system-effect-wolfryet"></i> Wolfryet</li>
-        <li><i class="fa-li fa fa-square fa-fw pf-system-effect-cataclysmic"></i> Cataclysmic Variable</li>
-        <li><i class="fa-li fa fa-square fa-fw pf-system-effect-blackhole"></i> Blackhole</li>
+        <li><i class="fa-li fas fa-square fa-fw pf-system-effect"></i> No effect</li>
+        <li><i class="fa-li fas fa-square fa-fw pf-system-effect-magnetar"></i> Magnetar</li>
+        <li><i class="fa-li fas fa-square fa-fw pf-system-effect-redgiant"></i> Red Giant</li>
+        <li><i class="fa-li fas fa-square fa-fw pf-system-effect-pulsar"></i> Pulsar</li>
+        <li><i class="fa-li fas fa-square fa-fw pf-system-effect-wolfryet"></i> Wolfryet</li>
+        <li><i class="fa-li fas fa-square fa-fw pf-system-effect-cataclysmic"></i> Cataclysmic Variable</li>
+        <li><i class="fa-li fas fa-square fa-fw pf-system-effect-blackhole"></i> Blackhole</li>
     </ul>
     <h4>Active pilots</h4>
     <p>
         If a system has active pilots, a tooltip is shown with the current number of pilots. <br>
         Systems with active pilots are bigger than empty systems and provide morermation than others.<br>
-        During <kbd>mouseover</kbd> the <small>(<i class="fa fa-angle-down fa-fw"></i>)</small> icon more detailed information is shown.
+        During <kbd>mouseover</kbd> the <small>(<i class="fas fa-angle-down fa-fw"></i>)</small> icon more detailed information is shown.
     </p>
-    <h4 id="pf-manual-scrollspy-anchor-system-move"><i class="fa fa-arrows-alt fa-fw"></i> Move</h4>
+    <h4 id="pf-manual-scrollspy-anchor-system-move"><i class="fas fa-expand-arrows-alt fa-fw"></i> Move</h4>
     <p>
-        Any system that is not <em>"Locked"</em> <small>(<i class="fa fa-lock fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-system-locked">more</a>)</small> can be moved,
+        Any system that is not <em>"Locked"</em> <small>(<i class="fas fa-lock fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-system-locked">more</a>)</small> can be moved,
         by <kbd>click</kbd> + <kbd>drag</kbd> the systems security label (top right).<br>
         In order to move multiple systems at once, make sure all of them are selected <small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-map-select">more</a>)</small>.
         Now <kbd>drag</kbd> one selected systems and all others follow.
@@ -173,32 +173,32 @@
         <kbd>right click</kbd> a system on the map to open the context menu.
     </p>
     <ul class="list-unstyled well" style=" margin-left: 10px;">
-        <li><i class="fa fa-plus fa-fw"></i> Adds a new system that connects to this system</li>
-        <li><i class="fa fa-lock fa-fw"></i> Lock this system <small><a href="#" data-target="#pf-manual-scrollspy-anchor-system-locked">more</a></small></li>
-        <li><i class="fa fa-volume-up fa-fw"></i> Set "Rally Point" for this system <small><a href="#" data-target="#pf-manual-scrollspy-anchor-system-rally">more</a></small></li>
-        <li><i class="fa fa-tags fa-fw"></i> Changes the status of this system <small><a href="#" data-target="#pf-manual-scrollspy-anchor-system-status">more</a></small></li>
-        <li><i class="fa fa-reply fa-rotate-180 fa-fw"></i> Waypoint options for this system <small><a href="#" data-target="#pf-manual-scrollspy-anchor-system-waypoint">more</a></small></li>
-        <li><i class="fa fa-trash fa-fw"></i> Delete this system and all connections <small><a href="#" data-target="#pf-manual-scrollspy-anchor-system-delete">more</a></small></li>
+        <li><i class="fas fa-plus fa-fw"></i> Adds a new system that connects to this system</li>
+        <li><i class="fas fa-lock fa-fw"></i> Lock this system <small><a href="#" data-target="#pf-manual-scrollspy-anchor-system-locked">more</a></small></li>
+        <li><i class="fas fa-volume-up fa-fw"></i> Set "Rally Point" for this system <small><a href="#" data-target="#pf-manual-scrollspy-anchor-system-rally">more</a></small></li>
+        <li><i class="fas fa-tags fa-fw"></i> Changes the status of this system <small><a href="#" data-target="#pf-manual-scrollspy-anchor-system-status">more</a></small></li>
+        <li><i class="fas fa-reply fa-rotate-180 fa-fw"></i> Waypoint options for this system <small><a href="#" data-target="#pf-manual-scrollspy-anchor-system-waypoint">more</a></small></li>
+        <li><i class="fas fa-trash fa-fw"></i> Delete this system and all connections <small><a href="#" data-target="#pf-manual-scrollspy-anchor-system-delete">more</a></small></li>
     </ul>
-    <h4 id="pf-manual-scrollspy-anchor-system-locked"><i class="fa fa-lock fa-fw"></i> Locked system</h4>
+    <h4 id="pf-manual-scrollspy-anchor-system-locked"><i class="fas fa-lock fa-fw"></i> Locked system</h4>
     <p>
         Locked systems can´t be selected <small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-map-select">more</a>)</small>,
-        moved <small>(<i class="fa fa-arrows-alt fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-system-move">more</a>)</small>
-        or deleted <small>(<i class="fa fa-trash fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-system-delete">more</a>)</small>.
+        moved <small>(<i class="fas fa-expand-arrows-alt fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-system-move">more</a>)</small>
+        or deleted <small>(<i class="fas fa-trash fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-system-delete">more</a>)</small>.
     </p>
-    <h4 id="pf-manual-scrollspy-anchor-system-rally"><i class="fa fa-volume-up fa-fw"></i> Rally point</h4>
+    <h4 id="pf-manual-scrollspy-anchor-system-rally"><i class="fas fa-volume-up fa-fw"></i> Rally point</h4>
     <p>
         Systems can be marked as <span class="pf-system-info-rally"><span class="pf-system-head" style="padding: 0 5px;">Rally point</span></span>.
         When a new "<em>Rally point</em>" is set, you can optional enter a message and set various "<em>Poke</em>" options, in order to send notifications to other active pilots.<br>
         <em>Slack</em> and Email pokes require a valid map configuration (map settings dialog) before they can be used.
     </p>
     <ul class="list-unstyled" style=" margin-left: 10px;">
-        <li><i class="fa fa-volume-up fa-fw"></i> Desktop poke -<small> (send OS browser popup messages)</small></li>
-        <li><i class="fa fa-slack fa-fw"></i> Slack poke -<small> (send poke message to a <em>Slack</em> channel)</small></li>
-        <li><i class="fa fa-microphone fa-fw"></i> Discord poke -<small> (send poke message to a <em>Discord</em> channel)</small></li>
-        <li><i class="fa fa-envelope fa-fw"></i> Email poke -<small> (send a mail with your poke message)</small></li>
+        <li><i class="fas fa-volume-up fa-fw"></i> Desktop poke -<small> (send OS browser popup messages)</small></li>
+        <li><i class="fab fa-slack-hash fa-fw"></i> Slack poke -<small> (send poke message to a <em>Slack</em> channel)</small></li>
+        <li><i class="fab fa-discord fa-fw"></i> Discord poke -<small> (send poke message to a <em>Discord</em> channel)</small></li>
+        <li><i class="fas fa-envelope fa-fw"></i> Email poke -<small> (send a mail with your poke message)</small></li>
     </ul>
-    <h4 id="pf-manual-scrollspy-anchor-system-waypoint"><i class="fa fa-flag-checkered fa-fw"></i> Waypoints</h4>
+    <h4 id="pf-manual-scrollspy-anchor-system-waypoint"><i class="fas fa-flag-checkered fa-fw"></i> Waypoints</h4>
     <p>
         Waypoints can be set to systems. Waypoint options are identical to their in game options.
     </p>
@@ -207,15 +207,15 @@
         <li>add new [start] -<small> (add new waypoint in front of your waypoint queue)</small></li>
         <li>add new [end] -<small> (add new waypoint to the end of your waypoint queue)</small></li>
     </ul>
-    <h4 id="pf-manual-scrollspy-anchor-system-delete"><i class="fa fa-trash fa-fw"></i> Delete system</h4>
+    <h4 id="pf-manual-scrollspy-anchor-system-delete"><i class="fas fa-trash fa-fw"></i> Delete system</h4>
     <p>
-        Any system that is not "Locked"  <small>(<i class="fa fa-lock fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-system-locked">more</a>)</small> can be deleted from a map.
+        Any system that is not "Locked"  <small>(<i class="fas fa-lock fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-system-locked">more</a>)</small> can be deleted from a map.
     </p>
 
     <hr class="pf-manual-scroll-break">
     {{! ================================================================================================================================================  }}
 
-    <h2 id="pf-manual-connection"><i class="fa fa-chain fa-lg fa-fw"></i>&nbsp;&nbsp;Connection (Stargate / Wormhole)</h2>
+    <h2 id="pf-manual-connection"><i class="fas fa-link fa-fw"></i>&nbsp;&nbsp;Connection (Stargate / Wormhole)</h2>
     <p>
         Connections between systems are represented by solid lines. Any connection requires two systems that are connected together.
     </p>
@@ -228,7 +228,7 @@
         <li>Switch Connection: <kbd>click</kbd><small> a <em>"Connection Endpoints"</em> and </small><kbd>drag</kbd><small> it to any other system</small></li>
         <li>Add new System: <small>Add a system by using the context menu of a system (<a href="#" data-target="#pf-manual-scrollspy-anchor-system-contextmenu">more</a>)</small></li>
     </ul>
-    <h4 id="pf-manual-scrollspy-anchor-connection-scope"><i class="fa fa-crosshairs fa-fw"></i> Connection scope</h4>
+    <h4 id="pf-manual-scrollspy-anchor-connection-scope"><i class="fas fa-crosshairs fa-fw"></i> Connection scope</h4>
     <p>
         Each connection has its own <em>"Scope"</em>. Scopes represent connection types that exist in game.<br>
         Maps can be filtered by specific scopes <small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-map-contextmenu">more</a>)</small>.<br>
@@ -251,7 +251,7 @@
         <li><div class="pf-fake-connection pf-map-connection-wh-critical"></div> critical<small> (Wormhole is on the verge of collapse) &lt;10% mass left</small></li>
         <li><div class="pf-fake-connection pf-map-connection-frig"></div> Frigate hole<small> (Only the smallest ships pass through)</small></li>
     </ul>
-    <h4 id="pf-manual-scrollspy-anchor-connection-label"><i class="fa fa-tag fa-fw"></i> Connection label</h4>
+    <h4 id="pf-manual-scrollspy-anchor-connection-label"><i class="fas fa-tag fa-fw"></i> Connection label</h4>
     <p>
         In addition to its <em>"Lifetime Status" </em><small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-connection-status">more</a>)</small>, connections can be labeled with custom labels
         to supply further information.<br>
@@ -260,31 +260,31 @@
     </p>
     <ul class="list-unstyled" style=" margin-left: 10px;">
         <li><span class="label label-warning" style="color: #1d1d1d">frig</span> Frigate hole<small> (Only the smallest ships pass through)</small></li>
-        <li style="margin-top: 3px;"><span class="label label-danger"><i class="fa fa-warning"></i> save mass</span> save mass<small> (Wormhole mass has to be saved)</small></li>
+        <li style="margin-top: 3px;"><span class="label label-danger"><i class="fas fa-exclamation-triangle"></i> save mass</span> save mass<small> (Wormhole mass has to be saved)</small></li>
     </ul>
     <h4 id="pf-manual-scrollspy-anchor-connection-contextmenu">Context menu</h4>
     <p>
         <kbd>right click</kbd> a connection on the map to open the context menu.
     </p>
     <ul class="list-unstyled well" style=" margin-left: 10px;">
-        <li><i class="fa fa-plane fa-fw"></i> Toggles this connection as <em>"Frigate Hole"</em> <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-frig">more</a></small></li>
-        <li><i class="fa fa-warning fa-fw"></i> Toggles this connection as <em>"Preserve Mass"</em> <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-mass">more</a></small></li>
-        <li><i class="fa fa-crosshairs fa-fw"></i> Changes the scope of this connection <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-scope">more</a></small></li>
-        <li><i class="fa fa-reply fa-rotate-180 fa-fw"></i> Changes the status of this connection <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-status">more</a></small></li>
-        <li><i class="fa fa-trash fa-fw"></i> Delete this connection <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-delete">more</a></small></li>
+        <li><i class="fas fa-plane fa-fw"></i> Toggles this connection as <em>"Frigate Hole"</em> <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-frig">more</a></small></li>
+        <li><i class="fas fa-exclamation-triangle fa-fw"></i> Toggles this connection as <em>"Preserve Mass"</em> <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-mass">more</a></small></li>
+        <li><i class="fas fa-crosshairs fa-fw"></i> Changes the scope of this connection <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-scope">more</a></small></li>
+        <li><i class="fas fa-reply fa-rotate-180 fa-fw"></i> Changes the status of this connection <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-status">more</a></small></li>
+        <li><i class="fas fa-trash fa-fw"></i> Delete this connection <small><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-delete">more</a></small></li>
     </ul>
-    <h4 id="pf-manual-scrollspy-anchor-connection-frig"><i class="fa fa-plane fa-fw"></i> Frigate hole</h4>
+    <h4 id="pf-manual-scrollspy-anchor-connection-frig"><i class="fas fa-plane fa-fw"></i> Frigate hole</h4>
     <p>
-        Wormholes can be labeled <small>(<i class="fa fa-tag fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-label">more</a>)</small> as <em>"Frigate hole"</em>.
+        Wormholes can be labeled <small>(<i class="fas fa-tag fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-label">more</a>)</small> as <em>"Frigate hole"</em>.
         Only frigate-sized Spaceships can pass through a <em>"Frigate hole"</em> <small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-connection-status">more</a>)</small>.
     </p>
-    <h4 id="pf-manual-scrollspy-anchor-connection-mass"><i class="fa fa-warning fa-fw"></i> Preserve mass</h4>
+    <h4 id="pf-manual-scrollspy-anchor-connection-mass"><i class="fas fa-exclamation-triangle fa-fw"></i> Preserve mass</h4>
     <p>
-        Wormholes can be labeled <small>(<i class="fa fa-tag fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-label">more</a>)</small> as <em>"Preserve mass"</em>.
+        Wormholes can be labeled <small>(<i class="fas fa-tag fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-connection-label">more</a>)</small> as <em>"Preserve mass"</em>.
         Let your mates know about critical connections that should be mass-saved
         (e.g. <span class="pf-system-sec-highSec">H</span> security exits) <small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-system-security">more</a>)</small>.
     </p>
-    <h4 id="pf-manual-scrollspy-anchor-connection-delete"><i class="fa fa-trash fa-fw"></i> Delete connection</h4>
+    <h4 id="pf-manual-scrollspy-anchor-connection-delete"><i class="fas fa-trash fa-fw"></i> Delete connection</h4>
     <p>
         Connections can be detached by several ways.
     </p>
@@ -298,22 +298,22 @@
     <hr class="pf-manual-scroll-break">
     {{! ================================================================================================================================================  }}
 
-    <h2 id="pf-manual-signature"><i class="fa fa-table fa-lg fa-fw"></i>&nbsp;&nbsp;Signature module</h2>
+    <h2 id="pf-manual-signature"><i class="fas fa-table fa-fw"></i>&nbsp;&nbsp;Signature module</h2>
     <p>
         The <em>"Signature table"</em> of a system is shown below the map. Any active system <small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-system-active">more</a>)</small> has its own <em>"Signature table"</em>.
         Signatures found in a system can be added to the table in order to share information. The table represents a record of the current scan process of a system.
     </p>
-    <h4><i class="fa fa-tasks fa-fw"></i> Progress bar</h4>
+    <h4><i class="fas fa-tasks fa-fw"></i> Progress bar</h4>
     <p>
         The scan <em>"Progress bar"</em> is a visual indicator for the scan progress of a system. You can see how many signatures are scanned already and what is left.
         Anytime a new signature is added to the <em>"Signature table"</em> the <em>"Progress bar"</em> will be updated automatically. The bar color indicates the progress.
     </p>
     <ul class="fa-ul">
-        <li><i class="fa-li fa fa-circle txt-color txt-color-danger"></i></span> not scanned <small>(System scanned to &lt;30%)</small></li>
-        <li><i class="fa-li fa fa-circle txt-color txt-color-warning"></i></span> bad scanned <small>(System scanned to &lt;100%)</small></li>
-        <li><i class="fa-li fa fa-circle txt-color txt-color-success"></i></span> full scanned <small>(System scanned to 100%)</small></li>
+        <li><i class="fa-li fas fa-circle txt-color txt-color-danger"></i></span> not scanned <small>(System scanned to &lt;30%)</small></li>
+        <li><i class="fa-li fas fa-circle txt-color txt-color-warning"></i></span> bad scanned <small>(System scanned to &lt;100%)</small></li>
+        <li><i class="fa-li fas fa-circle txt-color txt-color-success"></i></span> full scanned <small>(System scanned to 100%)</small></li>
     </ul>
-    <h4><i class="fa fa-copy fa-fw"></i> Signature reader</h4>
+    <h4><i class="fas fa-paste fa-fw"></i> Signature reader</h4>
     <p>
         The <em>"Signature reader"</em> functionality allows pilots to add and update multiple signatures at once.
         In order to copy signatures from <em>"EVE"</em> to <em class="pf-brand">pathfinder</em>, do the following steps.
@@ -330,24 +330,24 @@
         <kbd>click</kbd> the browser tab were <em class="pf-brand">pathfinder</em> is open. Then press <kbd>ctrl</kbd> + <kbd>v</kbd>.<br>
         <em class="pf-brand">pathfinder</em> automatically detect the data format and updates the <em>"Signature table"</em>.
     </p>
-    <h4><i class="fa fa-trash fa-fw"></i> Delete signatures</h4>
+    <h4><i class="fas fa-trash fa-fw"></i> Delete signatures</h4>
     <p>
         Signatures can be detached by several ways.
     </p>
     <ul>
         <li>Clear Signatures: <small>Delete all signatures by </small><kbd>click</kbd><small> at the <em>"Clear Signatures"</em> button</small></li>
-        <li>Delete Signature: <small>Delete a signature by </small><kbd>click</kbd><small> at the (<i class="fa fa-close fa-fw"></i>) button at the end of a row</small></li>
+        <li>Delete Signature: <small>Delete a signature by </small><kbd>click</kbd><small> at the (<i class="fas fa-times fa-fw"></i>) button at the end of a row</small></li>
         <li>Automatically: <small>Signatures will be deleted automatically after some days</small></li>
     </ul>
 
     <hr class="pf-manual-scroll-break">
     {{! ================================================================================================================================================  }}
 
-    <h2 id="pf-manual-share"><i class="fa fa-share-alt fa-lg fa-fw"></i>&nbsp;&nbsp;Sharing maps</h2>
+    <h2 id="pf-manual-share"><i class="fas fa-share-alt fa-fw"></i>&nbsp;&nbsp;Sharing maps</h2>
 
     <p>
         The concept of map sharing is pretty complex and powerful. By default all sharing options are disabled, so there is no reason to be concerned about map security.
-        All map types <small>(<i class="fa fa-sitemap fa-fw"></i><a href="#" data-target="#pf-manual-map">more</a>)</small> can be temporary shared with allied entities e.g. for "<em>Joint-Ops</em>".<br>
+        All map types <small>(<i class="fas fa-sitemap fa-fw"></i><a href="#" data-target="#pf-manual-map">more</a>)</small> can be temporary shared with allied entities e.g. for "<em>Joint-Ops</em>".<br>
         The map type is preserved for the period of sharing (private maps can be shared with other users, corporation maps can be shared with other corporations,..).
         Do the following steps to share your map with your friend/allied corporation/allied alliance:
     </p>
@@ -356,10 +356,10 @@
         <li>Open the "<em>Map settings</em>" dialog on the map you are planning to share. Switch to the "<em>Settings</em>" tab and search for a character name or corporation/alliance </li>
         <li>If you can not find the "option" you are looking for, make sure he has enabled the "map invite" option</li>
         <li>Save the "<em>Map settings</em>" with the new "share" option. Wait a few seconds until the new settings take effect</li>
-        <li>If you were successful, you will see a small  <i class="fa fa-share-alt fa-fw"></i> icon in your map tab</li>
+        <li>If you were successful, you will see a small  <i class="fas fa-share-alt fa-fw"></i> icon in your map tab</li>
         <li>Disable the "map invite" flag and enjoy the shared map (prevent hostiles from invite you to their maps)</li>
     </ol>
-    <h4><i class="fa fa-info fa-fw"></i> Important information</h4>
+    <h4><i class="fas fa-info fa-fw"></i> Important information</h4>
     <ul style=" padding-left: 20px; list-style-type: disc;">
         <li>For now, all corporation/alliance members have the right to change/set the "map invite" flag.
             Make sure not to share your corp/ally maps with hostile entities, and/or remove them from the map once the Op is over. If you are paranoid, delete the shared map</li>
@@ -371,30 +371,30 @@
     <hr class="pf-manual-scroll-break">
     {{! ================================================================================================================================================  }}
 
-    <h2 id="pf-manual-chart"><i class="fa fa-bar-chart fa-lg fa-fw"></i>&nbsp;&nbsp;Chart</h2>
+    <h2 id="pf-manual-chart"><i class="fas fa-chart-bar fa-fw"></i>&nbsp;&nbsp;Chart</h2>
     <p>
         <em class="pf-brand">pathfinder</em> comes along with several visual charts graphs.
         In order to provide the pilot with useful information about his environment, data visualisation is a good way to compress the amount of relevant data.
     </p>
-    <h4><i class="fa fa-align-left  fa-fw"></i> Trade hub range</h4><p>
+    <h4><i class="fas fa-align-left  fa-fw"></i> Trade hub range</h4><p>
     <p>
         The <em>"Trade hub range"</em> table is available for any <em>"K-space"</em> system. Each row represents the jump distance to a main <em>"Trade-Hub"</em>.
-        Each system jump is represented by a <i class="fa fa-square fa-fw"></i> with the color of its <em>"Security status"</em> <small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-system-security">more</a>)</small>.
+        Each system jump is represented by a <i class="fas fa-square fa-fw"></i> with the color of its <em>"Security status"</em> <small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-system-security">more</a>)</small>.
     </p>
     <ul class="fa-ul">
-        <li><i class="fa-li fa fa-square pf-system-security-1-0"></i></span> <samp>1-0</samp></li>
-        <li><i class="fa-li fa fa-square pf-system-security-0-9"></i></span> <samp>0.9</samp></li>
-        <li><i class="fa-li fa fa-square pf-system-security-0-8"></i></span> <samp>0.8</samp></li>
-        <li><i class="fa-li fa fa-square pf-system-security-0-7"></i></span> <samp>0.7</samp></li>
-        <li><i class="fa-li fa fa-square pf-system-security-0-6"></i></span> <samp>0.6</samp></li>
-        <li><i class="fa-li fa fa-square pf-system-security-0-5"></i></span> <samp>0.5</samp></li>
-        <li><i class="fa-li fa fa-square pf-system-security-0-4"></i></span> <samp>0.4</samp></li>
-        <li><i class="fa-li fa fa-square pf-system-security-0-3"></i></span> <samp>0.3</samp></li>
-        <li><i class="fa-li fa fa-square pf-system-security-0-2"></i></span> <samp>0.2</samp></li>
-        <li><i class="fa-li fa fa-square pf-system-security-0-1"></i></span> <samp>0.1</samp></li>
-        <li><i class="fa-li fa fa-square pf-system-security-0-0"></i></span> <samp>0.0 - -1.0</samp></li>
+        <li><i class="fa-li fas fa-square pf-system-security-1-0"></i></span> <samp>1-0</samp></li>
+        <li><i class="fa-li fas fa-square pf-system-security-0-9"></i></span> <samp>0.9</samp></li>
+        <li><i class="fa-li fas fa-square pf-system-security-0-8"></i></span> <samp>0.8</samp></li>
+        <li><i class="fa-li fas fa-square pf-system-security-0-7"></i></span> <samp>0.7</samp></li>
+        <li><i class="fa-li fas fa-square pf-system-security-0-6"></i></span> <samp>0.6</samp></li>
+        <li><i class="fa-li fas fa-square pf-system-security-0-5"></i></span> <samp>0.5</samp></li>
+        <li><i class="fa-li fas fa-square pf-system-security-0-4"></i></span> <samp>0.4</samp></li>
+        <li><i class="fa-li fas fa-square pf-system-security-0-3"></i></span> <samp>0.3</samp></li>
+        <li><i class="fa-li fas fa-square pf-system-security-0-2"></i></span> <samp>0.2</samp></li>
+        <li><i class="fa-li fas fa-square pf-system-security-0-1"></i></span> <samp>0.1</samp></li>
+        <li><i class="fa-li fas fa-square pf-system-security-0-0"></i></span> <samp>0.0 - -1.0</samp></li>
     </ul>
-    <h4><i class="fa fa-bar-chart fa-fw"></i> Recent activity</h4><p>
+    <h4><i class="fas fa-chart-bar fa-fw"></i> Recent activity</h4><p>
     <p>
         The <em>"Recent activity"</em> bar chart is available for any active system <small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-system-active">more</a>)</small>.
         The chart shows all ship kills in a system during the last <samp>24h</samp>. If <em class="pf-brand">pathfinder</em> detects recent kills (within the last hour), a small label is shown above the graph.
@@ -403,7 +403,7 @@
     <hr class="pf-manual-scroll-break">
     {{! ================================================================================================================================================  }}
 
-    <h2 id="pf-manual-notification"><i class="fa fa-volume-up fa-lg fa-fw"></i>&nbsp;&nbsp;Notification</h2>
+    <h2 id="pf-manual-notification"><i class="fas fa-volume-up fa-fw"></i>&nbsp;&nbsp;Notification</h2>
 
     <h4>Types</h4>
 
@@ -415,17 +415,17 @@
     <h4 id="pf-manual-scrollspy-anchor-notification-desktop">Desktop push notifications</h4>
     <p>
         <em class="pf-brand">pathfinder</em> supports desktop push notifications. The first time this kind of notification is send to a client, a Browser security question must be confirmed.
-        In order to test desktop push notifications <kbd>click</kbd> the "Notification test" <small>(<i class="fa fa-bullhorn fa-fw"></i>)</small> option in the main menu.<br>
+        In order to test desktop push notifications <kbd>click</kbd> the "Notification test" <small>(<i class="fas fa-bullhorn fa-fw"></i>)</small> option in the main menu.<br>
         Events that trigger desktop notification.
     </p>
     <ul>
-        <li>New Rally point</span> <small>(<i class="fa fa-volume-up fa-fw"></i> <a href="#" data-target="#pf-manual-scrollspy-anchor-system-rally">more</a>)</small></li>
+        <li>New Rally point</span> <small>(<i class="fas fa-volume-up fa-fw"></i> <a href="#" data-target="#pf-manual-scrollspy-anchor-system-rally">more</a>)</small></li>
     </ul>
 
     <hr class="pf-manual-scroll-break">
     {{! ================================================================================================================================================  }}
 
-    <h2 id="pf-manual-statistics"><i class="fa fa-line-chart fa-lg fa-fw"></i>&nbsp;&nbsp;Statistics</h2>
+    <h2 id="pf-manual-statistics"><i class="fas fa-chart-line fa-fw"></i>&nbsp;&nbsp;Statistics</h2>
     <p>
         <em class="pf-brand">pathfinder</em> can log user statistics for each map. Activate <em>User statistics</em> for a map in the map settings dialog.<br>
         <em>User statistics</em> can be globally disabled for some map types on this installation.
@@ -435,18 +435,18 @@
     <hr class="pf-manual-scroll-break">
     {{! ================================================================================================================================================  }}
 
-    <h2 id="pf-manual-logging"><i class="fa fa-binoculars fa-lg fa-fw"></i>&nbsp;&nbsp;Logging</h2>
+    <h2 id="pf-manual-logging"><i class="fas fa-binoculars fa-fw"></i>&nbsp;&nbsp;Logging</h2>
     <p>
         Just as the "<em>Statistics</em>" logging <small>(<a href="#" data-target="#pf-manual-statistics">more</a>)</small>, which is primarily useful for character comparison,
         <em class="pf-brand">pathfinder</em> logs a lot more useful stuff "under the hood". Some of these map specific logs can also be seen by the users.<br>
-        Map specific log settings can be changed for each map individually; see map settings dialog <small>(<i class="fa fa-gears fa-fw"></i>)</small>.<br>
-        Some log methods might be globally disabled for some map types <small>(<i class="fa fa-sitemap fa-fw"></i><a href="#" data-target="#pf-manual-map">more</a>)</small>.
+        Map specific log settings can be changed for each map individually; see map settings dialog <small>(<i class="fas fa-cogs fa-fw"></i>)</small>.<br>
+        Some log methods might be globally disabled for some map types <small>(<i class="fas fa-sitemap fa-fw"></i><a href="#" data-target="#pf-manual-map">more</a>)</small>.
     </p>
-    <h4><i class="fa fa fa-file-code-o fa-fw"></i> Write log files</h4>
+    <h4><i class="far fa-file-code fa-fw"></i> Write log files</h4>
     <p>
         When enabled, <em class="pf-brand">pathfinder</em> will write a physical log file with map related events. There is UI in the "map information" dialog available (log file viewer).
     </p>
-    <h4><i class="fa fa fa-slack fa-fw"></i> Send logs to a <em>Slack</em> channel</h4>
+    <h4><i class="fab fa-slack-hash fa-fw"></i> Send logs to a <em>Slack</em> channel</h4>
     <p>
         Map logs can also be send to a <em>Slack</em> channel. This requires a valid "<em>WebHook</em>" configuration for your map.<br>
         <em>Slack´s Webhook API</em> has bad response times, use this feature with caution! It can slow down other map updates.

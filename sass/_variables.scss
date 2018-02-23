@@ -313,12 +313,12 @@ $container-tablet:             ((720px + $grid-gutter-width));
 $container-sm:                 $container-tablet;
 
 // Medium screen / desktop
-$container-desktop:            ((940px + $grid-gutter-width));
+$container-desktop:            ((1040px + $grid-gutter-width));
 //** For `$screen-md-min` and up.
 $container-md:                 $container-desktop;
 
 // Large screen / wide desktop
-$container-large-desktop:      ((1140px + $grid-gutter-width));
+$container-large-desktop:      ((1240px + $grid-gutter-width));
 //** For `$screen-lg-min` and up.
 $container-lg:                 $container-large-desktop;
 
@@ -529,7 +529,7 @@ $label-info-bg:               $brand-info;
 $label-warning-bg:            $brand-warning;
 $label-danger-bg:             $brand-danger;
 
-$label-color:                 $gray-darkest;
+$label-color:                 $black;
 $label-link-hover-color:      #fff;
 
 
@@ -915,13 +915,6 @@ $sparkline-font-size:			$tooltip-font-size;
 
 $slider-bar-color:				$blueStandard;
 $handle-bg-color:				  #858585;
-
-
-//== SWITCH BG
-//
-//##
-
-$onOffSwitchBG:					  $blueStandard;
 
 
 //== PROGRESS BARS SIZES

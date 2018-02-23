@@ -42,6 +42,7 @@
   padding: 0;
   position: absolute;
   width: 1px;
+  pointer-events: none;
 }
 
 @import "theme/pathfinder/_layout";

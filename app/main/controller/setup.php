@@ -67,6 +67,8 @@ class Setup extends Controller {
                 'Model\SystemStatusModel',
                 'Model\SystemNeighbourModel',
                 'Model\WormholeModel',
+                'Model\RightModel',
+                'Model\RoleModel',
 
                 'Model\CharacterStatusModel',
                 'Model\ConnectionScopeModel',
@@ -74,6 +76,8 @@ class Setup extends Controller {
                 'Model\CharacterMapModel',
                 'Model\AllianceMapModel',
                 'Model\CorporationMapModel',
+
+                'Model\CorporationRightModel',
 
                 'Model\UserCharacterModel',
                 'Model\CharacterModel',
@@ -791,31 +795,31 @@ class Setup extends Controller {
                     $label = 'Max. systems count/map';
                     break;
                 case 'log_activity_enabled':
-                    $label = '<i class="fa fa-fw fa-bar-chart"></i> Activity statistics';
+                    $label = '<i class="fas fa-fw fa-chart-bar"></i> Activity statistics';
                     $tooltip = 'If "enabled", map admins can enable user statistics for a map.';
                     break;
                 case 'log_history_enabled':
-                    $label = '<i class="fa fa-fw fa-file-text"></i> History log files';
+                    $label = '<i class="fas fa-fw fa-file-alt"></i> History log files';
                     $tooltip = 'If "enabled", map admins can pipe map logs to file. (one file per map)';
                     break;
                 case 'send_history_slack_enabled':
-                    $label = '<i class="fa fa-fw fa-slack"></i> History log Slack';
+                    $label = '<i class="fab fa-fw fa-slack-hash"></i> History log Slack';
                     $tooltip = 'If "enabled", map admins can set a Slack channel were map logs get piped to.';
                     break;
                 case 'send_rally_slack_enabled':
-                    $label = '<i class="fa fa-fw fa-slack"></i> Rally point poke Slack';
+                    $label = '<i class="fab fa-fw fa-slack-hash"></i> Rally point poke Slack';
                     $tooltip = 'If "enabled", map admins can set a Slack channel for rally point pokes.';
                     break;
                 case 'send_history_discord_enabled':
-                    $label = '<i class="fa fa-fw fa-microphone"></i> History log Discord';
+                    $label = '<i class="fab fa-fw fa-discord"></i> History log Discord';
                     $tooltip = 'If "enabled", map admins can set a Discord channel were map logs get piped to.';
                     break;
                 case 'send_rally_discord_enabled':
-                    $label = '<i class="fa fa-fw fa-microphone"></i> Rally point poke Discord';
+                    $label = '<i class="fab fa-fw fa-discord"></i> Rally point poke Discord';
                     $tooltip = 'If "enabled", map admins can set a Discord channel for rally point pokes.';
                     break;
                 case 'send_rally_mail_enabled':
-                    $label = '<i class="fa fa-fw fa-envelope"></i> Rally point poke Email';
+                    $label = '<i class="fas fa-fw fa-envelope"></i> Rally point poke Email';
                     $tooltip = 'If "enabled", rally point pokes can be send by Email (SMTP config + recipient address required).';
                     break;
                 default:
@@ -944,10 +948,13 @@ class Setup extends Controller {
                     }
 
                     foreach((array)$data['fieldConf'] as $columnName => $fieldConf){
+                        // if 'nullable' key not set in $fieldConf, Column was created with 'nullable' = true (Cortex default)
+                        $fieldConf['nullable'] = isset($fieldConf['nullable']) ? (bool)$fieldConf['nullable'] : true;
 
                         $columnStatusCheck = true;
                         $foreignKeyStatusCheck = true;
                         $requiredTables[$requiredTableName]['fieldConf'][$columnName]['requiredType'] = $fieldConf['type'];
+                        $requiredTables[$requiredTableName]['fieldConf'][$columnName]['requiredNullable'] = ($fieldConf['nullable']) ? '1' : '0';
                         $requiredTables[$requiredTableName]['fieldConf'][$columnName]['requiredIndex'] = ($fieldConf['index']) ? '1' : '0';
                         $requiredTables[$requiredTableName]['fieldConf'][$columnName]['requiredUnique'] = ($fieldConf['unique']) ? '1' : '0';
 
@@ -962,11 +969,14 @@ class Setup extends Controller {
                             $col->copyfrom($currentColumns[$columnName]);
 
                             $currentColType = $currentColumns[$columnName]['type'];
+                            $currentNullable = $currentColumns[$columnName]['nullable'];
+                            $hasNullable = $currentNullable ? '1' : '0';
                             $currentColIndexData = call_user_func($data['model'] . '::indexExists', [$columnName]);
                             $currentColIndex = is_array($currentColIndexData);
                             $hasIndex = ($currentColIndex) ? '1' : '0';
                             $hasUnique = ($currentColIndexData['unique']) ? '1' : '0';
                             $changedType = false;
+                            $changedNullable = false;
                             $changedUnique = false;
                             $changedIndex = false;
                             $addConstraints = [];
@@ -974,6 +984,7 @@ class Setup extends Controller {
                             // set (new) column information -------------------------------------------------------
                             $requiredTables[$requiredTableName]['fieldConf'][$columnName]['exists'] = true;
                             $requiredTables[$requiredTableName]['fieldConf'][$columnName]['currentType'] = $currentColType;
+                            $requiredTables[$requiredTableName]['fieldConf'][$columnName]['currentNullable'] = $hasNullable;
                             $requiredTables[$requiredTableName]['fieldConf'][$columnName]['currentIndex'] = $hasIndex;
                             $requiredTables[$requiredTableName]['fieldConf'][$columnName]['currentUnique'] = $hasUnique;
 
@@ -1014,6 +1025,13 @@ class Setup extends Controller {
                                 $tableStatusCheckCount++;
                             }
 
+                            // check if column nullable changed ---------------------------------------------------
+                            if( $currentNullable != $fieldConf['nullable']){
+                                $changedNullable = true;
+                                $columnStatusCheck = false;
+                                $tableStatusCheckCount++;
+                            }
+
                             // check if column index changed ------------------------------------------------------
                             $indexUpdate = false;
                             $indexKey = (bool)$hasIndex;
@@ -1025,7 +1043,7 @@ class Setup extends Controller {
                                 $tableStatusCheckCount++;
 
                                 $indexUpdate = true;
-                                $indexKey = (bool) $fieldConf['index'];
+                                $indexKey = (bool)$fieldConf['index'];
                             }
 
                             // check if column unique changed -----------------------------------------------------
@@ -1035,7 +1053,7 @@ class Setup extends Controller {
                                 $tableStatusCheckCount++;
 
                                 $indexUpdate = true;
-                                $indexUnique =(bool)$fieldConf['unique'];
+                                $indexUnique = (bool)$fieldConf['unique'];
                             }
 
                             // build table with changed columns ---------------------------------------------------
@@ -1044,6 +1062,11 @@ class Setup extends Controller {
                                 if(!$columnStatusCheck ){
                                     // IMPORTANT: setType is always required! Even if type has not changed
                                     $col->type($fieldConf['type']);
+
+                                    // update "nullable"
+                                    if($changedNullable){
+                                        $col->nullable($fieldConf['nullable']);
+                                    }
 
                                     // update/change/delete index/unique keys
                                     if($indexUpdate){
@@ -1077,6 +1100,7 @@ class Setup extends Controller {
 
                             // set (new) column information -------------------------------------------------------
                             $requiredTables[$requiredTableName]['fieldConf'][$columnName]['changedType'] = $changedType;
+                            $requiredTables[$requiredTableName]['fieldConf'][$columnName]['changedNullable'] = $changedNullable;
                             $requiredTables[$requiredTableName]['fieldConf'][$columnName]['changedUnique'] = $changedUnique;
                             $requiredTables[$requiredTableName]['fieldConf'][$columnName]['changedIndex'] = $changedIndex;
 
@@ -1323,7 +1347,7 @@ class Setup extends Controller {
                         [
                             'action' => 'buildIndex',
                             'label' => 'build',
-                            'icon' => 'fa-refresh',
+                            'icon' => 'fa-sync',
                             'btn' => 'btn-primary'
                         ]
                     ],

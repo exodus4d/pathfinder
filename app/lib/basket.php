@@ -193,7 +193,7 @@ class Basket extends Magic {
 	**/
 	function copyfrom($var) {
 		if (is_string($var))
-			$var=\Base::instance()->get($var);
+			$var=\Base::instance()->$var;
 		foreach ($var as $key=>$val)
 			$this->set($key,$val);
 	}

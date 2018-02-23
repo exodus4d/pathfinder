@@ -377,13 +377,13 @@ class MapModel extends AbstractMapTrackingModel {
         $valid = true;
         if( !empty($val) ){
             $hosts = [
-                'slack' => 'hooks.slack.com',
-                'discord' => 'discordapp.com'
+                'slack' => ['hooks.slack.com'],
+                'discord' => ['discordapp.com', 'ptb.discordapp.com']
             ];
 
             if(
                 !\Audit::instance()->url($val) ||
-                parse_url($val, PHP_URL_HOST) !== $hosts[$type]
+                !in_array(parse_url($val, PHP_URL_HOST), $hosts[$type])
             ){
                 $valid = false;
                 $this->throwValidationException($key);
@@ -1359,14 +1359,18 @@ class MapModel extends AbstractMapTrackingModel {
     /**
      * get all maps
      * @param array $mapIds
+     * @param array $options
      * @return \DB\CortexCollection
      */
-    public static function getAll($mapIds = []){
+    public static function getAll($mapIds = [], $options = []){
         $query = [
-            'active = :active AND id IN :mapIds',
-            ':active' => 1,
+            'id IN :mapIds',
             ':mapIds' => $mapIds
         ];
+        if( !$options['addInactive'] ){
+            $query[0] .= ' AND active = :active';
+            $query[':active'] = 1;
+        }
 
         return (new self())->find($query);
     }

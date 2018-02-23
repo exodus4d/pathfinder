@@ -26,7 +26,7 @@ define([
     'xEditable',
     'slidebars',
     'app/module_map'
-], function($, Init, Util, Logging, Mustache, MapUtil, TplLogo, TplHead, TplFooter) {
+], ($, Init, Util, Logging, Mustache, MapUtil, TplLogo, TplHead, TplFooter) => {
 
     'use strict';
 
@@ -166,7 +166,7 @@ define([
      * @param title
      * @returns {JQuery|*|jQuery}
      */
-    let getMenuHeadline = function(title){
+    let getMenuHeadline = (title) => {
         return $('<div>', {
             class: 'panel-heading'
         }).prepend(
@@ -191,7 +191,7 @@ define([
                     href: '/'
                 }).html('&nbsp;&nbsp;Home').prepend(
                     $('<i>',{
-                        class: 'fa fa-home fa-fw'
+                        class: 'fas fa-home fa-fw'
                     })
                 )
             ).append(
@@ -201,7 +201,7 @@ define([
                     class: 'list-group-item list-group-item-info'
                 }).html('&nbsp;&nbsp;Statistics').prepend(
                     $('<i>',{
-                        class: 'fa fa-line-chart fa-fw'
+                        class: 'fas fa-chart-line fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowStatsDialog');
@@ -211,7 +211,7 @@ define([
                     class: 'list-group-item list-group-item-info'
                 }).html('&nbsp;&nbsp;Effect info').prepend(
                     $('<i>',{
-                        class: 'fa fa-crosshairs fa-fw'
+                        class: 'fas fa-crosshairs fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowSystemEffectInfo');
@@ -221,7 +221,7 @@ define([
                     class: 'list-group-item list-group-item-info'
                 }).html('&nbsp;&nbsp;Jump info').prepend(
                     $('<i>',{
-                        class: 'fa fa-space-shuttle fa-fw'
+                        class: 'fas fa-space-shuttle fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowJumpInfo');
@@ -233,7 +233,7 @@ define([
                     class: 'list-group-item'
                 }).html('&nbsp;&nbsp;Account').prepend(
                     $('<i>',{
-                        class: 'fa fa-user fa-fw'
+                        class: 'fas fa-user fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowSettingsDialog');
@@ -263,7 +263,7 @@ define([
                     class: 'list-group-item'
                 }).html('&nbsp;&nbsp;Notification test').prepend(
                     $('<i>',{
-                        class: 'fa fa-volume-up fa-fw'
+                        class: 'fas fa-volume-up fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('NotificationTest');
@@ -275,7 +275,7 @@ define([
                     class: 'list-group-item list-group-item-danger'
                 }).html('&nbsp;&nbsp;Delete account').prepend(
                     $('<i>',{
-                        class: 'fa fa-user-times fa-fw'
+                        class: 'fas fa-user-times fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('DeleteAccount');
@@ -285,7 +285,7 @@ define([
                     class: 'list-group-item list-group-item-warning'
                 }).html('&nbsp;&nbsp;Logout').prepend(
                     $('<i>',{
-                        class: 'fa fa-sign-in fa-fw'
+                        class: 'fas fa-sign-in-alt fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('Logout', {clearCookies: 1});
@@ -312,7 +312,7 @@ define([
                     class: 'list-group-item'
                 }).html('&nbsp;&nbsp;Information').prepend(
                     $('<i>',{
-                        class: 'fa fa-street-view fa-fw'
+                        class: 'fas fa-street-view fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowMapInfo', {tab: 'information'});
@@ -324,7 +324,7 @@ define([
                     class: 'list-group-item'
                 }).html('&nbsp;&nbsp;Settings').prepend(
                     $('<i>',{
-                        class: 'fa fa-gears fa-fw'
+                        class: 'fas fa-cogs fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowMapSettings', {tab: 'settings'});
@@ -349,7 +349,7 @@ define([
                     id: Util.config.menuButtonMagnetizerId
                 }).html('&nbsp;&nbsp;&nbsp;Magnetizing').prepend(
                     $('<i>',{
-                        class: 'fa fa-magnet fa-fw'
+                        class: 'fas fa-magnet fa-fw'
                     })
                 ).on('click', function(){
                     Util.getMapModule().getActiveMap().triggerMenuEvent('MapOption', {
@@ -363,7 +363,7 @@ define([
                     id: Util.config.menuButtonEndpointId
                 }).html('&nbsp;&nbsp;&nbsp;Signatures').prepend(
                     $('<i>',{
-                        class: 'fa fa-link fa-fw'
+                        class: 'fas fa-link fa-fw'
                     })
                 ).on('click', function(){
                     Util.getMapModule().getActiveMap().triggerMenuEvent('MapOption', {
@@ -378,7 +378,7 @@ define([
                     class: 'list-group-item list-group-item-info'
                 }).html('&nbsp;&nbsp;Manual').prepend(
                     $('<i>',{
-                        class: 'fa fa-book fa-fw'
+                        class: 'fas fa-book fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('Manual');
@@ -388,7 +388,7 @@ define([
                     class: 'list-group-item list-group-item-info'
                 }).html('&nbsp;&nbsp;Shortcuts').prepend(
                     $('<i>',{
-                        class: 'fa fa-keyboard-o fa-fw'
+                        class: 'fas fa-keyboard fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('Shortcuts');
@@ -398,7 +398,7 @@ define([
                     class: 'list-group-item list-group-item-info'
                 }).html('&nbsp;&nbsp;Task-Manager').prepend(
                     $('<i>',{
-                        class: 'fa fa-tasks fa-fw'
+                        class: 'fas fa-tasks fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('ShowTaskManager');
@@ -407,10 +407,11 @@ define([
                 getMenuHeadline('Danger zone')
             ).append(
                 $('<a>', {
-                    class: 'list-group-item list-group-item-danger'
+                    class: 'list-group-item list-group-item-danger',
+                    id: Util.config.menuButtonMapDeleteId
                 }).html('&nbsp;&nbsp;Delete map').prepend(
                     $('<i>',{
-                        class: 'fa fa-trash fa-fw'
+                        class: 'fas fa-trash fa-fw'
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('DeleteMap');
@@ -569,9 +570,10 @@ define([
      * catch all global document events
      */
     let setPageObserver = function(){
+        let documentElement = $(document);
 
         // on "full-screen" change event
-        $(document).on('fscreenchange', function(e, state, elem){
+        documentElement.on('fscreenchange', function(e, state, elem){
 
             let menuButton = $('#' + Util.config.menuButtonFullScreenId);
 
@@ -587,67 +589,67 @@ define([
             }
         });
 
-        $(document).on('pf:menuShowStatsDialog', function(e){
+        documentElement.on('pf:menuShowStatsDialog', function(e){
             // show user activity stats dialog
             $.fn.showStatsDialog();
             return false;
         });
 
-        $(document).on('pf:menuShowSystemEffectInfo', function(e){
+        documentElement.on('pf:menuShowSystemEffectInfo', function(e){
             // show system effects dialog
             $.fn.showSystemEffectInfoDialog();
             return false;
         });
 
-        $(document).on('pf:menuShowJumpInfo', function(e){
+        documentElement.on('pf:menuShowJumpInfo', function(e){
             // show system effects info box
             $.fn.showJumpInfoDialog();
             return false;
         });
 
-        $(document).on('pf:menuNotificationTest', function(e){
+        documentElement.on('pf:menuNotificationTest', function(e){
             // show system effects info box
             notificationTest();
             return false;
         });
 
-        $(document).on('pf:menuDeleteAccount', function(e){
+        documentElement.on('pf:menuDeleteAccount', function(e){
             // show "delete account" dialog
             $.fn.showDeleteAccountDialog();
             return false;
         });
 
-        $(document).on('pf:menuManual', function(e){
+        documentElement.on('pf:menuManual', function(e){
             // show map manual
             $.fn.showMapManual();
             return false;
         });
 
-        $(document).on('pf:menuShowTaskManager', function(e, data){
+        documentElement.on('pf:menuShowTaskManager', function(e, data){
             // show log dialog
             Logging.showDialog();
             return false;
         });
 
-        $(document).on('pf:menuShortcuts', function(e, data){
+        documentElement.on('pf:menuShortcuts', function(e, data){
             // show shortcuts dialog
             $.fn.showShortcutsDialog();
             return false;
         });
 
-        $(document).on('pf:menuShowSettingsDialog', function(e){
+        documentElement.on('pf:menuShowSettingsDialog', function(e){
             // show character select dialog
             $.fn.showSettingsDialog();
             return false;
         });
 
-        $(document).on('pf:menuShowMapInfo', function(e, data){
+        documentElement.on('pf:menuShowMapInfo', function(e, data){
             // show map information dialog
             $.fn.showMapInfoDialog(data);
             return false;
         });
 
-        $(document).on('pf:menuShowMapSettings', function(e, data){
+        documentElement.on('pf:menuShowMapSettings', function(e, data){
             // show map edit dialog or edit map
             let mapData = false;
 
@@ -661,7 +663,7 @@ define([
             return false;
         });
 
-        $(document).on('pf:menuDeleteMap', function(e){
+        documentElement.on('pf:menuDeleteMap', function(e){
             // delete current active map
             let mapData = false;
 
@@ -675,7 +677,7 @@ define([
             return false;
         });
 
-        $(document).on('pf:menuLogout', function(e, data){
+        documentElement.on('pf:menuLogout', function(e, data){
 
             let clearCookies = false;
             if(
@@ -701,8 +703,14 @@ define([
             $(this).destroyTimestampCounter();
         });
 
+        // disable memue links based on current map config
+        documentElement.on('pf:updateMenuOptions', function(e, data){
+            let hasRightMapDelete = MapUtil.checkRight('map_delete', data.mapConfig);
+            $('#' + Util.config.menuButtonMapDeleteId).toggleClass('disabled', !hasRightMapDelete);
+        });
+
         // update header links with current map data
-        $(document).on('pf:updateHeaderMapData', function(e, data){
+        documentElement.on('pf:updateHeaderMapData', function(e, data){
             let activeMap = Util.getMapModule().getActiveMap();
 
             let userCount = 0;
@@ -721,12 +729,12 @@ define([
         });
 
         // shutdown the program -> show dialog
-        $(document).on('pf:shutdown', function(e, data){
+        documentElement.on('pf:shutdown', function(e, data){
             // show shutdown dialog
             let options = {
                 buttons: {
                     logout: {
-                        label: '<i class="fa fa-fw fa-refresh"></i> restart',
+                        label: '<i class="fas fa-fw fa-sync"></i> restart',
                         className: ['btn-primary'].join(' '),
                         callback: function(){
                             // check if error was 5xx -> reload page
@@ -735,7 +743,7 @@ define([
                                 // redirect to login
                                 window.location = '../';
                             }else{
-                                $(document).trigger('pf:menuLogout');
+                                documentElement.trigger('pf:menuLogout');
                             }
                         }
                     }
@@ -764,7 +772,7 @@ define([
 
             $.fn.showNotificationDialog(options);
 
-            $(document).setProgramStatus('offline');
+            documentElement.setProgramStatus('offline');
 
             Util.showNotify({title: 'Logged out', text: data.reason, type: 'error'}, false);
 
@@ -1096,7 +1104,7 @@ define([
                 break;
             case 'slow connection':
             case 'problem':
-                iconClass = 'fa-warning';
+                iconClass = 'fa-exclamation-triangle';
                 textClass = 'txt-color-orange';
                 break;
             case 'offline':
@@ -1130,7 +1138,7 @@ define([
                                 // store current status
                                 statusElement.data('status', status);
                                 statusElement.removeClass('txt-color-green txt-color-orange txt-color-red');
-                                icon.removeClass('fa-wifi fa-warning fa-bolt');
+                                icon.removeClass('fa-wifi fa-exclamation-triangle fa-bolt');
                                 statusElement.addClass(textClass);
                                 icon.addClass(iconClass);
                                 textElement.text(status);

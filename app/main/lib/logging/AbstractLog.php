@@ -545,7 +545,9 @@ abstract class AbstractLog implements LogInterface {
      * send this Log to global log buffer storage
      */
     public function buffer(){
-       Monolog::instance()->push($this);
+        if( !empty($this->handlerParamsConfig) ){
+            Monolog::instance()->push($this);
+        }  
     }
 
 

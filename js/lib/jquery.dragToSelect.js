@@ -155,6 +155,7 @@ $.fn.dragToSelect = function (conf) {
 		}
 
         // get scroll position
+		/*
         var leftScroll  = 0;
         var topScroll = 0;
 
@@ -165,25 +166,27 @@ $.fn.dragToSelect = function (conf) {
         if(realParent.attr('data-scroll-top')){
             topScroll  = parseInt(realParent.attr('data-scroll-top'));
         }
+		*/
 
 		var left		= lastMousePosition.x - parentDim.left + parent[0].scrollLeft;
 		var top			= lastMousePosition.y - parentDim.top + parent[0].scrollTop;
-		var newLeft		= left;
-		var newTop		= top;
-		var tempWidth	= selectBoxOrigin.left - newLeft ;
-		var newHeight	= selectBoxOrigin.top - newTop;
-        newLeft         = selectBoxOrigin.left - leftScroll;
+        var tempWidth	= selectBoxOrigin.left - left;
+        var tempHeight	= selectBoxOrigin.top - top;
+
+        let newLeft     = selectBoxOrigin.left;// - leftScroll;
+        let newTop      = selectBoxOrigin.top;// - topScroll;
         var newWidth	= left - selectBoxOrigin.left;
+        var newHeight	= top - selectBoxOrigin.top;
 
         if(newWidth < 0){
-            newLeft = newLeft - tempWidth ;
+            newLeft = newLeft - tempWidth;
             newWidth = newWidth * -1;
         }
 
-		if (top > selectBoxOrigin.top) {
-			newTop		= selectBoxOrigin.top;
-			newHeight	= top - selectBoxOrigin.top;
-		}
+        if(newHeight < 0){
+            newTop = newTop - tempHeight;
+            newHeight = newHeight * -1;
+        }
 
 		// check if dimension has changed -> save performance
 		var dimensionHash = [newWidth, newHeight].join('_');

@@ -23,7 +23,7 @@
   }
 }
 
-.pf-splash, .pf-splash-warning, .pf-splash-error {
+.pf-splash{
   position: absolute;
   z-index: 2000;
   background-color: $gray-darkest;
@@ -33,6 +33,10 @@
   left: 0;
   right: 0;
   will-change: opacity;
+
+  &:not(.pf-splash-warning):not(.pf-splash-error){
+    cursor: wait;
+  }
 
   .pf-splash-title{
     position: fixed;
@@ -81,12 +85,16 @@
 
 // content
 .pf-landing{
+
+  section:not(:last-of-type){
+    border-bottom: 1px solid $gray-darker;
+  }
+
   section{
     min-height: 200px;
     padding: 20px 0 40px 0;
-    border-bottom: 1px solid $gray-darker;
 
-    h4{
+    h4:not(.pf-dynamic-area){
       font-size: 18px;
       font-family: $font-family-sans-serif;
       margin: 5px 0 10px 0;
@@ -110,8 +118,9 @@
 
     &:before{
       content: '\f002';
-      font-family: 'FontAwesome';
+      font-family: 'Font Awesome 5 Free';
       font-size: 20px;
+      font-weight: bold;
       line-height: 20px;
       color: $orange;
       position: absolute;
@@ -168,7 +177,7 @@
   .pf-landing-list{
     li > i{
       @extend .fa-li;
-      @extend .fa;
+      @extend .fas;
       @extend .fa-fw;
       @extend .fa-angle-right;
       @extend .txt-color;
@@ -355,8 +364,9 @@
 
       // character is "online"
       &.pf-character-active:after{
-        font-family: FontAwesome;
+        font-family: "Font Awesome 5 Free";
         content: "\f111";
+        font-weight: bold;
         position: absolute;
         top: 5px;
         left: 5px;
@@ -637,13 +647,37 @@
       background: rgba(red($gray-light), green($gray-light), blue($gray-light), 0.5);
       line-height: 24px;
       text-align: center;
-      font-size: 12px;
-      margin-right: 5px;
-      width: 28px;
-      height: 24px;
+      font-size: 14px;
+      margin-right: 3px;
+      padding: 6px 6px 2px 6px;
+      width: 36px;
     }
   }
 }
+
+// admin page -----------------------------------------------------------------
+.pf-body[data-script='admin']{
+  .navbar-brand:hover{
+      color: #777; // overwrite default
+  }
+
+  .panel{
+    text-align: initial;
+
+    h3 img{
+      position: absolute;
+      right: 0;
+      top: 0;
+      margin: 4px 14px 0 0;
+      border-radius: 30%;
+    }
+
+  }
+  .form-horizontal .panel{
+    color: $gray-lighter;
+  }
+}
+
 
 // TEST ---
 /*

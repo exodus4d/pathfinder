@@ -36,15 +36,6 @@ class CharacterModel extends BasicModel {
         'KICKED'        => 'character is kicked',
         'BANNED'        => 'character is banned'
     ];
-
-    /**
-     * all admin roles and related roleId for a character
-     */
-    const ROLES = [
-        'MEMBER'        => 0,
-        'SUPERADMIN'    => 1,
-        'CORPORATION'   => 2
-    ];
     
     /**
      * enables change for "kicked" column
@@ -119,10 +110,17 @@ class CharacterModel extends BasicModel {
             ]
         ],
         'roleId' => [
-            'type' => Schema::DT_TINYINT,
+            'type' => Schema::DT_INT,
             'nullable' => false,
-            'default' => 0,
-            'index' => true
+            'default' => 1,
+            'index' => true,
+            'belongs-to-one' => 'Model\RoleModel',
+            'constraint' => [
+                [
+                    'table' => 'role',
+                    'on-delete' => 'CASCADE'
+                ]
+            ],
         ],
         'kicked' => [
             'type' => Schema::DT_TIMESTAMP,
@@ -164,7 +162,8 @@ class CharacterModel extends BasicModel {
     /**
      * get character data
      * @param bool|false $addCharacterLogData
-     * @return \stdClass
+     * @return null|object|\stdClass
+     * @throws \Exception
      */
     public function getData($addCharacterLogData = false){
         $cacheKeyModifier = '';
@@ -182,11 +181,11 @@ class CharacterModel extends BasicModel {
             $characterData = (object) [];
             $characterData->id = $this->id;
             $characterData->name = $this->name;
-            $characterData->roleId = $this->roleId;
+            $characterData->role = $this->roleId->getData();
             $characterData->shared = $this->shared;
             $characterData->logLocation = $this->logLocation;
 
-            if( $this->authStatus ){
+            if($this->authStatus){
                 $characterData->authStatus = $this->authStatus;
             }
 
@@ -270,8 +269,9 @@ class CharacterModel extends BasicModel {
 
     /**
      * setter for "kicked" until time
-     * @param bool|int $minutes
-     * @return mixed
+     * @param $minutes
+     * @return mixed|null|string
+     * @throws \Exception
      */
     public function set_kicked($minutes){
         if($this->allowKickChange){
@@ -470,7 +470,8 @@ class CharacterModel extends BasicModel {
 
     /**
      * get ESI API "access_token" from OAuth
-     * @return bool|string
+     * @return bool|mixed
+     * @throws \Exception
      * @throws \Exception\PathfinderException
      */
     public function getAccessToken(){
@@ -550,7 +551,6 @@ class CharacterModel extends BasicModel {
         // check whether character is banned or temp kicked
         if(is_null($this->banned)){
             if( !$this->isKicked() ){
-                $f3 = self::getF3();
                 $whitelistCorporations = array_filter( array_map('trim', (array)Config::getPathfinderData('login.corporation') ) );
                 $whitelistAlliance = array_filter( array_map('trim', (array)Config::getPathfinderData('login.alliance') ) );
 
@@ -596,27 +596,55 @@ class CharacterModel extends BasicModel {
     }
 
     /**
-     * get pathfinder roleId
-     * @return int
+     * get Pathfinder role for character
+     * @return RoleModel
+     * @throws \Exception
      * @throws \Exception\PathfinderException
      */
-    public function requestRoleId(){
-        $roleId = self::ROLES['MEMBER'];
+    public function requestRole() : RoleModel{
+        $role = null;
 
-        if( !empty($rolesData = $this->requestRoles()) ){
-            // roles that grant admin access for this character
-            $adminRoles = array_intersect(CorporationModel::ADMIN_ROLES, $rolesData);
-            if( !empty($adminRoles) ){
-                $roleId = self::ROLES['CORPORATION'];
+        // check config files for hardcoded character roles
+        if(self::getF3()->exists('PATHFINDER.ROLES.CHARACTER', $globalAdminData)){
+            foreach((array)$globalAdminData as $adminData){
+                if($adminData['ID'] === $this->_id){
+                    switch($adminData['ROLE']){
+                        case 'SUPER':
+                            $role = RoleModel::getAdminRole();
+                            break;
+                        case 'CORPORATION':
+                            $role = RoleModel::getCorporationManagerRole();
+                            break;
+                    }
+                    break;
+                }
             }
         }
 
-        return $roleId;
+        // check in-game roles
+        if(
+            is_null($role) &&
+            !empty($rolesData = $this->requestRoles())
+        ){
+            // roles that grant admin access for this character
+            $adminRoles = array_intersect(CorporationModel::ADMIN_ROLES, $rolesData);
+            if( !empty($adminRoles) ){
+                $role = RoleModel::getCorporationManagerRole();
+            }
+        }
+
+        // default role
+        if(is_null($role)){
+            $role = RoleModel::getDefaultRole();
+        }
+
+        return $role;
     }
 
     /**
      * request all corporation roles granted to this character
      * @return array
+     * @throws \Exception
      * @throws \Exception\PathfinderException
      */
     protected function requestRoles(){

@@ -55,10 +55,10 @@ define([
         placement: 'left',
         btnCancelClass: 'btn btn-sm btn-default',
         btnCancelLabel: 'cancel',
-        btnCancelIcon: 'fa fa-fw fa-ban',
+        btnCancelIcon: 'fas fa-fw fa-ban',
         btnOkClass: 'btn btn-sm btn-danger',
         btnOkLabel: 'delete',
-        btnOkIcon: 'fa fa-fw fa-close'
+        btnOkIcon: 'fas fa-fw fa-times'
     };
 
     /**
@@ -66,7 +66,7 @@ define([
      * @returns {string}
      */
     let getIconForInformationWindow = () => {
-        return '<i class="fa fa-fw fa-id-card ' + config.tableCellActionIconClass + '" title="open ingame" data-toggle="tooltip"></i>';
+        return '<i class="fas fa-fw fa-id-card ' + config.tableCellActionIconClass + '" title="open ingame" data-toggle="tooltip"></i>';
     };
 
     /**
@@ -76,7 +76,7 @@ define([
      */
     let getIconForDockedStatus = (type) => {
         let icon = type === 'station' ? 'fa-home' : type === 'structure' ? 'fa-industry' : '';
-        return icon.length ? '<i class="fa fa-fw ' + icon + ' ' + config.tableCellActionIconClass + '" title="' + type + '" data-toggle="tooltip"></i>' : '';
+        return icon.length ? '<i class="fas fa-fw ' + icon + ' ' + config.tableCellActionIconClass + '" title="' + type + '" data-toggle="tooltip"></i>' : '';
     };
 
     /**
@@ -119,7 +119,7 @@ define([
             ).append(
                 $('<dd>').append(
                     $('<i>', {
-                        class: ['fa', 'fa-fw', mapData.config.icon].join(' ')
+                        class: ['fas', 'fa-fw', mapData.config.icon].join(' ')
                     })
                 )
             ).append(
@@ -209,7 +209,7 @@ define([
             // current position
             if(tempSystemData.currentUser === true){
                 tempData.position = {
-                    position: '<i class="fa fa fa-map-marker fa-lg fa-fw"></i>',
+                    position: '<i class="fas fa-map-marker-alt fa-lg fa-fw"></i>',
                     position_sort: 1
                 };
             }else{
@@ -261,7 +261,7 @@ define([
             let systemStatusClass = Util.getStatusInfoForSystem(tempSystemData.status.id, 'class');
             if(systemStatusClass !== ''){
                 tempData.status = {
-                    status: '<i class="fa fa fa-square-o fa-lg fa-fw ' + systemStatusClass + '"></i>',
+                    status: '<i class="far fa-square fa-lg fa-fw ' + systemStatusClass + '"></i>',
                     status_sort: tempSystemData.status.id
                 };
             }else{
@@ -275,7 +275,7 @@ define([
             let systemEffectClass = MapUtil.getEffectInfoForSystem(tempSystemData.effect, 'class');
             if(systemEffectClass !== ''){
                 tempData.effect = {
-                    effect: '<i class="fa fa fa-square fa-lg fa-fw ' + systemEffectClass + '"></i>',
+                    effect: '<i class="fas fa-square fa-lg fa-fw ' + systemEffectClass + '"></i>',
                     effect_sort: tempSystemData.effect
                 };
             }else{
@@ -302,7 +302,7 @@ define([
             // locked
             if(tempSystemData.locked === 1){
                 tempData.locked = {
-                    locked: '<i class="fa fa-lock fa-lg fa-fw"></i>',
+                    locked: '<i class="fas fa-lock fa-lg fa-fw"></i>',
                     locked_sort: tempSystemData.locked
                 };
             }else{
@@ -316,7 +316,7 @@ define([
             tempData.updated = tempSystemData.updated.updated;
 
             // delete row
-            tempData.clear = '<i class="fa fa-close txt-color txt-color-redDarker"></i>';
+            tempData.clear = '<i class="fas fa-times txt-color txt-color-redDarker"></i>';
 
             systemsData.push(tempData);
         }
@@ -387,7 +387,7 @@ define([
                     title: 'region',
                     data: 'region'
                 },{
-                    title: '<i class="fa fa-square-o fa-lg" title="system&nbsp;status" data-toggle="tooltip"></i>',
+                    title: '<i class="far fa-square fa-lg" title="system&nbsp;status" data-toggle="tooltip"></i>',
                     width: '12px',
                     searchable: false,
                     data: 'status',
@@ -396,7 +396,7 @@ define([
                         sort: 'status_sort'
                     }
                 },{
-                    title: '<i class="fa fa-square fa-lg" title="system&nbsp;effect" data-toggle="tooltip"></i>',
+                    title: '<i class="fas fa-square fa-lg" title="system&nbsp;effect" data-toggle="tooltip"></i>',
                     width: '12px',
                     className: 'text-center',
                     searchable: false,
@@ -410,7 +410,7 @@ define([
                     width: '30px',
                     data: 'static'
                 },{
-                    title: '<i class="fa fa-map-marker fa-lg" title="your&nbsp;position" data-toggle="tooltip"></i>',
+                    title: '<i class="fas fa-map-marker-alt fa-lg" title="your&nbsp;position" data-toggle="tooltip"></i>',
                     width: '8px',
                     searchable: false,
                     data: 'position',
@@ -419,13 +419,13 @@ define([
                         sort: 'position_sort'
                     }
                 },{
-                    title: '<i class="fa fa-plane fa-lg" title="active&nbsp;pilots" data-toggle="tooltip"></i>',
+                    title: '<i class="fas fa-plane fa-lg" title="active&nbsp;pilots" data-toggle="tooltip"></i>',
                     width: '12px',
                     className: 'text-center',
                     searchable: false,
                     data: 'userCount'
                 },{
-                    title: '<i class="fa fa-lock fa-lg" title="system&nbsp;locked" data-toggle="tooltip"></i>',
+                    title: '<i class="fas fa-lock fa-lg" title="system&nbsp;locked" data-toggle="tooltip"></i>',
                     width: '10px',
                     searchable: false,
                     data: 'locked',
@@ -554,7 +554,7 @@ define([
 
             tempConData.updated = tempConnectionData.updated;
 
-            tempConData.clear = '<i class="fa fa-close txt-color txt-color-redDarker"></i>';
+            tempConData.clear = '<i class="fas fa-times txt-color txt-color-redDarker"></i>';
 
             connectionData.push(tempConData);
         }
@@ -713,6 +713,10 @@ define([
             ordering: true,
             order: [[ 3, 'asc' ]],
             autoWidth: false,
+            responsive: {
+                breakpoints: Init.breakpoints,
+                details: false
+            },
             hover: false,
             data: usersData,
             language: {
@@ -725,7 +729,7 @@ define([
                 {
                     targets: 0,
                     title: '',
-                    width: '26px',
+                    width: 26,
                     orderable: false,
                     searchable: false,
                     className: ['pf-help-default', 'text-center', config.tableCellImageClass].join(' '),
@@ -742,7 +746,7 @@ define([
                 },{
                     targets: 1,
                     title: 'ship name',
-                    width: '100px',
+                    width: 100,
                     orderable: true,
                     searchable: true,
                     data: 'log.ship',
@@ -758,7 +762,7 @@ define([
                 },{
                     targets: 2,
                     title: '',
-                    width: '26px',
+                    width: 26,
                     orderable: false,
                     searchable: false,
                     className: [config.tableCellImageClass].join(' '),
@@ -798,10 +802,10 @@ define([
                 },{
                     targets: 4,
                     title: '',
-                    width: '26px',
+                    width: 26,
                     orderable: false,
                     searchable: false,
-                    className: [config.tableCellImageClass, config.tableCellImageSmallClass].join(' '),
+                    className: [config.tableCellImageClass, config.tableCellImageSmallClass, 'min-desktop'].join(' '),
                     data: 'corporation',
                     render: {
                         _: function(data, type, row, meta){
@@ -817,7 +821,7 @@ define([
                     title: 'corporation',
                     orderable: true,
                     searchable: true,
-                    className: [config.tableCellActionClass].join(' '),
+                    className: [config.tableCellActionClass, 'min-desktop'].join(' '),
                     data: 'corporation',
                     render: {
                         _: function (data, type, row, meta) {
@@ -859,6 +863,23 @@ define([
                                 value = data.station.name + '&nbsp;' + getIconForDockedStatus('station');
                             }else if(data.structure && data.structure.id > 0){
                                 value = data.structure.name + '&nbsp;' + getIconForDockedStatus('structure');
+                            }
+                            return value;
+                        }
+                    }
+                },{
+                    targets: 8,
+                    title: 'role',
+                    width: 30,
+                    orderable: true,
+                    searchable: true,
+                    className: ['text-right', 'min-desktop'].join(' '),
+                    data: 'role',
+                    render: {
+                        _: function (data, type, row, meta) {
+                            let value = data.label;
+                            if(type === 'display'){
+                                value = Util.getLabelByRole(data).prop('outerHTML');
                             }
                             return value;
                         }
@@ -968,7 +989,7 @@ define([
                             let value = data;
                             if(type === 'display'){
                                 let className = 'txt-color-' + data;
-                                value = '<i class="fa fa-circle fa-fw txt-color ' + className + '"></i>';
+                                value = '<i class="fas fa-circle fa-fw txt-color ' + className + '"></i>';
                             }
                             return value;
                         }
@@ -976,7 +997,7 @@ define([
                 },{
                     targets: 1,
                     name: 'timestamp',
-                    title: '<i class="fa fa-lg fa-fw fa-clock-o"></i>',
+                    title: '<i class="far fa-lg fa-fw fa-clock"></i>',
                     width: 100,
                     className: ['text-right'].join(' '),
                     data: 'datetime.date',
@@ -1069,7 +1090,7 @@ define([
                     data: 'context.data.formatted'
                 },{
                     targets: 8,
-                    title: '<i class="fa fa-lg fa-code text-right"></i>',
+                    title: '<i class="fas fa-lg fa-code text-right"></i>',
                     width: 12,
                     className: [config.tableCellActionClass].join(' '),
                     data: 'context.data',
@@ -1078,7 +1099,7 @@ define([
                             let value = data;
                             if(type === 'display'){
                                // txt-color-redDarker
-                                value = '<i class="fa fa-code ' + config.tableCellActionIconClass + '"></i>';
+                                value = '<i class="fas fa-code ' + config.tableCellActionIconClass + '"></i>';
                             }
                             return value;
                         }
@@ -1157,7 +1178,7 @@ define([
             buttons: [
                 {
                     className: 'btn btn-sm btn-default',
-                    text: '<i class="fa fa-fw fa-plus"></i>&nbsp;load more',
+                    text: '<i class="fas fa-fw fa-plus"></i>&nbsp;load more',
                     enabled: false,
                     action: function ( e, dt, node, config ) {
                         let pageInfo = dt.page.info();

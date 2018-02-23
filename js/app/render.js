@@ -122,7 +122,7 @@ define(['jquery', 'mustache'], function($, Mustache) {
                 if (obj.length === 0) {
                     html += getRow(indent, '<span class="pf-code-ArrayBrace">[ ]</span>' + comma, isPropertyContent);
                 } else {
-                    clpsHtml = isCollapsible ? '<span><i class="fa fa-fw fa-plus-square" onClick="' + expImageClicked + '"></i></span><span class="collapsible">' : '';
+                    clpsHtml = isCollapsible ? '<span><i class="fas fa-fw fa-plus-square" onClick="' + expImageClicked + '"></i></span><span class="collapsible">' : '';
                     html += getRow(indent, '<span class="pf-code-ArrayBrace">[</span>' + clpsHtml, isPropertyContent);
                     for (let i = 0; i < obj.length; i++) {
                         html += highlight(obj[i], indent + 1, i < (obj.length - 1), true, false);
@@ -143,7 +143,7 @@ define(['jquery', 'mustache'], function($, Mustache) {
                     if (numProps === 0) {
                         html += getRow(indent, '<span class="pf-code-ObjectBrace">{ }</span>' + comma, isPropertyContent);
                     } else {
-                        clpsHtml = isCollapsible ? '<span><i class="fa fa-fw fa-plus-square" onClick="' + expImageClicked + '"></i></span><span class="collapsible">' : '';
+                        clpsHtml = isCollapsible ? '<span><i class="fas fa-fw fa-plus-square" onClick="' + expImageClicked + '"></i></span><span class="collapsible">' : '';
                         html += getRow(indent, '<span class="pf-code-ObjectBrace">{</span>' + clpsHtml, isPropertyContent);
                         let j = 0;
                         for (let prop in obj) {

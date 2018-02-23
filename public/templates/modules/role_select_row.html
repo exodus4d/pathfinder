@@ -1,0 +1,46 @@
+<div class="row">
+
+    <div class="col-xs-6 col-sm-3">
+        <div class="form-group">
+            <div class="col-sm-12">
+                <p class="form-control-static">{{@right->rightId->label}}
+                    <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="{{@right->rightId->description}}"></i>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <repeat group="{{ @roles }}" value="{{ @role }}" >
+        <set roleType="" />
+        <set default="" />
+        <check if="{{ @role->_id==1 }}">
+            <set default="true" />
+        </check>
+        <check if="{{ @role->_id==2 }}">
+            <set roleType="radio-danger" />
+        </check>
+        <check if="{{ @role->_id==3 }}">
+            <set roleType="radio-info" />
+        </check>
+
+        <set checked="" />
+        <check if="{{ @role->_id == @right->roleId->_id }}">
+            <set checked="checked" />
+        </check>
+
+        <div class="col-xs-6 col-sm-3 text-right">
+            <div class="form-group">
+                <div class="col-xs-12">
+                    <div class="radio {{ @roleType }}">
+                        <input id="form_role_{{ (int)@@id }}_{{ (int)@right->rightId->_id }}_{{ (int)@role->_id }}" name="rights[{{(int)@right->rightId->_id}}][roleId]" value="{{ (int)@role->_id }}" type="radio" <check if="{{ @default }}">data-default</check> {{ @checked }}>
+                        <label for="form_role_{{ (int)@@id }}_{{ (int)@right->rightId->_id }}_{{ (int)@role->_id }}">{{ @role->label }}</label >
+                    </div>
+                </div>
+            </div>
+        </div>
+    </repeat>
+
+    <input type="hidden" name="rights[{{@right->rightId->_id}}][id]" value="{{(int)@right->_id}}">
+    <input type="hidden" name="rights[{{@right->rightId->_id}}][corporationId]" value="{{(int)@id}}">
+    <input type="hidden" name="rights[{{@right->rightId->_id}}][rightId]" value="{{(int)@right->rightId->_id}}">
+</div>

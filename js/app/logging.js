@@ -119,21 +119,21 @@ define([
                 columnDefs: [
                     {
                         targets: 0,
-                        title: '<i class="fa fa-lg fa-tag"></i>',
+                        title: '<i class="fas fa-lg fa-tag"></i>',
                         width: '18px',
                         searchable: false,
                         class: ['text-center'].join(' '),
                         data: 'status'
                     },{
                         targets: 1,
-                        title: '<i class="fa fa-lg fa-fw fa-clock-o"></i>&nbsp;&nbsp;',
+                        title: '<i class="far fa-lg fa-fw fa-clock"></i>&nbsp;&nbsp;',
                         width: '50px',
                         searchable: true,
                         class: 'text-right',
                         data: 'time'
                     },{
                         targets: 2,
-                        title: '<i class="fa fa-lg fa-fw fa-history"></i>&nbsp;&nbsp;',
+                        title: '<i class="fas fa-lg fa-fw fa-history"></i>&nbsp;&nbsp;',
                         width: '35px',
                         searchable: false,
                         class: 'text-right',
@@ -282,11 +282,11 @@ define([
                         {
                             extend: 'copy',
                             className: 'btn btn-sm btn-default',
-                            text: '<i class="fa fa-fw fa-clipboard"></i> copy'
+                            text: '<i class="fas fa-fw fa-copy"></i> copy'
                         },{
                             extend: 'csv',
                             className: 'btn btn-sm btn-default',
-                            text: '<i class="fa fa-fw fa-download"></i> csv'
+                            text: '<i class="fas fa-fw fa-download"></i> csv'
                         }
                     ]
                 } );
@@ -483,11 +483,11 @@ define([
                 updateLogGraph(logKey, logDuration);
 
                 let logRowData = {
-                    status:  '<i class="fa fa-fw fa-circle txt-color ' + statusClass + '"></i>',
+                    status:  '<i class="fas fa-fw fa-circle txt-color ' + statusClass + '"></i>',
                     time: getLogTime(),
                     duration: '<span class="txt-color ' + statusClass + '">' + logDuration + '<small>ms</small></span>',
                     description: logDescription,
-                    type: '<i class="fa ' + typeIconClass + '"></i>',
+                    type: '<i class="fas ' + typeIconClass + '"></i>',
                     key: logKey
                 };
 

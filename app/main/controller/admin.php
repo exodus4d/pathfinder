@@ -14,6 +14,7 @@ use Model\CharacterModel;
 use Model\CorporationModel;
 use lib\Config;
 use Model\MapModel;
+use Model\RoleModel;
 
 class Admin extends Controller{
 
@@ -91,9 +92,7 @@ class Admin extends Controller{
         $adminCharacter = null;
         if( !$f3->exists(Sso::SESSION_KEY_SSO_ERROR) ){
             if( $character = $this->getCharacter() ){
-                $this->setCharacterRole($character);
-
-                if($character->role != 'MEMBER'){
+                if(in_array($character->roleId->name, ['SUPER', 'CORPORATION'], true)){
                     // current character is admin
                     $adminCharacter = $character;
                 }elseif( !$character->hasAdminScopes() ){
@@ -119,40 +118,11 @@ class Admin extends Controller{
     }
 
     /**
-     * set temp "virtual" field with current admin role name for a $characterModel
-     * @param CharacterModel $character
-     */
-    protected function setCharacterRole(CharacterModel $character){
-        $character->virtual('role', function ($character){
-            // default role based on roleId (auto-detected)
-            if(($role = array_search($character->roleId, CharacterModel::ROLES)) === false){
-                $role = 'MEMBER';
-            }
-
-            /**
-             * check config files for hardcoded character roles
-             * -> overwrites default role (e.g. auto detected by corp in-game roles)
-             */
-            if($this->getF3()->exists('PATHFINDER.ADMIN.CHARACTER', $globalAdminData)){
-                foreach((array)$globalAdminData as $adminData){
-                    if($adminData[ 'ID' ] === $character->_id){
-                        if(CharacterModel::ROLES[ $adminData[ 'ROLE' ] ]){
-                            $role = $adminData[ 'ROLE' ];
-                        }
-                        break;
-                    }
-                }
-            }
-
-            return $role;
-        });
-    }
-
-    /**
      * dispatch page events by URL $params
      * @param \Base $f3
-     * @param array $params
+     * @param $params
      * @param null $character
+     * @throws \Exception
      * @throws \Exception\PathfinderException
      */
     public function dispatch(\Base $f3, $params, $character = null){
@@ -163,6 +133,18 @@ class Admin extends Controller{
 
             switch($parts[0]){
                 case 'settings':
+                    switch($parts[1]){
+                        case 'save':
+                            $objectId = (int)$parts[2];
+                            $values  = (array)$f3->get('GET');
+                            $this->saveSettings($character, $objectId, $values);
+
+                            $f3->reroute('@admin(@*=/' . $parts[0] . ')');
+                            break;
+                    }
+                    $f3->set('tplDefaultRole', RoleModel::getDefaultRole());
+                    $f3->set('tplRoles', RoleModel::getAll());
+                    $this->initSettings($f3, $character);
                     break;
                 case 'members':
                     switch($parts[1]){
@@ -179,9 +161,7 @@ class Admin extends Controller{
                             $this->banCharacter($character, $objectId, $value);
                             break;
                     }
-                    $f3->set('tplPage', 'members');
                     $f3->set('tplKickOptions', self::KICK_OPTIONS);
-
                     $this->initMembers($f3, $character);
                     break;
                 case 'maps':
@@ -205,6 +185,44 @@ class Admin extends Controller{
                 default:
                     $f3->set('tplPage', 'login');
                     break;
+            }
+        }
+    }
+
+    /**
+     * save or delete settings (e.g. corporation rights)
+     * @param CharacterModel $character
+     * @param int $corporationId
+     * @param array $settings
+     * @throws \Exception
+     */
+    protected function saveSettings(CharacterModel $character, int $corporationId, array $settings){
+        $defaultRole = RoleModel::getDefaultRole();
+
+        if($corporationId && $defaultRole){
+            $corporations = $this->getAccessibleCorporations($character);
+            foreach($corporations as $corporation){
+                if($corporation->_id === $corporationId){
+                    // character has access to that corporation -> create/update/delete rights...
+                    if($corporationRightsData = (array)$settings['rights']){
+                        // get existing corp rights
+                        foreach($corporation->getRights(['addInactive' => true]) as $corporationRight){
+                            $corporationRightData = $corporationRightsData[$corporationRight->rightId->_id];
+                            if(
+                                $corporationRightData &&
+                                $corporationRightData['roleId'] != $defaultRole->_id // default roles should not be saved
+                            ){
+                                $corporationRight->setData($corporationRightData);
+                                $corporationRight->setActive(true);
+                                $corporationRight->save();
+                            }else{
+                                // right not send by user -> delete existing right
+                                $corporationRight->erase();
+                            }
+                        }
+                    }
+                    break;
+                }
             }
         }
     }
@@ -276,7 +294,7 @@ class Admin extends Controller{
         // check if kickCharacters belong to same Corp as admin character
         // -> remove admin char from valid characters...
         if( !empty($characterIds = array_diff( [$characterId], [$character->_id])) ){
-            if($character->role === 'SUPERADMIN'){
+            if($character->roleId->name === 'SUPER'){
                 if($filterCharacters = CharacterModel::getAll($characterIds)){
                     $characters = $filterCharacters;
                 }
@@ -317,13 +335,13 @@ class Admin extends Controller{
      * checks whether a $character has admin access rights for $mapId
      * @param CharacterModel $character
      * @param int $mapId
-     * @return array
+     * @return \DB\CortexCollection[]|MapModel[]
      * @throws \Exception\PathfinderException
      */
-    protected function filterValidMaps(CharacterModel $character, int $mapId) : array {
+    protected function filterValidMaps(CharacterModel $character, int $mapId) {
         $maps = [];
-        if($character->role === 'SUPERADMIN'){
-            if($filterMaps = MapModel::getAll([$mapId])){
+        if($character->roleId->name === 'SUPER'){
+            if($filterMaps = MapModel::getAll([$mapId], ['addInactive' => true])){
                 $maps = $filterMaps;
             }
         }else{
@@ -344,6 +362,22 @@ class Admin extends Controller{
     }
 
     /**
+     * init /settings page data
+     * @param \Base $f3
+     * @param CharacterModel $character
+     */
+    protected function initSettings(\Base $f3, CharacterModel $character){
+        $data = (object) [];
+        $corporations = $this->getAccessibleCorporations($character);
+
+        foreach($corporations as $corporation){
+            $data->corporations[$corporation->name] = $corporation;
+        }
+
+        $f3->set('tplSettings', $data);
+    }
+
+    /**
      * init /member page data
      * @param \Base $f3
      * @param CharacterModel $character
@@ -351,17 +385,7 @@ class Admin extends Controller{
     protected function initMembers(\Base $f3, CharacterModel $character){
         $data = (object) [];
         if($characterCorporation = $character->getCorporation()){
-            $corporations = [];
-            switch($character->role){
-                case 'SUPERADMIN':
-                    if($accessCorporations =  CorporationModel::getAll(['addNPC' => true])){
-                        $corporations = $accessCorporations;
-                    }
-                    break;
-                case 'CORPORATION':
-                    $corporations[] = $characterCorporation;
-                    break;
-            }
+            $corporations = $this->getAccessibleCorporations($character);
 
             foreach($corporations as $corporation){
                 if($characters = $corporation->getCharacters()){
@@ -382,21 +406,12 @@ class Admin extends Controller{
      * init /maps page data
      * @param \Base $f3
      * @param CharacterModel $character
+     * @throws \Exception\PathfinderException
      */
     protected function initMaps(\Base $f3, CharacterModel $character){
         $data = (object) [];
         if($characterCorporation = $character->getCorporation()){
-            $corporations = [];
-            switch($character->role){
-                case 'SUPERADMIN':
-                    if($accessCorporations =  CorporationModel::getAll(['addNPC' => true])){
-                        $corporations = $accessCorporations;
-                    }
-                    break;
-                case 'CORPORATION':
-                    $corporations[] = $characterCorporation;
-                    break;
-            }
+            $corporations = $this->getAccessibleCorporations($character);
 
             foreach($corporations as $corporation){
                 if($maps = $corporation->getMaps([], ['addInactive' => true, 'ignoreMapCount' => true])){
@@ -406,6 +421,29 @@ class Admin extends Controller{
         }
 
         $f3->set('tplMaps', $data);
+    }
+
+    /**
+     * get all corporations a characters has admin access for
+     * @param CharacterModel $character
+     * @return CorporationModel[]
+     */
+    protected function getAccessibleCorporations(CharacterModel $character) {
+        $corporations = [];
+        if($characterCorporation = $character->getCorporation()){
+            switch($character->roleId->name){
+                case 'SUPER':
+                    if($accessCorporations =  CorporationModel::getAll(['addNPC' => true])){
+                        $corporations = $accessCorporations;
+                    }
+                    break;
+                case 'CORPORATION':
+                    $corporations[] = $characterCorporation;
+                    break;
+            }
+        }
+
+        return $corporations;
     }
 
 }

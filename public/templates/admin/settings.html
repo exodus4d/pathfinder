@@ -2,6 +2,71 @@
     <div class="container col-xs-12">
         <div class="row"></div>
 
-        <h4><i class="fa fa-fw fa-gears"></i>&nbsp;{{ ucfirst(@tplPage) }}</h4>
+        <h4><i class="fas fa-fw fa-cogs"></i>&nbsp;{{ ucfirst(@tplPage) }}</h4>
+
+        <div class="row text-center">
+            <repeat group="{{ @tplSettings->corporations }}" value="{{ @corporation }}" key="{{@corpName}}" counter="{{ @corpCount }}">
+
+                <set fieldsetId = "{{ 'settings-map-' . @corporation->_id }}" />
+
+                <form role="form" class="form-horizontal" action="/admin/{{ @tplPage}}/save/{{ @corporation->_id }}">
+                    <div class="col-sm-12 col-md-6 col-lg-4 pf-landing-pricing-panel">
+                        <div class="panel panel-default pricing-big">
+                            <div class="panel-heading text-left">
+                                <h3 class="panel-title">
+                                    {{ @corpCount }}. {{@corpName}}
+                                    <img class="pf-character-image" src="https://image.eveonline.com/Corporation/{{ @corporation->_id }}_32.png" alt="{{ @corporation->name }}"/>
+                                </h3>
+                            </div>
+                            <div class="panel-body panel-reverse-order">
+
+                                <set isManaged = "" />
+
+                                <fieldset class="reverse-order-footer" data-id="{{ @fieldsetId}}">
+                                    <h4 class="pf-dynamic-area">Map roles</h4>
+
+                                    <repeat group="{{ @corporation->getRights() }}" value="{{ @corporationRight }}" >
+                                        <check if="{{ @tplDefaultRole->_id != @corporationRight->roleId->_id }}">
+                                            <set isManaged = "checked" />
+                                        </check>
+
+                                        <include href="templates/modules/role_select_row.html"with="right={{@corporationRight}},id={{@corporation->_id}},roles={{@tplRoles}}"/>
+                                    </repeat>
+                                </fieldset>
+
+                                <div class="reverse-order-header">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <div class="col-sm-12 col-md-6">
+                                                <div class="form-group">
+                                                    <div class="col-xs-6 col-sm-12  checkbox checkbox-warning">
+                                                        <input id="{{ @fieldsetId}}" name="managed" value="1" type="checkbox" data-target="{{ @fieldsetId}}" {{ @isManaged }}>
+                                                        <label for="{{ @fieldsetId}}">Managed mode
+                                                            <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="If active, admin roles can be set for some actions"></i>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <div class="pf-dialog-warning-container alert alert-info">
+                                    <span class="txt-color txt-color-info">Cache expire</span>
+                                    <small> Roles are cached for 2min</small>
+                                </div>
+
+                            </div>
+                            <div class="panel-footer text-right">
+                                <button type="submit" class="btn btn-success pf-overlay-trigger">
+                                    <i class="fas fa-fw fa-check"></i> save
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </repeat>
+        </div>
     </div>
 </section>

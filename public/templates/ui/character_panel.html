@@ -1,11 +1,14 @@
 <a href="{{ link }}?cookie={{ cookieName }}&tabId={{browserTabId}}">
     {{#authOK}}
-        {{#character.roleId}}
-            <div class="ribbon-wrapper fade in"><div class="ribbon ribbon-blue">ADMIN</div></div>
-        {{/character.roleId}}
+        {{#isManager}}
+            <div class="ribbon-wrapper fade in"><div class="ribbon ribbon-blue">{{ character.role.label }}</div></div>
+        {{/isManager}}
+        {{#isAdmin}}
+            <div class="ribbon-wrapper fade in"><div class="ribbon ribbon-red">{{ character.role.label }}</div></div>
+        {{/isAdmin}}
     {{/authOK}}
     {{^authOK}}
-        <div class="ribbon-wrapper fade in"><div class="ribbon ribbon-red">{{authLabel}}</div></div>
+        <div class="ribbon-wrapper fade in"><div class="ribbon ribbon-orange">{{authLabel}}</div></div>
     {{/authOK}}
 
     <div class="pf-character-image-wrapper {{#hasActiveSession}}pf-character-active{{/hasActiveSession}}">

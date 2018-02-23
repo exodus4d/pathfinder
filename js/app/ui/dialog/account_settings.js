@@ -53,7 +53,8 @@ define([
                 captchaImageWrapperId: config.captchaImageWrapperId,
                 captchaImageId: config.captchaImageId,
                 formErrorContainerClass: Util.config.formErrorContainerClass,
-                ccpImageServer: Init.url.ccpImageServer
+                ccpImageServer: Init.url.ccpImageServer,
+                roleLabel: Util.getLabelByRole(Util.getObjVal(Util.getCurrentUserData(), 'character.role')).prop('outerHTML'),
             };
 
             let content = Mustache.render(template, data);
@@ -67,7 +68,7 @@ define([
                         className: 'btn-default'
                     },
                     success: {
-                        label: '<i class="fa fa-check fa-fw"></i>&nbsp;save',
+                        label: '<i class="fas fa-check fa-fw"></i>&nbsp;save',
                         className: 'btn-success',
                         callback: function() {
 
@@ -196,8 +197,8 @@ define([
 
                 // init "toggle" switches on current active tab
                 accountSettingsDialog.find( $(this).attr('href') ).find('input[data-toggle="toggle"][type="checkbox"]').bootstrapToggle({
-                    on: '<i class="fa fa-fw fa-check"></i>&nbsp;Enable',
-                    off: 'Disable&nbsp;<i class="fa fa-fw fa-ban"></i>',
+                    on: '<i class="fas fa-fw fa-check"></i>&nbsp;Enable',
+                    off: 'Disable&nbsp;<i class="fas fa-fw fa-ban"></i>',
                     onstyle: 'success',
                     offstyle: 'warning',
                     width: 100,

@@ -16,9 +16,9 @@ table.dataTable thead th.sorting_asc:after,
 table.dataTable thead th.sorting_desc:after {
   position: absolute;
   top: 12px;
-  right: 8px;
+  right: 5px;
   display: block;
-  font-family: FontAwesome;
+  font-family: 'Font Awesome 5 Free';
   margin-top: -8px;
 }
 
@@ -59,19 +59,21 @@ div.dataTables_paginate a.paginate_button.last {
 div.dataTables_paginate a.first:before,
 div.dataTables_paginate a.previous:before {
   position: absolute;
-  top: 7px;
+  top: 6px;
   left: 10px;
   display: block;
-  font-family: FontAwesome;
+  font-weight: bold;
+  font-family: 'Font Awesome 5 Free';
 }
 
 div.dataTables_paginate a.next:after,
 div.dataTables_paginate a.last:after {
   position: absolute;
-  top: 7px;
+  top: 6px;
   right: 10px;
   display: block;
-  font-family: FontAwesome;
+  font-weight: bold;
+  font-family: 'Font Awesome 5 Free';
 }
 
 div.dataTables_paginate a.first:before {

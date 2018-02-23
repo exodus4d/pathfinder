@@ -39,23 +39,4 @@ class SystemTypeModel extends BasicModel {
         ]
     ];
 
-    /**
-     * overwrites parent
-     * @param null $db
-     * @param null $table
-     * @param null $fields
-     * @return bool
-     * @throws \Exception
-     */
-    public static function setup($db=null, $table=null, $fields=null){
-        $status = parent::setup($db,$table,$fields);
-
-        // set static default values
-        if($status === true){
-            $model = self::getNew(self::getClassName(), 0);
-            $model->importStaticData(self::$tableData);
-        }
-
-        return $status;
-    }
 } 

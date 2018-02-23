@@ -856,10 +856,10 @@
 		 */
 		PNotify.styling.fontawesome = $.extend({}, PNotify.styling.bootstrap3);
 		$.extend(PNotify.styling.fontawesome, {
-			notice_icon: "fa fa-exclamation-circle",
-			info_icon: "fa fa-info",
-			success_icon: "fa fa-check",
-			error_icon: "fa fa-warning"
+			notice_icon: "fas fa-exclamation-circle",
+			info_icon: "fas fa-info",
+			success_icon: "fas fa-check",
+			error_icon: "fas fa-exclamation-triangle"
 		});
 
 		if (root.document.body) {

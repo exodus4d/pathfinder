@@ -1,40 +1,40 @@
-.modal-content {
+.modal-content, .panel-body {
 
   // dialog headline ==========================================================
   h2 {
     font-family: $font-family-sans-serif;
-    letter-spacing: 0px;
+    letter-spacing: 0;
     font-size: $font-size-h5;
     margin: 20px 0;
     line-height: normal;
   }
 
-  h2, h4{
-    &.pf-dynamic-area{
+  h2, h4 {
+    &.pf-dynamic-area {
       min-height: 0;
       margin: 0 0 10px 0;
 
-      & > img{
+      & > img {
         margin: -10px 5px -10px -10px;
         width: 35px;
       }
     }
 
     // collapse-able headline =================================================
-    &[data-toggle="collapse"]{
+    &[data-toggle="collapse"] {
       cursor: pointer;
 
-      &:hover{
-        &:after{
+      &:hover {
+        &:after {
           color: $orange !important;
         }
       }
 
       &:after {
         content: "\f078";
-        font-family: FontAwesome;
+        font-family: "Font Awesome 5 Free";
         font-style: normal;
-        font-weight: normal;
+        font-weight: bold;
         font-size: 13px;
         padding-right: 10px;
         position: absolute;
@@ -46,17 +46,20 @@
         @extend .fa-fw;
       }
 
-      &.collapsed{
-        &:after{
+      &.collapsed {
+        &:after {
           top: 13px;
           right: 5px;
           color: $gray-light;
-          @include rotate( 90deg );
+          @include rotate(90deg);
         }
       }
     }
   }
+}
 
+
+.modal-content {
   // data tables ==============================================================
   .dataTables_wrapper{
     + .alert{

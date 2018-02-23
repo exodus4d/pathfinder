@@ -72,7 +72,7 @@ class Session {
 				//NB: `session_destroy` can't be called at that stage (`session_start` not completed)
 				$this->destroy($id);
 				$this->close();
-				$fw->clear('COOKIE.'.session_name());
+				unset($fw->{'COOKIE.'.session_name()});
 				$fw->error(403);
 			}
 		}
@@ -87,7 +87,7 @@ class Session {
 	**/
 	function write($id,$data) {
 		$fw=Base::instance();
-		$jar=$fw->get('JAR');
+		$jar=$fw->JAR;
 		$this->_cache->set($id.'.@',
 			[
 				'data'=>$data,
@@ -95,7 +95,7 @@ class Session {
 				'agent'=>$this->_agent,
 				'stamp'=>time()
 			],
-			$jar['expire']?($jar['expire']-time()):0
+			$jar['expire']
 		);
 		return TRUE;
 	}
@@ -181,12 +181,12 @@ class Session {
 		);
 		register_shutdown_function('session_commit');
 		$fw=\Base::instance();
-		$headers=$fw->get('HEADERS');
-		$this->_csrf=$fw->get('SEED').'.'.$fw->hash(mt_rand());
+		$headers=$fw->HEADERS;
+		$this->_csrf=$fw->SEED.'.'.$fw->hash(mt_rand());
 		if ($key)
-			$fw->set($key,$this->_csrf);
+			$fw->$key=$this->_csrf;
 		$this->_agent=isset($headers['User-Agent'])?$headers['User-Agent']:'';
-		$this->_ip=$fw->get('IP');
+		$this->_ip=$fw->IP;
 	}
 
 }

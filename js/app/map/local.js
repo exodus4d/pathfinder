@@ -312,7 +312,7 @@ define([
                     class: config.overlayLocalMainClass
                 }).append(
                     $('<i>', {
-                        class: ['fa', 'fa-chevron-down', 'fa-fw', 'pf-animate-rotate', config.overlayLocalTriggerClass].join(' ')
+                        class: ['fas', 'fa-chevron-down', 'fa-fw', 'pf-animate-rotate', config.overlayLocalTriggerClass].join(' ')
                     }),
                     $('<span>', {
                         class: ['badge', 'txt-color', 'txt-color-red', config.overlayLocalUsersClass].join(' '),
@@ -413,7 +413,7 @@ define([
                                     let value = data;
                                     if(type === 'display'){
                                         if(value === 0){
-                                            value = '<i class="fa fa-map-marker"></i>';
+                                            value = '<i class="fas fa-map-marker-alt"></i>';
                                         }
                                     }
                                     return value;
@@ -485,9 +485,9 @@ define([
                                     let value = '';
                                     if(type === 'display'){
                                         if(data.station && data.station.id > 0){
-                                            value = '<i class="fa fa-home"></i>';
+                                            value = '<i class="fas fa-home"></i>';
                                         }else if(data.structure && data.structure.id > 0){
-                                            value = '<i class="fa fa-industry"></i>';
+                                            value = '<i class="fas fa-industry"></i>';
                                         }
                                     }
                                     return value;
@@ -506,7 +506,7 @@ define([
                         },{
                             targets: 5,
                             orderable: false,
-                            title: '<i title="open ingame" data-toggle="tooltip" class="fa fa-id-card text-right"></i>',
+                            title: '<i title="open ingame" data-toggle="tooltip" class="fas fa-id-card text-right"></i>',
                             width: '10px',
                             className: [config.tableCellActionClass].join(' '),
                             data: 'id',
@@ -514,7 +514,7 @@ define([
                                 _: function(data, type, row, meta){
                                     let value = data;
                                     if(type === 'display'){
-                                        value = '<i class="fa fa-id-card ' + config.tableCellActionIconClass + '"></i>';
+                                        value = '<i class="fas fa-id-card ' + config.tableCellActionIconClass + '"></i>';
                                     }
                                     return value;
                                 }
@@ -557,7 +557,7 @@ define([
             class: [config.toolbarClass].join(' ')
         }).append(
             $('<i>', {
-                class: ['fa', 'fa-fw', 'fa-lg', 'fa-filter', config.toolbarIconClass, 'pull-left'].join(' ')
+                class: ['fas', 'fa-fw', 'fa-lg', 'fa-filter', config.toolbarIconClass, 'pull-left'].join(' ')
             }),
             getCheckbox({
                 id: 'test',

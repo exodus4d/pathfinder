@@ -55,7 +55,7 @@ class Geo extends \Prefab {
 		$fw=\Base::instance();
 		$web=\Web::instance();
 		if (!$ip)
-			$ip=$fw->get('IP');
+			$ip=$fw->IP;
 		$public=filter_var($ip,FILTER_VALIDATE_IP,
 			FILTER_FLAG_IPV4|FILTER_FLAG_IPV6|
 			FILTER_FLAG_NO_RES_RANGE|FILTER_FLAG_NO_PRIV_RANGE);

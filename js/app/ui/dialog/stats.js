@@ -88,7 +88,7 @@ define([
             columnDefs: [
                 {
                     targets: 0,
-                    title: '<i class="fa fa-hashtag"></i>',
+                    title: '<i class="fas fa-hashtag"></i>',
                     orderable: false,
                     searchable: false,
                     width: 10,
@@ -359,9 +359,9 @@ define([
                 let rowCount = i + 1;
                 let content = '';
                 switch(rowCount){
-                    case 1: content = '<i class="fa fa-fw fa-trophy txt-color txt-color-gold"></i>'; break;
-                    case 2: content = '<i class="fa fa-fw fa-trophy txt-color txt-color-silver"></i>'; break;
-                    case 3: content = '<i class="fa fa-fw fa-trophy txt-color txt-color-bronze"></i>'; break;
+                    case 1: content = '<i class="fas fa-fw fa-trophy txt-color txt-color-gold"></i>'; break;
+                    case 2: content = '<i class="fas fa-fw fa-trophy txt-color txt-color-silver"></i>'; break;
+                    case 3: content = '<i class="fas fa-fw fa-trophy txt-color txt-color-bronze"></i>'; break;
                     default: content = rowCount + '.&nbsp;&nbsp;';
                 }
 
@@ -431,7 +431,7 @@ define([
         // if period == "weekly" there is no "offset" -> just a single week
         let offsetText = 'Week ' + responseData.start.week + ', ' + responseData.start.year;
         if(responseData.period !== 'weekly'){
-            offsetText += ' <small><i class="fa fa-fw fa-minus"></i></small> ' +
+            offsetText += ' <small><i class="fas fa-fw fa-minus"></i></small> ' +
                             'Week ' + responseData.offset.week + ', ' + responseData.offset.year;
         }
         dialogElement.find('.' + config.dialogNavigationOffsetClass)

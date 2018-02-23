@@ -81,6 +81,16 @@ class CorporationModel extends BasicModel {
         'security_officer'
     ];
 
+    /**
+     * corp rights that can be stored to a corp
+     */
+    const RIGHTS = [
+        'map_update',
+        'map_delete',
+        'map_import',
+        'map_export'
+    ];
+
     protected $fieldConf = [
         'active' => [
             'type' => Schema::DT_BOOL,
@@ -108,12 +118,16 @@ class CorporationModel extends BasicModel {
         ],
         'mapCorporations' => [
             'has-many' => ['Model\CorporationMapModel', 'corporationId']
+        ],
+        'corporationRights' => [
+            'has-many' => ['Model\CorporationRightModel', 'corporationId']
         ]
     ];
 
     /**
-     * get all cooperation data
-     * @return \stdClass
+     * get cooperation data
+     * @return object
+     * @throws \Exception
      */
     public function getData(){
         $cooperationData = (object) [];
@@ -121,6 +135,12 @@ class CorporationModel extends BasicModel {
         $cooperationData->id = $this->id;
         $cooperationData->name = $this->name;
         $cooperationData->shared = $this->shared;
+
+        if($corporationRights = $this->getRights()){
+            foreach($corporationRights as $corporationRight){
+                $cooperationData->rights[] = $corporationRight->getData();
+            }
+        }
 
         return $cooperationData;
     }
@@ -206,6 +226,50 @@ class CorporationModel extends BasicModel {
         }
 
         return $characterRolesData;
+    }
+
+    /**
+     * get all corporation rights
+     * @param array $options
+     * @return CorporationRightModel[]
+     * @throws \Exception
+     */
+    public function getRights($options = []) : array {
+        $corporationRights = [];
+        // get available rights
+        $right = self::getNew('RightModel');
+        if($rights = $right->find(['active = ? AND name IN (?)', 1, self::RIGHTS])){
+            // get already stored rights
+            if( !$options['addInactive'] ){
+                $this->filter('corporationRights', ['active = ?', 1]);
+            }
+
+            foreach($rights as $i => $tempRight){
+                $corporationRight = false;
+                if($this->corporationRights){
+                    foreach($this->corporationRights as $tempCorporationRight){
+                        /**
+                         * @var $tempCorporationRight CorporationRightModel
+                         */
+                        if($tempCorporationRight->get('rightId', true) === $tempRight->_id){
+                            $corporationRight = $tempCorporationRight;
+                            break;
+                        }
+                    }
+                }
+
+                if(!$corporationRight){
+                    $corporationRight = self::getNew('CorporationRightModel');
+                    $corporationRight->corporationId = $this;
+                    $corporationRight->rightId = $tempRight;
+                    $corporationRight->roleId = RoleModel::getDefaultRole();
+                }
+
+                $corporationRights[] = $corporationRight;
+            }
+        }
+
+        return $corporationRights;
     }
 
     /**

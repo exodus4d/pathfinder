@@ -63,7 +63,7 @@ define([
                         rows[0].append(
                             $('<td>').html( '&nbsp;&nbsp;' + systemEffectName).prepend(
                                 $('<i>', {
-                                    class: ['fa', 'fa-square', 'fa-fw', systemEffectClass].join(' ')
+                                    class: ['fas', 'fa-square', 'fa-fw', systemEffectClass].join(' ')
                                 })
                             )
                         );
