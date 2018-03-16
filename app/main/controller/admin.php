@@ -10,9 +10,9 @@ namespace Controller;
 
 
 use Controller\Ccp\Sso;
+use lib\Config;
 use Model\CharacterModel;
 use Model\CorporationModel;
-use lib\Config;
 use Model\MapModel;
 use Model\RoleModel;
 
