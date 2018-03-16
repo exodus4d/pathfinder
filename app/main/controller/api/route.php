@@ -19,6 +19,8 @@ use Model;
  */
 class Route extends Controller\AccessController {
 
+    const ROUTE_SEARCH_DEPTH_DEFAULT = 1;
+
     /**
      * cache time for static jump data (e.g. K-Space stargates)
      * @var int
@@ -44,27 +46,32 @@ class Route extends Controller\AccessController {
     private $jumpArray = [];
 
     /**
-     * array withh systemName => systemId matching
+     * array with systemName => systemId matching
      * @var array
      */
     private $idArray = [];
 
     /**
-     * set jump data for route search
-     * -> this function is required for route search! (Don´t forget)
-     * @param array $mapIds
-     * @param array $filterData
-     * @param array $keepSystems
+     * template for routeData payload
+     * @var array
      */
-    public function initJumpData($mapIds = [], $filterData = [], $keepSystems = []){
-        // add static data (e.g. K-Space stargates,..)
-        $this->setStaticJumpData();
+    private $defaultRouteData = [
+        'routePossible' => false,
+        'routeJumps' => 0,
+        'maxDepth' => self::ROUTE_SEARCH_DEPTH_DEFAULT,
+        'depthSearched' => 0,
+        'searchType' => '',
+        'route' => [],
+        'error' => ''
+    ];
 
-        // add map specific data
-        $this->setDynamicJumpData($mapIds, $filterData);
-
-        // filter jump data (e.g. remove some systems (0.0, LS)
-        $this->filterJumpData($filterData, $keepSystems);
+    /**
+     * reset all jump data
+     */
+    protected function resetJumpData(){
+        $this->nameArray = [];
+        $this->jumpArray = [];
+        $this->idArray = [];
     }
 
     /**
@@ -74,31 +81,11 @@ class Route extends Controller\AccessController {
      * -> this data is equal for EACH route search (does not depend on map data)
      */
     private function setStaticJumpData(){
-        $cacheKey = 'staticJumpData';
+        $query = "SELECT * FROM system_neighbour";
+        $rows = $this->getDB()->exec($query, null, $this->staticJumpDataCacheTime);
 
-        $f3 = $this->getF3();
-
-        $cacheKeyNamedArray = $cacheKey . '.nameArray';
-        $cacheKeyJumpArray = $cacheKey . '.jumpArray';
-        $cacheKeyIdArray = $cacheKey . '.idArray';
-
-        if(
-            !$f3->exists($cacheKeyNamedArray, $this->nameArray) ||
-            !$f3->exists($cacheKeyJumpArray, $this->jumpArray) ||
-            !$f3->exists($cacheKeyIdArray, $this->idArray)
-        ){
-            // nothing cached
-            $query = "SELECT * FROM system_neighbour";
-            $rows = $this->getDB()->exec($query, null, $this->staticJumpDataCacheTime);
-
-            if(count($rows) > 0){
-                $this->updateJumpData($rows);
-
-                // static data should be cached
-                $f3->set($cacheKeyNamedArray, $this->nameArray, $this->staticJumpDataCacheTime);
-                $f3->set($cacheKeyJumpArray, $this->jumpArray, $this->staticJumpDataCacheTime);
-                $f3->set($cacheKeyIdArray, $this->idArray, $this->staticJumpDataCacheTime);
-            }
+        if(count($rows) > 0){
+            $this->updateJumpData($rows);
         }
     }
 
@@ -267,12 +254,12 @@ class Route extends Controller\AccessController {
     }
 
     /**
-     * filter systems (remove some systems) e.g. WH,LS,0.0 for "safer search"
+     * filter systems (remove some systems) e.g. WH,LS,0.0 for "secure search"
      * @param array $filterData
      * @param array $keepSystems
      */
     private function filterJumpData($filterData = [], $keepSystems = []){
-        if($filterData['safer']){
+        if($filterData['flag'] == 'secure'){
             // remove all systems (TrueSec < 0.5) from search arrays
             $this->jumpArray = array_filter($this->jumpArray, function($jumpData) use($keepSystems) {
 
@@ -302,9 +289,7 @@ class Route extends Controller\AccessController {
      * @return null
      */
     private function getSystemInfoBySystemId($systemId, $option){
-
         $info = null;
-
         switch($option){
             case 'systemName':
                 $info = $this->nameArray[ $systemId ][0];
@@ -395,65 +380,105 @@ class Route extends Controller\AccessController {
     }
 
     /**
-     * find a route between two systems (system names)
-     * $searchDepth for recursive route search (5000 would be best but slow)
-     * -> in reality there are no routes > 100 jumps between systems
-     * @param $systemFrom
-     * @param $systemTo
-     * @param int $searchDepth
+     * get formatted jump node data
+     * @param $systemName
      * @return array
      */
-    public function findRoute($systemFrom, $systemTo, $searchDepth = 7000){
-
-        $routeData = [
-            'routePossible' => false,
-            'routeJumps' => 0,
-            'maxDepth' => $searchDepth,
-            'depthSearched' => 0,
-            'route' => []
+    protected function getJumpNodeData($systemName) : array {
+        return [
+            'system' => $systemName,
+            'security' => $this->getSystemInfoBySystemId($this->idArray[$systemName], 'trueSec')
         ];
+    }
 
-        if(
-            !empty($systemFrom) &&
-            !empty($systemTo)
-        ){
+    /**
+     * search root between two systemIds
+     * -> function searches over ESI API, as fallback a custom search algorithm is used (no ESI)
+     * @param int $systemFromId
+     * @param int $systemToId
+     * @param int $searchDepth
+     * @param array $mapIds
+     * @param array $filterData
+     * @return array
+     * @throws \Exception\PathfinderException
+     */
+    public function searchRoute(int $systemFromId, int $systemToId, $searchDepth = 0, array $mapIds = [], array $filterData = []) : array {
 
-            $from = strtoupper( $systemFrom );
-            $to = strtoupper( $systemTo );
+        // search root by ESI API
+        $routeData = $this->searchRouteESI($systemFromId, $systemToId, $searchDepth, $mapIds, $filterData);
+
+        self::getLogger('DEBUG')->write('NEW searchRouteESI() --------------------------------------------------');
+        self::getLogger('DEBUG')->write(print_r($routeData, true));
+
+        if( !empty($routeData['error']) ){
+            // ESI route search has errors -> fallback to custom search implementation
+            $routeDataTest = $this->searchRouteCustom($systemFromId, $systemToId, $searchDepth, $mapIds, $filterData);
+
+            self::getLogger('DEBUG')->write('NEW searchRouteCustom() --------------------------------------------------');
+            self::getLogger('DEBUG')->write(print_r($routeDataTest, true));
+        }
+
+        return $routeData;
+    }
+
+    /**
+     * uses a custom search algorithm to fine a route
+     * @param int $systemFromId
+     * @param int $systemToId
+     * @param int $searchDepth
+     * @param array $mapIds
+     * @param array $filterData
+     * @return array
+     * @throws \Exception\PathfinderException
+     */
+    public function searchRouteCustom(int $systemFromId, int $systemToId, $searchDepth = 0, array $mapIds = [], array $filterData = []) : array {
+        // reset all previous set jump data
+        $this->resetJumpData();
+
+        $searchDepth = $searchDepth ? $searchDepth : Config::getPathfinderData('route.search_depth');
+
+        $routeData = $this->defaultRouteData;
+        $routeData['maxDepth'] = $searchDepth;
+        $routeData['searchType'] = 'custom';
+
+        if($systemFromId && $systemToId){
+            // prepare search data ------------------------------------------------------------------------------------
+            // add static data (e.g. K-Space stargates,..)
+            $this->setStaticJumpData();
+
+            // add map specific data
+            $this->setDynamicJumpData($mapIds, $filterData);
+
+            // filter jump data (e.g. remove some systems (0.0, LS)
+            // --> don´t filter some systems (e.g. systemFrom, systemTo) even if they are are WH,LS,0.0
+            $this->filterJumpData($filterData, [$systemFromId, $systemToId]);
+
+            $systemFrom = $this->getSystemInfoBySystemId($systemFromId, 'systemName');
+            $systemTo = $this->getSystemInfoBySystemId($systemToId, 'systemName');
+
+            // search route -------------------------------------------------------------------------------------------
 
             // jump counter
             $jumpNum = 0;
             $depthSearched = 0;
 
-            if( isset($this->jumpArray[$from]) ){
-
+            if( isset($this->jumpArray[$systemFrom]) ){
                 // check if the system we are looking for is a direct neighbour
-                foreach( $this->jumpArray[$from] as $n ) {
-
-                    if ($n == $to) {
+                foreach( $this->jumpArray[$systemFrom] as $n ) {
+                    if ($n == $systemTo) {
                         $jumpNum = 2;
-
-                        $jumpNode = [
-                            'system' => $n,
-                            'security' => $this->getSystemInfoBySystemId($this->idArray[$n], 'trueSec')
-                        ];
-
-                        $routeData['route'][] = $jumpNode;
+                        $routeData['route'][] = $this->getJumpNodeData($n);
                         break;
                     }
                 }
 
                 // system is not a direct neighbour -> search recursive its neighbours
                 if ($jumpNum == 0) {
-                    $searchResult = $this->graph_find_path( $this->jumpArray, $from, $to, $searchDepth );
+                    $searchResult = $this->graph_find_path( $this->jumpArray, $systemFrom, $systemTo, $searchDepth );
                     $depthSearched = $searchResult['depth'];
                     foreach( $searchResult['path'] as $systemName ) {
                         if ($jumpNum > 0) {
-                            $jumpNode = [
-                                'system' => $systemName,
-                                'security' => $this->getSystemInfoBySystemId($this->idArray[$systemName], 'trueSec')
-                            ];
-                            $routeData['route'][] = $jumpNode;
+                            $routeData['route'][] = $this->getJumpNodeData($systemName);
                         }
                         $jumpNum++;
                     }
@@ -462,14 +487,8 @@ class Route extends Controller\AccessController {
                 if ($jumpNum > 0) {
                     // route found
                     $routeData['routePossible'] = true;
-
-                    $jumpNode = [
-                        'system' => $from,
-                        'security' => $this->getSystemInfoBySystemId($this->idArray[$from], 'trueSec')
-                    ];
-
                     // insert "from" system on top
-                    array_unshift($routeData['route'], $jumpNode);
+                    array_unshift($routeData['route'], $this->getJumpNodeData($systemFrom));
                 } else {
                     // route not found
                     $routeData['routePossible'] = false;
@@ -478,6 +497,102 @@ class Route extends Controller\AccessController {
 
             // route jumps
             $routeData['routeJumps'] = $jumpNum - 1;
+            $routeData['depthSearched'] = $depthSearched;
+        }
+
+        return $routeData;
+    }
+
+    /**
+     * uses ESI route search endpoint to fine a route
+     * @param int $systemFromId
+     * @param int $systemToId
+     * @param int $searchDepth
+     * @param array $mapIds
+     * @param array $filterData
+     * @return array
+     * @throws \Exception\PathfinderException
+     */
+    public function searchRouteESI(int $systemFromId, int $systemToId, int $searchDepth = 0, array $mapIds = [], array $filterData = []) : array {
+        // reset all previous set jump data
+        $this->resetJumpData();
+
+        $searchDepth = $searchDepth ? $searchDepth : Config::getPathfinderData('route.search_depth');
+
+        $routeData = $this->defaultRouteData;
+        $routeData['maxDepth'] = $searchDepth;
+        $routeData['searchType'] = 'esi';
+
+        if($systemFromId && $systemToId){
+            // prepare search data ------------------------------------------------------------------------------------
+
+            // add map specific data
+            $this->setDynamicJumpData($mapIds, $filterData);
+
+            // filter jump data (e.g. remove some systems (0.0, LS)
+            // --> don´t filter some systems (e.g. systemFrom, systemTo) even if they are are WH,LS,0.0
+            $this->filterJumpData($filterData, [$systemFromId, $systemToId]);
+
+            $connections = [];
+            foreach($this->jumpArray as $systemSourceName => $jumpData){
+                $count = count($jumpData);
+                if($count > 1){
+                    // ... should always > 1
+                    $systemSourceId = (int)$this->idArray[$systemSourceName];
+                    // loop all connections for current source system
+                    foreach($jumpData as $systemTargetName) {
+                        // skip last entry
+                        if(--$count <= 0){
+                            break;
+                        }
+                        $systemTargetId = (int)$this->idArray[$systemTargetName];
+
+                        // systemIds exist and wer not removed before in filterJumpData()
+                        if($systemSourceId && $systemTargetId){
+                            $connections[] = [$systemSourceId, $systemTargetId];
+                        }
+                    }
+                }
+            }
+
+            // search route -------------------------------------------------------------------------------------------
+            $options = [
+                'flag' => $filterData['flag'],
+                'connections' => $connections
+            ];
+
+            $result = $this->getF3()->ccpClient->getRouteData($systemFromId, $systemToId, $options);
+
+            // format result ------------------------------------------------------------------------------------------
+
+            // jump counter
+            $jumpNum = 0;
+            $depthSearched = 0;
+            if( !empty($result['error']) ){
+                $routeData['error'] = $result['error'];
+            }elseif( !empty($result['route']) ){
+                $jumpNum = count($result['route']) - 1;
+
+                // check max search depth
+                if($jumpNum <= $routeData['maxDepth']){
+                    $depthSearched = $jumpNum;
+
+                    $routeData['routePossible'] = true;
+
+                    // Now (after search) we have to "add" static jump data information
+                    $this->setStaticJumpData();
+
+                    foreach($result['route'] as $systemId){
+                        $systemName = $this->getSystemInfoBySystemId($systemId, 'systemName');
+                        $routeData['route'][] = $this->getJumpNodeData($systemName);
+                    }
+                }else{
+                    $depthSearched = $routeData['maxDepth'];
+                }
+            }
+
+            // route jumps
+            $routeData['routeJumps'] = $jumpNum;
             $routeData['depthSearched'] = $depthSearched;
         }
 
@@ -543,7 +658,9 @@ class Route extends Controller\AccessController {
 
                 // check map access (filter requested mapIDs and format) ----------------------------------------------
                 array_walk($mapData, function(&$item, &$key, $data){
-
+                    /**
+                     * @var Model\MapModel $data[0]
+                     */
                     if( isset($data[1][$key]) ){
                         // character has map access -> do not check again
                         $item = $data[1][$key];
@@ -577,7 +694,7 @@ class Route extends Controller\AccessController {
                     'wormholesCritical' => (bool) $routeData['wormholesCritical'],
                     'wormholesFrigate' => (bool) $routeData['wormholesFrigate'],
                     'wormholesEOL' => (bool) $routeData['wormholesEOL'],
-                    'safer' => (bool) $routeData['safer']
+                    'flag' => $routeData['flag']
                 ];
 
                 $returnRoutData = [
@@ -611,16 +728,8 @@ class Route extends Controller\AccessController {
                         // get data from cache
                         $returnRoutData = $cachedData;
                     }else{
-                        // max search depth for search
-                        $searchDepth = Config::getPathfinderData('route.search_depth');
+                        $foundRoutData = $this->searchRoute($systemFromId, $systemToId, 0, $mapIds, $filterData);
 
-                        // set jump data for following route search
-                        // --> don´t filter some systems (e.g. systemFrom, systemTo) even if they are are WH,LS,0.0
-                        $keepSystems = [$systemFromId, $systemToId];
-                        $this->initJumpData($mapIds, $filterData, $keepSystems);
-
-                        // no cached route data found
-                        $foundRoutData = $this->findRoute($systemFrom, $systemTo, $searchDepth);
                         $returnRoutData = array_merge($returnRoutData, $foundRoutData);
 
                         // cache if route was found

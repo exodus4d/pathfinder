@@ -186,7 +186,7 @@ define([
             wormholesCritical: (rowData.hasOwnProperty('wormholesCritical')) ? rowData.wormholesCritical | 0 : 1,
             wormholesFrigate: (rowData.hasOwnProperty('wormholesFrigate')) ? rowData.wormholesFrigate | 0 : 1,
             wormholesEOL: (rowData.hasOwnProperty('wormholesEOL')) ? rowData.wormholesEOL | 0 : 1,
-            safer: (rowData.hasOwnProperty('safer')) ? rowData.safer.value | 0 : 0
+            flag: (rowData.hasOwnProperty('flag')) ? rowData.flag.value : 'shortest'
         };
     };
 
@@ -563,10 +563,10 @@ define([
         // 2: not searched
         let routeStatus = routeData.skipSearch ? 2 : 0;
 
-        // button class for "safer" routes
-        let saferButtonClass = routeData.safer ? 'txt-color-success' : '';
+        // button class for flag (e.g. "secure" routes)
+        let flagButtonClass = routeData.flag === 'secure' ? 'txt-color-success' : '';
 
-        let saferButton = '<i class="fas ' + ['fa-shield-alt', 'txt-color', saferButtonClass].join(' ') + '"></i>';
+        let flagButton = '<i class="fas ' + ['fa-shield-alt', 'txt-color', flagButtonClass].join(' ') + '"></i>';
         let reloadButton = '<i class="fas ' + ['fa-sync'].join(' ') + '"></i>';
         let searchButton = '<i class="fas ' + ['fa-search-plus '].join(' ') + '"></i>';
         let deleteButton = '<i class="fas ' + ['fa-times', 'txt-color', 'txt-color-redDarker'].join(' ') + '"></i>';
@@ -591,9 +591,9 @@ define([
             wormholesCritical: routeData.wormholesCritical,
             wormholesFrigate: routeData.wormholesFrigate,
             wormholesEOL: routeData.wormholesEOL,
-            safer: {
-                value: routeData.safer,
-                button: saferButton
+            flag: {
+                value: routeData.flag,
+                button: flagButton
             },
             reload: {
                 button: routeData.skipSearch ? searchButton : reloadButton
@@ -695,12 +695,12 @@ define([
                     class: 'pull-right'
                 }).append(
                     $('<i>', {
-                        class: ['fas', 'fa-fw', 'fa-search', config.moduleHeadlineIconClass, config.moduleHeadlineIconSearchClass].join(' '),
-                        title: 'find&nbsp;route'
-                    }).attr('data-html', 'true').attr('data-toggle', 'tooltip'),
-                    $('<i>', {
                         class: ['fas', 'fa-fw', 'fa-sliders-h', config.moduleHeadlineIconClass, config.moduleHeadlineIconSettingsClass].join(' '),
                         title: 'settings'
+                    }).attr('data-html', 'true').attr('data-toggle', 'tooltip'),
+                    $('<i>', {
+                        class: ['fas', 'fa-fw', 'fa-search', config.moduleHeadlineIconClass, config.moduleHeadlineIconSearchClass].join(' '),
+                        title: 'find&nbsp;route'
                     }).attr('data-html', 'true').attr('data-toggle', 'tooltip'),
                     $('<i>', {
                         class: ['fas', 'fa-fw', 'fa-sync', config.moduleHeadlineIconClass, config.moduleHeadlineIconRefreshClass].join(' '),
@@ -794,11 +794,11 @@ define([
                     searchable: false,
                     width: '10px',
                     class: ['text-center', config.dataTableActionCellClass].join(' '),
-                    data: 'safer',
+                    data: 'flag',
                     render: {
                         _: 'button'
                     },
-                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex){
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex) {
                         let tempTableApi = this.api();
 
                         $(cell).on('click', function(e) {
@@ -809,7 +809,7 @@ define([
 
                             // overwrite some params
                             routeData.skipSearch = 0;
-                            routeData.safer = 1 - routeData.safer; // toggle
+                            routeData.flag = routeData.flag === 'shortest' ? 'secure' : 'shortest'; // toggle
 
                             let context = {
                                 moduleElement: moduleElement,

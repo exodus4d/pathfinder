@@ -1042,8 +1042,7 @@ class Map extends Controller\AccessController {
                             // check distance between systems (in jumps)
                             // -> if > 1 it is !very likely! a wormhole
                             $routeController = new Route();
-                            $routeController->initJumpData();
-                            $route = $routeController->findRoute($sourceSystem->name, $targetSystem->name, 1);
+                            $route = $routeController->searchRoute($sourceSystem->systemId, $targetSystem->systemId, 1);
 
                             if( !$route['routePossible'] ){
                                 $addSourceSystem = true;
