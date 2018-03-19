@@ -138,7 +138,12 @@ em{
   &:hover, &.active{
     color: $orange !important;
   }
+}
 
+.pf-module-icon-button-copy{
+  cursor: copy;
+  -moz-user-select: text;
+  user-select: text;
 }
 
 // links ==========================================================================================

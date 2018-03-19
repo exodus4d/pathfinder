@@ -628,6 +628,12 @@ define([
                             let mapElement = $(mapConfig.map.getContainer());
                             let mapWrapperElement = mapElement.closest('.mCustomScrollbar');
                             mapWrapperElement.mCustomScrollbar('update');
+
+                            // change url to unique map URL
+                            if (history.pushState) {
+                                let mapUrl = MapUtil.getMapDeeplinkUrl(mapConfig.config.id);
+                                history.pushState({}, '', mapUrl);
+                            }
                         });
                 }
             });
@@ -938,6 +944,15 @@ define([
     };
 
     /**
+     * get last URL segment e.g. https://pathfinder/map/test -> test
+     * @returns {string | undefined}
+     */
+    let getLastUrlSegment = () => {
+        let parts = window.location.pathname.split('/');
+        return parts.pop() || parts.pop();
+    };
+
+    /**
      * set "default" map tab
      * -> default mapId might be available in local storage
      * @param tabMapElement
@@ -945,6 +960,10 @@ define([
      * @returns {Promise<any>}
      */
     let showDefaultTab = (tabMapElement, currentUserData) => {
+
+        let getActiveTabLinkElement = (mapId) => {
+            return tabMapElement.find('.' + config.mapTabClass + '[data-mapid="' + mapId + '"] > a');
+        };
 
         /**
          * show default tab promise
@@ -956,13 +975,31 @@ define([
             promiseStore.then((data) => {
                 let activeTabLinkElement = false;
 
-                if(data && data.defaultMapId){
-                    // make specific map tab active
-                    activeTabLinkElement = tabMapElement.find('.' + config.mapTabClass + '[data-mapid="' + data.defaultMapId + '"] > a');
+                // check for existing mapId URL identifier ------------------------------------------------------------
+                let lastURLSegment = getLastUrlSegment();
+
+                let defaultMapId = 0;
+                try{
+                    defaultMapId = parseInt(atob(decodeURIComponent(lastURLSegment)));
+                }catch(e){
+                    // defaultMapID could not be extracted from URL -> ignore
                 }
 
+                if(defaultMapId){
+                    activeTabLinkElement = getActiveTabLinkElement(defaultMapId);
+                }
+
+                // ... else check for existing cached default mapId ---------------------------------------------------
+                if(
+                    (!activeTabLinkElement || !activeTabLinkElement.length) &&
+                    data && data.defaultMapId
+                ){
+                    // make specific map tab active
+                    activeTabLinkElement = getActiveTabLinkElement(data.defaultMapId);
+                }
+
+                // ... else make first map tab active (default) -------------------------------------------------------
                 if(!activeTabLinkElement || !activeTabLinkElement.length){
-                    // make first map tab active (default)
                     activeTabLinkElement = tabMapElement.find('.' + config.mapTabClass + ':not(.pull-right):first > a');
                 }
 

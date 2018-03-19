@@ -13,96 +13,96 @@
  *              |  |    < |    <|  -__|-- __|
  *              |__|__|__||__|__|_____|_____|
  *
- *  Copyright (c) 2016 by ikkez
+ *  Copyright (c) 2012-2018 by ikkez
  *  Christian Knuth <ikkez0n3@gmail.com>
  *  https://github.com/ikkez/F3-Sugar/
  *
  *  @package DB
- *  @version 2.2.1
- *  @date 25.04.2017
+ *  @version 2.2.2
+ *  @date 06.03.2018
  **/
 
 
 namespace DB\SQL;
 
-use DB\SQL;
+class Schema {
 
-class Schema extends DB_Utils {
+    use DB_Utils;
 
     public
         $dataTypes = array(
         'BOOLEAN' =>    array('mysql' => 'tinyint(1)',
-                              'sqlite2?|pgsql' => 'BOOLEAN',
-                              'mssql|sybase|dblib|odbc|sqlsrv' => 'bit',
-                              'ibm' => 'numeric(1,0)',
+            'sqlite2?|pgsql' => 'BOOLEAN',
+            'mssql|sybase|dblib|odbc|sqlsrv' => 'bit',
+            'ibm' => 'numeric(1,0)',
         ),
         'INT1' =>       array('mysql' => 'tinyint(4)',
-                              'sqlite2?' => 'integer(4)',
-                              'mssql|sybase|dblib|odbc|sqlsrv' => 'tinyint',
-                              'pgsql|ibm' => 'smallint',
+            'sqlite2?' => 'integer(4)',
+            'mssql|sybase|dblib|odbc|sqlsrv' => 'tinyint',
+            'pgsql|ibm' => 'smallint',
         ),
         'INT2' =>       array('mysql' => 'smallint(6)',
-                              'sqlite2?' => 'integer(6)',
-                              'pgsql|ibm|mssql|sybase|dblib|odbc|sqlsrv' => 'smallint',
+            'sqlite2?' => 'integer(6)',
+            'pgsql|ibm|mssql|sybase|dblib|odbc|sqlsrv' => 'smallint',
         ),
         'INT4' =>       array('sqlite2?' => 'integer(11)',
-                              'pgsql|imb' => 'integer',
-                              'mysql' => 'int(11)',
-                              'mssql|dblib|sybase|odbc|sqlsrv' => 'int',
+            'pgsql|imb' => 'integer',
+            'mysql' => 'int(11)',
+            'mssql|dblib|sybase|odbc|sqlsrv' => 'int',
         ),
         'INT8' =>       array('sqlite2?' => 'integer(20)',
-                              'pgsql|mssql|sybase|dblib|odbc|sqlsrv|imb' => 'bigint',
-                              'mysql' => 'bigint(20)',
+            'pgsql|mssql|sybase|dblib|odbc|sqlsrv|imb' => 'bigint',
+            'mysql' => 'bigint(20)',
         ),
         'FLOAT' =>      array('mysql|sqlite2?' => 'FLOAT',
-                              'pgsql' => 'double precision',
-                              'mssql|sybase|dblib|odbc|sqlsrv' => 'float',
-                              'imb' => 'decfloat'
+            'pgsql' => 'double precision',
+            'mssql|sybase|dblib|odbc|sqlsrv' => 'float',
+            'imb' => 'decfloat'
         ),
         'DOUBLE' =>     array('mysql|ibm' => 'decimal(18,6)',
-                              'sqlite2?' => 'decimal(15,6)', // max 15-digit on sqlite
-                              'pgsql' => 'numeric(18,6)',
-                              'mssql|dblib|sybase|odbc|sqlsrv' => 'decimal(18,6)',
+            'sqlite2?' => 'decimal(15,6)', // max 15-digit on sqlite
+            'pgsql' => 'numeric(18,6)',
+            'mssql|dblib|sybase|odbc|sqlsrv' => 'decimal(18,6)',
         ),
         'VARCHAR128' => array('mysql|sqlite2?|ibm|mssql|sybase|dblib|odbc|sqlsrv' => 'varchar(128)',
-                              'pgsql' => 'character varying(128)',
+            'pgsql' => 'character varying(128)',
         ),
         'VARCHAR256' => array('mysql|sqlite2?|ibm|mssql|sybase|dblib|odbc|sqlsrv' => 'varchar(255)',
-                              'pgsql' => 'character varying(255)',
+            'pgsql' => 'character varying(255)',
         ),
         'VARCHAR512' => array('mysql|sqlite2?|ibm|mssql|sybase|dblib|odbc|sqlsrv' => 'varchar(512)',
-                              'pgsql' => 'character varying(512)',
+            'pgsql' => 'character varying(512)',
         ),
         'TEXT' =>       array('mysql|sqlite2?|pgsql|mssql' => 'text',
-                              'sybase|dblib|odbc|sqlsrv' => 'nvarchar(max)',
-                              'ibm' => 'BLOB SUB_TYPE TEXT',
+            'sybase|dblib|odbc|sqlsrv' => 'nvarchar(max)',
+            'ibm' => 'BLOB SUB_TYPE TEXT',
         ),
         'LONGTEXT' =>   array('mysql' => 'LONGTEXT',
-                              'sqlite2?|pgsql|mssql' => 'text',
-                              'sybase|dblib|odbc|sqlsrv' => 'nvarchar(max)',
-                              'ibm' => 'CLOB(2000000000)',
+            'sqlite2?|pgsql|mssql' => 'text',
+            'sybase|dblib|odbc|sqlsrv' => 'nvarchar(max)',
+            'ibm' => 'CLOB(2000000000)',
         ),
         'DATE' =>       array('mysql|sqlite2?|pgsql|mssql|sybase|dblib|odbc|sqlsrv|ibm' => 'date',
         ),
         'DATETIME' =>   array('pgsql' => 'timestamp without time zone',
-                              'mysql|sqlite2?|mssql|sybase|dblib|odbc|sqlsrv' => 'datetime',
-                              'ibm' => 'timestamp',
+            'mysql|sqlite2?|mssql|sybase|dblib|odbc|sqlsrv' => 'datetime',
+            'ibm' => 'timestamp',
         ),
         'TIMESTAMP' =>  array('mysql|ibm' => 'timestamp',
-                              'pgsql|odbc' => 'timestamp without time zone',
-                              'sqlite2?|mssql|sybase|dblib|sqlsrv'=>'DATETIME',
+            'pgsql|odbc' => 'timestamp without time zone',
+            'sqlite2?|mssql|sybase|dblib|sqlsrv'=>'DATETIME',
         ),
         'BLOB' =>       array('mysql|odbc|sqlite2?|ibm' => 'blob',
-                              'pgsql' => 'bytea',
-                              'mssql|sybase|dblib' => 'image',
-                              'sqlsrv' => 'varbinary(max)',
+            'pgsql' => 'bytea',
+            'mssql|sybase|dblib' => 'image',
+            'sqlsrv' => 'varbinary(max)',
         ),
     ),
         $defaultTypes = array(
         'CUR_STAMP' =>  array('mysql' => 'CURRENT_TIMESTAMP',
-                              'mssql|sybase|dblib|odbc|sqlsrv' => 'getdate()',
-                              'pgsql' => 'LOCALTIMESTAMP(0)',
-                              'sqlite2?' => "(datetime('now','localtime'))",
+            'mssql|sybase|dblib|odbc|sqlsrv' => 'getdate()',
+            'pgsql' => 'LOCALTIMESTAMP(0)',
+            'sqlite2?' => "(datetime('now','localtime'))",
         ),
     );
 
@@ -111,9 +111,6 @@ class Schema extends DB_Utils {
 
     public static
         $strict = FALSE;
-
-    /** @var \Base */
-    protected $fw;
 
     const
         // DataTypes and Aliases
@@ -147,8 +144,7 @@ class Schema extends DB_Utils {
 
     public function __construct(\DB\SQL $db)
     {
-        $this->fw = \Base::instance();
-        parent::__construct($db);
+        $this->db = $db;
     }
 
     /**
@@ -304,7 +300,9 @@ class Schema extends DB_Utils {
     }
 }
 
-abstract class TableBuilder extends DB_Utils {
+abstract class TableBuilder {
+
+    use DB_Utils;
 
     protected   $columns, $pkeys, $queries, $increments, $rebuild_cmd, $suppress;
     public      $name;
@@ -318,7 +316,6 @@ abstract class TableBuilder extends DB_Utils {
     /**
      * @param string $name
      * @param Schema $schema
-     * @return \DB\SQL\TableBuilder
      */
     public function __construct($name, Schema $schema)
     {
@@ -328,7 +325,7 @@ abstract class TableBuilder extends DB_Utils {
         $this->queries = array();
         $this->pkeys = array('id');
         $this->increments = 'id';
-        parent::__construct($schema->db);
+        $this->db = $schema->db;
     }
 
     /**
@@ -549,6 +546,8 @@ class TableModifier extends TableBuilder {
     /**
      * generate SQL queries for altering the table and execute it if $exec is true,
      * otherwise return the generated query string
+     * @param bool $exec
+     * @return array|FALSE
      */
     public function build($exec = TRUE)
     {
@@ -763,9 +762,9 @@ class TableModifier extends TableBuilder {
         else
             foreach ($schema as $name => &$cols) {
                 $default = ($cols['default'] === '') ? null : $cols['default'];
-                if (!is_null($default) && (
-                        (is_int(strpos($curdef=$this->findQuery($this->schema->defaultTypes['CUR_STAMP']),
-                                $default)) || is_int(strpos($default,$curdef)))
+                if (!is_null($default) && ((is_int(strpos($curdef=strtolower(
+                                $this->findQuery($this->schema->defaultTypes['CUR_STAMP'])),
+                                strtolower($default))) || is_int(strpos(strtolower($default),$curdef)))
                         || $default == "('now'::text)::timestamp(0) without time zone"))
                 {
                     $default = 'CUR_STAMP';
@@ -874,7 +873,6 @@ class TableModifier extends TableBuilder {
      * @param string $name
      * @param string|Column $datatype
      * @param bool $force
-     * @return bool
      */
     public function updateColumn($name, $datatype, $force = false)
     {
@@ -1031,7 +1029,9 @@ class TableModifier extends TableBuilder {
  * Class Column
  * @package DB\SQL
  */
-class Column extends DB_Utils {
+class Column {
+
+    use DB_Utils;
 
     public      $name, $type, $nullable, $default, $after, $index, $unique, $passThrough, $pkey;
     protected   $table, $schema, $type_val;
@@ -1056,7 +1056,7 @@ class Column extends DB_Utils {
 
         $this->table = $table;
         $this->schema = $table->schema;
-        parent::__construct($this->schema->db);
+        $this->db = $this->schema->db;
     }
 
     /**
@@ -1281,22 +1281,16 @@ class Column extends DB_Utils {
                 constant('\PDO::PARAM_'.strtoupper($parts[0])) : \PDO::PARAM_STR;
             return ($this->default === NULL ? 'NULL' :
                 $this->db->quote(htmlspecialchars($this->default, ENT_QUOTES,
-                    $this->f3->get('ENCODING')), $pdo_type));
+                    \Base::instance()->get('ENCODING')), $pdo_type));
         }
     }
 }
 
 
-class DB_Utils {
+trait DB_Utils {
 
     /** @var \DB\SQL */
-    protected $db;
-
-    /** @var \BASE */
-    protected $f3;
-
-    const
-        TEXT_ENGINE_NOT_SUPPORTED = 'DB Engine `%s` is not supported for this action.';
+    public $db;
 
     /**
      * parse command array and return backend specific query
@@ -1308,11 +1302,6 @@ class DB_Utils {
         foreach ($cmd as $backend => $val)
             if (preg_match('/'.$backend.'/', $this->db->driver()))
                 return $val;
-        trigger_error(sprintf(self::TEXT_ENGINE_NOT_SUPPORTED, $this->db->driver()),E_USER_ERROR);
-    }
-
-    public function __construct(SQL $db) {
-        $this->db = $db;
-        $this->f3 = \Base::instance();
+        trigger_error(sprintf('DB Engine `%s` is not supported for this action.', $this->db->driver()),E_USER_ERROR);
     }
 }

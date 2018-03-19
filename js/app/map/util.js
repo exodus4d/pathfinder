@@ -1039,6 +1039,18 @@ define([
         return hasAccess;
     };
 
+    /**
+     * get a unique map url for deeplinking
+     * @param mapId
+     * @returns {string}
+     */
+    let getMapDeeplinkUrl = (mapId) => {
+        let url = location.protocol + '//' + location.host + '/map';
+        url += mapId ? '/' + encodeURIComponent(window.btoa(mapId)) : '';
+
+        return url;
+    };
+
     return {
         config: config,
         mapOptions: mapOptions,
@@ -1073,6 +1085,7 @@ define([
         storeLocalData: storeLocalData,
         deleteLocalData: deleteLocalData,
         getSystemId: getSystemId,
-        checkRight: checkRight
+        checkRight: checkRight,
+        getMapDeeplinkUrl: getMapDeeplinkUrl
     };
 });
