@@ -163,6 +163,28 @@ define([
     };
 
     /**
+     * get system data by mapId and systemid
+     * @param mapId
+     * @param systemId
+     * @returns {boolean}
+     */
+    let getSystemData = (mapId, systemId) => {
+        let systemData = false;
+        let mapData = Util.getCurrentMapData(mapId);
+
+        if(mapData){
+            for(let j = 0; j < mapData.data.systems.length; j++){
+                let systemDataTemp = mapData.data.systems[j];
+                if(systemDataTemp.id === systemId){
+                    systemData = systemDataTemp;
+                    break;
+                }
+            }
+        }
+        return systemData;
+    };
+
+    /**
      * get system type information
      * @param {number} systemTypeId
      * @param {string} option
@@ -1060,6 +1082,7 @@ define([
         getMapIcons: getMapIcons,
         getInfoForMap: getInfoForMap,
         getInfoForSystem: getInfoForSystem,
+        getSystemData: getSystemData,
         getSystemTypeInfo: getSystemTypeInfo,
         getEffectInfoForSystem: getEffectInfoForSystem,
         toggleSelectSystem: toggleSelectSystem,
