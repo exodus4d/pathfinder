@@ -184,6 +184,7 @@ class Controller {
      * set/update logged in cookie by character model
      * -> store validation data in DB
      * @param Model\CharacterModel $character
+     * @throws \Exception
      * @throws \Exception\PathfinderException
      */
     protected function setLoginCookie(Model\CharacterModel $character){
@@ -716,11 +717,11 @@ class Controller {
      * @return array
      */
     static function getScopesByAuthType($authType = ''){
-        $scopes = (array)self::getEnvironmentData('CCP_ESI_SCOPES');
+        $scopes = array_filter((array)self::getEnvironmentData('CCP_ESI_SCOPES'));
 
         switch($authType){
             case 'admin':
-                $scopesAdmin = (array)self::getEnvironmentData('CCP_ESI_SCOPES_ADMIN');
+                $scopesAdmin = array_filter((array)self::getEnvironmentData('CCP_ESI_SCOPES_ADMIN'));
                 $scopes = array_merge($scopes, $scopesAdmin);
                 break;
         }
