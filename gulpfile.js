@@ -19,6 +19,7 @@ let compass             = require('gulp-compass');
 let cleanCSS            = require('gulp-clean-css');
 let bytediff            = require('gulp-bytediff');
 let debug               = require('gulp-debug');
+let notifier            = require('node-notifier');
 
 // -- Helper & NPM modules ----------------------------------------------------
 let flatten             = require('flat');
@@ -826,6 +827,36 @@ gulp.task('task:buildCss', gulp.series(
     )
 );
 
+// == Notification tasks ==============================================================================================
+
+/**
+ * JS Build done notification
+ */
+gulp.task('task:notifyJsDone', done => {
+        notifier.notify({
+            title: 'Done JS build',
+            message: 'JS build task finished',
+            icon: PATH.ASSETS.DIST + '/img/logo.png',
+            wait: false
+        });
+        done();
+    }
+);
+
+/**
+ * CSS Build done notification
+ */
+gulp.task('task:notifyCssDone', done => {
+        notifier.notify({
+            title: 'Done CSS build',
+            message: 'CSS build task finished',
+            icon: PATH.ASSETS.DIST + '/img/logo.png',
+            wait: false
+        });
+        done();
+    }
+);
+
 // == Watcher tasks ===================================================================================================
 
 /**
@@ -836,7 +867,8 @@ gulp.task(
     gulp.series(
         'task:hintJS',
         'task:diffJS',
-        'task:updateJsDest'
+        'task:updateJsDest',
+        'task:notifyJsDone'
     )
 );
 
@@ -850,7 +882,8 @@ gulp.task(
        // 'task:cleanCss',
         'task:gzipCssAssets',
         'task:brotliCssAssets',
-        'task:printJsSummary'
+        'task:printJsSummary',
+        'task:notifyCssDone'
     )
 );
 

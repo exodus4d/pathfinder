@@ -24,6 +24,7 @@
     "gulp-clean-css": "3.x.x",
     "gulp-bytediff": "1.0.x",
     "gulp-debug": "^3.1.x",
+    "node-notifier": "5.2.x",
     "uglify-es": "^3.0.x",
     "jshint": "^2.9.x",
     "jshint-stylish": "^2.x.x",
