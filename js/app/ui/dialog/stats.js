@@ -62,7 +62,11 @@ define([
 
         // render function for numeric columns
         let renderNumericColumn = function(data, type, row, meta){
-            return data.toLocaleString();
+            let value = data;
+            if(type === 'display'){
+                value = data.toLocaleString();
+            }
+            return value;
         };
 
         // get table element
@@ -348,7 +352,7 @@ define([
                 });
 
                 $(sumColumnIndexes).each(function(index, value){
-                    $( api.column( value ).footer() ).text( renderNumericColumn(pageTotalColumns[index]) );
+                    $( api.column( value ).footer() ).text( renderNumericColumn(pageTotalColumns[index], 'display') );
                 });
             },
             data: [] // will be added dynamic
