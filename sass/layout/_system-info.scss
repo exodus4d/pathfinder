@@ -114,6 +114,42 @@
       .fa-sync, .fa-search-plus{
         @extend .pf-dialog-icon-button;
       }
+
+      .pf-fake-connection{
+        display: none; // toggled by js see .pf-table-jump-cell
+        width: 12px;
+        height: 3px;
+        cursor: pointer;
+
+        &[data-disabled]{
+          cursor: initial;
+        }
+
+        &.pf-map-connection-frig{
+          width: 32px;
+
+          &:after{
+            left: 4px;
+          }
+        }
+        &.pf-map-connection-preserve-mass{
+          width: 26px;
+
+          &:after{
+            content: "\f071";
+            font-family: "Font Awesome 5 Free";
+            font-style: normal;
+            font-weight: bold;
+            left: 4px;
+          }
+        }
+      }
+
+      &.pf-table-jump-cell{
+        .pf-fake-connection{
+          display: inline-block;
+        }
+      }
     }
   }
 }

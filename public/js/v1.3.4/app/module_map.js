@@ -905,7 +905,7 @@ define([
                 contentElement.remove();
 
                 // remove map instance from local cache
-                Map.clearMapInstance(mapId);
+                MapUtil.clearMapInstance(mapId);
             }
 
             resolve({

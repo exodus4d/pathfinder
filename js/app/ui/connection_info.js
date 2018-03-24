@@ -124,15 +124,6 @@ define([
         // connection scope -----------------------------------------------------------------------
         let scopeLabel = MapUtil.getScopeInfoForConnection(connectionData.scope, 'label');
 
-        // connection type (dummy) classes --------------------------------------------------------
-        let getConnectionClasses = (types) => {
-            let connectionClasses = ['pf-fake-connection'];
-            for(let i = 0; i < types.length; i++){
-                connectionClasses.push( MapUtil.getConnectionInfo( types[i], 'cssClass') );
-            }
-            return connectionClasses;
-        };
-
         let element = $('<div>', {
             class: 'pf-dynamic-area'
         }).append(
@@ -199,7 +190,7 @@ define([
                             class: ['text-right', config.connectionInfoTableCellConnectionClass].join(' ')
                         }).append(
                             $('<div>', {
-                                class: getConnectionClasses(connectionData.type).join(' ')
+                                class: MapUtil.getConnectionFakeClassesByTypes(connectionData.type).join(' ')
                             })
                         )
                     ),
@@ -382,7 +373,7 @@ define([
                 }
 
                 // get connection type (show fake connection div) ---------------------------------
-                connectionCell.find('div').removeClass().addClass(getConnectionClasses(connectionData.type).join(' '));
+                connectionCell.find('div').removeClass().addClass(MapUtil.getConnectionFakeClassesByTypes(connectionData.type).join(' '));
 
                 // get wormhole status ------------------------------------------------------------
                 if(connectionData.type.indexOf('wh_critical') !== -1){

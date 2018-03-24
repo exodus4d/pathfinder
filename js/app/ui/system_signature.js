@@ -225,37 +225,39 @@ define([
     let getTableData = function(tableApi){
         let tableData = [];
 
-        tableApi.rows().eq(0).each(function(idx){
-            let row = tableApi.row(idx);
-            // default row data
-            let defaultRowData = row.data();
-            let rowElement = row.nodes().to$();
+        if(tableApi){
+            tableApi.rows().eq(0).each(function(idx){
+                let row = tableApi.row(idx);
+                // default row data
+                let defaultRowData = row.data();
+                let rowElement = row.nodes().to$();
 
-            if(defaultRowData.id > 0){
-                // get all editable fields per row
-                let editableFields = rowElement.find('.editable');
+                if(defaultRowData.id > 0){
+                    // get all editable fields per row
+                    let editableFields = rowElement.find('.editable');
 
-                if(editableFields.length > 0){
-                    let values = $(editableFields).editable('getValue');
+                    if(editableFields.length > 0){
+                        let values = $(editableFields).editable('getValue');
 
-                    if(values.name){
-                        // convert to lower for better compare options
-                        values.name = values.name.toLowerCase();
+                        if(values.name){
+                            // convert to lower for better compare options
+                            values.name = values.name.toLowerCase();
 
-                        // add pk for this row
-                        values.id = defaultRowData.id;
+                            // add pk for this row
+                            values.id = defaultRowData.id;
 
-                        // add updated for this row
-                        values.updated = defaultRowData.updated;
+                            // add updated for this row
+                            values.updated = defaultRowData.updated;
 
-                        // add row index
-                        values.index = idx;
+                            // add row index
+                            values.index = idx;
 
-                        tableData.push( values );
+                            tableData.push( values );
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
 
         return tableData;
     };

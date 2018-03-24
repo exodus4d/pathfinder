@@ -18,7 +18,7 @@ define([
         moduleHeadClass: 'pf-module-head',                                      // class for module header
         moduleHandlerClass: 'pf-module-handler-drag',                           // class for "drag" handler
 
-        routeCacheTTL: 10,                                                      // route cache timer (client) in seconds
+        routeCacheTTL: 5,                                                       // route cache timer (client) in seconds
 
         // system route module
         moduleTypeClass: 'pf-system-route-module',                              // class for this module
@@ -38,12 +38,64 @@ define([
         systemInfoRoutesTableClass: 'pf-system-route-table',                    // class for route tables
         mapSelectId: 'pf-route-dialog-map-select',                              // id for "map" select
 
-        dataTableActionCellClass: 'pf-table-action-cell'                        // class for "action" cells
+        dataTableActionCellClass: 'pf-table-action-cell',                       // class for "action" cells
+        dataTableRouteCellClass: 'pf-table-route-cell',                         // class for "route" cells
+        dataTableJumpCellClass: 'pf-table-jump-cell'                            // class for "route jump" cells
     };
 
     // cache for system routes
     let cache = {
-        systemRoutes: {}                                                        // jump information between solar systems
+        systemRoutes: {},                                                       // jump information between solar systems
+        mapConnections: {}                                                      // connection data read from UI
+    };
+
+    /**
+     * set cache data
+     * @param cacheType
+     * @param cacheKey
+     * @param data
+     */
+    let setCacheData = (cacheType, cacheKey, data) => {
+        cache[cacheType][cacheKey] = {
+            data: data,
+            updated: Util.getServerTime().getTime() / 1000
+        };
+    };
+
+    /**
+     * get cache data
+     * @param cacheType
+     * @param cacheKey
+     * @returns {*}
+     */
+    let getCacheData = (cacheType, cacheKey) => {
+        let cachedData = null;
+        let currentTimestamp = Util.getServerTime().getTime();
+
+        if(
+            cache[cacheType].hasOwnProperty(cacheKey) &&
+            Math.round(
+                ( currentTimestamp - (new Date( cache[cacheType][cacheKey].updated * 1000).getTime())) / 1000
+            ) <= config.routeCacheTTL
+        ){
+            cachedData = cache[cacheType][cacheKey].data;
+        }
+
+        return cachedData;
+    };
+
+    let getRouteDataCacheKey = (mapIds, sourceName, targetName) => {
+        return [mapIds.join('_'), sourceName.toLowerCase(), targetName.toLowerCase()].join('###');
+    };
+
+    /**
+     * get a unique cache key name for "source"/"target"-name
+     * @param sourceName
+     * @param targetName
+     * @returns {string}
+     */
+    let getConnectionDataCacheKey = (sourceName, targetName) => {
+        return [sourceName.toLowerCase(), targetName.toLowerCase()].sort().join('###');
     };
 
     /**
@@ -59,22 +111,12 @@ define([
 
                 // format routeData
                 let rowData = formatRouteData(routeData);
-
                 if(rowData.route){
-                    let cacheKey = routeData.systemFromData.name.toLowerCase() +
-                        '_' + routeData.systemToData.name.toLowerCase();
-
                     // update route cache
-                    cache.systemRoutes[cacheKey] = {
-                        data: rowData,
-                        updated: Util.getServerTime().getTime() / 1000
-                    };
+                    let cacheKey = getRouteDataCacheKey(rowData.mapIds, routeData.systemFromData.name, routeData.systemToData.name);
+                    setCacheData('systemRoutes', cacheKey, rowData);
 
-                    let rowElement = addRow(context, rowData);
-
-                    rowElement.initTooltips({
-                        container: 'body'
-                    });
+                    addRow(context, rowData);
                 }
             }
 
@@ -116,10 +158,13 @@ define([
 
         if(row.length > 0){
             rowElement = row.nodes().to$();
-
             if(animationStatus !== null){
                 rowElement.data('animationStatus', animationStatus);
             }
+
+            rowElement.initTooltips({
+                container: 'body'
+            });
         }
 
         return rowElement;
@@ -186,6 +231,7 @@ define([
             wormholesCritical: (rowData.hasOwnProperty('wormholesCritical')) ? rowData.wormholesCritical | 0 : 1,
             wormholesFrigate: (rowData.hasOwnProperty('wormholesFrigate')) ? rowData.wormholesFrigate | 0 : 1,
             wormholesEOL: (rowData.hasOwnProperty('wormholesEOL')) ? rowData.wormholesEOL | 0 : 1,
+            connections: (rowData.hasOwnProperty('connections')) ? rowData.connections.value | 0 : 0,
             flag: (rowData.hasOwnProperty('flag')) ? rowData.flag.value : 'shortest'
         };
     };
@@ -320,34 +366,30 @@ define([
      * @param routesTable
      * @param systemsTo
      */
-    let drawRouteTable = function(mapId, moduleElement, systemFromData, routesTable, systemsTo){
+    let drawRouteTable = (mapId, moduleElement, systemFromData, routesTable, systemsTo) => {
         let requestRouteData = [];
-        let currentTimestamp = Util.getServerTime().getTime();
 
         // Skip some routes from search
         // -> this should help to throttle requests (heavy CPU load for route calculation)
         let defaultRoutesCount = Init.routeSearch.defaultCount;
+        let rowElements = [];
 
         for(let i = 0; i < systemsTo.length; i++){
             let systemToData = systemsTo[i];
 
             if(systemFromData.name !== systemToData.name){
-                let cacheKey = 'route_' + mapId + '_' + systemFromData.name.toUpperCase() + '_' + systemToData.name.toUpperCase();
-
-                if(
-                    cache.systemRoutes.hasOwnProperty(cacheKey) &&
-                    Math.round(
-                        ( currentTimestamp - (new Date( cache.systemRoutes[cacheKey].updated * 1000).getTime())) / 1000
-                    ) <= config.routeCacheTTL
-                ){
+                // check for cached rowData
+                let cacheKey = getRouteDataCacheKey([mapId], systemFromData.name, systemToData.name);
+                let rowData = getCacheData('systemRoutes', cacheKey);
+                if(rowData){
                     // route data is cached (client side)
                     let context = {
                         dataTable: routesTable
                     };
 
-                    addRow(context, cache.systemRoutes[cacheKey].data);
+                    rowElements.push( addRow(context, rowData) );
                 }else{
-                    // get route data
+                    // get route data -> ajax
                     let searchData = {
                         mapIds: [mapId],
                         systemFromData: systemFromData,
@@ -358,6 +400,11 @@ define([
                     requestRouteData.push( getRouteRequestDataFromRowData( searchData ));
                 }
             }
+        }
+
+        // rows added from cache -> redraw() table
+        if(rowElements.length){
+            routesTable.draw();
         }
 
         // check if routes data is not cached and is requested
@@ -382,7 +429,7 @@ define([
      * @param systemFromData
      * @param routesTable
      */
-    let showSettingsDialog = function(dialogData, moduleElement, systemFromData, routesTable){
+    let showSettingsDialog = (dialogData, moduleElement, systemFromData, routesTable) => {
 
         let promiseStore = MapUtil.getLocaleData('map', dialogData.mapId);
         promiseStore.then(function(dataStore) {
@@ -405,7 +452,7 @@ define([
                 maxSelectionLength: maxSelectionLength
             };
 
-            requirejs(['text!templates/dialog/route_settings.html', 'mustache'], function(template, Mustache) {
+            requirejs(['text!templates/dialog/route_settings.html', 'mustache'], (template, Mustache) => {
                 let content = Mustache.render(template, data);
 
                 let settingsDialog = bootbox.dialog({
@@ -461,7 +508,7 @@ define([
      * @param {Array} data
      * @returns {Array}
      */
-    let formSystemSelectData = function(data){
+    let formSystemSelectData = (data) => {
         let formattedData = [];
         for(let i = 0; i < data.length; i++){
             let tmpData = data[i];
@@ -479,7 +526,7 @@ define([
      * set event observer for route finder dialog
      * @param routeDialog
      */
-    let setDialogObserver = function(routeDialog){
+    let setDialogObserver = (routeDialog) => {
         let wormholeCheckbox = routeDialog.find('input[type="checkbox"][name="wormholes"]');
         let wormholeReducedCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesReduced"]');
         let wormholeCriticalCheckbox = routeDialog.find('input[type="checkbox"][name="wormholesCritical"]');
@@ -529,18 +576,136 @@ define([
     };
 
     /**
+     * get a connectionsData object that holds all connections for given mapIds (used as cache for route search)
+     * @param mapIds
+     * @returns {{}}
+     */
+    let getConnectionsDataFromMaps = (mapIds) => {
+        let connectionsData = {};
+        for(let mapId of mapIds) {
+            let map = MapUtil.getMapInstance(mapId);
+            if(map){
+                let cacheKey = 'map_' + mapId;
+                let mapConnectionsData = getCacheData('mapConnections', cacheKey);
+
+                if(!mapConnectionsData){
+                    mapConnectionsData = {};
+                    let connections = map.getAllConnections();
+                    if(connections.length){
+                        let connectionsData = MapUtil.getDataByConnections(connections);
+                        for(let connectionData of connectionsData){
+                            let connectionDataCacheKey = getConnectionDataCacheKey(connectionData.sourceName, connectionData.targetName);
+
+                            // skip double connections between same systems
+                            if( !mapConnectionsData.hasOwnProperty(connectionDataCacheKey) ){
+                                mapConnectionsData[connectionDataCacheKey] = {
+                                    map: {
+                                        id: mapId
+                                    },
+                                    connection: {
+                                        id: connectionData.id,
+                                        type: connectionData.type,
+                                        scope: connectionData.scope
+                                    },
+                                    source: {
+                                        id: connectionData.source,
+                                        name: connectionData.sourceName,
+                                        alias: connectionData.sourceAlias
+                                    },
+                                    target: {
+                                        id: connectionData.target,
+                                        name: connectionData.targetName,
+                                        alias: connectionData.targetAlias
+                                    }
+                                };
+                            }
+                        }
+                    }
+
+                    // update cache
+                    setCacheData('mapConnections', cacheKey, mapConnectionsData);
+                }
+
+                if(connectionsData !== null){
+                    connectionsData = Object.assign({}, mapConnectionsData, connectionsData);
+                }
+            }
+        }
+
+        return connectionsData;
+    };
+
+    /**
+     * search for a specific connection by "source"/"target"-name inside connectionsData cache
+     * @param connectionsData
+     * @param sourceName
+     * @param targetName
+     * @returns {{}}
+     */
+    let findConnectionsData = (connectionsData, sourceName, targetName) => {
+        let connectionDataCacheKey = getConnectionDataCacheKey(sourceName, targetName);
+        return connectionsData.hasOwnProperty(connectionDataCacheKey) ?
+            connectionsData[connectionDataCacheKey] : {};
+    };
+
+    /**
+     * get stargate connection data (default connection type in case connection was not found on a map)
+     * @param sourceRouteNodeData
+     * @param targetRouteNodeData
+     * @returns {{connection: {id: number, type: string[], scope: string}, source: {id: number, name, alias}, target: {id: number, name, alias}}}
+     */
+    let getStargateConnectionData = (sourceRouteNodeData, targetRouteNodeData) => {
+        return {
+            connection: {
+                id: 0,
+                type: ['stargate'],
+                scope: 'stargate'
+            },
+            source: {
+                id: 0,
+                name: sourceRouteNodeData.system,
+                alias: sourceRouteNodeData.system
+            },
+            target: {
+                id: 0,
+                name: targetRouteNodeData.system,
+                alias: targetRouteNodeData.system
+            }
+        };
+    };
+
+    /**
+     * get fake connection Element
+     * @param connectionData
+     * @returns {string}
+     */
+    let getFakeConnectionElement = (connectionData) => {
+        let mapId = Util.getObjVal(connectionData, 'map.id') | 0;
+        let connectionId = Util.getObjVal(connectionData, 'connection.id') | 0;
+        let scope = Util.getObjVal(connectionData, 'connection.scope');
+        let classes = MapUtil.getConnectionFakeClassesByTypes(connectionData.connection.type);
+        let disabled = !mapId || !connectionId;
+
+        let connectionElement = '<div data-mapId="' + mapId + '" data-connectionId="' + connectionId + '" ';
+        connectionElement += (disabled ? 'data-disabled' : '');
+        connectionElement += ' class="' + classes.join(' ') + '" ';
+        connectionElement += ' title="' + scope + '" data-placement="bottom"></div>';
+        return connectionElement;
+    };
+
+    /**
      * format route data from API request into dataTable row format
      * @param routeData
      * @returns {{}}
      */
-    let formatRouteData = function(routeData){
+    let formatRouteData = (routeData) => {
 
         /**
          * get status icon for route
          * @param status
          * @returns {string}
          */
-        let getStatusIcon= function(status){
+        let getStatusIcon= (status) => {
             let color = 'txt-color-danger';
             let title = 'route not found';
             switch(status){
@@ -566,6 +731,7 @@ define([
         // button class for flag (e.g. "secure" routes)
         let flagButtonClass = routeData.flag === 'secure' ? 'txt-color-success' : '';
 
+        let connectionButton = '<i class="fas ' + ['fa-link', 'txt-color'].join(' ') + '"></i>';
         let flagButton = '<i class="fas ' + ['fa-shield-alt', 'txt-color', flagButtonClass].join(' ') + '"></i>';
         let reloadButton = '<i class="fas ' + ['fa-sync'].join(' ') + '"></i>';
         let searchButton = '<i class="fas ' + ['fa-search-plus '].join(' ') + '"></i>';
@@ -583,7 +749,10 @@ define([
                 value: '',
                 formatted: ''
             },
-            route: routeStatus === 2 ? 'search now' : 'not found',
+            route: {
+              value: routeStatus === 2 ? 'search now' : 'not found',
+              data: routeData.route
+            },
             stargates: routeData.stargates,
             jumpbridges: routeData.jumpbridges,
             wormholes: routeData.wormholes,
@@ -591,6 +760,10 @@ define([
             wormholesCritical: routeData.wormholesCritical,
             wormholesFrigate: routeData.wormholesFrigate,
             wormholesEOL: routeData.wormholesEOL,
+            connections: {
+                value: 0,
+                button: connectionButton
+            },
             flag: {
                 value: routeData.flag,
                 button: flagButton
@@ -613,15 +786,28 @@ define([
             routeStatus = 1;
 
             // add route Data
-            let jumpData = [];
+            let routeJumpElements = [];
             let avgSecTemp = 0;
 
+            let connectionsData = getConnectionsDataFromMaps(routeData.mapIds);
+            let prevRouteNodeData = null;
             // loop all systems on this route
             for(let i = 0; i < routeData.route.length; i++){
                 let routeNodeData = routeData.route[i];
-                // format system name
                 let systemName = routeNodeData.system;
 
+                // fake connection elements between systems -----------------------------------------------------------
+                if(prevRouteNodeData){
+                    let connectionData = findConnectionsData(connectionsData, prevRouteNodeData.system, systemName);
+                    if(!connectionData.hasOwnProperty('connection')){
+                        connectionData = getStargateConnectionData(prevRouteNodeData, routeNodeData);
+                    }
+                    let connectionElement = getFakeConnectionElement(connectionData);
+
+                    routeJumpElements.push( connectionElement );
+                }
+
+                // system elements ------------------------------------------------------------------------------------
                 let systemSec = Number(routeNodeData.security).toFixed(1).toString();
                 let tempSystemSec = systemSec;
 
@@ -640,12 +826,14 @@ define([
                 let system = '<i class="' + icon + ' ' + systemSecClass + '" ';
                 system += 'data-toggle="tooltip" data-placement="bottom" data-container="body" ';
                 system += 'title="' + systemName + ' [' + systemSec + '] "></i>';
-                jumpData.push( system );
+                routeJumpElements.push( system );
 
                 // "source" system is not relevant for average security
                 if(i > 0){
                     avgSecTemp += Number(routeNodeData.security);
                 }
+
+                prevRouteNodeData = routeNodeData;
             }
 
             let avgSec = ( avgSecTemp /  (routeData.route.length - 1)).toFixed(2);
@@ -666,7 +854,8 @@ define([
                 value: avgSec,
                 formatted: '<span class="' + avgSecClass + '">' + avgSec + '</span>'
             };
-            tableRowData.route = jumpData.join(' ');
+
+            tableRowData.route.value = routeJumpElements.join(' ');
         }
 
         // route status data ----------------------------------------------------------------------
@@ -682,7 +871,7 @@ define([
      * get module element
      * @returns {*}
      */
-    let getModule = function(){
+    let getModule = () => {
         // create new module container
         let moduleElement = $('<div>').append(
             $('<div>', {
@@ -737,7 +926,7 @@ define([
                     targets: 0,
                     orderable: true,
                     title: '',
-                    width: '10px',
+                    width: 2,
                     class: ['text-center'].join(' '),
                     data: 'status',
                     render: {
@@ -764,7 +953,7 @@ define([
                     targets: 2,
                     orderable: true,
                     title: '<span title="jumps" data-toggle="tooltip"><i class="fas fa-arrows-alt-h"></i>&nbsp;&nbsp;</span>',
-                    width: '18px',
+                    width: 18,
                     class: 'text-right',
                     data: 'jumps',
                     render: {
@@ -775,7 +964,7 @@ define([
                     targets: 3,
                     orderable: true,
                     title: '<span title="average security" data-toggle="tooltip">&#216;&nbsp;&nbsp;</span>',
-                    width: '15px',
+                    width: 15,
                     class: 'text-right',
                     data: 'avgTrueSec',
                     render: {
@@ -786,13 +975,43 @@ define([
                     targets: 4,
                     orderable: false,
                     title: 'route',
-                    data: 'route'
+                    class: [config.dataTableRouteCellClass].join(' '),
+                    data: 'route',
+                    render: {
+                        _: 'value'
+                    }
                 },{
                     targets: 5,
+                    title: '<i title="toggle connections" data-toggle="tooltip" class="fas fa-link text-right"></i>',
+                    orderable: false,
+                    searchable: false,
+                    width: 10,
+                    class: ['text-center', config.dataTableActionCellClass].join(' '),
+                    data: 'connections',
+                    render: {
+                        _: 'button'
+                    },
+                    createdCell: function(cell, cellData, rowData, rowIndex, colIndex) {
+                        let tempTableApi = this.api();
+
+                        $(cell).on('click', function(e) {
+                            let routeCellElement = tempTableApi.cell( rowIndex, 4 ).nodes().to$();
+
+                            if(routeCellElement.hasClass(config.dataTableJumpCellClass)){
+                                routeCellElement.toggleClass(config.dataTableJumpCellClass, false);
+                                $(this).find('i').toggleClass('txt-color-orange', false);
+                            }else{
+                                routeCellElement.toggleClass(config.dataTableJumpCellClass, true);
+                                $(this).find('i').toggleClass('txt-color-orange', true);
+                            }
+                        });
+                    }
+                },{
+                    targets: 6,
                     title: '<i title="search safer route (HS)" data-toggle="tooltip" class="fas fa-shield-alt text-right"></i>',
                     orderable: false,
                     searchable: false,
-                    width: '10px',
+                    width: 10,
                     class: ['text-center', config.dataTableActionCellClass].join(' '),
                     data: 'flag',
                     render: {
@@ -824,11 +1043,11 @@ define([
                         });
                     }
                 },{
-                    targets: 6,
+                    targets: 7,
                     title: '',
                     orderable: false,
                     searchable: false,
-                    width: '10px',
+                    width: 10,
                     class: ['text-center', config.dataTableActionCellClass].join(' '),
                     data: 'reload',
                     render: {
@@ -859,11 +1078,11 @@ define([
                         });
                     }
                 },{
-                    targets: 7,
+                    targets: 8,
                     title: '',
                     orderable: false,
                     searchable: false,
-                    width: '10px',
+                    width: 10,
                     class: ['text-center', config.dataTableActionCellClass].join(' '),
                     data: 'clear',
                     render: {
@@ -907,6 +1126,20 @@ define([
                     $(animationRows[i]).removeData('animationStatus');
                 }
 
+            },
+            initComplete: function(settings, json){
+                // click on "fake connection" -------------------------------------------------------------------------
+                $(this).on('click', '.pf-fake-connection', function(){
+                    let fakeConnectionElement = $(this);
+                    let mapId = fakeConnectionElement.attr('data-mapId');
+                    let connectionId = fakeConnectionElement.attr('data-connectionId');
+                    let connection = $().getConnectionById(mapId, connectionId);
+
+                    if(connection){
+                        let map = connection._jsPlumb.instance;
+                         MapUtil.showConnectionInfo(map, [connection]);
+                    }
+                });
             },
             data: [] // will be added dynamic
         });
@@ -990,7 +1223,7 @@ define([
      * @param mapId
      * @param systemData
      */
-    let initModule = function(moduleElement, mapId, systemData){
+    let initModule = (moduleElement, mapId, systemData) => {
 
         let systemFromData = {
             name: systemData.name,

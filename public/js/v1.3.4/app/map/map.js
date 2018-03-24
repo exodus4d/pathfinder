@@ -64,9 +64,6 @@ define([
         systemSec: 'pf-system-sec'
     };
 
-    // active jsPlumb instances currently running
-    let activeInstances = {};
-
     // active connections per map (cache object)
     let connectionCache = {};
 
@@ -2602,7 +2599,7 @@ define([
      */
     let getMapInstance = function(mapId){
 
-        if(typeof activeInstances[mapId] !== 'object'){
+        if( !MapUtil.existsMapInstance(mapId) ){
             // create new instance
             jsPlumb.Defaults.LogEnabled = true;
 
@@ -2712,10 +2709,10 @@ define([
                 return (targetEndpoint.connections.length === 0);
             });
 
-            activeInstances[mapId] = newJsPlumbInstance;
+            MapUtil.setMapInstance(mapId, newJsPlumbInstance);
         }
 
-        return activeInstances[mapId];
+        return MapUtil.getMapInstance(mapId);
     };
 
     /**
@@ -3340,16 +3337,6 @@ define([
     };
 
     /**
-     * removes a map instance from local cache
-     * @param mapId
-     */
-    let clearMapInstance = (mapId) => {
-        if(typeof activeInstances[mapId] === 'object'){
-            delete activeInstances[mapId];
-        }
-    };
-
-    /**
      * init map options
      * @param mapConfig
      * @param options
@@ -3513,7 +3500,6 @@ define([
 
     return {
         getMapInstance: getMapInstance,
-        clearMapInstance: clearMapInstance,
         loadMap: loadMap,
         showNewSystemDialog: showNewSystemDialog
     };

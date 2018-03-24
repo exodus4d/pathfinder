@@ -658,13 +658,8 @@ define([
             };
 
             // connection
-            let connectionClasses = [];
-            for(let k = 0; k < tempConnectionData.type.length; k++){
-                connectionClasses.push( MapUtil.getConnectionInfo( tempConnectionData.type[k], 'cssClass') );
-            }
-
+            let connectionClasses = MapUtil.getConnectionFakeClassesByTypes(tempConnectionData.type);
             connectionClasses = connectionClasses.join(' ');
-
             tempConData.connection = '<div class="pf-fake-connection ' + connectionClasses + '"></div>';
 
             tempConData.target = {

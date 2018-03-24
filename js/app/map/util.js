@@ -55,6 +55,48 @@ define([
         }
     };
 
+    // active jsPlumb instances currently running =====================================================================
+    let activeInstances = {};
+
+    /**
+     * set mapInstance
+     * @param mapId
+     * @param map
+     */
+    let setMapInstance = (mapId, map) => {
+        activeInstances[mapId] = map;
+    };
+
+    /**
+     * get mapInstance
+     * @param mapId
+     * @returns {*}
+     */
+    let getMapInstance = (mapId) => {
+        return activeInstances[mapId];
+    };
+
+    /**
+     * check for mapInstance is set
+     * @param mapId
+     * @returns {boolean}
+     */
+    let existsMapInstance = (mapId) => {
+        return typeof activeInstances[mapId] === 'object';
+    };
+
+    /**
+     * removes a map instance
+     * @param mapId
+     */
+    let clearMapInstance = (mapId) => {
+        if(existsMapInstance(mapId)){
+            delete activeInstances[mapId];
+        }
+    };
+
+    // ================================================================================================================
+
     /**
      * get all available map Types
      * optional they can be filtered by current access level of a user
@@ -605,6 +647,19 @@ define([
     };
 
     /**
+     * get CSS classes for connection types
+     * @param types
+     * @returns {string[]}
+     */
+    let getConnectionFakeClassesByTypes = (types) => {
+        let connectionClasses = ['pf-fake-connection'];
+        for(let i = 0; i < types.length; i++){
+            connectionClasses.push(getConnectionInfo( types[i], 'cssClass'));
+        }
+        return connectionClasses;
+    };
+
+    /**
      * get all direct connections between two given systems
      * @param map
      * @param {JQuery} systemA
@@ -1076,6 +1131,10 @@ define([
     return {
         config: config,
         mapOptions: mapOptions,
+        setMapInstance: setMapInstance,
+        getMapInstance: getMapInstance,
+        existsMapInstance: existsMapInstance,
+        clearMapInstance: clearMapInstance,
         getMapTypes: getMapTypes,
         getMapScopes: getMapScopes,
         getScopeInfoForMap: getScopeInfoForMap,
@@ -1094,6 +1153,7 @@ define([
         searchConnectionsBySystems: searchConnectionsBySystems,
         searchConnectionsByScopeAndType: searchConnectionsByScopeAndType,
         getConnectionInfo: getConnectionInfo,
+        getConnectionFakeClassesByTypes: getConnectionFakeClassesByTypes,
         checkForConnection: checkForConnection,
         getDefaultConnectionTypeByScope: getDefaultConnectionTypeByScope,
         setConnectionWHStatus: setConnectionWHStatus,
