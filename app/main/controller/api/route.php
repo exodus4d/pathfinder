@@ -403,19 +403,12 @@ class Route extends Controller\AccessController {
      * @throws \Exception\PathfinderException
      */
     public function searchRoute(int $systemFromId, int $systemToId, $searchDepth = 0, array $mapIds = [], array $filterData = []) : array {
-
         // search root by ESI API
         $routeData = $this->searchRouteESI($systemFromId, $systemToId, $searchDepth, $mapIds, $filterData);
 
-        self::getLogger('DEBUG')->write('NEW searchRouteESI() --------------------------------------------------');
-        self::getLogger('DEBUG')->write(print_r($routeData, true));
-
         if( !empty($routeData['error']) ){
             // ESI route search has errors -> fallback to custom search implementation
-            $routeDataTest = $this->searchRouteCustom($systemFromId, $systemToId, $searchDepth, $mapIds, $filterData);
-
-            self::getLogger('DEBUG')->write('NEW searchRouteCustom() --------------------------------------------------');
-            self::getLogger('DEBUG')->write(print_r($routeDataTest, true));
+            $routeData = $this->searchRouteCustom($systemFromId, $systemToId, $searchDepth, $mapIds, $filterData);
         }
 
         return $routeData;

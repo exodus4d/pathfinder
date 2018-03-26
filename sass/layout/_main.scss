@@ -1316,6 +1316,16 @@ code {
     padding-right: 0;   // verwrite default
   }
 }
+
+// left menu ======================================================================================
+.pf-menu-clock{
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 6px 8px;
+  text-align: center;
+}
+
 // global info panel ==============================================================================
 #pf-global-info{
   position: absolute;

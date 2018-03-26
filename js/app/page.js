@@ -63,6 +63,7 @@ define([
 
         // menu
         menuHeadMenuLogoClass: 'pf-head-menu-logo',                             // class for main menu logo
+        menuClockClass: 'pf-menu-clock',                                        // class for EVE-Time clock
 
         // helper element
         dynamicElementWrapperId: 'pf-dialog-wrapper',
@@ -289,6 +290,10 @@ define([
                     })
                 ).on('click', function(){
                     $(document).triggerMenuEvent('Logout', {clearCookies: 1});
+                })
+            ).append(
+                $('<div>', {
+                    class: config.menuClockClass
                 })
             )
         );
@@ -787,6 +792,29 @@ define([
             return false;
         });
 
+        initEveClock();
+    };
+
+    /**
+     * init clock element with current EVE time
+     */
+    let initEveClock = () => {
+        let clockElement = $('.' + config.menuClockClass);
+
+        let checkTime = (i) => {
+            return  (i < 10) ? '0' + i : i;
+        };
+
+        let startTime = () => {
+            let date = Util.getServerTime();
+            let h = date.getHours();
+            let m = checkTime(date.getMinutes());
+            clockElement.text(h + ':' + m);
+
+            let t = setTimeout(startTime, 500);
+        };
+
+        startTime();
     };
 
     /**

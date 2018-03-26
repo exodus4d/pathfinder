@@ -119,21 +119,21 @@ define([
                 columnDefs: [
                     {
                         targets: 0,
-                        title: '<i class="fas fa-lg fa-tag"></i>',
+                        title: '<i class="fas fa-tag"></i>',
                         width: '18px',
                         searchable: false,
                         class: ['text-center'].join(' '),
                         data: 'status'
                     },{
                         targets: 1,
-                        title: '<i class="far fa-lg fa-fw fa-clock"></i>&nbsp;&nbsp;',
+                        title: '<i class="far fa-fw fa-clock"></i>&nbsp;&nbsp;',
                         width: '50px',
                         searchable: true,
                         class: 'text-right',
                         data: 'time'
                     },{
                         targets: 2,
-                        title: '<i class="fas fa-lg fa-fw fa-history"></i>&nbsp;&nbsp;',
+                        title: '<i class="fas fa-fw fa-history"></i>&nbsp;&nbsp;',
                         width: '35px',
                         searchable: false,
                         class: 'text-right',

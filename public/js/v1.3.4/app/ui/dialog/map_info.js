@@ -507,7 +507,7 @@ define([
                     title: 'region',
                     data: 'region'
                 },{
-                    title: '<i class="far fa-square fa-lg" title="system&nbsp;status" data-toggle="tooltip"></i>',
+                    title: '<i class="far fa-square" title="system&nbsp;status" data-toggle="tooltip"></i>',
                     width: '12px',
                     searchable: false,
                     data: 'status',
@@ -516,7 +516,7 @@ define([
                         sort: 'status_sort'
                     }
                 },{
-                    title: '<i class="fas fa-square fa-lg" title="system&nbsp;effect" data-toggle="tooltip"></i>',
+                    title: '<i class="fas fa-square" title="system&nbsp;effect" data-toggle="tooltip"></i>',
                     width: '12px',
                     className: 'text-center',
                     searchable: false,
@@ -530,7 +530,7 @@ define([
                     width: '30px',
                     data: 'static'
                 },{
-                    title: '<i class="fas fa-map-marker-alt fa-lg" title="your&nbsp;position" data-toggle="tooltip"></i>',
+                    title: '<i class="fas fa-map-marker-alt" title="your&nbsp;position" data-toggle="tooltip"></i>',
                     width: '8px',
                     searchable: false,
                     data: 'position',
@@ -539,13 +539,13 @@ define([
                         sort: 'position_sort'
                     }
                 },{
-                    title: '<i class="fas fa-plane fa-lg" title="active&nbsp;pilots" data-toggle="tooltip"></i>',
+                    title: '<i class="fas fa-plane" title="active&nbsp;pilots" data-toggle="tooltip"></i>',
                     width: '12px',
                     className: 'text-center',
                     searchable: false,
                     data: 'userCount'
                 },{
-                    title: '<i class="fas fa-lock fa-lg" title="system&nbsp;locked" data-toggle="tooltip"></i>',
+                    title: '<i class="fas fa-lock" title="system&nbsp;locked" data-toggle="tooltip"></i>',
                     width: '10px',
                     searchable: false,
                     data: 'locked',
@@ -1112,7 +1112,7 @@ define([
                 },{
                     targets: 1,
                     name: 'timestamp',
-                    title: '<i class="far fa-lg fa-fw fa-clock"></i>',
+                    title: '<i class="far fa-fw fa-clock"></i>',
                     width: 100,
                     className: ['text-right'].join(' '),
                     data: 'datetime.date',
@@ -1205,7 +1205,7 @@ define([
                     data: 'context.data.formatted'
                 },{
                     targets: 8,
-                    title: '<i class="fas fa-lg fa-code text-right"></i>',
+                    title: '<i class="fas fa-code text-right"></i>',
                     width: 12,
                     className: [config.tableCellActionClass].join(' '),
                     data: 'context.data',
