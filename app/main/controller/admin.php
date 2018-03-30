@@ -421,6 +421,13 @@ class Admin extends Controller{
         }
 
         $f3->set('tplMaps', $data);
+
+        if( !isset($data->corpMaps) ){
+            $f3->set('tplNotification', $this->getNotificationObject('No maps found',
+                'Only corporation maps could get loaded' ,
+                'info'
+            ));
+        }
     }
 
     /**

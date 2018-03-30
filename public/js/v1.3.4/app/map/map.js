@@ -944,35 +944,70 @@ define([
      */
     let setMapWrapperObserver = (mapWrapper, mapConfig) => {
 
+        /**
+         * save current map dimension to local storage
+         * @param entry
+         */
+        let saveMapSize = (entry) => {
+            let width = '';
+            let height = '';
+            if(entry.constructor.name === 'HTMLDivElement'){
+                width = entry.style.width;
+                height = entry.style.height;
+            }else if (entry.constructor.name === 'ResizeObserverEntry'){
+                width = entry.target.style.width;
+                height = entry.target.style.height;
+            }
+
+            width = parseInt(width.substring(0, width.length - 2)) || 0;
+            height = parseInt(height.substring(0, height.length - 2)) || 0;
+
+            let promiseStore = MapUtil.getLocaleData('map', mapConfig.config.id );
+            promiseStore.then((data) => {
+                let storeData = true;
+
+                if (
+                    data && data.style &&
+                    data.style.width === width &&
+                    data.style.height === height
+                ) {
+                    // no style changes
+                    storeData = false;
+                }
+
+                if (storeData) {
+                    MapUtil.storeLocalData('map', mapConfig.config.id, 'style', {
+                        width: width,
+                        height: height
+                    });
+                }
+            });
+        };
+
         // map resize observer ----------------------------------------------------------------------------------------
         if(window.ResizeObserver) {
+            // ResizeObserver() supported
             let resizeTimer;
             let wrapperResize = new ResizeObserver(entries => { // jshint ignore:line
-                /**
-                 * save current map dimension to local storage
-                 * @param entry
-                 */
-                let saveMapSize = (entry) => {
-                    return setTimeout(() => {
-                        let width = entry.target.style.width;
-                        let height = entry.target.style.height;
-                        width = parseInt( width.substring(0, width.length - 2) ) || 0;
-                        height = parseInt( height.substring(0, height.length - 2) ) || 0;
-
-                        MapUtil.storeLocalData('map', mapConfig.config.id, 'style', {
-                            width: width,
-                            height: height
-                        });
-                    }, 100);
+                let checkMapSize = (entry) => {
+                    return setTimeout(saveMapSize, 100, entry);
                 };
                 for (let entry of entries){
                     // use timeout to "throttle" save actions
                     clearTimeout(resizeTimer);
-                    resizeTimer = saveMapSize(entry);
+                    resizeTimer = checkMapSize(entry);
                 }
             });
 
             wrapperResize.observe(mapWrapper[0]);
+        }else if(requestAnimationFrame){
+            // ResizeObserver() not supported
+            let checkMapSize = (entry) => {
+                saveMapSize(entry);
+                return setTimeout(checkMapSize, 500, entry);
+            };
+
+            checkMapSize(mapWrapper[0]);
         }
 
     };

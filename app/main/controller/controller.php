@@ -25,6 +25,7 @@ class Controller {
     const ERROR_SESSION_SUSPECT                     = 'id: [%45s], ip: [%45s], User-Agent: [%s]';
     const ERROR_TEMP_CHARACTER_ID                   = 'Invalid temp characterId: %s';
 
+    const NOTIFICATION_TYPES                        = ['danger', 'warning', 'info', 'success'];
     /**
      * @var \Base
      */
@@ -540,6 +541,20 @@ class Controller {
             $object->trace = $trace;
         }
         return $object;
+    }
+
+    /**
+     * @param string $title
+     * @param string $message
+     * @param string $type
+     * @return \stdClass
+     */
+    protected function getNotificationObject(string $title, $message = '', $type = 'danger') : \stdClass {
+        $notification = (object) [];
+        $notification->type = in_array($type, self::NOTIFICATION_TYPES) ? $type : 'danger';
+        $notification->title = $title;
+        $notification->message = $message;
+        return $notification;
     }
 
     /**

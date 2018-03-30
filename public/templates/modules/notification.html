@@ -1,0 +1,27 @@
+<check if="{{ @notification->title }}">
+    <switch expr="{{ @notification->type }}">
+        <case value="warning" break="true">
+            <set notificationTypeClass="alert-warning" />
+            <set notificationColorClass="txt-color-warning" />
+        </case>
+        <case value="info" break="true">
+            <set notificationTypeClass="alert-info" />
+            <set notificationColorClass="txt-color-info" />
+        </case>
+        <case value="success" break="true">
+            <set notificationTypeClass="alert-success" />
+            <set notificationColorClass="txt-color-success" />
+        </case>
+        <default>
+            <set notificationTypeClass="alert-danger" />
+            <set notificationColorClass="txt-color-danger" />
+        </default>
+    </switch>
+
+    <div class="alert {{@notificationTypeClass}}">
+        <span class="txt-color {{@notificationColorClass}}">{{ @notification->title }}</span>
+        <check if="{{ @notification->message }}">
+            <small>{{ @notification->message }}</small>
+        </check>
+    </div>
+</check>
