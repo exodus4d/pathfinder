@@ -361,23 +361,8 @@ define([
                     let infoEffectElement = $(moduleElement).find('.' + config.systemInfoEffectInfoClass);
 
                     if(infoEffectElement.length){
-                        // effect row exists -> get effect data
-                        let systemEffectData = Util.getSystemEffectData( systemData.security, systemData.effect);
-
-                        if(systemEffectData !== false){
-                            // transform data into table
-                            let systemEffectTable = Util.getSystemEffectTable( systemEffectData );
-
-                            infoEffectElement.popover({
-                                html: true,
-                                trigger: 'hover',
-                                placement: 'top',
-                                delay: 200,
-                                title: 'System effects',
-                                container: 'body',
-                                content: systemEffectTable
-                            });
-                        }else{
+                        infoEffectElement.addSystemEffectTooltip(systemData.security, systemData.effect);
+                        if(!infoEffectElement.data('bs.popover')){
                             // effect data not found (e.g. !unknown! shattered system) -> hide "popover" icon icon
                             infoEffectElement.children().hide();
                         }

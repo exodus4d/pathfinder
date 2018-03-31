@@ -275,7 +275,6 @@ define([
 
             // get system info classes
             let effectBasicClass = MapUtil.getEffectInfoForSystem('effect', 'class');
-            let effectName = MapUtil.getEffectInfoForSystem(data.effect, 'name');
             let effectClass = MapUtil.getEffectInfoForSystem(data.effect, 'class');
             let secClass = Util.getSecurityClassForSystem(data.security);
 
@@ -301,7 +300,7 @@ define([
                     // System effect color
                     $('<i>', {
                         class: ['fas', 'fa-square ', 'fa-fw', effectBasicClass, effectClass].join(' ')
-                    }).attr('title', effectName)
+                    })
                 ).prepend(
                     $('<span>', {
                         class: [config.systemSec, secClass].join(' '),
@@ -339,6 +338,12 @@ define([
                         }).addWormholeInfoTooltip(staticData)
                     );
                 }
+            }
+
+            // System effect infos
+            if(data.effect){
+                system.find('.' + config.systemHeadClass + ' .' + effectClass)
+                    .addSystemEffectTooltip( data.security, data.effect);
             }
 
             // set initial system position

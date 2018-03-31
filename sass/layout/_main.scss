@@ -672,6 +672,7 @@ table{
 .pf-system-effect{
   display: none;      // if effect is active it will be overwritten
   color: $gray-lighter;
+  cursor: help;
 }
 
 .pf-system-effect-magnetar{

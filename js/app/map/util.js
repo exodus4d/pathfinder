@@ -1032,11 +1032,43 @@ define([
                     title: title,
                     content: content,
                     delay: {
-                        show: 150,
+                        show: 250,
                         hide: 0
                     }
                 });
             });
+        });
+    };
+
+    /**
+     * add a system effect tooltip
+     * @param security
+     * @param effect
+     * @returns {*}
+     */
+    $.fn.addSystemEffectTooltip = function (security, effect) {
+        return this.each(function () {
+            let element = $(this);
+
+            let systemEffectData = Util.getSystemEffectData(security, effect);
+            if (systemEffectData !== false) {
+                let title = '<span class="pf-font-capitalize">' + getEffectInfoForSystem(effect, 'name') + '</span>' +
+                    '<span class="pull-right ' + Util.getSecurityClassForSystem(security) + '">' + security + '</span>';
+                let content = Util.getSystemEffectTable(systemEffectData);
+
+                element.popover({
+                    html: true,
+                    trigger: 'hover',
+                    placement: 'top',
+                    container: 'body',
+                    title: title,
+                    content: content,
+                    delay: {
+                        show: 250,
+                        hide: 0
+                    }
+                });
+            }
         });
     };
 
