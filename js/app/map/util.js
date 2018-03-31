@@ -1014,6 +1014,11 @@ define([
                 if(tooltipData.maxStableTime){
                     data.maxStableTime = tooltipData.maxStableTime + ' h';
                 }
+                if(tooltipData.signatureStrength){
+                    data.signatureStrength = parseFloat(tooltipData.signatureStrength).toLocaleString() + ' %';
+                } else {
+                    data.signatureStrength = 'unknown';
+                }
 
                 let title = tooltipData.name +
                     '<span class="pull-right ' + tooltipData.class +'">' + tooltipData.security + '</span>';

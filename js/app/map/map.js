@@ -337,7 +337,7 @@ define([
                             class: [config.systemBodyItemStatic, staticData.class].join(' '),
                             text: staticData.security
                         }).addWormholeInfoTooltip(staticData)
-                    )
+                    );
                 }
             }
 
