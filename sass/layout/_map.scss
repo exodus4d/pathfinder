@@ -347,7 +347,6 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       cursor: -moz-grab;
       cursor: -webkit-grab;
       cursor: grab;
-      padding: 0 4px;
       padding: 1px 4px 0 4px;
       white-space: nowrap;
       will-change: width;
@@ -367,6 +366,13 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
         i {
           margin-right: 4px;
         }
+      }
+
+      .pf-system-body-static{
+        float: right;
+        margin-left: 4px;
+        opacity: 0.7;
+        cursor: help;
       }
     }
 

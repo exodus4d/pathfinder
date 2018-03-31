@@ -40,8 +40,7 @@ define([
         systemBodyClass: 'pf-system-body',                              // class for system body
         systemBodyItemHeight: 16,                                       // px of a system body entry
         systemBodyItemPilots: 'pf-system-body-pilots',                  // class for player status in system body
-        systemTooltipInnerClass: 'pf-system-tooltip-inner',             // class for system tooltip content
-        systemTooltipInnerIdPrefix: 'pf-system-tooltip-inner-',         // id prefix for system tooltip content
+        systemBodyItemStatic: 'pf-system-body-static',                  // class for player status in system body
         dynamicElementWrapperId: 'pf-dialog-wrapper',                   // wrapper div for dynamic content (dialogs, context-menus,...)
 
         // endpoint classes
@@ -351,6 +350,22 @@ define([
                     )
                 )
             );
+
+            // Static infos in system body
+            if(data.statics){
+                let systemBody = system.find('.' + config.systemBodyClass);
+                for(let i = 0; i < data.statics.length; i++){
+                    let staticData = data.statics[i];
+                    staticData.class = Util.getSecurityClassForSystem( staticData.security );
+
+                    systemBody.append(
+                        $('<span>', {
+                            class: [config.systemBodyItemStatic, staticData.class].join(' '),
+                            text: staticData.security
+                        }).addWormholeInfoTooltip(staticData)
+                    )
+                }
+            }
 
             // set initial system position
             system.css({

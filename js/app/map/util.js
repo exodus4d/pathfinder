@@ -1023,19 +1023,14 @@ define([
                     placement: 'top',
                     html: true,
                     trigger: 'hover',
-                    content: '',
                     container: 'body',
                     title: title,
+                    content: content,
                     delay: {
                         show: 150,
                         hide: 0
                     }
                 });
-
-                // set new popover content
-                let popover = element.data('bs.popover');
-                popover.options.title = title;
-                popover.options.content = content;
             });
         });
     };
