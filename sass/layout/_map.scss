@@ -362,10 +362,18 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       .pf-system-body-pilots{
         width: 28px;
         height: 14px;
+        transition: color 1s;
 
         i {
           margin-right: 4px;
         }
+      }
+
+      .pf-system-body-pilots-increase{
+        color: $green-dark;
+      }
+      .pf-system-body-pilots-decrease{
+        color: $red;
       }
 
       .pf-system-body-static{

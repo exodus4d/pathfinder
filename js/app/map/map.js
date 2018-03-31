@@ -127,72 +127,46 @@ define([
     $.fn.updateSystemUserData = function(map, data, currentUserIsHere){
 
         let system = $(this);
-        let systemId = system.attr('id');
 
         // find system body
         let systemBody = $( system.find('.' + config.systemBodyClass) );
-
-        // find expand arrow
-        let systemHeadExpand = $( system.find('.' + config.systemHeadExpandClass) );
+        let pilotsContainer = systemBody.find('.' + config.systemBodyItemPilots);
 
         let oldCacheKey = system.data('userCache');
-        let oldUserCount = system.data('userCount');
-        oldUserCount = (oldUserCount !== undefined ? oldUserCount : 0);
+        let oldUserCount = system.data('userCount') || 0;
         let userCounter = 0;
 
         system.data('currentUser', false);
-
         // if current user is in THIS system trigger event
         if(currentUserIsHere){
             system.data('currentUser', true);
         }
 
-        // add user information
-        if(
-            data &&
-            data.user
-        ){
-            let cacheArray = [];
+        let cacheKey = false;
+        if(data && data.user) {
             // loop all active pilots and build cache-key
+            let cacheArray = [];
             for(let i = 0; i < data.user.length; i++){
                 userCounter++;
                 let tempUserData = data.user[i];
                 cacheArray.push(tempUserData.id + '_' + tempUserData.log.ship.id);
             }
-            let cacheKey = cacheArray.join('_');
+            cacheKey = cacheArray.join('_');
+        }
 
-            // check for if cacheKey has changed
-            if(cacheKey !== oldCacheKey){
-                // set new CacheKey
-                system.data('userCache', cacheKey);
-                system.data('userCount', userCounter);
+        // do we need to update the system?
+        if(cacheKey !== oldCacheKey) {
+            system.data('userCache', cacheKey);
+            system.data('userCount', userCounter);
 
-                let pilots = systemBody.find('.' + config.systemBodyItemPilots);
-                let icon = pilots.find('i').clone();
-                pilots.text(userCounter).prepend(icon);
+            let icon = pilotsContainer.find('i').clone();
+            pilotsContainer.text(userCounter === 0 ? '-' : userCounter).prepend(icon);
 
-                // loop "again" and build DOM object with user information
-                for(let j = 0; j < data.user.length; j++){
-                    /*
-                    let userData = data.user[j];
-
-                    let statusClass = Util.getStatusInfoForCharacter(userData, 'class');
-                    let userName = userData.name;
-                    */
-                }
-            }
-        }else{
-            // no user data found for this system
-            system.data('userCache', false);
-            system.data('userCount', 0);
-
-            if(
-                oldCacheKey &&
-                oldCacheKey.length > 0
-            ){
-                let pilots = systemBody.find('.' + config.systemBodyItemPilots);
-                let icon = pilots.find('i').clone();
-                pilots.text('-').prepend(icon);
+            // Highlight if pilot count changed
+            let pilotCountDiff = userCounter - oldUserCount;
+            if(pilotCountDiff !== 0) {
+                let highlight = pilotCountDiff > 0 ? 'pf-system-body-pilots-increase' : 'pf-system-body-pilots-decrease';
+                pilotsContainer.addClass(highlight).delay(5000).queue(() => { pilotsContainer.removeClass(highlight).dequeue(); });
             }
         }
     };
