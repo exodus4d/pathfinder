@@ -285,9 +285,6 @@ define([
             // do not fire a "connectionDetached" event
             map.detachAllConnections(system, {fireEvent: false});
 
-            // hide tooltip
-            system.toggleSystemTooltip('destroy', {});
-
             // remove system
             system.velocity('transition.whirlOut', {
                 duration: Init.animationSpeed.mapDeleteSystem,

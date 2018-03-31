@@ -276,7 +276,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
   // ==========================================================================
   .pf-system{
     position: absolute;
-    min-width: 60px;
+    min-width: 105px;
     height: auto;
     overflow: hidden; // hide bg on round corners -_-
     background-color: $gray-dark;
@@ -341,15 +341,15 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     // ========================================================================
 
     .pf-system-body{
-      height: 0px;
+      height: auto;
       width: 100%;
       overflow: hidden;
       cursor: -moz-grab;
       cursor: -webkit-grab;
       cursor: grab;
       padding: 0 4px;
+      padding: 1px 4px 0 4px;
       white-space: nowrap;
-      display: none;  // triggered by JS
       will-change: width;
 
       border: {
@@ -360,35 +360,14 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
         }
       }
 
-      .pf-system-body-item{
-        color: lighten($gray-light, 10%);
-        font-size: 10px;
-        line-height: 16px;
-        height: 16px;
+      .pf-system-body-pilots{
+        width: 28px;
+        height: 14px;
 
-        .pf-system-body-right{
-          text-overflow: ellipsis;
-          float: right;
-          color: $orange-light;
-          display: none; // hover effect
-        }
-        // user status ========================================================
-        .pf-user-status{
-          font-size: 7px;
-          width: 10px;
-          vertical-align: middle;
-          height: 14px;
-        }
-
-        .pf-system-body-item-name{
-          display: inline-block;
-          width: 65px;
-          overflow: hidden;
-          white-space: nowrap;
-          text-overflow: ellipsis;
+        i {
+          margin-right: 4px;
         }
       }
-
     }
 
     // system head specific tooltip style
