@@ -261,15 +261,10 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     &.jsplumb-overlay{
       opacity: 0 !important; // hide opacity on hover
     }
-
-    &:not(.jsplumb-overlay){
-      @include bounce-up-down; // label should not bounce
-    }
   }
 
   // hover effect for systems
   .jsplumb-target-hover, .jsplumb-source-hover{
-    @include bounce-up-down;
     @include box-shadow(0 6px 12px rgba(0,0,0,.3));
   }
 
