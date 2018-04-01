@@ -159,7 +159,7 @@ define([
             system.data('userCache', cacheKey);
             system.data('userCount', userCounter);
 
-            let icon = pilotsContainer.find('i').clone();
+            let icon = pilotsContainer.find('i').clone().toggle(currentUserIsHere);
             pilotsContainer.text(userCounter === 0 ? '-' : userCounter).prepend(icon);
 
             // Highlight if pilot count changed
@@ -168,60 +168,6 @@ define([
                 let highlight = pilotCountDiff > 0 ? 'pf-system-body-pilots-increase' : 'pf-system-body-pilots-decrease';
                 pilotsContainer.addClass(highlight).delay(5000).queue(() => { pilotsContainer.removeClass(highlight).dequeue(); });
             }
-        }
-    };
-
-    /**
-     * show/hide system body element
-     * @param type
-     * @param map
-     * @param callback
-     */
-    $.fn.toggleBody = function(type, map, callback){
-        let system = $(this);
-        let systemBody = system.find('.' + config.systemBodyClass);
-
-        let systemDomId = system.attr('id');
-
-        if(type === true){
-            // show minimal body
-            systemBody.velocity({
-                height: config.systemBodyItemHeight + 'px'
-            },{
-                duration: 50,
-                display: 'auto',
-                progress: function(){
-                    //revalidate element size and repaint
-                    map.revalidate( systemDomId );
-                },
-                complete: function(){
-                    map.revalidate( systemDomId );
-
-                    if(callback.complete){
-                        callback.complete(system);
-                    }
-                }
-            });
-        }else if(type === false){
-            // hide body
-            // remove all inline styles -> possible relict from previous hover-extend
-            systemBody.velocity({
-                height: 0 + 'px',
-                width: '100%',
-                'min-width': 'none'
-            },{
-                duration: 50,
-                display: 'none',
-                begin: function(){
-                },
-                progress: function(){
-                    // revalidate element size and repaint
-                    map.revalidate( systemDomId );
-                },
-                complete: function(){
-                    map.revalidate( systemDomId );
-                }
-            });
         }
     };
 
@@ -318,8 +264,8 @@ define([
                         text: '-'
                     }).prepend(
                         $('<i>', {
-                            class: ['fas', 'fa-fighter-jet'].join(' ')
-                        })
+                            class: ['fas', 'fa-map-marker-alt'].join(' ')
+                        }).hide()
                     )
                 )
             );
@@ -601,19 +547,7 @@ define([
             connection = map.connect({
                 source: sourceSystem[0],
                 target: targetSystem[0],
-                /*
-                 parameters: {
-                 connectionId: connectionId,
-                 updated: connectionData.updated
-                 },
-                 */
                 type: null
-                /* experimental (straight connections)
-                 anchors: [
-                 [ "Perimeter", { shape: 'Rectangle' }],
-                 [ "Perimeter", { shape: 'Rectangle' }]
-                 ]
-                 */
             });
 
             // check if connection is valid (e.g. source/target exist

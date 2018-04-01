@@ -344,7 +344,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       cursor: grab;
       padding: 1px 4px 0 4px;
       white-space: nowrap;
-      will-change: width;
+      font-size: 11px;
 
       border: {
         top: {
@@ -355,9 +355,9 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       }
 
       .pf-system-body-pilots{
-        width: 28px;
         height: 14px;
-        transition: color 1s;
+        color: darken($gray-lighter, 15%);
+        transition: color 0.3s ease-out;
 
         i {
           margin-right: 4px;
