@@ -172,7 +172,7 @@ define([
             let pilotCountDiff = userCounter - oldUserCount;
             if(pilotCountDiff !== 0) {
                 let highlight = pilotCountDiff > 0 ? 'pf-system-body-pilots-increase' : 'pf-system-body-pilots-decrease';
-                pilotsContainer.addClass(highlight).delay(5000).queue(() => { pilotsContainer.removeClass(highlight).dequeue(); });
+                pilotsContainer.addClass(highlight).delay(15000).queue(() => { pilotsContainer.removeClass(highlight).dequeue(); });
             }
         }
     };
@@ -271,7 +271,7 @@ define([
                         text: '-'
                     }).prepend(
                         $('<i>', {
-                            class: ['fas', 'fa-map-marker-alt'].join(' ')
+                            class: ['fas', 'fa-map-marker-alt', 'txt-color', 'txt-color-teal'].join(' ')
                         }).hide()
                     )
                 )
