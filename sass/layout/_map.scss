@@ -294,7 +294,6 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     &:hover{
       // makes the systems "flying" :)
       @include box-shadow(0 6px 12px rgba(0,0,0, 0.3));
-      @include transform( translate3d(0, -2px, 0) );
     }
 
     .pf-system-head{
