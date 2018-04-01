@@ -1150,7 +1150,7 @@ define([
             let element = $(this);
 
             if (element.data('bs.popover')) {
-                element.popover('dispose');
+                element.popover('destroy');
             }
         });
     };
