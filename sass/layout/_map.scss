@@ -271,7 +271,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
   // ==========================================================================
   .pf-system{
     position: absolute;
-    min-width: 105px;
+    min-width: 100px;
     height: auto;
     overflow: hidden; // hide bg on round corners -_-
     background-color: $gray-dark;
@@ -306,7 +306,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       .pf-system-head-name{
         border: none;
         display: inline-block;
-        width: 61px;
+        width: 56px;
         color: $gray-lighter;
         margin-bottom: -5px;
         overflow: hidden;
@@ -314,11 +314,11 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       }
 
       .pf-system-head-name-short {
-        width: 47px;
+        width: 42px;
       }
 
       .pf-system-head-name-long {
-        width: 81px;
+        width: 76px;
       }
 
       .pf-system-effect{
