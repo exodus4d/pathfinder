@@ -223,6 +223,7 @@ define([
             let effectBasicClass = MapUtil.getEffectInfoForSystem('effect', 'class');
             let effectClass = MapUtil.getEffectInfoForSystem(data.effect, 'class');
             let secClass = Util.getSecurityClassForSystem(data.security);
+            let nameClass = Util.getNameClassForSystem(data.locked, data.effect);
 
             system = $('<div>', {
                 // system
@@ -235,7 +236,7 @@ define([
                 }).append(
                     // System name is editable
                     $('<span>', {
-                        class: config.systemHeadNameClass
+                        class: [config.systemHeadNameClass, nameClass].join(' ')
                     }).attr('data-value', systemName)
                 ).append(
                     // System locked status
@@ -2259,9 +2260,12 @@ define([
             }
         }
 
+        // update name class
+        let nameClass = Util.getNameClassForSystem(system.data('locked'), system.data('effect'));
+        system.find('.' + config.systemHeadNameClass).attr('class', [config.systemHeadNameClass, nameClass].join(' ') );
+
         // repaint connections
         map.revalidate( system.attr('id') );
-
 
         if(! hideCounter){
             $(system).getMapOverlay('timer').startMapUpdateCounter();

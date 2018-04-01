@@ -307,9 +307,19 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       .pf-system-head-name{
         border: none;
         display: inline-block;
-        min-width: 41px;
+        width: 61px;
         color: $gray-lighter;
-        margin-right: 2px;
+        margin-bottom: -5px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .pf-system-head-name-short {
+        width: 47px;
+      }
+
+      .pf-system-head-name-long {
+        width: 81px;
       }
 
       .pf-system-effect{

@@ -1574,6 +1574,20 @@ define([
     };
 
     /**
+     * get a css class for the name depending on available space
+     * @param locked
+     * @param effect
+     * @returns {string}
+     */
+    let getNameClassForSystem = (locked, effect) => {
+        // if the system is locked and has an effect -> shorten the name. if neither is the case -> extend it
+        let nameClass = locked && effect ? 'pf-system-head-name-short' : '';
+        nameClass = !locked && !effect ? 'pf-system-head-name-long' : nameClass;
+
+        return nameClass;
+    };
+
+    /**
      * get a css class for the trueSec level of a system
      * @param trueSec
      * @returns {string}
@@ -2389,6 +2403,7 @@ define([
         getSystemsInfoTable: getSystemsInfoTable,
         getStatusInfoForCharacter: getStatusInfoForCharacter,
         getSecurityClassForSystem: getSecurityClassForSystem,
+        getNameClassForSystem: getNameClassForSystem,
         getTrueSecClassForSystem: getTrueSecClassForSystem,
         getStatusInfoForSystem: getStatusInfoForSystem,
         getSignatureGroupInfo: getSignatureGroupInfo,
