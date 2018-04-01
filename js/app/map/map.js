@@ -38,7 +38,6 @@ define([
         systemHeadNameClass: 'pf-system-head-name',                     // class for system name
         systemHeadExpandClass: 'pf-system-head-expand',                 // class for system head expand arrow
         systemBodyClass: 'pf-system-body',                              // class for system body
-        systemBodyItemHeight: 16,                                       // px of a system body entry
         systemBodyItemPilots: 'pf-system-body-pilots',                  // class for player status in system body
         systemBodyItemStatic: 'pf-system-body-static',                  // class for player status in system body
         dynamicElementWrapperId: 'pf-dialog-wrapper',                   // wrapper div for dynamic content (dialogs, context-menus,...)
@@ -162,6 +161,13 @@ define([
             let icon = pilotsContainer.find('i').clone().toggle(currentUserIsHere);
             pilotsContainer.text(userCounter === 0 ? '-' : userCounter).prepend(icon);
 
+            // Update tooltip
+            if(data && data.user) {
+                pilotsContainer.addSystemPilotsTooltip(data.user, true);
+            } else {
+                pilotsContainer.removeTooltip();
+            }
+
             // Highlight if pilot count changed
             let pilotCountDiff = userCounter - oldUserCount;
             if(pilotCountDiff !== 0) {
@@ -282,7 +288,7 @@ define([
                         $('<span>', {
                             class: [config.systemBodyItemStatic, staticData.class].join(' '),
                             text: staticData.security
-                        }).addWormholeInfoTooltip(staticData)
+                        }).addWormholeInfoTooltip(staticData, true)
                     );
                 }
             }
@@ -290,7 +296,7 @@ define([
             // System effect infos
             if(data.effect){
                 system.find('.' + config.systemHeadClass + ' .' + effectClass)
-                    .addSystemEffectTooltip( data.security, data.effect);
+                    .addSystemEffectTooltip(data.security, data.effect, true);
             }
 
             // set initial system position

@@ -1,0 +1,15 @@
+.pf-popover-small {
+  .popover-title {
+    padding: 3px 6px;
+  }
+
+  .popover-content {
+    padding: 6px 1px 3px;
+  }
+
+  // make it more specific so the rules get applied without important
+  .pf-popover-pilotsinfo.pf-popover-pilotsinfo.pf-popover-pilotsinfo {
+    font-size: 9px;
+    min-width: 125px;
+  }
+}

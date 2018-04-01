@@ -993,10 +993,11 @@ define([
     /**
      * add a wormhole tooltip with wh specific data to elements
      * @param tooltipData
+     * @param small
      * @returns {*}
      */
-    $.fn.addWormholeInfoTooltip = function(tooltipData){
-        return this.each(function() {
+    $.fn.addWormholeInfoTooltip = function (tooltipData, small = false) {
+        return this.each(function () {
             let element = $(this);
 
             requirejs(['text!templates/tooltip/wormhole_info.html', 'mustache'], function (template, Mustache) {
@@ -1036,6 +1037,9 @@ define([
                         hide: 0
                     }
                 });
+                if (small) {
+                    element.setTooltipSmall();
+                }
             });
         });
     };
@@ -1044,9 +1048,10 @@ define([
      * add a system effect tooltip
      * @param security
      * @param effect
+     * @param small
      * @returns {*}
      */
-    $.fn.addSystemEffectTooltip = function (security, effect) {
+    $.fn.addSystemEffectTooltip = function (security, effect, small = false) {
         return this.each(function () {
             let element = $(this);
 
@@ -1068,6 +1073,84 @@ define([
                         hide: 0
                     }
                 });
+                if (small) {
+                    element.setTooltipSmall();
+                }
+            }
+        });
+    };
+
+    /**
+     * add a active pilots tooltip with ship info
+     * @param users
+     * @param small
+     * @returns {*}
+     */
+    $.fn.addSystemPilotsTooltip = function (users, small = false) {
+        return this.each(function () {
+            let element = $(this);
+
+            requirejs(['text!templates/tooltip/pilots_info.html', 'mustache'], function (template, Mustache) {
+                // format tooltip data
+                let data = {'pilots': []};
+                for (let i = 0; i < users.length; i++) {
+                    let userData = users[i];
+
+                    data.pilots.push({
+                        'name': userData.name,
+                        'shipName': userData.log.ship.typeName,
+                        'statusClass': Util.getStatusInfoForCharacter(userData, 'class')
+                    });
+                }
+
+                let title = 'Active pilots';
+                let content = Mustache.render(template, data);
+
+                element.popover({
+                    placement: 'top',
+                    html: true,
+                    trigger: 'hover',
+                    container: 'body',
+                    title: title,
+                    content: content,
+                    delay: {
+                        show: 250,
+                        hide: 0
+                    }
+                });
+                if (small) {
+                    element.setTooltipSmall();
+                }
+            });
+        });
+    };
+
+    /**
+     * adds the small-class to a tooltip
+     * @returns {string}
+     */
+    $.fn.setTooltipSmall = function () {
+        return this.each(function () {
+            let element = $(this);
+
+            let popover = element.data('bs.popover');
+
+            if (popover) {
+                popover.tip().addClass('pf-popover-small');
+            }
+        });
+    };
+
+    /**
+     * removes a tooltip
+     * @returns {string}
+     */
+    $.fn.removeTooltip = function () {
+        return this.each(function () {
+            let element = $(this);
+
+            if (element.data('bs.popover')) {
+                element.popover('dispose');
             }
         });
     };

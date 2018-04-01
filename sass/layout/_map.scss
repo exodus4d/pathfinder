@@ -368,6 +368,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
         height: 14px;
         color: darken($gray-lighter, 15%);
         transition: color 0.3s ease-out;
+        cursor: help;
 
         i {
           margin-right: 4px;
