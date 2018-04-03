@@ -435,6 +435,7 @@ define([
 
             systemTypeName: MapUtil.getSystemTypeInfo(systemData.type.id, 'name'),
             systemStatusId: systemData.status.id,
+            systemTypeIsWspace: systemData.type.id === 1,
             systemStatusClass: Util.getStatusInfoForSystem(systemData.status.id, 'class'),
             systemStatusLabel: Util.getStatusInfoForSystem(systemData.status.id, 'label'),
             securityClass: Util.getSecurityClassForSystem( systemData.security ),
@@ -453,8 +454,8 @@ define([
 
             systemConstellationLinkClass: config.constellationLinkClass,
             systemRegionLinkClass: config.regionLinkClass,
+            systemRegionNameForDotlan: systemData.region.name.replace(' ', '_'),
             systemTypeLinkClass: config.typeLinkClass
-
         };
 
         Render.showModule(moduleConfig, moduleData);
