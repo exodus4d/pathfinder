@@ -29,27 +29,6 @@ class Map extends Controller\AccessController {
 
 
     /**
-     * get map data cache key
-     * @param Model\CharacterModel $character
-     * @return string
-     */
-    protected function getMapDataCacheKey(Model\CharacterModel $character): string {
-        return sprintf(self::CACHE_KEY_MAP_DATA, 'CHAR_' . $character->_id);
-    }
-
-    /**
-     * clear map data caching
-     * -> cache timings are short, this will just increase update performance on map changes
-     * @param Model\CharacterModel $character
-     */
-    protected function clearMapDataCache(Model\CharacterModel $character){
-        $cacheKey = $this->getMapDataCacheKey($character);
-        if($this->getF3()->exists($cacheKey)){
-            $this->getF3()->clear($cacheKey);
-        }
-    }
-
-    /**
      * get user data cache key
      * @param int $mapId
      * @return string
@@ -690,18 +669,18 @@ class Map extends Controller\AccessController {
      * @throws Exception\PathfinderException
      */
     public function updateData(\Base $f3){
-        $mapData = (array)$f3->get('POST.mapData');
-        $userDataRequired = (bool)$f3->get('POST.getUserData');
+        $postData = (array)$f3->get('POST');
+
+        $forceUpdate = (bool)$postData['forceUpdate'];
+        $mapData = (array)$postData['mapData'];
+        $userDataRequired = (bool)$postData['getUserData'];
+
+        $return = (object) [];
 
         $activeCharacter = $this->getCharacter();
 
-        $cacheKey = $this->getMapDataCacheKey($activeCharacter);
-
         // if there is any system/connection change data submitted -> save new data
-        if(
-            !empty($mapData) ||
-            !$f3->exists($cacheKey, $return)
-        ){
+        if( $forceUpdate || !empty($mapData) ){
             $return = (object) [];
             $return->error = [];
 
@@ -816,17 +795,11 @@ class Map extends Controller\AccessController {
 
             // format map Data for return
             $return->mapData = $this->getFormattedMapsData($maps);
-
-            // cache time(s) per user should be equal or less than this function is called
-            // prevent request flooding
-            $responseTTL = (int)Config::getPathfinderData('timer.update_server_map.delay') / 1000;
-
-            $f3->set($cacheKey, $return, $responseTTL);
         }
 
         // if userData is requested -> add it as well
         // -> Only first trigger call should request this data!
-        if($userDataRequired){
+        if($userDataRequired) {
             $return->userData = $activeCharacter->getUser()->getData();
         }
 
@@ -1116,7 +1089,6 @@ class Map extends Controller\AccessController {
         }
 
         if($mapDataChanged){
-            $this->clearMapDataCache($character);
             $this->broadcastMapData($map);
         }
 

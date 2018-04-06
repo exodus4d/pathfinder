@@ -209,8 +209,9 @@ define([
 
                 // get updated map data
                 let updatedMapData = {
+                    forceUpdate: forceUpdateMapData ? 1 : 0,
                     mapData: mapModule.getMapModuleDataForUpdate(),
-                    getUserData: ( Util.getCurrentUserData() ) ? 0 : 1
+                    getUserData: Util.getCurrentUserData() ? 0 : 1
                 };
 
                 // check if mapUpdate trigger should be send
