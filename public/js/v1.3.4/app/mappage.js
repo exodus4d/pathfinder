@@ -119,6 +119,10 @@ define([
                                         Util.deleteCurrentMapData( MsgWorkerMessage.data() );
                                         ModuleMap.updateMapModule(mapModule);
                                         break;
+                                    case 'mapSubscriptions':
+                                        Util.updateCurrentMapUserData(MsgWorkerMessage.data());
+                                        ModuleMap.updateActiveMapUserData(mapModule);
+                                        break;
                                 }
 
                                 Util.setSyncStatus('ws:get');
@@ -189,18 +193,6 @@ define([
                 $(document).trigger('pf:shutdown', {status: jqXHR.status, reason: reason, error: errorData});
             };
 
-            /**
-             * init (schedule) next MapUpdate Ping
-             */
-            let initMapUpdatePing = (forceUpdateMapData) => {
-                // get the current update delay (this can change if a user is inactive)
-                let delay = Util.getCurrentTriggerDelay( logKeyServerMapData, 0 );
-
-                updateTimeouts.mapUpdate = setTimeout((forceUpdateMapData) => {
-                    triggerMapUpdatePing(forceUpdateMapData);
-                }, delay, forceUpdateMapData);
-            };
-
             // ping for main map update ========================================================
             /**
              * @param forceUpdateMapData // force request to be send
@@ -267,7 +259,7 @@ define([
 
                             // load/update main map module
                             ModuleMap.updateMapModule(mapModule).then(() => {
-                               // map update done, init new trigger
+                                // map update done, init new trigger
 
                                 // get the current update delay (this can change if a user is inactive)
                                 let mapUpdateDelay = Util.getCurrentTriggerDelay( logKeyServerMapData, 0 );
@@ -307,10 +299,9 @@ define([
 
                 let updatedUserData = {
                     mapIds: mapIds,
-                    systemData: Util.getCurrentSystemData(),
-                    characterMapData: {
-                        mapTracking: (locationToggle.is(':checked') ? 1 : 0) // location tracking
-                    }
+                    getMapUserData: Util.getSyncType() === 'webSocket' ? 0 : 1,
+                    mapTracking: locationToggle.is(':checked') ? 1 : 0, // location tracking
+                    systemData: Util.getCurrentSystemData()
                 };
 
                 Util.timeStart(logKeyServerUserData);
@@ -321,43 +312,38 @@ define([
                     data: updatedUserData,
                     dataType: 'json'
                 }).done((data) => {
-
                     // log request time
                     let duration = Util.timeStop(logKeyServerUserData);
                     Util.log(logKeyServerUserData, {duration: duration, type: 'server', description:'request user data'});
 
-                    if(data.error.length > 0){
+                    if(
+                        data.error &&
+                        data.error.length > 0
+                    ){
                         // any error in the main trigger functions result in a user log-off
                         $(document).trigger('pf:menuLogout');
                     }else{
-
                         $(document).setProgramStatus('online');
 
                         if(data.userData !== undefined){
                             // store current user data global (cache)
                             let userData = Util.setCurrentUserData(data.userData);
 
-                            // store current map user data (cache)
-                            if(data.mapUserData !== undefined){
-                                Util.setCurrentMapUserData(data.mapUserData);
-                            }
-
-                            // active character data found
-                            mapModule.updateMapModuleData();
-
                             // update system info panels
                             if(data.system){
                                 mapModule.updateSystemModuleData(data.system);
                             }
 
-                            // get the current update delay (this can change if a user is inactive)
-                            let mapUserUpdateDelay = Util.getCurrentTriggerDelay( logKeyServerUserData, 0 );
+                            // store current map user data (cache)
+                            if(data.mapUserData !== undefined){
+                                Util.setCurrentMapUserData(data.mapUserData);
+                            }
 
-                            // init new trigger
-                            updateTimeouts.userUpdate = setTimeout(() => {
-                                triggerUserUpdatePing();
-                            }, mapUserUpdateDelay);
-
+                            // update map module character data
+                            ModuleMap.updateActiveMapUserData(mapModule).then(() => {
+                                // map module update done, init new trigger
+                                initMapUserUpdatePing();
+                            });
                         }
                     }
 
@@ -365,6 +351,29 @@ define([
 
             };
 
+            /**
+             * init (schedule) next MapUpdate Ping
+             */
+            let initMapUpdatePing = (forceUpdateMapData) => {
+                // get the current update delay (this can change if a user is inactive)
+                let delay = Util.getCurrentTriggerDelay(logKeyServerMapData, 0);
+
+                updateTimeouts.mapUpdate = setTimeout((forceUpdateMapData) => {
+                    triggerMapUpdatePing(forceUpdateMapData);
+                }, delay, forceUpdateMapData);
+            };
+
+            /**
+             * init (schedule) next MapUserUpdate Ping
+             */
+            let initMapUserUpdatePing = () => {
+                // get the current update delay (this can change if a user is inactive)
+                let delay = Util.getCurrentTriggerDelay(logKeyServerUserData, 0);
+
+                updateTimeouts.userUpdate = setTimeout(() => {
+                    triggerUserUpdatePing();
+                }, delay);
+            };
 
             /**
              * clear both main update timeouts

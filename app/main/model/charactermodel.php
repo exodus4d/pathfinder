@@ -13,6 +13,7 @@ use Controller\Api\User as User;
 use DB\SQL\Schema;
 use lib\Util;
 use lib\Config;
+use lib\Socket;
 use Model\Universe;
 
 class CharacterModel extends BasicModel {
@@ -902,6 +903,15 @@ class CharacterModel extends BasicModel {
         }
 
         return $this;
+    }
+
+    /**
+     * broadcast characterData
+     * @throws \ZMQSocketException
+     */
+    public function broadcastCharacterUpdate(){
+        $characterData = $this->getData(true);
+        (new Socket( Config::getSocketUri() ))->sendData('characterUpdate', $characterData);
     }
 
     /**

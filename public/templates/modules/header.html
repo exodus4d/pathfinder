@@ -5,7 +5,6 @@
 <nav id="{{id}}" class="navbar navbar-default  pf-head" role="navigation">
     <div class="container-fluid">
         <div class="navbar-header pull-left">
-
             <a class="navbar-brand pf-head-menu" href="">
                 <svg class="{{brandLogo}}" width="24px" height="24px">
                     <use xlink:href="#pf-logo"/>
@@ -22,12 +21,12 @@
                 <img class="{{userShipImageClass}}" src=""/>
                 <span>{{! will be filled with current user ship name }}</span>
             </p>
-            <p class="navbar-text pf-head-active-user" title="active pilots">
-                <a href="javascript:void(0);">
-                    <i class="fas fa-fighter-jet fa-fw"></i>active&nbsp;&nbsp;<span class="badge txt-color"></span>
-                </a>
+            <p class="navbar-text pf-head-active-user">
+                <i class="fas fa-fighter-jet fa-fw"></i>
+                <span class="badge txt-color" data-type="inside" data-on="txt-color-greenLight" data-off="txt-color-red" title="pilots on map"></span>
+                <span class="badge txt-color" data-type="outside" data-on="txt-color-grayLighter" data-off="txt-color-grayLighter" title="pilots beyond map"></span>
+                <span class="badge txt-color" data-type="inactive" data-on="txt-color-grayLighter" data-off="txt-color-grayLighter" title="pilots not ingame / no location"></span>
             </p>
-
         </div>
 
         <div class="navbar-header pull-right">

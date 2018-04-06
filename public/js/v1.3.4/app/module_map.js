@@ -298,39 +298,55 @@ define([
     };
 
     /**
-     * updates only visible/active map module
-     * @returns {boolean}
+     * updates current visible/active mapElement in mapModuleElement with user data
+     * @param mapModuleElement
+     * @returns {Promise<any>}
      */
-    $.fn.updateMapModuleData = function(){
-        let mapModule = $(this);
+    let updateActiveMapUserData = (mapModuleElement) => {
 
+        let updateActiveMapModuleExecutor = (resolve, reject) => {
+            // get all active map elements for module
+            let mapElement = mapModuleElement.getActiveMap();
+
+            updateMapUserData(mapElement).then(payload => resolve());
+        };
+
+        return new Promise(updateActiveMapModuleExecutor);
+    };
+
+    /**
+     * updates mapElement with user data
+     * update
+     * @param mapElement
+     * @returns {Promise<any>}
+     */
+    let updateMapUserData = (mapElement) => {
         // performance logging (time measurement)
         let logKeyClientUserData = Init.performanceLogging.keyClientUserData;
         Util.timeStart(logKeyClientUserData);
 
-        // get all active map elements for module
-        let mapElement = mapModule.getActiveMap();
+        let updateMapUserDataExecutor = (resolve, reject) => {
+            if(mapElement !== false){
+                let mapId = mapElement.data('id');
+                let currentMapUserData = Util.getCurrentMapUserData(mapId);
 
-        if(mapElement !== false){
-            let mapId = mapElement.data('id');
+                if(currentMapUserData){
+                    // trigger "update local" for this map => async
+                    mapElement.trigger('pf:updateLocal', currentMapUserData);
 
-            let currentMapUserData = Util.getCurrentMapUserData(mapId);
-
-
-            if(currentMapUserData){
-                // trigger "update local" for this map => async
-                mapElement.trigger('pf:updateLocal', currentMapUserData);
-
-                // update map with current user data
-                mapElement.updateUserData(currentMapUserData);
+                    // update map with current user data
+                    mapElement.updateUserData(currentMapUserData);
+                }
             }
-        }
 
-        // log client user data update time
-        let duration = Util.timeStop(logKeyClientUserData);
-        Util.log(logKeyClientUserData, {duration: duration, type: 'client', description:'update users'});
+            resolve();
+        };
 
-        return true;
+        return new Promise(updateMapUserDataExecutor).then(payload => {
+            // log client map update time
+            let duration = Util.timeStop(logKeyClientUserData);
+            Util.log(logKeyClientUserData, {duration: duration, type: 'client', description: 'update users'});
+        });
     };
 
     /**
@@ -634,6 +650,9 @@ define([
                                 let mapUrl = MapUtil.getMapDeeplinkUrl(mapConfig.config.id);
                                 history.pushState({}, '', mapUrl);
                             }
+
+                            // update map user data (do not wait until next update is triggered)
+                            updateMapUserData(mapElement);
                         });
                 }
             });
@@ -1189,6 +1208,7 @@ define([
 
     return {
         updateTabData: updateTabData,
-        updateMapModule: updateMapModule
+        updateMapModule: updateMapModule,
+        updateActiveMapUserData: updateActiveMapUserData
     };
 });
