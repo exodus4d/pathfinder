@@ -24,6 +24,7 @@ let notifier            = require('node-notifier');
 // -- Helper & NPM modules ----------------------------------------------------
 let flatten             = require('flat');
 let padEnd              = require('lodash.padend');
+let merge               = require('lodash.merge');
 let minimist            = require('minimist');
 let slash               = require('slash');
 let fileExtension       = require('file-extension');
@@ -56,8 +57,9 @@ let PATH = {
     }
 };
 
-// Pathfinder config file
-let pathfinderConfigFile = './app/pathfinder.ini';
+// Pathfinder config files
+let pathfinderConfigFileApp = './app/pathfinder.ini';
+let pathfinderConfigFileConf = './conf/pathfinder.ini';
 
 // CLI box size in characters
 let cliBoxLength = 80;
@@ -94,46 +96,6 @@ let uglifyJsOptions = {
     toplevel: false
 };
 
-// parse pathfinder.ini config file for relevant data
-let tagVersion;
-try{
-    let pathfinderIni = ini.parse(fs.readFileSync(pathfinderConfigFile, 'utf-8'));
-    try{
-        tagVersion = pathfinderIni.PATHFINDER.VERSION;
-    }catch(err){
-        printError(
-            err.message,
-            'Missing "PATHFINDER.VERSION" in "' + pathfinderConfigFile + '"');
-        process.exit(1);
-    }
-}catch(err){
-    printError(
-        err.message,
-        'Check read permissions for "' + pathfinderConfigFile + '"');
-    process.exit(1);
-}
-
-// parse CLI parameters
-let options = minimist(process.argv.slice(2));
-
-// custom task configuration (user CLI options if provided) (overwrites default)
-let CONF = {
-    TASK: options.hasOwnProperty('_') ? options._[0] : undefined,
-    TAG: options.tag ? options.tag : tagVersion ? tagVersion : undefined,
-    JS: {
-        UGLIFY: options.hasOwnProperty('jsUglify') ? options.jsUglify === 'true': undefined,
-        SOURCEMAPS: options.hasOwnProperty('jsSourcemaps') ? options.jsSourcemaps === 'true': undefined,
-        GZIP: options.hasOwnProperty('jsGzip') ? options.jsGzip === 'true': undefined,
-        BROTLI: options.hasOwnProperty('jsBrotli') ? options.jsBrotli === 'true': undefined
-    },
-    CSS: {
-        SOURCEMAPS: options.hasOwnProperty('cssSourcemaps') ? options.cssSourcemaps === 'true': undefined,
-        GZIP: options.hasOwnProperty('cssGzip') ? options.cssGzip === 'true': undefined,
-        BROTLI: options.hasOwnProperty('cssBrotli') ? options.cssBrotli === 'true': undefined
-    },
-    DEBUG: false
-};
-
 // Sourcemaps options
 // https://www.npmjs.com/package/gulp-sourcemaps
 
@@ -159,7 +121,7 @@ let brotliOptions = {
 
 let compassOptions = {
     config_file: './config.rb',
-    css: 'public/css/' + CONF.TAG,
+    css: 'public/css/#VERSION#',        // #VERSION# will be replaced with version tag
     sass: 'sass',
     time: true,                         // show execution time
     sourcemap: true
@@ -186,6 +148,56 @@ let printError = (title, example) => {
     }
     gutil.log(chalk.red('='.repeat(cliBoxLength))).log('');
 };
+
+// == Settings ========================================================================================================
+
+// parse pathfinder.ini config file for relevant data
+let tagVersion;
+try{
+    let pathfinderAppIni = ini.parse(fs.readFileSync(pathfinderConfigFileApp, 'utf-8'));
+    let pathfinderConfIni = fs.existsSync(pathfinderConfigFileConf)
+        ?  ini.parse(fs.readFileSync(pathfinderConfigFileConf, 'utf-8'))
+        : {};
+    let pathfinderIni = merge(pathfinderAppIni, pathfinderConfIni);
+
+    try{
+        tagVersion = pathfinderIni.PATHFINDER.VERSION;
+    }catch(err){
+        printError(
+            err.message,
+            'Missing "PATHFINDER.VERSION" in "' + pathfinderConfigFileApp + '"');
+        process.exit(1);
+    }
+}catch(err){
+    printError(
+        err.message,
+        'Check read permissions for "' + pathfinderConfigFileApp + '"');
+    process.exit(1);
+}
+
+// parse CLI parameters
+let options = minimist(process.argv.slice(2));
+
+// custom task configuration (user CLI options if provided) (overwrites default)
+let CONF = {
+    TASK: options.hasOwnProperty('_') ? options._[0] : undefined,
+    TAG: options.tag ? options.tag : tagVersion ? tagVersion : undefined,
+    JS: {
+        UGLIFY: options.hasOwnProperty('jsUglify') ? options.jsUglify === 'true': undefined,
+        SOURCEMAPS: options.hasOwnProperty('jsSourcemaps') ? options.jsSourcemaps === 'true': undefined,
+        GZIP: options.hasOwnProperty('jsGzip') ? options.jsGzip === 'true': undefined,
+        BROTLI: options.hasOwnProperty('jsBrotli') ? options.jsBrotli === 'true': undefined
+    },
+    CSS: {
+        SOURCEMAPS: options.hasOwnProperty('cssSourcemaps') ? options.cssSourcemaps === 'true': undefined,
+        GZIP: options.hasOwnProperty('cssGzip') ? options.cssGzip === 'true': undefined,
+        BROTLI: options.hasOwnProperty('cssBrotli') ? options.cssBrotli === 'true': undefined
+    },
+    DEBUG: false
+};
+
+// place version tag into compass options
+compassOptions.css = compassOptions.css.replace('#VERSION#', CONF.TAG);
 
 // == Helper methods ==================================================================================================
 
