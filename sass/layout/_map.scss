@@ -232,7 +232,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
 
 // 20x20px grid background
 .pf-grid-small{
-  background: inline-image("#{$base-url}/grid_40x40.png") !important;
+  background: inline-image("/grid_40x40.png") !important;
 }
 
 .pf-map{

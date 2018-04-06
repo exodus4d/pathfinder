@@ -7,8 +7,8 @@ require 'compass/import-once/activate'
 
 http_path = "/"
 # project_path = ''
-css_dir = 'public/css'
-sass_dir = 'sass'
+# css_dir = 'public/css'
+# sass_dir = 'sass'
 images_dir = 'public/img'
 generated_images_path = 'img_cache'
 # javascripts_dir = 'javascripts'

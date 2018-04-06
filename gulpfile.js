@@ -94,61 +94,6 @@ let uglifyJsOptions = {
     toplevel: false
 };
 
-// Sourcemaps options
-// https://www.npmjs.com/package/gulp-sourcemaps
-
-// -- Plugin options ----------------------------------------------------------
-
-let gZipOptions = {
-    append: false,                      // disables default append ext .gz
-    extension: 'gz',                    // use "custom" ext: .gz
-    threshold: '1kb',                   // min size required to compress a file
-    deleteMode: PATH.JS.DIST_BUILD,     // replace *.gz files if size < 'threhold'
-    gzipOptions: {
-        level: 9                        // zlib.Gzip compression level [0-9]
-    },
-    skipGrowingFiles: true              // use orig. files in case of *.gz size > orig. size
-};
-
-let brotliOptions = {
-    extension: 'br',                    // use "custom" ext: .br
-    mode: 1,                            // compression mode for UTF-8 formatted text
-    quality: 11,                        // quality [1 worst - 11 best]
-    skipLarger: true                    // use orig. files in case of *.br size > orig. size
-};
-
-let compassOptions = {
-    config_file: './config.rb',
-    css: 'public/css',
-    sass: 'sass',
-    time: true,                         // show execution time
-    sourcemap: true
-};
-
-let compressionExt = [gZipOptions.extension, brotliOptions.extension];
-
-// -- Error output ------------------------------------------------------------
-
-/**
- * print error box output
- * @param title
- * @param example
- */
-let printError = (title, example) => {
-    let cliLineLength = (cliBoxLength - 8);
-
-    gutil.log('').log(chalk.red( '= ERROR ' + '=' . repeat(cliLineLength)));
-    gutil.log(chalk.red(title));
-    if(example){
-        gutil.log(`
-             ${chalk.gray(example)}
-        `);
-    }
-    gutil.log(chalk.red('='.repeat(cliBoxLength))).log('');
-};
-
-// == Settings ========================================================================================================
-
 // parse pathfinder.ini config file for relevant data
 let tagVersion;
 try{
@@ -187,6 +132,59 @@ let CONF = {
         BROTLI: options.hasOwnProperty('cssBrotli') ? options.cssBrotli === 'true': undefined
     },
     DEBUG: false
+};
+
+// Sourcemaps options
+// https://www.npmjs.com/package/gulp-sourcemaps
+
+// -- Plugin options ----------------------------------------------------------
+
+let gZipOptions = {
+    append: false,                      // disables default append ext .gz
+    extension: 'gz',                    // use "custom" ext: .gz
+    threshold: '1kb',                   // min size required to compress a file
+    deleteMode: PATH.JS.DIST_BUILD,     // replace *.gz files if size < 'threhold'
+    gzipOptions: {
+        level: 9                        // zlib.Gzip compression level [0-9]
+    },
+    skipGrowingFiles: true              // use orig. files in case of *.gz size > orig. size
+};
+
+let brotliOptions = {
+    extension: 'br',                    // use "custom" ext: .br
+    mode: 1,                            // compression mode for UTF-8 formatted text
+    quality: 11,                        // quality [1 worst - 11 best]
+    skipLarger: true                    // use orig. files in case of *.br size > orig. size
+};
+
+let compassOptions = {
+    config_file: './config.rb',
+    css: 'public/css/' + CONF.TAG,
+    sass: 'sass',
+    time: true,                         // show execution time
+    sourcemap: true
+};
+
+let compressionExt = [gZipOptions.extension, brotliOptions.extension];
+
+// -- Error output ------------------------------------------------------------
+
+/**
+ * print error box output
+ * @param title
+ * @param example
+ */
+let printError = (title, example) => {
+    let cliLineLength = (cliBoxLength - 8);
+
+    gutil.log('').log(chalk.red( '= ERROR ' + '=' . repeat(cliLineLength)));
+    gutil.log(chalk.red(title));
+    if(example){
+        gutil.log(`
+             ${chalk.gray(example)}
+        `);
+    }
+    gutil.log(chalk.red('='.repeat(cliBoxLength))).log('');
 };
 
 // == Helper methods ==================================================================================================
@@ -485,7 +483,7 @@ gulp.task('task:cleanJsBuild', () => del([PATH.JS.DIST_BUILD]));
 /**
  * clean CSS build dir
  */
-gulp.task('task:cleanCssBuild', () => del([PATH.ASSETS.DIST + '/css']));
+gulp.task('task:cleanCssBuild', () => del([PATH.ASSETS.DIST + '/css/' + CONF.TAG]));
 
 /**
  * clean JS destination (final) dir
@@ -667,7 +665,7 @@ gulp.task('task:sass', () => {
             trackFile(data, {src: 'startSize', src_percent: 'percent', uglify: 'endSize'});
             return chalk.green('Build CSS file "' + data.fileName + '"');
         }))
-        .pipe(gulp.dest(PATH.ASSETS.DIST + '/css'));
+        .pipe(gulp.dest(PATH.ASSETS.DIST + '/css/' + CONF.TAG));
 });
 
 /**
@@ -679,7 +677,7 @@ gulp.task('task:cleanCss', () => {
             compatibility: '*',
             level: 2
         }))
-        .pipe(gulp.dest(PATH.ASSETS.DIST +'/css'));
+        .pipe(gulp.dest(PATH.ASSETS.DIST +'/css/' + CONF.TAG));
 });
 
 // == Helper tasks ====================================================================================================

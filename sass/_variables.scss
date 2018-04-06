@@ -29,7 +29,7 @@ $link-hover-color:      darken($link-color, 15%);
 //
 //## Font, line-height, and color for body text, headings, and more.
 
-$pf-font-path:            "../fonts" !default;
+$pf-font-path:            "../../fonts" !default;
 
 @font-face {
   font-family: 'Oxygen';
@@ -105,7 +105,7 @@ $headings-color:          inherit;
 //
 //## Specify custom locations of the include Glyphicons icon font. Useful for those including Bootstrap via Bower.
 
-$icon-font-path:          "../fonts/";
+$icon-font-path:          "../../fonts/";
 $icon-font-name:          "glyphicons-halflings-regular";
 $icon-font-svg-id:        "glyphicons_halflingsregular";
 
@@ -805,7 +805,7 @@ $animation-ajax-dropdown: "flipInY";
 //
 //##
 
-$base-url: "../img";
+$base-url: "../../img";
 //urage: background-image: url("#{$base-url}/images/bg.png");
 
 $html-background-image: "";
