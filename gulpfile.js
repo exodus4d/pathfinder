@@ -99,36 +99,6 @@ let uglifyJsOptions = {
 // Sourcemaps options
 // https://www.npmjs.com/package/gulp-sourcemaps
 
-// -- Plugin options ----------------------------------------------------------
-
-let gZipOptions = {
-    append: false,                      // disables default append ext .gz
-    extension: 'gz',                    // use "custom" ext: .gz
-    threshold: '1kb',                   // min size required to compress a file
-    deleteMode: PATH.JS.DIST_BUILD,     // replace *.gz files if size < 'threhold'
-    gzipOptions: {
-        level: 9                        // zlib.Gzip compression level [0-9]
-    },
-    skipGrowingFiles: true              // use orig. files in case of *.gz size > orig. size
-};
-
-let brotliOptions = {
-    extension: 'br',                    // use "custom" ext: .br
-    mode: 1,                            // compression mode for UTF-8 formatted text
-    quality: 11,                        // quality [1 worst - 11 best]
-    skipLarger: true                    // use orig. files in case of *.br size > orig. size
-};
-
-let compassOptions = {
-    config_file: './config.rb',
-    css: 'public/css/#VERSION#',        // #VERSION# will be replaced with version tag
-    sass: 'sass',
-    time: true,                         // show execution time
-    sourcemap: true
-};
-
-let compressionExt = [gZipOptions.extension, brotliOptions.extension];
-
 // -- Error output ------------------------------------------------------------
 
 /**
@@ -155,9 +125,8 @@ let printError = (title, example) => {
 let tagVersion;
 try{
     let pathfinderAppIni = ini.parse(fs.readFileSync(pathfinderConfigFileApp, 'utf-8'));
-    let pathfinderConfIni = fs.existsSync(pathfinderConfigFileConf)
-        ?  ini.parse(fs.readFileSync(pathfinderConfigFileConf, 'utf-8'))
-        : {};
+    let pathfinderConfIni = fs.existsSync(pathfinderConfigFileConf) ?
+        ini.parse(fs.readFileSync(pathfinderConfigFileConf, 'utf-8')) : {};
     let pathfinderIni = merge(pathfinderAppIni, pathfinderConfIni);
 
     try{
@@ -196,8 +165,35 @@ let CONF = {
     DEBUG: false
 };
 
-// place version tag into compass options
-compassOptions.css = compassOptions.css.replace('#VERSION#', CONF.TAG);
+// -- Plugin options ----------------------------------------------------------
+
+let gZipOptions = {
+    append: false,                      // disables default append ext .gz
+    extension: 'gz',                    // use "custom" ext: .gz
+    threshold: '1kb',                   // min size required to compress a file
+    deleteMode: PATH.JS.DIST_BUILD,     // replace *.gz files if size < 'threshold'
+    gzipOptions: {
+        level: 9                        // zlib.Gzip compression level [0-9]
+    },
+    skipGrowingFiles: true              // use orig. files in case of *.gz size > orig. size
+};
+
+let brotliOptions = {
+    extension: 'br',                    // use "custom" ext: .br
+    mode: 1,                            // compression mode for UTF-8 formatted text
+    quality: 11,                        // quality [1 worst - 11 best]
+    skipLarger: true                    // use orig. files in case of *.br size > orig. size
+};
+
+let compassOptions = {
+    config_file: './config.rb',
+    css: 'public/css/' + CONF.TAG,      // #VERSION# will be replaced with version tag
+    sass: 'sass',
+    time: true,                         // show execution time
+    sourcemap: true
+};
+
+let compressionExt = [gZipOptions.extension, brotliOptions.extension];
 
 // == Helper methods ==================================================================================================
 
