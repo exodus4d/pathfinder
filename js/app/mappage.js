@@ -256,7 +256,10 @@ define([
                             }
 
                             // map data found
-                            Util.setCurrentMapData(data.mapData);
+                            if(data.mapData !== undefined) {
+                                // store current map data global (cache)
+                                Util.setCurrentMapData(data.mapData);
+                            }
 
                             // load/update main map module
                             ModuleMap.updateMapModule(mapModule).then(() => {
