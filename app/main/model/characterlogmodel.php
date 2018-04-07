@@ -187,6 +187,7 @@ class CharacterLogModel extends BasicModel {
      * @param $pkeys
      */
     public function afterInsertEvent($self, $pkeys){
+        self::log('afterInsertEvent ' . $self->_id);
         $self->clearCacheData();
     }
 
@@ -199,6 +200,8 @@ class CharacterLogModel extends BasicModel {
     public function afterUpdateEvent($self, $pkeys){
         // check if any "relevant" column has changed
         if( !empty($this->fieldChanges) ){
+            self::log('afterUpdate ' . $self->_id);
+
             $self->clearCacheData();
         }
     }
@@ -210,6 +213,7 @@ class CharacterLogModel extends BasicModel {
      * @param $pkeys
      */
     public function afterEraseEvent($self, $pkeys){
+        self::log('afterEraseEvent ' . $self->_id);
         $self->clearCacheData();
     }
 
@@ -222,6 +226,9 @@ class CharacterLogModel extends BasicModel {
         if($this->characterId){
             // characterId relation could be deleted by cron therefore check again first...
             $this->characterId->clearCacheDataWithPrefix(CharacterModel::DATA_CACHE_KEY_LOG);
+
+            // broadcast updated character data (with changed log data)
+            $this->characterId->broadcastCharacterUpdate();
         }
     }
 
