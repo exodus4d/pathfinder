@@ -670,22 +670,19 @@ class Map extends Controller\AccessController {
      */
     public function updateData(\Base $f3){
         $postData = (array)$f3->get('POST');
-
-        $forceUpdate = (bool)$postData['forceUpdate'];
         $mapData = (array)$postData['mapData'];
         $userDataRequired = (bool)$postData['getUserData'];
 
         $return = (object) [];
+        $return->error = [];
 
         $activeCharacter = $this->getCharacter();
 
-        // if there is any system/connection change data submitted -> save new data
-        if( $forceUpdate || !empty($mapData) ){
-            $return = (object) [];
-            $return->error = [];
+        // get current map data
+        $maps = $activeCharacter->getMaps();
 
-            // get current map data ===================================================================================
-            $maps = $activeCharacter->getMaps();
+        // if there is any system/connection change data submitted -> save new data
+        if( !empty($maps) && !empty($mapData) ){
 
             // loop all submitted map data that should be saved
             // -> currently there will only be ONE map data change submitted -> single loop
@@ -792,10 +789,10 @@ class Map extends Controller\AccessController {
                     }
                 }
             }
-
-            // format map Data for return
-            $return->mapData = $this->getFormattedMapsData($maps);
         }
+
+        // format map Data for return
+        $return->mapData = $this->getFormattedMapsData($maps);
 
         // if userData is requested -> add it as well
         // -> Only first trigger call should request this data!
