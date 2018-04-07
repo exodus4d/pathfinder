@@ -24,6 +24,7 @@ let notifier            = require('node-notifier');
 // -- Helper & NPM modules ----------------------------------------------------
 let flatten             = require('flat');
 let padEnd              = require('lodash.padend');
+let merge               = require('lodash.merge');
 let minimist            = require('minimist');
 let slash               = require('slash');
 let fileExtension       = require('file-extension');
@@ -56,8 +57,9 @@ let PATH = {
     }
 };
 
-// Pathfinder config file
-let pathfinderConfigFile = './app/pathfinder.ini';
+// Pathfinder config files
+let pathfinderConfigFileApp = './app/pathfinder.ini';
+let pathfinderConfigFileConf = './conf/pathfinder.ini';
 
 // CLI box size in characters
 let cliBoxLength = 80;
@@ -119,7 +121,7 @@ let brotliOptions = {
 
 let compassOptions = {
     config_file: './config.rb',
-    css: 'public/css',
+    css: 'public/css/#VERSION#',        // #VERSION# will be replaced with version tag
     sass: 'sass',
     time: true,                         // show execution time
     sourcemap: true
@@ -152,19 +154,24 @@ let printError = (title, example) => {
 // parse pathfinder.ini config file for relevant data
 let tagVersion;
 try{
-    let pathfinderIni = ini.parse(fs.readFileSync(pathfinderConfigFile, 'utf-8'));
+    let pathfinderAppIni = ini.parse(fs.readFileSync(pathfinderConfigFileApp, 'utf-8'));
+    let pathfinderConfIni = fs.existsSync(pathfinderConfigFileConf)
+        ?  ini.parse(fs.readFileSync(pathfinderConfigFileConf, 'utf-8'))
+        : {};
+    let pathfinderIni = merge(pathfinderAppIni, pathfinderConfIni);
+
     try{
         tagVersion = pathfinderIni.PATHFINDER.VERSION;
     }catch(err){
         printError(
             err.message,
-            'Missing "PATHFINDER.VERSION" in "' + pathfinderConfigFile + '"');
+            'Missing "PATHFINDER.VERSION" in "' + pathfinderConfigFileApp + '"');
         process.exit(1);
     }
 }catch(err){
     printError(
         err.message,
-        'Check read permissions for "' + pathfinderConfigFile + '"');
+        'Check read permissions for "' + pathfinderConfigFileApp + '"');
     process.exit(1);
 }
 
@@ -188,6 +195,9 @@ let CONF = {
     },
     DEBUG: false
 };
+
+// place version tag into compass options
+compassOptions.css = compassOptions.css.replace('#VERSION#', CONF.TAG);
 
 // == Helper methods ==================================================================================================
 
@@ -485,7 +495,7 @@ gulp.task('task:cleanJsBuild', () => del([PATH.JS.DIST_BUILD]));
 /**
  * clean CSS build dir
  */
-gulp.task('task:cleanCssBuild', () => del([PATH.ASSETS.DIST + '/css']));
+gulp.task('task:cleanCssBuild', () => del([PATH.ASSETS.DIST + '/css/' + CONF.TAG]));
 
 /**
  * clean JS destination (final) dir
@@ -667,7 +677,7 @@ gulp.task('task:sass', () => {
             trackFile(data, {src: 'startSize', src_percent: 'percent', uglify: 'endSize'});
             return chalk.green('Build CSS file "' + data.fileName + '"');
         }))
-        .pipe(gulp.dest(PATH.ASSETS.DIST + '/css'));
+        .pipe(gulp.dest(PATH.ASSETS.DIST + '/css/' + CONF.TAG));
 });
 
 /**
@@ -679,7 +689,7 @@ gulp.task('task:cleanCss', () => {
             compatibility: '*',
             level: 2
         }))
-        .pipe(gulp.dest(PATH.ASSETS.DIST +'/css'));
+        .pipe(gulp.dest(PATH.ASSETS.DIST +'/css/' + CONF.TAG));
 });
 
 // == Helper tasks ====================================================================================================
