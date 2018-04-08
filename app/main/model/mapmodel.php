@@ -844,8 +844,9 @@ class MapModel extends AbstractMapTrackingModel {
     /**
      * get data for ALL characters with map access
      * -> The result of this function is cached!
-     * @param array $options filter options
-     * @return \stdClass
+     * @param array $options
+     * @return array|null|\stdClass
+     * @throws \Exception
      */
     public function getCharactersData($options = []){
         // check if there is cached data

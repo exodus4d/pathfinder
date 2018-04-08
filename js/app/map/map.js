@@ -2796,7 +2796,9 @@ define([
             // data for header update
             let headerUpdateData = {
                 mapId: userData.config.id,
-                userCount: 0                        // active user on a map
+                userCountInside: 0,                 // active user on a map
+                userCountOutside: 0,                // active user NOT on map
+                userCountInactive: 0                // inactive users (no location)
             };
 
             if(
@@ -2836,7 +2838,7 @@ define([
                         tempUserData = systemData;
 
                         // add  "user count" to "total map user count"
-                        headerUpdateData.userCount += tempUserData.user.length;
+                        headerUpdateData.userCountInside += tempUserData.user.length;
 
                         // remove system from "search" array -> speed up loop
                         userData.data.systems.splice(j, 1);
@@ -2859,6 +2861,16 @@ define([
                 }
 
                 system.updateSystemUserData(map, tempUserData, currentUserIsHere);
+            }
+
+            // users who are not in any map system --------------------------------------------------------------------
+            for(let i = 0; i < userData.data.systems.length; i++){
+                // users without location are grouped in systemid: 0
+                if(userData.data.systems[i].id){
+                    headerUpdateData.userCountOutside += userData.data.systems[i].user.length;
+                }else{
+                    headerUpdateData.userCountInactive += userData.data.systems[i].user.length;
+                }
             }
 
             // trigger document event -> update header
