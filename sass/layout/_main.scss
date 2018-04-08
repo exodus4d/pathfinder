@@ -295,6 +295,10 @@ select:active, select:hover {
       }
     }
 
+    .pf-table-unknown-cell{
+      color: $red;
+      font-style: italic;
+    }
 
     .pf-table-cell-ellipsis{
       overflow: hidden;
@@ -1223,6 +1227,10 @@ code {
   .pf-head-user-character, .pf-head-user-ship{
     opacity: 0; // triggered by js
     visibility: hidden;
+  }
+
+  .pf-head-active-user{
+    cursor: pointer;
   }
 
   .pf-head-active-user, #pf-head-current-location{

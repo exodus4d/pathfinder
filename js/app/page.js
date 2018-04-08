@@ -482,7 +482,7 @@ define([
         });
 
         // active pilots
-        $('.' + config.headActiveUserClass).find('a').on('click', function(){
+        $('.' + config.headActiveUserClass).on('click', function(){
             $(document).triggerMenuEvent('ShowMapInfo', {tab: 'activity'});
         });
 
@@ -718,7 +718,9 @@ define([
         documentElement.on('pf:updateHeaderMapData', function(e, data){
             let activeMap = Util.getMapModule().getActiveMap();
 
-            let userCount = 0;
+            let userCountInside = 0;
+            let userCountOutside = 0;
+            let userCountInactive = 0;
             let currentLocationData = {};
 
             // show active user just for the current active map
@@ -726,10 +728,12 @@ define([
                 activeMap &&
                 activeMap.data('id') === data.mapId
             ){
-                userCount = data.userCount;
+                userCountInside = data.userCountInside;
+                userCountOutside = data.userCountOutside;
+                userCountInactive = data.userCountInactive;
                 currentLocationData = data;
             }
-            updateHeaderActiveUserCount(userCount);
+            updateHeaderActiveUserCount(userCountInside, userCountOutside, userCountInactive);
             updateHeaderCurrentLocation(currentLocationData);
         });
 
@@ -981,23 +985,35 @@ define([
 
     /**
      * update the "active user" badge in header
-     * @param userCount
+     * @param userCountInside
+     * @param userCountOutside
+     * @param userCountInactive
      */
-    let updateHeaderActiveUserCount = function(userCount){
+    let updateHeaderActiveUserCount = (userCountInside, userCountOutside, userCountInactive) => {
         let activeUserElement = $('.' + config.headActiveUserClass);
-        let badge = activeUserElement.find('.badge');
 
-        if(badge.data('userCount') !== userCount){
-            badge.data('userCount', userCount);
+        let updateCount = (badge, count) => {
+            let changed = false;
+            if(badge.data('userCount') !== count){
+                changed = true;
+                badge.data('userCount', count);
+                badge.text(count);
 
-            badge.text(userCount);
-
-            badge.toggleClass('txt-color-greenLight', (userCount > 0) );
-            badge.toggleClass('txt-color-red', (userCount === 0) );
-
-            if(! activeUserElement.is(':visible')){
-                activeUserElement.velocity('fadeIn', {duration: Init.animationSpeed.headerLink});
+                badge.toggleClass(badge.attr('data-on'), (count > 0) );
+                badge.toggleClass(badge.attr('data-off'), (count === 0) );
             }
+            return changed;
+        };
+
+        let changedInside = updateCount(activeUserElement.find('.badge[data-type="inside"]'), userCountInside);
+        let changedOutside = updateCount(activeUserElement.find('.badge[data-type="outside"]'), userCountOutside);
+        let changedInactive = updateCount(activeUserElement.find('.badge[data-type="inactive"]'), userCountInactive);
+
+        if(
+            (changedInactive || changedOutside || changedInactive) &&
+            !activeUserElement.is(':visible')
+        ){
+            activeUserElement.velocity('fadeIn', {duration: Init.animationSpeed.headerLink});
         }
     };
 

@@ -72,9 +72,9 @@ define([
     let localStorage;                                                           // cache for "localForage" singleton
 
     /*
-     *  ===========================================================================================================
+     *  ===============================================================================================================
      *   Global jQuery plugins for some common and frequently used functions
-     *   ==========================================================================================================
+     *   ==============================================================================================================
      */
 
     /**
@@ -820,9 +820,9 @@ define([
     };
 
     /*
-     *  ===========================================================================================================
+     *  ===============================================================================================================
      *   Util functions that are global available for all modules
-     *   ==========================================================================================================
+     *   ==============================================================================================================
      */
 
     /**
@@ -1150,10 +1150,28 @@ define([
     };
 
     /**
+     * set currentUserData as "global" variable
+     * this function should be called continuously after data change
+     * to keep the data always up2data
+     * @param userData
+     */
+    let setCurrentUserData = (userData) => {
+        Init.currentUserData = userData;
+
+        // check if function is available
+        // this is not the case in "login" page
+        if( $.fn.updateHeaderUserData ){
+            $.fn.updateHeaderUserData();
+        }
+
+        return getCurrentUserData();
+    };
+
+    /**
      * get currentUserData from "global" variable
      * @returns {*}
      */
-    let getCurrentUserData = function(){
+    let getCurrentUserData = () => {
         return Init.currentUserData;
     };
 
@@ -1196,7 +1214,7 @@ define([
     /**
      * set default jQuery AJAX configuration
      */
-    let ajaxSetup = function(){
+    let ajaxSetup = () => {
         $.ajaxSetup({
             beforeSend: function(xhr, settings) {
                 // Add custom application headers on "same origin" requests only!
@@ -1703,12 +1721,33 @@ define([
     };
 
     /**
+     * get array key that points to map data catching mapId
+     * @param data
+     * @param mapId
+     * @returns {boolean}
+     */
+    let getDataIndexByMapId = (data, mapId) => {
+        let index = false;
+        if( Array.isArray(data) && mapId === parseInt(mapId, 10) ){
+            for(let i = 0; i < data.length; i++){
+                if(data[i].config.id === mapId){
+                    index = i;
+                    break;
+                }
+            }
+        }
+        return index;
+    };
+
+    // CurrentMapUserData =============================================================================================
+
+    /**
      * set currentMapUserData as "global" variable (count of active pilots)
      * this function should be called continuously after data change
      * to keep the data always up2data
      * @param mapUserData
      */
-    let setCurrentMapUserData = function(mapUserData){
+    let setCurrentMapUserData = (mapUserData) => {
         Init.currentMapUserData = mapUserData;
 
         return getCurrentMapUserData();
@@ -1719,23 +1758,26 @@ define([
      * @param mapId
      * @returns {boolean}
      */
-    let getCurrentMapUserData = function(mapId){
+    let getCurrentMapUserData = (mapId) => {
         let currentMapUserData = false;
 
-        if(
-            mapId === parseInt(mapId, 10) &&
-            Init.currentMapUserData
-        ){
-            // search for a specific map
-            for(let i = 0; i < Init.currentMapUserData.length; i++){
-                if(Init.currentMapUserData[i].config.id === mapId){
-                    currentMapUserData = Init.currentMapUserData[i];
-                    break;
+        if(Init.currentMapUserData){
+            if(mapId === parseInt(mapId, 10)){
+
+                // search for a specific map
+                for(let i = 0; i < Init.currentMapUserData.length; i++){
+                    if(
+                        Init.currentMapUserData[i].config &&
+                        Init.currentMapUserData[i].config.id === mapId
+                    ){
+                        currentMapUserData = Init.currentMapUserData[i];
+                        break;
+                    }
                 }
+            }else{
+                // get data for all maps
+                currentMapUserData = Init.currentMapUserData;
             }
-        }else{
-            // get data for all maps
-            currentMapUserData = Init.currentMapUserData;
         }
 
         if(currentMapUserData !== false){
@@ -1747,51 +1789,45 @@ define([
     };
 
     /**
+     * get mapDataUser array index by mapId
+     * @param mapId
+     * @returns {boolean|int}
+     */
+    let getCurrentMapUserDataIndex = (mapId) => {
+        return getDataIndexByMapId(Init.currentMapUserData, mapId);
+    };
+
+    /**
+     * update cached mapUserData for a single map
+     * @param mapUserData
+     */
+    let updateCurrentMapUserData = (mapUserData) => {
+        let mapUserDataIndex = getCurrentMapUserDataIndex( mapUserData.config.id );
+
+        if( !Array.isArray(Init.currentMapUserData) ){
+            Init.currentMapUserData = [];
+        }
+
+        if(mapUserDataIndex !== false){
+            Init.currentMapUserData[mapUserDataIndex] = mapUserData;
+        }else{
+            // new map data
+            Init.currentMapUserData.push(mapUserData);
+        }
+    };
+
+    // CurrentMapData =================================================================================================
+
+    /**
      * set currentMapData as "global" variable
      * this function should be called continuously after data change
      * to keep the data always up2data
      * @param mapData
      */
-    let setCurrentMapData = function(mapData){
+    let setCurrentMapData = (mapData) => {
         Init.currentMapData = mapData;
 
         return getCurrentMapData();
-    };
-
-    /**
-     * get mapData array index by mapId
-     * @param mapId
-     * @returns {boolean|int}
-     */
-    let getCurrentMapDataIndex = function(mapId){
-        let mapDataIndex = false;
-
-        if( mapId === parseInt(mapId, 10) ){
-            for(let i = 0; i < Init.currentMapData.length; i++){
-                if(Init.currentMapData[i].config.id === mapId){
-                    mapDataIndex = i;
-                    break;
-                }
-            }
-        }
-
-        return mapDataIndex;
-    };
-
-    /**
-     * update cached mapData for a single map
-     * @param mapData
-     */
-    let updateCurrentMapData = function(mapData){
-        let mapDataIndex = getCurrentMapDataIndex( mapData.config.id );
-
-        if(mapDataIndex !== false){
-            Init.currentMapData[mapDataIndex].config = mapData.config;
-            Init.currentMapData[mapDataIndex].data = mapData.data;
-        }else{
-            // new map data
-            Init.currentMapData.push(mapData);
-        }
     };
 
     /**
@@ -1799,7 +1835,7 @@ define([
      * @param mapId
      * @returns {boolean}
      */
-    let getCurrentMapData = function(mapId){
+    let getCurrentMapData = (mapId) => {
         let currentMapData = false;
 
         if( mapId === parseInt(mapId, 10) ){
@@ -1816,6 +1852,31 @@ define([
         }
 
         return currentMapData;
+    };
+
+    /**
+     * get mapData array index by mapId
+     * @param mapId
+     * @returns {boolean|int}
+     */
+    let getCurrentMapDataIndex = (mapId) => {
+        return getDataIndexByMapId(Init.currentMapData, mapId);
+    };
+
+    /**
+     * update cached mapData for a single map
+     * @param mapData
+     */
+    let updateCurrentMapData = (mapData) => {
+        let mapDataIndex = getCurrentMapDataIndex( mapData.config.id );
+
+        if(mapDataIndex !== false){
+            Init.currentMapData[mapDataIndex].config = mapData.config;
+            Init.currentMapData[mapDataIndex].data = mapData.data;
+        }else{
+            // new map data
+            Init.currentMapData.push(mapData);
+        }
     };
 
     /**
@@ -1841,24 +1902,6 @@ define([
         Init.currentMapData = Init.currentMapData.filter((mapData) => {
             return (mapData.config.id !== mapId);
         });
-    };
-
-    /**
-     * set currentUserData as "global" variable
-     * this function should be called continuously after data change
-     * to keep the data always up2data
-     * @param userData
-     */
-    let setCurrentUserData = function(userData){
-        Init.currentUserData = userData;
-
-        // check if function is available
-        // this is not the case in "login" page
-        if( $.fn.updateHeaderUserData ){
-            $.fn.updateHeaderUserData();
-        }
-
-        return getCurrentUserData();
     };
 
     /**
@@ -2397,10 +2440,10 @@ define([
         getAreaIdBySecurity: getAreaIdBySecurity,
         setCurrentMapUserData: setCurrentMapUserData,
         getCurrentMapUserData: getCurrentMapUserData,
+        updateCurrentMapUserData: updateCurrentMapUserData,
         setCurrentMapData: setCurrentMapData,
         getCurrentMapData: getCurrentMapData,
         filterCurrentMapData: filterCurrentMapData,
-        getCurrentMapDataIndex: getCurrentMapDataIndex,
         updateCurrentMapData: updateCurrentMapData,
         deleteCurrentMapData: deleteCurrentMapData,
         setCurrentUserData: setCurrentUserData,

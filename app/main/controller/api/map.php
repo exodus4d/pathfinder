@@ -24,39 +24,17 @@ class Map extends Controller\AccessController {
     // cache keys
     const CACHE_KEY_INIT                            = 'CACHED_INIT';
     const CACHE_KEY_MAP_DATA                        = 'CACHED.MAP_DATA.%s';
-    const CACHE_KEY_USER_DATA                       = 'CACHED.USER_DATA.%s_%s';
+    const CACHE_KEY_USER_DATA                       = 'CACHED.USER_DATA.%s';
     const CACHE_KEY_HISTORY                         = 'CACHED_MAP_HISTORY_%s';
 
 
     /**
-     * get map data cache key
-     * @param Model\CharacterModel $character
-     * @return string
-     */
-    protected function getMapDataCacheKey(Model\CharacterModel $character): string {
-        return sprintf(self::CACHE_KEY_MAP_DATA, 'CHAR_' . $character->_id);
-    }
-
-    /**
-     * clear map data caching
-     * -> cache timings are short, this will just increase update performance on map changes
-     * @param Model\CharacterModel $character
-     */
-    protected function clearMapDataCache(Model\CharacterModel $character){
-        $cacheKey = $this->getMapDataCacheKey($character);
-        if($this->getF3()->exists($cacheKey)){
-            $this->getF3()->clear($cacheKey);
-        }
-    }
-
-    /**
      * get user data cache key
      * @param int $mapId
-     * @param int $systemId
      * @return string
      */
-    protected function getUserDataCacheKey($mapId, $systemId = 0): string {
-        return sprintf(self::CACHE_KEY_USER_DATA, 'MAP_' . $mapId, 'SYS_' . $systemId);
+    protected function getUserDataCacheKey(int $mapId): string {
+        return sprintf(self::CACHE_KEY_USER_DATA, 'MAP_' . $mapId);
     }
 
     /**
@@ -652,11 +630,18 @@ class Map extends Controller\AccessController {
         $return = (object) [];
 
         $activeCharacter = $this->getCharacter();
+        $characterData = $activeCharacter->getData(true);
         $maps = $activeCharacter->getMaps();
+
+        // some character data is not required (in WebSocket) -> unset() and keep return small
+        if(isset($characterData->corporation->rights)){
+            unset($characterData->corporation->rights);
+        }
 
         $return->data = [
             'id' => $activeCharacter->_id,
             'token' => bin2hex(random_bytes(16)), // token for character access
+            'characterData' => $characterData,
             'mapData' => []
         ];
 
@@ -684,23 +669,20 @@ class Map extends Controller\AccessController {
      * @throws Exception\PathfinderException
      */
     public function updateData(\Base $f3){
-        $mapData = (array)$f3->get('POST.mapData');
-        $userDataRequired = (bool)$f3->get('POST.getUserData');
+        $postData = (array)$f3->get('POST');
+        $mapData = (array)$postData['mapData'];
+        $userDataRequired = (bool)$postData['getUserData'];
+
+        $return = (object) [];
+        $return->error = [];
 
         $activeCharacter = $this->getCharacter();
 
-        $cacheKey = $this->getMapDataCacheKey($activeCharacter);
+        // get current map data
+        $maps = $activeCharacter->getMaps();
 
         // if there is any system/connection change data submitted -> save new data
-        if(
-            !empty($mapData) ||
-            !$f3->exists($cacheKey, $return)
-        ){
-            $return = (object) [];
-            $return->error = [];
-
-            // get current map data ===================================================================================
-            $maps = $activeCharacter->getMaps();
+        if( !empty($maps) && !empty($mapData) ){
 
             // loop all submitted map data that should be saved
             // -> currently there will only be ONE map data change submitted -> single loop
@@ -807,20 +789,14 @@ class Map extends Controller\AccessController {
                     }
                 }
             }
-
-            // format map Data for return
-            $return->mapData = $this->getFormattedMapsData($maps);
-
-            // cache time(s) per user should be equal or less than this function is called
-            // prevent request flooding
-            $responseTTL = (int)Config::getPathfinderData('timer.update_server_map.delay') / 1000;
-
-            $f3->set($cacheKey, $return, $responseTTL);
         }
+
+        // format map Data for return
+        $return->mapData = $this->getFormattedMapsData($maps);
 
         // if userData is requested -> add it as well
         // -> Only first trigger call should request this data!
-        if($userDataRequired){
+        if($userDataRequired) {
             $return->userData = $activeCharacter->getUser()->getData();
         }
 
@@ -851,61 +827,51 @@ class Map extends Controller\AccessController {
      * @throws Exception\PathfinderException
      */
     public function updateUserData(\Base $f3){
-        $return = (object) [];
-
+        $postData = (array)$f3->get('POST');
+        $mapIds = (array)$postData['mapIds'];
+        $getMapUserData = (bool)$postData['getMapUserData'];
+        $mapTracking = (bool)$postData['mapTracking'];
+        $systemData = (array)$postData['systemData'];
         $activeCharacter = $this->getCharacter(0);
 
-        $postData = $f3->get('POST');
-        if( !empty($mapIds = (array)$postData['mapIds']) ){
+        $return = (object)[];
+
+        // update current location
+        // -> suppress temporary timeout errors
+        $activeCharacter = $activeCharacter->updateLog(['suppressHTTPErrors' => true]);
+
+        if( !empty($mapIds) ){
             // IMPORTANT for now -> just update a single map (save performance)
             $mapId = (int)reset($mapIds);
             // get map and check map access
-            $map = $activeCharacter->getMap( (int)$mapId);
-
-            if( !is_null($map) ){
-                $characterMapData = (array)$postData['characterMapData'];
-
-                // check if data for specific system is requested
-                $systemData = (array)$postData['systemData'];
-                // if data is requested extend the cache key in order to get new data
-                $requestSystemData = (object) [];
-                $requestSystemData->mapId = isset($systemData['mapId']) ? (int) $systemData['mapId'] : 0;
-                $requestSystemData->systemId = isset($systemData['systemData']['id']) ? (int) $systemData['systemData']['id'] : 0;
-
-                // update current location
-                // -> suppress temporary timeout errors
-                $activeCharacter = $activeCharacter->updateLog(['suppressHTTPErrors' => true]);
-
+            if( !is_null($map = $activeCharacter->getMap($mapId)) ){
                 // check character log (current system) and manipulate map (e.g. add new system)
-                if( (bool)$characterMapData['mapTracking'] ){
+                if($mapTracking){
                     $map = $this->updateMapData($activeCharacter, $map);
                 }
 
-                // get from cache
-                // this should happen if a user has multiple program instances running
-                // with the same main char
-                $cacheKey = $this->getUserDataCacheKey($mapId, $requestSystemData->systemId);
-                if( !$f3->exists($cacheKey, $return) ){
-                    $return = (object) [];
-                    $return->mapUserData[] = $map->getUserData();
+                // mapUserData ----------------------------------------------------------------------------------------
+                if($getMapUserData){
+                    $cacheKey = $this->getUserDataCacheKey($mapId);
+                    if( !$f3->exists($cacheKey, $mapUserData) ){
+                        $mapUserData = $map->getUserData();
 
-                    // request signature data for a system if user has map access!
-                    if( $mapId === $requestSystemData->mapId ){
-                        $system = $map->getSystemById( $requestSystemData->systemId );
-
-                        if( !is_null($system) ){
-                            // data for currently selected system
-                            $return->system = $system->getData();
-                            $return->system->signatures = $system->getSignaturesData();
-                        }
+                        // cache time (seconds) should be equal or less than request trigger time
+                        // prevent request flooding
+                        $responseTTL = (int)Config::getPathfinderData('timer.update_server_user_data.delay') / 1000;
+                        $f3->set($cacheKey, $mapUserData, $responseTTL);
                     }
+                    $return->mapUserData[] = $mapUserData;
+                }
 
-                    // cache time (seconds) should be equal or less than request trigger time
-                    // prevent request flooding
-                    $responseTTL = (int)Config::getPathfinderData('timer.update_server_user_data.delay') / 1000;
-
-                    // cache response
-                    $f3->set($cacheKey, $return, $responseTTL);
+                // systemData -----------------------------------------------------------------------------------------
+                if(
+                    $mapId === (int)$systemData['mapId'] &&
+                    !is_null($system = $map->getSystemById((int)$systemData['systemData']['id']))
+                ){
+                    // data for currently selected system
+                    $return->system = $system->getData();
+                    $return->system->signatures = $system->getSignaturesData();
                 }
             }
         }
@@ -1120,7 +1086,6 @@ class Map extends Controller\AccessController {
         }
 
         if($mapDataChanged){
-            $this->clearMapDataCache($character);
             $this->broadcastMapData($map);
         }
 
