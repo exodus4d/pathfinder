@@ -1216,13 +1216,16 @@ define([
      */
     let ajaxSetup = () => {
         $.ajaxSetup({
-            beforeSend: function(xhr, settings) {
+            beforeSend: function(jqXHR, settings) {
+                // store request URL for later use (e.g. in error messages)
+                jqXHR.url = location.protocol + '//' + location.host + settings.url;
+
                 // Add custom application headers on "same origin" requests only!
                 // -> Otherwise a "preflight" request is made, which will "probably" fail
                 if(settings.crossDomain === false){
                     // add current character data to ANY XHR request (HTTP HEADER)
                     // -> This helps to identify multiple characters on multiple browser tabs
-                    xhr.setRequestHeader('Pf-Character', getCurrentCharacterId());
+                    jqXHR.setRequestHeader('Pf-Character', getCurrentCharacterId());
                 }
             }
         });

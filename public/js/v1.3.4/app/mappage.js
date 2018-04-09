@@ -44,156 +44,292 @@ define([
 
         let mapModule = $('#' + Util.config.mapModuleId);
 
-        // map init load static data =======================================================
-        $.getJSON( Init.path.initMap, (initData) => {
+        // main update intervals/trigger (heartbeat)
+        let updateTimeouts = {
+            mapUpdate: 0,
+            userUpdate: 0
+        };
 
-
-            if( initData.error.length > 0 ){
-                for(let i = 0; i < initData.error.length; i++){
-                    Util.showNotify({
-                        title: initData.error[i].title,
-                        text: initData.error[i].message,
-                        type: initData.error[i].type
-                    });
+        /**
+         * clear both main update timeouts
+         * -> stop program from working -> shutdown
+         */
+        let clearUpdateTimeouts = () => {
+            for(let intervalKey in updateTimeouts) {
+                if(updateTimeouts.hasOwnProperty(intervalKey)){
+                    clearTimeout(updateTimeouts[intervalKey]);
                 }
             }
+        };
 
-            Init.timer              = initData.timer;
-            Init.mapTypes           = initData.mapTypes;
-            Init.mapScopes          = initData.mapScopes;
-            Init.connectionScopes   = initData.connectionScopes;
-            Init.systemStatus       = initData.systemStatus;
-            Init.systemType         = initData.systemType;
-            Init.wormholes          = initData.wormholes;
-            Init.characterStatus    = initData.characterStatus;
-            Init.routes             = initData.routes;
-            Init.url                = initData.url;
-            Init.slack              = initData.slack;
-            Init.discord            = initData.discord;
-            Init.routeSearch        = initData.routeSearch;
-            Init.programMode        = initData.programMode;
+        /**
+         * Ajax error response handler function for main-ping functions
+         * @param jqXHR
+         * @param status
+         * @param error
+         */
+        let handleAjaxErrorResponse = (jqXHR, status, error) => {
+            // clear both main update request trigger timer
+            clearUpdateTimeouts();
 
-            // init tab change observer, Once the timers are available
-            Page.initTabChangeObserver();
+            let reason = status + ' ' + jqXHR.status + ': ' + error;
+            let errorData = [];
 
-            // init map module
-            mapModule.initMapModule();
-
-            // load info (maintenance) info panel (if scheduled)
-            if(Init.programMode.maintenance){
-                $('body').showGlobalInfoPanel();
+            if(jqXHR.responseJSON){
+                // handle JSON
+                let errorObj = jqXHR.responseJSON;
+                if(
+                    errorObj.error &&
+                    errorObj.error.length > 0
+                ){
+                    errorData = errorObj.error;
+                }
+            }else{
+                // handle HTML
+                errorData.push({
+                    type: 'error',
+                    message: 'Please restart and reload this page'
+                });
             }
 
-        }).fail(( jqXHR, status, error) => {
-            let reason = status + ' ' + jqXHR.status + ': ' + error;
+            console.error(' ↪ %s Error response: %o', jqXHR.url, errorData);
+            $(document).trigger('pf:shutdown', {status: jqXHR.status, reason: reason, error: errorData});
+        };
 
-            $(document).trigger('pf:shutdown', {status: jqXHR.status, reason: reason});
-        });
+        // map init functions =========================================================================================
+
+        /**
+         * get static init data and store response
+         * @returns {Promise<any>}
+         */
+        let initData = () => {
+
+            let initDataExecutor = (resolve, reject) => {
+                $.getJSON(Init.path.initData).done(response => {
+                    if( response.error.length > 0 ){
+                        for(let i = 0; i < response.error.length; i++){
+                            Util.showNotify({
+                                title: response.error[i].title,
+                                text: response.error[i].message,
+                                type: response.error[i].type
+                            });
+                        }
+                    }
+
+                    Init.timer              = response.timer;
+                    Init.mapTypes           = response.mapTypes;
+                    Init.mapScopes          = response.mapScopes;
+                    Init.connectionScopes   = response.connectionScopes;
+                    Init.systemStatus       = response.systemStatus;
+                    Init.systemType         = response.systemType;
+                    Init.wormholes          = response.wormholes;
+                    Init.characterStatus    = response.characterStatus;
+                    Init.routes             = response.routes;
+                    Init.url                = response.url;
+                    Init.slack              = response.slack;
+                    Init.discord            = response.discord;
+                    Init.routeSearch        = response.routeSearch;
+                    Init.programMode        = response.programMode;
+
+                    resolve({
+                        action: 'initData',
+                        data: false
+                    });
+                }).fail((jqXHR, status, error) => {
+                    reject({
+                        action: 'shutdown',
+                        data: {
+                            jqXHR: jqXHR,
+                            status: status,
+                            error: error
+                        }
+                    });
+                });
+            };
+
+            return new Promise(initDataExecutor);
+        };
+
+        /**
+         * get mapAccess Data for WebSocket subscription
+         * @returns {Promise<any>}
+         */
+        let getMapAccessData = () => {
+
+            let getMapAccessDataExecutor = (resolve, reject) => {
+                $.getJSON(Init.path.getAccessData).done(response => {
+                    resolve({
+                        action: 'mapAccessData',
+                        data: response
+                    });
+                }).fail((jqXHR, status, error) => {
+                    reject({
+                        action: 'shutdown',
+                        data: {
+                            jqXHR: jqXHR,
+                            status: status,
+                            error: error
+                        }
+                    });
+                });
+            };
+
+            return new Promise(getMapAccessDataExecutor);
+        };
+
+        /**
+         * init main mapModule
+         * -> initData() needs to be resolved first!
+         * @param payload
+         * @returns {Promise<any>}
+         */
+        let initMapModule = (payload) => {
+
+            let initMapModuleExecutor = (resolve, reject) => {
+                // init tab change observer, Once the timers are available
+                Page.initTabChangeObserver();
+
+                // init map module
+                mapModule.initMapModule() ;
+
+                // load info (maintenance) info panel (if scheduled)
+                if(Init.programMode.maintenance){
+                    $('body').showGlobalInfoPanel();
+                }
+
+                resolve({
+                    action: 'initMapModule',
+                    data: false
+                });
+            };
+
+            return new Promise(initMapModuleExecutor);
+        };
 
         /**
          * request all map access data (tokens) -> required wor WebSocket subscription
+         * -> initData() needs to be resolved first!
+         * @param payloadMapAccessData
+         * @returns {Promise<any>}
          */
-        let getMapAccessData = () => {
-            $.getJSON( Init.path.getAccessData, ( response ) => {
-                if(response.status === 'OK'){
-                    // init SharedWorker for maps
-                    MapWorker.init({
-                        characterId:  response.data.id,
-                        callbacks: {
-                            onInit: (MsgWorkerMessage) => {
-                                Util.setSyncStatus(MsgWorkerMessage.command);
-                            },
-                            onOpen: (MsgWorkerMessage) => {
-                                Util.setSyncStatus(MsgWorkerMessage.command, MsgWorkerMessage.meta());
+        let initMapWorker = (payloadMapAccessData) => {
 
-                                MapWorker.send( 'subscribe', response.data);
-                            },
-                            onGet: (MsgWorkerMessage) => {
-                                switch(MsgWorkerMessage.task()){
-                                    case 'mapUpdate':
-                                        Util.updateCurrentMapData( MsgWorkerMessage.data() );
-                                        ModuleMap.updateMapModule(mapModule);
-                                        break;
-                                    case 'mapAccess':
-                                    case 'mapDeleted':
-                                        Util.deleteCurrentMapData( MsgWorkerMessage.data() );
-                                        ModuleMap.updateMapModule(mapModule);
-                                        break;
-                                    case 'mapSubscriptions':
-                                        Util.updateCurrentMapUserData(MsgWorkerMessage.data());
-                                        ModuleMap.updateActiveMapUserData(mapModule);
-                                        break;
-                                }
-
-                                Util.setSyncStatus('ws:get');
-                            },
-                            onClosed: (MsgWorkerMessage) => {
-                                Util.setSyncStatus(MsgWorkerMessage.command, MsgWorkerMessage.meta());
-                            },
-                            onError: (MsgWorkerMessage) => {
-                                Util.setSyncStatus(MsgWorkerMessage.command, MsgWorkerMessage.meta());
-                            }
+            let initMapWorkerExecutor = (resolve, reject) => {
+                let getPayload = (command) => {
+                    return {
+                        action: 'initMapWorker',
+                        data: {
+                            syncStatus: Init.syncStatus.type,
+                            command: command
                         }
-                    });
+                    };
+                };
+
+                let validMapAccessData = false;
+
+                if(payloadMapAccessData && payloadMapAccessData.action === 'mapAccessData'){
+                    let response = payloadMapAccessData.data;
+                    if(response.status === 'OK'){
+                        validMapAccessData = true;
+
+                        // init SharedWorker for maps
+                        MapWorker.init({
+                            characterId:  response.data.id,
+                            callbacks: {
+                                onInit: (MsgWorkerMessage) => {
+                                    Util.setSyncStatus(MsgWorkerMessage.command);
+
+                                },
+                                onOpen: (MsgWorkerMessage) => {
+                                    Util.setSyncStatus(MsgWorkerMessage.command, MsgWorkerMessage.meta());
+                                    MapWorker.send( 'subscribe', response.data);
+
+                                    resolve(getPayload(MsgWorkerMessage.command));
+                                },
+                                onGet: (MsgWorkerMessage) => {
+                                    switch(MsgWorkerMessage.task()){
+                                        case 'mapUpdate':
+                                            Util.updateCurrentMapData( MsgWorkerMessage.data() );
+                                            ModuleMap.updateMapModule(mapModule);
+                                            break;
+                                        case 'mapAccess':
+                                        case 'mapDeleted':
+                                            Util.deleteCurrentMapData( MsgWorkerMessage.data() );
+                                            ModuleMap.updateMapModule(mapModule);
+                                            break;
+                                        case 'mapSubscriptions':
+                                            Util.updateCurrentMapUserData(MsgWorkerMessage.data());
+                                            ModuleMap.updateActiveMapUserData(mapModule);
+                                            break;
+                                    }
+
+                                    Util.setSyncStatus('ws:get');
+                                },
+                                onClosed: (MsgWorkerMessage) => {
+                                    Util.setSyncStatus(MsgWorkerMessage.command, MsgWorkerMessage.meta());
+                                    reject(getPayload(MsgWorkerMessage.command));
+
+                                },
+                                onError: (MsgWorkerMessage) => {
+                                    Util.setSyncStatus(MsgWorkerMessage.command, MsgWorkerMessage.meta());
+                                    reject(getPayload(MsgWorkerMessage.command));
+                                }
+                            }
+                        });
+                    }
                 }
-            });
+
+                if( !validMapAccessData ){
+                    reject(getPayload('Invalid mapAccessData'));
+                }
+            };
+
+            return new Promise(initMapWorkerExecutor);
         };
 
-        getMapAccessData();
+        // run all init functions for mainModule and WebSocket configuration async
+        Promise.all([initData(), getMapAccessData()])
+            .then(payload => Promise.all([initMapModule(payload[0]), initMapWorker(payload[1])]))
+            .then(payload => {
+                // mapModule initialized and WebSocket configuration working
+                console.info('%s() complete! command: "%s"; syncStatus: "%s"',
+                    payload[1].action,
+                    payload[1].data.command,
+                    payload[1].data.syncStatus
+                );
+            })
+            .catch(payload => {
+                switch(payload.action){
+                    case 'shutdown':
+                        // ajax error
+                        handleAjaxErrorResponse(payload.data.jqXHR, payload.data.status, payload.data.error);
+                        break;
+                    case 'initMapWorker':
+                        // WebSocket not working -> no error here -> fallback to Ajax
+                        console.warn('%s() rejects Promise. command: "%s"; syncStatus: "%s", payload: %o',
+                            payload.action,
+                            payload.data.command,
+                            payload.data.syncStatus,
+                            payload.data
+                        );
+                        break;
+                    default:
+                        console.error('Unhandled error thrown while initialization: %o ', payload);
+                }
+            });
 
         /**
          * main function for init all map relevant trigger calls
          */
         $.fn.initMapModule = function(){
-
             let mapModule = $(this);
 
-            // log keys ------------------------------------------------------------------------
+            // log keys -----------------------------------------------------------------------------------------------
             let logKeyServerMapData = Init.performanceLogging.keyServerMapData;
             let logKeyServerUserData = Init.performanceLogging.keyServerUserData;
-
-            // main update intervals/trigger (heartbeat)
-            let updateTimeouts = {
-                mapUpdate: 0,
-                userUpdate: 0
-            };
-
             let locationToggle = $('#' + Util.config.headMapTrackingId);
 
-            /**
-             * Ajax error response handler function for main-ping functions
-             * @param jqXHR
-             * @param status
-             * @param error
-             */
-            let handleAjaxErrorResponse = (jqXHR, status, error) => {
-                // clear both main update request trigger timer
-                clearUpdateTimeouts();
-
-                let reason = status + ' ' + jqXHR.status + ': ' + error;
-                let errorData = [];
-
-                if(jqXHR.responseJSON){
-                    // handle JSON
-                    let errorObj = jqXHR.responseJSON;
-                    if(
-                        errorObj.error &&
-                        errorObj.error.length > 0
-                    ){
-                        errorData = errorObj.error;
-                    }
-                }else{
-                    // handle HTML
-                    errorData.push({
-                        type: 'error',
-                        message: 'Please restart and reload this page'
-                    });
-                }
-
-                $(document).trigger('pf:shutdown', {status: jqXHR.status, reason: reason, error: errorData});
-            };
-
-            // ping for main map update ========================================================
+            // ping for main map update ===============================================================================
             /**
              * @param forceUpdateMapData // force request to be send
              */
@@ -285,7 +421,7 @@ define([
                 }
             };
 
-            // ping for user data update =======================================================
+            // ping for user data update ==============================================================================
             let triggerUserUpdatePing = () => {
 
                 // IMPORTANT: Get user data for ONE map that is currently visible
@@ -348,7 +484,6 @@ define([
                     }
 
                 }).fail(handleAjaxErrorResponse);
-
             };
 
             /**
@@ -373,19 +508,6 @@ define([
                 updateTimeouts.userUpdate = setTimeout(() => {
                     triggerUserUpdatePing();
                 }, delay);
-            };
-
-            /**
-             * clear both main update timeouts
-             * -> stop program from working -> shutdown
-             */
-            let clearUpdateTimeouts = () => {
-                for(let intervalKey in updateTimeouts) {
-
-                    if(updateTimeouts.hasOwnProperty(intervalKey)){
-                        clearTimeout( updateTimeouts[intervalKey] );
-                    }
-                }
             };
 
             // initial start of the  map update function

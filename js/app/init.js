@@ -22,7 +22,7 @@ define(['jquery'], ($) => {
             // access API
             searchAccess: '/api/access/search',                             // ajax URL - search user/corporation/ally by name
             // main config/map ping API
-            initMap: '/api/map/init',                                       // ajax URL - get static data
+            initData: '/api/map/initData',                                  // ajax URL - get static configuration data
             getAccessData: '/api/map/getAccessData',                        // ajax URL - get map access tokens (WebSocket)
             updateMapData: '/api/map/updateData',                           // ajax URL - main map update trigger
             updateUserData: '/api/map/updateUserData',                      // ajax URL - main map user data trigger

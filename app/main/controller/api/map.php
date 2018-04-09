@@ -52,7 +52,7 @@ class Map extends Controller\AccessController {
      * @throws Exception
      * @throws Exception\PathfinderException
      */
-    public function init(\Base $f3){
+    public function initData(\Base $f3){
         // expire time in seconds
         $expireTimeCache = 60 * 60;
         $expireTimeSQL = 60 * 60 * 12;
