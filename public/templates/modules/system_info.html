@@ -20,12 +20,19 @@
     <h5><span class="{{systemRegionLinkClass}}" data-toggle="tooltip" data-placement="top" data-container="body" title="region">{{system.region.name}}</span>&nbsp;<i class="fas fa-fw fa-angle-double-right"></i></h5>
     <h5><span class="{{systemTypeLinkClass}}" data-toggle="tooltip" data-placement="top" data-container="body" title="type">{{systemTypeName}}</span></h5>
 
-    <a href="http://evemaps.dotlan.net/system/{{system.name}}" target="_blank">
-        <div data-toggle="tooltip" data-placement="top" data-container="body" title="dotlan" class="pf-icon pf-icon-dotlan"></div>
-    </a>
-    <a href="http://wh.pasta.gg/{{system.name}}" target="_blank">
-        <div data-toggle="tooltip" data-placement="top" data-container="body" title="wormhol" class="pf-icon pf-icon-wormhol-es"></div>
-    </a>
+    {{#systemTypeIsWspace}}
+        <a href="http://evemaps.dotlan.net/system/{{system.name}}" target="_blank">
+            <div data-toggle="tooltip" data-placement="top" data-container="body" title="dotlan" class="pf-icon pf-icon-dotlan"></div>
+        </a>
+        <a href="http://anoik.is/systems/{{system.name}}" target="_blank">
+            <div data-toggle="tooltip" data-placement="top" data-container="body" title="anoik.is" class="pf-icon pf-icon-anoik-is"></div>
+        </a>
+    {{/systemTypeIsWspace}}
+    {{^systemTypeIsWspace}}
+        <a href="http://evemaps.dotlan.net/map/{{systemRegionNameForDotlan}}/{{system.name}}#npc_delta" target="_blank">
+            <div data-toggle="tooltip" data-placement="top" data-container="body" title="dotlan" class="pf-icon pf-icon-dotlan"></div>
+        </a>
+    {{/systemTypeIsWspace}}
 </div>
 
 <div class="row">
