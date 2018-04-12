@@ -434,6 +434,7 @@ define([
             statusInfoClass: config.systemInfoStatusLabelClass,
 
             systemTypeName: MapUtil.getSystemTypeInfo(systemData.type.id, 'name'),
+            systemIsWormhole: MapUtil.getSystemTypeInfo(systemData.type.id, 'name') === 'w-space',
             systemStatusId: systemData.status.id,
             systemStatusClass: Util.getStatusInfoForSystem(systemData.status.id, 'class'),
             systemStatusLabel: Util.getStatusInfoForSystem(systemData.status.id, 'label'),
