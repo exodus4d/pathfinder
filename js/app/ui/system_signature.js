@@ -225,37 +225,39 @@ define([
     let getTableData = function(tableApi){
         let tableData = [];
 
-        tableApi.rows().eq(0).each(function(idx){
-            let row = tableApi.row(idx);
-            // default row data
-            let defaultRowData = row.data();
-            let rowElement = row.nodes().to$();
+        if(tableApi){
+            tableApi.rows().eq(0).each(function(idx){
+                let row = tableApi.row(idx);
+                // default row data
+                let defaultRowData = row.data();
+                let rowElement = row.nodes().to$();
 
-            if(defaultRowData.id > 0){
-                // get all editable fields per row
-                let editableFields = rowElement.find('.editable');
+                if(defaultRowData.id > 0){
+                    // get all editable fields per row
+                    let editableFields = rowElement.find('.editable');
 
-                if(editableFields.length > 0){
-                    let values = $(editableFields).editable('getValue');
+                    if(editableFields.length > 0){
+                        let values = $(editableFields).editable('getValue');
 
-                    if(values.name){
-                        // convert to lower for better compare options
-                        values.name = values.name.toLowerCase();
+                        if(values.name){
+                            // convert to lower for better compare options
+                            values.name = values.name.toLowerCase();
 
-                        // add pk for this row
-                        values.id = defaultRowData.id;
+                            // add pk for this row
+                            values.id = defaultRowData.id;
 
-                        // add updated for this row
-                        values.updated = defaultRowData.updated;
+                            // add updated for this row
+                            values.updated = defaultRowData.updated;
 
-                        // add row index
-                        values.index = idx;
+                            // add row index
+                            values.index = idx;
 
-                        tableData.push( values );
+                            tableData.push( values );
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
 
         return tableData;
     };
@@ -1500,6 +1502,7 @@ define([
         let map = Map.getMapInstance( mapId );
         let systemId = MapUtil.getSystemId(mapId, systemData.id);
         let systemConnections = MapUtil.searchConnectionsBySystems(map, [systemId], 'wh');
+        let newSelectOptions = [];
         let connectionOptions = [];
 
         for(let i = 0; i < systemConnections.length; i++){
@@ -1510,25 +1513,35 @@ define([
                 // check whether "source" or "target" system is relevant for this connection
                 // -> hint "source" === 'target' --> loop
                 if(systemData.id !== connectionData.target){
-                    // take target...
-                    connectionOptions.push({
-                        value: connectionData.id,
-                        text: connectionData.targetAlias
-                    });
+                    let targetSystemData = MapUtil.getSystemData(mapId, connectionData.target);
+                    if(targetSystemData){
+                        // take target...
+                        connectionOptions.push({
+                            value: connectionData.id,
+                            text: connectionData.targetAlias + ' - ' + targetSystemData.security
+                        });
+                    }
                 }else if(systemData.id !== connectionData.source){
-                    // take source...
-                    connectionOptions.push({
-                        value: connectionData.id,
-                        text: connectionData.sourceAlias
-                    });
+                    let sourceSystemData = MapUtil.getSystemData(mapId, connectionData.source);
+                    if(sourceSystemData){
+                        // take source...
+                        connectionOptions.push({
+                            value: connectionData.id,
+                            text: connectionData.sourceAlias + ' - ' + sourceSystemData.security
+                        });
+                    }
                 }
             }
         }
 
-        // add empty entry
-        connectionOptions.unshift({ value: null, text: ''});
+        if(connectionOptions.length > 0){
+            newSelectOptions.push({ text: 'System', children: connectionOptions});
+        }
 
-        return connectionOptions;
+        // add empty entry
+        newSelectOptions.unshift({ value: null, text: ''});
+
+        return newSelectOptions;
     };
 
     /**
@@ -1621,7 +1634,7 @@ define([
                 if(newSelectOptionsCount > 0){
                     if(groupId === 5){
                         // "wormhole" selected => multiple <optgroup> available
-                        newSelectOptions.push({ text: 'Wandering WHs', children: fixSelectOptions});
+                        newSelectOptions.push({ text: 'Wandering WH', children: fixSelectOptions});
                     }else{
                         newSelectOptions = fixSelectOptions;
                     }
@@ -1645,7 +1658,7 @@ define([
                 }
 
                 if(frigateWHData.length > 0){
-                    newSelectOptions.push({ text: 'Frigate WHs', children: frigateWHData});
+                    newSelectOptions.push({ text: 'Frigate WH', children: frigateWHData});
                 }
 
                 // add possible incoming holes
@@ -1661,7 +1674,7 @@ define([
                 }
 
                 if(incomingWHData.length > 0){
-                    newSelectOptions.push({ text: 'Incoming WHs', children: incomingWHData});
+                    newSelectOptions.push({ text: 'Incoming WH', children: incomingWHData});
                 }
             }else{
                 // groups without "children" (optgroup) should be sorted by "value"
@@ -1686,7 +1699,7 @@ define([
                 }
 
                 if(staticWHData.length > 0){
-                    newSelectOptions.unshift({ text: 'Static WHs', children: staticWHData});
+                    newSelectOptions.unshift({ text: 'Static WH', children: staticWHData});
                 }
             }
         }

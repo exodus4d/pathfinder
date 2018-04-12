@@ -9,6 +9,7 @@
 namespace lib;
 
 
+use controller\LogController;
 use Exception;
 
 class Config extends \Prefab {
@@ -378,7 +379,6 @@ class Config extends \Prefab {
     }
 
     /**
-     * get PATHFINDER config data
      * @param string $key
      * @return mixed
      * @throws Exception\PathfinderException
@@ -386,8 +386,12 @@ class Config extends \Prefab {
     static function getPathfinderData($key = ''){
         $hiveKey = self::HIVE_KEY_PATHFINDER . ($key ? '.' . strtoupper($key) : '');
 
-        if( !\Base::instance()->exists($hiveKey, $data) ){
-            throw new Exception\PathfinderException(sprintf(self::ERROR_CONF_PATHFINDER, $hiveKey));
+        try{
+            if( !\Base::instance()->exists($hiveKey, $data) ){
+                throw new Exception\PathfinderException(sprintf(self::ERROR_CONF_PATHFINDER, $hiveKey));
+            }
+        }catch (Exception\PathfinderException $e){
+            LogController::getLogger('ERROR')->write($e->getMessage());
         }
 
         return $data;

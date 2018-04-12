@@ -64,9 +64,6 @@ define([
         systemSec: 'pf-system-sec'
     };
 
-    // active jsPlumb instances currently running
-    let activeInstances = {};
-
     // active connections per map (cache object)
     let connectionCache = {};
 
@@ -947,35 +944,70 @@ define([
      */
     let setMapWrapperObserver = (mapWrapper, mapConfig) => {
 
+        /**
+         * save current map dimension to local storage
+         * @param entry
+         */
+        let saveMapSize = (entry) => {
+            let width = '';
+            let height = '';
+            if(entry.constructor.name === 'HTMLDivElement'){
+                width = entry.style.width;
+                height = entry.style.height;
+            }else if (entry.constructor.name === 'ResizeObserverEntry'){
+                width = entry.target.style.width;
+                height = entry.target.style.height;
+            }
+
+            width = parseInt(width.substring(0, width.length - 2)) || 0;
+            height = parseInt(height.substring(0, height.length - 2)) || 0;
+
+            let promiseStore = MapUtil.getLocaleData('map', mapConfig.config.id );
+            promiseStore.then((data) => {
+                let storeData = true;
+
+                if (
+                    data && data.style &&
+                    data.style.width === width &&
+                    data.style.height === height
+                ) {
+                    // no style changes
+                    storeData = false;
+                }
+
+                if (storeData) {
+                    MapUtil.storeLocalData('map', mapConfig.config.id, 'style', {
+                        width: width,
+                        height: height
+                    });
+                }
+            });
+        };
+
         // map resize observer ----------------------------------------------------------------------------------------
         if(window.ResizeObserver) {
+            // ResizeObserver() supported
             let resizeTimer;
             let wrapperResize = new ResizeObserver(entries => { // jshint ignore:line
-                /**
-                 * save current map dimension to local storage
-                 * @param entry
-                 */
-                let saveMapSize = (entry) => {
-                    return setTimeout(() => {
-                        let width = entry.target.style.width;
-                        let height = entry.target.style.height;
-                        width = parseInt( width.substring(0, width.length - 2) ) || 0;
-                        height = parseInt( height.substring(0, height.length - 2) ) || 0;
-
-                        MapUtil.storeLocalData('map', mapConfig.config.id, 'style', {
-                            width: width,
-                            height: height
-                        });
-                    }, 100);
+                let checkMapSize = (entry) => {
+                    return setTimeout(saveMapSize, 100, entry);
                 };
                 for (let entry of entries){
                     // use timeout to "throttle" save actions
                     clearTimeout(resizeTimer);
-                    resizeTimer = saveMapSize(entry);
+                    resizeTimer = checkMapSize(entry);
                 }
             });
 
             wrapperResize.observe(mapWrapper[0]);
+        }else if(requestAnimationFrame){
+            // ResizeObserver() not supported
+            let checkMapSize = (entry) => {
+                saveMapSize(entry);
+                return setTimeout(checkMapSize, 500, entry);
+            };
+
+            checkMapSize(mapWrapper[0]);
         }
 
     };
@@ -2602,7 +2634,7 @@ define([
      */
     let getMapInstance = function(mapId){
 
-        if(typeof activeInstances[mapId] !== 'object'){
+        if( !MapUtil.existsMapInstance(mapId) ){
             // create new instance
             jsPlumb.Defaults.LogEnabled = true;
 
@@ -2712,10 +2744,10 @@ define([
                 return (targetEndpoint.connections.length === 0);
             });
 
-            activeInstances[mapId] = newJsPlumbInstance;
+            MapUtil.setMapInstance(mapId, newJsPlumbInstance);
         }
 
-        return activeInstances[mapId];
+        return MapUtil.getMapInstance(mapId);
     };
 
     /**
@@ -3112,7 +3144,9 @@ define([
             // data for header update
             let headerUpdateData = {
                 mapId: userData.config.id,
-                userCount: 0                        // active user on a map
+                userCountInside: 0,                 // active user on a map
+                userCountOutside: 0,                // active user NOT on map
+                userCountInactive: 0                // inactive users (no location)
             };
 
             if(
@@ -3152,7 +3186,7 @@ define([
                         tempUserData = systemData;
 
                         // add  "user count" to "total map user count"
-                        headerUpdateData.userCount += tempUserData.user.length;
+                        headerUpdateData.userCountInside += tempUserData.user.length;
 
                         // remove system from "search" array -> speed up loop
                         userData.data.systems.splice(j, 1);
@@ -3175,6 +3209,16 @@ define([
                 }
 
                 system.updateSystemUserData(map, tempUserData, currentUserIsHere);
+            }
+
+            // users who are not in any map system --------------------------------------------------------------------
+            for(let i = 0; i < userData.data.systems.length; i++){
+                // users without location are grouped in systemid: 0
+                if(userData.data.systems[i].id){
+                    headerUpdateData.userCountOutside += userData.data.systems[i].user.length;
+                }else{
+                    headerUpdateData.userCountInactive += userData.data.systems[i].user.length;
+                }
             }
 
             // trigger document event -> update header
@@ -3337,16 +3381,6 @@ define([
         systemData.position = positionData;
 
         return systemData;
-    };
-
-    /**
-     * removes a map instance from local cache
-     * @param mapId
-     */
-    let clearMapInstance = (mapId) => {
-        if(typeof activeInstances[mapId] === 'object'){
-            delete activeInstances[mapId];
-        }
     };
 
     /**
@@ -3513,7 +3547,6 @@ define([
 
     return {
         getMapInstance: getMapInstance,
-        clearMapInstance: clearMapInstance,
         loadMap: loadMap,
         showNewSystemDialog: showNewSystemDialog
     };

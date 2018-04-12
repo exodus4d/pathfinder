@@ -56,23 +56,11 @@ class Connection extends Controller\AccessController {
                     $connection = Model\BasicModel::getNew('ConnectionModel');
                     $connection->getById( (int)$connectionData['id'] );
 
-                    // search if systems are neighbors
-                    $routeController = new Route();
-                    $routeController->initJumpData();
-                    $route = $routeController->findRoute($connectionData['sourceName'], $connectionData['targetName'], 1);
-
-                    if($route['routePossible'] == true){
-                        // systems are next to each other
-                        $connectionData['scope'] = 'stargate';
-                        $connectionData['type'] = ['stargate'];
-                    }elseif($connectionData['scope'] == 'stargate'){
-                        // connection scope changed -> this can not be a stargate
-                        $connectionData['scope'] = 'wh';
-                        $connectionData['type'] = ['wh_fresh'];
-                    }
                     $connectionData['mapId'] = $map;
-
                     $connection->setData($connectionData);
+
+                    // change the default type for the new connection
+                    $connection->setDefaultTypeData();
 
                     if($connection->save($activeCharacter)){
                         $return->connectionData = $connection->getData();

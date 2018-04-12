@@ -8,51 +8,51 @@ define(['jquery'], ($) => {
 
     let Config = {
         path: {
-            img: 'public/img/',                                             // path for images
+            img: '/public/img/',                                            // path for images
             // user API
-            getCaptcha: 'api/user/getCaptcha',                              // ajax URL - get captcha image
-            getServerStatus: 'api/user/getEveServerStatus',                 // ajax URL - get EVE-Online server status
-            getCookieCharacterData: 'api/user/getCookieCharacter',          // ajax URL - get character data from cookie
-            logIn: 'api/user/logIn',                                        // ajax URL - login
-            logout: 'api/user/logout',                                      // ajax URL - logout
-            deleteLog: 'api/user/deleteLog',                                // ajax URL - delete character log
-            openIngameWindow: 'api/user/openIngameWindow',                  // ajax URL - open inGame Window
-            saveUserConfig: 'api/user/saveAccount',                         // ajax URL - saves/update user account
-            deleteAccount: 'api/user/deleteAccount',                        // ajax URL - delete Account data
+            getCaptcha: '/api/user/getCaptcha',                             // ajax URL - get captcha image
+            getServerStatus: '/api/user/getEveServerStatus',                // ajax URL - get EVE-Online server status
+            getCookieCharacterData: '/api/user/getCookieCharacter',         // ajax URL - get character data from cookie
+            logIn: '/api/user/logIn',                                       // ajax URL - login
+            logout: '/api/user/logout',                                     // ajax URL - logout
+            deleteLog: '/api/user/deleteLog',                               // ajax URL - delete character log
+            openIngameWindow: '/api/user/openIngameWindow',                 // ajax URL - open inGame Window
+            saveUserConfig: '/api/user/saveAccount',                        // ajax URL - saves/update user account
+            deleteAccount: '/api/user/deleteAccount',                       // ajax URL - delete Account data
             // access API
-            searchAccess: 'api/access/search',                              // ajax URL - search user/corporation/ally by name
+            searchAccess: '/api/access/search',                             // ajax URL - search user/corporation/ally by name
             // main config/map ping API
-            initMap: 'api/map/init',                                        // ajax URL - get static data
-            getAccessData: 'api/map/getAccessData',                         // ajax URL - get map access tokens (WebSocket)
-            updateMapData: 'api/map/updateData',                            // ajax URL - main map update trigger
-            updateUserData: 'api/map/updateUserData',                       // ajax URL - main map user data trigger
+            initData: '/api/map/initData',                                  // ajax URL - get static configuration data
+            getAccessData: '/api/map/getAccessData',                        // ajax URL - get map access tokens (WebSocket)
+            updateMapData: '/api/map/updateData',                           // ajax URL - main map update trigger
+            updateUserData: '/api/map/updateUserData',                      // ajax URL - main map user data trigger
             // map API
-            saveMap: 'api/map/save',                                        // ajax URL - save/update map
-            deleteMap: 'api/map/delete',                                    // ajax URL - delete map
-            importMap: 'api/map/import',                                    // ajax URL - import map
-            getMapConnectionData: 'api/map/getConnectionData',              // ajax URL - get connection data
-            getMapLogData: 'api/map/getLogData',                            // ajax URL - get logs data
+            saveMap: '/api/map/save',                                       // ajax URL - save/update map
+            deleteMap: '/api/map/delete',                                   // ajax URL - delete map
+            importMap: '/api/map/import',                                   // ajax URL - import map
+            getMapConnectionData: '/api/map/getConnectionData',             // ajax URL - get connection data
+            getMapLogData: '/api/map/getLogData',                           // ajax URL - get logs data
             // system API
-            searchSystem: 'api/system/search',                              // ajax URL - search system by name
-            saveSystem: 'api/system/save',                                  // ajax URL - saves system to map
-            deleteSystem: 'api/system/delete',                              // ajax URL - delete system from map
-            getSystemGraphData: 'api/system/graphData',                     // ajax URL - get all system graph data
-            getConstellationData: 'api/system/constellationData',           // ajax URL - get system constellation data
-            setDestination: 'api/system/setDestination',                    // ajax URL - set destination
-            pokeRally: 'api/system/pokeRally',                              // ajax URL - send rally point pokes
+            searchSystem: '/api/system/search',                             // ajax URL - search system by name
+            saveSystem: '/api/system/save',                                 // ajax URL - saves system to map
+            deleteSystem: '/api/system/delete',                             // ajax URL - delete system from map
+            getSystemGraphData: '/api/system/graphData',                    // ajax URL - get all system graph data
+            getConstellationData: '/api/system/constellationData',          // ajax URL - get system constellation data
+            setDestination: '/api/system/setDestination',                   // ajax URL - set destination
+            pokeRally: '/api/system/pokeRally',                             // ajax URL - send rally point pokes
             // connection API
-            saveConnection: 'api/connection/save',                          // ajax URL - save new connection to map
-            deleteConnection: 'api/connection/delete',                      // ajax URL - delete connection from map
+            saveConnection: '/api/connection/save',                         // ajax URL - save new connection to map
+            deleteConnection: '/api/connection/delete',                     // ajax URL - delete connection from map
             // signature API
-            getSignatures: 'api/signature/getAll',                          // ajax URL - get all signature data for system
-            saveSignatureData: 'api/signature/save',                        // ajax URL - save signature data for system
-            deleteSignatureData: 'api/signature/delete',                    // ajax URL - delete signature data for system
+            getSignatures: '/api/signature/getAll',                         // ajax URL - get all signature data for system
+            saveSignatureData: '/api/signature/save',                       // ajax URL - save signature data for system
+            deleteSignatureData: '/api/signature/delete',                   // ajax URL - delete signature data for system
             // route API
-            searchRoute: 'api/route/search',                                // ajax URL - search system routes
+            searchRoute: '/api/route/search',                               // ajax URL - search system routes
             // stats API
-            getStatisticsData: 'api/statistic/getData',                     // ajax URL - get statistics data (activity log)
+            getStatisticsData: '/api/statistic/getData',                    // ajax URL - get statistics data (activity log)
             // GitHub API
-            gitHubReleases: 'api/github/releases'                           // ajax URL - get release info from GitHub
+            gitHubReleases: '/api/github/releases'                          // ajax URL - get release info from GitHub
         },
         breakpoints: [
             { name: 'desktop', width: Infinity },

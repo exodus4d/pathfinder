@@ -1,0 +1,9 @@
+<check if="{{ @notification->title }}">
+    <div class="container-fluid no-padding text-left">
+        <div class="row">
+            <div class="col-xs-12 col-md-8 col-md-offset-2">
+                <include href="templates/modules/notification.html" with="notification={{@notification}}" />
+            </div>
+        </div>
+    </div>
+</check>

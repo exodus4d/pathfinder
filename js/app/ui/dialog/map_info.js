@@ -41,6 +41,10 @@ define([
         tableCellCounterClass: 'pf-table-counter-cell',                         // class for table "counter" cells
         tableCellEllipsisClass: 'pf-table-cell-ellipses-auto',                  // class for table "ellipsis" cells
         tableCellActionIconClass: 'pf-table-action-icon-cell',                  // class for table "action" icon (icon is part of cell content)
+        tableCellUnknownDataClass: 'pf-table-unknown-cell',                     // class for table "unknown" cells
+
+        textActionIconClass: 'pf-module-icon-button',                           // class for text action
+        textActionIconCopyClass: 'pf-module-icon-button-copy',                  // class for text action "copy"
 
         loadingOptions: {                                                       // config for loading overlay
             icon: {
@@ -80,6 +84,107 @@ define([
     };
 
     /**
+     * get label for "unknown" label
+     * @returns {string}
+     */
+    let getLabelForUnknownData = () => {
+        return '<span class="' + config.tableCellUnknownDataClass + '">unknown</span>';
+    };
+
+    /**
+     * write clipboard text
+     * @param text
+     * @returns {Promise<any>}
+     */
+    let copyToClipboard = (text) => {
+
+        let copyToClipboardExecutor = (resolve, reject) => {
+            let payload = {
+                action: 'copyToClipboard',
+                data: false
+            };
+
+            if (navigator.clipboard) {
+                // get current permission status
+                navigator.permissions.query({
+                    name: 'clipboard-write'
+                }).then(permissionStatus => {
+                    // will be 'granted', 'denied' or 'prompt'
+                    if(
+                        permissionStatus.state === 'granted' ||
+                        permissionStatus.state === 'prompt'
+                    ){
+                        navigator.clipboard.writeText(text)
+                            .then(() => {
+                                payload.data = true;
+                                resolve(payload);                        })
+                            .catch(err => {
+                                let errorMsg = 'Failed to write clipboard content';
+                                console.error(errorMsg, err);
+                                Util.showNotify({title: 'Clipboard API', text: errorMsg, type: 'error'});
+                                resolve(payload);
+                            });
+                    }else{
+                        Util.showNotify({title: 'Clipboard API', text: 'You denied write access', type: 'warning'});
+                        resolve(payload);
+                    }
+                });
+            } else {
+                console.warn('Clipboard API not supported by your browser');
+                resolve(payload);
+            }
+        };
+
+        return new Promise(copyToClipboardExecutor);
+    };
+
+    /**
+     * read clipboard text
+     * @returns {Promise<any>}
+     */
+    let readFromClipboard = () => {
+
+        let readFromClipboardExecutor = (resolve, reject) => {
+            let payload = {
+                action: 'readFromClipboard',
+                data: false
+            };
+
+            if (navigator.clipboard) {
+                // get current permission status
+                navigator.permissions.query({
+                    name: 'clipboard-read'
+                }).then(permissionStatus => {
+                    // will be 'granted', 'denied' or 'prompt'
+                    if(
+                        permissionStatus.state === 'granted' ||
+                        permissionStatus.state === 'prompt'
+                    ){
+                        navigator.clipboard.readText()
+                            .then(text => {
+                                payload.data = text;
+                                resolve(payload);                        })
+                            .catch(err => {
+                                let errorMsg = 'Failed to read clipboard content';
+                                console.error(errorMsg, err);
+                                Util.showNotify({title: 'Clipboard API', text: errorMsg, type: 'error'});
+                                resolve(payload);
+                            });
+                    }else{
+                        Util.showNotify({title: 'Clipboard API', text: 'You denied read access', type: 'warning'});
+                        resolve(payload);
+                    }
+                });
+            } else {
+                console.warn('Clipboard API not supported by your browser');
+                resolve(payload);
+            }
+        };
+
+        return new Promise(readFromClipboardExecutor);
+    };
+
+    /**
      * loads the map info data into an element
      * @param mapData
      */
@@ -115,58 +220,82 @@ define([
             class: 'dl-horizontal',
             css: {'float': 'left'}
         }).append(
-                $('<dt>').text( 'Icon' )
+            $('<dt>').text('Icon')
+        ).append(
+            $('<dd>').append(
+                $('<i>', {
+                    class: ['fas', 'fa-fw', mapData.config.icon].join(' ')
+                })
+            )
+        ).append(
+            $('<dt>').text('Name')
+        ).append(
+            $('<dd>').text(mapData.config.name)
+        ).append(
+            $('<dt>').text('Type')
+        ).append(
+            $('<dd>', {
+                class: mapType.class
+            }).text(mapType.name)
+        ).append(
+            $('<dt>').text('Link')
+        ).append(
+            $('<dd>', {
+                class: [config.textActionIconClass, config.textActionIconCopyClass].join(' ')
+            }).append(
+                $('<span>', {
+                    title: 'copy to clipboard',
+                }).text(MapUtil.getMapDeeplinkUrl(mapData.config.id) + ' ')
             ).append(
-                $('<dd>').append(
-                    $('<i>', {
-                        class: ['fas', 'fa-fw', mapData.config.icon].join(' ')
-                    })
-                )
-            ).append(
-                $('<dt>').text( 'Name' )
-            ).append(
-                $('<dd>').text( mapData.config.name )
-            ).append(
-                $('<dt>').text( 'Type' )
-            ).append(
-                $('<dd>', {
-                    class: mapType.class
-                }).text( mapType.name )
-            );
+                $('<i>', {
+                    class: ['fas', 'fa-fw', 'fa-copy'].join(' ')
+                })
+            )
+        );
 
         mapElement.append(dlElementLeft);
 
         let dlElementRight = $('<dl>', {
             class: 'dl-horizontal',
             css: {'float': 'right'}
-            }).append(
-                $('<dt>').text( 'Systems' )
-            ).append(
-                $('<dd>', {
-                    class: ['txt-color', maxSystemsClass].join(' ')
-                }).text( countSystems + ' / ' + mapType.defaultConfig.max_systems )
-            ).append(
-                $('<dt>').text( 'Connections' )
-            ).append(
-                $('<dd>').text( countConnections )
-            ).append(
-                $('<dt>').text( 'Lifetime' )
-            ).append(
-                $('<dd>', {
-                    class: config.mapInfoLifetimeCounterClass,
-                    text: mapData.config.created
-                })
-            ).append(
-                $('<dt>').text( 'Created' )
-            ).append(
-                $('<dd>').text(Util.getObjVal(mapDataOrigin, 'config.created.character.name'))
-            );
+        }).append(
+            $('<dt>').text('Systems')
+        ).append(
+            $('<dd>', {
+                class: ['txt-color', maxSystemsClass].join(' ')
+            }).text(countSystems + ' / ' + mapType.defaultConfig.max_systems)
+        ).append(
+            $('<dt>').text('Connections')
+        ).append(
+            $('<dd>').text(countConnections)
+        ).append(
+            $('<dt>').text('Lifetime')
+        ).append(
+            $('<dd>', {
+                class: config.mapInfoLifetimeCounterClass,
+                text: mapData.config.created
+            })
+        ).append(
+            $('<dt>').text('Created')
+        ).append(
+            $('<dd>').text(Util.getObjVal(mapDataOrigin, 'config.created.character.name'))
+        );
 
         mapElement.append(dlElementRight);
 
         // init map lifetime counter
         $('.' + config.mapInfoLifetimeCounterClass).initTimestampCounter();
 
+        mapElement.find('.' + config.textActionIconCopyClass).on('click', function(){
+           let mapUrl = $(this).find('span').text().trim();
+            copyToClipboard(mapUrl).then(payload => {
+                if(payload.data){
+                    Util.showNotify({title: 'Copied to clipbaord', text: mapUrl, type: 'success'});
+                }
+            });
+        });
+
+        mapElement.initTooltips();
         mapElement.hideLoadingAnimation();
     };
 
@@ -387,7 +516,7 @@ define([
                     title: 'region',
                     data: 'region'
                 },{
-                    title: '<i class="far fa-square fa-lg" title="system&nbsp;status" data-toggle="tooltip"></i>',
+                    title: '<i class="far fa-square" title="system&nbsp;status" data-toggle="tooltip"></i>',
                     width: '12px',
                     searchable: false,
                     data: 'status',
@@ -396,7 +525,7 @@ define([
                         sort: 'status_sort'
                     }
                 },{
-                    title: '<i class="fas fa-square fa-lg" title="system&nbsp;effect" data-toggle="tooltip"></i>',
+                    title: '<i class="fas fa-square" title="system&nbsp;effect" data-toggle="tooltip"></i>',
                     width: '12px',
                     className: 'text-center',
                     searchable: false,
@@ -410,7 +539,7 @@ define([
                     width: '30px',
                     data: 'static'
                 },{
-                    title: '<i class="fas fa-map-marker-alt fa-lg" title="your&nbsp;position" data-toggle="tooltip"></i>',
+                    title: '<i class="fas fa-map-marker-alt" title="your&nbsp;position" data-toggle="tooltip"></i>',
                     width: '8px',
                     searchable: false,
                     data: 'position',
@@ -419,13 +548,13 @@ define([
                         sort: 'position_sort'
                     }
                 },{
-                    title: '<i class="fas fa-plane fa-lg" title="active&nbsp;pilots" data-toggle="tooltip"></i>',
+                    title: '<i class="fas fa-plane" title="active&nbsp;pilots" data-toggle="tooltip"></i>',
                     width: '12px',
                     className: 'text-center',
                     searchable: false,
                     data: 'userCount'
                 },{
-                    title: '<i class="fas fa-lock fa-lg" title="system&nbsp;locked" data-toggle="tooltip"></i>',
+                    title: '<i class="fas fa-lock" title="system&nbsp;locked" data-toggle="tooltip"></i>',
                     width: '10px',
                     searchable: false,
                     data: 'locked',
@@ -538,13 +667,8 @@ define([
             };
 
             // connection
-            let connectionClasses = [];
-            for(let k = 0; k < tempConnectionData.type.length; k++){
-                connectionClasses.push( MapUtil.getConnectionInfo( tempConnectionData.type[k], 'cssClass') );
-            }
-
+            let connectionClasses = MapUtil.getConnectionFakeClassesByTypes(tempConnectionData.type);
             connectionClasses = connectionClasses.join(' ');
-
             tempConData.connection = '<div class="pf-fake-connection ' + connectionClasses + '"></div>';
 
             tempConData.target = {
@@ -734,10 +858,11 @@ define([
                     searchable: false,
                     className: ['pf-help-default', 'text-center', config.tableCellImageClass].join(' '),
                     data: 'log.ship',
+                    defaultContent: '',
                     render: {
                         _: function(data, type, row, meta){
                             let value = data;
-                            if(type === 'display'){
+                            if(data && type === 'display'){
                                 value = '<img src="' + Init.url.ccpImageServer + '/Render/' + value.typeId + '_32.png" title="' + value.typeName + '" data-toggle="tooltip" />';
                             }
                             return value;
@@ -750,12 +875,17 @@ define([
                     orderable: true,
                     searchable: true,
                     data: 'log.ship',
+                    defaultContent: getLabelForUnknownData(),
                     render: {
                         _: function(data, type, row){
-                            let value = data.name;
-                            if(type === 'display'){
-                                value = '<div class="' + MapUtil.config.tableCellEllipsisClass + ' ' + MapUtil.config.tableCellEllipsis100Class + '">' + data.name + '</div>';
+                            let value = data;
+                            if(data){
+                                value = data.name;
+                                if(type === 'display'){
+                                    value = '<div class="' + MapUtil.config.tableCellEllipsisClass + ' ' + MapUtil.config.tableCellEllipsis100Class + '">' + data.name + '</div>';
+                                }
                             }
+
                             return value;
                         }
                     }
@@ -845,9 +975,15 @@ define([
                     orderable: true,
                     searchable: true,
                     data: 'log.system',
+                    defaultContent: getLabelForUnknownData(),
                     render: {
-                        _: 'name',
-                        sort: 'name'
+                        _: function(data, type, row, meta){
+                            let value = data;
+                            if(data && type === 'display'){
+                                value = data.name;
+                            }
+                            return value;
+                        }
                     }
                 },{
                     targets: 7,
@@ -856,13 +992,18 @@ define([
                     searchable: true,
                     className: [config.tableCellActionClass].join(' '),
                     data: 'log',
+                    defaultContent: getLabelForUnknownData(),
                     render: {
                         _: function (data, type, row, meta) {
-                            let value = '';
-                            if(data.station && data.station.id > 0){
-                                value = data.station.name + '&nbsp;' + getIconForDockedStatus('station');
-                            }else if(data.structure && data.structure.id > 0){
-                                value = data.structure.name + '&nbsp;' + getIconForDockedStatus('structure');
+                            let value = data;
+                            if(data){
+                                if(data.station && data.station.id > 0){
+                                    value = data.station.name + '&nbsp;' + getIconForDockedStatus('station');
+                                }else if(data.structure && data.structure.id > 0){
+                                    value = data.structure.name + '&nbsp;' + getIconForDockedStatus('structure');
+                                }else{
+                                    value = '';
+                                }
                             }
                             return value;
                         }
@@ -997,7 +1138,7 @@ define([
                 },{
                     targets: 1,
                     name: 'timestamp',
-                    title: '<i class="far fa-lg fa-fw fa-clock"></i>',
+                    title: '<i class="far fa-fw fa-clock"></i>',
                     width: 100,
                     className: ['text-right'].join(' '),
                     data: 'datetime.date',
@@ -1090,7 +1231,7 @@ define([
                     data: 'context.data.formatted'
                 },{
                     targets: 8,
-                    title: '<i class="fas fa-lg fa-code text-right"></i>',
+                    title: '<i class="fas fa-code text-right"></i>',
                     width: 12,
                     className: [config.tableCellActionClass].join(' '),
                     data: 'context.data',

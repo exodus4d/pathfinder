@@ -5,7 +5,6 @@ let fs                  = require('fs');
 let ini                 = require('ini');
 
 let gulp                = require('gulp');
-let gutil               = require('gulp-util');
 let requirejsOptimize   = require('gulp-requirejs-optimize');
 let filter              = require('gulp-filter');
 let gulpif              = require('gulp-if');
@@ -19,20 +18,23 @@ let compass             = require('gulp-compass');
 let cleanCSS            = require('gulp-clean-css');
 let bytediff            = require('gulp-bytediff');
 let debug               = require('gulp-debug');
+let notifier            = require('node-notifier');
 
 // -- Helper & NPM modules ----------------------------------------------------
 let flatten             = require('flat');
 let padEnd              = require('lodash.padend');
+let merge               = require('lodash.merge');
 let minimist            = require('minimist');
 let slash               = require('slash');
 let fileExtension       = require('file-extension');
+let log                 = require('fancy-log');
+let colors              = require('ansi-colors');
 let stylish             = require('jshint-stylish');
 let Table               = require('terminal-table');
 let prettyBytes         = require('pretty-bytes');
 let del                 = require('promised-del');
 
 let minify = composer(uglifyjs, console);
-let chalk = gutil.colors;
 
 // == Settings ========================================================================================================
 
@@ -55,8 +57,9 @@ let PATH = {
     }
 };
 
-// Pathfinder config file
-let pathfinderConfigFile = './app/pathfinder.ini';
+// Pathfinder config files
+let pathfinderConfigFileApp = './app/pathfinder.ini';
+let pathfinderConfigFileConf = './conf/pathfinder.ini';
 
 // CLI box size in characters
 let cliBoxLength = 80;
@@ -96,36 +99,6 @@ let uglifyJsOptions = {
 // Sourcemaps options
 // https://www.npmjs.com/package/gulp-sourcemaps
 
-// -- Plugin options ----------------------------------------------------------
-
-let gZipOptions = {
-    append: false,                      // disables default append ext .gz
-    extension: 'gz',                    // use "custom" ext: .gz
-    threshold: '1kb',                   // min size required to compress a file
-    deleteMode: PATH.JS.DIST_BUILD,     // replace *.gz files if size < 'threhold'
-    gzipOptions: {
-        level: 9                        // zlib.Gzip compression level [0-9]
-    },
-    skipGrowingFiles: true              // use orig. files in case of *.gz size > orig. size
-};
-
-let brotliOptions = {
-    extension: 'br',                    // use "custom" ext: .br
-    mode: 1,                            // compression mode for UTF-8 formatted text
-    quality: 11,                        // quality [1 worst - 11 best]
-    skipLarger: true                    // use orig. files in case of *.br size > orig. size
-};
-
-let compassOptions = {
-    config_file: './config.rb',
-    css: 'public/css',
-    sass: 'sass',
-    time: true,                         // show execution time
-    sourcemap: true
-};
-
-let compressionExt = [gZipOptions.extension, brotliOptions.extension];
-
 // -- Error output ------------------------------------------------------------
 
 /**
@@ -136,14 +109,14 @@ let compressionExt = [gZipOptions.extension, brotliOptions.extension];
 let printError = (title, example) => {
     let cliLineLength = (cliBoxLength - 8);
 
-    gutil.log('').log(chalk.red( '= ERROR ' + '=' . repeat(cliLineLength)));
-    gutil.log(chalk.red(title));
+    log('').log(colors.red( '= ERROR ' + '=' . repeat(cliLineLength)));
+    log(colors.red(title));
     if(example){
-        gutil.log(`
-             ${chalk.gray(example)}
+        log(`
+             ${colors.gray(example)}
         `);
     }
-    gutil.log(chalk.red('='.repeat(cliBoxLength))).log('');
+    log(colors.red('='.repeat(cliBoxLength))).log('');
 };
 
 // == Settings ========================================================================================================
@@ -151,19 +124,23 @@ let printError = (title, example) => {
 // parse pathfinder.ini config file for relevant data
 let tagVersion;
 try{
-    let pathfinderIni = ini.parse(fs.readFileSync(pathfinderConfigFile, 'utf-8'));
+    let pathfinderAppIni = ini.parse(fs.readFileSync(pathfinderConfigFileApp, 'utf-8'));
+    let pathfinderConfIni = fs.existsSync(pathfinderConfigFileConf) ?
+        ini.parse(fs.readFileSync(pathfinderConfigFileConf, 'utf-8')) : {};
+    let pathfinderIni = merge(pathfinderAppIni, pathfinderConfIni);
+
     try{
         tagVersion = pathfinderIni.PATHFINDER.VERSION;
     }catch(err){
         printError(
             err.message,
-            'Missing "PATHFINDER.VERSION" in "' + pathfinderConfigFile + '"');
+            'Missing "PATHFINDER.VERSION" in "' + pathfinderConfigFileApp + '"');
         process.exit(1);
     }
 }catch(err){
     printError(
         err.message,
-        'Check read permissions for "' + pathfinderConfigFile + '"');
+        'Check read permissions for "' + pathfinderConfigFileApp + '"');
     process.exit(1);
 }
 
@@ -187,6 +164,36 @@ let CONF = {
     },
     DEBUG: false
 };
+
+// -- Plugin options ----------------------------------------------------------
+
+let gZipOptions = {
+    append: false,                      // disables default append ext .gz
+    extension: 'gz',                    // use "custom" ext: .gz
+    threshold: '1kb',                   // min size required to compress a file
+    deleteMode: PATH.JS.DIST_BUILD,     // replace *.gz files if size < 'threshold'
+    gzipOptions: {
+        level: 9                        // zlib.Gzip compression level [0-9]
+    },
+    skipGrowingFiles: true              // use orig. files in case of *.gz size > orig. size
+};
+
+let brotliOptions = {
+    extension: 'br',                    // use "custom" ext: .br
+    mode: 1,                            // compression mode for UTF-8 formatted text
+    quality: 11,                        // quality [1 worst - 11 best]
+    skipLarger: true                    // use orig. files in case of *.br size > orig. size
+};
+
+let compassOptions = {
+    config_file: './config.rb',
+    css: 'public/css/' + CONF.TAG,      // #VERSION# will be replaced with version tag
+    sass: 'sass',
+    time: true,                         // show execution time
+    sourcemap: true
+};
+
+let compressionExt = [gZipOptions.extension, brotliOptions.extension];
 
 // == Helper methods ==================================================================================================
 
@@ -263,33 +270,33 @@ let mergeConf = (confUser, confDefault) => {
  */
 let printHelp = () => {
     let cliLineLength = (cliBoxLength - 7);
-    gutil.log('')
-        .log(chalk.cyan( '= HELP ' + '='.repeat(cliLineLength)))
+    log('')
+        .log(colors.cyan( '= HELP ' + '='.repeat(cliLineLength)))
         .log(`
-             ${chalk.cyan('documentation:')}        ${chalk.gray('https://github.com/exodus4d/pathfinder/wiki/GulpJs')}
+             ${colors.cyan('documentation:')}        ${colors.gray('https://github.com/exodus4d/pathfinder/wiki/GulpJs')}
              
-             ${chalk.cyan('usage:')}                ${chalk.gray('$ npm run gulp [task] -- [--options] ...')}
+             ${colors.cyan('usage:')}                ${colors.gray('$ npm run gulp [task] -- [--options] ...')}
              
-             ${chalk.cyan('tasks:')}
-                ${chalk.gray('help')}               This view
-                ${chalk.gray('default')}            Development environment. Working with row src files and file watcher, default:
-                ${chalk.gray('')}                       ${chalk.gray('--jsUglify=false --jsSourcemaps=false --cssSourcemaps=false --jsGzip=false --cssGzip=false --jsBrotli=false --cssBrotli=false')}
-                ${chalk.gray('production')}         Production build. Concat and uglify static resources, default:
-                ${chalk.gray('')}                       ${chalk.gray('--jsUglify=true --jsSourcemaps=true --cssSourcemaps=true --jsGzip=true --cssGzip=true --jsBrotli=true --cssBrotli=true')}
+             ${colors.cyan('tasks:')}
+                ${colors.gray('help')}               This view
+                ${colors.gray('default')}            Development environment. Working with row src files and file watcher, default:
+                ${colors.gray('')}                       ${colors.gray('--jsUglify=false --jsSourcemaps=false --cssSourcemaps=false --jsGzip=false --cssGzip=false --jsBrotli=false --cssBrotli=false')}
+                ${colors.gray('production')}         Production build. Concat and uglify static resources, default:
+                ${colors.gray('')}                       ${colors.gray('--jsUglify=true --jsSourcemaps=true --cssSourcemaps=true --jsGzip=true --cssGzip=true --jsBrotli=true --cssBrotli=true')}
              
-             ${chalk.cyan('options:')}
-                 ${chalk.gray('--tag')}             Set build version.                  ${chalk.gray('default: --tag="v1.2.4" -> dest path: public/js/v1.2.4')}
-                 ${chalk.gray('--jsUglify')}        Set js uglification.                ${chalk.gray('(true || false)')}
-                 ${chalk.gray('--jsSourcemaps')}    Set js sourcemaps generation.       ${chalk.gray('(true || false)')}
-                 ${chalk.gray('--jsGzip')}          Set js "gzip" compression mode.     ${chalk.gray('(true || false)')}
-                 ${chalk.gray('--jsBrotli')}        Set js "brotli" compression mode.   ${chalk.gray('(true || false)')}
+             ${colors.cyan('options:')}
+                 ${colors.gray('--tag')}             Set build version.                  ${colors.gray('default: --tag="v1.2.4" -> dest path: public/js/v1.2.4')}
+                 ${colors.gray('--jsUglify')}        Set js uglification.                ${colors.gray('(true || false)')}
+                 ${colors.gray('--jsSourcemaps')}    Set js sourcemaps generation.       ${colors.gray('(true || false)')}
+                 ${colors.gray('--jsGzip')}          Set js "gzip" compression mode.     ${colors.gray('(true || false)')}
+                 ${colors.gray('--jsBrotli')}        Set js "brotli" compression mode.   ${colors.gray('(true || false)')}
                  
-                 ${chalk.gray('--cssSourcemaps')}   Set CSS sourcemaps generation.      ${chalk.gray('(true || false)')}
-                 ${chalk.gray('--cssGzip')}         Set CSS "gzip" compression mode.    ${chalk.gray('(true || false)')}
-                 ${chalk.gray('--cssBrotli')}       Set CSS "brotli" compression mode.  ${chalk.gray('(true || false)')}
-                 ${chalk.gray('--debug')}           Set debug mode (more output).       ${chalk.gray('(true || false)')}
+                 ${colors.gray('--cssSourcemaps')}   Set CSS sourcemaps generation.      ${colors.gray('(true || false)')}
+                 ${colors.gray('--cssGzip')}         Set CSS "gzip" compression mode.    ${colors.gray('(true || false)')}
+                 ${colors.gray('--cssBrotli')}       Set CSS "brotli" compression mode.  ${colors.gray('(true || false)')}
+                 ${colors.gray('--debug')}           Set debug mode (more output).       ${colors.gray('(true || false)')}
         `)
-        .log(chalk.cyan('='.repeat(cliBoxLength)))
+        .log(colors.cyan('='.repeat(cliBoxLength)))
         .log('');
 };
 
@@ -484,7 +491,7 @@ gulp.task('task:cleanJsBuild', () => del([PATH.JS.DIST_BUILD]));
 /**
  * clean CSS build dir
  */
-gulp.task('task:cleanCssBuild', () => del([PATH.ASSETS.DIST + '/css']));
+gulp.task('task:cleanCssBuild', () => del([PATH.ASSETS.DIST + '/css/' + CONF.TAG]));
 
 /**
  * clean JS destination (final) dir
@@ -535,11 +542,11 @@ gulp.task('task:concatJS', () => {
             };
         }))
         .pipe(bytediff.start())
-        .pipe(gulpif(CONF.JS.UGLIFY, minify(uglifyJsOptions).on('warnings', gutil.log)))
+        .pipe(gulpif(CONF.JS.UGLIFY, minify(uglifyJsOptions).on('warnings', log)))
         .pipe(gulpif(CONF.JS.SOURCEMAPS, sourcemaps.write('.', {includeContent: false, sourceRoot: '/js'}))) // prod (minify)
         .pipe(bytediff.stop(data => {
             trackFile(data, {src: 'startSize', src_percent: 'percent', uglify: 'endSize'});
-            return chalk.green('Build concat file "' + data.fileName + '"');
+            return colors.green('Build concat file "' + data.fileName + '"');
         }))
         .pipe(gulp.dest(PATH.JS.DIST_BUILD));
 });
@@ -559,7 +566,7 @@ gulp.task('task:diffJS', () => {
         .pipe(gulpif(CONF.JS.SOURCEMAPS, sourcemaps.write('.', {includeContent: false, sourceRoot: '/js'})))
         .pipe(bytediff.stop(data => {
             trackFile(data, {src: 'startSize', src_percent: 'percent', uglify: 'endSize'});
-            return chalk.green('Build file "' + data.fileName + '"');
+            return colors.green('Build file "' + data.fileName + '"');
         }))
         .pipe(gulp.dest(PATH.JS.DIST_BUILD, {overwrite: false}));
 });
@@ -595,9 +602,9 @@ let gzipAssets = (config, taskName) => {
         .pipe(bytediff.stop(data => {
             trackFile(data, {gzipFile: 'fileName', gzip: 'endSize'});
             if(fileExtension(data.fileName) === gZipOptions.extension){
-                return chalk.green('Gzip generate "' + data.fileName + '"');
+                return colors.green('Gzip generate "' + data.fileName + '"');
             }else{
-                return chalk.gray('Gzip skip "' + data.fileName + '". Size < ' + gZipOptions.threshold + ' (threehold)');
+                return colors.gray('Gzip skip "' + data.fileName + '". Size < ' + gZipOptions.threshold + ' (threehold)');
             }
         }))
         .pipe(gulp.dest(PATH.ASSETS.DIST));
@@ -618,9 +625,9 @@ let brotliAssets = (config, taskName) => {
         .pipe(bytediff.stop(data => {
             trackFile(data, {brotliFile: 'fileName', brotli: 'endSize'});
             if(fileExtension(data.fileName) ===  brotliOptions.extension){
-                return chalk.green('Brotli generate "' + data.fileName + '"');
+                return colors.green('Brotli generate "' + data.fileName + '"');
             }else{
-                return chalk.gray('Brotli skip "' + data.fileName + '"');
+                return colors.gray('Brotli skip "' + data.fileName + '"');
             }
         }))
         .pipe(gulp.dest(PATH.ASSETS.DIST));
@@ -664,9 +671,9 @@ gulp.task('task:sass', () => {
         .pipe(bytediff.start())
         .pipe(bytediff.stop(data => {
             trackFile(data, {src: 'startSize', src_percent: 'percent', uglify: 'endSize'});
-            return chalk.green('Build CSS file "' + data.fileName + '"');
+            return colors.green('Build CSS file "' + data.fileName + '"');
         }))
-        .pipe(gulp.dest(PATH.ASSETS.DIST + '/css'));
+        .pipe(gulp.dest(PATH.ASSETS.DIST + '/css/' + CONF.TAG));
 });
 
 /**
@@ -678,7 +685,7 @@ gulp.task('task:cleanCss', () => {
             compatibility: '*',
             level: 2
         }))
-        .pipe(gulp.dest(PATH.ASSETS.DIST +'/css'));
+        .pipe(gulp.dest(PATH.ASSETS.DIST +'/css/' + CONF.TAG));
 });
 
 // == Helper tasks ====================================================================================================
@@ -703,13 +710,13 @@ gulp.task('task:printJsSummary', done => {
  * print task configuration (e.g. CLI parameters)
  */
 gulp.task('task:printConfig', done => {
-    let error = chalk.red;
-    let success = chalk.green;
+    let error = colors.red;
+    let success = colors.green;
 
     let columnLength = Math.round(cliBoxLength / 2);
     let cliLineLength = cliBoxLength - 9;
 
-    gutil.log(chalk.gray( '= CONFIG ' + '='.repeat(cliLineLength)));
+    log(colors.gray( '= CONFIG ' + '='.repeat(cliLineLength)));
 
     let configFlat = flatten(CONF);
     for (let key in configFlat) {
@@ -717,13 +724,13 @@ gulp.task('task:printConfig', done => {
             let value = configFlat[key];
             // format value
             value = padEnd((typeof value === 'undefined') ? 'undefined': value, columnLength);
-            gutil.log(
-                chalk.gray.yellow(padEnd(key, columnLength)),
+            log(
+                colors.yellow(padEnd(key, columnLength)),
                 configFlat[key] ? success(value) : error(value)
             );
         }
     }
-    gutil.log(chalk.reset.gray('='.repeat(cliBoxLength)));
+    log(colors.gray('='.repeat(cliBoxLength)));
     done();
 });
 
@@ -733,7 +740,7 @@ gulp.task('task:printConfig', done => {
 gulp.task('task:checkConfig', done => {
     if(!CONF.TAG){
         printError(
-            'Missing TAG version. Add param ' + chalk.cyan('--tag'),
+            'Missing TAG version. Add param ' + colors.cyan('--tag'),
             '$ npm run gulp default -- --tag="v1.2.4"');
         process.exit(0);
     }
@@ -802,7 +809,7 @@ gulp.task('task:updateJsDest', gulp.series(
     'task:gzipJsAssets',
     'task:brotliJsAssets',
     'task:renameJsDest',
-    'task:printJsSummary',
+   // 'task:printJsSummary',
     'task:cleanJsBuild'
     )
 );
@@ -826,6 +833,36 @@ gulp.task('task:buildCss', gulp.series(
     )
 );
 
+// == Notification tasks ==============================================================================================
+
+/**
+ * JS Build done notification
+ */
+gulp.task('task:notifyJsDone', done => {
+        notifier.notify({
+            title: 'Done JS build',
+            message: 'JS build task finished',
+            icon: PATH.ASSETS.DIST + '/img/logo.png',
+            wait: false
+        });
+        done();
+    }
+);
+
+/**
+ * CSS Build done notification
+ */
+gulp.task('task:notifyCssDone', done => {
+        notifier.notify({
+            title: 'Done CSS build',
+            message: 'CSS build task finished',
+            icon: PATH.ASSETS.DIST + '/img/logo.png',
+            wait: false
+        });
+        done();
+    }
+);
+
 // == Watcher tasks ===================================================================================================
 
 /**
@@ -836,7 +873,8 @@ gulp.task(
     gulp.series(
         'task:hintJS',
         'task:diffJS',
-        'task:updateJsDest'
+        'task:updateJsDest',
+        'task:notifyJsDone'
     )
 );
 
@@ -850,17 +888,29 @@ gulp.task(
        // 'task:cleanCss',
         'task:gzipCssAssets',
         'task:brotliCssAssets',
-        'task:printJsSummary'
+       // 'task:printJsSummary',
+        'task:notifyCssDone'
     )
 );
 
 /**
  * watch files for changes
  */
-gulp.task('task:setWatcher', () => {
-    gulp.watch(PATH.JS.SRC, gulp.series('task:watchJsSrc'));
-    gulp.watch(PATH.CSS.SRC, gulp.series('task:watchCss'));
+
+gulp.task('task:setWatcherJs', function() {
+    return gulp.watch(PATH.JS.SRC, gulp.series('task:watchJsSrc', 'task:printJsSummary'));
 });
+
+gulp.task('task:setWatcherCss', function() {
+    return gulp.watch(PATH.CSS.SRC, gulp.series('task:watchCss', 'task:printJsSummary'));
+});
+
+gulp.task('task:setWatcher',
+    gulp.parallel(
+        'task:setWatcherJs',
+        'task:setWatcherCss'
+    )
+);
 
 // == Default/Main tasks ==============================================================================================
 
@@ -883,9 +933,10 @@ gulp.task(
             gulp.series(
                 'task:cleanCssBuild',
                 'task:watchCss'
-            ),
-            'task:setWatcher'
-        )
+            )
+        ),
+        'task:printJsSummary',
+        'task:setWatcher'
     )
 );
 
@@ -902,7 +953,8 @@ gulp.task(
                 'task:cleanCssBuild',
                 'task:watchCss'
             )
-        )
+        ),
+        'task:printJsSummary'
     )
 );
 

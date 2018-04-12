@@ -138,7 +138,12 @@ em{
   &:hover, &.active{
     color: $orange !important;
   }
+}
 
+.pf-module-icon-button-copy{
+  cursor: copy;
+  -moz-user-select: text;
+  user-select: text;
 }
 
 // links ==========================================================================================
@@ -290,6 +295,10 @@ select:active, select:hover {
       }
     }
 
+    .pf-table-unknown-cell{
+      color: $red;
+      font-style: italic;
+    }
 
     .pf-table-cell-ellipsis{
       overflow: hidden;
@@ -1220,6 +1229,10 @@ code {
     visibility: hidden;
   }
 
+  .pf-head-active-user{
+    cursor: pointer;
+  }
+
   .pf-head-active-user, #pf-head-current-location{
     display: none; // triggered by js
 
@@ -1311,6 +1324,16 @@ code {
     padding-right: 0;   // verwrite default
   }
 }
+
+// left menu ======================================================================================
+.pf-menu-clock{
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 6px 8px;
+  text-align: center;
+}
+
 // global info panel ==============================================================================
 #pf-global-info{
   position: absolute;

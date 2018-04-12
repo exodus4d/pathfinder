@@ -55,6 +55,48 @@ define([
         }
     };
 
+    // active jsPlumb instances currently running =====================================================================
+    let activeInstances = {};
+
+    /**
+     * set mapInstance
+     * @param mapId
+     * @param map
+     */
+    let setMapInstance = (mapId, map) => {
+        activeInstances[mapId] = map;
+    };
+
+    /**
+     * get mapInstance
+     * @param mapId
+     * @returns {*}
+     */
+    let getMapInstance = (mapId) => {
+        return activeInstances[mapId];
+    };
+
+    /**
+     * check for mapInstance is set
+     * @param mapId
+     * @returns {boolean}
+     */
+    let existsMapInstance = (mapId) => {
+        return typeof activeInstances[mapId] === 'object';
+    };
+
+    /**
+     * removes a map instance
+     * @param mapId
+     */
+    let clearMapInstance = (mapId) => {
+        if(existsMapInstance(mapId)){
+            delete activeInstances[mapId];
+        }
+    };
+
+    // ================================================================================================================
+
     /**
      * get all available map Types
      * optional they can be filtered by current access level of a user
@@ -160,6 +202,28 @@ define([
             systemInfo = Init.classes.systemInfo[info][option];
         }
         return systemInfo;
+    };
+
+    /**
+     * get system data by mapId and systemid
+     * @param mapId
+     * @param systemId
+     * @returns {boolean}
+     */
+    let getSystemData = (mapId, systemId) => {
+        let systemData = false;
+        let mapData = Util.getCurrentMapData(mapId);
+
+        if(mapData){
+            for(let j = 0; j < mapData.data.systems.length; j++){
+                let systemDataTemp = mapData.data.systems[j];
+                if(systemDataTemp.id === systemId){
+                    systemData = systemDataTemp;
+                    break;
+                }
+            }
+        }
+        return systemData;
     };
 
     /**
@@ -580,6 +644,19 @@ define([
             connectionInfo = Init.connectionTypes[connectionTyp][option];
         }
         return connectionInfo;
+    };
+
+    /**
+     * get CSS classes for connection types
+     * @param types
+     * @returns {string[]}
+     */
+    let getConnectionFakeClassesByTypes = (types) => {
+        let connectionClasses = ['pf-fake-connection'];
+        for(let i = 0; i < types.length; i++){
+            connectionClasses.push(getConnectionInfo( types[i], 'cssClass'));
+        }
+        return connectionClasses;
     };
 
     /**
@@ -1039,15 +1116,32 @@ define([
         return hasAccess;
     };
 
+    /**
+     * get a unique map url for deeplinking
+     * @param mapId
+     * @returns {string}
+     */
+    let getMapDeeplinkUrl = (mapId) => {
+        let url = location.protocol + '//' + location.host + '/map';
+        url += mapId ? '/' + encodeURIComponent(window.btoa(mapId)) : '';
+
+        return url;
+    };
+
     return {
         config: config,
         mapOptions: mapOptions,
+        setMapInstance: setMapInstance,
+        getMapInstance: getMapInstance,
+        existsMapInstance: existsMapInstance,
+        clearMapInstance: clearMapInstance,
         getMapTypes: getMapTypes,
         getMapScopes: getMapScopes,
         getScopeInfoForMap: getScopeInfoForMap,
         getMapIcons: getMapIcons,
         getInfoForMap: getInfoForMap,
         getInfoForSystem: getInfoForSystem,
+        getSystemData: getSystemData,
         getSystemTypeInfo: getSystemTypeInfo,
         getEffectInfoForSystem: getEffectInfoForSystem,
         toggleSelectSystem: toggleSelectSystem,
@@ -1059,6 +1153,7 @@ define([
         searchConnectionsBySystems: searchConnectionsBySystems,
         searchConnectionsByScopeAndType: searchConnectionsByScopeAndType,
         getConnectionInfo: getConnectionInfo,
+        getConnectionFakeClassesByTypes: getConnectionFakeClassesByTypes,
         checkForConnection: checkForConnection,
         getDefaultConnectionTypeByScope: getDefaultConnectionTypeByScope,
         setConnectionWHStatus: setConnectionWHStatus,
@@ -1073,6 +1168,7 @@ define([
         storeLocalData: storeLocalData,
         deleteLocalData: deleteLocalData,
         getSystemId: getSystemId,
-        checkRight: checkRight
+        checkRight: checkRight,
+        getMapDeeplinkUrl: getMapDeeplinkUrl
     };
 });

@@ -232,7 +232,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
 
 // 20x20px grid background
 .pf-grid-small{
-  background: inline-image("#{$base-url}/grid_40x40.png") !important;
+  background: inline-image("/grid_40x40.png") !important;
 }
 
 .pf-map{
@@ -299,7 +299,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     &:hover{
       // makes the systems "flying" :)
       @include box-shadow(0 6px 12px rgba(0,0,0, 0.3));
-      @include transform( translate3d(0, -2px, 0) );
+      @include transform( translate3d(0, -2px, 0) !important);
     }
 
     .pf-system-head{

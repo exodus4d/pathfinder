@@ -10,9 +10,9 @@ namespace Controller;
 
 
 use Controller\Ccp\Sso;
+use lib\Config;
 use Model\CharacterModel;
 use Model\CorporationModel;
-use lib\Config;
 use Model\MapModel;
 use Model\RoleModel;
 
@@ -421,6 +421,13 @@ class Admin extends Controller{
         }
 
         $f3->set('tplMaps', $data);
+
+        if( !isset($data->corpMaps) ){
+            $f3->set('tplNotification', $this->getNotificationObject('No maps found',
+                'Only corporation maps could get loaded' ,
+                'info'
+            ));
+        }
     }
 
     /**

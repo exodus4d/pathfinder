@@ -60,7 +60,8 @@ html.sb-scroll-lock.sb-active:not(.sb-static) {
   position: relative;
   z-index: 1; /* Site sits above Slidebars */
 
-  background:url("#{$base-url}/#{$body-background-image}") $body-background-color;
+  //background:url("#{$base-url}/#{$body-background-image}") $body-background-color;
+  background-color:  $body-background-color;
   background-repeat: no-repeat;
 }
 

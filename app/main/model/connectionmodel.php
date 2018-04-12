@@ -179,8 +179,7 @@ class ConnectionModel extends AbstractMapTrackingModel {
             is_object($this->target)
         ){
             $routeController = new Route();
-            $routeController->initJumpData();
-            $route = $routeController->findRoute($this->source->name, $this->target->name, 1);
+            $route = $routeController->searchRoute($this->source->systemId, $this->target->systemId, 1);
 
             if($route['routePossible']){
                 $this->scope = 'stargate';

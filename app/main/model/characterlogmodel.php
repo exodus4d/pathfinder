@@ -222,6 +222,9 @@ class CharacterLogModel extends BasicModel {
         if($this->characterId){
             // characterId relation could be deleted by cron therefore check again first...
             $this->characterId->clearCacheDataWithPrefix(CharacterModel::DATA_CACHE_KEY_LOG);
+
+            // broadcast updated character data (with changed log data)
+            $this->characterId->broadcastCharacterUpdate();
         }
     }
 

@@ -18,7 +18,7 @@ define([
     'dialog/manual',
     'dialog/changelog',
     'dialog/credit'
-], function($, Init, Util, Render, Gallery, bootbox) {
+], ($, Init, Util, Render, Gallery, bootbox) => {
 
     'use strict';
 
@@ -79,7 +79,7 @@ define([
     /**
      * set link observer for "version info" dialog
      */
-    let setVersionLinkObserver = function(){
+    let setVersionLinkObserver = () => {
         $('.' + config.navigationVersionLinkClass).off('click').on('click', function(e){
             $.fn.changelogsDialog();
         });
@@ -94,13 +94,24 @@ define([
         adminPanel.css({bottom: ((direction === 'up') ? '+' : '-') + '=35px'});
     };
 
+    let setAcceptCookie = () => {
+        Util.setCookie('cookie', 1, config.defaultAcceptCookieExpire, 'd');
+    };
+
     /**
      * set page observer
      */
-    let setPageObserver = function(){
+    let setPageObserver = () => {
+        let ssoButtonElement = $('.' + config.ssoButtonClass);
         let cookieHintElement = $('#' + config.cookieHintId);
 
         // cookie hint --------------------------------------------------------
+        cookieHintElement.find('.btn-success').on('click', function(){
+            setAcceptCookie();
+            // confirmation no longer needed on SSO login button
+            ssoButtonElement.confirmation('destroy');
+        });
+
         cookieHintElement.on('show.bs.collapse', function () {
             // move admin panel upwards (prevents overlapping with cookie notice)
             moveAdminPanel('up');
@@ -127,7 +138,7 @@ define([
                 btnCancelIcon: 'fas fa-fw fa-check',
                 onCancel: function(e, target){
                     // "Accept cookies"
-                    Util.setCookie('cookie', 1, config.defaultAcceptCookieExpire, 'd');
+                    setAcceptCookie();
 
                     // set "default" href
                     let href = $(target).data('bs.confirmation').getHref();
@@ -141,12 +152,8 @@ define([
                 }
             };
 
-            $('.' + config.ssoButtonClass).confirmation(confirmationSettings);
+            ssoButtonElement.confirmation(confirmationSettings);
         }
-
-        cookieHintElement.find('.btn-success').on('click', function(){
-            Util.setCookie('cookie', 1, config.defaultAcceptCookieExpire, 'd');
-        });
 
         // manual -------------------------------------------------------------
         $('.' + config.navigationLinkManualClass).on('click', function(e){
@@ -179,7 +186,7 @@ define([
     /**
      * init image carousel
      */
-    let initCarousel = function(){
+    let initCarousel = () => {
 
         // check if carousel exists
         if($('#' + config.galleryCarouselId).length === 0){
@@ -313,7 +320,7 @@ define([
      * get all thumbnail elements
      * @returns {*|jQuery|HTMLElement}
      */
-    let getThumbnailElements = function(){
+    let getThumbnailElements = () => {
         return $('a[data-gallery="#' + config.galleryId + '"]').not('.disabled');
     };
 
@@ -321,14 +328,14 @@ define([
      * init gallery for thumbnail elements
      * @param newElements
      */
-    let initGallery = function(newElements){
+    let initGallery = (newElements) => {
         if( newElements.length > 0){
             // We have to add ALL thumbnail elements to the gallery!
             // -> even those wthat are invisible (not lazyLoaded) now!
             // -> This is required for "swipe" through all images
             let allThumbLinks = getThumbnailElements();
 
-            requirejs(['blueImpGalleryBootstrap'], function() {
+            requirejs(['blueImpGalleryBootstrap'], () => {
                 $(newElements).each(function() {
                     let borderless = false;
 
@@ -360,7 +367,7 @@ define([
     /**
      * init "YouTube" video preview
      */
-    let initYoutube = function(){
+    let initYoutube = () => {
 
         $('.youtube').each(function() {
             // Based on the YouTube ID, we can easily find the thumbnail image
@@ -395,11 +402,11 @@ define([
     /**
      * init scrollSpy for navigation bar
      */
-    let initScrollSpy = function(){
+    let initScrollSpy = () => {
         // init scrollspy
 
         // show elements that are currently in the viewport
-        let showVisibleElements = function(){
+        let showVisibleElements = () => {
             // find all elements that should be animated
             let visibleElements = $('.' + config.animateElementClass).isInViewport();
 
@@ -421,7 +428,7 @@ define([
             });
         };
 
-        $( window ).scroll(function() {
+        $( window ).scroll(() => {
             // check for new visible elements
             showVisibleElements();
         });
@@ -446,7 +453,7 @@ define([
      * get current EVE-Online server status
      * -> show "server panel"
      */
-    let initServerStatus = function(){
+    let initServerStatus = () => {
         $.ajax({
             type: 'POST',
             url: Init.path.getServerStatus,
@@ -485,16 +492,16 @@ define([
      * show "notification panel" to user
      * -> checks if panel not already shown
      */
-    let initNotificationPanel = function(){
+    let initNotificationPanel = () => {
         let storageKey = 'notification_panel';
         let currentVersion = Util.getVersion();
 
-        let showNotificationPanel = function(){
+        let showNotificationPanel = () => {
             let data = {
                 version: Util.getVersion()
             };
 
-            requirejs(['text!templates/ui/notice.html', 'mustache'], function(template, Mustache) {
+            requirejs(['text!templates/ui/notice.html', 'mustache'], (template, Mustache) => {
                 let content = Mustache.render(template, data);
 
                 let notificationPanel = $('#' + config.notificationPanelId);
@@ -704,7 +711,7 @@ define([
      * @param status
      * @param error
      */
-    let handleAjaxErrorResponse = function(jqXHR, status, error){
+    let handleAjaxErrorResponse = (jqXHR, status, error) => {
 
         let type = status;
         let title = 'Status ' + jqXHR.status + ': ' + error;
@@ -734,7 +741,7 @@ define([
     /**
      * main init "landing" page
      */
-    $(function(){
+    $(() => {
         // clear sessionStorage
         Util.clearSessionStorage();
 
@@ -816,9 +823,9 @@ define([
         initYoutube();
 
         // draw header logo
-        $('#' + config.logoContainerId).drawLogo(function(){
+        $('#' + config.logoContainerId).drawLogo(() => {
             // init header animation
-            $('#' + config.headerContainerId).initHeader(function(){
+            $('#' + config.headerContainerId).initHeader(() => {
 
             });
         }, false);

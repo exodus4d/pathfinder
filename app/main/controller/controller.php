@@ -25,6 +25,7 @@ class Controller {
     const ERROR_SESSION_SUSPECT                     = 'id: [%45s], ip: [%45s], User-Agent: [%s]';
     const ERROR_TEMP_CHARACTER_ID                   = 'Invalid temp characterId: %s';
 
+    const NOTIFICATION_TYPES                        = ['danger', 'warning', 'info', 'success'];
     /**
      * @var \Base
      */
@@ -184,6 +185,7 @@ class Controller {
      * set/update logged in cookie by character model
      * -> store validation data in DB
      * @param Model\CharacterModel $character
+     * @throws \Exception
      * @throws \Exception\PathfinderException
      */
     protected function setLoginCookie(Model\CharacterModel $character){
@@ -542,6 +544,20 @@ class Controller {
     }
 
     /**
+     * @param string $title
+     * @param string $message
+     * @param string $type
+     * @return \stdClass
+     */
+    protected function getNotificationObject(string $title, $message = '', $type = 'danger') : \stdClass {
+        $notification = (object) [];
+        $notification->type = in_array($type, self::NOTIFICATION_TYPES) ? $type : 'danger';
+        $notification->title = $title;
+        $notification->message = $message;
+        return $notification;
+    }
+
+    /**
      * get a program URL by alias
      * -> if no $alias given -> get "default" route (index.php)
      * @param null $alias
@@ -716,11 +732,11 @@ class Controller {
      * @return array
      */
     static function getScopesByAuthType($authType = ''){
-        $scopes = (array)self::getEnvironmentData('CCP_ESI_SCOPES');
+        $scopes = array_filter((array)self::getEnvironmentData('CCP_ESI_SCOPES'));
 
         switch($authType){
             case 'admin':
-                $scopesAdmin = (array)self::getEnvironmentData('CCP_ESI_SCOPES_ADMIN');
+                $scopesAdmin = array_filter((array)self::getEnvironmentData('CCP_ESI_SCOPES_ADMIN'));
                 $scopes = array_merge($scopes, $scopesAdmin);
                 break;
         }
