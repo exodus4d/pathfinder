@@ -616,6 +616,7 @@ define([
                 case 'UNKNOWN':
                     label = 'ERROR';
                     break;
+                case 'CHARACTER':
                 case 'CORPORATION':
                 case 'ALLIANCE':
                     label = 'INVALID';

@@ -32,6 +32,7 @@ class CharacterModel extends BasicModel {
     const AUTHORIZATION_STATUS = [
         'OK'            => true,                                        // success
         'UNKNOWN'       => 'error',                                     // general authorization error
+        'CHARACTER'     => 'failed to match character whitelist',
         'CORPORATION'   => 'failed to match corporation whitelist',
         'ALLIANCE'      => 'failed to match alliance whitelist',
         'KICKED'        => 'character is kicked',
@@ -552,25 +553,39 @@ class CharacterModel extends BasicModel {
         // check whether character is banned or temp kicked
         if(is_null($this->banned)){
             if( !$this->isKicked() ){
+                $whitelistCharacter = array_filter( array_map('trim', (array)Config::getPathfinderData('login.character') ) );
                 $whitelistCorporations = array_filter( array_map('trim', (array)Config::getPathfinderData('login.corporation') ) );
                 $whitelistAlliance = array_filter( array_map('trim', (array)Config::getPathfinderData('login.alliance') ) );
 
                 if(
+                    empty($whitelistCharacter) &&
                     empty($whitelistCorporations) &&
                     empty($whitelistAlliance)
                 ){
                     // no corp/ally restrictions set -> any character is allowed to login
                     $authStatus = 'OK';
                 }else{
+                    // check if character is set in whitelist
+                    if(
+                        !empty($whitelistCharacter) &&
+                        in_array((int)$this->_id, $whitelistCharacter)
+                    ){
+                        $authStatus =  'OK';
+                    }else{
+                        $authStatus = 'CHARACTER';
+                    }
+
                     // check if character corporation is set in whitelist
                     if(
+                        $authStatus != 'OK' &&
                         !empty($whitelistCorporations) &&
-                        $this->hasCorporation() &&
-                        in_array((int)$this->get('corporationId', true), $whitelistCorporations)
+                        $this->hasCorporation()
                     ){
-                        $authStatus = 'OK';
-                    }else{
-                        $authStatus = 'CORPORATION';
+                        if( in_array((int)$this->get('corporationId', true), $whitelistCorporations) ){
+                            $authStatus = 'OK';
+                        }else{
+                            $authStatus = 'CORPORATION';
+                        }
                     }
 
                     // check if character alliance is set in whitelist
