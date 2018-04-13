@@ -365,6 +365,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
 
       .pf-system-body-pilots{
         height: 14px;
+        float: left;
         color: darken($gray-lighter, 15%);
         transition: color 0.3s ease-out;
         cursor: help;
