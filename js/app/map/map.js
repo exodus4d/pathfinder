@@ -141,7 +141,7 @@ define([
             system.data('currentUser', true);
         }
 
-        let cacheKey = false;
+        let cacheKey = String(currentUserIsHere | 0);
         if(data && data.user) {
             // loop all active pilots and build cache-key
             let cacheArray = [];
@@ -150,7 +150,7 @@ define([
                 let tempUserData = data.user[i];
                 cacheArray.push(tempUserData.id + '_' + tempUserData.log.ship.id);
             }
-            cacheKey = cacheArray.join('_');
+            cacheKey += '_' + cacheArray.join('_');
         }
 
         // do we need to update the system?
