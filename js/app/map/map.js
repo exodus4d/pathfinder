@@ -158,8 +158,14 @@ define([
             system.data('userCache', cacheKey);
             system.data('userCount', userCounter);
 
-            let icon = pilotsContainer.find('i').clone().toggle(currentUserIsHere);
-            pilotsContainer.text(userCounter === 0 ? '-' : userCounter).prepend(icon);
+            // Show that I'm here
+            let iconCurrentUser = pilotsContainer.find('i.currentUser').clone().toggle(currentUserIsHere);
+            // If I'm not here: Prefix pilot count with icon
+            let iconPilots = pilotsContainer.find('i.pilots').clone().toggle(!currentUserIsHere && userCounter > 1);
+            // If only 1 pilot is in system: display name. Otherwise pilot count
+            let text = userCounter === 0 ? '-' : userCounter === 1 ? data.user[0].name : userCounter;
+            // Update DOM
+            pilotsContainer.text(text).prepend(iconCurrentUser).prepend(iconPilots);
 
             // Update tooltip
             if(data && data.user) {
@@ -268,17 +274,22 @@ define([
                     // System pilot count
                     $('<span>', {
                         class: config.systemBodyItemPilots,
-                        text: '-'
+                        text: '-',
                     }).prepend(
                         $('<i>', {
-                            class: ['fas', 'fa-map-marker-alt', 'txt-color', 'txt-color-teal'].join(' ')
+                            class: ['currentUser', 'fas', 'fa-map-marker-alt', 'txt-color', 'txt-color-teal'].join(' ')
+                        }).hide()
+                    ).prepend(
+                        $('<i>', {
+                            class: ['pilots', 'fas', 'fas fa-circle '].join(' ')
                         }).hide()
                     )
                 )
             );
-
+            
             // Static infos in system body
             if(data.statics){
+                system.find('.' + config.systemBodyItemPilots).css('max-width', 88 - 18 * data.statics.length);
                 let systemBody = system.find('.' + config.systemBodyClass);
                 for(let i = 0; i < data.statics.length; i++){
                     let staticData = data.statics[i];

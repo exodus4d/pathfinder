@@ -318,7 +318,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       }
 
       .pf-system-head-name-long {
-        width: 76px;
+        width: 68px;
       }
 
       .pf-system-effect{
@@ -365,13 +365,20 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
 
       .pf-system-body-pilots{
         height: 14px;
+        max-width: 88px;
         float: left;
         color: darken($gray-lighter, 15%);
         transition: color 0.3s ease-out;
         cursor: help;
+        overflow: hidden;
+        text-overflow: ellipsis;
 
         i {
           margin-right: 4px;
+        }
+        i.pilots {
+          font-size: 6px;
+          vertical-align: middle;
         }
       }
 
