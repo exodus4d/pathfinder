@@ -1016,7 +1016,7 @@ define([
                     data.maxStableTime = tooltipData.maxStableTime + ' h';
                 }
                 if(tooltipData.signatureStrength){
-                    data.signatureStrength = parseFloat(tooltipData.signatureStrength).toLocaleString() + ' %';
+                    data.signatureStrength = parseFloat(tooltipData.signatureStrength).toLocaleString();
                 } else {
                     data.signatureStrength = 'unknown';
                 }
@@ -1030,8 +1030,6 @@ define([
                     html: true,
                     trigger: 'hover',
                     container: 'body',
-                    title: title,
-                    content: content,
                     delay: {
                         show: 250,
                         hide: 0
@@ -1040,6 +1038,10 @@ define([
                 if (small) {
                     element.setTooltipSmall();
                 }
+                // set new popover content
+                let popover = element.data('bs.popover');
+                popover.options.title = title;
+                popover.options.content = content;
             });
         });
     };
@@ -1066,8 +1068,6 @@ define([
                     trigger: 'hover',
                     placement: 'top',
                     container: 'body',
-                    title: title,
-                    content: content,
                     delay: {
                         show: 250,
                         hide: 0
@@ -1076,6 +1076,10 @@ define([
                 if (small) {
                     element.setTooltipSmall();
                 }
+                // set new popover content
+                let popover = element.data('bs.popover');
+                popover.options.title = title;
+                popover.options.content = content;
             }
         });
     };
@@ -1111,8 +1115,6 @@ define([
                     html: true,
                     trigger: 'hover',
                     container: 'body',
-                    title: title,
-                    content: content,
                     delay: {
                         show: 250,
                         hide: 0
@@ -1121,6 +1123,10 @@ define([
                 if (small) {
                     element.setTooltipSmall();
                 }
+                // set new popover content
+                let popover = element.data('bs.popover');
+                popover.options.title = title;
+                popover.options.content = content;
             });
         });
     };
