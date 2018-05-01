@@ -170,33 +170,6 @@ define([
     };
 
     /**
-     * update a character counter field with current value length - maxCharLength
-     * @param field
-     * @param charCounterElement
-     * @param maxCharLength
-     */
-    let updateCounter = function(field, charCounterElement, maxCharLength){
-        let value = field.val();
-        let inputLength = value.length;
-
-        // line breaks are 2 characters!
-        let newLines = value.match(/(\r\n|\n|\r)/g);
-        let addition = 0;
-        if (newLines != null) {
-            addition = newLines.length;
-        }
-        inputLength += addition;
-
-        charCounterElement.text(maxCharLength - inputLength);
-
-        if(maxCharLength <= inputLength){
-            charCounterElement.toggleClass('txt-color-red', true);
-        }else{
-            charCounterElement.toggleClass('txt-color-red', false);
-        }
-    };
-
-    /**
      * get module element
      * @param parentElement
      * @param mapId
@@ -319,10 +292,10 @@ define([
                         textarea.parent().next().append(charCounter);
 
                         // update character counter
-                        updateCounter(textarea, charCounter, maxDescriptionLength);
+                        Util.updateCounter(textarea, charCounter, maxDescriptionLength);
 
                         textarea.on('keyup', function(){
-                            updateCounter($(this), charCounter, maxDescriptionLength);
+                            Util.updateCounter($(this), charCounter, maxDescriptionLength);
                         });
                     });
 

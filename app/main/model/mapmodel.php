@@ -649,7 +649,7 @@ class MapModel extends AbstractMapTrackingModel {
      * get all connection data in this map
      * @return \stdClass[]
      */
-    public function getConnectionData(){
+    public function getConnectionData() : array {
         $connectionData = [];
         $connections  = $this->getConnections();
 
@@ -661,6 +661,34 @@ class MapModel extends AbstractMapTrackingModel {
         }
 
         return $connectionData;
+    }
+
+    /**
+     * get all structures data for this map
+     * @param array $systemIds
+     * @return array
+     */
+    public function getStructuresData(array $systemIds = []) : array {
+        $structuresData = [];
+        $corporations = $this->getAllCorporations();
+
+        foreach($corporations as $corporation){
+            // corporations should be unique
+            if( !isset($structuresData[$corporation->_id]) ){
+                // get all structures for current corporation
+                $corporationStructuresData = $corporation->getStructuresData($systemIds);
+                if( !empty($corporationStructuresData) ){
+                    // corporation has structures
+                    $structuresData[$corporation->_id] = [
+                        'id' => $corporation->_id,
+                        'name' => $corporation->name,
+                        'structures' => $corporationStructuresData
+                    ];
+                }
+            }
+        }
+
+        return $structuresData;
     }
 
     /**
@@ -767,7 +795,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @return bool
      * @throws PathfinderException
      */
-    public function hasAccess(CharacterModel $characterModel){
+    public function hasAccess(CharacterModel $characterModel) : bool {
         $hasAccess = false;
 
         if( !$this->dry() ){
@@ -810,19 +838,57 @@ class MapModel extends AbstractMapTrackingModel {
     }
 
     /**
+     * get corporations that have access to this map
+     * @return CorporationModel[]
+     */
+    public function getCorporations() : array {
+        $corporations = [];
+
+        if($this->isCorporation()){
+            $this->filter('mapCorporations', ['active = ?', 1]);
+
+            if($this->mapCorporations){
+                foreach($this->mapCorporations as $mapCorporation){
+                    $corporations[] = $mapCorporation->corporationId;
+                }
+            }
+        }
+
+        return $corporations;
+    }
+
+    /**
+     * get alliances that have access to this map
+     * @return AllianceModel[]
+     */
+    public function getAlliances() : array {
+        $alliances = [];
+
+        if($this->isAlliance()){
+            $this->filter('mapAlliances', ['active = ?', 1]);
+
+            if($this->mapAlliances){
+                foreach($this->mapAlliances as $mapAlliance){
+                    $alliances[] = $mapAlliance->allianceId;
+                }
+            }
+        }
+
+        return $alliances;
+    }
+
+    /**
      * get all character models that are currently online "viewing" this map
      * @param array $options filter options
      * @return CharacterModel[]
      */
-    private function getAllCharacters($options = []){
+    private function getAllCharacters($options = []) : array {
         $characters = [];
 
         if($this->isPrivate()){
-            $activeCharacters = $this->getCharacters();
-
             // add active character for each user
-            foreach($activeCharacters as $activeCharacter){
-                $characters[] = $activeCharacter;
+            foreach($this->getCharacters() as $character){
+                $characters[] = $character;
             }
         }elseif($this->isCorporation()){
             $corporations = $this->getCorporations();
@@ -870,43 +936,40 @@ class MapModel extends AbstractMapTrackingModel {
     }
 
     /**
-     * get all corporations that have access to this map
+     * get all corporations that have access
+     * -> for private maps -> get corporations from characters
+     * -> for corporation maps -> get corporations
+     * -> for alliance maps -> get corporations from alliances
      * @return CorporationModel[]
      */
-    public function getCorporations(){
+    public function getAllCorporations() : array {
         $corporations = [];
 
-        if($this->isCorporation()){
-            $this->filter('mapCorporations', ['active = ?', 1]);
-
-            if($this->mapCorporations){
-                foreach($this->mapCorporations as $mapCorporation){
-                    $corporations[] = $mapCorporation->corporationId;
+        if($this->isPrivate()){
+            foreach($this->getCharacters() as $character){
+                if(
+                    $character->hasCorporation() &&
+                    !array_key_exists($character->get('corporationId', true), $corporations)
+                ){
+                    $corporations[$character->getCorporation()->_id] = $character->getCorporation();
+                }
+            }
+        }elseif($this->isCorporation()){
+            $corporations = $this->getCorporations();
+        }elseif($this->isAlliance()){
+            foreach($this->getAlliances() as $alliance){
+                foreach($alliance->getCharacters() as $character){
+                    if(
+                        $character->hasCorporation() &&
+                        !array_key_exists($character->get('corporationId', true), $corporations)
+                    ){
+                        $corporations[$character->getCorporation()->_id] = $character->getCorporation();
+                    }
                 }
             }
         }
 
         return $corporations;
-    }
-
-    /**
-     * get all alliances that have access to this map
-     * @return AllianceModel[]
-     */
-    public function getAlliances(){
-        $alliances = [];
-
-        if($this->isAlliance()){
-            $this->filter('mapAlliances', ['active = ?', 1]);
-
-            if($this->mapAlliances){
-                foreach($this->mapAlliances as $mapAlliance){
-                    $alliances[] = $mapAlliance->allianceId;
-                }
-            }
-        }
-
-        return $alliances;
     }
 
     /**

@@ -22,27 +22,20 @@ abstract class BasicUniverseModel extends BasicModel {
 
     protected $db = 'DB_UNIVERSE';
 
-    public static function getNew($model, $ttl = self::DEFAULT_TTL){
-        $class = null;
-
-        $model = '\\' . __NAMESPACE__ . '\\' . $model;
-        if(class_exists($model)){
-            $db = Database::instance()->getDB('UNIVERSE');
-            $class = new $model($db, null, null, $ttl);
-        }else{
-            throw new \Exception(sprintf(self::ERROR_INVALID_MODEL_CLASS, $model));
-        }
-
-        return $class;
-    }
-
     /**
-     * load data from API into $this and save $this
-     * @param int $id
-     * @param string $accessToken
-     * @param array $additionalOptions
+     * Event "Hook" function
+     * return false will stop any further action
+     * @param self $self
+     * @param $pkeys
+     * @return bool
      */
-    abstract protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []);
+    public function beforeUpdateEvent($self, $pkeys){
+        // if model changed, 'update' col needs to be updated as well
+        // -> data no longer "outdated"
+        $this->touch('updated');
+
+        return parent::beforeUpdateEvent($self, $pkeys);
+    }
 
     /**
      * load object by $id
@@ -55,31 +48,38 @@ abstract class BasicUniverseModel extends BasicModel {
         /**
          * @var $model self
          */
-        $model = $this->getById($id);
+        $model = $this->getById($id, 0);
         if($model->isOutdated()){
             $model->loadData($id, $accessToken, $additionalOptions);
         }
     }
 
     /**
-     * checks whether data is outdated and should be refreshed
-     * @return bool
+     * load data from API into $this and save $this
+     * @param int $id
+     * @param string $accessToken
+     * @param array $additionalOptions
      */
-    protected function isOutdated(): bool {
-        $outdated = true;
-        if(!$this->dry()){
-            $timezone = $this->getF3()->get('getTimeZone')();
-            $currentTime = new \DateTime('now', $timezone);
-            $updateTime = \DateTime::createFromFormat(
-                'Y-m-d H:i:s',
-                $this->updated,
-                $timezone
-            );
-            $interval = $updateTime->diff($currentTime);
-            if($interval->days < self::CACHE_MAX_DAYS ){
-                $outdated = false;
-            }
+    abstract protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []);
+
+    /**
+     * factory for all UniverseModels
+     * @param string $model
+     * @param int $ttl
+     * @return BasicModel|null
+     * @throws \Exception
+     */
+    public static function getNew($model, $ttl = self::DEFAULT_TTL){
+        $class = null;
+
+        $model = '\\' . __NAMESPACE__ . '\\' . $model;
+        if(class_exists($model)){
+            $db = Database::instance()->getDB('UNIVERSE');
+            $class = new $model($db, null, null, $ttl);
+        }else{
+            throw new \Exception(sprintf(self::ERROR_INVALID_MODEL_CLASS, $model));
         }
-        return $outdated;
+
+        return $class;
     }
 }

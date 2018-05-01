@@ -14,7 +14,6 @@ define([
     'app/map/magnetizing',
     'app/map/scrollbar',
     'dragToSelect',
-    'select2',
     'app/map/contextmenu',
     'app/map/overlay',
     'app/map/local'

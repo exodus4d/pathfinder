@@ -69,15 +69,18 @@ class Setup extends Controller {
                 'Model\WormholeModel',
                 'Model\RightModel',
                 'Model\RoleModel',
+                'Model\StructureModel',
 
                 'Model\CharacterStatusModel',
                 'Model\ConnectionScopeModel',
+                'Model\StructureStatusModel',
 
                 'Model\CharacterMapModel',
                 'Model\AllianceMapModel',
                 'Model\CorporationMapModel',
 
                 'Model\CorporationRightModel',
+                'Model\CorporationStructureModel',
 
                 'Model\UserCharacterModel',
                 'Model\CharacterModel',
@@ -105,6 +108,8 @@ class Setup extends Controller {
             'info' => [],
             'models' => [
                 'Model\Universe\TypeModel',
+                'Model\Universe\GroupModel',
+                'Model\Universe\CategoryModel',
                 'Model\Universe\StructureModel',
                 //'Model\Universe\RegionModel',
                 //'Model\Universe\ConstellationModel'

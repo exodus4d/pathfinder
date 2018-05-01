@@ -65,8 +65,10 @@ class AbstractIterator extends \RecursiveArrayIterator {
                 $mapValue = static::$map[$iterator->key()];
 
                 // check for mapping key
-                if($iterator->hasChildren()){
-
+                if(
+                    $iterator->hasChildren() &&
+                    Util::is_assoc($iterator->current())
+                ){
                     // recursive call for child elements
                     $iterator->offsetSet($iterator->key(), forward_static_call(array('self', __METHOD__), $iterator->getChildren())->getArrayCopy());
                     $iterator->next();

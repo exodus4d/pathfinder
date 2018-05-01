@@ -30,6 +30,11 @@ input, select{
   &[disabled]{
     @include placeholder(transparent);
   }
+
+  &.pf-select2{
+    height: 32px; // supposed to be select2 field (before initialization)
+    padding: 6px 12px;
+  }
 }
 
 textarea{
@@ -138,4 +143,10 @@ fieldset[disabled]{
   &.btn:active{
     box-shadow: none;
   }
+}
+
+
+.pf-form-field-char-count{
+  display: block;
+  margin-top: 10px;
 }

@@ -181,7 +181,7 @@ class CharacterModel extends BasicModel {
             // no cached character data found
 
             $characterData = (object) [];
-            $characterData->id = $this->id;
+            $characterData->id = $this->_id;
             $characterData->name = $this->name;
             $characterData->role = $this->roleId->getData();
             $characterData->shared = $this->shared;

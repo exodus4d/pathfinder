@@ -209,7 +209,8 @@ select:active, select:hover {
 .dataTable{
   th{
     &.pf-table-image-cell,
-    &.pf-table-image-small-cell{
+    &.pf-table-image-small-cell,
+    &.pf-table-image-smaller-cell{
       // no padding for image content
       padding-left: 0 !important;
       padding-right: 0 !important;
@@ -223,8 +224,17 @@ select:active, select:hover {
     }
   }
 
+  tr.group{
+    background-color: rgba($gray-darker, 0.4);
+  }
+
   // "special" column styles
   td{
+
+    > .fa-circle{
+      font-size: 9px !important; // should not be "so big" (10px default)
+    }
+
     &.pf-table-link-cell{
       cursor: pointer;
       @extend .txt-color;
@@ -254,7 +264,6 @@ select:active, select:hover {
     }
 
     &.pf-table-image-cell{
-      // no padding for image content
       padding: 0 !important;
       image-rendering: -webkit-optimize-contrast;
 
@@ -269,6 +278,16 @@ select:active, select:hover {
     &.pf-table-image-small-cell{
       img{
         width: 24px; // smaller image (default 32)
+        // overwrite "default" border for image cells
+        border-left: 1px solid transparent;
+        border-right: 1px solid transparent;
+      }
+    }
+
+    &.pf-table-image-smaller-cell{
+      padding: 0 !important;
+      img{
+        width: 25px; // smaller image (default 32)
         // overwrite "default" border for image cells
         border-left: 1px solid transparent;
         border-right: 1px solid transparent;
@@ -955,6 +974,18 @@ table{
 
 }
 
+// structure status ===============================================================================
+.pf-structure-status-unknown{
+  color: $teal-lighter;
+}
+
+.pf-structure-status-online{
+  color: $green;
+}
+
+.pf-structure-status-offline{
+  color: $red-darker;
+}
 
 // global tooltip settings ========================================================================
 .tooltip-inner{

@@ -70,7 +70,6 @@ class Map extends Controller\AccessController {
 
             // default map type config
             $mapsDefaultConfig = Config::getMapsDefaultConfig();
-
             $mapTypeData = [];
             foreach((array)$rows as $rowData){
                 $data = [
@@ -81,7 +80,6 @@ class Map extends Controller\AccessController {
                     'defaultConfig' => $mapsDefaultConfig[$rowData->name]
                 ];
                 $mapTypeData[$rowData->name] = $data;
-
             }
             $return->mapTypes = $mapTypeData;
 
@@ -189,6 +187,17 @@ class Map extends Controller\AccessController {
             $return->discord = [
                 'status' => (bool)Config::getPathfinderData('discord.status')
             ];
+
+            // structure status ---------------------------------------------------------------------------------------
+            $structureStatus = Model\StructureStatusModel::getAll();
+            $structureData = [];
+            foreach($structureStatus as $status){
+                $structureData[$status->_id] = $status->getData();
+            }
+            $return->structureStatus = $structureData;
+
+            // universe category data ---------------------------------------------------------------------------------
+            $return->universeCategories = [65 => Model\Universe\BasicUniverseModel::getNew('CategoryModel')->getById(65)->getData()];
 
             $f3->set(self::CACHE_KEY_INIT, $return, $expireTimeCache );
         }

@@ -3,15 +3,18 @@
   border: 1px solid $border-color;
   border-radius: $border-radius;
   outline: 0;
-
+  height: 32px;
+  padding: 6px 12px;
 
   &:focus {
     border: 1px solid $focus-border-color;
   }
 
   .select2-selection__rendered {
+    font-family: 'Oxygen Bold';
     color: $gray-lighter;
-    line-height: 28px;
+    line-height: 1.5;
+    padding: 0 10px 0 0;
   }
 
   .select2-selection__clear {

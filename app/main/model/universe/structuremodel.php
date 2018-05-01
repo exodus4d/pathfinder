@@ -96,7 +96,7 @@ class StructureModel extends BasicUniverseModel {
      */
     public function copyfrom($key, $fields = null){
         // flatten array (e.g. "position" key)
-        $key = Util::arrayFlatten((array)$key);
+        $key = Util::arrayFlattenByKey((array)$key);
         parent::copyfrom($key, $fields);
     }
 

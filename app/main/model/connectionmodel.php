@@ -379,7 +379,7 @@ class ConnectionModel extends AbstractMapTrackingModel {
      * get all connection log data linked to this connection
      * @return array
      */
-    public function getLogsData() : array{
+    public function getLogsData() : array {
         $logsData = [];
         $logs = $this->getLogs();
 

@@ -46,6 +46,11 @@ define([
         return label;
     };
 
+    /**
+     * show killMails
+     * @param moduleElement
+     * @param killboardData
+     */
     let showKillmails = function(moduleElement, killboardData){
 
         // show number of killMails

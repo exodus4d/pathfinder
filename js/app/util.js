@@ -15,7 +15,8 @@ define([
     'easyPieChart',
     'hoverIntent',
     'bootstrapConfirmation',
-    'bootstrapToggle'
+    'bootstrapToggle',
+    'select2'
 ], ($, Init, SystemEffect, SignatureType, bootbox, localforage) => {
 
     'use strict';
@@ -55,6 +56,8 @@ define([
         mapWrapperClass: 'pf-map-wrapper',                                      // wrapper div (scrollable)
         mapClass: 'pf-map' ,                                                    // class for all maps
 
+        // select2
+        select2Class: 'pf-select2',                                             // class for all "Select2" <select> elements
 
         // animation
         animationPulseSuccessClass: 'pf-animation-pulse-success',               // animation class
@@ -962,11 +965,75 @@ define([
     };
 
     /**
-     * set default configuration  for "Bootbox" dialogs
+     * set default configuration  for "Bootbox"
      */
-    let initDefaultBootboxConfig = function(){
+    let initDefaultBootboxConfig = () => {
         bootbox.setDefaults({
             onEscape: true      // enables close dialogs on ESC key
+        });
+    };
+
+    /**
+     * set default configuration  for "Select2"
+     */
+    let initDefaultSelect2Config = () => {
+        $.fn.select2.defaults.set('theme', 'pathfinder');
+
+        let initScrollbar = (resultsWrapper) => {
+            // default 'mousewheel' event set by select2 needs to be disabled
+            // in order to make mCustomScrollbar mouseWheel enable works correctly
+            $(resultsWrapper).find('ul.select2-results__options').off('mousewheel');
+
+            resultsWrapper.mCustomScrollbar({
+                mouseWheel: {
+                    enable: true,
+                    scrollAmount: 'auto',
+                    axis: 'y',
+                    preventDefault: true
+                },
+                keyboard: {
+                    enable: false,
+                    scrollType: 'stepless',
+                    scrollAmount: 'auto'
+                },
+                scrollbarPosition: 'inside',
+                autoDraggerLength: true,
+                autoHideScrollbar: false,
+                advanced: {
+                    updateOnContentResize: true
+                }
+            });
+        };
+
+        let getResultsWrapper = (selectElement) => {
+            let wrapper = null;
+            let selectElementId = selectElement.getAttribute('data-select2-id');
+            if(selectElementId){
+                let resultsOptions = $('#select2-' + selectElementId + '-results');
+                if(resultsOptions.length) {
+                    let resultsWrapper = resultsOptions.parents('.select2-results');
+                    if(resultsWrapper.length){
+                        wrapper = resultsWrapper;
+                    }
+                }
+            }
+            return wrapper;
+        };
+
+        // global open event
+        $(document).on('select2:open', '.' + config.select2Class, function(e){
+            let resultsWrapper = getResultsWrapper(this);
+            if(resultsWrapper){
+                initScrollbar(resultsWrapper);
+            }
+        });
+
+        // global select2:closing event
+        $(document).on('select2:closing', '.' + config.select2Class, function(e){
+            let resultsWrapper = getResultsWrapper(this);
+            if(resultsWrapper){
+                resultsWrapper.mCustomScrollbar('destroy');
+            }
         });
     };
 
@@ -1102,6 +1169,33 @@ define([
         }
 
         return duration;
+    };
+
+    /**
+     * update a character counter field with current value length - maxCharLength
+     * @param field
+     * @param charCounterElement
+     * @param maxCharLength
+     */
+    let updateCounter = function(field, charCounterElement, maxCharLength){
+        let value = field.val();
+        let inputLength = value.length;
+
+        // line breaks are 2 characters!
+        let newLines = value.match(/(\r\n|\n|\r)/g);
+        let addition = 0;
+        if (newLines != null) {
+            addition = newLines.length;
+        }
+        inputLength += addition;
+
+        charCounterElement.text(maxCharLength - inputLength);
+
+        if(maxCharLength <= inputLength){
+            charCounterElement.toggleClass('txt-color-red', true);
+        }else{
+            charCounterElement.toggleClass('txt-color-red', false);
+        }
     };
 
     /**
@@ -2413,12 +2507,14 @@ define([
         showVersionInfo: showVersionInfo,
         initPrototypes: initPrototypes,
         initDefaultBootboxConfig: initDefaultBootboxConfig,
+        initDefaultSelect2Config: initDefaultSelect2Config,
         getCurrentTriggerDelay: getCurrentTriggerDelay,
         getServerTime: getServerTime,
         convertTimestampToServerTime: convertTimestampToServerTime,
         getTimeDiffParts: getTimeDiffParts,
         timeStart: timeStart,
         timeStop: timeStop,
+        updateCounter: updateCounter,
         log: log,
         showNotify: showNotify,
         stopTabBlink: stopTabBlink,

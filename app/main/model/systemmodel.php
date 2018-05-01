@@ -203,7 +203,7 @@ class SystemModel extends AbstractMapTrackingModel {
             // no cached system data found
 
             $systemData = (object) [];
-            $systemData->id = $this->id;
+            $systemData->id = $this->_id;
             $systemData->mapId = is_object($this->mapId) ? $this->get('mapId', true) : 0;
             $systemData->systemId = $this->systemId;
             $systemData->name = $this->name;
@@ -485,7 +485,6 @@ class SystemModel extends AbstractMapTrackingModel {
     public function getSignatures(){
         $signatures = [];
         $this->filter('signatures', ['active = ?', 1], ['order' => 'name']);
-
         if($this->signatures){
             $signatures = $this->signatures;
         }
@@ -494,13 +493,12 @@ class SystemModel extends AbstractMapTrackingModel {
     }
 
     /**
-     * get all data for all Signatures in this system
+     * get data for all Signatures in this system
      * @return \stdClass[]
      */
     public function getSignaturesData(){
         $signaturesData = [];
         $signatures = $this->getSignatures();
-
         foreach($signatures as $signature){
             $signaturesData[] = $signature->getData();
         }
@@ -516,7 +514,6 @@ class SystemModel extends AbstractMapTrackingModel {
      */
     public function getSignatureById(CharacterModel $characterModel, $id){
         $signature = null;
-
         if($this->hasAccess($characterModel)){
             $this->filter('signatures', ['active = ? AND id = ?', 1, $id]);
             if($this->signatures){
@@ -535,7 +532,6 @@ class SystemModel extends AbstractMapTrackingModel {
      */
     public function getSignatureByName(CharacterModel $characterModel, $name){
         $signature = null;
-
         if($this->hasAccess($characterModel)){
             $this->filter('signatures', ['active = ? AND name = ?', 1, $name]);
             if($this->signatures){
@@ -544,6 +540,14 @@ class SystemModel extends AbstractMapTrackingModel {
         }
 
         return $signature;
+    }
+
+    /**
+     * get data for all structures in this system
+     * @return \stdClass[]
+     */
+    public function getStructuresData() : array {
+        return $this->getMap()->getStructuresData([$this->systemId]);
     }
 
     /**

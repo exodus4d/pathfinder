@@ -10,7 +10,8 @@ namespace Controller\Ccp;
 
 
 use Controller\Controller;
-use Model\BasicModel;
+use lib\Util;
+use Model;
 
 class Universe extends Controller {
 
@@ -20,8 +21,9 @@ class Universe extends Controller {
      * @throws \Exception
      */
     public function setupDB(\Base $f3){
-        $this->setupRegions($f3);
-        $this->setupConstellations($f3);
+        //$this->setupRegions($f3);
+        //$this->setupConstellations($f3);
+        //$this->setupCategories($f3);
     }
 
     /**
@@ -93,4 +95,54 @@ class Universe extends Controller {
             $constellationModel->reset();
         }
     }
+
+    /**
+     * @param \Base $f3
+     * @throws \Exception
+     */
+    private function setupCategories(\Base $f3){
+        $categoryIdsWhitelist = [
+            6, // Ship
+            65 // Structure
+        ];
+        $categoryIds = $f3->ccpClient->getUniverseCategories();
+        $categoryIds = array_intersect ($categoryIdsWhitelist, $categoryIds);
+        $categoryModel = Model\Universe\BasicUniverseModel::getNew('CategoryModel');
+        foreach($categoryIds as $categoryId){
+            $categoryModel->loadById($categoryId);
+            $categoryModel->loadGroupsData();
+
+            foreach((array)$categoryModel->groups as $group){
+                $group->loadTypesData();
+            }
+
+            $categoryModel->reset();
+        }
+    }
+
+    /**
+     * search universeName data by search term
+     * @param array $categories
+     * @param string $search
+     * @param bool $strict
+     * @return array
+     */
+    public static function searchUniverseNameData(array $categories, string $search, bool $strict = false) : array {
+        $f3 = \Base::instance();
+        $universeNameData = [];
+
+        if( !empty($categories) && !empty($search)){
+            $universeIds = $f3->ccpClient->search($categories, $search, $strict);
+            if(isset($universeIds['error'])){
+                // ESI error
+                $universeNameData = $universeIds;
+            }elseif( !empty($universeIds) ){
+                $universeIds = Util::arrayFlattenByValue($universeIds);
+                $universeNameData = $f3->ccpClient->getUniverseNamesData($universeIds);
+            }
+        }
+
+        return $universeNameData;
+    }
+
 }

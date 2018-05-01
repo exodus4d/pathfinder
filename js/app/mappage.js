@@ -32,6 +32,9 @@ define([
         // set default dialog config
         Util.initDefaultBootboxConfig();
 
+        // set default select2 config
+        Util.initDefaultSelect2Config();
+
         // load page
         // load info (maintenance) info panel (if scheduled)
         $('body').loadPageStructure().setGlobalShortcuts();
@@ -128,6 +131,8 @@ define([
                     Init.url                = response.url;
                     Init.slack              = response.slack;
                     Init.discord            = response.discord;
+                    Init.structureStatus    = response.structureStatus;
+                    Init.universeCategories = response.universeCategories;
                     Init.routeSearch        = response.routeSearch;
                     Init.programMode        = response.programMode;
 

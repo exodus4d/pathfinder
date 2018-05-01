@@ -105,6 +105,10 @@ define([
         let ssoButtonElement = $('.' + config.ssoButtonClass);
         let cookieHintElement = $('#' + config.cookieHintId);
 
+        $(document).on('click', '.' + config.ssoButtonClass + ', .' + config.characterSelectionClass + ' a', function(){
+            $('.' + config.splashOverlayClass).showSplashOverlay();
+        });
+
         // cookie hint --------------------------------------------------------
         cookieHintElement.find('.btn-success').on('click', function(){
             setAcceptCookie();
@@ -682,11 +686,6 @@ define([
 
                         let content = Mustache.render(template, data);
                         this.characterElement.html(content);
-
-                        // lock character selection on click (prevent click spamming)
-                        this.characterElement.find('a').on('click', function(){
-                            $('.' + config.splashOverlayClass).showSplashOverlay();
-                        });
 
                         // show character panel (animation settings)
                         initCharacterAnimation(this.characterElement.find('.' + config.characterImageWrapperClass));

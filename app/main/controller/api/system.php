@@ -7,6 +7,7 @@
  */
 
 namespace Controller\Api;
+
 use Controller;
 use Data\Mapper as Mapper;
 use lib\Config;
@@ -436,6 +437,30 @@ class System extends Controller\AccessController {
 
                 $system->sendRallyPoke($rallyData, $activeCharacter);
             }
+        }
+
+        echo json_encode($return);
+    }
+
+    /**
+     * @param \Base $f3
+     * @throws \Exception
+     */
+    public function getData(\Base $f3){
+        $requestData = (array)$f3->get('POST');
+        $mapId = (int)$requestData['mapId'];
+        $systemId = (int)$requestData['systemId'];
+        $activeCharacter = $this->getCharacter();
+
+        $return = (object) [];
+
+        if(
+            !is_null($map = $activeCharacter->getMap($mapId)) &&
+            !is_null($system = $map->getSystemById($systemId))
+        ){
+            $return->system = $system->getData();
+            $return->system->signatures = $system->getSignaturesData();
+            $return->system->structures = $system->getStructuresData();
         }
 
         echo json_encode($return);

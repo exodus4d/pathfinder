@@ -52,9 +52,14 @@ class TypeModel extends BasicUniverseModel {
         ],
         'groupId' => [
             'type' => Schema::DT_INT,
-            'nullable' => false,
-            'default' => 0,
-            'index' => true
+            'index' => true,
+            'belongs-to-one' => 'Model\Universe\GroupModel',
+            'constraint' => [
+                [
+                    'table' => 'group',
+                    'on-delete' => 'CASCADE'
+                ]
+            ]
         ],
         'marketGroupId' => [
             'type' => Schema::DT_INT,
@@ -84,6 +89,18 @@ class TypeModel extends BasicUniverseModel {
     ];
 
     /**
+     * get type data
+     * @return object
+     */
+    public function getData(){
+        $typeData = (object) [];
+        $typeData->id = $this->id;
+        $typeData->name = $this->name;
+
+        return $typeData;
+    }
+
+    /**
      * get shipData from object
      * -> more fields can be added in here if needed
      * @return \stdClass
@@ -107,6 +124,10 @@ class TypeModel extends BasicUniverseModel {
     protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){
         $data = self::getF3()->ccpClient->getUniverseTypesData($id, $additionalOptions);
         if(!empty($data)){
+            $group = $this->rel('groupId');
+            $group->loadById($data['groupId'], $accessToken, $additionalOptions);
+            $data['groupId'] = $group;
+
             $this->copyfrom($data);
             $this->save();
         }

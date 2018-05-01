@@ -104,6 +104,11 @@ abstract class BasicModel extends \DB\Cortex {
      */
     const DEFAULT_CACHE_TTL                                     = 120;
 
+    /**
+     * default TTL for SQL query cache
+     */
+    const DEFAULT_SQL_TTL                                       = 3;
+
     const ERROR_INVALID_MODEL_CLASS                             = 'Model class (%s) not found';
 
     public function __construct($db = NULL, $table = NULL, $fluid = NULL, $ttl = 0){
@@ -464,7 +469,7 @@ abstract class BasicModel extends \DB\Cortex {
      * @param bool $isActive
      * @return \DB\Cortex
      */
-    public function getById(int $id, int $ttl = 3, bool $isActive = true){
+    public function getById(int $id, int $ttl = self::DEFAULT_SQL_TTL, bool $isActive = true){
         return $this->getByForeignKey('id', (int)$id, ['limit' => 1], $ttl, $isActive);
     }
 
@@ -761,6 +766,28 @@ abstract class BasicModel extends \DB\Cortex {
      */
     public function getErrors(): array {
         return $this->validationError;
+    }
+
+    /**
+     * checks whether data is outdated and should be refreshed
+     * @return bool
+     */
+    protected function isOutdated(): bool {
+        $outdated = true;
+        if(!$this->dry()){
+            $timezone = $this->getF3()->get('getTimeZone')();
+            $currentTime = new \DateTime('now', $timezone);
+            $updateTime = \DateTime::createFromFormat(
+                'Y-m-d H:i:s',
+                $this->updated,
+                $timezone
+            );
+            $interval = $updateTime->diff($currentTime);
+            if($interval->days < Universe\BasicUniverseModel::CACHE_MAX_DAYS){
+                $outdated = false;
+            }
+        }
+        return $outdated;
     }
 
     public function save(){

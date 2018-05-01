@@ -29,12 +29,23 @@ class Util {
     }
 
     /**
-     * flatten multidimensional array
+     * flatten multidimensional array ignore keys
+     * @param array $array
+     * @return array
+     */
+    static function arrayFlattenByValue(array $array) : array {
+        $return = [];
+        array_walk_recursive($array, function($value) use (&$return) { $return[] = $value; });
+        return $return;
+    }
+
+    /**
+     * flatten multidimensional array merge keys
      * -> overwrites duplicate keys!
      * @param array $array
      * @return array
      */
-    static function arrayFlatten(array $array) : array {
+    static function arrayFlattenByKey(array $array) : array {
         $return = [];
         array_walk_recursive($array, function($value, $key) use (&$return) { $return[$key] = $value; });
         return $return;

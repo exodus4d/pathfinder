@@ -153,7 +153,7 @@ requirejs.config({
             deps : ['jquery']
         },
         select2: {
-            deps : ['jquery'],
+            deps : ['jquery', 'mousewheel'],
             exports: 'Select2'
         },
         validator: {

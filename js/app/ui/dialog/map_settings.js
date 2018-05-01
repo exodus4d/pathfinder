@@ -346,7 +346,6 @@ define([
                                 let formValid = form.isValidForm();
 
                                 if(formValid === true){
-
                                     // lock dialog
                                     let dialogContent = mapInfoDialog.find('.modal-content');
                                     dialogContent.showLoadingAnimation();
@@ -391,7 +390,6 @@ define([
                                         data: requestData,
                                         dataType: 'json'
                                     }).done(function(responseData){
-
                                         if(responseData.error.length){
                                             form.showFormMessage(responseData.error);
                                         }else{
