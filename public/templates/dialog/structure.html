@@ -7,15 +7,15 @@
                     <label for="form_name" class="col-sm-2 control-label">Name</label>
                     <div class="col-sm-10">
                         <input name="name" type="text" class="form-control" id="form_name" value="{{structureData.name}}" data-error="Name required" data-minlength="3" data-minlength-error="Min. of 3 characters" required>
-                        <span class="note help-block with-errors">Choose a meaningful name</span>
+                        <span class="note help-block with-errors"></span>
                     </div>
                 </div>
             </div>
             <div class="col-xs-6">
                 <div class="form-group">
-                    <label for="form_status" class="col-sm-4 control-label">Status</label>
+                    <label for="{{statusSelectId}}" class="col-sm-4 control-label">Status</label>
                     <div class="col-sm-8">
-                        <select name="statusId" id="form_status" class="form-control">
+                        <select name="statusId" id="{{statusSelectId}}" class="form-control pf-select2">
                             {{#structureStatus}}
                             <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
                             {{/structureStatus}}

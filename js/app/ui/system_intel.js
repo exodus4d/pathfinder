@@ -21,6 +21,7 @@ define([
         // headline toolbar
         moduleHeadlineIconClass: 'pf-module-icon-button',                       // class for toolbar icons in the head
         moduleHeadlineIconAddClass: 'pf-module-icon-button-add',                // class for "add structure" icon
+        moduleHeadlineIconReaderClass: 'pf-module-icon-button-reader',          // class for "dScan reader" icon
         moduleHeadlineIconRefreshClass: 'pf-module-icon-button-refresh',        // class for "refresh" icon
 
         // system intel module
@@ -28,6 +29,7 @@ define([
 
         // structure dialog
         structureDialogId: 'pf-structure-dialog',                               // id for "structure" dialog
+        statusSelectId: 'pf-structure-dialog-status-select',                    // id for "status" select
         typeSelectId: 'pf-structure-dialog-type-select',                        // id for "type" select
         corporationSelectId: 'pf-structure-dialog-corporation-select',          // id for "corporation" select
         descriptionTextareaId: 'pf-structure-dialog-description-textarea',      // id for "description" textarea
@@ -79,6 +81,13 @@ define([
      */
     let callbackUpdateStructureRows = (context, systemData) => {
         let touchedRows = [];
+        let hadData = context.tableApi.rows().any();
+        let notificationCounter = {
+            added: 0,
+            changed: 0,
+            deleted: 0
+        };
+
         if(systemData){
             let corporations = Util.getObjVal(systemData, 'structures');
             if(corporations) {
@@ -99,6 +108,7 @@ define([
                                 api.nodes().to$().data('animationStatus', 'changed').destroyTimestampCounter();
 
                                 touchedRows.push(api.id());
+                                notificationCounter.changed++;
                             }else{
                                 // insert new row
                                 //context.tableApi.row.add(structureData).nodes().to$().data('animationStatus', 'added');
@@ -106,6 +116,7 @@ define([
                                 api.nodes().to$().data('animationStatus', 'added');
 
                                 touchedRows.push(api.id());
+                                notificationCounter.added++;
                             }
                         }
                     }
@@ -114,10 +125,20 @@ define([
         }
 
         if(context.removeMissing){
-            context.tableApi.rows((idx, data, node) => !touchedRows.includes(node.id)).remove();
+            notificationCounter.deleted += context.tableApi.rows((idx, data, node) => !touchedRows.includes(node.id)).remove().ids().count();
         }
 
         context.tableApi.draw();
+
+        // show notification ------------------------------------------------------------------------------------------
+        let notification = '';
+        notification += notificationCounter.added > 0 ? notificationCounter.added + ' added<br>' : '';
+        notification += notificationCounter.changed > 0 ? notificationCounter.changed + ' changed<br>' : '';
+        notification += notificationCounter.deleted > 0 ? notificationCounter.deleted + ' deleted<br>' : '';
+
+        if(hadData && notification.length){
+            Util.showNotify({title: 'Structures updated', text: notification, type: 'success'});
+        }
     };
 
     /**
@@ -127,14 +148,20 @@ define([
      */
     let callbackDeleteStructures = (context, responseData) => {
         let structureIds = Util.getObjVal(responseData, 'deletedStructureIds');
+        let deletedCounter = 0;
         if(structureIds && structureIds.length){
             for(let structureId of structureIds){
                 let rowId = getRowId(context.tableApi, structureId);
                 if(rowId){
                     context.tableApi.row('#' + rowId).remove();
+                    deletedCounter++;
                 }
             }
+        }
+
+        if(deletedCounter){
             context.tableApi.draw();
+            Util.showNotify({title: 'Structure deleted', text: deletedCounter + ' deleted', type: 'success'});
         }
     };
 
@@ -215,6 +242,7 @@ define([
                 data.selected = data.id === Util.getObjVal(structureData, 'status.id');
                 return data;
             }),
+            statusSelectId: config.statusSelectId,
             typeSelectId: config.typeSelectId,
             corporationSelectId: config.corporationSelectId,
             descriptionTextareaId: config.descriptionTextareaId,
@@ -254,7 +282,9 @@ define([
                                 formData.corporationId = Util.getObjVal(formData, 'corporationId') | 0;
                                 formData.systemId = systemId | 0;
 
-                                saveStructureData(formData,{
+                                saveStructureData({
+                                    structures: [formData]
+                                }, {
                                     moduleElement: moduleElement,
                                     tableApi: tableApi
                                 }, callbackUpdateStructureRows);
@@ -282,6 +312,10 @@ define([
                     maxSelectionLength: 1
                 });
 
+                $(this).find('#' + config.statusSelectId).select2({
+                    minimumResultsForSearch: -1
+                });
+
                 // init character counter
                 let textarea = $(this).find('#' + config.descriptionTextareaId);
                 let charCounter = $(this).find('.' + config.descriptionTextareaCharCounter);
@@ -299,8 +333,52 @@ define([
     };
 
     /**
+     * show D-Scan reader dialog
+     * @param moduleElement
+     * @param tableApi
+     * @param systemData
+     */
+    let showDscanReaderDialog = (moduleElement, tableApi, systemData) => {
+        requirejs(['text!templates/dialog/dscan_reader.html', 'mustache'], (template, Mustache) => {
+            let structureDialog = bootbox.dialog({
+                title: 'D-Scan reader',
+                message: Mustache.render(template, {}),
+                show: true,
+                buttons: {
+                    close: {
+                        label: 'cancel',
+                        className: 'btn-default'
+                    },
+                    success: {
+                        label: '<i class="fas fa-fw fa-paste fa-fw"></i>&nbsp;update intel',
+                        className: 'btn-success',
+                        callback: function (){
+                            let form = this.find('form');
+                            let formData = form.getFormValues();
+
+                            updateStructureTableByClipboard(systemData, formData.clipboard, {
+                                moduleElement: moduleElement,
+                                tableApi: tableApi
+                            });
+                        }
+                    }
+                }
+            });
+
+            // dialog shown event
+            structureDialog.on('shown.bs.modal', function(e) {
+                // set focus on textarea
+                structureDialog.find('textarea').focus();
+            });
+        });
+    };
+
+    /**
      * get module element
-     * @returns {*}
+     * @param parentElement
+     * @param mapId
+     * @param systemData
+     * @returns {jQuery}
      */
     let getModule = (parentElement, mapId, systemData) => {
         let corporationId = Util.getCurrentUserInfo('corporationId');
@@ -319,6 +397,10 @@ define([
                     $('<i>', {
                         class: ['fas', 'fa-fw', 'fa-plus', config.moduleHeadlineIconClass, config.moduleHeadlineIconAddClass].join(' '),
                         title: 'add'
+                    }).attr('data-html', 'true').attr('data-toggle', 'tooltip'),
+                    $('<i>', {
+                        class: ['fas', 'fa-fw', 'fa-paste', config.moduleHeadlineIconClass, config.moduleHeadlineIconReaderClass].join(' '),
+                        title: 'D-Scan&nbsp;reader'
                     }).attr('data-html', 'true').attr('data-toggle', 'tooltip'),
                     $('<i>', {
                         class: ['fas', 'fa-fw', 'fa-sync', config.moduleHeadlineIconClass, config.moduleHeadlineIconRefreshClass].join(' '),
@@ -388,8 +470,8 @@ define([
                     }
                 },{
                     targets: 2,
-                    title: 'structure',
-                    width: 50,
+                    title: 'type',
+                    width: 30,
                     className: [config.tableCellEllipsisClass].join(' '),
                     data: 'structure.name',
                     defaultContent: '<i class="fas fa-question txt-color txt-color-orangeDark"></i>',
@@ -589,6 +671,76 @@ define([
     };
 
     /**
+     * get universe typeIds for given categoryIds
+     * @param categoryIds
+     * @returns {Array}
+     */
+    let getUniverseTypeIdsByCategoryIds = (categoryIds) => {
+        let typeIds = [];
+        let mapIds = type => type.id;
+        for(let categoryId of categoryIds){
+            let categoryData = Util.getObjVal(Init, 'universeCategories.' + categoryId);
+            if(categoryData && categoryData.groups){
+                for(let groupData of categoryData.groups){
+                    if(groupData && groupData.types){
+                        typeIds = typeIds.concat(groupData.types.map(mapIds));
+                    }
+                }
+            }
+        }
+
+        return typeIds;
+    };
+
+    /**
+     * parse a copy&paste string from ingame dScan windows
+     * @param systemData
+     * @param clipboard
+     * @returns {Array}
+     */
+    let parseDscanString = (systemData, clipboard) => {
+        let dScanData = [];
+        let structureTypeIds = getUniverseTypeIdsByCategoryIds([65]);
+
+        if(clipboard.length){
+            let dScanRows = clipboard.split(/\r\n|\r|\n/g);
+
+            for(let rowData of dScanRows){
+                rowData = rowData.split(/\t/g);
+
+                if(rowData.length === 4){
+                    rowData[0] = parseInt(rowData[0]);
+                    // valid dScan result
+                    if(structureTypeIds.indexOf( rowData[0] ) !== -1){
+                        dScanData.push({
+                            structureId: rowData[0],
+                            name: rowData[1],
+                            systemId: systemData.systemId
+                        });
+                    }
+                }
+            }
+        }
+
+        return dScanData;
+    };
+
+    /**
+     * parse clipboard data for structures and update table
+     * @param systemData
+     * @param clipboard
+     * @param context
+     */
+    let updateStructureTableByClipboard = (systemData, clipboard, context) => {
+        let structureData = parseDscanString(systemData, clipboard);
+        if(structureData.length){
+            saveStructureData({
+                structures: structureData
+            }, context, callbackUpdateStructureRows);
+        }
+    };
+
+    /**
      * init intel module
      * @param moduleElement
      * @param mapId
@@ -604,6 +756,11 @@ define([
             showStructureDialog(moduleElement, tableApi, systemData.systemId);
         });
 
+        // init structure dialog --------------------------------------------------------------------------------------
+        moduleElement.find('.' + config.moduleHeadlineIconReaderClass).on('click', function(e){
+            showDscanReaderDialog(moduleElement, tableApi, systemData);
+        });
+
         // init refresh button ----------------------------------------------------------------------------------------
         moduleElement.find('.' + config.moduleHeadlineIconRefreshClass).on('click', function(e){
             getStructureData({
@@ -614,6 +771,14 @@ define([
                 tableApi: tableApi,
                 removeMissing: true
             }, callbackAddStructureRows);
+        });
+
+        // init listener for global "past" dScan into this page -------------------------------------------------------
+        moduleElement.on('pf:updateIntelModuleByClipboard', function(e, clipboard){
+            updateStructureTableByClipboard(systemData, clipboard, {
+                moduleElement: moduleElement,
+                tableApi: tableApi
+            });
         });
     };
 

@@ -20,30 +20,61 @@ class Structure extends Controller\AccessController {
      * @throws Exception
      */
     public function save(\Base $f3){
-        $structureData = (array)$f3->get('POST');
-        $activeCharacter = $this->getCharacter();
-
+        $requestData = (array)$f3->get('POST');
+        $structuresData = (array)$requestData['structures'];
         $return = (object) [];
         $return->error = [];
 
-        /**
-         * @var $structure Model\StructureModel
-         */
-        $structure = Model\BasicModel::getNew('StructureModel');
-        $structure->getById((int)$structureData['id']);
+        if($structuresData){
+            $activeCharacter = $this->getCharacter();
 
-        if($structure->dry() || $structure->hasAccess($activeCharacter)){
-            $newStructure = $structure->dry();
-            try{
-                $structure->copyfrom($structureData, ['structureId', 'corporationId', 'systemId', 'statusId', 'name', 'description']);
-                $structure->save();
+            if($activeCharacter->hasCorporation()){
+                // structures always belong to a corporation
+                /**
+                 * @var $structure Model\StructureModel
+                 */
+                $structure = Model\BasicModel::getNew('StructureModel');
+                foreach ($structuresData as $structureData){
+                    // reset on loop start because of potential "continue"
+                    $structure->reset();
 
-                if($newStructure){
-                    $activeCharacter->getCorporation()->saveStructure($structure);
+                    if(!empty($structureData['id']) && $structureId = (int)$structureData['id']){
+                        // update specific structure
+                        $structure->getById($structureId);
+                        if( !$structure->hasAccess($activeCharacter) ){
+                            continue;
+                        }
+                    }elseif( !isset($structureData['id']) ){
+                        // from clipboard -> search by structure by name
+                        $structure->getByName($activeCharacter->getCorporation(), (string)$structureData['name']);
+                    }
+
+                    $newStructure = $structure->dry();
+
+                    try{
+                        $structure->copyfrom($structureData, ['structureId', 'corporationId', 'systemId', 'statusId', 'name', 'description']);
+                        $structure->save();
+
+                        if($newStructure){
+                            $activeCharacter->getCorporation()->saveStructure($structure);
+                        }
+
+                        // group all updated structures by corporation -> just for return
+                        $corporationsStructureData = $structure->getDataByCorporations();
+                        foreach($corporationsStructureData as $corporationId => $corporationStructureData){
+                            if(isset($return->structures[$corporationId])){
+                                $return->structures[$corporationId]['structures'] = array_merge(
+                                    $return->structures[$corporationId]['structures'],
+                                    $corporationStructureData['structures']
+                                );
+                            }else{
+                                $return->structures[$corporationId] = $corporationStructureData;
+                            }
+                        }
+                    }catch(Exception\ValidationException $e){
+                        $return->error[] = $e->getError();
+                    }
                 }
-                $return->structures = $structure->getDataByCorporations();
-            }catch(Exception\ValidationException $e){
-                $return->error[] = $e->getError();
             }
         }
 

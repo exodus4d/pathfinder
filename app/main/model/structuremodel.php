@@ -49,6 +49,7 @@ class StructureModel extends BasicModel {
         ],
         'statusId' => [
             'type' => Schema::DT_INT,
+            'default' => 1,
             'index' => true,
             'belongs-to-one' => 'Model\StructureStatusModel',
             'constraint' => [
@@ -160,15 +161,40 @@ class StructureModel extends BasicModel {
     }
 
     /**
+     * check whether this model is valid or not
+     * @return bool
+     */
+    public function isValid(): bool {
+        if($valid = parent::isValid()){
+            // structure always belongs to a systemId
+            if(!(int)$this->systemId){
+                $valid = false;
+            }
+        }
+
+        return $valid;
+    }
+
+    /**
+     * Event "Hook" function
+     * can be overwritten
+     * return false will stop any further action
+     * @param BasicModel $self
+     * @param $pkeys
+     * @return bool
+     */
+    public function beforeInsertEvent($self, $pkeys){
+        return $this->isValid() ? parent::beforeInsertEvent($self, $pkeys) : false;
+    }
+
+    /**
      * check access by chraacter
      * @param CharacterModel $characterModel
      * @return bool
      */
     public function hasAccess(CharacterModel $characterModel) : bool {
         $access = false;
-        if($this->dry()){
-            $access = true;
-        }elseif($characterModel->hasCorporation()){
+        if($characterModel->hasCorporation()){
             $this->filter('structureCorporations', ['active = ?', 1]);
             $this->has('structureCorporations.corporationId', ['active = ?', 1]);
             $this->has('structureCorporations.corporationId', ['id = ?', $characterModel->get('corporationId', true)]);
@@ -199,6 +225,16 @@ class StructureModel extends BasicModel {
         }
 
         return $structuresData;
+    }
+
+    public function getByName(CorporationModel $corporation, string $name) {
+        if( !$corporation->dry() && $name){
+            $this->has('structureCorporations', ['corporationId = :corporationId', ':corporationId' => $corporation->_id]);
+            $this->load(['name = :name AND active = :active',
+                ':name' => $name,
+                ':active' => 1
+            ]);
+        }
     }
 
     /**

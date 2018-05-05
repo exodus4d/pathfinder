@@ -25,11 +25,11 @@ define([
             label:      'Reload tab',
             keyNames:   ['CONTROL', 'R']
         },
-        signaturePaste: {
+        clipboardPaste: {
             group:      'global',
-            label:      'Paste signatures from clipboard',
+            label:      'Update signatures/D-Scan from clipboard',
             keyNames:   ['CONTROL', 'V'],
-            alias:  'paste'
+            alias:      'paste'
         },
 
         // map ----------------------------------------------------------------------------------------------
