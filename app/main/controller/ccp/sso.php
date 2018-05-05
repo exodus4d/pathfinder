@@ -113,7 +113,7 @@ class Sso extends Api\User{
                             $this->setLoginCookie($character);
 
                             // route to "map"
-                            $f3->reroute(['map']);
+                            $f3->reroute(['map', ['*' => '']]);
                         }
                     }
                 }
@@ -270,7 +270,7 @@ class Sso extends Api\User{
                                         if($rootAlias == 'admin'){
                                             $f3->reroute([$rootAlias, ['*' => '']]);
                                         }else{
-                                            $f3->reroute(['map']);
+                                            $f3->reroute(['map', ['*' => '']]);
                                         }
                                     }else{
                                         $f3->set(self::SESSION_KEY_SSO_ERROR, sprintf(self::ERROR_LOGIN_FAILED, $characterModel->name));
@@ -329,7 +329,7 @@ class Sso extends Api\User{
             $loginCheck = $this->loginByCharacter($character);
             if($loginCheck){
                 // route to "map"
-                $f3->reroute($f3->alias('map','*= ') );
+                $f3->reroute(['map', ['*' => '']]);
             }
         }
 
