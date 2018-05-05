@@ -748,7 +748,7 @@ define([
             }
         }.bind(connection);
 
-        connectionCanvas.singleDoubleClick(single, () => {});
+        Util.singleDoubleClick(connectionCanvas, single, () => {});
     };
 
     /**
@@ -1505,7 +1505,7 @@ define([
      * @param systemData
      * @param connectedSystem
      */
-    let drawSystem = function(map, systemData, connectedSystem){
+    let drawSystem = (map, systemData, connectedSystem) => {
 
         // check if systemData is valid
         if(isValidSystem(systemData)){
@@ -1551,7 +1551,7 @@ define([
      * @param requestData
      * @param context
      */
-    let saveSystem = function(requestData, context){
+    let saveSystem = (requestData, context) => {
         $.ajax({
             type: 'POST',
             url: Init.path.saveSystem,
@@ -2190,7 +2190,7 @@ define([
      * @param map
      * @param system
      */
-    let setSystemObserver = function(map, system){
+    let setSystemObserver = (map, system) => {
         system = $(system);
 
         // get map container
@@ -2481,7 +2481,6 @@ define([
         };
 
         let single = function(e){
-
             // check if click was performed on "popover" (x-editable)
             let popoverClick = false;
             if( $(e.target).parents('.popover').length ){
@@ -2510,7 +2509,7 @@ define([
 
         };
 
-        system.singleDoubleClick(single, double);
+        Util.singleDoubleClick(system, single, double);
     };
 
     /**

@@ -745,38 +745,6 @@ define([
     };
 
     /**
-     * wrapper function for onClick() || onDblClick() events in order to distinguish between this two types of events
-     * @param singleClickCallback
-     * @param doubleClickCallback
-     * @param timeout
-     * @returns {any|JQuery|*}
-     */
-    $.fn.singleDoubleClick = function(singleClickCallback, doubleClickCallback, timeout) {
-        return this.each(function(){
-            let clicks = 0, self = this;
-
-            // prevent default behaviour (e.g. open <a>-tag link)
-            $(this).off('click').on('click', function(e){
-                e.preventDefault();
-            });
-
-            $(this).off('mouseup').on('mouseup', function(e){
-                clicks++;
-                if (clicks === 1) {
-                    setTimeout(function(){
-                        if(clicks === 1) {
-                            singleClickCallback.call(self, e);
-                        } else {
-                            doubleClickCallback.call(self, e);
-                        }
-                        clicks = 0;
-                    }, timeout || Init.timer.DBL_CLICK);
-                }
-            });
-        });
-    };
-
-    /**
      * highlight jquery elements
      * add/remove css class for keyframe animation
      * @returns {any|JQuery|*}
@@ -2379,6 +2347,68 @@ define([
     };
 
     /**
+     * check an element for attached event by name
+     * -> e.g. eventName = 'click.myNamespace'
+     * @param element
+     * @param eventName
+     * @returns {boolean}
+     */
+    let hasEvent = (element, eventName) => {
+        let exists = false;
+        let parts = eventName.split('.');
+        let name =  parts[0];
+        let namespace = parts.length === 2 ? parts[1] : false;
+        let events = $._data( element[0], 'events')[name];
+        if(events){
+            if(namespace){
+                // seach events by namespace
+                for(let event of events){
+                    if(event.namespace === namespace){
+                        exists = true;
+                        break;
+                    }
+                }
+            }else{
+                // at least ONE event of the given name found
+                exists = true;
+            }
+        }
+        return exists;
+    };
+
+    /**
+     * wrapper function for onClick() || onDblClick() events in order to distinguish between this two types of events
+     * @param element
+     * @param singleClickCallback
+     * @param doubleClickCallback
+     * @param timeout
+     */
+    let singleDoubleClick = (element, singleClickCallback, doubleClickCallback, timeout) => {
+        let eventName = 'mouseup.singleDouble';
+        if(!hasEvent(element, eventName)){
+            let clicks = 0;
+            // prevent default behaviour (e.g. open <a>-tag link)
+            element.off('click').on('click', function(e){
+                e.preventDefault();
+            });
+
+            element.off(eventName).on(eventName, function(e){
+                clicks++;
+                if (clicks === 1) {
+                    setTimeout(element => {
+                        if(clicks === 1) {
+                            singleClickCallback.call(element, e);
+                        } else {
+                            doubleClickCallback.call(element, e);
+                        }
+                        clicks = 0;
+                    }, timeout || Init.timer.DBL_CLICK, this);
+                }
+            });
+        }
+    };
+
+    /**
      * get deep json object value if exists
      * -> e.g. key = 'first.last.third' string
      * @param obj
@@ -2566,6 +2596,7 @@ define([
         getLocalStorage: getLocalStorage,
         clearSessionStorage: clearSessionStorage,
         getBrowserTabId: getBrowserTabId,
+        singleDoubleClick: singleDoubleClick,
         getObjVal: getObjVal,
         redirect: redirect,
         logout: logout,
