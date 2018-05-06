@@ -285,8 +285,9 @@ define([
             // do not fire a "connectionDetached" event
             map.detachAllConnections(system, {fireEvent: false});
 
-            // hide tooltip
+            // destroy tooltip/popover
             system.toggleSystemTooltip('destroy', {});
+            system.find('.' + MapUtil.getEffectInfoForSystem('effect', 'class')).popover('destroy');
 
             // remove system
             system.velocity('transition.whirlOut', {
@@ -299,7 +300,6 @@ define([
     /**
      * calculate the x/y coordinates for a new system - relativ to a source system
      * @param sourceSystem
-     * @param grid
      * @returns {{x: *, y: *}}
      */
     let calculateNewSystemPosition = function(sourceSystem){

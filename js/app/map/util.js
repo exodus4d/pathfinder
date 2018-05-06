@@ -991,15 +991,47 @@ define([
     };
 
     /**
+     * add system effect tooltip
+     * @param security
+     * @param effect
+     * @returns {*}
+     */
+    $.fn.addSystemEffectTooltip = function(security, effect, options){
+        let systemEffectData = Util.getSystemEffectData(security, effect);
+        let title = '<span class="pf-font-capitalize">' + getEffectInfoForSystem(effect, 'name') + '</span>' +
+            '<span class="pull-right ' + Util.getSecurityClassForSystem(security) + '">' + security + '</span>';
+        let content = Util.getSystemEffectTable(systemEffectData);
+
+        let defaultOptions = {
+            placement: 'top',
+            html: true,
+            trigger: 'hover',
+            container: 'body',
+            title: title,
+            content: content,
+            delay: {
+                show: 150,
+                hide: 0
+            },
+        };
+
+        options = $.extend({}, defaultOptions, options);
+
+        return this.each(function(){
+            $(this).popover(options);
+        });
+    };
+
+    /**
      * add a wormhole tooltip with wh specific data to elements
      * @param tooltipData
      * @returns {*}
      */
     $.fn.addWormholeInfoTooltip = function(tooltipData){
-        return this.each(function() {
+        return this.each(function(){
             let element = $(this);
 
-            requirejs(['text!templates/tooltip/wormhole_info.html', 'mustache'], function (template, Mustache) {
+            requirejs(['text!templates/tooltip/wormhole_info.html', 'mustache'], (template, Mustache) => {
                 // format tooltip data
                 let data = {};
                 if(tooltipData.massTotal){
@@ -1028,9 +1060,9 @@ define([
                     placement: 'top',
                     html: true,
                     trigger: 'hover',
-                    content: '',
                     container: 'body',
                     title: title,
+                    content: '',
                     delay: {
                         show: 150,
                         hide: 0

@@ -44,7 +44,7 @@ requirejs.config({
         easyPieChart: 'lib/jquery.easypiechart.min',                    // v2.1.6 Easy Pie Chart - HTML 5 pie charts - http://rendro.github.io/easy-pie-chart
         peityInlineChart: 'lib/jquery.peity.min',                       // v3.2.1 Inline Chart - http://benpickles.github.io/peity/
         dragToSelect: 'lib/jquery.dragToSelect',                        // v1.1 Drag to Select - http://andreaslagerkvist.com/jquery/drag-to-select
-        hoverIntent: 'lib/jquery.hoverIntent.minified',                 // v1.8.0 Hover intention - http://cherne.net/brian/resources/jquery.hoverIntent.html
+        hoverIntent: 'lib/jquery.hoverIntent.min',                      // v1.9.0 Hover intention - http://cherne.net/brian/resources/jquery.hoverIntent.html
         fullScreen: 'lib/jquery.fullscreen.min',                        // v0.6.0 Full screen mode - https://github.com/private-face/jquery.fullscreen
         select2: 'lib/select2.min',                                     // v4.0.3 Drop Down customization - https://select2.github.io
         validator: 'lib/validator.min',                                 // v0.10.1 Validator for Bootstrap 3 - https://github.com/1000hz/bootstrap-validator

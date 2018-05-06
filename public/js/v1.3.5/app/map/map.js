@@ -328,8 +328,6 @@ define([
      * @param options
      */
     $.fn.toggleSystemTooltip = function(show, options){
-
-        // tooltip colors
         let colorClasses = {
             good: 'txt-color-green',
             bad: 'txt-color-red'
@@ -525,7 +523,7 @@ define([
                     // System effect color
                     $('<i>', {
                         class: ['fas', 'fa-square ', 'fa-fw', effectBasicClass, effectClass].join(' ')
-                    }).attr('title', effectName)
+                    })
                 ).append(
                     // expand option
                     $('<i>', {
@@ -1008,6 +1006,26 @@ define([
 
             checkMapSize(mapWrapper[0]);
         }
+
+        // system "effect" popover ------------------------------------------------------------------------------------
+        // -> event delegation to system elements, popup only if needed (hover)
+        mapWrapper.hoverIntent({
+            over: function(e){
+                let effectElement = $(this);
+                let systemElement = effectElement.closest('.' + config.systemClass);
+                let security = systemElement.data('security');
+                let effect = systemElement.data('effect');
+
+                effectElement.addSystemEffectTooltip(security, effect, {
+                    trigger: 'manual',
+                    placement: 'right'
+                }).popover('show');
+            },
+            out: function(e){
+                $(this).popover('destroy');
+            },
+            selector: '.' + config.systemClass + ' .' + MapUtil.getEffectInfoForSystem('effect', 'class')
+        });
 
     };
 

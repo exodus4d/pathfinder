@@ -331,30 +331,7 @@ define([
                     tooltipElements.tooltip();
 
                     // init system effect popover ----------------------------------------------------------------
-                    let infoEffectElement = $(moduleElement).find('.' + config.systemInfoEffectInfoClass);
-
-                    if(infoEffectElement.length){
-                        // effect row exists -> get effect data
-                        let systemEffectData = Util.getSystemEffectData( systemData.security, systemData.effect);
-
-                        if(systemEffectData !== false){
-                            // transform data into table
-                            let systemEffectTable = Util.getSystemEffectTable( systemEffectData );
-
-                            infoEffectElement.popover({
-                                html: true,
-                                trigger: 'hover',
-                                placement: 'top',
-                                delay: 200,
-                                title: 'System effects',
-                                container: 'body',
-                                content: systemEffectTable
-                            });
-                        }else{
-                            // effect data not found (e.g. !unknown! shattered system) -> hide "popover" icon icon
-                            infoEffectElement.children().hide();
-                        }
-                    }
+                    $(moduleElement).find('.' + config.systemInfoEffectInfoClass).addSystemEffectTooltip(systemData.security, systemData.effect);
 
                     // init static wormhole information ----------------------------------------------------------
                     if(systemData.statics){
