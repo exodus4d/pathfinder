@@ -50,6 +50,11 @@ class WormholeModel extends BasicModel {
             'nullable' => false,
             'default' => 1,
             'index' => true,
+        ],
+        'signatureStrength' => [
+            'type' => Schema::DT_FLOAT,
+            'nullable' => true,
+            'default' => null
         ]
     ];
 
@@ -58,6 +63,18 @@ class WormholeModel extends BasicModel {
      * @var bool
      */
     protected $addStaticFields = false;
+
+    /**
+     * setter for "signatureStrength"
+     * @param $value
+     * @return mixed|null|string
+     * @throws \Exception
+     */
+    public function set_signatureStrength($value){
+        $value = (float)$value ? $value : null;
+
+        return $value;
+    }
 
     /**
      * get wormhole data as object
@@ -80,6 +97,11 @@ class WormholeModel extends BasicModel {
         // mass regeneration value per day
         if($this->massRegeneration > 0){
             $systemStaticData->massRegeneration = $this->massRegeneration;
+        }
+
+        // signature strength as defined by http://wiki.eve-inspiracy.com/index.php?title=Wormhole_Signature_Strength_List
+        if($this->signatureStrength){
+            $systemStaticData->signatureStrength = $this->signatureStrength;
         }
 
         return $systemStaticData;

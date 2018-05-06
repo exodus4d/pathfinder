@@ -44,7 +44,13 @@ define([
                     }.bind(this);
                 }.bind({
                     Util: Util
-                })
+                }),
+                sigStrengthValue: function(){
+                    return function(value, render){
+                        let float = render(value);
+                        return float.length ? parseFloat(float).toLocaleString() + '&nbsp;&#37;' : 'unknown';
+                    };
+                }
             };
             let content = Mustache.render(template, data);
 

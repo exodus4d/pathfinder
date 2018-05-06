@@ -666,7 +666,7 @@ abstract class BasicModel extends \DB\Cortex {
 
         // rtrim(); for arrays (removes empty values) from the end
         $rtrim = function($array = []){
-          return array_slice($array, 0, key(array_reverse(array_diff($array, ['']), 1))+1);
+          return array_slice($array, 0, key(array_reverse($array, 1))+1);
         };
 
         if(static::$enableDataImport){
@@ -704,7 +704,7 @@ abstract class BasicModel extends \DB\Cortex {
      */
     protected function importStaticData($tableData = []){
         $rowIDs = [];
-
+        $columnNames = array_merge(['id'], array_keys($this->fieldConf));
         $addedCount = 0;
         $updatedCount = 0;
         $deletedCount = 0;
@@ -717,7 +717,7 @@ abstract class BasicModel extends \DB\Cortex {
             }else{
                 $updatedCount++;
             }
-            $this->copyfrom($rowData);
+            $this->copyfrom($rowData, $columnNames);
             $this->save();
             $rowIDs[] = $this->id;
             $this->reset();
