@@ -1369,7 +1369,6 @@ class MapModel extends AbstractMapTrackingModel {
 
             // check if a system has active characters
             foreach($activeUserCharactersData as $key => $activeUserCharacterData){
-
                 if(isset($activeUserCharacterData->log)){
                     // user as log data
                     if($activeUserCharacterData->log->system->id == $systemData->systemId){

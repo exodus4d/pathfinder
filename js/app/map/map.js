@@ -42,8 +42,6 @@ define([
         systemBodyItemStatusClass: 'pf-user-status',                    // class for player status in system body
         systemBodyItemNameClass: 'pf-system-body-item-name',            // class for player name in system body
         systemBodyRightClass: 'pf-system-body-right',                   // class for player ship name in system body
-        systemTooltipInnerClass: 'pf-system-tooltip-inner',             // class for system tooltip content
-        systemTooltipInnerIdPrefix: 'pf-system-tooltip-inner-',         // id prefix for system tooltip content
         dynamicElementWrapperId: 'pf-dialog-wrapper',                   // wrapper div for dynamic content (dialogs, context-menus,...)
 
         // endpoint classes
@@ -119,8 +117,6 @@ define([
         connectionTypes: Init.connectionTypes
     };
 
-
-
     /**
      * updates a system with current information
      * @param map
@@ -128,7 +124,6 @@ define([
      * @param currentUserIsHere boolean - if the current user is in this system
      */
     $.fn.updateSystemUserData = function(map, data, currentUserIsHere){
-
         let system = $(this);
         let systemId = system.attr('id');
 
@@ -207,21 +202,17 @@ define([
                 // user count changed -> change tooltip content
 
                 // set tooltip color
-                let highlight = false;
-                let tooltipIconClass = '';
+                let highlight = '';
                 if(userCounter > oldUserCount){
                     highlight = 'good';
-                    tooltipIconClass = 'fa-caret-up';
                 }else if(userCounter < oldUserCount){
                     highlight = 'bad';
-                    tooltipIconClass = 'fa-caret-down';
                 }
 
                 let tooltipOptions = {
-                    trigger: 'manual',
-                    id: systemId,
+                    systemId: systemId,
                     highlight: highlight,
-                    title: '<i class="fas ' + tooltipIconClass + '"></i>&nbsp;' + userCounter
+                    userCount: userCounter
                 };
 
                 // show system head
@@ -231,13 +222,12 @@ define([
                     duration: 50,
                     display: 'inline-block',
                     progress: function(){
-                        //revalidate element size and repaint
+                        //re-validate element size and repaint
                         map.revalidate( systemId );
                     },
                     complete: function(){
                         // show system body
                         system.toggleBody(true, map, {complete: function(system){
-                            // complete callback function
                             // show active user tooltip
                             system.toggleSystemTooltip('show', tooltipOptions);
                         }});
@@ -320,131 +310,6 @@ define([
                 }
             });
         }
-    };
-
-    /**
-     * show/hide systems tooltip
-     * @param show
-     * @param options
-     */
-    $.fn.toggleSystemTooltip = function(show, options){
-        let colorClasses = {
-            good: 'txt-color-green',
-            bad: 'txt-color-red'
-        };
-
-        return this.each(function(){
-            let system = $(this);
-            let tooltipId = 0;
-            let tooltipClassHighlight = false;
-
-            // do not update tooltips while a system is dragged
-            if(system.hasClass('jsPlumb_dragged')){
-                // skip system
-                return true;
-            }
-
-            if(show === 'destroy'){
-                system.tooltip( show );
-                system.removeAttr('data-original-title');
-            }else if(show === 'hide'){
-                system.tooltip( show );
-            } else if(show === 'toggle'){
-                system.tooltip( show );
-            }else if(show === 'show'){
-
-                // check if tooltip is currently visible
-                let tooltipActive = (system.attr('aria-describedby') !== undefined);
-
-                if(options === undefined){
-                    options = {};
-                }
-
-                // optional color highlight
-                if(colorClasses.hasOwnProperty( options.highlight )){
-                    tooltipClassHighlight = colorClasses[ options.highlight ];
-                }
-
-                if(
-                    tooltipActive === false &&
-                    options.id
-                ){
-
-                    // init new tooltip
-                    tooltipId = config.systemTooltipInnerIdPrefix + options.id;
-
-                    let template = '<div class="tooltip" role="tooltip">' +
-                        '<div class="tooltip-arrow"></div>' +
-                        '<div id="' + tooltipId + '" class="tooltip-inner txt-color ' + config.systemTooltipInnerClass + '"></div>' +
-                        '</div>';
-
-                    options.placement = getSystemTooltipPlacement(system);
-                    options.html = true;
-                    options.animation = true;
-                    options.template = template;
-                    options.viewport = system.parent('.' + config.mapClass);
-
-                    system.attr('title', options.title);
-
-                    system.tooltip(options);
-
-                    system.tooltip(show);
-
-                    if(tooltipClassHighlight !== false){
-                        // set tooltip observer and set new class after open -> due to transition effect
-
-                        system.on('shown.bs.tooltip', function() {
-                            $('#' + tooltipId).addClass( tooltipClassHighlight );
-                            // remove observer -> color should not be changed every time a tooltip toggles e.g. dragging system
-                            $(this).off('shown.bs.tooltip');
-                        });
-                    }
-                }else{
-                    // update/change/toggle tooltip text or color without tooltip reload
-
-                    let tooltipInner = false;
-                    if(
-                        options.title ||
-                        tooltipClassHighlight !== false
-                    ){
-                        tooltipInner = system.tooltip('fixTitle')
-                            .data('bs.tooltip')
-                            .$tip.find('.tooltip-inner');
-
-                        if(options.title){
-                            tooltipInner.html( options.title );
-                        }
-
-                        if(tooltipClassHighlight !== false){
-                            tooltipInner.removeClass( colorClasses.good + ' ' + colorClasses.bad).addClass(tooltipClassHighlight);
-                        }
-                    }
-
-                    // update tooltip placement based on system position
-                    if (system.data('bs.tooltip')) {
-                        system.data('bs.tooltip').options.placement = getSystemTooltipPlacement(system);
-                    }
-
-                    // show() can be forced
-                    if(options.show === true){
-                        system.tooltip('show');
-                    }
-
-                }
-            }
-        });
-    };
-
-    /**
-     * get tooltip position based on current system position
-     * @param system
-     * @returns {string}
-     */
-    let getSystemTooltipPlacement = (system) => {
-        let offsetParent = system.parent().offset();
-        let offsetSystem = system.offset();
-
-        return (offsetSystem.top - offsetParent.top < 27)  ? 'bottom' : 'top';
     };
 
     /**
@@ -1006,6 +871,76 @@ define([
 
             checkMapSize(mapWrapper[0]);
         }
+
+        // system body expand -----------------------------------------------------------------------------------------
+        mapWrapper.hoverIntent({
+            over: function(e){
+                let system =  $(this).closest('.' + config.systemClass);
+                let map  = MapUtil.getMapInstance(system.attr('data-mapid'));
+                let systemId = system.attr('id');
+                let systemBody = system.find('.' + config.systemBodyClass);
+
+                // bring system in front (increase zIndex)
+                system.updateSystemZIndex();
+
+                // get ship counter and calculate expand height
+                let userCount = parseInt(system.data('userCount'));
+                let expandHeight = userCount * config.systemBodyItemHeight;
+
+                // calculate width
+                let width = system[0].clientWidth;
+                let minWidth = 150;
+                let newWidth = width > minWidth ? width : minWidth; // in case of big systems
+
+                systemBody.velocity('stop').velocity(
+                    {
+                        height: expandHeight + 'px',
+                        width: newWidth,
+                        'min-width': minWidth + 'px'
+                    },{
+                        easing: 'easeInOutQuart',
+                        duration: 120,
+                        progress: function(){
+                            // repaint connections of current system
+                            map.revalidate(systemId);
+                        },
+                        complete: function(){
+                            map.revalidate(systemId);
+
+                            // extend player name element
+                            let systemBody = $(this);
+                            let systemBodyItemNameWidth = newWidth - 50 - 10 - 20; // - bodyRight - icon - somePadding
+                            systemBody.find('.' + config.systemBodyItemNameClass).css({width: systemBodyItemNameWidth + 'px'});
+                            systemBody.find('.' + config.systemBodyRightClass).show();
+                        }
+                    }
+                );
+            },
+            out: function(e){
+                let system =  $(this).closest('.' + config.systemClass);
+                let map  = MapUtil.getMapInstance(system.attr('data-mapid'));
+                let systemId = system.attr('id');
+                let systemBody = system.find('.' + config.systemBodyClass);
+
+                // stop animation (prevent visual bug if user spams hover-icon [in - out])
+                systemBody.velocity('stop');
+
+                // reduce player name element back to "normal" size (css class width is used)
+                systemBody.find('.' + config.systemBodyRightClass).hide();
+                systemBody.find('.' + config.systemBodyItemNameClass).css({width: ''});
+
+                systemBody.velocity('reverse', {
+                    complete: function(){
+                        // overwrite "complete" function from first "hover"-open
+                        // set animated "with" back to default "100%" important in case of system with change (e.g. longer name)
+                        $(this).css({width: ''});
+
+                        map.revalidate(systemId);
+                    }
+                });
+            },
+            selector: '.' + config.systemClass + ' .' + config.systemHeadExpandClass
+        });
 
         // system "effect" popover ------------------------------------------------------------------------------------
         // -> event delegation to system elements, popup only if needed (hover)
@@ -2309,6 +2244,8 @@ define([
         }
 
         // init system tooltips =======================================================================================
+        // TODO check this code:
+        /*
         let systemTooltipOptions = {
             toggle: 'tooltip',
             placement: 'right',
@@ -2317,79 +2254,7 @@ define([
         };
 
         system.find('.fas').tooltip(systemTooltipOptions);
-
-        // init system body expand ====================================================================================
-        systemHeadExpand.hoverIntent(function(e){
-            // hover in
-            let hoverSystem = $(this).parents('.' + config.systemClass);
-            let hoverSystemId = hoverSystem.attr('id');
-
-            // bring system in front (increase zIndex)
-            hoverSystem.updateSystemZIndex();
-
-            // get ship counter and calculate expand height
-            let userCount = parseInt( hoverSystem.data('userCount') );
-
-            let expandHeight = userCount * config.systemBodyItemHeight;
-
-            systemBody.velocity('stop').velocity(
-                {
-                    height: expandHeight + 'px',
-                    width: 150,
-                    'min-width': '150px'
-                },{
-                    easing: 'easeInOutQuart',
-                    duration: 150,
-                    progress: function(){
-                        // repaint connections of current system
-                        map.revalidate( hoverSystemId );
-                    },
-                    complete: function(){
-                        map.revalidate( hoverSystemId );
-
-                        // extend player name element
-                        $(this).find('.' + config.systemBodyItemNameClass).css({width: '80px'});
-
-                        $(this).find('.' + config.systemBodyRightClass).velocity('stop').velocity({
-                            opacity: 1
-                        },{
-                            duration: 150,
-                            display: 'auto'
-                        });
-                    }
-                }
-            );
-
-        }, function(e){
-            // hover out
-            let hoverSystem = $(this).parents('.' + config.systemClass);
-            let hoverSystemId = hoverSystem.attr('id');
-
-            // stop animation (prevent visual bug if user spams hover-icon [in - out])
-            systemBody.velocity('stop');
-
-            // reduce player name element back to "normal" size (css class width is used)
-            systemBody.find('.' + config.systemBodyItemNameClass).css({width: ''});
-
-            systemBody.find('.' + config.systemBodyRightClass).velocity('stop').velocity( {
-                opacity: 0,
-                'min-width': '0px'
-            },{
-                easing: 'easeInOutQuart',
-                duration: 150,
-                display: 'none',
-                complete: function(){
-                    systemBody.velocity('stop').velocity('reverse', {
-                        complete: function(){
-                            // overwrite "complete" function from first "hover"-open
-                            map.revalidate( hoverSystemId );
-                        }
-                    });
-                }
-            });
-
-        });
-
+*/
         // context menu ===============================================================================================
 
         // trigger context menu
@@ -3229,7 +3094,7 @@ define([
 
             // users who are not in any map system --------------------------------------------------------------------
             for(let i = 0; i < userData.data.systems.length; i++){
-                // users without location are grouped in systemid: 0
+                // users without location are grouped in systemId: 0
                 if(userData.data.systems[i].id){
                     headerUpdateData.userCountOutside += userData.data.systems[i].user.length;
                 }else{

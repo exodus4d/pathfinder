@@ -19,7 +19,11 @@ define([
             y: 0
         },
 
+        mapClass: 'pf-map',                                                             // class for all maps
+
         systemActiveClass: 'pf-system-active',                                          // class for an active system on a map
+        systemTooltipInnerIdPrefix: 'pf-system-tooltip-inner-',                         // id prefix for system tooltip content
+        systemTooltipInnerClass: 'pf-system-tooltip-inner',                             // class for system tooltip content
 
         dialogRallyId: 'pf-rally-dialog',                                               // id for "Rally point" dialog
 
@@ -220,6 +224,139 @@ define([
     };
 
     /**
+     * toggle system tooltip (current pilot count)
+     * @param show
+     * @param tooltipOptions
+     * @returns {*}
+     */
+    $.fn.toggleSystemTooltip = function(show, tooltipOptions){
+        let highlightData = {
+            good: {
+                colorClass: 'txt-color-green',
+                iconClass: 'fa-caret-up'
+            },
+            bad: {
+                colorClass: 'txt-color-red',
+                iconClass: 'fa-caret-down'
+            }
+        };
+
+        let getHighlightClass = (highlight) => {
+            return Util.getObjVal(highlightData, highlight + '.colorClass') || '';
+        };
+
+        let getHighlightIcon = (highlight) => {
+            return Util.getObjVal(highlightData, highlight + '.iconClass') || '';
+        };
+
+        let getTitle = (userCounter, highlight) => {
+            return '<i class="fas ' + getHighlightIcon(highlight) + '"></i>&nbsp;' + userCounter + '';
+        };
+
+        return this.each(function(){
+            let system = $(this);
+            switch(show){
+                case 'destroy':
+                    //destroy tooltip and remove some attributes which are not deleted by 'destroy'
+                    system.tooltip('destroy').removeAttr('title data-original-title');
+                    break;
+                case 'hide':
+                    system.tooltip('hide');
+                    break;
+                case 'show':
+                    // initial "show" OR "update" open tooltip
+                    // -> do not update tooltips while a system is dragged
+                    let showTooltip = !system.hasClass('jsPlumb_dragged');
+
+                    if(system.data('bs.tooltip')){
+                        // tooltip initialized but could be hidden
+                        // check for title update
+                        if(
+                            tooltipOptions.hasOwnProperty('userCount') &&
+                            tooltipOptions.hasOwnProperty('highlight')
+                        ){
+                            let currentTitle = system.attr('data-original-title');
+                            let newTitle = getTitle(tooltipOptions.userCount, tooltipOptions.highlight);
+
+                            if(currentTitle !== newTitle){
+                                // update tooltip
+                                let tooltipInner = system.attr('title', newTitle).tooltip('fixTitle').data('bs.tooltip').$tip.find('.tooltip-inner');
+                                tooltipInner.html(newTitle);
+
+                                // change highlight class
+                                let highlightClass = getHighlightClass(tooltipOptions.highlight);
+                                if( !tooltipInner.hasClass(highlightClass) ){
+                                    tooltipInner.removeClass( getHighlightClass('good') + ' ' + getHighlightClass('bad')).addClass(highlightClass);
+                                }
+                            }
+                        }
+
+                        let tip = system.data('bs.tooltip').tip();
+                        if( !tip.hasClass('in') && showTooltip){
+                            // update tooltip placement based on system position
+                            system.data('bs.tooltip').options.placement = getSystemTooltipPlacement(system);
+
+                            system.tooltip('show');
+                        }
+                    }else{
+                        // no tooltip initialized
+                        // "some" config data is required
+                        if(
+                            tooltipOptions.hasOwnProperty('systemId') &&
+                            tooltipOptions.hasOwnProperty('userCount') &&
+                            tooltipOptions.hasOwnProperty('highlight')
+                        ){
+                            let innerTooltipId = config.systemTooltipInnerIdPrefix + tooltipOptions.systemId;
+
+                            let template = '<div class="tooltip" role="tooltip">' +
+                                '<div class="tooltip-arrow"></div>' +
+                                '<div id="' + innerTooltipId + '" class="tooltip-inner txt-color ' + config.systemTooltipInnerClass + '"></div>' +
+                                '</div>';
+
+                            let options = {
+                                trigger: 'manual',
+                                placement: getSystemTooltipPlacement(system),
+                                html: true,
+                                animation: true,
+                                  template: template,
+                                viewport: system.closest('.' + config.mapClass)
+                            };
+
+                            // init new tooltip -> Do not show automatic maybe system is currently dragged
+                            system.attr('title', getTitle(tooltipOptions.userCount, tooltipOptions.highlight));
+                            system.tooltip(options);
+
+                            system.one('shown.bs.tooltip', function() {
+                                // set highlight only on FIRST show
+                                $('#' + this.innerTooltipId).addClass(this.highlightClass);
+                            }.bind({
+                                highlightClass: getHighlightClass(tooltipOptions.highlight),
+                                innerTooltipId: innerTooltipId
+                            }));
+
+                            if(showTooltip){
+                                system.tooltip('show');
+                            }
+                        }
+                    }
+                    break;
+            }
+        });
+    };
+
+    /**
+     * get tooltip position (top, bottom) based on system position
+     * @param system
+     * @returns {string}
+     */
+    let getSystemTooltipPlacement = (system) => {
+        let offsetParent = system.parent().offset();
+        let offsetSystem = system.offset();
+
+        return (offsetSystem.top - offsetParent.top < 27)  ? 'bottom' : 'top';
+    };
+
+    /**
      * delete system(s) with all their connections
      * (ajax call) remove system from DB
      * @param map
@@ -266,7 +403,6 @@ define([
      * @param systems
      */
     let removeSystems = (map, systems) => {
-
         let removeSystemCallbak = function(deleteSystem){
             map.remove(deleteSystem);
         };
@@ -342,6 +478,8 @@ define([
 
         return newPosition;
     };
+
+
 
     return {
         deleteSystems: deleteSystems,

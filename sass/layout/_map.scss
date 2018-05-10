@@ -232,7 +232,17 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
 
 // 20x20px grid background
 .pf-grid-small{
-  background: inline-image("/grid_40x40.png") !important;
+  &:before{
+    content: ' ';
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.6;
+    background: inline-image("/grid_40x40.png") !important;
+  }
 }
 
 .pf-map{
@@ -299,7 +309,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     &:hover{
       // makes the systems "flying" :)
       @include box-shadow(0 6px 12px rgba(0,0,0, 0.3));
-      @include transform( translate3d(0, -2px, 0) !important);
+      @include transform( translate3d(0, -1px, 0) !important);
     }
 
     .pf-system-head{
@@ -312,7 +322,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       .pf-system-head-name{
         border: none;
         display: inline-block;
-        min-width: 41px;
+        min-width: 50px;
         color: $gray-lighter;
         margin-right: 2px;
       }
@@ -361,28 +371,32 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       }
 
       .pf-system-body-item{
+        position: relative;
         color: lighten($gray-light, 10%);
         font-size: 10px;
         line-height: 16px;
         height: 16px;
 
         .pf-system-body-right{
-          text-overflow: ellipsis;
           float: right;
           color: $orange-light;
+          width: 50px;
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
           display: none; // hover effect
         }
         // user status ========================================================
         .pf-user-status{
-          font-size: 7px;
+          font-size: 6px;
           width: 10px;
           vertical-align: middle;
-          height: 14px;
         }
 
         .pf-system-body-item-name{
+          position: absolute;
           display: inline-block;
-          width: 65px;
+          width: calc(100% - 10px); // -10px icon
           overflow: hidden;
           white-space: nowrap;
           text-overflow: ellipsis;
@@ -525,6 +539,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
 
     &.jsplumb-hover{
       z-index: 80;
+      filter: drop-shadow( -3px 3px 4px rgba(0,0,0, 0.3));
 
       path:first-child{
         stroke: $gray-lightest; // hover style
@@ -670,7 +685,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     z-index: 1020;
     background-color: $gray;
     color: $gray-lighter;
-    @include border-radius(50%);
+    @include border-radius(5px);
     @include box-shadow(0 3px 6px rgba(0,0,0,.3));
   }
 }
@@ -727,5 +742,4 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
   padding: 2px 4px;
   min-width: 25px; // make sure tooltip is not flickering on low numbers -> fix width
   @include transition( color 0.2s ease-out );
-
 }
