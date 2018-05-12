@@ -21,6 +21,9 @@ define([
 
         mapClass: 'pf-map',                                                             // class for all maps
 
+        popoverTriggerClass: 'pf-popover-trigger',                                      // class for "popover" trigger elements
+
+        systemHeadInfoClass: 'pf-system-head-info',                                     // class for system info
         systemActiveClass: 'pf-system-active',                                          // class for an active system on a map
         systemTooltipInnerIdPrefix: 'pf-system-tooltip-inner-',                         // id prefix for system tooltip content
         systemTooltipInnerClass: 'pf-system-tooltip-inner',                             // class for system tooltip content
@@ -423,7 +426,7 @@ define([
 
             // destroy tooltip/popover
             system.toggleSystemTooltip('destroy', {});
-            system.find('.' + MapUtil.getEffectInfoForSystem('effect', 'class')).popover('destroy');
+            system.destroyPopover(true);
 
             // remove system
             system.velocity('transition.whirlOut', {
@@ -479,11 +482,42 @@ define([
         return newPosition;
     };
 
+    /**
+     * get new dom element for systemData that shows "info" data (additional data)
+     * -> this is show below the system base data on map
+     * @param data
+     * @returns {*}
+     */
+    let getHeadInfoElement = (data) => {
+        let headInfo = null;
 
+        // check systemData if headInfo element is needed
+        if(data.statics && data.statics.length){
+            // format wh statics
+            let statics = [];
+            for(let staticData of data.statics){
+                statics.push(
+                    '<span class="' +
+                    Util.getSecurityClassForSystem(staticData.security) + ' ' +
+                    config.popoverTriggerClass + '" data-name="' + staticData.name +
+                    '">' + staticData.security + '</span>'
+                );
+            }
+
+            headInfo = $('<div>',  {
+                class: config.systemHeadInfoClass
+            }).append(
+                statics.join('&nbsp;&nbsp;')
+            );
+        }
+
+        return headInfo;
+    };
 
     return {
         deleteSystems: deleteSystems,
         removeSystems: removeSystems,
-        calculateNewSystemPosition: calculateNewSystemPosition
+        calculateNewSystemPosition: calculateNewSystemPosition,
+        getHeadInfoElement: getHeadInfoElement
     };
 });

@@ -997,9 +997,13 @@ define([
      * @returns {*}
      */
     $.fn.addSystemEffectTooltip = function(security, effect, options){
+        let effectClass = getEffectInfoForSystem(effect, 'class');
         let systemEffectData = Util.getSystemEffectData(security, effect);
-        let title = '<span class="pf-font-capitalize">' + getEffectInfoForSystem(effect, 'name') + '</span>' +
+
+        let title = '<i class="fas fa-square fa-fw ' + effectClass + '"></i>&nbsp;' +
+            getEffectInfoForSystem(effect, 'name') +
             '<span class="pull-right ' + Util.getSecurityClassForSystem(security) + '">' + security + '</span>';
+
         let content = Util.getSystemEffectTable(systemEffectData);
 
         let defaultOptions = {
@@ -1027,11 +1031,12 @@ define([
      * @param tooltipData
      * @returns {*}
      */
-    $.fn.addWormholeInfoTooltip = function(tooltipData){
+    $.fn.addWormholeInfoTooltip = function(tooltipData, options){
         return this.each(function(){
             let element = $(this);
 
             requirejs(['text!templates/tooltip/wormhole_info.html', 'mustache'], (template, Mustache) => {
+
                 // format tooltip data
                 let data = {};
                 if(tooltipData.massTotal){
@@ -1051,12 +1056,15 @@ define([
                 }else{
                     data.signatureStrength = 'unknown';
                 }
+                if(!tooltipData.class){
+                    tooltipData.class = Util.getSecurityClassForSystem(tooltipData.security);
+                }
 
                 let title = tooltipData.name +
                     '<span class="pull-right ' + tooltipData.class +'">' + tooltipData.security + '</span>';
                 let content = Mustache.render(template, data);
 
-                element.popover({
+                let defaultOptions = {
                     placement: 'top',
                     html: true,
                     trigger: 'hover',
@@ -1067,12 +1075,24 @@ define([
                         show: 150,
                         hide: 0
                     }
-                });
+                };
+
+                options = $.extend({}, defaultOptions, options);
+
+                element.popover(options);
 
                 // set new popover content
                 let popover = element.data('bs.popover');
                 popover.options.title = title;
                 popover.options.content = content;
+
+                if(options.smaller){
+                    element.setPopoverSmall();
+                }
+
+                if(options.show){
+                    element.popover('show');
+                }
             });
         });
     };

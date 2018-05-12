@@ -8,7 +8,7 @@ $mapWrapperMinHeight:    250px;
 $mapWrapperMaxHeight:    1000px;              // no vertical scrollbar: $mapHeight + 35px;
 $mapWrapperMaxWidth:     $mapWidth + 35px;
 
-// start bounce mixin =========================================================
+// start bounce mixin =================================================================================================
 @mixin bounce-up-down{
   @include animation-duration( 1s);
   @include animation-delay(0.5s);
@@ -35,7 +35,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
   60% {transform: translateY(-4px);}
 }
 
-// end bounce mixin ===========================================================
+// end bounce mixin ===================================================================================================
 #pf-map-tab-element{
   max-width: $mapWrapperMaxWidth;
   margin: 0 auto;
@@ -72,10 +72,6 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       border-width: 12px 12px 0 0 ;
       border-color:  transparent $gray-dark transparent transparent;
       cursor: nwse-resize;
-
-      &:hover{
-        border-color: blue;
-      }
     }
 
     &:focus, &:hover{
@@ -88,7 +84,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
   }
 }
 
-// map overlay ================================================================
+// map overlay ========================================================================================================
 .pf-map-overlay{
   position: absolute;
   display: none; // triggered by js
@@ -251,7 +247,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
   position: relative;
   font-family: $font-family-bold;
 
-  // jsPlumb classes ==========================================================
+  // jsPlumb classes ==================================================================================================
   .jsplumb-overlay{
     opacity: 1;
     pointer-events: none; // click through overlays
@@ -264,7 +260,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     @extend .pf-system-selected;
   }
 
-  // hover effects ============================================================
+  // hover effects ====================================================================================================
   .jsplumb-hover{
 
     // hover effect for connections
@@ -283,7 +279,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     @include box-shadow(0 6px 12px rgba(0,0,0,.3));
   }
 
-  // ==========================================================================
+  // ==================================================================================================================
   .pf-system{
     position: absolute;
     min-width: 60px;
@@ -310,6 +306,10 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       // makes the systems "flying" :)
       @include box-shadow(0 6px 12px rgba(0,0,0, 0.3));
       @include transform( translate3d(0, -1px, 0) !important);
+
+      &:not(.jsPlumb_dragged){
+        z-index: 2040 !important; // should overlap connection endpoint overlays,not for dragged elements -> prevent "show/hide flickering" of overlays
+      }
     }
 
     .pf-system-head{
@@ -348,7 +348,19 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       }
     }
 
-    // ========================================================================
+    // ================================================================================================================
+    .pf-system-head-info{
+      color: lighten($gray-light, 10%);
+      font-size: 10px;
+      line-height: 10px;
+      margin-bottom: 2px;
+
+      [class^="pf-system-sec-"]{
+        cursor: help;
+      }
+    }
+
+    // ================================================================================================================
 
     .pf-system-body{
       height: 0px;
@@ -386,7 +398,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
           text-overflow: ellipsis;
           display: none; // hover effect
         }
-        // user status ========================================================
+        // user status ================================================================================================
         .pf-user-status{
           font-size: 6px;
           width: 10px;
@@ -430,7 +442,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
   // selected system
   .pf-system-selected:not(.pf-map-endpoint-source):not(.pf-map-endpoint-target){
     @include box-shadow($red-darkest 0px 0px 8px 0px);
-
+    background-color: $red-darkest;
     .pf-system-head, .pf-system-body{
       background-color: $red-darkest;
     }
@@ -464,7 +476,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     z-index: 500;
   }
 
-  // Endpoints ================================================================
+  // Endpoints ========================================================================================================
   .pf-map-endpoint-source, .pf-map-endpoint-target{
     z-index: 90;
 
@@ -517,7 +529,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     }
   }
 
-  // Connections ==============================================================
+  // Connections ======================================================================================================
 
   svg.jsplumb-connector{
     cursor: pointer;
@@ -633,7 +645,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     filter: drop-shadow( 0px 0px 3px $yellow-lighter);
   }
 
-  // Connection overlays ======================================================
+  // Connection overlays ==============================================================================================
   .pf-map-connection-overlay{
     padding: 1px 4px;
     font-size: 10px;
@@ -659,7 +671,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     color: $pink-dark;
   }
 
-  // Arrow overlays ===========================================================
+  // Arrow overlays ===================================================================================================
   .pf-map-connection-arrow-overlay{
     stroke: $gray-dark;
     fill: $green;
@@ -674,7 +686,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     animation-iteration-count: infinite;
   }
 
-  // Endpoint overlays ========================================================
+  // Endpoint overlays ================================================================================================
   .pf-map-connection-small-overlay{
     filter: blur(0.000001px);
     -webkit-font-smoothing: antialiased;
@@ -690,14 +702,14 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
   }
 }
 
-// dialoges ===================================================================
+// dialogs ============================================================================================================
 .ui-dialog-content{
   label{
     min-width: 60px;
   }
 }
 
-// context menu ===============================================================
+// context menu =======================================================================================================
 .dropdown-menu{
   font-family: $font-family-bold;
   z-index: 1020; // over tooltips

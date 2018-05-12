@@ -358,7 +358,6 @@ define([
                         popoverElement = $(popoverElement);
                         let popover = popoverElement.data('bs.popover');
 
-
                         $.ajax({
                             url: popoverElement.data('url'),
                             success: function(data){

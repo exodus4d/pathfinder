@@ -603,7 +603,7 @@ define([], function() {
                             effect: 'Missile velocity',
                             value: '+15%'
                         },{
-                            effect: 'Missile Explosion velocity',
+                            effect: 'Missile exp. velocity',
                             value: '+30%'
                         },{
                             effect: 'Ship velocity',
@@ -624,7 +624,7 @@ define([], function() {
                             effect: 'Missile velocity',
                             value: '+22%'
                         },{
-                            effect: 'Missile Explosion velocity',
+                            effect: 'Missile exp. velocity',
                             value: '+44%'
                         },{
                             effect: 'Ship velocity',
@@ -645,7 +645,7 @@ define([], function() {
                             effect: 'Missile velocity',
                             value: '+29%'
                         },{
-                            effect: 'Missile Explosion velocity',
+                            effect: 'Missile exp. velocity',
                             value: '+58%'
                         },{
                             effect: 'Ship velocity',
@@ -666,7 +666,7 @@ define([], function() {
                             effect: 'Missile velocity',
                             value: '+36%'
                         },{
-                            effect: 'Missile Explosion velocity',
+                            effect: 'Missile exp. velocity',
                             value: '+72%'
                         },{
                             effect: 'Ship velocity',
@@ -687,7 +687,7 @@ define([], function() {
                             effect: 'Missile velocity',
                             value: '+43%'
                         },{
-                            effect: 'Missile Explosion velocity',
+                            effect: 'Missile exp. velocity',
                             value: '+86%'
                         },{
                             effect: 'Ship velocity',
@@ -708,7 +708,7 @@ define([], function() {
                             effect: 'Missile velocity',
                             value: '+50%'
                         },{
-                            effect: 'Missile Explosion velocity',
+                            effect: 'Missile exp. velocity',
                             value: '+100%'
                         },{
                             effect: 'Ship velocity',

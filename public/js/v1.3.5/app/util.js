@@ -64,8 +64,8 @@ define([
         animationPulseWarningClass: 'pf-animation-pulse-warning',               // animation class
 
         // popover
+        popoverSmallClass: 'pf-popover-small',                                  // class for "small" popover
         popoverTriggerClass: 'pf-popover-trigger'                               // class for "popover" trigger elements
-
     };
 
     let stopTimerCache = {};                                                    // cache for stopwatch timer
@@ -392,7 +392,6 @@ define([
         let valid = false;
 
         let errorElements =  form.find('.has-error');
-
         if(errorElements.length === 0){
             valid = true;
         }
@@ -405,7 +404,6 @@ define([
      * @returns {Array}
      */
     $.fn.isInViewport = function(){
-
         let visibleElement = [];
 
         this.each(function(){
@@ -439,12 +437,10 @@ define([
      * init the map-update-counter as "easy-pie-chart"
      */
     $.fn.initMapUpdateCounter = function(){
-
         let counterChart = $(this);
 
         counterChart.easyPieChart({
             barColor: function(percent){
-
                 let color = '#568a89';
                 if(percent <= 30){
                     color = '#d9534f';
@@ -453,7 +449,6 @@ define([
                 }
 
                 return color;
-
             },
             trackColor: '#2b2b2b',
             size: 30,
@@ -660,6 +655,24 @@ define([
         });
     };
 
+    $.fn.destroyPopover = function(recursive){
+        return this.each(function() {
+            let element = $(this);
+            let popoverSelector = '.' + config.popoverTriggerClass;
+            let popoverElements = element.filter(popoverSelector);
+            if(recursive){
+                popoverElements = popoverElements.add(element.find(popoverSelector));
+            }
+
+            popoverElements.each(function() {
+                let popoverElement = $(this);
+                if(popoverElement.data('bs.popover')){
+                    popoverElement.popover('destroy');
+                }
+            });
+        });
+    };
+
     /**
      * set "popover" close action on clicking "somewhere" on the <body>
      * @param eventNamespace
@@ -689,6 +702,20 @@ define([
                     }
                 });
             });
+        });
+    };
+
+    /**
+     * adds the small-class to a tooltip
+     * @returns {*}
+     */
+    $.fn.setPopoverSmall = function(){
+        return this.each(function() {
+            let element = $(this);
+            let popover = element.data('bs.popover');
+            if(popover){
+                popover.tip().addClass(config.popoverSmallClass);
+            }
         });
     };
 

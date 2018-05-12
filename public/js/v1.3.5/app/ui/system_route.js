@@ -917,7 +917,7 @@ define([
             autoWidth: false,
             rowId: 'systemTo',
             language: {
-                emptyTable:  'No routes added'
+                emptyTable: 'No routes added'
             },
             columnDefs: [
                 {

@@ -36,6 +36,7 @@ define([
         systemHeadClass: 'pf-system-head',                              // class for system head
         systemHeadNameClass: 'pf-system-head-name',                     // class for system name
         systemHeadExpandClass: 'pf-system-head-expand',                 // class for system head expand arrow
+        systemHeadInfoClass: 'pf-system-head-info',                     // class for system info
         systemBodyClass: 'pf-system-body',                              // class for system body
         systemBodyItemHeight: 16,                                       // px of a system body entry
         systemBodyItemClass: 'pf-system-body-item',                     // class for a system body entry
@@ -56,6 +57,8 @@ define([
         // dialogs
         systemDialogId: 'pf-system-dialog',                             // id for system dialog
         systemDialogSelectClass: 'pf-system-dialog-select',             // class for system select Element
+
+        popoverTriggerClass: 'pf-popover-trigger',                      // class for "popover" trigger elements
 
         // system security classes
         systemSec: 'pf-system-sec'
@@ -80,7 +83,9 @@ define([
         let effectClass = MapUtil.getEffectInfoForSystem('effect', 'class');
         return (
             target.hasClass(config.systemHeadNameClass) ||
-            target.hasClass(effectClass)
+            target.hasClass(effectClass) ||
+            target.hasClass(config.systemHeadExpandClass) ||
+            target.hasClass(config.systemHeadInfoClass)
         );
     };
 
@@ -371,37 +376,32 @@ define([
                 id: systemId,
                 class: config.systemClass
             }).append(
-                // system head
                 $('<div>', {
                     class: config.systemHeadClass
                 }).append(
-                    // System name is editable
-                    $('<span>', {
-                        class: config.systemHeadNameClass
-                    }).attr('data-value', systemName)
-                ).append(
-                    // System locked status
-                    $('<i>', {
-                        class: ['fas', 'fa-lock', 'fa-fw'].join(' ')
-                    }).attr('title', 'locked')
-                ).append(
-                    // System effect color
-                    $('<i>', {
-                        class: ['fas', 'fa-square ', 'fa-fw', effectBasicClass, effectClass].join(' ')
-                    })
-                ).append(
-                    // expand option
-                    $('<i>', {
-                        class: ['fas', 'fa-angle-down ', config.systemHeadExpandClass].join(' ')
-                    })
-                ).prepend(
                     $('<span>', {
                         class: [config.systemSec, secClass].join(' '),
                         text: data.security
-                    })
-                )
-            ).append(
-                // system body
+                    }),
+                    // System name is editable
+                    $('<span>', {
+                        class: config.systemHeadNameClass
+                    }).attr('data-value', systemName),
+                    // System locked status
+                    $('<i>', {
+                        class: ['fas', 'fa-lock', 'fa-fw'].join(' ')
+                    }).attr('title', 'locked'),
+                    // System effect color
+                    $('<i>', {
+                        class: ['fas', 'fa-square', 'fa-fw', effectBasicClass, effectClass, config.popoverTriggerClass].join(' ')
+                    }),
+                    // expand option
+                    $('<i>', {
+                        class: ['fas', 'fa-angle-down', config.systemHeadExpandClass].join(' ')
+                    }),
+                    // info element (new line) (optional)
+                    System.getHeadInfoElement(data)
+                ),
                 $('<div>', {
                     class: config.systemBodyClass
                 })
@@ -435,6 +435,9 @@ define([
                         begin: function(system){
                             // hide system tooltip
                             $(system).toggleSystemTooltip('hide', {});
+
+                            // destroy popovers
+                            $(system).destroyPopover(true);
 
                             // move them to the "top"
                             $(system).updateSystemZIndex();
@@ -871,97 +874,6 @@ define([
 
             checkMapSize(mapWrapper[0]);
         }
-
-        // system body expand -----------------------------------------------------------------------------------------
-        mapWrapper.hoverIntent({
-            over: function(e){
-                let system =  $(this).closest('.' + config.systemClass);
-                let map  = MapUtil.getMapInstance(system.attr('data-mapid'));
-                let systemId = system.attr('id');
-                let systemBody = system.find('.' + config.systemBodyClass);
-
-                // bring system in front (increase zIndex)
-                system.updateSystemZIndex();
-
-                // get ship counter and calculate expand height
-                let userCount = parseInt(system.data('userCount'));
-                let expandHeight = userCount * config.systemBodyItemHeight;
-
-                // calculate width
-                let width = system[0].clientWidth;
-                let minWidth = 150;
-                let newWidth = width > minWidth ? width : minWidth; // in case of big systems
-
-                systemBody.velocity('stop').velocity(
-                    {
-                        height: expandHeight + 'px',
-                        width: newWidth,
-                        'min-width': minWidth + 'px'
-                    },{
-                        easing: 'easeInOutQuart',
-                        duration: 120,
-                        progress: function(){
-                            // repaint connections of current system
-                            map.revalidate(systemId);
-                        },
-                        complete: function(){
-                            map.revalidate(systemId);
-
-                            // extend player name element
-                            let systemBody = $(this);
-                            let systemBodyItemNameWidth = newWidth - 50 - 10 - 20; // - bodyRight - icon - somePadding
-                            systemBody.find('.' + config.systemBodyItemNameClass).css({width: systemBodyItemNameWidth + 'px'});
-                            systemBody.find('.' + config.systemBodyRightClass).show();
-                        }
-                    }
-                );
-            },
-            out: function(e){
-                let system =  $(this).closest('.' + config.systemClass);
-                let map  = MapUtil.getMapInstance(system.attr('data-mapid'));
-                let systemId = system.attr('id');
-                let systemBody = system.find('.' + config.systemBodyClass);
-
-                // stop animation (prevent visual bug if user spams hover-icon [in - out])
-                systemBody.velocity('stop');
-
-                // reduce player name element back to "normal" size (css class width is used)
-                systemBody.find('.' + config.systemBodyRightClass).hide();
-                systemBody.find('.' + config.systemBodyItemNameClass).css({width: ''});
-
-                systemBody.velocity('reverse', {
-                    complete: function(){
-                        // overwrite "complete" function from first "hover"-open
-                        // set animated "with" back to default "100%" important in case of system with change (e.g. longer name)
-                        $(this).css({width: ''});
-
-                        map.revalidate(systemId);
-                    }
-                });
-            },
-            selector: '.' + config.systemClass + ' .' + config.systemHeadExpandClass
-        });
-
-        // system "effect" popover ------------------------------------------------------------------------------------
-        // -> event delegation to system elements, popup only if needed (hover)
-        mapWrapper.hoverIntent({
-            over: function(e){
-                let effectElement = $(this);
-                let systemElement = effectElement.closest('.' + config.systemClass);
-                let security = systemElement.data('security');
-                let effect = systemElement.data('effect');
-
-                effectElement.addSystemEffectTooltip(security, effect, {
-                    trigger: 'manual',
-                    placement: 'right'
-                }).popover('show');
-            },
-            out: function(e){
-                $(this).popover('destroy');
-            },
-            selector: '.' + config.systemClass + ' .' + MapUtil.getEffectInfoForSystem('effect', 'class')
-        });
-
     };
 
     /**
@@ -2187,6 +2099,9 @@ define([
                 // hide tooltip
                 $(selectedSystems).toggleSystemTooltip('hide', {});
 
+                // destroy popovers
+                $(selectedSystems).destroyPopover(true);
+
                 // move them to the "top"
                 $(selectedSystems).updateSystemZIndex();
             },
@@ -2800,6 +2715,119 @@ define([
             }
         });
 
+
+        // system body expand -----------------------------------------------------------------------------------------
+        mapContainer.hoverIntent({
+            over: function(e){
+                let system =  $(this).closest('.' + config.systemClass);
+                let map  = MapUtil.getMapInstance(system.attr('data-mapid'));
+                let systemId = system.attr('id');
+                let systemBody = system.find('.' + config.systemBodyClass);
+
+                // bring system in front (increase zIndex)
+                system.updateSystemZIndex();
+
+                // get ship counter and calculate expand height
+                let userCount = parseInt(system.data('userCount'));
+                let expandHeight = userCount * config.systemBodyItemHeight;
+
+                // calculate width
+                let width = system[0].clientWidth;
+                let minWidth = 150;
+                let newWidth = width > minWidth ? width : minWidth; // in case of big systems
+
+                systemBody.velocity('stop').velocity(
+                    {
+                        height: expandHeight + 'px',
+                        width: newWidth,
+                        'min-width': minWidth + 'px'
+                    },{
+                        easing: 'easeInOutQuart',
+                        duration: 120,
+                        progress: function(){
+                            // repaint connections of current system
+                            map.revalidate(systemId);
+                        },
+                        complete: function(){
+                            map.revalidate(systemId);
+
+                            // extend player name element
+                            let systemBody = $(this);
+                            let systemBodyItemNameWidth = newWidth - 50 - 10 - 20; // - bodyRight - icon - somePadding
+                            systemBody.find('.' + config.systemBodyItemNameClass).css({width: systemBodyItemNameWidth + 'px'});
+                            systemBody.find('.' + config.systemBodyRightClass).show();
+                        }
+                    }
+                );
+            },
+            out: function(e){
+                let system =  $(this).closest('.' + config.systemClass);
+                let map  = MapUtil.getMapInstance(system.attr('data-mapid'));
+                let systemId = system.attr('id');
+                let systemBody = system.find('.' + config.systemBodyClass);
+
+                // stop animation (prevent visual bug if user spams hover-icon [in - out])
+                systemBody.velocity('stop');
+
+                // reduce player name element back to "normal" size (css class width is used)
+                systemBody.find('.' + config.systemBodyRightClass).hide();
+                systemBody.find('.' + config.systemBodyItemNameClass).css({width: ''});
+
+                systemBody.velocity('reverse', {
+                    complete: function(){
+                        // overwrite "complete" function from first "hover"-open
+                        // set animated "with" back to default "100%" important in case of system with change (e.g. longer name)
+                        $(this).css({width: ''});
+
+                        map.revalidate(systemId);
+                    }
+                });
+            },
+            selector: '.' + config.systemClass + ' .' + config.systemHeadExpandClass
+        });
+
+        // system "effect" popover ------------------------------------------------------------------------------------
+        // -> event delegation to system elements, popup only if needed (hover)
+        mapContainer.hoverIntent({
+            over: function(e){
+                let effectElement = $(this);
+                let systemElement = effectElement.closest('.' + config.systemClass);
+                let security = systemElement.data('security');
+                let effect = systemElement.data('effect');
+
+                effectElement.addSystemEffectTooltip(security, effect, {
+                    trigger: 'manual',
+                    placement: 'right'
+                }).setPopoverSmall().popover('show');
+            },
+            out: function(e){
+                $(this).destroyPopover();
+            },
+            selector: '.' + config.systemClass + ' .' + MapUtil.getEffectInfoForSystem('effect', 'class')
+        });
+
+        // system "statics" popover -----------------------------------------------------------------------------------
+        // -> event delegation to system elements, popup only if needed (hover)
+        mapContainer.hoverIntent({
+            over: function(e){
+                let staticWormholeElement = $(this);
+                let wormholeName = staticWormholeElement.attr('data-name');
+                let wormholeData =  Util.getObjVal(Init, 'wormholes.' + wormholeName);
+                if(wormholeData){
+                    staticWormholeElement.addWormholeInfoTooltip(wormholeData, {
+                        trigger: 'manual',
+                        placement: 'right',
+                        smaller: true,
+                        show: true
+                    });
+                }
+            },
+            out: function(e){
+                $(this).destroyPopover();
+            },
+            selector: '.' + config.systemHeadInfoClass + ' span[class^="pf-system-sec-"]'
+        });
+
         // catch events ===============================================================================================
 
         // toggle global map option (e.g. "grid snap", "magnetization")
@@ -2843,7 +2871,6 @@ define([
                     // delete map option
                     MapUtil.deleteLocalData('map', this.mapElement.data('id'), this.mapOption.option );
                 }else{
-
                     // toggle button class
                     button.addClass('active');
 
@@ -2983,7 +3010,6 @@ define([
                 default:
                     systemInfo.push('bad system query');
             }
-
         }
 
         if(systemInfo.length === 1){
@@ -3000,7 +3026,6 @@ define([
      * @returns {boolean}
      */
     $.fn.updateUserData = function(userData){
-
         let returnStatus = true;
 
         // get new map instance or load existing
