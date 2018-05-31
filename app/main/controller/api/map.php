@@ -141,8 +141,10 @@ class Map extends Controller\AccessController {
             $wormholes = Model\BasicModel::getNew('WormholeModel');
             $rows = $wormholes->find('id > 0', null, $expireTimeSQL);
             $wormholesData = [];
-            foreach((array)$rows as $rowData){
-                $wormholesData[$rowData->name] = $rowData->getData();
+            if($rows){
+                foreach((array)$rows as $rowData){
+                    $wormholesData[$rowData->name] = $rowData->getData();
+                }
             }
             $return->wormholes = $wormholesData;
 

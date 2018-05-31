@@ -110,9 +110,7 @@ class StructureModel extends BasicModel {
      */
     public function set_structureId($structureId){
         $structureId = (int)$structureId;
-        $structureId = $structureId ? : null;
-
-        return $structureId;
+        return $structureId ? : null;
     }
 
     /**

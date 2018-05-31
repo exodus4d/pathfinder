@@ -8,6 +8,7 @@
 
 namespace Controller;
 
+use Controller\Ccp\Universe;
 use data\filesystem\Search;
 use DB;
 use DB\SQL;
@@ -111,8 +112,14 @@ class Setup extends Controller {
                 'Model\Universe\GroupModel',
                 'Model\Universe\CategoryModel',
                 'Model\Universe\StructureModel',
-                //'Model\Universe\RegionModel',
-                //'Model\Universe\ConstellationModel'
+                'Model\Universe\WormholeModel',
+                'Model\Universe\StargateModel',
+                'Model\Universe\StarModel',
+                'Model\Universe\PlanetModel',
+                'Model\Universe\SystemModel',
+                'Model\Universe\ConstellationModel',
+                'Model\Universe\RegionModel',
+                'Model\Universe\SystemStaticModel'
             ],
             'tables' =>  []
         ],
@@ -267,7 +274,7 @@ class Setup extends Controller {
         $f3->set('socketInformation', $this->getSocketInformation());
 
         // set index information
-        $f3->set('indexInformation', $this->getIndexData());
+        $f3->set('indexInformation', $this->getIndexData($f3));
 
         // set cache size
         $f3->set('cacheSize', $this->getCacheData($f3));
@@ -932,7 +939,7 @@ class Setup extends Controller {
                 foreach($requiredTables as $requiredTableName => $data){
 
                     $tableExists = false;
-                    $tableEmpty = true;
+                    $tableRows = 0;
                     // Check if table status is OK (no errors/warnings,..)
                     $tableStatusCheckCount = 0;
 
@@ -944,8 +951,7 @@ class Setup extends Controller {
                         $tableModifierTemp = new MySQL\TableModifier($requiredTableName, $schema);
                         $currentColumns = $tableModifierTemp->getCols(true);
                         // get row count
-                        $countRes = $db->exec("SELECT COUNT(*) `num` FROM " . $db->quotekey($requiredTableName) );
-                        $tableEmpty = $countRes[0]['num'] > 0 ? false : true;
+                        $tableRows = $this->dbLib->getRowCount($requiredTableName, $dbKey);
                     }else{
                         // table missing
                         $dbStatusCheckCount++;
@@ -1124,7 +1130,7 @@ class Setup extends Controller {
                     }
 
                     $dbStatusCheckCount += $tableStatusCheckCount;
-                    $requiredTables[$requiredTableName]['empty'] = $tableEmpty;
+                    $requiredTables[$requiredTableName]['rows'] = $tableRows;
                     $requiredTables[$requiredTableName]['exists'] = $tableExists;
                     $requiredTables[$requiredTableName]['statusCheckCount'] = $tableStatusCheckCount;
                 }
@@ -1339,76 +1345,136 @@ class Setup extends Controller {
         return $socketInformation;
     }
 
-    /** get indexed (cache) data information
+    /**
+     * get indexed (cache) data information
+     * @param \Base $f3
      * @return array
      * @throws \Exception
      */
-    protected function getIndexData(){
+    protected function getIndexData(\Base $f3){
         // active DB and tables are required for obtain index data
         if(!$this->databaseHasError){
+            $categoryUniverseModel = Model\Universe\BasicUniverseModel::getNew('CategoryModel');
+            $systemUniverseModel =  Model\Universe\BasicUniverseModel::getNew('SystemModel');
+            $systemNeighbourModel = Model\BasicModel::getNew('SystemNeighbourModel');
+            $wormholeModel = Model\BasicModel::getNew('WormholeModel');
+            $systemWormholeModel = Model\BasicModel::getNew('SystemWormholeModel');
+            $constellationWormholeModel = Model\BasicModel::getNew('ConstellationWormholeModel');
+
             $indexInfo = [
-                'SystemNeighbourModel' => [
+                'Systems' => [
                     'task' => [
                         [
+                            'action' => 'clearIndex',
+                            'label' => 'Clear',
+                            'icon' => 'fa-times',
+                            'btn' => 'btn-danger'
+                        ],[
                             'action' => 'buildIndex',
-                            'label' => 'build',
+                            'label' => 'Build',
                             'icon' => 'fa-sync',
                             'btn' => 'btn-primary'
                         ]
                     ],
-                    'table' => Model\BasicModel::getNew('SystemNeighbourModel')->getTable(),
-                    'count' => $this->dbLib->getRowCount( Model\BasicModel::getNew('SystemNeighbourModel')->getTable() )
+                    'label' => 'build systems index',
+                    'countBuild' => count((new Universe())->getSystemsIndex()),
+                    'countAll' => $this->dbLib->getRowCount($systemUniverseModel->getTable(), 'UNIVERSE'),
+                    'tooltip' => 'build up a static search index over all systems found on DB. Do not refresh page until import is complete (check progress)! Runtime: ~5min'
+                ],
+                'Structures' => [
+                    'task' => [
+                        [
+                            'action' => 'buildIndex',
+                            'label' => 'Import',
+                            'icon' => 'fa-sync',
+                            'btn' => 'btn-primary'
+                        ]
+                    ],
+                    'label' => 'import structures data',
+                    'countBuild' => $categoryUniverseModel->getById(65, 0)->getTypesCount(false),
+                    'countAll' => (int)$f3->get('REQUIREMENTS.DATA.STRUCTURES'),
+                    'tooltip' => 'import all structure types (e.g. Citadels) from ESI. Runtime: ~15s'
+                ],
+                'Ships' => [
+                    'task' => [
+                        [
+                            'action' => 'buildIndex',
+                            'label' => 'Import',
+                            'icon' => 'fa-sync',
+                            'btn' => 'btn-primary'
+                        ]
+                    ],
+                    'label' => 'import ships data',
+                    'countBuild' => $categoryUniverseModel->getById(6, 0)->getTypesCount(false),
+                    'countAll' => (int)$f3->get('REQUIREMENTS.DATA.SHIPS'),
+                    'tooltip' => 'import all ships types from ESI. Runtime: ~2min'
+                ],
+                'SystemNeighbourModel' => [
+                    'task' => [
+                        [
+                            'action' => 'buildIndex',
+                            'label' => 'Build',
+                            'icon' => 'fa-sync',
+                            'btn' => 'btn-primary'
+                        ]
+                    ],
+                    'label' => 'system_neighbour',
+                    'countBuild' => $this->dbLib->getRowCount($systemNeighbourModel->getTable()),
+                    'countAll' => 5214
                 ],
                 'WormholeModel' => [
                     'task' => [
                         [
                             'action' => 'exportTable',
-                            'label' => 'export',
+                            'label' => 'Export',
                             'icon' => 'fa-download',
                             'btn' => 'btn-default'
                         ],[
                             'action' => 'importTable',
-                            'label' => 'import',
+                            'label' => 'Import',
                             'icon' => 'fa-upload',
                             'btn' => 'btn-primary'
                         ]
                     ],
-                    'table' => Model\BasicModel::getNew('WormholeModel')->getTable(),
-                    'count' => $this->dbLib->getRowCount( Model\BasicModel::getNew('WormholeModel')->getTable() )
+                    'label' => 'wormhole',
+                    'countBuild' => $this->dbLib->getRowCount($wormholeModel->getTable()),
+                    'countAll' => 89
                 ],
                 'SystemWormholeModel' => [
                     'task' => [
                         [
                             'action' => 'exportTable',
-                            'label' => 'export',
+                            'label' => 'Export',
                             'icon' => 'fa-download',
                             'btn' => 'btn-default'
                         ],[
                             'action' => 'importTable',
-                            'label' => 'import',
+                            'label' => 'Import',
                             'icon' => 'fa-upload',
                             'btn' => 'btn-primary'
                         ]
                     ],
-                    'table' => Model\BasicModel::getNew('SystemWormholeModel')->getTable(),
-                    'count' => $this->dbLib->getRowCount( Model\BasicModel::getNew('SystemWormholeModel')->getTable() )
+                    'label' => 'system_wormhole',
+                    'countBuild' => $this->dbLib->getRowCount($systemWormholeModel->getTable()),
+                    'countAll' => 233
                 ],
                 'ConstellationWormholeModel' => [
                     'task' => [
                         [
                             'action' => 'exportTable',
-                            'label' => 'export',
+                            'label' => 'Export',
                             'icon' => 'fa-download',
                             'btn' => 'btn-default'
                         ],[
                             'action' => 'importTable',
-                            'label' => 'import',
+                            'label' => 'Import',
                             'icon' => 'fa-upload',
                             'btn' => 'btn-primary'
                         ]
                     ],
-                    'table' => Model\BasicModel::getNew('ConstellationWormholeModel')->getTable(),
-                    'count' => $this->dbLib->getRowCount( Model\BasicModel::getNew('ConstellationWormholeModel')->getTable() )
+                    'label' => 'constellation_wormhole',
+                    'countBuild' => $this->dbLib->getRowCount( $constellationWormholeModel->getTable() ),
+                    'countAll' => 460
                 ]
             ];
         }else{

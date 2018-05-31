@@ -197,8 +197,8 @@ class MapModel extends AbstractMapTrackingModel {
     }
 
     /**
-     * get map data
-     * -> this includes system and connection data as well!
+     * get data
+     * -> this includes system and connection data as well
      * @return \stdClass
      * @throws PathfinderException
      * @throws \Exception

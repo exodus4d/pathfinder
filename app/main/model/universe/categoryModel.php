@@ -49,14 +49,17 @@ class CategoryModel extends BasicUniverseModel {
 
     /**
      * get all groups for this category
+     * @param bool $published
      * @return array|mixed
      */
-    protected function getGroups(){
+    protected function getGroups(bool $published = true){
         $groups = [];
-        $this->filter('groups', [
-            'published = :published',
-            ':published' => 1
-        ]);
+        if($published){
+            $this->filter('groups', [
+                'published = :published',
+                ':published' => 1
+            ]);
+        }
 
         if($this->groups){
             $groups = $this->groups;
@@ -80,6 +83,24 @@ class CategoryModel extends BasicUniverseModel {
     }
 
     /**
+     * count all types that belong to groups in this category
+     * @param bool $published
+     * @return int
+     */
+    public function getTypesCount(bool $published = true) : int {
+        $count = 0;
+        if( !$this->dry() ){
+            /**
+             * @var $group GroupModel
+             */
+            foreach($groups = $this->getGroups($published) as $group){
+                $count += $group->getTypesCount($published);
+            }
+        }
+        return $count;
+    }
+
+    /**
      * load data from API into $this and save $this
      * @param int $id
      * @param string $accessToken
@@ -95,17 +116,30 @@ class CategoryModel extends BasicUniverseModel {
 
     /**
      * load groups data for this category
+     * @param int $offset
+     * @param int $length   0 -> all groups
+     * @return array
      */
-    public function loadGroupsData(){
+    public function loadGroupsData(int $offset = 0, int $length = 0) : array {
+        $groupIds = [];
         if( !$this->dry() ){
             $data = self::getF3()->ccpClient->getUniverseCategoryData($this->_id);
             if(!empty($data)){
-                foreach((array)$data['groups'] as $groupId){
+                array_multisort($data['groups'], SORT_ASC, SORT_NUMERIC);
+                if($length){
+                    $data['groups'] = array_slice($data['groups'], $offset, $length);
+                }
+                foreach($data['groups'] as $groupId){
+                    /**
+                     * @var $group GroupModel
+                     */
                     $group = $this->rel('groups');
                     $group->loadById($groupId);
+                    $groupIds[] = $groupId;
                     $group->reset();
                 }
             }
         }
+        return $groupIds;
     }
 }

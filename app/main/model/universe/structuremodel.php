@@ -38,7 +38,8 @@ class StructureModel extends BasicUniverseModel {
                     'table' => 'type',
                     'on-delete' => 'CASCADE'
                 ]
-            ]
+            ],
+            'validate' => 'validate_notDry'
         ],
         'x' => [
             'type' => Schema::DT_FLOAT,

@@ -35,7 +35,8 @@ class GroupModel extends BasicUniverseModel {
                     'table' => 'category',
                     'on-delete' => 'CASCADE'
                 ]
-            ]
+            ],
+            'validate' => 'validate_notDry'
         ],
         'types' => [
             'has-many' => ['Model\Universe\TypeModel', 'groupId']
@@ -61,14 +62,17 @@ class GroupModel extends BasicUniverseModel {
 
     /**
      * get all types for this group
+     * @param bool $published
      * @return array|mixed
      */
-    protected function getTypes(){
+    protected function getTypes(bool $published = true){
         $types = [];
-        $this->filter('types', [
-            'published = :published',
-            ':published' => 1
-        ]);
+        if($published){
+            $this->filter('types', [
+                'published = :published',
+                ':published' => 1
+            ]);
+        }
 
         if($this->types){
             $types = $this->types;
@@ -91,9 +95,26 @@ class GroupModel extends BasicUniverseModel {
         return $typesData;
     }
 
+    /**
+     * count all types in this group
+     * @param bool $published
+     * @return int
+     */
+    public function getTypesCount(bool $published = true) : int {
+        return $this->dry() ? 0 : count($this->getTypes($published));
+    }
+
+    /**
+     * @param int $id
+     * @param string $accessToken
+     * @param array $additionalOptions
+     */
     protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){
         $data = self::getF3()->ccpClient->getUniverseGroupData($id);
         if(!empty($data)){
+            /**
+             * @var $category CategoryModel
+             */
             $category = $this->rel('categoryId');
             $category->loadById($data['categoryId'], $accessToken, $additionalOptions);
             $data['categoryId'] = $category;
@@ -105,17 +126,24 @@ class GroupModel extends BasicUniverseModel {
 
     /**
      * load types data for this group
+     * @return int
      */
     public function loadTypesData(){
+        $count = 0;
         if( !$this->dry() ){
             $data = self::getF3()->ccpClient->getUniverseGroupData($this->_id);
             if(!empty($data)){
                 foreach((array)$data['types'] as $typeId){
+                    /**
+                     * @var $type TypeModel
+                     */
                     $type = $this->rel('types');
                     $type->loadById($typeId);
                     $type->reset();
+                    $count++;
                 }
             }
         }
+        return $count;
     }
 }

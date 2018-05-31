@@ -8,7 +8,6 @@
 
 namespace Model\Universe;
 
-
 use DB\SQL\Schema;
 
 class TypeModel extends BasicUniverseModel {
@@ -59,7 +58,8 @@ class TypeModel extends BasicUniverseModel {
                     'table' => 'group',
                     'on-delete' => 'CASCADE'
                 ]
-            ]
+            ],
+            'validate' => 'validate_notDry',
         ],
         'marketGroupId' => [
             'type' => Schema::DT_INT,
@@ -85,6 +85,15 @@ class TypeModel extends BasicUniverseModel {
         ],
         'structures' => [
             'has-many' => ['Model\Universe\StructureModel', 'typeId']
+        ],
+        'planets' => [
+            'has-many' => ['Model\Universe\PlanetModel', 'typeId']
+        ],
+        'stars' => [
+            'has-many' => ['Model\Universe\StarModel', 'typeId']
+        ],
+        'wormholes' => [
+            'has-many' => ['Model\Universe\WormholeModel', 'typeId']
         ]
     ];
 

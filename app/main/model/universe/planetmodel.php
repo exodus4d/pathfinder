@@ -1,18 +1,18 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: exodus4d
- * Date: 29.07.2017
- * Time: 16:49
+ * User: exodu
+ * Date: 19.05.2018
+ * Time: 01:12
  */
 
 namespace Model\Universe;
 
 use DB\SQL\Schema;
 
-class ConstellationModel extends BasicUniverseModel {
+class PlanetModel extends BasicUniverseModel {
 
-    protected $table = 'constellation';
+    protected $table = 'planet';
 
     protected $fieldConf = [
         'name' => [
@@ -20,14 +20,26 @@ class ConstellationModel extends BasicUniverseModel {
             'nullable' => false,
             'default' => ''
         ],
-        'regionId' => [
+        'systemId' => [
             'type' => Schema::DT_INT,
             'index' => true,
-            'belongs-to-one' => 'Model\Universe\RegionModel',
+            'belongs-to-one' => 'Model\Universe\SystemModel',
             'constraint' => [
                 [
-                    'table' => 'region',
+                    'table' => 'system',
                     'on-delete' => 'CASCADE'
+                ]
+            ],
+            'validate' => 'validate_notDry'
+        ],
+        'typeId' => [
+            'type' => Schema::DT_INT,
+            'index' => true,
+            'belongs-to-one' => 'Model\Universe\TypeModel',
+            'constraint' => [
+                [
+                    'table' => 'type',
+                    'on-delete' => 'SET NULL'
                 ]
             ],
             'validate' => 'validate_notDry'
@@ -46,9 +58,6 @@ class ConstellationModel extends BasicUniverseModel {
             'type' => Schema::DT_BIGINT,
             'nullable' => false,
             'default' => 0
-        ],
-        'systems' => [
-            'has-many' => ['Model\Universe\SystemModel', 'constellationId']
         ]
     ];
 
@@ -57,12 +66,16 @@ class ConstellationModel extends BasicUniverseModel {
      * @return \stdClass
      */
     public function getData(){
-        $constellationData          = (object) [];
-        $constellationData->id      = $this->_id;
-        $constellationData->name    = $this->name;
-        $constellationData->region  = $this->regionId->getData();
+        $planetData                 = (object) [];
+        $planetData->id             = $this->_id;
+        $planetData->name           = $this->name;
 
-        return $constellationData;
+        $planetData->position       = (object) [];
+        $planetData->position->x    = $this->x;
+        $planetData->position->y    = $this->y;
+        $planetData->position->z    = $this->z;
+
+        return $planetData;
     }
 
     /**
@@ -86,36 +99,24 @@ class ConstellationModel extends BasicUniverseModel {
      * @param array $additionalOptions
      */
     protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){
-        $data = self::getF3()->ccpClient->getUniverseConstellationData($id);
+        $data = self::getF3()->ccpClient->getUniversePlanetData($id);
         if(!empty($data)){
             /**
-             * @var $region RegionModel
+             * @var $system SystemModel
              */
-            $region = $this->rel('regionId');
-            $region->loadById($data['regionId'], $accessToken, $additionalOptions);
-            $data['regionId'] = $region;
+            $system = $this->rel('systemId');
+            $system->loadById($data['systemId'], $accessToken, $additionalOptions);
+            $data['systemId'] = $system;
 
-            $this->copyfrom($data, ['id', 'name', 'regionId', 'position']);
+            /**
+             * @var $type TypeModel
+             */
+            $type = $this->rel('typeId');
+            $type->loadById($data['typeId'], $accessToken, $additionalOptions);
+            $data['typeId'] = $type;
+
+            $this->copyfrom($data, ['id', 'name', 'systemId', 'typeId', 'position']);
             $this->save();
-        }
-    }
-
-    /**
-     * load systems data for this constellation
-     */
-    public function loadSystemsData(){
-        if( !$this->dry() ){
-            $data = self::getF3()->ccpClient->getUniverseConstellationData($this->_id);
-            if(!empty($data)){
-                foreach((array)$data['systems'] as $systemId){
-                    /**
-                     * @var $system SystemModel
-                     */
-                    $system = $this->rel('systems');
-                    $system->loadById($systemId);
-                    $system->reset();
-                }
-            }
         }
     }
 

@@ -242,13 +242,13 @@ class SystemModel extends AbstractMapTrackingModel {
 
             $systemData->created = (object) [];
             $systemData->created->created = strtotime($this->created);
-            if( is_object($this->createdCharacterId) ){
+            if(is_object($this->createdCharacterId)){
                 $systemData->created->character = $this->createdCharacterId->getData();
             }
 
             $systemData->updated = (object) [];
             $systemData->updated->updated = strtotime($this->updated);
-            if( is_object($this->updatedCharacterId) ){
+            if(is_object($this->updatedCharacterId)){
                 $systemData->updated->character = $this->updatedCharacterId->getData();
             }
 
@@ -701,11 +701,11 @@ class SystemModel extends AbstractMapTrackingModel {
     }
 
     /**
-     * overwrites parent
      * @param null $db
      * @param null $table
      * @param null $fields
      * @return bool
+     * @throws \Exception
      */
     public static function setup($db=null, $table=null, $fields=null){
         $status = parent::setup($db,$table,$fields);
