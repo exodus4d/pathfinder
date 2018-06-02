@@ -52,7 +52,6 @@ class GroupModel extends BasicUniverseModel {
         $groupData->id = $this->id;
         $groupData->name = $this->name;
 
-
         if($typesData = $this->getTypesData()){
             $groupData->types = $typesData;
         }

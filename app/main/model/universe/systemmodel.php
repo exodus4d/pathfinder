@@ -107,11 +107,14 @@ class SystemModel extends BasicUniverseModel {
         $systemData->id             = $this->_id;
         $systemData->name           = $this->name;
         $systemData->constellation  = $this->constellationId->getData();
-        $systemData->star           = $this->starId->getData();
         $systemData->security       = $this->security;
         $systemData->trueSec        = $this->trueSec;
         $systemData->effect         = $this->effect;
         $systemData->shattered      = $this->shattered;
+
+        if($this->starId){
+            $systemData->star           = $this->starId->getData();
+        }
 
         if( !empty($planetsData = $this->getPlanetsData()) ){
             $systemData->planets    = $planetsData;
@@ -126,6 +129,20 @@ class SystemModel extends BasicUniverseModel {
         }
 
         return $systemData;
+    }
+
+    /**
+     * setter for system name
+     * @param $name
+     * @return mixed
+     */
+    public function set_name($name){
+        // name should never change
+        // -> important for "Abyssal" systems where ESI don´t have correct system name
+        if(!empty($this->name)){
+            $name = $this->name;
+        }
+        return $name;
     }
 
     /**
@@ -144,13 +161,24 @@ class SystemModel extends BasicUniverseModel {
         $this->trueSec = $trueSec;
         // set 'security' for NON wormhole systems! -> those get updated from csv import
         if(!preg_match('/^j\d+$/i', $this->name)){
-            if($trueSec <= 0){
-                $security = '0.0';
-            }elseif($trueSec < 0.5){
-                $security = 'L';
+            // check for "Abyssal" system
+            if(
+                $this->get('constellationId', true) >= 22000001 &&
+                $this->get('constellationId', true) <= 22000025
+            ){
+                // "Abyssal" system
+                $security = 'A';
             }else{
-                $security = 'H';
+                // k-space system
+                if($trueSec <= 0){
+                    $security = '0.0';
+                }elseif($trueSec < 0.5){
+                    $security = 'L';
+                }else{
+                    $security = 'H';
+                }
             }
+
             $this->security = $security;
         }
         return $secStatus;
@@ -297,6 +325,7 @@ class SystemModel extends BasicUniverseModel {
      */
     protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){
         $data = self::getF3()->ccpClient->getUniverseSystemData($id);
+
         if(!empty($data)){
             /**
              * @var $constellation ConstellationModel
@@ -305,12 +334,15 @@ class SystemModel extends BasicUniverseModel {
             $constellation->loadById($data['constellationId'], $accessToken, $additionalOptions);
             $data['constellationId'] = $constellation;
 
-            /**
-             * @var $star StarModel
-             */
-            $star = $this->rel('starId');
-            $star->loadById($data['starId'], $accessToken, $additionalOptions);
-            $data['starId'] = $star;
+            // starId is optional since ESI v4 (e.g. Abyssal systems)
+            if($data['starId']){
+                /**
+                 * @var $star StarModel
+                 */
+                $star = $this->rel('starId');
+                $star->loadById($data['starId'], $accessToken, $additionalOptions);
+                $data['starId'] = $star;
+            }
 
             $this->copyfrom($data, ['id', 'name', 'constellationId', 'starId', 'securityStatus', 'securityClass', 'position']);
             $this->save();
@@ -323,7 +355,8 @@ class SystemModel extends BasicUniverseModel {
     public function loadPlanetsData(){
         if( !$this->dry() ){
             $data = self::getF3()->ccpClient->getUniverseSystemData($this->_id);
-            if(!empty($data)){
+            if($data['planets']){
+                // planets are optional since ESI v4 (e.g. Abyssal systems)
                 foreach((array)$data['planets'] as $planetData){
                     /**
                      * @var $planet PlanetModel

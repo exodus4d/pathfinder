@@ -101,7 +101,7 @@ define(['jquery'], function($) {
                     4: 'M609 - C4',
                     5: 'L614 - C5',
                     6: 'S804 - C6',
-                    7: 'F135 - Thera'
+                    7: 'F353 - Thera'
                 },
                 6: {    // ORE
                     1: 'Ordinary Perimeter Deposit', //*

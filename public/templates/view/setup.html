@@ -927,17 +927,19 @@
                                     <span class="btn disabled btn-fake">{{ @indexData.label }}</span>
                                 </div>
                                 <div class="col-xs-3 text-right">
-                                    <check if="{{ @indexData.countBuild  >= @indexData.countAll }}">
-                                        <kbd class="txt-color txt-color-success">{{ @indexData.countBuild }}/{{ @indexData.countAll }}</kbd>
-                                    </check>
-                                    <check if="{{ @indexData.countBuild > 0 && @indexData.countBuild < @indexData.countAll}}">
-                                        <kbd class="txt-color txt-color-warning">{{ @indexData.countBuild }}/{{ @indexData.countAll }}</kbd>
-                                    </check>
-                                    <check if="{{ @indexData.countBuild <= 0 }}">
-                                        <kbd class="txt-color txt-color-danger">{{ @indexData.countBuild }}/{{ @indexData.countAll }}</kbd>
-                                    </check>
-                                    <check if="{{ @indexData.tooltip }}">
-                                        <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="{{ @indexData.tooltip }}"></i>
+                                    <check if="{{ isset(@indexData.countAll) }}">
+                                        <check if="{{ @indexData.countBuild  >= @indexData.countAll }}">
+                                            <kbd class="txt-color txt-color-success">{{ @indexData.countBuild }}/{{ @indexData.countAll }}</kbd>
+                                        </check>
+                                        <check if="{{ @indexData.countBuild > 0 && @indexData.countBuild < @indexData.countAll}}">
+                                            <kbd class="txt-color txt-color-warning">{{ @indexData.countBuild }}/{{ @indexData.countAll }}</kbd>
+                                        </check>
+                                        <check if="{{ @indexData.countBuild <= 0 }}">
+                                            <kbd class="txt-color txt-color-danger">{{ @indexData.countBuild }}/{{ @indexData.countAll }}</kbd>
+                                        </check>
+                                        <check if="{{ @indexData.tooltip }}">
+                                            <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="{{ @indexData.tooltip }}"></i>
+                                        </check>
                                     </check>
                                 </div>
                                 <div class="col-xs-5">

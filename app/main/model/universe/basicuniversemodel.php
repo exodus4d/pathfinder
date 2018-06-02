@@ -99,9 +99,7 @@ abstract class BasicUniverseModel extends BasicModel {
      * -> stores getData() result into Cache (RAM) for faster access
      */
     public function buildIndex(){
-        $hashKeyId = $this->getHashKey();
-        $hashKeyName = $this->getHashKey('name');
-        if($hashKeyId && $hashKeyName){
+        if($hashKeyId = $this->getHashKey()){
             $f3 = self::getF3();
             $hashKeyTable = self::generateHashKeyTable($this->getTable());
 
@@ -109,18 +107,16 @@ abstract class BasicUniverseModel extends BasicModel {
                 $cachedData = [];
             }
 
-            if( !in_array($hashKeyName, $cachedData) ){
-                $cachedData[] = $hashKeyName;
+            if( !in_array($hashKeyId, $cachedData) ){
+                $cachedData[] = $hashKeyId;
             }
 
             // value update does not update ttl -> delete key from cache and add again
             $f3->clear($hashKeyId);
-            $f3->clear($hashKeyName);
             $f3->clear($hashKeyTable);
 
             // straight into cache (no $f->set() ), no sync with hive here -> save ram
             self::setCacheValue($hashKeyId, $this->getData(), self::CACHE_INDEX_EXPIRE_KEY);
-            self::setCacheValue($hashKeyName, $hashKeyId, self::CACHE_INDEX_EXPIRE_KEY);
             self::setCacheValue($hashKeyTable, $cachedData, self::CACHE_INDEX_EXPIRE_KEY);
         }
     }

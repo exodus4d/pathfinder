@@ -156,13 +156,13 @@ class Universe {
 
     /**
      * imports static universe data from ESI
-     * >> php index.php "/cron/setup?model=system&offset=0&length=5"
+     * >> php index.php "/cron/setup?type=system&offset=0&length=5"
      * @param \Base $f3
      * @throws \Exception
      */
     function setup(\Base $f3){
         $params = (array)$f3->get('GET');
-        $type = (string)$params['model'];
+        $type = (string)$params['type'];
         $paramOffset = (int)$params['offset'];
         $paramLength = (int)$params['length'];
         $timeTotalStart = microtime(true);

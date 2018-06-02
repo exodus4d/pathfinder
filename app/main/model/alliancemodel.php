@@ -40,9 +40,6 @@ class AllianceModel extends BasicModel {
         'allianceCharacters' => [
             'has-many' => ['Model\CharacterModel', 'allianceId']
         ],
-        'alliancCorporations' => [
-            'has-many' => ['Model\CharacterModel', 'allianceId']
-        ],
         'mapAlliances' => [
             'has-many' => ['Model\AllianceMapModel', 'allianceId']
         ]

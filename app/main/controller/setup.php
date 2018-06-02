@@ -112,14 +112,14 @@ class Setup extends Controller {
                 'Model\Universe\GroupModel',
                 'Model\Universe\CategoryModel',
                 'Model\Universe\StructureModel',
-                'Model\Universe\WormholeModel',
-                'Model\Universe\StargateModel',
-                'Model\Universe\StarModel',
-                'Model\Universe\PlanetModel',
-                'Model\Universe\SystemModel',
-                'Model\Universe\ConstellationModel',
-                'Model\Universe\RegionModel',
-                'Model\Universe\SystemStaticModel'
+                // 'Model\Universe\WormholeModel',
+                // 'Model\Universe\StargateModel',
+                // 'Model\Universe\StarModel',
+                // 'Model\Universe\PlanetModel',
+                // 'Model\Universe\SystemModel',
+                // 'Model\Universe\ConstellationModel',
+                // 'Model\Universe\RegionModel',
+                // 'Model\Universe\SystemStaticModel'
             ],
             'tables' =>  []
         ],
@@ -230,9 +230,6 @@ class Setup extends Controller {
                 break;
             case 'fixCols':
                 $fixColumns = true;
-                break;
-            case 'buildIndex':
-                $this->setupSystemJumpTable();
                 break;
             case 'importTable':
                 $this->importTable($params['model']);
@@ -1354,14 +1351,15 @@ class Setup extends Controller {
     protected function getIndexData(\Base $f3){
         // active DB and tables are required for obtain index data
         if(!$this->databaseHasError){
-            $categoryUniverseModel = Model\Universe\BasicUniverseModel::getNew('CategoryModel');
-            $systemUniverseModel =  Model\Universe\BasicUniverseModel::getNew('SystemModel');
+            //$categoryUniverseModel = Model\Universe\BasicUniverseModel::getNew('CategoryModel');
+            //$systemUniverseModel =  Model\Universe\BasicUniverseModel::getNew('SystemModel');
             $systemNeighbourModel = Model\BasicModel::getNew('SystemNeighbourModel');
             $wormholeModel = Model\BasicModel::getNew('WormholeModel');
             $systemWormholeModel = Model\BasicModel::getNew('SystemWormholeModel');
             $constellationWormholeModel = Model\BasicModel::getNew('ConstellationWormholeModel');
 
             $indexInfo = [
+                /*
                 'Systems' => [
                     'task' => [
                         [
@@ -1408,7 +1406,8 @@ class Setup extends Controller {
                     'countBuild' => $categoryUniverseModel->getById(6, 0)->getTypesCount(false),
                     'countAll' => (int)$f3->get('REQUIREMENTS.DATA.SHIPS'),
                     'tooltip' => 'import all ships types from ESI. Runtime: ~2min'
-                ],
+                ], */
+                // All following rows become deprecated
                 'SystemNeighbourModel' => [
                     'task' => [
                         [
@@ -1456,7 +1455,7 @@ class Setup extends Controller {
                     ],
                     'label' => 'system_wormhole',
                     'countBuild' => $this->dbLib->getRowCount($systemWormholeModel->getTable()),
-                    'countAll' => 233
+                    'countAll' => 234
                 ],
                 'ConstellationWormholeModel' => [
                     'task' => [
@@ -1474,89 +1473,19 @@ class Setup extends Controller {
                     ],
                     'label' => 'constellation_wormhole',
                     'countBuild' => $this->dbLib->getRowCount( $constellationWormholeModel->getTable() ),
-                    'countAll' => 460
+                    'countAll' => 461
                 ]
             ];
         }else{
             $indexInfo = [
                 'SystemNeighbourModel' => [
                     'task' => [],
-                    'table' => 'Fix database errors first!'
+                    'label' => 'Fix database errors first!'
                 ]
             ];
         }
-
+//var_dump($indexInfo); die();
         return $indexInfo;
-    }
-
-    /**
-     * This function is just for setting up the cache table 'system_neighbour' which is used
-     * for system jump calculation. Call this function manually when CCP adds Systems/Stargates
-     */
-    protected function setupSystemJumpTable(){
-        $pfDB = $this->getDB('PF');
-        $ccpDB = $this->getDB('CCP');
-
-        $query = "SELECT
-                map_sys.solarSystemID system_id,
-                map_sys.regionID region_id,
-                map_sys.constellationID constellation_id,
-                map_sys.solarSystemName system_name,
-                ROUND( map_sys.security, 4) system_security,
-                (
-                    SELECT
-                        GROUP_CONCAT( NULLIF(map_sys_inner.solarSystemName, NULL) SEPARATOR ':')
-                    FROM
-                        mapSolarSystemJumps map_jump INNER JOIN
-                        mapSolarSystems map_sys_inner ON
-                            map_sys_inner.solarSystemID = map_jump.toSolarSystemID
-                    WHERE
-                        map_jump.fromSolarSystemID = map_sys.solarSystemID
-                ) system_neighbours
-            FROM
-                mapSolarSystems map_sys
-            HAVING
-              -- skip systems without neighbors (e.g. WHs)
-	          system_neighbours IS NOT NULL
-            ";
-
-        $rows = $ccpDB->exec($query);
-
-        if(count($rows) > 0){
-            // switch DB back to pathfinder DB
-
-            // clear cache table
-            $pfDB->exec("TRUNCATE system_neighbour");
-
-            foreach($rows as $row){
-                $pfDB->exec("
-              INSERT INTO
-                system_neighbour(
-                  regionId,
-                  constellationId,
-                  systemName,
-                  systemId,
-                  jumpNodes,
-                  trueSec
-                  )
-              VALUES(
-                :regionId,
-                :constellationId,
-                :systemName,
-                :systemId,
-                :jumpNodes,
-                :trueSec
-            )",
-                [
-                    ':regionId' => $row['region_id'],
-                    ':constellationId' => $row['constellation_id'],
-                    ':systemName' => $row['system_name'],
-                    ':systemId' => $row['system_id'],
-                    ':jumpNodes' => $row['system_neighbours'],
-                    ':trueSec' => $row['system_security']
-                ]);
-            }
-        }
     }
 
     /**
