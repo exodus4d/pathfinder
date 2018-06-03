@@ -200,6 +200,9 @@ define(['jquery'], ($) => {
                 security: {
                     class: 'pf-system-sec'
                 },
+                'A': {
+                    class: 'pf-system-sec-abyssal'
+                },
                 'SH': {
                     class: 'pf-system-sec-unknown'
                 },
@@ -284,6 +287,12 @@ define(['jquery'], ($) => {
         defaultMapScope: 'wh',                                              // default scope for connection
         // map connection types
         connectionTypes: {
+            abyssal: {
+                cssClass: 'pf-map-connection-abyssal',
+                paintStyle: {
+                    dashstyle: '0.5 2' // dotted line
+                }
+            },
             jumpbridge: {
                 cssClass: 'pf-map-connection-jumpbridge',
                 paintStyle: {

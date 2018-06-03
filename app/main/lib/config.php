@@ -380,12 +380,12 @@ class Config extends \Prefab {
 
     /**
      * @param string $key
-     * @return mixed
+     * @return null|mixed
      * @throws Exception\PathfinderException
      */
     static function getPathfinderData($key = ''){
         $hiveKey = self::HIVE_KEY_PATHFINDER . ($key ? '.' . strtoupper($key) : '');
-
+        $data = null; // make sure it is always defined
         try{
             if( !\Base::instance()->exists($hiveKey, $data) ){
                 throw new Exception\PathfinderException(sprintf(self::ERROR_CONF_PATHFINDER, $hiveKey));

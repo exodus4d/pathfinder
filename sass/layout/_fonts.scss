@@ -1,0 +1,15 @@
+@font-face {
+  font-family: 'Triglavian';
+  font-style: normal;
+  font-weight: 900;
+  src: url('#{$pf-font-path}/triglavian-regular.eot');
+  src: url('#{$pf-font-path}/triglavian-regular.eot?#iefix') format('embedded-opentype'),
+  url('#{$pf-font-path}/triglavian-regular.woff2') format('woff2'),
+  url('#{$pf-font-path}/triglavian-regular.woff') format('woff'),
+  url('#{$pf-font-path}/triglavian-regular.ttf') format('truetype');
+}
+
+.pf-triglivian {
+  font-family: 'Triglavian';
+  font-weight: 900;
+}

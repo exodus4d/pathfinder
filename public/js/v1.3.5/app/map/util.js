@@ -692,6 +692,9 @@ define([
             case'stargate':
                 type = 'stargate';
                 break;
+            case'abyssal':
+                type = 'abyssal';
+                break;
             default:
                 console.error('Connection scope "' + scope + '" unknown!');
         }

@@ -357,12 +357,17 @@ define([
         if(!system){
             // set system name or alias
             let systemName = data.name;
-
             if(
                 data.alias &&
                 data.alias !== ''
             ){
                 systemName = data.alias;
+            }
+
+            let systemHeadClasses = [config.systemHeadNameClass];
+            // Abyssal system
+            if(data.type.id === 3){
+                systemHeadClasses.push(Util.config.fontTriglivianClass);
             }
 
             // get system info classes
@@ -372,7 +377,6 @@ define([
             let secClass = Util.getSecurityClassForSystem(data.security);
 
             system = $('<div>', {
-                // system
                 id: systemId,
                 class: config.systemClass
             }).append(
@@ -385,7 +389,7 @@ define([
                     }),
                     // System name is editable
                     $('<span>', {
-                        class: config.systemHeadNameClass
+                        class: systemHeadClasses.join(' '),
                     }).attr('data-value', systemName),
                     // System locked status
                     $('<i>', {
@@ -1862,7 +1866,8 @@ define([
                 {icon: 'fa-filter', action: 'filter_scope', text: 'filter scope', subitems: [
                     {subIcon: '', subAction: 'filter_wh', subText: 'wormhole'},
                     {subIcon: '', subAction: 'filter_stargate', subText: 'stargate'},
-                    {subIcon: '', subAction: 'filter_jumpbridge', subText: 'jumpbridge'}
+                    {subIcon: '', subAction: 'filter_jumpbridge', subText: 'jumpbridge'},
+                    {subIcon: '', subAction: 'filter_abyssal', subText: 'abyssal'}
                 ]},
                 {icon: 'fa-sitemap', action: 'map', text: 'map', subitems: [
                     {subIcon: 'fa-edit', subAction: 'map_edit', subText: 'edit map'},
@@ -1904,7 +1909,7 @@ define([
                     {subIcon: 'fa-circle', subAction: 'status_critical', subText: 'stage 3 (critical)'}
 
                 ]},
-                {divider: true, action: 'delete_connection'} ,
+                {divider: true, action: 'separator'} ,
                 {icon: 'fa-unlink', action: 'delete_connection', text: 'detach'}
             ]
         };
@@ -1970,7 +1975,14 @@ define([
 
             let scope = component.scope;
 
-            if(scope === 'stargate'){
+            if(scope === 'abyssal'){
+                hiddenOptions.push('frigate');
+                hiddenOptions.push('preserve_mass');
+                hiddenOptions.push('change_status');
+
+                hiddenOptions.push('change_scope');
+                hiddenOptions.push('separator');
+            }else if(scope === 'stargate'){
                 hiddenOptions.push('frigate');
                 hiddenOptions.push('preserve_mass');
                 hiddenOptions.push('change_status');
@@ -2036,6 +2048,9 @@ define([
             }
             if(component.data('filter_scope') === 'jumpbridge'){
                 activeOptions.push('filter_jumpbridge');
+            }
+            if(component.data('filter_scope') === 'abyssal'){
+                activeOptions.push('filter_abyssal');
             }
         }else if( component.hasClass(config.systemClass) ){
             // active system menu entries
@@ -2619,6 +2634,7 @@ define([
                     case 'filter_wh':
                     case 'filter_stargate':
                     case 'filter_jumpbridge':
+                    case 'filter_abyssal':
                         // filter (show/hide)
                         let filterScope = action.split('_')[1];
 

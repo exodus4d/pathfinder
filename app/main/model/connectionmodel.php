@@ -141,7 +141,7 @@ class ConnectionModel extends AbstractMapTrackingModel {
      * @return int|number
      */
     public function set_type($type){
-        $newTypes = (array)json_decode($type);
+        $newTypes = (array)$type;
 
         // set EOL timestamp
         if( !in_array('wh_eol', $newTypes) ){

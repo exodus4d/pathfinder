@@ -1351,7 +1351,7 @@ class Setup extends Controller {
     protected function getIndexData(\Base $f3){
         // active DB and tables are required for obtain index data
         if(!$this->databaseHasError){
-            //$categoryUniverseModel = Model\Universe\BasicUniverseModel::getNew('CategoryModel');
+            $categoryUniverseModel = Model\Universe\BasicUniverseModel::getNew('CategoryModel');
             //$systemUniverseModel =  Model\Universe\BasicUniverseModel::getNew('SystemModel');
             $systemNeighbourModel = Model\BasicModel::getNew('SystemNeighbourModel');
             $wormholeModel = Model\BasicModel::getNew('WormholeModel');
@@ -1378,7 +1378,7 @@ class Setup extends Controller {
                     'countBuild' => count((new Universe())->getSystemsIndex()),
                     'countAll' => $this->dbLib->getRowCount($systemUniverseModel->getTable(), 'UNIVERSE'),
                     'tooltip' => 'build up a static search index over all systems found on DB. Do not refresh page until import is complete (check progress)! Runtime: ~5min'
-                ],
+                ], */
                 'Structures' => [
                     'task' => [
                         [
@@ -1392,7 +1392,7 @@ class Setup extends Controller {
                     'countBuild' => $categoryUniverseModel->getById(65, 0)->getTypesCount(false),
                     'countAll' => (int)$f3->get('REQUIREMENTS.DATA.STRUCTURES'),
                     'tooltip' => 'import all structure types (e.g. Citadels) from ESI. Runtime: ~15s'
-                ],
+                ], /*
                 'Ships' => [
                     'task' => [
                         [

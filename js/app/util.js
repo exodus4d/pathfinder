@@ -65,7 +65,10 @@ define([
 
         // popover
         popoverSmallClass: 'pf-popover-small',                                  // class for "small" popover
-        popoverTriggerClass: 'pf-popover-trigger'                               // class for "popover" trigger elements
+        popoverTriggerClass: 'pf-popover-trigger',                              // class for "popover" trigger elements
+
+        // fonts
+        fontTriglivianClass: 'pf-triglivian'                                    // class for "Triglivian" names (e.g. Abyssal systems)
     };
 
     let stopTimerCache = {};                                                    // cache for stopwatch timer

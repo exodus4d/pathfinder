@@ -350,6 +350,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
 
     // ================================================================================================================
     .pf-system-head-info{
+      text-align: right;
       color: lighten($gray-light, 10%);
       font-size: 10px;
       line-height: 10px;
@@ -553,8 +554,14 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       z-index: 80;
       filter: drop-shadow( -3px 3px 4px rgba(0,0,0, 0.3));
 
-      path:first-child{
-        stroke: $gray-lightest; // hover style
+      &:not(.pf-map-connection-jumpbridge):not(.pf-map-connection-abyssal) path:first-child{
+        stroke: $gray-lightest; // hover style (outer SVG)
+      }
+
+      &.pf-map-connection-jumpbridge, &.pf-map-connection-abyssal{
+        path:nth-child(2){
+          stroke: $gray-lightest; // hover style (inner SVG)
+        }
       }
     }
 
@@ -562,6 +569,28 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       @include transition( opacity 0.18s ease-out) ;
       opacity: 0.4;
       z-index: 80;
+    }
+  }
+
+  svg.pf-map-connection-abyssal {
+    z-index: 40;
+
+    path:first-child{
+      stroke: rgba(255,255,255,0);  // invisible border color
+    }
+
+    path:nth-child(2){
+      stroke: darken($pink-darker, 8%);
+    }
+
+    &:hover{
+      path:first-child{
+        stroke: rgba(255,255,255,0);  // invisible border color
+      }
+
+      path:nth-child(2){
+        stroke: $gray-lightest;
+      }
     }
   }
 

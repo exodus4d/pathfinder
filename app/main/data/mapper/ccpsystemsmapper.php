@@ -64,6 +64,12 @@ class CcpSystemsMapper extends AbstractIterator {
             $security = '';
 
             if(
+                $iterator['constellation']['id'] >= 22000001 &&
+                $iterator['constellation']['id'] <= 22000025
+            ){
+                // "Abyssal" system
+                $security = 'A';
+            }elseif(
                 $iterator['security'] == 7 ||
                 $iterator['security'] == 8 ||
                 $iterator['security'] == 9
@@ -105,13 +111,19 @@ class CcpSystemsMapper extends AbstractIterator {
             $type = 'w-space';
             $typeId = 1;
             if(
+                $iterator['constellation']['id'] >= 22000001 &&
+                $iterator['constellation']['id'] <= 22000025
+            ){
+                // "Abyssal" system
+                $type = 'a-space';
+                $typeId = 3;
+            }elseif(
                 $iterator['security'] == 7 ||
                 $iterator['security'] == 8 ||
                 $iterator['security'] == 9
             ){
                 $type = 'k-space';
                 $typeId = 2;
-
             }
 
             return [

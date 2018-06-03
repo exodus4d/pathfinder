@@ -31,11 +31,15 @@ class SystemTypeModel extends BasicModel {
     protected static $tableData = [
         [
             'id' => 1,
-            'name' => 'w-space'
+            'name' => 'w-space'     // Wormhole Space
         ],
         [
             'id' => 2,
-            'name' => 'k-space'
+            'name' => 'k-space'     // Known Space
+        ],
+        [
+            'id' => 3,
+            'name' => 'a-space'     // Abyss Space
         ]
     ];
 

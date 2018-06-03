@@ -833,6 +833,10 @@ table{
   color: $indigo;
 }
 
+.pf-system-sec-abyssal{
+  color: $pink;
+}
+
 // system status ==================================================================================
 
 .pf-system-status-friendly{
@@ -926,6 +930,18 @@ table{
         $teal-lightest 10px,
         $gray 10px,
         $gray 20px
+    );
+  }
+
+  &.pf-map-connection-abyssal{
+    background-color: darken($pink-darker, 8%);
+    border-color: $gray;
+    background: repeating-linear-gradient(
+                    to right,
+                    darken($pink-darker, 8%),
+                    darken($pink-darker, 8%) 5px,
+                    $gray 5px,
+                    $gray 10px
     );
   }
 
