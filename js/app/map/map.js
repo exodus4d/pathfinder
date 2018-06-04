@@ -1831,7 +1831,6 @@ define([
                     dataType: 'json',
                     context: connections
                 }).done(function(data){
-
                     // remove connections from map
                     removeConnections(this);
 
@@ -1839,7 +1838,6 @@ define([
                     if(callback){
                         callback();
                     }
-
                 }).fail(function( jqXHR, status, error) {
                     let reason = status + ' ' + error;
                     Util.showNotify({title: jqXHR.status + ': deleteSystem', text: reason, type: 'warning'});
@@ -2507,6 +2505,11 @@ define([
                 if(dropEndpoint.connections.length > 0){
                     console.warn('Endpoint already occupied');
                     return false;
+                }
+
+                // switch connection type to "abyss" in case source OR target system belongs to "a-space"
+                if(sourceSystem.data('typeId') === 3 || targetSystem.data('typeId') === 3){
+                    setConnectionScope(connection, 'abyssal');
                 }
 
                 // set "default" connection status only for NEW connections

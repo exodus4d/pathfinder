@@ -308,7 +308,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       @include transform( translate3d(0, -1px, 0) !important);
 
       &:not(.jsPlumb_dragged){
-        z-index: 2040 !important; // should overlap connection endpoint overlays,not for dragged elements -> prevent "show/hide flickering" of overlays
+        z-index: 1040 !important; // should overlap connection endpoint overlays,not for dragged elements -> prevent "show/hide flickering" of overlays
       }
     }
 
@@ -741,7 +741,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
 // context menu =======================================================================================================
 .dropdown-menu{
   font-family: $font-family-bold;
-  z-index: 1020; // over tooltips
+  z-index: 1050; // over tooltips
   will-change: opacity, top, left, transform;
 
   a{

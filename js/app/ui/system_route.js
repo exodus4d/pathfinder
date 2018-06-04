@@ -92,10 +92,15 @@ define([
      * get a unique cache key name for "source"/"target"-name
      * @param sourceName
      * @param targetName
-     * @returns {string}
+     * @returns {*}
      */
     let getConnectionDataCacheKey = (sourceName, targetName) => {
-        return [sourceName.toLowerCase(), targetName.toLowerCase()].sort().join('###');
+        let key = false;
+        if(sourceName && targetName){
+            // names can be "undefined" in case system is currently on drag/drop
+            key = [sourceName.toLowerCase(), targetName.toLowerCase()].sort().join('###');
+        }
+        return key;
     };
 
     /**

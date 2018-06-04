@@ -899,7 +899,7 @@ class Map extends Controller\AccessController {
 
 
     /**
-     *
+     * add new map connection based on current $character location
      * @param Model\CharacterModel $character
      * @param Model\MapModel $map
      * @return Model\MapModel
@@ -949,7 +949,7 @@ class Map extends Controller\AccessController {
                     $targetSystem = $map->getSystemByCCPId( $targetSystemId, ['active' => 1]);
                 }
 
-                // if systems don´t already exists on map -> get "blank" systems
+                // if systems don´t already exists on map -> get "blank" system
                 // -> required for system type check (e.g. wormhole, k-space)
                 if(
                     !$sourceSystem &&

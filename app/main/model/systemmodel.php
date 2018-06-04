@@ -554,16 +554,24 @@ class SystemModel extends AbstractMapTrackingModel {
      * check whether this system is a wormhole
      * @return bool
      */
-    public function isWormhole(){
+    public function isWormhole() : bool {
         return ($this->typeId->id === 1);
     }
 
     /**
-     * check whether this syste is a shattered wormhole
+     * check whether this system is a shattered wormhole
      * @return bool
      */
-    public function isShatteredWormhole(){
+    public function isShatteredWormhole() : bool {
         return ($this->isWormhole() && $this->security === 'SH');
+    }
+
+    /**
+     * check whether this system is an Abyss system
+     * @return bool
+     */
+    public function isAbyss() : bool {
+        return ($this->typeId->id === 3 && $this->security === 'A');
     }
 
     /**
