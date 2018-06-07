@@ -1,5 +1,5 @@
 <div class="pf-module-head">
-    <h5 class="pull-right" data-toggle="tooltip" data-placement="top" data-container="body" title="alias">
+    <h5 class="pull-right {{#systemNameClass}}{{system.security}}{{/systemNameClass}}" data-toggle="tooltip" data-placement="top" data-container="body" title="alias">
         {{#system.alias}}
         {{system.alias}}
         {{/system.alias}}
@@ -10,7 +10,7 @@
 
     <h5 class="pf-module-handler-drag"></h5>
     <h5>
-        <span data-toggle="tooltip" data-placement="top" data-container="body" title="system">{{system.name}}</span>
+        <span data-toggle="tooltip" data-placement="top" data-container="body" title="system" class="{{#systemNameClass}}{{system.security}}{{/systemNameClass}}">{{system.name}}</span>
         {{#system.locked}}
         <i class="fas fa-fw fa-lock"></i>
         {{/system.locked}}
@@ -61,7 +61,7 @@
                         <i class="fas fa-fw fa-question-circle"></i>
                     </th>
                     <th>Name</th>
-                    <th class="text-right">{{system.name}}</th>
+                    <th class="text-right {{#systemNameClass}}{{system.security}}{{/systemNameClass}}">{{system.name}}</th>
                     <th class="pf-table-cell-20 text-right {{securityClass}}">{{system.security}}</th>
                 </tr>
                 </thead>

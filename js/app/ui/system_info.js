@@ -39,7 +39,10 @@ define([
         tableToolsActionClass: 'pf-table-tools-action',                         // class for "edit" action
 
         descriptionTextareaElementClass: 'pf-system-info-description',          // class for "description" textarea element (xEditable)
-        descriptionTextareaCharCounter: 'pf-form-field-char-count'              // class for "character counter" element for form field
+        descriptionTextareaCharCounter: 'pf-form-field-char-count',             // class for "character counter" element for form field
+
+        // fonts
+        fontTriglivianClass: 'pf-triglivian'                                    // class for "Triglivian" names (e.g. Abyssal systems)
     };
 
     // disable Module update temporary (until. some requests/animations) are finished
@@ -54,7 +57,7 @@ define([
     /**
      * set module observer and look for relevant system data to update
      */
-    let setModuleObserver = function(moduleElement){
+    let setModuleObserver = (moduleElement) => {
         $(document).off('pf:updateSystemInfoModule').on('pf:updateSystemInfoModule', function(e, data){
             if(data){
                 moduleElement.updateSystemInfoModule(data);
@@ -66,7 +69,7 @@ define([
      * shows the tool action element by animation
      * @param toolsActionElement
      */
-    let showToolsActionElement = function(toolsActionElement){
+    let showToolsActionElement = (toolsActionElement) => {
         toolsActionElement.velocity('stop').velocity({
             opacity: 1,
             height: '100%'
@@ -81,7 +84,7 @@ define([
      * hides the tool action element by animation
      * @param toolsActionElement
      */
-    let hideToolsActionElement = function(toolsActionElement){
+    let hideToolsActionElement = (toolsActionElement) => {
         toolsActionElement.velocity('stop').velocity('reverse', {
             display: 'none',
             visibility: 'hidden'
@@ -175,7 +178,7 @@ define([
      * @param mapId
      * @param systemData
      */
-    let getModule = function(parentElement, mapId, systemData){
+    let getModule = (parentElement, mapId, systemData) => {
 
         // create new module container
         let moduleElement = $('<div>');
@@ -236,7 +239,6 @@ define([
                         inputclass: config.descriptionTextareaElementClass,
                         tpl: '<textarea maxlength="' + maxDescriptionLength + '"></textarea>',
                         params: function(params){
-
                             params.mapData = {
                                 id: mapId
                             };
@@ -396,6 +398,12 @@ define([
             descriptionButtonClass: config.addDescriptionButtonClass,
             tableToolsActionClass: config.tableToolsActionClass,
             descriptionTextareaClass: config.descriptionTextareaElementClass,
+            systemNameClass: () => {
+                return (val, render) => {
+                    console.log(config.fontTriglivianClass)
+                    return  render(val) === 'A' ? config.fontTriglivianClass : '';
+                };
+            },
 
             shatteredWormholeInfo: shatteredWormholeInfo,
 
@@ -418,7 +426,7 @@ define([
      * @param mapId
      * @param systemData
      */
-    let initModule = function(moduleElement, mapId, systemData){
+    let initModule = (moduleElement, mapId, systemData) => {
         // set module observer
         setModuleObserver(moduleElement);
 
