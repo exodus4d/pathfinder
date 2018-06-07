@@ -1,5 +1,145 @@
 CHANGELOG
 
+3.6.4 (19 April 2018)
+*	NEW: Added Dependency Injection support with CONTAINER variable [#221](https://github.com/bcosca/fatfree-core/issues/221)
+*	NEW: configurable LOGGABLE error codes [#1091](https://github.com/bcosca/fatfree/issues/1091#issuecomment-364674701)
+*	NEW: JAR.lifetime option, [#178](https://github.com/bcosca/fatfree-core/issues/178)
+*	Template: reduced Prefab calls
+*	Template: optimized reflection for better derivative support, [bcosca/fatfree#1088](https://github.com/bcosca/fatfree/issues/1088)
+*	Template: optimized parsing for template attributes and tokens
+*	DB\Mongo: fixed logging with mongodb extention
+*	DB\Jig: added lazy-loading [#7e1cd9b9b89](https://github.com/bcosca/fatfree-core/commit/7e1cd9b9b89c4175d0f6b86ced9d9bd49c04ac39)
+*	DB\Jig\Mapper: Added group feature, bcosca/fatfree#616
+*	DB\SQL\Mapper: fix PostgreSQL RETURNING ID when no pkey is available, [bcosca/fatfree#1069](https://github.com/bcosca/fatfree/issues/1069), [#230](https://github.com/bcosca/fatfree-core/issues/230)
+*	DB\SQL\Mapper: disable order clause auto-quoting when it's already been quoted
+*	Web->location: add failsafe for geoip_region_name_by_code() [#GB:Bxyn9xn9AgAJ](https://groups.google.com/d/msg/f3-framework/APau4wnwNzE/Bxyn9xn9AgAJ)
+*	Web->request: Added proxy support [#e936361b](https://github.com/bcosca/fatfree-core/commit/e936361bc03010c4c7c38a396562e5e96a8a100d)
+*	Web->mime: Added JFIF format
+*	Markdown: handle line breaks in paragraph blocks, [bcosca/fatfree#1100](https://github.com/bcosca/fatfree/issues/1100)
+*	config: reduced cast calls on parsing config sections
+*	Patch empty SERVER_NAME [bcosca/fatfree#1084](https://github.com/bcosca/fatfree/issues/1084)
+*	Bugfix: unreliable request headers in Web->request() response [bcosca/fatfree#1092](https://github.com/bcosca/fatfree/issues/1092)
+*	Fixed, View->render: utilizing multiple UI paths, [bcosca/fatfree#1083](https://github.com/bcosca/fatfree/issues/1083)
+*	Fixed URL parsing with PHP 5.4 [#247](https://github.com/bcosca/fatfree-core/issues/247)
+*	Fixed PHP 7.2 warnings when session is active prematurely, [#238](https://github.com/bcosca/fatfree-core/issues/238)
+*	Fixed setcookie $expire variable type [#240](https://github.com/bcosca/fatfree-core/issues/240)
+*	Fixed expiration time when updating an existing cookie
+
+3.6.3 (31 December 2017)
+*	PHP7 fix: remove deprecated (unset) cast
+*	Web->request: restricted follow_location to 3XX responses only
+*	CLI mode: refactored arguments parsing
+*	CLI mode: fixed query string encoding
+*	SMTP: Refactor parsing of attachments
+*	SMTP: clean-up mail headers for multipart messages, [#1065](https://github.com/bcosca/fatfree/issues/1065)
+*	config: fixed performance issues on parsing config files
+*	config: cast command parameters in config entries to php type & constant, [#1030](https://github.com/bcosca/fatfree/issues/1030)
+*	config: reduced registry calls
+*	config: skip hive escaping when resolving dynamic config vars, [#1030](https://github.com/bcosca/fatfree/issues/1030)
+*	Bug fix: Incorrect cookie lifetime computation, [#1070](https://github.com/bcosca/fatfree/issues/1070), [#1016](https://github.com/bcosca/fatfree/issues/1016)
+*	DB\SQL\Mapper: use RETURNING option instead of a sequence query to get lastInsertId in PostgreSQL, [#1069](https://github.com/bcosca/fatfree/issues/1069), [#230](https://github.com/bcosca/fatfree-core/issues/230)
+*	DB\SQL\Session: check if _agent is too long for SQL based sessions [#236](https://github.com/bcosca/fatfree-core/issues/236)
+*	DB\SQL\Session: fix Session handler table creation issue on SQL Server, [#899](https://github.com/bcosca/fatfree/issues/899)
+*	DB\SQL: fix oracle db issue with empty error variable, [#1072](https://github.com/bcosca/fatfree/issues/1072)
+*	DB\SQL\Mapper: fix sorting issues on SQL Server, [#1052](https://github.com/bcosca/fatfree/issues/1052) [#225](https://github.com/bcosca/fatfree-core/issues/225)
+*	Prevent directory traversal attacks on filesystem based cache [#1073](https://github.com/bcosca/fatfree/issues/1073)
+*	Bug fix, Template: PHP constants used in include with attribute, [#983](https://github.com/bcosca/fatfree/issues/983)
+*	Bug fix, Template: Numeric value in expression alters PHP_EOL context
+*	Template: use existing linefeed instead of PHP_EOL, [#1048](https://github.com/bcosca/fatfree/issues/1048)
+*	Template: make newline interpolation handling configurable [#223](https://github.com/bcosca/fatfree-core/issues/223)
+*	Template: add beforerender to Preview
+*	fix custom FORMATS without modifiers
+*	Cache: Refactor Cache->reset for XCache
+*	Cache: loosen reset cache key pattern, [#1041](https://github.com/bcosca/fatfree/issues/1041)
+*	XCache: suffix reset only works if xcache.admin.enable_auth is disabled
+*	Added HTTP 103 as recently approved by the IETF
+*	LDAP changes to for AD flexibility [#227](https://github.com/bcosca/fatfree-core/issues/227)
+*	Hide debug trace from ajax errors when DEBUG=0 [#1071](https://github.com/bcosca/fatfree/issues/1071)
+*	fix View->render using potentially wrong cache entry
+
+3.6.2 (26 June 2017)
+*   Return a status code > 0 when dying on error [#220](https://github.com/bcosca/fatfree-core/issues/220)
+*   fix SMTP line width [#215](https://github.com/bcosca/fatfree-core/issues/215)
+*   Allow using a custom field for ldap user id checking [#217](https://github.com/bcosca/fatfree-core/issues/217)
+*   NEW: DB\SQL->exists: generic method to check if SQL table exists
+*   Pass handler to route handler and hooks [#1035](https://github.com/bcosca/fatfree/issues/1035)
+*   pass carriage return of multiline dictionary keys
+*   Better Web->slug customization
+*   fix incorrect header issue [#211](https://github.com/bcosca/fatfree-core/issues/211)
+*   fix schema issue on databases with case-sensitive collation, fixes [#209](https://github.com/bcosca/fatfree-core/issues/209)
+*   Add filter for deriving C-locale equivalent of a number
+*   Bug fix: @LANGUAGE remains unchanged after override
+*   abort: added Header pre-check
+*   Assemble URL after ONREROUTE
+*   Add reroute argument to skip script termination
+*   Invoke ONREROUTE after headers are sent
+*   SQLite switch to backtick as quote
+*   Bug fix: Incorrect timing in SQL query logs
+*   DB\SQL\Mapper: Cast return value of count to integer
+*   Patched $_SERVER['REQUEST_URI'] to ensure it contains a relative URI
+*   Tweak debug verbosity
+*   fix php carriage return issue in preview->build [#205](https://github.com/bcosca/fatfree-core/pull/205)
+*   fixed template string resolution [#205](https://github.com/bcosca/fatfree-core/pull/205)
+*   Fixed unexpected default seed on CACHE set [#1028](https://github.com/bcosca/fatfree/issues/1028)
+*   DB\SQL\Mapper: Optimized field escaping on options
+*   Optimize template conversion to PHP file
+
+3.6.1 (2 April 2017)
+*	NEW: Recaptcha plugin [#194](https://github.com/bcosca/fatfree-core/pull/194)
+*	NEW: MB variable for detecting multibyte support
+*	NEW: DB\SQL: Cache parsed schema for the TTL duration
+*	NEW: quick erase flag on Jig/Mongo/SQL mappers [#193](https://github.com/bcosca/fatfree-core/pull/193)
+*	NEW: Allow OPTIONS method to return a response body [#171](https://github.com/bcosca/fatfree-core/pull/171)
+*	NEW: Add support for Memcached (bcosca/fatfree#997)
+*	NEW: Rudimentary preload resource (HTTP2 server) support via template push()
+*	NEW: Add support for new MongoDB driver [#177](https://github.com/bcosca/fatfree-core/pull/177)
+*	Changed: template filter are all lowercase now
+*	Changed: Fix template lookup inconsistency: removed base dir from UI on render
+*	Changed: count() method now has an options argument [#192](https://github.com/bcosca/fatfree-core/pull/192)
+*	Changed: SMTP, Spit out error message if any
+*	\DB\SQL\Mapper: refactored row count strategy
+*	DB\SQL\Mapper: Allow non-scalar values to be assigned as mapper property
+*	DB\SQL::PARAM_FLOAT: remove cast to float (#106 and bcosca/fatfree#984) (#191)
+*	DB\SQL\mapper->erase: allow empty string
+*	DB\SQL\mapper->insert: fields reset after successful INSERT
+*	Add option to debounce Cursor->paginate subset [#195](https://github.com/bcosca/fatfree-core/pull/195)
+*	View: Don't delete sandboxed variables (#198)
+*	Preview: Optimize compilation of template expressions
+*	Preview: Use shorthand tag for direct rendering
+*	Preview->resolve(): new tweak to allow template persistence as option
+*	Web: Expose diacritics translation table
+*	SMTP: Enable logging of message body only when $log argument is 'verbose'
+*	SMTP: Convert headers to camelcase for consistency
+*	make cache seed more flexible, #164
+*	Improve trace details for DEBUG>2
+*	Enable config() to read from an array of input files
+*	Improved alias and reroute regex
+*	Make camelCase and snakeCase Unicode-aware
+*	format: Provision for optional whitespaces
+*	Break APCu-BC dependence
+*	Old PHP 5.3 cleanup
+*	Debug log must include HTTP query
+*	Recognize X-Forwarded-Port header (bcosca/fatfree#1002)
+*	Avoid use of deprecated mcrypt module
+*	Return only the client's IP when using the `X-Forwarded-For` header to deduce an IP address
+*	Remove orphan mutex locks on termination (#157)
+*	Use 80 as default port number to avoid issues when `$_SERVER['SERVER_PORT']` is not existing
+*	fread replaced with readfile() for simple send() usecase
+*	Bug fix: request URI with multiple leading slashes, #203
+*	Bug fix: Query generates wrong adhoc field value
+*	Bug fix: SMTP stream context issue #200
+*	Bug fix: child pseudo class selector in minify, bcosca/fatfree#1008
+*	Bug fix: "Undefined index: CLI" error (#197)
+*	Bug fix: cast Cache-Control expire time to int, bcosca/fatfree#1004
+*	Bug fix: Avoid issuance of multiple Content-Type headers for nested templates
+*	Bug fix: wildcard token issue with digits (bcosca/fatfree#996)
+*	Bug fix: afterupdate ignored when row does not change
+*	Bug fix: session handler read() method for PHP7 (need strict string) #184 #185
+*	Bug fix: reroute mocking in CLI mode (#183)
+*	Bug fix: Reroute authoritative relative references (#181)
+*	Bug fix: locales order and charset hyphen
+*	Bug fix: base stripped twice in router (#176)
+
 3.6.0 (19 November 2016)
 *	NEW: [cli] request type
 *	NEW: console-friendly CLI mode
@@ -89,6 +229,7 @@ CHANGELOG
 *	Bug fix: encode CLI parameters
 *	Bug fix: Close connection on abort explicitly (#162)
 *	Bug fix: Image->identicon, Avoid double-size sprite rotation (and possible segfault)
+*	Bug fix: Image->render and Image->dump, removed unnecessary 2nd argument (#146)
 *	Bug fix: Magic->offsetset, access property as array element (#147)
 *	Bug fix: multi-line custom template tag parsing (bcosca/fatfree#935)
 *	Bug fix: cache headers on errors (bcosca/fatfree#885)
