@@ -105,8 +105,15 @@ define([
         let ssoButtonElement = $('.' + config.ssoButtonClass);
         let cookieHintElement = $('#' + config.cookieHintId);
 
-        $(document).on('click', '.' + config.ssoButtonClass + ', .' + config.characterSelectionClass + ' a', function(){
+        $(document).on('click', '.' + config.characterSelectionClass + ' a', function(){
             $('.' + config.splashOverlayClass).showSplashOverlay();
+        });
+
+        $(document).on('click', '.' + config.ssoButtonClass , function(){
+            if(Util.getCookie('cookie') === '1'){
+                // ... cookies accepted no "confirm" shown
+                $('.' + config.splashOverlayClass).showSplashOverlay();
+            }
         });
 
         // cookie hint --------------------------------------------------------
