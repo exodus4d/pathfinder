@@ -542,7 +542,12 @@ class Route extends Controller\AccessController {
 
                         // systemIds exist and wer not removed before in filterJumpData()
                         if($systemSourceId && $systemTargetId){
-                            $connections[] = [$systemSourceId, $systemTargetId];
+                            $jumpNode = [$systemSourceId, $systemTargetId];
+                            // jumpNode must be unique for ESI,
+                            // ... there can be multiple connections between same systems in Pathfinder
+                            if(!in_array($jumpNode, $connections)){
+                                $connections[] = [$systemSourceId, $systemTargetId];
+                            }
                         }
                     }
                 }
