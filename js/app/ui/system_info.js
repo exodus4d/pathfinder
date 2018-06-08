@@ -400,7 +400,6 @@ define([
             descriptionTextareaClass: config.descriptionTextareaElementClass,
             systemNameClass: () => {
                 return (val, render) => {
-                    console.log(config.fontTriglivianClass)
                     return  render(val) === 'A' ? config.fontTriglivianClass : '';
                 };
             },
