@@ -40,7 +40,7 @@ define([
                 case 'alliance':
                     imagePath = Init.url.ccpImageServer + '/Alliance/' + data.id + '_32.png';
                     break;
-                case 'inventory_type':
+                case 'inventoryType':
                     imagePath = Init.url.ccpImageServer + '/Type/' + data.id + '_32.png';
                     break;
                 case 'render':
@@ -49,7 +49,7 @@ define([
                 case 'station':
                     iconName = 'fa-home';
                     break;
-                case 'solar_system':
+                case 'system':
                     iconName = 'fa-sun';
                     break;
             }
@@ -202,7 +202,7 @@ define([
                 // select changed
             }).on('select2:open', function(){
                 // clear selected system (e.g. default system)
-                // => improves usability (not necessary). There is a small "x" whe it could be cleared manually
+                // => improves usability (not necessary). There is a small "x" if field can be cleared manually
                 if(
                     options.maxSelectionLength === 1 &&
                     $(this).val() !== null
@@ -394,7 +394,7 @@ define([
                     // select changed
                 }).on('select2:open', function(){
                     // clear selected system (e.g. default system)
-                    // => improves usability (not necessary). There is a small "x" whe it could be cleared manually
+                    // => improves usability (not necessary). There is a small "x" if field can be cleared manually
                     if(
                         options.maxSelectionLength === 1 &&
                         $(this).val() !== null
@@ -441,7 +441,7 @@ define([
                                 children: groupData.types.map(mapChildren, {
                                     groupId: groupData.id,
                                     categoryId: categoryData.id,
-                                    categoryType: 'inventory_type',
+                                    categoryType: 'inventoryType',
                                 })
                             });
                         }
@@ -473,7 +473,7 @@ define([
                     }
                 }).on('select2:open', function(){
                     // clear selected system (e.g. default system)
-                    // => improves usability (not necessary). There is a small "x" whe it could be cleared manually
+                    // => improves usability (not necessary). There is a small "x" if field can be cleared manually
                     if(
                         options.maxSelectionLength === 1 &&
                         $(this).val() !== null

@@ -767,7 +767,16 @@ class CharacterModel extends BasicModel {
                             if( !empty($lookupUniverseIds) ){
                                 // get "more" information for some Ids (e.g. name)
                                 $universeData = self::getF3()->ccpClient->getUniverseNamesData($lookupUniverseIds, $additionalOptions);
-                                if( !empty($universeData) ){
+
+                                if( !empty($universeData) && !isset($universeData['error']) ){
+                                    // We expect max ONE system AND/OR station data, not an array of e.g. systems
+                                    if(!empty($universeData['system'])){
+                                        $universeData['system'] = reset($universeData['system']);
+                                    }
+                                    if(!empty($universeData['station'])){
+                                        $universeData['station'] = reset($universeData['station']);
+                                    }
+
                                     $logData = array_replace_recursive($logData, $universeData);
                                 }else{
                                     // this is important! universe data is a MUST HAVE!
