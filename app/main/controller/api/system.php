@@ -237,7 +237,9 @@ class System extends Controller\AccessController {
                         $defaultStatusId = $systemModel->statusId;
                     }
 
-                    $systemModel->statusId = isset($systemData['statusId']) ? $systemData['statusId'] : $defaultStatusId;
+                    if( !is_null($systemModel) ){
+                        $systemModel->statusId = isset($systemData['statusId']) ? $systemData['statusId'] : $defaultStatusId;
+                    }
 
                     // map is not changeable for a system! (security)
                     $systemData['mapId'] = $map;

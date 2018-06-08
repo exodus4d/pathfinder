@@ -354,6 +354,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       color: lighten($gray-light, 10%);
       font-size: 10px;
       line-height: 10px;
+      padding-right: 1px; // bring right aligned text in line with wh "effect" icon
       margin-bottom: 2px;
 
       [class^="pf-system-sec-"]{
