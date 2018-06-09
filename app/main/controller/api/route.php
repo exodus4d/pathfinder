@@ -412,7 +412,9 @@ class Route extends Controller\AccessController {
         // search root by ESI API
         $routeData = $this->searchRouteESI($systemFromId, $systemToId, $searchDepth, $mapIds, $filterData);
 
-        if( !empty($routeData['error']) ){
+        // Endpoint return http:404 in case no route find (e.g. from inside a wh)
+        // we thread that error "no route found" as a valid response! -> no fallback to custom search
+        if( !empty($routeData['error']) && strtolower($routeData['error']) !== 'no route found' ){
             // ESI route search has errors -> fallback to custom search implementation
             $routeData = $this->searchRouteCustom($systemFromId, $systemToId, $searchDepth, $mapIds, $filterData);
         }
