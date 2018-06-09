@@ -523,6 +523,11 @@ class Route extends Controller\AccessController {
         $routeData['searchType'] = 'esi';
 
         if($systemFromId && $systemToId){
+            // ESI route search can only handle 50 $connections (100 entries)
+            // we  want to add NON stargate connections ONLY for ESI route search
+            // because ESI will use them anyways!
+            $filterData['stargates'] = false;
+
             // prepare search data ------------------------------------------------------------------------------------
 
             // add map specific data
