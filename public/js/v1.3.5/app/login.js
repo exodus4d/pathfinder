@@ -276,6 +276,7 @@ define([
             titleProperty: 'imgTitle',
             transitionSpeed: 600,
             slideshowInterval: 5000,
+            preloadRange: 1,
             onopened: function () {
                 // Callback function executed when the Gallery has been initialized
                 // and the initialization transition has been completed.

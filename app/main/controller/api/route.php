@@ -22,6 +22,12 @@ class Route extends Controller\AccessController {
     const ROUTE_SEARCH_DEPTH_DEFAULT = 1;
 
     /**
+     * ESI route search can handle max 100 custom connections
+     * -> each connection has a A->B and B->A entry. So we have 50 "real connections"
+     */
+    const MAX_CONNECTION_COUNT  = 100;
+
+    /**
      * cache time for static jump data (e.g. K-Space stargates)
      * @var int
      */
@@ -424,7 +430,7 @@ class Route extends Controller\AccessController {
      * @return array
      * @throws \Exception\PathfinderException
      */
-    public function searchRouteCustom(int $systemFromId, int $systemToId, $searchDepth = 0, array $mapIds = [], array $filterData = []) : array {
+    private function searchRouteCustom(int $systemFromId, int $systemToId, $searchDepth = 0, array $mapIds = [], array $filterData = []) : array {
         // reset all previous set jump data
         $this->resetJumpData();
 
@@ -506,7 +512,7 @@ class Route extends Controller\AccessController {
      * @return array
      * @throws \Exception\PathfinderException
      */
-    public function searchRouteESI(int $systemFromId, int $systemToId, int $searchDepth = 0, array $mapIds = [], array $filterData = []) : array {
+    private function searchRouteESI(int $systemFromId, int $systemToId, int $searchDepth = 0, array $mapIds = [], array $filterData = []) : array {
         // reset all previous set jump data
         $this->resetJumpData();
 
@@ -547,6 +553,11 @@ class Route extends Controller\AccessController {
                             // ... there can be multiple connections between same systems in Pathfinder
                             if(!in_array($jumpNode, $connections)){
                                 $connections[] = [$systemSourceId, $systemTargetId];
+                                // check if connections limit is reached
+                                if(count($connections) >= self::MAX_CONNECTION_COUNT){
+                                    // ESI API limit for custom "connections"
+                                    break 2;
+                                }
                             }
                         }
                     }
