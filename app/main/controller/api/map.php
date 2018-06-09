@@ -213,11 +213,11 @@ class Map extends Controller\AccessController {
 
         // get SSO error messages that should be shown immediately ----------------------------------------------------
         // -> e.g. errors while character switch from previous HTTP requests
-        if( $f3->exists(Controller\Ccp\Sso::SESSION_KEY_SSO_ERROR) ){
+        if($f3->exists(Controller\Ccp\Sso::SESSION_KEY_SSO_ERROR, $message)){
             $ssoError = (object) [];
             $ssoError->type = 'error';
             $ssoError->title = 'Login failed';
-            $ssoError->message = $f3->get(Controller\Ccp\Sso::SESSION_KEY_SSO_ERROR);
+            $ssoError->message = $message;
             $return->error[] = $ssoError;
             $f3->clear(Controller\Ccp\Sso::SESSION_KEY_SSO_ERROR);
         }

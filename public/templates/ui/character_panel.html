@@ -13,16 +13,16 @@
 
     <div class="pf-character-image-wrapper {{#hasActiveSession}}pf-character-active{{/hasActiveSession}}">
         <div class="pf-character-select-image">
-            <img class="pf-character-image" src="https://image.eveonline.com/Character/{{ character.id }}_128.jpg" alt="{{ character.name }}"/>
+            <img class="pf-character-image" src="//image.eveonline.com/Character/{{ character.id }}_128.jpg" alt="{{ character.name }}"/>
 
             <div class="pf-character-info">
                 <div style="width: 128px">
                     {{#character.corporation}}
-                        <img src="https://image.eveonline.com/Corporation/{{ id }}_32.png"/>
+                        <img src="//image.eveonline.com/Corporation/{{ id }}_32.png"/>
                         <div class="pf-character-info-text"><small>{{ name }}</small></div>
                     {{/character.corporation}}
                     {{#character.alliance}}
-                        <img src="https://image.eveonline.com/Alliance/{{ id }}_32.png"/>
+                        <img src="//image.eveonline.com/Alliance/{{ id }}_32.png"/>
                         <div class="pf-character-info-text"><small>{{ name }}</small></div>
                     {{/character.alliance}}
                 </div>
