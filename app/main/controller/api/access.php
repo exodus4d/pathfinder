@@ -6,7 +6,8 @@
  * Time: 17:42
  */
 
-namespace controller\api;
+namespace Controller\Api;
+
 use Controller;
 use Model;
 
@@ -20,15 +21,14 @@ class Access extends Controller\AccessController {
      * @throws \Exception
      */
     public function search($f3, $params){
-
         $accessData = [];
 
         if(
-            array_key_exists( 'arg1', $params) &&
-            array_key_exists( 'arg2', $params)
+            array_key_exists('arg1', $params) &&
+            array_key_exists('arg2', $params)
         ){
-            $searchType = strtolower( $params['arg1'] );
-            $searchToken = strtolower( $params['arg2'] );
+            $searchType = strtolower($params['arg1']);
+            $searchToken = strtolower($params['arg2']);
 
             $accessModel = null;
             switch($searchType){
@@ -59,13 +59,9 @@ class Access extends Controller\AccessController {
                     }
                 }
             }
-
         }
 
         echo json_encode($accessData);
     }
-
-
-
 
 }

@@ -306,7 +306,7 @@
                                     <div class="col-sm-10">
                                         <div class="input-group" title="add/remove character">
                                             <label for="{{characterSelectId}}"></label>
-                                            <select id="{{characterSelectId}}"  name="mapCharacters[]" multiple="multiple">
+                                            <select id="{{characterSelectId}}" class="pf-select2" name="mapCharacters[]" multiple="multiple">
                                                 {{#accessCharacter}}
                                                 <option value="{{id}}" selected>{{name}}</option>
                                                 {{/accessCharacter}}
@@ -328,7 +328,7 @@
                                     <div class="col-sm-9">
                                         <div class="input-group" title="add/remove corporations">
                                             <label for="{{corporationSelectId}}"></label>
-                                            <select id="{{corporationSelectId}}" name="mapCorporations[]" multiple="multiple">
+                                            <select id="{{corporationSelectId}}" class="pf-select2" name="mapCorporations[]" multiple="multiple">
                                                 {{#accessCorporation}}
                                                 <option value="{{id}}" selected="selected" >{{name}}</option>
                                                 {{/accessCorporation}}
@@ -350,7 +350,7 @@
                                     <div class="col-sm-10">
                                         <div class="input-group" title="add/remove alliances">
                                             <label for="{{allianceSelectId}}"></label>
-                                            <select id="{{allianceSelectId}}" name="mapAlliances[]" multiple="multiple" >
+                                            <select id="{{allianceSelectId}}" class="pf-select2" name="mapAlliances[]" multiple="multiple" >
                                                 {{#accessAlliance}}
                                                 <option value="{{id}}" selected="selected" >{{name}}</option>
                                                 {{/accessAlliance}}

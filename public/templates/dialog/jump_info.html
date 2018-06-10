@@ -8,6 +8,7 @@
             <th class="text-right">Mass individual</th>
             <th class="text-right">Mass regeneration</th>
             <th class="text-right">Lifetime</th>
+            <th class="text-right">Sig strength</th>
         </tr>
         </thead>
         <tbody>
@@ -19,6 +20,9 @@
             <td class="text-right">{{#massValue}}{{massIndividual}}{{/massValue}}</td>
             <td class="text-right">{{#massValue}}{{massRegeneration}}{{/massValue}}</td>
             <td class="text-right">{{maxStableTime}}&nbsp;h</td>
+            <td class="text-right txt-color {{^signatureStrength}}txt-color-grayLight{{/signatureStrength}}" data-order="{{signatureStrength}}">
+                {{#sigStrengthValue}}{{signatureStrength}}{{/sigStrengthValue}}
+            </td>
         </tr>
         {{/wormholes}}
         </tbody>

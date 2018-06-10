@@ -67,9 +67,10 @@ define([
      */
     $.fn.destroyTimestampCounter = function(){
         return this.each(function(){
-            let element = $(this);
-            element.find('[data-counter="init"]').each(function(){
-                let interval = $(this).data('interval');
+            let parentElement = $(this);
+            parentElement.find('[data-counter="init"]').each(function(){
+                let element = $(this);
+                let interval = element.data('interval');
                 if(interval){
                     clearInterval(interval);
                     element.removeAttr('data-counter')

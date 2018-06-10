@@ -104,9 +104,14 @@ abstract class BasicModel extends \DB\Cortex {
      */
     const DEFAULT_CACHE_TTL                                     = 120;
 
+    /**
+     * default TTL for SQL query cache
+     */
+    const DEFAULT_SQL_TTL                                       = 3;
+
     const ERROR_INVALID_MODEL_CLASS                             = 'Model class (%s) not found';
 
-    public function __construct($db = NULL, $table = NULL, $fluid = NULL, $ttl = 0){
+    public function __construct($db = NULL, $table = NULL, $fluid = NULL, $ttl = self::DEFAULT_TTL){
 
         $this->addStaticFieldConfig();
 
@@ -314,6 +319,32 @@ abstract class BasicModel extends \DB\Cortex {
     }
 
     /**
+     * validates a model field to be a valid relational model
+     * @param $key
+     * @param $val
+     * @return bool
+     * @throws \Exception\ValidationException
+     */
+    protected function validate_notDry($key, $val): bool {
+        $valid = true;
+        if($colConf = $this->fieldConf[$key]){
+            if(isset($colConf['belongs-to-one'])){
+                if( (is_int($val) || ctype_digit($val)) && (int)$val > 0){
+                    $valid = true;
+                }elseif( is_a($val, $colConf['belongs-to-one']) && !$val->dry() ){
+                    $valid = true;
+                }else{
+                    $valid = false;
+                    $msg = 'Validation failed: "' . get_class($this) . '->' . $key . '" must be a valid instance of ' . $colConf['belongs-to-one'];
+                    $this->throwValidationException($key, $msg);
+                }
+            }
+        }
+
+        return $valid;
+    }
+
+    /**
      * get key for for all objects in this table
      * @return string
      */
@@ -464,7 +495,7 @@ abstract class BasicModel extends \DB\Cortex {
      * @param bool $isActive
      * @return \DB\Cortex
      */
-    public function getById(int $id, int $ttl = 3, bool $isActive = true){
+    public function getById(int $id, int $ttl = self::DEFAULT_SQL_TTL, bool $isActive = true){
         return $this->getByForeignKey('id', (int)$id, ['limit' => 1], $ttl, $isActive);
     }
 
@@ -614,14 +645,20 @@ abstract class BasicModel extends \DB\Cortex {
     /**
      * export and download table data as *.csv
      * this is primarily used for static tables
+     * @param array $fields
      * @return bool
      */
-    public function exportData(){
+    public function exportData(array $fields = []){
         $status = false;
 
         if(static::$enableDataExport){
             $tableModifier = static::getTableModifier();
             $headers = $tableModifier->getCols();
+
+            if($fields){
+                // columns to export -> reIndex keys
+                $headers = array_values(array_intersect($headers, $fields));
+            }
 
             // just get the records with existing columns
             // -> no "virtual" fields or "new" columns
@@ -654,14 +691,16 @@ abstract class BasicModel extends \DB\Cortex {
 
     /**
      * import table data from a *.csv file
-     * @return bool
+     * @return array|bool
      */
     public function importData(){
         $status = false;
 
         // rtrim(); for arrays (removes empty values) from the end
-        $rtrim = function($array = []){
-          return array_slice($array, 0, key(array_reverse(array_diff($array, ['']), 1))+1);
+        $rtrim = function($array = [], $lengthMin = false){
+            $length = key(array_reverse(array_diff($array, ['']), 1))+1;
+            $length = $length < $lengthMin ? $lengthMin : $length;
+            return array_slice($array, 0, $length);
         };
 
         if(static::$enableDataImport){
@@ -675,7 +714,7 @@ abstract class BasicModel extends \DB\Cortex {
                 if(count($keys) > 0){
                     $tableData = [];
                     while (!feof($handle)) {
-                        $tableData[] = array_combine($keys, $rtrim(fgetcsv($handle, 0, ';')));
+                        $tableData[] = array_combine($keys, $rtrim(fgetcsv($handle, 0, ';'), count($keys)));
                     }
                     // import row data
                     $status = $this->importStaticData($tableData);
@@ -699,20 +738,22 @@ abstract class BasicModel extends \DB\Cortex {
      */
     protected function importStaticData($tableData = []){
         $rowIDs = [];
-
         $addedCount = 0;
         $updatedCount = 0;
         $deletedCount = 0;
 
+        $tableModifier = static::getTableModifier();
+        $fields = $tableModifier->getCols();
+
         foreach($tableData as $rowData){
             // search for existing record and update columns
-            $this->getById($rowData['id']);
+            $this->getById($rowData['id'], 0);
             if($this->dry()){
                 $addedCount++;
             }else{
                 $updatedCount++;
             }
-            $this->copyfrom($rowData);
+            $this->copyfrom($rowData, $fields);
             $this->save();
             $rowIDs[] = $this->id;
             $this->reset();
@@ -761,6 +802,28 @@ abstract class BasicModel extends \DB\Cortex {
      */
     public function getErrors(): array {
         return $this->validationError;
+    }
+
+    /**
+     * checks whether data is outdated and should be refreshed
+     * @return bool
+     */
+    protected function isOutdated(): bool {
+        $outdated = true;
+        if(!$this->dry()){
+            $timezone = $this->getF3()->get('getTimeZone')();
+            $currentTime = new \DateTime('now', $timezone);
+            $updateTime = \DateTime::createFromFormat(
+                'Y-m-d H:i:s',
+                $this->updated,
+                $timezone
+            );
+            $interval = $updateTime->diff($currentTime);
+            if($interval->days < Universe\BasicUniverseModel::CACHE_MAX_DAYS){
+                $outdated = false;
+            }
+        }
+        return $outdated;
     }
 
     public function save(){
@@ -816,6 +879,21 @@ abstract class BasicModel extends \DB\Cortex {
      */
     public static function getF3(){
         return \Base::instance();
+    }
+
+    /**
+     * stores data direct into the Cache backend (e.g. Redis)
+     * $f3->set() used the same code. The difference is, that $f3->set()
+     * also loads data into the Hive.
+     * This can result in high RAM usage if a great number of key->values should be stored in Cache
+     * (like the search index for system data)
+     * @param string $key
+     * @param $data
+     * @param int $ttl
+     */
+    public static function setCacheValue(string $key, $data, int $ttl = 0){
+        $cache = \Cache::instance();
+        $cache->set(self::getF3()->hash($key).'.var', $data, $ttl);
     }
 
     /**

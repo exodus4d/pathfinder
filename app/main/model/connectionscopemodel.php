@@ -56,6 +56,12 @@ class ConnectionScopeModel extends BasicModel{
             'name' => 'jumpbridge',
             'label' => 'jumpbridge',
             'connectorDefinition' => '[ "Straight", { "stub": [5, 5], "gap": 0 } ]'
+        ],
+        [
+            'id' => 4,
+            'name' => 'abyssal',
+            'label' => 'abyssal',
+            'connectorDefinition' => '[ "Straight", { "stub": [5, 5], "gap": 0 } ]'
         ]
 
     ];

@@ -105,6 +105,17 @@ define([
         let ssoButtonElement = $('.' + config.ssoButtonClass);
         let cookieHintElement = $('#' + config.cookieHintId);
 
+        $(document).on('click', '.' + config.characterSelectionClass + ' a', function(){
+            $('.' + config.splashOverlayClass).showSplashOverlay();
+        });
+
+        $(document).on('click', '.' + config.ssoButtonClass , function(){
+            if(Util.getCookie('cookie') === '1'){
+                // ... cookies accepted no "confirm" shown
+                $('.' + config.splashOverlayClass).showSplashOverlay();
+            }
+        });
+
         // cookie hint --------------------------------------------------------
         cookieHintElement.find('.btn-success').on('click', function(){
             setAcceptCookie();
@@ -265,6 +276,7 @@ define([
             titleProperty: 'imgTitle',
             transitionSpeed: 600,
             slideshowInterval: 5000,
+            preloadRange: 1,
             onopened: function () {
                 // Callback function executed when the Gallery has been initialized
                 // and the initialization transition has been completed.
@@ -616,6 +628,7 @@ define([
                 case 'UNKNOWN':
                     label = 'ERROR';
                     break;
+                case 'CHARACTER':
                 case 'CORPORATION':
                 case 'ALLIANCE':
                     label = 'INVALID';
@@ -681,11 +694,6 @@ define([
 
                         let content = Mustache.render(template, data);
                         this.characterElement.html(content);
-
-                        // lock character selection on click (prevent click spamming)
-                        this.characterElement.find('a').on('click', function(){
-                            $('.' + config.splashOverlayClass).showSplashOverlay();
-                        });
 
                         // show character panel (animation settings)
                         initCharacterAnimation(this.characterElement.find('.' + config.characterImageWrapperClass));

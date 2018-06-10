@@ -209,7 +209,8 @@ select:active, select:hover {
 .dataTable{
   th{
     &.pf-table-image-cell,
-    &.pf-table-image-small-cell{
+    &.pf-table-image-small-cell,
+    &.pf-table-image-smaller-cell{
       // no padding for image content
       padding-left: 0 !important;
       padding-right: 0 !important;
@@ -223,8 +224,17 @@ select:active, select:hover {
     }
   }
 
+  tr.group{
+    background-color: rgba($gray-darker, 0.4);
+  }
+
   // "special" column styles
   td{
+
+    > .fa-circle{
+      font-size: 9px !important; // should not be "so big" (10px default)
+    }
+
     &.pf-table-link-cell{
       cursor: pointer;
       @extend .txt-color;
@@ -254,7 +264,6 @@ select:active, select:hover {
     }
 
     &.pf-table-image-cell{
-      // no padding for image content
       padding: 0 !important;
       image-rendering: -webkit-optimize-contrast;
 
@@ -269,6 +278,16 @@ select:active, select:hover {
     &.pf-table-image-small-cell{
       img{
         width: 24px; // smaller image (default 32)
+        // overwrite "default" border for image cells
+        border-left: 1px solid transparent;
+        border-right: 1px solid transparent;
+      }
+    }
+
+    &.pf-table-image-smaller-cell{
+      padding: 0 !important;
+      img{
+        width: 25px; // smaller image (default 32)
         // overwrite "default" border for image cells
         border-left: 1px solid transparent;
         border-right: 1px solid transparent;
@@ -676,6 +695,7 @@ table{
 .pf-system-effect{
   display: none;      // if effect is active it will be overwritten
   color: $gray-lighter;
+  cursor: help;
 }
 
 .pf-system-effect-magnetar{
@@ -813,6 +833,10 @@ table{
   color: $indigo;
 }
 
+.pf-system-sec-abyssal{
+  color: $pink;
+}
+
 // system status ==================================================================================
 
 .pf-system-status-friendly{
@@ -909,6 +933,18 @@ table{
     );
   }
 
+  &.pf-map-connection-abyssal{
+    background-color: darken($pink-darker, 8%);
+    border-color: $gray;
+    background: repeating-linear-gradient(
+                    to right,
+                    darken($pink-darker, 8%),
+                    darken($pink-darker, 8%) 5px,
+                    $gray 5px,
+                    $gray 10px
+    );
+  }
+
   &.pf-map-connection-wh-eol{
     border-color: $pink-dark;
   }
@@ -955,6 +991,18 @@ table{
 
 }
 
+// structure status ===============================================================================
+.pf-structure-status-unknown{
+  color: $teal-lighter;
+}
+
+.pf-structure-status-online{
+  color: $green;
+}
+
+.pf-structure-status-offline{
+  color: $red-darker;
+}
 
 // global tooltip settings ========================================================================
 .tooltip-inner{
@@ -994,84 +1042,6 @@ table{
 
 .tooltip.left .tooltip-arrow{
   border-left-color: $gray-light;
-}
-
-// global popover settings ========================================================================
-.popover{
-  // on top of modals even if they are attached to <body>
-  z-index: $zindex-modal + 10;
-  // give large popups more space..
-  max-width: 600px;
-
-  // image in popover
-  img{
-    @include border-radius(5px);
-  }
-
-  h4{
-    color: $gray-lighter;
-  }
-
-  // table in pop popover
-  table{
-    color: $gray-lighter;
-    font-family: $font-family-bold;
-    line-height: 16px;
-    font-size: 11px;
-
-    td{
-      padding: 0 5px;
-      vertical-align: middle !important;
-    }
-  }
-}
-
-// specific "Pathfinder" Popover settings ---------------------------------------------------------
-.pf-popover{
-  display: initial;
-
-  .popover-content{
-    padding: 0; // overwrite default popover padding
-  }
-
-  h6{
-    white-space: nowrap;
-    margin-right: 50px;
-    @include clearfix();
-  }
-
-  .well{
-    margin-top: 7px;
-    margin-bottom: 10px;
-  }
-
-  .list-group{
-    margin: 0;
-
-    .list-group-item{
-      color: $gray-dark;
-
-      &:hover{
-        color: $gray-darkest;
-      }
-
-      &.disabled{
-        background-color: $gray;
-        color: $gray-light;
-        cursor: not-allowed;
-      }
-
-      img{
-        width: 30px;
-        margin: -8px 10px -6px -8px;
-        border-radius: 0; // overwrite "global"
-      }
-
-      i{
-        margin-right: 20px;
-      }
-    }
-  }
 }
 
 // elements that are popover "triggers" (root elements) (e.g. open on right click)-----------------

@@ -70,7 +70,6 @@ class Map extends Controller\AccessController {
 
             // default map type config
             $mapsDefaultConfig = Config::getMapsDefaultConfig();
-
             $mapTypeData = [];
             foreach((array)$rows as $rowData){
                 $data = [
@@ -81,7 +80,6 @@ class Map extends Controller\AccessController {
                     'defaultConfig' => $mapsDefaultConfig[$rowData->name]
                 ];
                 $mapTypeData[$rowData->name] = $data;
-
             }
             $return->mapTypes = $mapTypeData;
 
@@ -143,8 +141,10 @@ class Map extends Controller\AccessController {
             $wormholes = Model\BasicModel::getNew('WormholeModel');
             $rows = $wormholes->find('id > 0', null, $expireTimeSQL);
             $wormholesData = [];
-            foreach((array)$rows as $rowData){
-                $wormholesData[$rowData->name] = $rowData->getData();
+            if($rows){
+                foreach((array)$rows as $rowData){
+                    $wormholesData[$rowData->name] = $rowData->getData();
+                }
             }
             $return->wormholes = $wormholesData;
 
@@ -190,6 +190,17 @@ class Map extends Controller\AccessController {
                 'status' => (bool)Config::getPathfinderData('discord.status')
             ];
 
+            // structure status ---------------------------------------------------------------------------------------
+            $structureStatus = Model\StructureStatusModel::getAll();
+            $structureData = [];
+            foreach($structureStatus as $status){
+                $structureData[$status->_id] = $status->getData();
+            }
+            $return->structureStatus = $structureData;
+
+            // universe category data ---------------------------------------------------------------------------------
+            $return->universeCategories = [65 => Model\Universe\BasicUniverseModel::getNew('CategoryModel')->getById(65)->getData()];
+
             $f3->set(self::CACHE_KEY_INIT, $return, $expireTimeCache );
         }
 
@@ -202,11 +213,11 @@ class Map extends Controller\AccessController {
 
         // get SSO error messages that should be shown immediately ----------------------------------------------------
         // -> e.g. errors while character switch from previous HTTP requests
-        if( $f3->exists(Controller\Ccp\Sso::SESSION_KEY_SSO_ERROR) ){
+        if($f3->exists(Controller\Ccp\Sso::SESSION_KEY_SSO_ERROR, $message)){
             $ssoError = (object) [];
             $ssoError->type = 'error';
             $ssoError->title = 'Login failed';
-            $ssoError->message = $f3->get(Controller\Ccp\Sso::SESSION_KEY_SSO_ERROR);
+            $ssoError->message = $message;
             $return->error[] = $ssoError;
             $f3->clear(Controller\Ccp\Sso::SESSION_KEY_SSO_ERROR);
         }
@@ -888,7 +899,7 @@ class Map extends Controller\AccessController {
 
 
     /**
-     *
+     * add new map connection based on current $character location
      * @param Model\CharacterModel $character
      * @param Model\MapModel $map
      * @return Model\MapModel
@@ -938,7 +949,7 @@ class Map extends Controller\AccessController {
                     $targetSystem = $map->getSystemByCCPId( $targetSystemId, ['active' => 1]);
                 }
 
-                // if systems don´t already exists on map -> get "blank" systems
+                // if systems don´t already exists on map -> get "blank" system
                 // -> required for system type check (e.g. wormhole, k-space)
                 if(
                     !$sourceSystem &&
@@ -960,126 +971,133 @@ class Map extends Controller\AccessController {
                     $targetSystem = $map->getNewSystem($targetSystemId);
                 }
 
-                $addSourceSystem = false;
-                $addTargetSystem = false;
-                $addConnection = false;
+                // make sure we have system objects to work with
+                // -> in case SDE does not have system they are null -> we can´t do anything
+                if(
+                    $sourceSystem &&
+                    $targetSystem
+                ){
+                    $addSourceSystem = false;
+                    $addTargetSystem = false;
+                    $addConnection = false;
 
-                switch($mapScope->name){
-                    case 'all':
-                        if($sameSystem){
-                            $addSourceSystem = true;
-                        }else{
-                            $addSourceSystem = true;
-                            $addTargetSystem = true;
-                            $addConnection = true;
-                        }
-                        break;
-                    case 'k-space':
-                        if($sameSystem){
-                            if( !$sourceSystem->isWormhole() ){
+                    switch($mapScope->name){
+                        case 'all':
+                            if($sameSystem){
                                 $addSourceSystem = true;
-                            }
-                        }elseif(
-                            !$sourceSystem->isWormhole() ||
-                            !$targetSystem->isWormhole()
-                        ){
-                            $addSourceSystem = true;
-                            $addTargetSystem = true;
-                            $addConnection = true;
-                        }
-                        break;
-                    case 'wh':
-                    default:
-                        if($sameSystem){
-                            if( $sourceSystem->isWormhole() ){
-                                $addSourceSystem = true;
-                            }
-                        }elseif(
-                            $sourceSystem->isWormhole() ||
-                            $targetSystem->isWormhole()
-                        ){
-                            $addSourceSystem = true;
-                            $addTargetSystem = true;
-                            $addConnection = true;
-                        }elseif(
-                            !$sourceSystem->isWormhole() &&
-                            !$targetSystem->isWormhole()
-                        ){
-                            // check distance between systems (in jumps)
-                            // -> if > 1 it is !very likely! a wormhole
-                            $routeController = new Route();
-                            $route = $routeController->searchRoute($sourceSystem->systemId, $targetSystem->systemId, 1);
-
-                            if( !$route['routePossible'] ){
+                            }else{
                                 $addSourceSystem = true;
                                 $addTargetSystem = true;
                                 $addConnection = true;
                             }
-                        }
-                        break;
-                }
+                            break;
+                        case 'k-space':
+                            if($sameSystem){
+                                if( !$sourceSystem->isWormhole() ){
+                                    $addSourceSystem = true;
+                                }
+                            }elseif(
+                                !$sourceSystem->isWormhole() ||
+                                !$targetSystem->isWormhole()
+                            ){
+                                $addSourceSystem = true;
+                                $addTargetSystem = true;
+                                $addConnection = true;
+                            }
+                            break;
+                        case 'wh':
+                        default:
+                            if($sameSystem){
+                                if( $sourceSystem->isWormhole() ){
+                                    $addSourceSystem = true;
+                                }
+                            }elseif(
+                                $sourceSystem->isWormhole() ||
+                                $targetSystem->isWormhole()
+                            ){
+                                $addSourceSystem = true;
+                                $addTargetSystem = true;
+                                $addConnection = true;
+                            }elseif(
+                                !$sourceSystem->isWormhole() &&
+                                !$targetSystem->isWormhole()
+                            ){
+                                // check distance between systems (in jumps)
+                                // -> if > 1 it is !very likely! a wormhole
+                                $routeController = new Route();
+                                $route = $routeController->searchRoute($sourceSystem->systemId, $targetSystem->systemId, 1);
 
-                // save source system ---------------------------------------------------------------------------------
-                if(
-                    $addSourceSystem &&
-                    $sourceSystem &&
-                    !$sourceExists
-                ){
-                    $sourceSystem = $map->saveSystem($sourceSystem, $character, $systemPosX, $systemPosY);
-                    // get updated maps object
-                    if($sourceSystem){
-                        $map = $sourceSystem->mapId;
-                        $sourceExists = true;
-                        $mapDataChanged = true;
-                        // increase system position (prevent overlapping)
-                        $systemPosX = $sourceSystem->posX + $systemOffsetX;
-                        $systemPosY = $sourceSystem->posY + $systemOffsetY;
+                                if( !$route['routePossible'] ){
+                                    $addSourceSystem = true;
+                                    $addTargetSystem = true;
+                                    $addConnection = true;
+                                }
+                            }
+                            break;
                     }
-                }
 
-                // save target system ---------------------------------------------------------------------------------
-                if(
-                    $addTargetSystem &&
-                    $targetSystem &&
-                    !$targetExists
-                ){
-                    $targetSystem = $map->saveSystem($targetSystem, $character, $systemPosX, $systemPosY);
-                    // get updated maps object
-                    if($targetSystem){
-                        $map = $targetSystem->mapId;
-                        $mapDataChanged = true;
-                        $targetExists = true;
-                    }
-                }
-
-                if(
-                    $sourceExists &&
-                    $targetExists &&
-                    $sourceSystem &&
-                    $targetSystem
-                ){
-                    $connection = $map->searchConnection( $sourceSystem, $targetSystem);
-
-                    // save connection --------------------------------------------------------------------------------
+                    // save source system ---------------------------------------------------------------------------------
                     if(
-                        $addConnection &&
-                        !$connection
+                        $addSourceSystem &&
+                        $sourceSystem &&
+                        !$sourceExists
                     ){
-                        $connection = $map->getNewConnection($sourceSystem, $targetSystem);
-                        $connection = $map->saveConnection($connection, $character);
+                        $sourceSystem = $map->saveSystem($sourceSystem, $character, $systemPosX, $systemPosY);
                         // get updated maps object
-                        if($connection){
-                            $map = $connection->mapId;
+                        if($sourceSystem){
+                            $map = $sourceSystem->mapId;
+                            $sourceExists = true;
                             $mapDataChanged = true;
+                            // increase system position (prevent overlapping)
+                            $systemPosX = $sourceSystem->posX + $systemOffsetX;
+                            $systemPosY = $sourceSystem->posY + $systemOffsetY;
                         }
                     }
 
-                    // log jump mass ----------------------------------------------------------------------------------
+                    // save target system ---------------------------------------------------------------------------------
                     if(
-                        $connection &&
-                        $connection->isWormhole()
+                        $addTargetSystem &&
+                        $targetSystem &&
+                        !$targetExists
                     ){
-                        $connection->logMass($log);
+                        $targetSystem = $map->saveSystem($targetSystem, $character, $systemPosX, $systemPosY);
+                        // get updated maps object
+                        if($targetSystem){
+                            $map = $targetSystem->mapId;
+                            $mapDataChanged = true;
+                            $targetExists = true;
+                        }
+                    }
+
+                    if(
+                        $sourceExists &&
+                        $targetExists &&
+                        $sourceSystem &&
+                        $targetSystem
+                    ){
+                        $connection = $map->searchConnection( $sourceSystem, $targetSystem);
+
+                        // save connection --------------------------------------------------------------------------------
+                        if(
+                            $addConnection &&
+                            !$connection
+                        ){
+                            $connection = $map->getNewConnection($sourceSystem, $targetSystem);
+                            $connection = $map->saveConnection($connection, $character);
+                            // get updated maps object
+                            if($connection){
+                                $map = $connection->mapId;
+                                $mapDataChanged = true;
+                            }
+                        }
+
+                        // log jump mass ----------------------------------------------------------------------------------
+                        if(
+                            $connection &&
+                            $connection->isWormhole()
+                        ){
+                            $connection->logMass($log);
+                        }
                     }
                 }
             }

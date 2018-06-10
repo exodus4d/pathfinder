@@ -1,0 +1,75 @@
+<div id="{{id}}">
+    <form  role="form" class="form-horizontal">
+
+        <div class="row">
+            <div class="col-xs-6 ">
+                <div class="form-group">
+                    <label for="form_name" class="col-sm-2 control-label">Name</label>
+                    <div class="col-sm-10">
+                        <input name="name" type="text" class="form-control" id="form_name" value="{{structureData.name}}" data-error="Name required" data-minlength="3" data-minlength-error="Min. of 3 characters" required>
+                        <span class="note help-block with-errors"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-6">
+                <div class="form-group">
+                    <label for="{{statusSelectId}}" class="col-sm-4 control-label">Status</label>
+                    <div class="col-sm-8">
+                        <select name="statusId" id="{{statusSelectId}}" class="form-control pf-select2">
+                            {{#structureStatus}}
+                            <option value="{{id}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+                            {{/structureStatus}}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-2 control-label" for="{{typeSelectId}}">Type</label>
+                    <div class="col-sm-10">
+                        <div class="input-group">
+                            <label for="{{typeSelectId}}"></label>
+                            <select id="{{typeSelectId}}" class="pf-select2" name="structureId"></select>
+                            <span class="note help-block with-errors"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-2 control-label" for="{{corporationSelectId}}">Owner</label>
+                    <div class="col-sm-10">
+                        <div class="input-group">
+                            <label for="{{corporationSelectId}}"></label>
+                            <select id="{{corporationSelectId}}" class="pf-select2" name="corporationId">
+                                {{#structureData.owner}}
+                                <option value="{{id}}" selected="selected">{{name}}</option>
+                                {{/structureData.owner}}
+                            </select>
+                            <span class="note help-block with-errors"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xs-8 col-sm-12">
+                <div class="form-group">
+                    <label for="{{descriptionTextareaId}}" class="col-sm-1 control-label">Note
+                        <kbd class="{{descriptionTextareaCharCounter}} txt-color text-right">&nbsp;</kbd>
+                    </label>
+                    <div class="col-sm-6">
+                        <textarea id="{{descriptionTextareaId}}" name="description" class="form-control" maxlength="{{maxDescriptionLength}}" rows="3">{{structureData.description}}</textarea>
+                        <div class="note help-block with-errors"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </form>
+</div>

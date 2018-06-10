@@ -15,28 +15,111 @@ define([
     };
 
     /**
+     * send ajax request for index build
+     * @param url
+     * @param requestData
+     * @param context
+     * @param callback
+     */
+    let sendRequest = (url, requestData, context, callback) => {
+        if(requestData.count === 0){
+            // first iteration
+            context.target.button('loading');
+        }
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            dataType: 'json',
+            data: requestData,
+            context: context
+        }).done(function(data){
+            callback(this, data);
+        }).fail(function( jqXHR, status, error) {
+            let reason = status + ' ' + error;
+            Util.showNotify({title: jqXHR.status + ': Failed. Please retry', text: reason, type: 'warning'});
+            this.target.button('reset');
+        });
+    };
+
+    /**
      * set page observer
      */
     let setPageObserver = () => {
         let body = $('body');
 
-        // collapse ---------------------------------------
+        // collapse ---------------------------------------------------------------------------------------------------
         body.find('[data-toggle="collapse"]').css({cursor: 'pointer'}).on('click', function(){
             $(this).find('.pf-animate-rotate').toggleClass('right');
         });
 
-        // buttons ----------------------------------------
+        // buttons ----------------------------------------------------------------------------------------------------
         // exclude "download" && "navigation" buttons
-        body.find('.btn').not('.navbar-fixed-bottom .btn').not('[href^="?export"]').on('click', function(e){
+        body.find('.btn')
+            .not('.navbar-fixed-bottom .btn')
+            .not('[data-action="clearIndex"]')
+            .not('[data-action="buildIndex"]')
+            .not('[href^="?export"]').on('click', function(e){
             $('.' + config.splashOverlayClass).showSplashOverlay();
         });
 
-        // tooltips ---------------------------------------
+        // build/clear index buttons ----------------------------------------------------------------------------------
+        // clear index buttons ----------------------------------------------------------------------------------------
+        body.find('.btn[data-action="buildIndex"], .btn[data-action="clearIndex"]').on('click', function(e){
+            e.preventDefault();
+            let element = $(this);
+            let url = '/api/setup/' + element.attr('data-action');
+            sendRequest(url, {
+                type: element.attr('data-type'),
+                count: 0
+            }, {
+                target: element,
+                url: url
+            }, updateIndexCount);
+        });
+
+        // tooltips ---------------------------------------------------------------------------------------------------
         body.initTooltips();
 
         // change url (remove logout parameter)
         if (history.pushState) {
             history.pushState({}, '', location.protocol + '//' + location.host + location.pathname);
+        }
+    };
+
+    /**
+     * update data count label for "indexed data"
+     * @param context
+     * @param responseData
+     */
+    let updateIndexCount = (context, responseData) => {
+        let countElement = context.target.closest('.row').children().eq(1).find('kbd');
+        countElement.text(responseData.countBuildAll + '/' + responseData.countAll);
+        countElement.removeClass('txt-color-success txt-color-danger txt-color-warning');
+        if(responseData.countBuildAll >=responseData.countAll){
+            countElement.addClass('txt-color-success');
+        }else if(responseData.countBuildAll > 0){
+            countElement.addClass('txt-color-warning');
+        }else{
+            countElement.addClass('txt-color-danger');
+        }
+
+        context.target.find('.btn-progress').html('&nbsp;&nbsp;' + responseData.progress + '%').css('width', responseData.progress + '%');
+
+        // send next chunk of rows -> import only
+        if(
+            context.target.attr('data-action') === 'buildIndex' &&
+            responseData.countBuildAll < responseData.countAll
+        ){
+            sendRequest(context.url, {
+                type: responseData.type,
+                count: responseData.count
+            }, {
+                target: context.target,
+                url: context.url
+            }, updateIndexCount);
+        }else{
+            context.target.button('reset');
         }
     };
 
@@ -165,10 +248,10 @@ define([
      */
     $(function(){
 
-        // show app information in browser console --------
+        // show app information in browser console --------------------------------------------------------------------
         Util.showVersionInfo();
 
-        // hide splash loading animation ------------------
+        // hide splash loading animation ------------------------------------------------------------------------------
         $('.' + config.splashOverlayClass).hideSplashOverlay();
 
         setPageObserver();

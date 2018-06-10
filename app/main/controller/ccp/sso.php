@@ -42,6 +42,7 @@ class Sso extends Api\User{
     const ERROR_VERIFY_CHARACTER                    = 'Unable to verify character data. %s';
     const ERROR_LOGIN_FAILED                        = 'Failed authentication due to technical problems: %s';
     const ERROR_CHARACTER_VERIFICATION              = 'Character verification failed by SSP SSO';
+    const ERROR_CHARACTER_DATA                      = 'Failed to load characterData from ESI';
     const ERROR_CHARACTER_FORBIDDEN                 = 'Character "%s" is not authorized to log in. Reason: %s';
     const ERROR_SERVICE_TIMEOUT                     = 'CCP SSO service timeout (%ss). Try again later';
     const ERROR_COOKIE_LOGIN                        = 'Login from Cookie failed. Please retry by CCP SSO';
@@ -112,7 +113,7 @@ class Sso extends Api\User{
                             $this->setLoginCookie($character);
 
                             // route to "map"
-                            $f3->reroute(['map']);
+                            $f3->reroute(['map', ['*' => '']]);
                         }
                     }
                 }
@@ -207,7 +208,7 @@ class Sso extends Api\User{
                         // verification available data. Data is needed for "ownerHash" check
 
                         // get character data from ESI
-                        $characterData = $this->getCharacterData($verificationCharacterData->CharacterID);
+                        $characterData = $this->getCharacterData((int)$verificationCharacterData->CharacterID);
 
                         if( isset($characterData->character) ){
                             // add "ownerHash" and SSO tokens
@@ -269,7 +270,7 @@ class Sso extends Api\User{
                                         if($rootAlias == 'admin'){
                                             $f3->reroute([$rootAlias, ['*' => '']]);
                                         }else{
-                                            $f3->reroute(['map']);
+                                            $f3->reroute(['map', ['*' => '']]);
                                         }
                                     }else{
                                         $f3->set(self::SESSION_KEY_SSO_ERROR, sprintf(self::ERROR_LOGIN_FAILED, $characterModel->name));
@@ -281,6 +282,9 @@ class Sso extends Api\User{
                                     );
                                 }
                             }
+                        }else{
+                            // failed to load characterData from API
+                            $f3->set(self::SESSION_KEY_SSO_ERROR, self::ERROR_CHARACTER_DATA);
                         }
                     }else{
                         // failed to verify character by CCP SSO
@@ -325,7 +329,7 @@ class Sso extends Api\User{
             $loginCheck = $this->loginByCharacter($character);
             if($loginCheck){
                 // route to "map"
-                $f3->reroute(['map']);
+                $f3->reroute(['map', ['*' => '']]);
             }
         }
 
@@ -494,67 +498,44 @@ class Sso extends Api\User{
     /**
      * get character data
      * @param int $characterId
-     * @return object
+     * @return \stdClass
      * @throws \Exception
      */
-    public function getCharacterData($characterId){
+    public function getCharacterData(int $characterId) : \stdClass{
         $characterData = (object) [];
 
-        $characterDataBasic =  $this->getF3()->ccpClient->getCharacterData($characterId);
+        if($characterId){
+            $characterDataBasic =  $this->getF3()->ccpClient->getCharacterData($characterId);
 
-        if( !empty($characterDataBasic) ){
-            // remove some "unwanted" data -> not relevant for Pathfinder
-            $characterData->character = array_filter($characterDataBasic, function($key){
-                return in_array($key, ['id', 'name', 'securityStatus']);
-            }, ARRAY_FILTER_USE_KEY);
+            if( !empty($characterDataBasic) ){
+                // remove some "unwanted" data -> not relevant for Pathfinder
+                $characterData->character = array_filter($characterDataBasic, function($key){
+                    return in_array($key, ['id', 'name', 'securityStatus']);
+                }, ARRAY_FILTER_USE_KEY);
 
-            $characterData->corporation = null;
-            $characterData->alliance = null;
+                $characterData->corporation = null;
+                $characterData->alliance = null;
 
-            if(isset($characterDataBasic['corporation'])){
-                $corporationId = (int)$characterDataBasic['corporation']['id'];
-
-                /**
-                 * @var Model\CorporationModel $corporationModel
-                 */
-                $corporationModel = Model\BasicModel::getNew('CorporationModel');
-                $corporationModel->getById($corporationId, 0);
-
-                if($corporationModel->dry()){
-                    // request corporation data
-                    $corporationData = $this->getF3()->ccpClient->getCorporationData($corporationId);
-
-                    if( !empty($corporationData) ){
-                        // check for NPC corporation
-                        $corporationData['isNPC'] = $this->getF3()->ccpClient->isNpcCorporation($corporationId);
-
-                        $corporationModel->copyfrom($corporationData, ['id', 'name', 'isNPC']);
-                        $characterData->corporation = $corporationModel->save();
+                if($corporationId = (int)$characterDataBasic['corporation']['id']){
+                    /**
+                     * @var Model\CorporationModel $corporation
+                     */
+                    $corporation = Model\BasicModel::getNew('CorporationModel');
+                    $corporation->getById($corporationId, 0);
+                    if( !$corporation->dry() ){
+                        $characterData->corporation = $corporation;
                     }
-                }else{
-                    $characterData->corporation = $corporationModel;
                 }
-            }
 
-            if(isset($characterDataBasic['alliance'])){
-                $allianceId = (int)$characterDataBasic['alliance']['id'];
-
-                /**
-                 * @var Model\AllianceModel $allianceModel
-                 */
-                $allianceModel = Model\BasicModel::getNew('AllianceModel');
-                $allianceModel->getById($allianceId, 0);
-
-                if($allianceModel->dry()){
-                    // request alliance data
-                    $allianceData = $this->getF3()->ccpClient->getAllianceData($allianceId);
-
-                    if( !empty($allianceData) ){
-                        $allianceModel->copyfrom($allianceData, ['id', 'name']);
-                        $characterData->alliance = $allianceModel->save();
+                if($allianceId = (int)$characterDataBasic['alliance']['id']){
+                    /**
+                     * @var Model\AllianceModel $allianceModel
+                     */
+                    $alliance = Model\BasicModel::getNew('AllianceModel');
+                    $alliance->getById($allianceId, 0);
+                    if( !$alliance->dry() ){
+                        $characterData->alliance = $alliance;
                     }
-                }else{
-                    $characterData->alliance = $allianceModel;
                 }
             }
         }
@@ -564,29 +545,29 @@ class Sso extends Api\User{
 
     /**
      * update character
-     * @param $characterData
-     * @return \Model\CharacterModel
+     * @param \stdClass $characterData
+     * @return \Model\CharacterModel|null
      * @throws \Exception
      */
-    protected function updateCharacter($characterData){
-        $characterModel = null;
+    protected function updateCharacter(\stdClass $characterData){
+        $character = null;
 
         if( !empty($characterData->character) ){
-
             /**
-             * @var Model\CharacterModel $characterModel
+             * @var Model\CharacterModel $character
              */
-            $characterModel = Model\BasicModel::getNew('CharacterModel');
-            $characterModel->getById((int)$characterData->character['id'], 0);
-            $characterModel->copyfrom($characterData->character, [
+            $character = Model\BasicModel::getNew('CharacterModel');
+            $character->getById((int)$characterData->character['id'], 0);
+            $character->copyfrom($characterData->character, [
                 'id', 'name', 'ownerHash', 'crestAccessToken', 'crestRefreshToken', 'esiScopes', 'securityStatus'
             ]);
-            $characterModel->corporationId = $characterData->corporation;
-            $characterModel->allianceId = $characterData->alliance;
-            $characterModel = $characterModel->save();
+
+            $character->corporationId = $characterData->corporation;
+            $character->allianceId = $characterData->alliance;
+            $character = $character->save();
         }
 
-        return $characterModel;
+        return $character;
     }
 
     /**

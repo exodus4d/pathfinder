@@ -591,7 +591,7 @@
                                         <tr>
                                             <check if="{{ @tableData.fieldConf }}">
                                                 <true>
-                                                    <td class="text-center" data-target=".{{ @tableName }}_col" data-toggle="collapse" aria-expanded="false" aria-controls="{{ @tableName }}_col">
+                                                    <td class="text-center" data-target=".{{ @dbInformation.info.name }}_{{ @tableName }}_col" data-toggle="collapse" aria-expanded="false" aria-controls="{{ @dbInformation.info.name }}_{{ @tableName }}_col">
                                                         <i class="fas fa-fw fa-chevron-right pf-animate-rotate"></i>
                                                     </td>
                                                 </true>
@@ -613,12 +613,12 @@
                                             </td>
                                             <td></td>
                                             <td class="text-center">
-                                                <check if="{{ @tableData.empty === true }}">
+                                                <check if="{{ @tableData.rows <= 0 }}">
                                                     <true>
                                                         <i class="fas fa-fw fa-battery-empty txt-color txt-color-warning" title="table empty"></i>
                                                     </true>
                                                     <false>
-                                                        <i class="fas fa-fw fa-battery-full" title="table filled"></i>
+                                                        <i class="fas fa-fw fa-battery-full" title="{{ @tableData.rows }} rows"></i>
                                                     </false>
                                                 </check>
                                             </td>
@@ -638,7 +638,7 @@
 
                                         {* Show Columns *}
                                         <check if="{{ @tableData.fieldConf }}">
-                                            <tr class="{{ @tableName }}_col collapse">
+                                            <tr class="{{ @dbInformation.info.name }}_{{ @tableName }}_col collapse">
                                                 <td class="text-center bg-color bg-color-tealDarkest">
                                                     <i class="fas fa-fw fa-hashtag"></i>
                                                 </td>
@@ -652,7 +652,7 @@
                                             </tr>
                                             <repeat group="{{ @tableData.fieldConf }}" key="{{ @columnName }}" value="{{ @columnData }}" counter="{{ @countCol }}">
                                                 <check if="{{ @columnData.type }}">
-                                                    <tr class="{{ @tableName }}_col collapse">
+                                                    <tr class="{{ @dbInformation.info.name }}_{{ @tableName }}_col collapse">
                                                         <td class="text-right bg-color bg-color-tealDarker">{{@countCol}}.</td>
                                                         <td class="bg-color bg-color-tealDarker">{{ @columnName }}</td>
                                                         <td class="bg-color bg-color-tealDarker text-center">
@@ -750,7 +750,7 @@
 
                                         {* Show Foreign Keys *}
                                         <check if="{{ @tableData.foreignKeys }}">
-                                            <tr class="{{ @tableName }}_col collapse">
+                                            <tr class="{{ @dbInformation.info.name }}_{{ @tableName }}_col collapse">
                                                 <td class="text-center bg-color bg-color-tealDarkest">
                                                     <i class="fas fa-fw fa-hashtag"></i>
                                                 </td>
@@ -763,7 +763,7 @@
                                                 <td class="bg-color bg-color-tealDarkest"></td>
                                             </tr>
                                             <repeat group="{{ @tableData.foreignKeys }}" value="{{ @keyData }}" counter="{{ @countForeignKey }}">
-                                                <tr class="{{ @tableName }}_col collapse">
+                                                <tr class="{{ @dbInformation.info.name }}_{{ @tableName }}_col collapse">
                                                     <td class="text-center bg-color bg-color-tealDarker">{{@countForeignKey}}.</td>
                                                     <td class="bg-color bg-color-tealDarker" colspan="6">{{ @keyData.keyName }}</td>
                                                     <td class="bg-color bg-color-tealDarker text-center">
@@ -921,29 +921,35 @@
                     </div>
 
                     <div class="panel-body no-padding text-left">
-                        <repeat group="{{ @indexInformation }}" key="{{ @model }}" value="{{ @indexData }}">
+                        <repeat group="{{ @indexInformation }}" key="{{ @type }}" value="{{ @indexData }}">
                             <div class="row">
-                                <div class="col-xs-7">
-                                    <span class="btn disabled btn-fake">
-                                       {{ @indexData.table }}
-
-                                    </span>
-                                    <span class="btn disabled btn-fake pull-right">
-                                            <check if="{{ @indexData.count }}">
-                                                <true>
-                                                    <kbd class="txt-color txt-color-success">{{ @indexData.count }} rows</kbd>
-                                                </true>
-                                                <false>
-                                                    <kbd class="txt-color txt-color-danger">0 rows</kbd>
-                                                </false>
-                                            </check>
-                                        </span>
+                                <div class="col-xs-4">
+                                    <span class="btn disabled btn-fake">{{ @indexData.label }}</span>
+                                </div>
+                                <div class="col-xs-3 text-right">
+                                    <check if="{{ isset(@indexData.countAll) }}">
+                                        <check if="{{ @indexData.countBuild  >= @indexData.countAll }}">
+                                            <kbd class="txt-color txt-color-success">{{ @indexData.countBuild }}/{{ @indexData.countAll }}</kbd>
+                                        </check>
+                                        <check if="{{ @indexData.countBuild > 0 && @indexData.countBuild < @indexData.countAll}}">
+                                            <kbd class="txt-color txt-color-warning">{{ @indexData.countBuild }}/{{ @indexData.countAll }}</kbd>
+                                        </check>
+                                        <check if="{{ @indexData.countBuild <= 0 }}">
+                                            <kbd class="txt-color txt-color-danger">{{ @indexData.countBuild }}/{{ @indexData.countAll }}</kbd>
+                                        </check>
+                                        <check if="{{ @indexData.tooltip }}">
+                                            <i class="fas fa-fw fa-sm fa-question-circle pf-help-light" title="{{ @indexData.tooltip }}"></i>
+                                        </check>
+                                    </check>
                                 </div>
                                 <div class="col-xs-5">
                                     <div class="btn-group btn-group-justified">
                                         <repeat group="{{ @indexData.task }}" key="{{ @taskKey }}" value="{{ @taskData }}">
-                                            <a href="?action={{ @taskData.action }}&model={{ @model }}#pf-setup-administration" class="btn {{ @taskData.btn }} {{ @taskData.btn=='btn-default' && !@indexData.count ?'disabled':'' }} {{ @dbWarnings ?'disabled':'' }}" role="button">
-                                                <i class="fas fa-fw {{ @taskData.icon }}"></i> {{ @taskData.label }}
+                                            <a href="?action={{ @taskData.action }}&model={{ @type }}#pf-setup-administration"
+                                               data-type="{{ @type }}" data-action="{{ @taskData.action }}"
+                                               data-loading-text="<i class='fas fa-sync fa-spin'></i>&nbsp;&nbsp;wait&hellip;<div class='btn-progress'></div>" autocomplete="off"
+                                               class="btn {{ @taskData.btn }} {{ @taskData.btn=='btn-default' && !@indexData.countBuild ?'disabled':'' }} {{ @dbWarnings ?'disabled':'' }}" role="button">
+                                                <i class="fas {{ @taskData.icon }}"></i>&nbsp;&nbsp;{{ @taskData.label }}
                                             </a>
                                         </repeat>
                                     </div>
@@ -980,7 +986,7 @@
                                 <span class="btn btn-default disabled btn-fake">
                                     Redis cache
                                 </span>
-                                <a href="?action=clearCache#pf-setup-administration" class="btn btn-warning" role="button">
+                                <a href="?action=clearCache#pf-setup-administration" class="btn btn-danger" role="button">
                                     <i class="fas fa-fw fa-times"></i> Clear all keys
                                 </a>
                             </div>
@@ -1000,7 +1006,7 @@
                                     </check>
                                 </kbd>
                             </span>
-                            <a href="?action=clearCache#pf-setup-administration" class="btn btn-warning {{ (@cacheSize.data) ?'':'disabled' }}" role="button">
+                            <a href="?action=clearCache#pf-setup-administration" class="btn btn-danger {{ (@cacheSize.data) ?'':'disabled' }}" role="button">
                                 <i class="fas fa-fw fa-times"></i> Delete files
                             </a>
                         </div>
@@ -1037,7 +1043,7 @@
                     <div class="panel-body no-padding">
                         <div class="btn-group btn-group-justified">
                             <span class="btn btn-default disabled btn-fake">Invalidate all Cookie data</span>
-                            <a href="?action=invalidateCookies#pf-setup-administration" class="btn btn-warning" role="button">
+                            <a href="?action=invalidateCookies#pf-setup-administration" class="btn btn-danger" role="button">
                                 <i class="fas fa-fw fa-times"></i> Clear authentication data
                             </a>
                         </div>

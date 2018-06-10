@@ -8,7 +8,6 @@
 
 namespace Model\Universe;
 
-
 use DB\SQL\Schema;
 
 class TypeModel extends BasicUniverseModel {
@@ -52,9 +51,15 @@ class TypeModel extends BasicUniverseModel {
         ],
         'groupId' => [
             'type' => Schema::DT_INT,
-            'nullable' => false,
-            'default' => 0,
-            'index' => true
+            'index' => true,
+            'belongs-to-one' => 'Model\Universe\GroupModel',
+            'constraint' => [
+                [
+                    'table' => 'group',
+                    'on-delete' => 'CASCADE'
+                ]
+            ],
+            'validate' => 'validate_notDry',
         ],
         'marketGroupId' => [
             'type' => Schema::DT_INT,
@@ -80,8 +85,29 @@ class TypeModel extends BasicUniverseModel {
         ],
         'structures' => [
             'has-many' => ['Model\Universe\StructureModel', 'typeId']
+        ],
+        'planets' => [
+            'has-many' => ['Model\Universe\PlanetModel', 'typeId']
+        ],
+        'stars' => [
+            'has-many' => ['Model\Universe\StarModel', 'typeId']
+        ],
+        'wormholes' => [
+            'has-many' => ['Model\Universe\WormholeModel', 'typeId']
         ]
     ];
+
+    /**
+     * get type data
+     * @return object
+     */
+    public function getData(){
+        $typeData = (object) [];
+        $typeData->id = $this->id;
+        $typeData->name = $this->name;
+
+        return $typeData;
+    }
 
     /**
      * get shipData from object
@@ -107,6 +133,10 @@ class TypeModel extends BasicUniverseModel {
     protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){
         $data = self::getF3()->ccpClient->getUniverseTypesData($id, $additionalOptions);
         if(!empty($data)){
+            $group = $this->rel('groupId');
+            $group->loadById($data['groupId'], $accessToken, $additionalOptions);
+            $data['groupId'] = $group;
+
             $this->copyfrom($data);
             $this->save();
         }

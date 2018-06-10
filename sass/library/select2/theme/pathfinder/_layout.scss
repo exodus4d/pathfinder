@@ -24,6 +24,11 @@
     border: 1px solid transparent;
     overflow: hidden;
     @include box-shadow(0 6px 12px rgba(0,0,0, 0.3));
+
+    img{
+      image-rendering: -webkit-optimize-contrast;
+      width: 21px;
+    }
   }
 
   .select2-dropdown--above {
@@ -34,12 +39,14 @@
     border-top: none;
   }
 
-  .select2-results > .select2-results__options {
+  .select2-results {
     max-height: $results-max-height;
     overflow-y: auto;
   }
 
   .select2-results__option {
+    padding: 3px 6px;
+
     &[role=group] {
       padding: 0;
     }
@@ -71,7 +78,9 @@
   .select2-results__group {
     cursor: default;
     display: block;
-    padding: 6px;
+    padding: 3px 6px;
+    background-color: $gray;
+    text-transform: capitalize;
   }
 
   &.select2-container--open .select2-dropdown {

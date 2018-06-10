@@ -27,6 +27,11 @@ class AllianceModel extends BasicModel {
             'nullable' => false,
             'default' => ''
         ],
+        'ticker' => [
+            'type' => Schema::DT_VARCHAR128,
+            'nullable' => false,
+            'default' => ''
+        ],
         'shared' => [
             'type' => Schema::DT_BOOL,
             'nullable' => false,
@@ -52,6 +57,21 @@ class AllianceModel extends BasicModel {
         $allianceData->shared = $this->shared;
 
         return $allianceData;
+    }
+
+    /**
+     * Event "Hook" function
+     * return false will stop any further action
+     * @param self $self
+     * @param $pkeys
+     * @return bool
+     */
+    public function beforeUpdateEvent($self, $pkeys){
+        // if model changed, 'update' col needs to be updated as well
+        // -> data no longer "outdated"
+        $this->touch('updated');
+
+        return parent::beforeUpdateEvent($self, $pkeys);
     }
 
     /**
@@ -87,9 +107,9 @@ class AllianceModel extends BasicModel {
      * get all characters in this alliance
      * @param array $characterIds
      * @param array $options
-     * @return array
+     * @return CharacterModel[]
      */
-    public function getCharacters($characterIds = [], $options = []){
+    public function getCharacters($characterIds = [], $options = []) : array {
         $characters = [];
         $filter = ['active = ?', 1];
 
@@ -113,5 +133,22 @@ class AllianceModel extends BasicModel {
         }
 
         return $characters;
+    }
+
+    public function getById(int $id, int $ttl = self::DEFAULT_SQL_TTL, bool $isActive = true){
+        /**
+         * @var AllianceModel $alliance
+         */
+        $alliance = parent::getById($id, $ttl, $isActive);
+        if($alliance->isOutdated()){
+            // request alliance data
+            $allianceData = self::getF3()->ccpClient->getAllianceData($id);
+            if( !empty($allianceData) ){
+                $alliance->copyfrom($allianceData, ['id', 'name', 'ticker']);
+                $alliance->save();
+            }
+        }
+
+        return $alliance;
     }
 }

@@ -23,14 +23,11 @@ define([
         moduleClass: 'pf-module',                                               // class for each module
 
         // system signature module
-        moduleTypeClass: 'pf-sig-table-module',                                 // module wrapper
+        moduleTypeClass: 'pf-signature-table-module',                           // module wrapper
 
         // tables
         tableToolsClass: 'pf-table-tools',                                      // class for table toolbar
         tableToolsActionClass: 'pf-table-tools-action',                         // class for table toolbar action
-
-        // dialogs
-        signatureReaderDialogId: 'pf-signature-reader-dialog',                  // id for signature reader dialog
 
         // signature progress bar
         signatureScannedProgressBarClass: 'pf-system-progress-scanned',         // class for signature progress bar
@@ -340,10 +337,11 @@ define([
                         // and add "new" row
                         let changedRowElement = addSignatureRow(signatureTableApi, currentSystemData.systemData, signatureData[i], false);
 
-                        // highlight
-                        changedRowElement.pulseTableRow('changed');
-
-                        notificationCounter.changed++;
+                        if(changedRowElement){
+                            // highlight
+                            changedRowElement.pulseTableRow('changed');
+                            notificationCounter.changed++;
+                        }
                     }
 
                     // remove signature data -> all left signatures will be added
@@ -383,12 +381,12 @@ define([
             // and add "new" row
             let newRowElement = addSignatureRow(signatureTableApi, currentSystemData.systemData, signatureData[k], false);
 
-            // highlight
-            newRowElement.pulseTableRow('added');
-
-            notificationCounter.added++;
+            if(newRowElement){
+                // highlight
+                newRowElement.pulseTableRow('added');
+                notificationCounter.added++;
+            }
         }
-
 
         // show notification ------------------------------------------------------------------------------------------
         if(
@@ -399,9 +397,8 @@ define([
             // update signature bar
             moduleElement.updateScannedSignaturesBar({showNotice: true});
 
-            // show Notification
             let notification = notificationCounter.added + ' added<br>';
-            notification += notificationCounter.changed + ' changed<br>';
+            notification += notificationCounter.changed + ' updated<br>';
             notification += notificationCounter.deleted + ' deleted<br>';
             Util.showNotify({title: 'Signatures updated', text: notification, type: 'success'});
 
@@ -499,7 +496,6 @@ define([
                         Util.showNotify({title: 'System is scanned', text: notification, type: 'success'});
                     }
                 }
-
             }, 100);
     };
 
@@ -508,36 +504,23 @@ define([
      * @param systemData
      */
     $.fn.showSignatureReaderDialog = function(systemData){
-
         let moduleElement = $(this);
 
-        let data = {
-            id: config.signatureReaderDialogId
-        };
-
-        requirejs(['text!templates/dialog/signature_reader.html', 'mustache'], function(template, Mustache) {
-
-            let content = Mustache.render(template, data);
-
+        requirejs(['text!templates/dialog/signature_reader.html', 'mustache'], (template, Mustache) => {
             let signatureReaderDialog = bootbox.dialog({
                 title: 'Signature reader',
-                message: content,
+                message: Mustache.render(template, {}),
                 buttons: {
                     close: {
                         label: 'cancel',
-                        className: 'btn-default',
-                        callback: function(){
-                            $(signatureReaderDialog).modal('hide');
-                        }
+                        className: 'btn-default'
                     },
                     success: {
                         label: '<i class="fas fa-paste fa-fw"></i>&nbsp;update signatures',
                         className: 'btn-success',
                         callback: function () {
-                            // get form Values
-                            let form = $('#' + config.signatureReaderDialogId).find('form');
-                            let formData = $(form).getFormValues();
-
+                            let form = this.find('form');
+                            let formData = form.getFormValues();
                             let signatureOptions = {
                                 deleteOld: (formData.deleteOld) ? 1 : 0
                             };
@@ -554,8 +537,6 @@ define([
                 // set focus on sig-input textarea
                 signatureReaderDialog.find('textarea').focus();
             });
-
-
         });
     };
 
@@ -607,10 +588,8 @@ define([
 
         // check if copy&paste is enabled
         if( !disableCopyFromClipboard ){
-
             // parse input stream
             let signatureData = parseSignatureString(systemData, clipboard);
-
             if(signatureData.length > 0){
                 // valid signature data parsed
 
@@ -641,7 +620,7 @@ define([
     };
 
     /**
-     * parses a copy&paste string from ingame scanning window and parses it
+     * parses a copy&paste string from ingame scanning window
      * @param systemData
      * @param clipboard
      * @returns {Array}
@@ -656,9 +635,7 @@ define([
 
             for(let i = 0; i < signatureRows.length; i++){
                 let rowData = signatureRows[i].split(/\t/g);
-
                 if(rowData.length === 6){
-
                     // check if sig Type = anomaly or combat site
                     if(validSignatureNames.indexOf( rowData[1] ) !== -1){
 
@@ -702,8 +679,6 @@ define([
                     }else{
                         invalidSignatures++;
                     }
-                }else{
-                    invalidSignatures++;
                 }
             }
 
@@ -875,7 +850,7 @@ define([
      * @param options
      * @returns {*|jQuery}
      */
-    let getLabledButton = function(options){
+    let getLabeledButton = function(options){
 
         let buttonClasses = ['btn', 'btn-sm', 'btn-labeled'];
 
@@ -1002,7 +977,7 @@ define([
         let tableToolbar = $('<div>', {
             class: config.tableToolsClass
         }).append(
-            getLabledButton({
+            getLabeledButton({
                 type: 'primary',
                 label: 'add',
                 icon: 'fa-plus',
@@ -1026,7 +1001,7 @@ define([
                 }
             })
         ).append(
-            getLabledButton({
+            getLabeledButton({
                 type: 'primary',
                 label: 'signature reader',
                 icon: 'fa-paste',
@@ -1035,7 +1010,7 @@ define([
                 }
             })
         ).append(
-            getLabledButton({
+            getLabeledButton({
                 type: 'default',
                 label: 'select all',
                 icon: 'fa-check-square',
@@ -1063,7 +1038,7 @@ define([
                 value: 1,
             }).attr('data-toggle', 'toggle')
         ).append(
-            getLabledButton({
+            getLabeledButton({
                 type: 'danger',
                 classes: [config.sigTableClearButtonClass, 'pull-right'],
                 label: 'delete',
@@ -1812,7 +1787,7 @@ define([
                 // update connection conflicts
                 checkConnectionConflicts();
 
-                Util.showNotify({title: 'Signature deleted', text: signatureCount + ' signatures deleted', type: 'success'});
+                Util.showNotify({title: 'Signature deleted', text: signatureCount + ' deleted', type: 'success'});
             }
         };
 
@@ -1843,25 +1818,25 @@ define([
      * @param animate
      * @returns {*}
      */
-    let addSignatureRow = function(signatureTableApi, systemData, signatureData, animate){
-        let newSignatureData = formatSignatureData(systemData, [signatureData], fullSignatureOptions);
+    let addSignatureRow = (signatureTableApi, systemData, signatureData, animate) => {
+        let newRowElement = null;
+        if(signatureTableApi){
+            let newSignatureData = formatSignatureData(systemData, [signatureData], fullSignatureOptions);
+            let newRowNode = signatureTableApi.row.add(newSignatureData.shift()).draw().nodes();
+            newRowElement = newRowNode.to$();
 
-        let newRowNode = signatureTableApi.row.add(newSignatureData.shift()).draw().nodes();
-        let newRowElement = newRowNode.to$();
+            if(animate === true){
+                newRowElement.hide();
+                newRowElement.toggleTableRow(newRowElement => {
+                    // make new row editable
+                    newRowElement.makeEditable(signatureTableApi, systemData);
 
-        if(animate === true){
-            newRowElement.hide();
-
-            newRowElement.toggleTableRow(function(newRowElement){
-                // make new row editable
-
+                    // update scan progress bar
+                    newRowElement.parents('.' + config.moduleClass).updateScannedSignaturesBar({showNotice: true});
+                });
+            }else{
                 newRowElement.makeEditable(signatureTableApi, systemData);
-
-                // update scan progress bar
-                newRowElement.parents('.' + config.moduleClass).updateScannedSignaturesBar({showNotice: true});
-            });
-        }else{
-            newRowElement.makeEditable(signatureTableApi, systemData);
+            }
         }
 
         return newRowElement;
@@ -2270,20 +2245,22 @@ define([
 
                                             let newRowElement = addSignatureRow(primaryTableApi, systemData, data.signatures[0], true);
 
-                                            // highlight
-                                            newRowElement.pulseTableRow('added');
+                                            if(newRowElement){
+                                                // highlight
+                                                newRowElement.pulseTableRow('added');
 
-                                            // prepare "add signature" table for new entry -> reset -------------------
-                                            let signatureData = formatSignatureData(systemData, [emptySignatureData], emptySignatureOptions);
-                                            let newAddRowElement = secondaryTableApi.clear().row.add(signatureData.shift()).draw().nodes();
+                                                // prepare "add signature" table for new entry -> reset -------------------
+                                                let signatureData = formatSignatureData(systemData, [emptySignatureData], emptySignatureOptions);
+                                                let newAddRowElement = secondaryTableApi.clear().row.add(signatureData.shift()).draw().nodes();
 
-                                            newAddRowElement.to$().makeEditable(secondaryTableApi, systemData);
+                                                newAddRowElement.to$().makeEditable(secondaryTableApi, systemData);
 
-                                            Util.showNotify({
-                                                title: 'Signature added',
-                                                text: 'Name: ' + data.name,
-                                                type: 'success'
-                                            });
+                                                Util.showNotify({
+                                                    title: 'Signature added',
+                                                    text: 'Name: ' + data.name,
+                                                    type: 'success'
+                                                });
+                                            }
                                         }
                                     });
                                 });

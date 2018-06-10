@@ -9,6 +9,7 @@ define([
     'app/ui/system_graph',
     'app/ui/system_signature',
     'app/ui/system_route',
+    'app/ui/system_intel',
     'app/ui/system_killboard',
     'app/ui/connection_info',
     'app/counter'
@@ -23,6 +24,7 @@ define([
     SystemGraphModule,
     SystemSignatureModule,
     SystemRouteModule,
+    SystemIntelModule,
     SystemKillboardModule,
     ConnectionInfoModule
 ) => {
@@ -275,6 +277,9 @@ define([
 
             // draw system routes module
             drawModule(secondCell, SystemRouteModule, currentSystemData.mapId, currentSystemData.systemData);
+
+            // draw system intel module
+            drawModule(secondCell, SystemIntelModule, currentSystemData.mapId, currentSystemData.systemData);
 
             // draw system killboard module
             drawModule(secondCell, SystemKillboardModule, currentSystemData.mapId, currentSystemData.systemData);

@@ -203,7 +203,7 @@ class SystemModel extends AbstractMapTrackingModel {
             // no cached system data found
 
             $systemData = (object) [];
-            $systemData->id = $this->id;
+            $systemData->id = $this->_id;
             $systemData->mapId = is_object($this->mapId) ? $this->get('mapId', true) : 0;
             $systemData->systemId = $this->systemId;
             $systemData->name = $this->name;
@@ -242,13 +242,13 @@ class SystemModel extends AbstractMapTrackingModel {
 
             $systemData->created = (object) [];
             $systemData->created->created = strtotime($this->created);
-            if( is_object($this->createdCharacterId) ){
+            if(is_object($this->createdCharacterId)){
                 $systemData->created->character = $this->createdCharacterId->getData();
             }
 
             $systemData->updated = (object) [];
             $systemData->updated->updated = strtotime($this->updated);
-            if( is_object($this->updatedCharacterId) ){
+            if(is_object($this->updatedCharacterId)){
                 $systemData->updated->character = $this->updatedCharacterId->getData();
             }
 
@@ -485,7 +485,6 @@ class SystemModel extends AbstractMapTrackingModel {
     public function getSignatures(){
         $signatures = [];
         $this->filter('signatures', ['active = ?', 1], ['order' => 'name']);
-
         if($this->signatures){
             $signatures = $this->signatures;
         }
@@ -494,13 +493,12 @@ class SystemModel extends AbstractMapTrackingModel {
     }
 
     /**
-     * get all data for all Signatures in this system
+     * get data for all Signatures in this system
      * @return \stdClass[]
      */
     public function getSignaturesData(){
         $signaturesData = [];
         $signatures = $this->getSignatures();
-
         foreach($signatures as $signature){
             $signaturesData[] = $signature->getData();
         }
@@ -516,7 +514,6 @@ class SystemModel extends AbstractMapTrackingModel {
      */
     public function getSignatureById(CharacterModel $characterModel, $id){
         $signature = null;
-
         if($this->hasAccess($characterModel)){
             $this->filter('signatures', ['active = ? AND id = ?', 1, $id]);
             if($this->signatures){
@@ -535,7 +532,6 @@ class SystemModel extends AbstractMapTrackingModel {
      */
     public function getSignatureByName(CharacterModel $characterModel, $name){
         $signature = null;
-
         if($this->hasAccess($characterModel)){
             $this->filter('signatures', ['active = ? AND name = ?', 1, $name]);
             if($this->signatures){
@@ -547,19 +543,35 @@ class SystemModel extends AbstractMapTrackingModel {
     }
 
     /**
+     * get data for all structures in this system
+     * @return \stdClass[]
+     */
+    public function getStructuresData() : array {
+        return $this->getMap()->getStructuresData([$this->systemId]);
+    }
+
+    /**
      * check whether this system is a wormhole
      * @return bool
      */
-    public function isWormhole(){
+    public function isWormhole() : bool {
         return ($this->typeId->id === 1);
     }
 
     /**
-     * check whether this syste is a shattered wormhole
+     * check whether this system is a shattered wormhole
      * @return bool
      */
-    public function isShatteredWormhole(){
+    public function isShatteredWormhole() : bool {
         return ($this->isWormhole() && $this->security === 'SH');
+    }
+
+    /**
+     * check whether this system is an Abyss system
+     * @return bool
+     */
+    public function isAbyss() : bool {
+        return ($this->typeId->id === 3 && $this->security === 'A');
     }
 
     /**
@@ -697,11 +709,11 @@ class SystemModel extends AbstractMapTrackingModel {
     }
 
     /**
-     * overwrites parent
      * @param null $db
      * @param null $table
      * @param null $fields
      * @return bool
+     * @throws \Exception
      */
     public static function setup($db=null, $table=null, $fields=null){
         $status = parent::setup($db,$table,$fields);

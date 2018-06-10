@@ -3,7 +3,7 @@ define([
     'app/init',
     'app/util',
     'morris'
-], function($, Init, Util, Morris) {
+], ($, Init, Util, Morris) => {
     'use strict';
 
     let config = {
@@ -38,7 +38,7 @@ define([
      * @param options
      * @returns {jQuery}
      */
-    let getLabel = function(text, options){
+    let getLabel = (text, options) => {
         let label = $('<span>', {
             class: ['label', options.type, options.align].join(' ')
         }).text( text );
@@ -46,7 +46,12 @@ define([
         return label;
     };
 
-    let showKillmails = function(moduleElement, killboardData){
+    /**
+     * show killMails
+     * @param moduleElement
+     * @param killboardData
+     */
+    let showKillmails = (moduleElement, killboardData) => {
 
         // show number of killMails
         let killMailCounterMax = 20;
@@ -384,7 +389,7 @@ define([
      * minify the killboard graph element e.g. if no kills where found, or on error
      * @param killboardGraphElement
      */
-    let minifyKillboardGraphElement = function(killboardGraphElement){
+    let minifyKillboardGraphElement = (killboardGraphElement) => {
         killboardGraphElement.velocity({
             height: '20px',
             marginBottom: '0px'
@@ -433,8 +438,9 @@ define([
     /**
      * get module element
      * @param parentElement
+     * @param mapId
      * @param systemData
-     * @returns {*|jQuery|HTMLElement}
+     * @returns {jQuery}
      */
     let getModule = (parentElement, mapId, systemData) => {
         // create new module container

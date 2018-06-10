@@ -141,7 +141,7 @@ class ConnectionModel extends AbstractMapTrackingModel {
      * @return int|number
      */
     public function set_type($type){
-        $newTypes = (array)json_decode($type);
+        $newTypes = (array)$type;
 
         // set EOL timestamp
         if( !in_array('wh_eol', $newTypes) ){
@@ -172,21 +172,30 @@ class ConnectionModel extends AbstractMapTrackingModel {
 
     /**
      * set default connection type by search route between endpoints
+     * @throws \Exception\PathfinderException
      */
     public function setDefaultTypeData(){
         if(
             is_object($this->source) &&
             is_object($this->target)
         ){
-            $routeController = new Route();
-            $route = $routeController->searchRoute($this->source->systemId, $this->target->systemId, 1);
-
-            if($route['routePossible']){
-                $this->scope = 'stargate';
-                $this->type = ['stargate'];
+            if(
+                $this->source->isAbyss() ||
+                $this->target->isAbyss()
+            ){
+                $this->scope = 'abyssal';
+                $this->type = ['abyssal'];
             }else{
-                $this->scope = 'wh';
-                $this->type = ['wh_fresh'];
+                $routeController = new Route();
+                $route = $routeController->searchRoute($this->source->systemId, $this->target->systemId, 1);
+
+                if($route['routePossible']){
+                    $this->scope = 'stargate';
+                    $this->type = ['stargate'];
+                }else{
+                    $this->scope = 'wh';
+                    $this->type = ['wh_fresh'];
+                }
             }
         }
     }
@@ -222,18 +231,19 @@ class ConnectionModel extends AbstractMapTrackingModel {
     }
 
     /**
-     * Event "Hook" function
+     *  Event "Hook" function
      * can be overwritten
      * return false will stop any further action
-     * @param ConnectionModel $self
+     * @param BasicModel $self
      * @param $pkeys
      * @return bool
      * @throws \Exception\DatabaseException
+     * @throws \Exception\PathfinderException
      */
     public function beforeInsertEvent($self, $pkeys){
         // check for "default" connection type and add them if missing
         // -> get() with "true" returns RAW data! important for JSON table column check!
-        $types = (array)json_decode( $this->get('type', true) );
+        $types = (array)json_decode($this->get('type', true));
         if(
             !$this->scope ||
             empty($types)
@@ -379,7 +389,7 @@ class ConnectionModel extends AbstractMapTrackingModel {
      * get all connection log data linked to this connection
      * @return array
      */
-    public function getLogsData() : array{
+    public function getLogsData() : array {
         $logsData = [];
         $logs = $this->getLogs();
 
@@ -411,6 +421,7 @@ class ConnectionModel extends AbstractMapTrackingModel {
      * @param null $table
      * @param null $fields
      * @return bool
+     * @throws \Exception
      */
     public static function setup($db=null, $table=null, $fields=null){
         $status = parent::setup($db,$table,$fields);

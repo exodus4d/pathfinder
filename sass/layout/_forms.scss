@@ -30,6 +30,11 @@ input, select{
   &[disabled]{
     @include placeholder(transparent);
   }
+
+  &.pf-select2{
+    height: 32px; // supposed to be select2 field (before initialization)
+    padding: 6px 12px;
+  }
 }
 
 textarea{
@@ -63,7 +68,7 @@ fieldset[disabled]{
 }
 
 
-// form fields with icons groups (stacked icons) ==================================================
+// form fields with icons groups (stacked icons) ======================================================================
 .input-icon-left:not(.input-icon-right){
   .fa-stack:first-child{
     left: 14px;
@@ -100,15 +105,38 @@ fieldset[disabled]{
   }
 }
 
-// "fake" button (no user interaction) ============================================================
-.btn-fake{
-  border: none;
-  text-align: left;
-  cursor: default;
-  opacity: 1 !important;
-  color: $gray-light !important;
-  background-color: $gray !important;
+
+// buttons ============================================================================================================
+.btn{
+  // "fake" button (no user interaction)
+  &.btn-fake{
+    border: none;
+    text-align: left;
+    cursor: default;
+    opacity: 1 !important;
+    color: $gray-light !important;
+    background-color: $gray !important;
+  }
+
+  // progress bar inside button
+  .btn-progress{
+    position: absolute;
+    display: block;
+    height: 100%;
+    background-color: rgba($green, .2 );
+    max-width: 100%;
+    width: 0;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    line-height: 30px;
+    color: $orange-light;
+    font-size: 10px;
+    text-align: left;
+    @include transition( width 0.1s linear);
+  }
 }
+
 
 // drag&drop zone
 .pf-form-dropzone{
@@ -138,4 +166,10 @@ fieldset[disabled]{
   &.btn:active{
     box-shadow: none;
   }
+}
+
+
+.pf-form-field-char-count{
+  display: block;
+  margin-top: 10px;
 }

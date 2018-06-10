@@ -8,7 +8,7 @@ $mapWrapperMinHeight:    250px;
 $mapWrapperMaxHeight:    1000px;              // no vertical scrollbar: $mapHeight + 35px;
 $mapWrapperMaxWidth:     $mapWidth + 35px;
 
-// start bounce mixin =========================================================
+// start bounce mixin =================================================================================================
 @mixin bounce-up-down{
   @include animation-duration( 1s);
   @include animation-delay(0.5s);
@@ -35,7 +35,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
   60% {transform: translateY(-4px);}
 }
 
-// end bounce mixin ===========================================================
+// end bounce mixin ===================================================================================================
 #pf-map-tab-element{
   max-width: $mapWrapperMaxWidth;
   margin: 0 auto;
@@ -72,10 +72,6 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       border-width: 12px 12px 0 0 ;
       border-color:  transparent $gray-dark transparent transparent;
       cursor: nwse-resize;
-
-      &:hover{
-        border-color: blue;
-      }
     }
 
     &:focus, &:hover{
@@ -88,7 +84,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
   }
 }
 
-// map overlay ================================================================
+// map overlay ========================================================================================================
 .pf-map-overlay{
   position: absolute;
   display: none; // triggered by js
@@ -232,7 +228,17 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
 
 // 20x20px grid background
 .pf-grid-small{
-  background: inline-image("/grid_40x40.png") !important;
+  &:before{
+    content: ' ';
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.6;
+    background: inline-image("/grid_40x40.png") !important;
+  }
 }
 
 .pf-map{
@@ -241,7 +247,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
   position: relative;
   font-family: $font-family-bold;
 
-  // jsPlumb classes ==========================================================
+  // jsPlumb classes ==================================================================================================
   .jsplumb-overlay{
     opacity: 1;
     pointer-events: none; // click through overlays
@@ -254,7 +260,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     @extend .pf-system-selected;
   }
 
-  // hover effects ============================================================
+  // hover effects ====================================================================================================
   .jsplumb-hover{
 
     // hover effect for connections
@@ -273,7 +279,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     @include box-shadow(0 6px 12px rgba(0,0,0,.3));
   }
 
-  // ==========================================================================
+  // ==================================================================================================================
   .pf-system{
     position: absolute;
     min-width: 60px;
@@ -299,7 +305,11 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     &:hover{
       // makes the systems "flying" :)
       @include box-shadow(0 6px 12px rgba(0,0,0, 0.3));
-      @include transform( translate3d(0, -2px, 0) !important);
+      @include transform( translate3d(0, -1px, 0) !important);
+
+      &:not(.jsPlumb_dragged){
+        z-index: 1040 !important; // should overlap connection endpoint overlays,not for dragged elements -> prevent "show/hide flickering" of overlays
+      }
     }
 
     .pf-system-head{
@@ -312,7 +322,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       .pf-system-head-name{
         border: none;
         display: inline-block;
-        min-width: 41px;
+        min-width: 50px;
         color: $gray-lighter;
         margin-right: 2px;
       }
@@ -338,7 +348,21 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       }
     }
 
-    // ========================================================================
+    // ================================================================================================================
+    .pf-system-head-info{
+      text-align: right;
+      color: lighten($gray-light, 10%);
+      font-size: 10px;
+      line-height: 10px;
+      padding-right: 1px; // bring right aligned text in line with wh "effect" icon
+      margin-bottom: 2px;
+
+      [class^="pf-system-sec-"]{
+        cursor: help;
+      }
+    }
+
+    // ================================================================================================================
 
     .pf-system-body{
       height: 0px;
@@ -361,28 +385,32 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       }
 
       .pf-system-body-item{
+        position: relative;
         color: lighten($gray-light, 10%);
         font-size: 10px;
         line-height: 16px;
         height: 16px;
 
         .pf-system-body-right{
-          text-overflow: ellipsis;
           float: right;
           color: $orange-light;
+          width: 50px;
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
           display: none; // hover effect
         }
-        // user status ========================================================
+        // user status ================================================================================================
         .pf-user-status{
-          font-size: 7px;
+          font-size: 6px;
           width: 10px;
           vertical-align: middle;
-          height: 14px;
         }
 
         .pf-system-body-item-name{
+          position: absolute;
           display: inline-block;
-          width: 65px;
+          width: calc(100% - 10px); // -10px icon
           overflow: hidden;
           white-space: nowrap;
           text-overflow: ellipsis;
@@ -416,7 +444,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
   // selected system
   .pf-system-selected:not(.pf-map-endpoint-source):not(.pf-map-endpoint-target){
     @include box-shadow($red-darkest 0px 0px 8px 0px);
-
+    background-color: $red-darkest;
     .pf-system-head, .pf-system-body{
       background-color: $red-darkest;
     }
@@ -450,7 +478,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     z-index: 500;
   }
 
-  // Endpoints ================================================================
+  // Endpoints ========================================================================================================
   .pf-map-endpoint-source, .pf-map-endpoint-target{
     z-index: 90;
 
@@ -503,7 +531,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     }
   }
 
-  // Connections ==============================================================
+  // Connections ======================================================================================================
 
   svg.jsplumb-connector{
     cursor: pointer;
@@ -525,9 +553,16 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
 
     &.jsplumb-hover{
       z-index: 80;
+      filter: drop-shadow( -3px 3px 4px rgba(0,0,0, 0.3));
 
-      path:first-child{
-        stroke: $gray-lightest; // hover style
+      &:not(.pf-map-connection-jumpbridge):not(.pf-map-connection-abyssal) path:first-child{
+        stroke: $gray-lightest; // hover style (outer SVG)
+      }
+
+      &.pf-map-connection-jumpbridge, &.pf-map-connection-abyssal{
+        path:nth-child(2){
+          stroke: $gray-lightest; // hover style (inner SVG)
+        }
       }
     }
 
@@ -535,6 +570,28 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       @include transition( opacity 0.18s ease-out) ;
       opacity: 0.4;
       z-index: 80;
+    }
+  }
+
+  svg.pf-map-connection-abyssal {
+    z-index: 40;
+
+    path:first-child{
+      stroke: rgba(255,255,255,0);  // invisible border color
+    }
+
+    path:nth-child(2){
+      stroke: darken($pink-darker, 8%);
+    }
+
+    &:hover{
+      path:first-child{
+        stroke: rgba(255,255,255,0);  // invisible border color
+      }
+
+      path:nth-child(2){
+        stroke: $gray-lightest;
+      }
     }
   }
 
@@ -618,7 +675,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     filter: drop-shadow( 0px 0px 3px $yellow-lighter);
   }
 
-  // Connection overlays ======================================================
+  // Connection overlays ==============================================================================================
   .pf-map-connection-overlay{
     padding: 1px 4px;
     font-size: 10px;
@@ -644,7 +701,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     color: $pink-dark;
   }
 
-  // Arrow overlays ===========================================================
+  // Arrow overlays ===================================================================================================
   .pf-map-connection-arrow-overlay{
     stroke: $gray-dark;
     fill: $green;
@@ -659,7 +716,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     animation-iteration-count: infinite;
   }
 
-  // Endpoint overlays ========================================================
+  // Endpoint overlays ================================================================================================
   .pf-map-connection-small-overlay{
     filter: blur(0.000001px);
     -webkit-font-smoothing: antialiased;
@@ -670,22 +727,22 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     z-index: 1020;
     background-color: $gray;
     color: $gray-lighter;
-    @include border-radius(50%);
+    @include border-radius(5px);
     @include box-shadow(0 3px 6px rgba(0,0,0,.3));
   }
 }
 
-// dialoges ===================================================================
+// dialogs ============================================================================================================
 .ui-dialog-content{
   label{
     min-width: 60px;
   }
 }
 
-// context menu ===============================================================
+// context menu =======================================================================================================
 .dropdown-menu{
   font-family: $font-family-bold;
-  z-index: 1020; // over tooltips
+  z-index: 1050; // over tooltips
   will-change: opacity, top, left, transform;
 
   a{
@@ -727,5 +784,4 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
   padding: 2px 4px;
   min-width: 25px; // make sure tooltip is not flickering on low numbers -> fix width
   @include transition( color 0.2s ease-out );
-
 }

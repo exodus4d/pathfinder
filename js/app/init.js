@@ -33,6 +33,7 @@ define(['jquery'], ($) => {
             getMapConnectionData: '/api/map/getConnectionData',             // ajax URL - get connection data
             getMapLogData: '/api/map/getLogData',                           // ajax URL - get logs data
             // system API
+            getSystemData: '/api/system/getData',                           // ajax URL - get system data
             searchSystem: '/api/system/search',                             // ajax URL - search system by name
             saveSystem: '/api/system/save',                                 // ajax URL - saves system to map
             deleteSystem: '/api/system/delete',                             // ajax URL - delete system from map
@@ -47,10 +48,15 @@ define(['jquery'], ($) => {
             getSignatures: '/api/signature/getAll',                         // ajax URL - get all signature data for system
             saveSignatureData: '/api/signature/save',                       // ajax URL - save signature data for system
             deleteSignatureData: '/api/signature/delete',                   // ajax URL - delete signature data for system
+            // structure API
+            saveStructureData: '/api/structure/save',                       // ajax URL - save structure data
+            deleteStructureData: '/api/structure/delete',                   // ajax URL - delete structure data
             // route API
             searchRoute: '/api/route/search',                               // ajax URL - search system routes
             // stats API
             getStatisticsData: '/api/statistic/getData',                    // ajax URL - get statistics data (activity log)
+            // universe API
+            searchUniverseData: '/api/universe/search',                     // ajax URL - search universe data
             // GitHub API
             gitHubReleases: '/api/github/releases'                          // ajax URL - get release info from GitHub
         },
@@ -194,6 +200,9 @@ define(['jquery'], ($) => {
                 security: {
                     class: 'pf-system-sec'
                 },
+                'A': {
+                    class: 'pf-system-sec-abyssal'
+                },
                 'SH': {
                     class: 'pf-system-sec-unknown'
                 },
@@ -278,6 +287,12 @@ define(['jquery'], ($) => {
         defaultMapScope: 'wh',                                              // default scope for connection
         // map connection types
         connectionTypes: {
+            abyssal: {
+                cssClass: 'pf-map-connection-abyssal',
+                paintStyle: {
+                    dashstyle: '0.5 2' // dotted line
+                }
+            },
             jumpbridge: {
                 cssClass: 'pf-map-connection-jumpbridge',
                 paintStyle: {

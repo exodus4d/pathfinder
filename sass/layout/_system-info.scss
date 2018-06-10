@@ -28,16 +28,11 @@
         }
       }
     }
-
-    .pf-form-field-char-count{
-      display: block;
-      margin-top: 10px;
-    }
   }
 }
 
 // signature table module ==================================================
-.pf-sig-table-module{
+.pf-signature-table-module{
 
   // delete signature button
   .pf-sig-table-clear-button{
@@ -151,6 +146,14 @@
         }
       }
     }
+  }
+}
+
+// intel module ============================================================
+.pf-system-intel-module{
+
+  .pf-system-structure-table{
+    font-size: 10px;
   }
 }
 

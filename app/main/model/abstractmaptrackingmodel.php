@@ -48,32 +48,6 @@ abstract class AbstractMapTrackingModel extends BasicModel implements LogModelIn
     }
 
     /**
-     * validates a model field to be a valid relational model
-     * @param $key
-     * @param $val
-     * @return bool
-     * @throws \Exception\ValidationException
-     */
-    protected function validate_notDry($key, $val): bool {
-        $valid = true;
-        if($colConf = $this->fieldConf[$key]){
-            if(isset($colConf['belongs-to-one'])){
-                if( (is_int($val) || ctype_digit($val)) && (int)$val > 0){
-                    $valid = true;
-                }elseif( is_a($val, $colConf['belongs-to-one']) && !$val->dry() ){
-                    $valid = true;
-                }else{
-                    $valid = false;
-                    $msg = 'Validation failed: "' . get_class($this) . '->' . $key . '" must be a valid instance of ' . $colConf['belongs-to-one'];
-                    $this->throwValidationException($key, $msg);
-                }
-            }
-        }
-
-        return $valid;
-    }
-
-    /**
      * log character activity create/update/delete events
      * @param string $action
      */

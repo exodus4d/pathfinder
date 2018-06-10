@@ -7,9 +7,66 @@ define([
     'app/init',
     'app/util',
     'app/map/util'
-], function($, Init, Util, MapUtil) {
-
+], ($, Init, Util, MapUtil) => {
     'use strict';
+
+    /**
+     * format result data
+     * @param data
+     * @returns {*}
+     */
+    let formatCategoryTypeResultData  = (data) => {
+        if(data.loading) return data.text;
+        if(data.placeholder) return data.placeholder;
+
+        let markup = '<div class="clearfix">';
+
+        if(data.hasOwnProperty('children')){
+            // category group label
+            markup += '<div class="col-xs-9">' + data.text + '</div>';
+            markup += '<div class="col-xs-3 text-right">(' + data.children.length + ')</div>';
+        }else{
+            let imagePath = '';
+            let iconName = '';
+            let thumb = '';
+
+            switch(data.categoryType){
+                case 'character':
+                    imagePath = Init.url.ccpImageServer + '/Character/' + data.id + '_32.jpg';
+                    break;
+                case 'corporation':
+                    imagePath = Init.url.ccpImageServer + '/Corporation/' + data.id + '_32.png';
+                    break;
+                case 'alliance':
+                    imagePath = Init.url.ccpImageServer + '/Alliance/' + data.id + '_32.png';
+                    break;
+                case 'inventoryType':
+                    imagePath = Init.url.ccpImageServer + '/Type/' + data.id + '_32.png';
+                    break;
+                case 'render':
+                    imagePath = Init.url.ccpImageServer + '/Render/' + data.id + '_32.png';
+                    break;
+                case 'station':
+                    iconName = 'fa-home';
+                    break;
+                case 'system':
+                    iconName = 'fa-sun';
+                    break;
+            }
+
+            if(imagePath){
+                thumb = '<img src="' + imagePath + '" style="max-width: 100%" />';
+            }else if(iconName){
+                thumb = '<i class="fas fa-fw ' + iconName + '" ></i>';
+            }
+
+            markup += '<div class="col-xs-2 text-center">' + thumb + '</div>';
+            markup += '<div class="col-xs-10">' + data.text + '</div>';
+        }
+        markup += '</div>';
+
+        return markup;
+    };
 
     /**
      * init a select element as "select2" for map selection
@@ -20,7 +77,6 @@ define([
         $.when(
             selectElement.select2({
                 dropdownParent: selectElement.parents('.modal-body'),
-                theme: 'pathfinder',
                 maximumSelectionLength: 5
             })
         );
@@ -133,8 +189,7 @@ define([
                     }
                 },
                 dropdownParent: selectElement.parents('.modal-body'),
-                theme: 'pathfinder',
-                minimumInputLength: 2,
+                minimumInputLength: 3,
                 templateResult: formatResultData,
                 placeholder: 'System name',
                 allowClear: true,
@@ -147,7 +202,7 @@ define([
                 // select changed
             }).on('select2:open', function(){
                 // clear selected system (e.g. default system)
-                // => improves usability (not necessary). There is a small "x" whe it could be cleared manually
+                // => improves usability (not necessary). There is a small "x" if field can be cleared manually
                 if(
                     options.maxSelectionLength === 1 &&
                     $(this).val() !== null
@@ -171,51 +226,7 @@ define([
     $.fn.initAccessSelect = function(options){
 
         return this.each(function(){
-
             let selectElement = $(this);
-
-            // format result data
-            function formatResultData (data) {
-
-                if (data.loading){
-                    return data.text;
-                }
-
-                // check if an option is already selected
-                // do not show the same result twice
-                let currentValues = selectElement.val();
-
-                if(
-                    currentValues &&
-                    currentValues.indexOf( data.id.toString() ) !== -1
-                ){
-                    return ;
-                }
-
-                let imagePath = '';
-                let previewContent = '';
-
-                switch(options.type){
-                    case 'character':
-                        imagePath = Init.url.ccpImageServer + '/Character/' + data.id + '_32.jpg';
-                        previewContent = '<img src="' + imagePath + '" style="max-width: 100%" />';
-                        break;
-                    case 'corporation':
-                        imagePath = Init.url.ccpImageServer + '/Corporation/' + data.id + '_32.png';
-                        previewContent = '<img src="' + imagePath + '" style="max-width: 100%" />';
-                        break;
-                    case 'alliance':
-                        imagePath = Init.url.ccpImageServer + '/Alliance/' + data.id + '_32.png';
-                        previewContent = '<img src="' + imagePath + '" style="max-width: 100%" />';
-                        break;
-                }
-
-                let markup = '<div class="clearfix">';
-                markup += '<div class="col-sm-2">' + previewContent + '</div>';
-                markup += '<div class="col-sm-10">' + data.text + '</div></div>';
-
-                return markup;
-            }
 
             // format selection data
             function formatSelectionData (data){
@@ -251,7 +262,8 @@ define([
                                 results: data.map( function(item){
                                     return {
                                         id: item.id,
-                                        text: item.name
+                                        text: item.name,
+                                        categoryType: options.type
                                     };
                                 })
                             };
@@ -266,12 +278,11 @@ define([
                         }
                     },
                     dropdownParent: selectElement.parents('.modal-body'),
-                    theme: 'pathfinder',
                     minimumInputLength: 3,
                     placeholder: options.type + ' names',
                     allowClear: false,
                     maximumSelectionLength: options.maxSelectionLength,
-                    templateResult: formatResultData,
+                    templateResult: formatCategoryTypeResultData,
                     templateSelection: formatSelectionData,
                     escapeMarkup: function(markup){
                         // let our custom formatter work
@@ -286,6 +297,192 @@ define([
             });
         });
 
+    };
+
+    /**
+     * init a select element as an ajax based "select2" object for universeTypes
+     * e.g. 'alliance', 'corporation', 'character', ...
+     * @param options
+     * @returns {*}
+     */
+    $.fn.initUniverseSearch = function(options) {
+
+        let showErrorNotification = (reason) => {
+            Util.showNotify({title: 'Search failed', text: reason + ' deleted', type: 'warning'});
+        };
+
+        /**
+         * format selection data
+         * @param data
+         * @returns {*}
+         */
+        function formatSelectionData (data){
+            if(data.loading) return data.text;
+            if(data.placeholder) return data.placeholder;
+
+            let markup = '<div class="clearfix">';
+            markup += '<div class="col-sm-10">' + data.text + '</div></div>';
+
+            return markup;
+        }
+
+        return this.each(function() {
+            let selectElement = $(this);
+
+            $.when(
+                selectElement.select2({
+                    ajax: {
+                        type: 'POST',
+                        url: function(params){
+                            // add params to URL
+                            return Init.path.searchUniverseData + '/' + params.term;
+                        },
+                        dataType: 'json',
+                        delay: 250,
+                        timeout: 5000,
+                        cache: true,
+                        data: function(params){
+                            return {
+                                categories: options.categoryNames
+                            };
+                        },
+                        processResults: function(result, page) {
+                            let data = {results: []};
+                            if(result.hasOwnProperty('error')){
+                                showErrorNotification(result.error);
+                            }else{
+                                let mapChildren = function(item){
+                                    return {
+                                        id: item.id,
+                                        text: item.name,
+                                        categoryType: this
+                                    };
+                                };
+
+                                for(let category in result){
+                                    // skip custom functions in case result = [] (array functions)
+                                    if(result.hasOwnProperty(category)){
+                                        data.results.push({
+                                            text: category,
+                                            children: result[category].map(mapChildren, category)
+                                        });
+                                    }
+                                }
+                            }
+
+                            return data;
+                        },
+                        error: function (jqXHR, status, error) {
+                            if( !Util.isXHRAborted(jqXHR) ){
+                                let reason = status + ' ' + jqXHR.status + ': ' + error;
+                                showErrorNotification(reason);
+                            }
+                        }
+                    },
+                    dropdownParent: selectElement.parents('.modal-body') ,
+                    minimumInputLength: 3,
+                    placeholder: '',
+                    allowClear: options.maxSelectionLength <= 1,
+                    maximumSelectionLength: options.maxSelectionLength,
+                    templateResult: formatCategoryTypeResultData,
+                    //  templateSelection: formatSelectionData, // some issues with "clear" selection on single selects (empty option is needed)
+                    escapeMarkup: function(markup){
+                        // let our custom formatter work
+                        return markup;
+                    }
+                }).on('change', function(e){
+                    // select changed
+                }).on('select2:open', function(){
+                    // clear selected system (e.g. default system)
+                    // => improves usability (not necessary). There is a small "x" if field can be cleared manually
+                    if(
+                        options.maxSelectionLength === 1 &&
+                        $(this).val() !== null
+                    ){
+                        $(this).val('').trigger('change');
+                    }
+                })
+            ).done(function(){
+                // after init finish
+            });
+        });
+    };
+
+
+    $.fn.initUniverseTypeSelect = function(options)  {
+
+        /**
+         * get select option data by categoryIds
+         * @param categoryIds
+         * @returns {{results: Array}}
+         */
+        let getOptionsData = categoryIds => {
+            let data = [];
+
+            let mapChildren = function(type){
+                return {
+                    id: type.id,
+                    text: type.name,
+                    groupId: this.groupId,
+                    categoryId: this.categoryId,
+                    categoryType: this.categoryType
+                };
+            };
+
+            for(let categoryId of categoryIds){
+                let categoryData = Util.getObjVal(Init, 'universeCategories.' + categoryId);
+                if(categoryData && categoryData.groups){
+                    // categoryId data exists and has groups...
+                    for(let groupData of categoryData.groups){
+                        if(groupData && groupData.types){
+                            // groupData exists and has types...
+                            data.push({
+                                text: groupData.name,
+                                children: groupData.types.map(mapChildren, {
+                                    groupId: groupData.id,
+                                    categoryId: categoryData.id,
+                                    categoryType: 'inventoryType',
+                                })
+                            });
+                        }
+                    }
+                }
+            }
+
+            return data;
+        };
+
+        return this.each(function() {
+            let selectElement = $(this);
+
+            $.when(
+                selectElement.select2({
+                    data: getOptionsData(options.categoryIds),
+                    dropdownParent: selectElement.parents('.modal-body'),
+                    minimumInputLength: 0, // minimum number of characters required to start a search
+                    maximumInputLength: 100, // maximum number of characters that may be provided for a search term
+                    placeholder: '',
+                    allowClear: options.maxSelectionLength <= 1,
+                    multiple: options.maxSelectionLength > 1,
+                    maximumSelectionLength: options.maxSelectionLength,
+                   // maximumSelectionLength: options.maxSelectionLength > 1 ? options.maxSelectionLength > 1 : 0,
+                   // minimumResultsForSearch: 5, // minimum number of results required to display the search box
+                    templateResult: formatCategoryTypeResultData,
+                    escapeMarkup: function(markup){
+                        return markup;
+                    }
+                }).on('select2:open', function(){
+                    // clear selected system (e.g. default system)
+                    // => improves usability (not necessary). There is a small "x" if field can be cleared manually
+                    if(
+                        options.maxSelectionLength === 1 &&
+                        $(this).val() !== null
+                    ){
+                        $(this).val('').trigger('change');
+                    }
+                }).val(options.selected).trigger('change')
+            );
+        });
     };
 
 });

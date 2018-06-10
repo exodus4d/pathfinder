@@ -8,7 +8,7 @@ define([
     'app/util',
     'bootbox',
     'app/map/util'
-], function($, Init, Util, bootbox, MapUtil) {
+], ($, Init, Util, bootbox, MapUtil) => {
     'use strict';
 
     let config = {
@@ -92,10 +92,15 @@ define([
      * get a unique cache key name for "source"/"target"-name
      * @param sourceName
      * @param targetName
-     * @returns {string}
+     * @returns {*}
      */
     let getConnectionDataCacheKey = (sourceName, targetName) => {
-        return [sourceName.toLowerCase(), targetName.toLowerCase()].sort().join('###');
+        let key = false;
+        if(sourceName && targetName){
+            // names can be "undefined" in case system is currently on drag/drop
+            key = [sourceName.toLowerCase(), targetName.toLowerCase()].sort().join('###');
+        }
+        return key;
     };
 
     /**
@@ -103,7 +108,7 @@ define([
      * @param context
      * @param routesData
      */
-    let callbackAddRouteRow = (context, routesData) => {
+    let callbackAddRouteRows = (context, routesData) => {
 
         if(routesData.length > 0){
             for(let i = 0; i < routesData.length; i++){
@@ -170,7 +175,6 @@ define([
         return rowElement;
     };
 
-
     /**
      * requests route data from eveCentral API and execute callback
      * @param requestData
@@ -210,7 +214,7 @@ define([
             routeData.push( getRouteRequestDataFromRowData( this.data() ));
         });
 
-        getRouteData({routeData: routeData}, context, callbackAddRouteRow);
+        getRouteData({routeData: routeData}, context, callbackAddRouteRows);
     };
 
     /**
@@ -261,7 +265,7 @@ define([
             mapSelectOptions: mapSelectOptions
         };
 
-        requirejs(['text!templates/dialog/route.html', 'mustache'], function(template, Mustache) {
+        requirejs(['text!templates/dialog/route.html', 'mustache'], (template, Mustache) => {
 
             let content = Mustache.render(template, data);
 
@@ -326,7 +330,7 @@ define([
                                     }]
                                 };
 
-                                getRouteData(requestData, context, callbackAddRouteRow);
+                                getRouteData(requestData, context, callbackAddRouteRows);
                             }
                         }
                     }
@@ -418,7 +422,7 @@ define([
                 routeData: requestRouteData
             };
 
-            getRouteData(requestData, contextData, callbackAddRouteRow);
+            getRouteData(requestData, contextData, callbackAddRouteRows);
         }
     };
 
@@ -432,7 +436,7 @@ define([
     let showSettingsDialog = (dialogData, moduleElement, systemFromData, routesTable) => {
 
         let promiseStore = MapUtil.getLocaleData('map', dialogData.mapId);
-        promiseStore.then(function(dataStore) {
+        promiseStore.then(dataStore => {
             // selected systems (if already stored)
             let systemSelectOptions = [];
             if(
@@ -902,7 +906,6 @@ define([
             )
         );
 
-        // crate new route table
         let table = $('<table>', {
             class: ['compact', 'stripe', 'order-column', 'row-border', config.systemInfoRoutesTableClass].join(' ')
         });
@@ -919,7 +922,7 @@ define([
             autoWidth: false,
             rowId: 'systemTo',
             language: {
-                emptyTable:  'No routes added'
+                emptyTable: 'No routes added'
             },
             columnDefs: [
                 {
@@ -1039,7 +1042,7 @@ define([
                                 routeData: [routeData]
                             };
 
-                            getRouteData(requestData, context, callbackAddRouteRow);
+                            getRouteData(requestData, context, callbackAddRouteRows);
                         });
                     }
                 },{
@@ -1074,7 +1077,7 @@ define([
                                 routeData: [routeData]
                             };
 
-                            getRouteData(requestData, context, callbackAddRouteRow);
+                            getRouteData(requestData, context, callbackAddRouteRows);
                         });
                     }
                 },{
@@ -1122,10 +1125,10 @@ define([
                 });
 
                 for(let i = 0; i < animationRows.length; i++){
-                    $(animationRows[i]).pulseTableRow($(animationRows[i]).data('animationStatus'));
-                    $(animationRows[i]).removeData('animationStatus');
+                    let animationRow = $(animationRows[i]);
+                    animationRow.pulseTableRow(animationRow.data('animationStatus'));
+                    animationRow.removeData('animationStatus');
                 }
-
             },
             initComplete: function(settings, json){
                 // click on "fake connection" -------------------------------------------------------------------------
@@ -1231,7 +1234,6 @@ define([
         };
 
         let routesTableElement =  moduleElement.find('.' + config.systemInfoRoutesTableClass);
-
         let routesTable = routesTableElement.DataTable();
 
         // init refresh routes --------------------------------------------------------------------

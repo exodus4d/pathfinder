@@ -69,7 +69,8 @@ define([
         dynamicElementWrapperId: 'pf-dialog-wrapper',
 
         // system signature module
-        systemSigModuleClass: 'pf-sig-table-module',                            // module wrapper (signatures)
+        systemSignatureModuleClass: 'pf-signature-table-module',                // module wrapper (signatures)
+        systemIntelModuleClass: 'pf-system-intel-module',                       // module wrapper (intel)
     };
 
     let programStatusCounter = 0;                                               // current count down in s until next status change is possible
@@ -137,13 +138,18 @@ define([
                 location.reload();
             });
 
-            body.watchKey('signaturePaste', (e) => {
+            body.watchKey('clipboardPaste', (e) => {
                 // just send event to the current active map
                 let activeMap = Util.getMapModule().getActiveMap();
                 if(activeMap){
                     // look for active signature module (active system)
-                    let signatureModuleElement = MapUtil.getTabContentElementByMapElement(activeMap).find('.' + config.systemSigModuleClass);
-                    if(signatureModuleElement.length){
+                    let mapContentElement = MapUtil.getTabContentElementByMapElement(activeMap);
+                    let signatureModuleElement = mapContentElement.find('.' + config.systemSignatureModuleClass);
+                    let intelModuleElement = mapContentElement.find('.' + config.systemIntelModuleClass);
+                    if(
+                        signatureModuleElement.length ||
+                        intelModuleElement.length
+                    ){
                         e = e.originalEvent;
                         let targetElement = $(e.target);
                         // do not read clipboard if pasting into form elements
@@ -155,6 +161,7 @@ define([
                         ){
                             let clipboard = (e.originalEvent || e).clipboardData.getData('text/plain');
                             signatureModuleElement.trigger('pf:updateSystemSignatureModuleByClipboard', [clipboard]);
+                            intelModuleElement.trigger('pf:updateIntelModuleByClipboard', [clipboard]);
                         }
                     }
                 }

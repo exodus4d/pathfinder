@@ -15,7 +15,8 @@ define([
     'easyPieChart',
     'hoverIntent',
     'bootstrapConfirmation',
-    'bootstrapToggle'
+    'bootstrapToggle',
+    'select2'
 ], ($, Init, SystemEffect, SignatureType, bootbox, localforage) => {
 
     'use strict';
@@ -55,14 +56,19 @@ define([
         mapWrapperClass: 'pf-map-wrapper',                                      // wrapper div (scrollable)
         mapClass: 'pf-map' ,                                                    // class for all maps
 
+        // select2
+        select2Class: 'pf-select2',                                             // class for all "Select2" <select> elements
 
         // animation
         animationPulseSuccessClass: 'pf-animation-pulse-success',               // animation class
         animationPulseWarningClass: 'pf-animation-pulse-warning',               // animation class
 
         // popover
-        popoverTriggerClass: 'pf-popover-trigger'                               // class for "popover" trigger elements
+        popoverSmallClass: 'pf-popover-small',                                  // class for "small" popover
+        popoverTriggerClass: 'pf-popover-trigger',                              // class for "popover" trigger elements
 
+        // fonts
+        fontTriglivianClass: 'pf-triglivian'                                    // class for "Triglivian" names (e.g. Abyssal systems)
     };
 
     let stopTimerCache = {};                                                    // cache for stopwatch timer
@@ -389,7 +395,6 @@ define([
         let valid = false;
 
         let errorElements =  form.find('.has-error');
-
         if(errorElements.length === 0){
             valid = true;
         }
@@ -402,7 +407,6 @@ define([
      * @returns {Array}
      */
     $.fn.isInViewport = function(){
-
         let visibleElement = [];
 
         this.each(function(){
@@ -436,12 +440,10 @@ define([
      * init the map-update-counter as "easy-pie-chart"
      */
     $.fn.initMapUpdateCounter = function(){
-
         let counterChart = $(this);
 
         counterChart.easyPieChart({
             barColor: function(percent){
-
                 let color = '#568a89';
                 if(percent <= 30){
                     color = '#d9534f';
@@ -450,7 +452,6 @@ define([
                 }
 
                 return color;
-
             },
             trackColor: '#2b2b2b',
             size: 30,
@@ -657,6 +658,24 @@ define([
         });
     };
 
+    $.fn.destroyPopover = function(recursive){
+        return this.each(function() {
+            let element = $(this);
+            let popoverSelector = '.' + config.popoverTriggerClass;
+            let popoverElements = element.filter(popoverSelector);
+            if(recursive){
+                popoverElements = popoverElements.add(element.find(popoverSelector));
+            }
+
+            popoverElements.each(function() {
+                let popoverElement = $(this);
+                if(popoverElement.data('bs.popover')){
+                    popoverElement.popover('destroy');
+                }
+            });
+        });
+    };
+
     /**
      * set "popover" close action on clicking "somewhere" on the <body>
      * @param eventNamespace
@@ -686,6 +705,20 @@ define([
                     }
                 });
             });
+        });
+    };
+
+    /**
+     * adds the small-class to a tooltip
+     * @returns {*}
+     */
+    $.fn.setPopoverSmall = function(){
+        return this.each(function() {
+            let element = $(this);
+            let popover = element.data('bs.popover');
+            if(popover){
+                popover.tip().addClass(config.popoverSmallClass);
+            }
         });
     };
 
@@ -738,38 +771,6 @@ define([
             //containerElement.children().first().velocity('stop').velocity('fadeIn');
             $('#' + defaultOptions.messageId).velocity('stop').velocity('fadeIn');
 
-        });
-    };
-
-    /**
-     * wrapper function for onClick() || onDblClick() events in order to distinguish between this two types of events
-     * @param singleClickCallback
-     * @param doubleClickCallback
-     * @param timeout
-     * @returns {any|JQuery|*}
-     */
-    $.fn.singleDoubleClick = function(singleClickCallback, doubleClickCallback, timeout) {
-        return this.each(function(){
-            let clicks = 0, self = this;
-
-            // prevent default behaviour (e.g. open <a>-tag link)
-            $(this).off('click').on('click', function(e){
-                e.preventDefault();
-            });
-
-            $(this).off('mouseup').on('mouseup', function(e){
-                clicks++;
-                if (clicks === 1) {
-                    setTimeout(function(){
-                        if(clicks === 1) {
-                            singleClickCallback.call(self, e);
-                        } else {
-                            doubleClickCallback.call(self, e);
-                        }
-                        clicks = 0;
-                    }, timeout || Init.timer.DBL_CLICK);
-                }
-            });
         });
     };
 
@@ -962,11 +963,75 @@ define([
     };
 
     /**
-     * set default configuration  for "Bootbox" dialogs
+     * set default configuration  for "Bootbox"
      */
-    let initDefaultBootboxConfig = function(){
+    let initDefaultBootboxConfig = () => {
         bootbox.setDefaults({
             onEscape: true      // enables close dialogs on ESC key
+        });
+    };
+
+    /**
+     * set default configuration  for "Select2"
+     */
+    let initDefaultSelect2Config = () => {
+        $.fn.select2.defaults.set('theme', 'pathfinder');
+
+        let initScrollbar = (resultsWrapper) => {
+            // default 'mousewheel' event set by select2 needs to be disabled
+            // in order to make mCustomScrollbar mouseWheel enable works correctly
+            $(resultsWrapper).find('ul.select2-results__options').off('mousewheel');
+
+            resultsWrapper.mCustomScrollbar({
+                mouseWheel: {
+                    enable: true,
+                    scrollAmount: 'auto',
+                    axis: 'y',
+                    preventDefault: true
+                },
+                keyboard: {
+                    enable: false,
+                    scrollType: 'stepless',
+                    scrollAmount: 'auto'
+                },
+                scrollbarPosition: 'inside',
+                autoDraggerLength: true,
+                autoHideScrollbar: false,
+                advanced: {
+                    updateOnContentResize: true
+                }
+            });
+        };
+
+        let getResultsWrapper = (selectElement) => {
+            let wrapper = null;
+            let selectElementId = selectElement.getAttribute('data-select2-id');
+            if(selectElementId){
+                let resultsOptions = $('#select2-' + selectElementId + '-results');
+                if(resultsOptions.length) {
+                    let resultsWrapper = resultsOptions.parents('.select2-results');
+                    if(resultsWrapper.length){
+                        wrapper = resultsWrapper;
+                    }
+                }
+            }
+            return wrapper;
+        };
+
+        // global open event
+        $(document).on('select2:open', '.' + config.select2Class, function(e){
+            let resultsWrapper = getResultsWrapper(this);
+            if(resultsWrapper){
+                initScrollbar(resultsWrapper);
+            }
+        });
+
+        // global select2:closing event
+        $(document).on('select2:closing', '.' + config.select2Class, function(e){
+            let resultsWrapper = getResultsWrapper(this);
+            if(resultsWrapper){
+                resultsWrapper.mCustomScrollbar('destroy');
+            }
         });
     };
 
@@ -1102,6 +1167,33 @@ define([
         }
 
         return duration;
+    };
+
+    /**
+     * update a character counter field with current value length - maxCharLength
+     * @param field
+     * @param charCounterElement
+     * @param maxCharLength
+     */
+    let updateCounter = function(field, charCounterElement, maxCharLength){
+        let value = field.val();
+        let inputLength = value.length;
+
+        // line breaks are 2 characters!
+        let newLines = value.match(/(\r\n|\n|\r)/g);
+        let addition = 0;
+        if (newLines != null) {
+            addition = newLines.length;
+        }
+        inputLength += addition;
+
+        charCounterElement.text(maxCharLength - inputLength);
+
+        if(maxCharLength <= inputLength){
+            charCounterElement.toggleClass('txt-color-red', true);
+        }else{
+            charCounterElement.toggleClass('txt-color-red', false);
+        }
     };
 
     /**
@@ -2285,6 +2377,68 @@ define([
     };
 
     /**
+     * check an element for attached event by name
+     * -> e.g. eventName = 'click.myNamespace'
+     * @param element
+     * @param eventName
+     * @returns {boolean}
+     */
+    let hasEvent = (element, eventName) => {
+        let exists = false;
+        let parts = eventName.split('.');
+        let name =  parts[0];
+        let namespace = parts.length === 2 ? parts[1] : false;
+        let events = $._data( element[0], 'events')[name];
+        if(events){
+            if(namespace){
+                // seach events by namespace
+                for(let event of events){
+                    if(event.namespace === namespace){
+                        exists = true;
+                        break;
+                    }
+                }
+            }else{
+                // at least ONE event of the given name found
+                exists = true;
+            }
+        }
+        return exists;
+    };
+
+    /**
+     * wrapper function for onClick() || onDblClick() events in order to distinguish between this two types of events
+     * @param element
+     * @param singleClickCallback
+     * @param doubleClickCallback
+     * @param timeout
+     */
+    let singleDoubleClick = (element, singleClickCallback, doubleClickCallback, timeout) => {
+        let eventName = 'mouseup.singleDouble';
+        if(!hasEvent(element, eventName)){
+            let clicks = 0;
+            // prevent default behaviour (e.g. open <a>-tag link)
+            element.off('click').on('click', function(e){
+                e.preventDefault();
+            });
+
+            element.off(eventName).on(eventName, function(e){
+                clicks++;
+                if (clicks === 1) {
+                    setTimeout(element => {
+                        if(clicks === 1) {
+                            singleClickCallback.call(element, e);
+                        } else {
+                            doubleClickCallback.call(element, e);
+                        }
+                        clicks = 0;
+                    }, timeout || Init.timer.DBL_CLICK, this);
+                }
+            });
+        }
+    };
+
+    /**
      * get deep json object value if exists
      * -> e.g. key = 'first.last.third' string
      * @param obj
@@ -2413,12 +2567,14 @@ define([
         showVersionInfo: showVersionInfo,
         initPrototypes: initPrototypes,
         initDefaultBootboxConfig: initDefaultBootboxConfig,
+        initDefaultSelect2Config: initDefaultSelect2Config,
         getCurrentTriggerDelay: getCurrentTriggerDelay,
         getServerTime: getServerTime,
         convertTimestampToServerTime: convertTimestampToServerTime,
         getTimeDiffParts: getTimeDiffParts,
         timeStart: timeStart,
         timeStop: timeStop,
+        updateCounter: updateCounter,
         log: log,
         showNotify: showNotify,
         stopTabBlink: stopTabBlink,
@@ -2470,6 +2626,7 @@ define([
         getLocalStorage: getLocalStorage,
         clearSessionStorage: clearSessionStorage,
         getBrowserTabId: getBrowserTabId,
+        singleDoubleClick: singleDoubleClick,
         getObjVal: getObjVal,
         redirect: redirect,
         logout: logout,

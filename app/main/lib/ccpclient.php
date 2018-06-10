@@ -35,6 +35,7 @@ class CcpClient extends \Prefab {
             $client->setDatasource( Config::getEnvironmentData('CCP_ESI_DATASOURCE') );
             $client->setUserAgent($this->getUserAgent());
             $client->setDebugLevel($f3->get('DEBUG'));
+            //$client->setDebugLogRequests(true);
         }else{
             LogController::getLogger('ERROR')->write(sprintf(Config::ERROR_CLASS_NOT_EXISTS_COMPOSER, ApiClient::class));
         }

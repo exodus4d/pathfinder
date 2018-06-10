@@ -1,0 +1,100 @@
+.popover{
+  // on top of modals even if they are attached to <body>
+  z-index: $zindex-modal + 10;
+  // give large popups more space..
+  max-width: 600px;
+
+  .arrow{
+    pointer-events: none; // no pointer events (important on system popovers shout not 'detect' hover)
+  }
+
+  .popover-title{
+    text-transform: capitalize;
+    font-family: $font-family-readable;
+    font-weight: bold;
+  }
+
+  .popover-content {
+    font-family: $font-family-readable;
+  }
+
+  // image in popover
+  img{
+    @include border-radius(5px);
+  }
+
+  h4{
+    color: $gray-lighter;
+  }
+
+  // table in pop popover
+  table{
+    color: $gray-lighter;
+    line-height: 16px;
+    font-size: 11px;
+
+    td{
+      padding: 0 5px;
+      vertical-align: middle !important;
+    }
+  }
+}
+
+// smaller variant ----------------------------------------------------------------------------------------------------
+.pf-popover-small{
+  .popover-title {
+    padding: 3px 6px;
+  }
+
+  .popover-content {
+    padding: 6px 1px 3px;
+  }
+}
+
+// specific "Pathfinder" Popover settings -----------------------------------------------------------------------------
+.pf-popover{
+  display: initial;
+
+  .popover-content{
+    padding: 0; // overwrite default popover padding
+  }
+
+  h6{
+    white-space: nowrap;
+    margin-right: 50px;
+    @include clearfix();
+  }
+
+  .well{
+    margin-top: 7px;
+    margin-bottom: 10px;
+  }
+
+  .list-group{
+    margin: 0;
+
+    .list-group-item{
+      color: $gray-dark;
+
+      &:hover{
+        color: $gray-darkest;
+      }
+
+      &.disabled{
+        background-color: $gray;
+        color: $gray-light;
+        cursor: not-allowed;
+      }
+
+      img{
+        width: 30px;
+        margin: -8px 10px -6px -8px;
+        border-radius: 0; // overwrite "global"
+      }
+
+      i{
+        margin-right: 20px;
+      }
+    }
+  }
+}

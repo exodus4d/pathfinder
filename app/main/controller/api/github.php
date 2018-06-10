@@ -18,38 +18,60 @@ use Controller;
 */
 class GitHub extends Controller\Controller {
 
+    protected function getBaseRequestOptions() : array {
+        return [
+            'timeout' => 3,
+            'user_agent' => $this->getUserAgent(),
+            'follow_location' => false // otherwise CURLOPT_FOLLOWLOCATION will fail
+        ];
+    }
+
     /**
      * get HTTP request options for API (curl) request
      * @return array
      * @throws \Exception\PathfinderException
      */
-    protected function getRequestOptions(){
-        $requestOptions = [
-            'timeout' => 8,
-            'method' => 'GET',
-            'user_agent' => $this->getUserAgent(),
-            'follow_location' => false // otherwise CURLOPT_FOLLOWLOCATION will fail
+    protected function getRequestReleaseOptions() : array {
+        $options = $this->getBaseRequestOptions();
+        $options['method'] = 'GET';
+        return $options;
+    }
+
+    /**
+     * get HTTP request options for API (curl) request
+     * @param string $text
+     * @return array
+     * @throws \Exception\PathfinderException
+     */
+    protected function getRequestMarkdownOptions(string $text) : array {
+        $params = [
+            'text' => $text,
+            'mode' => 'gfm',
+            'context' => 'exodus4d/pathfinder'
         ];
 
-        return $requestOptions;
+        $options = $this->getBaseRequestOptions();
+        $options['method'] = 'POST';
+        $options['content'] = json_encode($params, JSON_UNESCAPED_SLASHES);
+        return $options;
     }
 
     /**
      * get release information from  GitHub
-     * @param $f3
+     * @param \Base $f3
      * @throws \Exception\PathfinderException
      */
-    public function releases($f3){
+    public function releases(\Base $f3){
         $cacheKey = 'CACHE_GITHUB_RELEASES';
         $ttl = 60 * 30; // 30min
         $releaseCount = 4;
 
-        if( !$f3->exists($cacheKey) ){
-            $apiPath =  Config::getPathfinderData('api.git_hub') . '/repos/exodus4d/pathfinder/releases';
+        if( !$f3->exists($cacheKey, $return) ){
+            $apiReleasePath =  Config::getPathfinderData('api.git_hub') . '/repos/exodus4d/pathfinder/releases';
+            $apiMarkdownPath =  Config::getPathfinderData('api.git_hub') . '/markdown';
 
             // build request URL
-            $options = $this->getRequestOptions();
-            $apiResponse = \Web::instance()->request($apiPath, $options );
+            $apiResponse = \Web::instance()->request($apiReleasePath, $this->getRequestReleaseOptions() );
 
             if($apiResponse['body']){
                 $return = (object) [];
@@ -100,7 +122,17 @@ class GitHub extends Controller\Controller {
                         // convert list style
                         $body = str_replace(' - ', '* ', $body );
 
-                        $releaseData->body = $md->convert( trim($body) );
+                        // convert Markdown to HTML -> use either gitHub API (in oder to create abs, issue links)
+                        // -> or F3´s markdown as fallback
+                        $markdownResponse = \Web::instance()->request($apiMarkdownPath, $this->getRequestMarkdownOptions($body) );
+
+                        if($markdownResponse['body']){
+                            $body = $markdownResponse['body'];
+                        }else{
+                            $body =  $md->convert( trim($body) );
+                        }
+
+                        $releaseData->body = $body;
                     }
                 }
 
@@ -109,7 +141,7 @@ class GitHub extends Controller\Controller {
                 $f3->set($cacheKey, $return, $ttl);
             }else{
                 // request failed -> cache failed result (respect API request limit)
-                $f3->set($cacheKey, false, 60 * 5);
+                $f3->set($cacheKey, false, 60 * 15);
             }
         }
 

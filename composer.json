@@ -27,6 +27,6 @@
     "monolog/monolog": "1.*",
     "websoftwares/monolog-zmq-handler": "0.2.*",
     "swiftmailer/swiftmailer": "^6.0",
-    "exodus4d/pathfinder_esi": "dev-master#v1.2.3"
+    "exodus4d/pathfinder_esi": "dev-master#v1.2.4"
   }
 }

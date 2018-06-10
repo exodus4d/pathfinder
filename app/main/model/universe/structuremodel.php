@@ -8,10 +8,8 @@
 
 namespace Model\Universe;
 
-
 use DB\SQL;
 use DB\SQL\Schema;
-use lib\Util;
 
 class StructureModel extends BasicUniverseModel {
 
@@ -38,7 +36,8 @@ class StructureModel extends BasicUniverseModel {
                     'table' => 'type',
                     'on-delete' => 'CASCADE'
                 ]
-            ]
+            ],
+            'validate' => 'validate_notDry'
         ],
         'x' => [
             'type' => Schema::DT_FLOAT,
@@ -80,24 +79,16 @@ class StructureModel extends BasicUniverseModel {
     protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){
         $data = self::getF3()->ccpClient->getUniverseStructureData($id, $accessToken, $additionalOptions);
         if(!empty($data)){
+            /**
+             * @var $type TypeModel
+             */
             $type = $this->rel('typeId');
             $type->loadById($data['typeId'], $accessToken, $additionalOptions);
             $data['typeId'] = $type;
 
-            $this->copyfrom($data);
+            $this->copyfrom($data, ['id', 'name', 'systemId', 'typeId', 'position']);
             $this->save();
         }
-    }
-
-    /**
-     * @param array|string $key
-     * @param null $fields
-     * @return NULL
-     */
-    public function copyfrom($key, $fields = null){
-        // flatten array (e.g. "position" key)
-        $key = Util::arrayFlatten((array)$key);
-        parent::copyfrom($key, $fields);
     }
 
     /**
@@ -106,6 +97,7 @@ class StructureModel extends BasicUniverseModel {
      * @param null $table
      * @param null $fields
      * @return bool
+     * @throws \Exception
      */
     public static function setup($db=null, $table=null, $fields=null){
         if($status = parent::setup($db,$table,$fields)){

@@ -39,7 +39,10 @@ define([
         tableToolsActionClass: 'pf-table-tools-action',                         // class for "edit" action
 
         descriptionTextareaElementClass: 'pf-system-info-description',          // class for "description" textarea element (xEditable)
-        descriptionTextareaCharCounter: 'pf-form-field-char-count'              // class for "character counter" element for form field
+        descriptionTextareaCharCounter: 'pf-form-field-char-count',             // class for "character counter" element for form field
+
+        // fonts
+        fontTriglivianClass: 'pf-triglivian'                                    // class for "Triglivian" names (e.g. Abyssal systems)
     };
 
     // disable Module update temporary (until. some requests/animations) are finished
@@ -54,7 +57,7 @@ define([
     /**
      * set module observer and look for relevant system data to update
      */
-    let setModuleObserver = function(moduleElement){
+    let setModuleObserver = (moduleElement) => {
         $(document).off('pf:updateSystemInfoModule').on('pf:updateSystemInfoModule', function(e, data){
             if(data){
                 moduleElement.updateSystemInfoModule(data);
@@ -66,7 +69,7 @@ define([
      * shows the tool action element by animation
      * @param toolsActionElement
      */
-    let showToolsActionElement = function(toolsActionElement){
+    let showToolsActionElement = (toolsActionElement) => {
         toolsActionElement.velocity('stop').velocity({
             opacity: 1,
             height: '100%'
@@ -81,7 +84,7 @@ define([
      * hides the tool action element by animation
      * @param toolsActionElement
      */
-    let hideToolsActionElement = function(toolsActionElement){
+    let hideToolsActionElement = (toolsActionElement) => {
         toolsActionElement.velocity('stop').velocity('reverse', {
             display: 'none',
             visibility: 'hidden'
@@ -170,39 +173,12 @@ define([
     };
 
     /**
-     * update a character counter field with current value length - maxCharLength
-     * @param field
-     * @param charCounterElement
-     * @param maxCharLength
-     */
-    let updateCounter = function(field, charCounterElement, maxCharLength){
-        let value = field.val();
-        let inputLength = value.length;
-
-        // line breaks are 2 characters!
-        let newLines = value.match(/(\r\n|\n|\r)/g);
-        let addition = 0;
-        if (newLines != null) {
-            addition = newLines.length;
-        }
-        inputLength += addition;
-
-        charCounterElement.text(maxCharLength - inputLength);
-
-        if(maxCharLength <= inputLength){
-            charCounterElement.toggleClass('txt-color-red', true);
-        }else{
-            charCounterElement.toggleClass('txt-color-red', false);
-        }
-    };
-
-    /**
      * get module element
      * @param parentElement
      * @param mapId
      * @param systemData
      */
-    let getModule = function(parentElement, mapId, systemData){
+    let getModule = (parentElement, mapId, systemData) => {
 
         // create new module container
         let moduleElement = $('<div>');
@@ -263,7 +239,6 @@ define([
                         inputclass: config.descriptionTextareaElementClass,
                         tpl: '<textarea maxlength="' + maxDescriptionLength + '"></textarea>',
                         params: function(params){
-
                             params.mapData = {
                                 id: mapId
                             };
@@ -319,10 +294,10 @@ define([
                         textarea.parent().next().append(charCounter);
 
                         // update character counter
-                        updateCounter(textarea, charCounter, maxDescriptionLength);
+                        Util.updateCounter(textarea, charCounter, maxDescriptionLength);
 
                         textarea.on('keyup', function(){
-                            updateCounter($(this), charCounter, maxDescriptionLength);
+                            Util.updateCounter($(this), charCounter, maxDescriptionLength);
                         });
                     });
 
@@ -358,30 +333,7 @@ define([
                     tooltipElements.tooltip();
 
                     // init system effect popover ----------------------------------------------------------------
-                    let infoEffectElement = $(moduleElement).find('.' + config.systemInfoEffectInfoClass);
-
-                    if(infoEffectElement.length){
-                        // effect row exists -> get effect data
-                        let systemEffectData = Util.getSystemEffectData( systemData.security, systemData.effect);
-
-                        if(systemEffectData !== false){
-                            // transform data into table
-                            let systemEffectTable = Util.getSystemEffectTable( systemEffectData );
-
-                            infoEffectElement.popover({
-                                html: true,
-                                trigger: 'hover',
-                                placement: 'top',
-                                delay: 200,
-                                title: 'System effects',
-                                container: 'body',
-                                content: systemEffectTable
-                            });
-                        }else{
-                            // effect data not found (e.g. !unknown! shattered system) -> hide "popover" icon icon
-                            infoEffectElement.children().hide();
-                        }
-                    }
+                    $(moduleElement).find('.' + config.systemInfoEffectInfoClass).addSystemEffectTooltip(systemData.security, systemData.effect);
 
                     // init static wormhole information ----------------------------------------------------------
                     if(systemData.statics){
@@ -408,7 +360,6 @@ define([
                         popoverElement = $(popoverElement);
                         let popover = popoverElement.data('bs.popover');
 
-
                         $.ajax({
                             url: popoverElement.data('url'),
                             success: function(data){
@@ -434,6 +385,7 @@ define([
             statusInfoClass: config.systemInfoStatusLabelClass,
 
             systemTypeName: MapUtil.getSystemTypeInfo(systemData.type.id, 'name'),
+            systemIsWormhole: MapUtil.getSystemTypeInfo(systemData.type.id, 'name') === 'w-space',
             systemStatusId: systemData.status.id,
             systemStatusClass: Util.getStatusInfoForSystem(systemData.status.id, 'class'),
             systemStatusLabel: Util.getStatusInfoForSystem(systemData.status.id, 'label'),
@@ -446,6 +398,11 @@ define([
             descriptionButtonClass: config.addDescriptionButtonClass,
             tableToolsActionClass: config.tableToolsActionClass,
             descriptionTextareaClass: config.descriptionTextareaElementClass,
+            systemNameClass: () => {
+                return (val, render) => {
+                    return  render(val) === 'A' ? config.fontTriglivianClass : '';
+                };
+            },
 
             shatteredWormholeInfo: shatteredWormholeInfo,
 
@@ -468,7 +425,7 @@ define([
      * @param mapId
      * @param systemData
      */
-    let initModule = function(moduleElement, mapId, systemData){
+    let initModule = (moduleElement, mapId, systemData) => {
         // set module observer
         setModuleObserver(moduleElement);
 
