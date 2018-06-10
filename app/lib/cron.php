@@ -6,7 +6,7 @@ class Cron extends \Prefab {
     const
         E_Undefined='Undefined property: %s::$%s',
         E_Invalid='"%s" is not a valid name: it should only contain alphanumeric characters',
-        E_NotFound='Job %s doesn\' exist',
+        E_NotFound='Job %s doesn\'t exist',
         E_Callable='Job %s cannot be called';
     //@}
 
@@ -42,6 +42,9 @@ class Cron extends \Prefab {
         'daily'=>'0 0 * * *',
         'hourly'=>'0 * * * *',
     );
+
+    /** @var bool */
+    private $windows;
 
     /**
      * Set binary path after checking that it can be executed and is CLI
@@ -113,9 +116,13 @@ class Cron extends \Prefab {
             // Failing to do so will cause PHP to hang until the execution of the program ends.
             $dir=dirname($this->script);
             $file=basename($this->script);
-            if (@$dir[0]!='/')
+            if (!preg_match($this->windows?'/^[A-Z]:\\\\/i':'/^\//',$dir))
                 $dir=getcwd().'/'.$dir;
-            exec(sprintf('cd "%s";%s %s /cron/%s > /dev/null 2>/dev/null &',$dir,$this->binary,$file,$job));
+            if ($this->windows) {
+                pclose(popen(sprintf('start "cron" "%s" "%s\\%s" "/cron/%s"',$this->binary,$dir,$file,$job),'r'));
+            } else {
+                exec(sprintf('cd "%s" & %s %s /cron/%s >/dev/null 2>/dev/null &',$dir,$this->binary,$file,$job));
+            }
             return FALSE;
         }
         $start=microtime(TRUE);
@@ -245,6 +252,7 @@ class Cron extends \Prefab {
             foreach(array('php','php-cli') as $path) // try to guess the binary name
                 if ($this->binary($path))
                     break;
+        $this->windows=(bool)preg_match('/^win/i',PHP_OS);
         $f3->route(array('GET /cron','GET /cron/@job'),array($this,'route'));
     }
 
