@@ -285,7 +285,10 @@ class CorporationModel extends BasicModel {
             !empty($accessToken) &&
             !$this->isNPC
         ){
-            $characterRolesData = self::getF3()->ccpClient->getCorporationRoles($this->_id, $accessToken);
+            $response = self::getF3()->ccpClient->getCorporationRoles($this->_id, $accessToken);
+            if( !empty($response['roles']) ){
+                $characterRolesData = (array)$response['roles'];
+            }
         }
 
         return $characterRolesData;
