@@ -279,7 +279,7 @@ class MapModel extends AbstractMapTrackingModel {
                     $characterData[] = $character->getData();
                 }
                 $mapData->access->character = $characterData;
-            } elseif($this->isCorporation()){
+            }elseif($this->isCorporation()){
                 $corporations = $this->getCorporations();
                 $corporationData = [];
 
@@ -287,7 +287,7 @@ class MapModel extends AbstractMapTrackingModel {
                     $corporationData[] = $corporation->getData();
                 }
                 $mapData->access->corporation = $corporationData;
-            } elseif($this->isAlliance()){
+            }elseif($this->isAlliance()){
                 $alliances = $this->getAlliances();
                 $allianceData = [];
 

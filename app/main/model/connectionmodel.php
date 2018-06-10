@@ -400,6 +400,11 @@ class ConnectionModel extends AbstractMapTrackingModel {
         return $logsData;
     }
 
+    /**
+     * log new mass for this connection
+     * @param CharacterLogModel $characterLog
+     * @return $this
+     */
     public function logMass(CharacterLogModel $characterLog){
         if( !$characterLog->dry() ){
             $log = $this->rel('connectionLog');
