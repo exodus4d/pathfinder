@@ -77,7 +77,6 @@ define([
      * @param settings
      */
     let showNotify = function(customConfig, settings){
-
         customConfig = $.extend(true, {}, config, customConfig );
 
         // desktop notification

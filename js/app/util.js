@@ -1042,7 +1042,7 @@ define([
      * @param value
      * @returns {*}
      */
-    let getCurrentTriggerDelay = function( updateKey, value ){
+    let getCurrentTriggerDelay = (updateKey, value ) => {
 
         // make sure the delay timer is valid!
         // if this is called for the first time -> set CURRENT_DELAY
@@ -1068,7 +1068,7 @@ define([
      * get date obj with current EVE Server Time.
      * @returns {Date}
      */
-    let getServerTime = function(){
+    let getServerTime = () => {
 
         // Server is running with GMT/UTC (EVE Time)
         let localDate = new Date();
@@ -1090,7 +1090,7 @@ define([
      * @param timestamp
      * @returns {Date}
      */
-    let convertTimestampToServerTime = function(timestamp){
+    let convertTimestampToServerTime = timestamp => {
         let currentTimeZoneOffsetInMinutes = new Date().getTimezoneOffset();
         return new Date( (timestamp + (currentTimeZoneOffsetInMinutes * 60)) * 1000);
     };
@@ -1101,7 +1101,7 @@ define([
      * @param date2
      * @returns {{}}
      */
-    let getTimeDiffParts = function(date1, date2){
+    let getTimeDiffParts = (date1, date2) => {
         let parts = {};
         let time1 = date1.getTime();
         let time2 = date2.getTime();
@@ -1131,7 +1131,7 @@ define([
      * start time measurement by a unique string identifier
      * @param timerName
      */
-    let timeStart = function(timerName){
+    let timeStart = timerName => {
 
         if(typeof performance === 'object'){
             stopTimerCache[timerName] = performance.now();
@@ -1145,7 +1145,7 @@ define([
      * @param timerName
      * @returns {number}
      */
-    let timeStop = function(timerName){
+    let timeStop = timerName => {
 
         let duration = 0;
 
@@ -1175,7 +1175,7 @@ define([
      * @param charCounterElement
      * @param maxCharLength
      */
-    let updateCounter = function(field, charCounterElement, maxCharLength){
+    let updateCounter = (field, charCounterElement, maxCharLength) => {
         let value = field.val();
         let inputLength = value.length;
 
@@ -1201,7 +1201,7 @@ define([
      * @param logKey
      * @param options
      */
-    let log = function(logKey, options){
+    let log = (logKey, options) => {
         $(window).trigger('pf:log', [logKey, options]);
     };
 
@@ -1210,8 +1210,8 @@ define([
      * @param customConfig
      * @param desktop
      */
-    let showNotify = function(customConfig, desktop){
-        requirejs(['notification'], function(Notification) {
+    let showNotify = (customConfig, desktop) => {
+        requirejs(['notification'], Notification => {
             Notification.showNotify(customConfig, desktop);
         });
     };
@@ -1231,7 +1231,7 @@ define([
      * @param option
      * @returns {string}
      */
-    let getLogInfo = function(logType, option){
+    let getLogInfo = (logType, option) => {
         let logInfo = '';
 
         if(Init.classes.logTypes.hasOwnProperty(logType)){
