@@ -11,7 +11,7 @@ use DB;
 use Model;
 
 
-class CharacterUpdate {
+class CharacterUpdate extends AbstractCron {
 
     /**
      * default character_log time until a log entry get re-checked by cronjob
@@ -41,6 +41,7 @@ class CharacterUpdate {
      * @throws \Exception
      */
     function deleteLogData(\Base $f3){
+        $this->setMaxExecutionTime();
         DB\Database::instance()->getDB('PF');
         $logInactiveTime = $this->getCharacterLogInactiveTime($f3);
 
@@ -84,6 +85,7 @@ class CharacterUpdate {
      * @throws \Exception
      */
     function cleanUpCharacterData(\Base $f3){
+        $this->setMaxExecutionTime();
         DB\Database::instance()->getDB('PF');
 
         /**
@@ -95,7 +97,6 @@ class CharacterUpdate {
             'active = :active AND TIMESTAMPDIFF(SECOND, kicked, NOW() ) > 0',
             ':active' => 1
         ]);
-
 
         if(is_object($characters)){
             foreach($characters as $character){
@@ -115,7 +116,8 @@ class CharacterUpdate {
      * @param \Base $f3
      * @throws \Exception
      */
-    function deleteAuthenticationData($f3){
+    function deleteAuthenticationData(\Base $f3){
+        $this->setMaxExecutionTime();
         DB\Database::instance()->getDB('PF');
 
         /**

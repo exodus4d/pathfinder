@@ -10,7 +10,7 @@ namespace Cron;
 use Controller;
 use DB;
 
-class CcpSystemsUpdate {
+class CcpSystemsUpdate extends AbstractCron {
 
     const LOG_TEXT = '%s prepare table (%.3F s), jump (%.3F s), kill (%.3F s), update all (%.3F s)';
 
@@ -35,7 +35,6 @@ class CcpSystemsUpdate {
      * @return array
      */
     private function prepareSystemLogTables(){
-
         // get information for all systems from CCP DB
         $systemController = new Controller\Api\System();
         $systemsData = $systemController->getSystems();
@@ -72,6 +71,7 @@ class CcpSystemsUpdate {
      * @param \Base $f3
      */
     function importSystemData($f3){
+        $this->setMaxExecutionTime();
 
         // prepare system jump log table ------------------------------------------------------------------------------
         $time_start = microtime(true);
