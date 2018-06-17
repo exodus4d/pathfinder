@@ -81,7 +81,6 @@ define([
     let filterSystemHeadEvent = (e, system) => {
         let target = $(e.target);
         let effectClass = MapUtil.getEffectInfoForSystem('effect', 'class');
-        console.log('filter...')
         return (
             target.hasClass(config.systemHeadNameClass) ||
             target.hasClass(effectClass) ||
@@ -95,7 +94,7 @@ define([
         source: {
             filter:  filterSystemHeadEvent,
             //isSource:true,
-            isTarget: true,                          // add target Endpoint to each system (e.g. for drag&drop)
+            isTarget: true,                         // add target Endpoint to each system (e.g. for drag&drop)
             allowLoopback: false,                   // loopBack connections are not allowed
             cssClass: config.endpointSourceClass,
             uniqueEndpoint: false,                  // each connection has its own endpoint visible
@@ -974,7 +973,6 @@ define([
 
                 // add additional information for this map
                 if(mapContainer.data('updated') !== mapConfig.config.updated.updated){
-                    console.log('updated')
                     mapContainer.data('name', mapConfig.config.name);
                     mapContainer.data('scopeId', mapConfig.config.scope.id);
                     mapContainer.data('typeId', mapConfig.config.type.id);

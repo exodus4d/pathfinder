@@ -705,7 +705,7 @@ define([
         let typeArray = (type === undefined) ? [] : ((Array.isArray(type)) ? type : [type]);
 
         map.select({scope: scopeArray}).each(function(connection){
-            if( noHidden && !connection.isVisible()){
+            if(noHidden && !connection.isVisible()){
                 // exclude invisible connection
                 return;
             }
