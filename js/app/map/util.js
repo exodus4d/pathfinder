@@ -454,6 +454,74 @@ define([
     };
 
     /**
+     * filter map by scopes
+     * -> this effects visible systems and connections on UI
+     * @param map
+     * @param scopes
+     */
+    let filterMapByScopes = (map, scopes) => {
+        if(map){
+            // TODO sometimes map is undefined -> bug
+            let mapElement = $(map.getContainer());
+            let allSystems = mapElement.getSystems();
+            let allConnections = map.getAllConnections();
+
+            if(scopes && scopes.length){
+                // filter connections -------------------------------------------------------------------------------------
+                let visibleSystems = [];
+                let visibleConnections = searchConnectionsByScopeAndType(map, scopes);
+
+                for(let connection of allConnections){
+                    if(visibleConnections.indexOf(connection) >= 0){
+                        setConnectionVisible(connection, true);
+                        // source/target system should always be visible -> even if filter scope not matches system type
+                        if(visibleSystems.indexOf(connection.endpoints[0].element) < 0){
+                            visibleSystems.push(connection.endpoints[0].element);
+                        }
+                        if(visibleSystems.indexOf(connection.endpoints[1].element) < 0){
+                            visibleSystems.push(connection.endpoints[1].element);
+                        }
+                    }else{
+                        setConnectionVisible(connection, false);
+                    }
+                }
+
+                // filter systems -----------------------------------------------------------------------------------------
+                let visibleTypeIds = [];
+                if(scopes.indexOf('wh') >= 0){
+                    visibleTypeIds.push(1);
+                }
+                if(scopes.indexOf('abyssal') >= 0){
+                    visibleTypeIds.push(4);
+                }
+
+                for(let system of allSystems){
+                    if(
+                        visibleTypeIds.indexOf($(system).data('typeId')) >= 0 ||
+                        visibleSystems.indexOf(system) >= 0
+                    ){
+                        setSystemVisible(system, true);
+                    }else{
+                        setSystemVisible(system, false);
+                    }
+                }
+
+                mapElement.getMapOverlay('info').updateOverlayIcon('filter', 'show');
+            }else{
+                // clear filter
+                for(let system of allSystems){
+                    setSystemVisible(system, true);
+                }
+                for(let connection of allConnections){
+                    setConnectionVisible(connection, true);
+                }
+
+                mapElement.getMapOverlay('info').updateOverlayIcon('filter', 'hide');
+            }
+        }
+    };
+
+    /**
      * mark a system as "active"
      * @param map
      * @param system
@@ -468,7 +536,17 @@ define([
     };
 
     /**
+     * set system visibility e.g. or filtered systems
+     * @param system
+     * @param visible
+     */
+    let setSystemVisible = (system, visible) => {
+        $(system).toggleClass('pf-system-hidden', !visible);
+    };
+
+    /**
      * mark a connection as "active"
+     * @param map
      * @param connections
      */
     let setConnectionsActive = (map, connections) => {
@@ -479,6 +557,17 @@ define([
 
         for(let connection of connections){
             connection.addType('active');
+        }
+    };
+
+    /**
+     * set connection visibility e.g. for filtered systems
+     * @param connection
+     * @param visible
+     */
+    let setConnectionVisible = (connection, visible) => {
+        for(let endpoint of connection.endpoints){
+            endpoint.setVisible(visible);
         }
     };
 
@@ -604,17 +693,23 @@ define([
     /**
      * search connections by scope and/or type
      * -> scope and target can be an array
-     * @param {Object} map - jsPlumb
-     * @param {string|string[]} scope
-     * @param {string|string[]} type
+     * @param map
+     * @param scope
+     * @param type
+     * @param noHidden
      * @returns {Array}
      */
-    let searchConnectionsByScopeAndType = (map, scope, type) => {
+    let searchConnectionsByScopeAndType = (map, scope, type = undefined, noHidden = false) => {
         let connections = [];
         let scopeArray = (scope === undefined) ? ['*'] : ((Array.isArray(scope)) ? scope : [scope]);
         let typeArray = (type === undefined) ? [] : ((Array.isArray(type)) ? type : [type]);
 
         map.select({scope: scopeArray}).each(function(connection){
+            if(noHidden && !connection.isVisible()){
+                // exclude invisible connection
+                return;
+            }
+
             if(typeArray.length > 0){
                 // filter by connection type as well...
                 for(let i = 0; i < typeArray.length; i++){
@@ -1223,6 +1318,7 @@ define([
         getEndpointOverlayContent: getEndpointOverlayContent,
         getTabContentElementByMapElement: getTabContentElementByMapElement,
         hasActiveConnection: hasActiveConnection,
+        filterMapByScopes: filterMapByScopes,
         storeDefaultMapId: storeDefaultMapId,
         getLocaleData: getLocaleData,
         storeLocalData: storeLocalData,

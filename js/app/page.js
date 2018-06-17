@@ -347,7 +347,7 @@ define([
                     id: Util.config.menuButtonGridId
                 }).html('&nbsp;&nbsp;&nbsp;Grid snapping').prepend(
                     $('<i>',{
-                        class: 'glyphicon glyphicon-th'
+                        class: 'fas fa-th fa-fw'
                     })
                 ).on('click', function(){
                     Util.getMapModule().getActiveMap().triggerMenuEvent('MapOption', {

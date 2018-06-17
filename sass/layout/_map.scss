@@ -299,7 +299,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     @include border-radius(5px);
 
     // change border color with transition
-    @include transition( border-color 0.3s ease-out, box-shadow 0.12s ease-out );
+    @include transition( border-color 0.2s ease-out, box-shadow 0.12s ease-out, opacity 0.12s ease-out );
     @include transform( translate3d(0, 0, 0) );
 
     &:hover{
@@ -313,7 +313,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     }
 
     .pf-system-head{
-      padding: 0px 3px 0px 3px;
+      padding: 0 3px 0 3px;
       cursor: pointer;
       font-family: Arial, sans-serif; // fix for element width on custom font family
       font-weight: bold;

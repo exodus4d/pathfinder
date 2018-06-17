@@ -81,6 +81,7 @@ define([
     let filterSystemHeadEvent = (e, system) => {
         let target = $(e.target);
         let effectClass = MapUtil.getEffectInfoForSystem('effect', 'class');
+        console.log('filter...')
         return (
             target.hasClass(config.systemHeadNameClass) ||
             target.hasClass(effectClass) ||
@@ -90,11 +91,11 @@ define([
     };
 
     // jsPlumb config
-    let globalMapConfig =  {
+    let globalMapConfig = {
         source: {
             filter:  filterSystemHeadEvent,
             //isSource:true,
-            isTarget:true,                          // add target Endpoint to each system (e.g. for drag&drop)
+            isTarget: true,                          // add target Endpoint to each system (e.g. for drag&drop)
             allowLoopback: false,                   // loopBack connections are not allowed
             cssClass: config.endpointSourceClass,
             uniqueEndpoint: false,                  // each connection has its own endpoint visible
@@ -107,7 +108,7 @@ define([
         },
         target: {
             filter:  filterSystemHeadEvent,
-            isSource:true,
+            isSource: true,
             //isTarget:true,
             //allowLoopBack: false,                 // loopBack connections are not allowed
             cssClass: config.endpointTargetClass,
@@ -519,11 +520,9 @@ define([
             e.stopPropagation();
 
             // trigger menu "open
-
-            // get invisible menu entries
-            let hideOptions = getHiddenContextMenuOptions(component);
-            let activeOptions = getActiveContextMenuOptions(component);
-            $(e.target).trigger('pf:openContextMenu', [e, component, hideOptions, activeOptions]);
+            Promise.all([getHiddenContextMenuOptions(component), getActiveContextMenuOptions(component)]).then(payload => {
+                $(e.target).trigger('pf:openContextMenu', [e, component, payload[0], payload[1]]);
+            });
 
             return false;
         });
@@ -975,6 +974,7 @@ define([
 
                 // add additional information for this map
                 if(mapContainer.data('updated') !== mapConfig.config.updated.updated){
+                    console.log('updated')
                     mapContainer.data('name', mapConfig.config.name);
                     mapContainer.data('scopeId', mapConfig.config.scope.id);
                     mapContainer.data('typeId', mapConfig.config.type.id);
@@ -1129,7 +1129,24 @@ define([
             });
         };
 
-        return new Promise(updateMapExecutor);
+        return new Promise(updateMapExecutor).then(payload => {
+
+            let filterMapByScopesExecutor = (resolve, reject) => {
+                // apply current active scope filter ==================================================================
+                let promiseStore = MapUtil.getLocaleData('map', payload.data.mapConfig.config.id);
+                promiseStore.then(dataStore => {
+                    let scopes = [];
+                    if(dataStore && dataStore.filterScopes){
+                        scopes = dataStore.filterScopes;
+                    }
+
+                    MapUtil.filterMapByScopes(payload.data.mapConfig.map, scopes);
+                    resolve(payload);
+                });
+            };
+
+            return new Promise(filterMapByScopesExecutor);
+        });
     };
 
     /**
@@ -1206,9 +1223,9 @@ define([
         mapElement.getMapOverlay('timer').startMapUpdateCounter();
 
         let systemElements = mapElement.find('.' + config.systemClass);
-        let endpointElements =  mapElement.find('.jsplumb-endpoint');
-        let connectorElements = mapElement.find('.jsplumb-connector');
-        let overlayElements = mapElement.find('.jsplumb-overlay, .tooltip');
+        let endpointElements =  mapElement.find('.jsplumb-endpoint:visible');
+        let connectorElements = mapElement.find('.jsplumb-connector:visible');
+        let overlayElements = mapElement.find('.jsplumb-overlay:visible, .tooltip');
 
         let hideElements = (elements) => {
             if(elements.length > 0){
@@ -1963,104 +1980,106 @@ define([
     /**
      * get hidden menu entry options for a context menu
      * @param component
-     * @returns {Array}
+     * @returns {Promise<any>}
      */
     let getHiddenContextMenuOptions = function(component){
-        let hiddenOptions = [];
 
-        if(component instanceof jsPlumb.Connection){
-            // disable connection menu entries
+        let getHiddenContextMenuOptionsExecutor = (resolve, reject) => {
+            let hiddenOptions = [];
 
-            let scope = component.scope;
+            if(component instanceof jsPlumb.Connection){
+                // disable connection menu entries
+                let scope = component.scope;
+                if(scope === 'abyssal'){
+                    hiddenOptions.push('frigate');
+                    hiddenOptions.push('preserve_mass');
+                    hiddenOptions.push('change_status');
 
-            if(scope === 'abyssal'){
-                hiddenOptions.push('frigate');
-                hiddenOptions.push('preserve_mass');
-                hiddenOptions.push('change_status');
+                    hiddenOptions.push('change_scope');
+                    hiddenOptions.push('separator');
+                }else if(scope === 'stargate'){
+                    hiddenOptions.push('frigate');
+                    hiddenOptions.push('preserve_mass');
+                    hiddenOptions.push('change_status');
 
-                hiddenOptions.push('change_scope');
-                hiddenOptions.push('separator');
-            }else if(scope === 'stargate'){
-                hiddenOptions.push('frigate');
-                hiddenOptions.push('preserve_mass');
-                hiddenOptions.push('change_status');
-
-                hiddenOptions.push('scope_stargate');
-            }else if(scope === 'jumpbridge'){
-                hiddenOptions.push('frigate');
-                hiddenOptions.push('preserve_mass');
-                hiddenOptions.push('change_status');
-                hiddenOptions.push('scope_jumpbridge');
-            }else if(scope === 'wh'){
-                hiddenOptions.push('scope_wh');
+                    hiddenOptions.push('scope_stargate');
+                }else if(scope === 'jumpbridge'){
+                    hiddenOptions.push('frigate');
+                    hiddenOptions.push('preserve_mass');
+                    hiddenOptions.push('change_status');
+                    hiddenOptions.push('scope_jumpbridge');
+                }else if(scope === 'wh'){
+                    hiddenOptions.push('scope_wh');
+                }
+            }else if( component.hasClass(config.systemClass) ){
+                // disable system menu entries
+                if(component.data('locked') === true){
+                    hiddenOptions.push('delete_system');
+                }
             }
 
-        }else if( component.hasClass(config.systemClass) ){
-            // disable system menu entries
-            if(component.data('locked') === true){
-                hiddenOptions.push('delete_system');
-            }
-        }
+            resolve(hiddenOptions);
+        };
 
-        return hiddenOptions;
+        return new Promise(getHiddenContextMenuOptionsExecutor);
     };
 
     /**
      * get active menu entry options for a context menu
      * @param component
-     * @returns {Array}
+     * @returns {Promise<any>}
      */
-    let getActiveContextMenuOptions = function(component){
-        let activeOptions = [];
+    let getActiveContextMenuOptions = component => {
 
-        if(component instanceof jsPlumb.Connection){
-            let scope = component.scope;
+        let getActiveContextMenuOptionsExecutor = (resolve, reject) => {
+            let activeOptions = [];
 
-            if(component.hasType('wh_eol') === true){
-                activeOptions.push('wh_eol');
-            }
+            if(component instanceof jsPlumb.Connection){
+                let scope = component.scope;
 
-            if(component.hasType('frigate') === true){
-                activeOptions.push('frigate');
-            }
-            if(component.hasType('preserve_mass') === true){
-                activeOptions.push('preserve_mass');
-            }
-            if(component.hasType('wh_reduced') === true){
-                activeOptions.push('status_reduced');
-            }else if(component.hasType('wh_critical') === true){
-                activeOptions.push('status_critical');
-            }else{
-                // not reduced is default
-                activeOptions.push('status_fresh');
-            }
+                if(component.hasType('wh_eol') === true){
+                    activeOptions.push('wh_eol');
+                }
 
-        }else if( component.hasClass(config.mapClass) ){
+                if(component.hasType('frigate') === true){
+                    activeOptions.push('frigate');
+                }
+                if(component.hasType('preserve_mass') === true){
+                    activeOptions.push('preserve_mass');
+                }
+                if(component.hasType('wh_reduced') === true){
+                    activeOptions.push('status_reduced');
+                }else if(component.hasType('wh_critical') === true){
+                    activeOptions.push('status_critical');
+                }else{
+                    // not reduced is default
+                    activeOptions.push('status_fresh');
+                }
 
-            // active map menu entries
-            if(component.data('filter_scope') === 'wh'){
-                activeOptions.push('filter_wh');
-            }
-            if(component.data('filter_scope') === 'stargate'){
-                activeOptions.push('filter_stargate');
-            }
-            if(component.data('filter_scope') === 'jumpbridge'){
-                activeOptions.push('filter_jumpbridge');
-            }
-            if(component.data('filter_scope') === 'abyssal'){
-                activeOptions.push('filter_abyssal');
-            }
-        }else if( component.hasClass(config.systemClass) ){
-            // active system menu entries
-            if(component.data('locked') === true){
-                activeOptions.push('lock_system');
-            }
-            if(component.data('rallyUpdated') > 0){
-                activeOptions.push('set_rally');
-            }
-        }
+                resolve(activeOptions);
+            }else if( component.hasClass(config.mapClass) ){
+                // active map menu entries
+                let promiseStore = MapUtil.getLocaleData('map', component.data('id'));
+                promiseStore.then(dataStore => {
+                    if(dataStore && dataStore.filterScopes){
+                        activeOptions = dataStore.filterScopes.map(scope => 'filter_' + scope);
+                    }
+                    resolve(activeOptions);
+                });
+            }else if( component.hasClass(config.systemClass) ){
+                // active system menu entries
+                if(component.data('locked') === true){
+                    activeOptions.push('lock_system');
+                }
+                if(component.data('rallyUpdated') > 0){
+                    activeOptions.push('set_rally');
+                }
 
-        return activeOptions;
+                resolve(activeOptions);
+            }
+        };
+
+        return new Promise(getActiveContextMenuOptionsExecutor);
     };
 
     /**
@@ -2192,12 +2211,11 @@ define([
 
             let systemElement = $(this);
 
-            // hide all map contextmenu options
-            let hideOptions = getHiddenContextMenuOptions(systemElement);
+            // trigger menu "open
+            Promise.all([getHiddenContextMenuOptions(systemElement), getActiveContextMenuOptions(systemElement)]).then(payload => {
+                $(e.target).trigger('pf:openContextMenu', [e, this, payload[0], payload[1]]);
+            });
 
-            let activeOptions = getActiveContextMenuOptions(systemElement);
-
-            $(e.target).trigger('pf:openContextMenu', [e, this, hideOptions, activeOptions]);
             return false;
         });
 
@@ -2521,7 +2539,8 @@ define([
                 let connections = MapUtil.checkForConnection(newJsPlumbInstance, sourceId, targetId);
                 if(connections.length > 1){
                     bootbox.confirm('Connection already exists. Do you really want to add an additional one?', function(result) {
-                        if(!result){
+                        if(!result && connection._jsPlumb){
+                            // connection._jsPlumb might be "undefined" in case connection was removed in the meantime
                             connection._jsPlumb.instance.detach(connection);
                         }
                     });
@@ -2570,7 +2589,7 @@ define([
      */
     let setMapObserver = function(map){
         // get map container
-        let mapContainer = $( map.getContainer() );
+        let mapContainer = $(map.getContainer());
 
         mapContainer.bind('contextmenu', function(e){
             e.preventDefault();
@@ -2580,11 +2599,10 @@ define([
             if($(e.target).hasClass( config.mapClass )){
                 let mapElement = $(this);
 
-                let hideOptions = getHiddenContextMenuOptions(mapElement);
-
-                let activeOptions = getActiveContextMenuOptions(mapElement);
-
-                $(e.target).trigger('pf:openContextMenu', [e, mapElement, hideOptions, activeOptions]);
+                // trigger menu "open
+                Promise.all([getHiddenContextMenuOptions(mapElement), getActiveContextMenuOptions(mapElement)]).then(payload => {
+                    $(e.target).trigger('pf:openContextMenu', [e, mapElement, payload[0], payload[1]]);
+                });
             }
 
             return false;
@@ -2640,52 +2658,32 @@ define([
                     case 'filter_abyssal':
                         // filter (show/hide)
                         let filterScope = action.split('_')[1];
+                        let filterScopeLabel = MapUtil.getScopeInfoForConnection( filterScope, 'label');
 
-                        // scope label
-                        let filterScopeLabel = MapUtil.getScopeInfoForMap(filterScope, 'label');
-
-                        let showScope = true;
-                        if(
-                            currentMapElement.data('filter_scope') &&
-                            currentMapElement.data('filter_scope') === filterScope
-                        ){
-                            // remove scope filter
-                            currentMapElement.data('filter_scope', false);
-                            showScope = false;
-
-                            // hide map overlay filter info
-                            currentMapElement.getMapOverlay('info').updateOverlayIcon('filter', 'hide');
-                        }else{
-                            // set scope filter
-                            currentMapElement.data('filter_scope', filterScope);
-
-                            // show map overlay filter info
-                            currentMapElement.getMapOverlay('info').updateOverlayIcon('filter', 'show');
-                        }
-
-                        let filteredConnections = currentMap.getAllConnections(filterScope);
-
-                        for(let i = 0; i < filteredConnections.length; i++){
-                            let tempConnection = filteredConnections[i];
-
-                            let tempEndpoints = tempConnection.endpoints;
-                            let setVisible = true;
-
-                            if(
-                                showScope &&
-                                tempConnection.scope !== filterScope
-                            ){
-                                setVisible = false;
+                        let promiseStore = MapUtil.getLocaleData('map', currentMapId);
+                        promiseStore.then(data => {
+                            let filterScopes = [];
+                            if(data && data.filterScopes){
+                                filterScopes = data.filterScopes;
+                            }
+                            // add or remove this scope from filter
+                            let index = filterScopes.indexOf(filterScope);
+                            if(index >= 0){
+                                filterScopes.splice(index, 1);
+                            }else{
+                                filterScopes.push(filterScope);
+                                // "all filters active" == "no filter"
+                                if(filterScopes.length === Object.keys(Init.connectionScopes).length){
+                                    filterScopes = [];
+                                }
                             }
 
+                            // save filterScopes in IndexDB
+                            MapUtil.storeLocalData('map', currentMapId, 'filterScopes', filterScopes);
+                            MapUtil.filterMapByScopes(currentMap, filterScopes);
 
-                            for(let j = 0; j < tempEndpoints.length; j++){
-                                tempEndpoints[j].setVisible( setVisible );
-                            }
-                        }
-
-                        Util.showNotify({title: 'Scope filter changed', text: filterScopeLabel, type: 'success'});
-
+                            Util.showNotify({title: 'Scope filter changed', text: filterScopeLabel, type: 'success'});
+                        });
                         break;
                     case 'delete_systems':
                         // delete all selected systems with its connections

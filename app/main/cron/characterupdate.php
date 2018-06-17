@@ -29,7 +29,7 @@ class CharacterUpdate {
      * @return int
      */
     protected function getCharacterLogInactiveTime(\Base $f3){
-        $logInactiveTime =  (int)$f3->get('PATHFINDER.CACHE.CHARACTER_LOG_INACTIVE');
+        $logInactiveTime = (int)$f3->get('PATHFINDER.CACHE.CHARACTER_LOG_INACTIVE');
         return ($logInactiveTime >= 0) ? $logInactiveTime : self::CHARACTER_LOG_INACTIVE;
     }
 
@@ -47,7 +47,7 @@ class CharacterUpdate {
         /**
          * @var $characterLogModel Model\CharacterLogModel
          */
-        $characterLogModel = Model\BasicModel::getNew('CharacterLogModel', 0);
+        $characterLogModel = Model\BasicModel::getNew('CharacterLogModel');
 
         // find character logs that were not checked recently and update
         $characterLogs = $characterLogModel->find([
@@ -89,7 +89,7 @@ class CharacterUpdate {
         /**
          * @var $characterModel Model\CharacterModel
          */
-        $characterModel = Model\BasicModel::getNew('CharacterModel', 0);
+        $characterModel = Model\BasicModel::getNew('CharacterModel');
 
         $characters = $characterModel->find([
             'active = :active AND TIMESTAMPDIFF(SECOND, kicked, NOW() ) > 0',
@@ -121,7 +121,7 @@ class CharacterUpdate {
         /**
          * @var $authenticationModel Model\CharacterAuthenticationModel
          */
-        $authenticationModel = Model\BasicModel::getNew('CharacterAuthenticationModel', 0);
+        $authenticationModel = Model\BasicModel::getNew('CharacterAuthenticationModel');
 
         // find expired authentication data
         $authentications = $authenticationModel->find([

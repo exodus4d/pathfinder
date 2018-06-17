@@ -260,7 +260,7 @@ define([
         let mapElement = $(this);
         let map = getMapObjectFromMapElement(mapElement);
         let MapUtil = require('app/map/util');
-        let connections = MapUtil.searchConnectionsByScopeAndType(map, 'wh');
+        let connections = MapUtil.searchConnectionsByScopeAndType(map, 'wh', undefined, true);
 
         // get connection signature information ---------------------------------------
         getConnectionSignatureData(mapElement, connections, addConnectionsOverlay);
@@ -293,13 +293,21 @@ define([
             title: 'active filter',
             trigger: 'active',
             class: 'pf-map-overlay-filter',
-            iconClass: ['fas', 'fa-fw', 'fa-filter']
+            iconClass: ['fas', 'fa-fw', 'fa-filter'],
+            onClick: function(e){
+                // clear all filter
+                let mapElement = Util.getMapElementFromOverlay(this);
+                let map = getMapObjectFromOverlayIcon(this);
+
+                MapUtil.storeLocalData('map', mapElement.data('id'), 'filterScopes', []);
+                MapUtil.filterMapByScopes(map, []);
+            }
         },
         mapSnapToGrid: {
             title: 'active grid',
             trigger: 'active',
             class: 'pf-map-overlay-grid',
-            iconClass: ['glyphicon', 'glyphicon-th']
+            iconClass: ['fas', 'fa-fw', 'fa-th']
         },
         mapMagnetizer: {
             title: 'active magnetizer',
@@ -639,8 +647,12 @@ define([
                     iconElement.data('visible', true);
                 }
             }else if(viewType === 'hide'){
-                iconElement.removeClass('active').velocity('reverse');
-                iconElement.data('visible', false);
+                // check if icon is not already visible
+                // -> prevents unnecessary "hide" animation
+                if(iconElement.data('visible')){
+                    iconElement.removeClass('active').velocity('reverse');
+                    iconElement.data('visible', false);
+                }
 
                 // check if there is any visible icon remaining
                 let visibleIcons = mapOverlayInfo.find('i:visible');
@@ -702,6 +714,11 @@ define([
                         options[prop].trigger === 'refresh'
                     ){
                         icon.hoverIntent(options[prop].hoverIntent);
+                    }
+
+                    // add "click" handler for some icons
+                    if(options[prop].hasOwnProperty('onClick')){
+                        icon.on('click', options[prop].onClick);
                     }
 
                     mapOverlayInfo.append(icon);

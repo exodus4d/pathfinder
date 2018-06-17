@@ -114,6 +114,10 @@ define(['jquery'], ($) => {
                 label: 'anchor',
                 unicode: '&#xf13d;'
             },{
+                class: 'fa-fire',
+                label: 'fire',
+                unicode: '&#xf06d;'
+            },{
                 class: 'fa-bookmark',
                 label: 'bookmark',
                 unicode: '&#xf02e;'

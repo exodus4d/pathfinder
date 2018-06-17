@@ -51,19 +51,20 @@ $.fn.dragToSelect = function (conf) {
 
 	// Config
 	var config = $.extend({
-		className:		'pf-map-drag-to-select',
-		activeClass:	'active',
-		disabledClass:	'disabled', 
-		selectedClass:	'pf-system-selected',
-        ignoredClass:   'pf-system-locked', // do not select locked systems
-		scrollTH:		10,
-		percentCovered:	25, 
-		selectables:	false,
-		autoScroll:		false,
-		selectOnMove:	false,
-		onShow:			function () {return true;}, 
-		onHide:			function () {return true;}, 
-		onRefresh:		function () {return true;}
+		className:			'pf-map-drag-to-select',
+		activeClass:		'active',
+		disabledClass:		'disabled',
+		selectedClass:		'pf-system-selected',
+        ignoreLockedClass:  'pf-system-locked', // do not select locked systems
+        ignoreVisibleClass: 'pf-system-hidden', // do not select invisible systems
+		scrollTH:			10,
+		percentCovered:		25,
+		selectables:		false,
+		autoScroll:			false,
+		selectOnMove:		false,
+		onShow:				function () {return true;},
+		onHide:				function () {return true;},
+		onRefresh:			function () {return true;}
 	}, c);
 
 	var realParent	= $(this);
@@ -248,7 +249,7 @@ $.fn.dragToSelect = function (conf) {
 			return;
 		}
 
-		var selectables		= realParent.find(config.selectables + ':not(.' + config.ignoredClass + ')');
+		var selectables		= realParent.find(config.selectables + ':not(.' + config.ignoreLockedClass + ')'+ ':not(.' + config.ignoreVisibleClass + ')');
 		var selectBoxOffset	= selectBox.offset();
 		var selectBoxDim	= {
 			left:	selectBoxOffset.left, 

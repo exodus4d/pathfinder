@@ -892,6 +892,12 @@ table{
   }
 }
 
+// Filter =========================================================================================
+.pf-system-hidden{
+  opacity: 0.15 !important;
+  pointer-events: none;
+}
+
 // system effect info dialog ======================================================================
 .pf-system-effect-dialog-wrapper, .pf-jump-info-dialog{
   .table{
