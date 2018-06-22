@@ -226,7 +226,6 @@ class SystemModel extends BasicUniverseModel {
      * return false will stop any further action
      * @param self $self
      * @param $pkeys
-     * @throws \Exception\ValidationException
      */
     public function afterUpdateEvent($self, $pkeys){
         $staticNames = (array)$self->staticNames;

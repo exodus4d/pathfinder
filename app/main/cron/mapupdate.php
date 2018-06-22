@@ -187,13 +187,13 @@ class MapUpdate extends AbstractCron {
             $pfDB = DB\Database::instance()->getDB('PF');
             if($pfDB){
                 $sqlDeleteExpiredSignatures = "DELETE `sigs` FROM
-                `system_signature` `sigs` INNER JOIN
-                `system` ON 
-                  `system`.`id` = `sigs`.`systemId`
-              WHERE
-                `system`.`active` = 0 AND
-                TIMESTAMPDIFF(SECOND, `sigs`.`updated`, NOW() ) > :lifetime
-            ";
+                    `system_signature` `sigs` INNER JOIN
+                    `system` ON 
+                      `system`.`id` = `sigs`.`systemId`
+                  WHERE
+                    `system`.`active` = 0 AND
+                    TIMESTAMPDIFF(SECOND, `sigs`.`updated`, NOW() ) > :lifetime
+                ";
 
                 $pfDB->exec($sqlDeleteExpiredSignatures, ['lifetime' => $signatureExpire]);
             }

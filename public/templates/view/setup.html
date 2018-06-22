@@ -928,7 +928,7 @@
                                 </div>
                                 <div class="col-xs-3 text-right">
                                     <check if="{{ isset(@indexData.countAll) }}">
-                                        <check if="{{ @indexData.countBuild  >= @indexData.countAll }}">
+                                        <check if="{{ @indexData.countBuild > 0 && @indexData.countBuild  >= @indexData.countAll }}">
                                             <kbd class="txt-color txt-color-success">{{ @indexData.countBuild }}/{{ @indexData.countAll }}</kbd>
                                         </check>
                                         <check if="{{ @indexData.countBuild > 0 && @indexData.countBuild < @indexData.countAll}}">
