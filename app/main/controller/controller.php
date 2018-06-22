@@ -112,7 +112,6 @@ class Controller {
      * @param \Base $f3
      */
     protected function initSession(\Base $f3){
-        $sessionCacheKey = $f3->get('SESSION_CACHE');
         $session = null;
 
         /**
@@ -135,10 +134,13 @@ class Controller {
         };
 
         if(
-            $sessionCacheKey === 'mysql' &&
+            $f3->get('SESSION_CACHE') === 'mysql' &&
             $this->getDB('PF') instanceof DB\SQL
         ){
-            $session = new DB\SQL\Session($this->getDB('PF'), 'sessions', true, $onSuspect);
+
+            if(!headers_sent() && session_status()!=PHP_SESSION_ACTIVE){
+                $session = new DB\SQL\Session($this->getDB('PF'), 'sessions', true, $onSuspect);
+            }
         }
 
     }
