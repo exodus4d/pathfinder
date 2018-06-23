@@ -126,7 +126,7 @@
                                                 <div class="input-group">
                                                     <input name="slackWebHookURL" type="url" class="form-control" id="{{slackWebHookURLId}}" value="{{slackWebHookURL}}" placeholder="https://hooks.slack.com/services/XXX/YYY/ZZZ" data-type-error="No valid URL" pattern="^https://hooks.slack.com/.*" data-pattern-error="Wrong domain. https://hooks.slack.com/)">
                                                     <div class="input-group-btn">
-                                                        <a class="btn btn-default" href="//slack.com/apps/A0F7XDUAZ-incoming-webhooks" target="_blank">
+                                                        <a class="btn btn-default" href="//slack.com/apps/A0F7XDUAZ-incoming-webhooks" target="_blank" rel="noopener">
                                                             add… <i class="fas fa-fw fa-external-link-alt"></i>
                                                         </a>
                                                     </div>
@@ -229,7 +229,7 @@
                                                 <div class="input-group" {{^discordRallyEnabled}}title="Globally disabled for this map type"{{/discordRallyEnabled}}>
                                                 <input name="discordWebHookURLRally" type="url" class="form-control" id="{{discordWebHookURLRallyId}}" value="{{discordWebHookURLRally}}" placeholder="https://discordapp.com/api/webhooks/XXXYYYZZZ" data-type-error="No valid URL" pattern="^https://(\w+\.)?discordapp.com/.*" data-pattern-error="Wrong domain. https://discordapp.com/)" {{^discordRallyEnabled}}disabled{{/discordRallyEnabled}}>
                                                 <div class="input-group-btn">
-                                                    <a class="btn btn-default" href="//support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks" target="_blank">
+                                                    <a class="btn btn-default" href="//support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks" target="_blank" rel="noopener">
                                                         add… <i class="fas fa-fw fa-external-link-alt"></i>
                                                     </a>
                                                 </div>
@@ -263,7 +263,7 @@
                                             <div class="input-group" {{^discordHistoryEnabled}}title="Globally disabled for this map type"{{/discordHistoryEnabled}}>
                                             <input name="discordWebHookURLHistory" type="url" class="form-control" id="{{discordWebHookURLHistoryId}}" value="{{discordWebHookURLHistory}}" placeholder="https://discordapp.com/api/webhooks/XXXYYYZZZ" data-type-error="No valid URL" pattern="^https://discordapp.com/.*" data-pattern-error="Wrong domain. https://discordapp.com/)" {{^discordHistoryEnabled}}disabled{{/discordHistoryEnabled}}>
                                             <div class="input-group-btn">
-                                                <a class="btn btn-default" href="//support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks" target="_blank">
+                                                <a class="btn btn-default" href="//support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks" target="_blank" rel="noopener">
                                                     add… <i class="fas fa-fw fa-external-link-alt"></i>
                                                 </a>
                                             </div>
