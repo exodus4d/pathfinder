@@ -369,9 +369,6 @@ class SystemModel extends AbstractMapTrackingModel {
         $status = parent::beforeUpdateEvent($self, $pkeys);
 
         if( !$self->isActive()){
-            // system becomes inactive
-            $self->alias = '';
-
             // reset "rally point" fields
             $self->rallyUpdated = 0;
             $self->rallyPoke = false;
