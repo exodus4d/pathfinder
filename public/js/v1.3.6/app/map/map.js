@@ -1560,7 +1560,8 @@ define([
                             let form = $('#' + config.systemDialogId).find('form');
 
                             let systemDialogData = $(form).getFormValues();
-
+console.log(systemDialogData);
+return false;
                             // validate form
                             form.validator('validate');
 
@@ -1634,7 +1635,7 @@ define([
                 // init system select live search  - some delay until modal transition has finished
                 let selectElement = modalContent.find('.' + config.systemDialogSelectClass);
                 selectElement.delay(240).initSystemSelect({
-                    key: 'systemId',
+                    key: 'id',
                     disabledOptions: mapSystemIds
                 });
             });

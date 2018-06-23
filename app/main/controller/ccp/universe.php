@@ -101,7 +101,7 @@ class Universe extends Controller {
      * @return array
      * @throws \Exception
      */
-    public function setupCategories(array $categoriesWhitelist = []){
+    protected function setupCategories(array $categoriesWhitelist = []){
         $return = [];
         $categoryIds = $this->getF3()->ccpClient->getUniverseCategories();
         $categoryIds = array_intersect ($categoriesWhitelist, $categoryIds);

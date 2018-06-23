@@ -302,10 +302,10 @@ class MapModel extends AbstractMapTrackingModel {
             $mapDataAll->mapData = $mapData;
 
             // map system data ----------------------------------------------------------------------------------------
-            $mapDataAll->systems = $this->getSystemData();
+            $mapDataAll->systems = $this->getSystemsData();
 
             // map connection data ------------------------------------------------------------------------------------
-            $mapDataAll->connections = $this->getConnectionData();
+            $mapDataAll->connections = $this->getConnectionsData();
 
             // max caching time for a map
             // the cached date has to be cleared manually on any change
@@ -582,7 +582,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @return \stdClass[]
      * @throws \Exception
      */
-    public function getSystemData(){
+    public function getSystemsData(){
         $systemData = [];
         $systems  = $this->getSystems();
 
@@ -651,7 +651,7 @@ class MapModel extends AbstractMapTrackingModel {
      * get all connection data in this map
      * @return \stdClass[]
      */
-    public function getConnectionData() : array {
+    public function getConnectionsData() : array {
         $connectionData = [];
         $connections  = $this->getConnections();
 

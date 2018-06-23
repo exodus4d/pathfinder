@@ -897,6 +897,18 @@ abstract class BasicModel extends \DB\Cortex {
     }
 
     /**
+     * check whether a cache $key exists
+     * -> §val (reference) get updated with the cache data
+     * -> equivalent to $f3->exists()
+     * @param string $key
+     * @param null $val
+     * @return bool
+     */
+    public static function existsCacheValue(string $key, &$val = null){
+        return self::getF3()->exists($key, $val);
+    }
+
+    /**
      * debug log function
      * @param string $text
      * @param string $type

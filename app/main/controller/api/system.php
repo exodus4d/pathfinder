@@ -10,7 +10,6 @@ namespace Controller\Api;
 
 use Controller;
 use Data\Mapper as Mapper;
-use lib\Config;
 use Model;
 
 class System extends Controller\AccessController {
@@ -129,48 +128,6 @@ class System extends Controller\AccessController {
         $mapper = new Mapper\CcpSystemsMapper($rows);
 
         return $mapper->getData();
-    }
-
-    /**
-     * search systems by name
-     * @param \Base $f3
-     * @param array $params
-     */
-    public function search(\Base $f3, $params){
-
-        $ccpDB = $this->getDB('CCP');
-
-        $searchToken = '';
-        // check for search parameter
-        if( isset($params['arg1']) ){
-            $searchToken = $params['arg1'];
-        }
-
-        // some "edge cases" for testing trueSec rounding...
-        //$searchToken = 'H472-N'; // -0.000001 -> 0.0
-        //$searchToken = 'X1E-OQ'; // -0.099426 -> -0.10
-        //$searchToken = 'BKK4-H'; // -0.049954 -> -0.05
-        //$searchToken = 'Uhtafal'; // 0.499612 -> 0.5 (HS)
-        //$searchToken = 'Oshaima'; // 0.453128 -> 0.5 (HS)
-        //$searchToken = 'Ayeroilen'; // 0.446568 -> 0.4 (LS)
-        //$searchToken = 'Enderailen'; // 0.448785 -> 0.4 (LS)
-        //$searchToken = 'Neziel'; // 0.449943 -> 0.4 (LS)
-        //$searchToken = 'Naga'; // 0.033684 -> 0.1 (LS)
-
-
-        $this->whereQuery = "WHERE
-            map_sys.solarSystemName LIKE '%" . $searchToken . "%'";
-
-        $query = $this->_getQuery();
-
-        $rows = $ccpDB->exec($query);
-
-        // format result
-        $mapper = new Mapper\CcpSystemsMapper($rows);
-
-        $data = $mapper->getData();
-
-        echo json_encode($data);
     }
 
     /**
@@ -328,43 +285,6 @@ class System extends Controller\AccessController {
         }
 
         echo json_encode($graphData);
-    }
-
-    /**
-     * get system data for all systems within a constellation
-     * @param \Base $f3
-     * @param array $params
-     * @throws \Exception
-     * @throws \Exception\PathfinderException
-     */
-    public function constellationData(\Base $f3, $params){
-        $return = (object) [];
-        $return->error = [];
-        $return->systemData = [];
-
-        $constellationId = 0;
-
-        // check for search parameter
-        if( isset($params['arg1']) ){
-            $constellationId = (int)$params['arg1'];
-        }
-        $cacheKey = 'CACHE_CONSTELLATION_SYSTEMS_' . self::formatHiveKey($constellationId);
-
-        if($f3->exists($cacheKey, $cachedData)){
-            $return->systemData = $cachedData;
-        }else{
-            if($constellationId > 0){
-                $systemModels = $this->getSystemModelByIds([$constellationId], 'constellationID');
-
-                foreach($systemModels as $systemModel){
-                    $return->systemData[] = $systemModel->getData();
-                }
-
-                $f3->set($cacheKey, $return->systemData, Config::getPathfinderData('cache.constellation_systems'));
-            }
-        }
-
-        echo json_encode($return);
     }
 
     /**

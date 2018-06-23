@@ -999,6 +999,15 @@ define([
                 autoHideScrollbar: false,
                 advanced: {
                     updateOnContentResize: true
+                },
+                callbacks: {
+                    alwaysTriggerOffsets: false,    // only trigger callback.onTotalScroll() once
+                    onTotalScrollOffset: 300,       // trigger callback.onTotalScroll() 100px before end
+                    onTotalScroll: function(a){
+                        // we want to "trigger" Select2´s 'scroll' event
+                        // in order to make its "infinite scrolling" function working
+                        this.mcs.content.find(':first-child').trigger('scroll');
+                    }
                 }
             });
         };

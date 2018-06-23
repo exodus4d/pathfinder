@@ -108,7 +108,7 @@ class SystemModel extends BasicUniverseModel {
         $systemData->name           = $this->name;
         $systemData->constellation  = $this->constellationId->getData();
         $systemData->security       = $this->security;
-        $systemData->trueSec        = $this->trueSec;
+        $systemData->trueSec        = (float)$this->trueSec;
         $systemData->effect         = $this->effect;
         $systemData->shattered      = $this->shattered;
 

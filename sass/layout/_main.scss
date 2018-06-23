@@ -185,7 +185,10 @@ select:active, select:hover {
 // select2 custom template ========================================================================
 .select2-results{
   [class*="col-"]{
+    // smaller and less padding
     line-height: 22px;
+    padding-left: 3px;
+    padding-right: 3px;
   }
 }
 

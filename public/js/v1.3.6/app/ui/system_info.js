@@ -363,7 +363,7 @@ define([
                         $.ajax({
                             url: popoverElement.data('url'),
                             success: function(data){
-                                let systemEffectTable = Util.getSystemsInfoTable( data.systemData );
+                                let systemEffectTable = Util.getSystemsInfoTable( data.systemsData );
                                 popover.options.content = systemEffectTable;
                                 // reopen popover (new content size)
                                 popover.show();
