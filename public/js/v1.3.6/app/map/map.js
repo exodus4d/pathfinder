@@ -1560,8 +1560,7 @@ define([
                             let form = $('#' + config.systemDialogId).find('form');
 
                             let systemDialogData = $(form).getFormValues();
-console.log(systemDialogData);
-return false;
+
                             // validate form
                             form.validator('validate');
 
