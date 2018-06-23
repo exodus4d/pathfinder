@@ -21,14 +21,14 @@
     <h5><span class="{{systemTypeLinkClass}}" data-toggle="tooltip" data-placement="top" data-container="body" title="type">{{systemTypeName}}</span></h5>
 
     {{#systemIsWormhole}}
-        <a href="http://evemaps.dotlan.net/system/{{system.name}}" class="pf-icon pf-icon-dotlan" data-toggle="tooltip" data-placement="top" data-container="body" title="dotlan" target="_blank" rel="noopener"></a>
+        <a href="{{#formatUrl}}http://evemaps.dotlan.net/system/{{system.name}}{{/formatUrl}}" class="pf-icon pf-icon-dotlan" data-toggle="tooltip" data-placement="top" data-container="body" title="dotlan" target="_blank" rel="noopener"></a>
     {{/systemIsWormhole}}
     {{^systemIsWormhole}}
-        <a href="http://evemaps.dotlan.net/map/{{system.region.name}}/{{system.name}}" class="pf-icon pf-icon-dotlan" data-toggle="tooltip" data-placement="top" data-container="body" title="dotlan" target="_blank" rel="noopener"></a>
+        <a href="{{#formatUrl}}http://evemaps.dotlan.net/map/{{system.region.name}}/{{system.name}}{{/formatUrl}}" class="pf-icon pf-icon-dotlan" data-toggle="tooltip" data-placement="top" data-container="body" title="dotlan" target="_blank" rel="noopener"></a>
     {{/systemIsWormhole}}
 
     {{#systemIsWormhole}}
-        <a href="http://anoik.is/systems/{{system.name}}" class="pf-icon pf-icon-anoik" data-toggle="tooltip" data-placement="top" data-container="body" title="anoik" target="_blank" rel="noopener"></a>
+        <a href="{{#formatUrl}}http://anoik.is/systems/{{system.name}}{{/formatUrl}}" class="pf-icon pf-icon-anoik" data-toggle="tooltip" data-placement="top" data-container="body" title="anoik" target="_blank" rel="noopener"></a>
     {{/systemIsWormhole}}
 </div>
 

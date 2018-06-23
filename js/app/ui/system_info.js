@@ -403,6 +403,9 @@ define([
                     return  render(val) === 'A' ? config.fontTriglivianClass : '';
                 };
             },
+            formatUrl: () => {
+                return (val, render) => render(val).replace(/ /g, '_');
+            },
 
             shatteredWormholeInfo: shatteredWormholeInfo,
 
