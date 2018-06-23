@@ -26,6 +26,7 @@ define([
         systemClass: 'pf-system',                                       // class for all systems
         systemActiveClass: 'pf-system-active',                          // class for an active system on a map
         systemSelectedClass: 'pf-system-selected',                      // class for selected systems on on map
+        systemHiddenClass: 'pf-system-hidden',                          // class for hidden (filtered) systems
 
         // dataTable
         tableCellEllipsisClass: 'pf-table-cell-ellipsis',
@@ -461,7 +462,7 @@ define([
      */
     let filterMapByScopes = (map, scopes) => {
         if(map){
-            // TODO sometimes map is undefined -> bug
+            // TODO ^^sometimes map is undefined -> bug
             let mapElement = $(map.getContainer());
             let allSystems = mapElement.getSystems();
             let allConnections = map.getAllConnections();
@@ -500,9 +501,9 @@ define([
                         visibleTypeIds.indexOf($(system).data('typeId')) >= 0 ||
                         visibleSystems.indexOf(system) >= 0
                     ){
-                        setSystemVisible(system, true);
+                        setSystemVisible(system, map, true);
                     }else{
-                        setSystemVisible(system, false);
+                        setSystemVisible(system, map, false);
                     }
                 }
 
@@ -510,7 +511,7 @@ define([
             }else{
                 // clear filter
                 for(let system of allSystems){
-                    setSystemVisible(system, true);
+                    setSystemVisible(system, map, true);
                 }
                 for(let connection of allConnections){
                     setConnectionVisible(connection, true);
@@ -518,6 +519,22 @@ define([
 
                 mapElement.getMapOverlay('info').updateOverlayIcon('filter', 'hide');
             }
+        }
+    };
+
+    /**
+     * mark system as "selected" e.g. for dragging
+     * @param map
+     * @param system
+     * @param select
+     */
+    let setSystemSelect = (map, system, select) => {
+        if(select){
+            system.addClass(config.systemSelectedClass);
+            map.addToDragSelection(system);
+        }else{
+            system.removeClass(config.systemSelectedClass);
+            map.removeFromDragSelection(system);
         }
     };
 
@@ -540,8 +557,13 @@ define([
      * @param system
      * @param visible
      */
-    let setSystemVisible = (system, visible) => {
-        $(system).toggleClass('pf-system-hidden', !visible);
+    let setSystemVisible = (system, map, visible) => {
+        system = $(system);
+        if(!visible){
+            // invisible systems should no longer be selected
+            setSystemSelect(map, system, false);
+        }
+        system.toggleClass(config.systemHiddenClass, !visible);
     };
 
     /**
@@ -576,17 +598,14 @@ define([
      * @param map
      * @param systems
      */
-    let toggleSelectSystem = (map, systems) => {
+    let toggleSystemsSelect = (map, systems) => {
         for(let system of systems){
             system = $(system);
-            if( system.data('locked') !== true ){
-                if( system.hasClass( config.systemSelectedClass ) ){
-                    system.removeClass( config.systemSelectedClass );
-
-                    map.removeFromDragSelection(system);
+            if(system.data('locked') !== true){
+                if(system.hasClass(config.systemSelectedClass)){
+                    setSystemSelect(map, system, false);
                 }else{
-                    system.addClass( config.systemSelectedClass );
-                    map.addToDragSelection(system);
+                    setSystemSelect(map, system, true);
                 }
             }
         }
@@ -1299,7 +1318,7 @@ define([
         getSystemData: getSystemData,
         getSystemTypeInfo: getSystemTypeInfo,
         getEffectInfoForSystem: getEffectInfoForSystem,
-        toggleSelectSystem: toggleSelectSystem,
+        toggleSystemsSelect: toggleSystemsSelect,
         toggleConnectionActive: toggleConnectionActive,
         showSystemInfo: showSystemInfo,
         showConnectionInfo: showConnectionInfo,

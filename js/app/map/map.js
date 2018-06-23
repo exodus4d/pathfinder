@@ -2325,7 +2325,7 @@ define([
                         if(! system.hasClass('no-click')){
                             if(e.ctrlKey === true){
                                 // select system
-                                MapUtil.toggleSelectSystem(map, [system]);
+                                MapUtil.toggleSystemsSelect(map, [system]);
                             }else{
                                 MapUtil.showSystemInfo(map, system);
                             }
@@ -2383,14 +2383,17 @@ define([
             let mapElement = $(this);
             let map = getMapInstance(mapElement.data('id'));
 
-            let allSystems =  mapElement.find('.' + config.systemClass + ':not(.' + config.systemSelectedClass + ')');
+            let allSystems =  mapElement.find('.' + config.systemClass +
+                ':not(.' + config.systemSelectedClass + ')' +
+                ':not(.' + MapUtil.config.systemHiddenClass + ')'
+            );
 
             // filter non-locked systems
             allSystems = allSystems.filter(function(i, el){
                 return ( $(el).data('locked') !== true );
             });
 
-            MapUtil.toggleSelectSystem(map, allSystems);
+            MapUtil.toggleSystemsSelect(map, allSystems);
 
             Util.showNotify({title: allSystems.length + ' systems selected', type: 'success'});
 
