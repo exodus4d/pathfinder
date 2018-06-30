@@ -1540,6 +1540,7 @@ define([
                 areaId = 12;
                 break;
             case 'SH':
+            case 'C13':
                 areaId = 13;
                 break;
             default:
