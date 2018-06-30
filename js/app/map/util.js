@@ -1144,6 +1144,36 @@ define([
     };
 
     /**
+     * add system planets tooltip
+     * @param planets
+     * @param options
+     * @returns {*}
+     */
+    $.fn.addSystemPlanetsTooltip = function(planets, options){
+
+        let content = Util.getSystemPlanetsTable(planets);
+
+        let defaultOptions = {
+            placement: 'top',
+            html: true,
+            trigger: 'hover',
+            container: 'body',
+            title: 'Planets',
+            content: content,
+            delay: {
+                show: 150,
+                hide: 0
+            },
+        };
+
+        options = $.extend({}, defaultOptions, options);
+
+        return this.each(function(){
+            $(this).popover(options);
+        });
+    };
+
+    /**
      * add a wormhole tooltip with wh specific data to elements
      * @param tooltipData
      * @returns {*}

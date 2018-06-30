@@ -482,6 +482,7 @@ define([
         system.data('region', data.region.name);
         system.data('constellationId', parseInt(data.constellation.id));
         system.data('constellation', data.constellation.name);
+        system.data('planets', data.planets);
         system.data('shattered', data.shattered);
         system.data('statics', data.statics);
         system.data('updated', parseInt(data.updated.updated));
@@ -3285,6 +3286,7 @@ define([
         systemData.rallyUpdated = system.data('rallyUpdated') || 0;
         systemData.rallyPoke = system.data('rallyPoke') ? 1 : 0;
         systemData.currentUser = system.data('currentUser'); // if user is currently in this system
+        systemData.planets = system.data('planets');
         systemData.shattered = system.data('shattered') ? 1 : 0;
         systemData.statics = system.data('statics');
         systemData.updated = {

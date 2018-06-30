@@ -256,6 +256,7 @@ class SystemModel extends AbstractMapTrackingModel {
             $systemData->region->id             = $this->regionId;
             $systemData->region->name           = $this->region;
 
+            $systemData->planets                = $this->planets ? : [];
             $systemData->statics                = $this->statics ? : [];
 
             // max caching time for a system
@@ -452,6 +453,10 @@ class SystemModel extends AbstractMapTrackingModel {
 
     public function get_statics(){
         return $this->getStaticSystemValue('statics');
+    }
+
+    public function get_planets(){
+        return $this->getStaticSystemValue('planets');
     }
 
     /**

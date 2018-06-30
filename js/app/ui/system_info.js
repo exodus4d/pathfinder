@@ -26,8 +26,9 @@ define([
 
         // info table
         systemInfoTableClass: 'pf-module-table',                                // class for system info table
-        systemInfoNameInfoClass: 'pf-system-info-name',                         // class for "name" information element
-        systemInfoEffectInfoClass: 'pf-system-info-effect',                     // class for "effect" information element
+        systemInfoNameClass: 'pf-system-info-name',                             // class for "name" information element
+        systemInfoEffectClass: 'pf-system-info-effect',                         // class for "effect" information element
+        systemInfoPlanetsClass: 'pf-system-info-planets',                       // class for "planets" information element
         systemInfoStatusLabelClass: 'pf-system-info-status-label',              // class for "status" information element
         systemInfoStatusAttributeName: 'data-status',                           // attribute name for status label
         systemInfoWormholeClass: 'pf-system-info-wormhole-',                    // class prefix for static wormhole element
@@ -110,7 +111,7 @@ define([
         if(systemId === systemData.id){
             // update module
 
-            // system status =====================================================================================
+            // system status ==========================================================================================
             let systemStatusLabelElement = moduleElement.find('.' + config.systemInfoStatusLabelClass);
             let systemStatusId = parseInt( systemStatusLabelElement.attr( config.systemInfoStatusAttributeName ) );
 
@@ -127,7 +128,7 @@ define([
                 systemStatusLabelElement.attr( config.systemInfoStatusAttributeName, systemData.status.id);
             }
 
-            // description textarea element ======================================================================
+            // description textarea element ===========================================================================
             let descriptionTextareaElement =  moduleElement.find('.' + config.descriptionTextareaElementClass);
             let description = descriptionTextareaElement.editable('getValue', true);
 
@@ -157,9 +158,8 @@ define([
                 }
             }
 
-            // created/updated tooltip ===========================================================================
-
-            let nameRowElement = $(moduleElement).find('.' + config.systemInfoNameInfoClass);
+            // created/updated tooltip ================================================================================
+            let nameRowElement = $(moduleElement).find('.' + config.systemInfoNameClass);
 
             let tooltipData = {
                 created: systemData.created,
@@ -277,7 +277,7 @@ define([
                         }
                     });
 
-                    // on xEditable open -------------------------------------------------------------------------
+                    // on xEditable open ------------------------------------------------------------------------------
                     descriptionTextareaElement.on('shown', function(e, editable){
                         let textarea = editable.input.$input;
 
@@ -298,7 +298,7 @@ define([
                         });
                     });
 
-                    // on xEditable close ------------------------------------------------------------------------
+                    // on xEditable close -----------------------------------------------------------------------------
                     descriptionTextareaElement.on('hidden', function(e){
                         let value = $(this).editable('getValue', true);
                         if(value.length === 0){
@@ -311,7 +311,7 @@ define([
                         disableModuleUpdate = false;
                     });
 
-                    // enable xEditable field on Button click ----------------------------------------------------
+                    // enable xEditable field on Button click ---------------------------------------------------------
                     descriptionButton.on('click', function(e){
                         e.stopPropagation();
                         let descriptionButton = $(this);
@@ -325,20 +325,23 @@ define([
                         showToolsActionElement(descriptionButton.siblings('.' + config.tableToolsActionClass));
                     });
 
-                    // init tooltips -----------------------------------------------------------------------------
+                    // init tooltips ----------------------------------------------------------------------------------
                     let tooltipElements = tempModuleElement.find('[data-toggle="tooltip"]');
                     tooltipElements.tooltip();
 
-                    // init system effect popover ----------------------------------------------------------------
-                    $(moduleElement).find('.' + config.systemInfoEffectInfoClass).addSystemEffectTooltip(systemData.security, systemData.effect);
+                    // init system effect popover ---------------------------------------------------------------------
+                    $(moduleElement).find('.' + config.systemInfoEffectClass).addSystemEffectTooltip(systemData.security, systemData.effect);
 
-                    // init static wormhole information ----------------------------------------------------------
+                    // init planets popover ---------------------------------------------------------------------------
+                    $(moduleElement).find('.' + config.systemInfoPlanetsClass).addSystemPlanetsTooltip(systemData.planets);
+
+                    // init static wormhole information ---------------------------------------------------------------
                     for(let staticData of staticsData){
                         let staticRowElement = tempModuleElement.find('.' + config.systemInfoWormholeClass + staticData.name);
                         staticRowElement.addWormholeInfoTooltip(staticData);
                     }
 
-                    // constellation popover ---------------------------------------------------------------------
+                    // constellation popover --------------------------------------------------------------------------
                     tempModuleElement.find('a.popup-ajax').popover({
                         html: true,
                         trigger: 'hover',
@@ -369,13 +372,14 @@ define([
                 }
             }
         };
-
+console.log(systemData)
         let moduleData = {
             system: systemData,
             static: staticsData,
             tableClass: config.systemInfoTableClass,
-            nameInfoClass: config.systemInfoNameInfoClass,
-            effectInfoClass: config.systemInfoEffectInfoClass,
+            nameInfoClass: config.systemInfoNameClass,
+            effectInfoClass: config.systemInfoEffectClass,
+            planetsInfoClass: config.systemInfoPlanetsClass,
             wormholePrefixClass: config.systemInfoWormholeClass,
             statusInfoClass: config.systemInfoStatusLabelClass,
 
@@ -401,6 +405,7 @@ define([
             formatUrl: () => {
                 return (val, render) => render(val).replace(/ /g, '_');
             },
+            planetCount: systemData.planets ? systemData.planets.length : 0,
 
             shatteredClass: Util.getSecurityClassForSystem('SH'),
 

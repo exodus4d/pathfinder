@@ -67,13 +67,10 @@ class PlanetModel extends BasicUniverseModel {
      */
     public function getData(){
         $planetData                 = (object) [];
-        $planetData->id             = $this->_id;
         $planetData->name           = $this->name;
 
-        $planetData->position       = (object) [];
-        $planetData->position->x    = $this->x;
-        $planetData->position->y    = $this->y;
-        $planetData->position->z    = $this->z;
+        $planetData->type           = (object) [];
+        $planetData->type->name     = $this->typeId->name;
 
         return $planetData;
     }

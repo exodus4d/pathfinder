@@ -1640,19 +1640,43 @@ define([
      * @param data
      * @returns {string}
      */
-    let getSystemEffectTable = function(data){
+    let getSystemEffectTable = effects => {
         let table = '';
-
-        if(data.length > 0){
-
+        if(effects.length > 0){
             table += '<table>';
-            for(let i = 0; i < data.length; i++){
+            for(let effect of effects){
                 table += '<tr>';
                 table += '<td>';
-                table += data[i].effect;
+                table += effect.effect;
                 table += '</td>';
                 table += '<td class="text-right">';
-                table += data[i].value;
+                table += effect.value;
+                table += '</td>';
+                table += '</tr>';
+            }
+            table += '</table>';
+        }
+
+        return table;
+    };
+
+    /**
+     * get a HTML table with planet names
+     * e.g. for popover
+     * @param planets
+     * @returns {string}
+     */
+    let getSystemPlanetsTable = planets => {
+        let table = '';
+        if(planets.length > 0){
+            table += '<table>';
+            for(let planet of planets){
+                table += '<tr>';
+                table += '<td>';
+                table += planet.name;
+                table += '</td>';
+                table += '<td class="text-right">';
+                table += planet.type.name;
                 table += '</td>';
                 table += '</tr>';
             }
@@ -1668,7 +1692,7 @@ define([
      * @param data
      * @returns {string}
      */
-    let getSystemsInfoTable = function(data){
+    let getSystemsInfoTable = data => {
         let table = '';
 
         if(data.length > 0){
@@ -1702,7 +1726,7 @@ define([
      * @param sec
      * @returns {string}
      */
-    let getSecurityClassForSystem = (sec) => {
+    let getSecurityClassForSystem = sec => {
         let secClass = '';
         if( Init.classes.systemSecurity.hasOwnProperty(sec) ){
             secClass = Init.classes.systemSecurity[sec]['class'];
@@ -2613,6 +2637,7 @@ define([
         getMapModule: getMapModule,
         getSystemEffectData: getSystemEffectData,
         getSystemEffectTable: getSystemEffectTable,
+        getSystemPlanetsTable: getSystemPlanetsTable,
         getSystemsInfoTable: getSystemsInfoTable,
         getStatusInfoForCharacter: getStatusInfoForCharacter,
         getSecurityClassForSystem: getSecurityClassForSystem,
