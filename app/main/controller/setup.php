@@ -67,7 +67,6 @@ class Setup extends Controller {
                 'Model\SystemTypeModel',
                 'Model\SystemStatusModel',
                 'Model\SystemNeighbourModel',
-                'Model\WormholeModel',
                 'Model\RightModel',
                 'Model\RoleModel',
                 'Model\StructureModel',
@@ -89,8 +88,6 @@ class Setup extends Controller {
                 'Model\CharacterLogModel',
 
                 'Model\SystemModel',
-                'Model\SystemWormholeModel',
-                'Model\ConstellationWormholeModel',
 
                 'Model\ConnectionModel',
                 'Model\ConnectionLogModel',

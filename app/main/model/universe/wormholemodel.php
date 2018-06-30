@@ -182,25 +182,6 @@ class WormholeModel extends BasicUniverseModel {
         return parent::exportData($fields);
     }
 
-    protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){
-        var_dump('loadData');
-        var_dump($id);
-        /*
-        $data = self::getF3()->ccpClient->getUniverseTypesData($id, $additionalOptions);
-        if(!empty($data)){
-            $group = $this->rel('groupId');
-            $group->loadById($data['groupId'], $accessToken, $additionalOptions);
-            $data['groupId'] = $group;
-
-            $this->copyfrom($data);
-            $this->save();
-        } */
-    }
-
-    protected function loadDataByKey(string $key, $value){
-        var_dump('loadData');
-        var_dump($key);
-        var_dump($value);
-    }
+    protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){}
 
 }

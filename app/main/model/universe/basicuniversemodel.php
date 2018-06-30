@@ -160,29 +160,12 @@ abstract class BasicUniverseModel extends BasicModel {
     }
 
     /**
-     * load data by foreign key or other column than "id"
-     * @param string $key
-     * @param $value
-     */
-    public function loadByKey(string $key, $value){
-        /**
-         * @var $model self
-         */
-        $model = $this->getByForeignKey($key, $value, ['limit' => 1]);
-        if($model->isOutdated()){
-            $model->loadDataByKey($key, $value);
-        }
-    }
-
-    /**
      * load data from API into $this and save $this
      * @param int $id
      * @param string $accessToken
      * @param array $additionalOptions
      */
     abstract protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []);
-
-    protected function loadDataByKey(string $key, $value){}
 
     /**
      * generate hashKey for a table row data for search index build
