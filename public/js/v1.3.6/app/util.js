@@ -963,7 +963,7 @@ define([
     };
 
     /**
-     * set default configuration  for "Bootbox"
+     * set default configuration for "Bootbox"
      */
     let initDefaultBootboxConfig = () => {
         bootbox.setDefaults({
@@ -972,7 +972,7 @@ define([
     };
 
     /**
-     * set default configuration  for "Select2"
+     * set default configuration for "Select2"
      */
     let initDefaultSelect2Config = () => {
         $.fn.select2.defaults.set('theme', 'pathfinder');
@@ -1042,6 +1042,20 @@ define([
                 resultsWrapper.mCustomScrollbar('destroy');
             }
         });
+    };
+
+    /**
+     * set default configuration for "xEditable"
+     */
+    let initDefaultEditableConfig = () => {
+        // use fontAwesome buttons
+        $.fn.editableform.buttons =
+            '<button type="submit" class="btn btn-primary btn-sm editable-submit">'+
+            '<i class="fa fa-fw fa-check"></i>'+
+            '</button>'+
+            '<button type="button" class="btn btn-default btn-sm editable-cancel">'+
+            '<i class="fa fa-fw fa-times"></i>'+
+            '</button>';
     };
 
     /**
@@ -2577,6 +2591,7 @@ define([
         initPrototypes: initPrototypes,
         initDefaultBootboxConfig: initDefaultBootboxConfig,
         initDefaultSelect2Config: initDefaultSelect2Config,
+        initDefaultEditableConfig: initDefaultEditableConfig,
         getCurrentTriggerDelay: getCurrentTriggerDelay,
         getServerTime: getServerTime,
         convertTimestampToServerTime: convertTimestampToServerTime,

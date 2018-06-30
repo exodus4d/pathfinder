@@ -35,6 +35,9 @@ define([
         // set default select2 config
         Util.initDefaultSelect2Config();
 
+        // set default xEditable config
+        Util.initDefaultEditableConfig();
+
         // load page
         // load info (maintenance) info panel (if scheduled)
         $('body').loadPageStructure().setGlobalShortcuts();
