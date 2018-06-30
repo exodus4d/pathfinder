@@ -8,7 +8,6 @@
 
 namespace Controller\Ccp;
 
-
 use Controller\Controller;
 use lib\Util;
 use Model;
@@ -137,6 +136,8 @@ class Universe extends Controller {
         return $return;
     }
 
+    // system search index methods ====================================================================================
+
     /**
      * build search index from all systems data
      * @param int $offset
@@ -144,7 +145,7 @@ class Universe extends Controller {
      * @return array
      * @throws \Exception
      */
-    public function buildSystemsIndex(int $offset = 0, int $length = 10){
+    public function buildSystemsIndex(int $offset = 0, int $length = 10) : array {
         /**
          * @var $system Model\Universe\SystemModel
          */
@@ -194,15 +195,26 @@ class Universe extends Controller {
 
     /**
      * look for existing systemData in index
-     * -> id is either a valid systemId OR systemName
-     * @param int|string $id
+     * -> if not exists -> try to build
+     * @param int $systemId
      * @return null|\stdClass
+     * @throws \Exception
      */
-    protected function getSystemData($id){
+    public function getSystemData(int $systemId){
         $data = null;
-        if($id){
-            $cacheKeyRow = Model\Universe\BasicUniverseModel::generateHashKeyRow('system', $id);
+        if($systemId){
+            // ...check index for data
+            $cacheKeyRow = Model\Universe\BasicUniverseModel::generateHashKeyRow('system', $systemId);
             $data = $this->get($cacheKeyRow);
+            if(!$data){
+                // .. try to build index
+                /**
+                 * @var $system Model\Universe\SystemModel
+                 */
+                $system = Model\Universe\BasicUniverseModel::getNew('SystemModel');
+                $system->getById($systemId);
+                $data = $system->buildIndex();
+            }
         }
         return $data;
     }
@@ -212,7 +224,7 @@ class Universe extends Controller {
      * @param string $cacheKey
      * @return null|\stdClass
      */
-    protected function get(string $cacheKey){
+    private function get(string $cacheKey){
         $data = null;
         if($this->getF3()->exists($cacheKey,$value)) {
             if(is_string($value) && strpos($value, Model\Universe\BasicUniverseModel::CACHE_KEY_PREFIX) === 0) {
@@ -230,7 +242,7 @@ class Universe extends Controller {
      * clear cacheKey
      * @param string $cacheKey
      */
-    protected function clear(string $cacheKey){
+    private function clear(string $cacheKey){
         if($this->getF3()->exists($cacheKey,$value)) {
             if(is_string($value) && strpos($value, Model\Universe\BasicUniverseModel::CACHE_KEY_PREFIX) === 0) {
                 // value references another cacheKey -> clear that one as well

@@ -9,126 +9,9 @@
 namespace Controller\Api;
 
 use Controller;
-use Data\Mapper as Mapper;
 use Model;
 
 class System extends Controller\AccessController {
-
-    private $mainQuery = "SELECT
-            map_sys.constellationID `connstallation_id`,
-            map_sys.solarSystemID `system_id`,
-            map_sys.solarSystemName `system_name`,
-            map_sys.security `system_security`,
-            map_con.constellationName `constallation_name`,
-	        map_reg.regionID `region_id`,
-	        map_reg.regionName `region_name`,
-	        '0' `trueSec`,
-	        '' `type`,
-            IFNULL(
-              (
-                SELECT
-                    LOWER( system_effect.typeName )
-                FROM
-                    invTypes system_effect INNER JOIN
-                    mapDenormalize map_norm ON
-                        map_norm.typeID = system_effect.typeID
-                WHERE
-                    system_effect.groupID = 995 AND
-                    map_norm.solarSystemID = map_sys.solarSystemID
-                LIMIT 1
-              ), '') `effect`,
-            IFNULL(
-              (
-                SELECT
-                    map_worm_class.wormholeClassID  system_class
-                FROM
-                     mapLocationWormholeClasses map_worm_class
-                WHERE
-                    map_worm_class.locationID = map_sys.regionID
-                LIMIT 1
-              ), 7) `security`
-        FROM
-            mapSolarSystems map_sys INNER JOIN
-	        mapConstellations map_con ON
-		      map_sys.constellationID = map_con.constellationID  INNER JOIN
-	        mapRegions map_reg ON
-		      map_con.regionID = map_reg.regionID";
-
-    private $whereQuery = "";
-
-    // exclude Jove Space
-    private $havingQuery = "HAVING
-            security IS NOT NULL";
-
-    private $orderByQuery = "ORDER BY
-            system_name";
-
-    private $limitQuery = "";
-
-
-    /**
-     * build query
-     * @return string
-     */
-    private function _getQuery(){
-        $query = $this->mainQuery;
-        $query .= ' ' . $this->whereQuery;
-        $query .= ' ' . $this->havingQuery;
-        $query .= ' ' . $this->orderByQuery;
-        $query .= ' ' . $this->limitQuery;
-
-        return $query;
-    }
-
-    /**
-     * get system Data from CCPs [SDE]
-     * search column for IDs can be (solarSystemID, regionID, constellationID)
-     * @param array $columnIDs
-     * @param string $column
-     * @return Model\SystemModel[]
-     * @throws \Exception
-     */
-    public function getSystemModelByIds($columnIDs = [], $column = 'solarSystemID'){
-
-        $systemModels = [];
-
-        $ccpDB = $this->getDB('CCP');
-
-        $this->whereQuery = "WHERE
-            map_sys." . $column . " IN (" . implode(',', $columnIDs) . ")";
-
-        $query = $this->_getQuery();
-
-        $rows = $ccpDB->exec($query, null, 60 * 60 * 24);
-
-        // format result
-        $ccpSystemsData = (new Mapper\CcpSystemsMapper($rows))->getData();
-
-        foreach($ccpSystemsData as $ccpSystemData){
-            /**
-             * @var Model\SystemModel $system
-             */
-            $system = Model\BasicModel::getNew('SystemModel');
-            $system->setData($ccpSystemData);
-            $systemModels[] = $system;
-        }
-
-        return $systemModels;
-    }
-
-    /**
-     * Get all static system Data from CCP DB (long cache timer)
-     * @return array
-     */
-    public function getSystems(){
-        $ccpDB = $this->getDB('CCP');
-        $query = $this->_getQuery();
-        $rows = $ccpDB->exec($query, null, 60 * 60 * 24);
-        // format result
-        $mapper = new Mapper\CcpSystemsMapper($rows);
-
-        return $mapper->getData();
-    }
 
     /**
      * save a new system to a a map
@@ -160,59 +43,36 @@ class System extends Controller\AccessController {
             }
 
             if( isset($systemData['id']) ){
-                // update existing system (e.g. changed system description) -------------------------------------------
-
+                // update existing system (e.g. set description) ------------------------------------------------------
                 /**
                  * @var $system Model\SystemModel
                  */
                 $system = Model\BasicModel::getNew('SystemModel');
                 $system->getById($systemData['id']);
-                if( !$system->dry() ){
-                    if( $system->hasAccess($activeCharacter) ){
-                        // system model found
-                        $systemModel = $system;
-                    }
+                if(
+                    !$system->dry() &&
+                    $system->hasAccess($activeCharacter)
+                ){
+                    // system model found
+                    // activate system (e.g. was inactive))
+                    $system->setActive(true);
+                    $systemModel = $system;
                 }
             }elseif( isset($mapData['id']) ){
                 // save NEW system ------------------------------------------------------------------------------------
-
                 /**
                  * @var $map Model\MapModel
                  */
                 $map = Model\BasicModel::getNew('MapModel');
                 $map->getById($mapData['id']);
-                if( $map->hasAccess($activeCharacter) ){
-                    // make sure system is not already on map
-                    // --> (e.g. multiple simultaneously save() calls for the same system)
-                    $systemModel = $map->getSystemByCCPId($systemData['systemId']);
-                    if( is_null($systemModel) ){
-                        // system not found on map -> get static system data (CCP DB)
-                        $systemModel = $map->getNewSystem($systemData['systemId']);
-                        $defaultStatusId = 1;
-                    }else{
-                        // system already exists (e.g. was inactive)
-                        $defaultStatusId = $systemModel->statusId;
-                    }
-
-                    if( !is_null($systemModel) ){
-                        $systemModel->statusId = isset($systemData['statusId']) ? $systemData['statusId'] : $defaultStatusId;
-                    }
-
-                    // map is not changeable for a system! (security)
-                    $systemData['mapId'] = $map;
+                if($map->hasAccess($activeCharacter)){
+                    $systemModel = $map->getNewSystem($systemData['systemId']);
                 }
             }
 
             if( !is_null($systemModel) ){
-                // "statusId" was set above
-                unset($systemData['statusId']);
-                unset($systemData['mapId']);
-
-                // set/update system
-                $systemModel->setData($systemData);
-                // activate system (e.g. was inactive))
-                $systemModel->setActive(true);
-
+                // set/update system custom data
+                $systemModel->copyfrom($systemData, ['locked', 'rallyUpdated', 'position', 'description']);
 
                 if($systemModel->save($activeCharacter)){
                     // get data from "fresh" model (e.g. some relational data has changed: "statusId")
@@ -220,7 +80,7 @@ class System extends Controller\AccessController {
                      * @var $newSystemModel Model\SystemModel
                      */
                     $newSystemModel = Model\BasicModel::getNew('SystemModel');
-                    $newSystemModel->getById( $systemModel->id, 0);
+                    $newSystemModel->getById( $systemModel->_id, 0);
                     $newSystemModel->clearCacheData();
                     $return->systemData = $newSystemModel->getData();
 

@@ -78,6 +78,33 @@ class WormholeModel extends BasicUniverseModel {
     ];
 
     /**
+     * get wormhole data
+     * @return \stdClass
+     */
+    public function getData(){
+
+        $wormholeData                           = (object) [];
+        $wormholeData->name                     = $this->name;
+        $wormholeData->static                   = $this->static;
+        $wormholeData->security                 = $this->security;
+        $wormholeData->massTotal                = $this->massTotal;
+        $wormholeData->massIndividual           = $this->massIndividual;
+
+        if($this->massRegeneration){
+            $wormholeData->massRegeneration     = $this->massRegeneration;
+        }
+
+        $wormholeData->maxStableTime            = $this->maxStableTime;
+
+        // signature strength as defined by http://wiki.eve-inspiracy.com/index.php?title=Wormhole_Signature_Strength_List
+        if($this->signatureStrength){
+            $wormholeData->signatureStrength    = $this->signatureStrength;
+        }
+
+        return $wormholeData;
+    }
+
+    /**
      *  setter for typeId
      * @param string $typeId
      * @return string|int|null

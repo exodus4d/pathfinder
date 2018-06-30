@@ -70,8 +70,8 @@ class Universe extends Controller\AccessController {
 
             $filter = [
                 'id LIKE :id OR name LIKE :name',
-                ':id'   => $search . '%',
-                ':name' => '%' . $search . '%'
+                ':id'   => $search . '%',           // -> match first
+                ':name' => '%' . $search . '%'      // -> match between
             ];
             $options = [
                 'order' => 'name',

@@ -1666,8 +1666,9 @@ define([
             // add static WH(s) for this system
             if(systemData.statics){
                 let staticWHData = [];
-                for(let i = 0; i < systemData.statics.length; i++){
-                    let staticWHName = systemData.statics[i].name + ' - ' + systemData.statics[i].security;
+                for(let wormholeName of systemData.statics) {
+                    let wormholeData = Object.assign({}, Init.wormholes[wormholeName]);
+                    let staticWHName = wormholeData.name + ' - ' + wormholeData.security;
 
                     newSelectOptionsCount++;
                     staticWHData.push( {value: newSelectOptionsCount, text: staticWHName} );

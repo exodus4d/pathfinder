@@ -32,10 +32,10 @@ class Setup extends Controller {
         'DB_PF_NAME',
         'DB_PF_USER',
         'DB_PF_PASS',
-        'DB_CCP_DNS',
-        'DB_CCP_NAME',
-        'DB_CCP_USER',
-        'DB_CCP_PASS',
+        'DB_UNIVERSE_DNS',
+        'DB_UNIVERSE_NAME',
+        'DB_UNIVERSE_USER',
+        'DB_UNIVERSE_PASS',
         'CCP_SSO_URL',
         'CCP_SSO_CLIENT_ID',
         'CCP_SSO_SECRET_KEY',
@@ -102,8 +102,7 @@ class Setup extends Controller {
                 'Model\SystemPodKillModel',
                 'Model\SystemFactionKillModel',
                 'Model\SystemJumpModel'
-            ],
-            'tables' =>  []
+            ]
         ],
         'UNIVERSE' => [
             'info' => [],
@@ -112,30 +111,15 @@ class Setup extends Controller {
                 'Model\Universe\GroupModel',
                 'Model\Universe\CategoryModel',
                 'Model\Universe\StructureModel',
-                // 'Model\Universe\WormholeModel',
-                // 'Model\Universe\StargateModel',
-                // 'Model\Universe\StarModel',
-                // 'Model\Universe\PlanetModel',
-                // 'Model\Universe\SystemModel',
-                // 'Model\Universe\ConstellationModel',
-                // 'Model\Universe\RegionModel',
-                // 'Model\Universe\SystemStaticModel'
-            ],
-            'tables' =>  []
-        ],
-        'CCP' => [
-            'info' => [],
-            'models' => [],
-            'tables' =>  [
-                'invTypes',
-                'mapConstellations',
-                'mapDenormalize',
-                'mapLocationWormholeClasses',
-                'mapRegions',
-                'mapSolarSystemJumps',
-                'mapSolarSystems'
+                'Model\Universe\WormholeModel',
+                'Model\Universe\StargateModel',
+                'Model\Universe\StarModel',
+                'Model\Universe\PlanetModel',
+                'Model\Universe\SystemModel',
+                'Model\Universe\ConstellationModel',
+                'Model\Universe\RegionModel',
+                'Model\Universe\SystemStaticModel'
             ]
-
         ]
     ];
 
@@ -278,98 +262,6 @@ class Setup extends Controller {
     }
 
     /**
-     * IMPORTANT: This function is not required for setup. It just imports *.json -> DB
-     *
-     * imports wormhole static data for "shattered" systems
-     * into table "system_wormhole"
-     * -> a *.csv dump of this *.json file can e found under /export/csv
-     * @param \Base $f3
-     * @throws \Exception
-     */
-    protected function importSystemWormholesFromJson(\Base $f3){
-        $path = $f3->get('EXPORT') .'json/statics.json';
-        $pfDB = $this->getDB('PF');
-        $ccpDB = $this->getDB('CCP');
-
-        $content = file_get_contents($path);
-
-        $jsonIterator = new \RecursiveIteratorIterator(
-            new \RecursiveArrayIterator(json_decode($content, TRUE)),
-            \RecursiveIteratorIterator::SELF_FIRST);
-
-        $staticNames = [];
-
-        $data = [];
-        $tmpVal = (object) [];
-        foreach ($jsonIterator as $key => $val) {
-            if(is_array($val)) {
-                if(isset($tmpVal->name)){
-                    $data[] = $tmpVal;
-                }
-                $tmpVal = (object) [];
-                $tmpVal->name = $key;
-            } else {
-                $tmpVal->wh = isset($tmpVal->wh) ? array_merge($tmpVal->wh, [$val]) :  [$val];
-                $staticNames[] = $val;
-            }
-        }
-        $data[] = $tmpVal;
-
-        // get static IDs by name ------------------------------
-        $staticNames = array_unique($staticNames);
-        $staticNames = array_flip($staticNames);
-        foreach($staticNames as $name => $index){
-            $result  = $pfDB->exec("
-                            SELECT
-                              id
-                            FROM " . $pfDB->quotekey(Model\BasicModel::getNew('WormholeModel')->getTable()) . "
-                            WHERE " . $pfDB->quotekey('name') . " = :name",
-                [':name' => $name]
-            );
-            $id = (int)$result[0]['id'];
-            if($id){
-                $staticNames[$name] = (int)$result[0]['id'];
-            }else{
-                $f3->error(500, 'Wormhole data missing in table "wormhole" for "name" = "' . $name . '"');
-            }
-        }
-
-        // import data -----------------------------------------
-        $systemWormhole = Model\BasicModel::getNew('SystemWormholeModel');
-        foreach($data as $staticData){
-            $result  = $ccpDB->exec("
-                            SELECT
-                              solarSystemID
-                            FROM " . $ccpDB->quotekey('mapSolarSystems') . "
-                            WHERE
-                                " . $ccpDB->quotekey('solarSystemName') . " = :systemName",
-                [':systemName' => $staticData->name]
-            );
-
-            $solarSystemID = (int)$result[0]['solarSystemID'];
-            if($solarSystemID){
-                foreach($staticData->wh as $wh){
-                    $staticId = (int)$staticNames[$wh];
-                    if($staticId){
-                        // check if entry already exists
-                        $systemWormhole->load(['systemId=? AND wormholeId=?', $solarSystemID, $staticId]);
-                        if( $systemWormhole->dry() ){
-                            $systemWormhole->systemId = $solarSystemID;
-                            $systemWormhole->wormholeId = $staticId;
-                            $systemWormhole->save();
-                            $systemWormhole->reset();
-                        }
-                    }else{
-                        $f3->error(500, 'Wormhole data missing for "name" = "' . $wh . '"');
-                    }
-                }
-            }else{
-                $f3->error(500, 'System "' . $staticData->name . '" not found on CCP´s [SDE] database');
-            }
-        }
-    }
-
-    /**
      * set environment information
      * @param \Base $f3
      * @return array
@@ -378,8 +270,8 @@ class Setup extends Controller {
         $environmentData = [];
         // exclude some sensitive data (e.g. database, passwords)
         $excludeVars = [
-            'DB_PF_DNS',    'DB_PF_NAME',   'DB_PF_USER',   'DB_PF_PASS',
-            'DB_CCP_DNS',   'DB_CCP_NAME',  'DB_CCP_USER',  'DB_CCP_PASS'
+            'DB_PF_DNS',        'DB_PF_NAME',       'DB_PF_USER',       'DB_PF_PASS',
+            'DB_UNIVERSE_DNS',  'DB_UNIVERSE_NAME', 'DB_UNIVERSE_USER', 'DB_UNIVERSE_PASS'
         ];
 
         // obscure some values
@@ -885,7 +777,6 @@ class Setup extends Controller {
             switch($dbKey){
                 case 'PF':          $dbLabel = 'Pathfinder';            break;
                 case 'UNIVERSE':    $dbLabel = 'EVE-Online universe';   break;
-                case 'CCP':         $dbLabel = 'EVE-Online [SDE]';      break;
             }
 
             $dbName     = $dbConfigValues['NAME'];
@@ -909,15 +800,6 @@ class Setup extends Controller {
                                 'exists' => false,
                                 'empty' => true,
                                 'foreignKeys' => []
-                            ];
-                        }
-                        break;
-                    case 'CCP':
-                        // get table model from static table array
-                        foreach($dbData['tables'] as $tableName){
-                            $requiredTables[$tableName] = [
-                                'exists' => false,
-                                'empty' => true
                             ];
                         }
                         break;
@@ -1352,14 +1234,10 @@ class Setup extends Controller {
         // active DB and tables are required for obtain index data
         if(!$this->databaseHasError){
             $categoryUniverseModel = Model\Universe\BasicUniverseModel::getNew('CategoryModel');
-            //$systemUniverseModel =  Model\Universe\BasicUniverseModel::getNew('SystemModel');
+            $systemUniverseModel =  Model\Universe\BasicUniverseModel::getNew('SystemModel');
             $systemNeighbourModel = Model\BasicModel::getNew('SystemNeighbourModel');
-            $wormholeModel = Model\BasicModel::getNew('WormholeModel');
-            $systemWormholeModel = Model\BasicModel::getNew('SystemWormholeModel');
-            $constellationWormholeModel = Model\BasicModel::getNew('ConstellationWormholeModel');
 
             $indexInfo = [
-                /*
                 'Systems' => [
                     'task' => [
                         [
@@ -1378,7 +1256,7 @@ class Setup extends Controller {
                     'countBuild' => count((new Universe())->getSystemsIndex()),
                     'countAll' => $this->dbLib->getRowCount($systemUniverseModel->getTable(), 'UNIVERSE'),
                     'tooltip' => 'build up a static search index over all systems found on DB. Do not refresh page until import is complete (check progress)! Runtime: ~5min'
-                ], */
+                ],
                 'Structures' => [
                     'task' => [
                         [
@@ -1392,7 +1270,7 @@ class Setup extends Controller {
                     'countBuild' => $categoryUniverseModel->getById(65, 0)->getTypesCount(false),
                     'countAll' => (int)$f3->get('REQUIREMENTS.DATA.STRUCTURES'),
                     'tooltip' => 'import all structure types (e.g. Citadels) from ESI. Runtime: ~15s'
-                ], /*
+                ],
                 'Ships' => [
                     'task' => [
                         [
@@ -1406,9 +1284,8 @@ class Setup extends Controller {
                     'countBuild' => $categoryUniverseModel->getById(6, 0)->getTypesCount(false),
                     'countAll' => (int)$f3->get('REQUIREMENTS.DATA.SHIPS'),
                     'tooltip' => 'import all ships types from ESI. Runtime: ~2min'
-                ], */
-                // All following rows become deprecated
-                'SystemNeighbourModel' => [
+                ],
+                'SystemNeighbour' => [
                     'task' => [
                         [
                             'action' => 'buildIndex',
@@ -1417,10 +1294,14 @@ class Setup extends Controller {
                             'btn' => 'btn-primary'
                         ]
                     ],
-                    'label' => 'system_neighbour',
+                    'label' => 'build neighbour index',
                     'countBuild' => $this->dbLib->getRowCount($systemNeighbourModel->getTable()),
-                    'countAll' => 5214
+                    'countAll' =>  (int)$f3->get('REQUIREMENTS.DATA.NEIGHBOURS'),
+                    'tooltip' => 'build up a static search index for route search. This is used as fallback in case ESI is down. Runtime: ~30s'
+
                 ],
+                // All following rows become deprecated
+                /*
                 'WormholeModel' => [
                     'task' => [
                         [
@@ -1438,53 +1319,18 @@ class Setup extends Controller {
                     'label' => 'wormhole',
                     'countBuild' => $this->dbLib->getRowCount($wormholeModel->getTable()),
                     'countAll' => 89
-                ],
-                'SystemWormholeModel' => [
-                    'task' => [
-                        [
-                            'action' => 'exportTable',
-                            'label' => 'Export',
-                            'icon' => 'fa-download',
-                            'btn' => 'btn-default'
-                        ],[
-                            'action' => 'importTable',
-                            'label' => 'Import',
-                            'icon' => 'fa-upload',
-                            'btn' => 'btn-primary'
-                        ]
-                    ],
-                    'label' => 'system_wormhole',
-                    'countBuild' => $this->dbLib->getRowCount($systemWormholeModel->getTable()),
-                    'countAll' => 234
-                ],
-                'ConstellationWormholeModel' => [
-                    'task' => [
-                        [
-                            'action' => 'exportTable',
-                            'label' => 'Export',
-                            'icon' => 'fa-download',
-                            'btn' => 'btn-default'
-                        ],[
-                            'action' => 'importTable',
-                            'label' => 'Import',
-                            'icon' => 'fa-upload',
-                            'btn' => 'btn-primary'
-                        ]
-                    ],
-                    'label' => 'constellation_wormhole',
-                    'countBuild' => $this->dbLib->getRowCount( $constellationWormholeModel->getTable() ),
-                    'countAll' => 461
                 ]
+                */
             ];
         }else{
             $indexInfo = [
-                'SystemNeighbourModel' => [
+                'SystemNeighbour' => [
                     'task' => [],
                     'label' => 'Fix database errors first!'
                 ]
             ];
         }
-//var_dump($indexInfo); die();
+
         return $indexInfo;
     }
 

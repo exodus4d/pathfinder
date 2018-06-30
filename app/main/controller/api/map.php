@@ -138,11 +138,10 @@ class Map extends Controller\AccessController {
             $return->connectionScopes = $connectionScopeData;
 
             // get available wormhole types ---------------------------------------------------------------------------
-            $wormholes = Model\BasicModel::getNew('WormholeModel');
-            $rows = $wormholes->find('id > 0', null, $expireTimeSQL);
+            $wormhole = Model\Universe\BasicUniverseModel::getNew('WormholeModel');
             $wormholesData = [];
-            if($rows){
-                foreach((array)$rows as $rowData){
+            if($rows = $wormhole->find(null, ['order' => 'name asc'], $expireTimeSQL)){
+                foreach($rows as $rowData){
                     $wormholesData[$rowData->name] = $rowData->getData();
                 }
             }
@@ -741,12 +740,11 @@ class Map extends Controller\AccessController {
                                 // system belongs to the current map
                                 if(is_object($filteredMap->systems)){
                                     // update
-
                                     /**
                                      * @var $system Model\SystemModel
                                      */
                                     $system = $filteredMap->systems->current();
-                                    $system->setData($systemData);
+                                    $system->copyfrom($systemData, ['alias', 'status', 'position', 'locked', 'rallyUpdated', 'rallyPoke']);
 
                                     if($system->save($activeCharacter)){
                                         $mapChanged = true;
@@ -776,7 +774,6 @@ class Map extends Controller\AccessController {
                                 // connection belongs to the current map
                                 if(is_object($filteredMap->connections)){
                                     // update
-
                                     /**
                                      * @var $connection Model\ConnectionModel
                                      */

@@ -338,7 +338,7 @@ define([
             // current position
             if(tempSystemData.currentUser === true){
                 tempData.position = {
-                    position: '<i class="fas fa-map-marker-alt fa-lg fa-fw"></i>',
+                    position: '<i class="fas fa-map-marker-alt fa-fw"></i>',
                     position_sort: 1
                 };
             }else{
@@ -379,8 +379,9 @@ define([
 
             // static
             let statics = [];
-            for(let j = 0; j < tempSystemData.statics.length; j++){
-                let security = tempSystemData.statics[j].security;
+            for(let wormholeName of tempSystemData.statics){
+                let wormholeData = Object.assign({}, Init.wormholes[wormholeName]);
+                let security = wormholeData.security;
                 let secClass = Util.getSecurityClassForSystem(security);
                 statics.push('<span class="' + secClass + '">' + security + '</span>');
             }
@@ -390,7 +391,7 @@ define([
             let systemStatusClass = Util.getStatusInfoForSystem(tempSystemData.status.id, 'class');
             if(systemStatusClass !== ''){
                 tempData.status = {
-                    status: '<i class="far fa-square fa-lg fa-fw ' + systemStatusClass + '"></i>',
+                    status: '<i class="far fa-square fa-fw ' + systemStatusClass + '"></i>',
                     status_sort: tempSystemData.status.id
                 };
             }else{
@@ -404,7 +405,7 @@ define([
             let systemEffectClass = MapUtil.getEffectInfoForSystem(tempSystemData.effect, 'class');
             if(systemEffectClass !== ''){
                 tempData.effect = {
-                    effect: '<i class="fas fa-square fa-lg fa-fw ' + systemEffectClass + '"></i>',
+                    effect: '<i class="fas fa-square fa-fw ' + systemEffectClass + '"></i>',
                     effect_sort: tempSystemData.effect
                 };
             }else{
@@ -428,10 +429,23 @@ define([
                 };
             }
 
+            // shattered
+            if(tempSystemData.shattered){
+                tempData.shattered = {
+                    shattered: '<i class="fas fa-skull fa-fw ' + Util.getSecurityClassForSystem('SH') + '"></i>',
+                    shattered_sort: tempSystemData.shattered
+                };
+            }else{
+                tempData.shattered = {
+                    shattered: '',
+                    shattered_sort: 0
+                };
+            }
+
             // locked
             if(tempSystemData.locked === 1){
                 tempData.locked = {
-                    locked: '<i class="fas fa-lock fa-lg fa-fw"></i>',
+                    locked: '<i class="fas fa-lock fa-fw"></i>',
                     locked_sort: tempSystemData.locked
                 };
             }else{
@@ -500,6 +514,16 @@ define([
                         sort: 'trueSec_sort'
                     }
                 },{
+                    title: '<i class="fas fa-skull" title="shattered" data-toggle="tooltip"></i>',
+                    width: '10px',
+                    className: ['text-center', 'min-desktop'].join(' '),
+                    searchable: false,
+                    data: 'shattered',
+                    render: {
+                        _: 'shattered',
+                        sort: 'shattered_sort'
+                    }
+                },{
                     title: 'system',
                     data: 'name',
                     className: [config.tableCellLinkClass].join(' '),
@@ -517,7 +541,8 @@ define([
                     data: 'region'
                 },{
                     title: '<i class="far fa-square" title="system&nbsp;status" data-toggle="tooltip"></i>',
-                    width: '12px',
+                    width: '10px',
+                    className: 'text-center',
                     searchable: false,
                     data: 'status',
                     render: {
@@ -526,7 +551,7 @@ define([
                     }
                 },{
                     title: '<i class="fas fa-square" title="system&nbsp;effect" data-toggle="tooltip"></i>',
-                    width: '12px',
+                    width: '10px',
                     className: 'text-center',
                     searchable: false,
                     data: 'effect',
@@ -541,6 +566,7 @@ define([
                 },{
                     title: '<i class="fas fa-map-marker-alt" title="your&nbsp;position" data-toggle="tooltip"></i>',
                     width: '8px',
+                    className: 'text-center',
                     searchable: false,
                     data: 'position',
                     render: {
@@ -556,6 +582,7 @@ define([
                 },{
                     title: '<i class="fas fa-lock" title="system&nbsp;locked" data-toggle="tooltip"></i>',
                     width: '10px',
+                    className: 'text-center',
                     searchable: false,
                     data: 'locked',
                     render: {

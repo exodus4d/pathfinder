@@ -186,20 +186,17 @@ define([
         // store systemId -> module can be updated with the correct data
         moduleElement.data('id', systemData.id);
 
-        // shattered wormhole info data
-        let shatteredWormholeInfo = false;
-
-        // add security class for statics
+        // system "static" wh data
+        let staticsData = [];
         if(
             systemData.statics &&
             systemData.statics.length > 0
         ){
-            for(let i = 0; i < systemData.statics.length; i++){
-                systemData.statics[i].class = Util.getSecurityClassForSystem( systemData.statics[i].security );
+            for(let wormholeName of systemData.statics){
+                let wormholeData = Object.assign({}, Init.wormholes[wormholeName]);
+                wormholeData.class = Util.getSecurityClassForSystem(wormholeData.security);
+                staticsData.push(wormholeData);
             }
-        }else if(systemData.type.id === 1){
-            // system type "wormhole" but no statics => "shattered wormhole"
-            shatteredWormholeInfo = true;
         }
 
         let effectName = MapUtil.getEffectInfoForSystem(systemData.effect, 'name');
@@ -336,12 +333,9 @@ define([
                     $(moduleElement).find('.' + config.systemInfoEffectInfoClass).addSystemEffectTooltip(systemData.security, systemData.effect);
 
                     // init static wormhole information ----------------------------------------------------------
-                    if(systemData.statics){
-                        for(let i = 0; i < systemData.statics.length; i++){
-                            let staticData = systemData.statics[i];
-                            let staticRowElement = tempModuleElement.find('.' + config.systemInfoWormholeClass + staticData.name);
-                            staticRowElement.addWormholeInfoTooltip(staticData);
-                        }
+                    for(let staticData of staticsData){
+                        let staticRowElement = tempModuleElement.find('.' + config.systemInfoWormholeClass + staticData.name);
+                        staticRowElement.addWormholeInfoTooltip(staticData);
                     }
 
                     // constellation popover ---------------------------------------------------------------------
@@ -378,6 +372,7 @@ define([
 
         let moduleData = {
             system: systemData,
+            static: staticsData,
             tableClass: config.systemInfoTableClass,
             nameInfoClass: config.systemInfoNameInfoClass,
             effectInfoClass: config.systemInfoEffectInfoClass,
@@ -407,7 +402,7 @@ define([
                 return (val, render) => render(val).replace(/ /g, '_');
             },
 
-            shatteredWormholeInfo: shatteredWormholeInfo,
+            shatteredClass: Util.getSecurityClassForSystem('SH'),
 
             ajaxConstellationInfoUrl: Init.path.getConstellationData,
 

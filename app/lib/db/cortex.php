@@ -223,11 +223,11 @@ class Cortex extends Cursor {
     protected function applyWhitelist() {
         if ($this->dbsType == 'sql') {
             // fetch full schema
-            if (!$this->fluid && isset(self::$schema_cache[$this->table]))
-                $schema = self::$schema_cache[$this->table];
+            if (!$this->fluid && isset(self::$schema_cache[$this->table.$this->db->uuid()]))
+                $schema = self::$schema_cache[$this->table.$this->db->uuid()];
             else {
                 $schema = $this->mapper->schema();
-                self::$schema_cache[$this->table] = $schema;
+                self::$schema_cache[$this->table.$this->db->uuid()] = $schema;
             }
             // apply reduced fields schema
             if ($this->whitelist)

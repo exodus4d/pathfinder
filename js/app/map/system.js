@@ -24,6 +24,9 @@ define([
         popoverTriggerClass: 'pf-popover-trigger',                                      // class for "popover" trigger elements
 
         systemHeadInfoClass: 'pf-system-head-info',                                     // class for system info
+        systemHeadInfoLeftClass: 'pf-system-head-info-left',                            // class for left system info
+        systemHeadInfoRightClass: 'pf-system-head-info-right',                          // class for right system info
+
         systemActiveClass: 'pf-system-active',                                          // class for an active system on a map
         systemTooltipInnerIdPrefix: 'pf-system-tooltip-inner-',                         // id prefix for system tooltip content
         systemTooltipInnerClass: 'pf-system-tooltip-inner',                             // class for system tooltip content
@@ -406,7 +409,7 @@ define([
      * @param systems
      */
     let removeSystems = (map, systems) => {
-        let removeSystemCallbak = function(deleteSystem){
+        let removeSystemCallbak = deleteSystem => {
             map.remove(deleteSystem);
         };
 
@@ -441,7 +444,7 @@ define([
      * @param sourceSystem
      * @returns {{x: *, y: *}}
      */
-    let calculateNewSystemPosition = function(sourceSystem){
+    let calculateNewSystemPosition = sourceSystem => {
         let mapContainer = sourceSystem.parent();
         let grid = [MapUtil.config.mapSnapToGridDimension, MapUtil.config.mapSnapToGridDimension];
 
@@ -490,24 +493,39 @@ define([
      */
     let getHeadInfoElement = (data) => {
         let headInfo = null;
+        let headInfoLeft = [];
+        let headInfoRight = [];
+
+        if(data.shattered){
+            headInfoLeft.push('<i class="fas fa-fw fa-skull ' + Util.getSecurityClassForSystem('SH') + '" title="shattered"></i>');
+        }
 
         // check systemData if headInfo element is needed
         if(data.statics && data.statics.length){
             // format wh statics
-            let statics = [];
-            for(let staticData of data.statics){
-                statics.push(
+            for(let wormholeName of data.statics){
+                let staticData = Object.assign({}, Init.wormholes[wormholeName]);
+                headInfoRight.push(
                     '<span class="' +
                     Util.getSecurityClassForSystem(staticData.security) + ' ' +
                     config.popoverTriggerClass + '" data-name="' + staticData.name +
                     '">' + staticData.security + '</span>'
                 );
             }
+        }
 
-            headInfo = $('<div>',  {
+        if(headInfoLeft.length || headInfoRight.length){
+            headInfo = $('<div>', {
                 class: config.systemHeadInfoClass
             }).append(
-                statics.join('&nbsp;&nbsp;')
+                $('<div>', {
+                    class: config.systemHeadInfoLeftClass,
+                    html: headInfoLeft.join('&nbsp;&nbsp;')
+                }),
+                $('<div>', {
+                    class: config.systemHeadInfoRightClass,
+                    html: headInfoRight.join('&nbsp;&nbsp;')
+                })
             );
         }
 

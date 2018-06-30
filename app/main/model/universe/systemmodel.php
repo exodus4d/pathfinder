@@ -110,10 +110,10 @@ class SystemModel extends BasicUniverseModel {
         $systemData->security       = $this->security;
         $systemData->trueSec        = (float)$this->trueSec;
         $systemData->effect         = $this->effect;
-        $systemData->shattered      = $this->shattered;
+        $systemData->shattered      = (bool)$this->shattered;
 
         if($this->starId){
-            $systemData->star           = $this->starId->getData();
+            $systemData->star       = $this->starId->getData();
         }
 
         if( !empty($planetsData = $this->getPlanetsData()) ){
@@ -125,7 +125,7 @@ class SystemModel extends BasicUniverseModel {
         }
 
         if( !empty($stargatesData = $this->getStargatesData()) ){
-            $systemData->stargates    = $stargatesData;
+            $systemData->stargates  = $stargatesData;
         }
 
         return $systemData;

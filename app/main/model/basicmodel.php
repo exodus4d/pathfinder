@@ -514,7 +514,7 @@ abstract class BasicModel extends \DB\Cortex {
      * -> this will not work (prevent abuse)
      * @param bool $active
      */
-    public function setActive($active){
+    public function setActive(bool $active){
         // enables "active" change for this model
         $this->allowActiveChange = true;
         $this->active = $active;

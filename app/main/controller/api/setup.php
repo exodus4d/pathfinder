@@ -91,11 +91,11 @@ class Setup extends Controller\Controller {
                 $return->countBuildAll = $categoryUniverseModel->getById($categoryId, 0)->getTypesCount(false);
                 $return->progress = $percent($return->countAll, $return->countBuildAll);
                 break;
-            case 'SystemNeighbourModel':
+            case 'SystemNeighbour':
                 // Becomes deprecated with new Universe DB!!!
                 $this->setupSystemJumpTable();
 
-                $return->countAll = 5214;
+                $return->countAll = (int)$f3->get('REQUIREMENTS.DATA.NEIGHBOURS');
                 $return->countBuild = Database::instance()->getRowCount('system_neighbour');
                 $return->countBuildAll = $return->countBuild;
                 $return->progress = $percent($return->countAll, $return->countBuildAll);
@@ -144,67 +144,87 @@ class Setup extends Controller\Controller {
      * for system jump calculation. Call this function manually when CCP adds Systems/Stargates
      */
     protected function setupSystemJumpTable(){
-        $pfDB = $this->getDB('PF');
-        $ccpDB = $this->getDB('CCP');
+        $universeDB =  $this->getDB('UNIVERSE');
 
         $query = "SELECT
-                map_sys.solarSystemID system_id,
-                map_sys.regionID region_id,
-                map_sys.constellationID constellation_id,
-                map_sys.solarSystemName system_name,
-                ROUND( map_sys.security, 4) system_security,
-                (
-                    SELECT
-                        GROUP_CONCAT( NULLIF(map_sys_inner.solarSystemName, NULL) SEPARATOR ':')
+                      `system`.`id` `systemId`,
+                      `system`.`name` `systemName`,
+                      `system`.`constellationId` `constellationId`,
+                      ROUND( `system`.`securityStatus`, 4) `trueSec`,
+                      `constellation`.`regionId` `regionId`,
+                      (
+                        SELECT
+                          GROUP_CONCAT( NULLIF(`sys_inner`.`id`, NULL) SEPARATOR ':')
+                        FROM
+                          `stargate` INNER JOIN
+                          `system` `sys_inner` ON
+                            `sys_inner`.`id` = `stargate`.`destinationSystemId`
+                        WHERE
+                          `stargate`.`systemId` = `system`.`id`  
+                      ) `jumpNodes`
                     FROM
-                        mapSolarSystemJumps map_jump INNER JOIN
-                        mapSolarSystems map_sys_inner ON
-                            map_sys_inner.solarSystemID = map_jump.toSolarSystemID
+                      `system` INNER JOIN
+                      `constellation` ON
+                        `constellation`.`id` = `system`.`constellationId`
                     WHERE
-                        map_jump.fromSolarSystemID = map_sys.solarSystemID
-                ) system_neighbours
-            FROM
-                mapSolarSystems map_sys
-            HAVING
-              -- skip systems without neighbors (e.g. WHs)
-	          system_neighbours IS NOT NULL
-            ";
+                      `constellation`.`regionId` != :regionIdJove1 AND
+                      `constellation`.`regionId` != :regionIdJove2 AND
+                      `constellation`.`regionId` != :regionIdJove3 AND
+                      (
+                          `system`.`security` = :ns OR
+                          `system`.`security` = :ls OR 
+                          `system`.`security` = :hs
+                      )
+                    ";
 
-        $rows = $ccpDB->exec($query);
+        $rows = $universeDB->exec($query, [
+            ':regionIdJove1' => 10000017,
+            ':regionIdJove2' => 10000019,
+            ':regionIdJove3' => 10000004,
+            ':ns' => '0.0',
+            ':ls' => 'L',
+            ':hs' => 'H'
+        ]);
 
-        if(count($rows) > 0){
-            // switch DB back to pathfinder DB
+        if(count($rows)){
+            $pfDB = $this->getDB('PF');
 
             // clear cache table
             $pfDB->exec("TRUNCATE system_neighbour");
 
             foreach($rows as $row){
+                if(!$row['jumpNodes']){
+                    // should never happen!
+                    continue;
+                }
+
                 $pfDB->exec("
-              INSERT INTO
-                system_neighbour(
-                  regionId,
-                  constellationId,
-                  systemName,
-                  systemId,
-                  jumpNodes,
-                  trueSec
-                  )
-              VALUES(
-                :regionId,
-                :constellationId,
-                :systemName,
-                :systemId,
-                :jumpNodes,
-                :trueSec
-            )",
-                [
-                    ':regionId' => $row['region_id'],
-                    ':constellationId' => $row['constellation_id'],
-                    ':systemName' => $row['system_name'],
-                    ':systemId' => $row['system_id'],
-                    ':jumpNodes' => $row['system_neighbours'],
-                    ':trueSec' => $row['system_security']
-                ]);
+                      INSERT INTO
+                        system_neighbour(
+                          regionId,
+                          constellationId,
+                          systemName,
+                          systemId,
+                          jumpNodes,
+                          trueSec
+                          )
+                      VALUES(
+                        :regionId,
+                        :constellationId,
+                        :systemName,
+                        :systemId,
+                        :jumpNodes,
+                        :trueSec
+                    )",
+                    [
+                        ':regionId' => $row['regionId'],
+                        ':constellationId' => $row['constellationId'],
+                        ':systemName' => $row['systemName'],
+                        ':systemId' => $row['systemId'],
+                        ':jumpNodes' => $row['jumpNodes'],
+                        ':trueSec' => $row['trueSec']
+                    ]
+                );
             }
         }
     }
