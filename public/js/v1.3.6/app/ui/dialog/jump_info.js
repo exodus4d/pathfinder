@@ -45,6 +45,18 @@ define([
                 }.bind({
                     Util: Util
                 }),
+                formatStatic: function(){
+                    return function(value, render){
+                        console.log(render(value));
+                        console.log(typeof render(value));
+                        let isStatic = render(value) === 'true';
+                        if(isStatic){
+                            return '<i class="fas fa-check"></i>';
+                        }else{
+                            return '';
+                        }
+                    };
+                },
                 sigStrengthValue: function(){
                     return function(value, render){
                         let float = render(value);
@@ -93,6 +105,8 @@ define([
                     columnDefs: []
                 });
             });
+
+            jumpDialog.initTooltips();
 
             jumpDialog.modal('show');
         });

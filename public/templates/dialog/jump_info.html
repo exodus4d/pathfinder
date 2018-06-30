@@ -4,6 +4,7 @@
         <tr>
             <th class=""></th>
             <th class="text-center">Leads to</th>
+            <th class="text-center pf-table-cell-10" title="is static"><i class="fas fa-thumbtack"></i></th>
             <th class="text-right">Mass total</th>
             <th class="text-right">Mass individual</th>
             <th class="text-right">Mass regeneration</th>
@@ -16,10 +17,11 @@
         <tr>
             <td>{{name}}</td>
             <td class="text-center {{#securityClass}}{{security}}{{/securityClass}}">{{security}}</td>
-            <td class="text-right">{{#massValue}}{{massTotal}}{{/massValue}}</td>
-            <td class="text-right">{{#massValue}}{{massIndividual}}{{/massValue}}</td>
-            <td class="text-right">{{#massValue}}{{massRegeneration}}{{/massValue}}</td>
-            <td class="text-right">{{maxStableTime}}&nbsp;h</td>
+            <td class="text-center" data-order="{{static}}">{{#formatStatic}}{{static}}{{/formatStatic}}</td>
+            <td class="text-right" data-order="{{massTotal}}">{{#massValue}}{{massTotal}}{{/massValue}}</td>
+            <td class="text-right" data-order="{{massIndividual}}">{{#massValue}}{{massIndividual}}{{/massValue}}</td>
+            <td class="text-right" data-order="{{massRegeneration}}">{{#massValue}}{{massRegeneration}}{{/massValue}}</td>
+            <td class="text-right" data-order="{{maxStableTime}}">{{maxStableTime}}&nbsp&nbsp;h</td>
             <td class="text-right txt-color {{^signatureStrength}}txt-color-grayLight{{/signatureStrength}}" data-order="{{signatureStrength}}">
                 {{#sigStrengthValue}}{{signatureStrength}}{{/sigStrengthValue}}
             </td>

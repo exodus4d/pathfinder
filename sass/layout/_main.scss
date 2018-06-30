@@ -376,6 +376,10 @@ table{
   }
 
   td, th{
+    &.pf-table-cell-10{
+      width: 10px;
+    }
+
     &.pf-table-cell-20{
       width: 20px;
     }
