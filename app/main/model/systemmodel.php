@@ -45,39 +45,11 @@ class SystemModel extends AbstractMapTrackingModel {
             'index' => true,
             'validate' => true
         ],
-        'name' => [
-            'type' => Schema::DT_VARCHAR128,
-            'nullable' => false,
-            'default' => ''
-        ],
         'alias' => [
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
             'default' => '',
             'activity-log' => true
-        ],
-        'regionId' => [
-            'type' => Schema::DT_INT,
-            'index' => true
-        ],
-        'region' => [
-            'type' => Schema::DT_VARCHAR128,
-            'nullable' => false,
-            'default' => ''
-        ],
-        'constellationId' => [
-            'type' => Schema::DT_INT,
-            'index' => true
-        ],
-        'constellation' => [
-            'type' => Schema::DT_VARCHAR128,
-            'nullable' => false,
-            'default' => ''
-        ],
-        'effect' => [
-            'type' => Schema::DT_VARCHAR128,
-            'nullable' => false,
-            'default' => ''
         ],
         'typeId' => [
             'type' => Schema::DT_INT,
@@ -89,16 +61,6 @@ class SystemModel extends AbstractMapTrackingModel {
                     'on-delete' => 'CASCADE'
                 ]
             ]
-        ],
-        'security' => [
-            'type' => Schema::DT_VARCHAR128,
-            'nullable' => false,
-            'default' => ''
-        ],
-        'trueSec' => [
-            'type' => Schema::DT_FLOAT,
-            'nullable' => false,
-            'default' => 1
         ],
         'statusId' => [
             'type' => Schema::DT_INT,
