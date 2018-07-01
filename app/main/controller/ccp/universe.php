@@ -14,18 +14,6 @@ use Model;
 
 class Universe extends Controller {
 
-    /**
-     * Set up "Universe" Database
-     * @param \Base $f3
-     * @throws \Exception
-     */
-    public function setupDB(\Base $f3){
-        //$this->setupWormholes($f3);
-        //var_dump($this->getSystemsIndex());
-        //var_dump($this->getSystemData(30000001));
-        //var_dump($this->getSystemData(30000002));
-        //var_dump($this->getSystemData('Lashesih'));
-    }
 
     /*  currently not used
     protected function setupRegions(\Base $f3){

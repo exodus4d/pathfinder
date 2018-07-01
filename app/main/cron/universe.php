@@ -10,7 +10,7 @@ namespace Cron;
 
 use Model;
 
-class Universe {
+class Universe extends AbstractCron {
 
     const LOG_TEXT = '%s type: %s  %s/%s peak: %s  total: %s  msg: %s';
 
@@ -242,5 +242,23 @@ class Universe {
             $this->formatSeconds(microtime(true) - $timeTotalStart), $msg) );
     }
 
+    /**
+     * update static universe system data from ESI
+     * -> updates small chunk of systems at once
+     * >> php index.php "/cron/updateUniverseSystems"
+     * @param \Base $f3
+     * @throws \Exception
+     */
+    function updateUniverseSystems(\Base $f3){
+        $this->setMaxExecutionTime();
+
+        $system = Model\Universe\BasicUniverseModel::getNew('SystemModel');
+        $systems = $system->find( null, ['order' => 'updated', 'limit' => 2]);
+        if($systems){
+            foreach ($systems as $system){
+                $system->updateModel();
+            }
+        }
+    }
 
 }

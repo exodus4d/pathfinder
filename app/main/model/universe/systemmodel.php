@@ -318,6 +318,16 @@ class SystemModel extends BasicUniverseModel {
     }
 
     /**
+     * update system from ESI
+     */
+    public function updateModel(){
+        if( !$this->dry() ){
+            $this->loadData($this->_id);
+            $this->loadPlanetsData();
+        }
+    }
+
+    /**
      * @param int $id
      * @param string $accessToken
      * @param array $additionalOptions
