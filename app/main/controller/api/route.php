@@ -173,9 +173,6 @@ class Route extends Controller\AccessController {
                 }
 
                 $query = "SELECT
-                        `system_src`.`regionId` regionId,
-                        `system_src`.`constellationId` constellationId,
-                        `system_src`.`name` systemName,
                         `system_src`.`systemId` systemId,
                         (
                           SELECT
@@ -195,8 +192,7 @@ class Route extends Controller\AccessController {
                             " . $whereQuery . "
                             `system_tar`.`id` != `system_src`.`id` AND
                             `system_tar`.`active` = 1
-                        ) jumpNodes,
-                        `system_src`.`trueSec` trueSec
+                        ) jumpNodes
                     FROM
                         `system` `system_src` INNER JOIN
                         `map` ON
