@@ -8,7 +8,6 @@
 
 namespace Model;
 
-use Controller\Api\System;
 use DB\SQL\Schema;
 use data\file\FileHandler;
 use lib\Config;
