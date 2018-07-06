@@ -21,8 +21,6 @@ define([
 
         mapClass: 'pf-map',                                                             // class for all maps
 
-        popoverTriggerClass: 'pf-popover-trigger',                                      // class for "popover" trigger elements
-
         systemHeadInfoClass: 'pf-system-head-info',                                     // class for system info
         systemHeadInfoLeftClass: 'pf-system-head-info-left',                            // class for left system info
         systemHeadInfoRightClass: 'pf-system-head-info-right',                          // class for right system info
@@ -508,7 +506,7 @@ define([
                 headInfoRight.push(
                     '<span class="' +
                     Util.getSecurityClassForSystem(staticData.security) + ' ' +
-                    config.popoverTriggerClass + '" data-name="' + staticData.name +
+                    Util.config.popoverTriggerClass + '" data-name="' + staticData.name +
                     '">' + staticData.security + '</span>'
                 );
             }

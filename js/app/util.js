@@ -467,7 +467,6 @@ define([
      * @returns {*}
      */
     $.fn.initTooltips = function(options){
-
         options = (typeof options === 'object') ? options : {};
 
         let defaultOptions = {
@@ -479,6 +478,26 @@ define([
         return this.each(function(){
             let tooltipElements = $(this).find('[title]');
             tooltipElements.tooltip('destroy').tooltip(options);
+        });
+    };
+
+    /**
+     * destroy popover elements
+     * @param recursive
+     * @returns {*}
+     */
+    $.fn.destroyTooltip = function(recursive){
+        return this.each(function() {
+            let element = $(this);
+            let tooltipSelector = '[title]';
+            let tooltipElements = element.filter(tooltipSelector);
+            if(recursive){
+                tooltipElements = tooltipElements.add(element.find(tooltipSelector));
+            }
+
+            tooltipElements.each(function() {
+                $(this).tooltip('destroy');
+            });
         });
     };
 
@@ -585,7 +604,7 @@ define([
             return elements.each(function() {
                 let element = $(this);
 
-                // check if tooltip already exists -> remove it
+                // check if popover already exists -> remove it
                 if(element.data('bs.popover') !== undefined){
                     element.off('click').popover('destroy');
                 }
@@ -658,6 +677,11 @@ define([
         });
     };
 
+    /**
+     * destroy popover elements
+     * @param recursive
+     * @returns {*}
+     */
     $.fn.destroyPopover = function(recursive){
         return this.each(function() {
             let element = $(this);
@@ -684,7 +708,6 @@ define([
     $.fn.initPopoverClose = function(eventNamespace){
         return this.each(function() {
             $('body').off('click.' + eventNamespace).on('click.' + eventNamespace + ' contextmenu', function (e) {
-
                 $('.' + config.popoverTriggerClass).each(function () {
                     let popoverElement = $(this);
                     //the 'is' for buttons that trigger popups

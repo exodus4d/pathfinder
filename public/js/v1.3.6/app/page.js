@@ -710,12 +710,20 @@ define([
 
         // END menu events =============================================================================
 
+        // global "popover" callback (for all popovers)
+        $('.' + Util.config.popoverTriggerClass).on('hide.bs.popover', function(e) {
+            let popoverElement = $(this).data('bs.popover').tip();
+
+            // destroy all active tooltips inside this popover
+            popoverElement.destroyTooltip(true);
+        });
+
         // global "modal" callback (for all modals)
-        $('body').on('hide.bs.modal', '> .modal', function(a,b) {
+        $('body').on('hide.bs.modal', '> .modal', function(e) {
             $(this).destroyTimestampCounter();
         });
 
-        // disable memue links based on current map config
+        // disable menu links based on current map config
         documentElement.on('pf:updateMenuOptions', function(e, data){
             let hasRightMapDelete = MapUtil.checkRight('map_delete', data.mapConfig);
             $('#' + Util.config.menuButtonMapDeleteId).toggleClass('disabled', !hasRightMapDelete);

@@ -219,7 +219,7 @@ class CharacterLogModel extends BasicModel {
     public function clearCacheData(){
         // clear character "LOG" cache
         // -> character data without "LOG" has not changed!
-        if($this->characterId){
+        if(is_object($this->characterId)){
             // characterId relation could be deleted by cron therefore check again first...
             $this->characterId->clearCacheDataWithPrefix(CharacterModel::DATA_CACHE_KEY_LOG);
 

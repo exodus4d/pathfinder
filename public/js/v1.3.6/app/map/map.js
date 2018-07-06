@@ -58,8 +58,6 @@ define([
         systemDialogId: 'pf-system-dialog',                             // id for system dialog
         systemDialogSelectClass: 'pf-system-dialog-select',             // class for system select Element
 
-        popoverTriggerClass: 'pf-popover-trigger',                      // class for "popover" trigger elements
-
         // system security classes
         systemSec: 'pf-system-sec'
     };
@@ -397,7 +395,7 @@ define([
                     }).attr('title', 'locked'),
                     // System effect color
                     $('<i>', {
-                        class: ['fas', 'fa-square', 'fa-fw', effectBasicClass, effectClass, config.popoverTriggerClass].join(' ')
+                        class: ['fas', 'fa-square', 'fa-fw', effectBasicClass, effectClass, Util.config.popoverTriggerClass].join(' ')
                     }),
                     // expand option
                     $('<i>', {
