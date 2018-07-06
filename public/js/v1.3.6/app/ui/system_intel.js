@@ -493,7 +493,9 @@ define([
                         _: function(data, type, row, meta){
                             let value = data;
                             if(type === 'display' && value){
-                                value = '<img src="' + Init.url.ccpImageServer + '/Corporation/' + value + '_32.png" />';
+                                value = '<a href="https://zkillboard.com/corporation/' + data + '/" target="_blank" rel="noopener">';
+                                value += '<img src="' + Init.url.ccpImageServer + '/Corporation/' + data + '_32.png" />';
+                                value += '</a>';
                             }
                             return value;
                         }
