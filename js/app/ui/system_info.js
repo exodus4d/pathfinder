@@ -372,7 +372,7 @@ define([
                 }
             }
         };
-console.log(systemData)
+
         let moduleData = {
             system: systemData,
             static: staticsData,

@@ -47,8 +47,6 @@ define([
                 }),
                 formatStatic: function(){
                     return function(value, render){
-                        console.log(render(value));
-                        console.log(typeof render(value));
                         let isStatic = render(value) === 'true';
                         if(isStatic){
                             return '<i class="fas fa-check"></i>';

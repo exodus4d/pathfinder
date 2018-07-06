@@ -24,6 +24,7 @@ define([
         systemKillboardListClass: 'pf-system-killboard-list',                   // class for a list with kill entries
         systemKillboardListEntryClass: 'pf-system-killboard-list-entry',        // class for a list entry
         systemKillboardListImgShip: 'pf-system-killboard-img-ship',             // class for all ship images
+        systemKillboardListImgChar: 'pf-system-killboard-img-char',             // class for all character logos
         systemKillboardListImgAlly: 'pf-system-killboard-img-ally',             // class for all alliance logos
         systemKillboardListImgCorp: 'pf-system-killboard-img-corp'              // class for all corp logos
     };
@@ -60,125 +61,59 @@ define([
         // change order (show right to left)
         killboardData.tableData.reverse();
 
-        for(let i = 0; i < killboardData.tableData.length; i++){
+        let data = {
+            tableData: killboardData.tableData,
+            systemKillboardListClass: config.systemKillboardListClass,
+            systemKillboardListEntryClass: config.systemKillboardListEntryClass,
+            systemKillboardListImgShip: config.systemKillboardListImgShip,
+            systemKillboardListImgChar: config.systemKillboardListImgChar,
+            systemKillboardListImgAlly: config.systemKillboardListImgAlly,
+            systemKillboardListImgCorp: config.systemKillboardListImgCorp,
+            zKillboardUrl: 'https://zkillboard.com',
+            ccpImageServerUrl: Init.url.ccpImageServer,
 
-            // check if killMails exist in this hour
-            if(killboardData.tableData[i].killmails){
-
-                if(killMailCounter >= killMailCounterMax){
-                    break;
-                }
-
-                moduleElement.append( $('<h5>').text( i ? i + 'h ago' : 'recent'));
-
-                let killMailData = killboardData.tableData[i].killmails;
-
-                let listeElement = $('<ul>', {
-                    class: ['media-list', config.systemKillboardListClass].join(' ')
-                });
-
-                for(let j = 0; j < killMailData.length; j++){
+            dateFormat: () => {
+                return (val, render) => {
+                    let killDate = Util.convertDateToUTC(new Date(render(val)));
+                    return  Util.convertDateToString(killDate);
+                };
+            },
+            iskFormat: () => {
+                return (val, render) => {
+                    return Util.formatPrice(render(val));
+                };
+            },
+            checkRender : () => {
+                return (val, render) => {
+                    if(killMailCounter < killMailCounterMax){
+                        return render(val);
+                    }
+                };
+            },
+            increaseCount : () => {
+                return (val, render) => {
                     killMailCounter++;
-                    if(killMailCounter >= killMailCounterMax){
-                        break;
-                    }
+                };
+            }
+        };
 
-                    let killData = killMailData[j];
+        requirejs(['text!templates/modules/killboard.html', 'mustache'], function(template, Mustache) {
+            let content = Mustache.render(template, data);
 
-                    let linkUrl = '//zkillboard.com/kill/' + killData.killmail_id + '/';
-                    let victimImageUrl = Init.url.ccpImageServer + '/Type/' + killData.victim.ship_type_id + '_64.png';
-                    let killDate = Util.convertDateToUTC(new Date(killData.killmail_time));
-                    let killDateString = Util.convertDateToString(killDate);
-                    let killLossValue = Util.formatPrice( killData.zkb.totalValue );
+            moduleElement.append(content);
 
-                    // check for ally
-                    let victimAllyLogoUrl = '';
-                    let displayAlly = 'none';
-                    if(killData.victim.alliance_id > 0){
-                        victimAllyLogoUrl = Init.url.ccpImageServer + '/Alliance/' + killData.victim.alliance_id + '_32.png';
-                        displayAlly = 'block';
-                    }
-
-                    // check for corp
-                    let victimCorpLogoUrl = '';
-                    let displayCorp = 'none';
-                    if(killData.victim.corporation_id > 0){
-                        victimCorpLogoUrl = Init.url.ccpImageServer + '/Corporation/' + killData.victim.corporation_id + '_32.png';
-                        displayCorp = 'inline';
-                    }
-
-                    let liElement = $('<li>', {
-                        class: ['media', config.systemKillboardListEntryClass].join(' ')
-                    }).append(
-                            $('<a>', {
-                                href: linkUrl,
-                                target: '_blank'
-                            }).append(
-                                    $('<img>', {
-                                        src: victimImageUrl,
-                                        class: ['media-object', 'pull-left', config.systemKillboardListImgShip].join(' ')
-                                    })
-                                ).append(
-                                    $('<img>', {
-                                        src: victimAllyLogoUrl,
-                                        title: killData.victim.allianceName,
-                                        class: ['pull-right', config.systemKillboardListImgAlly].join(' '),
-                                        css: {display: displayAlly}
-                                    }).attr('data-placement', 'left')
-                                ).append(
-                                    $('<div>', {
-                                        class: 'media-body'
-                                    }).append(
-                                            $('<h5>', {
-                                                class: 'media-heading',
-                                                text: killData.victim.characterName
-                                            }).prepend(
-                                                    $('<small>', {
-                                                        text: killDateString
-                                                    })
-                                                ).prepend(
-                                                    $('<img>', {
-                                                        src: victimCorpLogoUrl,
-                                                        title: killData.victim.corporationName,
-                                                        class: [config.systemKillboardListImgCorp].join(' '),
-                                                        css: {display: displayCorp}
-                                                    })
-                                                )
-                                        ).append(
-                                            $('<h3>', {
-                                                class: ['media-heading'].join(' ')
-                                            }).append(
-                                                    $('<small>', {
-                                                        class: ['txt-color', 'txt-color-green', 'pull-right'].join(' '),
-                                                        text: killLossValue
-                                                    })
-                                                )
-                                        )
-                                )
-                        );
-
-                    listeElement.append(liElement);
+            // animate kill li-elements
+            $('.' + config.systemKillboardListEntryClass).velocity('transition.expandIn', {
+                stagger: 50,
+                complete: function(){
+                    // init tooltips
+                    moduleElement.find('[title]').tooltip({
+                        container: 'body'
+                    });
 
                 }
-
-                moduleElement.append(listeElement);
-
-            }
-        }
-
-
-        // animate kill li-elements
-        $('.' + config.systemKillboardListEntryClass).velocity('transition.expandIn', {
-            stagger: 50,
-            complete: function(){
-                // init tooltips
-                moduleElement.find('[title]').tooltip({
-                    container: 'body'
-                });
-
-            }
+            });
         });
-
     };
 
     /**

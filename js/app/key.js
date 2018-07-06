@@ -284,10 +284,12 @@ define([
             };
 
             let evKeyUp = (e) => {
-                let key = e.key.toUpperCase();
+                if(e.key){
+                    let key = e.key.toUpperCase();
 
-                if(map.hasOwnProperty(key)){
-                    delete map[key];
+                    if(map.hasOwnProperty(key)){
+                        delete map[key];
+                    }
                 }
             };
 
