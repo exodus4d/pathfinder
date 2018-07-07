@@ -120,42 +120,6 @@ class SystemModel extends AbstractMapTrackingModel {
     ];
 
     /**
-     * set an array with all data for a system
-     * @param array $data
-     */
-    public function setData($data){
-        unset($data['id']);
-        unset($data['created']);
-        unset($data['updated']);
-        unset($data['createdCharacterId']);
-        unset($data['updatedCharacterId']);
-
-        foreach((array)$data as $key => $value){
-            if(!is_array($value)){
-                if($this->exists($key)){
-                    $this->$key = $value;
-                }
-            }else{
-                // special array data
-                if($key == 'constellation'){
-                    $this->constellationId = (int)$value['id'];
-                    $this->constellation = $value['name'];
-                }elseif($key == 'region'){
-                    $this->regionId = (int)$value['id'];
-                    $this->region = $value['name'];
-                }elseif($key == 'type'){
-                    $this->typeId = (int)$value['id'];
-                }elseif($key == 'status'){
-                    $this->statusId = (int)$value['id'];
-                }elseif($key == 'position'){
-                    $this->posX = (int)$value['x'];
-                    $this->posY = (int)$value['y'];
-                }
-            }
-        }
-    }
-
-    /**
      * get map data as object
      * @return \stdClass
      * @throws \Exception
@@ -718,6 +682,17 @@ class SystemModel extends AbstractMapTrackingModel {
         $type = $this->rel('typeId');
         $type->getById($typeId);
         $this->typeId = $type;
+    }
+
+    /**
+     * save signature for this system
+     * @param SystemSignatureModel $signature
+     * @param CharacterModel $character
+     * @return false|ConnectionModel
+     */
+    public function saveSignature(SystemSignatureModel $signature, CharacterModel $character){
+        $signature->systemId = $this;
+        return $signature->save($character);
     }
 
     /**

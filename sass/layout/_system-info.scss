@@ -171,11 +171,11 @@
     padding-bottom: 10px;
     border-bottom: 1px solid $gray-darker;
 
-    li{
+    & > li{
       margin-left: 0;
       overflow: visible;
       min-height: 50px;
-      will-change: margin-left;
+      will-change: transform, opacity, margin-left;
       @include transition( margin-left 0.12s cubic-bezier(0.30, 0.80, 0.80, 1.70));
 
       // character headline

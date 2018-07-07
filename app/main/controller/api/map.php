@@ -774,7 +774,7 @@ class Map extends Controller\AccessController {
                             // check if the current connection belongs to the current map
                             $map->filter('connections', ['id = ?', $connectionData['id'] ]);
                             $filteredMap = $map->find(
-                                ['id = ?', $map->id ],
+                                ['id = ?', $map->_id ],
                                 ['limit' => 1]
                             );
 
@@ -789,7 +789,7 @@ class Map extends Controller\AccessController {
                                      * @var $connection Model\ConnectionModel
                                      */
                                     $connection = $filteredMap->connections->current();
-                                    $connection->setData($connectionData);
+                                    $connection->copyfrom($connectionData, ['scope', 'type']);
 
                                     if($connection->save($activeCharacter)){
                                         $mapChanged = true;

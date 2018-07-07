@@ -47,20 +47,6 @@ class UserCharacterModel extends BasicModel {
     ];
 
     /**
-     * set an array with all data for a character
-     * @param $characterData
-     */
-    public function setData($characterData){
-        foreach((array)$characterData as $key => $value){
-            if(!is_array($value)){
-                if($this->exists($key)){
-                    $this->$key = $value;
-                }
-            }
-        }
-    }
-
-    /**
      * event "Hook"
      * -> remove user if there are no other characters bound to this user
      * @param UserCharacterModel $self

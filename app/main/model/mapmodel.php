@@ -1259,7 +1259,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @param int $posY
      * @return false|ConnectionModel
      */
-    public function saveSystem( SystemModel $system, CharacterModel $character, $posX = 10, $posY = 0){
+    public function saveSystem(SystemModel $system, CharacterModel $character, $posX = 10, $posY = 0){
         $system->setActive(true);
         $system->mapId = $this->id;
         $system->posX = $posX;

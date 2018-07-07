@@ -207,10 +207,10 @@ class SystemSignatureModel extends AbstractMapTrackingModel {
     /**
      * compares a new data set (array) with the current values
      * and checks if something has changed
-     * @param $signatureData
+     * @param array $signatureData
      * @return bool
      */
-    public function hasChanged($signatureData){
+    public function hasChanged(array $signatureData) : bool {
         $hasChanged = false;
 
         foreach((array)$signatureData as $key => $value){
