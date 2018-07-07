@@ -84,6 +84,7 @@ define([
      * @param tabElement
      */
     let setMapContentObserver = (tabElement) => {
+
         tabElement.on('pf:drawSystemModules', '.' + config.mapTabContentClass, function(e){
             drawSystemModules($(e.target));
         });
@@ -98,7 +99,36 @@ define([
 
         tabElement.on('pf:removeConnectionModules', '.' + config.mapTabContentClass, function(e){
             removeConnectionModules($(e.target));
-        }) ;
+        });
+
+        tabElement.on('pf:updateSystemModules',  '.' + config.mapTabContentClass, function(e, data){
+            updateSystemModules($(e.target), data);
+        });
+    };
+
+    /**
+     * update (multiple) modules
+     * @param tabContentElement
+     * @param modules
+     * @param data
+     */
+    let updateModules = (tabContentElement, modules, data) => {
+        for(let Module of modules){
+            let moduleElement = tabContentElement.find('.' + Module.config.moduleTypeClass);
+            if(moduleElement.length > 0){
+                Module.updateModule(moduleElement, data);
+            }
+        }
+    };
+
+    /**
+     * update system modules with new data
+     * @param tabContentElement
+     * @param data
+     */
+    let updateSystemModules = (tabContentElement, data) => {
+        let systemModules = [SystemInfoModule, SystemSignatureModule];
+        updateModules(tabContentElement, systemModules, data);
     };
 
     /**
@@ -303,15 +333,15 @@ define([
     };
 
     /**
-     * updates current visible/active mapElement in mapModuleElement with user data
-     * @param mapModuleElement
+     * updates current visible/active mapElement in mapModule with user data
+     * @param mapModule
      * @returns {Promise<any>}
      */
-    let updateActiveMapUserData = (mapModuleElement) => {
+    let updateActiveMapUserData = (mapModule) => {
 
         let updateActiveMapModuleExecutor = (resolve, reject) => {
             // get all active map elements for module
-            let mapElement = mapModuleElement.getActiveMap();
+            let mapElement = mapModule.getActiveMap();
 
             updateMapUserData(mapElement).then(payload => resolve());
         };
@@ -355,22 +385,22 @@ define([
     };
 
     /**
-     * update system info panels (below map)
+     * update active system modules (below map)
+     * @param mapModule
      * @param systemData
      */
-    $.fn.updateSystemModuleData = function(systemData){
-        let mapModule = $(this);
-
+    let updateSystemModulesData = (mapModule, systemData) => {
         if(systemData){
             // check if current open system is still the requested info system
             let currentSystemData = Util.getCurrentSystemData();
 
-            if(currentSystemData){
-                if(systemData.id === currentSystemData.systemData.id){
-                    // trigger system update events
-                    $(document).triggerHandler('pf:updateSystemInfoModule', [systemData]);
-                    $(document).triggerHandler('pf:updateSystemSignatureModule', [systemData]);
-                }
+            if(
+                currentSystemData &&
+                systemData.id === currentSystemData.systemData.id
+            ){
+                // trigger system update events
+                let tabContentElement = $( '#' + config.mapTabIdPrefix + systemData.mapId + '.' + config.mapTabContentClass);
+                tabContentElement.trigger('pf:updateSystemModules', [systemData]);
             }
         }
     };
@@ -946,15 +976,15 @@ define([
 
     /**
      * clear all active maps
-     * @param mapModuleElement
+     * @param mapModule
      * @returns {Promise<any>}
      */
-    let clearMapModule = (mapModuleElement) => {
+    let clearMapModule = (mapModule) => {
         let promiseDeleteTab = [];
         let tabMapElement = $('#' + config.mapTabElementId);
 
         if(tabMapElement.length > 0){
-            let tabElements = mapModuleElement.getMapTabElements();
+            let tabElements = mapModule.getMapTabElements();
             for(let i = 0; i < tabElements.length; i++){
                 let tabElement = $(tabElements[i]);
                 let mapId = tabElement.data('map-id');
@@ -1040,10 +1070,10 @@ define([
 
     /**
      * load/update map module into element (all maps)
-     * @param mapModuleElement
+     * @param mapModule
      * @returns {Promise<any>}
      */
-    let updateMapModule = (mapModuleElement) => {
+    let updateMapModule = (mapModule) => {
         // performance logging (time measurement)
         let logKeyClientMapData = Init.performanceLogging.keyClientMapData;
         Util.timeStart(logKeyClientMapData);
@@ -1060,7 +1090,7 @@ define([
 
             if(tempMapData.length === 0){
                 // clear all existing maps ----------------------------------------------------------------------------
-                clearMapModule(mapModuleElement)
+                clearMapModule(mapModule)
                     .then(payload => {
                         // no map data available -> show "new map" dialog
                         $(document).trigger('pf:menuShowMapSettings', {tab: 'new'});
@@ -1082,7 +1112,7 @@ define([
                     };
 
                     // tab element already exists
-                    let tabElements = mapModuleElement.getMapTabElements();
+                    let tabElements = mapModule.getMapTabElements();
 
                     // mapIds that are currently active
                     let activeMapIds = [];
@@ -1148,7 +1178,7 @@ define([
                     };
 
                     tabMapElement = getMapTabElement(options, currentUserData);
-                    mapModuleElement.prepend(tabMapElement);
+                    mapModule.prepend(tabMapElement);
 
                     // add new tab for each map
                     for(let j = 0; j < tempMapData.length; j++){
@@ -1214,6 +1244,7 @@ define([
     return {
         updateTabData: updateTabData,
         updateMapModule: updateMapModule,
-        updateActiveMapUserData: updateActiveMapUserData
+        updateActiveMapUserData: updateActiveMapUserData,
+        updateSystemModulesData: updateSystemModulesData
     };
 });

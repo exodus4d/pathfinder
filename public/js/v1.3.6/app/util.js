@@ -1502,14 +1502,13 @@ define([
 
     /**
      * get all mapTabElements (<a> tags)
-     * or search for a specific tabElement within the
-     * mapModuleElement
+     * or search for a specific tabElement within mapModule
      * @param mapId
      * @returns {JQuery|*|{}|T}
      */
     $.fn.getMapTabElements = function(mapId){
-        let mapModuleElement = $(this);
-        let mapTabElements = mapModuleElement.find('#' + config.mapTabBarId).find('a');
+        let mapModule = $(this);
+        let mapTabElements = mapModule.find('#' + config.mapTabBarId).find('a');
 
         if(mapId){
             // search for a specific tab element

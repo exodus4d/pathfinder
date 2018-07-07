@@ -75,26 +75,6 @@ class SystemSignatureModel extends AbstractMapTrackingModel {
     ];
 
     /**
-     * set an array with all data for a system
-     * @param $data
-     */
-    public function setData($data){
-        unset($data['id']);
-        unset($data['created']);
-        unset($data['updated']);
-        unset($data['createdCharacterId']);
-        unset($data['updatedCharacterId']);
-
-        foreach((array)$data as $key => $value){
-            if(!is_array($value)){
-                if($this->exists($key)){
-                    $this->$key = $value;
-                }
-            }
-        }
-    }
-
-    /**
      * get signature data
      * @return \stdClass
      */

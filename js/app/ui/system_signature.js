@@ -285,13 +285,27 @@ define([
     };
 
     /**
+     * update trigger function for this module
+     * compare data and update module
+     * @param moduleElement
+     * @param systemData
+     */
+    let updateModule = (moduleElement, systemData) => {
+
+        if(systemData.signatures){
+            updateSignatureTable(moduleElement, systemData.signatures, true);
+        }
+
+    };
+
+    /**
      * Updates a signature table, changes all signatures where name matches
      * add all new signatures as a row
-     *
+     * @param moduleElement
      * @param signatureDataOrig
      * @param deleteOutdatedSignatures -> set to "true" if signatures should be deleted that are not included in "signatureData"
      */
-    $.fn.updateSignatureTable = function(signatureDataOrig, deleteOutdatedSignatures){
+    let updateSignatureTable = (moduleElement, signatureDataOrig, deleteOutdatedSignatures) => {
         // check if table update is allowed
         if(disableTableUpdate === true){
             return;
@@ -302,8 +316,6 @@ define([
 
         // disable update until function is ready;
         lockSignatureTable();
-
-        let moduleElement = $(this);
 
         // get signature table API
         let signatureTableApi = getDataTableInstanceByModuleElement(moduleElement, 'primary');
@@ -575,7 +587,7 @@ define([
                 unlockSignatureTable(true);
 
                 // updates table with new/updated signature information
-                this.moduleElement.updateSignatureTable(responseData.signatures, false);
+                updateSignatureTable(this.moduleElement, responseData.signatures, false);
             }).fail(function( jqXHR, status, error) {
                 let reason = status + ' ' + error;
                 Util.showNotify({title: jqXHR.status + ': Update signatures', text: reason, type: 'warning'});
@@ -2311,12 +2323,6 @@ define([
         let tablePrimaryElement = moduleElement.find('.' + config.sigTablePrimaryClass);
         let signatureTableApi = getDataTableInstanceByModuleElement(moduleElement, 'primary');
 
-        $(document).off('pf:updateSystemSignatureModule').on('pf:updateSystemSignatureModule', function(e, data){
-            if(data.signatures){
-                moduleElement.updateSignatureTable(data.signatures, true);
-            }
-        });
-
         // set multi row select ---------------------------------------------------------------------------------------
         tablePrimaryElement.on('click', 'tr', {moduleElement: moduleElement}, function(e){
             if(e.ctrlKey) {
@@ -2451,6 +2457,7 @@ define([
         getModule: getModule,
         initModule: initModule,
         beforeReDraw: beforeReDraw,
+        updateModule: updateModule,
         beforeDestroy: beforeDestroy,
         getAllSignatureNamesBySystem: getAllSignatureNamesBySystem
     };

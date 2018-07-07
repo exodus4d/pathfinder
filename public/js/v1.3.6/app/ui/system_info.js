@@ -46,25 +46,14 @@ define([
         fontTriglivianClass: 'pf-triglivian'                                    // class for "Triglivian" names (e.g. Abyssal systems)
     };
 
-    // disable Module update temporary (until. some requests/animations) are finished
-    let disableModuleUpdate = true;
+    // disable Module update temporary (in case e.g. textarea is currently active)
+    let disableModuleUpdate = false;
 
     // animation speed values
     let animationSpeedToolbarAction = 200;
 
     // max character length for system description
     let maxDescriptionLength = 512;
-
-    /**
-     * set module observer and look for relevant system data to update
-     */
-    let setModuleObserver = (moduleElement) => {
-        $(document).off('pf:updateSystemInfoModule').on('pf:updateSystemInfoModule', function(e, data){
-            if(data){
-                moduleElement.updateSystemInfoModule(data);
-            }
-        });
-    };
 
     /**
      * shows the tool action element by animation
@@ -95,47 +84,37 @@ define([
     /**
      * update trigger function for this module
      * compare data and update module
+     * @param moduleElement
      * @param systemData
      */
-    $.fn.updateSystemInfoModule = function(systemData){
-
-        // module update is disabled
-        if(disableModuleUpdate === true){
-            return;
-        }
-
-        let moduleElement = $(this);
-
+    let updateModule = (moduleElement, systemData) => {
         let systemId = moduleElement.data('id');
 
         if(systemId === systemData.id){
-            // update module
-
-            // system status ==========================================================================================
+            // update system status -----------------------------------------------------------------------------------
             let systemStatusLabelElement = moduleElement.find('.' + config.systemInfoStatusLabelClass);
             let systemStatusId = parseInt( systemStatusLabelElement.attr( config.systemInfoStatusAttributeName ) );
 
             if(systemStatusId !== systemData.status.id){
                 // status changed
-
                 let currentStatusClass = Util.getStatusInfoForSystem(systemStatusId, 'class');
                 let newStatusClass = Util.getStatusInfoForSystem(systemData.status.id, 'class');
                 let newStatusLabel = Util.getStatusInfoForSystem(systemData.status.id, 'label');
-
                 systemStatusLabelElement.removeClass(currentStatusClass).addClass(newStatusClass).text(newStatusLabel);
 
                 // set new status attribute
                 systemStatusLabelElement.attr( config.systemInfoStatusAttributeName, systemData.status.id);
             }
 
-            // description textarea element ===========================================================================
+            // update description textarea ----------------------------------------------------------------------------
             let descriptionTextareaElement =  moduleElement.find('.' + config.descriptionTextareaElementClass);
             let description = descriptionTextareaElement.editable('getValue', true);
 
-            if(description !== systemData.description){
+            if(
+                !disableModuleUpdate &&                 // don´t update if field is active
+                description !== systemData.description
+            ){
                 // description changed
-
-                // description button
                 let descriptionButton = moduleElement.find('.' + config.addDescriptionButtonClass);
 
                 // set new value
@@ -145,10 +124,8 @@ define([
 
                 if(systemData.description.length === 0){
                     // show/activate description field
-
                     // show button if value is empty
                     descriptionButton.show();
-
                     hideToolsActionElement(actionElement);
                 }else{
                     // hide/disable description field
@@ -158,8 +135,8 @@ define([
                 }
             }
 
-            // created/updated tooltip ================================================================================
-            let nameRowElement = $(moduleElement).find('.' + config.systemInfoNameClass);
+            // created/updated tooltip --------------------------------------------------------------------------------
+            let nameRowElement = moduleElement.find('.' + config.systemInfoNameClass);
 
             let tooltipData = {
                 created: systemData.created,
@@ -230,7 +207,7 @@ define([
                         emptytext: '',
                         onblur: 'cancel',
                         showbuttons: true,
-                        value: '',  // value is set by trigger function updateSystemInfoModule()
+                        value: '',  // value is set by trigger function updateModule()
                         rows: 5,
                         name: 'description',
                         inputclass: config.descriptionTextareaElementClass,
@@ -423,20 +400,6 @@ define([
     };
 
     /**
-     * init callback
-     * @param moduleElement
-     * @param mapId
-     * @param systemData
-     */
-    let initModule = (moduleElement, mapId, systemData) => {
-        // set module observer
-        setModuleObserver(moduleElement);
-
-        // enable auto update
-        disableModuleUpdate = false;
-    };
-
-    /**
      * efore module destroy callback
      * @param moduleElement
      */
@@ -449,7 +412,7 @@ define([
     return {
         config: config,
         getModule: getModule,
-        initModule: initModule,
+        updateModule: updateModule,
         beforeDestroy: beforeDestroy
     };
 });

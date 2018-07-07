@@ -475,7 +475,7 @@ define([
 
                             // update system info panels
                             if(data.system){
-                                mapModule.updateSystemModuleData(data.system);
+                                ModuleMap.updateSystemModulesData(mapModule, data.system);
                             }
 
                             // store current map user data (cache)
