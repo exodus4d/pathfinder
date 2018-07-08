@@ -353,7 +353,7 @@ define([
 
                 // get updated map data
                 let updatedMapData = {
-                    mapData: mapModule.getMapModuleDataForUpdate(),
+                    mapData: ModuleMap.getMapModuleDataForUpdate(mapModule),
                     getUserData: Util.getCurrentUserData() ? 0 : 1
                 };
 

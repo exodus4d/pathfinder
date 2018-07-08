@@ -891,6 +891,8 @@ class Map extends Controller\AccessController {
                     // data for currently selected system
                     $return->system = $system->getData();
                     $return->system->signatures = $system->getSignaturesData();
+                    $return->system->structures = $system->getStructuresData();
+
                 }
             }
         }

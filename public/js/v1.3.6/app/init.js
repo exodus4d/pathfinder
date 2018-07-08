@@ -43,7 +43,6 @@ define(['jquery'], ($) => {
             saveConnection: '/api/connection/save',                         // ajax URL - save new connection to map
             deleteConnection: '/api/connection/delete',                     // ajax URL - delete connection from map
             // signature API
-            getSignatures: '/api/signature/getAll',                         // ajax URL - get all signature data for system
             saveSignatureData: '/api/signature/save',                       // ajax URL - save signature data for system
             deleteSignatureData: '/api/signature/delete',                   // ajax URL - delete signature data for system
             // structure API

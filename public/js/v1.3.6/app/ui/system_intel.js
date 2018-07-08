@@ -104,19 +104,25 @@ define([
 
                             if(rowId){
                                 // update row
-                                let api = context.tableApi.row('#' + rowId).data(structureData);
-                                api.nodes().to$().data('animationStatus', 'changed').destroyTimestampCounter();
+                                let api = context.tableApi.row('#' + rowId);
+                                let rowData = api.data();
+
+                                // check for update
+                                if(rowData.updated.updated !== structureData.updated.updated){
+                                    // row data changed -> update
+                                    api.data(structureData);
+                                    api.nodes().to$().data('animationStatus', 'changed').destroyTimestampCounter();
+                                    notificationCounter.changed++;
+                                }
 
                                 touchedRows.push(api.id());
-                                notificationCounter.changed++;
                             }else{
                                 // insert new row
-                                //context.tableApi.row.add(structureData).nodes().to$().data('animationStatus', 'added');
                                 let api = context.tableApi.row.add(structureData);
                                 api.nodes().to$().data('animationStatus', 'added');
+                                notificationCounter.added++;
 
                                 touchedRows.push(api.id());
-                                notificationCounter.added++;
                             }
                         }
                     }
@@ -125,7 +131,9 @@ define([
         }
 
         if(context.removeMissing){
-            notificationCounter.deleted += context.tableApi.rows((idx, data, node) => !touchedRows.includes(node.id)).remove().ids().count();
+            let api = context.tableApi.rows((idx, data, node) => !touchedRows.includes(node.id));
+            notificationCounter.deleted += api.ids().count();
+            api.remove();
         }
 
         context.tableApi.draw();
@@ -650,16 +658,10 @@ define([
                 }
             },
             initComplete: function(settings){
-                let tableApi = this.api();
-
-                // initial structure data request
-                getStructureData({
-                    mapId: mapId,
-                    systemId: systemData.id
-                },{
-                    moduleElement: moduleElement,
-                    tableApi: tableApi
-                }, callbackAddStructureRows);
+                // table data is load in updateModule() method
+                // -> no need to trigger additional ajax call here for data
+                // -> in case table update failed -> each if this initComplete() function finished before table updata
+                // e.g. return now promise in getModule() function
             }
         });
 
@@ -668,6 +670,8 @@ define([
         tooltipElements.tooltip({
             container: 'body'
         });
+
+        moduleElement.showLoadingAnimation();
 
         return moduleElement;
     };
@@ -743,6 +747,28 @@ define([
     };
 
     /**
+     * update trigger function for this module
+     * compare data and update module
+     * @param moduleElement
+     * @param systemData
+     */
+    let updateModule = (moduleElement, systemData) => {
+
+        // update structure table data
+        let structureTableElement = moduleElement.find('.' + config.systemStructuresTableClass);
+        let tableApi = structureTableElement.DataTable();
+
+        let context = {
+            tableApi: tableApi,
+            removeMissing: true
+        };
+
+        callbackUpdateStructureRows(context, systemData);
+
+        moduleElement.hideLoadingAnimation();
+    };
+
+    /**
      * init intel module
      * @param moduleElement
      * @param mapId
@@ -787,7 +813,8 @@ define([
     return {
         config: config,
         getModule: getModule,
-        initModule: initModule
+        initModule: initModule,
+        updateModule: updateModule
     };
 
 });

@@ -109,7 +109,7 @@ define([
                     class: [config.ajaxOverlayWrapperClass].join(' ')
                 }).append(
                     $('<i>', {
-                        class: ['fas', 'fa-fw', iconSize, 'fa-sync', 'fa-spin'].join(' ')
+                        class: ['fas', iconSize, 'fa-sync', 'fa-spin'].join(' ')
                     })
                 )
             );
@@ -132,7 +132,6 @@ define([
         return this.each(function(){
             let loadingElement = $(this);
             let overlay = loadingElement.find('.' + config.ajaxOverlayClass );
-
             if(overlay.length){
                 // important: "stop" is required to stop "show" animation
                 // -> otherwise "complete" callback is not fired!

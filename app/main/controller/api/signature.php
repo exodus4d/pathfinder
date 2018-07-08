@@ -13,40 +13,6 @@ use Model;
 
 class Signature extends Controller\AccessController {
 
-
-    /**
-     * get signature data for systems
-     * -> return value of this is limited to a "SINGLE" system
-     * @param \Base $f3
-     * @throws \Exception
-     */
-    public function getAll(\Base $f3){
-        $signatureData = [];
-        $systemIds = (array)$f3->get('POST.systemIds');
-
-        if( !empty($systemIds) ){
-            $activeCharacter = $this->getCharacter();
-
-            /**
-             * @var Model\SystemModel $system
-             */
-            $system = Model\BasicModel::getNew('SystemModel');
-            foreach($systemIds as $systemId){
-                $system->getById($systemId);
-                if(
-                    !$system->dry() &&
-                    $system->hasAccess($activeCharacter)
-                ){
-                    $signatureData = $system->getSignaturesData();
-                }
-
-                $system->reset();
-            }
-        }
-
-        echo json_encode($signatureData);
-    }
-
     /**
      * save or update a full signature data set
      * or save/update just single or multiple signature data

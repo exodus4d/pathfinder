@@ -550,6 +550,13 @@ define([
 
         // set current system active
         system.addClass(config.systemActiveClass);
+
+        // collect all required data from map module to update the info element
+        // store them global and assessable for each module
+        Util.setCurrentSystemData({
+            systemData: system.getSystemData(),
+            mapId: parseInt( system.attr('data-mapid') )
+        });
     };
 
     /**
@@ -640,16 +647,7 @@ define([
         setSystemActive(map, system);
 
         // get parent Tab Content and fire update event
-        let tabContentElement = getTabContentElementByMapElement( system );
-
-        // collect all required data from map module to update the info element
-        // store them global and assessable for each module
-        Util.setCurrentSystemData({
-            systemData: system.getSystemData(),
-            mapId: parseInt( system.attr('data-mapid') )
-        });
-
-        $(tabContentElement).trigger('pf:drawSystemModules');
+        getTabContentElementByMapElement(system).trigger('pf:drawSystemModules');
     };
 
     /**
@@ -1332,6 +1330,39 @@ define([
         return url;
     };
 
+    /**
+     * request system data
+     * @param requestData
+     * @param context
+     * @returns {Promise<any>}
+     */
+    let requestSystemData = (requestData, context) => {
+
+        let requestSystemDataExecutor = (resolve, reject) => {
+            $.ajax({
+                url: Init.path.getSystemData,
+                type: 'POST',
+                dataType: 'json',
+                data: requestData,
+                context: context
+            }).done(function(data){
+                if(data.system){
+                    resolve({
+                        action: 'systemData',
+                        context: this,
+                        data: data.system
+                    });
+                }else{
+                    console.warn('Missing systemData in response!', requestData);
+                }
+            }).fail(function( jqXHR, status, error) {
+                console.warn('Fail request systemData!', requestData);
+            });
+        };
+
+        return new Promise(requestSystemDataExecutor);
+    };
+
     return {
         config: config,
         mapOptions: mapOptions,
@@ -1350,6 +1381,7 @@ define([
         getEffectInfoForSystem: getEffectInfoForSystem,
         toggleSystemsSelect: toggleSystemsSelect,
         toggleConnectionActive: toggleConnectionActive,
+        setSystemActive: setSystemActive,
         showSystemInfo: showSystemInfo,
         showConnectionInfo: showConnectionInfo,
         getConnectionsByType: getConnectionsByType,
@@ -1374,6 +1406,7 @@ define([
         deleteLocalData: deleteLocalData,
         getSystemId: getSystemId,
         checkRight: checkRight,
-        getMapDeeplinkUrl: getMapDeeplinkUrl
+        getMapDeeplinkUrl: getMapDeeplinkUrl,
+        requestSystemData: requestSystemData
     };
 });

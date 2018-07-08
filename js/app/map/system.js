@@ -416,6 +416,7 @@ define([
 
             // check if system is "active"
             if( system.hasClass(config.systemActiveClass) ){
+                delete Init.currentSystemData;
                 // get parent Tab Content and fire clear modules event
                 let tabContentElement = MapUtil.getTabContentElementByMapElement( system );
                 $(tabContentElement).trigger('pf:removeSystemModules');

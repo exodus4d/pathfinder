@@ -146,7 +146,7 @@ define([
             nameRowElement.addCharacterInfoTooltip( tooltipData );
         }
 
-        moduleElement.find('.' + config.descriptionArea).hideLoadingAnimation();
+        moduleElement.hideLoadingAnimation();
     };
 
     /**
