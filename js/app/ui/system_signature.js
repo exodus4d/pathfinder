@@ -277,7 +277,7 @@ define([
         }
 
         // set new value
-        updateCell.data( data ).draw();
+        updateCell.data(data).draw();
 
         if(cellIndex === 7){
             updateCellElement.initTimestampCounter();
@@ -584,6 +584,8 @@ define([
                     moduleElement: moduleElement
                 }
             }).done(function(responseData){
+                // unlock table for update
+                unlockSignatureTable(true);
                 // updates table with new/updated signature information
                 updateSignatureTable(this.moduleElement, responseData.signatures, false);
             }).fail(function( jqXHR, status, error) {

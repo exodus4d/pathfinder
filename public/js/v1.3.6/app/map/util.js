@@ -1330,10 +1330,15 @@ define([
         return url;
     };
 
+    /**
+     * request system data
+     * @param requestData
+     * @param context
+     * @returns {Promise<any>}
+     */
     let requestSystemData = (requestData, context) => {
 
         let requestSystemDataExecutor = (resolve, reject) => {
-
             $.ajax({
                 url: Init.path.getSystemData,
                 type: 'POST',
@@ -1351,14 +1356,7 @@ define([
                     console.warn('Missing systemData in response!', requestData);
                 }
             }).fail(function( jqXHR, status, error) {
-                /*
-                }
-                let reason = status + ' ' + error;
-                Util.showNotify({title: jqXHR.status + ': System intel data', text: reason, type: 'warning'});
-                $(document).setProgramStatus('problem'); */
-            }).always(function(){
-                // hide loading animation
-              //  this.moduleElement.hideLoadingAnimation();
+                console.warn('Fail request systemData!', requestData);
             });
         };
 
