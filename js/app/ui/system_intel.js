@@ -523,7 +523,7 @@ define([
                 },{
                     targets: 7,
                     title: 'updated',
-                    width: 80,
+                    width: 60,
                     className: ['text-right', config.tableCellCounterClass].join(' '),
                     data: 'updated.updated'
                 },{
@@ -642,7 +642,7 @@ define([
                     }
                 });
 
-                rows.to$().find('.' + config.tableCellCounterClass + ':not([data-counter])').initTimestampCounter();
+                rows.to$().find('.' + config.tableCellCounterClass + ':not([data-counter])').initTimestampCounter('d');
 
                 let animationRows = rows.to$().filter(function() {
                     return (

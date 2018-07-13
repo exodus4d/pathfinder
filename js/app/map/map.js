@@ -1240,93 +1240,45 @@ define([
             return elements;
         };
 
-        // if map empty (no systems), execute callback and return
-        // no visual effects on larger maps
-        if(
-            systemElements.length === 0 ||
-            systemElements.length > 20 ||
-            endpointElements.length === 0
-        ){
-            callback();
-            return;
-        }
+        let mapElements = systemElements.add(endpointElements).add(connectorElements);
 
         // show nice animation
         if(show === 'show'){
-            systemElements = hideElements(systemElements);
-            endpointElements = hideElements(endpointElements);
-            connectorElements = hideElements(connectorElements);
-            overlayElements = hideElements(overlayElements);
+            hideElements(systemElements);
+            hideElements(endpointElements);
+            hideElements(connectorElements);
+            hideElements(overlayElements);
 
-            systemElements.velocity({
+            overlayElements.velocity('transition.fadeIn', {
+                duration: 60,
+                display: 'auto'
+            });
+
+            mapElements.velocity({
                 translateY: [ 0, -20],
                 opacity: [ 1, 0 ]
-            },{
-                duration: 300,
+            }, {
+                duration: 150,
                 easing: 'easeOut',
                 complete: function(){
-                    // show connections
-                    endpointElements.velocity('transition.fadeIn', {
-                        duration: 0
-                    });
-
-                    connectorElements.velocity('transition.fadeIn', {
-                        stagger: 30,
-                        duration: 120,
-                        complete: function(){
-                            callback();
-                        }
-                    });
-
-                    // show overlay elements (if some exist)
-                    if(overlayElements.length > 0){
-                        overlayElements.delay(300).velocity('transition.fadeIn', {
-                            stagger: 50,
-                            duration: 180,
-                            display: 'auto'
-                        });
-                    }
+                    callback();
                 }
             });
         }else if(show === 'hide'){
 
-            $('.mCSB_container').velocity('callout.shake', {
-                stagger: 0,
-                drag: false,
-                duration: 180,
-                display: 'auto'
-            });
-
             overlayElements.velocity('transition.fadeOut', {
-                stagger: 50,
-                drag: true,
-                duration: 180,
+                duration: 60,
                 display: 'auto'
             });
 
-            endpointElements.velocity('transition.fadeOut', {
-                duration: 0,
-                display: 'block',
+            mapElements.velocity({
+                translateY: [ -20, 0 ],
+                opacity: [ 0, 1 ]
+            }, {
+                duration: 150,
+                easing: 'easeOut',
                 complete: function(){
-                    // show connections
-                    connectorElements.velocity('transition.fadeOut', {
-                        stagger: 0,
-                        drag: true,
-                        duration: 20,
-                        display: 'block'
-                    });
-
-                    systemElements.delay(100).velocity({
-                        translateY: [ -20, 0 ],
-                        opacity: [ 0, 1 ]
-                    },{
-                        duration: 180,
-                        display: 'block',
-                        easing: 'easeOut',
-                        complete: function(){
-                            callback();
-                        }
-                    });
+                    callback();
                 }
             });
         }
@@ -1681,6 +1633,9 @@ define([
         });
 
         headElement.on('shown', function(e, editable) {
+            // hide tooltip when xEditable is visible
+            system.toggleSystemTooltip('hide', {});
+
             let inputElement =  editable.input.$input.select();
 
             // "fake" timeout until dom rendered
@@ -1688,6 +1643,11 @@ define([
                 // pre-select value
                 input.select();
             }, 0, inputElement);
+        });
+
+        headElement.on('hidden', function(e, editable) {
+            // show tooltip "again" on xEditable hidden
+            system.toggleSystemTooltip('show', {show: true});
         });
     };
 
