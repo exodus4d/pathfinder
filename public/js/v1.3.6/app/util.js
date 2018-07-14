@@ -1734,11 +1734,12 @@ define([
     let getSystemPilotsTable = users => {
         let table = '';
         if(users.length > 0){
-
             let getRow = (statusClass, userName, shipName, shipTypeName, mass) => {
                 let row = '<tr>';
-                row += '<td>';
+                row += '<td class="text-right">';
+                row += '<small>';
                 row +=  statusClass !== null ? '<i class="fas fa-circle ' + config.userStatusClass + ' ' + statusClass + '">' : '';
+                row += '</small>';
                 row += '</td>';
                 row += '<td>';
                 row += userName;
@@ -1749,7 +1750,7 @@ define([
                 row += '<td class="text-right txt-color txt-color-orangeLight">';
                 row += shipTypeName;
                 row += '</td>';
-                row += '<td class="text-right txt-color">';
+                row += '<td class="text-right">';
                 row += mass;
                 row += '</td>';
                 row += '</tr>';

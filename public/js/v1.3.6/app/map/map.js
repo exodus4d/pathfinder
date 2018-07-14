@@ -1662,6 +1662,10 @@ define([
         headElement.on('hidden', function(e, editable) {
             // show tooltip "again" on xEditable hidden
             system.toggleSystemTooltip('show', {show: true});
+
+            // if system with changed (e.g. long alias) -> revalidate system
+            let map  = MapUtil.getMapInstance(system.attr('data-mapid'));
+            map.revalidate(system.attr('id'));
         });
     };
 
