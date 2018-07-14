@@ -252,8 +252,7 @@ define([
                     id: Util.config.menuButtonFullScreenId
                 }).html('&nbsp;&nbsp;Full screen').prepend(
                     $('<i>',{
-                        class: 'glyphicon glyphicon-fullscreen',
-                        css: {width: '1.23em'}
+                        class: 'fas fa-expand-arrows-alt fa-fw'
                     })
                 ).on('click', function(){
                     let fullScreenElement = $('body');

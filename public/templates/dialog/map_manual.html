@@ -80,6 +80,17 @@
         The <em>"Magnetizing"</em> option can be activated on the "Map Menu" <small>(<i class="fas fa-sitemap fa-fw"></i>)</small>.
         If active, systems effect each other while <kbd>move</kbd>/<kbd>drag&amp;drop</kbd> and will rearrange themselves automatically on the map. This prevents system "overlapping"
     </p>
+    <h4><i class="fas fa-link fa-fw"></i> Signatures</h4>
+    <p>
+        The <em>"Signatures"</em> option adds additional overlays to all connection endpoints.
+        If a Connection <small>(<i class="fas fa-link fa-fw"></i><a href="#" data-target="#pf-manual-connection">more</a>)</small>
+        has a Signature <small>(<i class="fas fa-table fa-fw"></i><a href="#" data-target="#pf-manual-signature">more</a>)</small>
+        mapped to it, in either the source or target system, <em class="pf-brand">pathfinder</em> displays that information on map
+    </p>
+    <h4><i class="fas fa-compress fa-fw"></i> Compact</h4>
+    <p>
+        The <em>"Compact"</em> option triggers a "compressed" map layout. Active Pilots are shown "inline" next to the name of a system.
+    </p>
     <h4><i class="fas fa-history fa-fw"></i> Update counter</h4>
     <div class="pf-map-overlay" style="position: initial; display: block; padding-top: 1px; float: left; margin: 0 10px 10px 0;">
         <div class="{{pieChartClass}} {{mapCounterClass}}" data-percent="40">
@@ -101,7 +112,7 @@
     <p>
         Systems are represented by rectangle boxes on a map <small>(<i class="fas fa-sitemap fa-fw"></i><a href="#" data-target="#pf-manual-map">more</a>)</small>.
         Pilots can interact with systems like "delete systems" <small>(<i class="fas fa-trash fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-system-delete">more</a>)</small> or
-        "move systems" <small>(<i class="fas fa-expand-arrows-alt fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-system-move">more</a>)</small>.
+        "move systems" <small>(<i class="fas fa-hand-paper fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-system-move">more</a>)</small>.
     </p>
     <h4 id="pf-manual-scrollspy-anchor-system-active">Active system</h4>
     <p>
@@ -163,7 +174,7 @@
         Systems with active pilots are bigger than empty systems and provide morermation than others.<br>
         During <kbd>mouseover</kbd> the <small>(<i class="fas fa-angle-down fa-fw"></i>)</small> icon more detailed information is shown.
     </p>
-    <h4 id="pf-manual-scrollspy-anchor-system-move"><i class="fas fa-expand-arrows-alt fa-fw"></i> Move</h4>
+    <h4 id="pf-manual-scrollspy-anchor-system-move"><i class="fas fa-hand-paper fa-fw"></i> Move</h4>
     <p>
         Any system that is not <em>"Locked"</em> <small>(<i class="fas fa-lock fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-system-locked">more</a>)</small> can be moved,
         by <kbd>click</kbd> + <kbd>drag</kbd> the systems security label (top right).<br>
@@ -185,7 +196,7 @@
     <h4 id="pf-manual-scrollspy-anchor-system-locked"><i class="fas fa-lock fa-fw"></i> Locked system</h4>
     <p>
         Locked systems can´t be selected <small>(<a href="#" data-target="#pf-manual-scrollspy-anchor-map-select">more</a>)</small>,
-        moved <small>(<i class="fas fa-expand-arrows-alt fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-system-move">more</a>)</small>
+        moved <small>(<i class="fas fa-hand-paper fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-system-move">more</a>)</small>
         or deleted <small>(<i class="fas fa-trash fa-fw"></i><a href="#" data-target="#pf-manual-scrollspy-anchor-system-delete">more</a>)</small>.
     </p>
     <h4 id="pf-manual-scrollspy-anchor-system-rally"><i class="fas fa-volume-up fa-fw"></i> Rally point</h4>
@@ -454,5 +465,8 @@
         Map logs can also be send to a <em>Slack</em> channel. This requires a valid "<em>WebHook</em>" configuration for your map.<br>
         <em>Slack´s Webhook API</em> has bad response times, use this feature with caution! It can slow down other map updates.
     </p>
-
+    <h4><i class="fab fa-discord fa-fw"></i> Send logs to a <em>Discord</em> channel</h4>
+    <p>
+        Map logs can also be send to a <em>Discord</em> channel. This requires a valid "<em>WebHook</em>" configuration for your map.<br>
+    </p>
 </div>
