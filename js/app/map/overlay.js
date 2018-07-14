@@ -360,6 +360,12 @@ define([
                 }
             }
         },
+        mapCompact: {
+            title: 'compact layout',
+            trigger: 'active',
+            class: 'pf-map-overlay-compact',
+            iconClass: ['fas', 'fa-fw', 'fa-compress']
+        },
         connection: {
             title: 'WH data',
             trigger: 'hover',

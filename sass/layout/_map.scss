@@ -327,6 +327,19 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
         margin-right: 2px;
       }
 
+      .pf-system-head-counter{
+        display: inline-block;
+        text-align: right;
+        min-width: 8px;
+        margin-right: 1px;
+        color: $green;
+        cursor: help;
+
+        &:empty{
+          display: none;
+        }
+      }
+
       .pf-system-effect{
         font-size: 11px;
       }
@@ -339,6 +352,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       .pf-system-head-expand{
         margin-left: 2px;
         color: $gray-light;
+        width: 10px;
         display: none;  // triggered by JS
       }
 

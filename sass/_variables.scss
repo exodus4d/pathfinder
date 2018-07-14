@@ -314,7 +314,7 @@ $container-tablet:             ((720px + $grid-gutter-width));
 $container-sm:                 $container-tablet;
 
 // Medium screen / desktop
-$container-desktop:            ((1040px + $grid-gutter-width));
+$container-desktop:            ((1060px + $grid-gutter-width));
 //** For `$screen-md-min` and up.
 $container-md:                 $container-desktop;
 

@@ -35,6 +35,7 @@ define([
         systemLockedClass: 'pf-system-locked',                          // class for locked systems on a map
         systemHeadClass: 'pf-system-head',                              // class for system head
         systemHeadNameClass: 'pf-system-head-name',                     // class for system name
+        systemHeadCounterClass: 'pf-system-head-counter',               // class for system user counter
         systemHeadExpandClass: 'pf-system-head-expand',                 // class for system head expand arrow
         systemHeadInfoClass: 'pf-system-head-info',                     // class for system info
         systemBodyClass: 'pf-system-body',                              // class for system body
@@ -125,16 +126,21 @@ define([
      * @param map
      * @param data
      * @param currentUserIsHere boolean - if the current user is in this system
+     * @param options
      */
-    $.fn.updateSystemUserData = function(map, data, currentUserIsHere){
+    $.fn.updateSystemUserData = function(map, data, currentUserIsHere, options){
         let system = $(this);
         let systemId = system.attr('id');
+        let compactView = Util.getObjVal(options, 'compactView');
+
+        // find countElement -> minimizedUI
+        let systemCount = system.find('.' + config.systemHeadCounterClass);
 
         // find system body
-        let systemBody = $( system.find('.' + config.systemBodyClass) );
+        let systemBody = system.find('.' + config.systemBodyClass);
 
         // find expand arrow
-        let systemHeadExpand = $( system.find('.' + config.systemHeadExpandClass) );
+        let systemHeadExpand = system.find('.' + config.systemHeadExpandClass);
 
         let oldCacheKey = system.data('userCache');
         let oldUserCount = system.data('userCount');
@@ -154,6 +160,11 @@ define([
             data.user
         ){
             let cacheArray = [];
+
+            // we need to add "view mode" option to key
+            // -> if view mode change detected -> key no longer valid
+            cacheArray.push(compactView ? 'compact' : 'default');
+
             // loop all active pilots and build cache-key
             for(let i = 0; i < data.user.length; i++){
                 userCounter++;
@@ -171,71 +182,73 @@ define([
                 // remove all content
                 systemBody.empty();
 
-                // loop "again" and build DOM object with user information
-                for(let j = 0; j < data.user.length; j++){
-                    let userData = data.user[j];
+                if(compactView){
+                    // compact system layout-> pilot count shown in systemHead
+                    systemCount.text(userCounter);
 
-                    let statusClass = Util.getStatusInfoForCharacter(userData, 'class');
-                    let userName = userData.name;
+                    system.toggleSystemTooltip('destroy', {});
+                    systemHeadExpand.hide();
+                    system.toggleBody(false, map, {});
 
-                    let item = $('<div>', {
-                        class: config.systemBodyItemClass
-                    }).append(
-                        $('<span>', {
-                            text: userData.log.ship.typeName,
-                            class: config.systemBodyRightClass
-                        })
-                    ).append(
-                        $('<i>', {
-                            class: ['fas', 'fa-circle', config.systemBodyItemStatusClass, statusClass].join(' ')
-                        })
-                    ).append(
-                        $('<span>', {
-                            class: config.systemBodyItemNameClass,
-                            text: userName
-                        })
-                    );
+                    map.revalidate(systemId);
+                }else{
+                    systemCount.empty();
 
-                    systemBody.append(item);
-                }
+                    // show active pilots in body + pilots count tooltip
+                    // loop "again" and build DOM object with user information
+                    for(let j = 0; j < data.user.length; j++){
+                        let userData = data.user[j];
 
+                        let statusClass = Util.getStatusInfoForCharacter(userData, 'class');
+                        let userName = userData.name;
 
-                // ====================================================================================================
+                        let item = $('<div>', {
+                            class: config.systemBodyItemClass
+                        }).append(
+                            $('<span>', {
+                                text: userData.log.ship.typeName,
+                                class: config.systemBodyRightClass
+                            })
+                        ).append(
+                            $('<i>', {
+                                class: ['fas', 'fa-circle', config.systemBodyItemStatusClass, statusClass].join(' ')
+                            })
+                        ).append(
+                            $('<span>', {
+                                class: config.systemBodyItemNameClass,
+                                text: userName
+                            })
+                        );
 
-                // user count changed -> change tooltip content
+                        systemBody.append(item);
+                    }
 
-                // set tooltip color
-                let highlight = '';
-                if(userCounter > oldUserCount){
-                    highlight = 'good';
-                }else if(userCounter < oldUserCount){
-                    highlight = 'bad';
-                }
+                    // user count changed -> change tooltip content
+                    let highlight = '';
+                    if(userCounter >= oldUserCount){
+                        highlight = 'good';
+                    }else if(userCounter < oldUserCount){
+                        highlight = 'bad';
+                    }
 
-                let tooltipOptions = {
-                    systemId: systemId,
-                    highlight: highlight,
-                    userCount: userCounter
-                };
+                    let tooltipOptions = {
+                        systemId: systemId,
+                        highlight: highlight,
+                        userCount: userCounter
+                    };
 
-                // show system head
-                systemHeadExpand.velocity('stop', true).velocity({
-                    width: '10px'
-                },{
-                    duration: 50,
-                    display: 'inline-block',
-                    progress: function(){
-                        //re-validate element size and repaint
-                        map.revalidate( systemId );
-                    },
-                    complete: function(){
-                        // show system body
-                        system.toggleBody(true, map, {complete: function(system){
+                    // show system head
+                    systemHeadExpand.css('display', 'inline-block');
+
+                    // show system body
+                    system.toggleBody(true, map, {
+                        complete: function(system){
                             // show active user tooltip
                             system.toggleSystemTooltip('show', tooltipOptions);
-                        }});
-                    }
-                });
+                            map.revalidate( systemId );
+                        }
+                    });
+                }
             }
         }else{
             // no user data found for this system
@@ -247,16 +260,13 @@ define([
                 oldCacheKey &&
                 oldCacheKey.length > 0
             ){
-                // remove tooltip
+                // reset all elements
+                systemCount.empty();
                 system.toggleSystemTooltip('destroy', {});
+                systemHeadExpand.hide();
+                system.toggleBody(false, map, {});
 
-                // no user -> clear SystemBody
-                systemHeadExpand.velocity('stop').velocity('reverse',{
-                    display: 'none',
-                    complete: function(){
-                        system.toggleBody(false, map, {});
-                    }
-                });
+                map.revalidate(systemId);
             }
         }
     };
@@ -305,7 +315,7 @@ define([
                 begin: function(){
                 },
                 progress: function(){
-                    // revalidate element size and repaint
+                    // re-validate element size and repaint
                     map.revalidate( systemDomId );
                 },
                 complete: function(){
@@ -389,6 +399,10 @@ define([
                     $('<span>', {
                         class: systemHeadClasses.join(' '),
                     }).attr('data-value', systemName),
+                    // System users count
+                    $('<span>', {
+                        class: [config.systemHeadCounterClass, Util.config.popoverTriggerClass].join(' ')
+                    }),
                     // System locked status
                     $('<i>', {
                         class: ['fas', 'fa-lock', 'fa-fw'].join(' ')
@@ -2717,8 +2731,8 @@ define([
                         width: newWidth,
                         'min-width': minWidth + 'px'
                     },{
-                        easing: 'easeInOutQuart',
-                        duration: 120,
+                        easing: 'easeOut',
+                        duration: 60,
                         progress: function(){
                             // repaint connections of current system
                             map.revalidate(systemId);
@@ -2759,6 +2773,27 @@ define([
                 });
             },
             selector: '.' + config.systemClass + ' .' + config.systemHeadExpandClass
+        });
+
+        // system "active users" popover ------------------------------------------------------------------------------
+        mapContainer.hoverIntent({
+            over: function(e){
+                let counterElement = $(this);
+                let systemElement = counterElement.closest('.' + config.systemClass);
+                let mapId = systemElement.data('mapid');
+                let systemId = systemElement.data('systemId');
+                let userData = Util.getCurrentMapUserData(mapId);
+                let systemUserData = Util.getCharacterDataBySystemId(userData.data.systems, systemId);
+
+                counterElement.addSystemPilotTooltip(systemUserData, {
+                    trigger: 'manual',
+                    placement: 'right'
+                }).setPopoverSmall().popover('show');
+            },
+            out: function(e){
+                $(this).destroyPopover();
+            },
+            selector: '.' + config.systemHeadCounterClass
         });
 
         // system "effect" popover ------------------------------------------------------------------------------------
@@ -3010,17 +3045,19 @@ define([
 
         // container must exist! otherwise systems can not be updated
         if(mapElement !== undefined){
-
             mapElement = $(mapElement);
-
-            // get current character log data
-            let characterLogExists = false;
-            let currentCharacterLog = Util.getCurrentCharacterLog();
 
             // check if map is frozen
             if(mapElement.data('frozen') === true){
                 return returnStatus;
             }
+
+            // compact/small system layout or not
+            let compactView = mapElement.hasClass(MapUtil.config.mapCompactClass);
+
+            // get current character log data
+            let characterLogExists = false;
+            let currentCharacterLog = Util.getCurrentCharacterLog();
 
             // data for header update
             let headerUpdateData = {
@@ -3089,7 +3126,7 @@ define([
                     }
                 }
 
-                system.updateSystemUserData(map, tempUserData, currentUserIsHere);
+                system.updateSystemUserData(map, tempUserData, currentUserIsHere, {compactView: compactView});
             }
 
             // users who are not in any map system --------------------------------------------------------------------
@@ -3327,6 +3364,12 @@ define([
                     // init endpoint overlay --------------------------------------------------------------------------
                     mapContainer.triggerMenuEvent('MapOption', {
                         option: 'mapEndpoint',
+                        toggle: false
+                    });
+
+                    // init compact system UI --------------------------------------------------------------------------
+                    mapContainer.triggerMenuEvent('MapOption', {
+                        option: 'mapCompact',
                         toggle: false
                     });
                 };

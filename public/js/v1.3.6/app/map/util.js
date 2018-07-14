@@ -21,6 +21,7 @@ define([
 
         mapClass: 'pf-map',                                             // class for all maps
         mapGridClass: 'pf-grid-small',                                  // class for map grid snapping
+        mapCompactClass: 'pf-compact',                                  // class for map compact system UI
 
         systemIdPrefix: 'pf-system-',                                   // id prefix for a system
         systemClass: 'pf-system',                                       // class for all systems
@@ -53,6 +54,11 @@ define([
             description: 'Endpoint overlay',
             onEnable: 'showEndpointOverlays',                           // jQuery extension function
             onDisable: 'hideEndpointOverlays'                           // jQuery extension function
+        },
+        mapCompact : {
+            buttonId: Util.config.menuButtonCompactId,
+            description: 'Compact system layout',
+            class: 'mapCompactClass'
         }
     };
 
@@ -1106,9 +1112,39 @@ define([
     };
 
     /**
+     * add system pilot tooltip
+     * @param systemUserData
+     * @param options
+     * @returns {*}
+     */
+    $.fn.addSystemPilotTooltip = function(systemUserData, options){
+        let content = Util.getSystemPilotsTable(systemUserData);
+
+        let defaultOptions = {
+            placement: 'top',
+            html: true,
+            trigger: 'hover',
+            container: 'body',
+            title: 'Pilots',
+            content: content,
+            delay: {
+                show: 150,
+                hide: 0
+            },
+        };
+
+        options = $.extend({}, defaultOptions, options);
+
+        return this.each(function(){
+            $(this).popover(options);
+        });
+    };
+
+    /**
      * add system effect tooltip
      * @param security
      * @param effect
+     * @param options
      * @returns {*}
      */
     $.fn.addSystemEffectTooltip = function(security, effect, options){

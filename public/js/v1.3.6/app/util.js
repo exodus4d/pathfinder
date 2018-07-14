@@ -41,6 +41,7 @@ define([
         menuButtonMagnetizerId: 'pf-menu-button-magnetizer',                    // id for menu button "magnetizer"
         menuButtonGridId: 'pf-menu-button-grid',                                // id for menu button "grid snap"
         menuButtonEndpointId: 'pf-menu-button-endpoint',                        // id for menu button "endpoint" overlays
+        menuButtonCompactId: 'pf-menu-button-compact',                          // id for menu button "compact" UI map view
         menuButtonMapDeleteId: 'pf-menu-button-map-delete',                     // id for menu button "delete map"
 
         settingsMessageVelocityOptions: {
@@ -55,6 +56,9 @@ define([
         mapTabBarId: 'pf-map-tabs',                                             // id for map tab bar
         mapWrapperClass: 'pf-map-wrapper',                                      // wrapper div (scrollable)
         mapClass: 'pf-map' ,                                                    // class for all maps
+
+        // util
+        userStatusClass: 'pf-user-status',                                       // class for player status
 
         // select2
         select2Class: 'pf-select2',                                             // class for all "Select2" <select> elements
@@ -960,6 +964,21 @@ define([
             });
         };
 
+        /**
+         * get hash from string
+         * @returns {number}
+         */
+        String.prototype.hashCode = function() {
+            let hash = 0, i, chr;
+            if (this.length === 0) return hash;
+            for (i = 0; i < this.length; i++) {
+                chr   = this.charCodeAt(i);
+                hash  = ((hash << 5) - hash) + chr;
+                hash |= 0; // Convert to 32bit integer
+            }
+            return hash;
+        };
+
         initPassiveEvents();
     };
 
@@ -1708,6 +1727,51 @@ define([
     };
 
     /**
+     * get a HTML table with pilots/ship names
+     * @param users
+     * @returns {string}
+     */
+    let getSystemPilotsTable = users => {
+        let table = '';
+        if(users.length > 0){
+
+            let getRow = (statusClass, userName, shipName, shipTypeName, mass) => {
+                let row = '<tr>';
+                row += '<td>';
+                row +=  statusClass !== null ? '<i class="fas fa-circle ' + config.userStatusClass + ' ' + statusClass + '">' : '';
+                row += '</td>';
+                row += '<td>';
+                row += userName;
+                row += '</td>';
+                row += '<td>';
+                row += shipName;
+                row += '</td>';
+                row += '<td class="text-right txt-color txt-color-orangeLight">';
+                row += shipTypeName;
+                row += '</td>';
+                row += '<td class="text-right txt-color">';
+                row += mass;
+                row += '</td>';
+                row += '</tr>';
+                return row;
+            };
+
+            let massAll = 0;
+            table += '<table>';
+            for(let user of users){
+                massAll += parseInt(user.log.ship.mass);
+                let statusClass = getStatusInfoForCharacter(user, 'class');
+                let mass = formatMassValue(user.log.ship.mass);
+                table += getRow(statusClass, user.name, user.log.ship.name, user.log.ship.typeName, mass);
+            }
+            table += getRow(null, '', '', '', formatMassValue(massAll));
+            table += '</table>';
+        }
+
+        return table;
+    };
+
+    /**
      * get a HTML table with information for multiple systems
      * e.g. for popover
      * @param data
@@ -2175,6 +2239,23 @@ define([
     };
 
     /**
+     * get userData (pilots) from systemId
+     * @param userData
+     * @param systemId
+     * @returns {*}
+     */
+    let getCharacterDataBySystemId = (userData, systemId) => {
+        if(userData && userData.length){
+            for(let i = 0; i < userData.length; i++){
+                if(userData[i].id === systemId){
+                    return userData[i].user;
+                }
+            }
+        }
+        return [];
+    };
+
+    /**
      * get current character data from all characters who are "nearby" the current user
      * -> see getNearBySystemData()
      * @param nearBySystems
@@ -2185,20 +2266,11 @@ define([
      */
     let getNearByCharacterData = (nearBySystems, userData, jumps = 0, data = {}) => {
 
-        let getCharacterDataBySystemId = (systemId) => {
-            for(let i = 0; i < userData.length; i++){
-                if(userData[i].id === systemId){
-                    return userData[i].user;
-                }
-            }
-            return [];
-        };
-
         let filterFinalCharData = function(tmpFinalCharData){
             return this.id !== tmpFinalCharData.id;
         };
 
-        let characterData = getCharacterDataBySystemId(nearBySystems.systemData.systemId);
+        let characterData = getCharacterDataBySystemId(userData, nearBySystems.systemData.systemId);
 
         if(characterData.length){
             // filter (remove) characterData for "already" added chars
@@ -2659,6 +2731,7 @@ define([
         getSystemEffectData: getSystemEffectData,
         getSystemEffectTable: getSystemEffectTable,
         getSystemPlanetsTable: getSystemPlanetsTable,
+        getSystemPilotsTable: getSystemPilotsTable,
         getSystemsInfoTable: getSystemsInfoTable,
         getStatusInfoForCharacter: getStatusInfoForCharacter,
         getSecurityClassForSystem: getSecurityClassForSystem,
@@ -2685,6 +2758,7 @@ define([
         getCurrentUserInfo: getCurrentUserInfo,
         getCurrentCharacterLog: getCurrentCharacterLog,
         flattenXEditableSelectArray: flattenXEditableSelectArray,
+        getCharacterDataBySystemId: getCharacterDataBySystemId,
         getNearBySystemData: getNearBySystemData,
         getNearByCharacterData: getNearByCharacterData,
         setDestination: setDestination,

@@ -345,7 +345,7 @@ define([
                 $('<a>', {
                     class: 'list-group-item',
                     id: Util.config.menuButtonGridId
-                }).html('&nbsp;&nbsp;&nbsp;Grid snapping').prepend(
+                }).html('&nbsp;&nbsp;Grid snapping').prepend(
                     $('<i>',{
                         class: 'fas fa-th fa-fw'
                     })
@@ -359,7 +359,7 @@ define([
                 $('<a>', {
                     class: 'list-group-item',
                     id: Util.config.menuButtonMagnetizerId
-                }).html('&nbsp;&nbsp;&nbsp;Magnetizing').prepend(
+                }).html('&nbsp;&nbsp;Magnetizing').prepend(
                     $('<i>',{
                         class: 'fas fa-magnet fa-fw'
                     })
@@ -373,13 +373,32 @@ define([
                 $('<a>', {
                     class: 'list-group-item',
                     id: Util.config.menuButtonEndpointId
-                }).html('&nbsp;&nbsp;&nbsp;Signatures').prepend(
+                }).html('&nbsp;&nbsp;Signatures').prepend(
                     $('<i>',{
                         class: 'fas fa-link fa-fw'
                     })
                 ).on('click', function(){
                     Util.getMapModule().getActiveMap().triggerMenuEvent('MapOption', {
                         option: 'mapEndpoint',
+                        toggle: true
+                    });
+                })
+            ).append(
+                $('<a>', {
+                    class: 'list-group-item',
+                    id: Util.config.menuButtonCompactId
+                }).html('&nbsp;&nbsp;Compact').prepend(
+                    $('<i>',{
+                        class: 'fas fa-compress fa-fw'
+                    })
+                ).append(
+                    $('<span>',{
+                        class: 'badge bg-color bg-color-gray txt-color txt-color-warning',
+                        text: 'beta'
+                    })
+                ).on('click', function(){
+                    Util.getMapModule().getActiveMap().triggerMenuEvent('MapOption', {
+                        option: 'mapCompact',
                         toggle: true
                     });
                 })
