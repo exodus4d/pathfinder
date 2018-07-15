@@ -1224,81 +1224,6 @@ define([
     };
 
     /**
-     * make all systems appear visual on the map with its connections
-     * @param show
-     * @param callback
-     */
-    $.fn.visualizeMap = function(show, callback){
-        let mapElement = $(this);
-
-        // start map update counter -> prevent map updates during animations
-        mapElement.getMapOverlay('timer').startMapUpdateCounter();
-
-        let systemElements = mapElement.find('.' + config.systemClass);
-        let endpointElements =  mapElement.find('.jsplumb-endpoint:visible');
-        let connectorElements = mapElement.find('.jsplumb-connector:visible');
-        let overlayElements = mapElement.find('.jsplumb-overlay:visible, .tooltip');
-
-        let hideElements = (elements) => {
-            if(elements.length > 0){
-                // disable transition for next opacity change
-                elements.addClass('pf-notransition');
-                // hide elements
-                elements.css('opacity', 0);
-                // Trigger a reflow, flushing the CSS changes
-                // -> http://stackoverflow.com/questions/11131875/what-is-the-cleanest-way-to-disable-css-transition-effects-temporarily
-                elements[0].offsetHeight; // jshint ignore:line
-                elements.removeClass('pf-notransition');
-            }
-
-            return elements;
-        };
-
-        let mapElements = systemElements.add(endpointElements).add(connectorElements);
-
-        // show nice animation
-        if(show === 'show'){
-            hideElements(systemElements);
-            hideElements(endpointElements);
-            hideElements(connectorElements);
-            hideElements(overlayElements);
-
-            overlayElements.velocity('transition.fadeIn', {
-                duration: 60,
-                display: 'auto'
-            });
-
-            mapElements.velocity({
-                translateY: [ 0, -20],
-                opacity: [ 1, 0 ]
-            }, {
-                duration: 150,
-                easing: 'easeOut',
-                complete: function(){
-                    callback();
-                }
-            });
-        }else if(show === 'hide'){
-
-            overlayElements.velocity('transition.fadeOut', {
-                duration: 60,
-                display: 'auto'
-            });
-
-            mapElements.velocity({
-                translateY: [ -20, 0 ],
-                opacity: [ 0, 1 ]
-            }, {
-                duration: 150,
-                easing: 'easeOut',
-                complete: function(){
-                    callback();
-                }
-            });
-        }
-    };
-
-    /**
      * mark a system as source
      * @param map
      * @param system
@@ -3315,11 +3240,6 @@ define([
      */
     let initMapOptions = (mapConfig, options) => {
 
-        /**
-         * init map options promise
-         * @param resolve
-         * @param reject
-         */
         let initMapOptionsExecutor = (resolve, reject) => {
             let payload = {
                 action: 'initMapOptions',
@@ -3329,63 +3249,18 @@ define([
             };
 
             if(options.showAnimation){
-                /**
-                 * callback after visualizeMap is done
-                 * @param mapName
-                 * @param mapContainer
-                 */
-                let switchTabCallback = (mapContainer, mapConfig) => {
-                    Util.showNotify({title: 'Map initialized', text: mapConfig.name  + ' - loaded', type: 'success'});
-
-                    let mapWrapper = mapContainer.parents('.' + config.mapWrapperClass);
-
-                    // auto scroll map to previous position -----------------------------------------------------------
-                    let promiseStore = MapUtil.getLocaleData('map', mapContainer.data('id') );
-                    promiseStore.then(data => {
-                        // This code runs once the value has been loaded from  offline storage
-                        if(data && data.scrollOffset){
-                            mapWrapper.scrollToPosition([data.scrollOffset.y, data.scrollOffset.x]);
-                        }
-                    });
-
-                    // update main menu options based on the active map -----------------------------------------------
-                    $(document).trigger('pf:updateMenuOptions', {
-                        mapConfig: mapConfig
-                    });
-
-                    // init magnetizer --------------------------------------------------------------------------------
-                    mapContainer.triggerMenuEvent('MapOption', {
-                        option: 'mapMagnetizer',
-                        toggle: false
-                    });
-
-                    // init grid snap ---------------------------------------------------------------------------------
-                    mapContainer.triggerMenuEvent('MapOption', {
-                        option: 'mapSnapToGrid',
-                        toggle: false
-                    });
-
-                    // init endpoint overlay --------------------------------------------------------------------------
-                    mapContainer.triggerMenuEvent('MapOption', {
-                        option: 'mapEndpoint',
-                        toggle: false
-                    });
-
-                    // init compact system UI --------------------------------------------------------------------------
-                    mapContainer.triggerMenuEvent('MapOption', {
-                        option: 'mapCompact',
-                        toggle: false
-                    });
-                };
-
-                // show nice visualization effect ---------------------------------------------------------------------
-                let mapContainer = $(mapConfig.map.getContainer());
-                mapContainer.visualizeMap('show', function(){
-                    switchTabCallback(mapContainer, mapConfig.config);
-                });
+                let mapElement = $(mapConfig.map.getContainer());
+                MapUtil.setMapDefaultOptions(mapElement, mapConfig.config)
+                    .then(payload => MapUtil.visualizeMap(mapElement, 'show'))
+                    .then(payload => MapUtil.scrollToDefaultPosition(mapElement))
+                    .then(payload => {
+                        Util.showNotify({title: 'Map initialized', text: mapConfig.config.name  + ' - loaded', type: 'success'});
+                    })
+                    .then(() => resolve(payload));
+            }else{
+                // nothing to do here...
+                resolve(payload);
             }
-
-            resolve(payload);
         };
 
         return new Promise(initMapOptionsExecutor);

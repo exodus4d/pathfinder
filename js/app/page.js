@@ -455,11 +455,7 @@ define([
      * @param event
      * @param data
      */
-    $.fn.triggerMenuEvent = function(event, data){
-        if(data === undefined){
-            data = {};
-        }
-
+    $.fn.triggerMenuEvent = function(event, data = {}){
         $(this).trigger('pf:menu' + event, [data]);
     };
 

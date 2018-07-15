@@ -257,12 +257,12 @@ define([
                                 onGet: (MsgWorkerMessage) => {
                                     switch(MsgWorkerMessage.task()){
                                         case 'mapUpdate':
-                                            Util.updateCurrentMapData( MsgWorkerMessage.data() );
+                                            Util.updateCurrentMapData(MsgWorkerMessage.data());
                                             ModuleMap.updateMapModule(mapModule);
                                             break;
                                         case 'mapAccess':
                                         case 'mapDeleted':
-                                            Util.deleteCurrentMapData( MsgWorkerMessage.data() );
+                                            Util.deleteCurrentMapData(MsgWorkerMessage.data());
                                             ModuleMap.updateMapModule(mapModule);
                                             break;
                                         case 'mapSubscriptions':

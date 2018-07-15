@@ -682,7 +682,7 @@ define([
                             mapElement.data('frozen', true);
 
                             // hide current map with animation
-                            mapElement.visualizeMap('hide', function(){
+                            MapUtil.visualizeMap(mapElement, 'hide').then(payload => {
                                 // un-block map tabs
                                 mapTabChangeBlocked = switchTabCallback(mapElement, tabLinkElement);
                             });

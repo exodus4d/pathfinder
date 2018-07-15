@@ -19,6 +19,8 @@ define([
         mapLocalStoragePrefix: 'map_',                                  // prefix for map data local storage key
         mapTabContentClass: 'pf-map-tab-content',                       // Tab-Content element (parent element)
 
+        mapWrapperClass: 'pf-map-wrapper',                              // wrapper div (scrollable)
+
         mapClass: 'pf-map',                                             // class for all maps
         mapGridClass: 'pf-grid-small',                                  // class for map grid snapping
         mapCompactClass: 'pf-compact',                                  // class for map compact system UI
@@ -962,6 +964,167 @@ define([
     };
 
     /**
+     * show map animations when a new map gets visual
+     * @param mapElement
+     * @param show
+     * @returns {Promise<any>}
+     */
+    let visualizeMap = (mapElement, show) => {
+
+        let visualizeMapExecutor = (resolve, reject) => {
+            // start map update counter -> prevent map updates during animations
+            mapElement.getMapOverlay('timer').startMapUpdateCounter();
+
+            let systemElements = mapElement.find('.' + config.systemClass);
+            let endpointElements =  mapElement.find('.jsplumb-endpoint:visible');
+            let connectorElements = mapElement.find('.jsplumb-connector:visible');
+            let overlayElements = mapElement.find('.jsplumb-overlay:visible, .tooltip');
+
+            let hideElements = (elements) => {
+                if(elements.length > 0){
+                    // disable transition for next opacity change
+                    elements.addClass('pf-notransition');
+                    // hide elements
+                    elements.css('opacity', 0);
+                    // Trigger a reflow, flushing the CSS changes
+                    // -> http://stackoverflow.com/questions/11131875/what-is-the-cleanest-way-to-disable-css-transition-effects-temporarily
+                    elements[0].offsetHeight; // jshint ignore:line
+                    elements.removeClass('pf-notransition');
+                }
+
+                return elements;
+            };
+
+            let mapElements = systemElements.add(endpointElements).add(connectorElements);
+
+            // show nice animation
+            if(show === 'show'){
+                hideElements(systemElements);
+                hideElements(endpointElements);
+                hideElements(connectorElements);
+                hideElements(overlayElements);
+
+                overlayElements.velocity('transition.fadeIn', {
+                    duration: 60,
+                    display: 'auto'
+                });
+
+                mapElements.velocity({
+                    translateY: [ 0, -20],
+                    opacity: [ 1, 0 ]
+                }, {
+                    duration: 150,
+                    easing: 'easeOut',
+                    complete: function(){
+                        resolve({
+                            action: 'visualizeMap',
+                            data: false
+                        });
+                    }
+                });
+            }else if(show === 'hide'){
+
+                overlayElements.velocity('transition.fadeOut', {
+                    duration: 60,
+                    display: 'auto'
+                });
+
+                mapElements.velocity({
+                    translateY: [ -20, 0 ],
+                    opacity: [ 0, 1 ]
+                }, {
+                    duration: 150,
+                    easing: 'easeOut',
+                    complete: function(){
+                        resolve({
+                            action: 'visualizeMap',
+                            data: false
+                        });
+                    }
+                });
+            }
+        };
+
+        return new Promise(visualizeMapExecutor);
+    };
+
+    /**
+     * set default map Options (
+     * -> HINT: This function triggers Events! Promise is resolved before trigger completed
+     * @param mapElement
+     * @param mapConfig
+     * @returns {Promise<any>}
+     */
+    let setMapDefaultOptions = (mapElement, mapConfig) => {
+
+        let setMapDefaultOptionsExecutor = (resolve, reject) => {
+            // update main menu options based on the active map -----------------------------------------------
+            $(document).trigger('pf:updateMenuOptions', {
+                mapConfig: mapConfig
+            });
+
+            // init compact system layout ---------------------------------------------------------------------
+            mapElement.triggerMenuEvent('MapOption', {
+                option: 'mapCompact',
+                toggle: false
+            });
+
+            // init magnetizer --------------------------------------------------------------------------------
+            mapElement.triggerMenuEvent('MapOption', {
+                option: 'mapMagnetizer',
+                toggle: false
+            });
+
+            // init grid snap ---------------------------------------------------------------------------------
+            mapElement.triggerMenuEvent('MapOption', {
+                option: 'mapSnapToGrid',
+                toggle: false
+            });
+
+            // init endpoint overlay --------------------------------------------------------------------------
+            mapElement.triggerMenuEvent('MapOption', {
+                option: 'mapEndpoint',
+                toggle: false
+            });
+
+            resolve({
+                action: 'setMapDefaultOptions',
+                data: false
+            });
+        };
+
+        return new Promise(setMapDefaultOptionsExecutor);
+    };
+
+    /**
+     * scroll map to default (stored) x/y coordinates
+     * @param mapElement
+     * @returns {Promise<any>}
+     */
+    let scrollToDefaultPosition = (mapElement) => {
+
+        let scrollToDefaultPositionExecutor = (resolve, reject) => {
+            let mapWrapper = mapElement.parents('.' + config.mapWrapperClass);
+
+            // auto scroll map to previous stored position
+            let promiseStore = getLocaleData('map', mapElement.data('id'));
+            promiseStore.then(data => {
+                // This code runs once the value has been loaded from  offline storage
+                if(data && data.scrollOffset){
+                    mapWrapper.scrollToPosition([data.scrollOffset.y, data.scrollOffset.x]);
+                }
+
+                resolve({
+                    action: 'scrollToDefaultPosition',
+                    data: false
+                });
+            });
+        };
+
+        return new Promise(scrollToDefaultPositionExecutor);
+    };
+
+    /**
      * delete local map configuration by key (IndexedDB)
      * @param type
      * @param objectId
@@ -1440,6 +1603,9 @@ define([
         getLocaleData: getLocaleData,
         storeLocalData: storeLocalData,
         deleteLocalData: deleteLocalData,
+        visualizeMap: visualizeMap,
+        setMapDefaultOptions: setMapDefaultOptions,
+        scrollToDefaultPosition: scrollToDefaultPosition,
         getSystemId: getSystemId,
         checkRight: checkRight,
         getMapDeeplinkUrl: getMapDeeplinkUrl,
