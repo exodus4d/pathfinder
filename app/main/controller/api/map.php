@@ -55,9 +55,11 @@ class Map extends Controller\AccessController {
     public function initData(\Base $f3){
         // expire time in seconds
         $expireTimeCache = 60 * 60;
-        $expireTimeSQL = 60 * 60 * 12;
 
         if( !$f3->exists(self::CACHE_KEY_INIT, $return )){
+            // response should not be cached if invalid -> e.g. missing static data
+            $validInitData = true;
+
             $return = (object) [];
             $return->error = [];
 
@@ -66,7 +68,7 @@ class Map extends Controller\AccessController {
 
             // get all available map types ----------------------------------------------------------------------------
             $mapType = Model\BasicModel::getNew('MapTypeModel');
-            $rows = $mapType->find('active = 1', null, $expireTimeSQL);
+            $rows = $mapType->find('active = 1');
 
             // default map type config
             $mapsDefaultConfig = Config::getMapsDefaultConfig();
@@ -83,9 +85,11 @@ class Map extends Controller\AccessController {
             }
             $return->mapTypes = $mapTypeData;
 
+            $validInitData = $validInitData ? !empty($mapTypeData) : $validInitData;
+
             // get all available map scopes ---------------------------------------------------------------------------
             $mapScope = Model\BasicModel::getNew('MapScopeModel');
-            $rows = $mapScope->find('active = 1', null, $expireTimeSQL);
+            $rows = $mapScope->find('active = 1');
             $mapScopeData = [];
             foreach((array)$rows as $rowData){
                 $data = [
@@ -96,9 +100,11 @@ class Map extends Controller\AccessController {
             }
             $return->mapScopes = $mapScopeData;
 
+            $validInitData = $validInitData ? !empty($mapScopeData) : $validInitData;
+
             // get all available system status ------------------------------------------------------------------------
             $systemStatus = Model\BasicModel::getNew('SystemStatusModel');
-            $rows = $systemStatus->find('active = 1', null, $expireTimeSQL);
+            $rows = $systemStatus->find('active = 1');
             $systemScopeData = [];
             foreach((array)$rows as $rowData){
                 $data = [
@@ -110,9 +116,11 @@ class Map extends Controller\AccessController {
             }
             $return->systemStatus = $systemScopeData;
 
+            $validInitData = $validInitData ? !empty($systemScopeData) : $validInitData;
+
             // get all available system types -------------------------------------------------------------------------
             $systemType = Model\BasicModel::getNew('SystemTypeModel');
-            $rows = $systemType->find('active = 1', null, $expireTimeSQL);
+            $rows = $systemType->find('active = 1');
             $systemTypeData = [];
             foreach((array)$rows as $rowData){
                 $data = [
@@ -123,9 +131,11 @@ class Map extends Controller\AccessController {
             }
             $return->systemType = $systemTypeData;
 
+            $validInitData = $validInitData ? !empty($systemTypeData) : $validInitData;
+
             // get available connection scopes ------------------------------------------------------------------------
             $connectionScope = Model\BasicModel::getNew('ConnectionScopeModel');
-            $rows = $connectionScope->find('active = 1', null, $expireTimeSQL);
+            $rows = $connectionScope->find('active = 1');
             $connectionScopeData = [];
             foreach((array)$rows as $rowData){
                 $data = [
@@ -137,19 +147,11 @@ class Map extends Controller\AccessController {
             }
             $return->connectionScopes = $connectionScopeData;
 
-            // get available wormhole types ---------------------------------------------------------------------------
-            $wormhole = Model\Universe\BasicUniverseModel::getNew('WormholeModel');
-            $wormholesData = [];
-            if($rows = $wormhole->find(null, ['order' => 'name asc'], $expireTimeSQL)){
-                foreach($rows as $rowData){
-                    $wormholesData[$rowData->name] = $rowData->getData();
-                }
-            }
-            $return->wormholes = $wormholesData;
+            $validInitData = $validInitData ? !empty($connectionScopeData) : $validInitData;
 
             // get available character status -------------------------------------------------------------------------
             $characterStatus = Model\BasicModel::getNew('CharacterStatusModel');
-            $rows = $characterStatus->find('active = 1', null, $expireTimeSQL);
+            $rows = $characterStatus->find('active = 1');
             $characterStatusData = [];
             foreach((array)$rows as $rowData){
                 $data = [
@@ -161,11 +163,13 @@ class Map extends Controller\AccessController {
             }
             $return->characterStatus = $characterStatusData;
 
+            $validInitData = $validInitData ? !empty($characterStatusData) : $validInitData;
+
             // route search config ------------------------------------------------------------------------------------
             $return->routeSearch = [
-                'defaultCount'              => Config::getPathfinderData('route.search_default_count'),
-                'maxDefaultCount'           => Config::getPathfinderData('route.max_default_count'),
-                'limit'                     => Config::getPathfinderData('route.limit')
+                'defaultCount'          => Config::getPathfinderData('route.search_default_count'),
+                'maxDefaultCount'       => Config::getPathfinderData('route.max_default_count'),
+                'limit'                 => Config::getPathfinderData('route.limit')
             ];
 
             // get program routes -------------------------------------------------------------------------------------
@@ -175,18 +179,18 @@ class Map extends Controller\AccessController {
 
             // get third party APIs -----------------------------------------------------------------------------------
             $return->url = [
-                'ccpImageServer'            => Config::getPathfinderData('api.ccp_image_server'),
-                'zKillboard'                => Config::getPathfinderData('api.z_killboard')
+                'ccpImageServer'        => Config::getPathfinderData('api.ccp_image_server'),
+                'zKillboard'            => Config::getPathfinderData('api.z_killboard')
             ];
 
             // Slack integration status -------------------------------------------------------------------------------
             $return->slack = [
-                'status' => (bool)Config::getPathfinderData('slack.status')
+                'status'                => (bool)Config::getPathfinderData('slack.status')
             ];
 
             // Slack integration status -------------------------------------------------------------------------------
             $return->discord = [
-                'status' => (bool)Config::getPathfinderData('discord.status')
+                'status'                => (bool)Config::getPathfinderData('discord.status')
             ];
 
             // structure status ---------------------------------------------------------------------------------------
@@ -197,10 +201,30 @@ class Map extends Controller\AccessController {
             }
             $return->structureStatus = $structureData;
 
-            // universe category data ---------------------------------------------------------------------------------
-            $return->universeCategories = [65 => Model\Universe\BasicUniverseModel::getNew('CategoryModel')->getById(65)->getData()];
+            $validInitData = $validInitData ? !empty($structureData) : $validInitData;
 
-            $f3->set(self::CACHE_KEY_INIT, $return, $expireTimeCache );
+            // get available wormhole types ---------------------------------------------------------------------------
+            $wormhole = Model\Universe\BasicUniverseModel::getNew('WormholeModel');
+            $wormholesData = [];
+            if($rows = $wormhole->find(null, ['order' => 'name asc'])){
+                foreach($rows as $rowData){
+                    $wormholesData[$rowData->name] = $rowData->getData();
+                }
+            }
+            $return->wormholes = $wormholesData;
+
+            $validInitData = $validInitData ? !empty($wormholesData) : $validInitData;
+
+            // universe category data ---------------------------------------------------------------------------------
+            $return->universeCategories = [
+                65 => Model\Universe\BasicUniverseModel::getNew('CategoryModel')->getById(65)->getData()
+            ];
+
+            $validInitData = $validInitData ? !empty($return->universeCategories[65]) : $validInitData;
+
+            if($validInitData){
+                $f3->set(self::CACHE_KEY_INIT, $return, $expireTimeCache );
+            }
         }
 
         // Add data that should not be cached =========================================================================
