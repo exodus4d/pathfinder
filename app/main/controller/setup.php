@@ -540,6 +540,13 @@ class Setup extends Controller {
                 'check' => function_exists('exec') == $f3->get('REQUIREMENTS.PHP.EXEC'),
                 'tooltip' => 'exec() funktion. Check "disable_functions" in php.ini'
             ],
+            'memoryLimit' => [
+                'label' => 'memory_limit',
+                'required' => $f3->get('REQUIREMENTS.PHP.MEMORY_LIMIT'),
+                'version' => ini_get('memory_limit'),
+                'check' => ini_get('memory_limit') >= $f3->get('REQUIREMENTS.PHP.MEMORY_LIMIT'),
+                'tooltip' => 'PHP default = 64MB.'
+            ],
             'maxInputVars' => [
                 'label' => 'max_input_vars',
                 'required' => $f3->get('REQUIREMENTS.PHP.MAX_INPUT_VARS'),
