@@ -16,7 +16,7 @@ class StructureModel extends BasicModel {
     protected $table = 'structure';
 
     /**
-     * categoryId (from CCP´s SDE) that holds all "groups" with structure "types"
+     * categoryId (from ESI) that holds all "groups" with structure "types"
      */
     const CATEGORY_STRUCTURE_ID = 65;
 
