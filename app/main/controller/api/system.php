@@ -286,6 +286,15 @@ class System extends Controller\AccessController {
                             $newSystemModel->erase();
                             $newSystemModel->reset();
                         }else{
+                            // Trim alias
+                            $offset = strpos($system->alias, $system->name);
+                            if($offset === FALSE){
+                                $system->setData(array("alias"=>$system->name));
+                            }
+                            else{
+                                $system->setData(array("alias"=>substr($system->alias, $offset)));
+                            }
+                            
                             // keep data -> set "inactive"
                             $system->setActive(false);
                             $system->save($activeCharacter);
