@@ -40,7 +40,6 @@ Issues should be reported in the [Issue](https://github.com/exodus4d/pathfinder/
       |-- routes.ini        --> config - routes
   |-- [0755] export/        --> static data
       |-- csv/              --> *.csv used by /setup page
-      |-- json/             --> *.json used by /setup page
       |-- sql/              --> DB dump for import (pathfinder.sql)
   |-- [0755] favicon/       --> Favicons
   |-- [0777] history/       --> log files (map history logs) [optional]
