@@ -40,10 +40,10 @@ Issues should be reported in the [Issue](https://github.com/exodus4d/pathfinder/
       |-- routes.ini        --> config - routes
   |-- [0755] export/        --> static data
       |-- csv/              --> *.csv used by /setup page
-      |-- sql/              --> DB dump for import (pathfinder.sql)
+      |-- sql/              --> DB dump for import (eve_universe.sql.zip)
   |-- [0755] favicon/       --> Favicons
   |-- [0777] history/       --> log files (map history logs) [optional]
-  |-- [0755] js/            --> JS source files (raw)
+  |-- [0755] js/            --> JS source files
       |-- app/              --> "PASTHFINDER" core files (not used for production)
       |-- lib/              --> 3rd partie extension/library (not used for production)
       |-- app.js            --> require.js config (!required for production!)
