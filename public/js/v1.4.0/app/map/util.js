@@ -1009,19 +1009,28 @@ define([
                     display: 'auto'
                 });
 
-                mapElements.velocity({
-                    translateY: [ 0, -20],
-                    opacity: [ 1, 0 ]
-                }, {
-                    duration: 150,
-                    easing: 'easeOut',
-                    complete: function(){
-                        resolve({
-                            action: 'visualizeMap',
-                            data: false
-                        });
-                    }
-                });
+                if(mapElements.length){
+                    mapElements.velocity({
+                        translateY: [ 0, -20],
+                        opacity: [ 1, 0 ]
+                    }, {
+                        duration: 150,
+                        easing: 'easeOut',
+                        complete: function(){
+                            resolve({
+                                action: 'visualizeMap',
+                                data: false
+                            });
+                        }
+                    });
+                }else{
+                    // "complete" callback is not fired if no elements were animated
+                    resolve({
+                        action: 'visualizeMap',
+                        data: false
+                    });
+                }
+
             }else if(show === 'hide'){
 
                 overlayElements.velocity('transition.fadeOut', {
@@ -1029,19 +1038,28 @@ define([
                     display: 'auto'
                 });
 
-                mapElements.velocity({
-                    translateY: [ -20, 0 ],
-                    opacity: [ 0, 1 ]
-                }, {
-                    duration: 150,
-                    easing: 'easeOut',
-                    complete: function(){
-                        resolve({
-                            action: 'visualizeMap',
-                            data: false
-                        });
-                    }
-                });
+                if(mapElements.length){
+                    mapElements.velocity({
+                        translateY: [ -20, 0 ],
+                        opacity: [ 0, 1 ]
+                    }, {
+                        duration: 150,
+                        easing: 'easeOut',
+                        complete: function(){
+                            resolve({
+                                action: 'visualizeMap',
+                                data: false
+                            });
+                        }
+                    });
+                }else{
+                    // "complete" callback is not fired if no elements were animated
+                    resolve({
+                        action: 'visualizeMap',
+                        data: false
+                    });
+                }
+
             }
         };
 
