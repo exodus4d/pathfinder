@@ -331,10 +331,9 @@ class CharacterModel extends BasicModel {
         $logLocation = (bool)$logLocation;
         if(
             !$logLocation &&
-            $logLocation !== $this->logLocation &&
-            $this->hasLog()
+            $logLocation !== $this->logLocation
         ){
-            $this->getLog()->erase();
+            $this->deleteLog();
         }
 
         return $logLocation;
@@ -918,12 +917,8 @@ class CharacterModel extends BasicModel {
             }
         }
 
-        if(
-            $deleteLog &&
-            $this->hasLog()
-        ){
-            // delete existing log
-            $this->characterLog->erase();
+        if($deleteLog){
+            $this->deleteLog();
         }
 
         return $this;

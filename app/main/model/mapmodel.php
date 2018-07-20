@@ -8,7 +8,6 @@
 
 namespace Model;
 
-use Controller\Api\System;
 use DB\SQL\Schema;
 use data\file\FileHandler;
 use lib\Config;
@@ -279,7 +278,7 @@ class MapModel extends AbstractMapTrackingModel {
                     $characterData[] = $character->getData();
                 }
                 $mapData->access->character = $characterData;
-            } elseif($this->isCorporation()){
+            }elseif($this->isCorporation()){
                 $corporations = $this->getCorporations();
                 $corporationData = [];
 
@@ -287,7 +286,7 @@ class MapModel extends AbstractMapTrackingModel {
                     $corporationData[] = $corporation->getData();
                 }
                 $mapData->access->corporation = $corporationData;
-            } elseif($this->isAlliance()){
+            }elseif($this->isAlliance()){
                 $alliances = $this->getAlliances();
                 $allianceData = [];
 
@@ -302,10 +301,10 @@ class MapModel extends AbstractMapTrackingModel {
             $mapDataAll->mapData = $mapData;
 
             // map system data ----------------------------------------------------------------------------------------
-            $mapDataAll->systems = $this->getSystemData();
+            $mapDataAll->systems = $this->getSystemsData();
 
             // map connection data ------------------------------------------------------------------------------------
-            $mapDataAll->connections = $this->getConnectionData();
+            $mapDataAll->connections = $this->getConnectionsData();
 
             // max caching time for a map
             // the cached date has to be cleared manually on any change
@@ -470,25 +469,20 @@ class MapModel extends AbstractMapTrackingModel {
      * @return SystemModel
      * @throws \Exception
      */
-    public function getNewSystem($systemId){
+    public function getNewSystem(int $systemId) : SystemModel {
         // check for "inactive" system
         $system = $this->getSystemByCCPId($systemId);
         if(is_null($system)){
-            // get blank system
-            $systemController = new System();
-            $systems = $systemController->getSystemModelByIds([$systemId]);
-            if(count($systems)){
-                $system = reset($systems);
-                $system->mapId = $this->_id;
-            }else{
-                // should NEVER happen -> systemId does NOT exist in New Eden!!
-                $this->getF3()->error(500, 'SystemId "' . $systemId . '"" does not exist in EVE!' );
-            }
+            /**
+             * @var $system SystemModel
+             */
+            $system = $this->rel('systems');
+            $system->systemId = $systemId;
+            $system->mapId = $this;
+            $system->setType();
         }
 
-        if($system){
-            $system->setActive(true);
-        }
+        $system->setActive(true);
 
         return $system;
     }
@@ -499,7 +493,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @param SystemModel $targetSystem
      * @return ConnectionModel
      */
-    public function getNewConnection(SystemModel $sourceSystem, SystemModel $targetSystem){
+    public function getNewConnection(SystemModel $sourceSystem, SystemModel $targetSystem) : ConnectionModel {
         /**
          * @var $connection ConnectionModel
          */
@@ -562,7 +556,7 @@ class MapModel extends AbstractMapTrackingModel {
      * get either all system models in this map
      * @return SystemModel[]
      */
-    public function getSystems(){
+    protected function getSystems(){
         $systems = [];
 
         // orderBy x-Coordinate for smoother frontend animation (left to right)
@@ -582,7 +576,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @return \stdClass[]
      * @throws \Exception
      */
-    public function getSystemData(){
+    public function getSystemsData(){
         $systemData = [];
         $systems  = $this->getSystems();
 
@@ -651,7 +645,7 @@ class MapModel extends AbstractMapTrackingModel {
      * get all connection data in this map
      * @return \stdClass[]
      */
-    public function getConnectionData() : array {
+    public function getConnectionsData() : array {
         $connectionData = [];
         $connections  = $this->getConnections();
 
@@ -1265,7 +1259,7 @@ class MapModel extends AbstractMapTrackingModel {
      * @param int $posY
      * @return false|ConnectionModel
      */
-    public function saveSystem( SystemModel $system, CharacterModel $character, $posX = 10, $posY = 0){
+    public function saveSystem(SystemModel $system, CharacterModel $character, $posX = 10, $posY = 0){
         $system->setActive(true);
         $system->mapId = $this->id;
         $system->posX = $posX;

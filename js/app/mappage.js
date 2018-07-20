@@ -35,6 +35,9 @@ define([
         // set default select2 config
         Util.initDefaultSelect2Config();
 
+        // set default xEditable config
+        Util.initDefaultEditableConfig();
+
         // load page
         // load info (maintenance) info panel (if scheduled)
         $('body').loadPageStructure().setGlobalShortcuts();
@@ -254,12 +257,12 @@ define([
                                 onGet: (MsgWorkerMessage) => {
                                     switch(MsgWorkerMessage.task()){
                                         case 'mapUpdate':
-                                            Util.updateCurrentMapData( MsgWorkerMessage.data() );
+                                            Util.updateCurrentMapData(MsgWorkerMessage.data());
                                             ModuleMap.updateMapModule(mapModule);
                                             break;
                                         case 'mapAccess':
                                         case 'mapDeleted':
-                                            Util.deleteCurrentMapData( MsgWorkerMessage.data() );
+                                            Util.deleteCurrentMapData(MsgWorkerMessage.data());
                                             ModuleMap.updateMapModule(mapModule);
                                             break;
                                         case 'mapSubscriptions':
@@ -350,7 +353,7 @@ define([
 
                 // get updated map data
                 let updatedMapData = {
-                    mapData: mapModule.getMapModuleDataForUpdate(),
+                    mapData: ModuleMap.getMapModuleDataForUpdate(mapModule),
                     getUserData: Util.getCurrentUserData() ? 0 : 1
                 };
 
@@ -472,7 +475,7 @@ define([
 
                             // update system info panels
                             if(data.system){
-                                mapModule.updateSystemModuleData(data.system);
+                                ModuleMap.updateSystemModulesData(mapModule, data.system);
                             }
 
                             // store current map user data (cache)

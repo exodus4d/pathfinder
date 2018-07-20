@@ -10,7 +10,7 @@
                             <label for="form_system"></label>
                             <select id="form_system" name="routeSystems[]" class="{{selectClass}}" multiple="multiple">
                                 {{#systemSelectOptions}}
-                                <option value="{{name}}" data-systemid="{{systemId}}" selected="selected">{{name}}</option>
+                                <option value="{{systemId}}" selected="selected">{{name}}</option>
                                 {{/systemSelectOptions}}
                             </select>
                             <span class="help-block with-errors">Set default systems (max {{maxSelectionLength}}) for route search</span>

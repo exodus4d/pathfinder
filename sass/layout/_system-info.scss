@@ -8,7 +8,7 @@
 
   // dynamic area specific for the description field
   .pf-system-info-description-area{
-    min-height: 123px;
+    min-height: 124px;
 
     // textarea system description
     .editable-container{
@@ -171,12 +171,11 @@
     padding-bottom: 10px;
     border-bottom: 1px solid $gray-darker;
 
-
-    li{
+    & > li{
       margin-left: 0;
       overflow: visible;
       min-height: 50px;
-      will-change: margin-left;
+      will-change: transform, opacity, margin-left;
       @include transition( margin-left 0.12s cubic-bezier(0.30, 0.80, 0.80, 1.70));
 
       // character headline
@@ -190,19 +189,47 @@
         display: inline-block;
       }
 
-      .pf-system-killboard-img-corp{
+      .pf-system-killboard-img-char{
+        display: inline;
+        width: 32px;
+        margin-top: 9px;
         margin-right: 10px;
-        width: 16px;
+        border: 1px solid $gray-darker;
+        will-change: border-color;
+        @include border-radius(50%);
+        @include transition( border-color 0.12s ease-out);
+
+        &:hover{
+          border-color: $teal-lighter;
+        }
+      }
+
+      .pf-system-killboard-img-corp,
+      .pf-system-killboard-img-ally{
+        display: inline;
+        width: 20px;
+        margin-right: 10px;
+        border: 1px solid $gray-darker;
+        will-change: border-color;
+        @include border-radius(50%);
+        @include transition( border-color 0.12s ease-out);
+
+        &:hover{
+          border-color: $teal-lighter;
+        }
       }
 
       .pf-system-killboard-img-ship{
         width: 50px;
         margin-right: 10px;
         border: 1px solid $gray-darker;
-        transform: translateZ(1px);
         will-change: border-color;
-        @include border-radius(25px);
+        @include border-radius(50%);
         @include transition( border-color 0.12s ease-out);
+
+        &:hover{
+          border-color: $teal-lighter;
+        }
       }
 
       &:before{
@@ -211,7 +238,7 @@
         font-weight: bold;
         position: absolute;
         z-index: 10;
-        left: -25px;
+        left: -18px;
         top: 15px;
         color: $teal;
         opacity: 0;
@@ -220,15 +247,11 @@
       }
 
       &:hover{
-        margin-left: 20px;
-
-        .pf-system-killboard-img-ship{
-          border-color: $teal-lighter;
-        }
+        margin-left: 10px;
 
         &:before{
           opacity: 1;
-          left: -20px;
+          left: -15px;
         }
       }
     }

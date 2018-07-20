@@ -29,7 +29,7 @@
 
 // Components
 @import "bootstrap/component-animations";
-@import "bootstrap/glyphicons";
+//@import "bootstrap/glyphicons"; // currently not used -> FontAwesome is primary icon font
 @import "bootstrap/dropdowns";
 @import "bootstrap/button-groups";
 @import "bootstrap/input-groups";
@@ -40,7 +40,7 @@
 @import "bootstrap/pager";
 @import "bootstrap/labels";
 @import "bootstrap/badges";
-@import "bootstrap/jumbotron";
+//@import "bootstrap/jumbotron"; // currently not used
 @import "bootstrap/thumbnails";
 @import "bootstrap/alerts";
 @import "bootstrap/progress-bars";
@@ -54,7 +54,7 @@
 @import "bootstrap/modals";
 @import "bootstrap/tooltip";
 @import "bootstrap/popovers";
-@import "bootstrap/carousel";
+//@import "bootstrap/carousel"; // currently not used
 
 // Utility classes
 @import "bootstrap/utilities";

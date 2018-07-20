@@ -78,6 +78,33 @@ class WormholeModel extends BasicUniverseModel {
     ];
 
     /**
+     * get wormhole data
+     * @return \stdClass
+     */
+    public function getData(){
+
+        $wormholeData                           = (object) [];
+        $wormholeData->name                     = $this->name;
+        $wormholeData->static                   = $this->static;
+        $wormholeData->security                 = $this->security;
+        $wormholeData->massTotal                = $this->massTotal;
+        $wormholeData->massIndividual           = $this->massIndividual;
+
+        if($this->massRegeneration){
+            $wormholeData->massRegeneration     = $this->massRegeneration;
+        }
+
+        $wormholeData->maxStableTime            = $this->maxStableTime;
+
+        // signature strength as defined by http://wiki.eve-inspiracy.com/index.php?title=Wormhole_Signature_Strength_List
+        if($this->signatureStrength){
+            $wormholeData->signatureStrength    = $this->signatureStrength;
+        }
+
+        return $wormholeData;
+    }
+
+    /**
      *  setter for typeId
      * @param string $typeId
      * @return string|int|null
@@ -155,25 +182,6 @@ class WormholeModel extends BasicUniverseModel {
         return parent::exportData($fields);
     }
 
-    protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){
-        var_dump('loadData');
-        var_dump($id);
-        /*
-        $data = self::getF3()->ccpClient->getUniverseTypesData($id, $additionalOptions);
-        if(!empty($data)){
-            $group = $this->rel('groupId');
-            $group->loadById($data['groupId'], $accessToken, $additionalOptions);
-            $data['groupId'] = $group;
-
-            $this->copyfrom($data);
-            $this->save();
-        } */
-    }
-
-    protected function loadDataByKey(string $key, $value){
-        var_dump('loadData');
-        var_dump($key);
-        var_dump($value);
-    }
+    protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []){}
 
 }

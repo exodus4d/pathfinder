@@ -25,7 +25,7 @@ requirejs.config({
         admin: './app/admin',                                           // initial start "admin page" view
         notification: './app/notification',                             // "notification" view
 
-        jquery: 'lib/jquery-3.1.1.min',                                 // v3.1.1 jQuery
+        jquery: 'lib/jquery-3.3.1.min',                                 // v3.3.1 jQuery
         bootstrap: 'lib/bootstrap.min',                                 // v3.3.0 Bootstrap js code - http://getbootstrap.com/javascript
         text: 'lib/requirejs/text',                                     // v2.0.12 A RequireJS/AMD loader plugin for loading text resources.
         mustache: 'lib/mustache.min',                                   // v1.0.0 Javascript template engine - http://mustache.github.io
@@ -71,7 +71,7 @@ requirejs.config({
         'datatables.plugins.render.ellipsis': 'lib/datatables/plugins/render/ellipsis',
 
         // notification plugin
-        pnotify: 'lib/pnotify/pnotify',                                 // v3.0.0 PNotify - notification core file - https://sciactive.com/pnotify/
+        pnotify: 'lib/pnotify/pnotify',                                 // v3.2.0 PNotify - notification core file - https://sciactive.com/pnotify/
         'pnotify.buttons': 'lib/pnotify/pnotify.buttons',               // PNotify - buttons notification extension
         'pnotify.confirm': 'lib/pnotify/pnotify.confirm',               // PNotify - confirmation notification extension
         'pnotify.nonblock': 'lib/pnotify/pnotify.nonblock',             // PNotify - notification non-block extension (hover effect)

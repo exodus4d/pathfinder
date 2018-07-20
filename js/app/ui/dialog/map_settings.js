@@ -541,7 +541,9 @@ define([
                                     filesCount === files.length &&
                                     filesCountFail === 0
                                 ){
-                                    importMaps(importData);
+                                    importMaps(importData, () => {
+                                        mapInfoDialog.modal('hide');
+                                    });
                                 }
                             };
 
@@ -651,7 +653,7 @@ define([
      * import new map(s) data
      * @param importData
      */
-    let importMaps = function(importData){
+    let importMaps = (importData, callback) => {
 
         let importForm = $('#' + config.dialogMapImportFormId);
         importForm.hideFormMessage('all');
@@ -673,6 +675,10 @@ define([
                 // success
                 if(responseData.warning.length){
                     importForm.showFormMessage(responseData.warning);
+                }
+
+                if(callback){
+                    callback();
                 }
 
                 Util.showNotify({title: 'Import finished', text: 'Map(s) imported', type: 'success'});

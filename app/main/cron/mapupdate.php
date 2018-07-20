@@ -11,7 +11,7 @@ use DB;
 use lib\Config;
 use Model;
 
-class MapUpdate {
+class MapUpdate extends AbstractCron {
 
     const LOG_TEXT_MAPS = '%s (%d maps)';
 
@@ -25,6 +25,7 @@ class MapUpdate {
      * @throws \Exception\PathfinderException
      */
     function deactivateMapData(\Base $f3){
+        $this->setMaxExecutionTime();
         $privateMapLifetime = (int)Config::getMapsDefaultConfig('private.lifetime');
 
         if($privateMapLifetime > 0){
@@ -49,6 +50,7 @@ class MapUpdate {
      * @throws \Exception
      */
     function deleteMapData(\Base $f3){
+        $this->setMaxExecutionTime();
         $pfDB = DB\Database::instance()->getDB('PF');
         $deletedMapsCount = 0;
 
@@ -87,6 +89,7 @@ class MapUpdate {
      * @throws \Exception
      */
     function deleteEolConnections(\Base $f3){
+        $this->setMaxExecutionTime();
         $eolExpire = (int)$f3->get('PATHFINDER.CACHE.EXPIRE_CONNECTIONS_EOL');
 
         if($eolExpire > 0){
@@ -131,6 +134,7 @@ class MapUpdate {
      * @throws \Exception
      */
     function deleteExpiredConnections(\Base $f3){
+        $this->setMaxExecutionTime();
         $whExpire = (int)$f3->get('PATHFINDER.CACHE.EXPIRE_CONNECTIONS_WH');
 
         if($whExpire > 0){
@@ -176,19 +180,20 @@ class MapUpdate {
      * @param \Base $f3
      */
     function deleteSignatures(\Base $f3){
+        $this->setMaxExecutionTime();
         $signatureExpire = (int)$f3->get('PATHFINDER.CACHE.EXPIRE_SIGNATURES');
 
         if($signatureExpire > 0){
             $pfDB = DB\Database::instance()->getDB('PF');
             if($pfDB){
                 $sqlDeleteExpiredSignatures = "DELETE `sigs` FROM
-                `system_signature` `sigs` INNER JOIN
-                `system` ON 
-                  `system`.`id` = `sigs`.`systemId`
-              WHERE
-                `system`.`active` = 0 AND
-                TIMESTAMPDIFF(SECOND, `sigs`.`updated`, NOW() ) > :lifetime
-            ";
+                    `system_signature` `sigs` INNER JOIN
+                    `system` ON 
+                      `system`.`id` = `sigs`.`systemId`
+                  WHERE
+                    `system`.`active` = 0 AND
+                    TIMESTAMPDIFF(SECOND, `sigs`.`updated`, NOW() ) > :lifetime
+                ";
 
                 $pfDB->exec($sqlDeleteExpiredSignatures, ['lifetime' => $signatureExpire]);
             }

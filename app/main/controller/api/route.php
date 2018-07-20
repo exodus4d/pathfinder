@@ -7,10 +7,11 @@
  */
 
 namespace Controller\Api;
+
 use Controller;
+use Controller\Ccp\Universe;
 use lib\Config;
 use Model;
-
 
 /**
  * Routes controller
@@ -101,6 +102,7 @@ class Route extends Controller\AccessController {
      * -> (e.g. new system added, connection added/updated, ...)
      * @param array $mapIds
      * @param array $filterData
+     * @throws \Exception
      */
     private function setDynamicJumpData($mapIds = [], $filterData = []){
         // make sure, mapIds are integers (protect against SQL injections)
@@ -171,13 +173,10 @@ class Route extends Controller\AccessController {
                 }
 
                 $query = "SELECT
-                        `system_src`.`regionId` regionId,
-                        `system_src`.`constellationId` constellationId,
-                        `system_src`.`name` systemName,
                         `system_src`.`systemId` systemId,
                         (
                           SELECT
-                            GROUP_CONCAT( NULLIF(`system_tar`.`name`, NULL) SEPARATOR ':')
+                            GROUP_CONCAT( NULLIF(`system_tar`.`systemId`, NULL) SEPARATOR ':')
                           FROM
                             `connection` INNER JOIN
                             `system` system_tar ON
@@ -193,8 +192,7 @@ class Route extends Controller\AccessController {
                             " . $whereQuery . "
                             `system_tar`.`id` != `system_src`.`id` AND
                             `system_tar`.`active` = 1
-                        ) jumpNodes,
-                        `system_src`.`trueSec` trueSec
+                        ) jumpNodes
                     FROM
                         `system` `system_src` INNER JOIN
                         `map` ON
@@ -211,6 +209,17 @@ class Route extends Controller\AccessController {
                 $rows = $this->getDB()->exec($query,  null, $this->dynamicJumpDataCacheTime);
 
                 if(count($rows) > 0){
+                    // enrich $row data with static system data (from universe DB)
+                    $universe = new Universe();
+                    for($i = 0; $i < count($rows); $i++){
+                        if($staticData = $universe->getSystemData($rows[$i]['systemId'])){
+                            $rows[$i]['systemName'] = $staticData->name;
+                            $rows[$i]['constellationId'] = $staticData->constellation->id;
+                            $rows[$i]['regionId'] = $staticData->constellation->region->id;
+                            $rows[$i]['trueSec'] = $staticData->trueSec;
+                        }
+                    }
+
                     // update jump data for this instance
                     $this->updateJumpData($rows);
                 }
@@ -229,7 +238,7 @@ class Route extends Controller\AccessController {
         foreach($rows as &$row){
             $regionId       = (int)$row['regionId'];
             $constId        = (int)$row['constellationId'];
-            $systemName     = strtoupper($row['systemName']);
+            $systemName     = (string)($row['systemName']);
             $systemId       = (int)$row['systemId'];
             $secStatus      = (float)$row['trueSec'];
 
@@ -242,19 +251,19 @@ class Route extends Controller\AccessController {
             }
 
             // fill "idArray" data ------------------------------------------------------------------------------------
-            if( !isset($this->idArray[$systemName]) ){
-                $this->idArray[$systemName] = $systemId;
+            if( !isset($this->idArray[$systemId]) ){
+                $this->idArray[$systemId] = $systemName;
             }
 
             // fill "jumpArray" data ----------------------------------------------------------------------------------
-            if( !is_array($this->jumpArray[$systemName]) ){
-                $this->jumpArray[$systemName] = [];
+            if( !is_array($this->jumpArray[$systemId]) ){
+                $this->jumpArray[$systemId] = [];
             }
-            $this->jumpArray[$systemName] = array_merge( explode(':', strtoupper($row['jumpNodes'])), $this->jumpArray[$systemName] );
+            $this->jumpArray[$systemId] = array_merge(array_map('intval', explode(':', $row['jumpNodes'])), $this->jumpArray[$systemId]);
 
-            // add systemId to end (if not already there)
-            if(end($this->jumpArray[$systemName]) != $systemId){
-                array_push($this->jumpArray[$systemName],$systemId);
+            // add systemName to end (if not already there)
+            if(end($this->jumpArray[$systemId]) != $systemName){
+                array_push($this->jumpArray[$systemId], $systemName);
             }
         }
     }
@@ -267,24 +276,23 @@ class Route extends Controller\AccessController {
     private function filterJumpData($filterData = [], $keepSystems = []){
         if($filterData['flag'] == 'secure'){
             // remove all systems (TrueSec < 0.5) from search arrays
-            $this->jumpArray = array_filter($this->jumpArray, function($jumpData) use($keepSystems) {
-
-                // systemId is always last entry
-                $systemId = end($jumpData);
+            $this->jumpArray = array_filter($this->jumpArray, function($systemId) use($keepSystems) {
                 $systemNameData = $this->nameArray[$systemId];
                 $systemSec = $systemNameData[3];
 
-                if($systemSec < 0.45 && !in_array($systemId, $keepSystems)){
-                    // remove system from nameArray as well
+                if(
+                    $systemSec < 0.45 &&
+                    !in_array($systemId, $keepSystems) &&
+                    !preg_match('/^j\d+$/i', $this->idArray[$systemId]) // WHs are supposed to be "secure"
+                ){
+                    // remove system from nameArray and idArray
                     unset($this->nameArray[$systemId]);
-                    // remove system from idArray as well
-                    $systemName = $systemNameData[0];
-                    unset($this->idArray[$systemName]);
+                    unset($this->idArray[$systemId]);
                     return false;
                 }else{
                     return true;
                 }
-            });
+            }, ARRAY_FILTER_USE_KEY );
         }
     }
 
@@ -298,16 +306,16 @@ class Route extends Controller\AccessController {
         $info = null;
         switch($option){
             case 'systemName':
-                $info = $this->nameArray[ $systemId ][0];
+                $info = $this->nameArray[$systemId][0];
                 break;
             case 'regionId':
-                $info = $this->nameArray[ $systemId ][1];
+                $info = $this->nameArray[$systemId][1];
                 break;
             case 'constellationId':
-                $info = $this->nameArray[ $systemId ][2];
+                $info = $this->nameArray[$systemId][2];
                 break;
             case 'trueSec':
-                $info = $this->nameArray[ $systemId ][3];
+                $info = $this->nameArray[$systemId][3];
                 break;
         }
 
@@ -387,13 +395,13 @@ class Route extends Controller\AccessController {
 
     /**
      * get formatted jump node data
-     * @param $systemName
+     * @param int $systemId
      * @return array
      */
-    protected function getJumpNodeData($systemName) : array {
+    protected function getJumpNodeData(int $systemId) : array {
         return [
-            'system' => $systemName,
-            'security' => $this->getSystemInfoBySystemId($this->idArray[$systemName], 'trueSec')
+            'system' => $this->getSystemInfoBySystemId($systemId, 'systemName'),
+            'security' => $this->getSystemInfoBySystemId($systemId, 'trueSec')
         ];
     }
 
@@ -430,6 +438,7 @@ class Route extends Controller\AccessController {
      * @param array $mapIds
      * @param array $filterData
      * @return array
+     * @throws \Exception
      * @throws \Exception\PathfinderException
      */
     private function searchRouteCustom(int $systemFromId, int $systemToId, $searchDepth = 0, array $mapIds = [], array $filterData = []) : array {
@@ -454,19 +463,16 @@ class Route extends Controller\AccessController {
             // --> don´t filter some systems (e.g. systemFrom, systemTo) even if they are are WH,LS,0.0
             $this->filterJumpData($filterData, [$systemFromId, $systemToId]);
 
-            $systemFrom = $this->getSystemInfoBySystemId($systemFromId, 'systemName');
-            $systemTo = $this->getSystemInfoBySystemId($systemToId, 'systemName');
-
             // search route -------------------------------------------------------------------------------------------
 
             // jump counter
             $jumpNum = 0;
             $depthSearched = 0;
 
-            if( isset($this->jumpArray[$systemFrom]) ){
+            if( isset($this->jumpArray[$systemFromId]) ){
                 // check if the system we are looking for is a direct neighbour
-                foreach( $this->jumpArray[$systemFrom] as $n ) {
-                    if ($n == $systemTo) {
+                foreach( $this->jumpArray[$systemFromId] as $n ) {
+                    if ($n == $systemToId) {
                         $jumpNum = 2;
                         $routeData['route'][] = $this->getJumpNodeData($n);
                         break;
@@ -475,11 +481,11 @@ class Route extends Controller\AccessController {
 
                 // system is not a direct neighbour -> search recursive its neighbours
                 if ($jumpNum == 0) {
-                    $searchResult = $this->graph_find_path( $this->jumpArray, $systemFrom, $systemTo, $searchDepth );
+                    $searchResult = $this->graph_find_path( $this->jumpArray, $systemFromId, $systemToId, $searchDepth );
                     $depthSearched = $searchResult['depth'];
-                    foreach( $searchResult['path'] as $systemName ) {
+                    foreach( $searchResult['path'] as $systemId ) {
                         if ($jumpNum > 0) {
-                            $routeData['route'][] = $this->getJumpNodeData($systemName);
+                            $routeData['route'][] = $this->getJumpNodeData($systemId);
                         }
                         $jumpNum++;
                     }
@@ -489,7 +495,7 @@ class Route extends Controller\AccessController {
                     // route found
                     $routeData['routePossible'] = true;
                     // insert "from" system on top
-                    array_unshift($routeData['route'], $this->getJumpNodeData($systemFrom));
+                    array_unshift($routeData['route'], $this->getJumpNodeData($systemFromId));
                 } else {
                     // route not found
                     $routeData['routePossible'] = false;
@@ -512,6 +518,7 @@ class Route extends Controller\AccessController {
      * @param array $mapIds
      * @param array $filterData
      * @return array
+     * @throws \Exception
      * @throws \Exception\PathfinderException
      */
     private function searchRouteESI(int $systemFromId, int $systemToId, int $searchDepth = 0, array $mapIds = [], array $filterData = []) : array {
@@ -540,18 +547,16 @@ class Route extends Controller\AccessController {
             $this->filterJumpData($filterData, [$systemFromId, $systemToId]);
 
             $connections = [];
-            foreach($this->jumpArray as $systemSourceName => $jumpData){
+            foreach($this->jumpArray as $systemSourceId => $jumpData){
                 $count = count($jumpData);
                 if($count > 1){
                     // ... should always > 1
-                    $systemSourceId = (int)$this->idArray[$systemSourceName];
                     // loop all connections for current source system
-                    foreach($jumpData as $systemTargetName) {
+                    foreach($jumpData as $systemTargetId) {
                         // skip last entry
                         if(--$count <= 0){
                             break;
                         }
-                        $systemTargetId = (int)$this->idArray[$systemTargetName];
 
                         // systemIds exist and wer not removed before in filterJumpData()
                         if($systemSourceId && $systemTargetId){
@@ -599,8 +604,7 @@ class Route extends Controller\AccessController {
                     $this->setStaticJumpData();
 
                     foreach($result['route'] as $systemId){
-                        $systemName = $this->getSystemInfoBySystemId($systemId, 'systemName');
-                        $routeData['route'][] = $this->getJumpNodeData($systemName);
+                        $routeData['route'][] = $this->getJumpNodeData($systemId);
                     }
                 }else{
                     $depthSearched = $routeData['maxDepth'];

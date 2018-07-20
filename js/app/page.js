@@ -252,8 +252,7 @@ define([
                     id: Util.config.menuButtonFullScreenId
                 }).html('&nbsp;&nbsp;Full screen').prepend(
                     $('<i>',{
-                        class: 'glyphicon glyphicon-fullscreen',
-                        css: {width: '1.23em'}
+                        class: 'fas fa-expand-arrows-alt fa-fw'
                     })
                 ).on('click', function(){
                     let fullScreenElement = $('body');
@@ -345,9 +344,9 @@ define([
                 $('<a>', {
                     class: 'list-group-item',
                     id: Util.config.menuButtonGridId
-                }).html('&nbsp;&nbsp;&nbsp;Grid snapping').prepend(
+                }).html('&nbsp;&nbsp;Grid snapping').prepend(
                     $('<i>',{
-                        class: 'glyphicon glyphicon-th'
+                        class: 'fas fa-th fa-fw'
                     })
                 ).on('click', function(){
                     Util.getMapModule().getActiveMap().triggerMenuEvent('MapOption', {
@@ -359,7 +358,7 @@ define([
                 $('<a>', {
                     class: 'list-group-item',
                     id: Util.config.menuButtonMagnetizerId
-                }).html('&nbsp;&nbsp;&nbsp;Magnetizing').prepend(
+                }).html('&nbsp;&nbsp;Magnetizing').prepend(
                     $('<i>',{
                         class: 'fas fa-magnet fa-fw'
                     })
@@ -373,13 +372,32 @@ define([
                 $('<a>', {
                     class: 'list-group-item',
                     id: Util.config.menuButtonEndpointId
-                }).html('&nbsp;&nbsp;&nbsp;Signatures').prepend(
+                }).html('&nbsp;&nbsp;Signatures').prepend(
                     $('<i>',{
                         class: 'fas fa-link fa-fw'
                     })
                 ).on('click', function(){
                     Util.getMapModule().getActiveMap().triggerMenuEvent('MapOption', {
                         option: 'mapEndpoint',
+                        toggle: true
+                    });
+                })
+            ).append(
+                $('<a>', {
+                    class: 'list-group-item',
+                    id: Util.config.menuButtonCompactId
+                }).html('&nbsp;&nbsp;Compact').prepend(
+                    $('<i>',{
+                        class: 'fas fa-compress fa-fw'
+                    })
+                ).append(
+                    $('<span>',{
+                        class: 'badge bg-color bg-color-gray txt-color txt-color-warning',
+                        text: 'beta'
+                    })
+                ).on('click', function(){
+                    Util.getMapModule().getActiveMap().triggerMenuEvent('MapOption', {
+                        option: 'mapCompact',
                         toggle: true
                     });
                 })
@@ -437,11 +455,7 @@ define([
      * @param event
      * @param data
      */
-    $.fn.triggerMenuEvent = function(event, data){
-        if(data === undefined){
-            data = {};
-        }
-
+    $.fn.triggerMenuEvent = function(event, data = {}){
         $(this).trigger('pf:menu' + event, [data]);
     };
 
@@ -710,12 +724,20 @@ define([
 
         // END menu events =============================================================================
 
+        // global "popover" callback (for all popovers)
+        $('.' + Util.config.popoverTriggerClass).on('hide.bs.popover', function(e) {
+            let popoverElement = $(this).data('bs.popover').tip();
+
+            // destroy all active tooltips inside this popover
+            popoverElement.destroyTooltip(true);
+        });
+
         // global "modal" callback (for all modals)
-        $('body').on('hide.bs.modal', '> .modal', function(a,b) {
+        $('body').on('hide.bs.modal', '> .modal', function(e) {
             $(this).destroyTimestampCounter();
         });
 
-        // disable memue links based on current map config
+        // disable menu links based on current map config
         documentElement.on('pf:updateMenuOptions', function(e, data){
             let hasRightMapDelete = MapUtil.checkRight('map_delete', data.mapConfig);
             $('#' + Util.config.menuButtonMapDeleteId).toggleClass('disabled', !hasRightMapDelete);

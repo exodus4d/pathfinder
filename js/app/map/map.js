@@ -35,6 +35,7 @@ define([
         systemLockedClass: 'pf-system-locked',                          // class for locked systems on a map
         systemHeadClass: 'pf-system-head',                              // class for system head
         systemHeadNameClass: 'pf-system-head-name',                     // class for system name
+        systemHeadCounterClass: 'pf-system-head-counter',               // class for system user counter
         systemHeadExpandClass: 'pf-system-head-expand',                 // class for system head expand arrow
         systemHeadInfoClass: 'pf-system-head-info',                     // class for system info
         systemBodyClass: 'pf-system-body',                              // class for system body
@@ -57,8 +58,6 @@ define([
         // dialogs
         systemDialogId: 'pf-system-dialog',                             // id for system dialog
         systemDialogSelectClass: 'pf-system-dialog-select',             // class for system select Element
-
-        popoverTriggerClass: 'pf-popover-trigger',                      // class for "popover" trigger elements
 
         // system security classes
         systemSec: 'pf-system-sec'
@@ -90,11 +89,11 @@ define([
     };
 
     // jsPlumb config
-    let globalMapConfig =  {
+    let globalMapConfig = {
         source: {
             filter:  filterSystemHeadEvent,
             //isSource:true,
-            isTarget:true,                          // add target Endpoint to each system (e.g. for drag&drop)
+            isTarget: true,                         // add target Endpoint to each system (e.g. for drag&drop)
             allowLoopback: false,                   // loopBack connections are not allowed
             cssClass: config.endpointSourceClass,
             uniqueEndpoint: false,                  // each connection has its own endpoint visible
@@ -107,7 +106,7 @@ define([
         },
         target: {
             filter:  filterSystemHeadEvent,
-            isSource:true,
+            isSource: true,
             //isTarget:true,
             //allowLoopBack: false,                 // loopBack connections are not allowed
             cssClass: config.endpointTargetClass,
@@ -127,16 +126,21 @@ define([
      * @param map
      * @param data
      * @param currentUserIsHere boolean - if the current user is in this system
+     * @param options
      */
-    $.fn.updateSystemUserData = function(map, data, currentUserIsHere){
+    $.fn.updateSystemUserData = function(map, data, currentUserIsHere, options){
         let system = $(this);
         let systemId = system.attr('id');
+        let compactView = Util.getObjVal(options, 'compactView');
+
+        // find countElement -> minimizedUI
+        let systemCount = system.find('.' + config.systemHeadCounterClass);
 
         // find system body
-        let systemBody = $( system.find('.' + config.systemBodyClass) );
+        let systemBody = system.find('.' + config.systemBodyClass);
 
         // find expand arrow
-        let systemHeadExpand = $( system.find('.' + config.systemHeadExpandClass) );
+        let systemHeadExpand = system.find('.' + config.systemHeadExpandClass);
 
         let oldCacheKey = system.data('userCache');
         let oldUserCount = system.data('userCount');
@@ -156,6 +160,11 @@ define([
             data.user
         ){
             let cacheArray = [];
+
+            // we need to add "view mode" option to key
+            // -> if view mode change detected -> key no longer valid
+            cacheArray.push(compactView ? 'compact' : 'default');
+
             // loop all active pilots and build cache-key
             for(let i = 0; i < data.user.length; i++){
                 userCounter++;
@@ -173,71 +182,73 @@ define([
                 // remove all content
                 systemBody.empty();
 
-                // loop "again" and build DOM object with user information
-                for(let j = 0; j < data.user.length; j++){
-                    let userData = data.user[j];
+                if(compactView){
+                    // compact system layout-> pilot count shown in systemHead
+                    systemCount.text(userCounter);
 
-                    let statusClass = Util.getStatusInfoForCharacter(userData, 'class');
-                    let userName = userData.name;
+                    system.toggleSystemTooltip('destroy', {});
+                    systemHeadExpand.hide();
+                    system.toggleBody(false, map, {});
 
-                    let item = $('<div>', {
-                        class: config.systemBodyItemClass
-                    }).append(
-                        $('<span>', {
-                            text: userData.log.ship.typeName,
-                            class: config.systemBodyRightClass
-                        })
-                    ).append(
-                        $('<i>', {
-                            class: ['fas', 'fa-circle', config.systemBodyItemStatusClass, statusClass].join(' ')
-                        })
-                    ).append(
-                        $('<span>', {
-                            class: config.systemBodyItemNameClass,
-                            text: userName
-                        })
-                    );
+                    map.revalidate(systemId);
+                }else{
+                    systemCount.empty();
 
-                    systemBody.append(item);
-                }
+                    // show active pilots in body + pilots count tooltip
+                    // loop "again" and build DOM object with user information
+                    for(let j = 0; j < data.user.length; j++){
+                        let userData = data.user[j];
 
+                        let statusClass = Util.getStatusInfoForCharacter(userData, 'class');
+                        let userName = userData.name;
 
-                // ====================================================================================================
+                        let item = $('<div>', {
+                            class: config.systemBodyItemClass
+                        }).append(
+                            $('<span>', {
+                                text: userData.log.ship.typeName,
+                                class: config.systemBodyRightClass
+                            })
+                        ).append(
+                            $('<i>', {
+                                class: ['fas', 'fa-circle', config.systemBodyItemStatusClass, statusClass].join(' ')
+                            })
+                        ).append(
+                            $('<span>', {
+                                class: config.systemBodyItemNameClass,
+                                text: userName
+                            })
+                        );
 
-                // user count changed -> change tooltip content
+                        systemBody.append(item);
+                    }
 
-                // set tooltip color
-                let highlight = '';
-                if(userCounter > oldUserCount){
-                    highlight = 'good';
-                }else if(userCounter < oldUserCount){
-                    highlight = 'bad';
-                }
+                    // user count changed -> change tooltip content
+                    let highlight = '';
+                    if(userCounter >= oldUserCount){
+                        highlight = 'good';
+                    }else if(userCounter < oldUserCount){
+                        highlight = 'bad';
+                    }
 
-                let tooltipOptions = {
-                    systemId: systemId,
-                    highlight: highlight,
-                    userCount: userCounter
-                };
+                    let tooltipOptions = {
+                        systemId: systemId,
+                        highlight: highlight,
+                        userCount: userCounter
+                    };
 
-                // show system head
-                systemHeadExpand.velocity('stop', true).velocity({
-                    width: '10px'
-                },{
-                    duration: 50,
-                    display: 'inline-block',
-                    progress: function(){
-                        //re-validate element size and repaint
-                        map.revalidate( systemId );
-                    },
-                    complete: function(){
-                        // show system body
-                        system.toggleBody(true, map, {complete: function(system){
+                    // show system head
+                    systemHeadExpand.css('display', 'inline-block');
+
+                    // show system body
+                    system.toggleBody(true, map, {
+                        complete: function(system){
                             // show active user tooltip
                             system.toggleSystemTooltip('show', tooltipOptions);
-                        }});
-                    }
-                });
+                            map.revalidate( systemId );
+                        }
+                    });
+                }
             }
         }else{
             // no user data found for this system
@@ -249,16 +260,13 @@ define([
                 oldCacheKey &&
                 oldCacheKey.length > 0
             ){
-                // remove tooltip
+                // reset all elements
+                systemCount.empty();
                 system.toggleSystemTooltip('destroy', {});
+                systemHeadExpand.hide();
+                system.toggleBody(false, map, {});
 
-                // no user -> clear SystemBody
-                systemHeadExpand.velocity('stop').velocity('reverse',{
-                    display: 'none',
-                    complete: function(){
-                        system.toggleBody(false, map, {});
-                    }
-                });
+                map.revalidate(systemId);
             }
         }
     };
@@ -307,7 +315,7 @@ define([
                 begin: function(){
                 },
                 progress: function(){
-                    // revalidate element size and repaint
+                    // re-validate element size and repaint
                     map.revalidate( systemDomId );
                 },
                 complete: function(){
@@ -391,13 +399,17 @@ define([
                     $('<span>', {
                         class: systemHeadClasses.join(' '),
                     }).attr('data-value', systemName),
+                    // System users count
+                    $('<span>', {
+                        class: [config.systemHeadCounterClass, Util.config.popoverTriggerClass].join(' ')
+                    }),
                     // System locked status
                     $('<i>', {
                         class: ['fas', 'fa-lock', 'fa-fw'].join(' ')
                     }).attr('title', 'locked'),
                     // System effect color
                     $('<i>', {
-                        class: ['fas', 'fa-square', 'fa-fw', effectBasicClass, effectClass, config.popoverTriggerClass].join(' ')
+                        class: ['fas', 'fa-square', 'fa-fw', effectBasicClass, effectClass, Util.config.popoverTriggerClass].join(' ')
                     }),
                     // expand option
                     $('<i>', {
@@ -482,6 +494,8 @@ define([
         system.data('region', data.region.name);
         system.data('constellationId', parseInt(data.constellation.id));
         system.data('constellation', data.constellation.name);
+        system.data('planets', data.planets);
+        system.data('shattered', data.shattered);
         system.data('statics', data.statics);
         system.data('updated', parseInt(data.updated.updated));
         system.data('changed', false);
@@ -519,11 +533,9 @@ define([
             e.stopPropagation();
 
             // trigger menu "open
-
-            // get invisible menu entries
-            let hideOptions = getHiddenContextMenuOptions(component);
-            let activeOptions = getActiveContextMenuOptions(component);
-            $(e.target).trigger('pf:openContextMenu', [e, component, hideOptions, activeOptions]);
+            Promise.all([getHiddenContextMenuOptions(component), getActiveContextMenuOptions(component)]).then(payload => {
+                $(e.target).trigger('pf:openContextMenu', [e, component, payload[0], payload[1]]);
+            });
 
             return false;
         });
@@ -1129,7 +1141,24 @@ define([
             });
         };
 
-        return new Promise(updateMapExecutor);
+        return new Promise(updateMapExecutor).then(payload => {
+
+            let filterMapByScopesExecutor = (resolve, reject) => {
+                // apply current active scope filter ==================================================================
+                let promiseStore = MapUtil.getLocaleData('map', payload.data.mapConfig.config.id);
+                promiseStore.then(dataStore => {
+                    let scopes = [];
+                    if(dataStore && dataStore.filterScopes){
+                        scopes = dataStore.filterScopes;
+                    }
+
+                    MapUtil.filterMapByScopes(payload.data.mapConfig.map, scopes);
+                    resolve(payload);
+                });
+            };
+
+            return new Promise(filterMapByScopesExecutor);
+        });
     };
 
     /**
@@ -1192,129 +1221,6 @@ define([
         }
 
         return connection;
-    };
-
-    /**
-     * make all systems appear visual on the map with its connections
-     * @param show
-     * @param callback
-     */
-    $.fn.visualizeMap = function(show, callback){
-        let mapElement = $(this);
-
-        // start map update counter -> prevent map updates during animations
-        mapElement.getMapOverlay('timer').startMapUpdateCounter();
-
-        let systemElements = mapElement.find('.' + config.systemClass);
-        let endpointElements =  mapElement.find('.jsplumb-endpoint');
-        let connectorElements = mapElement.find('.jsplumb-connector');
-        let overlayElements = mapElement.find('.jsplumb-overlay, .tooltip');
-
-        let hideElements = (elements) => {
-            if(elements.length > 0){
-                // disable transition for next opacity change
-                elements.addClass('pf-notransition');
-                // hide elements
-                elements.css('opacity', 0);
-                // Trigger a reflow, flushing the CSS changes
-                // -> http://stackoverflow.com/questions/11131875/what-is-the-cleanest-way-to-disable-css-transition-effects-temporarily
-                elements[0].offsetHeight; // jshint ignore:line
-                elements.removeClass('pf-notransition');
-            }
-
-            return elements;
-        };
-
-        // if map empty (no systems), execute callback and return
-        // no visual effects on larger maps
-        if(
-            systemElements.length === 0 ||
-            systemElements.length > 20 ||
-            endpointElements.length === 0
-        ){
-            callback();
-            return;
-        }
-
-        // show nice animation
-        if(show === 'show'){
-            systemElements = hideElements(systemElements);
-            endpointElements = hideElements(endpointElements);
-            connectorElements = hideElements(connectorElements);
-            overlayElements = hideElements(overlayElements);
-
-            systemElements.velocity({
-                translateY: [ 0, -20],
-                opacity: [ 1, 0 ]
-            },{
-                duration: 300,
-                easing: 'easeOut',
-                complete: function(){
-                    // show connections
-                    endpointElements.velocity('transition.fadeIn', {
-                        duration: 0
-                    });
-
-                    connectorElements.velocity('transition.fadeIn', {
-                        stagger: 30,
-                        duration: 120,
-                        complete: function(){
-                            callback();
-                        }
-                    });
-
-                    // show overlay elements (if some exist)
-                    if(overlayElements.length > 0){
-                        overlayElements.delay(300).velocity('transition.fadeIn', {
-                            stagger: 50,
-                            duration: 180,
-                            display: 'auto'
-                        });
-                    }
-                }
-            });
-        }else if(show === 'hide'){
-
-            $('.mCSB_container').velocity('callout.shake', {
-                stagger: 0,
-                drag: false,
-                duration: 180,
-                display: 'auto'
-            });
-
-            overlayElements.velocity('transition.fadeOut', {
-                stagger: 50,
-                drag: true,
-                duration: 180,
-                display: 'auto'
-            });
-
-            endpointElements.velocity('transition.fadeOut', {
-                duration: 0,
-                display: 'block',
-                complete: function(){
-                    // show connections
-                    connectorElements.velocity('transition.fadeOut', {
-                        stagger: 0,
-                        drag: true,
-                        duration: 20,
-                        display: 'block'
-                    });
-
-                    systemElements.delay(100).velocity({
-                        translateY: [ -20, 0 ],
-                        opacity: [ 0, 1 ]
-                    },{
-                        duration: 180,
-                        display: 'block',
-                        easing: 'easeOut',
-                        complete: function(){
-                            callback();
-                        }
-                    });
-                }
-            });
-        }
     };
 
     /**
@@ -1619,7 +1525,7 @@ define([
                 // init system select live search  - some delay until modal transition has finished
                 let selectElement = modalContent.find('.' + config.systemDialogSelectClass);
                 selectElement.delay(240).initSystemSelect({
-                    key: 'systemId',
+                    key: 'id',
                     disabledOptions: mapSystemIds
                 });
             });
@@ -1666,6 +1572,9 @@ define([
         });
 
         headElement.on('shown', function(e, editable) {
+            // hide tooltip when xEditable is visible
+            system.toggleSystemTooltip('hide', {});
+
             let inputElement =  editable.input.$input.select();
 
             // "fake" timeout until dom rendered
@@ -1673,6 +1582,15 @@ define([
                 // pre-select value
                 input.select();
             }, 0, inputElement);
+        });
+
+        headElement.on('hidden', function(e, editable) {
+            // show tooltip "again" on xEditable hidden
+            system.toggleSystemTooltip('show', {show: true});
+
+            // if system with changed (e.g. long alias) -> revalidate system
+            let map  = MapUtil.getMapInstance(system.attr('data-mapid'));
+            map.revalidate(system.attr('id'));
         });
     };
 
@@ -1963,104 +1881,106 @@ define([
     /**
      * get hidden menu entry options for a context menu
      * @param component
-     * @returns {Array}
+     * @returns {Promise<any>}
      */
     let getHiddenContextMenuOptions = function(component){
-        let hiddenOptions = [];
 
-        if(component instanceof jsPlumb.Connection){
-            // disable connection menu entries
+        let getHiddenContextMenuOptionsExecutor = (resolve, reject) => {
+            let hiddenOptions = [];
 
-            let scope = component.scope;
+            if(component instanceof jsPlumb.Connection){
+                // disable connection menu entries
+                let scope = component.scope;
+                if(scope === 'abyssal'){
+                    hiddenOptions.push('frigate');
+                    hiddenOptions.push('preserve_mass');
+                    hiddenOptions.push('change_status');
 
-            if(scope === 'abyssal'){
-                hiddenOptions.push('frigate');
-                hiddenOptions.push('preserve_mass');
-                hiddenOptions.push('change_status');
+                    hiddenOptions.push('change_scope');
+                    hiddenOptions.push('separator');
+                }else if(scope === 'stargate'){
+                    hiddenOptions.push('frigate');
+                    hiddenOptions.push('preserve_mass');
+                    hiddenOptions.push('change_status');
 
-                hiddenOptions.push('change_scope');
-                hiddenOptions.push('separator');
-            }else if(scope === 'stargate'){
-                hiddenOptions.push('frigate');
-                hiddenOptions.push('preserve_mass');
-                hiddenOptions.push('change_status');
-
-                hiddenOptions.push('scope_stargate');
-            }else if(scope === 'jumpbridge'){
-                hiddenOptions.push('frigate');
-                hiddenOptions.push('preserve_mass');
-                hiddenOptions.push('change_status');
-                hiddenOptions.push('scope_jumpbridge');
-            }else if(scope === 'wh'){
-                hiddenOptions.push('scope_wh');
+                    hiddenOptions.push('scope_stargate');
+                }else if(scope === 'jumpbridge'){
+                    hiddenOptions.push('frigate');
+                    hiddenOptions.push('preserve_mass');
+                    hiddenOptions.push('change_status');
+                    hiddenOptions.push('scope_jumpbridge');
+                }else if(scope === 'wh'){
+                    hiddenOptions.push('scope_wh');
+                }
+            }else if( component.hasClass(config.systemClass) ){
+                // disable system menu entries
+                if(component.data('locked') === true){
+                    hiddenOptions.push('delete_system');
+                }
             }
 
-        }else if( component.hasClass(config.systemClass) ){
-            // disable system menu entries
-            if(component.data('locked') === true){
-                hiddenOptions.push('delete_system');
-            }
-        }
+            resolve(hiddenOptions);
+        };
 
-        return hiddenOptions;
+        return new Promise(getHiddenContextMenuOptionsExecutor);
     };
 
     /**
      * get active menu entry options for a context menu
      * @param component
-     * @returns {Array}
+     * @returns {Promise<any>}
      */
-    let getActiveContextMenuOptions = function(component){
-        let activeOptions = [];
+    let getActiveContextMenuOptions = component => {
 
-        if(component instanceof jsPlumb.Connection){
-            let scope = component.scope;
+        let getActiveContextMenuOptionsExecutor = (resolve, reject) => {
+            let activeOptions = [];
 
-            if(component.hasType('wh_eol') === true){
-                activeOptions.push('wh_eol');
-            }
+            if(component instanceof jsPlumb.Connection){
+                let scope = component.scope;
 
-            if(component.hasType('frigate') === true){
-                activeOptions.push('frigate');
-            }
-            if(component.hasType('preserve_mass') === true){
-                activeOptions.push('preserve_mass');
-            }
-            if(component.hasType('wh_reduced') === true){
-                activeOptions.push('status_reduced');
-            }else if(component.hasType('wh_critical') === true){
-                activeOptions.push('status_critical');
-            }else{
-                // not reduced is default
-                activeOptions.push('status_fresh');
-            }
+                if(component.hasType('wh_eol') === true){
+                    activeOptions.push('wh_eol');
+                }
 
-        }else if( component.hasClass(config.mapClass) ){
+                if(component.hasType('frigate') === true){
+                    activeOptions.push('frigate');
+                }
+                if(component.hasType('preserve_mass') === true){
+                    activeOptions.push('preserve_mass');
+                }
+                if(component.hasType('wh_reduced') === true){
+                    activeOptions.push('status_reduced');
+                }else if(component.hasType('wh_critical') === true){
+                    activeOptions.push('status_critical');
+                }else{
+                    // not reduced is default
+                    activeOptions.push('status_fresh');
+                }
 
-            // active map menu entries
-            if(component.data('filter_scope') === 'wh'){
-                activeOptions.push('filter_wh');
-            }
-            if(component.data('filter_scope') === 'stargate'){
-                activeOptions.push('filter_stargate');
-            }
-            if(component.data('filter_scope') === 'jumpbridge'){
-                activeOptions.push('filter_jumpbridge');
-            }
-            if(component.data('filter_scope') === 'abyssal'){
-                activeOptions.push('filter_abyssal');
-            }
-        }else if( component.hasClass(config.systemClass) ){
-            // active system menu entries
-            if(component.data('locked') === true){
-                activeOptions.push('lock_system');
-            }
-            if(component.data('rallyUpdated') > 0){
-                activeOptions.push('set_rally');
-            }
-        }
+                resolve(activeOptions);
+            }else if( component.hasClass(config.mapClass) ){
+                // active map menu entries
+                let promiseStore = MapUtil.getLocaleData('map', component.data('id'));
+                promiseStore.then(dataStore => {
+                    if(dataStore && dataStore.filterScopes){
+                        activeOptions = dataStore.filterScopes.map(scope => 'filter_' + scope);
+                    }
+                    resolve(activeOptions);
+                });
+            }else if( component.hasClass(config.systemClass) ){
+                // active system menu entries
+                if(component.data('locked') === true){
+                    activeOptions.push('lock_system');
+                }
+                if(component.data('rallyUpdated') > 0){
+                    activeOptions.push('set_rally');
+                }
 
-        return activeOptions;
+                resolve(activeOptions);
+            }
+        };
+
+        return new Promise(getActiveContextMenuOptionsExecutor);
     };
 
     /**
@@ -2172,17 +2092,14 @@ define([
         }
 
         // init system tooltips =======================================================================================
-        // TODO check this code:
-        /*
         let systemTooltipOptions = {
             toggle: 'tooltip',
             placement: 'right',
             container: 'body',
             viewport: system.id
         };
-
         system.find('.fas').tooltip(systemTooltipOptions);
-*/
+
         // context menu ===============================================================================================
 
         // trigger context menu
@@ -2192,12 +2109,11 @@ define([
 
             let systemElement = $(this);
 
-            // hide all map contextmenu options
-            let hideOptions = getHiddenContextMenuOptions(systemElement);
+            // trigger menu "open
+            Promise.all([getHiddenContextMenuOptions(systemElement), getActiveContextMenuOptions(systemElement)]).then(payload => {
+                $(e.target).trigger('pf:openContextMenu', [e, this, payload[0], payload[1]]);
+            });
 
-            let activeOptions = getActiveContextMenuOptions(systemElement);
-
-            $(e.target).trigger('pf:openContextMenu', [e, this, hideOptions, activeOptions]);
             return false;
         });
 
@@ -2309,7 +2225,7 @@ define([
                         if(! system.hasClass('no-click')){
                             if(e.ctrlKey === true){
                                 // select system
-                                MapUtil.toggleSelectSystem(map, [system]);
+                                MapUtil.toggleSystemsSelect(map, [system]);
                             }else{
                                 MapUtil.showSystemInfo(map, system);
                             }
@@ -2367,14 +2283,17 @@ define([
             let mapElement = $(this);
             let map = getMapInstance(mapElement.data('id'));
 
-            let allSystems =  mapElement.find('.' + config.systemClass + ':not(.' + config.systemSelectedClass + ')');
+            let allSystems =  mapElement.find('.' + config.systemClass +
+                ':not(.' + config.systemSelectedClass + ')' +
+                ':not(.' + MapUtil.config.systemHiddenClass + ')'
+            );
 
             // filter non-locked systems
             allSystems = allSystems.filter(function(i, el){
                 return ( $(el).data('locked') !== true );
             });
 
-            MapUtil.toggleSelectSystem(map, allSystems);
+            MapUtil.toggleSystemsSelect(map, allSystems);
 
             Util.showNotify({title: allSystems.length + ' systems selected', type: 'success'});
 
@@ -2521,7 +2440,8 @@ define([
                 let connections = MapUtil.checkForConnection(newJsPlumbInstance, sourceId, targetId);
                 if(connections.length > 1){
                     bootbox.confirm('Connection already exists. Do you really want to add an additional one?', function(result) {
-                        if(!result){
+                        if(!result && connection._jsPlumb){
+                            // connection._jsPlumb might be "undefined" in case connection was removed in the meantime
                             connection._jsPlumb.instance.detach(connection);
                         }
                     });
@@ -2570,7 +2490,7 @@ define([
      */
     let setMapObserver = function(map){
         // get map container
-        let mapContainer = $( map.getContainer() );
+        let mapContainer = $(map.getContainer());
 
         mapContainer.bind('contextmenu', function(e){
             e.preventDefault();
@@ -2580,11 +2500,10 @@ define([
             if($(e.target).hasClass( config.mapClass )){
                 let mapElement = $(this);
 
-                let hideOptions = getHiddenContextMenuOptions(mapElement);
-
-                let activeOptions = getActiveContextMenuOptions(mapElement);
-
-                $(e.target).trigger('pf:openContextMenu', [e, mapElement, hideOptions, activeOptions]);
+                // trigger menu "open
+                Promise.all([getHiddenContextMenuOptions(mapElement), getActiveContextMenuOptions(mapElement)]).then(payload => {
+                    $(e.target).trigger('pf:openContextMenu', [e, mapElement, payload[0], payload[1]]);
+                });
             }
 
             return false;
@@ -2640,52 +2559,32 @@ define([
                     case 'filter_abyssal':
                         // filter (show/hide)
                         let filterScope = action.split('_')[1];
+                        let filterScopeLabel = MapUtil.getScopeInfoForConnection( filterScope, 'label');
 
-                        // scope label
-                        let filterScopeLabel = MapUtil.getScopeInfoForMap(filterScope, 'label');
-
-                        let showScope = true;
-                        if(
-                            currentMapElement.data('filter_scope') &&
-                            currentMapElement.data('filter_scope') === filterScope
-                        ){
-                            // remove scope filter
-                            currentMapElement.data('filter_scope', false);
-                            showScope = false;
-
-                            // hide map overlay filter info
-                            currentMapElement.getMapOverlay('info').updateOverlayIcon('filter', 'hide');
-                        }else{
-                            // set scope filter
-                            currentMapElement.data('filter_scope', filterScope);
-
-                            // show map overlay filter info
-                            currentMapElement.getMapOverlay('info').updateOverlayIcon('filter', 'show');
-                        }
-
-                        let filteredConnections = currentMap.getAllConnections(filterScope);
-
-                        for(let i = 0; i < filteredConnections.length; i++){
-                            let tempConnection = filteredConnections[i];
-
-                            let tempEndpoints = tempConnection.endpoints;
-                            let setVisible = true;
-
-                            if(
-                                showScope &&
-                                tempConnection.scope !== filterScope
-                            ){
-                                setVisible = false;
+                        let promiseStore = MapUtil.getLocaleData('map', currentMapId);
+                        promiseStore.then(data => {
+                            let filterScopes = [];
+                            if(data && data.filterScopes){
+                                filterScopes = data.filterScopes;
+                            }
+                            // add or remove this scope from filter
+                            let index = filterScopes.indexOf(filterScope);
+                            if(index >= 0){
+                                filterScopes.splice(index, 1);
+                            }else{
+                                filterScopes.push(filterScope);
+                                // "all filters active" == "no filter"
+                                if(filterScopes.length === Object.keys(Init.connectionScopes).length){
+                                    filterScopes = [];
+                                }
                             }
 
+                            // save filterScopes in IndexDB
+                            MapUtil.storeLocalData('map', currentMapId, 'filterScopes', filterScopes);
+                            MapUtil.filterMapByScopes(currentMap, filterScopes);
 
-                            for(let j = 0; j < tempEndpoints.length; j++){
-                                tempEndpoints[j].setVisible( setVisible );
-                            }
-                        }
-
-                        Util.showNotify({title: 'Scope filter changed', text: filterScopeLabel, type: 'success'});
-
+                            Util.showNotify({title: 'Scope filter changed', text: filterScopeLabel, type: 'success'});
+                        });
                         break;
                     case 'delete_systems':
                         // delete all selected systems with its connections
@@ -2761,8 +2660,8 @@ define([
                         width: newWidth,
                         'min-width': minWidth + 'px'
                     },{
-                        easing: 'easeInOutQuart',
-                        duration: 120,
+                        easing: 'easeOut',
+                        duration: 60,
                         progress: function(){
                             // repaint connections of current system
                             map.revalidate(systemId);
@@ -2803,6 +2702,27 @@ define([
                 });
             },
             selector: '.' + config.systemClass + ' .' + config.systemHeadExpandClass
+        });
+
+        // system "active users" popover ------------------------------------------------------------------------------
+        mapContainer.hoverIntent({
+            over: function(e){
+                let counterElement = $(this);
+                let systemElement = counterElement.closest('.' + config.systemClass);
+                let mapId = systemElement.data('mapid');
+                let systemId = systemElement.data('systemId');
+                let userData = Util.getCurrentMapUserData(mapId);
+                let systemUserData = Util.getCharacterDataBySystemId(userData.data.systems, systemId);
+
+                counterElement.addSystemPilotTooltip(systemUserData, {
+                    trigger: 'manual',
+                    placement: 'right'
+                }).setPopoverSmall().popover('show');
+            },
+            out: function(e){
+                $(this).destroyPopover();
+            },
+            selector: '.' + config.systemHeadCounterClass
         });
 
         // system "effect" popover ------------------------------------------------------------------------------------
@@ -3054,17 +2974,19 @@ define([
 
         // container must exist! otherwise systems can not be updated
         if(mapElement !== undefined){
-
             mapElement = $(mapElement);
-
-            // get current character log data
-            let characterLogExists = false;
-            let currentCharacterLog = Util.getCurrentCharacterLog();
 
             // check if map is frozen
             if(mapElement.data('frozen') === true){
                 return returnStatus;
             }
+
+            // compact/small system layout or not
+            let compactView = mapElement.hasClass(MapUtil.config.mapCompactClass);
+
+            // get current character log data
+            let characterLogExists = false;
+            let currentCharacterLog = Util.getCurrentCharacterLog();
 
             // data for header update
             let headerUpdateData = {
@@ -3133,7 +3055,7 @@ define([
                     }
                 }
 
-                system.updateSystemUserData(map, tempUserData, currentUserIsHere);
+                system.updateSystemUserData(map, tempUserData, currentUserIsHere, {compactView: compactView});
             }
 
             // users who are not in any map system --------------------------------------------------------------------
@@ -3288,6 +3210,8 @@ define([
         systemData.rallyUpdated = system.data('rallyUpdated') || 0;
         systemData.rallyPoke = system.data('rallyPoke') ? 1 : 0;
         systemData.currentUser = system.data('currentUser'); // if user is currently in this system
+        systemData.planets = system.data('planets');
+        systemData.shattered = system.data('shattered') ? 1 : 0;
         systemData.statics = system.data('statics');
         systemData.updated = {
             updated: parseInt( system.data('updated') )
@@ -3316,11 +3240,6 @@ define([
      */
     let initMapOptions = (mapConfig, options) => {
 
-        /**
-         * init map options promise
-         * @param resolve
-         * @param reject
-         */
         let initMapOptionsExecutor = (resolve, reject) => {
             let payload = {
                 action: 'initMapOptions',
@@ -3330,57 +3249,18 @@ define([
             };
 
             if(options.showAnimation){
-                /**
-                 * callback after visualizeMap is done
-                 * @param mapName
-                 * @param mapContainer
-                 */
-                let switchTabCallback = (mapContainer, mapConfig) => {
-                    Util.showNotify({title: 'Map initialized', text: mapConfig.name  + ' - loaded', type: 'success'});
-
-                    let mapWrapper = mapContainer.parents('.' + config.mapWrapperClass);
-
-                    // auto scroll map to previous position -----------------------------------------------------------
-                    let promiseStore = MapUtil.getLocaleData('map', mapContainer.data('id') );
-                    promiseStore.then(data => {
-                        // This code runs once the value has been loaded from  offline storage
-                        if(data && data.scrollOffset){
-                            mapWrapper.scrollToPosition([data.scrollOffset.y, data.scrollOffset.x]);
-                        }
-                    });
-
-                    // update main menu options based on the active map -----------------------------------------------
-                    $(document).trigger('pf:updateMenuOptions', {
-                        mapConfig: mapConfig
-                    });
-
-                    // init magnetizer --------------------------------------------------------------------------------
-                    mapContainer.triggerMenuEvent('MapOption', {
-                        option: 'mapMagnetizer',
-                        toggle: false
-                    });
-
-                    // init grid snap ---------------------------------------------------------------------------------
-                    mapContainer.triggerMenuEvent('MapOption', {
-                        option: 'mapSnapToGrid',
-                        toggle: false
-                    });
-
-                    // init endpoint overlay --------------------------------------------------------------------------
-                    mapContainer.triggerMenuEvent('MapOption', {
-                        option: 'mapEndpoint',
-                        toggle: false
-                    });
-                };
-
-                // show nice visualization effect ---------------------------------------------------------------------
-                let mapContainer = $(mapConfig.map.getContainer());
-                mapContainer.visualizeMap('show', function(){
-                    switchTabCallback(mapContainer, mapConfig.config);
-                });
+                let mapElement = $(mapConfig.map.getContainer());
+                MapUtil.setMapDefaultOptions(mapElement, mapConfig.config)
+                    .then(payload => MapUtil.visualizeMap(mapElement, 'show'))
+                    .then(payload => MapUtil.scrollToDefaultPosition(mapElement))
+                    .then(payload => {
+                        Util.showNotify({title: 'Map initialized', text: mapConfig.config.name  + ' - loaded', type: 'success'});
+                    })
+                    .then(() => resolve(payload));
+            }else{
+                // nothing to do here...
+                resolve(payload);
             }
-
-            resolve(payload);
         };
 
         return new Promise(initMapOptionsExecutor);

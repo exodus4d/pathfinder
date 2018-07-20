@@ -10,6 +10,7 @@ namespace Model;
 
 use DB\SQL\Schema;
 use lib\logging;
+use Controller\Ccp\Universe;
 
 class SystemModel extends AbstractMapTrackingModel {
 
@@ -17,6 +18,8 @@ class SystemModel extends AbstractMapTrackingModel {
     const MAX_POS_Y = 1480;
 
     protected $table = 'system';
+
+    protected $staticSystemDataCache = [];
 
     protected $fieldConf = [
         'active' => [
@@ -40,40 +43,13 @@ class SystemModel extends AbstractMapTrackingModel {
         'systemId' => [
             'type' => Schema::DT_INT,
             'index' => true,
-        ],
-        'name' => [
-            'type' => Schema::DT_VARCHAR128,
-            'nullable' => false,
-            'default' => ''
+            'validate' => true
         ],
         'alias' => [
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
             'default' => '',
             'activity-log' => true
-        ],
-        'regionId' => [
-            'type' => Schema::DT_INT,
-            'index' => true,
-        ],
-        'region' => [
-            'type' => Schema::DT_VARCHAR128,
-            'nullable' => false,
-            'default' => ''
-        ],
-        'constellationId' => [
-            'type' => Schema::DT_INT,
-            'index' => true,
-        ],
-        'constellation' => [
-            'type' => Schema::DT_VARCHAR128,
-            'nullable' => false,
-            'default' => ''
-        ],
-        'effect' => [
-            'type' => Schema::DT_VARCHAR128,
-            'nullable' => false,
-            'default' => ''
         ],
         'typeId' => [
             'type' => Schema::DT_INT,
@@ -85,16 +61,6 @@ class SystemModel extends AbstractMapTrackingModel {
                     'on-delete' => 'CASCADE'
                 ]
             ]
-        ],
-        'security' => [
-            'type' => Schema::DT_VARCHAR128,
-            'nullable' => false,
-            'default' => ''
-        ],
-        'trueSec' => [
-            'type' => Schema::DT_FLOAT,
-            'nullable' => false,
-            'default' => 1
         ],
         'statusId' => [
             'type' => Schema::DT_INT,
@@ -154,42 +120,6 @@ class SystemModel extends AbstractMapTrackingModel {
     ];
 
     /**
-     * set an array with all data for a system
-     * @param array $data
-     */
-    public function setData($data){
-        unset($data['id']);
-        unset($data['created']);
-        unset($data['updated']);
-        unset($data['createdCharacterId']);
-        unset($data['updatedCharacterId']);
-
-        foreach((array)$data as $key => $value){
-            if(!is_array($value)){
-                if($this->exists($key)){
-                    $this->$key = $value;
-                }
-            }else{
-                // special array data
-                if($key == 'constellation'){
-                    $this->constellationId = (int)$value['id'];
-                    $this->constellation = $value['name'];
-                }elseif($key == 'region'){
-                    $this->regionId = (int)$value['id'];
-                    $this->region = $value['name'];
-                }elseif($key == 'type'){
-                    $this->typeId = (int)$value['id'];
-                }elseif($key == 'status'){
-                    $this->statusId = (int)$value['id'];
-                }elseif($key == 'position'){
-                    $this->posX = (int)$value['x'];
-                    $this->posY = (int)$value['y'];
-                }
-            }
-        }
-    }
-
-    /**
      * get map data as object
      * @return \stdClass
      * @throws \Exception
@@ -202,55 +132,58 @@ class SystemModel extends AbstractMapTrackingModel {
         if(is_null($systemData)){
             // no cached system data found
 
-            $systemData = (object) [];
-            $systemData->id = $this->_id;
-            $systemData->mapId = is_object($this->mapId) ? $this->get('mapId', true) : 0;
-            $systemData->systemId = $this->systemId;
-            $systemData->name = $this->name;
-            $systemData->alias = $this->alias;
-            $systemData->effect = $this->effect;
-            $systemData->security = $this->security;
-            $systemData->trueSec = $this->trueSec;
+            $systemData                         = (object) [];
+            $systemData->id                     = $this->_id;
+            $systemData->mapId                  = is_object($this->mapId) ? $this->get('mapId', true) : 0;
+            $systemData->systemId               = $this->systemId;
+            $systemData->alias                  = $this->alias;
 
-            $systemData->region = (object) [];
-            $systemData->region->id = $this->regionId;
-            $systemData->region->name = $this->region;
+            if(is_object($this->typeId)){
+                $systemData->type               = $this->typeId->getData();
+            }
 
-            $systemData->constellation = (object) [];
-            $systemData->constellation->id = $this->constellationId;
-            $systemData->constellation->name = $this->constellation;
+            $systemData->status                 = (object) [];
+            $systemData->status->id             = is_object($this->statusId) ? $this->statusId->id : 1;
+            $systemData->status->name           = is_object($this->statusId) ? $this->statusId->name : 'unknown';
 
-            $systemData->type = (object) [];
-            $systemData->type->id = $this->typeId->id;
-            $systemData->type->name = $this->typeId->name;
+            $systemData->locked                 = $this->locked;
+            $systemData->rallyUpdated           = strtotime($this->rallyUpdated);
+            $systemData->rallyPoke              = $this->rallyPoke;
+            $systemData->description            = $this->description;
 
-            $systemData->status = (object) [];
-            $systemData->status->id = is_object($this->statusId) ? $this->statusId->id : 1;
-            $systemData->status->name = is_object($this->statusId) ? $this->statusId->name : 'unknown';
+            $systemData->position               = (object) [];
+            $systemData->position->x            = $this->posX;
+            $systemData->position->y            = $this->posY;
 
-            $systemData->locked = $this->locked;
-            $systemData->rallyUpdated = strtotime($this->rallyUpdated);
-            $systemData->rallyPoke = $this->rallyPoke;
-            $systemData->description = $this->description;
-
-            $systemData->statics = $this->getStaticWormholeData();
-
-            $systemData->position = (object) [];
-            $systemData->position->x = $this->posX;
-            $systemData->position->y = $this->posY;
-
-
-            $systemData->created = (object) [];
-            $systemData->created->created = strtotime($this->created);
+            $systemData->created                = (object) [];
+            $systemData->created->created       = strtotime($this->created);
             if(is_object($this->createdCharacterId)){
                 $systemData->created->character = $this->createdCharacterId->getData();
             }
 
-            $systemData->updated = (object) [];
-            $systemData->updated->updated = strtotime($this->updated);
+            $systemData->updated                = (object) [];
+            $systemData->updated->updated       = strtotime($this->updated);
             if(is_object($this->updatedCharacterId)){
                 $systemData->updated->character = $this->updatedCharacterId->getData();
             }
+
+            // static system data -------------------------------------------------------------------------------------
+            $systemData->name                   = $this->name;
+            $systemData->security               = $this->security;
+            $systemData->trueSec                = $this->trueSec;
+            $systemData->effect                 = $this->effect;
+            $systemData->shattered              = $this->shattered;
+
+            $systemData->constellation          = (object) [];
+            $systemData->constellation->id      = $this->constellationId;
+            $systemData->constellation->name    = $this->constellation;
+
+            $systemData->region                 = (object) [];
+            $systemData->region->id             = $this->regionId;
+            $systemData->region->name           = $this->region;
+
+            $systemData->planets                = $this->planets ? : [];
+            $systemData->statics                = $this->statics ? : [];
 
             // max caching time for a system
             // the cached date has to be cleared manually on any change
@@ -262,7 +195,58 @@ class SystemModel extends AbstractMapTrackingModel {
     }
 
     /**
-     *  setter for system alias
+     * get all static data
+     * @return mixed|null|\stdClass
+     * @throws \Exception
+     */
+    private function getStaticSystemData(){
+        $staticData = null;
+        if( !empty($this->staticSystemDataCache[$this->systemId]) ){
+            $staticData = $this->staticSystemDataCache[$this->systemId];
+        }else{
+            $staticData = (new Universe())->getSystemData($this->systemId);
+            if($staticData){
+                $this->staticSystemDataCache = [$this->systemId => $staticData];
+            }
+        }
+        return $staticData;
+    }
+
+    /**
+     * get static system data by key
+     * @param string $key
+     * @return null
+     * @throws \Exception
+     */
+    private function getStaticSystemValue(string $key){
+        $value = null;
+        if( $staticData = $this->getStaticSystemData()){
+            if(isset($staticData->$key)){
+                $value = $staticData->$key;
+            }
+        }
+        return $value;
+    }
+
+    /**
+     * @param string $key
+     * @param int $val
+     * @return bool
+     * @throws \Exception
+     */
+    protected function validate_systemId(string $key, int $val): bool {
+        $valid = true;
+        // check if static system data exists for systemId = $val
+        if( !(bool)(new Universe())->getSystemData($val) ){
+            $valid = false;
+            $this->throwValidationException($key, 'Validation failed: "' . $key . '" = "' . $val . '"');
+        }
+
+        return $valid;
+    }
+
+    /**
+     * setter for system alias
      * @param string $alias
      * @return string
      */
@@ -278,30 +262,35 @@ class SystemModel extends AbstractMapTrackingModel {
     }
 
     /**
-     * setter for system security value
-     * @param float $trueSec
-     * @return float
+     * setter for statusId
+     * @param $status
      */
-    public function set_trueSec($trueSec){
-        if(
-            $trueSec > 0 &&
-            $trueSec < 0.1
-        ){
-            // 0.3 is still a LS -> no rounding
-            $trueSec = 0.1;
-        }else{
-            $trueSec = round($trueSec, 1);
+    public function set_status($status){
+        if($statusId = (int)$status['id']){
+            $this->statusId = $statusId;
         }
-
-        return $trueSec;
     }
 
     /**
-     * setter validation for x coordinate
+     * setter for position array
+     * @param $position
+     * @return null
+     */
+    public function set_position($position){
+        $position = (array)$position;
+        if(count($position) === 2){
+            $this->posX = $position['x'];
+            $this->posY = $position['y'];
+        }
+        return null;
+    }
+
+    /**
+     * setter for x coordinate
      * @param int $posX
      * @return int
      */
-    public function set_posX($posX){
+    public function set_posX(int $posX) : int {
         $posX = abs($posX);
         if($posX > self::MAX_POS_X){
             $posX = self::MAX_POS_X;
@@ -311,11 +300,11 @@ class SystemModel extends AbstractMapTrackingModel {
     }
 
     /**
-     * setter validation for y coordinate
+     * setter for y coordinate
      * @param int $posY
      * @return int
      */
-    public function set_posY($posY){
+    public function set_posY(int $posY) : int{
         $posY = abs($posY);
         if($posY > self::MAX_POS_Y){
             $posY = self::MAX_POS_Y;
@@ -348,6 +337,54 @@ class SystemModel extends AbstractMapTrackingModel {
         return $rally;
     }
 
+    public function get_name(){
+        return $this->getStaticSystemValue('name');
+    }
+
+    public function get_constellationId(){
+        $constellationData = $this->getStaticSystemValue('constellation');
+        return $constellationData ? $constellationData->id : null;
+    }
+
+    public function get_constellation(){
+        $constellationData = $this->getStaticSystemValue('constellation');
+        return $constellationData ? $constellationData->name : null;
+    }
+
+    public function get_regionId(){
+        $constellationData = $this->getStaticSystemValue('constellation');
+        return ($constellationData && $constellationData->region) ? $constellationData->region->id : null;
+    }
+
+    public function get_region(){
+        $constellationData = $this->getStaticSystemValue('constellation');
+        return ($constellationData && $constellationData->region) ? $constellationData->region->name : null;
+    }
+
+    public function get_security(){
+        return $this->getStaticSystemValue('security');
+    }
+
+    public function get_trueSec(){
+        return $this->getStaticSystemValue('trueSec');
+    }
+
+    public function get_effect(){
+        return $this->getStaticSystemValue('effect');
+    }
+
+    public function get_shattered(){
+        return $this->getStaticSystemValue('shattered');
+    }
+
+    public function get_statics(){
+        return $this->getStaticSystemValue('statics');
+    }
+
+    public function get_planets(){
+        return $this->getStaticSystemValue('planets');
+    }
+
     /**
      * Event "Hook" function
      * @param self $self
@@ -369,9 +406,6 @@ class SystemModel extends AbstractMapTrackingModel {
         $status = parent::beforeUpdateEvent($self, $pkeys);
 
         if( !$self->isActive()){
-            // system becomes inactive
-            $self->alias = '';
-
             // reset "rally point" fields
             $self->rallyUpdated = 0;
             $self->rallyPoke = false;
@@ -559,14 +593,6 @@ class SystemModel extends AbstractMapTrackingModel {
     }
 
     /**
-     * check whether this system is a shattered wormhole
-     * @return bool
-     */
-    public function isShatteredWormhole() : bool {
-        return ($this->isWormhole() && $this->security === 'SH');
-    }
-
-    /**
      * check whether this system is an Abyss system
      * @return bool
      */
@@ -634,44 +660,39 @@ class SystemModel extends AbstractMapTrackingModel {
     }
 
     /**
-     * get static WH data for this system
-     * -> any WH system has at least one static WH
-     * @return \stdClass[]
-     * @throws \Exception
+     * set system type based on security
      */
-    protected function getStaticWormholeData(){
-        $wormholeData = [];
-
-        // only wormholes have "static" connections
-        if($this->isWormhole()){
-            // get static systems by "constellationId" --------------------------------------------
-            $constellationWormholeModel = self::getNew('ConstellationWormholeModel');
-            $systemStatics = $constellationWormholeModel->find([
-                'constellationId = :constellationId',
-                ':constellationId' => $this->constellationId
-            ]);
-
-            if( is_object($systemStatics) ){
-                foreach($systemStatics as $systemStatic){
-                    $wormholeData[] = $systemStatic->getData();
-                }
-            }
-
-            // get static systems by "systemId" (shattered wormholes) -----------------------------
-            $systemWormholeModel = self::getNew('SystemWormholeModel');
-            $systemStatics = $systemWormholeModel->find([
-                'systemId = :systemId',
-                ':systemId' => $this->systemId
-            ]);
-
-            if( is_object($systemStatics) ){
-                foreach($systemStatics as $systemStatic){
-                    $wormholeData[] = $systemStatic->getData();
-                }
-            }
+    public function setType(){
+        switch($this->security){
+            case 'H':
+            case 'L':
+            case '0.0':
+                $typeId = 2; // k-space
+                break;
+            case 'A':
+                $typeId = 3; // a-space
+                break;
+            default:
+                $typeId = 1; // w-space
         }
 
-        return $wormholeData;
+        /**
+         * @var $type MapTypeModel
+         */
+        $type = $this->rel('typeId');
+        $type->getById($typeId);
+        $this->typeId = $type;
+    }
+
+    /**
+     * save signature for this system
+     * @param SystemSignatureModel $signature
+     * @param CharacterModel $character
+     * @return false|ConnectionModel
+     */
+    public function saveSignature(SystemSignatureModel $signature, CharacterModel $character){
+        $signature->systemId = $this;
+        return $signature->save($character);
     }
 
     /**

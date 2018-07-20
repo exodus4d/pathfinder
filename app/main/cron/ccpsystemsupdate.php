@@ -7,10 +7,9 @@
  */
 
 namespace Cron;
-use Controller;
 use DB;
 
-class CcpSystemsUpdate {
+class CcpSystemsUpdate extends AbstractCron {
 
     const LOG_TEXT = '%s prepare table (%.3F s), jump (%.3F s), kill (%.3F s), update all (%.3F s)';
 
@@ -24,43 +23,63 @@ class CcpSystemsUpdate {
      * @var array
      */
     protected $logTables = [
-        'jumps' => 'system_jumps',
-        'ship_kills' => 'system_kills_ships',
-        'pod_kills' => 'system_kills_pods',
-        'npc_kills' => 'system_kills_factions'
+        'jumps'         => 'system_jumps',
+        'ship_kills'    => 'system_kills_ships',
+        'pod_kills'     => 'system_kills_pods',
+        'npc_kills'     => 'system_kills_factions'
     ];
+
+    /**
+     * checks if a table exists in DB or not
+     * @param DB\SQL $db
+     * @param string $table
+     * @return bool
+     */
+    protected function tableExists (DB\SQL $db, string $table) : bool {
+        return !empty($db->exec('SHOW TABLES LIKE :table', [':table' => $table]));
+    }
 
     /**
      * check all system log tables for the correct number of system entries that will be locked
      * @return array
      */
-    private function prepareSystemLogTables(){
+    private function prepareSystemLogTables() : array {
+        $systemsData = [];
 
-        // get information for all systems from CCP DB
-        $systemController = new Controller\Api\System();
-        $systemsData = $systemController->getSystems();
+        // get all available systems from "universe" DB
+        $universeDB = DB\Database::instance()->getDB('UNIVERSE');
 
-        $pfDB = DB\Database::instance()->getDB('PF');
+        if($this->tableExists($universeDB, 'system')){
+            $systemsData = $universeDB->exec('SELECT 
+              `id` 
+            FROM 
+              `system` 
+            WHERE 
+              `security` = :ns OR
+              `security` = :ls OR 
+              `security` = :hs
+              ',
+                [':ns' => '0.0', ':ls' => 'L', ':hs' => 'H']
+            );
 
-        // insert systems into each log table if not exist
-        $pfDB->begin();
-        foreach($this->logTables as $tableName){
+            $pfDB = DB\Database::instance()->getDB('PF');
 
-            // insert systems into jump log table
-            $sqlInsertSystem = "INSERT IGNORE INTO " . $tableName . " (systemId)
+            // insert systems into each log table if not exist
+            $pfDB->begin();
+            foreach($this->logTables as $tableName){
+                // insert systems into jump log table
+                $sqlInsertSystem = "INSERT IGNORE INTO " . $tableName . " (systemId)
                     VALUES(:systemId)";
 
-            foreach($systemsData as $systemData){
-                // skip WH systems -> no jump data available
-                if($systemData['type']['name'] == 'k-space'){
+                foreach($systemsData as $systemData){
                     $pfDB->exec($sqlInsertSystem, array(
-                        ':systemId' => $systemData['systemId']
+                        ':systemId' => $systemData['id']
                     ), 0, false);
                 }
-            }
 
+            }
+            $pfDB->commit();
         }
-        $pfDB->commit();
 
         return $systemsData;
     }
@@ -71,7 +90,8 @@ class CcpSystemsUpdate {
      * >> php index.php "/cron/importSystemData"
      * @param \Base $f3
      */
-    function importSystemData($f3){
+    function importSystemData(\Base $f3){
+        $this->setMaxExecutionTime();
 
         // prepare system jump log table ------------------------------------------------------------------------------
         $time_start = microtime(true);
@@ -135,7 +155,7 @@ class CcpSystemsUpdate {
             ";
 
             foreach($systemsData as $systemData){
-                $systemId = $systemData['systemId'];
+                $systemId = $systemData['id'];
 
                 // update data (if available)
                 $currentData = 0;

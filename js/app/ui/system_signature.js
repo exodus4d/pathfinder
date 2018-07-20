@@ -219,7 +219,7 @@ define([
      * @param tableApi
      * @returns {Array}
      */
-    let getTableData = function(tableApi){
+    let getTableData = tableApi => {
         let tableData = [];
 
         if(tableApi){
@@ -266,7 +266,7 @@ define([
      * @param cellIndex
      * @param data
      */
-    let updateSignatureCell = function(tableApi, rowElement, cellIndex, data){
+    let updateSignatureCell = (tableApi, rowElement, cellIndex, data) => {
         let rowIndex = tableApi.row( rowElement ).index();
         let updateCell = tableApi.cell( rowIndex, cellIndex );
         let updateCellElement = updateCell.nodes().to$();
@@ -277,7 +277,7 @@ define([
         }
 
         // set new value
-        updateCell.data( data ).draw();
+        updateCell.data(data).draw();
 
         if(cellIndex === 7){
             updateCellElement.initTimestampCounter();
@@ -285,13 +285,28 @@ define([
     };
 
     /**
+     * update trigger function for this module
+     * compare data and update module
+     * @param moduleElement
+     * @param systemData
+     */
+    let updateModule = (moduleElement, systemData) => {
+
+        if(systemData.signatures){
+            updateSignatureTable(moduleElement, systemData.signatures, true);
+        }
+
+        moduleElement.hideLoadingAnimation();
+    };
+
+    /**
      * Updates a signature table, changes all signatures where name matches
      * add all new signatures as a row
-     *
+     * @param moduleElement
      * @param signatureDataOrig
      * @param deleteOutdatedSignatures -> set to "true" if signatures should be deleted that are not included in "signatureData"
      */
-    $.fn.updateSignatureTable = function(signatureDataOrig, deleteOutdatedSignatures){
+    let updateSignatureTable = (moduleElement, signatureDataOrig, deleteOutdatedSignatures) => {
         // check if table update is allowed
         if(disableTableUpdate === true){
             return;
@@ -302,8 +317,6 @@ define([
 
         // disable update until function is ready;
         lockSignatureTable();
-
-        let moduleElement = $(this);
 
         // get signature table API
         let signatureTableApi = getDataTableInstanceByModuleElement(moduleElement, 'primary');
@@ -413,7 +426,7 @@ define([
     /**
      * lock system signature table for
      */
-    let lockSignatureTable = function(){
+    let lockSignatureTable = () => {
         disableTableUpdate = true;
     };
 
@@ -422,7 +435,7 @@ define([
      * -> make table "update-able" again
      * @param instant
      */
-    let unlockSignatureTable = function(instant){
+    let unlockSignatureTable = instant =>{
         if(disableTableUpdate === true){
             if(instant === true){
                 disableTableUpdate = false;
@@ -430,7 +443,6 @@ define([
                 // wait until add/remove animations are finished before enable table for auto update again
                 setTimeout(function(){ disableTableUpdate = false; }, 2000);
             }
-
         }
     };
 
@@ -572,10 +584,10 @@ define([
                     moduleElement: moduleElement
                 }
             }).done(function(responseData){
+                // unlock table for update
                 unlockSignatureTable(true);
-
                 // updates table with new/updated signature information
-                this.moduleElement.updateSignatureTable(responseData.signatures, false);
+                updateSignatureTable(this.moduleElement, responseData.signatures, false);
             }).fail(function( jqXHR, status, error) {
                 let reason = status + ' ' + error;
                 Util.showNotify({title: jqXHR.status + ': Update signatures', text: reason, type: 'warning'});
@@ -625,7 +637,7 @@ define([
      * @param clipboard
      * @returns {Array}
      */
-    let parseSignatureString = function(systemData, clipboard){
+    let parseSignatureString = (systemData, clipboard) => {
         let signatureData = [];
 
         if(clipboard.length){
@@ -698,7 +710,7 @@ define([
      * @param options
      * @returns {Array}
      */
-    let formatSignatureData = function(systemData, signatureData, options){
+    let formatSignatureData = (systemData, signatureData, options) => {
 
         let formattedData = [];
 
@@ -850,7 +862,7 @@ define([
      * @param options
      * @returns {*|jQuery}
      */
-    let getLabeledButton = function(options){
+    let getLabeledButton = options => {
 
         let buttonClasses = ['btn', 'btn-sm', 'btn-labeled'];
 
@@ -906,7 +918,7 @@ define([
      * @param tableApi
      * @returns {*}
      */
-    let getRows = function(tableApi){
+    let getRows = tableApi => {
         let rows = tableApi.rows();
         return rows;
     };
@@ -916,7 +928,7 @@ define([
      * @param tableApi
      * @returns {*}
      */
-    let getSelectedRows = function(tableApi){
+    let getSelectedRows = tableApi => {
         let selectedRows = tableApi.rows('.selected');
         return selectedRows;
     };
@@ -925,7 +937,7 @@ define([
      * check the "delete signature" button. show/hide the button if a signature is selected
      * @param moduleElement
      */
-    let checkDeleteSignaturesButton = function(moduleElement){
+    let checkDeleteSignaturesButton = moduleElement => {
         moduleElement = $(moduleElement);
         let signatureTableApi = getDataTableInstanceByModuleElement(moduleElement, 'primary');
 
@@ -967,11 +979,11 @@ define([
 
     /**
      * draw signature table toolbar (add signature button, scan progress bar
+     * @param moduleElement
      * @param mapId
      * @param systemData
      */
-    $.fn.drawSignatureTableToolbar = function(mapId, systemData){
-        let moduleElement = $(this);
+    let drawSignatureTableToolbar = (moduleElement, mapId, systemData) => {
 
         // add toolbar buttons for table ------------------------------------------------------------------------------
         let tableToolbar = $('<div>', {
@@ -1132,7 +1144,7 @@ define([
      * @param element
      * @param title
      */
-    let updateTooltip = function(element, title){
+    let updateTooltip = (element, title) => {
         $(element).attr('data-container', 'body').attr('title', title.toUpperCase()).tooltip('fixTitle')
             .tooltip('setContent');
     };
@@ -1577,7 +1589,7 @@ define([
      * @param groupId
      * @returns {Array}
      */
-    let getAllSignatureNames = function(systemData, systemTypeId, areaId, groupId){
+    let getAllSignatureNames = (systemData, systemTypeId, areaId, groupId) => {
         let newSelectOptions = [];
         let cacheKey = [systemTypeId, areaId, groupId].join('_');
         let newSelectOptionsCount = 0;
@@ -1666,8 +1678,9 @@ define([
             // add static WH(s) for this system
             if(systemData.statics){
                 let staticWHData = [];
-                for(let i = 0; i < systemData.statics.length; i++){
-                    let staticWHName = systemData.statics[i].name + ' - ' + systemData.statics[i].security;
+                for(let wormholeName of systemData.statics) {
+                    let wormholeData = Object.assign({}, Init.wormholes[wormholeName]);
+                    let staticWHName = wormholeData.name + ' - ' + wormholeData.security;
 
                     newSelectOptionsCount++;
                     staticWHData.push( {value: newSelectOptionsCount, text: staticWHName} );
@@ -1718,7 +1731,7 @@ define([
      * @param obj
      * @returns {number}
      */
-    let sumSignaturesRecursive = function(key, obj){
+    let sumSignaturesRecursive = (key, obj) => {
         let sum = 0;
 
         for (let prop in obj) {
@@ -1739,7 +1752,7 @@ define([
      * @param systemTypeId
      * @returns {{}}
      */
-    let getFrigateHolesBySystem = function(systemTypeId){
+    let getFrigateHolesBySystem = systemTypeId => {
         let signatureNames = {};
 
         if(Init.frigateWormholes[systemTypeId]){
@@ -1754,7 +1767,7 @@ define([
      * @param tableApi
      * @param rows
      */
-    let deleteSignatures = function(tableApi, rows){
+    let deleteSignatures = (tableApi, rows) => {
         let deletedSignatures = 0;
 
         let moduleElement = $('.' + config.moduleTypeClass);
@@ -1928,15 +1941,42 @@ define([
         }
     };
 
+
     /**
-     * draw a signature table with data
+     * get unique column data from column object for select filter options
+     * @param column
+     * @returns {{}}
+     */
+    let getColumnTableDataForFilter = column => {
+        // get all available options from column
+        let source = {};
+        column.data().unique().sort((a,b) => {
+            // sort alphabetically
+            let valA = a.filter.toLowerCase();
+            let valB = b.filter.toLowerCase();
+
+            if(valA < valB) return -1;
+            if(valA > valB) return 1;
+            return 0;
+        }).each(callData => {
+            if(callData.filter){
+                source[callData.filter] = callData.filter;
+            }
+        });
+
+        // add empty option
+        source[0] = '';
+
+        return source;
+    };
+
+    /**
+     * draw empty signature table
+     * @param moduleElement
      * @param mapId
-     * @param signatureData
      * @param systemData
      */
-    $.fn.drawSignatureTable = function(mapId, signatureData, systemData){
-        let moduleElement = $(this);
-
+    let drawSignatureTable = (moduleElement, mapId, systemData) => {
         // setup filter select in footer
         // column indexes that need a filter select
         let filterColumnIndexes = [2];
@@ -1959,7 +1999,6 @@ define([
         moduleElement.append(table);
 
         let dataTableOptions = {
-            data: signatureData,
             drawCallback: function(settings){
                 this.api().columns(filterColumnIndexes).every(function(){
                     let column = this;
@@ -2004,46 +2043,13 @@ define([
         let signatureTable = table.dataTable(dataTableOptions);
         let signatureTableApi = signatureTable.api();
         setDataTableInstance(mapId, systemData.id, 'primary', signatureTableApi);
-
-        // make Table editable
-        signatureTable.makeEditable(signatureTableApi, systemData);
-
-        moduleElement.updateScannedSignaturesBar({showNotice: true});
-    };
-
-    /**
-     * get unique column data from column object for select filter options
-     * @param column
-     * @returns {{}}
-     */
-    let getColumnTableDataForFilter = function(column){
-        // get all available options from column
-        let source = {};
-        column.data().unique().sort(function(a,b){
-            // sort alphabetically
-            let valA = a.filter.toLowerCase();
-            let valB = b.filter.toLowerCase();
-
-            if(valA < valB) return -1;
-            if(valA > valB) return 1;
-            return 0;
-        }).each(function(callData){
-            if(callData.filter){
-                source[callData.filter] = callData.filter;
-            }
-        });
-
-        // add empty option
-        source[0] = '';
-
-        return source;
     };
 
     /**
      * setup dataTable options for all signatureTables
      * @param systemData
      */
-    let initSignatureDataTable = function(systemData){
+    let initSignatureDataTable = systemData => {
 
         $.extend( true, $.fn.dataTable.defaults, {
             pageLength: -1,
@@ -2306,15 +2312,9 @@ define([
      * @param moduleElement
      * @param systemData
      */
-    let setModuleObserver = function(moduleElement, systemData){
+    let setModuleObserver = (moduleElement, systemData) => {
         let tablePrimaryElement = moduleElement.find('.' + config.sigTablePrimaryClass);
         let signatureTableApi = getDataTableInstanceByModuleElement(moduleElement, 'primary');
-
-        $(document).off('pf:updateSystemSignatureModule').on('pf:updateSystemSignatureModule', function(e, data){
-            if(data.signatures){
-                moduleElement.updateSignatureTable(data.signatures, true);
-            }
-        });
 
         // set multi row select ---------------------------------------------------------------------------------------
         tablePrimaryElement.on('click', 'tr', {moduleElement: moduleElement}, function(e){
@@ -2355,7 +2355,7 @@ define([
      * init callback
      * @param moduleElement
      * @param mapId
-     * @param connectionData
+     * @param systemData
      */
     let initModule = (moduleElement, mapId, systemData) => {
         unlockSignatureTable(true);
@@ -2386,41 +2386,19 @@ define([
         moduleElement.data('mapId', mapId);
         moduleElement.data('systemId', systemData.id);
 
+        moduleElement.showLoadingAnimation();
+
         // init dataTables
         initSignatureDataTable(systemData);
 
-        // draw "new signature" add table -----------------------------------------------------------------------------
+        // draw "new signature" add table
+        drawSignatureTableToolbar(moduleElement, mapId, systemData);
 
-        moduleElement.drawSignatureTableToolbar(mapId, systemData);
+        // draw signature table
+        drawSignatureTable(moduleElement, mapId, systemData);
 
-        // request signature data for system --------------------------------------------------------------------------
-
-        let requestData = {
-            systemIds: [systemData.id]
-        };
-
-        $.ajax({
-            type: 'POST',
-            url: Init.path.getSignatures,
-            data: requestData,
-            dataType: 'json',
-            context: {
-                mapId: mapId,
-                systemData: systemData
-            }
-        }).done(function(signatureData){
-            let signatureTableData = formatSignatureData(this.systemData, signatureData, fullSignatureOptions);
-
-            // draw signature table
-            moduleElement.drawSignatureTable(this.mapId, signatureTableData, this.systemData);
-
-            // set module observer
-            setModuleObserver(moduleElement, this.systemData);
-        }).fail(function( jqXHR, status, error) {
-            let reason = status + ' ' + error;
-            Util.showNotify({title: jqXHR.status + ': Get signatures', text: reason, type: 'warning'});
-            $(document).setProgramStatus('problem');
-        });
+        // set module observer
+        setModuleObserver(moduleElement, systemData);
 
         return moduleElement;
     };
@@ -2450,6 +2428,7 @@ define([
         getModule: getModule,
         initModule: initModule,
         beforeReDraw: beforeReDraw,
+        updateModule: updateModule,
         beforeDestroy: beforeDestroy,
         getAllSignatureNamesBySystem: getAllSignatureNamesBySystem
     };

@@ -9,26 +9,26 @@
     </h5>
 
     <h5 class="pf-module-handler-drag"></h5>
+
+    <h5><span class="{{systemTypeLinkClass}}" data-toggle="tooltip" data-placement="top" data-container="body" title="type">{{systemTypeName}}</span>&nbsp;<i class="fas fa-fw fa-angle-double-right"></i></h5>
+    <h5><span class="{{systemRegionLinkClass}} {{#systemNameClass}}{{system.security}}{{/systemNameClass}}" data-toggle="tooltip" data-placement="top" data-container="body" title="region">{{system.region.name}}</span>&nbsp;<i class="fas fa-fw fa-angle-double-right"></i></h5>
+    <h5><a href="javascript:void(0);" data-url="{{ajaxConstellationInfoUrl}}/{{system.constellation.id}}" class="{{systemConstellationLinkClass}} popup-ajax {{#systemNameClass}}{{system.security}}{{/systemNameClass}}" title="constellation">{{system.constellation.name}}</a>&nbsp;<i class="fas fa-fw fa-angle-double-right"></i></h5>
     <h5>
         <span data-toggle="tooltip" data-placement="top" data-container="body" title="system" class="{{#systemNameClass}}{{system.security}}{{/systemNameClass}}">{{system.name}}</span>
         {{#system.locked}}
         <i class="fas fa-fw fa-lock"></i>
         {{/system.locked}}
-        <i class="fas fa-fw fa-angle-double-right"></i>
     </h5>
-    <h5><a href="javascript:void(0);" data-url="{{ajaxConstellationInfoUrl}}/{{system.constellation.id}}" class="{{systemConstellationLinkClass}} popup-ajax {{#systemNameClass}}{{system.security}}{{/systemNameClass}}" title="constellation">{{system.constellation.name}}</a>&nbsp;<i class="fas fa-fw fa-angle-double-right"></i></h5>
-    <h5><span class="{{systemRegionLinkClass}} {{#systemNameClass}}{{system.security}}{{/systemNameClass}}" data-toggle="tooltip" data-placement="top" data-container="body" title="region">{{system.region.name}}</span>&nbsp;<i class="fas fa-fw fa-angle-double-right"></i></h5>
-    <h5><span class="{{systemTypeLinkClass}}" data-toggle="tooltip" data-placement="top" data-container="body" title="type">{{systemTypeName}}</span></h5>
 
     {{#systemIsWormhole}}
-        <a href="http://evemaps.dotlan.net/system/{{system.name}}" class="pf-icon pf-icon-dotlan" data-toggle="tooltip" data-placement="top" data-container="body" title="dotlan" target="_blank"></a>
+        <a href="{{#formatUrl}}http://evemaps.dotlan.net/system/{{system.name}}{{/formatUrl}}" class="pf-icon pf-icon-dotlan" data-toggle="tooltip" data-placement="top" data-container="body" title="dotlan" target="_blank" rel="noopener"></a>
     {{/systemIsWormhole}}
     {{^systemIsWormhole}}
-        <a href="http://evemaps.dotlan.net/map/{{system.region.name}}/{{system.name}}" class="pf-icon pf-icon-dotlan" data-toggle="tooltip" data-placement="top" data-container="body" title="dotlan" target="_blank"></a>
+        <a href="{{#formatUrl}}http://evemaps.dotlan.net/map/{{system.region.name}}/{{system.name}}{{/formatUrl}}" class="pf-icon pf-icon-dotlan" data-toggle="tooltip" data-placement="top" data-container="body" title="dotlan" target="_blank" rel="noopener"></a>
     {{/systemIsWormhole}}
 
     {{#systemIsWormhole}}
-        <a href="http://anoik.is/systems/{{system.name}}" class="pf-icon pf-icon-anoik" data-toggle="tooltip" data-placement="top" data-container="body" title="anoik" target="_blank"></a>
+        <a href="{{#formatUrl}}http://anoik.is/systems/{{system.name}}{{/formatUrl}}" class="pf-icon pf-icon-anoik" data-toggle="tooltip" data-placement="top" data-container="body" title="anoik" target="_blank" rel="noopener"></a>
     {{/systemIsWormhole}}
 </div>
 
@@ -57,49 +57,43 @@
             <table class="table table-condensed {{tableClass}}">
                 <thead>
                 <tr>
-                    <th class="pf-table-cell-20 text-right pf-help {{nameInfoClass}}">
-                        <i class="fas fa-fw fa-question-circle"></i>
-                    </th>
                     <th>Name</th>
-                    <th class="text-right {{#systemNameClass}}{{system.security}}{{/systemNameClass}}">{{system.name}}</th>
+                    <th class="text-right">
+                        {{#system.shattered}}
+                            <i class="fas fa-fw fa-skull {{shatteredClass}}" data-toggle="tooltip" data-container="body" title="shattered"></i>&nbsp;
+                        {{/system.shattered}}
+                        <span class="pf-help-default {{nameInfoClass}} {{#systemNameClass}}{{system.security}}{{/systemNameClass}}">{{system.name}}</span>
+                    </th>
                     <th class="pf-table-cell-20 text-right {{securityClass}}">{{system.security}}</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr>
-                    <td></td>
                     <td>Security</td>
                     <td></td>
                     <td class="text-right {{trueSecClass}}">{{trueSec}}</td>
                 </tr>
                 {{#effectName}}
                 <tr>
-                    <td class="text-right pf-help {{effectInfoClass}}">
-                        <i class="fas fa-fw fa-question-circle"></i>
-                    </td>
                     <td>Effect</td>
                     <td class="text-right pf-font-capitalize">{{effectName}}</td>
-                    <td class="text-right"><i class="fas fa-fw fa-square pf-system-effect {{effectClass}}"></i></td>
+                    <td class="text-right {{effectInfoClass}}"><i class="fas fa-fw fa-square pf-system-effect {{effectClass}}"></i></td>
                 </tr>
                 {{/effectName}}
-                {{#system.statics}}
+                {{#planetCount}}
                 <tr>
-                    <td class="text-right pf-help {{wormholePrefixClass}}{{name}}">
-                        <i class="fas fa-fw fa-question-circle"></i>
-                    </td>
+                    <td>Planets</td>
+                    <td></td>
+                    <td class="text-right pf-help-default {{planetsInfoClass}}">{{planetCount}}</td>
+                </tr>
+                {{/planetCount}}
+                {{#static}}
+                <tr>
                     <td>Static</td>
                     <td class="text-right">{{name}}</td>
-                    <td class="text-right {{class}}">{{security}}</td>
+                    <td class="text-right pf-help-default {{class}} {{wormholePrefixClass}}{{name}}">{{security}}</td>
                 </tr>
-                {{/system.statics}}
-                {{#shatteredWormholeInfo}}
-                <tr>
-                    <td class="text-right pf-help"></td>
-                    <td>Shattered System</td>
-                    <td class="text-right pf-font-capitalize {{securityClass}}">Unknown statics</td>
-                    <td class="text-right"></td>
-                </tr>
-                {{/shatteredWormholeInfo}}
+                {{/static}}
                 </tbody>
             </table>
         </div>

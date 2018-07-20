@@ -57,15 +57,19 @@
       background-color:  $results-choice-bg-unselectable-color;
 
       // add a icon to all "disabled" options
-      .pf-select-item-anchor:before{
-        content: "\f05e";
-        font-family: "Font Awesome 5 Free";
-        font-weight: bold;
-        font-size: 9px;
-        position: absolute;
-        left: 0;
-        top: 0;
-        color: $gray-light;
+      .pf-select-item-anchor {
+        padding-left: 15px; // leave space for :before icon
+
+        &:before {
+          content: "\f05e";
+          font-family: "Font Awesome 5 Free";
+          font-weight: bold;
+          font-size: 9px;
+          position: absolute;
+          left: 2px;
+          top: 0;
+          color: $gray-light;
+        }
       }
     }
   }

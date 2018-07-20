@@ -185,7 +185,10 @@ select:active, select:hover {
 // select2 custom template ========================================================================
 .select2-results{
   [class*="col-"]{
+    // smaller and less padding
     line-height: 22px;
+    padding-left: 3px;
+    padding-right: 3px;
   }
 }
 
@@ -373,6 +376,10 @@ table{
   }
 
   td, th{
+    &.pf-table-cell-10{
+      width: 10px;
+    }
+
     &.pf-table-cell-20{
       width: 20px;
     }
@@ -890,6 +897,12 @@ table{
   &.pf-system-status-unscanned{
     background-color: $teal-lighter;
   }
+}
+
+// Filter =========================================================================================
+.pf-system-hidden{
+  opacity: 0.15 !important;
+  pointer-events: none;
 }
 
 // system effect info dialog ======================================================================

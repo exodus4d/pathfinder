@@ -10,7 +10,7 @@ namespace cron;
 
 use data\filesystem\Search;
 
-class Cache {
+class Cache extends AbstractCron {
 
     const LOG_TEXT                          = '%s [%\'_10s] files, size [%\'_10s] byte, not writable [%\'_10s] files, errors [%\'_10s], exec (%.3Fs)';
 
@@ -34,6 +34,7 @@ class Cache {
      * @param \Base $f3
      */
     function deleteExpiredData(\Base $f3){
+        $this->setMaxExecutionTime();
         $time_start = microtime(true);
 
         // cache dir (dir is recursively searched...)

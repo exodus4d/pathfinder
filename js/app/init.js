@@ -34,18 +34,15 @@ define(['jquery'], ($) => {
             getMapLogData: '/api/map/getLogData',                           // ajax URL - get logs data
             // system API
             getSystemData: '/api/system/getData',                           // ajax URL - get system data
-            searchSystem: '/api/system/search',                             // ajax URL - search system by name
             saveSystem: '/api/system/save',                                 // ajax URL - saves system to map
             deleteSystem: '/api/system/delete',                             // ajax URL - delete system from map
             getSystemGraphData: '/api/system/graphData',                    // ajax URL - get all system graph data
-            getConstellationData: '/api/system/constellationData',          // ajax URL - get system constellation data
             setDestination: '/api/system/setDestination',                   // ajax URL - set destination
             pokeRally: '/api/system/pokeRally',                             // ajax URL - send rally point pokes
             // connection API
             saveConnection: '/api/connection/save',                         // ajax URL - save new connection to map
             deleteConnection: '/api/connection/delete',                     // ajax URL - delete connection from map
             // signature API
-            getSignatures: '/api/signature/getAll',                         // ajax URL - get all signature data for system
             saveSignatureData: '/api/signature/save',                       // ajax URL - save signature data for system
             deleteSignatureData: '/api/signature/delete',                   // ajax URL - delete signature data for system
             // structure API
@@ -56,7 +53,9 @@ define(['jquery'], ($) => {
             // stats API
             getStatisticsData: '/api/statistic/getData',                    // ajax URL - get statistics data (activity log)
             // universe API
-            searchUniverseData: '/api/universe/search',                     // ajax URL - search universe data
+            searchUniverseData: '/api/universe/search',                     // ajax URL - search universe data by category Ids
+            searchUniverseSystemData: '/api/universe/systems',              // ajax URL - search universe system data by name
+            getConstellationData: '/api/universe/constellationData',        // ajax URL - get system constellation data
             // GitHub API
             gitHubReleases: '/api/github/releases'                          // ajax URL - get release info from GitHub
         },
@@ -113,6 +112,10 @@ define(['jquery'], ($) => {
                 class: 'fa-anchor',
                 label: 'anchor',
                 unicode: '&#xf13d;'
+            },{
+                class: 'fa-fire',
+                label: 'fire',
+                unicode: '&#xf06d;'
             },{
                 class: 'fa-bookmark',
                 label: 'bookmark',

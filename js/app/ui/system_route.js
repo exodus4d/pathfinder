@@ -317,16 +317,16 @@ define([
                                         mapIds: routeDialogData.mapIds,
                                         systemFromData: dialogData.systemFromData,
                                         systemToData: {
-                                            systemId:  systemSelectData[0].systemId,
+                                            systemId:  parseInt(systemSelectData[0].id),
                                             name: systemSelectData[0].text
                                         },
-                                        stargates: routeDialogData.hasOwnProperty('stargates') ? parseInt( routeDialogData.stargates ) : 0,
-                                        jumpbridges: routeDialogData.hasOwnProperty('jumpbridges') ? parseInt( routeDialogData.jumpbridges ) : 0,
-                                        wormholes: routeDialogData.hasOwnProperty('wormholes') ? parseInt( routeDialogData.wormholes ) : 0,
-                                        wormholesReduced: routeDialogData.hasOwnProperty('wormholesReduced') ? parseInt( routeDialogData.wormholesReduced ) : 0,
-                                        wormholesCritical: routeDialogData.hasOwnProperty('wormholesCritical') ? parseInt( routeDialogData.wormholesCritical ) : 0,
-                                        wormholesFrigate: routeDialogData.hasOwnProperty('wormholesFrigate') ? parseInt( routeDialogData.wormholesFrigate ) : 0,
-                                        wormholesEOL: routeDialogData.hasOwnProperty('wormholesEOL') ? parseInt( routeDialogData.wormholesEOL ) : 0
+                                        stargates: routeDialogData.hasOwnProperty('stargates') ? parseInt(routeDialogData.stargates) : 0,
+                                        jumpbridges: routeDialogData.hasOwnProperty('jumpbridges') ? parseInt(routeDialogData.jumpbridges) : 0,
+                                        wormholes: routeDialogData.hasOwnProperty('wormholes') ? parseInt(routeDialogData.wormholes) : 0,
+                                        wormholesReduced: routeDialogData.hasOwnProperty('wormholesReduced') ? parseInt(routeDialogData.wormholesReduced) : 0,
+                                        wormholesCritical: routeDialogData.hasOwnProperty('wormholesCritical') ? parseInt(routeDialogData.wormholesCritical) : 0,
+                                        wormholesFrigate: routeDialogData.hasOwnProperty('wormholesFrigate') ? parseInt(routeDialogData.wormholesFrigate) : 0,
+                                        wormholesEOL: routeDialogData.hasOwnProperty('wormholesEOL') ? parseInt(routeDialogData.wormholesEOL) : 0
                                     }]
                                 };
 
@@ -354,7 +354,7 @@ define([
                 // init system select live  search ------------------------------------------------
                 // -> add some delay until modal transition has finished
                 let systemTargetSelect = $(this).find('.' + config.systemDialogSelectClass);
-                systemTargetSelect.delay(240).initSystemSelect({key: 'name'});
+                systemTargetSelect.delay(240).initSystemSelect({key: 'id'});
             });
 
             // show dialog
@@ -498,7 +498,7 @@ define([
                     // init default system select -----------------------------------------------------
                     // -> add some delay until modal transition has finished
                     let systemTargetSelect = $(this).find('.' + config.systemDialogSelectClass);
-                    systemTargetSelect.delay(240).initSystemSelect({key: 'name', maxSelectionLength: maxSelectionLength});
+                    systemTargetSelect.delay(240).initSystemSelect({key: 'id', maxSelectionLength: maxSelectionLength});
                 });
 
                 // show dialog
@@ -518,8 +518,8 @@ define([
             let tmpData = data[i];
 
             formattedData.push({
-                name: tmpData.id,
-                systemId: parseInt( tmpData.hasOwnProperty('systemId') ? tmpData.systemId : tmpData.element.getAttribute('data-systemid') )
+                systemId: parseInt(tmpData.id),
+                name: tmpData.text
             });
         }
 

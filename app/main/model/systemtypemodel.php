@@ -43,4 +43,17 @@ class SystemTypeModel extends BasicModel {
         ]
     ];
 
+    /**
+     * get system type data
+     * @return \stdClass
+     */
+    public function getData(){
+
+        $typeData                   = (object)[];
+        $typeData->id               = $this->_id;
+        $typeData->name             = $this->name;
+
+        return $typeData;
+    }
+
 } 

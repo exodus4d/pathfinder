@@ -41,6 +41,7 @@ define([
         menuButtonMagnetizerId: 'pf-menu-button-magnetizer',                    // id for menu button "magnetizer"
         menuButtonGridId: 'pf-menu-button-grid',                                // id for menu button "grid snap"
         menuButtonEndpointId: 'pf-menu-button-endpoint',                        // id for menu button "endpoint" overlays
+        menuButtonCompactId: 'pf-menu-button-compact',                          // id for menu button "compact" UI map view
         menuButtonMapDeleteId: 'pf-menu-button-map-delete',                     // id for menu button "delete map"
 
         settingsMessageVelocityOptions: {
@@ -55,6 +56,9 @@ define([
         mapTabBarId: 'pf-map-tabs',                                             // id for map tab bar
         mapWrapperClass: 'pf-map-wrapper',                                      // wrapper div (scrollable)
         mapClass: 'pf-map' ,                                                    // class for all maps
+
+        // util
+        userStatusClass: 'pf-user-status',                                       // class for player status
 
         // select2
         select2Class: 'pf-select2',                                             // class for all "Select2" <select> elements
@@ -109,7 +113,7 @@ define([
                     class: [config.ajaxOverlayWrapperClass].join(' ')
                 }).append(
                     $('<i>', {
-                        class: ['fas', 'fa-fw', iconSize, 'fa-sync', 'fa-spin'].join(' ')
+                        class: ['fas', iconSize, 'fa-sync', 'fa-spin'].join(' ')
                     })
                 )
             );
@@ -132,7 +136,6 @@ define([
         return this.each(function(){
             let loadingElement = $(this);
             let overlay = loadingElement.find('.' + config.ajaxOverlayClass );
-
             if(overlay.length){
                 // important: "stop" is required to stop "show" animation
                 // -> otherwise "complete" callback is not fired!
@@ -467,7 +470,6 @@ define([
      * @returns {*}
      */
     $.fn.initTooltips = function(options){
-
         options = (typeof options === 'object') ? options : {};
 
         let defaultOptions = {
@@ -479,6 +481,26 @@ define([
         return this.each(function(){
             let tooltipElements = $(this).find('[title]');
             tooltipElements.tooltip('destroy').tooltip(options);
+        });
+    };
+
+    /**
+     * destroy popover elements
+     * @param recursive
+     * @returns {*}
+     */
+    $.fn.destroyTooltip = function(recursive){
+        return this.each(function() {
+            let element = $(this);
+            let tooltipSelector = '[title]';
+            let tooltipElements = element.filter(tooltipSelector);
+            if(recursive){
+                tooltipElements = tooltipElements.add(element.find(tooltipSelector));
+            }
+
+            tooltipElements.each(function() {
+                $(this).tooltip('destroy');
+            });
         });
     };
 
@@ -585,7 +607,7 @@ define([
             return elements.each(function() {
                 let element = $(this);
 
-                // check if tooltip already exists -> remove it
+                // check if popover already exists -> remove it
                 if(element.data('bs.popover') !== undefined){
                     element.off('click').popover('destroy');
                 }
@@ -658,6 +680,11 @@ define([
         });
     };
 
+    /**
+     * destroy popover elements
+     * @param recursive
+     * @returns {*}
+     */
     $.fn.destroyPopover = function(recursive){
         return this.each(function() {
             let element = $(this);
@@ -684,7 +711,6 @@ define([
     $.fn.initPopoverClose = function(eventNamespace){
         return this.each(function() {
             $('body').off('click.' + eventNamespace).on('click.' + eventNamespace + ' contextmenu', function (e) {
-
                 $('.' + config.popoverTriggerClass).each(function () {
                     let popoverElement = $(this);
                     //the 'is' for buttons that trigger popups
@@ -938,6 +964,21 @@ define([
             });
         };
 
+        /**
+         * get hash from string
+         * @returns {number}
+         */
+        String.prototype.hashCode = function() {
+            let hash = 0, i, chr;
+            if (this.length === 0) return hash;
+            for (i = 0; i < this.length; i++) {
+                chr   = this.charCodeAt(i);
+                hash  = ((hash << 5) - hash) + chr;
+                hash |= 0; // Convert to 32bit integer
+            }
+            return hash;
+        };
+
         initPassiveEvents();
     };
 
@@ -963,7 +1004,7 @@ define([
     };
 
     /**
-     * set default configuration  for "Bootbox"
+     * set default configuration for "Bootbox"
      */
     let initDefaultBootboxConfig = () => {
         bootbox.setDefaults({
@@ -972,7 +1013,7 @@ define([
     };
 
     /**
-     * set default configuration  for "Select2"
+     * set default configuration for "Select2"
      */
     let initDefaultSelect2Config = () => {
         $.fn.select2.defaults.set('theme', 'pathfinder');
@@ -999,6 +1040,15 @@ define([
                 autoHideScrollbar: false,
                 advanced: {
                     updateOnContentResize: true
+                },
+                callbacks: {
+                    alwaysTriggerOffsets: false,    // only trigger callback.onTotalScroll() once
+                    onTotalScrollOffset: 300,       // trigger callback.onTotalScroll() 100px before end
+                    onTotalScroll: function(a){
+                        // we want to "trigger" Select2´s 'scroll' event
+                        // in order to make its "infinite scrolling" function working
+                        this.mcs.content.find(':first-child').trigger('scroll');
+                    }
                 }
             });
         };
@@ -1036,13 +1086,27 @@ define([
     };
 
     /**
+     * set default configuration for "xEditable"
+     */
+    let initDefaultEditableConfig = () => {
+        // use fontAwesome buttons
+        $.fn.editableform.buttons =
+            '<button type="submit" class="btn btn-primary btn-sm editable-submit">'+
+            '<i class="fa fa-fw fa-check"></i>'+
+            '</button>'+
+            '<button type="button" class="btn btn-default btn-sm editable-cancel">'+
+            '<i class="fa fa-fw fa-times"></i>'+
+            '</button>';
+    };
+
+    /**
      * get the current main trigger delay for the main trigger functions
      * optional in/decrease the delay
      * @param updateKey
      * @param value
      * @returns {*}
      */
-    let getCurrentTriggerDelay = function( updateKey, value ){
+    let getCurrentTriggerDelay = (updateKey, value ) => {
 
         // make sure the delay timer is valid!
         // if this is called for the first time -> set CURRENT_DELAY
@@ -1068,7 +1132,7 @@ define([
      * get date obj with current EVE Server Time.
      * @returns {Date}
      */
-    let getServerTime = function(){
+    let getServerTime = () => {
 
         // Server is running with GMT/UTC (EVE Time)
         let localDate = new Date();
@@ -1090,7 +1154,7 @@ define([
      * @param timestamp
      * @returns {Date}
      */
-    let convertTimestampToServerTime = function(timestamp){
+    let convertTimestampToServerTime = timestamp => {
         let currentTimeZoneOffsetInMinutes = new Date().getTimezoneOffset();
         return new Date( (timestamp + (currentTimeZoneOffsetInMinutes * 60)) * 1000);
     };
@@ -1101,7 +1165,7 @@ define([
      * @param date2
      * @returns {{}}
      */
-    let getTimeDiffParts = function(date1, date2){
+    let getTimeDiffParts = (date1, date2) => {
         let parts = {};
         let time1 = date1.getTime();
         let time2 = date2.getTime();
@@ -1131,7 +1195,7 @@ define([
      * start time measurement by a unique string identifier
      * @param timerName
      */
-    let timeStart = function(timerName){
+    let timeStart = timerName => {
 
         if(typeof performance === 'object'){
             stopTimerCache[timerName] = performance.now();
@@ -1145,7 +1209,7 @@ define([
      * @param timerName
      * @returns {number}
      */
-    let timeStop = function(timerName){
+    let timeStop = timerName => {
 
         let duration = 0;
 
@@ -1175,7 +1239,7 @@ define([
      * @param charCounterElement
      * @param maxCharLength
      */
-    let updateCounter = function(field, charCounterElement, maxCharLength){
+    let updateCounter = (field, charCounterElement, maxCharLength) => {
         let value = field.val();
         let inputLength = value.length;
 
@@ -1201,7 +1265,7 @@ define([
      * @param logKey
      * @param options
      */
-    let log = function(logKey, options){
+    let log = (logKey, options) => {
         $(window).trigger('pf:log', [logKey, options]);
     };
 
@@ -1210,8 +1274,8 @@ define([
      * @param customConfig
      * @param desktop
      */
-    let showNotify = function(customConfig, desktop){
-        requirejs(['notification'], function(Notification) {
+    let showNotify = (customConfig, desktop) => {
+        requirejs(['notification'], Notification => {
             Notification.showNotify(customConfig, desktop);
         });
     };
@@ -1231,7 +1295,7 @@ define([
      * @param option
      * @returns {string}
      */
-    let getLogInfo = function(logType, option){
+    let getLogInfo = (logType, option) => {
         let logInfo = '';
 
         if(Init.classes.logTypes.hasOwnProperty(logType)){
@@ -1456,14 +1520,13 @@ define([
 
     /**
      * get all mapTabElements (<a> tags)
-     * or search for a specific tabElement within the
-     * mapModuleElement
+     * or search for a specific tabElement within mapModule
      * @param mapId
      * @returns {JQuery|*|{}|T}
      */
     $.fn.getMapTabElements = function(mapId){
-        let mapModuleElement = $(this);
-        let mapTabElements = mapModuleElement.find('#' + config.mapTabBarId).find('a');
+        let mapModule = $(this);
+        let mapTabElements = mapModule.find('#' + config.mapTabBarId).find('a');
 
         if(mapId){
             // search for a specific tab element
@@ -1517,6 +1580,7 @@ define([
                 areaId = 12;
                 break;
             case 'SH':
+            case 'C13':
                 areaId = 13;
                 break;
             default:
@@ -1616,22 +1680,92 @@ define([
      * @param data
      * @returns {string}
      */
-    let getSystemEffectTable = function(data){
+    let getSystemEffectTable = effects => {
         let table = '';
-
-        if(data.length > 0){
-
+        if(effects.length > 0){
             table += '<table>';
-            for(let i = 0; i < data.length; i++){
+            for(let effect of effects){
                 table += '<tr>';
                 table += '<td>';
-                table += data[i].effect;
+                table += effect.effect;
                 table += '</td>';
                 table += '<td class="text-right">';
-                table += data[i].value;
+                table += effect.value;
                 table += '</td>';
                 table += '</tr>';
             }
+            table += '</table>';
+        }
+
+        return table;
+    };
+
+    /**
+     * get a HTML table with planet names
+     * e.g. for popover
+     * @param planets
+     * @returns {string}
+     */
+    let getSystemPlanetsTable = planets => {
+        let table = '';
+        if(planets.length > 0){
+            table += '<table>';
+            for(let planet of planets){
+                table += '<tr>';
+                table += '<td>';
+                table += planet.name;
+                table += '</td>';
+                table += '<td class="text-right">';
+                table += planet.type.name;
+                table += '</td>';
+                table += '</tr>';
+            }
+            table += '</table>';
+        }
+
+        return table;
+    };
+
+    /**
+     * get a HTML table with pilots/ship names
+     * @param users
+     * @returns {string}
+     */
+    let getSystemPilotsTable = users => {
+        let table = '';
+        if(users.length > 0){
+            let getRow = (statusClass, userName, shipName, shipTypeName, mass) => {
+                let row = '<tr>';
+                row += '<td class="text-right">';
+                row += '<small>';
+                row +=  statusClass !== null ? '<i class="fas fa-circle ' + config.userStatusClass + ' ' + statusClass + '">' : '';
+                row += '</small>';
+                row += '</td>';
+                row += '<td>';
+                row += userName;
+                row += '</td>';
+                row += '<td>';
+                row += shipName;
+                row += '</td>';
+                row += '<td class="text-right txt-color txt-color-orangeLight">';
+                row += shipTypeName;
+                row += '</td>';
+                row += '<td class="text-right">';
+                row += mass;
+                row += '</td>';
+                row += '</tr>';
+                return row;
+            };
+
+            let massAll = 0;
+            table += '<table>';
+            for(let user of users){
+                massAll += parseInt(user.log.ship.mass);
+                let statusClass = getStatusInfoForCharacter(user, 'class');
+                let mass = formatMassValue(user.log.ship.mass);
+                table += getRow(statusClass, user.name, user.log.ship.name, user.log.ship.typeName, mass);
+            }
+            table += getRow(null, '', '', '', formatMassValue(massAll));
             table += '</table>';
         }
 
@@ -1644,7 +1778,7 @@ define([
      * @param data
      * @returns {string}
      */
-    let getSystemsInfoTable = function(data){
+    let getSystemsInfoTable = data => {
         let table = '';
 
         if(data.length > 0){
@@ -1678,7 +1812,7 @@ define([
      * @param sec
      * @returns {string}
      */
-    let getSecurityClassForSystem = (sec) => {
+    let getSecurityClassForSystem = sec => {
         let secClass = '';
         if( Init.classes.systemSecurity.hasOwnProperty(sec) ){
             secClass = Init.classes.systemSecurity[sec]['class'];
@@ -2106,6 +2240,23 @@ define([
     };
 
     /**
+     * get userData (pilots) from systemId
+     * @param userData
+     * @param systemId
+     * @returns {*}
+     */
+    let getCharacterDataBySystemId = (userData, systemId) => {
+        if(userData && userData.length){
+            for(let i = 0; i < userData.length; i++){
+                if(userData[i].id === systemId){
+                    return userData[i].user;
+                }
+            }
+        }
+        return [];
+    };
+
+    /**
      * get current character data from all characters who are "nearby" the current user
      * -> see getNearBySystemData()
      * @param nearBySystems
@@ -2116,20 +2267,11 @@ define([
      */
     let getNearByCharacterData = (nearBySystems, userData, jumps = 0, data = {}) => {
 
-        let getCharacterDataBySystemId = (systemId) => {
-            for(let i = 0; i < userData.length; i++){
-                if(userData[i].id === systemId){
-                    return userData[i].user;
-                }
-            }
-            return [];
-        };
-
         let filterFinalCharData = function(tmpFinalCharData){
             return this.id !== tmpFinalCharData.id;
         };
 
-        let characterData = getCharacterDataBySystemId(nearBySystems.systemData.systemId);
+        let characterData = getCharacterDataBySystemId(userData, nearBySystems.systemData.systemId);
 
         if(characterData.length){
             // filter (remove) characterData for "already" added chars
@@ -2568,6 +2710,7 @@ define([
         initPrototypes: initPrototypes,
         initDefaultBootboxConfig: initDefaultBootboxConfig,
         initDefaultSelect2Config: initDefaultSelect2Config,
+        initDefaultEditableConfig: initDefaultEditableConfig,
         getCurrentTriggerDelay: getCurrentTriggerDelay,
         getServerTime: getServerTime,
         convertTimestampToServerTime: convertTimestampToServerTime,
@@ -2588,6 +2731,8 @@ define([
         getMapModule: getMapModule,
         getSystemEffectData: getSystemEffectData,
         getSystemEffectTable: getSystemEffectTable,
+        getSystemPlanetsTable: getSystemPlanetsTable,
+        getSystemPilotsTable: getSystemPilotsTable,
         getSystemsInfoTable: getSystemsInfoTable,
         getStatusInfoForCharacter: getStatusInfoForCharacter,
         getSecurityClassForSystem: getSecurityClassForSystem,
@@ -2614,6 +2759,7 @@ define([
         getCurrentUserInfo: getCurrentUserInfo,
         getCurrentCharacterLog: getCurrentCharacterLog,
         flattenXEditableSelectArray: flattenXEditableSelectArray,
+        getCharacterDataBySystemId: getCharacterDataBySystemId,
         getNearBySystemData: getNearBySystemData,
         getNearByCharacterData: getNearByCharacterData,
         setDestination: setDestination,

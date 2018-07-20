@@ -299,7 +299,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     @include border-radius(5px);
 
     // change border color with transition
-    @include transition( border-color 0.3s ease-out, box-shadow 0.12s ease-out );
+    @include transition( border-color 0.2s ease-out, box-shadow 0.12s ease-out, opacity 0.12s ease-out );
     @include transform( translate3d(0, 0, 0) );
 
     &:hover{
@@ -313,7 +313,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
     }
 
     .pf-system-head{
-      padding: 0px 3px 0px 3px;
+      padding: 0 3px 0 3px;
       cursor: pointer;
       font-family: Arial, sans-serif; // fix for element width on custom font family
       font-weight: bold;
@@ -325,6 +325,19 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
         min-width: 50px;
         color: $gray-lighter;
         margin-right: 2px;
+      }
+
+      .pf-system-head-counter{
+        display: inline-block;
+        text-align: right;
+        min-width: 8px;
+        margin-right: 1px;
+        color: $green;
+        cursor: help;
+
+        &:empty{
+          display: none;
+        }
       }
 
       .pf-system-effect{
@@ -339,6 +352,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       .pf-system-head-expand{
         margin-left: 2px;
         color: $gray-light;
+        width: 10px;
         display: none;  // triggered by JS
       }
 
@@ -350,7 +364,7 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
 
     // ================================================================================================================
     .pf-system-head-info{
-      text-align: right;
+      display: flex;
       color: lighten($gray-light, 10%);
       font-size: 10px;
       line-height: 10px;
@@ -360,6 +374,15 @@ $mapWrapperMaxWidth:     $mapWidth + 35px;
       [class^="pf-system-sec-"]{
         cursor: help;
       }
+    }
+
+    .pf-system-head-info-left{
+      flex: 1;
+    }
+
+    .pf-system-head-info-right{
+      flex: 1;
+      text-align: right;
     }
 
     // ================================================================================================================

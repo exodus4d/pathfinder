@@ -115,25 +115,28 @@
 
   a[data-gallery] {
     position: relative;
+    display: inline-block;
+    overflow: hidden; // hide initial overlapping "before" element"
+    margin: 5px 0 15px 0;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
 
     &:before{
-      content: '\f002';
+      content: '\f06e';
       font-family: 'Font Awesome 5 Free';
       font-size: 20px;
-      font-weight: bold;
-      line-height: 20px;
       color: $orange;
       position: absolute;
-      top: 9px;
       height: 100%;
       width: 100%;
-      padding-top: calc(50% - 10px);
       z-index: 10;
-      text-align: center;
       @include transition(transform 0.1s ease-out, opacity 0.1s ease-out);
       will-change: transform, opacity;
       transform: scale(1.3,1.3);
       opacity: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
     }
 
     &:hover{
@@ -143,7 +146,7 @@
       }
 
       &:before{
-        @include transition-delay( 0.1s );
+        @include transition-delay( 0.05s );
         transform: scale(1,1);
         opacity: 1;
       }
@@ -155,12 +158,10 @@
         style: solid;
         color: $gray-darkest
       }
-      margin: 5px 0 15px 0;
       display: inline-block;
       will-change: all;
       @include filter(brightness( 100% ));
       @include transition(all 0.2s ease-out);
-      @include box-shadow(0 4px 10px rgba(0,0,0, 0.4));
 
 
       &.pf-landing-image-preview-small{

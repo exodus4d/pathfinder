@@ -16,7 +16,7 @@ class StructureModel extends BasicModel {
     protected $table = 'structure';
 
     /**
-     * categoryId (from CCP´s SDE) that holds all "groups" with structure "types"
+     * categoryId (from ESI) that holds all "groups" with structure "types"
      */
     const CATEGORY_STRUCTURE_ID = 65;
 
@@ -225,11 +225,12 @@ class StructureModel extends BasicModel {
         return $structuresData;
     }
 
-    public function getByName(CorporationModel $corporation, string $name) {
+    public function getByName(CorporationModel $corporation, string $name, int $systemId) {
         if( !$corporation->dry() && $name){
             $this->has('structureCorporations', ['corporationId = :corporationId', ':corporationId' => $corporation->_id]);
-            $this->load(['name = :name AND active = :active',
+            $this->load(['name = :name AND systemId = :systemId AND active = :active',
                 ':name' => $name,
+                ':systemId' => $systemId,
                 ':active' => 1
             ]);
         }

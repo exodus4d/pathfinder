@@ -8,7 +8,6 @@
 
 namespace Model\Universe;
 
-
 use DB\Database;
 use Model\BasicModel;
 
@@ -97,8 +96,11 @@ abstract class BasicUniverseModel extends BasicModel {
     /**
      * build up a "search" index for this model
      * -> stores getData() result into Cache (RAM) for faster access
+     * @return null|\stdClass
      */
     public function buildIndex(){
+        $data = null;
+
         if($hashKeyId = $this->getHashKey()){
             $f3 = self::getF3();
             $hashKeyTable = self::generateHashKeyTable($this->getTable());
@@ -115,10 +117,29 @@ abstract class BasicUniverseModel extends BasicModel {
             $f3->clear($hashKeyId);
             $f3->clear($hashKeyTable);
 
+            $data = $this->getData();
             // straight into cache (no $f->set() ), no sync with hive here -> save ram
-            self::setCacheValue($hashKeyId, $this->getData(), self::CACHE_INDEX_EXPIRE_KEY);
+            self::setCacheValue($hashKeyId, $data, self::CACHE_INDEX_EXPIRE_KEY);
             self::setCacheValue($hashKeyTable, $cachedData, self::CACHE_INDEX_EXPIRE_KEY);
         }
+
+        return $data;
+    }
+
+    /**
+     * get data from "search" index for this model
+     * -> if data not found -> try to build up index for this model
+     * @return null|\stdClass
+     */
+    public function fromIndex(){
+        $data = null;
+        if($hashKeyId = $this->getHashKey()){
+            if( !self::existsCacheValue($hashKeyId, $data)){
+                $data = $this->buildIndex();
+            }
+        }
+
+        return $data;
     }
 
     /**
@@ -139,29 +160,12 @@ abstract class BasicUniverseModel extends BasicModel {
     }
 
     /**
-     * load data by foreign key or other column than "id"
-     * @param string $key
-     * @param $value
-     */
-    public function loadByKey(string $key, $value){
-        /**
-         * @var $model self
-         */
-        $model = $this->getByForeignKey($key, $value, ['limit' => 1]);
-        if($model->isOutdated()){
-            $model->loadDataByKey($key, $value);
-        }
-    }
-
-    /**
      * load data from API into $this and save $this
      * @param int $id
      * @param string $accessToken
      * @param array $additionalOptions
      */
     abstract protected function loadData(int $id, string $accessToken = '', array $additionalOptions = []);
-
-    protected function loadDataByKey(string $key, $value){}
 
     /**
      * generate hashKey for a table row data for search index build

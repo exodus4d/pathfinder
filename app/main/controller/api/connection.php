@@ -56,8 +56,10 @@ class Connection extends Controller\AccessController {
                     $connection = Model\BasicModel::getNew('ConnectionModel');
                     $connection->getById( (int)$connectionData['id'] );
 
-                    $connectionData['mapId'] = $map;
-                    $connection->setData($connectionData);
+                    $connection->mapId = $map;
+                    $connection->source = $source;
+                    $connection->target = $target;
+                    $connection->copyfrom($connectionData, ['scope', 'type']);
 
                     // change the default type for the new connection
                     $connection->setDefaultTypeData();

@@ -10,7 +10,7 @@ namespace Model;
 
 use DB\SQL\Schema;
 
-class SystemShipKillModel extends SystemApiBasicModel {
+class SystemShipKillModel extends AbstractSystemApiBasicModel {
 
     protected $table = 'system_kills_ships';
 

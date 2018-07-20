@@ -108,12 +108,12 @@ class SystemModel extends BasicUniverseModel {
         $systemData->name           = $this->name;
         $systemData->constellation  = $this->constellationId->getData();
         $systemData->security       = $this->security;
-        $systemData->trueSec        = $this->trueSec;
+        $systemData->trueSec        = (float)$this->trueSec;
         $systemData->effect         = $this->effect;
-        $systemData->shattered      = $this->shattered;
+        $systemData->shattered      = (bool)$this->shattered;
 
         if($this->starId){
-            $systemData->star           = $this->starId->getData();
+            $systemData->star       = $this->starId->getData();
         }
 
         if( !empty($planetsData = $this->getPlanetsData()) ){
@@ -125,7 +125,7 @@ class SystemModel extends BasicUniverseModel {
         }
 
         if( !empty($stargatesData = $this->getStargatesData()) ){
-            $systemData->stargates    = $stargatesData;
+            $systemData->stargates  = $stargatesData;
         }
 
         return $systemData;
@@ -226,7 +226,6 @@ class SystemModel extends BasicUniverseModel {
      * return false will stop any further action
      * @param self $self
      * @param $pkeys
-     * @throws \Exception\ValidationException
      */
     public function afterUpdateEvent($self, $pkeys){
         $staticNames = (array)$self->staticNames;
@@ -316,6 +315,16 @@ class SystemModel extends BasicUniverseModel {
             }
         }
         return $stargatesData;
+    }
+
+    /**
+     * update system from ESI
+     */
+    public function updateModel(){
+        if( !$this->dry() ){
+            $this->loadData($this->_id);
+            $this->loadPlanetsData();
+        }
     }
 
     /**

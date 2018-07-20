@@ -10,7 +10,7 @@ namespace Model;
 
 use DB\SQL\Schema;
 
-class SystemJumpModel extends SystemApiBasicModel {
+class SystemJumpModel extends AbstractSystemApiBasicModel {
 
     protected $table = 'system_jumps';
 

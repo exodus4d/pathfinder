@@ -9,7 +9,7 @@
 namespace cron;
 use DB;
 
-class StatisticsUpdate {
+class StatisticsUpdate extends AbstractCron {
 
     const LOG_TEXT_STATISTICS = '%s (%d rows)';
 
@@ -20,6 +20,8 @@ class StatisticsUpdate {
      * @param \Base $f3
      */
     function deleteStatisticsData(\Base $f3){
+        $this->setMaxExecutionTime();
+
         $currentYear = (int)date('o');
         $currentWeek = (int)date('W');
         $expiredYear = $currentYear - 1;

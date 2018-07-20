@@ -112,7 +112,6 @@ class Controller {
      * @param \Base $f3
      */
     protected function initSession(\Base $f3){
-        $sessionCacheKey = $f3->get('SESSION_CACHE');
         $session = null;
 
         /**
@@ -135,10 +134,13 @@ class Controller {
         };
 
         if(
-            $sessionCacheKey === 'mysql' &&
+            $f3->get('SESSION_CACHE') === 'mysql' &&
             $this->getDB('PF') instanceof DB\SQL
         ){
-            $session = new DB\SQL\Session($this->getDB('PF'), 'sessions', true, $onSuspect);
+
+            if(!headers_sent() && session_status()!=PHP_SESSION_ACTIVE){
+                $session = new DB\SQL\Session($this->getDB('PF'), 'sessions', true, $onSuspect);
+            }
         }
 
     }
@@ -598,6 +600,24 @@ class Controller {
     }
 
     /**
+     * print error information in CLI mode
+     * @param \stdClass $error
+     */
+    protected function echoErrorCLI(\stdClass $error){
+        echo '[' . date('H:i:s') . '] ───────────────────────────' . PHP_EOL;
+        foreach(get_object_vars($error) as $key => $value){
+            $row = str_pad(' ',2 ) . str_pad($key . ':',10 );
+            if($key == 'trace'){
+                $value = preg_replace("/\r\n|\r|\n/", "\n" . str_pad(' ',12 ), $value);
+                $row .= PHP_EOL . str_pad(' ',12 ) . $value;
+            }else{
+                $row .= $value;
+            }
+            echo $row . PHP_EOL;
+        }
+    }
+
+    /**
      * onError() callback function
      * -> on AJAX request -> return JSON with error information
      * -> on HTTP request -> render error page
@@ -631,7 +651,11 @@ class Controller {
                 $f3->status($error->code);
             }
 
-            if($f3->get('AJAX')){
+            if($f3->get('CLI')){
+                $this->echoErrorCLI($error);
+                // no further processing (no HTML output)
+                return false;
+            }elseif($f3->get('AJAX')){
                 $return = (object) [];
                 $return->error[] = $error;
                 echo json_encode($return);

@@ -26,8 +26,9 @@ define([
 
         // info table
         systemInfoTableClass: 'pf-module-table',                                // class for system info table
-        systemInfoNameInfoClass: 'pf-system-info-name',                         // class for "name" information element
-        systemInfoEffectInfoClass: 'pf-system-info-effect',                     // class for "effect" information element
+        systemInfoNameClass: 'pf-system-info-name',                             // class for "name" information element
+        systemInfoEffectClass: 'pf-system-info-effect',                         // class for "effect" information element
+        systemInfoPlanetsClass: 'pf-system-info-planets',                       // class for "planets" information element
         systemInfoStatusLabelClass: 'pf-system-info-status-label',              // class for "status" information element
         systemInfoStatusAttributeName: 'data-status',                           // attribute name for status label
         systemInfoWormholeClass: 'pf-system-info-wormhole-',                    // class prefix for static wormhole element
@@ -45,25 +46,14 @@ define([
         fontTriglivianClass: 'pf-triglivian'                                    // class for "Triglivian" names (e.g. Abyssal systems)
     };
 
-    // disable Module update temporary (until. some requests/animations) are finished
-    let disableModuleUpdate = true;
+    // disable Module update temporary (in case e.g. textarea is currently active)
+    let disableModuleUpdate = false;
 
     // animation speed values
     let animationSpeedToolbarAction = 200;
 
     // max character length for system description
     let maxDescriptionLength = 512;
-
-    /**
-     * set module observer and look for relevant system data to update
-     */
-    let setModuleObserver = (moduleElement) => {
-        $(document).off('pf:updateSystemInfoModule').on('pf:updateSystemInfoModule', function(e, data){
-            if(data){
-                moduleElement.updateSystemInfoModule(data);
-            }
-        });
-    };
 
     /**
      * shows the tool action element by animation
@@ -94,47 +84,37 @@ define([
     /**
      * update trigger function for this module
      * compare data and update module
+     * @param moduleElement
      * @param systemData
      */
-    $.fn.updateSystemInfoModule = function(systemData){
-
-        // module update is disabled
-        if(disableModuleUpdate === true){
-            return;
-        }
-
-        let moduleElement = $(this);
-
+    let updateModule = (moduleElement, systemData) => {
         let systemId = moduleElement.data('id');
 
         if(systemId === systemData.id){
-            // update module
-
-            // system status =====================================================================================
+            // update system status -----------------------------------------------------------------------------------
             let systemStatusLabelElement = moduleElement.find('.' + config.systemInfoStatusLabelClass);
             let systemStatusId = parseInt( systemStatusLabelElement.attr( config.systemInfoStatusAttributeName ) );
 
             if(systemStatusId !== systemData.status.id){
                 // status changed
-
                 let currentStatusClass = Util.getStatusInfoForSystem(systemStatusId, 'class');
                 let newStatusClass = Util.getStatusInfoForSystem(systemData.status.id, 'class');
                 let newStatusLabel = Util.getStatusInfoForSystem(systemData.status.id, 'label');
-
                 systemStatusLabelElement.removeClass(currentStatusClass).addClass(newStatusClass).text(newStatusLabel);
 
                 // set new status attribute
                 systemStatusLabelElement.attr( config.systemInfoStatusAttributeName, systemData.status.id);
             }
 
-            // description textarea element ======================================================================
+            // update description textarea ----------------------------------------------------------------------------
             let descriptionTextareaElement =  moduleElement.find('.' + config.descriptionTextareaElementClass);
             let description = descriptionTextareaElement.editable('getValue', true);
 
-            if(description !== systemData.description){
+            if(
+                !disableModuleUpdate &&                 // don´t update if field is active
+                description !== systemData.description
+            ){
                 // description changed
-
-                // description button
                 let descriptionButton = moduleElement.find('.' + config.addDescriptionButtonClass);
 
                 // set new value
@@ -144,10 +124,8 @@ define([
 
                 if(systemData.description.length === 0){
                     // show/activate description field
-
                     // show button if value is empty
                     descriptionButton.show();
-
                     hideToolsActionElement(actionElement);
                 }else{
                     // hide/disable description field
@@ -157,9 +135,8 @@ define([
                 }
             }
 
-            // created/updated tooltip ===========================================================================
-
-            let nameRowElement = $(moduleElement).find('.' + config.systemInfoNameInfoClass);
+            // created/updated tooltip --------------------------------------------------------------------------------
+            let nameRowElement = moduleElement.find('.' + config.systemInfoNameClass);
 
             let tooltipData = {
                 created: systemData.created,
@@ -186,20 +163,17 @@ define([
         // store systemId -> module can be updated with the correct data
         moduleElement.data('id', systemData.id);
 
-        // shattered wormhole info data
-        let shatteredWormholeInfo = false;
-
-        // add security class for statics
+        // system "static" wh data
+        let staticsData = [];
         if(
             systemData.statics &&
             systemData.statics.length > 0
         ){
-            for(let i = 0; i < systemData.statics.length; i++){
-                systemData.statics[i].class = Util.getSecurityClassForSystem( systemData.statics[i].security );
+            for(let wormholeName of systemData.statics){
+                let wormholeData = Object.assign({}, Init.wormholes[wormholeName]);
+                wormholeData.class = Util.getSecurityClassForSystem(wormholeData.security);
+                staticsData.push(wormholeData);
             }
-        }else if(systemData.type.id === 1){
-            // system type "wormhole" but no statics => "shattered wormhole"
-            shatteredWormholeInfo = true;
         }
 
         let effectName = MapUtil.getEffectInfoForSystem(systemData.effect, 'name');
@@ -233,7 +207,7 @@ define([
                         emptytext: '',
                         onblur: 'cancel',
                         showbuttons: true,
-                        value: '',  // value is set by trigger function updateSystemInfoModule()
+                        value: '',  // value is set by trigger function updateModule()
                         rows: 5,
                         name: 'description',
                         inputclass: config.descriptionTextareaElementClass,
@@ -280,7 +254,7 @@ define([
                         }
                     });
 
-                    // on xEditable open -------------------------------------------------------------------------
+                    // on xEditable open ------------------------------------------------------------------------------
                     descriptionTextareaElement.on('shown', function(e, editable){
                         let textarea = editable.input.$input;
 
@@ -301,7 +275,7 @@ define([
                         });
                     });
 
-                    // on xEditable close ------------------------------------------------------------------------
+                    // on xEditable close -----------------------------------------------------------------------------
                     descriptionTextareaElement.on('hidden', function(e){
                         let value = $(this).editable('getValue', true);
                         if(value.length === 0){
@@ -314,7 +288,7 @@ define([
                         disableModuleUpdate = false;
                     });
 
-                    // enable xEditable field on Button click ----------------------------------------------------
+                    // enable xEditable field on Button click ---------------------------------------------------------
                     descriptionButton.on('click', function(e){
                         e.stopPropagation();
                         let descriptionButton = $(this);
@@ -328,23 +302,23 @@ define([
                         showToolsActionElement(descriptionButton.siblings('.' + config.tableToolsActionClass));
                     });
 
-                    // init tooltips -----------------------------------------------------------------------------
+                    // init tooltips ----------------------------------------------------------------------------------
                     let tooltipElements = tempModuleElement.find('[data-toggle="tooltip"]');
                     tooltipElements.tooltip();
 
-                    // init system effect popover ----------------------------------------------------------------
-                    $(moduleElement).find('.' + config.systemInfoEffectInfoClass).addSystemEffectTooltip(systemData.security, systemData.effect);
+                    // init system effect popover ---------------------------------------------------------------------
+                    $(moduleElement).find('.' + config.systemInfoEffectClass).addSystemEffectTooltip(systemData.security, systemData.effect);
 
-                    // init static wormhole information ----------------------------------------------------------
-                    if(systemData.statics){
-                        for(let i = 0; i < systemData.statics.length; i++){
-                            let staticData = systemData.statics[i];
-                            let staticRowElement = tempModuleElement.find('.' + config.systemInfoWormholeClass + staticData.name);
-                            staticRowElement.addWormholeInfoTooltip(staticData);
-                        }
+                    // init planets popover ---------------------------------------------------------------------------
+                    $(moduleElement).find('.' + config.systemInfoPlanetsClass).addSystemPlanetsTooltip(systemData.planets);
+
+                    // init static wormhole information ---------------------------------------------------------------
+                    for(let staticData of staticsData){
+                        let staticRowElement = tempModuleElement.find('.' + config.systemInfoWormholeClass + staticData.name);
+                        staticRowElement.addWormholeInfoTooltip(staticData);
                     }
 
-                    // constellation popover ---------------------------------------------------------------------
+                    // constellation popover --------------------------------------------------------------------------
                     tempModuleElement.find('a.popup-ajax').popover({
                         html: true,
                         trigger: 'hover',
@@ -363,7 +337,7 @@ define([
                         $.ajax({
                             url: popoverElement.data('url'),
                             success: function(data){
-                                let systemEffectTable = Util.getSystemsInfoTable( data.systemData );
+                                let systemEffectTable = Util.getSystemsInfoTable( data.systemsData );
                                 popover.options.content = systemEffectTable;
                                 // reopen popover (new content size)
                                 popover.show();
@@ -378,9 +352,11 @@ define([
 
         let moduleData = {
             system: systemData,
+            static: staticsData,
             tableClass: config.systemInfoTableClass,
-            nameInfoClass: config.systemInfoNameInfoClass,
-            effectInfoClass: config.systemInfoEffectInfoClass,
+            nameInfoClass: config.systemInfoNameClass,
+            effectInfoClass: config.systemInfoEffectClass,
+            planetsInfoClass: config.systemInfoPlanetsClass,
             wormholePrefixClass: config.systemInfoWormholeClass,
             statusInfoClass: config.systemInfoStatusLabelClass,
 
@@ -403,8 +379,12 @@ define([
                     return  render(val) === 'A' ? config.fontTriglivianClass : '';
                 };
             },
+            formatUrl: () => {
+                return (val, render) => render(val).replace(/ /g, '_');
+            },
+            planetCount: systemData.planets ? systemData.planets.length : 0,
 
-            shatteredWormholeInfo: shatteredWormholeInfo,
+            shatteredClass: Util.getSecurityClassForSystem('SH'),
 
             ajaxConstellationInfoUrl: Init.path.getConstellationData,
 
@@ -420,20 +400,6 @@ define([
     };
 
     /**
-     * init callback
-     * @param moduleElement
-     * @param mapId
-     * @param systemData
-     */
-    let initModule = (moduleElement, mapId, systemData) => {
-        // set module observer
-        setModuleObserver(moduleElement);
-
-        // enable auto update
-        disableModuleUpdate = false;
-    };
-
-    /**
      * efore module destroy callback
      * @param moduleElement
      */
@@ -446,7 +412,7 @@ define([
     return {
         config: config,
         getModule: getModule,
-        initModule: initModule,
+        updateModule: updateModule,
         beforeDestroy: beforeDestroy
     };
 });

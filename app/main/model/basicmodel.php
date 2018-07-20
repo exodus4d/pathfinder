@@ -514,7 +514,7 @@ abstract class BasicModel extends \DB\Cortex {
      * -> this will not work (prevent abuse)
      * @param bool $active
      */
-    public function setActive($active){
+    public function setActive(bool $active){
         // enables "active" change for this model
         $this->allowActiveChange = true;
         $this->active = $active;
@@ -894,6 +894,18 @@ abstract class BasicModel extends \DB\Cortex {
     public static function setCacheValue(string $key, $data, int $ttl = 0){
         $cache = \Cache::instance();
         $cache->set(self::getF3()->hash($key).'.var', $data, $ttl);
+    }
+
+    /**
+     * check whether a cache $key exists
+     * -> §val (reference) get updated with the cache data
+     * -> equivalent to $f3->exists()
+     * @param string $key
+     * @param null $val
+     * @return bool
+     */
+    public static function existsCacheValue(string $key, &$val = null){
+        return self::getF3()->exists($key, $val);
     }
 
     /**

@@ -94,26 +94,30 @@ define([
         };
         options = $.extend({}, config, options);
 
+        let shatteredClass = Util.getSecurityClassForSystem('SH');
+
         // format result data
         function formatResultData (data) {
+            if(data.loading) return data.text;
 
-            if (data.loading){
-                return data.text;
-            }
+            // abyss system font
+            let systemNameClass = data.security === 'A' ? Util.config.fontTriglivianClass : '' ;
 
             // show effect info just for wormholes
-            let hideEffectClass = '';
-            if(data.effect === ''){
-                hideEffectClass = 'hide';
-            }
+            let hideEffectClass = data.effect === null ? 'hide' : '';
+
+            let hideShatteredClass = !data.shattered ? 'hide' : '';
 
             let markup = '<div class="clearfix">';
-            markup += '<div class="col-sm-5 pf-select-item-anchor">' + data.text + '</div>';
+            markup += '<div class="col-sm-4 pf-select-item-anchor ' + systemNameClass + '">' + data.text + '</div>';
             markup += '<div class="col-sm-2 text-right ' + data.effectClass + '">';
             markup += '<i class="fas fa-fw fa-square ' + hideEffectClass + '"></i>';
             markup += '</div>';
             markup += '<div class="col-sm-2 text-right ' + data.secClass + '">' + data.security + '</div>';
-            markup += '<div class="col-sm-3 text-right ' + data.trueSecClass + '">' + data.trueSec + '</div></div>';
+            markup += '<div class="col-sm-2 text-right ' + shatteredClass + '">';
+            markup += '<i class="fas fa-fw fa-skull ' + hideShatteredClass + '"></i>';
+            markup += '</div>';
+            markup += '<div class="col-sm-2 text-right ' + data.trueSecClass + '">' + data.trueSec + '</div></div>';
 
             return markup;
         }
@@ -123,22 +127,22 @@ define([
                 ajax: {
                     url: function(params){
                         // add params to URL
-                        return   Init.path.searchSystem + '/' + params.term.trim();
+                        return   Init.path.searchUniverseSystemData + '/' + params.term.trim();
                     },
                     dataType: 'json',
                     delay: 250,
                     timeout: 5000,
                     cache: true,
-                    data: function(params) {
-                        // no url params here
-                        return;
+                    data: function(params){
+                        return {
+                            page: params.page || 1
+                        };
                     },
-                    processResults: function(data) {
+                    processResults: function(data, params) {
                         // parse the results into the format expected by Select2.
                         return {
-                            results: data.map( function(item){
-
-                                // "systemId" or "name"
+                            results: data.results.map( function(item){
+                                // "id" or "name"
                                 let id = item[options.key];
                                 let disabled = false;
                                 let trueSec = parseFloat(item.trueSec);
@@ -167,16 +171,20 @@ define([
                                 return {
                                     id: id,
                                     text: item.name,
-                                    systemId: parseInt(item.systemId),
+                                    // systemId: parseInt(item.systemId),
                                     security: item.security,
                                     secClass: secClass,
                                     trueSec: trueSec.toFixed(1),
                                     trueSecClass: trueSecClass,
                                     effect: item.effect,
                                     effectClass: effectClass,
+                                    shattered: item.shattered,
                                     disabled: disabled
                                 };
-                            })
+                            }),
+                            pagination: {
+                                more: data.pagination.more
+                            }
                         };
                     },
                     error: function (jqXHR, status, error) {

@@ -34,7 +34,7 @@ class Structure extends Controller\AccessController {
                  * @var $structure Model\StructureModel
                  */
                 $structure = Model\BasicModel::getNew('StructureModel');
-                foreach ($structuresData as $structureData){
+                foreach($structuresData as $structureData){
                     // reset on loop start because of potential "continue"
                     $structure->reset();
 
@@ -46,7 +46,7 @@ class Structure extends Controller\AccessController {
                         }
                     }elseif( !isset($structureData['id']) ){
                         // from clipboard -> search by structure by name
-                        $structure->getByName($activeCharacter->getCorporation(), (string)$structureData['name']);
+                        $structure->getByName($activeCharacter->getCorporation(), (string)$structureData['name'], (int)$structureData['systemId']);
                     }
 
                     $newStructure = $structure->dry();
