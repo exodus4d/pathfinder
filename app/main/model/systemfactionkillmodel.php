@@ -10,7 +10,7 @@ namespace Model;
 
 use DB\SQL\Schema;
 
-class SystemFactionKillModel extends SystemApiBasicModel {
+class SystemFactionKillModel extends AbstractSystemApiBasicModel {
 
     protected $table = 'system_kills_factions';
 

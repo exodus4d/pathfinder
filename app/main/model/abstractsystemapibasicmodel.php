@@ -10,10 +10,9 @@ namespace Model;
 
 use DB\SQL\Schema;
 
-class SystemApiBasicModel extends BasicModel {
+abstract class AbstractSystemApiBasicModel extends BasicModel {
 
     public function __construct($db = NULL, $table = NULL, $fluid = NULL, $ttl = 0){
-
         $this->addStaticKillFieldConfig();
 
         parent::__construct($db, $table, $fluid, $ttl);
@@ -23,9 +22,7 @@ class SystemApiBasicModel extends BasicModel {
      * extent the fieldConf Array with static fields for each table
      */
     private function addStaticKillFieldConfig(){
-
         if(is_array($this->fieldConf)){
-
             $staticFieldConfig = [];
             for($i = 1; $i <= 24; $i++){
                 $staticFieldConfig['value' . $i] = [

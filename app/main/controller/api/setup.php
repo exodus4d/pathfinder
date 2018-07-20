@@ -59,7 +59,7 @@ class Setup extends Controller\Controller {
         $controller = new Controller\Ccp\Universe();
         switch($type){
             case 'Systems':
-                $length = 200;
+                $length = 100;
                 $offset = $count * $length;
                 $buildInfo = $controller->buildSystemsIndex($offset, $length);
                 $return->countAll = $buildInfo['countAll'];

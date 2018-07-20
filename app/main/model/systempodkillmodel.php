@@ -10,7 +10,7 @@ namespace Model;
 
 use DB\SQL\Schema;
 
-class SystemPodKillModel extends SystemApiBasicModel {
+class SystemPodKillModel extends AbstractSystemApiBasicModel {
 
     protected $table = 'system_kills_pods';
 
