@@ -980,7 +980,7 @@ class Map extends Controller\AccessController {
                     $sourceSystem = $map->getSystemByCCPId($sourceSystemId, ['active' => 1]);
 
                     // -> check if system is already on this map
-                    $targetSystem = $map->getSystemByCCPId( $targetSystemId, ['active' => 1]);
+                    $targetSystem = $map->getSystemByCCPId($targetSystemId, ['active' => 1]);
                 }
 
                 // if systems don´t already exists on map -> get "blank" system

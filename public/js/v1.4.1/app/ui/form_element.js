@@ -393,7 +393,7 @@ define([
                     language: {
                         searching: params => '&nbsp;<i class="fas fa-sync fa-spin"></i>&nbsp;&nbsp;searching...'
                     },
-                    /* alphabetic search not always fits the users need
+                    /* 
                     sorter: data => {
                         // sort nested data options by "text" prop
                         return data.map((group, index) => {
