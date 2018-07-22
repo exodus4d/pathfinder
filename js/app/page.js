@@ -734,7 +734,13 @@ define([
 
         // global "modal" callback (for all modals)
         $('body').on('hide.bs.modal', '> .modal', function(e) {
-            $(this).destroyTimestampCounter();
+            let modalElement = $(this);
+            modalElement.destroyTimestampCounter();
+
+            // destroy all Select2
+            modalElement.find('.' + Util.config.select2Class)
+                .filter((i, element) => $(element).data('select2'))
+                .select2('destroy');
         });
 
         // disable menu links based on current map config

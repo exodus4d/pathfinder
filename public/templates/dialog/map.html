@@ -4,7 +4,7 @@
         <div class="navbar-header navbar-header-block">
             <ul class="nav navbar-nav {{dialogNavigationClass}}" role="tablist">
                 <li class="{{#openTabNew}}active{{/openTabNew}}">
-                    <a role="tab" data-toggle="tab" data-name="newMap" href="#{{dialogMapCreateContainerId}}">
+                    <a role="tab" data-toggle="tab" data-name="newMap" href="#{{dialogMapNewContainerId}}">
                         <i class="fas fa-plus fa-fw"></i>&nbsp;New map
                     </a>
                 </li>
@@ -35,7 +35,7 @@
     </nav>
 
     <div class="tab-content">
-        <div role="tabpanel" class="tab-pane fade {{#openTabNew}}in active{{/openTabNew}}" id="{{dialogMapCreateContainerId}}"></div>
+        <div role="tabpanel" class="tab-pane fade {{#openTabNew}}in active{{/openTabNew}}" id="{{dialogMapNewContainerId}}"></div>
         <div role="tabpanel" class="tab-pane fade {{#openTabEdit}}in active{{/openTabEdit}}" id="{{dialogMapEditContainerId}}"></div>
 
         {{^hideSettingsTab}}

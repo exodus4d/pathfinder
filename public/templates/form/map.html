@@ -4,9 +4,9 @@
         <div class="row">
             <div class="col-xs-6 col-sm-3">
                 <div class="form-group">
-                    <label for="icon" class="col-sm-4 control-label">Icon</label>
+                    <label for="{{iconSelectId}}" class="col-sm-4 control-label">Icon</label>
                     <div class="col-sm-8">
-                        <select class="form-control pf-form-icon-field" name="icon" id="icon" title="Map icon" data-placement="top">
+                        <select name="icon" id="{{iconSelectId}}" class="form-control pf-form-icon-field {{select2Class}}">
                             {{#icon}}
                             <option value="{{class}}" >{{{unicode}}}</option>
                             {{/icon}}
@@ -28,9 +28,9 @@
         <div class="row">
             <div class="col-xs-6 col-sm-6">
                 <div class="form-group">
-                    <label for="scope" class="col-sm-2 control-label">Scope</label>
+                    <label for="{{scopeSelectId}}" class="col-sm-2 control-label">Scope</label>
                     <div class="col-sm-10">
-                        <select name="scopeId" id="scope" class="form-control" title="Connections that get tracked on this map" data-placement="top">
+                        <select name="scopeId" id="{{scopeSelectId}}" class="form-control {{select2Class}}">
                             {{#scope}}
                             <option value="{{id}}">{{label}}</option>
                             {{/scope}}
@@ -40,9 +40,9 @@
             </div>
             <div class="col-xs-6 col-sm-6">
                 <div class="form-group">
-                    <label for="type" class="col-sm-2 control-label">Type</label>
+                    <label for="{{typeSelectId}}" class="col-sm-2 control-label">Type</label>
                     <div class="col-sm-10">
-                        <select name="typeId" id="type" class="form-control" title="Alliance/Corporation maps require character authentication" data-placement="top">
+                        <select name="typeId" id="{{typeSelectId}}" class="form-control {{select2Class}}">
                             {{#type}}
                             <option value="{{id}}">{{label}}</option>
                             {{/type}}
