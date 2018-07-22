@@ -32,16 +32,6 @@ class Universe extends Controller\AccessController {
             !empty($categories)
         ){
             $universeNameData = Ccp\Universe::searchUniverseNameData($categories, $search);
-
-            foreach($categories as &$category) {
-                if(!empty($universeNameData[$category])){
-                    usort($universeNameData[$category], function($a, $b) use ($search) {
-                        $levA = levenshtein($search, strtolower($a["name"]));
-                        $levB = levenshtein($search, strtolower($b["name"]));
-                        return $levA == $levB ? 0 : ($levA > $levB ? 1 : -1);
-                    });
-                }
-            }
         }
 
         echo json_encode($universeNameData);
